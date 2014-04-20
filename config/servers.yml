@@ -113,13 +113,18 @@
 #    color: green
 #    foo: bar
 ---
-# User Extensions: Where XD scans the classpath to discover extended container configuration
+# User Extensions: Where XD scans the classpath to discover extended container configuration. 'plugins' adds beans to the Plugins context,
+# 'shared' adds beans to the Shared Server context
 # Each property may be a comma delimited string. 'basepackages' refers to package names used for
-# annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing xml configuration. 
-# XD append **/*.xml to each location
+# annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing XML or Groogy configuration. 
+# XD appends **/*.* to each location
 #xd:
 #  extensions:
-#    basepackages: com.acme.xd.extensions
-#    locations: classpath*:META-INF/spring-xd/ext
+#    plugins:
+#       basepackages: com.acme.xd.plugins.extensions
+#       locations: classpath*:META-INF/spring-xd/plugins-extensions
+#    shared:
+#       basepackages: com.acme.xd.shared.extensions
+#       locations: classpath*:META-INF/spring-xd/shared-extensions
 
 ---

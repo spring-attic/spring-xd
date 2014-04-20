@@ -17,6 +17,7 @@
 package org.springframework.xd.extensions;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -28,13 +29,15 @@ import org.junit.Test;
 
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.x.bus.MessageBusSupport;
 import org.springframework.integration.x.bus.converter.CompositeMessageConverterFactory;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
-import org.springframework.xd.extensions.test.MyMessageBus;
+import org.springframework.xd.extensions.test.StubCodec;
 import org.springframework.xd.extensions.test.StubPojoToStringConverter;
 
 
@@ -66,10 +69,11 @@ public class ExtensionsTests {
 
 	@Test
 	public void extensionsProperties() throws IOException {
-		Object extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.basepackages", Object.class);
+		Object extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.plugins.basepackages",
+				Object.class);
 		assertEquals("org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2",
 				extensionsBasePackage);
-		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.locations");
+		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.plugins.locations");
 		assertEquals("classpath*:META-INF/spring-xd/ext-test,classpath*:META-INF/spring-xd/ext-test2",
 				extensionsLocation);
 
@@ -86,8 +90,10 @@ public class ExtensionsTests {
 	}
 
 	@Test
-	public void customMessageBus() {
-		context.getBean("messageBus", MyMessageBus.class);
+	public void customCodec() {
+		MessageBusSupport mbs = context.getBean("messageBus", MessageBusSupport.class);
+		MultiTypeCodec<?> codec = context.getBean("codec", StubCodec.class);
+		assertSame(codec, TestUtils.getPropertyValue(mbs, "codec"));
 	}
 
 	@AfterClass

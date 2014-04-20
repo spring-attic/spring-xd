@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.container.initializer;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
@@ -27,52 +26,31 @@ import org.springframework.util.StringUtils;
 
 
 /**
- * An {@link OrderedContextInitializer} to scan for annotation configured beans in xd.extensions.basepackages and in
- * resource locations xd.extensions.locations. Each property value is a comma delimited string.
- * 
+ *
  * @author David Turanski
  */
-public class PluginContextExtensionsInitializer extends AbstractXMLBeanDefinitionProvider {
-
-	@Value("${xd.extensions.locations:}")
-	private String extensionsLocations;
-
-	@Value("${xd.extensions.basepackages:}")
-	private String extensionsBasePackages;
+public abstract class AbstractComponentScanningBeanDefinitionProvider implements OrderedContextInitializer {
 
 	@Override
 	public void onApplicationEvent(ApplicationPreparedEvent event) {
-		if (StringUtils.hasText(extensionsBasePackages)) {
+		if (StringUtils.hasText(getExtensionsBasePackages())) {
 			AnnotationConfigApplicationContext context = (AnnotationConfigApplicationContext) event.getApplicationContext();
 			ClassPathScanningCandidateComponentProvider componentProvider = new
 					ClassPathScanningCandidateComponentProvider(
 							true, context.getEnvironment());
 
-			for (String basePackage : StringUtils.commaDelimitedListToStringArray(extensionsBasePackages)) {
+			for (String basePackage : StringUtils.commaDelimitedListToStringArray(getExtensionsBasePackages())) {
 				for (BeanDefinition bean : componentProvider.findCandidateComponents(basePackage)) {
 					context.registerBeanDefinition(BeanDefinitionReaderUtils.generateBeanName(bean, context), bean);
 				}
 			}
 		}
-
-		if (StringUtils.hasText(extensionsLocations)) {
-			super.onApplicationEvent(event);
-		}
 	}
+
+	protected abstract String getExtensionsBasePackages();
 
 	@Override
 	public int getOrder() {
 		return Ordered.LOWEST_PRECEDENCE;
 	}
-
-	@Override
-	protected String[] getLocations() {
-		String[] locations = StringUtils.commaDelimitedListToStringArray(this.extensionsLocations);
-		for (int i = 0; i < locations.length; i++) {
-			locations[i] = locations[i] + "/**/*.xml";
-		}
-
-		return locations;
-	}
-
 }

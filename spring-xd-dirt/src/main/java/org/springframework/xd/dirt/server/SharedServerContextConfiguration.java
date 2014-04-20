@@ -27,30 +27,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
  * Beans defined and imported here are shared by the XD Admin Server and Container Server.
- * 
+ *
  * @author David Turanski
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
 @Configuration
 @Import(PropertyPlaceholderAutoConfiguration.class)
-@ImportResource({ ConfigLocations.XD_CONFIG_ROOT + "bus/*.xml",
-	ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
-	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml" })
 public class SharedServerContextConfiguration {
 
 	public static final String ZK_CONNECT = "zk.client.connect";

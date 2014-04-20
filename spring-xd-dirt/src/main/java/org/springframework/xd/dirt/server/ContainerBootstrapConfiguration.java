@@ -18,27 +18,52 @@ package org.springframework.xd.dirt.server;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.dirt.container.initializer.SharedServerContextInitializer;
 import org.springframework.xd.dirt.container.initializer.OrderedContextInitializer;
-import org.springframework.xd.dirt.container.initializer.PluginContextExtensionsInitializer;
+import org.springframework.xd.dirt.container.initializer.PluginContextComponentScanningExtensionsInitializer;
+import org.springframework.xd.dirt.container.initializer.PluginContextResourceExtensionsInitializer;
 import org.springframework.xd.dirt.container.initializer.PluginsInitializer;
+import org.springframework.xd.dirt.container.initializer.SharedServerContextComponentScanningExtensionsInitializer;
+import org.springframework.xd.dirt.container.initializer.SharedServerContextResourceExtensionsInitializer;
 
 
 /**
  * Bootstrap Configuration for the {@link ContainerBootstrapContext }
- * 
+ *
  * @author David Turanski
  */
 @Configuration
 class ContainerBootstrapConfiguration {
 
 	@Bean
-	OrderedContextInitializer extensionsInitializer() {
-		return new PluginContextExtensionsInitializer();
+	OrderedContextInitializer pluginsComponentExtensionsInitializer() {
+		return new PluginContextComponentScanningExtensionsInitializer();
 	}
+
+	@Bean
+	OrderedContextInitializer pluginsResourceextensionsInitializer() {
+		return new PluginContextResourceExtensionsInitializer();
+	}
+
+	@Bean
+	OrderedContextInitializer sharedServerComponentExtensionsInitializer() {
+		return new SharedServerContextComponentScanningExtensionsInitializer();
+	}
+
+	@Bean
+	OrderedContextInitializer sharedServerResourceExtensionsInitializer() {
+		return new SharedServerContextResourceExtensionsInitializer();
+	}
+
 
 	@Bean
 	OrderedContextInitializer pluginsInitializer() {
 		return new PluginsInitializer();
+	}
+
+	@Bean
+	OrderedContextInitializer messageBusInitializer() {
+		return new SharedServerContextInitializer();
 	}
 
 }

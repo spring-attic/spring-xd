@@ -16,17 +16,20 @@
 
 package org.springframework.xd.dirt.container.initializer;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
- * An {@link OrderedContextInitializer} to load out-of-the Box XD Plugins.
+ * An {@link OrderedContextInitializer} to load XD SharedServerContext resources. Doing it here ensures these beans are
+ * loaded prior to any Shared Server context extensions.
  *
  * @author David Turanski
  */
-public class PluginsInitializer extends AbstractResourceBeanDefinitionProvider {
+public class SharedServerContextInitializer extends AbstractResourceBeanDefinitionProvider {
 
-	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/";
+	@Value("${XD_ANALYTICS}")
+	private String XD_ANALYTICS;
 
 	@Override
 	public int getOrder() {
@@ -35,7 +38,10 @@ public class PluginsInitializer extends AbstractResourceBeanDefinitionProvider {
 
 	@Override
 	protected String[] getLocations() {
-		return new String[] { CONTEXT_CONFIG_ROOT + "*.xml" };
+		return new String[] {
+			ConfigLocations.XD_CONFIG_ROOT + "bus/*.xml",
+			ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
+			ConfigLocations.XD_CONFIG_ROOT + "analytics/" + XD_ANALYTICS + "-analytics.xml" };
 	}
 
 	@Override
@@ -45,6 +51,6 @@ public class PluginsInitializer extends AbstractResourceBeanDefinitionProvider {
 
 	@Override
 	public TargetContext getTargetContext() {
-		return TargetContext.PLUGIN_CONTEXT;
+		return TargetContext.SHARED_SERVER_CONTEXT;
 	}
 }

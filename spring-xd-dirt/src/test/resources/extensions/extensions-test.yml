@@ -1,4 +1,8 @@
 xd:
    extensions:
-        basepackages: org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2
-        locations: classpath*:META-INF/spring-xd/ext-test,classpath*:META-INF/spring-xd/ext-test2
+        plugins:
+            basepackages: org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2
+            locations: classpath*:META-INF/spring-xd/ext-test,classpath*:META-INF/spring-xd/ext-test2
+        shared:    
+            basepackages: org.springframework.xd.extensions.shared.test
+            locations: classpath*:META-INF/spring-xd/shared-ext-test

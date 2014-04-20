@@ -65,7 +65,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * The boot application class for a Container server.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  */
@@ -116,11 +116,11 @@ public class ContainerServerApplication implements EnvironmentAware {
 					.profiles(XdProfiles.CONTAINER_PROFILE)
 					.listeners(bootstrapContext.commandLineListener())
 					.child(SharedServerContextConfiguration.class, ContainerOptions.class)
-					.listeners(bootstrapContext.commandLineListener())
+					.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+							bootstrapContext.sharedServerContextInitializers()))
 					.child(ContainerServerApplication.class)
-					.listeners(
-							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-									bootstrapContext.orderedContextInitializers()))
+					.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+							bootstrapContext.pluginContextInitializers()))
 					.child(ContainerConfiguration.class)
 					.listeners(bootstrapContext.commandLineListener())
 					.initializers(new IdInitializer())
@@ -195,7 +195,7 @@ public class ContainerServerApplication implements EnvironmentAware {
 
 /**
  * Container Application Context
- * 
+ *
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
  */

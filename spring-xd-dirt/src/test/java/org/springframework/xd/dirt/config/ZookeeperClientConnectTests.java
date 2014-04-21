@@ -46,7 +46,7 @@ public class ZookeeperClientConnectTests {
 
 
 	public final void setUp(String zkClientConnect, Integer zkEmbeddedServerPort, boolean isConfigured) {
-		System.setProperty("xd.extensions.plugins.basepackages", this.getClass().getPackage().getName());
+		System.setProperty("xd.extensions.plugin.basepackages", this.getClass().getPackage().getName());
 		System.setProperty("zk.client.connect", zkClientConnect);
 		if (zkEmbeddedServerPort != null) {
 			System.setProperty("zk.embedded.server.port", zkEmbeddedServerPort.toString());
@@ -101,7 +101,7 @@ public class ZookeeperClientConnectTests {
 		finally {
 			System.clearProperty("zk.client.connect");
 			System.clearProperty("zk.embedded.server.port");
-			System.clearProperty("xd.extensions.plugins.basepackages");
+			System.clearProperty("xd.extensions.plugin.basepackages");
 			System.clearProperty("zk.client.connection.configured");
 		}
 	}

@@ -26,7 +26,7 @@ import org.springframework.core.Ordered;
  */
 public class PluginContextResourceExtensionsInitializer extends AbstractResourceBeanDefinitionProvider {
 
-	@Value("${xd.extensions.plugins.locations:}")
+	@Value("${xd.extensions.plugin.locations:}")
 	private String extensionsLocations;
 
 	@Override

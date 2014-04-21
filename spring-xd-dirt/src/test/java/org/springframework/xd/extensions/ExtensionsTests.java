@@ -69,11 +69,11 @@ public class ExtensionsTests {
 
 	@Test
 	public void extensionsProperties() throws IOException {
-		Object extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.plugins.basepackages",
+		Object extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.plugin.basepackages",
 				Object.class);
 		assertEquals("org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2",
 				extensionsBasePackage);
-		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.plugins.locations");
+		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.plugin.locations");
 		assertEquals("META-INF/spring-xd/ext/test,META-INF/spring-xd/ext/test2",
 				extensionsLocation);
 

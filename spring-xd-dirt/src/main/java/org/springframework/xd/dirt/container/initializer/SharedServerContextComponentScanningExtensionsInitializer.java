@@ -29,7 +29,7 @@ public class SharedServerContextComponentScanningExtensionsInitializer extends
 		AbstractComponentScanningBeanDefinitionProvider {
 
 
-	@Value("${xd.extensions.shared.basepackages:}")
+	@Value("${xd.extensions.server.basepackages:}")
 	private String extensionsBasePackages;
 
 	@Override

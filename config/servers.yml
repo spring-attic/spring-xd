@@ -120,10 +120,10 @@
 # XD prepends classpath:* if no prefix included and appends **/*.* to each location
 #xd:
 #  extensions:
-#    plugins:
+#    plugin:
 #       basepackages: com.acme.xd.plugin.extensions
 #       locations: META-INF/spring-xd/ext/plugin
-#    shared:
+#    server:
 #       basepackages: com.acme.xd.server.extensions
 #       locations: META-INF/spring-xd/ext/server
 ---

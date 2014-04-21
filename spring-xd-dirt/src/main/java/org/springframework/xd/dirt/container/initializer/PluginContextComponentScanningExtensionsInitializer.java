@@ -29,7 +29,7 @@ public class PluginContextComponentScanningExtensionsInitializer extends
 		AbstractComponentScanningBeanDefinitionProvider {
 
 
-	@Value("${xd.extensions.plugins.basepackages:}")
+	@Value("${xd.extensions.plugin.basepackages:}")
 	private String extensionsBasePackages;
 
 	@Override

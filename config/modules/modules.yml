@@ -25,3 +25,12 @@
 #    consumerSecret: ${sharedConsumerSecret:}
 
 ---
+
+# RabbitMQ shared module properties
+#sharedRabbitHost: localhost
+#sharedRabbitPort: 5672
+#sharedRabbitUsername: guest
+#sharedRabbitPassword: guest
+#sharedRabbitVhost: /
+
+---

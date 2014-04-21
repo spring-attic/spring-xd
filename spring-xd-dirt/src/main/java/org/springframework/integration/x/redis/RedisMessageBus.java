@@ -106,13 +106,14 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
-		addBinding(Binding.forConsumer(adapter, moduleInputChannel));
+		Binding consumerBinding = Binding.forConsumer(adapter, moduleInputChannel);
+		addBinding(consumerBinding);
 		ReceivingHandler convertingBridge = new ReceivingHandler();
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");
 		convertingBridge.afterPropertiesSet();
 		bridgeToModuleChannel.subscribe(convertingBridge);
-		adapter.start();
+		consumerBinding.start();
 	}
 
 	@Override
@@ -146,8 +147,9 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		consumer.setBeanFactory(this.getBeanFactory());
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
-		addBinding(Binding.forProducer(moduleOutputChannel, consumer));
-		consumer.start();
+		Binding producerBinding = Binding.forProducer(moduleOutputChannel, consumer);
+		addBinding(producerBinding);
+		producerBinding.start();
 	}
 
 	@Override

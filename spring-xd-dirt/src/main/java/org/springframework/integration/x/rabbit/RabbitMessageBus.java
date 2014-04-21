@@ -88,7 +88,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.rabbitAdmin.afterPropertiesSet();
 		this.mapper = new DefaultAmqpHeaderMapper();
 		this.mapper.setRequestHeaderNames(new String[] { AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN,
-			ORIGINAL_CONTENT_TYPE_HEADER });
+				ORIGINAL_CONTENT_TYPE_HEADER });
 		this.setCodec(codec);
 	}
 
@@ -136,13 +136,14 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		adapter.setHeaderMapper(this.mapper);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
-		addBinding(Binding.forConsumer(adapter, moduleInputChannel));
+		Binding consumerBinding = Binding.forConsumer(adapter, moduleInputChannel);
+		addBinding(consumerBinding);
 		ReceivingHandler convertingBridge = new ReceivingHandler();
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");
 		convertingBridge.afterPropertiesSet();
 		bridgeToModuleChannel.subscribe(convertingBridge);
-		adapter.start();
+		consumerBinding.start();
 	}
 
 	@Override
@@ -188,8 +189,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		consumer.setBeanFactory(this.getBeanFactory());
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
-		addBinding(Binding.forProducer(moduleOutputChannel, consumer));
-		consumer.start();
+		Binding producerBinding = Binding.forProducer(moduleOutputChannel, consumer);
+		addBinding(producerBinding);
+		producerBinding.start();
 	}
 
 	@Override

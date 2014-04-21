@@ -303,12 +303,11 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 			Binding binding = isInbound ? Binding.forConsumer(cefb.getObject(), to)
 					: Binding.forProducer(from, cefb.getObject());
 			addBinding(binding);
+			binding.start();
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
-
-		cefb.start();
 		return handler;
 	}
 

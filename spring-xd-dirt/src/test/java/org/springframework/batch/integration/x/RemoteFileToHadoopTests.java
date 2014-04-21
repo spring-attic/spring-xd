@@ -82,7 +82,7 @@ public class RemoteFileToHadoopTests {
 		System.setProperty("spring.hadoop.fsUri", "hdfs://localhost:8020");
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
 	public void setup() throws Exception {
 		byte[] bytes = "foobarbaz".getBytes();
@@ -112,6 +112,7 @@ public class RemoteFileToHadoopTests {
 		this.repliesIn = ctx.getBean("stepExecutionReplies.input", MessageChannel.class);
 
 		this.bus = new LocalMessageBus();
+		((LocalMessageBus) this.bus).setApplicationContext(ctx);
 		this.bus.bindRequestor("foo", this.requestsOut, this.repliesIn);
 		this.bus.bindReplier("foo", this.requestsIn, this.repliesOut);
 	}

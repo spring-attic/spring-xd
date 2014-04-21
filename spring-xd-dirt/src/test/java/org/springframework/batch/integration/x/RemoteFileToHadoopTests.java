@@ -46,7 +46,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.test.hadoop.HadoopFileSystemTestSupport;
@@ -82,7 +81,7 @@ public class RemoteFileToHadoopTests {
 		System.setProperty("spring.hadoop.fsUri", "hdfs://localhost:8020");
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
 	public void setup() throws Exception {
 		byte[] bytes = "foobarbaz".getBytes();
@@ -111,7 +110,7 @@ public class RemoteFileToHadoopTests {
 		this.repliesOut = ctx.getBean("stepExecutionReplies.output", MessageChannel.class);
 		this.repliesIn = ctx.getBean("stepExecutionReplies.input", MessageChannel.class);
 
-		this.bus = new LocalMessageBus();
+		this.bus = (MessageBus) ctx.getBean("messageBus");
 		this.bus.bindRequestor("foo", this.requestsOut, this.repliesIn);
 		this.bus.bindReplier("foo", this.requestsIn, this.repliesOut);
 	}

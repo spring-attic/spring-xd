@@ -1,1 +1,27 @@
-# Stub module configuration file
+# modules configuration file
+
+# Common twitter keys
+#sharedConsumerKey:
+#sharedConsumerSecret:
+#sharedAccessToken:
+#sharedAccessTokenSecret:
+
+---
+
+# twitterstream source module properties
+#source:
+#  twitterstream:
+#    consumerKey: ${sharedConsumerKey:}
+#    consumerSecret: ${sharedConsumerSecret:}
+#    accessToken: ${sharedAccessToken:}
+#    accessTokenSecret: ${sharedAccessTokenSecret:}
+
+---
+
+# twittersearch source module properties
+#source:
+#  twittersearch:
+#    consumerKey: ${sharedConsumerKey:}
+#    consumerSecret: ${sharedConsumerSecret:}
+
+---

@@ -91,9 +91,7 @@ public class ExtensionsTests {
 
 	@Test
 	public void customCodec() {
-		MessageBusSupport mbs = context.getBean("messageBus", MessageBusSupport.class);
-		MultiTypeCodec<?> codec = context.getBean("codec", StubCodec.class);
-		assertSame(codec, TestUtils.getPropertyValue(mbs, "codec"));
+		context.getBean("codec", StubCodec.class);
 	}
 
 	@AfterClass

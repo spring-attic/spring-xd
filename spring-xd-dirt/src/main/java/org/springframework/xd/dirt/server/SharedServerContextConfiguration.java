@@ -22,17 +22,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -46,6 +49,11 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  */
 @Configuration
 @Import(PropertyPlaceholderAutoConfiguration.class)
+@ImportResource({
+	ConfigLocations.XD_CONFIG_ROOT + "bus/message-bus.xml",
+	ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
+	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml"
+})
 public class SharedServerContextConfiguration {
 
 	public static final String ZK_CONNECT = "zk.client.connect";
@@ -65,6 +73,13 @@ public class SharedServerContextConfiguration {
 			return exporter;
 		}
 	}
+	
+	@Configuration
+	@ConditionalOnExpression("'${XD_TRANSPORT}'!='local'")
+	@ConditionalOnMissingBean(name="codec")
+	@ImportResource(ConfigLocations.XD_CONFIG_ROOT + "bus/codec.xml")
+	static class CodecConfig {}
+	
 
 	@Configuration
 	@Profile(XdProfiles.SINGLENODE_PROFILE)

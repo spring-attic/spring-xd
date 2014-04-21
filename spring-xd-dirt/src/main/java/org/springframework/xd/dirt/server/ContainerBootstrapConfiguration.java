@@ -23,7 +23,6 @@ import org.springframework.xd.dirt.container.initializer.PluginContextComponentS
 import org.springframework.xd.dirt.container.initializer.PluginContextResourceExtensionsInitializer;
 import org.springframework.xd.dirt.container.initializer.PluginsInitializer;
 import org.springframework.xd.dirt.container.initializer.SharedServerContextComponentScanningExtensionsInitializer;
-import org.springframework.xd.dirt.container.initializer.SharedServerContextInitializer;
 import org.springframework.xd.dirt.container.initializer.SharedServerContextResourceExtensionsInitializer;
 
 
@@ -60,10 +59,4 @@ class ContainerBootstrapConfiguration {
 	OrderedContextInitializer pluginsInitializer() {
 		return new PluginsInitializer();
 	}
-
-	@Bean
-	OrderedContextInitializer sharedServerContextInitializer() {
-		return new SharedServerContextInitializer();
-	}
-
 }

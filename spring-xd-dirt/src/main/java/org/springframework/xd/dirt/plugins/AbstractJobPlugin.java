@@ -24,7 +24,7 @@ import org.springframework.xd.module.core.Module;
 /**
  * Abstract class that extends {@link AbstractMessageBusBinderPlugin} and has common implementation methods related to
  * job plugins.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public class AbstractJobPlugin extends AbstractMessageBusBinderPlugin {
@@ -40,16 +40,6 @@ public class AbstractJobPlugin extends AbstractMessageBusBinderPlugin {
 
 	@Override
 	protected String getOutputChannelName(Module module) {
-		throw new UnsupportedOperationException("Job module doesn't have output channel set.");
-	}
-
-	@Override
-	protected boolean isAliasedInput(Module module) {
-		return true;
-	}
-
-	@Override
-	protected boolean isAliasedOutput(Module module) {
 		throw new UnsupportedOperationException("Job module doesn't have output channel set.");
 	}
 

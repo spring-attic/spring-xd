@@ -87,7 +87,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		CommandResult cr = createJob(jobName, "job");
 		checkForFail(cr);
-		checkDuplicateJobErrorMessage(cr, jobName);
+		checkBatchJobExistsErrorMessage(cr, jobName);
 	}
 
 	@Test

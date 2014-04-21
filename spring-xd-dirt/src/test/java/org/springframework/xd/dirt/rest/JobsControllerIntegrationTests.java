@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -45,6 +46,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobRepository;
@@ -77,6 +79,9 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Autowired
 	private MessageBus messageBus;
 
+	@Autowired
+	private DistributedJobLocator jobLocator;
+
 	@Before
 	public void before() {
 		Resource resource = new DescriptiveResource("dummy");
@@ -90,6 +95,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		when(moduleRegistry.findDefinition("job1", ModuleType.job)).thenReturn(moduleJobDefinition);
 		when(moduleRegistry.findDefinition("job2", ModuleType.job)).thenReturn(moduleJobDefinition);
 		when(moduleRegistry.findDefinition("job", ModuleType.job)).thenReturn(moduleJobDefinition);
+		when(jobLocator.getJobNames()).thenReturn(Arrays.asList(new String[] {}));
 	}
 
 	@After
@@ -215,5 +221,15 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 		assertNull(jobDefinitionRepository.findOne("job1"));
 		assertNull(jobDefinitionRepository.findOne("job2"));
+	}
+
+	@Test
+	public void testJobThatAlreadyExistsInJobRepo() throws Exception {
+		when(jobLocator.getJobNames()).thenReturn(Arrays.asList(new String[] { "mydupejob" }));
+		mockMvc.perform(
+				post("/jobs").param("name", "mydupejob").param("definition", "job adsfa").accept(
+						MediaType.APPLICATION_JSON))
+				.andExpect(status().isBadRequest()).andExpect(
+						jsonPath("$[0].message", Matchers.is("Batch Job with the name mydupejob already exists")));
 	}
 }

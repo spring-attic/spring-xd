@@ -26,7 +26,7 @@ import org.springframework.core.Ordered;
  * @author David Turanski
  */
 public class SharedServerContextResourceExtensionsInitializer extends
-AbstractResourceBeanDefinitionProvider {
+		AbstractResourceBeanDefinitionProvider {
 
 	@Value("${xd.extensions.shared.locations:}")
 	private String extensionsLocations;

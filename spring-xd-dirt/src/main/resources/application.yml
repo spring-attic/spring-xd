@@ -31,7 +31,7 @@ xd:
        locations: classpath*:META-INF/spring-xd/ext/plugin
      shared:
        basepackages:
-       locations: classpath*:META-INF/spring/xd/ext/shared
+       locations: classpath*:META-INF/spring-xd/ext/server
   container:
     groups: ${XD_CONTAINER_GROUPS:}
 

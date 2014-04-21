@@ -19,18 +19,15 @@ package org.springframework.xd.dirt.container.initializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 
-
 /**
  * An {@link OrderedContextInitializer} to scan resource locations xd.extensions.plugins.locations
  *
  * @author David Turanski
  */
-public class PluginContextResourceExtensionsInitializer extends
-AbstractResourceBeanDefinitionProvider {
+public class PluginContextResourceExtensionsInitializer extends AbstractResourceBeanDefinitionProvider {
 
 	@Value("${xd.extensions.plugins.locations:}")
 	private String extensionsLocations;
-
 
 	@Override
 	public int getOrder() {

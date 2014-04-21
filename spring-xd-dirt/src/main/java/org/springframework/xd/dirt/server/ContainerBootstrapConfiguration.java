@@ -18,12 +18,12 @@ package org.springframework.xd.dirt.server;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.xd.dirt.container.initializer.SharedServerContextInitializer;
 import org.springframework.xd.dirt.container.initializer.OrderedContextInitializer;
 import org.springframework.xd.dirt.container.initializer.PluginContextComponentScanningExtensionsInitializer;
 import org.springframework.xd.dirt.container.initializer.PluginContextResourceExtensionsInitializer;
 import org.springframework.xd.dirt.container.initializer.PluginsInitializer;
 import org.springframework.xd.dirt.container.initializer.SharedServerContextComponentScanningExtensionsInitializer;
+import org.springframework.xd.dirt.container.initializer.SharedServerContextInitializer;
 import org.springframework.xd.dirt.container.initializer.SharedServerContextResourceExtensionsInitializer;
 
 
@@ -36,22 +36,22 @@ import org.springframework.xd.dirt.container.initializer.SharedServerContextReso
 class ContainerBootstrapConfiguration {
 
 	@Bean
-	OrderedContextInitializer pluginsComponentExtensionsInitializer() {
+	OrderedContextInitializer pluginContextComponentScanningExtensionsInitializer() {
 		return new PluginContextComponentScanningExtensionsInitializer();
 	}
 
 	@Bean
-	OrderedContextInitializer pluginsResourceextensionsInitializer() {
+	OrderedContextInitializer pluginContextResourceExtensionsInitializer() {
 		return new PluginContextResourceExtensionsInitializer();
 	}
 
 	@Bean
-	OrderedContextInitializer sharedServerComponentExtensionsInitializer() {
+	OrderedContextInitializer sharedServerContextComponentScanningExtensionsInitializer() {
 		return new SharedServerContextComponentScanningExtensionsInitializer();
 	}
 
 	@Bean
-	OrderedContextInitializer sharedServerResourceExtensionsInitializer() {
+	OrderedContextInitializer sharedServerContextResourceExtensionsInitializer() {
 		return new SharedServerContextResourceExtensionsInitializer();
 	}
 
@@ -62,7 +62,7 @@ class ContainerBootstrapConfiguration {
 	}
 
 	@Bean
-	OrderedContextInitializer messageBusInitializer() {
+	OrderedContextInitializer sharedServerContextInitializer() {
 		return new SharedServerContextInitializer();
 	}
 

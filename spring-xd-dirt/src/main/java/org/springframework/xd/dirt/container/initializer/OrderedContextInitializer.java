@@ -29,7 +29,7 @@ import org.springframework.core.Ordered;
  * @author David Turanski
  */
 public interface OrderedContextInitializer extends ApplicationListener<ApplicationPreparedEvent>,
-Ordered {
+		Ordered {
 
 	public static enum TargetContext {
 		PLUGIN_CONTEXT, SHARED_SERVER_CONTEXT

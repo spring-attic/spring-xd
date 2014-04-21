@@ -117,13 +117,13 @@
 # 'shared' adds beans to the Shared Server context
 # Each property may be a comma delimited string. 'basepackages' refers to package names used for
 # annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing XML or Groogy configuration. 
-# XD appends **/*.* to each location
+# XD prepends classpath:* if no prefix included and appends **/*.* to each location
 #xd:
 #  extensions:
 #    plugins:
-#       basepackages: com.acme.xd.plugins.extensions
+#       basepackages: com.acme.xd.plugin.extensions
 #       locations: META-INF/spring-xd/ext/plugin
 #    shared:
-#       basepackages: com.acme.xd.shared.extensions
-#       locations: META-INF/spring-xd/ext/shared
+#       basepackages: com.acme.xd.server.extensions
+#       locations: META-INF/spring-xd/ext/server
 ---

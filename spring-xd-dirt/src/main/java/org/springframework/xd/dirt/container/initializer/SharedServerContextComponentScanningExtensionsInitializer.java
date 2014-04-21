@@ -26,7 +26,7 @@ import org.springframework.core.Ordered;
  * @author David Turanski
  */
 public class SharedServerContextComponentScanningExtensionsInitializer extends
-AbstractComponentScanningBeanDefinitionProvider {
+		AbstractComponentScanningBeanDefinitionProvider {
 
 
 	@Value("${xd.extensions.shared.basepackages:}")

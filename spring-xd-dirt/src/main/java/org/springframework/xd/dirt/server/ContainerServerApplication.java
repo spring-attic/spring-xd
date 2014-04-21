@@ -105,7 +105,6 @@ public class ContainerServerApplication implements EnvironmentAware {
 		ApplicationUtils.dumpContainerApplicationContextConfiguration(this.containerContext);
 	}
 
-
 	public ContainerServerApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
@@ -116,15 +115,14 @@ public class ContainerServerApplication implements EnvironmentAware {
 					.profiles(XdProfiles.CONTAINER_PROFILE)
 					.listeners(bootstrapContext.commandLineListener())
 					.child(SharedServerContextConfiguration.class, ContainerOptions.class)
-					.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-							bootstrapContext.sharedServerContextInitializers()))
+					.listeners(
+							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+									bootstrapContext.sharedServerContextInitializers()))
 					.child(ContainerServerApplication.class)
-					.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-							bootstrapContext.pluginContextInitializers()))
-					.child(ContainerConfiguration.class)
-					.listeners(bootstrapContext.commandLineListener())
-					.initializers(new IdInitializer())
-					.run(args);
+					.listeners(
+							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+									bootstrapContext.pluginContextInitializers())).child(ContainerConfiguration.class)
+					.listeners(bootstrapContext.commandLineListener()).initializers(new IdInitializer()).run(args);
 		}
 		catch (Exception e) {
 			handleErrors(e);
@@ -135,8 +133,8 @@ public class ContainerServerApplication implements EnvironmentAware {
 	@Bean
 	public ContainerAttributes containerAttributes() {
 		ContainerAttributes containerAttributes = new ContainerAttributes();
-		containerAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress()).setPid(
-				RuntimeUtils.getPid());
+		containerAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress())
+				.setPid(RuntimeUtils.getPid());
 		setConfiguredContainerAttributes(containerAttributes);
 		return containerAttributes;
 	}
@@ -172,8 +170,7 @@ public class ContainerServerApplication implements EnvironmentAware {
 			BindException be = (BindException) e.getCause();
 			for (FieldError error : be.getFieldErrors()) {
 				System.err.println(String.format("the value '%s' is not allowed for property '%s'",
-						error.getRejectedValue(),
-						error.getField()));
+						error.getRejectedValue(), error.getField()));
 			}
 		}
 		else {
@@ -200,9 +197,7 @@ public class ContainerServerApplication implements EnvironmentAware {
  * @author Ilayaperumal Gopinathan
  */
 @Configuration
-@ImportResource({
-	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
-})
+@ImportResource({ "classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml", })
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
 class ContainerConfiguration {
 
@@ -251,13 +246,8 @@ class ContainerConfiguration {
 			zooKeeperConnection.start();
 		}
 
-		return new ContainerRegistrar(containerAttributes,
-				containerAttributesRepository,
-				streamDefinitionRepository,
-				moduleDefinitionRepository,
-				moduleOptionsMetadataResolver,
-				moduleDeployer,
-				zooKeeperConnection);
+		return new ContainerRegistrar(containerAttributes, containerAttributesRepository, streamDefinitionRepository,
+				moduleDefinitionRepository, moduleOptionsMetadataResolver, moduleDeployer, zooKeeperConnection);
 	}
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")

@@ -26,7 +26,7 @@ import org.springframework.core.Ordered;
  * @author David Turanski
  */
 public class PluginContextResourceExtensionsInitializer extends
-		AbstractResourceBeanDefinitionProvider {
+AbstractResourceBeanDefinitionProvider {
 
 	@Value("${xd.extensions.plugins.locations:}")
 	private String extensionsLocations;

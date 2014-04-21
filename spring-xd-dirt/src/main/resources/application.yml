@@ -28,10 +28,10 @@ xd:
   extensions:
      plugins:
        basepackages:
-       locations: classpath*:META-INF/spring-xd/plugins-extensions
+       locations: classpath*:META-INF/spring-xd/ext/plugin
      shared:
        basepackages:
-       locations: classpath*:META-INF/spring/xd/shared-extensions
+       locations: classpath*:META-INF/spring/xd/ext/shared
   container:
     groups: ${XD_CONTAINER_GROUPS:}
 

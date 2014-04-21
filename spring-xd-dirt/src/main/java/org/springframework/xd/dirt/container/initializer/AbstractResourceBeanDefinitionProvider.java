@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
 
 
 /**
- * A {@link OrderedContextInitializer} base class for loading XML or Groovy Bean Definitions into the main container
+ * A {@link OrderedContextInitializer} base class for loading XML or Groovy Bean Definitions into the target Container
  * Context
  *
  * @author David Turanski
@@ -86,9 +86,17 @@ public abstract class AbstractResourceBeanDefinitionProvider implements OrderedC
 	 */
 	protected abstract String getExtensionsLocations();
 
+	/**
+	 * This will prepend "classpath*:" to each location if no Resource prefix provided
+	 *
+	 * @return an array of locations
+	 */
 	protected String[] getLocations() {
 		String[] locations = StringUtils.commaDelimitedListToStringArray(getExtensionsLocations());
 		for (int i = 0; i < locations.length; i++) {
+			if (!locations[i].contains(":")) {
+				locations[i] = "classpath*:" + locations[i];
+			}
 			locations[i] = locations[i] + "/**/*.*";
 		}
 

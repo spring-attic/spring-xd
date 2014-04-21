@@ -122,9 +122,8 @@
 #  extensions:
 #    plugins:
 #       basepackages: com.acme.xd.plugins.extensions
-#       locations: classpath*:META-INF/spring-xd/plugins-extensions
+#       locations: META-INF/spring-xd/ext/plugin
 #    shared:
 #       basepackages: com.acme.xd.shared.extensions
-#       locations: classpath*:META-INF/spring-xd/shared-extensions
-
+#       locations: META-INF/spring-xd/ext/shared
 ---

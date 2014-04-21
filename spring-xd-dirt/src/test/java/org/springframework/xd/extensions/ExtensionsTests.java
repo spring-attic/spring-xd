@@ -74,7 +74,7 @@ public class ExtensionsTests {
 		assertEquals("org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2",
 				extensionsBasePackage);
 		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.plugins.locations");
-		assertEquals("classpath*:META-INF/spring-xd/ext-test,classpath*:META-INF/spring-xd/ext-test2",
+		assertEquals("META-INF/spring-xd/ext/test,META-INF/spring-xd/ext/test2",
 				extensionsLocation);
 
 	}

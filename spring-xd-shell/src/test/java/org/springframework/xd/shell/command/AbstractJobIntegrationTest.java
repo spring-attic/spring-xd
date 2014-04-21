@@ -253,6 +253,10 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		checkErrorMessages(cr, "There is already a job named '" + jobName + "'");
 	}
 
+	protected void checkBatchJobExistsErrorMessage(CommandResult cr, String jobName) {
+		checkErrorMessages(cr, "Batch Job with the name " + jobName + " already exists");
+	}
+
 	protected void triggerJob(String jobName) {
 		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(

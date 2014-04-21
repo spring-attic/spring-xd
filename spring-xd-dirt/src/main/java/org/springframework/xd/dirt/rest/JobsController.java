@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
+import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
@@ -39,6 +41,7 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 @Controller
 @RequestMapping("/jobs")
@@ -47,9 +50,25 @@ public class JobsController extends
 		XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResource> {
 
 	@Autowired
+	private DistributedJobLocator distributedJobLocator;
+
+	@Autowired
 	public JobsController(JobDeployer jobDeployer,
 			JobDefinitionRepository jobDefinitionRepository) {
 		super(jobDeployer, new JobDefinitionResourceAssembler());
+	}
+
+	@Override
+	@RequestMapping(value = "", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.CREATED)
+	@ResponseBody
+	public JobDefinitionResource save(@RequestParam("name") String name, @RequestParam("definition") String definition,
+			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
+		// Verify if the batch job repository already has the job with the same name.
+		if (distributedJobLocator.getJobNames().contains(name)) {
+			throw new BatchJobAlreadyExistsException(name);
+		}
+		return super.save(name, definition, deploy);
 	}
 
 	/**

@@ -22,15 +22,15 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', '$http', '$log', '$state', '$stateParams', 'growl', '$location', 'JobLaunchService',
-    function ($scope, $http, $log, $state, $stateParams, growl, $location, JobLaunchService) {
+  return ['$scope', 'JobLaunchService', 'XDCommon', '$state', '$stateParams', '$location',
+    function ($scope, jobLaunchService, xdCommon, $state, $stateParams, $location) {
       $scope.$apply(function () {
         var jobLaunchRequest = $scope.jobLaunchRequest = {
           jobName: $stateParams.jobName,
           jobParameters: []
         };
 
-        $log.info($stateParams);
+        xdCommon.$log.info($stateParams);
 
         $scope.addParameter = function () {
           jobLaunchRequest.jobParameters.push({key: '', value: '', type: 'string'});
@@ -52,13 +52,13 @@ define([], function () {
         ];
 
         $scope.cancelJobLaunch = function () {
-          $log.info('Cancelling Job Launch');
+          xdCommon.$log.info('Cancelling Job Launch');
           $state.go('home.jobs.tabs.deployments');
         };
 
         $scope.launchJob = function (jobLaunchRequest) {
-          $log.info('Launching Job ' + jobLaunchRequest.jobName);
-          JobLaunchService.convertToJsonAndSend(jobLaunchRequest);
+          xdCommon.$log.info('Launching Job ' + jobLaunchRequest.jobName);
+          jobLaunchService.convertToJsonAndSend(jobLaunchRequest);
           $location.path('/jobs/deployments');
         };
       });

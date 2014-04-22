@@ -22,28 +22,28 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', '$http', 'JobExecutions', '$log', 'growl', function ($scope, $http, JobExecutions, $log, growl) {
+  return ['$scope', 'JobExecutions', 'XDCommon', function ($scope, jobExecutions, xdCommon) {
     var list = function () {
-      JobExecutions.getArray().$promise.then(
+      jobExecutions.getArray().$promise.then(
           function (result) {
-            $log.info(result);
+            xdCommon.$log.info(result);
             $scope.jobExecutions = result;
           }, function (error) {
-            $log.error('Error fetching data. Is the XD server running?');
-            $log.error(error);
-            growl.addErrorMessage('Error fetching data. Is the XD server running?');
+            xdCommon.$log.error('Error fetching data. Is the XD server running?');
+            xdCommon.$log.error(error);
+            xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
           });
     };
     list();
     $scope.restartJob = function (job) {
-      $log.info('Restarting Job ' + job.name);
-      JobExecutions.restart(job).$promise.then(
+      xdCommon.$log.info('Restarting Job ' + job.name);
+      jobExecutions.restart(job).$promise.then(
           function (result) {
-            $log.info(result);
+            xdCommon.$log.info(result);
             list();
           }, function (error) {
-            $log.error(error);
-            growl.addErrorMessage(error.data[0].message);
+            xdCommon.$log.error(error);
+            xdCommon.growl.addErrorMessage(error.data[0].message);
           });
     };
   }];

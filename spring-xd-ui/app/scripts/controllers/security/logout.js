@@ -21,11 +21,11 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', '$http', 'User', '$state', 'growl',
-          function ($scope, $http, User, $state, growl) {
-      User.isAuthenticated = false;
-      User.username = '';
-      growl.addSuccessMessage('User ' + User.username + ' logged out.');
+  return ['$scope', 'user', 'XDCommon', '$state',
+          function ($scope, user, xdCommon, $state) {
+      user.isAuthenticated = false;
+      user.username = '';
+      xdCommon.growl.addSuccessMessage('user ' + user.username + ' logged out.');
       $state.go('login');
     }];
 });

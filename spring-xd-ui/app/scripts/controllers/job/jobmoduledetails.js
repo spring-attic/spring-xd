@@ -21,31 +21,31 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', '$http', '$log', '$state', '$stateParams', 'growl', '$location', 'JobModuleService',
-    function ($scope, $http, $log, $state, $stateParams, growl, $location, JobModuleService) {
+  return ['$scope', 'JobModuleService', 'XDCommon', '$state', '$stateParams',
+    function ($scope, jobModuleService, xdCommon, $state, $stateParams) {
       $scope.$apply(function () {
         $scope.moduleName = $stateParams.moduleName;
         $scope.optionsPredicate = 'name';
-        JobModuleService.getSingleModule($stateParams.moduleName).$promise.then(
+        jobModuleService.getSingleModule($stateParams.moduleName).$promise.then(
             function (result) {
                 $scope.moduleDetails = result;
               }, function (error) {
-                $log.error('Error fetching data. Is the XD server running?');
-                $log.error(error);
-                growl.addErrorMessage('Error fetching data. Is the XD server running?');
+                xdCommon.$log.error('Error fetching data. Is the XD server running?');
+                xdCommon.$log.error(error);
+                xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
               }
             );
 
-        JobModuleService.getModuleDefinition($stateParams.moduleName).success(function(data){
+        jobModuleService.getModuleDefinition($stateParams.moduleName).success(function(data){
           $scope.moduleDefinition = data;
         })
         .error(function(error){
-          $log.error('Error fetching data. Is the XD server running?');
-          $log.error(error);
-          growl.addErrorMessage('Error fetching data. Is the XD server running?');
+          xdCommon.$log.error('Error fetching data. Is the XD server running?');
+          xdCommon.$log.error(error);
+          xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
         });
         $scope.closeModuleDetails = function () {
-            $log.info('Closing Job Details Window');
+            xdCommon.$log.info('Closing Job Details Window');
             $state.go('home.jobs.tabs.modules');
           };
       });

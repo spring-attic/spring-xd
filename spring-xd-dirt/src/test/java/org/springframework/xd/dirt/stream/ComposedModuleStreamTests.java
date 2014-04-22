@@ -33,7 +33,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * Tests for streams created with composed modules.
- * 
+ *
  * @author Mark Fisher
  */
 public class ComposedModuleStreamTests extends StreamTestSupport {

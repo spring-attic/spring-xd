@@ -32,7 +32,7 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.JobsPath;
+import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
@@ -209,7 +209,7 @@ public class JobListener implements PathChildrenCacheListener {
 			// wait for all deployments to succeed
 			// todo: make timeout configurable
 			long timeout = System.currentTimeMillis() + 10000;
-			String containerDeploymentPath = new JobsPath().setJobName(jobName)
+			String containerDeploymentPath = new JobDeploymentsPath().setJobName(jobName)
 					.setModuleLabel(moduleLabel)
 					.setContainer(containerName).build();
 

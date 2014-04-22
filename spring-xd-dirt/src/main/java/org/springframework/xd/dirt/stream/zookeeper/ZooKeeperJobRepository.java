@@ -33,7 +33,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.xd.dirt.core.JobsPath;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobRepository;
@@ -110,11 +109,11 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 	@Override
 	public Job findOne(String id) {
 		CuratorFramework client = zkConnection.getClient();
-		JobsPath path = new JobsPath().setJobName(id);
+		String path = Paths.build(Paths.JOBS, id);
 		try {
-			Stat definitionStat = client.checkExists().forPath(path.build());
+			Stat definitionStat = client.checkExists().forPath(path);
 			if (definitionStat != null) {
-				byte[] data = zkConnection.getClient().getData().forPath(path.build());
+				byte[] data = zkConnection.getClient().getData().forPath(path);
 				Map<String, String> map = mapBytesUtility.toMap(data);
 				Job job = new Job(new JobDefinition(id, map.get("definition")));
 

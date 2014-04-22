@@ -21,6 +21,9 @@ import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.dirt.stream.dsl.XDDSLMessages;
@@ -29,35 +32,68 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 
 /**
- * Default implementation of {@link StreamDeployer} that emits deployment request messages on a bus and relies on
- * {@link StreamDefinitionRepository} and {@link StreamRepository} for persistence.
- * 
+ * Default implementation of {@link StreamDeployer} that uses provided
+ * {@link StreamDefinitionRepository} and {@link StreamRepository} to
+ * persist stream deployment and undeployment requests.
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Andy Clement
  * @author Eric Bottard
  * @author Gunnar Hillert
+ * @author Patrick Peralta
  */
 public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDefinition, Stream> {
 
+	/**
+	 * Logger.
+	 */
+	private final Logger LOG = LoggerFactory.getLogger(StreamDeployer.class);
+
+	/**
+	 * Stream definition parser.
+	 */
 	private final XDParser parser;
 
+	/**
+	 * Repository for streams.
+	 */
+	private final StreamRepository streamRepository;
+
+	/**
+	 * Construct a StreamDeployer.
+	 *
+	 * @param zkConnection       ZooKeeper connection
+	 * @param repository         repository for stream definitions
+	 * @param streamRepository   repository for stream instances
+	 * @param parser             stream definition parser
+	 */
 	public StreamDeployer(ZooKeeperConnection zkConnection, StreamDefinitionRepository repository,
 			StreamRepository streamRepository, XDParser parser) {
 		super(zkConnection, repository, streamRepository, parser, stream);
 		this.parser = parser;
+		this.streamRepository = streamRepository;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected Stream makeInstance(StreamDefinition definition) {
 		return new Stream(definition);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected StreamDefinition createDefinition(String name, String definition) {
 		return new StreamDefinition(name, definition);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected String getDeploymentPath(StreamDefinition definition) {
 		return Paths.build(Paths.STREAM_DEPLOYMENTS, definition.getName());
@@ -65,19 +101,31 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 
 	/**
 	 * {@inheritDoc}
+	 */
+	@Override
+	protected void basicUndeploy(String name) {
+		streamRepository.delete(name);
+	}
+
+	/**
+	 * {@inheritDoc}
 	 * <p/>
-	 * Before deleting the stream, perform an undeploy. This causes a graceful shutdown of the modules in the stream
-	 * before it is deleted from the repository.
+	 * Before deleting the stream, perform an undeploy. This causes a graceful shutdown of the
+	 * modules in the stream before it is deleted from the repository.
 	 */
 	@Override
 	protected void beforeDelete(StreamDefinition definition) {
 		super.beforeDelete(definition);
+
+		// Load module definitions and set them on StreamDefinition; this is used by
+		// StreamDefinitionRepositoryUtils.deleteDependencies to delete dependent modules
+
 		// todo: this parsing and setting of ModuleDefinitions should not be needed once we refactor the
 		// ModuleDependencyRepository so that the dependencies are also stored in ZooKeeper.
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		try {
-			for (ModuleDeploymentRequest request : parser.parse(definition.getName(), definition.getDefinition(),
-					ParsingContext.stream)) {
+			for (ModuleDeploymentRequest request :
+					parser.parse(definition.getName(), definition.getDefinition(), ParsingContext.stream)) {
 				moduleDefinitions.add(new ModuleDefinition(request.getModule(), request.getType()));
 			}
 		}

@@ -21,7 +21,7 @@ import java.io.IOException;
 
 /**
  * Base class for stream elements that deal with file locations.
- * 
+ *
  * @author Eric Bottard
  */
 public abstract class DisposableFileSupport extends AbstractModuleFixture implements Disposable {
@@ -29,7 +29,7 @@ public abstract class DisposableFileSupport extends AbstractModuleFixture implem
 	/**
 	 * How long to wait (max) for a file to appear, in ms.
 	 */
-	static final int DEFAULT_FILE_TIMEOUT = 10000;
+	static final int DEFAULT_FILE_TIMEOUT = 1000;
 
 	protected File file;
 
@@ -68,7 +68,7 @@ public abstract class DisposableFileSupport extends AbstractModuleFixture implem
 
 	/**
 	 * Wait for a file to appear.
-	 * 
+	 *
 	 * @param file the file to look for
 	 * @param timeout how long to wait until giving up, in ms
 	 * @return true if the file is detected

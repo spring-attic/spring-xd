@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.dirt.integration.test.StreamCommandListener;
+import org.springframework.xd.dirt.integration.test.DeploymentVerifier;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 
@@ -32,7 +32,7 @@ import org.springframework.xd.shell.util.TableRow;
  * Helper methods for stream commands to execute in the shell.
  * <p/>
  * It should mimic the client side API of StreamOperations as much as possible.
- * 
+ *
  * @author Mark Pollack
  * @author Mark Fisher
  */
@@ -40,24 +40,24 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	private List<String> streams = new ArrayList<String>();
 
-	private StreamCommandListener streamCommandListener;
+	private DeploymentVerifier streamDeploymentVerifier;
 
 	/**
 	 * Construct a new StreamCommandTemplate, given a spring shell.
-	 * 
+	 *
 	 * @param shell the spring shell to execute commands against
 	 */
-	/* default */StreamCommandTemplate(JLineShellComponent shell, StreamCommandListener streamCommandListener) {
+	/* default */StreamCommandTemplate(JLineShellComponent shell, DeploymentVerifier streamDeploymentVerifier) {
 		super(shell);
-		this.streamCommandListener = streamCommandListener;
+		this.streamDeploymentVerifier = streamDeploymentVerifier;
 	}
 
 	/**
 	 * Create and deploy a stream.
-	 * 
+	 *
 	 * Note the name of the stream will be stored so that when the method destroyCreatedStreams is called, the stream
 	 * will be destroyed.
-	 * 
+	 *
 	 * @param streamname the name of the stream
 	 * @param streamdefinition the stream definition DSL
 	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
@@ -68,10 +68,10 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Execute stream create (but don't deploy) for the supplied stream name/definition, and verify the command result.
-	 * 
+	 *
 	 * Note the name of the stream will be stored so that when the method destroyCreatedStreams is called, the stream
 	 * will be destroyed.
-	 * 
+	 *
 	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
 	 */
 	public void createDontDeploy(String streamname, String streamdefinition, Object... values) {
@@ -85,10 +85,10 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 				actualDefinition.replaceAll("\"", "\\\\\""), deploy);
 		CommandResult cr = executeCommand(wholeCommand);
 		if (deploy) {
-			streamCommandListener.waitForDeploy(streamname);
+			streamDeploymentVerifier.waitForDeploy(streamname);
 		}
 		else {
-			streamCommandListener.waitForCreate(streamname);
+			streamDeploymentVerifier.waitForCreate(streamname);
 		}
 		// add the stream name to the streams list before assertion
 		streams.add(streamname);
@@ -102,12 +102,12 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Deploy the given stream
-	 * 
+	 *
 	 * @param streamname name of the stream
 	 */
 	public void deploy(String streamname) {
 		CommandResult cr = getShell().executeCommand("stream deploy --name " + streamname);
-		streamCommandListener.waitForDeploy(streamname);
+		streamDeploymentVerifier.waitForDeploy(streamname);
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		assertEquals("Deployed stream '" + streamname + "'", cr.getResult());
 	}
@@ -119,7 +119,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 		for (int s = streams.size() - 1; s >= 0; s--) {
 			String streamname = streams.get(s);
 			CommandResult cr = executeCommand("stream destroy --name " + streamname);
-			streamCommandListener.waitForDestroy(streamname);
+			streamDeploymentVerifier.waitForDestroy(streamname);
 			assertTrue("Failure to destroy stream " + streamname + ".  CommandResult = " + cr.toString(),
 					cr.isSuccess());
 		}
@@ -127,12 +127,12 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Destroy a specific stream
-	 * 
+	 *
 	 * @param stream The stream to destroy
 	 */
 	public void destroyStream(String stream) {
 		CommandResult cr = executeCommand("stream destroy --name " + stream);
-		streamCommandListener.waitForDestroy(stream);
+		streamDeploymentVerifier.waitForDestroy(stream);
 		assertTrue("Failure to destroy stream " + stream + ".  CommandResult = " + cr.toString(),
 				cr.isSuccess());
 		streams.remove(stream);
@@ -140,19 +140,19 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Undeploy the given stream name
-	 * 
+	 *
 	 * @param streamname name of the stream.
 	 */
 	public void undeploy(String streamname) {
 		CommandResult cr = getShell().executeCommand("stream undeploy --name " + streamname);
-		streamCommandListener.waitForUndeploy(streamname);
+		streamDeploymentVerifier.waitForUndeploy(streamname);
 		assertTrue(cr.isSuccess());
 		assertEquals("Un-deployed stream '" + streamname + "'", cr.getResult());
 	}
 
 	/**
 	 * Verify the stream is listed in stream list.
-	 * 
+	 *
 	 * @param streamName the name of the stream
 	 * @param definition definition of the stream
 	 */

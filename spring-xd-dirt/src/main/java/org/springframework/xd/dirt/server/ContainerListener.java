@@ -40,11 +40,11 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.JobsPath;
+import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.core.StreamsPath;
+import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.JobDefinition;
@@ -199,7 +199,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 			String moduleLabel = mdr.getModule() + "-0";
 			String moduleType = ModuleType.job.toString();
 
-			Stat stat = client.checkExists().forPath(new JobsPath().setJobName(jobName).setModuleLabel(moduleLabel).build());
+			Stat stat = client.checkExists().forPath(
+					new JobDeploymentsPath().setJobName(jobName).setModuleLabel(moduleLabel).build());
 			// if stat is null, this means that the job deployment request was written out
 			// to ZK but JobListener hasn't picked it up yet; in that case skip this job
 			// deployment since JobListener will handle it
@@ -213,7 +214,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 							.setModuleType(moduleType)
 							.setModuleLabel(moduleLabel).build());
 
-					String deploymentPath = new JobsPath().setJobName(jobName)
+					String deploymentPath = new JobDeploymentsPath().setJobName(jobName)
 							.setModuleLabel(moduleLabel)
 							.setContainer(containerName).build();
 
@@ -277,7 +278,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 										.setModuleType(moduleType)
 										.setModuleLabel(moduleLabel).build());
 
-								path = new StreamsPath()
+								path = new StreamDeploymentsPath()
 										.setStreamName(streamName)
 										.setModuleType(moduleType)
 										.setModuleLabel(moduleLabel)
@@ -323,7 +324,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	private List<String> getContainersForStreamModule(CuratorFramework client, ModuleDescriptor descriptor)
 			throws Exception {
 		try {
-			return client.getChildren().forPath(new StreamsPath()
+			return client.getChildren().forPath(new StreamDeploymentsPath()
 					.setStreamName(descriptor.getStreamName())
 					.setModuleType(descriptor.getModuleDefinition().getType().toString())
 					.setModuleLabel(descriptor.getLabel()).build());
@@ -344,7 +345,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private Stream loadStream(CuratorFramework client, String streamName) throws Exception {
 		Map<String, String> map = mapBytesUtility.toMap(streamDefinitions.getCurrentData(
-				new StreamsPath().setStreamName(streamName).build()).getData());
+				Paths.build(Paths.STREAMS, streamName)).getData());
 		byte[] deploymentPropertiesData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
 		if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
 			map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));

@@ -18,9 +18,12 @@ import java.util.Map;
 
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.core.RuntimeTimeoutException;
 import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
@@ -31,7 +34,6 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
-import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
@@ -43,12 +45,11 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * {@link MessageBus}. Additionally, it supports registration of modules contained in a local resource location
  * (default: "file:./config").
  *
- *
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
- *
  */
 public class SingleNodeIntegrationTestSupport {
+	private static final Logger logger = LoggerFactory.getLogger(SingleNodeIntegrationTestSupport.class);
 
 	private StreamDefinitionRepository streamDefinitionRepository;
 
@@ -64,7 +65,9 @@ public class SingleNodeIntegrationTestSupport {
 
 	private final Map<String, PathChildrenCache> mapChildren = new HashMap<String, PathChildrenCache>();
 
-	private StreamCommandListener streamCommandListener;
+	private DeploymentVerifier streamDeploymentVerifier;
+
+	private DeploymentVerifier jobDeploymentVerifier;
 
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
 		this(application, "file:./config");
@@ -85,10 +88,11 @@ public class SingleNodeIntegrationTestSupport {
 		messageBus = application.pluginContext().getBean(MessageBus.class);
 		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
 		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
-		streamCommandListener = new StreamCommandListener(streamDefinitionRepository,
-				application.containerContext().getBean(ModuleDefinitionRepository.class),
-				application.containerContext().getBean(ModuleOptionsMetadataResolver.class));
-		addPathListener(Paths.STREAMS, streamCommandListener);
+		streamDeploymentVerifier = new DeploymentVerifier(zooKeeperConnection,
+				new StreamPathProvider(zooKeeperConnection, streamDefinitionRepository,
+						application.containerContext().getBean(ModuleDefinitionRepository.class),
+						application.containerContext().getBean(ModuleOptionsMetadataResolver.class)));
+		jobDeploymentVerifier = new DeploymentVerifier(zooKeeperConnection, new JobPathProvider());
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
 		DelegatingModuleRegistry cmr1 = application.pluginContext().getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);
@@ -103,8 +107,12 @@ public class SingleNodeIntegrationTestSupport {
 		return moduleDeployer.getDeployedModules();
 	}
 
-	public final StreamCommandListener streamCommandListener() {
-		return streamCommandListener;
+	public final DeploymentVerifier streamDeploymentVerifier() {
+		return streamDeploymentVerifier;
+	}
+
+	public final DeploymentVerifier jobDeploymentVerifier() {
+		return jobDeploymentVerifier;
 	}
 
 	public final StreamDeployer streamDeployer() {
@@ -161,18 +169,24 @@ public class SingleNodeIntegrationTestSupport {
 	 * @param path the path whose children to listen to
 	 * @param listener the children listener
 	 */
-	public void addPathListener(String path, PathChildrenCacheListener listener) {
+	public void addPathListener(final String path, PathChildrenCacheListener listener) {
 		PathChildrenCache cache = mapChildren.get(path);
 		if (cache == null) {
 			mapChildren.put(path, cache = new PathChildrenCache(zooKeeperConnection.getClient(), path, true));
 			try {
-				cache.start();
+				cache.getListenable().addListener(listener);
+				cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
+			}
+			catch (RuntimeException e) {
+				throw e;
 			}
 			catch (Exception e) {
-				throw e instanceof RuntimeException ? ((RuntimeException) e) : new RuntimeException(e);
+				throw new RuntimeException(e);
 			}
 		}
-		cache.getListenable().addListener(listener);
+		else {
+			cache.getListenable().addListener(listener);
+		}
 	}
 
 	/**
@@ -197,24 +211,24 @@ public class SingleNodeIntegrationTestSupport {
 		}
 	}
 
-	private final boolean waitForUndeploy(StreamDefinition definition) {
+	private boolean waitForUndeploy(StreamDefinition definition) {
 		streamDeployer.undeploy(definition.getName());
 		try {
-			streamCommandListener.waitForUndeploy(definition.getName());
+			streamDeploymentVerifier.waitForUndeploy(definition.getName());
 			return true;
 		}
-		catch (IllegalStateException e) {
+		catch (RuntimeTimeoutException e) {
 			return false;
 		}
 	}
 
-	private final boolean waitForDeploy(StreamDefinition definition) {
+	private boolean waitForDeploy(StreamDefinition definition) {
 		streamDeployer.deploy(definition.getName(), null);
 		try {
-			streamCommandListener.waitForDeploy(definition.getName());
+			streamDeploymentVerifier.waitForDeploy(definition.getName());
 			return true;
 		}
-		catch (IllegalStateException e) {
+		catch (RuntimeTimeoutException e) {
 			return false;
 		}
 	}

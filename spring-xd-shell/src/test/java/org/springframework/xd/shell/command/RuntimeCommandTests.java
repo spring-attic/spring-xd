@@ -34,7 +34,7 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Runtime commands tests
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
@@ -77,6 +77,8 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 		stream().undeploy(streamName);
+		streamDeploymentVerifier.waitForUndeploy(streamName);
+
 		CommandResult cmdResult = executeCommand("runtime modules");
 		Table table = (Table) cmdResult.getResult();
 		List<TableRow> fooStreamModules = new ArrayList<TableRow>();

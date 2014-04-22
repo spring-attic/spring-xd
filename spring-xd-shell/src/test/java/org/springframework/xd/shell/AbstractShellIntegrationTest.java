@@ -41,10 +41,9 @@ import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
+import org.springframework.xd.dirt.integration.test.DeploymentVerifier;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
-import org.springframework.xd.dirt.integration.test.StreamCommandListener;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -91,9 +90,9 @@ public abstract class AbstractShellIntegrationTest {
 
 	private Set<File> toBeDeleted = new HashSet<File>();
 
-	protected static StreamCommandListener streamCommandListener;
+	protected static DeploymentVerifier streamDeploymentVerifier;
 
-	protected static JobCommandListener jobCommandListener = new JobCommandListener();
+	protected static DeploymentVerifier jobDeploymentVerifier;
 
 	private static SingleNodeIntegrationTestSupport integrationTestSupport;
 
@@ -106,8 +105,8 @@ public abstract class AbstractShellIntegrationTest {
 			application = new SingleNodeApplication().run("--transport", "local", "--analytics", "redis");
 			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
 
-			streamCommandListener = integrationTestSupport.streamCommandListener();
-			integrationTestSupport.addPathListener(Paths.JOBS, jobCommandListener);
+			streamDeploymentVerifier = integrationTestSupport.streamDeploymentVerifier();
+			jobDeploymentVerifier = integrationTestSupport.jobDeploymentVerifier();
 
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();

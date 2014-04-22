@@ -2,7 +2,7 @@
   "name": "xd",
   "version": "1.0.0",
   "devDependencies": {
-    "bower":"~1.3.2",
+    "bower": "~1.3.2",
     "grunt": "~0.4.4",
     "grunt-autoprefixer": "~0.7.2",
     "grunt-concurrent": "~0.5.0",
@@ -43,7 +43,8 @@
     "karma-ng-html2js-preprocessor": "~0.1.0",
     "phantomjs": "~1.9.7-1",
     "protractor": "~0.22.0",
-    "grunt-protractor-runner": "~0.2.4"
+    "grunt-protractor-runner": "~0.2.4",
+    "grunt-contrib-nodeunit": "~0.3.3"
   },
   "engines": {
     "node": ">=0.8.0"

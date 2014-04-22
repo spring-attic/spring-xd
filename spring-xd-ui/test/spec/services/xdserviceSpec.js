@@ -1,9 +1,9 @@
 define([
-	'angular',
-	'angularMocks',
-	'app'
+  'angular',
+  'angularMocks',
+  'app'
 ], function(angular, mocks, app) {
-	'use strict';
+  'use strict';
 
   describe('Unit: Testing XD Services', function() {
 

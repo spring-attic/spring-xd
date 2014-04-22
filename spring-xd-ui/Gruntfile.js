@@ -7,7 +7,7 @@ module.exports = function (grunt) {
 
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
-  require('load-grunt-tasks')(grunt);
+
   require('grunt-protractor-runner')(grunt);
 
   // Define the configuration for all the tasks
@@ -396,12 +396,11 @@ module.exports = function (grunt) {
     'rev',
     // Rewrite based on revved assets
     'usemin',
-    'htmlmin'
+    'htmlmin',
     // Run the karma unit tests
-    //'test:unit'
+    'test:unit'
   ]);
 
   grunt.registerTask('teste2e', ['test:e2e']);
-
   grunt.registerTask('default', ['build']);
 };

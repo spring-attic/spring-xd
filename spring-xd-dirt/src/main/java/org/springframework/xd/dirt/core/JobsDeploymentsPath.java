@@ -24,54 +24,59 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * its elements, for example:
  * <p>
  * <code>
- * JobsPath jobsPath = new JobsPath("/xd/jobs/my-job");
+ * JobsPath jobsPath = new JobsDeploymentsPath("/xd/jobs/my-job");
  * assertEquals("my-job", jobsPath.getJobName());
  * </code>
  * </p>
  * It can also be used to build a path, for example:
  * <p>
  * <code>
- * JobsPath jobsPath = new JobsPath().setJobName("my-job");
+ * JobsDeploymentsPath jobsPath = new JobsPath().setJobName("my-job");
  * assertEquals("/jobs/my-job", jobsPath.build());
  * </code>
  * </p>
- * 
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  */
-public class JobsPath {
+public class JobsDeploymentsPath {
+
+	/**
+	 * Index for {@link Paths#DEPLOYMENTS} in {@link #elements} array.
+	 */
+	private static final int DEPLOYMENTS = 0;
 
 	/**
 	 * Index for {@link Paths#JOBS} in {@link #elements} array.
 	 */
-	private static final int JOBS = 0;
+	private static final int JOBS = 1;
 
 	/**
 	 * Index for job name in {@link #elements} array.
 	 */
-	private static final int JOB_NAME = 1;
+	private static final int JOB_NAME = 2;
 
 	/**
 	 * Index for module label in {@link #elements} array.
 	 */
-	private static final int MODULE_LABEL = 2;
+	private static final int MODULE_LABEL = 3;
 
 	/**
 	 * Index for container name in {@link #elements} array.
 	 */
-	private static final int CONTAINER = 3;
+	private static final int CONTAINER = 4;
 
 	/**
 	 * Array of path elements.
 	 */
-	private final String[] elements = new String[4];
+	private final String[] elements = new String[5];
 
 
 	/**
 	 * Construct a {@code JobsPath}. Use of this constructor means that a path will be created via {@link #build()} or
 	 * {@link #buildWithNamespace()}.
 	 */
-	public JobsPath() {
+	public JobsDeploymentsPath() {
 		elements[JOBS] = Paths.JOBS;
 	}
 
@@ -79,20 +84,20 @@ public class JobsPath {
 	 * Construct a {@code JobsPath}. Use of this constructor means that an existing path will be provided and this
 	 * object will be used to extract the individual elements of the path. Both full paths (including and excluding the
 	 * {@link Paths#XD_NAMESPACE XD namespace prefix}) are supported.
-	 * 
+	 *
 	 * @param path job path
 	 */
-	public JobsPath(String path) {
+	public JobsDeploymentsPath(String path) {
 		Assert.hasText(path);
 
 		String[] pathElements = path.split("\\/");
 
-		// offset is the element array that contains the 'jobs'
+		// offset is the element array that contains the 'deployments'
 		// path element; the location may vary depending on whether
 		// the path string includes the '/xd' namespace
 		int offset = -1;
 		for (int i = 0; i < pathElements.length; i++) {
-			if (pathElements[i].equals(Paths.JOBS)) {
+			if (pathElements[i].equals(Paths.DEPLOYMENTS)) {
 				offset = i;
 				break;
 			}
@@ -100,17 +105,18 @@ public class JobsPath {
 
 		if (offset == -1) {
 			throw new IllegalArgumentException(String.format(
-					"Path '%s' does not include a '%s' element", path, Paths.JOBS));
+					"Path '%s' does not include a '%s' element", path, Paths.DEPLOYMENTS));
 		}
 
 		System.arraycopy(pathElements, offset, elements, 0, pathElements.length - offset);
 
+		Assert.state(elements[DEPLOYMENTS].equals(Paths.DEPLOYMENTS));
 		Assert.state(elements[JOBS].equals(Paths.JOBS));
 	}
 
 	/**
 	 * Return the job name.
-	 * 
+	 *
 	 * @return job name
 	 */
 	public String getJobName() {
@@ -119,19 +125,19 @@ public class JobsPath {
 
 	/**
 	 * Set the job name.
-	 * 
+	 *
 	 * @param name job name
-	 * 
+	 *
 	 * @return this object
 	 */
-	public JobsPath setJobName(String name) {
+	public JobsDeploymentsPath setJobName(String name) {
 		elements[JOB_NAME] = name;
 		return this;
 	}
 
 	/**
 	 * Return the module label.
-	 * 
+	 *
 	 * @return module label
 	 */
 	public String getModuleLabel() {
@@ -140,19 +146,19 @@ public class JobsPath {
 
 	/**
 	 * Set the module label.
-	 * 
+	 *
 	 * @param label module label
-	 * 
+	 *
 	 * @return this object
 	 */
-	public JobsPath setModuleLabel(String label) {
+	public JobsDeploymentsPath setModuleLabel(String label) {
 		elements[MODULE_LABEL] = label;
 		return this;
 	}
 
 	/**
 	 * Return the container name.
-	 * 
+	 *
 	 * @return container name
 	 */
 	public String getContainer() {
@@ -161,21 +167,21 @@ public class JobsPath {
 
 	/**
 	 * Set the container name.
-	 * 
+	 *
 	 * @param container container name
-	 * 
+	 *
 	 * @return this object
 	 */
-	public JobsPath setContainer(String container) {
+	public JobsDeploymentsPath setContainer(String container) {
 		elements[CONTAINER] = container;
 		return this;
 	}
 
 	/**
 	 * Build the path string using the field values.
-	 * 
+	 *
 	 * @return path string
-	 * 
+	 *
 	 * @see Paths#build
 	 */
 	public String build() {
@@ -184,9 +190,9 @@ public class JobsPath {
 
 	/**
 	 * Build the path string using the field values, including the namespace prefix.
-	 * 
+	 *
 	 * @return path string with namespace
-	 * 
+	 *
 	 * @see Paths#buildWithNamespace
 	 */
 	public String buildWithNamespace() {
@@ -195,7 +201,7 @@ public class JobsPath {
 
 	/**
 	 * Return an array omitting the null values in {@link #elements}.
-	 * 
+	 *
 	 * @return {@code elements} array without null values
 	 */
 	protected String[] stripNullElements() {

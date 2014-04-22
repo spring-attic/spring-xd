@@ -51,11 +51,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
-import org.springframework.xd.dirt.core.JobsPath;
+import org.springframework.xd.dirt.core.JobsDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.core.StreamsPath;
+import org.springframework.xd.dirt.core.StreamsDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
@@ -98,7 +98,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = LoggerFactory.getLogger(ContainerRegistrar.class);
+	private static final Logger logger = LoggerFactory.getLogger(ContainerRegistrar.class);
 
 	/**
 	 * Metadata for the current Container.
@@ -220,7 +220,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param moduleDescriptor descriptor for the module to be deployed
 	 */
 	private Module deployModule(ModuleDescriptor moduleDescriptor) {
-		LOG.info("Deploying module {}", moduleDescriptor);
+		logger.info("Deploying module {}", moduleDescriptor);
 		mapDeployedModules.put(moduleDescriptor.newKey(), moduleDescriptor);
 		ModuleOptions moduleOptions = this.safeModuleOptionsInterpolate(moduleDescriptor);
 		Module module = (moduleDescriptor.isComposed())
@@ -247,10 +247,10 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			// on both streams and modules, and the listener implementation for
 			// each will remove the module from the other, thus causing
 			// this method to be invoked twice per module undeployment.
-			LOG.trace("Module {} already undeployed", moduleLabel);
+			logger.trace("Module {} already undeployed", moduleLabel);
 		}
 		else {
-			LOG.info("Undeploying module {}", descriptor);
+			logger.info("Undeploying module {}", descriptor);
 			mapDeployedModules.remove(key);
 			this.moduleDeployer.undeploy(descriptor);
 		}
@@ -290,14 +290,20 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 */
 	private void registerWithZooKeeper(CuratorFramework client) {
 		try {
-			Paths.ensurePath(client, Paths.MODULE_DEPLOYMENTS);
-			deployments = new PathChildrenCache(client, Paths.build(Paths.MODULE_DEPLOYMENTS,
-					containerAttributes.getId()), true, ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
-			deployments.getListenable().addListener(deploymentListener);
-			deployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+			// Save the container attributes before creating the container
+			// deploy path. This is done because the admin leader/supervisor
+			// will delete deployment paths for containers that aren't
+			// present in the containers path.
 			containerAttributesRepository.save(containerAttributes);
 
-			LOG.info("Started container {}", containerAttributes);
+			String moduleDeploymentPath = Paths.build(Paths.MODULE_DEPLOYMENTS, containerAttributes.getId());
+			Paths.ensurePath(client, moduleDeploymentPath);
+			deployments = new PathChildrenCache(client, moduleDeploymentPath, true,
+					ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
+			deployments.getListenable().addListener(deploymentListener);
+			deployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+
+			logger.info("Started container {}", containerAttributes);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -324,7 +330,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		@Override
 		public void onDisconnect(CuratorFramework client) {
 			try {
-				LOG.warn(">>> disconnected container: {}", containerAttributes.getId());
+				logger.warn(">>> disconnected container: {}", containerAttributes.getId());
 				deployments.getListenable().removeListener(deploymentListener);
 				deployments.close();
 
@@ -376,9 +382,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @return Module deployed job module
 	 */
 	private Module deployJob(CuratorFramework client, String jobName, String jobLabel) {
-		LOG.info("Deploying job '{}'", jobName);
+		logger.info("Deploying job '{}'", jobName);
 
-		String jobPath = new JobsPath().setJobName(jobName)
+		String jobPath = new JobsDeploymentsPath().setJobName(jobName)
 				.setModuleLabel(jobLabel)
 				.setContainer(containerAttributes.getId()).build();
 
@@ -422,9 +428,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @return Module deployed stream module
 	 */
 	private Module deployStreamModule(CuratorFramework client, String streamName, String moduleType, String moduleLabel) {
-		LOG.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
+		logger.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
 
-		String streamPath = new StreamsPath().setStreamName(streamName)
+		String streamPath = new StreamsDeploymentsPath().setStreamName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel)
 				.setContainer(containerAttributes.getId()).build();
@@ -449,7 +455,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 		catch (KeeperException.NodeExistsException e) {
 			// todo: review, this should not happen
-			LOG.info("Module for stream {} already deployed", moduleLabel, streamName);
+			logger.info("Module for stream {} already deployed", moduleLabel, streamName);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -473,18 +479,18 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 		String path;
 		if (ModuleType.job.toString().equals(moduleType)) {
-			path = new JobsPath().setJobName(streamName)
+			path = new JobsDeploymentsPath().setJobName(streamName)
 					.setModuleLabel(moduleLabel)
 					.setContainer(containerAttributes.getId()).build();
 		}
 		else {
-			path = new StreamsPath().setStreamName(streamName)
+			path = new StreamsDeploymentsPath().setStreamName(streamName)
 					.setModuleType(moduleType)
 					.setModuleLabel(moduleLabel)
 					.setContainer(containerAttributes.getId()).build();
 		}
 		if (client.checkExists().forPath(path) != null) {
-			LOG.trace("Deleting path: {}", path);
+			logger.trace("Deleting path: {}", path);
 			client.delete().forPath(path);
 		}
 	}
@@ -579,11 +585,11 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		@Override
 		public void process(WatchedEvent event) throws Exception {
 			if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
-				StreamsPath streamsPath = new StreamsPath(event.getPath());
+				StreamsDeploymentsPath streamsDeploymentsPath = new StreamsDeploymentsPath(event.getPath());
 
-				String streamName = streamsPath.getStreamName();
-				String moduleType = streamsPath.getModuleType();
-				String moduleLabel = streamsPath.getModuleLabel();
+				String streamName = streamsDeploymentsPath.getStreamName();
+				String moduleType = streamsDeploymentsPath.getModuleType();
+				String moduleLabel = streamsDeploymentsPath.getModuleLabel();
 
 				undeployModule(streamName, moduleType, moduleLabel);
 
@@ -596,7 +602,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				CuratorFramework client = zkConnection.getClient();
 				try {
 					if (client.checkExists().forPath(deploymentPath) != null) {
-						LOG.trace("Deleting path: {}", deploymentPath);
+						logger.trace("Deleting path: {}", deploymentPath);
 						client.delete().deletingChildrenIfNeeded().forPath(deploymentPath);
 					}
 				}
@@ -611,7 +617,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				}
 			}
 			else {
-				LOG.debug("Unexpected event {}, ZooKeeper state: {}", event.getType(), event.getState());
+				logger.debug("Unexpected event {}, ZooKeeper state: {}", event.getType(), event.getState());
 				if (EnumSet.of(Watcher.Event.KeeperState.SyncConnected,
 						Watcher.Event.KeeperState.SaslAuthenticated,
 						Watcher.Event.KeeperState.ConnectedReadOnly).contains(event.getState())) {
@@ -635,9 +641,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		@Override
 		public void process(WatchedEvent event) throws Exception {
 			if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
-				JobsPath jobsPath = new JobsPath(event.getPath());
-				String jobName = jobsPath.getJobName();
-				String moduleLabel = jobsPath.getModuleLabel();
+				JobsDeploymentsPath jobsDeploymentsPath = new JobsDeploymentsPath(event.getPath());
+				String jobName = jobsDeploymentsPath.getJobName();
+				String moduleLabel = jobsDeploymentsPath.getModuleLabel();
 
 				undeployModule(jobName, ModuleType.job.toString(), moduleLabel);
 
@@ -650,7 +656,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				CuratorFramework client = zkConnection.getClient();
 				try {
 					if (client.checkExists().forPath(deploymentPath) != null) {
-						LOG.trace("Deleting path: {}", deploymentPath);
+						logger.trace("Deleting path: {}", deploymentPath);
 						client.delete().deletingChildrenIfNeeded().forPath(deploymentPath);
 					}
 				}
@@ -665,7 +671,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				}
 			}
 			else {
-				LOG.debug("Unexpected event {}, ZooKeeper state: {}", event.getType(), event.getState());
+				logger.debug("Unexpected event {}, ZooKeeper state: {}", event.getType(), event.getState());
 				if (EnumSet.of(Watcher.Event.KeeperState.SyncConnected,
 						Watcher.Event.KeeperState.SaslAuthenticated,
 						Watcher.Event.KeeperState.ConnectedReadOnly).contains(event.getState())) {
@@ -687,7 +693,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		 */
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-			LOG.debug("Path cache event: {}", event);
+			logger.warn("Path cache event: {}", event);
 			switch (event.getType()) {
 				case INITIALIZED:
 					break;

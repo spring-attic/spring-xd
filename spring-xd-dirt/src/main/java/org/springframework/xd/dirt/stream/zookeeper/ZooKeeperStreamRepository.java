@@ -16,16 +16,22 @@
 
 package org.springframework.xd.dirt.stream.zookeeper;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +40,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.StreamsPath;
+import org.springframework.xd.dirt.core.StreamsDeploymentsPath;
 import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Stream instance repository. It should only return values for Streams that are deployed.
@@ -50,6 +57,8 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 // todo: the StreamRepository abstraction can be removed once we are fully zk-enabled since we do not need to
 // support multiple impls at that point
 public class ZooKeeperStreamRepository implements StreamRepository, InitializingBean {
+
+	private static final Logger logger = LoggerFactory.getLogger(ZooKeeperStreamRepository.class);
 
 	private final ZooKeeperConnection zkConnection;
 
@@ -111,11 +120,11 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 	@Override
 	public Stream findOne(String id) {
 		CuratorFramework client = zkConnection.getClient();
-		StreamsPath path = new StreamsPath().setStreamName(id);
+		String path = Paths.build(Paths.STREAMS, id);
 		try {
-			Stat definitionStat = client.checkExists().forPath(path.build());
+			Stat definitionStat = client.checkExists().forPath(path);
 			if (definitionStat != null) {
-				byte[] data = client.getData().forPath(path.build());
+				byte[] data = client.getData().forPath(path);
 				Map<String, String> map = mapBytesUtility.toMap(data);
 				Stream stream = new Stream(new StreamDefinition(id, map.get("definition")));
 
@@ -140,7 +149,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 	@Override
 	public List<Stream> findAll() {
 		try {
-			return findAll(zkConnection.getClient().getChildren().forPath(Paths.STREAMS));
+			return findAll(zkConnection.getClient().getChildren().forPath(Paths.STREAM_DEPLOYMENTS));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -177,11 +186,76 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 
 	@Override
 	public void delete(String id) {
+		CuratorFramework client = zkConnection.getClient();
+		Deque<String> paths = new ArrayDeque<String>();
+
+		// If this stream contains processor modules, place them into
+		// a tree keyed by the ZK transaction id. The ZK transaction
+		// id maintains total ordering of all changes. This allows
+		// the undeployment of processor modules in the reverse order in
+		// which they were deployed.
+		Map<Long, String> txMap = new TreeMap<Long, String>();
 		try {
-			zkConnection.getClient().delete().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, id));
+			List<String> processorDeployments = client.getChildren().forPath(new StreamsDeploymentsPath()
+					.setStreamName(id).setModuleType(ModuleType.processor.toString()).build());
+			for (String processorName : processorDeployments) {
+				String path = new StreamsDeploymentsPath()
+						.setStreamName(id)
+						.setModuleType(ModuleType.processor.toString())
+						.setModuleLabel(processorName).build();
+				Stat stat = client.checkExists().forPath(path);
+				Assert.notNull(stat);
+				txMap.put(stat.getCzxid(), path);
+			}
 		}
 		catch (KeeperException.NoNodeException e) {
 			// ignore
+		}
+		catch (RuntimeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		paths.add(new StreamsDeploymentsPath().setStreamName(id).setModuleType(ModuleType.sink.toString()).build());
+		paths.add(new StreamsDeploymentsPath().setStreamName(id).setModuleType(ModuleType.processor.toString()).build());
+		for (String processorDeployment : txMap.values()) {
+			paths.add(processorDeployment);
+		}
+		paths.add(new StreamsDeploymentsPath().setStreamName(id).setModuleType(ModuleType.source.toString()).build());
+
+		for (Iterator<String> iterator = paths.descendingIterator(); iterator.hasNext();) {
+			try {
+				String path = iterator.next();
+				logger.trace("removing path {}", path);
+				client.delete().deletingChildrenIfNeeded().forPath(path);
+			}
+			catch (KeeperException.NoNodeException e) {
+				// ignore
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		String streamDeploymentPath = Paths.build(Paths.STREAM_DEPLOYMENTS, id);
+		try {
+			client.delete().forPath(streamDeploymentPath);
+		}
+		catch (KeeperException.NoNodeException e) {
+			// ignore
+		}
+		catch (KeeperException.NotEmptyException e) {
+			List<String> children = new ArrayList<String>();
+			try {
+				children.addAll(client.getChildren().forPath(streamDeploymentPath));
+			}
+			catch (Exception ex) {
+				children.add("Could not load list of children due to " + ex);
+			}
+			throw new IllegalStateException(String.format(
+					"The following children were not deleted from %s: %s",streamDeploymentPath, children), e);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);

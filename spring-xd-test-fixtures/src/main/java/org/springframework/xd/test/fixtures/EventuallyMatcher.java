@@ -23,9 +23,9 @@ import org.hamcrest.Matcher;
 
 /**
  * A matcher that will evaluate another matcher repeatedly until it matches, or fail after some number of attempts.
- * 
+ *
  * @param <U> the type the wrapped matcher operates on
- * 
+ *
  * @author Eric Bottard
  */
 public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
@@ -37,7 +37,7 @@ public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 	private int pause;
 
 	public EventuallyMatcher(Matcher<U> delegate) {
-		this(delegate, 50, 100);
+		this(delegate, 20, 100);
 	}
 
 	public EventuallyMatcher(Matcher<U> delegate, int nbAttempts, int pause) {

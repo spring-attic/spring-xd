@@ -37,7 +37,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.CollectionUtils;
-import org.springframework.xd.dirt.core.StreamsPath;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -204,30 +203,16 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	@Override
 	public void delete(String id) {
-		String path = new StreamsPath().setStreamName(id).build();
+		LOG.trace("Deleting stream {}", id);
+		String path = Paths.build(Paths.STREAMS, id);
 		try {
-			// iterate each child node and ignore any NoNodeExceptions, since a
-			// child node may have just been deleted by the undeployment of a stream
-			List<String> children = zkConnection.getClient().getChildren().forPath(path);
-			for (String child : children) {
-				doDelete(path + "/" + child);
-			}
-			doDelete(path);
+			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
 		}
 		catch (NoNodeException e) {
 			// ignore
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
-		}
-	}
-
-	private void doDelete(String path) throws Exception {
-		try {
-			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
-		}
-		catch (NoNodeException e) {
-			// ignore
 		}
 	}
 

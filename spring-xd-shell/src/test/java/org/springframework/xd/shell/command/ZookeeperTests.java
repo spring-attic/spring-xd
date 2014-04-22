@@ -22,7 +22,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.junit.Test;
 
-import org.springframework.xd.dirt.core.StreamsPath;
+import org.springframework.xd.dirt.core.StreamsDeploymentsPath;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -50,7 +50,7 @@ public class ZookeeperTests {
 
 		for (int i = 0; i < 100; i++) {
 			client.create().creatingParentsIfNeeded().forPath(
-					new StreamsPath().setStreamName("foo" + i).setModuleType("source").setModuleLabel("m" + i).build());
+					new StreamsDeploymentsPath().setStreamName("foo" + i).setModuleType("source").setModuleLabel("m" + i).build());
 		}
 		cache.close();
 	}

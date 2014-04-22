@@ -16,11 +16,13 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -34,11 +36,10 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.Module;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.core.StreamsPath;
+import org.springframework.xd.dirt.core.StreamsDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
@@ -57,7 +58,7 @@ public class StreamListener implements PathChildrenCacheListener {
 	/**
 	 * Logger.
 	 */
-	private final Logger LOG = LoggerFactory.getLogger(StreamListener.class);
+	private final Logger logger = LoggerFactory.getLogger(StreamListener.class);
 
 	/**
 	 * Provides access to the current container list.
@@ -78,6 +79,22 @@ public class StreamListener implements PathChildrenCacheListener {
 	 * todo: make this pluggable
 	 */
 	private final ContainerMatcher containerMatcher = new DefaultContainerMatcher();
+
+	/**
+	 * Executor service dedicated to handling events raised from
+	 * {@link org.apache.curator.framework.recipes.cache.PathChildrenCache}.
+	 *
+	 * @see #childEvent
+	 * @see org.springframework.xd.dirt.server.StreamListener.EventHandler
+	 */
+	private final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread thread = new Thread(runnable, "Stream Deployer");
+			thread.setDaemon(true);
+			return thread;
+		}
+	});
 
 	/**
 	 * Construct a StreamListener.
@@ -102,31 +119,7 @@ public class StreamListener implements PathChildrenCacheListener {
 	 */
 	@Override
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-		switch (event.getType()) {
-			case CHILD_ADDED:
-				onChildAdded(client, event.getData());
-				break;
-			case CHILD_UPDATED:
-				break;
-			case CHILD_REMOVED:
-				onChildRemoved(client, event.getData());
-				break;
-			case CONNECTION_SUSPENDED:
-				break;
-			case CONNECTION_RECONNECTED:
-				break;
-			case CONNECTION_LOST:
-				break;
-			case INITIALIZED:
-				// TODO!!
-				// when this admin is first elected leader and there are
-				// streams, it needs to verify that the streams have been
-				// deployed
-				// for (ChildData childData : event.getInitialData()) {
-				// LOG.info("Existing stream: {}", Paths.stripPath(childData.getPath()));
-				// }
-				break;
-		}
+		executorService.submit(new EventHandler(client, event));
 	}
 
 	/**
@@ -138,72 +131,31 @@ public class StreamListener implements PathChildrenCacheListener {
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
 
-		byte[] streamDefinition = client.getData().forPath(new StreamsPath().setStreamName(streamName).build());
+		byte[] streamDefinition = client.getData().forPath(Paths.build(Paths.STREAMS, streamName));
 		Map<String, String> map = mapBytesUtility.toMap(streamDefinition);
+
 		byte[] deploymentPropertiesData = data.getData();
 		if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
 			map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
 		}
 		Stream stream = streamFactory.createStream(streamName, map);
 
-		LOG.info("Deploying stream {}", stream);
+		logger.info("Deploying stream {} with properties {}", stream, map);
 		prepareStream(client, stream);
 		deployStream(client, stream);
 	}
 
 	/**
 	 * Handle the deletion of a stream deployment.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data stream deployment request data
 	 */
 	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
-		String streamName = Paths.stripPath(data.getPath());
-		LOG.info("Undeploying stream {}", streamName);
-
-		Stream stream;
-		try {
-			byte[] streamDefinition = client.getData().forPath(new StreamsPath().setStreamName(streamName).build());
-			stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(streamDefinition));
-		}
-		catch (KeeperException.NoNodeException e) {
-			LOG.debug("Stream definition {} has already been removed", streamName);
-			return;
-		}
-
-		// build the paths of the modules to be undeployed
-		// in the stream processing order; as each path
-		// is deleted each container will undeploy
-		// its individual deployed modules
-		List<String> paths = new ArrayList<String>();
-		paths.add(new StreamsPath()
-				.setStreamName(streamName)
-				.setModuleType(Module.Type.SOURCE.toString())
-				.build());
-		for (ModuleDescriptor descriptor : stream.getProcessors()) {
-			paths.add(new StreamsPath()
-					.setStreamName(streamName)
-					.setModuleType(Module.Type.PROCESSOR.toString())
-					.setModuleLabel(descriptor.getLabel())
-					.build());
-		}
-		paths.add(new StreamsPath()
-				.setStreamName(streamName)
-				.setModuleType(Module.Type.PROCESSOR.toString())
-				.build());
-		paths.add(new StreamsPath()
-				.setStreamName(streamName)
-				.setModuleType(Module.Type.SINK.toString())
-				.build());
-
-		for (String path : paths) {
-			try {
-				client.delete().deletingChildrenIfNeeded().forPath(path);
-			}
-			catch (KeeperException.NoNodeException e) {
-				LOG.trace("Path {} already deleted", path);
-			}
-		}
+		// Nothing to do here as StreamListener now actually listens to stream deployments;
+		// This means that once the deployment is removed, all
+		// its children are gone and thus we don't have the ability to gracefully
+		// undeploy the underlying modules.
 	}
 
 	/**
@@ -227,7 +179,7 @@ public class StreamListener implements PathChildrenCacheListener {
 			String moduleType = descriptor.getModuleDefinition().getType().toString();
 			String moduleLabel = descriptor.getLabel();
 
-			String path = new StreamsPath()
+			String path = new StreamsDeploymentsPath()
 					.setStreamName(streamName)
 					.setModuleType(moduleType)
 					.setModuleLabel(moduleLabel).build();
@@ -237,7 +189,7 @@ public class StreamListener implements PathChildrenCacheListener {
 			}
 			catch (KeeperException.NodeExistsException e) {
 				// todo: this would be somewhat unexpected
-				LOG.info("Path {} already exists", path);
+				logger.info("Path {} already exists", path);
 			}
 		}
 	}
@@ -268,14 +220,14 @@ public class StreamListener implements PathChildrenCacheListener {
 							.setModuleType(moduleType)
 							.setModuleLabel(moduleLabel).build());
 
-					mapDeploymentStatus.put(container, new StreamsPath()
+					mapDeploymentStatus.put(container, new StreamsDeploymentsPath()
 							.setStreamName(streamName)
 							.setModuleType(moduleType)
 							.setModuleLabel(moduleLabel)
 							.setContainer(containerName).build());
 				}
 				catch (KeeperException.NodeExistsException e) {
-					LOG.info("Module {} is already deployed to container {}", descriptor, container);
+					logger.info("Module {} is already deployed to container {}", descriptor, container);
 				}
 			}
 
@@ -315,6 +267,69 @@ public class StreamListener implements PathChildrenCacheListener {
 						"Deployment of %s module %s to the following containers failed: %s",
 						moduleType, moduleName, mapDeploymentStatus.keySet()));
 			}
+		}
+	}
+
+	/**
+	 * Callable that handles events from a
+	 * {@link org.apache.curator.framework.recipes.cache.PathChildrenCache}.
+	 * This allows for the handling of events to be executed in a separate
+	 * thread from the Curator thread that raises these events.
+	 */
+	class EventHandler implements Callable<Void> {
+
+		/**
+		 * Curator client.
+		 */
+		private final CuratorFramework client;
+
+		/**
+		 * Event raised from Curator.
+		 */
+		private final PathChildrenCacheEvent event;
+
+		/**
+		 * Construct an {@code EventHandler}.
+		 *
+		 * @param client curator client
+		 * @param event  event raised from Curator
+		 */
+		EventHandler(CuratorFramework client, PathChildrenCacheEvent event) {
+			this.client = client;
+			this.event = event;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Void call() throws Exception {
+			switch (event.getType()) {
+				case CHILD_ADDED:
+					onChildAdded(client, event.getData());
+					break;
+				case CHILD_UPDATED:
+					break;
+				case CHILD_REMOVED:
+					onChildRemoved(client, event.getData());
+					break;
+				case CONNECTION_SUSPENDED:
+					break;
+				case CONNECTION_RECONNECTED:
+					break;
+				case CONNECTION_LOST:
+					break;
+				case INITIALIZED:
+					// TODO!!
+					// when this admin is first elected leader and there are
+					// streams, it needs to verify that the streams have been
+					// deployed
+					// for (ChildData childData : event.getInitialData()) {
+					// logger.info("Existing stream: {}", Paths.stripPath(childData.getPath()));
+					// }
+					break;
+			}
+			return null;
 		}
 	}
 

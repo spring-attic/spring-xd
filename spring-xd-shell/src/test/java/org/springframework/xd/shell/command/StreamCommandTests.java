@@ -35,7 +35,7 @@ import org.springframework.xd.test.fixtures.FileSink;
 
 /**
  * Test stream commands
- * 
+ *
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author Andy Clement
@@ -158,9 +158,11 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().create(streamName0, "%s > %s", source, queue1);
 		stream().create(streamName1, "%s > transform --expression=payload.toUpperCase() > %s", queue1, queue2);
 		stream().create(streamName2, "%s > %s", queue2, sink);
-		source.postData("blahblah");
-		assertThat(sink, eventually(hasContentsThat(equalTo("BLAHBLAH"))));
 
+		source.postData("blahblah");
+
+		assertThat(String.format("Assert failed for streams %s, %s, %s", streamName0, streamName1, streamName2),
+				sink, eventually(hasContentsThat(equalTo("BLAHBLAH"))));
 	}
 
 
@@ -178,7 +180,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		httpSource.postData("custardfoo");
 		httpSource.postData("whisk");
 		assertThat(sink, eventually(hasContentsThat(equalTo("foobar\ncustardfoo\n"))));
-
 	}
 
 	@Test
@@ -299,7 +300,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		source1.ensureReady().postData("Dracarys!");
 		source2.ensureReady().postData("testing");
 
-		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testing"))));
+		assertThat(String.format("Assert failed for streams %s, %s, %s", streamName0, streamName1, streamName2),
+				sink, eventually(hasContentsThat(equalTo("Dracarys!testing"))));
 
 		stream().destroyStream(streamName1);
 

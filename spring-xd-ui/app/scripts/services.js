@@ -154,6 +154,15 @@ define(['angular'], function (angular) {
             username: ''
           };
           return sdo;
+        })
+      .factory('Helper', function($log, growl, $timeout, promiseTracker, $q) {
+          return {
+            $log: $log,
+            growl: growl,
+            $timeout: $timeout,
+            promiseTracker: promiseTracker,
+            $q: $q
+          };
         });
 });
 

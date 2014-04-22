@@ -21,24 +21,24 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobModuleService', 'growl', '$log', '$state',
-          function ($scope, JobModuleService, growl, $log, $state) {
+  return ['$scope', 'JobModuleService', 'Helper', '$state',
+          function ($scope, jobModuleService, helper, $state) {
           $scope.jobModules = {};
 
-          JobModuleService.getAllModules().$promise.then(
+          jobModuleService.getAllModules().$promise.then(
              function (result) {
-                 $log.info('>>>>');
-                 $log.info(result);
-                 $scope.jobModules = result.content;
-               }, function (error) {
-                 $log.error('Error fetching data. Is the XD server running?');
-                 $log.error(error);
-                 growl.addErrorMessage('Error fetching data. Is the XD server running?');
-               }
+                  helper.$log.info('>>>>');
+                  helper.$log.info(result);
+                  $scope.jobModules = result.content;
+                }, function (error) {
+                  helper.$log.error('Error fetching data. Is the XD server running?');
+                  helper.$log.error(error);
+                  helper.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+                }
              );
           $scope.viewModuleDetails = function (item) {
-              $log.info('Showing Module details for module: ' + item.name);
+              helper.$log.info('Showing Module details for module: ' + item.name);
               $state.go('home.jobs.modulesdetails', {moduleName: item.name});
             };
-    }];
+        }];
 });

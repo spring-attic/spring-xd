@@ -531,12 +531,14 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		final String jobExecutionIdFromTable = stepExecution.getRows().get(1).getValue(2);
 
 		final String stepNameFromTable = stepExecution.getRows().get(2).getValue(2);
-		final String duration = stepExecution.getRows().get(5).getValue(2);
+		//start time
+		final String duration = stepExecution.getRows().get(3).getValue(2);
 
 		assertEquals(stepExecutionId, stepExecutionIdFromTable);
 		assertEquals(jobExecutionId, jobExecutionIdFromTable);
 		assertNotEquals(stepNameFromTable, "N/A");
-		assertTrue(duration.contains("ms"));
+		assertFalse(duration.isEmpty());
+		assertNotEquals(duration, "N/A");
 	}
 
 }

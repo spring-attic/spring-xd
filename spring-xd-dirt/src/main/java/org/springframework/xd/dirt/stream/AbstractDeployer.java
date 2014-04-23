@@ -167,7 +167,9 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	@Override
 	public void deleteAll() {
-		repository.deleteAll();
+		for (D d : findAll()) {
+			delete(d.getName());
+		}
 	}
 
 	protected CrudRepository<D, String> getDefinitionRepository() {

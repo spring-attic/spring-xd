@@ -89,7 +89,6 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 			}
 		}
 		definition.setModuleDefinitions(moduleDefinitions);
-		basicUndeploy(definition.getName());
 	}
 
 }

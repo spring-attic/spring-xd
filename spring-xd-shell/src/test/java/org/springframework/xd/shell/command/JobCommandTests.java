@@ -48,7 +48,7 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Test {@link JobCommands}.
- * 
+ *
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
@@ -399,9 +399,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);
-		final Table jobExecutions = listJobExecutions();
-		String id = jobExecutions.getRows().get(0).getValue(1);
-		displayJobExecution(id);
+		displayJobExecution(getJobExecutionId(jobName));
 	}
 
 	@Test
@@ -412,8 +410,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		checkForJobInList(jobName, jobDefinition, true);
 		executeJobLaunch(jobName,
 				"{\"param1\":\"fixedDelayKenny\",\"param2(date)\":\"2013/28/12\",\"param3(long)\":\"(123)\"}");
-		final Table jobExecutions = listJobExecutions();
-		String id = jobExecutions.getRows().get(0).getValue(1);
+		String id = getJobExecutionId(jobName);
 		String displayed = displayJobExecution(id);
 		assertTrue(displayed.matches("(?s).*param2 +Sat Dec 28 00:00:00 [A-Z]{3} 2013 +DATE.*"));
 		assertTrue(displayed.matches("(?s).*param3 +-123 +LONG.*"));
@@ -425,13 +422,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);
-		final Table jobExecutions = listJobExecutions();
-		String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
-
-		final Table stepExecutions = listStepExecutions(jobExecutionId);
-		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
-
-		assertNotNull(stepExecutionId);
+		final Table stepExecutions = listStepExecutions(getJobExecutionId(jobName));
+		assertNotNull(stepExecutions.getRows().get(0).getValue(1));
 	}
 
 	@Test
@@ -441,15 +433,14 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		checkForJobInList(jobName, JOB_WITH_STEP_EXECUTIONS, true);
 		triggerJobWithDelay(jobName, "5");
 		Thread.sleep(5000);
-		Table table = (Table) executeCommand("job execution list").getResult();
-		assertTrue(!table.getRows().isEmpty());
-		String executionId = table.getRows().get(0).getValue(1);
-		String executionStatus = table.getRows().get(0).getValue(5);
+		String executionId = getJobExecutionId(jobName);
+		String executionStatus = getJobExecutionStatus(jobName);
 		assertTrue(executionStatus.equals("STARTING") || executionStatus.equals("STARTED"));
 		// Stop the execution by the given executionId.
 		executeCommand("job execution stop " + executionId);
 		// sleep for stop() until the step2 is invoked.
 		Thread.sleep(3000);
+		Table table;
 		int n = 0;
 		do {
 			table = (Table) executeCommand("job execution list").getResult();
@@ -475,16 +466,14 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		checkForJobInList(jobName, JOB_WITH_STEP_EXECUTIONS, true);
 		triggerJobWithDelay(jobName, "5");
 		Thread.sleep(5000);
-		Table table = (Table) executeCommand("job execution list").getResult();
-		assertTrue(!table.getRows().isEmpty());
-		String executionId = table.getRows().get(0).getValue(1);
-		String executionStatus = table.getRows().get(0).getValue(5);
+		String executionId = getJobExecutionId(jobName);
+		String executionStatus = getJobExecutionStatus(jobName);
 		assertTrue(executionStatus.equals("STARTING") || executionStatus.equals("STARTED"));
 		// Stop the execution by the given executionId.
 		executeCommand("job execution all stop --force true");
 		// sleep for stop() until the step2 is invoked.
 		Thread.sleep(3000);
-		table = (Table) executeCommand("job execution list").getResult();
+		Table table = (Table) executeCommand("job execution list").getResult();
 		for (TableRow tr : table.getRows()) {
 			// Match by above executionId
 			if (tr.getValue(1).equals(executionId)) {
@@ -500,8 +489,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);
-		final Table jobExecutions = listJobExecutions();
-		String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
+		String jobExecutionId = getJobExecutionId(jobName);
 
 		final Table stepExecutions = listStepExecutions(jobExecutionId);
 		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
@@ -521,8 +509,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);
-		final Table jobExecutions = listJobExecutions();
-		final String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
+		final String jobExecutionId = getJobExecutionId(jobName);
 		final Table stepExecutions = listStepExecutions(jobExecutionId);
 		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
 
@@ -531,9 +518,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		final String jobExecutionIdFromTable = stepExecution.getRows().get(1).getValue(2);
 
 		final String stepNameFromTable = stepExecution.getRows().get(2).getValue(2);
-		//start time
+		// start time
 		final String duration = stepExecution.getRows().get(3).getValue(2);
-
 		assertEquals(stepExecutionId, stepExecutionIdFromTable);
 		assertEquals(jobExecutionId, jobExecutionIdFromTable);
 		assertNotEquals(stepNameFromTable, "N/A");

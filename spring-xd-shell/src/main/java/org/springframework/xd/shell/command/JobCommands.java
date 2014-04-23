@@ -175,7 +175,10 @@ public class JobCommands implements CommandMarker {
 		for (StepExecutionInfoResource stepExecutionInfoResource : stepExecutions) {
 
 			final String utcStartTime = CommonUtils.getUtcTime(stepExecutionInfoResource.getStepExecution().getStartTime());
-			final String utcEndTime = CommonUtils.getUtcTime(stepExecutionInfoResource.getStepExecution().getEndTime());
+			String utcEndTime = "";
+			if (stepExecutionInfoResource.getStepExecution().getEndTime() != null) {
+				CommonUtils.getUtcTime(stepExecutionInfoResource.getStepExecution().getEndTime());
+			}
 
 			final TableRow row = new TableRow();
 
@@ -246,7 +249,10 @@ public class JobCommands implements CommandMarker {
 
 		final String utcCreateTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getCreateTime());
 		final String utcStartTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getStartTime());
-		final String utcEndTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getEndTime());
+		String utcEndTime = "";
+		if (jobExecutionInfoResource.getJobExecution().getEndTime() != null) {
+			utcEndTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getEndTime());
+		}
 
 		jobExecutionTable.addRow("Job Execution ID", String.valueOf(jobExecutionInfoResource.getExecutionId()))
 				.addRow("Job Name", jobExecutionInfoResource.getName())

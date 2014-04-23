@@ -17,6 +17,7 @@
 package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -310,6 +311,34 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 			throw new IllegalStateException("Expected a successful command execution.", commandResult.getException());
 		}
 		return (String) commandResult.getResult();
+	}
+
+	protected TableRow getJobExecutionRow(String jobName) {
+		for (TableRow row : listJobExecutions().getRows()) {
+			if (jobName.equals(row.getValue(2))) {
+				return row;
+			}
+		}
+		return null;
+	}
+
+	protected String getJobExecutionId(TableRow jobExecution) {
+		assertNotNull(jobExecution);
+		return jobExecution.getValue(1);
+	}
+
+	protected String getJobExecutionId(String jobName) {
+		return getJobExecutionId(getJobExecutionRow(jobName));
+
+	}
+
+	protected String getJobExecutionStatus(TableRow jobExecution) {
+		assertNotNull(jobExecution);
+		return jobExecution.getValue(5);
+	}
+
+	protected String getJobExecutionStatus(String jobName) {
+		return getJobExecutionStatus(getJobExecutionRow(jobName));
 	}
 
 	protected Table listStepExecutions(String id) {

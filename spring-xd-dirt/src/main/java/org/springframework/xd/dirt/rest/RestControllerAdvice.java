@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
@@ -68,7 +69,7 @@ public class RestControllerAdvice {
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
 	public VndErrors onMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -79,7 +80,7 @@ public class RestControllerAdvice {
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
 	public VndErrors onException(Exception e) {
-		String logref = log(e);
+		String logref = logError(e);
 		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
 		return new VndErrors(logref, msg);
 	}
@@ -91,7 +92,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchDefinitionException(NoSuchDefinitionException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -102,7 +103,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onDefinitionAlreadyExistsException(DefinitionAlreadyExistsException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -113,7 +114,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onAlreadyDeployedException(AlreadyDeployedException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -124,7 +125,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onNotDeployedException(NotDeployedException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -135,7 +136,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onInvalidDefintion(StreamDefinitionException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -143,7 +144,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.CONFLICT)
 	public VndErrors onModuleAlreadyExistsException(ModuleAlreadyExistsException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -151,7 +152,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchMetricException(NoSuchMetricException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -159,7 +160,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchModuleException(NoSuchModuleException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -167,7 +168,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchJobExecutionException(NoSuchJobExecutionException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -175,7 +176,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onJobExecutionNotRunningException(JobExecutionNotRunningException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -183,11 +184,17 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchStepExecutionException(NoSuchStepExecutionException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
-	private String log(Throwable t) {
+	private String logDebug(Throwable t) {
+		logger.debug("Caught exception while handling a request", t);
+		// TODO: use a more semantically correct VndError 'logref'
+		return t.getClass().getSimpleName();
+	}
+
+	private String logError(Throwable t) {
 		logger.error("Caught exception while handling a request", t);
 		// TODO: use a more semantically correct VndError 'logref'
 		return t.getClass().getSimpleName();
@@ -197,7 +204,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onJobExecutionAlreadyRunningException(JobExecutionAlreadyRunningException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -205,7 +212,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onJobRestartException(JobRestartException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -213,7 +220,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onJobInstanceAlreadyCompleteException(JobInstanceAlreadyCompleteException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -221,7 +228,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchJobException(NoSuchBatchJobException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -229,7 +236,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchJobInstanceException(NoSuchBatchJobInstanceException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
@@ -237,7 +244,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onJobParametersInvalidException(JobParametersInvalidException e) {
-		String logref = log(e);
+		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 }

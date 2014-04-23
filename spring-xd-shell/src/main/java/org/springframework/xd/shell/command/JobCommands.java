@@ -16,6 +16,7 @@
 
 package org.springframework.xd.shell.command;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -175,7 +176,8 @@ public class JobCommands implements CommandMarker {
 		for (StepExecutionInfoResource stepExecutionInfoResource : stepExecutions) {
 
 			final String utcStartTime = CommonUtils.getUtcTime(stepExecutionInfoResource.getStepExecution().getStartTime());
-			final String utcEndTime = CommonUtils.getUtcTime(stepExecutionInfoResource.getStepExecution().getEndTime());
+			final Date endTimeDate = stepExecutionInfoResource.getStepExecution().getEndTime();
+			final String utcEndTime = (endTimeDate == null) ? "" : CommonUtils.getUtcTime(endTimeDate);
 
 			final TableRow row = new TableRow();
 
@@ -246,7 +248,8 @@ public class JobCommands implements CommandMarker {
 
 		final String utcCreateTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getCreateTime());
 		final String utcStartTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getStartTime());
-		final String utcEndTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getEndTime());
+		final Date endTimeDate = jobExecutionInfoResource.getJobExecution().getEndTime();
+		final String utcEndTime = (endTimeDate == null) ? "" : CommonUtils.getUtcTime(endTimeDate);
 
 		jobExecutionTable.addRow("Job Execution ID", String.valueOf(jobExecutionInfoResource.getExecutionId()))
 				.addRow("Job Name", jobExecutionInfoResource.getName())

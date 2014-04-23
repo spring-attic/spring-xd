@@ -537,7 +537,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertEquals(stepExecutionId, stepExecutionIdFromTable);
 		assertEquals(jobExecutionId, jobExecutionIdFromTable);
 		assertNotEquals(stepNameFromTable, "N/A");
-		assertTrue(!duration.isEmpty());
+		assertFalse(duration.isEmpty());
 		assertNotEquals(duration, "N/A");
 	}
 

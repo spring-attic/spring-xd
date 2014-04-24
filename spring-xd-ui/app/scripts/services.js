@@ -155,13 +155,16 @@ define(['angular'], function (angular) {
           };
           return sdo;
         })
-      .factory('XDCommon', function($log, growl, $timeout, promiseTracker, $q) {
+      .factory('XDCommon', function($log, growl, $timeout, $q, $rootScope) {
           return {
             $log: $log,
             growl: growl,
             $timeout: $timeout,
-            promiseTracker: promiseTracker,
-            $q: $q
+            $q: $q,
+            $rootScope: $rootScope,
+            addBusyPromise: function(promise) {
+              $rootScope.cgbusy = promise;
+            },
           };
         });
 });

@@ -23,7 +23,6 @@ define([
   'angular',
   'uiRouter',
   'ngResource',
-  'promiseTracker',
   'cgBusy',
   'ngGrowl',
   'angularHighlightjs',
@@ -37,7 +36,6 @@ define([
     'ui.router',
     'ngResource',
     'cgBusy',
-    'ajoslin.promise-tracker',
     'angular-growl',
     'hljs'
   ]);

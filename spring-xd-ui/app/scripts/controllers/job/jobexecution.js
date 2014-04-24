@@ -24,7 +24,10 @@ define([], function () {
   'use strict';
   return ['$scope', 'JobExecutions', 'XDCommon', function ($scope, jobExecutions, xdCommon) {
     var list = function () {
-      jobExecutions.getArray().$promise.then(
+      var jobExcutionsPromise = jobExecutions.getArray().$promise;
+      xdCommon.addBusyPromise(jobExcutionsPromise);
+
+      jobExcutionsPromise.then(
           function (result) {
             xdCommon.$log.info(result);
             $scope.jobExecutions = result;
@@ -40,6 +43,7 @@ define([], function () {
       jobExecutions.restart(job).$promise.then(
           function (result) {
             xdCommon.$log.info(result);
+            xdCommon.growl.addSuccessMessage('Job was relaunched.');
             list();
           }, function (error) {
             xdCommon.$log.error(error);

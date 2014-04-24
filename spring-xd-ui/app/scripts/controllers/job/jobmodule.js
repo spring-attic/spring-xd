@@ -24,10 +24,10 @@ define([], function () {
   return ['$scope', 'JobModuleService', 'XDCommon', '$state',
           function ($scope, jobModuleService, xdCommon, $state) {
           $scope.jobModules = {};
-
-          jobModuleService.getAllModules().$promise.then(
+          var jobModulesPromise = jobModuleService.getAllModules().$promise;
+          xdCommon.addBusyPromise(jobModulesPromise);
+          jobModulesPromise.then(
              function (result) {
-                  xdCommon.$log.info('>>>>');
                   xdCommon.$log.info(result);
                   $scope.jobModules = result.content;
                 }, function (error) {

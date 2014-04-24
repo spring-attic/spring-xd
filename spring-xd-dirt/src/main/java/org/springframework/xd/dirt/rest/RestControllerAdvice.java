@@ -243,6 +243,14 @@ public class RestControllerAdvice {
 
 	@ResponseBody
 	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onBatchJobAlreadyExists(BatchJobAlreadyExistsException e) {
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchJobInstanceException(NoSuchBatchJobInstanceException e) {
 		String logref = logDebug(e);

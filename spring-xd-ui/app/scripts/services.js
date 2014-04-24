@@ -155,7 +155,7 @@ define(['angular'], function (angular) {
           };
           return sdo;
         })
-      .factory('Helper', function($log, growl, $timeout, promiseTracker, $q) {
+      .factory('XDCommon', function($log, growl, $timeout, promiseTracker, $q) {
           return {
             $log: $log,
             growl: growl,

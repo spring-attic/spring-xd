@@ -22,21 +22,21 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobDeployments', 'Helper', '$state',
-    function ($scope, jobDeployments, helper, $state) {
+  return ['$scope', 'JobDeployments', 'XDCommon', '$state',
+    function ($scope, jobDeployments, xdCommon, $state) {
       jobDeployments.getArray(function (data) {
-        helper.$log.info(data);
+        xdCommon.$log.info(data);
         $scope.jobDeployments = data;
 
         $scope.launchJob = function (item) {
-          helper.$log.info('Launching Job: ' + item.name);
+          xdCommon.$log.info('Launching Job: ' + item.name);
           $state.go('home.jobs.tabs.deployments.launch', {jobName: item.name});
         };
 
       }, function (error) {
-        helper.$log.error('Error fetching data. Is the XD server running?');
-        helper.$log.error(error);
-        helper.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+        xdCommon.$log.error('Error fetching data. Is the XD server running?');
+        xdCommon.$log.error(error);
+        xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
       });
     }];
 });

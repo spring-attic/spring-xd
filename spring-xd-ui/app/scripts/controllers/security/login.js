@@ -21,14 +21,14 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'user', 'helper',
-          function ($scope, user, helper) {
+  return ['$scope', 'user', 'XDCommon',
+          function ($scope, user, xdCommon) {
           $scope.loginFormData = {};
           $scope.login = function() {
             user.isAuthenticated = true;
             user.username = $scope.loginFormData.name;
-            helper.growl.addSuccessMessage('user ' + user.username + ' logged in.');
-            helper.$state.go('home.jobs.definitions');
+            xdCommon.growl.addSuccessMessage('user ' + user.username + ' logged in.');
+            xdCommon.$state.go('home.jobs.definitions');
           };
         }];
 });

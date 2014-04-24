@@ -22,15 +22,15 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobLaunchService', 'Helper', '$state', '$stateParams', '$location',
-    function ($scope, jobLaunchService, helper, $state, $stateParams, $location) {
+  return ['$scope', 'JobLaunchService', 'XDCommon', '$state', '$stateParams', '$location',
+    function ($scope, jobLaunchService, xdCommon, $state, $stateParams, $location) {
       $scope.$apply(function () {
         var jobLaunchRequest = $scope.jobLaunchRequest = {
           jobName: $stateParams.jobName,
           jobParameters: []
         };
 
-        helper.$log.info($stateParams);
+        xdCommon.$log.info($stateParams);
 
         $scope.addParameter = function () {
           jobLaunchRequest.jobParameters.push({key: '', value: '', type: 'string'});
@@ -52,12 +52,12 @@ define([], function () {
         ];
 
         $scope.cancelJobLaunch = function () {
-          helper.$log.info('Cancelling Job Launch');
+          xdCommon.$log.info('Cancelling Job Launch');
           $state.go('home.jobs.tabs.deployments');
         };
 
         $scope.launchJob = function (jobLaunchRequest) {
-          helper.$log.info('Launching Job ' + jobLaunchRequest.jobName);
+          xdCommon.$log.info('Launching Job ' + jobLaunchRequest.jobName);
           jobLaunchService.convertToJsonAndSend(jobLaunchRequest);
           $location.path('/jobs/deployments');
         };

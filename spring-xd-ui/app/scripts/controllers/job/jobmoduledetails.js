@@ -21,8 +21,8 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobModuleService', 'Helper', '$state', '$stateParams',
-    function ($scope, jobModuleService, helper, $state, $stateParams) {
+  return ['$scope', 'JobModuleService', 'XDCommon', '$state', '$stateParams',
+    function ($scope, jobModuleService, xdCommon, $state, $stateParams) {
       $scope.$apply(function () {
         $scope.moduleName = $stateParams.moduleName;
         $scope.optionsPredicate = 'name';
@@ -30,9 +30,9 @@ define([], function () {
             function (result) {
                 $scope.moduleDetails = result;
               }, function (error) {
-                helper.$log.error('Error fetching data. Is the XD server running?');
-                helper.$log.error(error);
-                helper.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+                xdCommon.$log.error('Error fetching data. Is the XD server running?');
+                xdCommon.$log.error(error);
+                xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
               }
             );
 
@@ -40,12 +40,12 @@ define([], function () {
           $scope.moduleDefinition = data;
         })
         .error(function(error){
-          helper.$log.error('Error fetching data. Is the XD server running?');
-          helper.$log.error(error);
-          helper.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+          xdCommon.$log.error('Error fetching data. Is the XD server running?');
+          xdCommon.$log.error(error);
+          xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
         });
         $scope.closeModuleDetails = function () {
-            helper.$log.info('Closing Job Details Window');
+            xdCommon.$log.info('Closing Job Details Window');
             $state.go('home.jobs.tabs.modules');
           };
       });

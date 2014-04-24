@@ -31,7 +31,6 @@ require.config({
     highlightjs: '../lib/highlightjs/highlight.pack',
     uiRouter: '../lib/angular-ui-router/angular-ui-router',
     cgBusy: '../lib/angular-busy/angular-busy',
-    promiseTracker: '../lib/angular-promise-tracker/promise-tracker',
     ngGrowl: '../lib/angular-growl/angular-growl',
     angularMocks: '../lib/angular-mocks/angular-mocks'
   },
@@ -46,9 +45,6 @@ require.config({
       deps: ['angular']
     },
     cgBusy: {
-      deps: ['promiseTracker']
-    },
-    'promiseTracker': {
       deps: ['angular']
     },
     'angularHighlightjs': {
@@ -80,6 +76,22 @@ define([
   });
   require(['jquery', 'bootstrap'], function() {
     console.log('Loaded Bootstrap.');
+    updateGrowl();
+    $(window).on('scroll resize', function() {
+      updateGrowl();
+    });
     return {};
   });
+
+  function updateGrowl() {
+    var bodyScrollTop = $('body').scrollTop();
+    var navHeight = $('nav').outerHeight();
+
+    if (bodyScrollTop > navHeight) {
+      $('.growl').css('top', 10);
+    } else if (bodyScrollTop >= 0) {
+      var distance = navHeight - bodyScrollTop;
+      $('.growl').css('top', distance + 10);
+    }
+  }
 });

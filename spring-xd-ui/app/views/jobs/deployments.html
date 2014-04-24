@@ -12,7 +12,7 @@
 				><span class="glyphicon glyphicon-play"></span> Launch</button>
 			</td>
 			<td>{{item.executionCount}}</td>
-			<td>{{item.exitStatus.exitCode}}</td>
+			<td ng-class="{'text-success': item.exitStatus.exitCode === 'COMPLETED', 'text-danger': item.exitStatus.exitCode === 'FAILED'}">{{item.exitStatus.exitCode}}</td>
 		</tr>
 	</tbody>
 </table>

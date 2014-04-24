@@ -26,7 +26,11 @@ define([], function () {
       $scope.$apply(function () {
         $scope.moduleName = $stateParams.moduleName;
         $scope.optionsPredicate = 'name';
-        jobModuleService.getSingleModule($stateParams.moduleName).$promise.then(
+
+        var singleModulePromise = jobModuleService.getSingleModule($stateParams.moduleName).$promise;
+        xdCommon.addBusyPromise(singleModulePromise);
+
+        singleModulePromise.then(
             function (result) {
                 $scope.moduleDetails = result;
               }, function (error) {
@@ -36,7 +40,9 @@ define([], function () {
               }
             );
 
-        jobModuleService.getModuleDefinition($stateParams.moduleName).success(function(data){
+        var moduleDefinitionPromise = jobModuleService.getModuleDefinition($stateParams.moduleName);
+        xdCommon.addBusyPromise(moduleDefinitionPromise);
+        moduleDefinitionPromise.success(function(data){
           $scope.moduleDefinition = data;
         })
         .error(function(error){

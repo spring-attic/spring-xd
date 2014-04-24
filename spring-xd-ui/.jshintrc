@@ -21,6 +21,7 @@
   "globals": {
     "angular": false,
     "requirejs": true,
-    "define": true
+    "define": true,
+    "$": true
   }
 }

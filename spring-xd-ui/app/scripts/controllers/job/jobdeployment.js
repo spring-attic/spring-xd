@@ -24,7 +24,8 @@ define([], function () {
   'use strict';
   return ['$scope', 'JobDeployments', 'XDCommon', '$state',
     function ($scope, jobDeployments, xdCommon, $state) {
-      jobDeployments.getArray(function (data) {
+      var jobDeploymentsPromise = jobDeployments.getArray(function (data) {
+
         xdCommon.$log.info(data);
         $scope.jobDeployments = data;
 
@@ -37,6 +38,7 @@ define([], function () {
         xdCommon.$log.error('Error fetching data. Is the XD server running?');
         xdCommon.$log.error(error);
         xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
-      });
+      }).$promise;
+      xdCommon.addBusyPromise(jobDeploymentsPromise);
     }];
 });

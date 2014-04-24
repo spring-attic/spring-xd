@@ -25,14 +25,14 @@ define([], function () {
   return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDCommon',
     function ($scope, jobDefinitions, jobDefinitionService, xdCommon) {
 
-      jobDefinitions.get(function (data) {
+      xdCommon.addBusyPromise(jobDefinitions.get(function (data) {
         xdCommon.$log.info(data);
         $scope.jobDefinitions = data.content;
       }, function (error) {
         xdCommon.$log.error('Error fetching data. Is the XD server running?');
         xdCommon.$log.error(error);
         xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
-      });
+      }));
 
       $scope.deployJob = function (jobDefinition) {
         xdCommon.$log.info('Deploying Job ' + jobDefinition.name);

@@ -19,7 +19,6 @@ require.config({
     highlightjs: '/base/app/lib/highlightjs/highlight.pack',
     uiRouter: '/base/app/lib/angular-ui-router/angular-ui-router',
     cgBusy: '/base/app/lib/angular-busy/angular-busy',
-    promiseTracker: '/base/app/lib/angular-promise-tracker/promise-tracker',
     ngGrowl: '/base/app/lib/angular-growl/angular-growl',
   },
   baseUrl: '/base/app/scripts',
@@ -34,9 +33,6 @@ require.config({
        deps: ['angular']
     },
     cgBusy: {
-      deps: ['promiseTracker']
-    },
-    'promiseTracker': {
       deps: ['angular']
     },
     'angularHighlightjs': {

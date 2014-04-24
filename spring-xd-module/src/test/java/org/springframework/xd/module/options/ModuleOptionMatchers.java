@@ -33,4 +33,8 @@ public class ModuleOptionMatchers {
 		return hasProperty("name", equalTo(name));
 	}
 
+	public static <T> Matcher<ModuleOption> moduleOptionWithDefaultValue(Matcher<T> matcher) {
+		return hasProperty("defaultValue", matcher);
+	}
+
 }

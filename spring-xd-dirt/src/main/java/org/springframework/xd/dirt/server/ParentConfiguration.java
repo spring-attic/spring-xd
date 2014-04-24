@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.server;
 
-import javax.management.MBeanServer;
 import javax.sql.DataSource;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -43,12 +42,12 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 /**
  * Beans defined and imported here are in the global parent context, hence available to the entire hierarchy, including
  * Admins, Containers, and Modules.
- * 
+ *
  * @author David Turanski
  * @author Mark Fisher
  */
 @EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
-	JmxAutoConfiguration.class })
+		JmxAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "batch/batch.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {
@@ -59,11 +58,10 @@ public class ParentConfiguration {
 	}
 
 	@Bean
-	public MBeanServer mbeanServer() {
+	public MBeanServerFactoryBean mbeanServer() {
 		MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
 		factoryBean.setLocateExistingServerIfPossible(true);
-		factoryBean.afterPropertiesSet();
-		return factoryBean.getObject();
+		return factoryBean;
 	}
 
 	@Configuration

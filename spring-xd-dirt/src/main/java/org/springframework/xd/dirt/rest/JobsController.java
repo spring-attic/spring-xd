@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 @Controller
 @RequestMapping("/jobs")
@@ -49,7 +50,7 @@ public class JobsController extends
 		XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResource> {
 
 	@Autowired
-	DistributedJobLocator distributedJobLocator;
+	private DistributedJobLocator distributedJobLocator;
 
 	@Autowired
 	public JobsController(JobDeployer jobDeployer,

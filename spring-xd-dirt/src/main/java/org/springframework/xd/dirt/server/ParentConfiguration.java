@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import javax.management.MBeanServer;
 import javax.sql.DataSource;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -35,6 +36,8 @@ import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.jmx.support.MBeanServerFactoryBean;
+import org.springframework.xd.dirt.post.DelegatingHandlerMapping;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
@@ -42,12 +45,26 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * Admins, Containers, and Modules.
  * 
  * @author David Turanski
+ * @author Mark Fisher
  */
 @EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
 	JmxAutoConfiguration.class })
-@ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
+@ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "batch/batch.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {
+
+	@Bean
+	public DelegatingHandlerMapping delegatingHandlerMapping() {
+		return new DelegatingHandlerMapping();
+	}
+
+	@Bean
+	public MBeanServer mbeanServer() {
+		MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
+		factoryBean.setLocateExistingServerIfPossible(true);
+		factoryBean.afterPropertiesSet();
+		return factoryBean.getObject();
+	}
 
 	@Configuration
 	@Profile("cloud")

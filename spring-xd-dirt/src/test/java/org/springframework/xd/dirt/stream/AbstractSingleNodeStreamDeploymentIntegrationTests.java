@@ -18,7 +18,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +32,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
@@ -63,20 +63,52 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.tuple.Tuple;
 
 /**
- * Base class that contains the tests but does not provide the transport. Each subclass should implement
- * {@link AbstractStreamDeploymentIntegrationTests#getTransport()} in order to execute the test methods defined here for
- * that transport.
+ * Base class for testing stream deployments across different transport types.
+ * Subclasses should define their transport type by implementing a static method
+ * with a @BeforeClass annotation, for example:
+ *
+ * <pre>
+ * &#064;BeforeClass
+ * public static void setUp() {
+ *     setUp("redis");
+ * }
+ * </pre>
+ *
+ * Additionally, extensions of this class should initialize the {@link #testMessageBus}
+ * member via an {@link org.junit.rules.ExternalResource} static member annotated with
+ * {@link org.junit.ClassRule}.
  *
  * @author David Turanski
  * @author Gunnar Hillert
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
+ * @author Patrick Peralta
  */
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
+	/**
+	 * Logger.
+	 */
 	private static final Logger logger = LoggerFactory.getLogger(AbstractSingleNodeStreamDeploymentIntegrationTests.class);
 
+	/*
+	 * (non JavaDoc) Queue name constants.
+	 */
+
+	private static final String QUEUE_ROUTE = "queue:routeit";
+
+	private static final String QUEUE_FOO = "queue:foo";
+
+	private static final String QUEUE_BAR = "queue:bar";
+
+	private static final String TOPIC_FOO = "topic:foo";
+
+	/**
+	 * ExternalResource implementation that ensures the single node application
+	 * used for testing is shut down after the tests complete.
+	 */
+	@ClassRule
 	public static ExternalResource shutdownApplication = new ExternalResource() {
 
 		@Override
@@ -87,35 +119,116 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		}
 	};
 
-	private final String queueRoute = "queue:routeit";
-
-	private final String queueFoo = "queue:foo";
-
-	private final String queueBar = "queue:bar";
-
-	private final String topicFoo = "topic:foo";
-
+	/**
+	 * Provides random configuration information for a test single node application.
+	 */
 	protected static TestApplicationBootstrap testApplicationBootstrap;
 
+	/**
+	 * Single node application used to execute tests.
+	 */
 	protected static SingleNodeApplication singleNodeApplication;
 
+	/**
+	 * Support for executing commands against the application, such as stream
+	 * creation and module loading.
+	 */
 	protected static SingleNodeIntegrationTestSupport integrationSupport;
 
+	/**
+	 * Message bus used for testing. This member should be initialized by
+	 * extensions of this class via an {@link org.junit.rules.ExternalResource}
+	 * static member annotated with {@link org.junit.ClassRule}.
+	 */
 	protected static AbstractTestMessageBus testMessageBus;
 
+	/**
+	 * Listener for deployment and undeployment requests via a ZooKeeper path.
+	 * This listener tracks writes and deletes to ZooKeeper in order to
+	 * verify that modules are being deployed and undeployed in the correct order.
+	 */
 	protected static final DeploymentsListener deploymentsListener = new DeploymentsListener();
+
+
+	/**
+	 * Set up the test using the given transport.
+	 *
+	 * @param transport the transport to be used by the test.
+	 */
+	protected static void setUp(String transport) {
+		testApplicationBootstrap = new TestApplicationBootstrap();
+		singleNodeApplication = testApplicationBootstrap.getSingleNodeApplication().run("--transport", transport);
+		integrationSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
+		if (transport.equalsIgnoreCase("local")) {
+			testMessageBus = null;
+		}
+		else {
+			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
+		}
+		ContainerAttributes attributes = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
+		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attributes.getId()), deploymentsListener);
+	}
+
+	/**
+	 * Shut down the message bus after all tests have completed.
+	 */
+	@AfterClass
+	public static void cleanupMessageBus() {
+		if (testMessageBus != null) {
+			testMessageBus.cleanup();
+			testMessageBus = null;
+		}
+		if (singleNodeApplication.containerContext().isActive()) {
+			ContainerAttributes attribs = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
+			integrationSupport.removePathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attribs.getId()),
+					deploymentsListener);
+		}
+	}
+
+	/**
+	 * Undeploy all streams after each test execution.
+	 */
+	@After
+	public void cleanUp() {
+		integrationSupport.streamDeployer().undeployAll();
+		integrationSupport.streamRepository().deleteAll();
+		integrationSupport.streamDefinitionRepository().deleteAll();
+	}
+
+	/**
+	 * Return the codec used by the message bus.
+	 *
+	 * @return code used by message bus
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected static MultiTypeCodec<Object> getCodec() {
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		codecs.put(Tuple.class, new TupleCodec());
+		return new CompositeCodec(codecs, new PojoCodec());
+	}
+
+	/**
+	 * Return the number of bindings to the message bus.
+	 *
+	 * @return number of bindings to the message bus
+	 */
+	private int getMessageBusBindingCount() {
+		MessageBus bus = testMessageBus != null ? testMessageBus.getMessageBus() : integrationSupport.messageBus();
+		DirectFieldAccessor accessor = new DirectFieldAccessor(bus);
+		return ((List<?>) accessor.getPropertyValue("bindings")).size();
+	}
 
 	@Test
 	public final void testRoutingWithSpel() throws InterruptedException {
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
-				queueRoute + " > router --expression=payload.contains('a')?'" + queueFoo + "':'" + queueBar + "'");
+				QUEUE_ROUTE + " > router --expression=payload.contains('a')?'" + QUEUE_FOO + "':'" + QUEUE_BAR + "'");
 		doTest(routerDefinition);
 	}
 
 	@Test
 	public final void testRoutingWithGroovy() throws InterruptedException {
 		StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
-				queueRoute + " > router --script='org/springframework/xd/dirt/stream/router.groovy'");
+				QUEUE_ROUTE + " > router --script='org/springframework/xd/dirt/stream/router.groovy'");
 		doTest(routerDefinition);
 	}
 
@@ -180,7 +293,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		NamedChannelSink bar1sink = sinkFactory.createNamedChannelSink("queue:bar1");
 		NamedChannelSink bar2sink = sinkFactory.createNamedChannelSink("queue:bar2");
-		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(bus).createNamedChannelSource(topicFoo);
+		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(bus).createNamedChannelSource(TOPIC_FOO);
 
 		source.sendPayload("hello");
 
@@ -194,54 +307,13 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		bar2sink.unbind();
 	}
 
-	protected static void setUp(String transport) {
-		testApplicationBootstrap = new TestApplicationBootstrap();
-		singleNodeApplication = testApplicationBootstrap.getSingleNodeApplication().run("--transport", transport);
-		integrationSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
-		if (transport.equalsIgnoreCase("local")) {
-			testMessageBus = null;
-		}
-		else {
-			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
-		}
-		ContainerAttributes attribs = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
-		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attribs.getId()), deploymentsListener);
-	}
-
-	@AfterClass
-	public static void cleanupMessageBus() {
-		if (testMessageBus != null) {
-			testMessageBus.cleanup();
-			testMessageBus = null;
-		}
-		if (singleNodeApplication.containerContext().isActive()) {
-			ContainerAttributes attribs = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
-			integrationSupport.removePathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attribs.getId()),
-					deploymentsListener);
-		}
-	}
-
-	@After
-	public void cleanUp() {
-		integrationSupport.streamDeployer().undeployAll();
-		integrationSupport.streamRepository().deleteAll();
-		integrationSupport.streamDefinitionRepository().deleteAll();
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected static MultiTypeCodec<Object> getCodec() {
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
-		codecs.put(Tuple.class, new TupleCodec());
-		return new CompositeCodec(codecs, new PojoCodec());
-	}
-
 	@Test
 	public final void deployAndUndeploy() throws InterruptedException {
 
 		assertEquals(0, integrationSupport.streamRepository().count());
-		final int ITERATIONS = 5;
-		int i = 0;
-		for (i = 0; i < ITERATIONS; i++) {
+		final int iterations = 5;
+		int i;
+		for (i = 0; i < iterations; i++) {
 			String streamName = "test" + i;
 			StreamDefinition definition = new StreamDefinition(streamName,
 					"http --port=" + SocketUtils.findAvailableTcpPort()
@@ -265,18 +337,18 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			assertModuleRequest(streamName, "filter", true);
 			assertModuleRequest(streamName, "log", true);
 		}
-		assertEquals(ITERATIONS, i);
+		assertEquals(iterations, i);
 	}
 
 	@Test
 	public void moduleChannelsRegisteredWithMessageBus() {
 		StreamDefinition sd = new StreamDefinition("busTest", "http | log");
-		int originalBindings = getMessageBusBindings().size();
+		int originalBindings = getMessageBusBindingCount();
 		assertTrue("Timeout waiting for stream deployment", integrationSupport.createAndDeployStream(sd));
-		int newBindings = getMessageBusBindings().size() - originalBindings;
+		int newBindings = getMessageBusBindingCount() - originalBindings;
 		assertEquals(3, newBindings);
 		integrationSupport.undeployAndDestroyStream(sd);
-		assertEquals(originalBindings, getMessageBusBindings().size());
+		assertEquals(originalBindings, getMessageBusBindingCount());
 
 	}
 
@@ -292,18 +364,14 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		integrationSupport.createAndDeployStream(streamDefinition);
 		integrationSupport.createAndDeployStream(tapDefinition);
 
-		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(integrationSupport.messageBus()).createNamedChannelSource("queue:source");
-		NamedChannelSink streamSink = new SingleNodeNamedChannelSinkFactory(integrationSupport.messageBus()).createNamedChannelSink("queue:sink");
-		NamedChannelSink tapSink = new SingleNodeNamedChannelSinkFactory(integrationSupport.messageBus()).createNamedChannelSink("queue:tap");
+		MessageBus bus = integrationSupport.messageBus();
+
+		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(bus).createNamedChannelSource("queue:source");
+		NamedChannelSink streamSink = new SingleNodeNamedChannelSinkFactory(bus).createNamedChannelSink("queue:sink");
+		NamedChannelSink tapSink = new SingleNodeNamedChannelSinkFactory(bus).createNamedChannelSink("queue:tap");
 
 		// Wait for things to set up before sending
-		try {
-			Thread.sleep(2000);
-		}
-		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		integrationSupport.streamDeploymentVerifier().waitForDeploy(tapDefinition.getName());
 
 		source.send(new GenericMessage<String>("Dracarys!"));
 
@@ -350,10 +418,10 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		SingleNodeNamedChannelSinkFactory sinkFactory = new SingleNodeNamedChannelSinkFactory(bus);
 
-		NamedChannelSink foosink = sinkFactory.createNamedChannelSink("queue:foo");
-		NamedChannelSink barsink = sinkFactory.createNamedChannelSink("queue:bar");
+		NamedChannelSink foosink = sinkFactory.createNamedChannelSink(QUEUE_FOO);
+		NamedChannelSink barsink = sinkFactory.createNamedChannelSink(QUEUE_BAR);
 
-		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(bus).createNamedChannelSource("queue:routeit");
+		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(bus).createNamedChannelSource(QUEUE_ROUTE);
 
 		source.sendPayload("a");
 		source.sendPayload("b");
@@ -369,16 +437,29 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		barsink.unbind();
 	}
 
+	/**
+	 * Listener for ZooKeeper paths for module deployment/undeployment.
+	 */
 	static class DeploymentsListener implements PathChildrenCacheListener {
 
-		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> deployQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
+		/**
+		 * Map of module deployment requests keyed by stream name.
+		 */
+		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> deployQueues
+				= new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
 
-		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> undeployQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
+		/**
+		 * Map of module undeployment requests keyed by stream name.
+		 */
+		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> undeployQueues
+				= new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 			ModuleDeploymentsPath path = new ModuleDeploymentsPath(event.getData().getPath());
-			logger.debug("Path cache event: {}", event);
 			if (event.getType().equals(Type.CHILD_ADDED)) {
 				deployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
 				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(path.getStreamName());
@@ -391,6 +472,17 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			}
 		}
 
+		/**
+		 * Return the earliest {@link org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent}
+		 * associated with deployment of the stream indicated by {@code streamName} that has not already
+		 * been returned. The first invocation will return the first event, the second invocation will
+		 * return the second event, etc. If no events are available, this method blocks for up to
+		 * five seconds to wait for an event.
+		 *
+		 * @param streamName name of stream to obtain deployment event for
+		 * @return an event for deployment, or null if none available or if the
+		 *         executing thread is interrupted
+		 */
 		public PathChildrenCacheEvent nextDeployEvent(String streamName) {
 			try {
 				deployQueues.putIfAbsent(streamName, new LinkedBlockingQueue<PathChildrenCacheEvent>());
@@ -402,6 +494,17 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			}
 		}
 
+		/**
+		 * Return the earliest {@link org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent}
+		 * associated with undeployment of the stream indicated by {@code streamName} that has not already
+		 * been returned. The first invocation will return the first event, the second invocation will
+		 * return the second event, etc. If no events are available, this method blocks for up to
+		 * five seconds to wait for an event.
+		 *
+		 * @param streamName name of stream to obtain undeployment event for
+		 * @return an event for undeployment, or null if none available or if the
+		 *         executing thread is interrupted
+		 */
 		public PathChildrenCacheEvent nextUndeployEvent(String streamName) {
 			try {
 				undeployQueues.putIfAbsent(streamName, new LinkedBlockingQueue<PathChildrenCacheEvent>());
@@ -415,9 +518,4 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	}
 
-	private Collection<?> getMessageBusBindings() {
-		MessageBus bus = testMessageBus != null ? testMessageBus.getMessageBus() : integrationSupport.messageBus();
-		DirectFieldAccessor accessor = new DirectFieldAccessor(bus);
-		return (List<?>) accessor.getPropertyValue("bindings");
-	}
 }

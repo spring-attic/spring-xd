@@ -1,40 +1,74 @@
 # modules configuration file
 
+# Common twitter keys that can be applied to twittersearch, twitterstream
+# modules can be specified as below. These are default values unless explicit values are
+# set for module config keys in the respective twitter(search/stream) source modules.
+#
+# For example:
+#  twitter:
+#    consumerKey: y5fn6MTQrbspringXD1gQ
+#    consumerSecret: hCLjD0gTFGWJabGSpringXDrxcNPIqcpJsIgKS0Mm48Q
+#    accessToken: 58849055-QOYTpYhRIcfuDty1springxdY2BBSZm6MvL1xeESK
+#    accessTokenSecret: h0odrQPKqrrFsdcW8Yzcaf4zjFUqEEVfkeVs
+#
+# Once the above properties are set, the twitterstream/twittersearch source modules will use
+# them by default.
+# There are two ways to override these properties:
+# Note: Make sure the common properties as mentioned above are commented out.
+# 1) Provide explicit value for the below twitterstream/twittersearch
+#    source module config keys
+#    source:
+#      twitterstream:
+#        consumerKey: ${twitter.consumerKey:overriderb8ffdeizSIgQ}
+#        consumerSecret: ${twitter.consumerSecret:overrideFGWJabGnAcTiQ01tcNPIqcpJsIgKS0Mm78Q}
+#        accessToken: ${twitter.accessToken:73349055-overRideIcfuDty1t6Q5Ur7sY2BBSZm6MvL1xeESK}
+#        accessTokenSecret: ${twitter.accessTokenSecret:overrideqrrFsdcW8Yzcaf4zjFUqEEVfkeVs}
+#
+#    source:
+#      twittersearch:
+#        consumerKey: ${twitter.consumerKey:overridesearcheizSIgQ}
+#        consumerSecret: ${twitter.consumerSecret:overridesearchGnAcTiQ01tcNPIqcpJsIgKS0Mm78Q}
+
+
+# 2) Set properties in source/module/twitter(stream/search).properties
+#
+# Other modules' source/sink properties can be configured in a similar way
+# Rabbit source/sink module configuration is one other example below.
+
+# Actual configuration starts from here:
 # Common twitter keys
-twitter:
-  consumerKey:
-  consumerSecret:
-   
-#sharedConsumerKey:
-#sharedConsumerSecret:
-#sharedAccessToken:
-#sharedAccessTokenSecret:
+#twitter:
+#  consumerKey:
+#  consumerSecret:
+#  accessToken:
+#  accessTokenSecret:
 
 ---
 
 # twitterstream source module properties
 #source:
 #  twitterstream:
-#    consumerKey: ${sharedConsumerKey:}
-#    consumerSecret: ${sharedConsumerSecret:}
-#    accessToken: ${sharedAccessToken:}
-#    accessTokenSecret: ${sharedAccessTokenSecret:}
+#    consumerKey: ${twitter.consumerKey:}
+#    consumerSecret: ${twitter.consumerSecret:}
+#    accessToken: ${twitter.accessToken:}
+#    accessTokenSecret: ${twitter.accessTokenSecret:}
 
 ---
 
 # twittersearch source module properties
 #source:
 #  twittersearch:
-#    consumerKey: ${sharedConsumerKey:}
-#    consumerSecret: ${sharedConsumerSecret:}
+#    consumerKey: ${twitter.consumerKey:}
+#    consumerSecret: ${twitter.consumerSecret:}
 
 ---
 
 # RabbitMQ shared module properties
-#sharedRabbitHost: localhost
-#sharedRabbitPort: 5672
-#sharedRabbitUsername: guest
-#sharedRabbitPassword: guest
-#sharedRabbitVhost: /
+#rabbit:
+#  host: localhost
+#  port: 5672
+#  username: guest
+#  password: guest
+#  vhost: /
 
 ---

@@ -77,6 +77,7 @@ public class HttpSource extends AbstractModuleFixture {
 				}
 				catch (InterruptedException e1) {
 					Thread.currentThread().interrupt();
+					break;
 				}
 			}
 		}

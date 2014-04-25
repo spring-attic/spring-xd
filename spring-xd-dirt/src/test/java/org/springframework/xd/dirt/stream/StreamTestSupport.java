@@ -206,7 +206,8 @@ public class StreamTestSupport {
 					Thread.sleep(100);
 				}
 				catch (InterruptedException e) {
-					e.printStackTrace();
+					Thread.currentThread().interrupt();
+					throw new IllegalStateException("interrupted while waiting for completion", e);
 				}
 				time += 100;
 			}

@@ -24,15 +24,15 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * it into its elements, for example:
  * <p>
  * <code>
- * StreamsPath streamsPath = new StreamsPath("/xd/streams/my-stream");
- * assertEquals("my-stream", streamsPath.getStreamName());
+ * StreamsDeploymentsPath path = new StreamsPath("/xd/streams/deployments/my-stream");
+ * assertEquals("my-stream", path.getStreamName());
  * </code>
  * </p>
  * It can also be used to build a path, for example:
  * <p>
  * <code>
- * StreamsPath streamsPath = new StreamsPath().setStreamName("my-stream");
- * assertEquals("/streams/my-stream", streamsPath.build());
+ * StreamsDeploymentsPath path = new StreamsDeploymentsPath().setStreamName("my-stream");
+ * assertEquals("/deployments/streams/my-stream", path.build());
  * </code>
  * </p>
  *

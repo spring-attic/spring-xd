@@ -29,11 +29,13 @@ import org.springframework.xd.dirt.integration.test.source.DeploymentPathProvide
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
- * Verifies deployments via inspection of ZooKeeper paths. Each of
- * the {@code wait...} methods blocks for a specified amount of time
- * and throws {@link RuntimeTimeoutException} if the expected path
- * is or isn't present in the time allotted. Deployment paths
- * are determined by the provided {@link DeploymentPathProvider}.
+ * Verifies deployments or undeployments via inspection of ZooKeeper
+ * paths. Each of the {@code wait...} methods block for a specified
+ * amount of time and throw {@link RuntimeTimeoutException} if the
+ * expected path is not present (in the case of create/deploy) or
+ * is still present (in the case of undeploy/destroy) in the
+ * time allotted. Deployment paths are determined by the
+ * {@link DeploymentPathProvider} passed into the constructor.
  *
  * @author Patrick Peralta
  */

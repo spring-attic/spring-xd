@@ -24,15 +24,15 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * its elements, for example:
  * <p>
  * <code>
- * JobsPath jobsPath = new JobsDeploymentsPath("/xd/jobs/my-job");
- * assertEquals("my-job", jobsPath.getJobName());
+ * JobsDeploymentsPath path = new JobsDeploymentsPath("/xd/deployments/jobs/my-job");
+ * assertEquals("my-job", path.getJobName());
  * </code>
  * </p>
  * It can also be used to build a path, for example:
  * <p>
  * <code>
- * JobsDeploymentsPath jobsPath = new JobsPath().setJobName("my-job");
- * assertEquals("/jobs/my-job", jobsPath.build());
+ * JobsDeploymentsPath path = new JobsDeploymentsPath().setJobName("my-job");
+ * assertEquals("/deployments/jobs/my-job", path.build());
  * </code>
  * </p>
  *

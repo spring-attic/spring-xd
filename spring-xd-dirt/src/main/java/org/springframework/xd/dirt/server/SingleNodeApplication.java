@@ -64,8 +64,10 @@ public class SingleNodeApplication {
 				.profiles(XdProfiles.CONTAINER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
 				.listeners(
 						ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-								bootstrapContext.pluginContextInitializers())).child(ContainerConfiguration.class)
-				.listeners(bootstrapContext.commandLineListener()).web(false);
+								bootstrapContext.pluginContextInitializers()))
+				.child(ContainerConfiguration.class)
+				.listeners(bootstrapContext.commandLineListener())
+				.web(false);
 		container.run(args);
 
 		adminContext = admin.context();
@@ -108,7 +110,8 @@ public class SingleNodeApplication {
 	 * Initializer class that activates {@link HsqlServerApplication.HSQLDBSERVER_PROFILE} if the underlying datasource
 	 * is hsql and embedded hsqldb is opted.
 	 */
-	class HsqldbServerProfileActivator implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+	class HsqldbServerProfileActivator implements
+			ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		private static final String SPRING_DATASOURCE_URL_OPTION = "${spring.datasource.url}";
 

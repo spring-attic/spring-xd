@@ -119,8 +119,10 @@ public class ContainerServerApplication implements EnvironmentAware {
 					.child(ContainerServerApplication.class)
 					.listeners(
 							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-									bootstrapContext.pluginContextInitializers())).child(ContainerConfiguration.class)
-					.listeners(bootstrapContext.commandLineListener()).initializers(new IdInitializer()).run(args);
+									bootstrapContext.pluginContextInitializers()))
+					.child(ContainerConfiguration.class)
+					.listeners(bootstrapContext.commandLineListener())
+					.initializers(new IdInitializer()).run(args);
 		}
 		catch (Exception e) {
 			handleErrors(e);
@@ -131,8 +133,8 @@ public class ContainerServerApplication implements EnvironmentAware {
 	@Bean
 	public ContainerAttributes containerAttributes() {
 		ContainerAttributes containerAttributes = new ContainerAttributes();
-		containerAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress())
-				.setPid(RuntimeUtils.getPid());
+		containerAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress()).setPid(
+				RuntimeUtils.getPid());
 		setConfiguredContainerAttributes(containerAttributes);
 		return containerAttributes;
 	}
@@ -168,7 +170,8 @@ public class ContainerServerApplication implements EnvironmentAware {
 			BindException be = (BindException) e.getCause();
 			for (FieldError error : be.getFieldErrors()) {
 				System.err.println(String.format("the value '%s' is not allowed for property '%s'",
-						error.getRejectedValue(), error.getField()));
+						error.getRejectedValue(),
+						error.getField()));
 			}
 		}
 		else {
@@ -244,8 +247,13 @@ class ContainerConfiguration {
 			zooKeeperConnection.start();
 		}
 
-		return new ContainerRegistrar(containerAttributes, containerAttributesRepository, streamDefinitionRepository,
-				moduleDefinitionRepository, moduleOptionsMetadataResolver, moduleDeployer, zooKeeperConnection);
+		return new ContainerRegistrar(containerAttributes,
+				containerAttributesRepository,
+				streamDefinitionRepository,
+				moduleDefinitionRepository,
+				moduleOptionsMetadataResolver,
+				moduleDeployer,
+				zooKeeperConnection);
 	}
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")

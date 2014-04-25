@@ -101,7 +101,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 		};
 		StreamTestSupport.getSinkInputChannel("filestring").subscribe(test);
 		dropFile("foo2.txt");
-		test.waitForCompletion(1000);
+		test.waitForCompletion(3000);
 		StreamTestSupport.getDeployedModule("filestring", 0).stop();
 		assertTrue(test.getMessageHandled());
 	}

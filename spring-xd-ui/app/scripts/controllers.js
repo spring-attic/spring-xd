@@ -26,16 +26,16 @@ define(['angular'], function (angular) {
   return angular.module('xdAdmin.controllers', ['xdAdmin.services'])
       .controller('ListDefinitionController',
           ['$scope', '$injector', function ($scope, $injector) {
-              require(['controllers/job/jobdefinition'], function (jobDefinitionController) {
-                $injector.invoke(jobDefinitionController, this, {'$scope': $scope});
-              });
-            }])
+            require(['controllers/job/jobdefinition'], function (jobDefinitionController) {
+              $injector.invoke(jobDefinitionController, this, {'$scope': $scope});
+            });
+          }])
       .controller('ListJobDeploymentsController',
           ['$scope', '$injector', function ($scope, $injector) {
-              require(['controllers/job/jobdeployment'], function (jobDeploymentController) {
-                $injector.invoke(jobDeploymentController, this, {'$scope': $scope});
-              });
-            }])
+            require(['controllers/job/jobdeployment'], function (jobDeploymentController) {
+              $injector.invoke(jobDeploymentController, this, {'$scope': $scope});
+            });
+          }])
       .controller('ListJobExecutionsController',
           ['$scope', '$injector', function ($scope, $injector) {
             require(['controllers/job/jobexecution'], function (jobExecutionController) {
@@ -62,10 +62,10 @@ define(['angular'], function (angular) {
           }])
       .controller('JobLaunchController',
           ['$scope', '$injector', function ($scope, $injector) {
-              require(['controllers/job/joblaunch'], function (jobLaunchController) {
-                  $injector.invoke(jobLaunchController, this, {'$scope': $scope});
-                });
-            }])
+            require(['controllers/job/joblaunch'], function (jobLaunchController) {
+              $injector.invoke(jobLaunchController, this, {'$scope': $scope});
+            });
+          }])
       .controller('ModuleDetailsController',
           ['$scope', '$injector', function ($scope, $injector) {
             require(['controllers/job/jobmoduledetails'], function (moduleDetailsController) {

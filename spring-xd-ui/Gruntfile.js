@@ -8,8 +8,6 @@ module.exports = function (grunt) {
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
 
-  require('grunt-protractor-runner')(grunt);
-
   // Define the configuration for all the tasks
   grunt.initConfig({
 
@@ -30,13 +28,13 @@ module.exports = function (grunt) {
     watch: {
       js: {
         files: ['<%= xd.app %>/scripts/{,**/}*.js'],
-        tasks: ['newer:jshint:all'],
+        tasks: ['newer:jshint:all', 'karma'],
         options: {
           livereload: true
         }
       },
       jsTest: {
-        files: ['test/spec/{,*/}*.js'],
+        files: ['test/spec/{,**/}*.js'],
         tasks: ['newer:jshint:test', 'karma']
       },
       less: {
@@ -59,7 +57,7 @@ module.exports = function (grunt) {
           '.tmp/styles/{,*/}*.css',
           '<%= xd.app %>/images/{,*/}*.{png,jpg,jpeg,gif}'
         ]
-      },
+      }
     },
     protractor: {
       options: {
@@ -140,7 +138,7 @@ module.exports = function (grunt) {
       },
       all: [
         'Gruntfile.js',
-        '<%= xd.app %>/scripts/{,*/}*.js'
+        '<%= xd.app %>/scripts/{,**/}*.js'
       ],
       test: {
         options: {
@@ -371,7 +369,7 @@ module.exports = function (grunt) {
     // Clean dist and .tmp directories
     'clean:dist',
     // Run JSHint on all js files
-    //'jshint',
+    'jshint',
     // Install bower components into {xd.app}/lib
     'bower:install',
     // Compile LESS files into CSS

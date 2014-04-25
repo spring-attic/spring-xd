@@ -17,7 +17,7 @@ define([
   'angular',
   'angularMocks',
   'app'
-], function(angular, mocks, app) {
+], function(angular) {
   'use strict';
 
   describe('Unit: Testing XD Services', function() {

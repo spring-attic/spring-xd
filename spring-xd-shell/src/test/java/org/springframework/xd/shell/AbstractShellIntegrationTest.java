@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -59,6 +60,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public abstract class AbstractShellIntegrationTest {
 
@@ -94,6 +96,8 @@ public abstract class AbstractShellIntegrationTest {
 	protected static JobCommandListener jobCommandListener = new JobCommandListener();
 
 	private static SingleNodeIntegrationTestSupport integrationTestSupport;
+
+	private Random random = new Random();
 
 	@BeforeClass
 	public static synchronized void startUp() throws InterruptedException, IOException {
@@ -144,7 +148,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	private String generateUniqueName() {
 		StackTraceElement[] element = Thread.currentThread().getStackTrace();
-		// Assumption here is that the generateStreamName()/generateJobName() is called from the @Test method
+		// Assumption here is that generateStreamName()/generateJobName() are called from the @Test method
 		return generateUniqueName(element[4].getMethodName());
 	}
 
@@ -154,6 +158,12 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected String generateStreamName() {
 		return generateStreamName(null);
+	}
+
+	protected String generateQueueName() {
+		StackTraceElement[] element = Thread.currentThread().getStackTrace();
+		// Assumption here is that generateQueueName() is called from the @Test method
+		return "queue:" + element[2].getMethodName() + random.nextInt();
 	}
 
 	protected String getTapName(String streamName) {

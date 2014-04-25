@@ -1,6 +1,6 @@
 if (payload.contains('a')) {
-	return "queue:foo"
+	return "queue:testUsingScript1"
 }
 else {
-	return "queue:bar"
+	return "queue:testUsingScript2"
 }

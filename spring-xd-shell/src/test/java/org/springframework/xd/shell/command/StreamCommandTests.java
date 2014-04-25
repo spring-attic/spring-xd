@@ -127,15 +127,16 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		String streamName = generateStreamName();
 		logger.info("Create " + streamName + " stream");
 		HttpSource source = newHttpSource();
-		stream().create(streamName, "%s > queue:foox", source);
+		stream().create(streamName, "%s > %s", source, generateQueueName());
 		source.postData("blahblah");
 	}
 
 	@Test
 	public void testNamedChannelsLinkingSourceAndSink() {
 		HttpSource source = newHttpSource();
-		stream().create(generateStreamName(), "%s > queue:foo", source);
-		stream().create(generateStreamName(), "queue:foo > transform --expression=payload.toUpperCase() | log");
+		String queue = generateQueueName();
+		stream().create(generateStreamName(), "%s > %s", source, queue);
+		stream().create(generateStreamName(), "%s > transform --expression=payload.toUpperCase() | log", queue);
 		source.postData("blahblah");
 	}
 
@@ -146,9 +147,17 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testProcessorLinkingChannels() throws Exception {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource source = newHttpSource(9314);
-		stream().create(generateStreamName(), "%s > queue:foo", source);
-		stream().create(generateStreamName(), "queue:foo > transform --expression=payload.toUpperCase() > queue:bar");
-		stream().create(generateStreamName(), "queue:bar > %s", sink);
+
+		String streamName0 = generateStreamName();
+		String streamName1 = generateStreamName();
+		String streamName2 = generateStreamName();
+
+		String queue1 = generateQueueName();
+		String queue2 = generateQueueName();
+
+		stream().create(streamName0, "%s > %s", source, queue1);
+		stream().create(streamName1, "%s > transform --expression=payload.toUpperCase() > %s", queue1, queue2);
+		stream().create(streamName2, "%s > %s", queue2, sink);
 		source.postData("blahblah");
 		assertThat(sink, eventually(hasContentsThat(equalTo("BLAHBLAH"))));
 
@@ -225,9 +234,10 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		FileSink tapsink5 = newFileSink().binary(true);
 
 		String streamName = generateStreamName();
+		String queue = generateQueueName();
 		stream().create(streamName,
-				"%s | transform --expression=payload.toUpperCase() | filter --expression=true > queue:foobar", source);
-		stream().create(generateStreamName(), "queue:foobar > %s", sink);
+				"%s | transform --expression=payload.toUpperCase() | filter --expression=true > %s", source, queue);
+		stream().create(generateStreamName(), "%s > %s", queue, sink);
 
 		stream().create(generateStreamName(),
 				"%s > transform --expression=payload.replaceAll('r','.') | %s", getTapName(streamName), tapsink3);
@@ -275,23 +285,28 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		HttpSource source2 = newHttpSource();
 		HttpSource source3 = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
-		String streamName = generateStreamName();
-		stream().create(generateStreamName(), "%s > queue:foo", source1);
-		stream().create(streamName, "%s > queue:foo", source2);
-		stream().create(generateStreamName(), "queue:foo > %s", sink);
+
+		String streamName0 = generateStreamName();
+		String streamName1 = generateStreamName();
+		String streamName2 = generateStreamName();
+
+		String queue = generateQueueName();
+
+		stream().create(streamName0, "%s > %s", source1, queue);
+		stream().create(streamName1, "%s > %s", source2, queue);
+		stream().create(streamName2, "%s > %s", queue, sink);
 
 		source1.ensureReady().postData("Dracarys!");
 		source2.ensureReady().postData("testing");
 
 		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testing"))));
 
-
-		stream().destroyStream(streamName);
+		stream().destroyStream(streamName1);
 
 		source1.ensureReady().postData("stillup");
 		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testingstillup"))));
 
-		stream().create(generateStreamName(), "%s > queue:foo", source3);
+		stream().create(generateStreamName(), "%s > %s", source3, queue);
 		source3.ensureReady().postData("newstream");
 		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testingstillupnewstream"))));
 	}
@@ -313,7 +328,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		String streamName = generateStreamName();
 		String tapName = generateStreamName();
 		stream().create(streamName, "%s | log", source);
-		stream().create(tapName, "%s > queue:foo", getTapName(streamName));
+		stream().create(tapName, "%s > %s", getTapName(streamName), generateQueueName());
 		stream().destroyStream(streamName);
 		stream().destroyStream(tapName);
 	}

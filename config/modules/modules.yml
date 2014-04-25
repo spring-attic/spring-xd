@@ -1,6 +1,10 @@
 # modules configuration file
 
 # Common twitter keys
+twitter:
+  consumerKey:
+  consumerSecret:
+   
 #sharedConsumerKey:
 #sharedConsumerSecret:
 #sharedAccessToken:

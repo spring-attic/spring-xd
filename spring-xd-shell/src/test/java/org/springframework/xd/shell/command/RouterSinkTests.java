@@ -39,10 +39,13 @@ public class RouterSinkTests extends AbstractStreamIntegrationTest {
 	public void testUsingExpression() {
 		FileSink fileSink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
+		String queue1 = generateQueueName();
+		String queue2 = generateQueueName();
 
-		stream().create(generateStreamName(), "queue:foo > transform --expression=payload+'-foo' | %s", fileSink);
-		stream().create(generateStreamName(), "queue:bar > transform --expression=payload+'-bar' | %s", fileSink);
-		stream().create(generateStreamName(), "%s | router --expression=payload.contains('a')?'queue:foo':'queue:bar'",
+		stream().create(generateStreamName(), "%s > transform --expression=payload+'-foo' | %s", queue1, fileSink);
+		stream().create(generateStreamName(), "%s > transform --expression=payload+'-bar' | %s", queue2, fileSink);
+		stream().create(generateStreamName(),
+				"%s | router --expression=payload.contains('a')?'" + queue1 + "':'" + queue2 + "'",
 				httpSource);
 
 		httpSource.ensureReady().postData("a").postData("b");
@@ -56,8 +59,8 @@ public class RouterSinkTests extends AbstractStreamIntegrationTest {
 		FileSink fileSink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
 
-		stream().create(generateStreamName(), "queue:foo > transform --expression=payload+'-foo' | %s", fileSink);
-		stream().create(generateStreamName(), "queue:bar > transform --expression=payload+'-bar' | %s", fileSink);
+		stream().create(generateStreamName(), "queue:testUsingScript1 > transform --expression=payload+'-foo' | %s", fileSink);
+		stream().create(generateStreamName(), "queue:testUsingScript2 > transform --expression=payload+'-bar' | %s", fileSink);
 		stream().create(generateStreamName(),
 				"%s | router --script='org/springframework/xd/shell/command/router.groovy'", httpSource);
 

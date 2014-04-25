@@ -24,8 +24,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
-import org.springframework.xd.test.fixtures.CounterSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.test.fixtures.CounterSink;
 
 /**
  * Tests for named channels.
@@ -40,28 +40,29 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testCreateNamedChannelAsSink() {
-		logger.info("Creating stream with named channel 'queue:foo' as sink");
+		String streamName = generateStreamName();
+		String queueName = generateQueueName();
+		logger.info("Creating stream with named channel " + queueName + " as sink");
 		HttpSource source = newHttpSource();
 
-		stream().create(generateStreamName(),
-				"%s | transform --expression=payload.toUpperCase() > queue:foo", source);
+		stream().create(streamName,
+				"%s | transform --expression=payload.toUpperCase() > %s", source, queueName);
 	}
 
 	@Test
 	public void testCreateNamedChannelAsSource() throws InterruptedException {
-		logger.info("Creating stream with named channel 'foo' as source");
 		String streamName1 = generateStreamName();
 		String streamName2 = generateStreamName();
-
+		String queueName = generateQueueName();
+		logger.info("Creating stream with named channel '" + queueName + "' as source");
 		HttpSource httpSource = newHttpSource();
 		CounterSink counterSink = metrics().newCounterSink();
 
-		stream().create(streamName1, "%s | transform --expression=payload.toUpperCase() > queue:foo",
-				httpSource);
+		stream().create(streamName1, "%s | transform --expression=payload.toUpperCase() > %s",
+				httpSource, queueName);
 		// Create stream with named channel as source
-		stream().create(streamName2, "queue:foo > %s", counterSink);
+		stream().create(streamName2, "%s > %s", queueName, counterSink);
 		httpSource.ensureReady().postData("test");
 		assertThat(counterSink, eventually(hasValue("1")));
 	}
-
 }

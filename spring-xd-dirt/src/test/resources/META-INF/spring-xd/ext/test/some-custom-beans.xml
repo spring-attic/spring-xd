@@ -13,5 +13,4 @@
 		<bean class="org.springframework.xd.extensions.test.StubPojoToStringConverter"/>
 	</util:list>
 	
-	<bean id="messageBus" class="org.springframework.xd.extensions.test.MyMessageBus"/>
 </beans>

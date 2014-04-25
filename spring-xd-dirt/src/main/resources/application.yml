@@ -26,8 +26,12 @@ xd:
     home: file:${XD_HOME}/spring-xd-ui/dist/
     allow_origin: http://localhost:9889
   extensions:
-    basepackages:
-    locations: classpath*:META-INF/spring-xd/ext
+     plugin:
+       basepackages:
+       locations: classpath*:META-INF/spring-xd/ext/plugin
+     server:
+       basepackages:
+       locations: classpath*:META-INF/spring-xd/ext/server
   container:
     groups: ${XD_CONTAINER_GROUPS:}
 

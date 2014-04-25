@@ -20,11 +20,11 @@ import org.springframework.core.Ordered;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
- * An {@link OrderedContextInitializer} to load Out of the Box XD Plugins.
- * 
+ * An {@link OrderedContextInitializer} to load out-of-the Box XD Plugins.
+ *
  * @author David Turanski
  */
-public class PluginsInitializer extends AbstractXMLBeanDefinitionProvider {
+public class PluginsInitializer extends AbstractResourceBeanDefinitionProvider {
 
 	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/";
 
@@ -36,5 +36,15 @@ public class PluginsInitializer extends AbstractXMLBeanDefinitionProvider {
 	@Override
 	protected String[] getLocations() {
 		return new String[] { CONTEXT_CONFIG_ROOT + "*.xml" };
+	}
+
+	@Override
+	protected String getExtensionsLocations() {
+		return null;
+	}
+
+	@Override
+	public TargetContext getTargetContext() {
+		return TargetContext.PLUGIN_CONTEXT;
 	}
 }

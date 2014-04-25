@@ -25,7 +25,7 @@ import org.springframework.xd.dirt.util.XdProfiles;
 
 /**
  * Single Node XD Runtime.
- * 
+ *
  * @author Dave Syer
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
@@ -48,25 +48,26 @@ public class SingleNodeApplication {
 
 		ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new SingleNodeOptions());
 
-		SpringApplicationBuilder admin =
-				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class)
-						.listeners(bootstrapContext.commandLineListener())
-						.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
-						.initializers(new HsqldbServerProfileActivator())
-						.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
-						.listeners(bootstrapContext.commandLineListener())
-						.child(SingleNodeOptions.class, AdminServerApplication.class)
-						.listeners(bootstrapContext.commandLineListener());
+		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
+				ParentConfiguration.class)
+				.listeners(bootstrapContext.commandLineListener())
+				.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
+				.initializers(new HsqldbServerProfileActivator())
+				.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
+				.listeners(
+						ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+								bootstrapContext.sharedServerContextInitializers()))
+				.child(SingleNodeOptions.class, AdminServerApplication.class)
+				.listeners(bootstrapContext.commandLineListener());
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
 				.sibling(SingleNodeOptions.class, ContainerServerApplication.class)
 				.profiles(XdProfiles.CONTAINER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
-				.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-						bootstrapContext.orderedContextInitializers()))
-				.child(ContainerConfiguration.class)
-				.listeners(bootstrapContext.commandLineListener())
-				.web(false);
+				.listeners(
+						ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+								bootstrapContext.pluginContextInitializers())).child(ContainerConfiguration.class)
+				.listeners(bootstrapContext.commandLineListener()).web(false);
 		container.run(args);
 
 		adminContext = admin.context();
@@ -109,8 +110,7 @@ public class SingleNodeApplication {
 	 * Initializer class that activates {@link HsqlServerApplication.HSQLDBSERVER_PROFILE} if the underlying datasource
 	 * is hsql and embedded hsqldb is opted.
 	 */
-	class HsqldbServerProfileActivator implements
-			ApplicationContextInitializer<ConfigurableApplicationContext> {
+	class HsqldbServerProfileActivator implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		private static final String SPRING_DATASOURCE_URL_OPTION = "${spring.datasource.url}";
 
@@ -118,7 +118,8 @@ public class SingleNodeApplication {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {
-			String dataSourceUrl = applicationContext.getEnvironment().resolvePlaceholders(SPRING_DATASOURCE_URL_OPTION);
+			String dataSourceUrl = applicationContext.getEnvironment()
+					.resolvePlaceholders(SPRING_DATASOURCE_URL_OPTION);
 			String embeddedHsql = applicationContext.getEnvironment().resolvePlaceholders(SINGLENODE_EMBEDDED_HSQL);
 			Assert.notNull(dataSourceUrl, "At least one datasource (for batch) must be set.");
 			Assert.notNull(embeddedHsql,

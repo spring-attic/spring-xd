@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,16 +42,18 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
  * Beans defined and imported here are shared by the XD Admin Server and Container Server.
- * 
+ *
  * @author David Turanski
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
 @Configuration
 @Import(PropertyPlaceholderAutoConfiguration.class)
-@ImportResource({ ConfigLocations.XD_CONFIG_ROOT + "bus/*.xml",
+@ImportResource({
+	ConfigLocations.XD_CONFIG_ROOT + "bus/message-bus.xml",
 	ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
-	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml" })
+	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml"
+})
 public class SharedServerContextConfiguration {
 
 	public static final String ZK_CONNECT = "zk.client.connect";
@@ -70,6 +73,13 @@ public class SharedServerContextConfiguration {
 			return exporter;
 		}
 	}
+	
+	@Configuration
+	@ConditionalOnExpression("'${XD_TRANSPORT}'!='local'")
+	@ConditionalOnMissingBean(name="codec")
+	@ImportResource(ConfigLocations.XD_CONFIG_ROOT + "bus/codec.xml")
+	static class CodecConfig {}
+	
 
 	@Configuration
 	@Profile(XdProfiles.SINGLENODE_PROFILE)

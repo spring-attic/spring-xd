@@ -16,8 +16,10 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -31,14 +33,16 @@ import org.springframework.xd.dirt.server.options.CommonOptions;
 /**
  * Package private class to bootstrap the Container process. Configures and instantiates
  * {@link OrderedContextInitializer}s and provides them to create the main container context.
- * 
+ *
  * @author David Turanski
  */
 class ContainerBootstrapContext {
 
 	private CommandLinePropertySourceOverridingListener<?> commandLineListener;
 
-	private ApplicationListener<?>[] orderedContextInitializers;
+	private ApplicationListener<?>[] pluginContextInitializers;
+
+	private ApplicationListener<?>[] sharedServerContextInitializers;
 
 	<T extends CommonOptions> ContainerBootstrapContext(T options) {
 
@@ -48,21 +52,43 @@ class ContainerBootstrapContext {
 		ApplicationContext bootstrapContext = new SpringApplicationBuilder(ContainerBootstrapConfiguration.class,
 				options.getClass(),
 				PropertyPlaceholderAutoConfiguration.class)
-				.listeners(commandLineListener)
-				.headless(true)
-				.web(false)
-				.run();
+		.listeners(commandLineListener)
+		.headless(true)
+		.web(false)
+		.run();
 
-		Collection<OrderedContextInitializer> orderedContextInitializerBeans = bootstrapContext.getBeansOfType(
+		Collection<OrderedContextInitializer> orderedContextInitializers = bootstrapContext.getBeansOfType(
 				OrderedContextInitializer.class).values();
 
-		this.orderedContextInitializers = orderedContextInitializerBeans.toArray(new
-				ApplicationListener<?>[orderedContextInitializerBeans.size()]);
-		Arrays.sort(orderedContextInitializers, new OrderComparator());
+		List<OrderedContextInitializer> pluginContextInitializerBeans = new ArrayList<OrderedContextInitializer>();
+		List<OrderedContextInitializer> sharedContextInitializerBeans = new ArrayList<OrderedContextInitializer>();
+
+		for (OrderedContextInitializer initializer : orderedContextInitializers) {
+			switch (initializer.getTargetContext()) {
+				case PLUGIN_CONTEXT:
+					pluginContextInitializerBeans.add(initializer);
+					break;
+				case SHARED_SERVER_CONTEXT:
+					sharedContextInitializerBeans.add(initializer);
+					break;
+			}
+		}
+
+		this.pluginContextInitializers = pluginContextInitializerBeans.toArray(new
+				ApplicationListener<?>[pluginContextInitializerBeans.size()]);
+		Arrays.sort(this.pluginContextInitializers, new OrderComparator());
+
+		this.sharedServerContextInitializers = sharedContextInitializerBeans.toArray(new
+				ApplicationListener<?>[sharedContextInitializerBeans.size()]);
+		Arrays.sort(this.sharedServerContextInitializers, new OrderComparator());
 	}
 
-	ApplicationListener<?>[] orderedContextInitializers() {
-		return this.orderedContextInitializers;
+	ApplicationListener<?>[] pluginContextInitializers() {
+		return this.pluginContextInitializers;
+	}
+
+	ApplicationListener<?>[] sharedServerContextInitializers() {
+		return this.sharedServerContextInitializers;
 	}
 
 	CommandLinePropertySourceOverridingListener<?> commandLineListener() {

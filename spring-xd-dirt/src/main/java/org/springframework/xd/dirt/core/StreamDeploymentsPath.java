@@ -24,21 +24,21 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * it into its elements, for example:
  * <p>
  * <code>
- * StreamsDeploymentsPath path = new StreamsPath("/xd/streams/deployments/my-stream");
+ * StreamDeploymentsPath path = new StreamDeploymentsPath("/xd/streams/deployments/my-stream");
  * assertEquals("my-stream", path.getStreamName());
  * </code>
  * </p>
  * It can also be used to build a path, for example:
  * <p>
  * <code>
- * StreamsDeploymentsPath path = new StreamsDeploymentsPath().setStreamName("my-stream");
+ * StreamDeploymentsPath path = new StreamDeploymentsPath().setStreamName("my-stream");
  * assertEquals("/deployments/streams/my-stream", path.build());
  * </code>
  * </p>
  *
  * @author Patrick Peralta
  */
-public class StreamsDeploymentsPath {
+public class StreamDeploymentsPath {
 
 	/**
 	 * Index for {@link Paths#DEPLOYMENTS} in {@link #elements} array.
@@ -80,7 +80,7 @@ public class StreamsDeploymentsPath {
 	 * Construct a {@code StreamsPath}. Use of this constructor means that a path will be created via {@link #build()}
 	 * or {@link #buildWithNamespace()}.
 	 */
-	public StreamsDeploymentsPath() {
+	public StreamDeploymentsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;
 		elements[STREAMS] = Paths.STREAMS;
 	}
@@ -92,7 +92,7 @@ public class StreamsDeploymentsPath {
 	 *
 	 * @param path stream path
 	 */
-	public StreamsDeploymentsPath(String path) {
+	public StreamDeploymentsPath(String path) {
 		Assert.hasText(path);
 
 		String[] pathElements = path.split("\\/");
@@ -135,7 +135,7 @@ public class StreamsDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public StreamsDeploymentsPath setStreamName(String name) {
+	public StreamDeploymentsPath setStreamName(String name) {
 		elements[STREAM_NAME] = name;
 		return this;
 	}
@@ -156,7 +156,7 @@ public class StreamsDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public StreamsDeploymentsPath setModuleType(String type) {
+	public StreamDeploymentsPath setModuleType(String type) {
 		elements[MODULE_TYPE] = type;
 		return this;
 	}
@@ -177,7 +177,7 @@ public class StreamsDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public StreamsDeploymentsPath setModuleLabel(String label) {
+	public StreamDeploymentsPath setModuleLabel(String label) {
 		elements[MODULE_LABEL] = label;
 		return this;
 	}
@@ -198,7 +198,7 @@ public class StreamsDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public StreamsDeploymentsPath setContainer(String container) {
+	public StreamDeploymentsPath setContainer(String container) {
 		elements[CONTAINER] = container;
 		return this;
 	}

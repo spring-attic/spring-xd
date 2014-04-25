@@ -39,7 +39,7 @@ import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.core.StreamsDeploymentsPath;
+import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
@@ -179,7 +179,7 @@ public class StreamListener implements PathChildrenCacheListener {
 			String moduleType = descriptor.getModuleDefinition().getType().toString();
 			String moduleLabel = descriptor.getLabel();
 
-			String path = new StreamsDeploymentsPath()
+			String path = new StreamDeploymentsPath()
 					.setStreamName(streamName)
 					.setModuleType(moduleType)
 					.setModuleLabel(moduleLabel).build();
@@ -220,7 +220,7 @@ public class StreamListener implements PathChildrenCacheListener {
 							.setModuleType(moduleType)
 							.setModuleLabel(moduleLabel).build());
 
-					mapDeploymentStatus.put(container, new StreamsDeploymentsPath()
+					mapDeploymentStatus.put(container, new StreamDeploymentsPath()
 							.setStreamName(streamName)
 							.setModuleType(moduleType)
 							.setModuleLabel(moduleLabel)

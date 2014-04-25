@@ -51,11 +51,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
-import org.springframework.xd.dirt.core.JobsDeploymentsPath;
+import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.core.StreamsDeploymentsPath;
+import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
@@ -384,7 +384,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private Module deployJob(CuratorFramework client, String jobName, String jobLabel) {
 		logger.info("Deploying job '{}'", jobName);
 
-		String jobPath = new JobsDeploymentsPath().setJobName(jobName)
+		String jobPath = new JobDeploymentsPath().setJobName(jobName)
 				.setModuleLabel(jobLabel)
 				.setContainer(containerAttributes.getId()).build();
 
@@ -430,7 +430,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private Module deployStreamModule(CuratorFramework client, String streamName, String moduleType, String moduleLabel) {
 		logger.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
 
-		String streamPath = new StreamsDeploymentsPath().setStreamName(streamName)
+		String streamPath = new StreamDeploymentsPath().setStreamName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel)
 				.setContainer(containerAttributes.getId()).build();
@@ -479,12 +479,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 		String path;
 		if (ModuleType.job.toString().equals(moduleType)) {
-			path = new JobsDeploymentsPath().setJobName(streamName)
+			path = new JobDeploymentsPath().setJobName(streamName)
 					.setModuleLabel(moduleLabel)
 					.setContainer(containerAttributes.getId()).build();
 		}
 		else {
-			path = new StreamsDeploymentsPath().setStreamName(streamName)
+			path = new StreamDeploymentsPath().setStreamName(streamName)
 					.setModuleType(moduleType)
 					.setModuleLabel(moduleLabel)
 					.setContainer(containerAttributes.getId()).build();
@@ -585,11 +585,11 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		@Override
 		public void process(WatchedEvent event) throws Exception {
 			if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
-				StreamsDeploymentsPath streamsDeploymentsPath = new StreamsDeploymentsPath(event.getPath());
+				StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(event.getPath());
 
-				String streamName = streamsDeploymentsPath.getStreamName();
-				String moduleType = streamsDeploymentsPath.getModuleType();
-				String moduleLabel = streamsDeploymentsPath.getModuleLabel();
+				String streamName = streamDeploymentsPath.getStreamName();
+				String moduleType = streamDeploymentsPath.getModuleType();
+				String moduleLabel = streamDeploymentsPath.getModuleLabel();
 
 				undeployModule(streamName, moduleType, moduleLabel);
 
@@ -641,9 +641,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		@Override
 		public void process(WatchedEvent event) throws Exception {
 			if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
-				JobsDeploymentsPath jobsDeploymentsPath = new JobsDeploymentsPath(event.getPath());
-				String jobName = jobsDeploymentsPath.getJobName();
-				String moduleLabel = jobsDeploymentsPath.getModuleLabel();
+				JobDeploymentsPath jobDeploymentsPath = new JobDeploymentsPath(event.getPath());
+				String jobName = jobDeploymentsPath.getJobName();
+				String moduleLabel = jobDeploymentsPath.getModuleLabel();
 
 				undeployModule(jobName, ModuleType.job.toString(), moduleLabel);
 

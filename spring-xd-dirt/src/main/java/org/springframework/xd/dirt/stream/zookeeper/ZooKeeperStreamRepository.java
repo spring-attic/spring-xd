@@ -40,7 +40,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.StreamsDeploymentsPath;
+import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamRepository;
@@ -196,10 +196,10 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 		// which they were deployed.
 		Map<Long, String> txMap = new TreeMap<Long, String>();
 		try {
-			List<String> processorDeployments = client.getChildren().forPath(new StreamsDeploymentsPath()
+			List<String> processorDeployments = client.getChildren().forPath(new StreamDeploymentsPath()
 					.setStreamName(id).setModuleType(ModuleType.processor.toString()).build());
 			for (String processorName : processorDeployments) {
-				String path = new StreamsDeploymentsPath()
+				String path = new StreamDeploymentsPath()
 						.setStreamName(id)
 						.setModuleType(ModuleType.processor.toString())
 						.setModuleLabel(processorName).build();
@@ -218,12 +218,12 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			throw new RuntimeException(e);
 		}
 
-		paths.add(new StreamsDeploymentsPath().setStreamName(id).setModuleType(ModuleType.sink.toString()).build());
-		paths.add(new StreamsDeploymentsPath().setStreamName(id).setModuleType(ModuleType.processor.toString()).build());
+		paths.add(new StreamDeploymentsPath().setStreamName(id).setModuleType(ModuleType.sink.toString()).build());
+		paths.add(new StreamDeploymentsPath().setStreamName(id).setModuleType(ModuleType.processor.toString()).build());
 		for (String processorDeployment : txMap.values()) {
 			paths.add(processorDeployment);
 		}
-		paths.add(new StreamsDeploymentsPath().setStreamName(id).setModuleType(ModuleType.source.toString()).build());
+		paths.add(new StreamDeploymentsPath().setStreamName(id).setModuleType(ModuleType.source.toString()).build());
 
 		for (Iterator<String> iterator = paths.descendingIterator(); iterator.hasNext();) {
 			try {

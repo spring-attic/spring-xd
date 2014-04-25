@@ -24,14 +24,14 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * its elements, for example:
  * <p>
  * <code>
- * JobsDeploymentsPath path = new JobsDeploymentsPath("/xd/deployments/jobs/my-job");
+ * JobDeploymentsPath path = new JobDeploymentsPath("/xd/deployments/jobs/my-job");
  * assertEquals("my-job", path.getJobName());
  * </code>
  * </p>
  * It can also be used to build a path, for example:
  * <p>
  * <code>
- * JobsDeploymentsPath path = new JobsDeploymentsPath().setJobName("my-job");
+ * JobDeploymentsPath path = new JobDeploymentsPath().setJobName("my-job");
  * assertEquals("/deployments/jobs/my-job", path.build());
  * </code>
  * </p>
@@ -39,7 +39,7 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * @author Patrick Peralta
  * @author Mark Fisher
  */
-public class JobsDeploymentsPath {
+public class JobDeploymentsPath {
 
 	/**
 	 * Index for {@link Paths#DEPLOYMENTS} in {@link #elements} array.
@@ -76,7 +76,7 @@ public class JobsDeploymentsPath {
 	 * Construct a {@code JobsPath}. Use of this constructor means that a path will be created via {@link #build()} or
 	 * {@link #buildWithNamespace()}.
 	 */
-	public JobsDeploymentsPath() {
+	public JobDeploymentsPath() {
 		elements[JOBS] = Paths.JOBS;
 	}
 
@@ -87,7 +87,7 @@ public class JobsDeploymentsPath {
 	 *
 	 * @param path job path
 	 */
-	public JobsDeploymentsPath(String path) {
+	public JobDeploymentsPath(String path) {
 		Assert.hasText(path);
 
 		String[] pathElements = path.split("\\/");
@@ -130,7 +130,7 @@ public class JobsDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public JobsDeploymentsPath setJobName(String name) {
+	public JobDeploymentsPath setJobName(String name) {
 		elements[JOB_NAME] = name;
 		return this;
 	}
@@ -151,7 +151,7 @@ public class JobsDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public JobsDeploymentsPath setModuleLabel(String label) {
+	public JobDeploymentsPath setModuleLabel(String label) {
 		elements[MODULE_LABEL] = label;
 		return this;
 	}
@@ -172,7 +172,7 @@ public class JobsDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public JobsDeploymentsPath setContainer(String container) {
+	public JobDeploymentsPath setContainer(String container) {
 		elements[CONTAINER] = container;
 		return this;
 	}

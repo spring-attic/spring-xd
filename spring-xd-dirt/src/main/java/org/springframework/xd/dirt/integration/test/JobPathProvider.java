@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.integration.test;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.xd.dirt.core.JobsDeploymentsPath;
+import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.integration.test.source.DeploymentPathProvider;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
@@ -60,7 +60,7 @@ public class JobPathProvider implements DeploymentPathProvider {
 	 */
 	@Override
 	public List<String> getModuleDeploymentPaths(String jobName) {
-		return Collections.singletonList(new JobsDeploymentsPath().setJobName(jobName).build());
+		return Collections.singletonList(new JobDeploymentsPath().setJobName(jobName).build());
 	}
 
 }

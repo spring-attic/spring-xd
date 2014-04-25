@@ -6,10 +6,10 @@
 #
 # For example:
 #  twitter:
-#    consumerKey: y5fn6MTQrbspringXD1gQ
-#    consumerSecret: hCLjD0gTFGWJabGSpringXDrxcNPIqcpJsIgKS0Mm48Q
-#    accessToken: 58849055-QOYTpYhRIcfuDty1springxdY2BBSZm6MvL1xeESK
-#    accessTokenSecret: h0odrQPKqrrFsdcW8Yzcaf4zjFUqEEVfkeVs
+#    consumerKey: fooconsumer123
+#    consumerSecret: fooconsumersecretABC
+#    accessToken: 123456789-fooaccesstoken
+#    accessTokenSecret: fooaccesstokensecret
 #
 # Once the above properties are set, the twitterstream/twittersearch source modules will use
 # them by default.
@@ -19,15 +19,15 @@
 #    source module config keys
 #    source:
 #      twitterstream:
-#        consumerKey: ${twitter.consumerKey:overriderb8ffdeizSIgQ}
-#        consumerSecret: ${twitter.consumerSecret:overrideFGWJabGnAcTiQ01tcNPIqcpJsIgKS0Mm78Q}
-#        accessToken: ${twitter.accessToken:73349055-overRideIcfuDty1t6Q5Ur7sY2BBSZm6MvL1xeESK}
-#        accessTokenSecret: ${twitter.accessTokenSecret:overrideqrrFsdcW8Yzcaf4zjFUqEEVfkeVs}
+#        consumerKey: ${twitter.consumerKey:overridefoo}
+#        consumerSecret: ${twitter.consumerSecret:overrideFooSecret}
+#        accessToken: ${twitter.accessToken:overrideaccesstoken}
+#        accessTokenSecret: ${twitter.accessTokenSecret:overrideaccesstokensecret}
 #
 #    source:
 #      twittersearch:
-#        consumerKey: ${twitter.consumerKey:overridesearcheizSIgQ}
-#        consumerSecret: ${twitter.consumerSecret:overridesearchGnAcTiQ01tcNPIqcpJsIgKS0Mm78Q}
+#        consumerKey: ${twitter.consumerKey:overridefookey}
+#        consumerSecret: ${twitter.consumerSecret:overrideconsumersecretFoo}
 
 
 # 2) Set properties in source/module/twitter(stream/search).properties

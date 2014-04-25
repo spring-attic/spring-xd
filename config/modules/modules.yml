@@ -1,69 +1,28 @@
 # modules configuration file
 
-# Common twitter keys that can be applied to twittersearch, twitterstream
+# Shared twitter keys that can be applied to twittersearch, twitterstream
 # modules can be specified as below. These are default values unless explicit values are
 # set for module config keys in the respective twitter(search/stream) source modules.
-#
-# For example:
-#  twitter:
-#    consumerKey: fooconsumer123
-#    consumerSecret: fooconsumersecretABC
-#    accessToken: 123456789-fooaccesstoken
-#    accessTokenSecret: fooaccesstokensecret
+
+# Uncomment and set the below to activate properties that are applied to all twitter sources
+#twitter:
+#  consumerKey: fooconsumer123
+#  consumerSecret: fooconsumersecretABC
+#  accessToken: 123456789-fooaccesstoken
+#  accessTokenSecret: fooaccesstokensecret
 #
 # Once the above properties are set, the twitterstream/twittersearch source modules will use
 # them by default.
-# There are two ways to override these properties:
-# Note: Make sure the common properties as mentioned above are commented out.
-# 1) Provide explicit value for the below twitterstream/twittersearch
-#    source module config keys
-#    source:
-#      twitterstream:
-#        consumerKey: ${twitter.consumerKey:overridefoo}
-#        consumerSecret: ${twitter.consumerSecret:overrideFooSecret}
-#        accessToken: ${twitter.accessToken:overrideaccesstoken}
-#        accessTokenSecret: ${twitter.accessTokenSecret:overrideaccesstokensecret}
+# To override these properties:
+# 1) Make sure to comment out the above shared properties
+# 2) Set explicit property values in source/module/twitter(stream/search).properties
 #
-#    source:
-#      twittersearch:
-#        consumerKey: ${twitter.consumerKey:overridefookey}
-#        consumerSecret: ${twitter.consumerSecret:overrideconsumersecretFoo}
-
-
-# 2) Set properties in source/module/twitter(stream/search).properties
-#
-# Other modules' source/sink properties can be configured in a similar way
+# Other source/processor/sink/job modules' properties can be configured in a similar way
 # Rabbit source/sink module configuration is one other example below.
 
-# Actual configuration starts from here:
-# Common twitter keys
-#twitter:
-#  consumerKey:
-#  consumerSecret:
-#  accessToken:
-#  accessTokenSecret:
-
 ---
 
-# twitterstream source module properties
-#source:
-#  twitterstream:
-#    consumerKey: ${twitter.consumerKey:}
-#    consumerSecret: ${twitter.consumerSecret:}
-#    accessToken: ${twitter.accessToken:}
-#    accessTokenSecret: ${twitter.accessTokenSecret:}
-
----
-
-# twittersearch source module properties
-#source:
-#  twittersearch:
-#    consumerKey: ${twitter.consumerKey:}
-#    consumerSecret: ${twitter.consumerSecret:}
-
----
-
-# RabbitMQ shared module properties
+# Shared RabbitMQ module properties
 #rabbit:
 #  host: localhost
 #  port: 5672

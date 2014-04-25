@@ -301,6 +301,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testing"))));
 
+		stream().destroyStream(streamName1);
+
 		source1.ensureReady().postData("stillup");
 		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testingstillup"))));
 

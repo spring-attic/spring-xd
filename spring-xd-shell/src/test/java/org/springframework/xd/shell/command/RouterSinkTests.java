@@ -48,10 +48,11 @@ public class RouterSinkTests extends AbstractStreamIntegrationTest {
 				"%s | router --expression=payload.contains('a')?'" + queue1 + "':'" + queue2 + "'",
 				httpSource);
 
-		httpSource.ensureReady().postData("a").postData("b");
-
+		httpSource.ensureReady();
+		httpSource.postData("a");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("a-foo"))));
+		httpSource.postData("b");
 		assertThat(fileSink, eventually(hasContentsThat(equalTo("a-foob-bar"))));
-
 	}
 
 	@Test
@@ -64,9 +65,10 @@ public class RouterSinkTests extends AbstractStreamIntegrationTest {
 		stream().create(generateStreamName(),
 				"%s | router --script='org/springframework/xd/shell/command/router.groovy'", httpSource);
 
-		httpSource.ensureReady().postData("a").postData("b");
-
+		httpSource.ensureReady();
+		httpSource.postData("a");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("a-foo"))));
+		httpSource.postData("b");
 		assertThat(fileSink, eventually(hasContentsThat(equalTo("a-foob-bar"))));
-
 	}
 }

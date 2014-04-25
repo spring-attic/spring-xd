@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	private int tokenStreamLength;
 
 	private int tokenStreamPointer; // Current location in the token stream when
-									// processing tokens
+
+	// processing tokens
 
 	private int lastGoodPoint;
 
@@ -51,7 +52,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	/**
 	 * Parse a stream definition without supplying the stream name up front. The stream name may be embedded in the
 	 * definition. For example: <code>mystream = http | file</code>
-	 * 
+	 *
 	 * @return the AST for the parsed stream
 	 */
 	public StreamNode parse(String stream) {
@@ -60,7 +61,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 
 	/**
 	 * Parse a stream definition.
-	 * 
+	 *
 	 * @return the AST for the parsed stream
 	 * @throws StreamDefinitionException
 	 */
@@ -71,6 +72,17 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		tokenStreamLength = tokenStream.size();
 		tokenStreamPointer = 0;
 		StreamNode ast = eatStream();
+
+		// Check the stream name
+		if (ast.getName() != null) {
+			if (!isValidStreamName(ast.getName())) {
+				throw new StreamDefinitionException(ast.getName(), 0, XDDSLMessages.ILLEGAL_STREAM_NAME, ast.getName());
+			}
+		}
+		if (name != null && !isValidStreamName(name)) {
+			throw new StreamDefinitionException(name, 0, XDDSLMessages.ILLEGAL_STREAM_NAME, name);
+		}
+
 		// Check if the stream name is same as that of any of its modules' names
 		// Can lead to infinite recursion during resolution
 		if (ast.getModule(name) != null) {
@@ -468,7 +480,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 
 	/**
 	 * Consumes and returns (identifier [DOT identifier]*) as long as they're adjacent.
-	 * 
+	 *
 	 * @param error the kind of error to report if input is ill-formed
 	 */
 	private List<Token> eatDottedName(XDDSLMessages error) {
@@ -490,6 +502,28 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			result.add(eatToken(TokenKind.IDENTIFIER));
 		}
 		return result;
+	}
+
+	/**
+	 * Verify the supplied name is a valid stream name. Valid stream names obey the same rules as Java identifiers.
+	 *
+	 * @param streamname the name to validate
+	 * @return true if name is valid
+	 */
+	public static boolean isValidStreamName(String streamname) {
+		if (streamname.length() == 0) {
+			return false;
+		}
+		if (!Character.isJavaIdentifierStart(streamname.charAt(0))) {
+			return false;
+		}
+		for (int i = 1, max = streamname.length(); i < max; i++) {
+			char ch = streamname.charAt(i);
+			if (!(Character.isJavaIdentifierPart(ch) || ch == '-')) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

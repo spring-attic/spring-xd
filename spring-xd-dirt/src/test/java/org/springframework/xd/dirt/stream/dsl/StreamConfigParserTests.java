@@ -51,7 +51,7 @@ import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolve
 
 /**
  * Parse streams and verify either the correct abstract syntax tree is produced or the current exception comes out.
- * 
+ *
  * @author Andy Clement
  * @author David Turanski
  */
@@ -299,6 +299,19 @@ public class StreamConfigParserTests {
 		// need quotes around an argument value with a space in it
 		checkForParseError("foo | transform --expression=new StringBuilder(payload).reverse() | bar",
 				XDDSLMessages.UNEXPECTED_DATA, 46);
+	}
+
+	@Test
+	public void ensureStreamNamesValid_xd1344() {
+		// Similar rules to a java identifier but also allowed '-' after the first char
+		checkForIllegalStreamName("foo.bar", "http | transform | sink");
+		checkForIllegalStreamName("-bar", "http | transform | sink");
+		checkForIllegalStreamName(".bar", "http | transform | sink");
+		checkForIllegalStreamName("foo-.-bar", "http | transform | sink");
+		checkForIllegalStreamName("0foobar", "http | transform | sink");
+		checkForIllegalStreamName("foo%bar", "http | transform | sink");
+		parse("foo-bar", "http | transform | sink");
+		parse("foo_bar", "http | transform | sink");
 	}
 
 	@Test
@@ -591,24 +604,6 @@ public class StreamConfigParserTests {
 	}
 
 	@Test
-	public void errorCases02() {
-		// If we allow hyphens in identifiers (stream names) then this is not invalid, it
-		// is a stream called 'foo--bar'
-		// checkForParseError("foo--bar=yyy",XDDSLMessages.EXPECTED_WHITESPACE_AFTER_MODULE_BEFORE_ARGUMENT,3);
-		StreamNode ast = parse("foo--bar=yyy");
-		assertEquals("[foo--bar = (ModuleNode:yyy)]", ast.stringify());
-	}
-
-	@Test
-	public void errorCases03() {
-		// If we allow hyphens in identifiers (stream names) then this is not invalid, it
-		// is a stream called 'foo--bar'
-		// checkForParseError("foo-bar=yyy",XDDSLMessages.MISSING_CHARACTER,3,"-");
-		StreamNode ast = parse("foo-bar=yyy");
-		assertEquals("[foo-bar = (ModuleNode:yyy)]", ast.stringify());
-	}
-
-	@Test
 	public void errorCases04() {
 		checkForParseError("foo bar=yyy", XDDSLMessages.UNEXPECTED_DATA_AFTER_STREAMDEF, 4, "bar");
 		checkForParseError("foo bar", XDDSLMessages.UNEXPECTED_DATA_AFTER_STREAMDEF, 4, "bar");
@@ -733,6 +728,19 @@ public class StreamConfigParserTests {
 			testRepository.save(new StreamDefinition(sname, streamNode.getStreamData()));
 		}
 		return streamNode;
+	}
+
+	private void checkForIllegalStreamName(String streamName, String streamDef) {
+		try {
+			StreamNode sn = parse(streamName, streamDef);
+			fail("expected to fail but parsed " + sn.stringify());
+		}
+		catch (StreamDefinitionException e) {
+			assertEquals(XDDSLMessages.ILLEGAL_STREAM_NAME, e.getMessageCode());
+			assertEquals(0, e.getPosition());
+			e.printStackTrace();
+			assertEquals(streamName, e.getInserts()[0]);
+		}
 	}
 
 	private void checkForParseError(String stream, XDDSLMessages msg, int pos, String... inserts) {

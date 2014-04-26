@@ -20,21 +20,17 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
- * Builder object for paths under {@link Paths#JOBS}. {@code JobsPath} can be used to take a full path and split it into
- * its elements, for example:
- * <p>
- * <code>
+ * Builder object for paths under {@link Paths#JOBS}. {@code JobDeploymentsPath}
+ * can be used to take a full path and split it into its elements, for example:
+ * <pre>
  * JobDeploymentsPath path = new JobDeploymentsPath("/xd/deployments/jobs/my-job");
  * assertEquals("my-job", path.getJobName());
- * </code>
- * </p>
+ * </pre>
  * It can also be used to build a path, for example:
- * <p>
- * <code>
+ * <pre>
  * JobDeploymentsPath path = new JobDeploymentsPath().setJobName("my-job");
  * assertEquals("/deployments/jobs/my-job", path.build());
- * </code>
- * </p>
+ * </pre>
  *
  * @author Patrick Peralta
  * @author Mark Fisher
@@ -73,19 +69,23 @@ public class JobDeploymentsPath {
 
 
 	/**
-	 * Construct a {@code JobsPath}. Use of this constructor means that a path will be created via {@link #build()} or
+	 * Construct a {@code JobsDeploymentsPath}. Use of this constructor
+	 * means that a path will be created via {@link #build()} or
 	 * {@link #buildWithNamespace()}.
 	 */
 	public JobDeploymentsPath() {
+		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;
 		elements[JOBS] = Paths.JOBS;
 	}
 
 	/**
-	 * Construct a {@code JobsPath}. Use of this constructor means that an existing path will be provided and this
-	 * object will be used to extract the individual elements of the path. Both full paths (including and excluding the
+	 * Construct a {@code JobDeploymentsPath}. Use of this constructor
+	 * means that an existing path will be provided and this object will
+	 * be used to extract the individual elements of the path. Both full
+	 * paths (including and excluding the
 	 * {@link Paths#XD_NAMESPACE XD namespace prefix}) are supported.
 	 *
-	 * @param path job path
+	 * @param path job deployment path
 	 */
 	public JobDeploymentsPath(String path) {
 		Assert.hasText(path);

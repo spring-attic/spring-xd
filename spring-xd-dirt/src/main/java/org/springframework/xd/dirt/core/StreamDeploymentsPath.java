@@ -20,21 +20,17 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
- * Builder object for paths under {@link Paths#STREAMS}. {@code StreamsPath} can be used to take a full path and split
- * it into its elements, for example:
- * <p>
- * <code>
+ * Builder object for paths under {@link Paths#STREAMS}. {@code StreamDeploymentsPath}
+ * can be used to take a full path and split it into its elements, for example:
+ * <pre>
  * StreamDeploymentsPath path = new StreamDeploymentsPath("/xd/streams/deployments/my-stream");
  * assertEquals("my-stream", path.getStreamName());
- * </code>
- * </p>
+ * </pre>
  * It can also be used to build a path, for example:
- * <p>
- * <code>
+ * <pre>
  * StreamDeploymentsPath path = new StreamDeploymentsPath().setStreamName("my-stream");
  * assertEquals("/deployments/streams/my-stream", path.build());
- * </code>
- * </p>
+ * </pre>
  *
  * @author Patrick Peralta
  */
@@ -77,8 +73,9 @@ public class StreamDeploymentsPath {
 
 
 	/**
-	 * Construct a {@code StreamsPath}. Use of this constructor means that a path will be created via {@link #build()}
-	 * or {@link #buildWithNamespace()}.
+	 * Construct a {@code StreamDeploymentsPath}. Use of this constructor
+	 * means that a path will be created via {@link #build()} or
+	 * {@link #buildWithNamespace()}.
 	 */
 	public StreamDeploymentsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;
@@ -86,11 +83,13 @@ public class StreamDeploymentsPath {
 	}
 
 	/**
-	 * Construct a {@code StreamsPath}. Use of this constructor means that an existing path will be provided and this
-	 * object will be used to extract the individual elements of the path. Both full paths (including and excluding the
+	 * Construct a {@code StreamDeploymentsPath}. Use of this constructor
+	 * means that an existing path will be provided and this object will
+	 * be used to extract the individual elements of the path. Both full
+	 * paths (including and excluding the
 	 * {@link Paths#XD_NAMESPACE XD namespace prefix}) are supported.
 	 *
-	 * @param path stream path
+	 * @param path stream deployment path
 	 */
 	public StreamDeploymentsPath(String path) {
 		Assert.hasText(path);

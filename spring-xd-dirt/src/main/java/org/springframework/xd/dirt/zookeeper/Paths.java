@@ -40,9 +40,9 @@ public class Paths {
 	public static final String XD_NAMESPACE = "xd";
 
 	/**
-	 * Name of admin leader node.
+	 * Name of admins (that could participate to become leader) node. Admins are written as children of this node.
 	 */
-	public static final String ADMIN = "admin";
+	public static final String ADMINS = "admins";
 
 	/**
 	 * Name of containers node. Containers are written as children of this node.

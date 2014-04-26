@@ -56,7 +56,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 /**
  * Server that watches ZooKeeper for Container arrivals and departures from the XD cluster. Each AdminServer instance
  * will attempt to request leadership, but at any given time only one AdminServer instance in the cluster will have
- * leadership status. Those instances not elected will watch the {@link Paths#ADMIN} znode so that one of
+ * leadership status. Those instances not elected will watch the {@link Paths#ADMINS} znode so that one of
  * them will take over leadership if the leader admin closes or crashes.
  *
  * @author Patrick Peralta
@@ -215,7 +215,7 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 			Paths.ensurePath(client, Paths.JOBS);
 
 			if (leaderSelector == null) {
-				leaderSelector = new LeaderSelector(client, Paths.build(Paths.ADMIN), leaderListener);
+				leaderSelector = new LeaderSelector(client, Paths.build(Paths.ADMINS), leaderListener);
 				leaderSelector.setId(getId());
 				leaderSelector.start();
 			}

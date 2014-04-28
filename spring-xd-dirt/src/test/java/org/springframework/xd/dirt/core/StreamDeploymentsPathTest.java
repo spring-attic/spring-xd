@@ -28,7 +28,7 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 /**
  * @author Patrick Peralta
  */
-public class StreamsPathTest {
+public class StreamDeploymentsPathTest {
 
 	@Test
 	public void testFullPath() {
@@ -36,34 +36,34 @@ public class StreamsPathTest {
 		String moduleType = Module.Type.SOURCE.toString();
 		String moduleLabel = "my-label";
 		String container = UUID.randomUUID().toString();
-		String path = Paths.buildWithNamespace(Paths.STREAMS, streamName, moduleType, moduleLabel, container);
+		String path = Paths.buildWithNamespace(Paths.STREAM_DEPLOYMENTS, streamName, moduleType, moduleLabel, container);
 
-		StreamsPath streamsPath = new StreamsPath(path);
+		StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(path);
 
-		assertEquals(streamName, streamsPath.getStreamName());
-		assertEquals(moduleType, streamsPath.getModuleType());
-		assertEquals(moduleLabel, streamsPath.getModuleLabel());
-		assertEquals(container, streamsPath.getContainer());
+		assertEquals(streamName, streamDeploymentsPath.getStreamName());
+		assertEquals(moduleType, streamDeploymentsPath.getModuleType());
+		assertEquals(moduleLabel, streamDeploymentsPath.getModuleLabel());
+		assertEquals(container, streamDeploymentsPath.getContainer());
 
 
-		StreamsPath streamsPathEmptyCtor = new StreamsPath()
+		StreamDeploymentsPath streamDeploymentsPathEmptyCtor = new StreamDeploymentsPath()
 				.setStreamName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel)
 				.setContainer(container);
 
-		assertEquals(path, streamsPathEmptyCtor.buildWithNamespace());
+		assertEquals(path, streamDeploymentsPathEmptyCtor.buildWithNamespace());
 	}
 
 	@Test
 	public void testStreamNameOnly() {
 		String streamName = "my-stream";
-		String path = Paths.build(Paths.STREAMS, streamName);
-		StreamsPath streamsPath = new StreamsPath().setStreamName(streamName);
+		String path = Paths.build(Paths.STREAM_DEPLOYMENTS, streamName);
+		StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath().setStreamName(streamName);
 
-		assertEquals(path, streamsPath.build());
+		assertEquals(path, streamDeploymentsPath.build());
 
-		StreamsPath fromPath = new StreamsPath(path);
+		StreamDeploymentsPath fromPath = new StreamDeploymentsPath(path);
 		assertEquals(streamName, fromPath.getStreamName());
 		assertNull(fromPath.getModuleType());
 		assertNull(fromPath.getModuleLabel());

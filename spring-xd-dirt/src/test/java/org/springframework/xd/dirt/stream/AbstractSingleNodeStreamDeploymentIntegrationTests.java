@@ -33,9 +33,10 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.x.bus.AbstractTestMessageBus;
@@ -74,7 +75,8 @@ import org.springframework.xd.tuple.Tuple;
  */
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
-	@ClassRule
+	private static final Logger logger = LoggerFactory.getLogger(AbstractSingleNodeStreamDeploymentIntegrationTests.class);
+
 	public static ExternalResource shutdownApplication = new ExternalResource() {
 
 		@Override
@@ -245,7 +247,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 					"http --port=" + SocketUtils.findAvailableTcpPort()
 							+ "| transform --expression=payload | filter --expression=true | log");
 			integrationSupport.streamDeployer().save(definition);
-			assertTrue("stream not deployed", integrationSupport.deployStream(definition));
+			assertTrue(String.format("stream %s (%s) not deployed", streamName, definition),
+					integrationSupport.deployStream(definition));
 			assertEquals(1, integrationSupport.streamRepository().count());
 			assertTrue(integrationSupport.streamRepository().exists("test" + i));
 			assertTrue("stream not undeployed", integrationSupport.undeployStream(definition));
@@ -375,6 +378,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 			ModuleDeploymentsPath path = new ModuleDeploymentsPath(event.getData().getPath());
+			logger.debug("Path cache event: {}", event);
 			if (event.getType().equals(Type.CHILD_ADDED)) {
 				deployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
 				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(path.getStreamName());

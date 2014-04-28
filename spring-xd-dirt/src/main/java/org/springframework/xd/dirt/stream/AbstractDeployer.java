@@ -217,7 +217,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 
 		try {
-			zkConnection.getClient().delete().forPath(getDeploymentPath(definition));
+			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(getDeploymentPath(definition));
 		}
 		catch (KeeperException.NoNodeException e) {
 			// ignore; this has already been undeployed

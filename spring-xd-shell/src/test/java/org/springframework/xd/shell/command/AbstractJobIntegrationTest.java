@@ -122,13 +122,13 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		for (String jobName : jobNames) {
 			CommandResult cr = executeCommand("job destroy --name " + jobName);
 			assertTrue("Failure to destroy job " + jobName + ".  CommandResult = " + cr.toString(), cr.isSuccess());
-			jobCommandListener.waitForDestroy(jobName);
+			jobDeploymentVerifier.waitForDestroy(jobName);
 		}
 	}
 
 	protected CommandResult jobDestroy(String jobName) {
 		CommandResult result = getShell().executeCommand("job destroy --name " + jobName);
-		jobCommandListener.waitForDestroy(jobName);
+		jobDeploymentVerifier.waitForDestroy(jobName);
 		return result;
 	}
 
@@ -137,7 +137,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 			CommandResult cr = executeCommand("stream destroy --name " + streamName);
 			assertTrue("Failure to destroy stream " + streamName + ".  CommandResult = " + cr.toString(),
 					cr.isSuccess());
-			streamCommandListener.waitForDestroy(streamName);
+			streamDeploymentVerifier.waitForDestroy(streamName);
 		}
 	}
 
@@ -162,10 +162,10 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		jobs.add(jobName);
 		if (deploy) {
 			bindJobTap(jobName);
-			jobCommandListener.waitForDeploy(jobName);
+			jobDeploymentVerifier.waitForDeploy(jobName);
 		}
 		else {
-			jobCommandListener.waitForCreate(jobName);
+			jobDeploymentVerifier.waitForCreate(jobName);
 		}
 	}
 
@@ -187,7 +187,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	protected CommandResult deployJob(String jobName) {
 		CommandResult result = getShell().executeCommand("job deploy " + jobName);
 		bindJobTap(jobName);
-		jobCommandListener.waitForDeploy(jobName);
+		jobDeploymentVerifier.waitForDeploy(jobName);
 		return result;
 	}
 
@@ -197,7 +197,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	protected CommandResult undeployJob(String jobName) {
 		CommandResult result = getShell().executeCommand("job undeploy " + jobName);
 		unbindJobTap(jobName);
-		jobCommandListener.waitForUndeploy(jobName);
+		jobDeploymentVerifier.waitForUndeploy(jobName);
 		return result;
 	}
 

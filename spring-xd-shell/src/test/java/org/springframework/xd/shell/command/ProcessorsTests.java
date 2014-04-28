@@ -33,7 +33,7 @@ import org.springframework.xd.test.fixtures.FileSink;
 
 /**
  * Shell integration tests for various simple processor modules.
- * 
+ *
  * @author Eric Bottard
  */
 public class ProcessorsTests extends AbstractStreamIntegrationTest {
@@ -93,9 +93,11 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 
 		httpSource.ensureReady().postData("Hello").postData("World").postData("!");
 
-		// The reaper and the task scheduler are both configured with 'timeout'
-		// so in the worst case, it can take 2*timeout to actually flush the msgs
-		assertThat(fileSink, eventually(1, (int) (2.1 * timeout), hasContentsThat(equalTo("Hello World !"))));
+		// Although the reaper and the task scheduler are both configured with 'timeout',
+		// this does not take into account the amount of time it may take to deploy the
+		// stream in a distributed environment; therefore this assert will use the default
+		// timeouts configured in the eventually/hasContentsThat methods.
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("Hello World !"))));
 
 	}
 

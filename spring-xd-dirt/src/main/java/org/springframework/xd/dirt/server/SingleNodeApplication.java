@@ -62,9 +62,8 @@ public class SingleNodeApplication {
 		SpringApplicationBuilder container = admin
 				.sibling(SingleNodeOptions.class, ContainerServerApplication.class)
 				.profiles(XdProfiles.CONTAINER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
-				.listeners(
-						ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-								bootstrapContext.pluginContextInitializers()))
+				.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+						bootstrapContext.pluginContextInitializers()))
 				.child(ContainerConfiguration.class)
 				.listeners(bootstrapContext.commandLineListener())
 				.web(false);

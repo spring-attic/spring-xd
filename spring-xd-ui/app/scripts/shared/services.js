@@ -15,20 +15,24 @@
  */
 
 /**
- * Definition of xdAdmin app module.
+ * XD shared (global) services.
  *
  * @author Ilayaperumal Gopinathan
  */
-define([
-  'angular',
-  './job/app',
-  './stream/app',
-  './auth/app'
-], function (angular) {
+define(['angular'], function (angular) {
   'use strict';
-  return angular.module('xdAdmin', [
-    'xdJobsAdmin',
-    'xdStreamsAdmin',
-    'xdAuth'
-  ]);
+
+  return angular.module('xdShared.services', [])
+      .factory('XDUtils', function ($log, growl, $timeout, $q, $rootScope) {
+        return {
+          $log: $log,
+          growl: growl,
+          $timeout: $timeout,
+          $q: $q,
+          $rootScope: $rootScope,
+          addBusyPromise: function (promise) {
+            $rootScope.cgbusy = promise;
+          }
+        };
+      });
 });

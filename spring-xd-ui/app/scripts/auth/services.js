@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
  */
 
 /**
- * Handles user logouts.
+ * Definition of XD auth services.
  *
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define(['angular'], function (angular) {
   'use strict';
-  return ['$scope', 'user', 'XDCommon', '$state',
-          function ($scope, user, xdCommon, $state) {
-      user.isAuthenticated = false;
-      user.username = '';
-      xdCommon.growl.addSuccessMessage('user ' + user.username + ' logged out.');
-      $state.go('login');
-    }];
+
+  return angular.module('xdAuth.services', [])
+      .factory('userService', function() {
+          var sdo = {
+            isAuthenticated: false,
+            username: ''
+          };
+          return sdo;
+        });
 });

@@ -26,13 +26,9 @@ require.config({
     jquery: '../lib/jquery/jquery',
     bootstrap: '../lib/bootstrap/bootstrap',
     ngResource: '../lib/angular-resource/angular-resource',
-    ngRoute: '../lib/angular-route/angular-route',
-    angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
-    highlightjs: '../lib/highlightjs/highlight.pack',
     uiRouter: '../lib/angular-ui-router/angular-ui-router',
     cgBusy: '../lib/angular-busy/angular-busy',
-    ngGrowl: '../lib/angular-growl/angular-growl',
-    angularMocks: '../lib/angular-mocks/angular-mocks'
+    ngGrowl: '../lib/angular-growl/angular-growl'
   },
   shim: {
     angular: {
@@ -44,21 +40,14 @@ require.config({
     'uiRouter': {
       deps: ['angular']
     },
-    cgBusy: {
+    'ngResource': {
       deps: ['angular']
     },
-    'angularHighlightjs': {
-      deps: ['angular', 'highlightjs']
-    },
-    'ngResource': {
+    'cgBusy': {
       deps: ['angular']
     },
     'ngGrowl': {
       deps: ['angular']
-    },
-    'angularMocks': {
-      deps: ['angular'],
-      'exports': 'angular.mock'
     }
   }
 });
@@ -67,20 +56,20 @@ define([
   'require',
   'angular',
   'app',
-  'routes'
+  './routes'
 ], function (require, angular) {
   'use strict';
 
   require(['domReady!'], function (document) {
+    console.log('Start angular application.');
     angular.bootstrap(document, ['xdAdmin']);
   });
-  require(['jquery', 'bootstrap'], function() {
-    console.log('Loaded Bootstrap.');
+  require(['jquery', 'bootstrap'], function () {
+    console.log('Loaded Twitter Bootstrap.');
     updateGrowl();
-    $(window).on('scroll resize', function() {
+    $(window).on('scroll resize', function () {
       updateGrowl();
     });
-    return {};
   });
 
   function updateGrowl() {

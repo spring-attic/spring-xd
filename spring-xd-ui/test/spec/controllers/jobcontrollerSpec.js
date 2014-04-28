@@ -20,24 +20,24 @@ define([
 ], function(angular) {
   'use strict';
 
-  describe('Unit: Testing Job Controllers', function() {
+  describe('Unit: Testing Jobs Controllers', function() {
 
     beforeEach(function() {
-      angular.mock.module('xdAdmin');
+      angular.mock.module('xdJobsAdmin');
     });
 
-    it('should have a ListDefinitionController', inject(function($rootScope, $controller) {
-      var controller = $controller('ListDefinitionController', { $scope: $rootScope.$new(), $rootScope: $rootScope });
+    it('should have a JobDefinitionsController', inject(function($rootScope, $controller) {
+      var controller = $controller('JobDefinitionsController', { $scope: $rootScope.$new(), $rootScope: $rootScope });
       expect(controller).toBeDefined();
     }));
 
-    it('should have a ListJobDeploymentsController', inject(function($rootScope, $controller) {
-      var controller = $controller('ListJobDeploymentsController', { $scope: $rootScope.$new(), $rootScope: $rootScope });
+    it('should have a JobDeploymentsController', inject(function($rootScope, $controller) {
+      var controller = $controller('JobDeploymentsController', { $scope: $rootScope.$new(), $rootScope: $rootScope });
       expect(controller).toBeDefined();
     }));
 
-    it('should have a ListJobExecutionsController', inject(function($rootScope, $controller) {
-      var controller = $controller('ListJobExecutionsController', { $scope: $rootScope.$new(), $rootScope: $rootScope });
+    it('should have a JobExecutionsController', inject(function($rootScope, $controller) {
+      var controller = $controller('JobExecutionsController', { $scope: $rootScope.$new(), $rootScope: $rootScope });
       expect(controller).toBeDefined();
     }));
 

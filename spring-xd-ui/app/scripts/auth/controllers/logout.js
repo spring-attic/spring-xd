@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,17 @@
  */
 
 /**
- * Definition of xdAdmin app module.
+ * Handles user logouts.
  *
- * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
-define([
-  'angular',
-  './job/app',
-  './stream/app',
-  './auth/app'
-], function (angular) {
+define([], function () {
   'use strict';
-  return angular.module('xdAdmin', [
-    'xdJobsAdmin',
-    'xdStreamsAdmin',
-    'xdAuth'
-  ]);
+  return ['$scope', 'userService', 'XDUtils', '$state',
+          function ($scope, user, utils, $state) {
+      user.isAuthenticated = false;
+      user.username = '';
+      utils.growl.addSuccessMessage('user ' + user.username + ' logged out.');
+      $state.go('login');
+    }];
 });

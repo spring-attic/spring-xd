@@ -23,70 +23,64 @@
 define(['angular'], function (angular) {
   'use strict';
 
-  return angular.module('xdAdmin.controllers', ['xdAdmin.services'])
-      .controller('ListDefinitionController',
+  return angular.module('xdJobsAdmin.controllers', [])
+      .controller('JobDefinitionsController',
           ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/job/jobdefinition'], function (jobDefinitionController) {
-              $injector.invoke(jobDefinitionController, this, {'$scope': $scope});
+            require(['job/controllers/definitions'], function (jobDefinitionsController) {
+              $injector.invoke(jobDefinitionsController, this, {'$scope': $scope});
             });
           }])
-      .controller('ListJobDeploymentsController',
+      .controller('JobDeploymentsController',
           ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/job/jobdeployment'], function (jobDeploymentController) {
-              $injector.invoke(jobDeploymentController, this, {'$scope': $scope});
+            require(['job/controllers/deployments'], function (jobDeploymentsController) {
+              $injector.invoke(jobDeploymentsController, this, {'$scope': $scope});
             });
           }])
-      .controller('ListJobExecutionsController',
+      .controller('JobExecutionsController',
           ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/job/jobexecution'], function (jobExecutionController) {
-              $injector.invoke(jobExecutionController, this, {'$scope': $scope});
+            require(['job/controllers/executions'], function (jobExecutionsController) {
+              $injector.invoke(jobExecutionsController, this, {'$scope': $scope});
             });
           }])
       .controller('JobExecutionDetailsController',
           ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/job/jobexecutiondetails'], function (jobExecutionDetailsController) {
+            require(['job/controllers/execution-details'], function (jobExecutionDetailsController) {
               $injector.invoke(jobExecutionDetailsController, this, {'$scope': $scope});
             });
           }])
       .controller('StepExecutionDetailsController',
           ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/job/stepexecutiondetails'], function (stepExecutionDetailsController) {
+            require(['job/controllers/stepexecutiondetails'], function (stepExecutionDetailsController) {
               $injector.invoke(stepExecutionDetailsController, this, {'$scope': $scope});
             });
           }])
       .controller('StepExecutionProgressController',
           ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/job/stepexecutionprogress'], function (stepExecutionDetailsController) {
+            require(['job/controllers/stepexecutionprogress'], function (stepExecutionDetailsController) {
               $injector.invoke(stepExecutionDetailsController, this, {'$scope': $scope});
-            });
-          }])
-      .controller('LoginController',
-          ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/security/login'], function (loginController) {
-              $injector.invoke(loginController, this, {'$scope': $scope});
-            });
-          }])
-      .controller('LogoutController',
-          ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/security/logout'], function (logoutController) {
-              $injector.invoke(logoutController, this, {'$scope': $scope});
-            });
-          }])
-      .controller('ModuleController',
-          ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/job/jobmodule'], function (moduleController) {
-              $injector.invoke(moduleController, this, {'$scope': $scope});
             });
           }])
       .controller('JobLaunchController',
           ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/job/joblaunch'], function (jobLaunchController) {
+            require(['job/controllers/launch'], function (jobLaunchController) {
               $injector.invoke(jobLaunchController, this, {'$scope': $scope});
+            });
+          }])
+      .controller('JobScheduleController',
+          ['$scope', '$injector', function ($scope, $injector) {
+            require(['job/controllers/schedule'], function (jobScheduleController) {
+              $injector.invoke(jobScheduleController, this, {'$scope': $scope});
+            });
+          }])
+      .controller('ModuleController',
+          ['$scope', '$injector', function ($scope, $injector) {
+            require(['job/controllers/modules'], function (modulesController) {
+              $injector.invoke(modulesController, this, {'$scope': $scope});
             });
           }])
       .controller('ModuleDetailsController',
           ['$scope', '$injector', function ($scope, $injector) {
-            require(['controllers/job/jobmoduledetails'], function (moduleDetailsController) {
+            require(['job/controllers/module-details'], function (moduleDetailsController) {
               $injector.invoke(moduleDetailsController, this, {'$scope': $scope});
             });
           }]);

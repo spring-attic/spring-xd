@@ -15,20 +15,29 @@
  */
 
 /**
- * Definition of xdAdmin app module.
+ * Definition of XD jobs admin app module.
  *
+ * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  */
 define([
   'angular',
-  './job/app',
-  './stream/app',
-  './auth/app'
+  'uiRouter',
+  'ngResource',
+  'cgBusy',
+  'ngGrowl',
+  './controllers',
+  './services',
+  '../shared/services'
 ], function (angular) {
   'use strict';
-  return angular.module('xdAdmin', [
-    'xdJobsAdmin',
-    'xdStreamsAdmin',
-    'xdAuth'
+  return angular.module('xdJobsAdmin', [
+    'xdJobsAdmin.services',
+    'xdJobsAdmin.controllers',
+    'xdShared.services',
+    'ui.router',
+    'ngResource',
+    'cgBusy',
+    'angular-growl'
   ]);
 });

@@ -23,7 +23,7 @@
 define(['angular'], function (angular) {
   'use strict';
 
-  return angular.module('xdAdmin.services', [])
+  return angular.module('xdJobsAdmin.services', [])
       .factory('JobDefinitions', function ($resource, $rootScope) {
         return $resource($rootScope.xdAdminServerUrl + '/jobs.json?deployments=true', {}, {
           query: {
@@ -170,25 +170,25 @@ define(['angular'], function (angular) {
           }
         };
       })
-      .factory('User', function() {
-          var sdo = {
-            isAuthenticated: false,
-            username: ''
-          };
-          return sdo;
-        })
-      .factory('XDCommon', function($log, growl, $timeout, $q, $rootScope) {
-          return {
-            $log: $log,
-            growl: growl,
-            $timeout: $timeout,
-            $q: $q,
-            $rootScope: $rootScope,
-            addBusyPromise: function(promise) {
-              $rootScope.cgbusy = promise;
-            },
-          };
-        });
+      .factory('JobScheduleService', function ($rootScope, $resource, growl) {
+        return {
+          scheduleJob: function (jobScheduleRequest) {
+
+            var streamDefinition = 'trigger  '+ jobScheduleRequest.triggerOption + ' > queue:job:' + jobScheduleRequest.jobName;
+            $resource($rootScope.xdAdminServerUrl + '/streams',{},
+                { createSteam: { method: 'POST' , params: { 'name': jobScheduleRequest.schedulerName, 'definition': streamDefinition, 'deploy': 'true' } }
+                }).createSteam().$promise.then(
+                function () {
+                  growl.addSuccessMessage('Scheduler stream deployed');
+                },
+                function (data) {
+                  console.error(data);
+                  growl.addErrorMessage('Yikes, something bad happened while deploying scheduler stream');
+                  growl.addErrorMessage(data.data[0].message);
+                }
+            );
+          }
+
+        };
+      });
 });
-
-

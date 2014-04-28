@@ -15,20 +15,26 @@
  */
 
 /**
- * Definition of xdAdmin app module.
+ * Definition of XD auth module.
  *
  * @author Ilayaperumal Gopinathan
  */
 define([
   'angular',
-  './job/app',
-  './stream/app',
-  './auth/app'
+  'uiRouter',
+  'ngResource',
+  'cgBusy',
+  'ngGrowl',
+  './controllers',
+  './services'
 ], function (angular) {
   'use strict';
-  return angular.module('xdAdmin', [
-    'xdJobsAdmin',
-    'xdStreamsAdmin',
-    'xdAuth'
+  return angular.module('xdAuth', [
+    'xdAuth.services',
+    'xdAuth.controllers',
+    'ui.router',
+    'ngResource',
+    'cgBusy',
+    'angular-growl'
   ]);
 });

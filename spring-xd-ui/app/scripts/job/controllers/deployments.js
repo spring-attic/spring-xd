@@ -22,23 +22,27 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobDeployments', 'XDCommon', '$state',
-    function ($scope, jobDeployments, xdCommon, $state) {
+  return ['$scope', 'JobDeployments', 'XDUtils', '$state',
+    function ($scope, jobDeployments, utils, $state) {
       var jobDeploymentsPromise = jobDeployments.getArray(function (data) {
 
-        xdCommon.$log.info(data);
+        utils.$log.info(data);
         $scope.jobDeployments = data;
 
         $scope.launchJob = function (item) {
-          xdCommon.$log.info('Launching Job: ' + item.name);
+          utils.$log.info('Launching Job: ' + item.name);
           $state.go('home.jobs.tabs.deployments.launch', {jobName: item.name});
         };
-
+        // schedule job
+        $scope.scheduleJob = function (item) {
+          utils.$log.info('Scheduling Job: ' + item.name);
+          $state.go('home.jobs.tabs.deployments.schedule', {jobName: item.name});
+        };
       }, function (error) {
-        xdCommon.$log.error('Error fetching data. Is the XD server running?');
-        xdCommon.$log.error(error);
-        xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+        utils.$log.error('Error fetching data. Is the XD server running?');
+        utils.$log.error(error);
+        utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
       }).$promise;
-      xdCommon.addBusyPromise(jobDeploymentsPromise);
+      utils.addBusyPromise(jobDeploymentsPromise);
     }];
 });

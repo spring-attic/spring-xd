@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,18 @@
  */
 
 /**
- * Handles user logins.
+ * Definition of xd streams controllers.
  *
- * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define(['angular'], function (angular) {
   'use strict';
-  return ['$scope', 'user', 'XDCommon',
-          function ($scope, user, xdCommon) {
-          $scope.loginFormData = {};
-          $scope.login = function() {
-            user.isAuthenticated = true;
-            user.username = $scope.loginFormData.name;
-            xdCommon.growl.addSuccessMessage('user ' + user.username + ' logged in.');
-            xdCommon.$state.go('home.jobs.definitions');
-          };
-        }];
+
+  return angular.module('xdStreamsAdmin.controllers', ['xdStreamsAdmin.services'])
+      .controller('StreamsDefinitionsController',
+          ['$scope', '$injector', function ($scope, $injector) {
+            require(['stream/controllers/definitions'], function (streamDefinitionsController) {
+              $injector.invoke(streamDefinitionsController, this, {'$scope': $scope});
+            });
+          }]);
 });

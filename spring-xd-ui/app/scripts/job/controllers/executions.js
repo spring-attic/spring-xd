@@ -22,48 +22,48 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobExecutions', 'XDCommon', '$state', function ($scope, jobExecutions, xdCommon, $state) {
+  return ['$scope', 'JobExecutions', 'XDUtils', '$state', function ($scope, jobExecutions, utils, $state) {
     var list = function () {
       var jobExcutionsPromise = jobExecutions.getArray().$promise;
-      xdCommon.addBusyPromise(jobExcutionsPromise);
+      utils.addBusyPromise(jobExcutionsPromise);
 
       jobExcutionsPromise.then(
           function (result) {
-            xdCommon.$log.info(result);
+            utils.$log.info(result);
             $scope.jobExecutions = result;
           }, function (error) {
-            xdCommon.$log.error('Error fetching data. Is the XD server running?');
-            xdCommon.$log.error(error);
-            xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+            utils.$log.error('Error fetching data. Is the XD server running?');
+            utils.$log.error(error);
+            utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
           });
     };
     list();
     $scope.viewJobExecutionDetails = function (jobExecution) {
-      xdCommon.$log.info('Showing Job Execution details for Job Execution with Id: ' + jobExecution.executionId);
+      utils.$log.info('Showing Job Execution details for Job Execution with Id: ' + jobExecution.executionId);
       $state.go('home.jobs.executiondetails', {executionId: jobExecution.executionId});
     };
     $scope.restartJob = function (job) {
-      xdCommon.$log.info('Restarting Job ' + job.name);
+      utils.$log.info('Restarting Job ' + job.name);
       jobExecutions.restart(job).$promise.then(
           function (result) {
-            xdCommon.$log.info(result);
-            xdCommon.growl.addSuccessMessage('Job was relaunched.');
+            utils.$log.info(result);
+            utils.growl.addSuccessMessage('Job was relaunched.');
             list();
           }, function (error) {
-            xdCommon.$log.error(error);
-            xdCommon.growl.addErrorMessage(error.data[0].message);
+            utils.$log.error(error);
+            utils.growl.addErrorMessage(error.data[0].message);
           });
     };
     $scope.stopJob = function (job) {
-        xdCommon.$log.info('Stopping Job ' + job.name);
+        utils.$log.info('Stopping Job ' + job.name);
         jobExecutions.stop(job).$promise.then(
             function (result) {
-              xdCommon.$log.info(result);
-              xdCommon.growl.addSuccessMessage('Stop request sent.');
+              utils.$log.info(result);
+              utils.growl.addSuccessMessage('Stop request sent.');
               list();
             }, function (error) {
-              xdCommon.$log.error(error);
-              xdCommon.growl.addErrorMessage(error.data[0].message);
+              utils.$log.error(error);
+              utils.growl.addErrorMessage(error.data[0].message);
             });
       };
   }];

@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 
 
 /**
- *
+ * 
  * @author David Turanski
  */
 public abstract class AbstractComponentScanningBeanDefinitionProvider implements OrderedContextInitializer {

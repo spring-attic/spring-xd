@@ -78,12 +78,12 @@ public class ExtensionsTests {
 
 	@Test
 	public void addCustomConverter() {
-		List<?> customMessageConverters = context.getBean("customMessageConverters",List.class);
-		
-		assertEquals(1,customMessageConverters.size());
-		
+		List<?> customMessageConverters = context.getBean("customMessageConverters", List.class);
+
+		assertEquals(1, customMessageConverters.size());
+
 		ModuleTypeConversionPlugin plugin = context.getBean(ModuleTypeConversionPlugin.class);
-		
+
 		CompositeMessageConverterFactory factory = (CompositeMessageConverterFactory) TestUtils.getPropertyValue(
 				plugin, "converterFactory");
 		CompositeMessageConverter converters = factory.newInstance(MimeType.valueOf("application/x-xd-foo"));

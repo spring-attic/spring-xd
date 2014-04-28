@@ -21,12 +21,12 @@ import org.springframework.core.Ordered;
 
 
 /**
- * An {@link OrderedContextInitializer} to scan for annotation configured beans in xd.extensions.plugins.basepackages
- *
+ * An {@link OrderedContextInitializer} to scan for annotation configured beans in xd.extensions.basepackages
+ * 
  * @author David Turanski
  */
 public class PluginContextComponentScanningExtensionsInitializer extends
-AbstractComponentScanningBeanDefinitionProvider {
+		AbstractComponentScanningBeanDefinitionProvider {
 
 
 	@Value("${xd.extensions.basepackages:}")

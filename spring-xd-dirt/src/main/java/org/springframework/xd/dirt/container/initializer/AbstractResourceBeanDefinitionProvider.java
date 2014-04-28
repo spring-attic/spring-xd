@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 /**
  * A {@link OrderedContextInitializer} base class for loading XML or Groovy Bean Definitions into the target Container
  * Context
- *
+ * 
  * @author David Turanski
  */
 public abstract class AbstractResourceBeanDefinitionProvider implements OrderedContextInitializer {
@@ -81,14 +81,14 @@ public abstract class AbstractResourceBeanDefinitionProvider implements OrderedC
 
 	/**
 	 * Subclasses implement this to return a comma-delimited String
-	 *
+	 * 
 	 * @return
 	 */
 	protected abstract String getExtensionsLocations();
 
 	/**
 	 * This will prepend "classpath*:" to each location if no Resource prefix provided
-	 *
+	 * 
 	 * @return an array of locations
 	 */
 	protected String[] getLocations() {
@@ -97,7 +97,10 @@ public abstract class AbstractResourceBeanDefinitionProvider implements OrderedC
 			if (!locations[i].contains(":")) {
 				locations[i] = "classpath*:" + locations[i];
 			}
-			locations[i] = locations[i] + "/**/*.*";
+			if (!locations[i].endsWith("/")) {
+				locations[i] = locations[i] + "/";
+			}
+			locations[i] = locations[i] + "**/*.*";
 		}
 
 		return locations;

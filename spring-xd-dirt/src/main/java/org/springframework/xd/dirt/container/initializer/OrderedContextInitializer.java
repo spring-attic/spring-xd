@@ -25,9 +25,9 @@ import org.springframework.core.Ordered;
 /**
  * Allows any necessary changes to the Target Context. Note that target context has not been
  * {@link ConfigurableApplicationContext#refresh() refreshed} yet.
- *
+ * 
  * @author David Turanski
  */
 public interface OrderedContextInitializer extends ApplicationListener<ApplicationPreparedEvent>,
-Ordered {
+		Ordered {
 }

@@ -77,7 +77,6 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 		stream().undeploy(streamName);
-		streamDeploymentVerifier.waitForUndeploy(streamName);
 
 		CommandResult cmdResult = executeCommand("runtime modules");
 		Table table = (Table) cmdResult.getResult();
@@ -88,7 +87,8 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 				fooStreamModules.add(row);
 			}
 		}
-		assertEquals(0, fooStreamModules.size());
+		assertEquals(String.format("modules still exist after undeploy: %s", fooStreamModules),
+				0, fooStreamModules.size());
 	}
 
 	@Test

@@ -76,7 +76,8 @@ import org.springframework.xd.tuple.Tuple;
  *
  * Additionally, extensions of this class should initialize the {@link #testMessageBus}
  * member via an {@link org.junit.rules.ExternalResource} static member annotated with
- * {@link org.junit.ClassRule}.
+ * {@link org.junit.ClassRule} if the tests require a specific
+ * {@link org.springframework.integration.x.bus.MessageBus} implementation.
  *
  * @author David Turanski
  * @author Gunnar Hillert
@@ -120,7 +121,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	};
 
 	/**
-	 * Provides random configuration information for a test single node application.
+	 * Provides random configuration information for testing a single node application.
 	 */
 	protected static TestApplicationBootstrap testApplicationBootstrap;
 
@@ -138,7 +139,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	/**
 	 * Message bus used for testing. This member should be initialized by
 	 * extensions of this class via an {@link org.junit.rules.ExternalResource}
-	 * static member annotated with {@link org.junit.ClassRule}.
+	 * static member annotated with {@link org.junit.ClassRule} if the tests
+	 * require a specific {@code MessageBus} implementation.
 	 */
 	protected static AbstractTestMessageBus testMessageBus;
 

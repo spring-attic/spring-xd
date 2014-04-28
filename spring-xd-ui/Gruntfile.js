@@ -26,37 +26,13 @@ module.exports = function (grunt) {
     },
     // Watches files for changes and runs tasks based on the changed files
     watch: {
-      js: {
-        files: ['<%= xd.app %>/scripts/{,**/}*.js'],
-        tasks: ['newer:jshint:all', 'karma'],
-        options: {
-          livereload: true
-        }
-      },
-      jsTest: {
-        files: ['test/spec/{,**/}*.js'],
-        tasks: ['newer:jshint:test', 'karma']
-      },
-      less: {
-        files: ['<%= xd.app %>/styles/{,*/}*.less'],
-        tasks: ['less']
-      },
-      styles: {
-        files: ['<%= xd.app %>/styles/{,*/}*.css'],
-        tasks: ['newer:copy:styles', 'autoprefixer']
-      },
-      gruntfile: {
-        files: ['Gruntfile.js']
-      },
+      files: ['<%= xd.app %>/**/*', '*.js', '.jshintrc'],
+      tasks: ['build'],
       livereload: {
         options: {
           livereload: '<%= connect.options.livereload %>'
         },
-        files: [
-          '<%= xd.app %>/**/*.html',
-          '.tmp/styles/{,*/}*.css',
-          '<%= xd.app %>/images/{,*/}*.{png,jpg,jpeg,gif}'
-        ]
+        files: ['<%= xd.app %>/**/*', '*.js', '.jshintrc']
       }
     },
     protractor: {

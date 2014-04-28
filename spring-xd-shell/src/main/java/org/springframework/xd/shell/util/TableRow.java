@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 the original author or authors.
+ * Copyright 2009-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.xd.shell.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.util.Assert;
+
 /**
  * Holds the table rows used by {@link Table}.
  * 
@@ -35,6 +37,7 @@ public class TableRow {
 	private Map<Integer, String> data = new HashMap<Integer, String>();
 
 	public void setData(Map<Integer, String> data) {
+		Assert.notNull(data, "data must not be null");
 		this.data = data;
 	}
 
@@ -58,6 +61,11 @@ public class TableRow {
 	public TableRow addValue(Integer column, String value) {
 		this.data.put(column, value);
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		return data.toString();
 	}
 
 	@Override

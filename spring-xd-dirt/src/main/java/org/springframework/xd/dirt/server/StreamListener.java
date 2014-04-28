@@ -146,19 +146,6 @@ public class StreamListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * Handle the deletion of a stream deployment.
-	 *
-	 * @param client curator client
-	 * @param data stream deployment request data
-	 */
-	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
-		// Nothing to do here as StreamListener now actually listens to stream deployments;
-		// This means that once the deployment is removed, all
-		// its children are gone and thus we don't have the ability to gracefully
-		// undeploy the underlying modules.
-	}
-
-	/**
 	 * Prepare the new stream for deployment. This updates the ZooKeeper znode for the stream by adding the following
 	 * under {@code /xd/streams/[stream-name]}:
 	 * <ul>
@@ -308,25 +295,7 @@ public class StreamListener implements PathChildrenCacheListener {
 				case CHILD_ADDED:
 					onChildAdded(client, event.getData());
 					break;
-				case CHILD_UPDATED:
-					break;
-				case CHILD_REMOVED:
-					onChildRemoved(client, event.getData());
-					break;
-				case CONNECTION_SUSPENDED:
-					break;
-				case CONNECTION_RECONNECTED:
-					break;
-				case CONNECTION_LOST:
-					break;
-				case INITIALIZED:
-					// TODO!!
-					// when this admin is first elected leader and there are
-					// streams, it needs to verify that the streams have been
-					// deployed
-					// for (ChildData childData : event.getInitialData()) {
-					// logger.info("Existing stream: {}", Paths.stripPath(childData.getPath()));
-					// }
+				default:
 					break;
 			}
 			return null;

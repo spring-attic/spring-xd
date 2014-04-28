@@ -20,7 +20,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
- * Builder object for paths under {@link Paths#STREAMS}. {@code StreamDeploymentsPath}
+ * Builder object for paths under {@link Paths#STREAM_DEPLOYMENTS}. {@code StreamDeploymentsPath}
  * can be used to take a full path and split it into its elements, for example:
  * <pre>
  * StreamDeploymentsPath path = new StreamDeploymentsPath("/xd/streams/deployments/my-stream");
@@ -42,7 +42,7 @@ public class StreamDeploymentsPath {
 	private static final int DEPLOYMENTS = 0;
 
 	/**
-	 * Index for {@link Paths#STREAMS} in {@link #elements} array.
+	 * Index for {@link Paths#STREAM_DEPLOYMENTS} in {@link #elements} array.
 	 */
 	private static final int STREAMS = 1;
 

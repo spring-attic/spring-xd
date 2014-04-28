@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.core;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Exception thrown when an blocking operation times out. This
+ * Exception thrown when a blocking operation times out. This
  * is a runtime version of {@link TimeoutException} and can accept
  * an instance of {@code TimeoutException} as a root cause.
  *

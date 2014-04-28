@@ -20,7 +20,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
- * Builder object for paths under {@link Paths#JOBS}. {@code JobDeploymentsPath}
+ * Builder object for paths under {@link Paths#JOB_DEPLOYMENTS}. {@code JobDeploymentsPath}
  * can be used to take a full path and split it into its elements, for example:
  * <pre>
  * JobDeploymentsPath path = new JobDeploymentsPath("/xd/deployments/jobs/my-job");
@@ -43,7 +43,7 @@ public class JobDeploymentsPath {
 	private static final int DEPLOYMENTS = 0;
 
 	/**
-	 * Index for {@link Paths#JOBS} in {@link #elements} array.
+	 * Index for {@link Paths#JOB_DEPLOYMENTS} in {@link #elements} array.
 	 */
 	private static final int JOBS = 1;
 
@@ -69,7 +69,7 @@ public class JobDeploymentsPath {
 
 
 	/**
-	 * Construct a {@code JobsDeploymentsPath}. Use of this constructor
+	 * Construct a {@code JobDeploymentsPath}. Use of this constructor
 	 * means that a path will be created via {@link #build()} or
 	 * {@link #buildWithNamespace()}.
 	 */

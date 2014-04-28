@@ -24,40 +24,39 @@ import org.springframework.xd.test.fixtures.SimpleFileSink;
 
 
 /**
- * Runs a basic suite of TCP (Source/Sink) tests on an XD Cluster instance.
+ * Runs a basic suite of JMS Source tests on an XD Cluster instance.
  * 
  * @author Glenn Renfro
  */
-public class TcpTest extends AbstractIntegrationTest {
+public class MqttTest extends AbstractIntegrationTest {
 
 
 	/**
-	 * Verifies that the TCP Source that terminates with a CRLF returns the correct data.
+	 * Verifies that the MQTT Source that terminates with a CRLF returns the correct data.
 	 * 
 	 * @throws Exception
 	 */
 	@Test
-	public void testTCPSourceCRLF() throws Exception {
+	public void testMqttSource() throws Exception {
 		String data = UUID.randomUUID().toString();
-		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
-		waitForXD();
-		sources.tcp().sendBytes((data + "\r\n").getBytes());
+		stream(sources.mqtt() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
+		sources.mqtt().ensureReady();
+		sources.mqtt().sendData(data);
+		waitForXD(2000);
 		assertReceived(1);
 		assertValid(data, sinks.getSink(SimpleFileSink.class));
 	}
 
-	/**
-	 * * Verifies that data sent by the TCP sink that terminates with a CRLF works as expected.
-	 * 
-	 * @throws Exception
-	 */
 	@Test
-	public void testTCPSink() throws Exception {
+	public void testMqttSink() throws Exception {
 		String data = UUID.randomUUID().toString();
-		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
-		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.tcp());
-
+		stream(sources.mqtt() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
+		waitForXD(2000);
+		stream("mqttSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.mqtt());
+		waitForXD(2000);
 		assertReceived(1);
 		assertValid(data, sinks.getSink(SimpleFileSink.class));
+
 	}
+
 }

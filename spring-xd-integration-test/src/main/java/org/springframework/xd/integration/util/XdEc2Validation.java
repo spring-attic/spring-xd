@@ -16,6 +16,10 @@
 
 package org.springframework.xd.integration.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +27,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +35,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -46,7 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * @author Glenn Renfro
  */
-
+@Configuration
 public class XdEc2Validation {
 
 	private final transient RestTemplate restTemplate;
@@ -66,16 +72,9 @@ public class XdEc2Validation {
 	 * @param adminServer
 	 */
 	public void verifyXDAdminReady(final URL adminServer) {
-		try {
-			verifyAdminConnection(adminServer);
-		}
-		catch (ResourceAccessException rae) {
-			LOGGER.error("XD Admin Server is not available at "
-					+ adminServer.toString());
-			throw new ResourceAccessException(
-					"XD Admin Server is not available at "
-							+ adminServer.toString());
-		}
+		boolean result = verifyAdminConnection(adminServer);
+		assertTrue("XD Admin Server is not available at "
+				+ adminServer.toString(), result);
 	}
 
 	/**
@@ -86,7 +85,7 @@ public class XdEc2Validation {
 	 * @throws Exception
 	 */
 	public void verifyAtLeastOneContainerAvailable(final List<URL> containers,
-			int jmxPort) throws Exception {
+			int jmxPort) throws MalformedURLException {
 		boolean result = false;
 		final Iterator<URL> containerIter = containers.iterator();
 		while (containerIter.hasNext()) {
@@ -109,13 +108,13 @@ public class XdEc2Validation {
 						+ StreamUtils.replacePort(container, jmxPort));
 			}
 		}
-		if (!result) {
-			throw new ResourceAccessException("No XD Containers are available");
-		}
+		assertTrue("No XD Containers are available", result);
 	}
 
 	/**
-	 * Retrieves the stream and verifies that the module has infact processed the data.
+	 * Verifies that the module has in fact processed the data. Keep in mind that any module name must be suffixed with
+	 * index number for example .1. So if I have a stream of http|file, to access the modules I will need to have a
+	 * module name of http.1 for the source and file.1 for the sink.
 	 * 
 	 * @param url The server where the stream is deployed
 	 * @param streamName The stream to analyze.
@@ -123,12 +122,26 @@ public class XdEc2Validation {
 	 * @throws Exception
 	 */
 	public void assertReceived(URL url, String streamName,
-			String moduleName) throws Exception {
+			String moduleName, int msgCountExpected) throws Exception {
 		String request = buildJMXRequest(url, streamName, moduleName);
 		List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(
 				request)));
-		verifySendCounts(modules);
+		verifySendCounts(modules, msgCountExpected);
+	}
 
+	/**
+	 * Retrieves the stream and verifies that all modules in the stream processed the data.
+	 * 
+	 * @param url The server where the stream is deployed
+	 * @param streamName The stream to analyze.
+	 * @throws Exception
+	 */
+	public void assertReceived(URL url, String streamName,
+			int msgCountExpected) throws Exception {
+		String request = buildJMXRequest(url, streamName, "*");
+		List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(
+				request)));
+		verifySendCounts(modules, msgCountExpected);
 	}
 
 	/**
@@ -142,24 +155,20 @@ public class XdEc2Validation {
 	 */
 	public void verifyTestContent(XdEnvironment hosts, URL url, String fileName,
 			String data) throws IOException {
+		String resultFileName = fileName;
 		if (hosts.isOnEc2()) {
-			fileName = StreamUtils.transferResultsToLocal(hosts, url, fileName);
+			resultFileName = StreamUtils.transferResultsToLocal(hosts, url, fileName);
 		}
-		File file = new File(fileName);
-
+		File file = new File(resultFileName);
+		Reader fileReader = new InputStreamReader(new FileInputStream(resultFileName));
 		try {
-			Reader fileReader = new InputStreamReader(new FileInputStream(fileName));
 			String result = FileCopyUtils.copyToString(fileReader);
 
-			if (!(data).equals(result)) {
-				fileReader.close();
-				throw new ResourceAccessException(
-						"Data in the result file is not what was sent. Read \""
-								+ result + "\"\n but expected \"" + data + "\"");
-			}
-			fileReader.close();
+			assertEquals("Data in the result file is not what was sent. Read \""
+					+ result + "\"\n but expected \"" + data + "\"", data, result);
 		}
 		finally {
+			fileReader.close();
 			if (file.exists()) {
 				file.delete();
 			}
@@ -189,7 +198,7 @@ public class XdEc2Validation {
 			if (!file.exists()) {
 				throw new IllegalArgumentException(
 						"The Log File for the container is not present.  Please be sure to set the "
-								+ XdEnvironment.XD_CONTAINER_LOG_DIR + " on your gradle build.");
+								+ "xd_container_log_dir on your gradle build.");
 			}
 			BufferedReader fileReader = new BufferedReader(new FileReader(logLocation));
 			boolean result = false;
@@ -202,11 +211,9 @@ public class XdEc2Validation {
 				}
 			}
 			fileReader.close();
-			if (!result) {
-				throw new ResourceAccessException(
-						"Data in the result file is not what was sent. Read "
-								+ result + "\n but expected " + data);
-			}
+			assertTrue("Data in the result file is not what was sent. Read "
+					+ result + "\n but expected " + data, result);
+
 		}
 		finally {
 			if (file.exists()) {
@@ -226,7 +233,7 @@ public class XdEc2Validation {
 	private String buildJMXRequest(URL url, String streamName,
 			String moduleName) {
 		String result = url.toString() + "/jolokia/read/xd." + streamName
-				+ ":module=*,component=MessageChannel,name=*";
+				+ ":module=" + moduleName + ",component=MessageChannel,name=*";
 		return result;
 	}
 
@@ -259,7 +266,7 @@ public class XdEc2Validation {
 	 * @param modules THe list of modules to evaluate.
 	 * @throws Exception
 	 */
-	private void verifySendCounts(List<Module> modules) throws Exception {
+	private void verifySendCounts(List<Module> modules, int msgCountExpected) throws Exception {
 		Iterator<Module> iter = modules.iterator();
 		while (iter.hasNext()) {
 			Module module = iter.next();
@@ -268,25 +275,30 @@ public class XdEc2Validation {
 				continue;
 			}
 			int sendCount = Integer.parseInt(module.getSendCount());
-			if (sendCount == 0) {
-				throw new InvalidResultException("Module "
-						+ module.getModuleName() + " for channel "
-						+ module.getModuleChannel()
-						+ " expected to have a send count  > 0");
-			}
+			assertEquals("Module "
+					+ module.getModuleName() + " for channel "
+					+ module.getModuleChannel()
+					+ " did not have expected count ", msgCountExpected, sendCount);
 			int errorCount = Integer.parseInt(module.getSendErrorCount());
-			if (errorCount > 0) {
-				throw new InvalidResultException("Module "
-						+ module.getModuleName() + " for channel "
-						+ module.getModuleChannel() + " had an error count of "
-						+ errorCount + ",  expected 0.");
-			}
+			assertFalse("Module "
+					+ module.getModuleName() + " for channel "
+					+ module.getModuleChannel() + " had an error count of "
+					+ errorCount + ",  expected 0.", errorCount > 0);
 		}
 	}
 
-	private void verifyAdminConnection(final URL host)
+	private boolean verifyAdminConnection(final URL host)
 			throws ResourceAccessException {
-		restTemplate.getForObject(host.toString(), String.class);
+		boolean result = true;
+		try {
+			restTemplate.getForObject(host.toString(), String.class);
+		}
+		catch (ResourceAccessException rae) {
+			LOGGER.error("XD Admin Server is not available at "
+					+ host.getHost());
+			result = false;
+		}
+		return result;
 	}
 
 	private void verifyContainerConnection(final URL host) throws IOException {

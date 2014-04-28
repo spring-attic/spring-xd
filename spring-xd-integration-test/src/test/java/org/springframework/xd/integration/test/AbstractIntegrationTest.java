@@ -26,8 +26,12 @@ import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.springframework.shell.Bootstrap;
-import org.springframework.shell.core.JLineShellComponent;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
@@ -37,19 +41,25 @@ import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.AbstractModuleFixture;
 import org.springframework.xd.test.fixtures.LogSink;
 import org.springframework.xd.test.fixtures.SimpleFileSink;
-import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
  * Base Class for Spring XD Integration classes
  * 
  * @author Glenn Renfro
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = XdEnvironment.class)
 public abstract class AbstractIntegrationTest {
 
 	private final static String STREAM_NAME = "ec2Test3";
 
-	protected XdEnvironment environment;
+	protected final static String XD_DELIMETER = " | ";
 
+
+	@Autowired
+	protected XdEnvironment xdEnvironment;
+
+	@Autowired
 	protected XdEc2Validation validation;
 
 	protected URL adminServer;
@@ -58,30 +68,25 @@ public abstract class AbstractIntegrationTest {
 
 	protected List<String> streamNames;
 
-	protected int pauseTime;
+	@Value("${xd_pause_time}")
+	protected transient int pauseTime;
 
-	protected String XD_DELIMETER = " | ";
+	@Value("${xd_run_on_ec2}")
+	protected boolean isOnEc2;
 
-	private JLineShellComponent shell;
+	@Autowired
+	protected Sources sources;
 
-	protected Sources sources = null;
+	@Autowired
+	protected Sinks sinks;
 
-	protected Sinks sinks = null;
+	@Autowired
+	protected ConfigUtil configUtil;
 
-	private boolean initialized = false;
+	private transient boolean initialized = false;
 
-	ConfigUtil configUtil = null;
 
 	public AbstractIntegrationTest() {
-		try {
-			environment = new XdEnvironment();
-		}
-		catch (Exception ex) {
-			throw new IllegalArgumentException(ex.getMessage());
-		}
-		httpPort = environment.getHttpPort();
-		sinks = new Sinks(environment);
-
 	}
 
 	/**
@@ -91,29 +96,17 @@ public abstract class AbstractIntegrationTest {
 	 */
 	public void initializer() throws Exception {
 		if (!initialized) {
-			adminServer = environment.getAdminServer();
-			validation = new XdEc2Validation();
+			httpPort = xdEnvironment.getHttpPort();
+			adminServer = xdEnvironment.getAdminServer();
 			validation.verifyXDAdminReady(adminServer);
-			pauseTime = environment.getPauseTime();
-			validation.verifyAtLeastOneContainerAvailable(environment.getContainers(),
-					environment.getJMXPort());
-			RandomConfigurationSupport configSupport = new RandomConfigurationSupport();
-			Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
-				configSupport.getAdminServerPort() });
-
-			shell = bootstrap.getJLineShellComponent();
-			sources = new Sources(adminServer, environment.getContainers(), shell, httpPort);
-			configUtil = new ConfigUtil(environment.isOnEc2(), environment);
+			validation.verifyAtLeastOneContainerAvailable(xdEnvironment.getContainers(),
+					xdEnvironment.getJMXPort());
 			initialized = true;
 		}
 	}
 
-	public JLineShellComponent getShell() {
-		return shell;
-	}
-
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownAfterClass() {
 		File file = new File(StreamUtils.TMP_DIR);
 		if (file.exists()) {
 			file.delete();
@@ -167,20 +160,33 @@ public abstract class AbstractIntegrationTest {
 	 */
 	public URL getContainerForStream(String streamName) {
 		// Assuming one container for now.
-		return environment.getContainers().get(0);
+		return xdEnvironment.getContainers().get(0);
 	}
 
 	/**
-	 * Verifies that a message was received by source of the stream to be tested.
+	 * Verifies that a message was received by all modules in a stream.
 	 * 
 	 * @throws Exception
 	 */
-	public void assertReceived() throws Exception {
+	public void assertReceived(int msgCountExpected) throws Exception {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
-				getContainerForStream(STREAM_NAME), environment.getJMXPort()), STREAM_NAME,
-				"http");
+				getContainerForStream(STREAM_NAME), xdEnvironment.getJMXPort()),
+				STREAM_NAME, msgCountExpected);
+	}
+
+	/**
+	 * Verifies that a message was received by the module.
+	 * 
+	 * @throws Exception
+	 */
+	public void assertReceived(String moduleName, int msgCountExpected) throws Exception {
+		waitForXD();
+
+		validation.assertReceived(StreamUtils.replacePort(
+				getContainerForStream(STREAM_NAME), xdEnvironment.getJMXPort()),
+				STREAM_NAME, moduleName, msgCountExpected);
 	}
 
 	/**
@@ -214,7 +220,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
-		validation.verifyTestContent(environment, url, fileName, data);
+		validation.verifyTestContent(xdEnvironment, url, fileName, data);
 	}
 
 	/**
@@ -227,7 +233,7 @@ public abstract class AbstractIntegrationTest {
 	private void assertLogEntry(String data, URL url)
 			throws IOException {
 		waitForXD();
-		validation.verifyLogContent(environment, url, environment.getContainerLogLocation(), data);
+		validation.verifyLogContent(xdEnvironment, url, xdEnvironment.getContainerLogLocation(), data);
 	}
 
 	protected void waitForXD() {
@@ -244,10 +250,8 @@ public abstract class AbstractIntegrationTest {
 
 	}
 
-
 	public XdEnvironment getEnvironment() {
-		return environment;
+		return xdEnvironment;
 	}
-
 
 }

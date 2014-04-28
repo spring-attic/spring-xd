@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,9 +134,10 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	public List<ModuleMetadata> findAll() {
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
-			List<String> containerIds = zkConnection.getClient().getChildren().forPath(Paths.MODULE_DEPLOYMENTS);
+			CuratorFramework client = zkConnection.getClient();
+			List<String> containerIds = client.getChildren().forPath(Paths.CONTAINERS);
 			for (String containerId : containerIds) {
-				List<String> modules = zkConnection.getClient().getChildren().forPath(path(containerId));
+				List<String> modules = client.getChildren().forPath(path(containerId));
 				for (String moduleId : modules) {
 					ModuleMetadata metadata = findOne(containerId, moduleId);
 					if (metadata != null) {
@@ -151,17 +153,14 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	}
 
 	@Override
-	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String requiredContainerId) {
+	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId) {
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
-			List<String> containerIds = zkConnection.getClient().getChildren().forPath(Paths.MODULE_DEPLOYMENTS);
-			for (String containerId : containerIds) {
-				// filter by containerId
-				if (containerId.equals(requiredContainerId)) {
-					List<String> modules = zkConnection.getClient().getChildren().forPath(path(containerId));
-					for (String moduleId : modules) {
-						results.add(findOne(containerId, moduleId));
-					}
+			CuratorFramework client = zkConnection.getClient();
+			if (null != client.checkExists().forPath(Paths.build(Paths.CONTAINERS, containerId))) {
+				List<String> modules = client.getChildren().forPath(path(containerId));
+				for (String moduleId : modules) {
+					results.add(findOne(containerId, moduleId));
 				}
 			}
 			return new PageImpl<ModuleMetadata>(results);

@@ -14,8 +14,10 @@
 # Once the above properties are set, the twitterstream/twittersearch source modules will use
 # them by default.
 # To override these properties:
-# 1) Make sure to comment out the above shared properties
-# 2) Set explicit property values in source/module/twitter(stream/search).properties
+# Remove the shared property keys and set explicit property values in source/<module>/twitter(stream/search).properties
+# For example, in source/twittersearch/twittersearch.properties:
+#  consumerKey=mynewConsumerKey
+#  consumerSecret=overriddingSecret123
 #
 # Other source/processor/sink/job modules' properties can be configured in a similar way
 # Rabbit source/sink module configuration is one other example below.

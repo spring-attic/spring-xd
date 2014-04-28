@@ -16,6 +16,7 @@
 
 package org.springframework.xd.integration.fixtures;
 
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,7 @@ import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.AbstractModuleFixture;
 import org.springframework.xd.test.fixtures.JdbcSink;
 import org.springframework.xd.test.fixtures.LogSink;
+import org.springframework.xd.test.fixtures.MqttSink;
 import org.springframework.xd.test.fixtures.SimpleFileSink;
 import org.springframework.xd.test.fixtures.TcpSink;
 
@@ -34,7 +36,7 @@ import org.springframework.xd.test.fixtures.TcpSink;
  */
 public class Sinks {
 
-	private static int TCP_SINK_PORT = 1234;
+	private final static int TCP_SINK_PORT = 1234;
 
 	private Map<String, AbstractModuleFixture> sinks;
 
@@ -84,6 +86,10 @@ public class Sinks {
 		return new TcpSink(port);
 	}
 
+	public MqttSink mqtt() throws MalformedURLException {
+		return new MqttSink(environment.getAdminServer().getHost(), 1883);
+	}
+
 	public SimpleFileSink file(String dir, String fileName) {
 		return new SimpleFileSink(dir, fileName);
 	}
@@ -92,7 +98,6 @@ public class Sinks {
 		if (environment.getJdbcUrl() == null) {
 			return null;
 		}
-
 		jdbcSink = new JdbcSink();
 		jdbcSink.url(environment.getJdbcUrl()).driver(environment.getJdbcDriver()).database(
 				environment.getJdbcDatabase());

@@ -30,7 +30,7 @@ import org.jclouds.sshj.SshjSshClient;
 
 /**
  * Tools to setup an XD Instance with the correct configuration files for a stream's modules.
- *
+ * 
  * @author Glenn Renfro
  */
 public class ConfigUtil {
@@ -46,9 +46,9 @@ public class ConfigUtil {
 	}
 
 	/**
-	 *
+	 * 
 	 * Creates a properties file with the content you specify in the config directory of the host you specify.
-	 *
+	 * 
 	 * @param fileName The name of the properties file.
 	 * @param content The configuration data that should be put in the config.properties file.
 	 * @throws IOException
@@ -70,7 +70,7 @@ public class ConfigUtil {
 	}
 
 	@SuppressWarnings("deprecation")
-	private void sshCopy(File file, String fileName, String host) {
+	private void sshCopy(File file, String fileName, String host) throws IOException {
 		final LoginCredentials credential = LoginCredentials
 				.fromCredentials(new Credentials("ubuntu", environment.getPrivateKey()));
 		final com.google.common.net.HostAndPort socket = com.google.common.net.HostAndPort

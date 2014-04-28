@@ -21,16 +21,16 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'StepExecutions', 'XDCommon', '$state', '$stateParams',
-    function ($scope, stepExecutions, xdCommon, $state, $stateParams) {
+  return ['$scope', 'StepExecutions', 'XDUtils', '$state', '$stateParams',
+    function ($scope, stepExecutions, utils, $state, $stateParams) {
       $scope.closeStepExecutionProgress = function () {
-          xdCommon.$log.info('Closing Step Execution Progress Window');
+          utils.$log.info('Closing Step Execution Progress Window');
           $state.go('home.jobs.stepexecutiondetails', {executionId: $stateParams.executionId, stepExecutionId: $stateParams.stepExecutionId});
         };
       $scope.refreshStepExecutionProgress = function () {
-          xdCommon.$log.info('Refresh Step Execution Progress');
+          utils.$log.info('Refresh Step Execution Progress');
           var stepExecutionProgressPromise = stepExecutions.getStepExecutionProgress($stateParams.executionId, $stateParams.stepExecutionId).$promise;
-          xdCommon.addBusyPromise(stepExecutionProgressPromise);
+          utils.addBusyPromise(stepExecutionProgressPromise);
           stepExecutionProgressPromise.then(
                   function (result) {
                     var percentageFormatted = (result.percentageComplete * 100).toFixed(2);
@@ -38,8 +38,8 @@ define([], function () {
                     $scope.stepExecutionProgress = result;
                   },
                   function (error) {
-                    xdCommon.$log.error(error);
-                    xdCommon.growl.addErrorMessage(error);
+                    utils.$log.error(error);
+                    utils.growl.addErrorMessage(error);
                   });
         };
       $scope.$apply(function () {

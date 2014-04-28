@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,28 @@
  */
 
 /**
- * Handles user logins.
+ * Definition of XD streams app module.
  *
- * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define([
+  'angular',
+  'uiRouter',
+  'ngResource',
+  'cgBusy',
+  'ngGrowl',
+  './controllers',
+  './services',
+  '../shared/services'
+], function (angular) {
   'use strict';
-  return ['$scope', 'user', 'XDCommon',
-          function ($scope, user, xdCommon) {
-          $scope.loginFormData = {};
-          $scope.login = function() {
-            user.isAuthenticated = true;
-            user.username = $scope.loginFormData.name;
-            xdCommon.growl.addSuccessMessage('user ' + user.username + ' logged in.');
-            xdCommon.$state.go('home.jobs.definitions');
-          };
-        }];
+  return angular.module('xdStreamsAdmin', [
+    'xdStreamsAdmin.services',
+    'xdStreamsAdmin.controllers',
+    'xdShared.services',
+    'ui.router',
+    'ngResource',
+    'cgBusy',
+    'angular-growl'
+  ]);
 });

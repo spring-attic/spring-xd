@@ -10,12 +10,12 @@
 </p>
 <p ng-class="{ hide: !$state.includes('home.jobs.tabs.deployments') }" class="index-page--subtitle">This section lists all
     the available batch job deployments and allows you to
-    <a href="https://github.com/spring-projects/spring-xd/wiki/Batch-Jobs#launching-a-job">launch</a> them.
+    <a href="https://github.com/spring-projects/spring-xd/wiki/Batch-Jobs#launching-a-job">launch</a>/<a href="https://github.com/spring-projects/spring-xd/wiki/Batch-Jobs#launch-the-batch-using-cron-trigger">schedule</a> them.
 </p>
 <p ng-class="{ hide: !$state.includes('home.jobs.tabs.executions') }" class="index-page--subtitle">This section lists all the
     available batch job executions and provides the control to restart the job execution (if restartable).
 </p>
-<div class="tab-pane active col-md-12" id="xd-jobs">
+<div class="tab-pane active col-md-12">
     <ul class="nav nav-tabs">
         <li ng-class="{ active: $state.includes('home.jobs.tabs.modules') }"><a ui-sref="home.jobs.tabs.modules">Modules</a></li>
         <li ng-class="{ active: $state.includes('home.jobs.tabs.definitions') }"><a ui-sref="home.jobs.tabs.definitions">Definitions</a>

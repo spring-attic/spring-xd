@@ -127,7 +127,7 @@ public class ContainerServerApplication implements EnvironmentAware {
 					.run(args);
 		}
 		catch (Exception e) {
-			handleErrors(e);
+			handleFieldErrors(e);
 		}
 		return this;
 	}
@@ -167,11 +167,11 @@ public class ContainerServerApplication implements EnvironmentAware {
 		this.environment = (ConfigurableEnvironment) environment;
 	}
 
-	private void handleErrors(Exception e) {
+	private void handleFieldErrors(Exception e) {
 		if (e.getCause() instanceof BindException) {
 			BindException be = (BindException) e.getCause();
 			for (FieldError error : be.getFieldErrors()) {
-				System.err.println(String.format("the value '%s' is not allowed for property '%s'",
+				log.error(String.format("the value '%s' is not allowed for property '%s'",
 						error.getRejectedValue(),
 						error.getField()));
 			}

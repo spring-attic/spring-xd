@@ -16,7 +16,14 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import javax.servlet.Filter;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
@@ -25,6 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationListener;
@@ -52,6 +60,8 @@ import org.springframework.xd.dirt.util.XdProfiles;
 @Import(RestConfiguration.class)
 public class AdminServerApplication {
 
+	private static final Log log = LogFactory.getLog(AdminServerApplication.class);
+
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDAdminMBeanExporter";
 
 	private ConfigurableApplicationContext context;
@@ -70,16 +80,37 @@ public class AdminServerApplication {
 		CommandLinePropertySourceOverridingListener<AdminOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<AdminOptions>(
 				new AdminOptions());
 
-		this.context = new SpringApplicationBuilder(AdminOptions.class, ParentConfiguration.class)
-				.profiles(XdProfiles.ADMIN_PROFILE)
-				.listeners(commandLineListener)
-				.child(SharedServerContextConfiguration.class, AdminOptions.class)
-				.listeners(commandLineListener)
-				.child(AdminServerApplication.class)
-				.listeners(commandLineListener)
-				.initializers(new AdminIdInitializer())
-				.run(args);
+		try {
+			this.context = new SpringApplicationBuilder(AdminOptions.class, ParentConfiguration.class)
+					.profiles(XdProfiles.ADMIN_PROFILE)
+					.listeners(commandLineListener)
+					.initializers(new AdminPortAvailablityInitializer())
+					.child(SharedServerContextConfiguration.class, AdminOptions.class)
+					.listeners(commandLineListener)
+					.child(AdminServerApplication.class)
+					.listeners(commandLineListener)
+					.initializers(new AdminIdInitializer())
+					.run(args);
+		}
+		catch (Exception e) {
+			handleException(e);
+		}
 		return this;
+	}
+
+	private void handleException(Exception e) {
+		String errorMessage;
+		// There could be few other reasons for the failure when starting the embedded servletContainer
+		if (e.getCause() instanceof EmbeddedServletContainerException) {
+			errorMessage = String.format(
+					"Error starting embedded servlet container (tomcat) for the admin server: %s",
+					ExceptionUtils.getRootCause(e));
+		}
+		else {
+			errorMessage = e.getMessage();
+		}
+		log.error(errorMessage);
+		System.exit(1);
 	}
 
 	private class AdminIdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -89,6 +120,40 @@ public class AdminServerApplication {
 			String adminContextId = applicationContext.getId();
 			applicationContext.setId(XdProfiles.ADMIN_PROFILE
 					+ adminContextId.substring(adminContextId.lastIndexOf(":")));
+		}
+	}
+
+	/**
+	 * {@link ApplicationContextInitializer} that checks if the admin port is already in use.
+	 *
+	 * @author Ilayaperumal Gopinathan
+	 */
+	private class AdminPortAvailablityInitializer implements
+			ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+		private static final String ADMIN_PORT_PLACEHOLDER = "${server.port}";
+
+		@Override
+		public void initialize(ConfigurableApplicationContext applicationContext) {
+			String adminPort = applicationContext.getEnvironment().resolvePlaceholders(ADMIN_PORT_PLACEHOLDER);
+			ServerSocket socket = null;
+			try {
+				socket = new ServerSocket(Integer.parseInt(adminPort));
+			}
+			catch (IOException e) {
+				throw new AdminPortNotAvailableException(adminPort);
+			}
+			finally {
+				if (socket != null) {
+					try {
+						socket.close();
+					}
+					catch (IOException e) {
+						// It is very unlikely to get an exception here.
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 

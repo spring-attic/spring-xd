@@ -102,7 +102,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	}
 
 	/**
-	 * Select of subset of containers to satisfy the requested number of module instances using a round robin
+	 * Select a subset of containers to satisfy the requested number of module instances using a round robin
 	 * distribution for successive calls. A count of 0 means all members that matched the criteria expression. count >=
 	 * candidates means each of the candidates should host a module.
 	 * 
@@ -136,9 +136,11 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	}
 
 	/**
-	 * @param moduleDescriptor
-	 * @param containerRepository
-	 * @return
+	 * Test all containers in the containerRepository against selection criteria
+	 * 
+	 * @param containerRepository the containerRepository
+	 * @param criteria an optional SpEL expression evaluated against container attribute values
+	 * @return the list of containers matching the criteria
 	 */
 	private List<Container> findAllContainersMatchingCriteria(ContainerRepository containerRepository, String criteria) {
 		LOG.debug("Matching containers for criteria '{}'", criteria);
@@ -175,7 +177,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		}
 		catch (SpelEvaluationException e) {
 			if (e.getMessageCode().equals(SpelMessage.PROPERTY_OR_FIELD_NOT_READABLE)) {
-				LOG.debug("candidate not contain an attribute referenced in the criteria {}", criteria);
+				LOG.debug("candidate does not contain an attribute referenced in the criteria {}", criteria);
 			}
 			return false;
 		}

@@ -191,6 +191,32 @@ public class DefaultContainerMatcherTests {
 		Iterator<Container> matchedIterator = matched.iterator();
 		assertSame(containers.get(1), matchedIterator.next());
 		assertSame(containers.get(2), matchedIterator.next());
+
+		matched = containerMatcher.match(moduleDescriptor, containerRepository);
+		assertEquals(2, matched.size());
+		matchedIterator = matched.iterator();
+		assertSame(containers.get(1), matchedIterator.next());
+		assertSame(containers.get(2), matchedIterator.next());
+	}
+
+	@Test
+	public void matchWithCountLessThanContainersMatchingCriteria() {
+		deploymentProperties.setCount(1);
+		deploymentProperties.setCriteria("group=='group2'");
+		Collection<Container> matched = containerMatcher.match(moduleDescriptor, containerRepository);
+		assertEquals(1, matched.size());
+		Iterator<Container> matchedIterator = matched.iterator();
+		assertSame(containers.get(1), matchedIterator.next());
+
+		matched = containerMatcher.match(moduleDescriptor, containerRepository);
+		assertEquals(1, matched.size());
+		matchedIterator = matched.iterator();
+		assertSame(containers.get(2), matchedIterator.next());
+
+		matched = containerMatcher.match(moduleDescriptor, containerRepository);
+		assertEquals(1, matched.size());
+		matchedIterator = matched.iterator();
+		assertSame(containers.get(1), matchedIterator.next());
 	}
 
 	@Test

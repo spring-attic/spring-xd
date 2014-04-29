@@ -34,13 +34,13 @@ import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
 import org.springframework.boot.test.SpringApplicationContextLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.batch.hsqldb.server.HsqlDatasourceConfiguration;
 import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.server.ParentConfiguration;
 import org.springframework.xd.test.RandomConfigurationSupport;
@@ -54,7 +54,7 @@ import org.springframework.xd.test.RandomConfigurationSupport;
  * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { HsqlDatasourceConfiguration.class, HsqlServerApplication.class,
+@ContextConfiguration(classes = { EmbeddedDataSourceConfiguration.class, HsqlServerApplication.class,
 	ParentConfiguration.class }, loader = SpringApplicationContextLoader.class)
 @ActiveProfiles({ HsqlServerApplication.HSQLDBSERVER_PROFILE })
 @DirtiesContext

@@ -38,7 +38,6 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -101,7 +100,6 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	@ImportResource({ "classpath:/META-INF/spring-xd/batch/batch.xml",
 		"classpath:/META-INF/spring-xd/transports/local-bus.xml" })
 	@EnableAutoConfiguration
-	@EnableBatchProcessing
 	public static class SharedConfiguration {
 
 	}

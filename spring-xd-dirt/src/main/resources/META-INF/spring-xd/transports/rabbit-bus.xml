@@ -8,13 +8,13 @@
 	<bean id="messageBus" class="org.springframework.integration.x.rabbit.RabbitMessageBus">
 		<constructor-arg ref="rabbitConnectionFactory" />
 		<constructor-arg ref="codec"/>
-		<property name="defaultAcknowledgeMode" value="#{T(org.springframework.amqp.core.AcknowledgeMode).${xd.container.rabbitbus.default.ackMode}}" />
-		<property name="defaultChannelTransacted" value="${xd.container.rabbitbus.default.transacted}" />
-		<property name="defaultConcurrentConsumers" value="${xd.container.rabbitbus.default.concurrency}" />
-		<property name="defaultDefaultRequeueRejected" value="${xd.container.rabbitbus.default.requeue}" />
-		<property name="defaultMaxConcurrentConsumers" value="${xd.container.rabbitbus.default.maxConcurrency}" />
-		<property name="defaultPrefetchCount" value="${xd.container.rabbitbus.default.prefetch}" />
-		<property name="defaultTxSize" value="${xd.container.rabbitbus.default.txSize}" />
+		<property name="defaultAcknowledgeMode" value="#{T(org.springframework.amqp.core.AcknowledgeMode).${xd.messagebus.rabbit.default.ackMode}}" />
+		<property name="defaultChannelTransacted" value="${xd.messagebus.rabbit.default.transacted}" />
+		<property name="defaultConcurrentConsumers" value="${xd.messagebus.rabbit.default.concurrency}" />
+		<property name="defaultDefaultRequeueRejected" value="${xd.messagebus.rabbit.default.requeue}" />
+		<property name="defaultMaxConcurrentConsumers" value="${xd.messagebus.rabbit.default.maxConcurrency}" />
+		<property name="defaultPrefetchCount" value="${xd.messagebus.rabbit.default.prefetch}" />
+		<property name="defaultTxSize" value="${xd.messagebus.rabbit.default.txSize}" />
 	</bean>
 
 </beans>

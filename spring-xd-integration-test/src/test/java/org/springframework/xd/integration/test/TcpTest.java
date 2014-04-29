@@ -19,6 +19,7 @@ package org.springframework.xd.integration.test;
 import java.util.UUID;
 
 import org.junit.Test;
+
 import org.springframework.xd.test.fixtures.SimpleFileSink;
 
 
@@ -41,7 +42,7 @@ public class TcpTest extends AbstractIntegrationTest {
 		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
 		waitForXD();
 		sources.tcp().sendBytes((data + "\r\n").getBytes());
-		assertReceived();
+		assertReceived(1);
 		assertValid(data, sinks.getSink(SimpleFileSink.class));
 	}
 
@@ -56,7 +57,7 @@ public class TcpTest extends AbstractIntegrationTest {
 		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
 		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.tcp());
 
-		assertReceived();
+		assertReceived(1);
 		assertValid(data, sinks.getSink(SimpleFileSink.class));
 	}
 }

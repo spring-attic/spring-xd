@@ -16,6 +16,12 @@
 
 package org.springframework.xd.integration.util;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,29 +71,22 @@ public class XdEc2Validation {
 	}
 
 	/**
-	 * Checks to see if the admin server the user specified is available. Else it throws a ResourceAccessException.
+	 * Assert is the admin server is available.
 	 * 
 	 * @param adminServer the location of the admin server
 	 */
 	public void verifyXDAdminReady(final URL adminServer) {
-		try {
-			verifyAdminConnection(adminServer);
-		}
-		catch (ResourceAccessException rae) {
-			LOGGER.error("XD Admin Server is not available at "
-					+ adminServer.toString());
-			throw new ResourceAccessException(
-					"XD Admin Server is not available at "
-							+ adminServer.toString());
-		}
+		boolean result = verifyAdminConnection(adminServer);
+		assertTrue("XD Admin Server is not available at "
+				+ adminServer.toString(), result);
 	}
 
 	/**
-	 * Checks to see if at least one server the user specified is available. Else it throws a ResourceAccessException.
+	 * Assert that at least one server the user specified is available.
 	 * 
 	 * @param containers the location of xd-containers
 	 * @param jmxPort the JMX port to connect to the container
-	 * @throws MalformedURLException error creating a
+	 * @throws MalformedURLException error creating a URL when logging error messages.
 	 */
 	public void verifyAtLeastOneContainerAvailable(final List<URL> containers,
 			int jmxPort) throws MalformedURLException {
@@ -113,27 +112,42 @@ public class XdEc2Validation {
 						+ StreamUtils.replacePort(container, jmxPort));
 			}
 		}
-		if (!result) {
-			throw new ResourceAccessException("No XD Containers are available");
-		}
+		assertTrue("No XD Containers are available", result);
 	}
 
 	/**
-	 * Retrieves the stream and verifies that the module has infact processed the data.
+	 * Verifies that the module has in fact processed the data. Keep in mind that any module name must be suffixed with
+	 * index number for example .1. So if I have a stream of http|file, to access the modules I will need to have a
+	 * module name of http.1 for the source and file.1 for the sink.
 	 * 
 	 * @param url The server where the stream is deployed
 	 * @param streamName The stream to analyze.
 	 * @param moduleName The name of the module
-	 * @throws Exception
+	 * @throws Exception Error processing JSON or making HTTP GET request
 	 */
 	public void assertReceived(URL url, String streamName,
-			String moduleName) throws Exception {
+			String moduleName, int msgCountExpected) throws Exception {
 		String request = buildJMXRequest(url, streamName, moduleName);
-		List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(
-				request)));
-		verifySendCounts(modules);
+		List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(request)));
+		verifySendCounts(modules, msgCountExpected);
 
 	}
+
+	/**
+	 * Retrieves the stream and verifies that all modules in the stream processed the data.
+	 * 
+	 * @param url The server where the stream is deployed
+	 * @param streamName The stream to analyze.
+	 * @throws Exception Error processing JSON or making HTTP GET request
+	 */
+	public void assertReceived(URL url, String streamName,
+			int msgCountExpected) throws Exception {
+		String request = buildJMXRequest(url, streamName, "*");
+		List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(
+				request)));
+		verifySendCounts(modules, msgCountExpected);
+	}
+
 
 	/**
 	 * Verifies that the data user gave us is what was stored after the stream has processed the flow.
@@ -142,7 +156,7 @@ public class XdEc2Validation {
 	 * @param url The server that the stream is deployed.
 	 * @param fileName The file that contains the data to check.
 	 * @param data The data used to evaluate the results of the stream.
-	 * @throws IOException
+	 * @throws IOException Error processing file
 	 */
 	public void verifyTestContent(XdEnvironment hosts, URL url, String fileName,
 			String data) throws IOException {
@@ -151,20 +165,15 @@ public class XdEc2Validation {
 			resultFileName = StreamUtils.transferResultsToLocal(hosts, url, fileName);
 		}
 		File file = new File(resultFileName);
-
+		Reader fileReader = new InputStreamReader(new FileInputStream(resultFileName));
 		try {
-			Reader fileReader = new InputStreamReader(new FileInputStream(resultFileName));
 			String result = FileCopyUtils.copyToString(fileReader);
 
-			if (!(data).equals(result)) {
-				fileReader.close();
-				throw new ResourceAccessException(
-						"Data in the result file is not what was sent. Read \""
-								+ result + "\"\n but expected \"" + data + "\"");
-			}
-			fileReader.close();
+			assertEquals("Data in the result file is not what was sent. Read \""
+					+ result + "\"\n but expected \"" + data + "\"", data, result);
 		}
 		finally {
+			fileReader.close();
 			if (file.exists()) {
 				file.delete();
 			}
@@ -179,7 +188,7 @@ public class XdEc2Validation {
 	 * @param url The URL of the server to where the stream is deployed.
 	 * @param fileName The name of the log file to inspect
 	 * @param data THe expected result.
-	 * @throws IOException
+	 * @throws IOException Error processing file
 	 */
 	public void verifyLogContent(XdEnvironment hosts, URL url, String fileName,
 			String data) throws IOException {
@@ -207,11 +216,8 @@ public class XdEc2Validation {
 				}
 			}
 			fileReader.close();
-			if (!result) {
-				throw new ResourceAccessException(
-						"Data in the result file is not what was sent. Read "
-								+ result + "\n but expected " + data);
-			}
+			assertTrue("Data in the result file is not what was sent. Read "
+					+ result + "\n but expected " + data, result);
 		}
 		finally {
 			if (file.exists()) {
@@ -231,7 +237,7 @@ public class XdEc2Validation {
 	private String buildJMXRequest(URL url, String streamName,
 			String moduleName) {
 		String result = url.toString() + "/jolokia/read/xd." + streamName
-				+ ":module=*,component=MessageChannel,name=*";
+				+ ":module=" + moduleName + ",component=MessageChannel,name=*";
 		return result;
 	}
 
@@ -243,9 +249,9 @@ public class XdEc2Validation {
 	/**
 	 * retrieves a list of modules from the json result that was returned by Jolokia.
 	 * 
-	 * @param json
-	 * @return
-	 * @throws Exception
+	 * @param json raw json response string from jolokia
+	 * @return A list of module information
+	 * @throws Exception error parsing JSON
 	 */
 	private List<Module> getModuleList(String json) throws Exception {
 		List<Module> result = null;
@@ -258,13 +264,25 @@ public class XdEc2Validation {
 	}
 
 	/**
-	 * Makes sure that that at least one entry was processed by the modules in the stream. verifies that no errors
-	 * occured.
+	 * Asserts that the expected number of messages were processed by the modules in the stream and that no errors
+	 * occurred.
 	 * 
-	 * @param modules THe list of modules to evaluate.
-	 * @throws Exception
+	 * @param modules The list of modules in the stream
+	 * @param msgCountExpected The expected count
 	 */
-	private void verifySendCounts(List<Module> modules) throws Exception {
+	private void verifySendCounts(List<Module> modules, int msgCountExpected) {
+		verifySendCounts(modules, msgCountExpected, false);
+	}
+
+	/**
+	 * Asserts that the expected number (or greater than or equal to the expected number) of messages were processed by
+	 * the modules in the stream. Also asserts that no errors occurred.
+	 * 
+	 * @param modules The list of modules to evaluate.
+	 * @param msgCountExpected The expected count
+	 * @param greaterThanOrEqualTo true if should use greaterThanOrEqualToComparison
+	 */
+	private void verifySendCounts(List<Module> modules, int msgCountExpected, boolean greaterThanOrEqualTo) {
 		Iterator<Module> iter = modules.iterator();
 		while (iter.hasNext()) {
 			Module module = iter.next();
@@ -273,25 +291,37 @@ public class XdEc2Validation {
 				continue;
 			}
 			int sendCount = Integer.parseInt(module.getSendCount());
-			if (sendCount == 0) {
-				throw new InvalidResultException("Module "
+			if (greaterThanOrEqualTo) {
+				assertThat("Module " + module.getModuleName() + " for channel " + module.getModuleChannel() +
+						" did not have at least expected count ",
+						sendCount, greaterThanOrEqualTo(msgCountExpected));
+			}
+			else {
+				assertEquals("Module "
 						+ module.getModuleName() + " for channel "
 						+ module.getModuleChannel()
-						+ " expected to have a send count  > 0");
+						+ " did not have expected count ", msgCountExpected, sendCount);
 			}
 			int errorCount = Integer.parseInt(module.getSendErrorCount());
-			if (errorCount > 0) {
-				throw new InvalidResultException("Module "
-						+ module.getModuleName() + " for channel "
-						+ module.getModuleChannel() + " had an error count of "
-						+ errorCount + ",  expected 0.");
-			}
+			assertFalse("Module "
+					+ module.getModuleName() + " for channel "
+					+ module.getModuleChannel() + " had an error count of "
+					+ errorCount + ",  expected 0.", errorCount > 0);
 		}
 	}
 
-	private void verifyAdminConnection(final URL host)
+	private boolean verifyAdminConnection(final URL host)
 			throws ResourceAccessException {
-		restTemplate.getForObject(host.toString(), String.class);
+		boolean result = true;
+		try {
+			restTemplate.getForObject(host.toString(), String.class);
+		}
+		catch (ResourceAccessException rae) {
+			LOGGER.error("XD Admin Server is not available at "
+					+ host.getHost());
+			result = false;
+		}
+		return result;
 	}
 
 	private void verifyContainerConnection(final URL host) throws IOException {

@@ -43,7 +43,7 @@ public class MqttTest extends AbstractIntegrationTest {
 		sources.mqtt().ensureReady();
 		sources.mqtt().sendData(data);
 		waitForXD(2000);
-		assertReceived();
+		assertReceived(1);
 		assertValid(data, sinks.getSink(SimpleFileSink.class));
 	}
 
@@ -54,7 +54,7 @@ public class MqttTest extends AbstractIntegrationTest {
 		waitForXD(2000);
 		stream("mqttSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.mqtt());
 		waitForXD(2000);
-		assertReceived();
+		assertReceived(1);
 		assertValid(data, sinks.getSink(SimpleFileSink.class));
 
 	}

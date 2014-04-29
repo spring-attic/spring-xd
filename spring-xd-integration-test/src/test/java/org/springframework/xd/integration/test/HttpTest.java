@@ -58,7 +58,7 @@ public class HttpTest extends AbstractIntegrationTest {
 		waitForXD();
 		sources.http().postData(data);
 		waitForXD(2000);
-		assertReceived();
+		assertReceived(1);
 		assertValid(data, sink);
 
 	}

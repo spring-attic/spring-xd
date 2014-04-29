@@ -17,10 +17,11 @@
 package org.springframework.xd.integration.test;
 
 import org.junit.Test;
+
 import org.springframework.xd.test.fixtures.SimpleFileSink;
 
 /**
- * Test Timer as a source
+ * Test using Time as a source.
  * 
  * @author Glenn Renfro
  */
@@ -29,8 +30,8 @@ public class TickTockTest extends AbstractIntegrationTest {
 
 	@Test
 	public void testHeartBeat() throws Exception {
-		stream("time" + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
-		assertReceived();
+		stream("time --fixedDelay=30 " + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
+		assertReceived(1);
 	}
 
 }

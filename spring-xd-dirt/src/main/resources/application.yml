@@ -30,7 +30,21 @@ xd:
        locations: META-INF/spring-xd/ext
   container:
     groups: ${XD_CONTAINER_GROUPS:}
-
+  messagebus:
+    rabbit:
+      default:
+        ackMode:        AUTO
+            # Valid: AUTO (container acks), NONE (broker acks), MANUAL (consumer acks).
+            # Upper case only.
+            # Note: MANUAL requires specialized code in the consuming module and is unlikely to be
+            # used in an XD application. For more information, see
+            # http://docs.spring.io/spring-integration/reference/html/amqp.html#amqp-inbound-ack
+        concurrency:    1
+        maxConcurrency: 1
+        prefetch:       1
+        requeue:        true
+        transacted:     false
+        txSize:         1
 ---
 
 server:

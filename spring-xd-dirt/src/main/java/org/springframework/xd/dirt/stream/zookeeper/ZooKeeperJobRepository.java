@@ -96,13 +96,13 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 
 	@Override
 	public <S extends Job> S save(S entity) {
-		// job instances are "saved" when a JobListener deploys a job
+		// job instances are "saved" when a JobDeploymentListener deploys a job
 		return entity;
 	}
 
 	@Override
 	public <S extends Job> Iterable<S> save(Iterable<S> entities) {
-		// job instances are "saved" when a JobListener deploys a job
+		// job instances are "saved" when a JobDeploymentListener deploys a job
 		return entities;
 	}
 

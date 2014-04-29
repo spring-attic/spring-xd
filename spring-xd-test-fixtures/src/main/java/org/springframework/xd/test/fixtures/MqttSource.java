@@ -23,6 +23,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
+import org.springframework.util.Assert;
 
 
 /**
@@ -32,16 +33,18 @@ import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
  */
 public class MqttSource extends AbstractModuleFixture {
 
-	protected int port = 1883;
+	private static final int DEFAULT_MQTT_PORT = 1883;
 
-	private String host;
+	private final int port;
 
+	private final String host;
 
-	public MqttSource() {
-
+	public MqttSource(String host) {
+		this(host, DEFAULT_MQTT_PORT);
 	}
 
 	public MqttSource(String host, int port) {
+		Assert.notNull(host, "host must not be null or empty");
 		this.host = host;
 		this.port = port;
 	}

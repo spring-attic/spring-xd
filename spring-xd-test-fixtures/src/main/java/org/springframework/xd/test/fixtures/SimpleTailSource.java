@@ -16,30 +16,46 @@
 
 package org.springframework.xd.test.fixtures;
 
+import org.springframework.util.Assert;
+
 
 /**
- * Used by acceptance tests because it does not extend disposable.
+ * A tail source for integration tests. Note it does not need to implement {@link DisposableFileSupport}
  * 
  * @author Glenn Renfro
+ * @author Mark Pollack
  */
 public class SimpleTailSource extends AbstractModuleFixture {
 
-	private int delay = 5000;
+	private static final int DEFAULT_DELAY_IN_MILLIS = 5000;
 
-	private String fileName;
+	private final int delayInMillis;
 
-	public SimpleTailSource(int delay, String fileName) throws Exception {
-		this.delay = delay;
+	private final String fileName;
+
+	/**
+	 * Construct a SimpleTailSource with a file delay of 5 seconds
+	 */
+	public SimpleTailSource() {
+		this(DEFAULT_DELAY_IN_MILLIS, SimpleTailSource.class.getName());
+	}
+
+	/**
+	 * Construct a SimpleTailSource using the provided delay and filename
+	 * 
+	 * @param delayInMillis millsecond to delay tailing
+	 * @param fileName file to tail
+	 */
+	public SimpleTailSource(int delayInMillis, String fileName) {
+		Assert.hasText(fileName, "fileName must not be emptry be null");
+		this.delayInMillis = delayInMillis;
 		this.fileName = fileName;
 	}
 
 	@Override
 	protected String toDSL() {
-		return String.format("tail --nativeOptions='-F -n +0' --name=%s --fileDelay=%d", fileName, delay);
+		return String.format("tail --nativeOptions='-F -n +0' --name=%s --fileDelay=%d", fileName, delayInMillis);
 	}
 
-	public SimpleTailSource() throws Exception {
-		fileName = SimpleTailSource.class.getName();
-	}
 
 }

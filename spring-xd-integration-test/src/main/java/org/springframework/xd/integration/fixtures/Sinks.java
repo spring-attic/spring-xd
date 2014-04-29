@@ -36,13 +36,11 @@ import org.springframework.xd.test.fixtures.TcpSink;
  */
 public class Sinks {
 
-	private final static int TCP_SINK_PORT = 1234;
-
 	private Map<String, AbstractModuleFixture> sinks;
 
-	private TcpSink tcpSink = null;
+	private TcpSink tcpSink;
 
-	private JdbcSink jdbcSink = null;
+	private JdbcSink jdbcSink;
 
 	private XdEnvironment environment;
 
@@ -70,14 +68,14 @@ public class Sinks {
 			result = new SimpleFileSink();
 		}
 		if (clazzName.equals("org.springframework.xd.test.fixtures.TcpSink")) {
-			result = new TcpSink(TCP_SINK_PORT);
+			result = tcp();
 		}
 		return result;
 	}
 
 	public TcpSink tcp() {
 		if (tcpSink == null) {
-			tcpSink = tcp(TCP_SINK_PORT);
+			tcpSink = TcpSink.withDefaultPort();
 		}
 		return tcpSink;
 	}
@@ -87,29 +85,29 @@ public class Sinks {
 	}
 
 	public MqttSink mqtt() throws MalformedURLException {
-		return new MqttSink(environment.getAdminServer().getHost(), 1883);
+		return new MqttSink(environment.getAdminServerUrl().getHost(), 1883);
 	}
 
 	public SimpleFileSink file(String dir, String fileName) {
 		return new SimpleFileSink(dir, fileName);
 	}
 
+
 	public JdbcSink jdbc() throws Exception {
-		if (environment.getJdbcUrl() == null) {
+		if (environment.getDataSource() == null) {
 			return null;
 		}
-		jdbcSink = new JdbcSink();
-		jdbcSink.url(environment.getJdbcUrl()).driver(environment.getJdbcDriver()).database(
-				environment.getJdbcDatabase());
-
-		if (environment.getJdbcUsername() != null) {
-			jdbcSink.username(environment.getJdbcUsername());
-		}
-		if (environment.getJdbcPassword() != null) {
-			jdbcSink.password(environment.getJdbcPassword());
-		}
-
-		jdbcSink = jdbcSink.start();
+		/*
+		 * jdbcSink = new JdbcSink();
+		 * jdbcSink.url(environment.getJdbcUrl()).driver(environment.getJdbcDriver()).database(
+		 * environment.getJdbcDatabase());
+		 * 
+		 * if (environment.getJdbcUsername() != null) { jdbcSink.username(environment.getJdbcUsername()); } if
+		 * (environment.getJdbcPassword() != null) { jdbcSink.password(environment.getJdbcPassword()); }
+		 * 
+		 * jdbcSink = jdbcSink.start();
+		 */
+		jdbcSink = new JdbcSink(environment.getDataSource());
 
 		if (!jdbcSink.isReady()) {
 			throw new Exception("Unable to connecto to database.");

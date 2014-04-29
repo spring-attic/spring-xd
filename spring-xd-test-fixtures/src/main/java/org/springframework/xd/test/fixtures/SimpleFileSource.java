@@ -16,19 +16,37 @@
 
 package org.springframework.xd.test.fixtures;
 
+import org.springframework.util.Assert;
+
 
 /**
- * Used by acceptance tests because it does not extend disposable.
+ * A FileSource for integraiton tests. Note it does not need to implement {@link DisposableFileSupport}
  * 
  * @author Glenn Renfro
+ * @author Mark Pollack
  */
 public class SimpleFileSource extends AbstractModuleFixture {
 
-	private String dir;
+	private final String dir;
 
-	private String fileName;
+	private final String fileName;
 
-	public SimpleFileSource(String dir, String fileName) throws Exception {
+	/**
+	 * Construct a new SimpleFileSource in the current directory with the name "SimpleFileSource"
+	 */
+	public SimpleFileSource() {
+		this("", SimpleFileSource.class.getName());
+	}
+
+	/**
+	 * Construct a new SimpleFileSource using the provided directory and file names.
+	 * 
+	 * @param dir directory name
+	 * @param fileName file name
+	 */
+	public SimpleFileSource(String dir, String fileName) {
+		Assert.hasText(dir, "dir must not be null or empty");
+		Assert.hasText(fileName, "fileName must not be null or empty");
 		this.dir = dir;
 		this.fileName = fileName;
 	}
@@ -38,9 +56,5 @@ public class SimpleFileSource extends AbstractModuleFixture {
 		return String.format("file --dir=%s --pattern='%s'", dir, fileName);
 	}
 
-	public SimpleFileSource() throws Exception {
-		dir = "";
-		fileName = SimpleFileSource.class.getName();
-	}
 
 }

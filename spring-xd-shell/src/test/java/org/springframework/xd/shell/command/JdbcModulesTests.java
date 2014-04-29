@@ -40,7 +40,7 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testJdbcSinkWith1InsertionAndDefaultConfiguration() throws Exception {
-		JdbcSink jdbcSink = newJdbcSink().start();
+		JdbcSink jdbcSink = newJdbcSink();
 
 		HttpSource httpSource = newHttpSource();
 
@@ -57,7 +57,7 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testJdbcSinkWith2InsertionsAndDefaultConfiguration() throws Exception {
-		JdbcSink jdbcSink = newJdbcSink().start();
+		JdbcSink jdbcSink = newJdbcSink();
 
 		HttpSource httpSource = newHttpSource();
 
@@ -75,7 +75,7 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testJdbcSinkWithCustomTableName() throws Exception {
 		String tableName = "foobar";
-		JdbcSink jdbcSink = newJdbcSink().tableName(tableName).start();
+		JdbcSink jdbcSink = newJdbcSink().tableName(tableName);
 
 
 		HttpSource httpSource = newHttpSource();
@@ -91,7 +91,7 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testJdbcSinkWithCustomColumnNames() throws Exception {
-		JdbcSink jdbcSink = newJdbcSink().columns("foo,bar").start();
+		JdbcSink jdbcSink = newJdbcSink().columns("foo,bar");
 
 		HttpSource httpSource = newHttpSource();
 
@@ -109,7 +109,7 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testJdbcSinkWithCustomColumnNamesWithUnderscores() throws Exception {
-		JdbcSink jdbcSink = newJdbcSink().columns("foo_bar,bar_foo,bar_baz").start();
+		JdbcSink jdbcSink = newJdbcSink().columns("foo_bar,bar_foo,bar_baz");
 
 		HttpSource httpSource = newHttpSource();
 

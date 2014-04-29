@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,21 @@
 
 package org.springframework.xd.test.generator;
 
-import java.io.File;
-
 
 /**
- * Generate a single http request from a string or file payload.
- * 
- * Implementation would be expect to set the URL to post to in their constructor
+ * Core exception for generators
  * 
  * @author Mark Pollack
  */
-public interface HttpGenerator {
+public class GeneratorException extends RuntimeException {
 
 	/**
-	 * Generate a http POST request using the String as the body of the request.
+	 * Constructs a new <code>GeneratorException</code> instance.
 	 * 
-	 * @param payload String to send in the http body.
+	 * @param message message
+	 * @param ex exception
 	 */
-	void postData(String message);
-
-	/**
-	 * Generate a http request from the contents of a file
-	 * 
-	 * @param file the File that contains the data to post
-	 * @throws GeneratorException If there was an error related to file handling.
-	 */
-	void postFromFile(File file);
-
+	public GeneratorException(String message, Throwable ex) {
+		super(message, ex);
+	}
 }

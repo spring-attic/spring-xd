@@ -27,18 +27,50 @@ import java.net.Socket;
  */
 public class TcpSource extends AbstractModuleFixture {
 
-	protected int port = AvailableSocketPorts.nextAvailablePort();
+	private static final int DEFAULT_TCP_PORT = 1234;
+
+	protected final int port;
 
 	private String host;
 
-
+	/**
+	 * Construct a new TcpSource with the loopback address for host and using a port selected by @link
+	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
+	 */
 	public TcpSource() {
-
+		this(null);
 	}
 
+	/**
+	 * Construct a new TcpSource with the provided host and using a port selected by @link
+	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
+	 * 
+	 * @param host the host to connect to
+	 */
+	public TcpSource(String host) {
+		this(host, AvailableSocketPorts.nextAvailablePort());
+	}
+
+	/**
+	 * Construct a new TcpSource with the provided host and port
+	 * 
+	 * @param host host to connect to
+	 * @param port port to connect to
+	 */
 	public TcpSource(String host, int port) {
+		// Note, null is allowed for host since when creating a socket will default to loopback address
 		this.host = host;
 		this.port = port;
+	}
+
+	/**
+	 * Construct a new TcpSource using the provided host and the default port of 1234
+	 * 
+	 * @param host host to connect to
+	 * @return TcpSource to use
+	 */
+	public static TcpSource withDefaultPort(String host) {
+		return new TcpSource(host, DEFAULT_TCP_PORT);
 	}
 
 

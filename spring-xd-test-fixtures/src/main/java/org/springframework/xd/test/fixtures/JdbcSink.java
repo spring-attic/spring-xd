@@ -17,11 +17,12 @@
 package org.springframework.xd.test.fixtures;
 
 import java.sql.Connection;
-import java.sql.Driver;
 import java.sql.SQLException;
 
+import javax.sql.DataSource;
+
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.SimpleDriverDataSource;
+import org.springframework.util.Assert;
 
 
 /**
@@ -34,33 +35,18 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 
 	private JdbcTemplate jdbcTemplate;
 
-	private String jdbcUrl;
-
 	private String tableName;
 
 	private String columns;
 
-	private String dbname = "foo";
-
-	private String driver = "org.hsqldb.jdbc.JDBCDriver";
-
-	private String username;
-
-	private String url = "jdbc:hsqldb:mem:%s";
-
-	private String password;
-
 	private String configFileName;
 
-	public JdbcSink dbname(String dbname) {
-		this.dbname = dbname;
-		return this;
-	}
+	private volatile DataSource dataSource;
 
-	public JdbcSink start() throws Exception {
-		initDatasource();
-
-		return this;
+	public JdbcSink(DataSource dataSource) {
+		Assert.notNull(dataSource, "Datasource can not be null");
+		this.dataSource = dataSource;
+		jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
 	public JdbcTemplate getJdbcTemplate() {
@@ -69,34 +55,23 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 
 	@Override
 	protected String toDSL() {
-		String dsl = "jdbc --initializeDatabase=true --url=" + jdbcUrl;
+		StringBuilder dsl = new StringBuilder();
+		try {
+			dsl.append("jdbc --initializeDatabase=true --url=" + dataSource.getConnection().getMetaData().getURL());
+		}
+		catch (SQLException e) {
+			throw new IllegalStateException("Could not get URL from connection metadata", e);
+		}
 		if (tableName != null) {
-			dsl += " --tableName=" + tableName;
+			dsl.append(" --tableName=" + tableName);
 		}
 		if (columns != null) {
-			dsl += " --columns=" + columns;
+			dsl.append(" --columns=" + columns);
 		}
 		if (configFileName != null) {
-			dsl += " --configProperties=" + configFileName;
+			dsl.append(" --configProperties=" + configFileName);
 		}
-		return dsl;
-	}
-
-	private void initDatasource() throws Exception {
-
-		jdbcUrl = String.format(url, dbname);
-		SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
-		@SuppressWarnings("unchecked")
-		Class<? extends Driver> classz = (Class<? extends Driver>) Class.forName(driver);
-		dataSource.setDriverClass(classz);
-		dataSource.setUrl(jdbcUrl);
-		if (password != null) {
-			dataSource.setPassword(password);
-		}
-		if (username != null) {
-			dataSource.setUsername(username);
-		}
-		jdbcTemplate = new JdbcTemplate(dataSource);
+		return dsl.toString();
 	}
 
 	@Override
@@ -114,31 +89,6 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 		return this;
 	}
 
-	public JdbcSink password(String password) {
-		this.password = password;
-		return this;
-	}
-
-	public JdbcSink url(String url) {
-		this.url = url;
-		return this;
-	}
-
-	public JdbcSink username(String username) {
-		this.username = username;
-		return this;
-	}
-
-	public JdbcSink driver(String driver) {
-		this.driver = driver;
-		return this;
-	}
-
-	public JdbcSink database(String database) {
-		this.dbname = database;
-		return this;
-	}
-
 	public JdbcSink configFile(String configFileName) {
 		this.configFileName = configFileName;
 		return this;
@@ -153,10 +103,6 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 		boolean result = true;
 		Connection conn = null;
 		try {
-			if (url == null || dbname == null
-					|| driver == null) {
-				throw new Exception("Required Env Variables Missing.");
-			}
 			conn = getJdbcTemplate().getDataSource().getConnection();
 		}
 		catch (Exception ex) {

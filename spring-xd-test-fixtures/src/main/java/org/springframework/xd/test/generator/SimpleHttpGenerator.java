@@ -16,48 +16,49 @@
 
 package org.springframework.xd.test.generator;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
+import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
+
+import com.google.common.io.Files;
 
 
 /**
  * Used to generate basic http posts for string and file contents
  * 
  * @author Glenn Renfro
+ * @author Mark Pollack
  */
 public class SimpleHttpGenerator implements HttpGenerator {
 
-	private transient String host;
+	private final String url;
 
-	private transient int port;
+	private final RestTemplate restTemplate;
 
-	private RestTemplate template;
-
-	public SimpleHttpGenerator(String host, int port) throws Exception {
-		this.host = host;
-		this.port = port;
-		template = new RestTemplate();
+	public SimpleHttpGenerator(String host, int port) {
+		Assert.hasText(host, "host must not be null or empty");
+		url = "http://" + host + ":" + port;
+		restTemplate = new RestTemplate();
 	}
 
 	@Override
 	public void postData(String message) {
-		Object[] args = new String[0];
-		template.postForObject("http://" + host + ":" + port, message, String.class, args);
+		restTemplate.postForObject(url, message, String.class);
 	}
 
 	@Override
-	public void postFromFile(File file) throws Exception {
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-		Object[] args = new String[0];
-		String message = "";
-		while (reader.ready()) {
-			message += reader.readLine();
+	public void postFromFile(File file) {
+		Assert.notNull(file, "file must not be null");
+		try {
+			restTemplate.postForObject(url, Files.toString(file, Charset.defaultCharset()), String.class);
 		}
-		reader.close();
-		template.postForObject("http://" + host + ":" + port, message, String.class, args);
+		catch (IOException e) {
+			throw new GeneratorException("Could not read from file [" + file + "]", e);
+		}
 	}
+
 
 }

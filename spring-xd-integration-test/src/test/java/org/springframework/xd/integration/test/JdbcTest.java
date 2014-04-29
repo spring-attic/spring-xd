@@ -35,9 +35,9 @@ import org.springframework.xd.test.fixtures.JdbcSink;
 public class JdbcTest extends AbstractIntegrationTest {
 
 
-	JdbcSink jdbcSink = null;
+	private JdbcSink jdbcSink = null;
 
-	String tableName = null;
+	private String tableName = null;
 
 	@Before
 	public void initialize() throws Exception {

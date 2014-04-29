@@ -16,38 +16,40 @@
 
 package org.springframework.xd.integration.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.jdbc.datasource.SimpleDriverDataSource;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.integration.fixtures.Sinks;
-import org.springframework.xd.integration.fixtures.Sources;
 
 /**
- * Extracts the host and port information for the XD Instances
+ * Extracts the host and port information for the XD Instances.
+ * 
+ * Assumes that the host that runs the RabbitMQ broker is the same host that runs the admin server.
  * 
  * @author Glenn Renfro
  */
-@Configuration
-@PropertySource("classpath:application.properties")
-public class XdEnvironment {
+public class XdEnvironment implements BeanClassLoaderAware {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(XdEnvironment.class);
+
+	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
 	// Environment Keys
 	public static final String XD_ADMIN_HOST = "xd_admin_host";
@@ -59,41 +61,20 @@ public class XdEnvironment {
 	public static final String XD_JMX_PORT = "xd_jmx_port";
 
 	// Result Environment Variables
-	public final static String RESULT_LOCATION = "/tmp/xd/output";
+	public static final String RESULT_LOCATION = "/tmp/xd/output";
 
 	public static final String HTTP_PREFIX = "http://";
 
-	private static final int SERVER_TYPE_OFFSET = 0;
-
-	private static final int HOST_OFFSET = 1;
-
-	private static final int XD_PORT_OFFSET = 2;
-
-	private static final int HTTP_PORT_OFFSET = 3;
-
-	private static final int JMX_PORT_OFFSET = 4;
-
-
-	// Each line in the artifact has a entry to identify it as admin, container or singlenode.
-	// These entries represent the supported types.
-	public static final String ADMIN_TOKEN = "adminNode";
-
-	public static final String CONTAINER_TOKEN = "containerNode";
-
-	public static final String SINGLENODE_TOKEN = "singleNode";
-
-	// The artifacts file name
-	private static final String ARTIFACT_NAME = "ec2servers.csv";
 
 	@Value("${xd_admin_host:}")
-	private transient String adminServerValue;
+	private transient String adminHost;
 
-	private transient URL adminServer;
+	private transient URL adminServerUrl;
 
 	@Value("${xd_containers:}")
-	private transient String containerValues;
+	private transient String containers;
 
-	private transient List<URL> containers;
+	private transient List<URL> containerUrls;
 
 	@Value("${xd_jmx_port}")
 	private transient int jmxPort;
@@ -138,63 +119,76 @@ public class XdEnvironment {
 	@Value("${jms_port}")
 	private transient int jmsPort;
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(XdEnvironment.class);
+	private SimpleDriverDataSource dataSource;
 
-	private final Properties artifactProperties;
 
-	private boolean jmxInitialized = false;
+	private Properties artifactProperties;
 
-	private boolean httpInitialized = false;
 
-	public XdEnvironment() throws Exception {
-		artifactProperties = getPropertiesFromArtifact();
+	@PostConstruct()
+	public void initalizeEc2Environment() throws MalformedURLException {
+		if (isOnEc2()) {
+			artifactProperties = ConfigUtil.getPropertiesFromArtifact();
+			adminServerUrl = new URL(artifactProperties.getProperty(XD_ADMIN_HOST));
+			containerUrls = getContainerUrls(artifactProperties.getProperty(XD_CONTAINERS));
+			jmxPort = Integer.parseInt(artifactProperties.getProperty(XD_JMX_PORT));
+			httpPort = Integer.parseInt(artifactProperties.getProperty(XD_HTTP_PORT));
+		}
+		else {
+			adminServerUrl = new URL(adminHost);
+			containerUrls = getContainerUrls(containers);
+		}
+
+		if (jdbcUrl == null) {
+			return;
+		}
+		dataSource = new SimpleDriverDataSource();
+		try {
+			@SuppressWarnings("unchecked")
+			Class<? extends Driver> classz = (Class<? extends Driver>) ClassUtils.forName(jdbcDriver,
+					beanClassLoader);
+			dataSource.setDriverClass(classz);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalStateException("failed to load class: " + jdbcDriver, e);
+		}
+		String resolvedJdbcUrl = String.format(jdbcUrl, jdbcDatabase);
+		dataSource.setUrl(resolvedJdbcUrl);
+		if (jdbcUsername != null) {
+			dataSource.setUsername(jdbcUsername);
+		}
+		if (jdbcPassword != null) {
+			dataSource.setPassword(jdbcPassword);
+		}
+
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader beanClassLoader) {
+		this.beanClassLoader = beanClassLoader;
 	}
 
 
-	public URL getAdminServer() throws MalformedURLException {
-		if (adminServer == null) {
-			if (artifactProperties != null) {
-				adminServerValue = artifactProperties.getProperty(XD_ADMIN_HOST);
-			}
-			adminServer = new URL(adminServerValue);
-		}
-		return adminServer;
+	public URL getAdminServerUrl() {
+		return adminServerUrl;
 	}
 
 	public List<URL> getContainers() {
-		if (containers == null) {
-			if (artifactProperties != null) {
-				containerValues = artifactProperties.getProperty(XD_CONTAINERS);
-			}
-			containers = getContainers(containerValues);
-		}
-		return containers;
+		return containerUrls;
 	}
 
-	public int getJMXPort() {
-		// if CLI artifact is present use it instead of environment.
-		if (!jmxInitialized && artifactProperties != null) {
-			jmxPort = Integer.parseInt(artifactProperties.getProperty(XD_JMX_PORT));
-		}
-		jmxInitialized = true;
+	public int getJmxPort() {
 		return jmxPort;
 	}
 
 	public int getHttpPort() {
-		// if CLI artifact is present use it instead of environment.
-		if (!httpInitialized && artifactProperties != null) {
-			httpPort = Integer.parseInt(artifactProperties.getProperty(XD_HTTP_PORT));
-		}
-		httpInitialized = true;
 		return httpPort;
 	}
 
 	public String getPrivateKey() throws IOException {
 		// Initialize private key if not already set.
 		if (isOnEc2 && privateKey == null) {
-			isFilePresent(privateKeyFileName);
-			privateKey = getPrivateKey(privateKeyFileName);
+			privateKey = ConfigUtil.getPrivateKey(privateKeyFileName);
 		}
 		return privateKey;
 	}
@@ -211,33 +205,37 @@ public class XdEnvironment {
 		return baseXdDir;
 	}
 
+	public DataSource getDataSource() {
+		return dataSource;
+	}
+
+
+	public String getJmsHost() {
+		return jmsHost;
+	}
+
+
+	public int getJmsPort() {
+		return jmsPort;
+	}
+
+
 	/**
-	 * retrieves the private key from a file, so we can execute commands on the container.
+	 * Default value is the same as the admin server host.
 	 * 
-	 * @param privateKeyFile The location of the private key file
-	 * @return
-	 * @throws IOException
+	 * @return the host where the rabbitmq broker is running.
 	 */
-	private String getPrivateKey(String privateKeyFile) throws IOException {
-		String result = "";
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new FileReader(privateKeyFile));
-			while (br.ready()) {
-				result += br.readLine() + "\n";
-			}
-		}
-		finally {
-			if (br != null) {
-				try {
-					br.close();
-				}
-				catch (Exception ex) {
-					// ignore error.
-				}
-			}
-		}
-		return result;
+	public String getRabbitMQHost() {
+		return getAdminServerUrl().getHost();
+	}
+
+	/**
+	 * The default target for http,tcp sources to send data to
+	 * 
+	 * @return the first host in the collection of xd-container nodes.
+	 */
+	public String getDefaultTargetHost() {
+		return getContainers().get(0).getHost();
 	}
 
 
@@ -247,10 +245,9 @@ public class XdEnvironment {
 	 * @param properties
 	 * @return
 	 */
-	private List<URL> getContainers(String containerList) {
+	private static List<URL> getContainerUrls(String containerList) {
 		final List<URL> containers = new ArrayList<URL>();
-		final Set<String> containerHosts = StringUtils
-				.commaDelimitedListToSet(containerList);
+		final Set<String> containerHosts = StringUtils.commaDelimitedListToSet(containerList);
 		final Iterator<String> iter = containerHosts.iterator();
 		while (iter.hasNext()) {
 			final String containerHost = iter.next();
@@ -265,134 +262,5 @@ public class XdEnvironment {
 		return containers;
 	}
 
-	private Properties getPropertiesFromArtifact() {
-		Properties props = null;
-		BufferedReader reader = null;
-		String containerHosts = null;
-		try {
-			final File file = new File(ARTIFACT_NAME);
-			if (file.exists()) {
-				props = new Properties();
-				reader = new BufferedReader(new FileReader(ARTIFACT_NAME));
-				while (reader.ready()) {
-					final String line = reader.readLine();
-					final String tokens[] = StringUtils
-							.commaDelimitedListToStringArray(line);
-					if (tokens.length < 4) {
-						continue;// skip invalid lines
-					}
-					if (tokens[SERVER_TYPE_OFFSET].equals(ADMIN_TOKEN)) {
-						props.setProperty(XD_ADMIN_HOST, HTTP_PREFIX
-								+ tokens[HOST_OFFSET] + ":"
-								+ tokens[XD_PORT_OFFSET]);
-						props.setProperty(XD_HTTP_PORT,
-								tokens[HTTP_PORT_OFFSET]);
-						props.setProperty(XD_JMX_PORT, tokens[JMX_PORT_OFFSET]);
-
-					}
-					if (tokens[SERVER_TYPE_OFFSET].equals(CONTAINER_TOKEN)) {
-						if (containerHosts == null) {
-							containerHosts = HTTP_PREFIX
-									+ tokens[HOST_OFFSET].trim() + ":"
-									+ tokens[XD_PORT_OFFSET];
-						}
-						else {
-							containerHosts = containerHosts + "," + HTTP_PREFIX
-									+ tokens[HOST_OFFSET].trim() + ":"
-									+ tokens[XD_PORT_OFFSET];
-						}
-					}
-					if (tokens[SERVER_TYPE_OFFSET].equals(SINGLENODE_TOKEN)) {
-						props.setProperty(XD_ADMIN_HOST, HTTP_PREFIX
-								+ tokens[HOST_OFFSET] + ":"
-								+ tokens[XD_PORT_OFFSET]);
-						props.setProperty(XD_HTTP_PORT,
-								tokens[HTTP_PORT_OFFSET]);
-						props.setProperty(XD_JMX_PORT, tokens[JMX_PORT_OFFSET]);
-
-						containerHosts = HTTP_PREFIX
-								+ tokens[HOST_OFFSET].trim() + ":" + tokens[XD_PORT_OFFSET];
-						props.put(XD_CONTAINERS, containerHosts);
-					}
-				}
-			}
-		}
-		catch (IOException ioe) {
-			// Ignore file open error. Default to System variables.
-		}
-		finally {
-			try {
-				if (reader != null) {
-					reader.close();
-				}
-			}
-			catch (IOException ioe) {
-				// ignore
-			}
-		}
-		if (containerHosts != null) {
-			props.put(XD_CONTAINERS, containerHosts);
-		}
-		return props;
-	}
-
-
-	private void isFilePresent(String keyFile) {
-		File file = new File(keyFile);
-		if (!file.exists()) {
-			throw new IllegalArgumentException("The XD Private Key File ==> " + keyFile + " does not exist.");
-		}
-	}
-
-
-	public String getJdbcUrl() {
-		return jdbcUrl;
-	}
-
-	public String getJdbcUsername() {
-		return jdbcUsername;
-	}
-
-
-	public String getJdbcPassword() {
-		return jdbcPassword;
-	}
-
-	public String getJdbcDriver() {
-		return jdbcDriver;
-	}
-
-	public String getJdbcDatabase() {
-		return jdbcDatabase;
-	}
-
-	public int getJmxPort() {
-		return jmxPort;
-	}
-
-	@Bean
-	public static PropertySourcesPlaceholderConfigurer placeHolderConfigurer() {
-		return new PropertySourcesPlaceholderConfigurer();
-	}
-
-	@Bean
-	public static XdEc2Validation validation() {
-		return new XdEc2Validation();
-	}
-
-	@Bean
-	Sinks sinks() {
-		return new Sinks(this);
-	}
-
-	@Bean
-	Sources sources() throws IOException {
-		return new Sources(getAdminServer(), getContainers(), httpPort, jmsHost, jmsPort);
-	}
-
-	@Bean
-	ConfigUtil configUtil() throws IOException {
-		return new ConfigUtil(isOnEc2, this);
-	}
 
 }

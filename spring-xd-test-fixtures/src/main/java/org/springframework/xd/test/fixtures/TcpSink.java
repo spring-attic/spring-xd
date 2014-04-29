@@ -31,24 +31,50 @@ import org.springframework.util.StreamUtils;
  */
 public class TcpSink extends AbstractModuleFixture implements Disposable {
 
-	protected int port = AvailableSocketPorts.nextAvailablePort();
+	private static final int DEFAULT_TCP_PORT = 1234;
+
+	private final int port;
 
 	private ServerSocket serverSocket;
 
 	private Socket clientSocket;
 
-	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	private ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 	private Thread listenerThread;
 
+	/**
+	 * Construct a TcpSink with a port selected by @link
+	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
+	 */
 	public TcpSink() {
-
+		this(AvailableSocketPorts.nextAvailablePort());
 	}
 
+	/**
+	 * Create a TcpSink with the provided port
+	 * 
+	 * @param port used to configure the sink
+	 */
 	public TcpSink(int port) {
 		this.port = port;
 	}
 
+	/**
+	 * Construct a TcpSink with the default port of 1234
+	 * 
+	 * @return TcpSink
+	 */
+	public static TcpSink withDefaultPort() {
+		return new TcpSink(DEFAULT_TCP_PORT);
+	}
+
+	/**
+	 * Create a socket and copy received data into a buffer
+	 * 
+	 * @return instance of TcpSink for fluent API chaining
+	 * @throws IOException socket processing errors
+	 */
 	public TcpSink start() throws IOException {
 		serverSocket = new ServerSocket(port);
 		listenerThread = new Thread() {
@@ -68,6 +94,12 @@ public class TcpSink extends AbstractModuleFixture implements Disposable {
 		return this;
 	}
 
+	/**
+	 * Return the bytes received by the sink
+	 * 
+	 * @return bytes received by the sink
+	 * @throws IOException exception getting bytes from ByteArrayOutputStream
+	 */
 	public byte[] getReceivedBytes() throws IOException {
 		return baos.toByteArray();
 	}

@@ -16,12 +16,16 @@
 
 package org.springframework.xd.shell.command;
 
+import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.sql.DataSource;
+
 import org.junit.After;
 
+import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.test.fixtures.Disposable;
@@ -37,7 +41,7 @@ import org.springframework.xd.test.fixtures.TcpSource;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by the test.
- *
+ * 
  * @author Andy Clement
  * @author Mark Pollack
  * @author Eric Bottard
@@ -98,7 +102,30 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	}
 
 	protected JdbcSink newJdbcSink() {
-		return new JdbcSink();
+		return new JdbcSink(createDataSource());
+	}
+
+
+	private DataSource createDataSource() {
+
+		String url = "jdbc:hsqldb:mem:%s";
+		String dbname = "foo";
+		String driver = "org.hsqldb.jdbc.JDBCDriver";
+
+		String jdbcUrl = String.format(url, dbname);
+		SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
+
+		try {
+			@SuppressWarnings("unchecked")
+			Class<? extends Driver> classz = (Class<? extends Driver>) Class.forName(driver);
+			dataSource.setDriverClass(classz);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalStateException("failed to load class: " + driver, e);
+		}
+
+		dataSource.setUrl(jdbcUrl);
+		return dataSource;
 	}
 
 	protected FileSink newFileSink() {

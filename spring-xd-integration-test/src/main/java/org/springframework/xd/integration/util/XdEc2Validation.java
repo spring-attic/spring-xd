@@ -51,11 +51,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 public class XdEc2Validation {
 
-	private final transient RestTemplate restTemplate;
+	private final RestTemplate restTemplate;
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(XdEc2Validation.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(XdEc2Validation.class);
 
+	/**
+	 * Construct a new instance of XdEc2Validation
+	 */
 	public XdEc2Validation() {
 		restTemplate = new RestTemplate();
 		((SimpleClientHttpRequestFactory) restTemplate.getRequestFactory())
@@ -65,7 +67,7 @@ public class XdEc2Validation {
 	/**
 	 * Checks to see if the admin server the user specified is available. Else it throws a ResourceAccessException.
 	 * 
-	 * @param adminServer
+	 * @param adminServer the location of the admin server
 	 */
 	public void verifyXDAdminReady(final URL adminServer) {
 		try {
@@ -81,11 +83,11 @@ public class XdEc2Validation {
 	}
 
 	/**
-	 * * Checks to see if at least one server the user specified is available. Else it throws a ResourceAccessException.
+	 * Checks to see if at least one server the user specified is available. Else it throws a ResourceAccessException.
 	 * 
-	 * @param containers
-	 * @param jmxPort
-	 * @throws Exception
+	 * @param containers the location of xd-containers
+	 * @param jmxPort the JMX port to connect to the container
+	 * @throws MalformedURLException error creating a
 	 */
 	public void verifyAtLeastOneContainerAvailable(final List<URL> containers,
 			int jmxPort) throws MalformedURLException {

@@ -35,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
+import org.springframework.xd.integration.util.IntegrationTestConfig;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
@@ -48,7 +49,7 @@ import org.springframework.xd.test.fixtures.SimpleFileSink;
  * @author Glenn Renfro
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = XdEnvironment.class)
+@SpringApplicationConfiguration(classes = IntegrationTestConfig.class)
 public abstract class AbstractIntegrationTest {
 
 	private final static String STREAM_NAME = "ec2Test3";
@@ -64,7 +65,7 @@ public abstract class AbstractIntegrationTest {
 
 	protected URL adminServer;
 
-	protected int httpPort;
+	// protected int httpPort;
 
 	protected List<String> streamNames;
 
@@ -96,11 +97,11 @@ public abstract class AbstractIntegrationTest {
 	 */
 	public void initializer() throws Exception {
 		if (!initialized) {
-			httpPort = xdEnvironment.getHttpPort();
-			adminServer = xdEnvironment.getAdminServer();
+			// httpPort = xdEnvironment.getHttpPort();
+			adminServer = xdEnvironment.getAdminServerUrl();
 			validation.verifyXDAdminReady(adminServer);
 			validation.verifyAtLeastOneContainerAvailable(xdEnvironment.getContainers(),
-					xdEnvironment.getJMXPort());
+					xdEnvironment.getJmxPort());
 			initialized = true;
 		}
 	}
@@ -172,7 +173,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
-				getContainerForStream(STREAM_NAME), xdEnvironment.getJMXPort()), STREAM_NAME,
+				getContainerForStream(STREAM_NAME), xdEnvironment.getJmxPort()), STREAM_NAME,
 				"http");
 	}
 

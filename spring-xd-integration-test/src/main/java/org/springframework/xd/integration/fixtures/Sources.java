@@ -16,9 +16,8 @@
 
 package org.springframework.xd.integration.fixtures;
 
-import java.net.URL;
-import java.util.List;
-
+import org.springframework.util.Assert;
+import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.JmsSource;
 import org.springframework.xd.test.fixtures.MqttSource;
 import org.springframework.xd.test.fixtures.SimpleFileSource;
@@ -28,79 +27,105 @@ import org.springframework.xd.test.fixtures.TcpSource;
 
 
 /**
+ * A convenience class for creating instances of sources to be used for integration testing.
+ * 
+ * Created with information about hosts and ports from the testing environment. Only supports one admin server and one
+ * container location. The RabbitMQ broker is assumed to be at the same location as the admin server.
  * 
  * @author Glenn Renfro
+ * @author Mark Pollack
  */
 public class Sources {
 
-	private URL adminServer = null;
+	private final XdEnvironment xdEnvironment;
 
-	private List<URL> containers = null;
-
-	private SimpleHttpSource httpSource = null;
-
-	private TcpSource tcpSource = null;
-
-	private int httpPort = 9000;
-
-	private int mqttPort = 1883;
-
-	private String jmsHost;
-
-	private int jmsPort;
-
-	private final static int TCP_SINK_PORT = 1234;
-
-	public Sources(URL adminServer, List<URL> containers, int httpPort, String jmsHost,
-			int jmsPort) {
-		this.adminServer = adminServer;
-		this.containers = containers;
-		this.httpPort = httpPort;
-		this.jmsHost = jmsHost;
-		this.jmsPort = jmsPort;
+	/**
+	 * Construct a new Sources instance using the provided environment.
+	 * 
+	 * @param xdEnvironment the environment with information on what port/hosts to connect to
+	 */
+	public Sources(XdEnvironment xdEnvironment) {
+		Assert.notNull(xdEnvironment, "XDEnvironment can not be null");
+		this.xdEnvironment = xdEnvironment;
 	}
 
-	public SimpleHttpSource http() throws Exception {
-		if (httpSource == null) {
-			httpSource = http(httpPort);
-		}
-		return httpSource;
+	/**
+	 * Create an instance of the http source with the default target host and default port (9000).
+	 * 
+	 * @return an instance of HttpSource
+	 */
+	public SimpleHttpSource http() {
+		return new SimpleHttpSource(xdEnvironment.getDefaultTargetHost());
 	}
 
-	public SimpleHttpSource http(int port) throws Exception {
-		return new SimpleHttpSource(containers.get(0).getHost(), port);
+	/**
+	 * Create an instance of the http source with the default target host and provided port
+	 * 
+	 * @param port the port to connect to
+	 * @return an instance of HttpSource
+	 */
+	public SimpleHttpSource http(int port) {
+		return new SimpleHttpSource(xdEnvironment.getDefaultTargetHost(), port);
 	}
 
+	/**
+	 * Construct a new TcpSource with the default target host taken from the environment and default port (1234)
+	 * 
+	 * @return an instance of TcpSource
+	 */
 	public TcpSource tcp() {
-		if (tcpSource == null) {
-			tcpSource = tcp(TCP_SINK_PORT);
-		}
-		return tcpSource;
+		return TcpSource.withDefaultPort(xdEnvironment.getDefaultTargetHost());
 	}
 
+	/**
+	 * Construct a new TcpSource with the default target host taken from the environment and the provided port.
+	 * 
+	 * @param port the port to connect to
+	 * @return an instance of TcpSource
+	 */
 	public TcpSource tcp(int port) {
-		return new TcpSource(containers.get(0).getHost(), port);
+		return new TcpSource(xdEnvironment.getDefaultTargetHost(), port);
 	}
 
-	public SimpleTailSource tail(int delay, String fileName) throws Exception {
-		return new SimpleTailSource(delay, fileName);
+	/**
+	 * Construct a new SimpleTailSource with the the provided file name and delay
+	 * 
+	 * @param delayInMillis on platforms that don’t wait for a missing file to appear, how often (ms) to look for the
+	 *        file.
+	 * @param fileName the absolute path of the file to tail
+	 * @return a tail source
+	 */
+	public SimpleTailSource tail(int delayInMillis, String fileName) throws Exception {
+		return new SimpleTailSource(delayInMillis, fileName);
 	}
 
+	/**
+	 * Construct a new JmsSource using the default JMS Broker host and port as specified in the environment
+	 * 
+	 * @return a jms source
+	 */
 	public JmsSource jms() {
-		return new JmsSource(jmsHost, jmsPort);
+		return new JmsSource(xdEnvironment.getJmsHost(), xdEnvironment.getJmsPort());
 	}
 
+	/**
+	 * Construct a new MqttSource using the default RabbitMQ (MQTT-enbaled) broker host as specified in the environment.
+	 * 
+	 * @return a mqtt source
+	 */
 	public MqttSource mqtt() {
-		return new MqttSource(adminServer.getHost(), mqttPort);
+		return new MqttSource(xdEnvironment.getRabbitMQHost());
 	}
 
-	public SimpleFileSource file(String dir, String fileName) throws Exception {
+	/**
+	 * Construct a new SimpleFileSource using the provided directory and filename
+	 * 
+	 * @param dir directory name
+	 * @param fileName file name
+	 * @return new SimpleFileSource
+	 */
+	public SimpleFileSource file(String dir, String fileName) {
 		return new SimpleFileSource(dir, fileName);
-	}
-
-	public String jmsConfig() {
-		String result = "amq.url=tcp://" + jmsHost + ":" + jmsPort;
-		return result;
 	}
 
 }

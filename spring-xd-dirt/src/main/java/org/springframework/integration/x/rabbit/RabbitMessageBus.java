@@ -20,6 +20,7 @@ import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
@@ -70,11 +71,26 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private final ConnectionFactory connectionFactory;
 
-	private volatile Integer concurrentConsumers;
-
 	private final DefaultAmqpHeaderMapper mapper;
 
 	private final GenericApplicationContext autoDeclareContext = new GenericApplicationContext();
+
+	// Default RabbitMQ Container properties
+
+	private volatile AcknowledgeMode defaultAcknowledgeMode = AcknowledgeMode.AUTO;
+
+	private volatile boolean defaultChannelTransacted;
+
+	private volatile int defaultConcurrentConsumers = 1;
+
+	private volatile boolean defaultDefaultRequeueRejected = true;
+
+	private volatile int defaultMaxConcurrentConsumers = 1;
+
+	private volatile int defaultPrefetchCount = 1;
+
+	private volatile int defaultTxSize = 1;
+
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -88,8 +104,36 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.rabbitAdmin.afterPropertiesSet();
 		this.mapper = new DefaultAmqpHeaderMapper();
 		this.mapper.setRequestHeaderNames(new String[] { AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN,
-				ORIGINAL_CONTENT_TYPE_HEADER });
+			ORIGINAL_CONTENT_TYPE_HEADER });
 		this.setCodec(codec);
+	}
+
+	public void setDefaultAcknowledgeMode(AcknowledgeMode defaultAcknowledgeMode) {
+		this.defaultAcknowledgeMode = defaultAcknowledgeMode;
+	}
+
+	public void setDefaultChannelTransacted(boolean defaultChannelTransacted) {
+		this.defaultChannelTransacted = defaultChannelTransacted;
+	}
+
+	public void setDefaultConcurrentConsumers(int defaultConcurrentConsumers) {
+		this.defaultConcurrentConsumers = defaultConcurrentConsumers;
+	}
+
+	public void setDefaultDefaultRequeueRejected(boolean defaultDefaultRequeueRejected) {
+		this.defaultDefaultRequeueRejected = defaultDefaultRequeueRejected;
+	}
+
+	public void setDefaultMaxConcurrentConsumers(int defaultMaxConcurrentConsumers) {
+		this.defaultMaxConcurrentConsumers = defaultMaxConcurrentConsumers;
+	}
+
+	public void setDefaultPrefetchCount(int defaultPrefetchCount) {
+		this.defaultPrefetchCount = defaultPrefetchCount;
+	}
+
+	public void setDefaultTxSize(int defaultTxSize) {
+		this.defaultTxSize = defaultTxSize;
 	}
 
 	@Override
@@ -120,9 +164,14 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel, Queue queue) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
-		if (this.concurrentConsumers != null) {
-			listenerContainer.setConcurrentConsumers(this.concurrentConsumers);
-		}
+		// TODO: override defaults with module properties if present
+		listenerContainer.setAcknowledgeMode(this.defaultAcknowledgeMode);
+		listenerContainer.setChannelTransacted(this.defaultChannelTransacted);
+		listenerContainer.setConcurrentConsumers(this.defaultConcurrentConsumers);
+		listenerContainer.setDefaultRequeueRejected(this.defaultDefaultRequeueRejected);
+		listenerContainer.setMaxConcurrentConsumers(this.defaultMaxConcurrentConsumers);
+		listenerContainer.setPrefetchCount(this.defaultPrefetchCount);
+		listenerContainer.setTxSize(this.defaultTxSize);
 		listenerContainer.setQueues(queue);
 		Advice advice = new StatelessRetryOperationsInterceptorFactoryBean().getObject();
 		listenerContainer.setAdviceChain(new Advice[] { advice });

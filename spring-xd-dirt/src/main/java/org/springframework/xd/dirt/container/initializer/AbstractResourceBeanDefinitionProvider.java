@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,16 +31,15 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.StringUtils;
 
-
 /**
  * A {@link OrderedContextInitializer} base class for loading XML or Groovy Bean Definitions into the target Container
- * Context
+ * Context.
  * 
  * @author David Turanski
  */
 public abstract class AbstractResourceBeanDefinitionProvider implements OrderedContextInitializer {
 
-	protected Logger log = LoggerFactory.getLogger(getClass());
+	protected Logger logger = LoggerFactory.getLogger(getClass());
 
 	private Pattern prefix = Pattern.compile("^[a-z*]+:");
 
@@ -62,11 +61,11 @@ public abstract class AbstractResourceBeanDefinitionProvider implements OrderedC
 		for (String locationPattern : getLocations()) {
 			try {
 				Resource[] resources = resourceResolver.getResources(locationPattern);
-				log.info("resolving resource location pattern {}", locationPattern);
+				logger.info("resolving resource location pattern {}", locationPattern);
 				for (Resource resource : resources) {
 					if (resource.getFilename() != null) {
 						if (resource.getFilename().endsWith(".xml")) {
-							log.info("loading XD extensions from {}", resource.getFilename());
+							logger.info("loading XD extensions from {}", resource.getFilename());
 							xmlReader.loadBeanDefinitions(resource);
 						}
 						else if (resource.getFilename().endsWith(".groovy")) {
@@ -76,21 +75,21 @@ public abstract class AbstractResourceBeanDefinitionProvider implements OrderedC
 				}
 			}
 			catch (IOException e) {
-				log.warn("could not resolve resources for {}", locationPattern);
+				logger.warn("could not resolve resources for {}", locationPattern);
 			}
 
 		}
 	}
 
 	/**
-	 * Subclasses implement this to return a comma-delimited String
+	 * Subclasses implement this to return extensions locations (null is ok).
 	 * 
-	 * @return
+	 * @return extensions locations as a comma-delimited String
 	 */
 	protected abstract String getExtensionsLocations();
 
 	/**
-	 * This will prepend "classpath*:" to each location if no Resource prefix provided
+	 * This will prepend "classpath*:" to each location if no Resource prefix provided.
 	 * 
 	 * @return an array of locations
 	 */
@@ -105,7 +104,7 @@ public abstract class AbstractResourceBeanDefinitionProvider implements OrderedC
 			}
 			locations[i] = locations[i] + "**/*.*";
 		}
-
 		return locations;
 	}
+
 }

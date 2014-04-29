@@ -14,16 +14,31 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.extensions.test;
+package org.springframework.xd.dirt.container.initializer;
 
-import org.springframework.integration.x.bus.LocalMessageBus;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.Ordered;
 
 
 /**
+ * An {@link OrderedContextInitializer} to scan for annotation configured beans in xd.extensions.basepackages
  * 
  * @author David Turanski
  */
+public class PluginContextComponentScanningExtensionsInitializer extends
+		AbstractComponentScanningBeanDefinitionProvider {
 
-public class MyMessageBus extends LocalMessageBus {
 
+	@Value("${xd.extensions.basepackages:}")
+	private String extensionsBasePackages;
+
+	@Override
+	public int getOrder() {
+		return Ordered.LOWEST_PRECEDENCE;
+	}
+
+	@Override
+	protected String getExtensionsBasePackages() {
+		return this.extensionsBasePackages;
+	}
 }

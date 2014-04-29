@@ -9,9 +9,4 @@
 		<constructor-arg value="extension"/>
 	</bean>
 
-	<util:list id="customMessageConverters">
-		<bean class="org.springframework.xd.extensions.test.StubPojoToStringConverter"/>
-	</util:list>
-	
-	<bean id="messageBus" class="org.springframework.xd.extensions.test.MyMessageBus"/>
 </beans>

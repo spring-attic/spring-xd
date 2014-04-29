@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.integration.util;
+package org.springframework.xd.integration.test;
 
 import java.io.IOException;
 
@@ -23,6 +23,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
+import org.springframework.xd.integration.util.ConfigUtil;
+import org.springframework.xd.integration.util.XdEc2Validation;
+import org.springframework.xd.integration.util.XdEnvironment;
 
 
 /**

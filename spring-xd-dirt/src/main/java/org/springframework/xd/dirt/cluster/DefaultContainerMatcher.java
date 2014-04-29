@@ -27,8 +27,11 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.EvaluationException;
+import org.springframework.expression.spel.SpelEvaluationException;
+import org.springframework.expression.spel.SpelMessage;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 
@@ -48,9 +51,10 @@ import org.springframework.xd.dirt.core.ModuleDescriptor;
  * <p/>
  * In cases where all containers are not deploying a module, an attempt at container round robin distribution for module
  * deployments will be made (but not guaranteed).
- *
+ * 
  * @author Patrick Peralta
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class DefaultContainerMatcher implements ContainerMatcher {
 
@@ -62,7 +66,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	/**
 	 * Current index for iterating over containers.
 	 */
-	private int index = 0;
+	private int index;
 
 	/**
 	 * Parser for criteria expressions.
@@ -86,9 +90,59 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 */
 	@Override
 	public Collection<Container> match(ModuleDescriptor moduleDescriptor, ContainerRepository containerRepository) {
-		LOG.debug("Matching containers for module {}", moduleDescriptor);
+		Assert.notNull(containerRepository, "'containerRepository' cannot be null.");
+		Assert.notNull(moduleDescriptor, "'moduleDescriptor' cannot be null.");
+		Assert.notNull(moduleDescriptor.getDeploymentProperties(), "'deploymentProperties' cannot be null.");
 
-		String criteria = moduleDescriptor.getDeploymentProperties().getCriteria();
+		LOG.debug("Matching containers for module {}", moduleDescriptor);
+		List<Container> candidates = findAllContainersMatchingCriteria(containerRepository,
+				moduleDescriptor.getDeploymentProperties().getCriteria());
+
+		return distributeForRequestedCount(candidates, moduleDescriptor.getDeploymentProperties().getCount());
+	}
+
+	/**
+	 * Select of subset of containers to satisfy the requested number of module instances using a round robin
+	 * distribution for successive calls. A count of 0 means all members that matched the criteria expression. count >=
+	 * candidates means each of the candidates should host a module.
+	 * 
+	 * @param candidates the list of available containers that match the selection criteria
+	 * @param count the requested number of module instances to deploy
+	 * @return a subset of candidates <= count
+	 */
+	private Collection<Container> distributeForRequestedCount(List<Container> candidates, int count) {
+		int candidateCount = candidates.size();
+		if (candidateCount == 0) {
+			return candidates;
+		}
+
+		if (count <= 0 || count >= candidateCount) {
+
+			return candidates;
+		}
+		else if (count == 1) {
+			Collection<Container> targets = Collections.singleton(candidates.get(getAndRotateIndex(candidateCount)));
+			return targets;
+		}
+		else {
+			// create a new list with the specific number of targeted containers;
+			List<Container> targets = new ArrayList<Container>();
+			while (targets.size() < count) {
+				targets.add(candidates.get(getAndRotateIndex(candidateCount)));
+
+			}
+			return targets;
+		}
+	}
+
+	/**
+	 * @param moduleDescriptor
+	 * @param containerRepository
+	 * @return
+	 */
+	private List<Container> findAllContainersMatchingCriteria(ContainerRepository containerRepository, String criteria) {
+		LOG.debug("Matching containers for criteria '{}'", criteria);
+
 		List<Container> candidates = new ArrayList<Container>();
 
 		for (Iterator<Container> iterator = containerRepository.getContainerIterator(); iterator.hasNext();) {
@@ -101,42 +155,15 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		}
 
 		if (candidates.isEmpty()) {
-			LOG.warn("No currently available containers match criteria '{}' for module {}.",
-					criteria, moduleDescriptor);
-			return candidates;
+			LOG.warn("No currently available containers match criteria '{}'", criteria);
 		}
-
-		int count = moduleDescriptor.getDeploymentProperties().getCount();
-		int candidateCount = candidates.size();
-		if (count <= 0 || count >= candidateCount) {
-			// count of 0 means all members that matched the criteria expression
-			// (if no criteria expression specified it means all containers);
-			// count >= candidates means each of the containers should host a module
-			return candidates;
-		}
-		else if (count == 1) {
-			if (index + 1 > candidateCount) {
-				index = 0;
-			}
-			return Collections.singleton(candidates.get(index++));
-		}
-		else {
-			// create a new list with the specific number of targeted containers;
-			List<Container> targets = new ArrayList<Container>();
-			while (targets.size() < count) {
-				if (index + 1 > candidateCount) {
-					index = 0;
-				}
-				targets.add(candidates.get(index++));
-			}
-			return targets;
-		}
+		return candidates;
 	}
 
 	/**
 	 * Evaluate the criteria expression against the attributes of the provided container to see if it is a candidate for
 	 * module deployment.
-	 *
+	 * 
 	 * @param container the container instance whose attributes should be considered
 	 * @param criteria the criteria expression to evaluate against the container attributes
 	 * @return whether the container is a candidate
@@ -146,10 +173,31 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 			return expressionParser.parseExpression(criteria).getValue(evaluationContext, container.getAttributes(),
 					Boolean.class);
 		}
+		catch (SpelEvaluationException e) {
+			if (e.getMessageCode().equals(SpelMessage.PROPERTY_OR_FIELD_NOT_READABLE)) {
+				LOG.debug("candidate not contain an attribute referenced in the criteria {}", criteria);
+			}
+			return false;
+		}
 		catch (EvaluationException e) {
 			LOG.debug("candidate not a match due to evaluation exception", e);
 			return false;
 		}
+	}
+
+	/**
+	 * Rotate the cached index over the number of available containers.
+	 * 
+	 * @param availableContainerCount the number of available containers
+	 * @return the current count before rotating
+	 */
+	private synchronized int getAndRotateIndex(int availableContainerCount) {
+		if (availableContainerCount <= 0) {
+			return 0;
+		}
+		int i = index % availableContainerCount;
+		index = i + 1;
+		return i;
 	}
 
 }

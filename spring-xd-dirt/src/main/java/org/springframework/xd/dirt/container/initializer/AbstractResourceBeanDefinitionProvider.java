@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.container.initializer;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,8 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractResourceBeanDefinitionProvider implements OrderedContextInitializer {
 
 	protected Logger log = LoggerFactory.getLogger(getClass());
+
+	private Pattern prefix = Pattern.compile("^[a-z*]+:");
 
 	@Override
 	public void onApplicationEvent(ApplicationPreparedEvent event) {
@@ -94,7 +97,7 @@ public abstract class AbstractResourceBeanDefinitionProvider implements OrderedC
 	protected String[] getLocations() {
 		String[] locations = StringUtils.commaDelimitedListToStringArray(getExtensionsLocations());
 		for (int i = 0; i < locations.length; i++) {
-			if (!locations[i].contains(":")) {
+			if (!prefix.matcher(locations[i]).find()) {
 				locations[i] = "classpath*:" + locations[i];
 			}
 			if (!locations[i].endsWith("/")) {

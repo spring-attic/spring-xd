@@ -32,6 +32,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.x.bus.converter.CompositeMessageConverterFactory;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.MimeType;
+import org.springframework.xd.dirt.container.initializer.AbstractResourceBeanDefinitionProvider;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
@@ -91,6 +92,22 @@ public class ExtensionsTests {
 		assertTrue(converters.getConverters().iterator().next() instanceof StubPojoToStringConverter);
 	}
 
+	@Test
+	public void resolveResourceLocations() {
+		TestResourceBeanDefinitionProvider beanDefinitionProvider = new TestResourceBeanDefinitionProvider("foo,bar");
+		String[] resolvedLocations = beanDefinitionProvider.resolveLocations();
+		assertEquals("classpath*:foo/**/*.*", resolvedLocations[0]);
+		assertEquals("classpath*:bar/**/*.*", resolvedLocations[1]);
+
+		beanDefinitionProvider = new TestResourceBeanDefinitionProvider("classpath:foo/");
+		resolvedLocations = beanDefinitionProvider.resolveLocations();
+		assertEquals("classpath:foo/**/*.*", resolvedLocations[0]);
+
+		beanDefinitionProvider = new TestResourceBeanDefinitionProvider("classpath*:foo/");
+		resolvedLocations = beanDefinitionProvider.resolveLocations();
+		assertEquals("classpath*:foo/**/*.*", resolvedLocations[0]);
+	}
+
 	@AfterClass
 	public static void tearDown() {
 		if (originalConfigLocation != null) {
@@ -98,6 +115,32 @@ public class ExtensionsTests {
 		}
 		else {
 			System.clearProperty("spring.config.location");
+		}
+	}
+
+	/*
+	 * To test the protected method in the base class
+	 */
+	static class TestResourceBeanDefinitionProvider extends AbstractResourceBeanDefinitionProvider {
+
+		private String locations;
+
+		TestResourceBeanDefinitionProvider(String locations) {
+			this.locations = locations;
+		}
+
+		@Override
+		public int getOrder() {
+			return 0;
+		}
+
+		@Override
+		protected String getExtensionsLocations() {
+			return locations;
+		}
+
+		public String[] resolveLocations() {
+			return getLocations();
 		}
 	}
 }

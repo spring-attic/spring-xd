@@ -20,6 +20,7 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
 
 
 /**
+ * Exception thrown when the batch job with the given name already exists.
  * 
  * @author Ilayaperumal Gopinathan
  */

@@ -19,6 +19,8 @@ package org.springframework.xd.dirt.job;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
+ * Exception that is raised when {@link JobExecution} is already running.
+ *
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")

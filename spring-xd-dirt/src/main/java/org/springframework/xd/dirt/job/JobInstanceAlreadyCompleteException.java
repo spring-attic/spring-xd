@@ -16,9 +16,12 @@
 
 package org.springframework.xd.dirt.job;
 
+import org.springframework.batch.core.JobInstance;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
+ * Exception thrown when the {@link JobInstance} is already complete.
+ *
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")

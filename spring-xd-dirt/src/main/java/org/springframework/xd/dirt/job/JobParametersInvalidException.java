@@ -19,6 +19,8 @@ package org.springframework.xd.dirt.job;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
+ * Exception thrown when the job parameters are invalid.
+ *
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")

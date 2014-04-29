@@ -74,7 +74,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 @Import(PropertyPlaceholderAutoConfiguration.class)
 public class ContainerServerApplication implements EnvironmentAware {
 
-	private static final Log log = LogFactory.getLog(ContainerServerApplication.class);
+	private static final Log logger = LogFactory.getLog(ContainerServerApplication.class);
 
 	private static final String CONTAINER_ATTRIBUTES_PREFIX = "xd.container.";
 
@@ -92,7 +92,7 @@ public class ContainerServerApplication implements EnvironmentAware {
 			return (ConfigurableApplicationContext) this.containerContext.getParent();
 		}
 		else {
-			log.error("The container has not been initialized yet.");
+			logger.error("The container has not been initialized yet.");
 			return null;
 		}
 	}
@@ -125,7 +125,7 @@ public class ContainerServerApplication implements EnvironmentAware {
 					.initializers(new IdInitializer()).run(args);
 		}
 		catch (Exception e) {
-			handleErrors(e);
+			handleFieldErrors(e);
 		}
 		return this;
 	}
@@ -165,11 +165,11 @@ public class ContainerServerApplication implements EnvironmentAware {
 		this.environment = (ConfigurableEnvironment) environment;
 	}
 
-	private void handleErrors(Exception e) {
+	private void handleFieldErrors(Exception e) {
 		if (e.getCause() instanceof BindException) {
 			BindException be = (BindException) e.getCause();
 			for (FieldError error : be.getFieldErrors()) {
-				System.err.println(String.format("the value '%s' is not allowed for property '%s'",
+				logger.error(String.format("the value '%s' is not allowed for property '%s'",
 						error.getRejectedValue(),
 						error.getField()));
 			}

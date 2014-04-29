@@ -44,7 +44,7 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 	/**
 	 * Commons Logging instance.
 	 */
-	private static final Log log = LogFactory.getLog(HSQLServerBean.class);
+	private static final Log logger = LogFactory.getLog(HSQLServerBean.class);
 
 	/**
 	 * Properties used to customize instance.
@@ -78,12 +78,12 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 		server.setNoSystemExit(true);
 		server.setProperties(configProps);
 
-		log.debug("HSQL Database path: " + server.getDatabasePath(0, true));
+		logger.debug("HSQL Database path: " + server.getDatabasePath(0, true));
 		startServer();
 	}
 
 	private void startServer() throws Exception {
-		log.info("Starting HSQL Server database '" + server.getDatabaseName(0, true) + "' listening on port: "
+		logger.info("Starting HSQL Server database '" + server.getDatabaseName(0, true) + "' listening on port: "
 				+ server.getPort());
 
 		int tries = 0;
@@ -125,7 +125,7 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 				if (t instanceof SocketException && "Invalid argument".equals(t.getMessage())) {
 					long fileCount = getOpenFileDescriptorCount();
 
-					log.debug(
+					logger.debug(
 							String.format(
 									"Caught SocketException (likely due to excessive file descriptors open; current count: %d)",
 									fileCount), t);
@@ -136,7 +136,7 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 						fileCount = getOpenFileDescriptorCount();
 					}
 
-					log.debug(String.format("Open files: %d", getOpenFileDescriptorCount()));
+					logger.debug(String.format("Open files: %d", getOpenFileDescriptorCount()));
 				}
 				else {
 					// if the server fails to start for any other reason,
@@ -149,7 +149,7 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 		while (!started && ++tries < 5);
 
 		if (started) {
-			log.info("Started HSQL Server");
+			logger.info("Started HSQL Server");
 		}
 		else {
 			String msg = String.format("HSQLDB could not be started on %s:%d, state: %s",
@@ -184,7 +184,7 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 	}
 
 	private void shutdownServer() {
-		log.info("HSQL Server Shutdown sequence initiated");
+		logger.info("HSQL Server Shutdown sequence initiated");
 		if (server != null) {
 			server.signalCloseAllServerConnections();
 			server.stop();
@@ -202,7 +202,7 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 				catch (InterruptedException e) {
 				}
 			}
-			log.info("HSQL Server Shutdown completed");
+			logger.info("HSQL Server Shutdown completed");
 			server = null;
 		}
 	}

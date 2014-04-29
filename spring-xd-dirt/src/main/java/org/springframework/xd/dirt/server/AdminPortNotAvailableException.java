@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.job;
+package org.springframework.xd.dirt.server;
 
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
+
 /**
- * Exception thrown when there is no such batch job instance with the given instanceId.
+ * Exception thrown when the configured admin port is not available to use.
  * 
  * @author Ilayaperumal Gopinathan
  */
-@SuppressWarnings("serial")
-public class NoSuchBatchJobInstanceException extends XDRuntimeException {
+public class AdminPortNotAvailableException extends XDRuntimeException {
 
-	public NoSuchBatchJobInstanceException(long instanceId) {
-		super("Batch Job instance with the id " + instanceId + " doesn't exist");
+	/**
+	 * @param port the admin port being used.
+	 */
+	public AdminPortNotAvailableException(String adminPort) {
+		super("Admin port '" + adminPort + "' already in use.");
 	}
+
 }

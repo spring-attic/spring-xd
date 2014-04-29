@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  */
 public class HdfsStoreMessageHandler extends AbstractMessageHandler implements SmartLifecycle {
 
-	private static final Log log = LogFactory.getLog(HdfsStoreMessageHandler.class);
+	private static final Log logger = LogFactory.getLog(HdfsStoreMessageHandler.class);
 
 	private volatile boolean autoStartup = true;
 
@@ -76,12 +76,12 @@ public class HdfsStoreMessageHandler extends AbstractMessageHandler implements S
 			if (!this.running) {
 				this.doStart();
 				this.running = true;
-				if (log.isInfoEnabled()) {
-					log.info("started " + this);
+				if (logger.isInfoEnabled()) {
+					logger.info("started " + this);
 				}
 				else {
-					if (log.isDebugEnabled()) {
-						log.debug("already started " + this);
+					if (logger.isDebugEnabled()) {
+						logger.debug("already started " + this);
 					}
 				}
 			}
@@ -98,13 +98,13 @@ public class HdfsStoreMessageHandler extends AbstractMessageHandler implements S
 			if (this.running) {
 				this.doStop();
 				this.running = false;
-				if (log.isInfoEnabled()) {
-					log.info("stopped " + this);
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped " + this);
 				}
 			}
 			else {
-				if (log.isDebugEnabled()) {
-					log.debug("already stopped " + this);
+				if (logger.isDebugEnabled()) {
+					logger.debug("already stopped " + this);
 				}
 			}
 		}
@@ -181,7 +181,7 @@ public class HdfsStoreMessageHandler extends AbstractMessageHandler implements S
 			storeWriter.close();
 		}
 		catch (Exception e) {
-			log.error("Error closing writer", e);
+			logger.error("Error closing writer", e);
 		}
 	};
 

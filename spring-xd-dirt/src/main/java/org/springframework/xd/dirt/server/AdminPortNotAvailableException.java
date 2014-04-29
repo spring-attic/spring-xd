@@ -20,6 +20,7 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
 
 
 /**
+ * Exception thrown when the configured admin port is not available to use.
  * 
  * @author Ilayaperumal Gopinathan
  */

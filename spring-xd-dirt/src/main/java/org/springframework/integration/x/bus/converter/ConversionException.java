@@ -20,6 +20,7 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
 
 
 /**
+ * Exception thrown when an error is encountered during message conversion.
  * 
  * @author David Turanski
  */

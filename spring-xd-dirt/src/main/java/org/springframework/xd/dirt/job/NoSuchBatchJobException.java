@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.job;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
+ * Exception thrown when there is no such batch job with the given name.
  * 
  * @author Ilayaperumal Gopinathan
  */

@@ -60,7 +60,7 @@ import org.springframework.xd.dirt.util.XdProfiles;
 @Import(RestConfiguration.class)
 public class AdminServerApplication {
 
-	private static final Log log = LogFactory.getLog(AdminServerApplication.class);
+	private static final Log logger = LogFactory.getLog(AdminServerApplication.class);
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDAdminMBeanExporter";
 
@@ -109,7 +109,7 @@ public class AdminServerApplication {
 		else {
 			errorMessage = e.getMessage();
 		}
-		log.error(errorMessage);
+		logger.error(errorMessage);
 		System.exit(1);
 	}
 
@@ -150,7 +150,6 @@ public class AdminServerApplication {
 					}
 					catch (IOException e) {
 						// It is very unlikely to get an exception here.
-						e.printStackTrace();
 					}
 				}
 			}

@@ -91,7 +91,6 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  * @author David Turanski
  */
 // todo: Rename ContainerServer or ModuleDeployer since it's driven by callbacks and not really a "server".
-// Likewise consider the AdminServer being renamed to StreamDeployer since that is also callback-driven.
 public class ContainerRegistrar implements ApplicationListener<ContextRefreshedEvent>, ApplicationContextAware,
 		BeanClassLoaderAware {
 

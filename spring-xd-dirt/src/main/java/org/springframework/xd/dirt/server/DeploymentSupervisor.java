@@ -54,20 +54,22 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
- * Server that watches ZooKeeper for Container arrivals and departures from the XD cluster. Each AdminServer instance
- * will attempt to request leadership, but at any given time only one AdminServer instance in the cluster will have
- * leadership status. Those instances not elected will watch the {@link Paths#ADMIN} znode so that one of
- * them will take over leadership if the leader admin closes or crashes.
+ * Process that watches ZooKeeper for Container arrivals and departures from
+ * the XD cluster. Each {@code DeploymentSupervisor} instance will attempt
+ * to request leadership, but at any given time only one {@code DeploymentSupervisor}
+ * instance in the cluster will have leadership status.
  *
  * @author Patrick Peralta
  * @author Mark Fisher
+ *
+ * @see org.apache.curator.framework.recipes.leader.LeaderSelector
  */
-public class AdminServer implements ContainerRepository, ApplicationListener<ApplicationEvent>, DisposableBean {
+public class DeploymentSupervisor implements ContainerRepository, ApplicationListener<ApplicationEvent>, DisposableBean {
 
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = LoggerFactory.getLogger(AdminServer.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DeploymentSupervisor.class);
 
 	/**
 	 * ZooKeeper connection.
@@ -138,14 +140,14 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 	private final ConnectionListener connectionListener = new ConnectionListener();
 
 	/**
-	 * Construct an AdminServer.
+	 * Construct a {@code DeploymentSupervisor}.
 	 *
 	 * @param zkConnection                   ZooKeeper connection
 	 * @param streamDefinitionRepository     repository for streams
 	 * @param moduleDefinitionRepository     repository for modules
 	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
 	 */
-	public AdminServer(ZooKeeperConnection zkConnection,
+	public DeploymentSupervisor(ZooKeeperConnection zkConnection,
 			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
@@ -307,7 +309,7 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 			PathChildrenCacheListener containerListener;
 
 			try {
-				streamListener = new StreamListener(AdminServer.this,
+				streamListener = new StreamDeploymentListener(DeploymentSupervisor.this,
 						streamDefinitionRepository,
 						moduleDefinitionRepository,
 						moduleOptionsMetadataResolver);
@@ -321,7 +323,7 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 				streamDeployments.getListenable().addListener(streamListener);
 				streamDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
-				jobListener = new JobListener(AdminServer.this, moduleDefinitionRepository,
+				jobListener = new JobDeploymentListener(DeploymentSupervisor.this, moduleDefinitionRepository,
 						moduleOptionsMetadataResolver);
 
 				jobDeployments = new PathChildrenCache(client, Paths.JOB_DEPLOYMENTS, true,
@@ -329,7 +331,7 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 				jobDeployments.getListenable().addListener(jobListener);
 				jobDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
-				containerListener = new ContainerListener(AdminServer.this,
+				containerListener = new ContainerListener(DeploymentSupervisor.this,
 						streamDefinitionRepository,
 						moduleDefinitionRepository,
 						moduleOptionsMetadataResolver, streamDeployments, streams, jobDeployments);

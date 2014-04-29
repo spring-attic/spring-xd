@@ -107,13 +107,13 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 
 	@Override
 	public <S extends Stream> S save(S entity) {
-		// stream instances are "saved" when a StreamListener deploys a stream
+		// stream instances are "saved" when a StreamDeploymentListener deploys a stream
 		return entity;
 	}
 
 	@Override
 	public <S extends Stream> Iterable<S> save(Iterable<S> entities) {
-		// stream instances are "saved" when a StreamListener deploys a stream
+		// stream instances are "saved" when a StreamDeploymentListener deploys a stream
 		return entities;
 	}
 

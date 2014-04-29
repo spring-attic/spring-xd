@@ -76,7 +76,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private final ContainerRepository containerRepository;
 
-	// todo: make this pluggable and/or refactor to avoid duplication with StreamListener
+	// todo: make this pluggable and/or refactor to avoid duplication with StreamDeploymentListener
 	private final ContainerMatcher containerMatcher = new DefaultContainerMatcher();
 
 	/**
@@ -176,7 +176,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param data node data for the container that arrived
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
-		// TODO: there is duplicate code here and JobListener/StreamListener. These
+		// TODO: there is duplicate code here and JobDeploymentListener/StreamDeploymentListener. These
 		// should be refactored into a JobDeployer/StreamDeployer class
 
 		final Container container = new Container(Paths.stripPath(data.getPath()), mapBytesUtility.toMap(data.getData()));
@@ -202,8 +202,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 			Stat stat = client.checkExists().forPath(
 					new JobDeploymentsPath().setJobName(jobName).setModuleLabel(moduleLabel).build());
 			// if stat is null, this means that the job deployment request was written out
-			// to ZK but JobListener hasn't picked it up yet; in that case skip this job
-			// deployment since JobListener will handle it
+			// to ZK but JobDeploymentListener hasn't picked it up yet; in that case skip this job
+			// deployment since JobDeploymentListener will handle it
 			if (stat != null && stat.getNumChildren() == 0) {
 				// no ephemeral nodes under the job module path; this job should be deployed
 				try {
@@ -380,7 +380,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 				String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 
 				if (ModuleType.job.toString().equals(moduleType)) {
-					Iterator<Container> iterator = containerMatcher.match(JobListener.createJobModuleDescriptor(streamName),
+					Iterator<Container> iterator = containerMatcher.match(JobDeploymentListener.createJobModuleDescriptor(streamName),
 							containerRepository).iterator();
 					if (iterator.hasNext()) {
 						Container target = iterator.next();

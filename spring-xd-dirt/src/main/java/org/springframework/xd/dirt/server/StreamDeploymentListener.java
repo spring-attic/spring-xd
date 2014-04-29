@@ -53,12 +53,12 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Patrick Peralta
  * @author Mark Fisher
  */
-public class StreamListener implements PathChildrenCacheListener {
+public class StreamDeploymentListener implements PathChildrenCacheListener {
 
 	/**
 	 * Logger.
 	 */
-	private final Logger logger = LoggerFactory.getLogger(StreamListener.class);
+	private final Logger logger = LoggerFactory.getLogger(StreamDeploymentListener.class);
 
 	/**
 	 * Provides access to the current container list.
@@ -85,7 +85,7 @@ public class StreamListener implements PathChildrenCacheListener {
 	 * {@link org.apache.curator.framework.recipes.cache.PathChildrenCache}.
 	 *
 	 * @see #childEvent
-	 * @see org.springframework.xd.dirt.server.StreamListener.EventHandler
+	 * @see StreamDeploymentListener.EventHandler
 	 */
 	private final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
 		@Override
@@ -97,13 +97,13 @@ public class StreamListener implements PathChildrenCacheListener {
 	});
 
 	/**
-	 * Construct a StreamListener.
+	 * Construct a StreamDeploymentListener.
 	 *
 	 * @param containerRepository repository to obtain container data
 	 * @param moduleDefinitionRepository repository to obtain module data
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 */
-	public StreamListener(ContainerRepository containerRepository,
+	public StreamDeploymentListener(ContainerRepository containerRepository,
 			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {

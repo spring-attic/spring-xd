@@ -52,12 +52,12 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Patrick Peralta
  * @author Mark Fisher
  */
-public class JobListener implements PathChildrenCacheListener {
+public class JobDeploymentListener implements PathChildrenCacheListener {
 
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = LoggerFactory.getLogger(JobListener.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JobDeploymentListener.class);
 
 	/**
 	 * Provides access to the current container list.
@@ -86,13 +86,13 @@ public class JobListener implements PathChildrenCacheListener {
 	private final XDStreamParser parser;
 
 	/**
-	 * Construct a JobListener.
+	 * Construct a JobDeploymentListener.
 	 *
 	 * @param containerRepository repository to obtain container data
 	 * @param moduleDefinitionRepository repository to obtain module data
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 */
-	public JobListener(ContainerRepository containerRepository,
+	public JobDeploymentListener(ContainerRepository containerRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		this.containerRepository = containerRepository;

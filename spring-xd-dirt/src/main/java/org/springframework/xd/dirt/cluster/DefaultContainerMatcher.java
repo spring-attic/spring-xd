@@ -121,8 +121,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 			return candidates;
 		}
 		else if (count == 1) {
-			Collection<Container> targets = Collections.singleton(candidates.get(getAndRotateIndex(candidateCount)));
-			return targets;
+			return Collections.singleton(candidates.get(getAndRotateIndex(candidateCount)));
 		}
 		else {
 			// create a new list with the specific number of targeted containers;

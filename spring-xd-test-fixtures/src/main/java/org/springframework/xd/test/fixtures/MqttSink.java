@@ -16,10 +16,12 @@
 
 package org.springframework.xd.test.fixtures;
 
+import org.springframework.util.Assert;
+
 
 /**
  * Test fixture that creates a mqtt sink.
- * 
+ *
  * @author Glenn Renfro
  */
 public class MqttSink extends AbstractModuleFixture {
@@ -30,6 +32,7 @@ public class MqttSink extends AbstractModuleFixture {
 
 
 	public MqttSink(String host, int port) {
+		Assert.hasText(host, "host must not be empty nor null");
 		this.host = host;
 		this.port = port;
 	}

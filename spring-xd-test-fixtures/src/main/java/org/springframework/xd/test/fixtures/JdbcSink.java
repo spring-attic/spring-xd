@@ -28,8 +28,9 @@ import org.springframework.util.Assert;
 /**
  * Represents the {@code jdbc} sink module. Maintains an in memory relational database and exposes a
  * {@link JdbcTemplate} so that assertions can be made against it.
- * 
+ *
  * @author Florent Biville
+ * @author Glenn Renfro
  */
 public class JdbcSink extends AbstractModuleFixture implements Disposable {
 
@@ -39,10 +40,13 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 
 	private String columns;
 
-	private String configFileName;
-
 	private volatile DataSource dataSource;
 
+	/**
+	 * Initializes a JdbcSink with the {@link DataSource}. Using this DataSource a JDBCTemplate is created.
+	 *
+	 * @param dataSource
+	 */
 	public JdbcSink(DataSource dataSource) {
 		Assert.notNull(dataSource, "Datasource can not be null");
 		this.dataSource = dataSource;
@@ -53,6 +57,9 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 		return jdbcTemplate;
 	}
 
+	/**
+	 * Renders the DSL for this fixture.
+	 */
 	@Override
 	protected String toDSL() {
 		StringBuilder dsl = new StringBuilder();
@@ -68,35 +75,43 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 		if (columns != null) {
 			dsl.append(" --columns=" + columns);
 		}
-		if (configFileName != null) {
-			dsl.append(" --configProperties=" + configFileName);
-		}
 		return dsl.toString();
 	}
 
+	/**
+	 * If using a in memory database this method will shutdown the database.
+	 */
 	@Override
 	public void cleanup() {
 		jdbcTemplate.execute("SHUTDOWN");
 	}
 
+	/**
+	 * Sets the table that the sink will write to.
+	 *
+	 * @param tableName the name of the table.
+	 * @return an instance to this jdbc sink.
+	 */
 	public JdbcSink tableName(String tableName) {
 		this.tableName = tableName;
 		return this;
 	}
 
+	/**
+	 * allows a user to set the columns (comma delimited list) that the sink will write its results to.
+	 *
+	 * @param columns a comma delimited list of column names.
+	 * @return an instance to this jdbc sink.
+	 */
 	public JdbcSink columns(String columns) {
 		this.columns = columns;
 		return this;
 	}
 
-	public JdbcSink configFile(String configFileName) {
-		this.configFileName = configFileName;
-		return this;
-	}
 
 	/**
 	 * Determines if a connection to the designated database can be made.
-	 * 
+	 *
 	 * @return true if a connection can be made. False if not.
 	 */
 	public boolean isReady() {

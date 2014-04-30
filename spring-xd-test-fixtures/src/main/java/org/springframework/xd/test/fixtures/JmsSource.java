@@ -22,11 +22,12 @@ import java.net.Socket;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.util.Assert;
 
 
 /**
  * A test fixture that allows testing of the 'jms' source module.
- * 
+ *
  * @author Glenn Renfro
  */
 public class JmsSource extends AbstractModuleFixture {
@@ -36,25 +37,37 @@ public class JmsSource extends AbstractModuleFixture {
 	private String host;
 
 
-	public JmsSource() {
-
-	}
-
 	public JmsSource(String host, int port) {
+		Assert.hasText(host, "host must not be empty nor null");
+
 		this.host = host;
 		this.port = port;
 	}
 
-
+	/**
+	 * Renders the DSL for this fixture.
+	 */
 	@Override
 	protected String toDSL() {
 		return "jms ";
 	}
 
+	/**
+	 * Verifies that the port to the broker is available. If not throws an IllegalStateException. The timeout is set for
+	 * 2 seconds.
+	 *
+	 * @return a reference to the mqtt source.
+	 */
 	public JmsSource ensureReady() {
 		return ensureReady(2000);
 	}
 
+	/**
+	 * Verifies that the port to the broker is available. If not throws an IllegalStateException.
+	 *
+	 * @param timeout The max time to try to get the connection to the broker.
+	 * @return a reference to the mqtt source.
+	 */
 	public JmsSource ensureReady(int timeout) {
 		long giveUpAt = System.currentTimeMillis() + timeout;
 		while (System.currentTimeMillis() < giveUpAt) {
@@ -75,9 +88,14 @@ public class JmsSource extends AbstractModuleFixture {
 				"Source [%s] does not seem to be listening after waiting for %dms", this, timeout));
 	}
 
+	/**
+	 * Sends data to the JMS broker via TCP.
+	 *
+	 * @param data A string containing the data to send to the JMS broker.
+	 */
+	public void sendData(String data) {
+		Assert.hasText(data, "data must not be empty nor null");
 
-	public void sendData(String data) throws Exception {
-		System.out.println("tcp://" + host + ":" + port);
 		JmsTemplate template = new JmsTemplate(new ActiveMQConnectionFactory("tcp://" + host + ":" + port));
 		template.convertAndSend("ec2Test3", data);
 	}

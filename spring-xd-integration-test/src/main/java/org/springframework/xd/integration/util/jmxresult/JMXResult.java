@@ -17,36 +17,50 @@
 package org.springframework.xd.integration.util.jmxresult;
 
 /**
+ * The Object that is returned when a JMX Query is exected against XD.
+ * 
  * @author Glenn Renfro
  */
 public class JMXResult {
+
 	private String timestamp;
+
 	private String status;
+
 	private JMXRequest request;
+
 	private JMXValue value;
+
 	public String getTimestamp() {
 		return timestamp;
 	}
+
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
 	}
+
 	public String getStatus() {
 		return status;
 	}
+
 	public void setStatus(String status) {
 		this.status = status;
 	}
+
 	public JMXRequest getRequest() {
 		return request;
 	}
+
 	public void setRequest(JMXRequest request) {
 		this.request = request;
 	}
+
 	public JMXValue getValue() {
 		return value;
 	}
+
 	public void setValue(JMXValue value) {
 		this.value = value;
 	}
-	
+
 }

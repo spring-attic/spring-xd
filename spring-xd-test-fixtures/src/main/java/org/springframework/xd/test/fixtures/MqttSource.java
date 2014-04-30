@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
@@ -27,8 +28,8 @@ import org.springframework.util.Assert;
 
 
 /**
- * A test fixture that allows testing of the 'jms' source module.
- * 
+ * A test fixture that allows testing of the mqtt source module.
+ *
  * @author Glenn Renfro
  */
 public class MqttSource extends AbstractModuleFixture {
@@ -55,10 +56,22 @@ public class MqttSource extends AbstractModuleFixture {
 		return "mqtt --url='tcp://" + host + ":" + port + "' --topics='xd.mqtt.test'";
 	}
 
+	/**
+	 * Verifies that the port to the broker is available. If not throws an IllegalStateException. The timeout is set for
+	 * 2 seconds.
+	 *
+	 * @return a reference to the mqtt source.
+	 */
 	public MqttSource ensureReady() {
 		return ensureReady(2000);
 	}
 
+	/**
+	 * Verifies that the port to the broker is available. If not throws an IllegalStateException.
+	 *
+	 * @param timeout The max time to try to get the connection to the broker.
+	 * @return a reference to the mqtt source.
+	 */
 	public MqttSource ensureReady(int timeout) {
 		long giveUpAt = System.currentTimeMillis() + timeout;
 		while (System.currentTimeMillis() < giveUpAt) {
@@ -79,8 +92,13 @@ public class MqttSource extends AbstractModuleFixture {
 				"Source [%s] does not seem to be listening after waiting for %dms", this, timeout));
 	}
 
-
-	public void sendData(String data) throws Exception {
+	/**
+	 * Sends a string via Mqtt to a Rabbit Mqtt Broker.
+	 *
+	 * @param data String to be transmitted to the Mqtt Broker.
+	 */
+	public void sendData(String data) {
+		Assert.hasText(data, "data must not be empty nor null");
 		DefaultMqttPahoClientFactory factory;
 		MqttClient client = null;
 		factory = new DefaultMqttPahoClientFactory();
@@ -88,17 +106,21 @@ public class MqttSource extends AbstractModuleFixture {
 		factory.setUserName("foobar");
 		MqttMessage mqttMessage = new MqttMessage();
 		mqttMessage.setPayload(data.getBytes());
-		client = factory.getClientInstance("tcp://" + host + ":" + port, "guest");
-		client.connect();
-		client.publish("xd.mqtt.test", mqttMessage);
 		try {
-			Thread.sleep(1000);
+			client = factory.getClientInstance("tcp://" + host + ":" + port, "guest");
+			client.connect();
+			client.publish("xd.mqtt.test", mqttMessage);
+			try {
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			client.disconnect();
+			client.close();
 		}
-		catch (InterruptedException e) {
-			e.printStackTrace();
+		catch (MqttException mqttException) {
+			throw new IllegalStateException(mqttException.getMessage());
 		}
-		client.disconnect();
-		client.close();
-
 	}
 }

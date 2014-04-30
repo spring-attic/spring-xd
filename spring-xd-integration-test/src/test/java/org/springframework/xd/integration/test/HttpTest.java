@@ -21,38 +21,36 @@ import java.util.UUID;
 import org.junit.Test;
 
 import org.springframework.xd.test.fixtures.AbstractModuleFixture;
-import org.springframework.xd.test.fixtures.LogSink;
-import org.springframework.xd.test.fixtures.SimpleFileSink;
 
 /**
+ * Test both the http sink and http source.
+ *
  * @author Glenn Renfro
  */
 public class HttpTest extends AbstractIntegrationTest {
 
-	// Removed the parameratized test because requires only one zero argument public constructor
-
 	/**
-	 * Test the http source for retrieving information, and outputs the data to the file sink.
-	 * 
-	 * @throws Exception
+	 * Listens for data via the http source and outputs the data to a file sink. The file is checked to see if it
+	 * contains the exact data. If exact the test is successful. Else an assertion is thrown.
+	 *
 	 */
 	@Test
-	public void testHttpFileSink() throws Exception {
-		genericTest(sinks.getSink(SimpleFileSink.class));
+	public void testHttpFileSink() {
+		genericTest(sinks.file());
 	}
 
 	/**
-	 * Test the http source for retrieving information, and outputs the data to the log sink.
-	 * 
-	 * @throws Exception
+	 * Listens for data via the http source and outputs the data to a log sink. The log is searched for the original
+	 * data. If found it is successful. Else an assertion is thrown.
+	 *
 	 */
 	@Test
-	public void testHttplogSink() throws Exception {
-		genericTest(sinks.getSink(LogSink.class));
+	public void testHttplogSink() {
+		genericTest(sinks.log());
 	}
 
 
-	private void genericTest(AbstractModuleFixture sink) throws Exception {
+	private void genericTest(AbstractModuleFixture sink) {
 		String data = UUID.randomUUID().toString();
 		stream(sources.http() + XD_DELIMETER + sink);
 		waitForXD();

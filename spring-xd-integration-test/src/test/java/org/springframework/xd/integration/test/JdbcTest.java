@@ -24,42 +24,39 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.xd.test.fixtures.JdbcSink;
 
 
 /**
  * Runs a basic suite of JDBC tests on an XD Cluster instance.
- * 
+ *
  * @author Glenn Renfro
  */
 public class JdbcTest extends AbstractIntegrationTest {
 
 
-	private JdbcSink jdbcSink = null;
+	private JdbcSink jdbcSink;
 
-	private String tableName = null;
+	private String tableName;
 
+	/**
+	 * Removes the table created from a previous test.
+	 */
 	@Before
-	public void initialize() throws Exception {
+	public void initialize() {
 		jdbcSink = sinks.jdbc();
 		tableName = "acceptanceTEST12345";
 		jdbcSink.tableName(tableName);
-		try {
-			jdbcSink.getJdbcTemplate().execute("drop table " + tableName);
-		}
-		catch (Exception ex) {
-			// ignore just doing cleanup.
-		}
-
+		cleanup();
 	}
 
 	/**
-	 * * Verifies that data sent by the TCP sink that terminates with a CRLF works as expected.
-	 * 
-	 * @throws Exception
+	 * * Verifies that Jdbc sink has written the test data to the table.
+	 *
 	 */
 	@Test
-	public void testJDBCSink() throws Exception {
+	public void testJDBCSink() {
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
 		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + jdbcSink);
@@ -72,11 +69,19 @@ public class JdbcTest extends AbstractIntegrationTest {
 				jdbcSink.getJdbcTemplate().queryForObject(query, String.class));
 	}
 
+	/**
+	 * Being a good steward of the database remove the result table from the database.
+	 */
 	@After
 	public void cleanup() {
 		if (jdbcSink == null) {
 			return;
 		}
-		jdbcSink.getJdbcTemplate().execute("drop table " + tableName);
+		try {
+			jdbcSink.getJdbcTemplate().execute("drop table " + tableName);
+		}
+		catch (DataAccessException daException) {
+			// This exception is thrown if the table is not present. In this case that is ok.
+		}
 	}
 }

@@ -16,20 +16,32 @@
 
 package org.springframework.xd.test.fixtures;
 
+import org.springframework.util.Assert;
+
 
 /**
- * Represents the log sink
- * 
+ * A test fixture that represents the log sink
+ *
  * @author Glenn Renfro
  */
 public class LogSink extends AbstractModuleFixture {
 
 	String moduleName;
 
+	/**
+	 * Establishes the module name for the log.
+	 *
+	 * @param moduleName the name you want to assign to the log module.
+	 */
 	public LogSink(String moduleName) {
+		Assert.hasText(moduleName, "moduleName must not be empty nor null");
+
 		this.moduleName = moduleName;
 	}
 
+	/**
+	 * Renders the DSL for this fixture.
+	 */
 	@Override
 	protected String toDSL() {
 		return String.format("log --name=%s", moduleName);

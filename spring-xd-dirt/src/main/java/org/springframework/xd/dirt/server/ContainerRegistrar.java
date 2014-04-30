@@ -517,9 +517,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 		List<Module> childrenModules = new ArrayList<Module>(children.size());
 		for (ModuleDeploymentRequest childRequest : children) {
-			ModuleOptions narrowedOptions = new PrefixNarrowingModuleOptions(options, childRequest.getModule());
+			ModuleOptions narrowedOptions = new PrefixNarrowingModuleOptions(options, childRequest.getModuleName());
 			ModuleDefinition childDefinition = this.moduleDefinitionRepository.findByNameAndType(
-					childRequest.getModule(), childRequest.getType());
+					childRequest.getModuleName(), childRequest.getType());
 			String label = ""; // todo: this should be the valid label for each module
 			ModuleDescriptor childDescriptor = new ModuleDescriptor(childDefinition,
 					childRequest.getGroup(), label, childRequest.getIndex(), compositeDescriptor.getDeploymentProperties());

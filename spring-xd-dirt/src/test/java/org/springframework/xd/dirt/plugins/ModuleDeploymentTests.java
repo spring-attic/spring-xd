@@ -51,11 +51,12 @@ public class ModuleDeploymentTests {
 		adapter.setBeanFactory(BusTestUtils.MOCK_BF);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
-		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
-		request.setGroup("test");
-		request.setType(ModuleType.processor);
-		request.setModule("filter");
-		request.setIndex(0);
+		ModuleDeploymentRequest request = new ModuleDeploymentRequest.Builder()
+				.setGroup("test")
+				.setType(ModuleType.processor)
+				.setModuleName("filter")
+				.setIndex(0)
+				.build();
 		Message<?> message = MessageBuilder.withPayload(request.toString()).build();
 		adapter.handleMessage(message);
 	}
@@ -68,18 +69,20 @@ public class ModuleDeploymentTests {
 		adapter.setBeanFactory(BusTestUtils.MOCK_BF);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
-		ModuleDeploymentRequest sinkRequest = new ModuleDeploymentRequest();
-		sinkRequest.setGroup("teststream");
-		sinkRequest.setType(ModuleType.sink);
-		sinkRequest.setModule("log");
-		sinkRequest.setIndex(1);
+		ModuleDeploymentRequest sinkRequest = new ModuleDeploymentRequest.Builder()
+				.setGroup("teststream")
+				.setType(ModuleType.sink)
+				.setModuleName("log")
+				.setIndex(1)
+				.build();
 		Message<?> sinkMessage = MessageBuilder.withPayload(sinkRequest.toString()).build();
 		adapter.handleMessage(sinkMessage);
-		ModuleDeploymentRequest sourceRequest = new ModuleDeploymentRequest();
-		sourceRequest.setGroup("teststream");
-		sourceRequest.setType(ModuleType.source);
-		sourceRequest.setModule("time");
-		sourceRequest.setIndex(0);
+		ModuleDeploymentRequest sourceRequest = new ModuleDeploymentRequest.Builder()
+				.setGroup("teststream")
+				.setType(ModuleType.source)
+				.setModuleName("time")
+				.setIndex(0)
+				.build();
 		Message<?> sourceMessage = MessageBuilder.withPayload(sourceRequest.toString()).build();
 		adapter.handleMessage(sourceMessage);
 	}

@@ -21,9 +21,26 @@ import java.util.List;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
+ * Parser to convert a DSL string for a deployable unit (i.e. stream, job)
+ * into a list of {@link org.springframework.xd.dirt.module.ModuleDeploymentRequest}
+ * objects that comprise the given unit.
+ *
  * @author Mark Fisher
+ * @author Patrick Peralta
  */
 public interface XDParser {
 
+	/**
+	 * Parse a DSL string.
+	 *
+	 * @param name    name of the deployable unit, such as a stream or job
+	 * @param config  the DSL string
+	 * @param type    the context under which the parsing is occurring
+	 *                (for example, is it a stream, module, or job being
+	 *                parsed, how far into the DSL has parsing occurred, etc)
+	 * @return list of {@link org.springframework.xd.dirt.module.ModuleDeploymentRequest}
+	 *         that reflect the modules required for the deployable unit
+	 *         described by the DSL.
+	 */
 	List<ModuleDeploymentRequest> parse(String name, String config, ParsingContext type);
 }

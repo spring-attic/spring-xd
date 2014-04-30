@@ -191,7 +191,7 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 			List<ModuleDeploymentRequest> results = this.parser.parse(jobName, jobDefinition.getDefinition(),
 					ParsingContext.job);
 			ModuleDeploymentRequest mdr = results.get(0);
-			String moduleLabel = mdr.getModule() + "-0";
+			String moduleLabel = mdr.getModuleName() + "-0";
 			String moduleType = ModuleType.job.toString();
 			String moduleDeploymentRequestPath = new ModuleDeploymentsPath().setContainer(containerName)
 					.setStreamName(jobName)

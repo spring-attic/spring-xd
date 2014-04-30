@@ -37,7 +37,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
  * Provides completion proposals when the user has typed the two dashes that precede a module option name.
- * 
+ *
  * @author Eric Bottard
  */
 @Component
@@ -51,7 +51,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 
 	/**
 	 * Construct a new ExpandOneDashToTwoDashesRecoveryStrategy given the parser,
-	 * 
+	 *
 	 * @param parser the parser used to parse the text the partial module definition.
 	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
 	 *        definition.
@@ -76,7 +76,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parsed.get(0);
-		String lastModuleName = lastModule.getModule();
+		String lastModuleName = lastModule.getModuleName();
 		ModuleType lastModuleType = lastModule.getType();
 		ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,
 				lastModuleType);

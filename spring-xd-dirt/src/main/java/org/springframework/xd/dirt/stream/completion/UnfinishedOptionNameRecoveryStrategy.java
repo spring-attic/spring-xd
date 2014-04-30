@@ -39,7 +39,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 /**
  * Provides completions for the case where the user has started to type a module option name but it is not typed in full
  * yet.
- * 
+ *
  * @author Eric Bottard
  */
 @Component
@@ -52,7 +52,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 
 	/**
 	 * Construct a new UnfinishedOptionNameRecoveryStrategy given the parser
-	 * 
+	 *
 	 * @param parser the parser used to parse the text the partial module definition.
 	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
 	 *        definition.
@@ -93,7 +93,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parsed.get(0);
-		String lastModuleName = lastModule.getModule();
+		String lastModuleName = lastModule.getModuleName();
 		ModuleType lastModuleType = lastModule.getType();
 		ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,
 				lastModuleType);

@@ -32,7 +32,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
  * Adds missing module options at the end of a well formed stream definition.
- * 
+ *
  * @author Eric Bottard
  */
 @Component
@@ -45,7 +45,7 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 
 	/**
 	 * Construct a new AddModuleOptionsExpansionStrategy for use in detecting missing module options.
-	 * 
+	 *
 	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
 	 *        definition.
 	 * @param moduleOptionsMetadataResolver the metadata resolver to use in order to create a list of proposals for
@@ -68,7 +68,7 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 			List<String> proposals) {
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parseResult.get(0);
-		String lastModuleName = lastModule.getModule();
+		String lastModuleName = lastModule.getModuleName();
 		ModuleType lastModuleType = lastModule.getType();
 		ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,
 				lastModuleType);

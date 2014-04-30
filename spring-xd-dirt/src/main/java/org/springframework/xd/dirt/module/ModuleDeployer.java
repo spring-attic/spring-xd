@@ -107,57 +107,6 @@ public class ModuleDeployer implements ApplicationContextAware, BeanClassLoaderA
 		this.parentClassLoader = classLoader;
 	}
 
-	private Module createModule(ModuleDeploymentRequest request, ModuleOptions moduleOptions) {
-		if (request instanceof CompositeModuleDeploymentRequest) {
-			return createCompositeModule((CompositeModuleDeploymentRequest) request, moduleOptions);
-		}
-		else {
-			return createSimpleModule(request, moduleOptions);
-		}
-	}
-
-	private Module createCompositeModule(CompositeModuleDeploymentRequest compositeRequest,
-			ModuleOptions moduleOptionsForComposite) {
-		List<ModuleDeploymentRequest> children = compositeRequest.getChildren();
-		Assert.notEmpty(children, "child module list must not be empty");
-
-		List<Module> childrenModules = new ArrayList<Module>(children.size());
-		for (ModuleDeploymentRequest childRequest : children) {
-			ModuleOptions narrowedModuleOptions = new PrefixNarrowingModuleOptions(moduleOptionsForComposite,
-					childRequest.getModule());
-			childrenModules.add(createModule(childRequest, narrowedModuleOptions));
-		}
-
-		String group = compositeRequest.getGroup();
-		int index = compositeRequest.getIndex();
-		String sourceChannelName = compositeRequest.getSourceChannelName();
-		String sinkChannelName = compositeRequest.getSinkChannelName();
-		DeploymentMetadata deploymentMetadata = new DeploymentMetadata(group, index, sourceChannelName, sinkChannelName);
-
-		String moduleName = compositeRequest.getModule();
-		ModuleType moduleType = compositeRequest.getType();
-
-		return new CompositeModule(moduleName, moduleType, childrenModules, deploymentMetadata);
-	}
-
-	private Module createSimpleModule(ModuleDeploymentRequest request, ModuleOptions moduleOptions) {
-		String group = request.getGroup();
-		int index = request.getIndex();
-		String name = request.getModule();
-		ModuleType type = request.getType();
-		ModuleDefinition definition = this.moduleDefinitionRepository.findByNameAndType(name, type);
-		Assert.notNull(definition, "No moduleDefinition for " + name + ":" + type);
-		DeploymentMetadata metadata = new DeploymentMetadata(group, index, request.getSourceChannelName(),
-				request.getSinkChannelName());
-
-		@SuppressWarnings("resource")
-		ClassLoader classLoader = (definition.getClasspath() == null) ? null
-				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
-
-		Module module = new SimpleModule(definition, metadata, classLoader, moduleOptions);
-		return module;
-	}
-
 	// todo: when refactoring to ZK-based deployment, keep this method but remove the private one
 	// but notice the use of 'group' which is abstract so it can also support jobs (not just streams)
 	// that terminology needs to change since group will be used in criteria expressions. Most likely we

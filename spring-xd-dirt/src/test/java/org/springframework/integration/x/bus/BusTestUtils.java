@@ -21,9 +21,9 @@ import static org.mockito.Mockito.when;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
 
 
 /**
@@ -39,9 +39,9 @@ public class BusTestUtils {
 	public static final ConfigurableListableBeanFactory MOCK_BF = mock(ConfigurableListableBeanFactory.class);
 
 	static {
-		when(MOCK_BF.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+		when(MOCK_BF.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
 				MessageBuilderFactory.class)).thenReturn(mbf);
-		when(MOCK_AC.getBean(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+		when(MOCK_AC.getBean(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
 				MessageBuilderFactory.class)).thenReturn(mbf);
 		when(MOCK_AC.getBeanFactory()).thenReturn(MOCK_BF);
 	}

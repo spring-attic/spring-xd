@@ -400,6 +400,7 @@ project('spring-xd-dirt') {
 		compile "org.springframework.integration:spring-integration-ftp:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-groovy:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-http:$springIntegrationVersion"
+		// TODO: Investigate why spring-integration-http's optional dependency xerces becomes transitive dependency
 		configurations.compile.exclude(group: "xerces")
 		compile "org.springframework.integration:spring-integration-jmx:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
@@ -1406,6 +1407,7 @@ project('spring-xd-shell') {
 		compile "com.google.guava:guava:14.0.1"
 		testCompile project(":spring-xd-test-fixtures")
 		compile project(":spring-xd-dirt")
+		configurations.compile.exclude(group: "xerces")
 		compile project(":spring-xd-test")
 
 		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"

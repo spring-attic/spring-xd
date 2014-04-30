@@ -38,13 +38,13 @@ public class DefaultModuleOptionsMetadataCollector extends PlaceholderConfigurer
 	 * Used as a replacement for "${", so that we can show that the default is a placeholder, but still avoid infinite
 	 * recursion.
 	 */
-	private static final String ALTERNATE_PLACEHOLDER_SUFFIX = "]]*";
+	private static final String ALTERNATE_PLACEHOLDER_PREFIX = "*[[";
 
 	/**
 	 * Used as a replacement for "}", so that we can show that the default is a placeholder, but still avoid infinite
 	 * recursion.
 	 */
-	private static final String ALTERNATE_PLACEHOLDER_PREFIX = "*[[";
+	private static final String ALTERNATE_PLACEHOLDER_SUFFIX = "]]*";
 
 	private static final String DELIMITERS_RECOVERY_REGEX = "\\Q" + ALTERNATE_PLACEHOLDER_PREFIX + "\\E(.+)\\Q"
 			+ ALTERNATE_PLACEHOLDER_SUFFIX + "\\E";
@@ -73,11 +73,8 @@ public class DefaultModuleOptionsMetadataCollector extends PlaceholderConfigurer
 					ModuleOption option = new ModuleOption(optionName, "unknown").withType(String.class);
 					if (colon > 0) {
 						String defaultValue = placeholderName.substring(colon + 1);
-						// if (!defaultValue.contains("${")) {
-						// TODO: revisit (XD-1261)
 						option.withDefaultValue(defaultValue.replaceAll(DELIMITERS_RECOVERY_REGEX,
 								DELIMITERS_RECOVERY_REPLACEMENT));
-						// }
 					}
 					result.add(option);
 				}

@@ -154,9 +154,7 @@ public abstract class AbstractShellIntegrationTest {
 	}
 
 	private String generateUniqueName() {
-		StackTraceElement[] element = Thread.currentThread().getStackTrace();
-		// Assumption here is that generateStreamName()/generateJobName() are called from the @Test method
-		return generateUniqueName(element[4].getMethodName());
+		return generateUniqueName(name.getMethodName());
 	}
 
 	protected String generateStreamName(String name) {

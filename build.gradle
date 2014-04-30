@@ -5,7 +5,7 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-		maven { url "http://repo.springsource.org/plugins-snapshot" }
+		maven { url "http://repo.spring.io/plugins-snapshot" }
 		jcenter()
 	}
 	dependencies {
@@ -21,14 +21,14 @@ buildscript {
 
 ext {
 	linkHomepage = 'https://github.com/spring-projects/spring-xd'
-	linkCi       = 'https://build.springsource.org/browse/XD'
-	linkIssue    = 'https://jira.springsource.org/browse/XD'
+	linkCi       = 'https://build.spring.io/browse/XD'
+	linkIssue    = 'https://jira.spring.io/browse/XD'
 	linkScmUrl           = 'https://github.com/spring-projects/spring-xd'
 	linkScmConnection    = 'https://github.com/spring-projects/spring-xd.git'
 	linkScmDevConnection = 'git@github.com:spring-projects/spring-xd.git'
 
 	javadocLinks = [
-		"http://static.springsource.org/spring-shell/docs/current/api/"
+		"http://docs.spring.io/spring-xd/docs/1.0.x/api/"
 	] as String[]
 
 	nonJavaProjects = [
@@ -1640,7 +1640,7 @@ task pullDocs(type: GitClone) {
 
 	def destination = file("$buildDir/asciidoc-raw")
 
-	uri = "git://github.com/SpringSource/spring-xd.wiki.git"
+	uri = "git://github.com/spring-projects/spring-xd.wiki.git"
 	destinationPath = destination
 	bare = false
 

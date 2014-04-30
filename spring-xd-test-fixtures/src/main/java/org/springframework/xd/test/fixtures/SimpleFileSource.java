@@ -21,7 +21,7 @@ import org.springframework.util.Assert;
 
 /**
  * A FileSource for integraiton tests. Note it does not need to implement {@link DisposableFileSupport}
- * 
+ *
  * @author Glenn Renfro
  * @author Mark Pollack
  */
@@ -32,15 +32,8 @@ public class SimpleFileSource extends AbstractModuleFixture {
 	private final String fileName;
 
 	/**
-	 * Construct a new SimpleFileSource in the current directory with the name "SimpleFileSource"
-	 */
-	public SimpleFileSource() {
-		this("", SimpleFileSource.class.getName());
-	}
-
-	/**
 	 * Construct a new SimpleFileSource using the provided directory and file names.
-	 * 
+	 *
 	 * @param dir directory name
 	 * @param fileName file name
 	 */
@@ -51,6 +44,9 @@ public class SimpleFileSource extends AbstractModuleFixture {
 		this.fileName = fileName;
 	}
 
+	/**
+	 * Renders the default DSL for this fixture.
+	 */
 	@Override
 	protected String toDSL() {
 		return String.format("file --dir=%s --pattern='%s'", dir, fileName);

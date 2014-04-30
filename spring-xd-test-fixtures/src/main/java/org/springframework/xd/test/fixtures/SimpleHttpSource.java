@@ -27,7 +27,7 @@ import org.springframework.xd.test.generator.SimpleHttpGenerator;
 
 /**
  * An HTTP source that default to using localhost:9000
- * 
+ *
  * @author Glenn Renfro
  * @author Mark Pollack
  */
@@ -45,7 +45,7 @@ public class SimpleHttpSource extends AbstractModuleFixture {
 
 	/**
 	 * Construct a new SimpleHttpSource, given a host. The port will default to 9000.
-	 * 
+	 *
 	 * @param host the host to connect to
 	 */
 	public SimpleHttpSource(String host) {
@@ -54,7 +54,7 @@ public class SimpleHttpSource extends AbstractModuleFixture {
 
 	/***
 	 * Construct a new SimpleHttpSource, given a host and a port connect to.
-	 * 
+	 *
 	 * @param host The host to connect to
 	 * @param port The port to connect to
 	 */
@@ -68,7 +68,7 @@ public class SimpleHttpSource extends AbstractModuleFixture {
 	/**
 	 * Ensure that the source is ready to take requests by sending http header requests to the source for up to 2
 	 * seconds.
-	 * 
+	 *
 	 * @throws IllegalStateException if can't connect to the source within the given timeout.
 	 */
 	public SimpleHttpSource ensureReady() {
@@ -78,7 +78,7 @@ public class SimpleHttpSource extends AbstractModuleFixture {
 	/**
 	 * Ensure that the source is ready to take requests by sending http header requests for up to the timeout specified
 	 * in millisecionds, sleeping 100 ms between attempts.
-	 * 
+	 *
 	 * @param timeoutInMillis
 	 * @return a new SimpleHttpSource
 	 * @throws IllegalStateException if can't connect to the source within the given timeout.
@@ -111,21 +111,25 @@ public class SimpleHttpSource extends AbstractModuleFixture {
 
 	/**
 	 * Make a HTTP POST request using the provided string in the http body.
-	 * 
+	 *
 	 * @param payload String to send in the http body.
 	 */
 	public void postData(String payload) {
+		Assert.hasText(payload, "payload must not be empty nor null");
+
 		httpGenerator.postData(payload);
 
 	}
 
 	/**
 	 * Generate a http request from the contents of a file
-	 * 
+	 *
 	 * @param file the File that contains the data to post
 	 * @throws GeneratorException If there was an error related to file handling.
 	 */
 	public void postFromFile(File file) {
+		Assert.notNull(file, "file must not be null");
+
 		httpGenerator.postFromFile(file);
 	}
 

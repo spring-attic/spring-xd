@@ -16,7 +16,6 @@
 
 package org.springframework.xd.integration.util;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Driver;
@@ -67,64 +66,69 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 
 	@Value("${xd_admin_host:}")
-	private transient String adminHost;
+	private String adminHost;
 
-	private transient URL adminServerUrl;
+	private URL adminServerUrl;
 
 	@Value("${xd_containers:}")
-	private transient String containers;
+	private String containers;
 
-	private transient List<URL> containerUrls;
+	private List<URL> containerUrls;
 
 	@Value("${xd_jmx_port}")
-	private transient int jmxPort;
+	private int jmxPort;
 
 	@Value("${xd_container_log_dir}")
-	private transient String containerLogLocation;
+	private String containerLogLocation;
 
 	@Value("${xd_base_dir}")
-	private transient String baseXdDir;
+	private String baseXdDir;
 
 	@Value("${xd_http_port}")
-	private transient int httpPort;
+	private int httpPort;
 
 	@Value("${xd_pvt_keyfile:}")
 	private String privateKeyFileName;
 
-	private transient String privateKey;
+	private String privateKey;
 
 	@Value("${xd_run_on_ec2:true}")
-	private transient boolean isOnEc2;
+	private boolean isOnEc2;
 
 	// JDBC Attributes
 	@Value("${jdbc_url}")
-	private transient String jdbcUrl;
+	private String jdbcUrl;
 
 	@Value("${jdbc_username}")
-	private transient String jdbcUsername;
+	private String jdbcUsername;
 
 	@Value("${jdbc_password}")
-	private transient String jdbcPassword;
+	private String jdbcPassword;
 
 	@Value("${jdbc_database}")
-	private transient String jdbcDatabase;
+	private String jdbcDatabase;
 
 	@Value("${jdbc_driver}")
-	private transient String jdbcDriver;
+	private String jdbcDriver;
 
 	// JMS Attributes
 	@Value("${jms_host}")
-	private transient String jmsHost;
+	private String jmsHost;
 
 	@Value("${jms_port}")
-	private transient int jmsPort;
+	private int jmsPort;
 
 	private SimpleDriverDataSource dataSource;
 
 
 	private Properties artifactProperties;
 
-
+	/**
+	 * If not running tests on a local XD Instance it will retrieve the information from the artifact and setup the
+	 * environment to test against a remote XD. Als initializes the dataSource for JDBC Tests.
+	 * 
+	 * @throws MalformedURLException
+	 */
 	@PostConstruct()
 	public void initalizeEc2Environment() throws MalformedURLException {
 		if (isOnEc2()) {
@@ -173,7 +177,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		return adminServerUrl;
 	}
 
-	public List<URL> getContainers() {
+	public List<URL> getContainerUrls() {
 		return containerUrls;
 	}
 
@@ -185,7 +189,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		return httpPort;
 	}
 
-	public String getPrivateKey() throws IOException {
+	public String getPrivateKey() {
 		// Initialize private key if not already set.
 		if (isOnEc2 && privateKey == null) {
 			privateKey = ConfigUtil.getPrivateKey(privateKeyFileName);
@@ -235,15 +239,15 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	 * @return the first host in the collection of xd-container nodes.
 	 */
 	public String getDefaultTargetHost() {
-		return getContainers().get(0).getHost();
+		return getContainerUrls().get(0).getHost();
 	}
 
 
 	/**
-	 * Retrieves a list o containers from the properties file.
+	 * Parses the string of container URLs provied by the ec2 property file.
 	 * 
-	 * @param properties
-	 * @return
+	 * @param A comma delimited list of container URLs
+	 * @return a List of container URLs
 	 */
 	private static List<URL> getContainerUrls(String containerList) {
 		final List<URL> containers = new ArrayList<URL>();

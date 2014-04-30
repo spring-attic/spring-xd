@@ -29,8 +29,10 @@ import org.springframework.xd.integration.util.XdEnvironment;
 
 
 /**
+ * Provides the container configuration when running integration tests. Declares {@link XdEnvironment},
+ * {@link XdEc2Validation}, {@link Sinks}, {@link Sources} and {@link ConfigUtil} in the application context.
  * 
- * @author mpollack
+ * @author Mark Pollack
  */
 @Configuration
 @EnableAutoConfiguration
@@ -54,12 +56,12 @@ public class IntegrationTestConfig {
 	@Bean
 	public Sources sources() {
 		// The Environment Assumes that the RabbitMQ broker is running on the same host as the admin server.
-		return new Sources(xdEnvironment());// getAdminServer().getHost(), getContainers().get(0).getHost(), jmsHost,
-											// jmsPort);
+		return new Sources(xdEnvironment());
+
 	}
 
 	@Bean
 	public ConfigUtil configUtil() throws IOException {
-		return new ConfigUtil(xdEnvironment());// isOnEc2, this);
+		return new ConfigUtil(xdEnvironment());
 	}
 }

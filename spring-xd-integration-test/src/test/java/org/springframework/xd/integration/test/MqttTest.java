@@ -20,42 +20,43 @@ import java.util.UUID;
 
 import org.junit.Test;
 
-import org.springframework.xd.test.fixtures.SimpleFileSink;
-
 
 /**
- * Runs a basic suite of JMS Source tests on an XD Cluster instance.
- * 
+ * Runs a basic suite of Mqtt Source and Sink tests on an XD Cluster instance.
+ *
  * @author Glenn Renfro
  */
 public class MqttTest extends AbstractIntegrationTest {
 
 
 	/**
-	 * Verifies that the MQTT Source that terminates with a CRLF returns the correct data.
-	 * 
-	 * @throws Exception
+	 * Verifies that data sent to a MQTT Broker can be retrieved by the mqtt source. The data retrieved by the broker is
+	 * then written to file, and the content of the file is verified against the original data set.
 	 */
 	@Test
-	public void testMqttSource() throws Exception {
+	public void testMqttSource() {
 		String data = UUID.randomUUID().toString();
-		stream(sources.mqtt() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
-		sources.mqtt().ensureReady();
+		stream(sources.mqtt() + XD_DELIMETER + sinks.file());
 		sources.mqtt().sendData(data);
 		waitForXD(2000);
 		assertReceived(1);
-		assertValid(data, sinks.getSink(SimpleFileSink.class));
+		assertValid(data, sinks.file());
 	}
 
+	/**
+	 * Verifies that the data sent from a MQTT Sink was received by a broker. This method utilizes mqttsource to
+	 * retrieve data from the broker. This data is then written to file, and the content of the file is verified against
+	 * the original data set.
+	 */
 	@Test
-	public void testMqttSink() throws Exception {
+	public void testMqttSink() {
 		String data = UUID.randomUUID().toString();
-		stream(sources.mqtt() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
-		waitForXD(2000);
+		stream(sources.mqtt() + XD_DELIMETER + sinks.file());
+		sources.mqtt().ensureReady();
 		stream("mqttSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.mqtt());
 		waitForXD(2000);
 		assertReceived(1);
-		assertValid(data, sinks.getSink(SimpleFileSink.class));
+		assertValid(data, sinks.file());
 
 	}
 

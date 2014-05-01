@@ -738,7 +738,6 @@ public class StreamConfigParserTests {
 		catch (StreamDefinitionException e) {
 			assertEquals(XDDSLMessages.ILLEGAL_STREAM_NAME, e.getMessageCode());
 			assertEquals(0, e.getPosition());
-			e.printStackTrace();
 			assertEquals(streamName, e.getInserts()[0]);
 		}
 	}

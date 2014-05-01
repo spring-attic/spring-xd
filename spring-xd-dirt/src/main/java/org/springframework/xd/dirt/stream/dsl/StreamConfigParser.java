@@ -73,12 +73,11 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		tokenStreamPointer = 0;
 		StreamNode ast = eatStream();
 
-		// Check the stream name
-		if (ast.getName() != null) {
-			if (!isValidStreamName(ast.getName())) {
-				throw new StreamDefinitionException(ast.getName(), 0, XDDSLMessages.ILLEGAL_STREAM_NAME, ast.getName());
-			}
+		// Check the stream name, however it was specified
+		if (ast.getName() != null && !isValidStreamName(ast.getName())) {
+			throw new StreamDefinitionException(ast.getName(), 0, XDDSLMessages.ILLEGAL_STREAM_NAME, ast.getName());
 		}
+
 		if (name != null && !isValidStreamName(name)) {
 			throw new StreamDefinitionException(name, 0, XDDSLMessages.ILLEGAL_STREAM_NAME, name);
 		}
@@ -505,7 +504,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	}
 
 	/**
-	 * Verify the supplied name is a valid stream name. Valid stream names obey the same rules as Java identifiers.
+	 * Verify the supplied name is a valid stream name. Valid stream names must follow the same rules as java
+	 * identifiers, with the additional option to use a hyphen ('-') after the first character.
 	 *
 	 * @param streamname the name to validate
 	 * @return true if name is valid

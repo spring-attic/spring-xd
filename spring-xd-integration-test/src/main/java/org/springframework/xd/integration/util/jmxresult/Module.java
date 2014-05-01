@@ -24,27 +24,51 @@ import java.util.Map.Entry;
 import org.springframework.util.StringUtils;
 
 /**
+ * Represents an XD Module that is returned from a JMX Query.
+ *
  * @author Glenn Renfro
  */
 public class Module {
+
 	private String sendCount;
+
 	private String timeSinceLastSend;
+
 	private String meanSendRate;
+
 	private String meanSendDuration;
+
 	private String sendErrorCount;
+
 	private String standardDeviationSendDuration;
+
 	private String maxSendDuration;
+
 	private String meanErrorRatio;
+
 	private String meanErrorRate;
+
 	private String minSendDuration;
+
 	private String request;
+
 	private String moduleName;
+
 	private String moduleChannel;
 
 	private final static int MODULE_NAME_OFFSET = 1;
+
 	private final static int MODULE_CHANNEL_OFFSET = 2;
 
-	public static Module generateModuleFromJackson(String key, Object value)
+	/**
+	 * Retrieves the module data from the key and value data returned from Jackson.
+	 *
+	 * @param key The key for the module
+	 * @param value The value associated for the module.
+	 * @return Fully qualified Module Instance.
+	 * @throws Exception
+	 */
+	static Module generateModuleFromJackson(String key, Object value)
 			throws Exception {
 		@SuppressWarnings("unchecked")
 		Module module = setupModule((LinkedHashMap<String, Object>) value);
@@ -55,19 +79,6 @@ public class Module {
 		module.setModuleChannel(StringUtils.tokenizeToStringArray(
 				moduleComponents[MODULE_CHANNEL_OFFSET], "=")[1]);
 
-		return module;
-	}
-
-	static private Module setupModule(LinkedHashMap<String, Object> value)
-			throws Exception {
-		Module module = new Module();
-		Iterator<Entry<String, Object>> iter = value.entrySet().iterator();
-		while (iter.hasNext()) {
-			Entry<String, Object> entry = iter.next();
-			Method setter = module.getClass().getMethod("set" + entry.getKey(),
-					String.class);
-			setter.invoke(module, entry.getValue().toString());
-		}
 		return module;
 	}
 
@@ -175,6 +186,20 @@ public class Module {
 	public void setRequest(String request) {
 		this.request = request;
 	}
+
+	static private Module setupModule(LinkedHashMap<String, Object> value)
+			throws Exception {
+		Module module = new Module();
+		Iterator<Entry<String, Object>> iter = value.entrySet().iterator();
+		while (iter.hasNext()) {
+			Entry<String, Object> entry = iter.next();
+			Method setter = module.getClass().getMethod("set" + entry.getKey(),
+					String.class);
+			setter.invoke(module, entry.getValue().toString());
+		}
+		return module;
+	}
+
 
 	@Override
 	public String toString() {

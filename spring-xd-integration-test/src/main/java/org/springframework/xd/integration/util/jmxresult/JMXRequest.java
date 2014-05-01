@@ -17,23 +17,31 @@
 package org.springframework.xd.integration.util.jmxresult;
 
 /**
+ * The request to retrieve the Module MBean.
+ * 
  * @author Glenn Renfro
  */
 
 public class JMXRequest {
+
 	private String mbean;
+
 	private String type;
+
 	public String getMbean() {
 		return mbean;
 	}
+
 	public void setMbean(String mbean) {
 		this.mbean = mbean;
 	}
+
 	public String getType() {
 		return type;
 	}
+
 	public void setType(String type) {
 		this.type = type;
 	}
-	
+
 }

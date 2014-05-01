@@ -20,54 +20,51 @@ import java.util.UUID;
 
 import org.junit.Test;
 
-import org.springframework.xd.test.fixtures.SimpleFileSink;
-
 
 /**
- * 
- * @author renfrg
+ * Verifies that the FileSource and TailSource can retrieve data from their associated file.
+ *
+ * @author Glenn Renfro
  */
 public class FileSourceTest extends AbstractIntegrationTest {
 
 	/**
 	 * Evaluates whether the file source (poller) will retrieve the specified file when it is added to the monitored
 	 * directory.
-	 * 
-	 * @throws Exception
+	 *
 	 */
 	@Test
-	public void testFileSource() throws Exception {
+	public void testFileSource() {
 		String data = UUID.randomUUID().toString();
 		String sourceDir = UUID.randomUUID().toString();
 		String fileName = UUID.randomUUID().toString();
 		stream(sources.file(sourceDir, fileName + ".out") + XD_DELIMETER
-				+ sinks.getSink(SimpleFileSink.class));
+				+ sinks.file());
 		stream("dataSender",
 				"trigger  --payload='" + data + "'" + XD_DELIMETER
 						+ sinks.file(sourceDir, fileName).toDSL("REPLACE", "true"));
 		waitForXD();
-		assertValid(data, sinks.getSink(SimpleFileSink.class));
+		assertValid(data, sinks.file());
 	}
 
 
 	/**
 	 * Evaluates whether the tail source (poller) will retrieve the results when the specified file is updated.
-	 * 
-	 * @throws Exception
+	 *
 	 */
 	@Test
-	public void testTailSource() throws Exception {
+	public void testTailSource() {
 		String data = UUID.randomUUID().toString();
 		String sourceDir = UUID.randomUUID().toString();
 		String fileName = UUID.randomUUID().toString();
 
 		stream(sources.tail(1000, sourceDir + "/" + fileName + ".out") + XD_DELIMETER
-				+ sinks.getSink(SimpleFileSink.class));
+				+ sinks.file());
 		waitForXD();
 		stream("dataSender",
 				"trigger --payload='" + data + "'" + XD_DELIMETER
 						+ sinks.file(sourceDir, fileName).toDSL("REPLACE", "false"));
-		assertValid(data, sinks.getSink(SimpleFileSink.class));
+		assertValid(data, sinks.file());
 	}
 
 }

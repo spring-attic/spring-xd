@@ -1,11 +1,11 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,21 +18,26 @@ package org.springframework.xd.integration.test;
 
 import org.junit.Test;
 
+import org.springframework.xd.test.fixtures.TwitterSearchSource;
+
+
 /**
- * Test using Time as a source.
+ * Test Twitter search to make sure it is returning what we requested.
  *
  * @author Glenn Renfro
  */
 
-public class TickTockTest extends AbstractIntegrationTest {
+public class TwitterSearchTest extends AbstractIntegrationTest {
 
-	/**
-	 * Verifies that a time source will generate a message upon deploy
-	 */
 	@Test
-	public void testHeartBeat() {
-		stream("time --fixedDelay=30 " + XD_DELIMETER + sinks.file());
-		assertReceived(1);
-	}
+	public void twitterSearchTest() throws Exception {
 
+		final String data = "#springio";
+		TwitterSearchSource twitterSearchSource = sources.twitterSearch(data);
+		stream(twitterSearchSource + XD_DELIMETER + sinks.file());
+		this.waitForXD();
+		assertReceived("file.1", 1);
+		assertContains(data);
+
+	}
 }

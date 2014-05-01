@@ -307,7 +307,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			String streamName = "test" + i;
 			StreamDefinition definition = new StreamDefinition(streamName,
 					"http --port=" + SocketUtils.findAvailableTcpPort()
-					+ "| transform --expression=payload | filter --expression=true | log");
+							+ "| transform --expression=payload | filter --expression=true | log");
 			integrationSupport.streamDeployer().save(definition);
 			assertTrue(String.format("stream %s (%s) not deployed", streamName, definition),
 					integrationSupport.deployStream(definition));
@@ -331,15 +331,21 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	}
 
 	@Test
-	public void moduleChannelsRegisteredWithMessageBus() {
+	public void moduleChannelsRegisteredWithMessageBus() throws InterruptedException {
 		StreamDefinition sd = new StreamDefinition("busTest", "http | log");
 		int originalBindings = getMessageBusBindingCount();
 		assertTrue("Timeout waiting for stream deployment", integrationSupport.createAndDeployStream(sd));
 		int newBindings = getMessageBusBindingCount() - originalBindings;
-		assertEquals(3, newBindings);
-		integrationSupport.undeployAndDestroyStream(sd);
-		assertEquals(originalBindings, getMessageBusBindingCount());
+		assertEquals(2, newBindings);
 
+		StreamDefinition tapStream = new StreamDefinition("busTestTap", "tap:stream:busTest > log");
+		assertTrue("Timeout waiting for stream deployment", integrationSupport.createAndDeployStream(tapStream));
+		int afterTapBindings = getMessageBusBindingCount() - originalBindings;
+		assertEquals(4, afterTapBindings);
+		integrationSupport.undeployAndDestroyStream(tapStream);
+		integrationSupport.undeployAndDestroyStream(sd);
+		Thread.sleep(2000); // todo: we need waitForDestroy within the previous method
+		assertEquals(originalBindings, getMessageBusBindingCount());
 	}
 
 	@Test

@@ -38,6 +38,8 @@ import org.mockito.stubbing.Answer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -76,7 +78,19 @@ public class MessageBusRegistrationTests {
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
-		streamPlugin = new StreamPlugin(bus);
+		EmbeddedZooKeeper embeddedZooKeeper = new EmbeddedZooKeeper();
+		embeddedZooKeeper.start();
+		ZooKeeperConnection zkConnection = new ZooKeeperConnection("localhost:" + embeddedZooKeeper.getClientPort());
+		zkConnection.start();
+		while (!zkConnection.isConnected()) {
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
+		streamPlugin = new StreamPlugin(bus, zkConnection);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		when(module.getDescriptor()).thenReturn(descriptor);

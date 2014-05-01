@@ -35,6 +35,9 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.utils.ThreadUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.KeeperException.NotEmptyException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
@@ -97,6 +100,11 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * Logger.
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(ContainerRegistrar.class);
+
+	/**
+	 * Prefix for tap channels.
+	 */
+	private static final String TAP_CHANNEL_PREFIX = "tap:";
 
 	/**
 	 * Metadata for the current Container.
@@ -222,6 +230,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		Module module = (moduleDescriptor.isComposed())
 				? createComposedModule(moduleDescriptor, moduleOptions, deploymentProperties)
 				: createSimpleModule(moduleDescriptor, moduleOptions, deploymentProperties);
+
+		registerTap(moduleDescriptor);
+
 		// todo: rather than delegate, merge ContainerRegistrar itself into and remove most of ModuleDeployer
 		this.moduleDeployer.deployAndStore(module, moduleDescriptor);
 		return module;
@@ -249,7 +260,73 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			logger.info("Undeploying module {}", descriptor);
 			mapDeployedModules.remove(key);
 			this.moduleDeployer.undeploy(descriptor);
+			unregisterTap(descriptor);
 		}
+	}
+
+	/**
+	 * Register the existence of a tap subscriber if the provided module has a tap channel as its source channel.
+	 *
+	 * @param descriptor {@link ModuleDescriptor} for the module
+	 */
+	private void registerTap(ModuleDescriptor descriptor) {
+		String tapChannelName = determineTapChannel(descriptor);
+		if (tapChannelName != null) {
+			try {
+				zkConnection.getClient().create().creatingParentsIfNeeded().forPath(
+						Paths.build(Paths.TAPS, tapChannelName, containerAttributes.getId(),
+								descriptor.getGroup()));
+			}
+			catch (Exception e) {
+				// if it already exists, ignore
+				ZooKeeperUtils.wrapAndThrowIgnoring(e, NodeExistsException.class);
+			}
+		}
+	}
+
+	/**
+	 * Unregister the tap subscriber if the provided module has a tap channel as its source channel.
+	 *
+	 * @param descriptor {@link ModuleDescriptor} for the module
+	 */
+	private void unregisterTap(ModuleDescriptor descriptor) {
+		CuratorFramework client = zkConnection.getClient();
+		String tapChannelName = determineTapChannel(descriptor);
+		if (tapChannelName != null) {
+			try {
+				try {
+					client.delete().forPath(Paths.build(Paths.TAPS, tapChannelName, this.containerAttributes.getId(),
+							descriptor.getGroup()));
+				}
+				catch (NoNodeException e) {
+					// already deleted, ignore
+				}
+				try {
+					// now try to delete the container node and then if successful, the tap node itself
+					client.delete().forPath(Paths.build(Paths.TAPS, tapChannelName, this.containerAttributes.getId()));
+					client.delete().forPath(Paths.build(Paths.TAPS, tapChannelName));
+				}
+				catch (NotEmptyException e) {
+					// attempted to delete a node that still has other children, let it be
+				}
+			}
+			catch (Exception e) {
+				throw ZooKeeperUtils.wrapThrowable(e);
+			}
+		}
+	}
+
+	/**
+	 * Determine whether the provided descriptor has a tap channel as its "source", and if so return the unqualified tap
+	 * channel name. If not, return {@code null}.
+	 *
+	 * @param descriptor ModuleDescriptor whose source channel is checked
+	 * @return unqualified tap channel name or {@code null}
+	 */
+	private String determineTapChannel(ModuleDescriptor descriptor) {
+		String sourceChannelName = descriptor.getSourceChannelName();
+		return (sourceChannelName != null && sourceChannelName.startsWith(TAP_CHANNEL_PREFIX))
+				? sourceChannelName.substring(TAP_CHANNEL_PREFIX.length()) : null;
 	}
 
 	/**

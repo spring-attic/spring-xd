@@ -67,6 +67,11 @@ public class Paths {
 	public static final String JOBS = "jobs";
 
 	/**
+	 * Name of taps node. Channel names with active taps are written as children of this node.
+	 */
+	public static final String TAPS = "taps";
+
+	/**
 	 * Name of deployments node. Deployments are written as children of this node.
 	 */
 	public static final String DEPLOYMENTS = "deployments";

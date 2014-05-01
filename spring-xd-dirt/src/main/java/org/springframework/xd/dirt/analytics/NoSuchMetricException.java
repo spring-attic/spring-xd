@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.analytics;
 
-import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Thrown when trying to access a named metric that does not exist.

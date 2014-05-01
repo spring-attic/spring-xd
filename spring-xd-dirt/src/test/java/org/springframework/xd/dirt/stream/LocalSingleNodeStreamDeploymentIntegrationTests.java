@@ -24,9 +24,9 @@ import org.junit.Test;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 /**
  * @author Mark Fisher

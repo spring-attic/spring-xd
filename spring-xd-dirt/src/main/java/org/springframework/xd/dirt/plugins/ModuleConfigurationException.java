@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
-import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 import org.springframework.xd.module.ModuleType;
 
 

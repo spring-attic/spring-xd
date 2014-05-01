@@ -20,7 +20,7 @@ import org.junit.rules.ExternalResource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.integration.x.bus.RedisTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.RedisTestMessageBus;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**

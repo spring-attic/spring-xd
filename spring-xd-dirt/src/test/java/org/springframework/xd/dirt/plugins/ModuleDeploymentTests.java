@@ -24,8 +24,8 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.bus.BusTestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.xd.dirt.integration.bus.BusTestUtils;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.test.redis.RedisTestSupport;

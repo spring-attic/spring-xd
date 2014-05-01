@@ -29,10 +29,10 @@ import org.junit.Test;
 
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.x.bus.converter.CompositeMessageConverterFactory;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.container.initializer.AbstractResourceBeanDefinitionProvider;
+import org.springframework.xd.dirt.integration.bus.converter.CompositeMessageConverterFactory;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;

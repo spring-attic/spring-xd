@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<bean id="messageBus" class="org.springframework.integration.x.rabbit.RabbitMessageBus">
+	<bean id="messageBus" class="org.springframework.xd.dirt.integration.rabbit.RabbitMessageBus">
 		<constructor-arg ref="rabbitConnectionFactory" />
 		<constructor-arg ref="codec"/>
 		<property name="defaultAcknowledgeMode" value="#{T(org.springframework.amqp.core.AcknowledgeMode).${xd.messagebus.rabbit.default.ackMode}}" />

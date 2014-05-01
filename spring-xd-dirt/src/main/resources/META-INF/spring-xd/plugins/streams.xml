@@ -16,14 +16,14 @@
 	</bean>
 	
 	<util:list id="xd.messageConverters">
-			<bean class="org.springframework.integration.x.bus.converter.JsonToTupleMessageConverter"/>
-			<bean class="org.springframework.integration.x.bus.converter.JsonToPojoMessageConverter"/>
-			<bean class="org.springframework.integration.x.bus.converter.TupleToJsonMessageConverter"/>
-			<bean class="org.springframework.integration.x.bus.converter.PojoToJsonMessageConverter"/>
-			<bean class="org.springframework.integration.x.bus.converter.ByteArrayToStringMessageConverter"/>
-			<bean class="org.springframework.integration.x.bus.converter.PojoToStringMessageConverter"/>
-			<bean class="org.springframework.integration.x.bus.converter.JavaToSerializedMessageConverter"/>
-			<bean class="org.springframework.integration.x.bus.converter.SerializedToJavaMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.JsonToTupleMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.JsonToPojoMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.TupleToJsonMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.PojoToJsonMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.ByteArrayToStringMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.PojoToStringMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.JavaToSerializedMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.SerializedToJavaMessageConverter"/>
 	</util:list>
 
 	<!-- Users can override this to add converters.-->

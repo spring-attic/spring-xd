@@ -39,26 +39,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.x.bus.AbstractTestMessageBus;
-import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.integration.x.bus.serializer.AbstractCodec;
-import org.springframework.integration.x.bus.serializer.CompositeCodec;
-import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
-import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
-import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.SocketUtils;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
-import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
-import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
-import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
-import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
-import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
+import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
+import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
+import org.springframework.xd.dirt.test.sink.NamedChannelSink;
+import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
+import org.springframework.xd.dirt.test.source.NamedChannelSource;
+import org.springframework.xd.dirt.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.tuple.Tuple;
 
@@ -77,7 +77,7 @@ import org.springframework.xd.tuple.Tuple;
  * Additionally, extensions of this class should initialize the {@link #testMessageBus}
  * member via an {@link org.junit.rules.ExternalResource} static member annotated with
  * {@link org.junit.ClassRule} if the tests require a specific
- * {@link org.springframework.integration.x.bus.MessageBus} implementation.
+ * {@link org.springframework.xd.dirt.integration.bus.MessageBus} implementation.
  *
  * @author David Turanski
  * @author Gunnar Hillert

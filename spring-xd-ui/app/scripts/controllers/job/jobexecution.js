@@ -22,7 +22,7 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobExecutions', 'XDCommon', function ($scope, jobExecutions, xdCommon) {
+  return ['$scope', 'JobExecutions', 'XDCommon', '$state', function ($scope, jobExecutions, xdCommon, $state) {
     var list = function () {
       var jobExcutionsPromise = jobExecutions.getArray().$promise;
       xdCommon.addBusyPromise(jobExcutionsPromise);
@@ -38,6 +38,10 @@ define([], function () {
           });
     };
     list();
+    $scope.viewJobExecutionDetails = function (jobExecution) {
+      xdCommon.$log.info('Showing Job Execution details for Job Execution with Id: ' + jobExecution.executionId);
+      $state.go('home.jobs.executiondetails', {executionId: jobExecution.executionId});
+    };
     $scope.restartJob = function (job) {
       xdCommon.$log.info('Restarting Job ' + job.name);
       jobExecutions.restart(job).$promise.then(

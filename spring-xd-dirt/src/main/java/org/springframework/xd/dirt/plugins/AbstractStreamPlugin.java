@@ -16,7 +16,9 @@
 
 package org.springframework.xd.dirt.plugins;
 
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 
@@ -41,6 +43,15 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 	@Override
 	protected String getOutputChannelName(Module module) {
 		return module.getDeploymentMetadata().getOutputChannelName();
+	}
+
+	@Override
+	protected String buildTapChannelName(Module module) {
+		Assert.isTrue(module.getType() != ModuleType.job, "Job module type not supported.");
+		DeploymentMetadata dm = module.getDeploymentMetadata();
+		// for Stream return channel name with indexed elements
+		return String.format("%s%s%s.%s.%s", TAP_CHANNEL_PREFIX, "stream:", dm.getGroup(), module.getName(),
+				dm.getIndex());
 	}
 
 	@Override

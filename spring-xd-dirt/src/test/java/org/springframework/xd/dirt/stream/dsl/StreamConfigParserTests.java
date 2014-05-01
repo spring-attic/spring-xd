@@ -405,7 +405,7 @@ public class StreamConfigParserTests {
 		parse("foo = http | bar | file");
 		StreamNode ast = parse("tap:stream:foo.bar > file");
 		assertEquals("[(tap:stream:foo.bar.1:0>18)>(ModuleNode:file:21>25)]", ast.stringify(true));
-		assertEquals("tap:foo.bar.1", ast.getSourceChannelNode().getChannelName());
+		assertEquals("tap:stream:foo.bar.1", ast.getSourceChannelNode().getChannelName());
 	}
 
 	@Test
@@ -432,7 +432,7 @@ public class StreamConfigParserTests {
 
 		ast = parse("tap:stream:mystream.http > file");
 		sourceChannelNode = ast.getSourceChannelNode();
-		assertEquals("tap:mystream.http.0", sourceChannelNode.getChannelName());
+		assertEquals("tap:stream:mystream.http.0", sourceChannelNode.getChannelName());
 	}
 
 	@Test
@@ -443,13 +443,13 @@ public class StreamConfigParserTests {
 
 		ast = parse("tap:stream:mystream.http > file");
 		sourceChannelNode = ast.getSourceChannelNode();
-		assertEquals("tap:mystream.http.0", sourceChannelNode.getChannelName());
+		assertEquals("tap:stream:mystream.http.0", sourceChannelNode.getChannelName());
 		assertEquals(ChannelType.TAP_STREAM, sourceChannelNode.getChannelType());
 
 		ast = parse("tap:stream:mystream > file");
 		sourceChannelNode = ast.getSourceChannelNode();
 		// After resolution the name has been properly setup
-		assertEquals("tap:mystream.http.0", sourceChannelNode.getChannelName());
+		assertEquals("tap:stream:mystream.http.0", sourceChannelNode.getChannelName());
 		assertEquals(ChannelType.TAP_STREAM, sourceChannelNode.getChannelType());
 	}
 
@@ -663,17 +663,17 @@ public class StreamConfigParserTests {
 	@Test
 	public void errorCases13() {
 		parse("mystream = http | transform | filter | transform | file");
-		checkForParseError("tap:stream:mystream.transform > file", XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE, 13,
+		checkForParseError("tap:stream:mystream.transform > file", XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE, 20,
 				"transform");
 		sn = parse("tap:stream:mystream.transform.1 > file");
-		assertEquals("tap:mystream.transform.1", sn.getSourceChannelNode().getChannelName());
+		assertEquals("tap:stream:mystream.transform.1", sn.getSourceChannelNode().getChannelName());
 	}
 
 	@Test
 	public void tapWithLabels() {
 		parse("mystream = http | flibble: transform | file");
 		sn = parse("tap:stream:mystream.flibble > file");
-		assertEquals("tap:mystream.transform.1", sn.getSourceChannelNode().getChannelName());
+		assertEquals("tap:stream:mystream.transform.1", sn.getSourceChannelNode().getChannelName());
 	}
 
 	@Test

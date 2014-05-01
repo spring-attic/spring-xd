@@ -99,12 +99,12 @@ public class StreamPluginTests {
 		plugin.postProcessModule(module);
 		verify(bus).bindConsumer("foo.0", input);
 		verify(bus).bindProducer("foo.1", output);
-		verify(bus).bindPubSubProducer(eq("tap:foo.testing.1"), any(DirectChannel.class));
+		verify(bus).bindPubSubProducer(eq("tap:stream:foo.testing.1"), any(DirectChannel.class));
 		plugin.beforeShutdown(module);
 		plugin.removeModule(module);
 		verify(bus).unbindConsumer("foo.0", input);
 		verify(bus).unbindProducer("foo.1", output);
-		verify(bus).unbindProducers("tap:foo.testing.1");
+		verify(bus).unbindProducers("tap:stream:foo.testing.1");
 	}
 
 	@Test

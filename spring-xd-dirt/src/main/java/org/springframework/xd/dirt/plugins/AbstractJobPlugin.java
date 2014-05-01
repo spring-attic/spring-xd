@@ -44,6 +44,12 @@ public class AbstractJobPlugin extends AbstractMessageBusBinderPlugin {
 	}
 
 	@Override
+	protected String buildTapChannelName(Module module) {
+		throw new UnsupportedOperationException(
+				"Tap on job module is not valid as job module doesn't have an output channel.");
+	}
+
+	@Override
 	public boolean supports(Module module) {
 		return (module.getType() == ModuleType.job);
 	}

@@ -299,7 +299,6 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			channelScopeComponents.remove(0); // remove 'tap'
 			if (tapping.equals("stream")) {
 				channelType = ChannelType.TAP_STREAM;
-				channelScopeComponents.remove(0);
 			}
 			else if (tapping.equals("job")) {
 				channelType = ChannelType.TAP_JOB;

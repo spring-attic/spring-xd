@@ -1898,3 +1898,8 @@ idea {
 	project { languageLevel = '1.7' }
 }
 
+idea.project.ipr {
+	withXml { provider ->
+		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+	}
+}

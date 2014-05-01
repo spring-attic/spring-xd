@@ -191,9 +191,7 @@ public class XDStreamParser implements XDParser {
 		String name = builder.getModuleName();
 		int index = builder.getIndex();
 
-		Position position = Position.of(index, lastIndex);
-		ModuleType[] allowedTypes = parsingContext.allowed(position);
-		return verifyModuleOfTypeExists(name, allowedTypes);
+		return resolveModuleType(name, parsingContext.allowed(Position.of(index, lastIndex)));
 	}
 
 	/**
@@ -233,7 +231,7 @@ public class XDStreamParser implements XDParser {
 				type = ModuleType.processor;
 			}
 		}
-		return (type == null) ? null : verifyModuleOfTypeExists(moduleName, type);
+		return (type == null) ? null : resolveModuleType(moduleName, type);
 	}
 
 	/**
@@ -285,12 +283,17 @@ public class XDStreamParser implements XDParser {
 	}
 
 	/**
-	 * Asserts that there exists a module with the given name and type
-	 * (trying each one in order) and returns that type; fails otherwise.
+	 * Return the module type for the module name. Based on the position
+	 * in the stream definition, the module <b>must</b> be one of the
+	 * types passed into {@code candidates}.
 	 *
-	 * @throws NoSuchModuleException if the module does not exist
+	 * @param moduleName name of module
+	 * @param candidates the list of module types the module can be
+	 * @return the module type for the module name
+	 * @throws NoSuchModuleException if no module with this name exists for one of
+	 *                               the types present in {@code candidates}
 	 */
-	private ModuleType verifyModuleOfTypeExists(String moduleName, ModuleType... candidates) {
+	private ModuleType resolveModuleType(String moduleName, ModuleType... candidates) {
 		for (ModuleType type : candidates) {
 			ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(moduleName, type);
 			if (def != null) {

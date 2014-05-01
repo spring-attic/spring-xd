@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
+import java.util.Properties;
+
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
@@ -25,7 +27,7 @@ import org.springframework.xd.module.core.Module;
 
 /**
  * Plugin to enable job partitioning.
- * 
+ *
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
  * @since 1.0
@@ -57,20 +59,21 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 		if (logger.isDebugEnabled()) {
 			logger.debug("binding job partitioning channels for " + module);
 		}
+		Properties[] properties = extractConsumerProducerProperties(module);
 		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
 		Assert.notNull(partitionsOut, "Partitioned jobs must have a " + JOB_PARTIONER_REQUEST_CHANNEL);
 		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
 		Assert.notNull(partitionsIn, "Partitioned jobs must have a " + JOB_PARTIONER_REPLY_CHANNEL);
 		ModuleDescriptor descriptor = module.getDescriptor();
 		String name = descriptor.getGroup() + "." + descriptor.getIndex();
-		messageBus.bindRequestor(name, partitionsOut, partitionsIn);
+		messageBus.bindRequestor(name, partitionsOut, partitionsIn, properties[0]);
 
 		MessageChannel stepExecutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
 		Assert.notNull(stepExecutionsIn, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REQUEST_CHANNEL);
 		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
 				MessageChannel.class);
 		Assert.notNull(stepExecutionResultsOut, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REPLY_CHANNEL);
-		messageBus.bindReplier(name, stepExecutionsIn, stepExecutionResultsOut);
+		messageBus.bindReplier(name, stepExecutionsIn, stepExecutionResultsOut, properties[1]);
 	}
 
 	private void unbindPartitionedJob(Module module) {

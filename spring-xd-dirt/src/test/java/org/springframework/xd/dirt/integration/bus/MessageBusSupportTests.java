@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -230,27 +231,31 @@ public class MessageBusSupportTests {
 	public class TestMessageBus extends MessageBusSupport {
 
 		@Override
-		public void bindConsumer(String name, MessageChannel channel) {
+		public void bindConsumer(String name, MessageChannel channel, Properties properties) {
 		}
 
 		@Override
-		public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel) {
+		public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel,
+				Properties properties) {
 		}
 
 		@Override
-		public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel) {
+		public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel,
+				Properties properties) {
 		}
 
 		@Override
-		public void bindProducer(String name, MessageChannel channel) {
+		public void bindProducer(String name, MessageChannel channel, Properties properties) {
 		}
 
 		@Override
-		public void bindRequestor(String name, MessageChannel requests, MessageChannel replies) {
+		public void bindRequestor(String name, MessageChannel requests, MessageChannel replies,
+				Properties properties) {
 		}
 
 		@Override
-		public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
+		public void bindReplier(String name, MessageChannel requests, MessageChannel replies,
+				Properties properties) {
 		}
 
 	}

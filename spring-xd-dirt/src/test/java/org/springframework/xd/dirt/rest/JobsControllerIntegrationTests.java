@@ -125,7 +125,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Test
 	public void testSuccessfulJobLaunch() throws Exception {
 		QueueChannel channel = new QueueChannel();
-		messageBus.bindConsumer("job:joblaunch", channel);
+		messageBus.bindConsumer("job:joblaunch", channel, null);
 		mockMvc.perform(
 				post("/jobs").param("name", "joblaunch").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());

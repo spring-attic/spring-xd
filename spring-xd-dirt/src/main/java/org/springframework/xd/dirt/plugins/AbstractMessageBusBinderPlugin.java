@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.plugins;
 
+import java.util.Map;
+import java.util.Properties;
+
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
@@ -64,15 +67,34 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	 * @param module the module whose consumer and producers to bind to the {@link MessageBus}.
 	 */
 	protected final void bindConsumerAndProducers(Module module) {
+		Properties[] properties = extractConsumerProducerProperties(module);
 		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
 		if (inputChannel != null) {
-			bindMessageConsumer(inputChannel, getInputChannelName(module));
+			bindMessageConsumer(inputChannel, getInputChannelName(module), properties[0]);
 		}
 		MessageChannel outputChannel = module.getComponent(MODULE_OUTPUT_CHANNEL, MessageChannel.class);
 		if (outputChannel != null) {
-			bindMessageProducer(outputChannel, getOutputChannelName(module));
+			bindMessageProducer(outputChannel, getOutputChannelName(module), properties[1]);
 			createAndBindTapChannel(module, outputChannel);
 		}
+	}
+
+	protected final Properties[] extractConsumerProducerProperties(Module module) {
+		Properties consumerProperties = new Properties();
+		Properties producerProperties = new Properties();
+		String consumerKeyPrefix = "consumer.";
+		String producerKeyPrefix = "producer.";
+		if (module.getDeploymentProperties() != null) {
+			for (Map.Entry<String, String> entry : module.getDeploymentProperties().entrySet()) {
+				if (entry.getKey().startsWith(consumerKeyPrefix)) {
+					consumerProperties.put(entry.getKey().substring(consumerKeyPrefix.length()), entry.getValue());
+				}
+				else if (entry.getKey().startsWith(producerKeyPrefix)) {
+					producerProperties.put(entry.getKey().substring(producerKeyPrefix.length()), entry.getValue());
+				}
+			}
+		}
+		return new Properties[] { consumerProperties, producerProperties };
 	}
 
 	protected abstract String getInputChannelName(Module module);
@@ -81,21 +103,23 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 
 	protected abstract String buildTapChannelName(Module module);
 
-	private void bindMessageConsumer(MessageChannel inputChannel, String inputChannelName) {
+	private void bindMessageConsumer(MessageChannel inputChannel, String inputChannelName,
+			Properties consumerProperties) {
 		if (isChannelPubSub(inputChannelName)) {
-			messageBus.bindPubSubConsumer(inputChannelName, inputChannel);
+			messageBus.bindPubSubConsumer(inputChannelName, inputChannel, consumerProperties);
 		}
 		else {
-			messageBus.bindConsumer(inputChannelName, inputChannel);
+			messageBus.bindConsumer(inputChannelName, inputChannel, consumerProperties);
 		}
 	}
 
-	private void bindMessageProducer(MessageChannel outputChannel, String outputChannelName) {
+	private void bindMessageProducer(MessageChannel outputChannel, String outputChannelName,
+			Properties producerProperties) {
 		if (isChannelPubSub(outputChannelName)) {
-			messageBus.bindPubSubProducer(outputChannelName, outputChannel);
+			messageBus.bindPubSubProducer(outputChannelName, outputChannel, producerProperties);
 		}
 		else {
-			messageBus.bindProducer(outputChannelName, outputChannel);
+			messageBus.bindProducer(outputChannelName, outputChannel, producerProperties);
 		}
 	}
 
@@ -110,7 +134,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		if (outputChannel instanceof ChannelInterceptorAware) {
 			String tapChannelName = buildTapChannelName(module);
 			MessageChannel tapChannel = tapOutputChannel(tapChannelName, (ChannelInterceptorAware) outputChannel);
-			messageBus.bindPubSubProducer(tapChannelName, tapChannel);
+			messageBus.bindPubSubProducer(tapChannelName, tapChannel, null); // TODO tap producer props
 		}
 		else {
 			if (logger.isDebugEnabled()) {

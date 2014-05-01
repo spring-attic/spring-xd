@@ -43,6 +43,7 @@ xd:
         backOffMaxInterval:        10000
         backOffMultiplier:         2.0
         concurrency:               1
+        deliveryMode:              PERSISTENT
         maxAttempts:               3
         maxConcurrency:            1
         prefix:                    xdbus.

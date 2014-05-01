@@ -124,8 +124,8 @@ public class RemoteFileToTmpTests {
 
 		this.bus = new LocalMessageBus();
 		this.bus.setApplicationContext(BusTestUtils.MOCK_AC);
-		this.bus.bindRequestor("foo", this.requestsOut, this.repliesIn);
-		this.bus.bindReplier("foo", this.requestsIn, this.repliesOut);
+		this.bus.bindRequestor("foo", this.requestsOut, this.repliesIn, null);
+		this.bus.bindReplier("foo", this.requestsIn, this.repliesOut, null);
 	}
 
 	@After

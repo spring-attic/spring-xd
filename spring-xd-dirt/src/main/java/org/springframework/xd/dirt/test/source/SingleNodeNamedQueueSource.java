@@ -18,9 +18,9 @@ import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 /**
  * A {@link NamedChannelSource} implementation that binds to a Queue Channel.
- * 
+ *
  * @author David Turanski
- * 
+ *
  */
 public class SingleNodeNamedQueueSource extends AbstractSingleNodeNamedChannelSource {
 
@@ -30,7 +30,7 @@ public class SingleNodeNamedQueueSource extends AbstractSingleNodeNamedChannelSo
 
 	@Override
 	protected void bind() {
-		this.messageBus.bindProducer(this.sharedChannelName, this.messageChannel);
+		this.messageBus.bindProducer(this.sharedChannelName, this.messageChannel, null);
 	}
 
 }

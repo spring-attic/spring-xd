@@ -88,7 +88,7 @@ public class MessageBusAwareChannelResolverTests {
 				latch.countDown();
 			}
 		});
-		bus.bindConsumer("queue:foo", testChannel);
+		bus.bindConsumer("queue:foo", testChannel, null);
 		assertEquals(0, received.size());
 		registered.send(MessageBuilder.withPayload("hello").build());
 		try {
@@ -120,7 +120,7 @@ public class MessageBusAwareChannelResolverTests {
 					latch.countDown();
 				}
 			});
-			bus.bindPubSubConsumer("topic:bar", testChannel);
+			bus.bindPubSubConsumer("topic:bar", testChannel, null);
 		}
 		assertEquals(0, received.size());
 		registered.send(MessageBuilder.withPayload("hello").build());

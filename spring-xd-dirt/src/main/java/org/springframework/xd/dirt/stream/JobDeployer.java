@@ -62,7 +62,7 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 		if (channel == null) {
 			jobChannels.putIfAbsent(name, new DirectChannel());
 			channel = jobChannels.get(name);
-			messageBus.bindProducer(JOB_CHANNEL_PREFIX + name, channel);
+			messageBus.bindProducer(JOB_CHANNEL_PREFIX + name, channel, null);
 		}
 		// Double check so that user gets an informative error message
 		JobDefinition job = getDefinitionRepository().findOne(name);

@@ -357,7 +357,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		DirectChannel testChannel = new DirectChannel();
 		MessageBus bus = testMessageBus != null ? testMessageBus : integrationSupport.messageBus();
-		bus.bindProducer("queue:x", testChannel);
+		bus.bindProducer("queue:x", testChannel, null);
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
 
@@ -404,7 +404,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		DirectChannel testChannel = new DirectChannel();
 		MessageBus bus = testMessageBus != null ? testMessageBus : integrationSupport.messageBus();
-		bus.bindPubSubProducer("topic:x", testChannel);
+		bus.bindPubSubProducer("topic:x", testChannel, null);
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
 
@@ -419,8 +419,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		assertNotNull(z3);
 
 		QueueChannel consumer = new QueueChannel();
-		bus.bindPubSubConsumer("topic:y", consumer);
-		bus.bindPubSubConsumer("topic:z", consumer);
+		bus.bindPubSubConsumer("topic:y", consumer, null);
+		bus.bindPubSubConsumer("topic:z", consumer, null);
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
 		testChannel.send(MessageBuilder.withPayload("z").build());
@@ -530,14 +530,12 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		/**
 		 * Map of module deployment requests keyed by stream name.
 		 */
-		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> deployQueues
-				= new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
+		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> deployQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
 
 		/**
 		 * Map of module undeployment requests keyed by stream name.
 		 */
-		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> undeployQueues
-				= new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
+		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> undeployQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
 
 		/**
 		 * {@inheritDoc}

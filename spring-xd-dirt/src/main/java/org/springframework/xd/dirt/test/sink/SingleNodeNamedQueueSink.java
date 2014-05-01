@@ -18,9 +18,9 @@ import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 /**
  * A {@link NamedChannelSink} implementation that binds to a Queue Channel.
- * 
+ *
  * @author David Turanski
- * 
+ *
  */
 public class SingleNodeNamedQueueSink extends AbstractSingleNodeNamedChannelSink {
 
@@ -31,7 +31,7 @@ public class SingleNodeNamedQueueSink extends AbstractSingleNodeNamedChannelSink
 
 	@Override
 	protected void bind() {
-		this.messageBus.bindConsumer(this.sharedChannelName, this.messageChannel);
+		this.messageBus.bindConsumer(this.sharedChannelName, this.messageChannel, null);
 	}
 
 

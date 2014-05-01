@@ -374,7 +374,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	private void bindJobTap(String jobName) {
 		MessageChannel alreadyBound = jobTapChannels.putIfAbsent(jobName, new QueueChannel());
 		if (alreadyBound == null) {
-			getMessageBus().bindPubSubConsumer("tap:job:" + jobName, jobTapChannels.get(jobName));
+			getMessageBus().bindPubSubConsumer("tap:job:" + jobName, jobTapChannels.get(jobName), null);
 		}
 	}
 

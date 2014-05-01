@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ package org.springframework.xd.dirt.integration.bus;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -73,7 +74,7 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public MessageChannel bindDynamicProducer(String name) {
 		MessageChannel channel = this.directChannelProvider.createSharedChannel("dynamic.output.to." + name);
-		bindProducer(name, channel);
+		bindProducer(name, channel, null); // TODO: dynamic producer options
 		return channel;
 	}
 
@@ -84,7 +85,7 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public MessageChannel bindDynamicPubSubProducer(String name) {
 		MessageChannel channel = this.directChannelProvider.createAndRegisterChannel("dynamic.output.to." + name);
-		bindPubSubProducer(name, channel);
+		bindPubSubProducer(name, channel, null); // TODO: dynamic producer options
 		return channel;
 	}
 
@@ -103,12 +104,12 @@ public class LocalMessageBus extends MessageBusSupport {
 	 * channel instance.
 	 */
 	@Override
-	public void bindConsumer(String name, MessageChannel moduleInputChannel) {
+	public void bindConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
 		doRegisterConsumer(name, moduleInputChannel, getChannelProvider(name));
 	}
 
 	@Override
-	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel) {
+	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
 		doRegisterConsumer(name, moduleInputChannel, pubsubChannelProvider);
 	}
 
@@ -126,12 +127,13 @@ public class LocalMessageBus extends MessageBusSupport {
 	 * channel instance.
 	 */
 	@Override
-	public void bindProducer(String name, MessageChannel moduleOutputChannel) {
+	public void bindProducer(String name, MessageChannel moduleOutputChannel, Properties properties) {
 		doRegisterProducer(name, moduleOutputChannel, getChannelProvider(name));
 	}
 
 	@Override
-	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel) {
+	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel,
+			Properties properties) {
 		doRegisterProducer(name, moduleOutputChannel, pubsubChannelProvider);
 	}
 
@@ -145,7 +147,8 @@ public class LocalMessageBus extends MessageBusSupport {
 	}
 
 	@Override
-	public void bindRequestor(final String name, MessageChannel requests, final MessageChannel replies) {
+	public void bindRequestor(final String name, MessageChannel requests, final MessageChannel replies,
+			Properties properties) {
 		final MessageChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
 		// TODO: handle Pollable ?
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
@@ -168,7 +171,8 @@ public class LocalMessageBus extends MessageBusSupport {
 	}
 
 	@Override
-	public void bindReplier(String name, final MessageChannel requests, MessageChannel replies) {
+	public void bindReplier(String name, final MessageChannel requests, MessageChannel replies,
+			Properties properties) {
 		SubscribableChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
 		requestChannel.subscribe(new MessageHandler() {
 

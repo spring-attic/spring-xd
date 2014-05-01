@@ -29,7 +29,7 @@ import org.springframework.xd.module.core.Module;
 
 /**
  * Plugin to enable the registration of out of the box job listeners.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
@@ -48,7 +48,7 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 		for (String publisherChannelName : eventChannels.keySet()) {
 			MessageChannel eventChannel = module.getComponent(publisherChannelName, SubscribableChannel.class);
 			if (eventChannel != null) {
-				messageBus.bindPubSubProducer(eventChannels.get(publisherChannelName), eventChannel);
+				messageBus.bindPubSubProducer(eventChannels.get(publisherChannelName), eventChannel, null);
 				disableListeners = false;
 			}
 		}
@@ -91,7 +91,7 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 		MessageChannel aggEventsChannel = module.getComponent(XD_AGGREGATED_EVENTS_CHANNEL, SubscribableChannel.class);
 		Assert.notNull(aggEventsChannel,
 				"The pub/sub aggregatedEvents channel should be available in the module context.");
-		messageBus.bindPubSubProducer(getEventListenerChannelName(jobName), aggEventsChannel);
+		messageBus.bindPubSubProducer(getEventListenerChannelName(jobName), aggEventsChannel, null);
 	}
 
 	@Override

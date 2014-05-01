@@ -69,7 +69,7 @@ public class XdEc2Validation {
 	public XdEc2Validation() {
 		restTemplate = new RestTemplate();
 		((SimpleClientHttpRequestFactory) restTemplate.getRequestFactory())
-				.setConnectTimeout(2000);
+		.setConnectTimeout(2000);
 	}
 
 	/**
@@ -257,6 +257,44 @@ public class XdEc2Validation {
 	}
 
 	/**
+	 * Verifies that the data user gave us is contained in the result.
+	 *
+	 * @param hosts Helper class for retrieving files.
+	 * @param url The server that the stream is deployed.
+	 * @param fileName The file that contains the data to check.
+	 * @param data The data used to evaluate the results of the stream.
+	 */
+	public void verifyContentContains(XdEnvironment xdEnvironment, URL url, String fileName,
+			String data) {
+		Assert.notNull(url, "url can not be null");
+		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
+		Assert.hasText(fileName, "fileName can not be empty nor null");
+		Assert.hasText(data, "data can not be empty nor null");
+
+		String resultFileName = fileName;
+		File file = new File(resultFileName);
+		try {
+			if (xdEnvironment.isOnEc2()) {
+				resultFileName = StreamUtils.transferResultsToLocal(xdEnvironment, url, fileName);
+				file = new File(resultFileName);
+			}
+			Reader fileReader = new InputStreamReader(new FileInputStream(resultFileName));
+			String result = FileCopyUtils.copyToString(fileReader);
+			assertTrue("Could not find data in result file.. Read \""
+					+ result + "\"\n but didn't see \"" + data + "\"", result.contains(data));
+			fileReader.close();
+		}
+		catch (IOException ioException) {
+			throw new IllegalStateException(ioException.getMessage());
+		}
+		finally {
+			if (file.exists()) {
+				file.delete();
+			}
+		}
+	}
+
+	/**
 	 * generates the JMX query string for getting module data.
 	 *
 	 * @param url the container url where the stream is deployed
@@ -287,7 +325,7 @@ public class XdEc2Validation {
 		ObjectMapper mapper = new ObjectMapper();
 		JMXResult jmxResult = mapper.readValue(json,
 				new TypeReference<JMXResult>() {
-				});
+		});
 		List<Module> result = jmxResult.getValue().getModules();
 		return result;
 	}

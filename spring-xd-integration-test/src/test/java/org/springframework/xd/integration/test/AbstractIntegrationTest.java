@@ -207,6 +207,33 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
+	 * Verifies that the data stored by the sink is what was expected.
+	 *
+	 * @param data - expected data
+	 * @param sinkInstance determines whether to look at the log or file for the result
+	 */
+	public void assertContains(String data) {
+		Assert.hasText(data, "data can not be empty nor null");
+		assertFileContains(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
+	}
+
+	/**
+	 * Checks the file data to see if the data is contained in the file.
+	 *
+	 * @param data The data to validate the file content against.
+	 * @param url The URL of the server that we will ssh, to get the data.
+	 * @param streamName the name of the file we are retrieving from the remote server.
+	 */
+	private void assertFileContains(String data, URL url, String streamName)
+	{
+		waitForXD(pauseTime * 2000);
+		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
+				+ ".out";
+		validation.verifyContentContains(xdEnvironment, url, fileName, data);
+	}
+
+
+	/**
 	 * Checks the file data to see if it matches what is expected.
 	 *
 	 * @param data The data to validate the file content against.

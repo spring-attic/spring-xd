@@ -13,14 +13,21 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<int-amqp:outbound-channel-adapter
-		id="input" amqp-template="rabbitTemplate" exchange-name="${exchange}"
+		id="input"
+		default-delivery-mode="${deliveryMode}"
+		amqp-template="rabbitTemplate"
+		exchange-name="${exchange}"
 		routing-key-expression="${routingKey}" />
 
-	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
+	<rabbit:template id="rabbitTemplate"
+		connection-factory="rabbitConnectionFactory"
+		message-converter="messageConverter" />
 
 	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host}"
 		port="${port}" virtual-host="${vhost}"
 		username="${username}" password="${password}"/>
+
+	<bean id="messageConverter" class="${converterClass}" />
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:rabbit-connection-factory id="rabbitConnectionFactory"

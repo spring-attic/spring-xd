@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,27 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
-
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.spi.ModulePlaceholders;
+
 
 /**
  * Captures options to the {@code rabbit} sink module.
- * 
+ *
  * @author Eric Bottard
+ * @author Gary Russell
  */
 @Mixin(RabbitConnectionMixin.class)
 public class RabbitSinkOptionsMetadata {
 
 	private String exchange = "";
 
-	private String routingKey = "'" + XD_STREAM_NAME + "'";
+	private String routingKey = "'" + ModulePlaceholders.XD_STREAM_NAME + "'";
+
+	private String deliveryMode = "PERSISTENT";
+
+	private String converterClass = "org.springframework.amqp.support.converter.SimpleMessageConverter";
 
 
 	public String getExchange() {
@@ -51,6 +56,24 @@ public class RabbitSinkOptionsMetadata {
 	@ModuleOption("the routing key to be passed with the message, as a SpEL expression")
 	public void setRoutingKey(String routingKey) {
 		this.routingKey = routingKey;
+	}
+
+	public String getDeliveryMode() {
+		return deliveryMode;
+	}
+
+	@ModuleOption("the delivery mode (PERSISTENT, NON_PERSISTENT)")
+	public void setDeliveryMode(String deliveryMode) {
+		this.deliveryMode = deliveryMode;
+	}
+
+	public String getConverterClass() {
+		return converterClass;
+	}
+
+	@ModuleOption("the class name of the message converter")
+	public void setConverterClass(String converterClass) {
+		this.converterClass = converterClass;
 	}
 
 }

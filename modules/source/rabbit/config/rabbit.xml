@@ -13,14 +13,31 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<int-amqp:inbound-channel-adapter
-		auto-startup="false" queue-names="${queues}"
-		channel="output" connection-factory="rabbitConnectionFactory" />
+		auto-startup="false"
+		channel="output"
+		listener-container="listenerContainer"
+		message-converter="messageConverter" />
+
+	<bean id="listenerContainer" class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+		<property name="connectionFactory" ref="rabbitConnectionFactory" />
+		<property name="acknowledgeMode" value="#{T(org.springframework.amqp.core.AcknowledgeMode).${ackMode}}" />
+		<property name="autoStartup" value="false" />
+		<property name="channelTransacted" value="${transacted}" />
+		<property name="concurrentConsumers" value="${concurrency}" />
+		<property name="defaultRequeueRejected" value="${requeue}" />
+		<property name="maxConcurrentConsumers" value="${maxConcurrency}" />
+		<property name="prefetchCount" value="${prefetch}" />
+		<property name="queueNames" value="${queues}" />
+		<property name="txSize" value="${txSize}" />
+	</bean>
+
+	<bean id="messageConverter" class="${converterClass}" />
 
 	<int:channel id="output" />
 
 	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host}"
 		port="${port}" virtual-host="${vhost}"
-		username="${username}" password="${password}"/>
+		username="${username}" password="${password}" />
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:rabbit-connection-factory id="rabbitConnectionFactory"

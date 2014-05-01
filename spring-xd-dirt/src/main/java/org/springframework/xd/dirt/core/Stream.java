@@ -185,16 +185,16 @@ public class Stream {
 	 * @throws IllegalArgumentException if the module name/type cannot be found
 	 */
 	public ModuleDescriptor getModuleDescriptor(String moduleLabel, String moduleType) {
-		Module.Type type = Module.Type.valueOf(moduleType.toUpperCase());
+		ModuleType type = ModuleType.valueOf(moduleType.toLowerCase());
 		ModuleDescriptor moduleDescriptor = null;
 		switch (type) {
-			case SOURCE:
+			case source:
 				moduleDescriptor = getSource();
 				break;
-			case SINK:
+			case sink:
 				moduleDescriptor = getSink();
 				break;
-			case PROCESSOR:
+			case processor:
 				for (ModuleDescriptor processor : processors) {
 					if (processor.getLabel().equals(moduleLabel)) {
 						moduleDescriptor = processor;

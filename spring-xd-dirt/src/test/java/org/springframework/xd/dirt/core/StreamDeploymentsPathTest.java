@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.junit.Test;
 
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Patrick Peralta
@@ -33,7 +34,7 @@ public class StreamDeploymentsPathTest {
 	@Test
 	public void testFullPath() {
 		String streamName = "my-stream";
-		String moduleType = Module.Type.SOURCE.toString();
+		String moduleType = ModuleType.source.toString();
 		String moduleLabel = "my-label";
 		String container = UUID.randomUUID().toString();
 		String path = Paths.buildWithNamespace(Paths.STREAM_DEPLOYMENTS, streamName, moduleType, moduleLabel, container);

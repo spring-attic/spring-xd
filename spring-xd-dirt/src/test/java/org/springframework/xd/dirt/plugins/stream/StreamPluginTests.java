@@ -41,6 +41,9 @@ import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -65,11 +68,25 @@ public class StreamPluginTests {
 
 	private MessageChannel output = new DirectChannel();
 
+	private ZooKeeperConnection zkConnection;
+
 	@Before
 	public void setup() {
 		System.setProperty("XD_TRANSPORT", "local");
 		MockitoAnnotations.initMocks(this);
-		plugin = new StreamPlugin(bus);
+		EmbeddedZooKeeper embeddedZooKeeper = new EmbeddedZooKeeper();
+		embeddedZooKeeper.start();
+		this.zkConnection = new ZooKeeperConnection("localhost:" + embeddedZooKeeper.getClientPort());
+		zkConnection.start();
+		while (!zkConnection.isConnected()) {
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
+		plugin = new StreamPlugin(bus, zkConnection);
 	}
 
 	@After
@@ -93,7 +110,7 @@ public class StreamPluginTests {
 	}
 
 	@Test
-	public void streamChannelTests() {
+	public void streamChannelTests() throws InterruptedException {
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
@@ -109,8 +126,6 @@ public class StreamPluginTests {
 		plugin.postProcessModule(module);
 		verify(bus).bindConsumer(eq("foo.0"), same(input), any(Properties.class));
 		verify(bus).bindProducer(eq("foo.1"), same(output), any(Properties.class));
-		verify(bus).bindPubSubProducer(eq("tap:stream:foo.testing.1"), any(DirectChannel.class),
-				any(Properties.class));
 		plugin.beforeShutdown(module);
 		plugin.removeModule(module);
 		verify(bus).unbindConsumer("foo.0", input);
@@ -119,7 +134,7 @@ public class StreamPluginTests {
 	}
 
 	@Test
-	public void testTapOnProxy() {
+	public void testTapOnProxy() throws Exception {
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
@@ -127,12 +142,19 @@ public class StreamPluginTests {
 				.setModuleDefinition(mock(ModuleDefinition.class))
 				.build());
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
+		when(module.getName()).thenReturn("testing");
 		DirectChannel output = new DirectChannel();
 		MessageChannel proxy = (MessageChannel) new ProxyFactory(output).getProxy();
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(proxy);
-		StreamPlugin plugin = new StreamPlugin(bus);
 		plugin.postProcessModule(module);
 		List<?> interceptors = TestUtils.getPropertyValue(output, "interceptors.interceptors", List.class);
+		assertEquals(0, interceptors.size());
+
+		// simulate addition of a tap consumer
+		zkConnection.getClient().create().creatingParentsIfNeeded().forPath(
+				Paths.build(Paths.TAPS, "stream:foo.testing.1"));
+		Thread.sleep(1000);
+
 		assertEquals(1, interceptors.size());
 		assertTrue(interceptors.get(0) instanceof WireTap);
 	}

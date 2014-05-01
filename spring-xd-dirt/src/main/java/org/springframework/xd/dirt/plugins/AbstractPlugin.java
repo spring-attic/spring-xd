@@ -16,8 +16,8 @@
 
 package org.springframework.xd.dirt.plugins;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -36,7 +36,10 @@ import org.springframework.xd.module.core.Plugin;
  */
 public abstract class AbstractPlugin implements Plugin, Ordered, ApplicationContextAware {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	/**
+	 * Logger.
+	 */
+	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private ApplicationContext applicationContext;
 

@@ -20,11 +20,14 @@ import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_ST
 
 import java.util.Properties;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusAwareRouterBeanPostProcessor;
 import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 
@@ -38,8 +41,10 @@ import org.springframework.xd.module.core.Module;
  */
 public class StreamPlugin extends AbstractStreamPlugin {
 
-	public StreamPlugin(MessageBus messageBus) {
-		super(messageBus);
+	@Autowired
+	public StreamPlugin(MessageBus messageBus, ZooKeeperConnection zkConnection) {
+		super(messageBus, zkConnection);
+		Assert.notNull(zkConnection, "ZooKeeperConnection must not be null");
 	}
 
 	@Override

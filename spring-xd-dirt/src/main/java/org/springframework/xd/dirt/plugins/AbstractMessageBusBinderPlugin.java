@@ -16,16 +16,31 @@
 
 package org.springframework.xd.dirt.plugins;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.utils.ThreadUtils;
 
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 
@@ -55,9 +70,49 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 
 	protected final MessageBus messageBus;
 
+	/**
+	 * Cache of children under the taps path.
+	 */
+	private volatile PathChildrenCache taps;
+
+	/**
+	 * A {@link PathChildrenCacheListener} implementation that monitors tap additions and removals.
+	 */
+	private final TapListener tapListener = new TapListener();
+
+	/**
+	 * Map of channels that can be tapped. The keys are the tap channel names (e.g. tap:stream:ticktock.time.0),
+	 * and the values are the output channels from modules where the actual WireTap interceptors would be added. 
+	 */
+	private final Map<String, MessageChannel> tappableChannels = new HashMap<String, MessageChannel>();
+
 	public AbstractMessageBusBinderPlugin(MessageBus messageBus) {
-		Assert.notNull(messageBus, "messageBus cannot be null.");
+		this(messageBus, null);
+	}
+
+	public AbstractMessageBusBinderPlugin(MessageBus messageBus, ZooKeeperConnection zkConnection) {
+		Assert.notNull(messageBus, "MessageBus must not be null.");
 		this.messageBus = messageBus;
+		if (zkConnection != null) {
+			if (zkConnection.isConnected()) {
+				startTapListener(zkConnection.getClient());
+			}
+			zkConnection.addListener(new TapLifecycleConnectionListener());
+		}
+	}
+
+	private void startTapListener(CuratorFramework client) {
+		String tapPath = Paths.build(Paths.TAPS);
+		Paths.ensurePath(client, tapPath);
+		taps = new PathChildrenCache(client, tapPath, true,
+				ThreadUtils.newThreadFactory("TapsPathChildrenCache"));
+		taps.getListenable().addListener(tapListener);
+		try {
+			taps.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+		}
+		catch (Exception e) {
+			throw ZooKeeperUtils.wrapThrowable(e, "failed to start TapListener");
+		}
 	}
 
 	/**
@@ -75,7 +130,11 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		MessageChannel outputChannel = module.getComponent(MODULE_OUTPUT_CHANNEL, MessageChannel.class);
 		if (outputChannel != null) {
 			bindMessageProducer(outputChannel, getOutputChannelName(module), properties[1]);
-			createAndBindTapChannel(module, outputChannel);
+			String tapChannelName = buildTapChannelName(module);
+			tappableChannels.put(tapChannelName, outputChannel);
+			if (isTapActive(tapChannelName)) {
+				createAndBindTapChannel(tapChannelName, outputChannel);
+			}
 		}
 	}
 
@@ -127,12 +186,12 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	 * Creates a wiretap on the output channel of the {@link Module} and binds the tap channel to {@link MessageBus}'s
 	 * message target.
 	 *
-	 * @param module the module whose output channel to tap
+	 * @param tapChannelName the name of the tap channel
 	 * @param outputChannel the channel to tap
 	 */
-	private void createAndBindTapChannel(Module module, MessageChannel outputChannel) {
+	private void createAndBindTapChannel(String tapChannelName, MessageChannel outputChannel) {
+		logger.info("creating and binding tap channel for %s", tapChannelName);
 		if (outputChannel instanceof ChannelInterceptorAware) {
-			String tapChannelName = buildTapChannelName(module);
 			MessageChannel tapChannel = tapOutputChannel(tapChannelName, (ChannelInterceptorAware) outputChannel);
 			messageBus.bindPubSubProducer(tapChannelName, tapChannel, null); // TODO tap producer props
 		}
@@ -164,13 +223,27 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		MessageChannel outputChannel = module.getComponent(MODULE_OUTPUT_CHANNEL, MessageChannel.class);
 		if (outputChannel != null) {
 			messageBus.unbindProducer(getOutputChannelName(module), outputChannel);
-			unbindTapChannel(module);
+			unbindTapChannel(buildTapChannelName(module));
 		}
 	}
 
-	private void unbindTapChannel(Module module) {
+	private void unbindTapChannel(String tapChannelName) {
 		// Should this be unbindProducer() as there won't be multiple producers on the tap channel.
-		messageBus.unbindProducers(buildTapChannelName(module));
+		MessageChannel tappedChannel = tappableChannels.remove(tapChannelName);
+		if (tappedChannel instanceof ChannelInterceptorAware) {
+			ChannelInterceptorAware interceptorAware = ((ChannelInterceptorAware) tappedChannel);
+			List<ChannelInterceptor> interceptors = new ArrayList<ChannelInterceptor>();
+			for (ChannelInterceptor interceptor : interceptorAware.getChannelInterceptors()) {
+				if (interceptor instanceof WireTap) {
+					((WireTap) interceptor).stop();
+				}
+				else {
+					interceptors.add(interceptor);
+				}
+			}
+			interceptorAware.setInterceptors(interceptors);
+		}
+		messageBus.unbindProducers(tapChannelName);
 	}
 
 	private boolean isChannelPubSub(String channelName) {
@@ -182,6 +255,106 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	@Override
 	public int getOrder() {
 		return 0;
+	}
+
+
+	/**
+	 * Event handler for tap additions.
+	 *
+	 * @param client curator client
+	 * @param data module data
+	 */
+	private void onTapAdded(CuratorFramework client, ChildData data) {
+		String tapChannelName = buildTapChannelNameFromPath(data.getPath());
+		MessageChannel outputChannel = tappableChannels.get(tapChannelName);
+		if (outputChannel != null) {
+			createAndBindTapChannel(tapChannelName, outputChannel);
+		}
+	}
+
+	/**
+	 * Event handler for tap removals.
+	 *
+	 * @param client curator client
+	 * @param data module data
+	 */
+	private void onTapRemoved(CuratorFramework client, ChildData data) {
+		unbindTapChannel(buildTapChannelNameFromPath(data.getPath()));
+	}
+
+	/**
+	 * Checks whether the provided tap channel name has one or more active subscribers.
+	 *
+	 * @param tapChannelName the tap channel to check
+	 *
+	 * @return {@code true} if the tap does have one or more active subscribers
+	 */
+	private boolean isTapActive(String tapChannelName) {
+		Assert.state(taps != null, "tap cache not started");
+		List<ChildData> currentTaps = taps.getCurrentData();
+		for (ChildData data : currentTaps) {
+			// example path: /taps/stream:ticktock.time.0
+			if (buildTapChannelNameFromPath(data.getPath()).equals(tapChannelName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Generates the name of a tap channel given a ZooKeeper tap path.
+	 *
+	 * @param path the ZooKeeper path under {@link Paths#TAPS}.
+	 * 
+	 * @return the tap channel name
+	 */
+	private String buildTapChannelNameFromPath(String path) {
+		return TAP_CHANNEL_PREFIX + Paths.stripPath(path);
+	}
+
+
+	/**
+	 * Listener for tap additions and removals under {@link Paths#TAPS}.
+	 */
+	class TapListener implements PathChildrenCacheListener {
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+			ZooKeeperUtils.logCacheEvent(logger, event);
+			switch (event.getType()) {
+				case INITIALIZED:
+					break;
+				case CHILD_ADDED:
+					onTapAdded(client, event.getData());
+					break;
+				case CHILD_REMOVED:
+					onTapRemoved(client, event.getData());
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+
+	/**
+	 * A {@link ZooKeeperConnectionListener} that manages the lifecycle of the taps cache listener.
+	 */
+	class TapLifecycleConnectionListener implements ZooKeeperConnectionListener {
+
+		@Override
+		public void onDisconnect(CuratorFramework client) {
+			taps.getListenable().removeListener(tapListener);
+			taps.clear();
+		}
+
+		@Override
+		public void onConnect(CuratorFramework client) {
+			startTapListener(client);
+		}
 	}
 
 }

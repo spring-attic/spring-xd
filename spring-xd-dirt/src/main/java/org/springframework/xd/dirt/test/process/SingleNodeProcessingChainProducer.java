@@ -11,58 +11,48 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.process;
+package org.springframework.xd.dirt.test.process;
 
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.test.source.NamedChannelSource;
 
 /**
- * Creates a stream to test a processing chain including a source but no sink and adds a {@link NamedChannelSink} to
+ * Creates a stream to test a processing chain including a sink but no source and adds a {@link NamedChannelSource} to
  * create a complete stream.
  * 
  * @author David Turanski
  * 
  */
-public class SingleNodeProcessingChainConsumer extends AbstractSingleNodeProcessingChain implements NamedChannelSink {
+public class SingleNodeProcessingChainProducer extends AbstractSingleNodeProcessingChain implements NamedChannelSource {
 
-	public SingleNodeProcessingChainConsumer(SingleNodeApplication application, String streamName,
+	public SingleNodeProcessingChainProducer(SingleNodeApplication application, String streamName,
 			String processingChain) {
 		super(application, streamName, processingChain);
 	}
 
-	public SingleNodeProcessingChainConsumer(SingleNodeApplication application, String streamName,
+	public SingleNodeProcessingChainProducer(SingleNodeApplication application, String streamName,
 			String processingChain, String moduleResourceLocation) {
 		super(application, streamName, processingChain, moduleResourceLocation);
 	}
 
 	@Override
-	public Message<?> receive() {
-		return sink.receive();
+	public void send(Message<?> message) {
+		source.send(message);
 	}
 
 	@Override
-	public Message<?> receive(int timeout) {
-		return sink.receive(timeout);
-	}
-
-	@Override
-	public Object receivePayload() {
-		return sink.receivePayload();
-	}
-
-	@Override
-	public Object receivePayload(int timeout) {
-		return sink.receivePayload(timeout);
+	public void sendPayload(Object payload) {
+		source.sendPayload(payload);
 	}
 
 	@Override
 	protected boolean createSink() {
-		return true;
+		return false;
 	}
 
 	@Override
 	protected boolean createSource() {
-		return false;
+		return true;
 	}
 }

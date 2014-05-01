@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test;
+package org.springframework.xd.dirt.test;
 
 import java.util.Collections;
 import java.util.List;
 
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
-import org.springframework.xd.dirt.integration.test.source.DeploymentPathProvider;
+import org.springframework.xd.dirt.test.source.DeploymentPathProvider;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**

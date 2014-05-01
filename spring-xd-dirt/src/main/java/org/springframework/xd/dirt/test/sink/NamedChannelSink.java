@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.sink;
+package org.springframework.xd.dirt.test.sink;
 
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.test.NamedChannelModule;
+import org.springframework.xd.dirt.test.NamedChannelModule;
 
 
 /**

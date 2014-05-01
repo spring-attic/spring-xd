@@ -52,13 +52,13 @@ import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
-import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
-import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
-import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
-import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
-import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
+import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
+import org.springframework.xd.dirt.test.sink.NamedChannelSink;
+import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
+import org.springframework.xd.dirt.test.source.NamedChannelSource;
+import org.springframework.xd.dirt.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.tuple.Tuple;
 

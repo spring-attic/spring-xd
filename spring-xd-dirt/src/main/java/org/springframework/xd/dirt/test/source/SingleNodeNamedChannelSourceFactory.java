@@ -11,10 +11,10 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.source;
+package org.springframework.xd.dirt.test.source;
 
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.test.AbstractSingleNodeNamedChannelModuleFactory;
+import org.springframework.xd.dirt.test.AbstractSingleNodeNamedChannelModuleFactory;
 
 
 /**

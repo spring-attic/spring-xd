@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test;
+package org.springframework.xd.dirt.test;
 
 import java.util.Collections;
 import java.util.List;

@@ -11,27 +11,31 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.source;
+package org.springframework.xd.dirt.test.sink;
 
-import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.test.AbstractSingleNodeNamedChannelModuleFactory;
 
 
 /**
- * A {@link NamedChannelSource} implementation that binds to a PubSub Channel.
+ * A factory for creating {@link NamedChannelSink}s.
  * 
  * @author David Turanski
  * 
  */
-public class SingleNodeNamedTopicSource extends AbstractSingleNodeNamedChannelSource {
+public class SingleNodeNamedChannelSinkFactory extends AbstractSingleNodeNamedChannelModuleFactory {
 
-	public SingleNodeNamedTopicSource(MessageBus messageBus, String sharedChannelName) {
-		super(messageBus, new PublishSubscribeChannel(), sharedChannelName);
+	public SingleNodeNamedChannelSinkFactory(MessageBus messageBus) {
+		super(messageBus);
 	}
 
-	@Override
-	protected void bind() {
-		this.messageBus.bindPubSubProducer(this.sharedChannelName, this.messageChannel);
+	public NamedChannelSink createNamedChannelSink(String channelName) {
+		validateChannelName(channelName);
+		if (channelName.startsWith(QUEUE_PREFIX)) {
+			return new SingleNodeNamedQueueSink(this.messageBus, channelName);
+		}
+		return new SingleNodeNamedTopicSink(this.messageBus, channelName);
+
 	}
 
 }

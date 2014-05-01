@@ -21,10 +21,10 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
-import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
-import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
-import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
-import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
+import org.springframework.xd.dirt.test.sink.NamedChannelSink;
+import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
+import org.springframework.xd.dirt.test.source.NamedChannelSource;
+import org.springframework.xd.dirt.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.test.mqtt.MqttTestSupport;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 

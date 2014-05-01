@@ -11,13 +11,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.source;
+package org.springframework.xd.dirt.test.source;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.test.AbstractSingleNodeNamedChannelModule;
+import org.springframework.xd.dirt.test.AbstractSingleNodeNamedChannelModule;
 
 
 /**

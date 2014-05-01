@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.source;
-
-import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.test.NamedChannelModule;
-
-
 /**
- * A Source that binds to a named channel.
+ * This package contains an implemenation of the MessageBus for RabbitMQ
  * 
- * @author David Turanski
  */
-public interface NamedChannelSource extends NamedChannelModule {
 
-	public void send(Message<?> message);
-
-	public void sendPayload(Object payload);
-}
+package org.springframework.xd.dirt.integration.rabbit;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test;
+package org.springframework.xd.dirt.test;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,10 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
-import org.springframework.xd.dirt.integration.test.source.DeploymentPathProvider;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
+import org.springframework.xd.dirt.test.source.DeploymentPathProvider;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;

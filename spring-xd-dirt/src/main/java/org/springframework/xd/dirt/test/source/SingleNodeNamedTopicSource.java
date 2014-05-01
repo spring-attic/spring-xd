@@ -11,26 +11,27 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.source;
+package org.springframework.xd.dirt.test.source;
 
-import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 
+
 /**
- * A {@link NamedChannelSource} implementation that binds to a Queue Channel.
+ * A {@link NamedChannelSource} implementation that binds to a PubSub Channel.
  * 
  * @author David Turanski
  * 
  */
-public class SingleNodeNamedQueueSource extends AbstractSingleNodeNamedChannelSource {
+public class SingleNodeNamedTopicSource extends AbstractSingleNodeNamedChannelSource {
 
-	public SingleNodeNamedQueueSource(MessageBus messageBus, String sharedChannelName) {
-		super(messageBus, new DirectChannel(), sharedChannelName);
+	public SingleNodeNamedTopicSource(MessageBus messageBus, String sharedChannelName) {
+		super(messageBus, new PublishSubscribeChannel(), sharedChannelName);
 	}
 
 	@Override
 	protected void bind() {
-		this.messageBus.bindProducer(this.sharedChannelName, this.messageChannel);
+		this.messageBus.bindPubSubProducer(this.sharedChannelName, this.messageChannel);
 	}
 
 }

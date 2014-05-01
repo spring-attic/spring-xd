@@ -11,12 +11,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.process;
+package org.springframework.xd.dirt.test.process;
 
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
-import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.test.sink.NamedChannelSink;
+import org.springframework.xd.dirt.test.source.NamedChannelSource;
 
 /**
  * Creates a stream to test a processing chain "p1 | p2 ... | pn" adding a {@link NamedChannelSink} and

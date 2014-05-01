@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test;
+package org.springframework.xd.dirt.test;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.core.RuntimeTimeoutException;
-import org.springframework.xd.dirt.integration.test.source.DeploymentPathProvider;
+import org.springframework.xd.dirt.test.source.DeploymentPathProvider;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**

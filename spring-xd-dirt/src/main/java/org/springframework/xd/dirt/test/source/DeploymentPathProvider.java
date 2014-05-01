@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.source;
+package org.springframework.xd.dirt.test.source;
 
 import java.util.List;
 

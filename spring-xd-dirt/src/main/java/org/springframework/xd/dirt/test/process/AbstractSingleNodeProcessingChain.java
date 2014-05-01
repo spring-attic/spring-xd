@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.test.process;
+package org.springframework.xd.dirt.test.process;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
-import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
-import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedQueueSink;
-import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
-import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedQueueSource;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.stream.StreamDefinition;
+import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
+import org.springframework.xd.dirt.test.sink.NamedChannelSink;
+import org.springframework.xd.dirt.test.sink.SingleNodeNamedQueueSink;
+import org.springframework.xd.dirt.test.source.NamedChannelSource;
+import org.springframework.xd.dirt.test.source.SingleNodeNamedQueueSource;
 
 
 /**

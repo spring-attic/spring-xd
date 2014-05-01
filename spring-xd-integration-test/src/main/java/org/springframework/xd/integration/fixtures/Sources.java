@@ -25,6 +25,7 @@ import org.springframework.xd.test.fixtures.SimpleHttpSource;
 import org.springframework.xd.test.fixtures.SimpleTailSource;
 import org.springframework.xd.test.fixtures.TcpSource;
 import org.springframework.xd.test.fixtures.TwitterSearchSource;
+import org.springframework.xd.test.fixtures.TwitterStreamSource;
 
 
 /**
@@ -90,7 +91,7 @@ public class Sources {
 
 	/**
 	 * Construct a new SimpleTailSource with the the provided file name and delay
-	 * 
+	 *
 	 * @param delayInMillis on platforms that don't wait for a missing file to appear, how often (ms) to look for the
 	 *        file.
 	 * @param fileName the absolute path of the file to tail
@@ -131,7 +132,7 @@ public class Sources {
 
 	/**
 	 * Construct a TwitterSearchSource using that will search for the query string provided..
-	 * 
+	 *
 	 * @param query The string to search for on twitter.
 	 * @return An instance of the twitterSearchSource fixture.
 	 */
@@ -139,6 +140,17 @@ public class Sources {
 		Assert.hasText(query, "query must not be empty nor null");
 		return TwitterSearchSource.withDefaults(xdEnvironment.getTwitterConsumerKey(),
 				xdEnvironment.getTwitterConsumerSecretKey(), query);
+	}
+
+	/**
+	 * Construct a TwitterStreamSource fixture..
+	 *
+	 * @return An instance of the twitterStreamSource fixture.
+	 */
+	public TwitterStreamSource twitterStream() {
+		return new TwitterStreamSource(xdEnvironment.getTwitterConsumerKey(),
+				xdEnvironment.getTwitterConsumerSecretKey(), xdEnvironment.getTwitterAccessToken(),
+				xdEnvironment.getTwitterAccessTokenSecret());
 	}
 
 }

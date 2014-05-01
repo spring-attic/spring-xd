@@ -12,6 +12,7 @@ To successfully run all the tests in a local deployment, you will need to instal
 * ActiveMQ
 * Hadoop 2.2
 * RabbitMQ with MQTT Management Plugin Enabled.
+* Twitter development account for authorization keys
 
 ## Setting up single XD node
 If you run these tests against an xd-singlenode instance, it will use all the default values found in [application.yml](https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/application.yml).  The tests for singlenode will read values from the file [application-singlenode.properites](https://github.com/spring-projects/spring-xd/blob/master/spring-xd-integration-test/src/test/resources/application-singlenode.properties).  If you change any values, such as port numbers, in application-singlenode.properites you will need to update values in servers.yml or environment variables to the port numbers match.

@@ -19,9 +19,12 @@
 #       enabled: false
 
 ---
-#Config for singlenode embedded hsql
-#spring:
-#  profiles: singlenode
+#Config for singlenode. Transport for single node may be overridden by --transport command line option 
+spring:
+  profiles: singlenode
+xd:
+  transport: local  
+
 #singlenode:
 #  embeddedHsql: true
 

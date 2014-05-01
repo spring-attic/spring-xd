@@ -21,7 +21,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Describes the options for the ftphdfs job.
- * 
+ *
  * @author Gary Russell
  */
 public class FtpHdfsJobOptionsMetadata {
@@ -34,7 +34,7 @@ public class FtpHdfsJobOptionsMetadata {
 
 	private String password;
 
-	private int stepConcurrency = 2;
+	private long partitionResultsTimeout = 300000;
 
 	public String getHost() {
 		return host;
@@ -72,13 +72,14 @@ public class FtpHdfsJobOptionsMetadata {
 		this.password = password;
 	}
 
-	public int getStepConcurrency() {
-		return stepConcurrency;
+
+	public long getPartitionResultsTimeout() {
+		return partitionResultsTimeout;
 	}
 
-	@ModuleOption("the maximum number of concurrent steps in each container")
-	public void setStepConcurrency(int stepConcurrency) {
-		this.stepConcurrency = stepConcurrency;
+	@ModuleOption("time (ms) that the partition handler will wait for results, default 5 mins")
+	public void setPartitionResultsTimeout(long partitionResultsTimeout) {
+		this.partitionResultsTimeout = partitionResultsTimeout;
 	}
 
 }

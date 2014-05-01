@@ -34,7 +34,7 @@ import org.springframework.xd.test.hadoop.HadoopFileSystemTestSupport;
 
 
 /**
- * 
+ *
  * @author Gary Russell
  */
 public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
@@ -61,8 +61,8 @@ public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
 
 		try {
 			int port = server.getPort();
-			executeJobCreate("myftphdfs", "ftphdfs --stepConcurrency=2 --port=" + port);
-			checkForJobInList("myftphdfs", "ftphdfs --stepConcurrency=2 --port=" + port, true);
+			executeJobCreate("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port);
+			checkForJobInList("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port, true);
 			executeJobLaunch("myftphdfs", "{\"-remoteDirectory\":\"ftpSource\",\"hdfsDirectory\":\"foo\"}");
 
 			Table jobExecutions = listJobExecutions();

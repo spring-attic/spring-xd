@@ -22,7 +22,7 @@ import java.net.Socket;
 
 /**
  * A test fixture that allows testing of the 'tcp' source module.
- * 
+ *
  * @author Eric Bottard
  */
 public class TcpSource extends AbstractModuleFixture {
@@ -44,7 +44,7 @@ public class TcpSource extends AbstractModuleFixture {
 	/**
 	 * Construct a new TcpSource with the provided host and using a port selected by @link
 	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
-	 * 
+	 *
 	 * @param host the host to connect to
 	 */
 	public TcpSource(String host) {
@@ -53,7 +53,7 @@ public class TcpSource extends AbstractModuleFixture {
 
 	/**
 	 * Construct a new TcpSource with the provided host and port
-	 * 
+	 *
 	 * @param host host to connect to
 	 * @param port port to connect to
 	 */
@@ -65,7 +65,7 @@ public class TcpSource extends AbstractModuleFixture {
 
 	/**
 	 * Construct a new TcpSource using the provided host and the default port of 1234
-	 * 
+	 *
 	 * @param host host to connect to
 	 * @return TcpSource to use
 	 */
@@ -103,14 +103,23 @@ public class TcpSource extends AbstractModuleFixture {
 				"Source [%s] does not seem to be listening after waiting for %dms", this, timeout));
 	}
 
-	public void sendBytes(byte[] bytes) throws IOException {
-		Socket socket = new Socket(host, port);
+	public void sendBytes(byte[] bytes) {
+		Socket socket = null;
 		try {
+			socket = new Socket(host, port);
 			socket.getOutputStream().write(bytes);
+		}
+		catch (IOException ioException) {
+			throw new IllegalStateException(ioException.getMessage());
 		}
 		finally {
 			if (socket != null) {
-				socket.close();
+				try {
+					socket.close();
+				}
+				catch (IOException ioException) {
+					// no action required
+				}
 			}
 		}
 	}

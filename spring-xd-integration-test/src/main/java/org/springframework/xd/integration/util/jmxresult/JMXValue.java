@@ -21,22 +21,34 @@ import java.util.ArrayList;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 /**
+ * The JMXValue returned from JMX Request. Had to use the JsonAnySetter to extract module information.
+ *
  * @author Glenn Renfro
  */
 public class JMXValue {
-	
+
 	ArrayList<Module> modules = new ArrayList<Module>();
+
+	/**
+	 * Extracts the module data from the Json. Had to use the JsonAnySetter to retrieve module data properly.
+	 *
+	 * @param key The key for the json key/ value
+	 * @param value the associated value for the key.
+	 * @throws Exception
+	 */
 	@JsonAnySetter
-	public void handleUnknown(String key, Object value) throws Exception{
-		Module module = Module.generateModuleFromJackson(key,value);
+	public void handleUnknown(String key, Object value) throws Exception {
+		Module module = Module.generateModuleFromJackson(key, value);
 		modules.add(module);
 	}
+
 	public ArrayList<Module> getModules() {
 		return modules;
 	}
+
 	public void setModules(ArrayList<Module> modules) {
 		this.modules = modules;
 	}
-	
-	
+
+
 }

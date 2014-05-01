@@ -22,10 +22,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -204,47 +202,34 @@ public class XdEc2Validation {
 
 	}
 
+
 	/**
-	 * checks to see if the content of the data passed in is in the log.
+	 * Verifies that the data user gave us is contained in the result.
 	 *
-	 * @param xdEnvironment the Acceptance Test Environment.
-	 * @param url The URL of the server to where the stream is deployed.
-	 * @param fileName The name of the log file to inspect
-	 * @param data THe expected result.
+	 * @param hosts Helper class for retrieving files.
+	 * @param url The server that the stream is deployed.
+	 * @param fileName The file that contains the data to check.
+	 * @param data The data used to evaluate the results of the stream.
 	 */
-	public void verifyLogContent(XdEnvironment xdEnvironment, URL url, String fileName,
+	public void verifyContentContains(XdEnvironment xdEnvironment, URL url, String fileName,
 			String data) {
-		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
 		Assert.notNull(url, "url can not be null");
+		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
 		Assert.hasText(fileName, "fileName can not be empty nor null");
 		Assert.hasText(data, "data can not be empty nor null");
 
-		String logLocation = fileName;
-
-		if (xdEnvironment.isOnEc2()) {
-			logLocation = StreamUtils.transferLogToTmp(xdEnvironment, url, fileName);
-		}
-		File file = new File(logLocation);
+		String resultFileName = fileName;
+		File file = new File(resultFileName);
 		try {
-
-			if (!file.exists()) {
-				throw new IllegalArgumentException(
-						"The Log File for the container is not present.  Please be sure to set the "
-								+ "xd_container_log_dir on your gradle build.");
+			if (xdEnvironment.isOnEc2()) {
+				resultFileName = StreamUtils.transferResultsToLocal(xdEnvironment, url, fileName);
+				file = new File(resultFileName);
 			}
-			BufferedReader fileReader = new BufferedReader(new FileReader(logLocation));
-			boolean result = false;
-			while (fileReader.ready())
-			{
-				String line = fileReader.readLine();
-				if (line.contains(data)) {
-					result = true;
-					break;
-				}
-			}
+			Reader fileReader = new InputStreamReader(new FileInputStream(resultFileName));
+			String result = FileCopyUtils.copyToString(fileReader);
+			assertTrue("Could not find data in result file.. Read \""
+					+ result + "\"\n but didn't see \"" + data + "\"", result.contains(data));
 			fileReader.close();
-			assertTrue("Data in the result file is not what was sent. Read "
-					+ result + "\n but expected " + data, result);
 		}
 		catch (IOException ioException) {
 			throw new IllegalStateException(ioException.getMessage());

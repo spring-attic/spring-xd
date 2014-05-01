@@ -145,6 +145,9 @@ public class StreamUtils {
 			while (isRead) {
 				byte[] b = new byte[10];
 				int bytesRead = iStream.read(b);
+				if (bytesRead < 0) {
+					break;
+				}
 				String buffer = new String(b, 0, bytesRead);
 				writer.write(buffer);
 				if (bytesRead < 10) {
@@ -159,49 +162,6 @@ public class StreamUtils {
 		}
 	}
 
-	/**
-	 * Copies the specified xd log file from a remote machine to local machine.
-	 *
-	 * @param xdEnvironment The environment configuration for this test
-	 * @param url The remote machine's url.
-	 * @param fileName The fully qualified file name of the file to be transferred.
-	 * @return The location to the fully qualified file name where the remote file was copied.
-	 */
-
-	public static String transferLogToTmp(final XdEnvironment xdEnvironment, final URL url, final String fileName) {
-		Assert.notNull(xdEnvironment, "The Acceptance Test, require a valid xdEnvironment.");
-		Assert.notNull(url, "The remote machine's URL must be specified.");
-		Assert.hasText(fileName, "The remote file name must be specified.");
-
-		try {
-			final LoginCredentials credential = LoginCredentials
-					.fromCredentials(new Credentials("ubuntu", xdEnvironment.getPrivateKey()));
-			final HostAndPort socket = HostAndPort.fromParts(url.getHost(), 22);
-			final SshjSshClient client = new SshjSshClient(
-					new BackoffLimitedRetryHandler(), socket, credential, 5000);
-			Payload payload = client.get(fileName);
-			InputStream iStream = payload.openStream();
-			File logFile = createTmpDir();
-			String logLocation = logFile.getAbsolutePath() + "log.out";
-
-			BufferedWriter writer = new BufferedWriter(new FileWriter(logLocation));
-			boolean isRead = true;
-			while (isRead) {
-				byte[] b = new byte[10];
-				int val = iStream.read(b);
-				String buffer = new String(b, 0, b.length);
-				writer.write(buffer);
-				if (val < 10) {
-					isRead = false;
-				}
-			}
-			writer.close();
-			return logLocation;
-		}
-		catch (IOException ioException) {
-			throw new IllegalStateException(ioException.getMessage());
-		}
-	}
 
 	/**
 	 * Substitutes the port associated with the URL with another port.

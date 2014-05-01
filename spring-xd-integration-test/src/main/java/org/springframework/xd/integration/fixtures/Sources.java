@@ -24,6 +24,7 @@ import org.springframework.xd.test.fixtures.SimpleFileSource;
 import org.springframework.xd.test.fixtures.SimpleHttpSource;
 import org.springframework.xd.test.fixtures.SimpleTailSource;
 import org.springframework.xd.test.fixtures.TcpSource;
+import org.springframework.xd.test.fixtures.TwitterSearchSource;
 
 
 /**
@@ -127,5 +128,18 @@ public class Sources {
 	public SimpleFileSource file(String dir, String fileName) {
 		return new SimpleFileSource(dir, fileName);
 	}
+
+	/**
+	 * Construct a TwitterSearchSource using that will search for the query string provided..
+	 *
+	 * @param query The string to search for on twitter.
+	 * @return An instance of the twitterSearchSource fixture.
+	 */
+	public TwitterSearchSource twitterSearch(String query) {
+		Assert.hasText(query, "query must not be empty nor null");
+		return TwitterSearchSource.withDefaults(xdEnvironment.getTwitterConsumerKey(),
+				xdEnvironment.getTwitterConsumerSecretKey(), query);
+	}
+
 
 }

@@ -20,12 +20,10 @@ import java.util.UUID;
 
 import org.junit.Test;
 
-import org.springframework.xd.test.fixtures.SimpleFileSink;
-
 
 /**
  * Runs a basic suite of TCP (Source/Sink) tests on an XD Cluster instance.
- * 
+ *
  * @author Glenn Renfro
  */
 public class TcpTest extends AbstractIntegrationTest {
@@ -33,31 +31,29 @@ public class TcpTest extends AbstractIntegrationTest {
 
 	/**
 	 * Verifies that the TCP Source that terminates with a CRLF returns the correct data.
-	 * 
-	 * @throws Exception
+	 *
 	 */
 	@Test
-	public void testTCPSourceCRLF() throws Exception {
+	public void testTCPSourceCRLF() {
 		String data = UUID.randomUUID().toString();
-		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
+		stream(sources.tcp() + XD_DELIMETER + sinks.file());
 		waitForXD();
 		sources.tcp().sendBytes((data + "\r\n").getBytes());
 		assertReceived(1);
-		assertValid(data, sinks.getSink(SimpleFileSink.class));
+		assertValid(data, sinks.file());
 	}
 
 	/**
 	 * * Verifies that data sent by the TCP sink that terminates with a CRLF works as expected.
-	 * 
-	 * @throws Exception
+	 *
 	 */
 	@Test
-	public void testTCPSink() throws Exception {
+	public void testTCPSink() {
 		String data = UUID.randomUUID().toString();
-		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
+		stream(sources.tcp() + XD_DELIMETER + sinks.file());
 		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.tcp());
 
 		assertReceived(1);
-		assertValid(data, sinks.getSink(SimpleFileSink.class));
+		assertValid(data, sinks.file());
 	}
 }

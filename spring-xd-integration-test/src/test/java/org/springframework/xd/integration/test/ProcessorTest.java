@@ -18,12 +18,10 @@ package org.springframework.xd.integration.test;
 
 import org.junit.Test;
 
-import org.springframework.xd.test.fixtures.SimpleFileSink;
-
 
 /**
  * Verifies that processors are functional on a XD Cluster Instance.
- * 
+ *
  * @author Glenn Renfro
  */
 public class ProcessorTest extends AbstractIntegrationTest {
@@ -31,31 +29,29 @@ public class ProcessorTest extends AbstractIntegrationTest {
 
 	/**
 	 * Evaluates that a single data entry of "BAD" is filtered out and not stored.
-	 * 
-	 * @throws Exception
+	 *
 	 */
 	@Test(expected = AssertionError.class)
-	public void testFailedSink() throws Exception {
+	public void testFailedSink() {
 		String filterContent = "BAD";
 		stream("trigger  --payload='" + filterContent + "'"
 				+ XD_DELIMETER + " filter --expression=payload=='good' " + XD_DELIMETER
-				+ sinks.getSink(SimpleFileSink.class));
+				+ sinks.file());
 		assertReceived(1);
 	}
 
 	/**
 	 * Evaluates that a single data entry of "good" is not allowed past the filter and stored in a file..
-	 * 
-	 * @throws Exception
+	 *
 	 */
 	@Test
-	public void testFilter() throws Exception {
+	public void testFilter() {
 		String filterContent = "good";
 		stream("trigger  --payload='" + filterContent + "'" +
 				XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
-				+ sinks.getSink(SimpleFileSink.class));
+				+ sinks.file());
 		assertReceived(1);
-		assertValid(filterContent, sinks.getSink(SimpleFileSink.class));
+		assertValid(filterContent, sinks.file());
 	}
 
 }

@@ -16,12 +16,8 @@
 
 package org.springframework.xd.integration.fixtures;
 
-import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.Map;
-
+import org.springframework.util.Assert;
 import org.springframework.xd.integration.util.XdEnvironment;
-import org.springframework.xd.test.fixtures.AbstractModuleFixture;
 import org.springframework.xd.test.fixtures.JdbcSink;
 import org.springframework.xd.test.fixtures.LogSink;
 import org.springframework.xd.test.fixtures.MqttSink;
@@ -31,12 +27,10 @@ import org.springframework.xd.test.fixtures.TcpSink;
 
 /**
  * A factory that provides fully instantiated sink fixtures based on the environment selected at test startup.
- * 
+ *
  * @author Glenn Renfro
  */
 public class Sinks {
-
-	private Map<String, AbstractModuleFixture> sinks;
 
 	private TcpSink tcpSink;
 
@@ -44,35 +38,21 @@ public class Sinks {
 
 	private XdEnvironment environment;
 
+	/**
+	 * Initializes the instance with xdEnvironment
+	 *
+	 * @param environment
+	 */
 	public Sinks(XdEnvironment environment) {
-		sinks = new HashMap<String, AbstractModuleFixture>();
+		Assert.notNull(environment, "xdEnvironment must not be null");
 		this.environment = environment;
 	}
 
-	public AbstractModuleFixture getSink(Class<?> clazz) {
-		AbstractModuleFixture result = null;
-		result = sinks.get(clazz.getName());
-		if (result == null) {
-			result = generateFixture(clazz.getName());
-			sinks.put(clazz.getName(), result);
-		}
-		return result;
-	}
-
-	private AbstractModuleFixture generateFixture(String clazzName) {
-		AbstractModuleFixture result = null;
-		if (clazzName.equals("org.springframework.xd.test.fixtures.LogSink")) {
-			result = new LogSink("logsink");
-		}
-		if (clazzName.equals("org.springframework.xd.test.fixtures.SimpleFileSink")) {
-			result = new SimpleFileSink();
-		}
-		if (clazzName.equals("org.springframework.xd.test.fixtures.TcpSink")) {
-			result = tcp();
-		}
-		return result;
-	}
-
+	/**
+	 * Construct a new TcpSink with the default target host taken from the environment and default port (1234)
+	 *
+	 * @return an instance of TcpSink
+	 */
 	public TcpSink tcp() {
 		if (tcpSink == null) {
 			tcpSink = TcpSink.withDefaultPort();
@@ -80,37 +60,68 @@ public class Sinks {
 		return tcpSink;
 	}
 
+	/**
+	 * Construct a new TcpSink with the default target host taken from the environment and the provided port.
+	 *
+	 * @param port the port to connect to
+	 * @return an instance of TcpSink
+	 */
 	public TcpSink tcp(int port) {
 		return new TcpSink(port);
 	}
 
-	public MqttSink mqtt() throws MalformedURLException {
+	/**
+	 * Construct a new Mqttsink using the default RabbitMQ (MQTT-enbaled) broker host as specified in the environment.
+	 *
+	 * @return a mqtt sink
+	 */
+	public MqttSink mqtt() {
 		return new MqttSink(environment.getAdminServerUrl().getHost(), 1883);
 	}
 
+	/**
+	 * Construct a new fileSink that will write the result to the dir and filename specified.
+	 *
+	 * @param dir the directory the file will be written.
+	 * @param fileName the name of file to be written.
+	 * @return an instantiated file sink
+	 */
 	public SimpleFileSink file(String dir, String fileName) {
 		return new SimpleFileSink(dir, fileName);
 	}
 
+	/**
+	 * Construct a new fileSink that will write the result to the xd output directory using the stream name as the
+	 * filename.
+	 *
+	 * @return an instantiated file sink
+	 */
+	public SimpleFileSink file() {
+		return new SimpleFileSink();
+	}
 
-	public JdbcSink jdbc() throws Exception {
+	/**
+	 * Construct a new logSink that will write output to the XD log.
+	 *
+	 * @return a LogSink instance.
+	 */
+	public LogSink log() {
+		return new LogSink("logsink");
+	}
+
+	/**
+	 * Construct a new jdbcSink that will write the output to a table .
+	 *
+	 * @return a JdbcSink instance.
+	 */
+	public JdbcSink jdbc() {
 		if (environment.getDataSource() == null) {
 			return null;
 		}
-		/*
-		 * jdbcSink = new JdbcSink();
-		 * jdbcSink.url(environment.getJdbcUrl()).driver(environment.getJdbcDriver()).database(
-		 * environment.getJdbcDatabase());
-		 * 
-		 * if (environment.getJdbcUsername() != null) { jdbcSink.username(environment.getJdbcUsername()); } if
-		 * (environment.getJdbcPassword() != null) { jdbcSink.password(environment.getJdbcPassword()); }
-		 * 
-		 * jdbcSink = jdbcSink.start();
-		 */
 		jdbcSink = new JdbcSink(environment.getDataSource());
 
 		if (!jdbcSink.isReady()) {
-			throw new Exception("Unable to connecto to database.");
+			throw new IllegalStateException("Unable to connecto to database.");
 		}
 		return jdbcSink;
 	}

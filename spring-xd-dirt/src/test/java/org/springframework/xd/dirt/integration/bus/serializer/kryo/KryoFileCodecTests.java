@@ -24,10 +24,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.FileCodec;
-
 /**
- * 
  * @author David Turanski
  */
 public class KryoFileCodecTests {

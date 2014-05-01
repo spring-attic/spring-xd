@@ -15,8 +15,7 @@
  */
 
 /**
- * This package contains an implemenation of the MessageBus for RabbitMQ
- * 
+ * This package contains an implementation of the MessageBus for RabbitMQ.
  */
 
 package org.springframework.xd.dirt.integration.rabbit;

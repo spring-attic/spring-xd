@@ -16,8 +16,7 @@
 
 
 /**
- * This package contains an implemenation of the MessageBus for Redis
- * 
+ * This package contains an implementation of the MessageBus for Redis.
  */
 
 package org.springframework.xd.dirt.integration.redis;

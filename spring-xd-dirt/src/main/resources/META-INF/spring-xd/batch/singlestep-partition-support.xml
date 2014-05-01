@@ -19,11 +19,7 @@
 
 	<!-- This is the "remote" worker -->
 
-	<int:channel id="stepExecutionRequests.input">
-		<int:dispatcher task-executor="stepExecutor" />
-	</int:channel>
-
-	<task:executor id="stepExecutor" pool-size="${stepConcurrency:2}" />
+	<int:channel id="stepExecutionRequests.input" />
 
 	<int:channel id="stepExecutionReplies.output" />
 
@@ -52,7 +48,7 @@
 		<property name="messagingOperations">
 			<bean class="org.springframework.integration.core.MessagingTemplate">
 				<property name="defaultChannel" ref="stepExecutionRequests.output" />
-				<property name="receiveTimeout" value="60000" />
+				<property name="receiveTimeout" value="${partitionResultsTimeout:3600000}" />
 			</bean>
 		</property>
 		<property name="stepName" value="step1" />

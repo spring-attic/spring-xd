@@ -181,7 +181,7 @@ public class XDStreamParserTests {
 		when(streamRepo.findOne("xxx")).thenReturn(new StreamDefinition("xxx", "http | file"));
 		List<ModuleDescriptor> requests = parser.parse("test", "tap:stream:xxx.http > file", stream);
 		assertEquals(1, requests.size());
-		assertEquals("tap:xxx.http.0", requests.get(0).getSourceChannelName());
+		assertEquals("tap:stream:xxx.http.0", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
 	}
 

@@ -137,7 +137,7 @@ public class ChannelNode extends AstNode {
 
 	public void resolve(StreamLookupEnvironment env) {
 		if (channelType == ChannelType.TAP_STREAM) {
-			String streamName = nameComponents.get(0);
+			String streamName = nameComponents.get(1);
 			StreamNode sn = env.lookupStream(streamName);
 			if (sn == null) {
 				throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE, streamName);

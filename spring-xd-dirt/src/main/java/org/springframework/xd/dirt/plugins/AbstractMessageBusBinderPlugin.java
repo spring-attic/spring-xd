@@ -23,8 +23,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 
@@ -80,6 +78,8 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	protected abstract String getInputChannelName(Module module);
 
 	protected abstract String getOutputChannelName(Module module);
+
+	protected abstract String buildTapChannelName(Module module);
 
 	private void bindMessageConsumer(MessageChannel inputChannel, String inputChannelName) {
 		if (isChannelPubSub(inputChannelName)) {
@@ -147,13 +147,6 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	private void unbindTapChannel(Module module) {
 		// Should this be unbindProducer() as there won't be multiple producers on the tap channel.
 		messageBus.unbindProducers(buildTapChannelName(module));
-	}
-
-	private String buildTapChannelName(Module module) {
-		Assert.isTrue(module.getType() != ModuleType.job, "Job module type not supported.");
-		DeploymentMetadata dm = module.getDeploymentMetadata();
-		// for Stream return channel name with indexed elements
-		return String.format("%s%s.%s.%s", TAP_CHANNEL_PREFIX, dm.getGroup(), module.getName(), dm.getIndex());
 	}
 
 	private boolean isChannelPubSub(String channelName) {

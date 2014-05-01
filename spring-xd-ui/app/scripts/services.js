@@ -88,6 +88,10 @@ define(['angular'], function (angular) {
               getArray: {method: 'GET', isArray: true}
             }).getArray();
           },
+          getSingleJobExecution: function (jobExecutionId) {
+            $log.info('Getting details for Job Execution with Id ' + jobExecutionId);
+            return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecutionId + '.json').get();
+          },
           restart: function (jobExecution) {
             $log.info('Restart Job Execution' + jobExecution.executionId);
             return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecution.executionId, { 'restart': true }, {

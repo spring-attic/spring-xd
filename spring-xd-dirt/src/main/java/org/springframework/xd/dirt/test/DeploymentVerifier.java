@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.core.RuntimeTimeoutException;
-import org.springframework.xd.dirt.test.source.DeploymentPathProvider;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**

@@ -31,7 +31,6 @@ import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.test.source.DeploymentPathProvider;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;

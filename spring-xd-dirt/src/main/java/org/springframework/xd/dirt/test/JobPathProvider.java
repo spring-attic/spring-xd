@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
-import org.springframework.xd.dirt.test.source.DeploymentPathProvider;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**

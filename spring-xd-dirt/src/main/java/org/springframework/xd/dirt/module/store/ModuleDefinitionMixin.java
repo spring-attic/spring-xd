@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream.redis;
+package org.springframework.xd.dirt.module.store;
 
 import java.net.URL;
 

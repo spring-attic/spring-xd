@@ -18,9 +18,9 @@ import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 /**
  * A {@link NamedChannelSink} implementation that binds to a PubSub Channel.
- * 
+ *
  * @author David Turanski
- * 
+ *
  */
 public class SingleNodeNamedTopicSink extends AbstractSingleNodeNamedChannelSink {
 
@@ -30,7 +30,7 @@ public class SingleNodeNamedTopicSink extends AbstractSingleNodeNamedChannelSink
 
 	@Override
 	protected void bind() {
-		this.messageBus.bindPubSubConsumer(this.sharedChannelName, this.messageChannel);
+		this.messageBus.bindPubSubConsumer(this.sharedChannelName, this.messageChannel, null);
 	}
 
 }

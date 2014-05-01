@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,6 +12,8 @@
  */
 
 package org.springframework.xd.dirt.integration.bus;
+
+import java.util.Properties;
 
 import org.springframework.messaging.MessageChannel;
 
@@ -34,8 +36,9 @@ public interface MessageBus {
 	 *
 	 * @param name the logical identity of the message source
 	 * @param moduleInputChannel the channel bound as a consumer
+	 * @param properties the deployment properties
 	 */
-	void bindConsumer(String name, MessageChannel moduleInputChannel);
+	void bindConsumer(String name, MessageChannel moduleInputChannel, Properties properties);
 
 
 	/**
@@ -43,16 +46,18 @@ public interface MessageBus {
 	 *
 	 * @param name the logical identity of the message source
 	 * @param inputChannel the channel bound as a pub/sub consumer
+	 * @param properties the deployment properties
 	 */
-	void bindPubSubConsumer(final String name, MessageChannel inputChannel);
+	void bindPubSubConsumer(final String name, MessageChannel inputChannel, Properties properties);
 
 	/**
 	 * Bind a message producer on a p2p channel.
 	 *
 	 * @param name the logical identity of the message target
 	 * @param moduleOutputChannel the channel bound as a producer
+	 * @param properties the deployment properties
 	 */
-	void bindProducer(String name, MessageChannel moduleOutputChannel);
+	void bindProducer(String name, MessageChannel moduleOutputChannel, Properties properties);
 
 
 	/**
@@ -60,8 +65,9 @@ public interface MessageBus {
 	 *
 	 * @param name the logical identity of the message target
 	 * @param outputChannel the channel bound as a producer
+	 * @param properties the deployment properties
 	 */
-	void bindPubSubProducer(final String name, MessageChannel outputChannel);
+	void bindPubSubProducer(final String name, MessageChannel outputChannel, Properties properties);
 
 	/**
 	 * Unbind an inbound inter-module channel and stop any active components that use the channel.
@@ -99,8 +105,9 @@ public interface MessageBus {
 	 * @param name The name of the requestor.
 	 * @param requests The request channel - sends requests.
 	 * @param replies The reply channel - receives replies.
+	 * @param properties the deployment properties
 	 */
-	void bindRequestor(String name, MessageChannel requests, MessageChannel replies);
+	void bindRequestor(String name, MessageChannel requests, MessageChannel replies, Properties properties);
 
 	/**
 	 * Bind a consumer that handles requests from a requestor and asynchronously sends replies. To unbind, invoke
@@ -109,8 +116,9 @@ public interface MessageBus {
 	 * @param name The name of the requestor for which this replier will handle requests.
 	 * @param requests The request channel - receives requests.
 	 * @param replies The reply channel - sends replies.
+	 * @param properties the deployment properties
 	 */
-	void bindReplier(String name, MessageChannel requests, MessageChannel replies);
+	void bindReplier(String name, MessageChannel requests, MessageChannel replies, Properties properties);
 
 	/**
 	 * Create a channel and bind a producer dynamically, creating the infrastructure

@@ -170,7 +170,7 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
 		if (channel == null) {
 			channel = this.directChannelProvider.createAndRegisterChannel(name);
-			bindProducer(name, channel);
+			bindProducer(name, channel, null); // TODO: dynamic producer options
 		}
 		return channel;
 	}
@@ -188,7 +188,7 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
 		if (channel == null) {
 			channel = this.directChannelProvider.createAndRegisterChannel(name);
-			bindPubSubProducer(name, channel);
+			bindPubSubProducer(name, channel, null); // TODO: dynamic producer options
 		}
 		return channel;
 	}

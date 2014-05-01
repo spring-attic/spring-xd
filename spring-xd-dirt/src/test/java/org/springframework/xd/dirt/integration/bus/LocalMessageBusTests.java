@@ -70,7 +70,7 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 
 	private void verifyPayloadConversion(final Object expectedValue, final LocalMessageBus bus) {
 		DirectChannel myChannel = new DirectChannel();
-		bus.bindConsumer("in", myChannel);
+		bus.bindConsumer("in", myChannel, null);
 		DirectChannel input = bus.getBean("in", DirectChannel.class);
 		assertNotNull(input);
 

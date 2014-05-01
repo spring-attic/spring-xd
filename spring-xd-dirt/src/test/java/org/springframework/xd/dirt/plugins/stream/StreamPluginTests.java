@@ -20,12 +20,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME_KEY;
 
 import java.util.List;
+import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Before;
@@ -106,9 +108,10 @@ public class StreamPluginTests {
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
-		verify(bus).bindConsumer("foo.0", input);
-		verify(bus).bindProducer("foo.1", output);
-		verify(bus).bindPubSubProducer(eq("tap:stream:foo.testing.1"), any(DirectChannel.class));
+		verify(bus).bindConsumer(eq("foo.0"), same(input), any(Properties.class));
+		verify(bus).bindProducer(eq("foo.1"), same(output), any(Properties.class));
+		verify(bus).bindPubSubProducer(eq("tap:stream:foo.testing.1"), any(DirectChannel.class),
+				any(Properties.class));
 		plugin.beforeShutdown(module);
 		plugin.removeModule(module);
 		verify(bus).unbindConsumer("foo.0", input);

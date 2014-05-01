@@ -59,11 +59,11 @@ public abstract class AbstractMessageBusTests {
 	@Test
 	public void testClean() throws Exception {
 		MessageBus messageBus = getMessageBus();
-		messageBus.bindProducer("foo.0", new DirectChannel());
-		messageBus.bindConsumer("foo.0", new DirectChannel());
-		messageBus.bindProducer("foo.1", new DirectChannel());
-		messageBus.bindConsumer("foo.1", new DirectChannel());
-		messageBus.bindProducer("foo.2", new DirectChannel());
+		messageBus.bindProducer("foo.0", new DirectChannel(), null);
+		messageBus.bindConsumer("foo.0", new DirectChannel(), null);
+		messageBus.bindProducer("foo.1", new DirectChannel(), null);
+		messageBus.bindConsumer("foo.1", new DirectChannel(), null);
+		messageBus.bindProducer("foo.2", new DirectChannel(), null);
 		Collection<?> bindings = getBindings(messageBus);
 		assertEquals(5, bindings.size());
 		messageBus.unbindProducers("foo.0");
@@ -81,8 +81,8 @@ public abstract class AbstractMessageBusTests {
 		MessageBus messageBus = getMessageBus();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
-		messageBus.bindProducer("foo.0", moduleOutputChannel);
-		messageBus.bindConsumer("foo.0", moduleInputChannel);
+		messageBus.bindProducer("foo.0", moduleOutputChannel, null);
+		messageBus.bindConsumer("foo.0", moduleInputChannel, null);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		moduleOutputChannel.send(message);
 		Message<?> inbound = moduleInputChannel.receive(5000);
@@ -99,8 +99,8 @@ public abstract class AbstractMessageBusTests {
 		MessageBus messageBus = getMessageBus();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
-		messageBus.bindProducer("bar.0", moduleOutputChannel);
-		messageBus.bindConsumer("bar.0", moduleInputChannel);
+		messageBus.bindProducer("bar.0", moduleOutputChannel, null);
+		messageBus.bindConsumer("bar.0", moduleInputChannel, null);
 
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		moduleOutputChannel.send(message);
@@ -122,14 +122,14 @@ public abstract class AbstractMessageBusTests {
 		QueueChannel moduleInputChannel = new QueueChannel();
 		QueueChannel module2InputChannel = new QueueChannel();
 		QueueChannel module3InputChannel = new QueueChannel();
-		messageBus.bindProducer("baz.0", moduleOutputChannel);
-		messageBus.bindConsumer("baz.0", moduleInputChannel);
+		messageBus.bindProducer("baz.0", moduleOutputChannel, null);
+		messageBus.bindConsumer("baz.0", moduleInputChannel, null);
 		moduleOutputChannel.addInterceptor(new WireTap(tapChannel));
-		messageBus.bindPubSubProducer("tap:baz.http", tapChannel);
+		messageBus.bindPubSubProducer("tap:baz.http", tapChannel, null);
 		// A new module is using the tap as an input channel
-		messageBus.bindPubSubConsumer("tap:baz.http", module2InputChannel);
+		messageBus.bindPubSubConsumer("tap:baz.http", module2InputChannel, null);
 		// Another new module is using tap as an input channel
-		messageBus.bindPubSubConsumer("tap:baz.http", module3InputChannel);
+		messageBus.bindPubSubConsumer("tap:baz.http", module3InputChannel, null);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		boolean success = false;
 		boolean retried = false;
@@ -187,16 +187,16 @@ public abstract class AbstractMessageBusTests {
 		QueueChannel module2InputChannel = new QueueChannel();
 		QueueChannel module3InputChannel = new QueueChannel();
 		// Create the tap first
-		messageBus.bindPubSubConsumer("tap:baz.http", module2InputChannel);
+		messageBus.bindPubSubConsumer("tap:baz.http", module2InputChannel, null);
 
 		// Then create the stream
-		messageBus.bindProducer("baz.0", moduleOutputChannel);
-		messageBus.bindConsumer("baz.0", moduleInputChannel);
+		messageBus.bindProducer("baz.0", moduleOutputChannel, null);
+		messageBus.bindConsumer("baz.0", moduleInputChannel, null);
 		moduleOutputChannel.addInterceptor(new WireTap(tapChannel));
-		messageBus.bindPubSubProducer("tap:baz.http", tapChannel);
+		messageBus.bindPubSubProducer("tap:baz.http", tapChannel, null);
 
 		// Another new module is using tap as an input channel
-		messageBus.bindPubSubConsumer("tap:baz.http", module3InputChannel);
+		messageBus.bindPubSubConsumer("tap:baz.http", module3InputChannel, null);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		boolean success = false;
 		boolean retried = false;

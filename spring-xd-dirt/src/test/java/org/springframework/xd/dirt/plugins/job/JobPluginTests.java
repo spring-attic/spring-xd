@@ -300,22 +300,22 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		private List<String> producerNames = new ArrayList<String>();
 
 		@Override
-		public void bindConsumer(String name, MessageChannel moduleInputChannel) {
+		public void bindConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
 			consumerNames.add(name);
 		}
 
 		@Override
-		public void bindPubSubConsumer(String name, MessageChannel inputChannel) {
+		public void bindPubSubConsumer(String name, MessageChannel inputChannel, Properties properties) {
 			Assert.fail("Should not be called.");
 		}
 
 		@Override
-		public void bindProducer(String name, MessageChannel moduleOutputChannel) {
+		public void bindProducer(String name, MessageChannel moduleOutputChannel, Properties properties) {
 			producerNames.add(name);
 		}
 
 		@Override
-		public void bindPubSubProducer(String name, MessageChannel outputChannel) {
+		public void bindPubSubProducer(String name, MessageChannel outputChannel, Properties properties) {
 			producerNames.add(name);
 		}
 
@@ -348,12 +348,14 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		}
 
 		@Override
-		public void bindRequestor(String name, MessageChannel requests, MessageChannel replies) {
+		public void bindRequestor(String name, MessageChannel requests, MessageChannel replies,
+				Properties properties) {
 			Assert.fail("Should not be called.");
 		}
 
 		@Override
-		public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
+		public void bindReplier(String name, MessageChannel requests, MessageChannel replies,
+				Properties properties) {
 			Assert.fail("Should not be called.");
 		}
 

@@ -468,9 +468,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 		Module module = null;
 		try {
-			Stream stream = streamFactory.createStream(streamName,
-					mapBytesUtility.toMap(client.getData().forPath(Paths.build(Paths.STREAMS, streamName))));
-
+			Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
 			ModuleDescriptor descriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
 			ModuleDeploymentProperties moduleDeploymentProperties =
 					DeploymentPropertiesUtility.createModuleDeploymentProperties(

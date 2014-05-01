@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.module;
 
-import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Exception thrown when a module is not deployed but the deployment request expects the module is deployed.

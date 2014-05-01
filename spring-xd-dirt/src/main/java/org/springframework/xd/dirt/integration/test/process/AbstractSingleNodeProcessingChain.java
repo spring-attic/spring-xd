@@ -16,8 +16,8 @@
 
 package org.springframework.xd.dirt.integration.test.process;
 
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedQueueSink;

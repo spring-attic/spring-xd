@@ -13,7 +13,7 @@
 
 package org.springframework.xd.dirt.integration.test.source;
 
-import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.test.AbstractSingleNodeNamedChannelModuleFactory;
 
 

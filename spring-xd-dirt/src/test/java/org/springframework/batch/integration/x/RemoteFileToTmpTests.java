@@ -57,14 +57,14 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.bus.BusTestUtils;
-import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.xd.dirt.integration.bus.BusTestUtils;
+import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 
 
 /**

@@ -26,7 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;

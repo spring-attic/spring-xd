@@ -21,8 +21,8 @@ import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JO
 import java.util.Properties;
 
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
 import org.springframework.xd.module.core.Module;
 

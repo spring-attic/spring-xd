@@ -13,8 +13,8 @@
 
 package org.springframework.xd.dirt.integration.test;
 
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 
 /**

@@ -16,9 +16,9 @@
 
 package org.springframework.xd.extensions.test;
 
-import org.springframework.integration.x.bus.converter.AbstractFromMessageConverter;
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeType;
+import org.springframework.xd.dirt.integration.bus.converter.AbstractFromMessageConverter;
 
 
 /**

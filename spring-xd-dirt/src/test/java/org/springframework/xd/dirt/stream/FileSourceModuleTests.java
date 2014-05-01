@@ -29,12 +29,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import org.springframework.integration.x.bus.StringConvertingContentTypeResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
+import org.springframework.xd.dirt.integration.bus.StringConvertingContentTypeResolver;
 
 
 /**

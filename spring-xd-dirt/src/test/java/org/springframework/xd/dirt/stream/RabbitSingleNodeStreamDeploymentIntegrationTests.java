@@ -20,7 +20,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-import org.springframework.integration.x.bus.RabbitTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;

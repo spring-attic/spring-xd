@@ -14,9 +14,9 @@
 package org.springframework.xd.dirt.integration.test.source;
 
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.test.AbstractSingleNodeNamedChannelModule;
 
 

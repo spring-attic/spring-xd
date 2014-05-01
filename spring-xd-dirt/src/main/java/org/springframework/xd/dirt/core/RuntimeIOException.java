@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.core;
 
 import java.io.IOException;
 
+import org.springframework.xd.dirt.XDRuntimeException;
+
 
 /**
  * Thrown when something goes wrong during some IO operation. Unchecked, as opposed to the {@link IOException} it wraps.

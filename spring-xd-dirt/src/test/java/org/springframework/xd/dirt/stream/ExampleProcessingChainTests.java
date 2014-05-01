@@ -29,7 +29,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.process.SingleNodeProcessingChain;
 import org.springframework.xd.dirt.integration.test.process.SingleNodeProcessingChainConsumer;

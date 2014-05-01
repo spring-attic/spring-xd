@@ -21,9 +21,9 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.RuntimeTimeoutException;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;

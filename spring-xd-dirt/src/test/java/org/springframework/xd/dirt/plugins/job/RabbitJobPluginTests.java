@@ -25,13 +25,13 @@ import java.util.Map;
 import org.junit.Rule;
 
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.integration.x.bus.RabbitTestMessageBus;
-import org.springframework.integration.x.bus.serializer.AbstractCodec;
-import org.springframework.integration.x.bus.serializer.CompositeCodec;
-import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
-import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
-import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 import org.springframework.xd.tuple.Tuple;
 

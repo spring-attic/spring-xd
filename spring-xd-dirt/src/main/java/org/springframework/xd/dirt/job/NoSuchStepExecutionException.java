@@ -17,7 +17,7 @@
 package org.springframework.xd.dirt.job;
 
 import org.springframework.batch.core.StepExecution;
-import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Thrown when attempting to refer to {@link StepExecution} that does not exist.

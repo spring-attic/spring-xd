@@ -14,8 +14,8 @@
 package org.springframework.xd.dirt.integration.test.sink;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.test.AbstractSingleNodeNamedChannelModule;
 
 

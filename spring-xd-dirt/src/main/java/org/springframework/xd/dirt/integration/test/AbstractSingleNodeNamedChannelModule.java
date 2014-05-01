@@ -17,9 +17,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.http.MediaType;
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 
 /**

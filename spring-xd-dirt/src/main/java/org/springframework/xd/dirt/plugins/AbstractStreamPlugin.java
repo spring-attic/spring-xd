@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.plugins;
 
-import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 

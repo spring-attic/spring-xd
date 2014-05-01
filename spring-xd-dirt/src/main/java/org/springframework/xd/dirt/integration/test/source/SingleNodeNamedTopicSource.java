@@ -14,7 +14,7 @@
 package org.springframework.xd.dirt.integration.test.source;
 
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 
 /**

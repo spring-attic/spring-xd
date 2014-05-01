@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.dirt.integration.test.DeploymentVerifier;
+import org.springframework.xd.dirt.test.DeploymentVerifier;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 

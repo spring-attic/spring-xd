@@ -25,12 +25,12 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.integration.x.bus.StringConvertingContentTypeResolver;
-import org.springframework.integration.x.bus.converter.MessageConverterUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.MimeType;
+import org.springframework.xd.dirt.integration.bus.StringConvertingContentTypeResolver;
+import org.springframework.xd.dirt.integration.bus.converter.MessageConverterUtils;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;

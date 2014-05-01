@@ -26,14 +26,14 @@ import org.junit.Rule;
 
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.integration.x.bus.RedisTestMessageBus;
-import org.springframework.integration.x.bus.serializer.AbstractCodec;
-import org.springframework.integration.x.bus.serializer.CompositeCodec;
-import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
-import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
-import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
-import org.springframework.integration.x.redis.RedisMessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.RedisTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
+import org.springframework.xd.dirt.integration.redis.RedisMessageBus;
 import org.springframework.xd.test.redis.RedisTestSupport;
 import org.springframework.xd.tuple.Tuple;
 

@@ -22,8 +22,8 @@ import java.util.Properties;
 
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.integration.x.bus.MessageBusAwareRouterBeanPostProcessor;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBusAwareRouterBeanPostProcessor;
 import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;

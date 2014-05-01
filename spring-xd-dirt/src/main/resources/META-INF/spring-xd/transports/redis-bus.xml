@@ -7,7 +7,7 @@
 
 	<import resource="redis-common.xml" />
 
-	<bean id="messageBus" class="org.springframework.integration.x.redis.RedisMessageBus">
+	<bean id="messageBus" class="org.springframework.xd.dirt.integration.redis.RedisMessageBus">
 		<constructor-arg ref="redisConnectionFactory" />
 		<constructor-arg ref="codec"/>
 	</bean>

@@ -18,8 +18,8 @@ package org.springframework.xd.dirt.config;
 
 import org.junit.Rule;
 
-import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.integration.x.rabbit.RabbitMessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.rabbit.RabbitMessageBus;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**

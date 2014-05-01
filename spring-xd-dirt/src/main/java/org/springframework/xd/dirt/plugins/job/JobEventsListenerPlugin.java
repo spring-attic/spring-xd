@@ -19,10 +19,10 @@ package org.springframework.xd.dirt.plugins.job;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
 import org.springframework.xd.dirt.plugins.job.support.listener.XDJobListenerConstants;
 import org.springframework.xd.module.core.Module;

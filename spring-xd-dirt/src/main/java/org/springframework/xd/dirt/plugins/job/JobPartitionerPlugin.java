@@ -16,9 +16,9 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.core.Module;

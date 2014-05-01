@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.module;
 
-import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 import org.springframework.xd.module.ModuleType;
 
 

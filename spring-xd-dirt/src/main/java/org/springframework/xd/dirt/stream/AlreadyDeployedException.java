@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Thrown when an attempt is made to deploy a definition that is already deployed.

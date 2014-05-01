@@ -34,8 +34,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
-import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
-import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 /**
  * @author Gary Russell

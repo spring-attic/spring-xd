@@ -36,8 +36,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.MimeType;
-import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
-import org.springframework.xd.dirt.integration.bus.StringConvertingContentTypeResolver;
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;

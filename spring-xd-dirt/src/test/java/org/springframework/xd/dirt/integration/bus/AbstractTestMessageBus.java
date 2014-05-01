@@ -20,8 +20,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 
 
 /**

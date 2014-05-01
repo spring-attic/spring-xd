@@ -27,7 +27,6 @@ import org.junit.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.xd.dirt.integration.redis.KryoMessageSerializer;
 
 
 /**

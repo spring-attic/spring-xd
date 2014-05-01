@@ -19,7 +19,6 @@ package org.springframework.xd.module;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
@@ -28,7 +27,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * Defines a module.
- * 
+ *
  * @author Gary Russell
  * @author Eric Bottard
  * @author Mark Pollack
@@ -40,8 +39,6 @@ public class ModuleDefinition {
 	private volatile ModuleType type;
 
 	private final Resource resource;
-
-	private volatile Properties properties;
 
 	private volatile String definition;
 
@@ -79,7 +76,7 @@ public class ModuleDefinition {
 
 	/**
 	 * Determine if this a composed module
-	 * 
+	 *
 	 * @return true if this is a composed module, false otherwise.
 	 */
 	public boolean isComposed() {
@@ -88,7 +85,7 @@ public class ModuleDefinition {
 
 	/**
 	 * Set the list of composed modules if this is a composite module, can not be null
-	 * 
+	 *
 	 * @param composedModuleDefinitions list of composed modules
 	 */
 	public void setComposedModuleDefinitions(List<ModuleDefinition> composedModuleDefinitions) {
@@ -110,14 +107,6 @@ public class ModuleDefinition {
 
 	public Resource getResource() {
 		return resource;
-	}
-
-	public Properties getProperties() {
-		return properties;
-	}
-
-	public void setProperties(Properties properties) {
-		this.properties = properties;
 	}
 
 	public String getDefinition() {

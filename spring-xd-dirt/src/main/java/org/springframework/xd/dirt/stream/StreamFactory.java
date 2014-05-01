@@ -75,7 +75,7 @@ public class StreamFactory {
 		// TODO: compare with the createStream method of the prototype
 		for (int i = 0; i < requests.size(); i++) {
 			ModuleDeploymentRequest request = requests.get(i);
-			String moduleName = request.getModule();
+			String moduleName = request.getModuleName();
 			String label;
 			String rawModuleDefinition = tokens[i];
 			// todo: this is a hack

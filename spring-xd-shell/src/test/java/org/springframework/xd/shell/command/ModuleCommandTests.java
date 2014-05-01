@@ -52,7 +52,6 @@ import org.springframework.xd.test.fixtures.FileSink;
  */
 public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
-
 	@Test
 	public void testModuleCompose() {
 		compose().newModule("compositesource", "time | splitter");
@@ -74,7 +73,6 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 		stream().create(generateStreamName(), "%s | filterAndTransform | %s", httpSource, sink);
 		httpSource.ensureReady().postData("abcdefghi!");
 		assertThat(sink, eventually(hasContentsThat(equalTo("...defghi!"))));
-
 	}
 
 	/**

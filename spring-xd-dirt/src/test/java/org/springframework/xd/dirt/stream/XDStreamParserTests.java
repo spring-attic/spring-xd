@@ -62,7 +62,7 @@ public class XDStreamParserTests {
 		List<ModuleDeploymentRequest> requests = parser.parse("myJob", "job", job);
 		assertEquals(1, requests.size());
 		ModuleDeploymentRequest job = requests.get(0);
-		assertEquals("job", job.getModule());
+		assertEquals("job", job.getModuleName());
 		assertEquals("myJob", job.getGroup());
 		assertEquals(0, job.getIndex());
 		assertEquals(ModuleType.job, job.getType());
@@ -74,7 +74,7 @@ public class XDStreamParserTests {
 		List<ModuleDeploymentRequest> requests = parser.parse("myJob", "job --foo=bar", job);
 		assertEquals(1, requests.size());
 		ModuleDeploymentRequest job = requests.get(0);
-		assertEquals("job", job.getModule());
+		assertEquals("job", job.getModuleName());
 		assertEquals("myJob", job.getGroup());
 		assertEquals(0, job.getIndex());
 		assertEquals(ModuleType.job, job.getType());
@@ -88,12 +88,12 @@ public class XDStreamParserTests {
 		assertEquals(2, requests.size());
 		ModuleDeploymentRequest sink = requests.get(0);
 		ModuleDeploymentRequest source = requests.get(1);
-		assertEquals("foo", source.getModule());
+		assertEquals("foo", source.getModuleName());
 		assertEquals("test", source.getGroup());
 		assertEquals(0, source.getIndex());
 		assertEquals(ModuleType.source, source.getType());
 		assertEquals(0, source.getParameters().size());
-		assertEquals("bar", sink.getModule());
+		assertEquals("bar", sink.getModuleName());
 		assertEquals("test", sink.getGroup());
 		assertEquals(1, sink.getIndex());
 		assertEquals(ModuleType.sink, sink.getType());
@@ -107,7 +107,7 @@ public class XDStreamParserTests {
 		assertEquals(2, requests.size());
 		// ModuleDeploymentRequest sink = requests.get(0);
 		ModuleDeploymentRequest source = requests.get(1);
-		assertEquals("foo", source.getModule());
+		assertEquals("foo", source.getModuleName());
 		assertEquals("test", source.getGroup());
 		assertEquals(0, source.getIndex());
 		assertEquals(ModuleType.source, source.getType());
@@ -122,7 +122,7 @@ public class XDStreamParserTests {
 				"http --port=9700 | filter --expression=payload.matches('hello world') | file", stream);
 		assertEquals(3, requests.size());
 		ModuleDeploymentRequest filter = requests.get(1);
-		assertEquals("filter", filter.getModule());
+		assertEquals("filter", filter.getModuleName());
 		assertEquals("test", filter.getGroup());
 		assertEquals(1, filter.getIndex());
 		assertEquals(ModuleType.processor, filter.getType());
@@ -137,7 +137,7 @@ public class XDStreamParserTests {
 		assertEquals(2, requests.size());
 		ModuleDeploymentRequest sink = requests.get(0);
 		ModuleDeploymentRequest source = requests.get(1);
-		assertEquals("foo", source.getModule());
+		assertEquals("foo", source.getModuleName());
 		assertEquals("test", source.getGroup());
 		assertEquals(0, source.getIndex());
 		assertEquals(ModuleType.source, source.getType());
@@ -145,7 +145,7 @@ public class XDStreamParserTests {
 		assertEquals(2, sourceParameters.size());
 		assertEquals("1", sourceParameters.get("x"));
 		assertEquals("two", sourceParameters.get("y"));
-		assertEquals("bar", sink.getModule());
+		assertEquals("bar", sink.getModuleName());
 		assertEquals("test", sink.getGroup());
 		assertEquals(1, sink.getIndex());
 		assertEquals(ModuleType.sink, sink.getType());

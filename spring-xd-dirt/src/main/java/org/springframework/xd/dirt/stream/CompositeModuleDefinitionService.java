@@ -36,7 +36,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * Provides save, delete and dependency operations for managing a composite module definition.
- * 
+ *
  * @author Mark Pollack
  */
 public class CompositeModuleDefinitionService {
@@ -100,7 +100,7 @@ public class CompositeModuleDefinitionService {
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDeploymentRequests.size());
 
 		for (ModuleDeploymentRequest moduleDeploymentRequest : moduleDeploymentRequests) {
-			moduleDefinitions.add(moduleDefinitionRepository.findByNameAndType(moduleDeploymentRequest.getModule(),
+			moduleDefinitions.add(moduleDefinitionRepository.findByNameAndType(moduleDeploymentRequest.getModuleName(),
 					moduleDeploymentRequest.getType()));
 		}
 

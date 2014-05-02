@@ -118,6 +118,14 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	@Value("${jms_port}")
 	private int jmsPort;
 
+	// Twitter Search Attributes
+	// Twitter Keys
+	@Value("${twitterConsumerKey}")
+	private transient String twitterConsumerKey;
+
+	@Value("${twitterConsumerSecretKey}")
+	private transient String twitterConsumerSecretKey;
+
 	private SimpleDriverDataSource dataSource;
 
 
@@ -240,6 +248,25 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	 */
 	public String getDefaultTargetHost() {
 		return getContainerUrls().get(0).getHost();
+	}
+
+	/**
+	 * The twitter consumer key
+	 * 
+	 * @return consumer key
+	 */
+	public String getTwitterConsumerKey() {
+		return twitterConsumerKey;
+	}
+
+
+	/**
+	 * The twitter consumer secret key
+	 * 
+	 * @return consumer secret key
+	 */
+	public String getTwitterConsumerSecretKey() {
+		return twitterConsumerSecretKey;
 	}
 
 

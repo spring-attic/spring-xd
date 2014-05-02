@@ -41,7 +41,7 @@ import org.springframework.xd.test.fixtures.SimpleFileSink;
 
 /**
  * Base Class for Spring XD Integration classes
- *
+ * 
  * @author Glenn Renfro
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -82,7 +82,7 @@ public abstract class AbstractIntegrationTest {
 	/**
 	 * Initializes the environment before the test. Also verfies that the admin is up and at least one container is
 	 * available.
-	 *
+	 * 
 	 */
 	public void initializer() {
 		if (!initialized) {
@@ -129,7 +129,7 @@ public abstract class AbstractIntegrationTest {
 	/**
 	 * Creates a stream on the XD cluster defined by the test's Artifact or Environment variables Uses STREAM_NAME as
 	 * default stream name.
-	 *
+	 * 
 	 * @param stream the stream definition
 	 */
 	public void stream(String stream) {
@@ -139,7 +139,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Creates a stream on the XD cluster defined by the test's Artifact or Environment variables
-	 *
+	 * 
 	 * @param streamName the name of the stream
 	 * @param stream the stream definition
 	 */
@@ -152,7 +152,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Gets the URL of the container where the stream was deployed
-	 *
+	 * 
 	 * @param streamName Used to find the container that contains the stream.
 	 * @return The URL that contains the stream.
 	 */
@@ -164,7 +164,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Verifies that the expected number of messages were received by all modules in a stream.
-	 *
+	 * 
 	 */
 	public void assertReceived(int msgCountExpected) {
 		waitForXD();
@@ -176,7 +176,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Verifies that a message was received by the module.
-	 *
+	 * 
 	 */
 	public void assertReceived(String moduleName, int msgCountExpected) {
 		Assert.hasText(moduleName, "moduleName must not be empty nor null");
@@ -189,7 +189,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Verifies that the data stored by the sink is what was expected.
-	 *
+	 * 
 	 * @param data - expected data
 	 * @param sinkInstance determines whether to look at the log or file for the result
 	 */
@@ -207,8 +207,34 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
+	 * Verifies that the data stored by the sink is what was expected.
+	 * 
+	 * @param data - expected data
+	 * @param sinkInstance determines whether to look at the log or file for the result
+	 */
+	public void assertContains(String data) {
+		Assert.hasText(data, "data can not be empty nor null");
+		assertFileContains(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
+	}
+
+	/**
+	 * Checks the file data to see if the data is contained in the file.
+	 * 
+	 * @param data The data to validate the file content against.
+	 * @param url The URL of the server that we will ssh, to get the data.
+	 * @param streamName the name of the file we are retrieving from the remote server.
+	 */
+	private void assertFileContains(String data, URL url, String streamName)
+	{
+		waitForXD(pauseTime * 2000);
+		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
+				+ ".out";
+		validation.verifyContentContains(xdEnvironment, url, fileName, data);
+	}
+
+	/**
 	 * Checks the file data to see if it matches what is expected.
-	 *
+	 * 
 	 * @param data The data to validate the file content against.
 	 * @param url The URL of the server that we will ssh, to get the data.
 	 * @param streamName the name of the file we are retrieving from the remote server.
@@ -223,14 +249,14 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Checks the log to see if the data specified is in the log.
-	 *
+	 * 
 	 * @param data The data to check if it is in the log file
 	 * @param url The URL of the server we will ssh, to get the data.
 	 */
 	private void assertLogEntry(String data, URL url)
 	{
 		waitForXD();
-		validation.verifyLogContent(xdEnvironment, url, xdEnvironment.getContainerLogLocation(), data);
+		validation.verifyContentContains(xdEnvironment, url, xdEnvironment.getContainerLogLocation(), data);
 	}
 
 	protected void waitForXD() {

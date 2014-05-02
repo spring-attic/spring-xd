@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Represents an XD Module that is returned from a JMX Query.
- * 
+ *
  * @author Glenn Renfro
  */
 public class Module {
@@ -57,13 +57,17 @@ public class Module {
 
 	private String moduleChannel;
 
+	private String receiveCount;
+
+	private String receiveErrorCount;
+
 	private final static int MODULE_NAME_OFFSET = 1;
 
 	private final static int MODULE_CHANNEL_OFFSET = 2;
 
 	/**
 	 * Retrieves the module data from the key and value data returned from Jackson.
-	 * 
+	 *
 	 * @param key The key for the module
 	 * @param value The value associated for the module.
 	 * @return Fully qualified Module Instance.
@@ -186,6 +190,25 @@ public class Module {
 		this.request = request;
 	}
 
+	public String getReceiveCount() {
+		return receiveCount;
+	}
+
+
+	public void setReceiveCount(String receiveCount) {
+		this.receiveCount = receiveCount;
+	}
+
+
+	public String getReceiveErrorCount() {
+		return receiveErrorCount;
+	}
+
+
+	public void setReceiveErrorCount(String receiveErrorCount) {
+		this.receiveErrorCount = receiveErrorCount;
+	}
+
 	private static Module setupModule(LinkedHashMap<String, Object> value) {
 		Module module = new Module();
 		Iterator<Entry<String, Object>> iter = value.entrySet().iterator();
@@ -203,19 +226,16 @@ public class Module {
 		return module;
 	}
 
-
 	@Override
 	public String toString() {
-		return "Module [sendCount=" + sendCount + ", timeSinceLastSend="
-				+ timeSinceLastSend + ", meanSendRate=" + meanSendRate
-				+ ", meanSendDuration=" + meanSendDuration
-				+ ", sendErrorCount=" + sendErrorCount
-				+ ", standardDeviationSendDuration="
-				+ standardDeviationSendDuration + ", maxSendDuration="
-				+ maxSendDuration + ", meanErrorRatio=" + meanErrorRatio
-				+ ", meanErrorRate=" + meanErrorRate + ", minSendDuration="
-				+ minSendDuration + ", request=" + request + ", moduleName="
-				+ moduleName + ", moduleChannel=" + moduleChannel + "]";
+		return "Module [sendCount=" + sendCount + ", timeSinceLastSend=" + timeSinceLastSend + ", meanSendRate="
+				+ meanSendRate + ", meanSendDuration=" + meanSendDuration + ", sendErrorCount=" + sendErrorCount
+				+ ", standardDeviationSendDuration=" + standardDeviationSendDuration + ", maxSendDuration="
+				+ maxSendDuration + ", meanErrorRatio=" + meanErrorRatio + ", meanErrorRate=" + meanErrorRate
+				+ ", minSendDuration=" + minSendDuration + ", request=" + request + ", moduleName=" + moduleName
+				+ ", moduleChannel=" + moduleChannel + ", receiveCount=" + receiveCount + ", receiveErrorCount="
+				+ receiveErrorCount + "]";
 	}
+
 
 }

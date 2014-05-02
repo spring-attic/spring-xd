@@ -47,9 +47,11 @@ public class ProcessorTest extends AbstractIntegrationTest {
 	@Test
 	public void testFilter() {
 		String filterContent = "good";
-		stream("trigger  --payload='" + filterContent + "'" +
-				XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
+		stream(sources.http() + XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
 				+ sinks.file());
+		waitForXD();
+		sources.http().postData(filterContent);
+		waitForXD(2000);
 		assertReceived(1);
 		assertValid(filterContent, sinks.file());
 	}

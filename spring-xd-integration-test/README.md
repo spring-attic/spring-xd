@@ -1,41 +1,59 @@
-The purpose of this project is to allow the CI to execute integration tests after the nightly EC2 deployment of Spring XD.
-It uses an artifact file produced by the ec2 deployment CI build, to setup the environment for the test.
+The purpose of this project is run a comprehensive set of system integration tests for several configurations of the XD runtime.
+The goal is to have all source, sink, processors and jobs that are provided as part of the XD distribution to be tested across
+all supported transports and analytic peristence options.  
+
+
+The tests are run in the [CI server with XD deployed onto EC2](https://build.spring.io/browse/XD-ATEC2) to act as a general regression test against nightly builds of XD off master.  You can also run the tests against a locally deployed XD, either singlenode or distributed.
+
+## Prerequisites
+
+To successfully run all the tests in a local deployment, you will need to install several other components
+
+* ActiveMQ
+* Hadoop 2.2
+* RabbitMQ with MQTT Management Plugin Enabled.
+
+## Setting up single XD node
+If you run these tests against an xd-singlenode instance, it will use all the default values found in [application.yml](https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/application.yml).  The tests for singlenode will read values from the file [application-singlenode.properites](https://github.com/spring-projects/spring-xd/blob/master/spring-xd-integration-test/src/test/resources/application-singlenode.properties).  If you change any values, such as port numbers, in application-singlenode.properites you will need to update values in servers.yml or environment variables to the port numbers match.
+
+If you want to change default values for ports, here are examples of how to do that.
+
+**If you use Environment Variables**
+```
+	#XD Server
+	export management_port=15005
+	export server_port=9393
+```
+**If you use servers.yml**
+```
+	management:
+	  port: 15005
+
+	---
+
+	server:
+	  port: 9393
+```
+
 
 ## Setting up single admin and single container cluster on the same machine
 Make sure that the following environment variables are set either the servers.yml or directly in the environment.
 ##### If you use Environment Variables use the settings below:
 ```
 # For the XD Admin Server
-	export endpoints_jmx_enabled=true
-	export endpoints_jmx_uniqueNames=true
-	export endpoints_jolokia_enabled=true
-	export XD_JMX_ENABLED=true
 	export management_port=15001
 	export server_port=9393
 	export PORT=9001
+```
 
-	#For the XD Container
-	export endpoints_jmx_enabled=true
-	export endpoints_jmx_uniqueNames=true
-	export endpoints_jolokia_enabled=true
-	export XD_JMX_ENABLED=true
+```
+# For the XD Container
 	export management_port=15005
 	export server_port=9395
 ```
 ##### If you use servers.yml:
 ```
-	# For the XD Admin Server
-	jmx:
-	  enabled: true
-	  uniqueNames: true
-	jolokia:
-	  enabled: true
-
-	---
-
-	XD_JMX_ENABLED: true
-
-	---
+# For the XD Admin Server
 
 	management:
 	  port: 15001
@@ -47,18 +65,7 @@ Make sure that the following environment variables are set either the servers.ym
 ```
 
 ```
-	# For the XD Container Server
-	jmx:
-	  enabled: true
-	  uniqueNames: true
-	jolokia:
-	  enabled: true
-
-	---
-
-	XD_JMX_ENABLED: true
-
-	---
+# For the XD Container Server
 
 	management:
 	  port: 15005
@@ -73,41 +80,7 @@ Make sure that the following environment variables are set either the servers.ym
 *You must set the "PORT=9001" environment variable for the admin server.  At this time XD does not recognize the PORT setting in servers.yml*
 
 
-## Setting up single XD node
-Make sure that the following environment variables are set either the servers.yml or directly in the environment.
-**If you use Environment Variables use the settings below:**
-```
-	#XD Server
-	export endpoints_jmx_enabled=true
-	export endpoints_jmx_uniqueNames=true
-	export endpoints_jolokia_enabled=true
-	export XD_JMX_ENABLED=true
-	export management_port=15005
-	export server_port=9393
-```
-**If you use servers.yml:**
-```
-	# For the XD Server
-	jmx:
-	  enabled: true
-	  uniqueNames: true
-	jolokia:
-	  enabled: true
 
-	---
-
-	XD_JMX_ENABLED: true
-
-	---
-
-	management:
-	  port: 15005
-
-	---
-
-	server:
-	  port: 9393
-```
 ## Setting up single admin and single container cluster on different machines
 Make sure that the following environment variables are set either the servers.yml or directly in the environment.
 

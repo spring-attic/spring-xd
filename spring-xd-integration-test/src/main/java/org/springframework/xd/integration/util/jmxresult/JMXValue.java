@@ -17,6 +17,7 @@
 package org.springframework.xd.integration.util.jmxresult;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
@@ -38,7 +39,7 @@ public class JMXValue {
 	 */
 	@JsonAnySetter
 	public void handleUnknown(String key, Object value) throws Exception {
-		Module module = Module.generateModuleFromJackson(key, value);
+		Module module = Module.generateModuleFromJackson(key, (Map<?, ?>) value);
 		modules.add(module);
 	}
 

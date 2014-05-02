@@ -1430,6 +1430,7 @@ project('spring-xd-test') {
 			exclude group: 'org.springframework.batch'
 			exclude group: 'jline'
 		}
+		compile "com.google.guava:guava:14.0.1"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-context-support:$springVersion"

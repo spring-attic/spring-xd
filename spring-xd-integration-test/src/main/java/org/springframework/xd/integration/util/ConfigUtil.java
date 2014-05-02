@@ -22,17 +22,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.jclouds.domain.Credentials;
-import org.jclouds.domain.LoginCredentials;
-import org.jclouds.http.handlers.BackoffLimitedRetryHandler;
-import org.jclouds.io.payloads.ByteSourcePayload;
-import org.jclouds.sshj.SshjSshClient;
-
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
-
-import com.google.common.io.Files;
-
 
 /**
  * Tools to create and read configuration files for an environment deployed on EC2.
@@ -146,35 +138,18 @@ public class ConfigUtil {
 	/**
 	 * Retrieves the private key from a file, so we can execute commands on the container.
 	 *
-	 * @param privateKeyFileName The location of the private key file
-	 * @return private key
+	 * @param fileName The location of the private key file
+	 * @return The private key
 	 */
-	public static String getPrivateKey(String privateKeyFileName) {
-		Assert.hasText(privateKeyFileName, "privateKeyFileName must not be empty nor null");
+	public static String getPrivateKey(String fileName) {
+		Assert.hasText(fileName, "fileName must not be empty nor null");
+		isFilePresent(fileName);
 		try {
-			isFilePresent(privateKeyFileName);
-			String result = "";
-			BufferedReader br = new BufferedReader(new FileReader(privateKeyFileName));
-			while (br.ready()) {
-				result += br.readLine() + "\n";
-			}
-			br.close();
-			return result;
+			return FileCopyUtils.copyToString(new FileReader(fileName));
 		}
-		catch (IOException ioException) {
-			throw new IllegalStateException(ioException.getMessage());
+		catch (final IOException e) {
+			throw new IllegalStateException(e);
 		}
-	}
-
-	private void sshCopy(File file, String fileName, String host) throws IOException {
-		final LoginCredentials credential = LoginCredentials
-				.fromCredentials(new Credentials("ubuntu", xdEnvironment.getPrivateKey()));
-		final com.google.common.net.HostAndPort socket = com.google.common.net.HostAndPort
-				.fromParts(host, 22);
-		final SshjSshClient client = new SshjSshClient(
-				new BackoffLimitedRetryHandler(), socket, credential, 5000);
-		final ByteSourcePayload payload = new ByteSourcePayload(Files.asByteSource(file));
-		client.put(xdEnvironment.getBaseDir() + "/config/" + fileName + ".properties", payload);
 	}
 
 	private static void isFilePresent(String keyFile) {

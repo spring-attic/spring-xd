@@ -28,6 +28,9 @@ public final class IntegrationHadoopSystemConstants {
 		throw new AssertionError();
 	}
 
+	/** Default bean id for directory store writer. */
+	public static final String DEFAULT_ID_DIRECTORY_STORE_WRITER = "partitionStoreWriter";
+
 	/** Default bean id for store writer. */
 	public static final String DEFAULT_ID_STORE_WRITER = "storeWriter";
 

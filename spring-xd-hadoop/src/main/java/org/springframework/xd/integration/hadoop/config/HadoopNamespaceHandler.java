@@ -28,6 +28,7 @@ public class HadoopNamespaceHandler extends AbstractIntegrationNamespaceHandler 
 
 	@Override
 	public void init() {
+		registerBeanDefinitionParser("partition-store-writer", new PartitionStoreWriterParser());
 		registerBeanDefinitionParser("store-writer", new StoreWriterParser());
 		registerBeanDefinitionParser("naming-strategy", new NamingStrategyParser());
 		registerBeanDefinitionParser("rollover-strategy", new RolloverStrategyParser());

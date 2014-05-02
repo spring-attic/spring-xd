@@ -23,21 +23,41 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.integration.hadoop.outbound.HdfsStoreMessageHandler;
+import org.springframework.xd.integration.hadoop.outbound.PartitionHdfsStoreMessageHandler;
 
 /**
  * Parser for the 'hdfs-outbound-channel-adapter' element.
  * 
  * @author Mark Fisher
  * @author Janne Valkealahti
+ * @author Rodrigo Meneses
  */
 public class HdfsOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HdfsStoreMessageHandler.class);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "writer", "storeWriter");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		String directory_expression_generator = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element,
+				"partition-expression-generator", parserContext);
+
+
+		BeanDefinitionBuilder builder = null;
+
+		if (StringUtils.hasText(directory_expression_generator) == true) {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(PartitionHdfsStoreMessageHandler.class);
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "partition-store-writer",
+					"partitionStoreWriter");
+
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "partition-expression-generator");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		}
+		else {
+			builder = BeanDefinitionBuilder.genericBeanDefinition(HdfsStoreMessageHandler.class);
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "writer", "storeWriter");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+			return builder.getBeanDefinition();
+		}
 		return builder.getBeanDefinition();
 	}
 

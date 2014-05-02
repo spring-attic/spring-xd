@@ -30,7 +30,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.ResourceDeployer;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 
@@ -76,7 +76,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (repository.findOne(definition.getName()) != null) {
 			throwDefinitionAlreadyExistsException(definition);
 		}
-		List<ModuleDeploymentRequest> moduleDeploymentRequests = streamParser.parse(definition.getName(),
+		List<ModuleDescriptor> moduleDeploymentRequests = streamParser.parse(definition.getName(),
 				definition.getDefinition(), definitionKind);
 		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDeploymentRequests);
 		if (!moduleDefinitions.isEmpty()) {
@@ -92,10 +92,10 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 * @param moduleDeploymentRequests The list of ModuleDeploymentRequest resulting from parsing the definition.
 	 * @return a list of ModuleDefinitions
 	 */
-	private List<ModuleDefinition> createModuleDefinitions(List<ModuleDeploymentRequest> moduleDeploymentRequests) {
+	private List<ModuleDefinition> createModuleDefinitions(List<ModuleDescriptor> moduleDeploymentRequests) {
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDeploymentRequests.size());
 
-		for (ModuleDeploymentRequest moduleDeploymentRequest : moduleDeploymentRequests) {
+		for (ModuleDescriptor moduleDeploymentRequest : moduleDeploymentRequests) {
 			ModuleDefinition moduleDefinition = new ModuleDefinition(moduleDeploymentRequest.getModuleName(),
 					moduleDeploymentRequest.getType());
 			moduleDefinitions.add(moduleDefinition);

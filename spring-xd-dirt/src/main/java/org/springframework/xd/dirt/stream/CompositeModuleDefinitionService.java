@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.DependencyException;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -57,7 +57,7 @@ public class CompositeModuleDefinitionService {
 	}
 
 	public ModuleDefinition save(String name, String definition) {
-		List<ModuleDeploymentRequest> modules = this.streamParser.parse(name, definition, module);
+		List<ModuleDescriptor> modules = this.streamParser.parse(name, definition, module);
 
 		ModuleType type = this.determineType(modules);
 		if (moduleDefinitionRepository.findByNameAndType(name, type) != null) {
@@ -95,11 +95,11 @@ public class CompositeModuleDefinitionService {
 
 
 	private List<ModuleDefinition> createComposedModuleDefinitions(
-			List<ModuleDeploymentRequest> moduleDeploymentRequests) {
+			List<ModuleDescriptor> moduleDeploymentRequests) {
 
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDeploymentRequests.size());
 
-		for (ModuleDeploymentRequest moduleDeploymentRequest : moduleDeploymentRequests) {
+		for (ModuleDescriptor moduleDeploymentRequest : moduleDeploymentRequests) {
 			moduleDefinitions.add(moduleDefinitionRepository.findByNameAndType(moduleDeploymentRequest.getModuleName(),
 					moduleDeploymentRequest.getType()));
 		}
@@ -107,7 +107,7 @@ public class CompositeModuleDefinitionService {
 		return moduleDefinitions;
 	}
 
-	private ModuleType determineType(List<ModuleDeploymentRequest> modules) {
+	private ModuleType determineType(List<ModuleDescriptor> modules) {
 		Assert.isTrue(modules != null && modules.size() > 0, "at least one module required");
 		if (modules.size() == 1) {
 			return modules.get(0).getType();

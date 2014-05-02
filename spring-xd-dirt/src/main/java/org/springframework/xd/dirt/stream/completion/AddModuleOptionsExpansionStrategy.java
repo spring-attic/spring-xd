@@ -23,7 +23,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOption;
@@ -59,15 +59,15 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 	}
 
 	@Override
-	public boolean shouldTrigger(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind) {
+	public boolean shouldTrigger(String text, List<ModuleDescriptor> parseResult, CompletionKind kind) {
 		return true;
 	}
 
 	@Override
-	public void addProposals(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind,
+	public void addProposals(String text, List<ModuleDescriptor> parseResult, CompletionKind kind,
 			List<String> proposals) {
 		// List is in reverse order
-		ModuleDeploymentRequest lastModule = parseResult.get(0);
+		ModuleDescriptor lastModule = parseResult.get(0);
 		String lastModuleName = lastModule.getModuleName();
 		ModuleType lastModuleType = lastModule.getType();
 		ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,

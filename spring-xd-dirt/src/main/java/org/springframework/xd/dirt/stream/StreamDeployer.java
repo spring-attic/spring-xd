@@ -24,7 +24,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.dirt.stream.dsl.XDDSLMessages;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -124,7 +124,7 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 		// ModuleDependencyRepository so that the dependencies are also stored in ZooKeeper.
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		try {
-			for (ModuleDeploymentRequest request :
+			for (ModuleDescriptor request :
 					parser.parse(definition.getName(), definition.getDefinition(), ParsingContext.stream)) {
 				moduleDefinitions.add(new ModuleDefinition(request.getModuleName(), request.getType()));
 			}

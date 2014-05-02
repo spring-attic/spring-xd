@@ -29,7 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.domain.CompletionKind;
@@ -58,15 +58,15 @@ public class PipeIntoOtherModulesExpansionStrategy implements CompletionExpansio
 	}
 
 	@Override
-	public boolean shouldTrigger(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind) {
+	public boolean shouldTrigger(String text, List<ModuleDescriptor> parseResult, CompletionKind kind) {
 		return true;
 	}
 
 	@Override
-	public void addProposals(String start, List<ModuleDeploymentRequest> parseResult, CompletionKind kind,
+	public void addProposals(String start, List<ModuleDescriptor> parseResult, CompletionKind kind,
 			List<String> proposals) {
 		// List is in reverse order
-		ModuleDeploymentRequest lastModule = parseResult.get(0);
+		ModuleDescriptor lastModule = parseResult.get(0);
 		ModuleType lastModuleType = lastModule.getType();
 
 		// For full streams, add processors and sinks
@@ -76,7 +76,7 @@ public class PipeIntoOtherModulesExpansionStrategy implements CompletionExpansio
 		}
 
 		// For composed modules, don't go up to sink if we started with a source
-		ModuleDeploymentRequest firstModule = parseResult.get(parseResult.size() - 1);
+		ModuleDescriptor firstModule = parseResult.get(parseResult.size() - 1);
 		ModuleType firstModuleType = firstModule.getType();
 		if (kind == module && lastModuleType != ModuleType.sink) {
 			addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", processor, proposals);

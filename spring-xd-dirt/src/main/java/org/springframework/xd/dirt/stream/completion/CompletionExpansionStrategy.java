@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.stream.completion;
 
 import java.util.List;
 
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
@@ -32,12 +32,12 @@ public interface CompletionExpansionStrategy {
 	/**
 	 * Whether this completion should be triggered.
 	 */
-	boolean shouldTrigger(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind);
+	boolean shouldTrigger(String text, List<ModuleDescriptor> parseResult, CompletionKind kind);
 
 	/**
 	 * Perform code completion by adding proposals to the {@code proposals} list.
 	 */
-	void addProposals(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind,
+	void addProposals(String text, List<ModuleDescriptor> parseResult, CompletionKind kind,
 			List<String> proposals);
 
 }

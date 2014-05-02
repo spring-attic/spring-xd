@@ -35,7 +35,7 @@ import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
@@ -59,9 +59,9 @@ public class XDStreamParserTests {
 
 	@Test
 	public void testJob() {
-		List<ModuleDeploymentRequest> requests = parser.parse("myJob", "job", job);
+		List<ModuleDescriptor> requests = parser.parse("myJob", "job", job);
 		assertEquals(1, requests.size());
-		ModuleDeploymentRequest job = requests.get(0);
+		ModuleDescriptor job = requests.get(0);
 		assertEquals("job", job.getModuleName());
 		assertEquals("myJob", job.getGroup());
 		assertEquals(0, job.getIndex());
@@ -71,9 +71,9 @@ public class XDStreamParserTests {
 
 	@Test
 	public void testJobWithParams() {
-		List<ModuleDeploymentRequest> requests = parser.parse("myJob", "job --foo=bar", job);
+		List<ModuleDescriptor> requests = parser.parse("myJob", "job --foo=bar", job);
 		assertEquals(1, requests.size());
-		ModuleDeploymentRequest job = requests.get(0);
+		ModuleDescriptor job = requests.get(0);
 		assertEquals("job", job.getModuleName());
 		assertEquals("myJob", job.getGroup());
 		assertEquals(0, job.getIndex());
@@ -84,10 +84,10 @@ public class XDStreamParserTests {
 
 	@Test
 	public void simpleStream() {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo | bar", stream);
+		List<ModuleDescriptor> requests = parser.parse("test", "foo | bar", stream);
 		assertEquals(2, requests.size());
-		ModuleDeploymentRequest sink = requests.get(0);
-		ModuleDeploymentRequest source = requests.get(1);
+		ModuleDescriptor sink = requests.get(0);
+		ModuleDescriptor source = requests.get(1);
 		assertEquals("foo", source.getModuleName());
 		assertEquals("test", source.getGroup());
 		assertEquals(0, source.getIndex());
@@ -102,11 +102,11 @@ public class XDStreamParserTests {
 
 	@Test
 	public void quotesInParams() {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo --bar='payload.matches(''hello'')' | file",
+		List<ModuleDescriptor> requests = parser.parse("test", "foo --bar='payload.matches(''hello'')' | file",
 				stream);
 		assertEquals(2, requests.size());
 		// ModuleDeploymentRequest sink = requests.get(0);
-		ModuleDeploymentRequest source = requests.get(1);
+		ModuleDescriptor source = requests.get(1);
 		assertEquals("foo", source.getModuleName());
 		assertEquals("test", source.getGroup());
 		assertEquals(0, source.getIndex());
@@ -118,10 +118,10 @@ public class XDStreamParserTests {
 
 	@Test
 	public void quotesInParams2() {
-		List<ModuleDeploymentRequest> requests = parser.parse("test",
+		List<ModuleDescriptor> requests = parser.parse("test",
 				"http --port=9700 | filter --expression=payload.matches('hello world') | file", stream);
 		assertEquals(3, requests.size());
-		ModuleDeploymentRequest filter = requests.get(1);
+		ModuleDescriptor filter = requests.get(1);
 		assertEquals("filter", filter.getModuleName());
 		assertEquals("test", filter.getGroup());
 		assertEquals(1, filter.getIndex());
@@ -133,10 +133,10 @@ public class XDStreamParserTests {
 
 	@Test
 	public void parameterizedModules() {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo --x=1 --y=two | bar --z=3", stream);
+		List<ModuleDescriptor> requests = parser.parse("test", "foo --x=1 --y=two | bar --z=3", stream);
 		assertEquals(2, requests.size());
-		ModuleDeploymentRequest sink = requests.get(0);
-		ModuleDeploymentRequest source = requests.get(1);
+		ModuleDescriptor sink = requests.get(0);
+		ModuleDescriptor source = requests.get(1);
 		assertEquals("foo", source.getModuleName());
 		assertEquals("test", source.getGroup());
 		assertEquals(0, source.getIndex());
@@ -156,7 +156,7 @@ public class XDStreamParserTests {
 
 	@Test
 	public void sourceChannelNameIsAppliedToSourceModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "topic:foo > goo | blah | file", stream);
+		List<ModuleDescriptor> requests = parser.parse("test", "topic:foo > goo | blah | file", stream);
 		assertEquals(3, requests.size());
 		assertEquals("topic:foo", requests.get(2).getSourceChannelName());
 		assertEquals(ModuleType.processor, requests.get(2).getType());
@@ -166,7 +166,7 @@ public class XDStreamParserTests {
 
 	@Test
 	public void sinkChannelNameIsAppliedToSinkModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > queue:foo", stream);
+		List<ModuleDescriptor> requests = parser.parse("test", "boo | blah | aaak > queue:foo", stream);
 		assertEquals(3, requests.size());
 		assertEquals("queue:foo", requests.get(0).getSinkChannelName());
 		assertEquals(ModuleType.processor, requests.get(0).getType());
@@ -179,7 +179,7 @@ public class XDStreamParserTests {
 		StreamDefinitionRepository streamRepo = mock(StreamDefinitionRepository.class);
 		parser = new XDStreamParser(streamRepo, moduleDefinitionRepository(), new DefaultModuleOptionsMetadataResolver());
 		when(streamRepo.findOne("xxx")).thenReturn(new StreamDefinition("xxx", "http | file"));
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "tap:stream:xxx.http > file", stream);
+		List<ModuleDescriptor> requests = parser.parse("test", "tap:stream:xxx.http > file", stream);
 		assertEquals(1, requests.size());
 		assertEquals("tap:xxx.http.0", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
@@ -187,7 +187,7 @@ public class XDStreamParserTests {
 
 	@Test
 	public void simpleSinkNamedChannel() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "bart > queue:foo", stream);
+		List<ModuleDescriptor> requests = parser.parse("test", "bart > queue:foo", stream);
 		assertEquals(1, requests.size());
 		assertEquals("queue:foo", requests.get(0).getSinkChannelName());
 		assertEquals(ModuleType.source, requests.get(0).getType());
@@ -210,7 +210,7 @@ public class XDStreamParserTests {
 
 	@Test
 	public void simpleSourceNamedChannel() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "queue:foo > boot", stream);
+		List<ModuleDescriptor> requests = parser.parse("test", "queue:foo > boot", stream);
 		assertEquals(1, requests.size());
 		assertEquals("queue:foo", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.sink, requests.get(0).getType());

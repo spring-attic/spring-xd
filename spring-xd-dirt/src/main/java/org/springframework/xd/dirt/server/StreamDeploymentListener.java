@@ -36,11 +36,12 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
+import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
-import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.MapBytesUtility;
@@ -88,6 +89,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 * @see StreamDeploymentListener.EventHandler
 	 */
 	private final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
+
 		@Override
 		public Thread newThread(Runnable runnable) {
 			Thread thread = new Thread(runnable, "Stream Deployer");
@@ -164,7 +166,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 			ModuleDescriptor descriptor = iterator.next();
 			String streamName = stream.getName();
 			String moduleType = descriptor.getModuleDefinition().getType().toString();
-			String moduleLabel = descriptor.getLabel();
+			String moduleLabel = descriptor.getModuleLabel();
 
 			String path = new StreamDeploymentsPath()
 					.setStreamName(streamName)
@@ -195,10 +197,12 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 			String streamName = stream.getName();
 			String moduleType = descriptor.getModuleDefinition().getType().toString();
 			String moduleName = descriptor.getModuleDefinition().getName();
-			String moduleLabel = descriptor.getLabel();
+			String moduleLabel = descriptor.getModuleLabel();
 			Map<Container, String> mapDeploymentStatus = new HashMap<Container, String>();
 
-			for (Container container : containerMatcher.match(descriptor, containerRepository)) {
+			ModuleDeploymentProperties deploymentProperties =
+					createModuleDeploymentProperties(stream.getDeploymentProperties(), descriptor);
+			for (Container container : containerMatcher.match(descriptor, deploymentProperties, containerRepository)) {
 				String containerName = container.getName();
 				try {
 					client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
@@ -258,10 +262,32 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * Callable that handles events from a
-	 * {@link org.apache.curator.framework.recipes.cache.PathChildrenCache}.
-	 * This allows for the handling of events to be executed in a separate
-	 * thread from the Curator thread that raises these events.
+	 * Based on the deployment properties for a {@link Stream}, create an instance
+	 * of {@link org.springframework.xd.dirt.core.ModuleDeploymentProperties} for
+	 * a specific module in the stream.
+	 *
+	 * @param streamDeploymentProperties deployment properties for a stream
+	 * @param descriptor descriptor for module in the stream for which
+	 *        to create the properties
+	 * @return deployment properties for the module
+	 */
+	public static ModuleDeploymentProperties createModuleDeploymentProperties(
+			Map<String, String> streamDeploymentProperties, ModuleDescriptor descriptor) {
+		ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
+		for (String key : streamDeploymentProperties.keySet()) {
+			String prefix = String.format("module.%s.", descriptor.getModuleName());
+			if (key.startsWith(prefix)) {
+				deploymentProperties.put(key.substring(prefix.length()),
+						streamDeploymentProperties.get(key));
+			}
+		}
+		return deploymentProperties;
+	}
+
+	/**
+	 * Callable that handles events from a {@link org.apache.curator.framework.recipes.cache.PathChildrenCache}. This
+	 * allows for the handling of events to be executed in a separate thread from the Curator thread that raises these
+	 * events.
 	 */
 	class EventHandler implements Callable<Void> {
 
@@ -279,7 +305,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 		 * Construct an {@code EventHandler}.
 		 *
 		 * @param client curator client
-		 * @param event  event raised from Curator
+		 * @param event event raised from Curator
 		 */
 		EventHandler(CuratorFramework client, PathChildrenCacheEvent event) {
 			this.client = client;

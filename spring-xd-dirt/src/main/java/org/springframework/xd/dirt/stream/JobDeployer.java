@@ -26,7 +26,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
@@ -87,7 +87,7 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 		return Paths.build(Paths.JOB_DEPLOYMENTS, definition.getName());
 	}
 
-	private List<ModuleDeploymentRequest> parse(String name, String definition) {
+	private List<ModuleDescriptor> parse(String name, String definition) {
 		return streamParser.parse(name, definition, definitionKind);
 	}
 

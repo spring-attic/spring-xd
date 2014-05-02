@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.dirt.stream.ParsingContext.Position;
@@ -47,7 +47,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Parser to convert a DSL string for a stream into a list of
- * {@link org.springframework.xd.dirt.module.ModuleDeploymentRequest}
+ * {@link org.springframework.xd.dirt.module.ModuleDescriptor}
  * objects that comprise the given stream.
  *
  * @author Andy Clement
@@ -110,19 +110,20 @@ public class XDStreamParser implements XDParser {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<ModuleDeploymentRequest> parse(String name, String config, ParsingContext parsingContext) {
+	public List<ModuleDescriptor> parse(String name, String config, ParsingContext parsingContext) {
 
 		StreamConfigParser parser = new StreamConfigParser(repository);
 		StreamNode stream = parser.parse(name, config);
-		Deque<ModuleDeploymentRequest.Builder> builders = new LinkedList<ModuleDeploymentRequest.Builder>();
+		Deque<ModuleDescriptor.Builder> builders = new LinkedList<ModuleDescriptor.Builder>();
 
 		List<ModuleNode> moduleNodes = stream.getModuleNodes();
 		for (int m = moduleNodes.size() - 1; m >= 0; m--) {
 			ModuleNode moduleNode = moduleNodes.get(m);
-			ModuleDeploymentRequest.Builder builder =
-					new ModuleDeploymentRequest.Builder()
+			ModuleDescriptor.Builder builder =
+					new ModuleDescriptor.Builder()
 							.setGroup(name)
 							.setModuleName(moduleNode.getName())
+							.setModuleLabel(moduleNode.getLabelName())
 							.setIndex(m);
 			if (moduleNode.hasArguments()) {
 				ArgumentNode[] arguments = moduleNode.getArguments();
@@ -146,13 +147,14 @@ public class XDStreamParser implements XDParser {
 		// Now that we know about source and sink channel names,
 		// do a second pass to determine type. Also convert to composites.
 		// And while we're at it (and type is known), validate module name and options
-		List<ModuleDeploymentRequest> result = new ArrayList<ModuleDeploymentRequest>(builders.size());
-		for (ModuleDeploymentRequest.Builder builder : builders) {
+		List<ModuleDescriptor> result = new ArrayList<ModuleDescriptor>(builders.size());
+		for (ModuleDescriptor.Builder builder : builders) {
 			builder.setType(determineType(builder, builders.size() - 1, parsingContext));
 
 			// definition is guaranteed to be non-null here
 			ModuleDefinition moduleDefinition = moduleDefinitionRepository
 					.findByNameAndType(builder.getModuleName(), builder.getType());
+			builder.setModuleDefinition(moduleDefinition);
 			ModuleOptionsMetadata optionsMetadata = moduleOptionsMetadataResolver.resolve(moduleDefinition);
 			if (parsingContext.shouldBindAndValidate()) {
 				try {
@@ -183,7 +185,7 @@ public class XDStreamParser implements XDParser {
 	 * @return module type
 	 * @throws NoSuchModuleException if the module type does not exist
 	 */
-	private ModuleType determineType(ModuleDeploymentRequest.Builder builder, int lastIndex, ParsingContext parsingContext) {
+	private ModuleType determineType(ModuleDescriptor.Builder builder, int lastIndex, ParsingContext parsingContext) {
 		ModuleType moduleType = determineTypeFromNamedChannels(builder, lastIndex, parsingContext);
 		if (moduleType != null) {
 			return moduleType;
@@ -200,7 +202,7 @@ public class XDStreamParser implements XDParser {
 	 *
 	 * @return module type, or null if no named channels were present
 	 */
-	private ModuleType determineTypeFromNamedChannels(ModuleDeploymentRequest.Builder builder, int lastIndex,
+	private ModuleType determineTypeFromNamedChannels(ModuleDescriptor.Builder builder, int lastIndex,
 			ParsingContext parsingContext) {
 		// Should this fail for composed module too?
 		if (parsingContext == ParsingContext.job
@@ -235,25 +237,25 @@ public class XDStreamParser implements XDParser {
 	}
 
 	/**
-	 * Return a {@link org.springframework.xd.dirt.module.ModuleDeploymentRequest}
+	 * Return a {@link org.springframework.xd.dirt.module.ModuleDescriptor}
 	 * per the specifications indicated by the provided builder. If the module
 	 * is a composite module, the children modules are also built and included
-	 * under {@link org.springframework.xd.dirt.module.ModuleDeploymentRequest#getChildren()}.
+	 * under {@link org.springframework.xd.dirt.module.ModuleDescriptor#getChildren()}.
 	 *
 	 * @param builder builder object
 	 * @return new instance of {@code ModuleDeploymentRequest}
 	 */
-	private ModuleDeploymentRequest buildModuleDeploymentRequest(ModuleDeploymentRequest.Builder builder) {
+	private ModuleDescriptor buildModuleDeploymentRequest(ModuleDescriptor.Builder builder) {
 		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(builder.getModuleName(), builder.getType());
 		if (def != null && def.getDefinition() != null) {
-			List<ModuleDeploymentRequest> children = parse(def.getName(), def.getDefinition(), ParsingContext.module);
+			List<ModuleDescriptor> children = parse(def.getName(), def.getDefinition(), ParsingContext.module);
 
 			// Preserve the options set for the "parent" module in the parameters map
 			Map<String, String> parameters = new HashMap<String, String>(builder.getParameters());
 
 			// Pretend that options were set on the composed module itself
 			// (eases resolution wrt defaults later)
-			for (ModuleDeploymentRequest child : children) {
+			for (ModuleDescriptor child : children) {
 				for (String key : child.getParameters().keySet()) {
 					String prefix = child.getModuleName() + CompositeModule.OPTION_SEPARATOR;
 					builder.setParameter(prefix + key, child.getParameters().get(key));
@@ -269,10 +271,10 @@ public class XDStreamParser implements XDParser {
 			// Since ModuleDeploymentRequest is immutable, the children created
 			// by the parse method above have to be recreated since the group
 			// name needs to be modified
-			List<ModuleDeploymentRequest> list = new ArrayList<ModuleDeploymentRequest>();
-			for (ModuleDeploymentRequest child : children) {
-				ModuleDeploymentRequest.Builder childBuilder =
-						ModuleDeploymentRequest.Builder.fromModuleDeploymentRequest(child);
+			List<ModuleDescriptor> list = new ArrayList<ModuleDescriptor>();
+			for (ModuleDescriptor child : children) {
+				ModuleDescriptor.Builder childBuilder =
+						ModuleDescriptor.Builder.fromModuleDeploymentRequest(child);
 				childBuilder.setGroup(builder.getGroup() + "." + child.getModuleName());
 				list.add(childBuilder.build());
 			}

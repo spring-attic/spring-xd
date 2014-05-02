@@ -16,9 +16,9 @@
 
 package org.springframework.xd.dirt.stream;
 
-import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,9 +27,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
@@ -62,62 +60,21 @@ public class StreamFactory {
 		String definition = properties.get("definition");
 		Assert.hasText(definition, "Stream properties requires a 'definition' property");
 
-		String[] tokens = definition.split("\\|");
-		List<ModuleDeploymentRequest> requests = new ArrayList<ModuleDeploymentRequest>();
-		for (ModuleDeploymentRequest request : this.parser.parse(name, definition, ParsingContext.stream)) {
-			requests.add(0, request);
+		Deque<ModuleDescriptor> descriptors = new LinkedList<ModuleDescriptor>();
+		for (ModuleDescriptor request : parser.parse(name, definition, ParsingContext.stream)) {
+			descriptors.addFirst(request);
 		}
 
-		Stream.Builder builder = new Stream.Builder();
-		builder.setName(name);
-		builder.setDeploymentProperties(parseDeploymentProperties(properties.get("deploymentProperties")));
-
-		// TODO: compare with the createStream method of the prototype
-		for (int i = 0; i < requests.size(); i++) {
-			ModuleDeploymentRequest request = requests.get(i);
-			String moduleName = request.getModuleName();
-			String label;
-			String rawModuleDefinition = tokens[i];
-			// todo: this is a hack
-			// we need to be able to determine each module and any source/sink channel
-			// elements via the StreamDefinition once the parser returns that
-			if (i == requests.size() - 1 && rawModuleDefinition.contains(">")) {
-				if (ModuleType.sink == request.getType()) {
-					rawModuleDefinition = rawModuleDefinition.split(">")[1].trim();
-				}
-				else {
-					rawModuleDefinition = rawModuleDefinition.split(">")[0].trim();
-				}
-			}
-			else if (i == 0 && rawModuleDefinition.contains(">")) {
-				rawModuleDefinition = rawModuleDefinition.split(">")[0].trim();
-			}
-			if (rawModuleDefinition.contains(": ")) {
-				String[] split = rawModuleDefinition.split("\\: ");
-				label = split[0].trim();
-			}
-			else {
-				label = String.format("%s-%d", moduleName, request.getIndex());
-			}
-			String sourceChannelName = request.getSourceChannelName();
-			if (sourceChannelName != null) {
-				builder.setSourceChannelName(sourceChannelName);
-			}
-			String sinkChannelName = request.getSinkChannelName();
-			if (sinkChannelName != null) {
-				builder.setSinkChannelName(sinkChannelName);
-			}
-			ModuleDefinition moduleDefinition = moduleDefinitionRepository.findByNameAndType(moduleName,
-					request.getType());
-			builder.addModuleDefinition(label, moduleDefinition, request.getParameters());
-		}
-		return builder.build();
+		return new Stream.Builder()
+				.setName(name)
+				.setDeploymentProperties(parseDeploymentProperties(properties.get("deploymentProperties")))
+				.setModuleDescriptors(descriptors).build();
 	}
 
 	/**
 	 * Parses a String comprised of 0 or more comma-delimited key=value pairs where each key has the format:
-	 * {@code module.[modulename].[key]}. Values may themselves contain commas, since the split points will
-	 * be based upon the key pattern.
+	 * {@code module.[modulename].[key]}. Values may themselves contain commas, since the split points will be based
+	 * upon the key pattern.
 	 *
 	 * @param s the string to parse
 	 * @return the Map of parsed key value pairs

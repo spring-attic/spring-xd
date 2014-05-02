@@ -33,12 +33,13 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.core.ModuleDescriptor;
+import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 
 /**
  * Implementation of {@link ContainerMatcher} that returns a collection of containers to deploy a
- * {@link ModuleDescriptor} to. This implementation examines the deployment properties for a stream to determine the
- * preferences for each individual module. The deployment properties can (optionally) specify two preferences:
+ * {@link ModuleDescriptor} to. This implementation examines the deployment properties for a stream to determine
+ * the preferences for each individual module. The deployment properties can (optionally) specify two preferences:
  * <em>criteria</em> and <em>count</em>.
  * <p/>
  * The criteria indicates that a module should only be deployed to a container for which the criteria evaluates to
@@ -89,16 +90,17 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Collection<Container> match(ModuleDescriptor moduleDescriptor, ContainerRepository containerRepository) {
+	public Collection<Container> match(ModuleDescriptor moduleDescriptor,
+			ModuleDeploymentProperties deploymentProperties, ContainerRepository containerRepository) {
 		Assert.notNull(containerRepository, "'containerRepository' cannot be null.");
 		Assert.notNull(moduleDescriptor, "'moduleDescriptor' cannot be null.");
-		Assert.notNull(moduleDescriptor.getDeploymentProperties(), "'deploymentProperties' cannot be null.");
+		Assert.notNull(deploymentProperties, "'deploymentProperties' cannot be null.");
 
 		LOG.debug("Matching containers for module {}", moduleDescriptor);
 		List<Container> candidates = findAllContainersMatchingCriteria(containerRepository,
-				moduleDescriptor.getDeploymentProperties().getCriteria());
+				deploymentProperties.getCriteria());
 
-		return distributeForRequestedCount(candidates, moduleDescriptor.getDeploymentProperties().getCount());
+		return distributeForRequestedCount(candidates, deploymentProperties.getCount());
 	}
 
 	/**

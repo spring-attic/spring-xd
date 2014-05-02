@@ -25,10 +25,10 @@ import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.MapBytesUtility;
@@ -37,8 +37,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
- * Provides path information for stream definitions, deployments, and
- * stream module deployments.
+ * Provides path information for stream definitions, deployments, and stream module deployments.
  *
  * @author David Turanski
  * @author Mark Fisher
@@ -69,10 +68,10 @@ public class StreamPathProvider implements DeploymentPathProvider {
 	/**
 	 * Construct a StreamPathProvider.
 	 *
-	 * @param zkConnection                   ZooKeeper connection
-	 * @param streamDefinitionRepository     repository for stream definitions
-	 * @param moduleDefinitionRepository     repository for module definitions
-	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
+	 * @param zkConnection ZooKeeper connection
+	 * @param streamDefinitionRepository repository for stream definitions
+	 * @param moduleDefinitionRepository repository for module definitions
+	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 */
 	public StreamPathProvider(ZooKeeperConnection zkConnection,
 			StreamDefinitionRepository streamDefinitionRepository,
@@ -112,7 +111,7 @@ public class StreamPathProvider implements DeploymentPathProvider {
 				moduleDeploymentPaths.add(new StreamDeploymentsPath()
 						.setStreamName(stream.getName())
 						.setModuleType(descriptor.getModuleDefinition().getType().toString())
-						.setModuleLabel(descriptor.getLabel())
+						.setModuleLabel(descriptor.getModuleLabel())
 						.build());
 			}
 		}

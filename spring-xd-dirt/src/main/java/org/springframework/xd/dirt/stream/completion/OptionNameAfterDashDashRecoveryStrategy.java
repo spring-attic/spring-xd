@@ -25,7 +25,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
 import org.springframework.xd.module.ModuleDefinition;
@@ -72,10 +72,10 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind,
 			List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
-		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe, toParsingContext(kind));
+		List<ModuleDescriptor> parsed = parser.parse("__dummy", safe, toParsingContext(kind));
 
 		// List is in reverse order
-		ModuleDeploymentRequest lastModule = parsed.get(0);
+		ModuleDescriptor lastModule = parsed.get(0);
 		String lastModuleName = lastModule.getModuleName();
 		ModuleType lastModuleType = lastModule.getType();
 		ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,

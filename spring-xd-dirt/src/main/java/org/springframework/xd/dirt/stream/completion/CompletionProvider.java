@@ -22,7 +22,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.rest.client.domain.CompletionKind;
@@ -75,7 +75,7 @@ public class CompletionProvider {
 		List<String> results = new ArrayList<String>();
 
 		String name = "__dummy";
-		List<ModuleDeploymentRequest> parsed = null;
+		List<ModuleDescriptor> parsed = null;
 		try {
 			parsed = parser.parse(name, start, toParsingContext(kind));
 		}

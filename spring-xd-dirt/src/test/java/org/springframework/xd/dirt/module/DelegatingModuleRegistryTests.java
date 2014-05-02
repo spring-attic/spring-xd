@@ -98,7 +98,7 @@ public class DelegatingModuleRegistryTests {
 	public void testFindAll() {
 		List<ModuleDefinition> definitions = registry.findDefinitions();
 		Assert.assertNotNull("A result list should always be returned", definitions);
-		Assert.assertEquals(7, definitions.size());
+		Assert.assertEquals(9, definitions.size());
 		ArrayList<String> moduleNames = new ArrayList<String>();
 		for (ModuleDefinition definition : definitions) {
 			moduleNames.add(definition.getName());

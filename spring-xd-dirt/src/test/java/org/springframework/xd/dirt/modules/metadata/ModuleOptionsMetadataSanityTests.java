@@ -16,8 +16,10 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -42,18 +45,25 @@ import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolve
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.tuple.DefaultTuple;
 
 /**
  * Integration test class to do various tests about {@link ModuleOptionsMetadata} provided by XD.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = ModuleOptionsMetadataSanityTests.Config.class)
 public class ModuleOptionsMetadataSanityTests {
 
 	@Autowired
-	private ModuleRegistry moduleRegistry;;
+	@Qualifier("moduleRegistry")
+	private ModuleRegistry moduleRegistry;
+
+	@Autowired
+	@Qualifier("testModuleRegistry")
+	private ModuleRegistry testModuleRegistry;
 
 	@Autowired
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
@@ -101,6 +111,29 @@ public class ModuleOptionsMetadataSanityTests {
 		// }
 	}
 
+	@Test
+	public void testDefaultInputType() {
+		testInputTypeConfigured(
+				testModuleRegistry.findDefinition("testtupleprocessor_pojo_config", ModuleType.processor),
+				DefaultTuple.class.getName());
+
+		testInputTypeConfigured(testModuleRegistry.findDefinition("testtupleprocessor", ModuleType.processor),
+				"application/x-xd-tuple");
+	}
+
+	private void testInputTypeConfigured(ModuleDefinition md, Object expectedValue) {
+		assertNotNull(md);
+		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(md);
+		boolean hasInputType = false;
+		for (ModuleOption mo : moduleOptionsMetadata) {
+			if (mo.getName().equals("inputType")) {
+				assertEquals(expectedValue, mo.getDefaultValue());
+				hasInputType = true;
+			}
+		}
+		assertTrue(hasInputType);
+	}
+
 	@Configuration
 	public static class Config {
 
@@ -115,6 +148,12 @@ public class ModuleOptionsMetadataSanityTests {
 		public ModuleRegistry moduleRegistry() {
 			return new ResourceModuleRegistry("file:../modules");
 		}
+
+		@Bean
+		public ModuleRegistry testModuleRegistry() {
+			return new ResourceModuleRegistry("classpath:testmodules");
+		}
+
 
 		@Bean
 		public ModuleOptionsMetadataResolver moduleOptionsMetadataResolver() {

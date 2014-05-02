@@ -30,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -39,8 +40,14 @@ import org.springframework.validation.MapBindingResult;
  * A composite {@link ModuleOptionsMetadata} made of several {@link ModuleOptionsMetadata} that will appear "flattened".
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMetadata {
+
+	/**
+	 *
+	 */
+	private static final String INPUT_TYPE = "inputType";
 
 	private static final Log logger = LogFactory.getLog(FlattenedCompositeModuleOptionsMetadata.class);
 
@@ -49,13 +56,26 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 	private Map<ModuleOptionsMetadata, Set<String>> momToSupportedOptions = new LinkedHashMap<ModuleOptionsMetadata, Set<String>>();
 
 	public FlattenedCompositeModuleOptionsMetadata(List<? extends ModuleOptionsMetadata> delegates) {
+		ModuleOption inputType = null;
 		for (final ModuleOptionsMetadata delegate : delegates) {
 			Set<String> optionNames = new HashSet<String>();
 			momToSupportedOptions.put(delegate, optionNames);
 			for (ModuleOption option : delegate) {
-				if (options.put(option.getName(), option) != null) {
-					reportOptionCollision(delegates, option.getName());
+				if (options.get(option.getName()) != null) {
+					/*
+					 * XD-1472: InputType treated as a special case. If the module defines a default, do not replace it
+					 * with a null value (the global default)
+					 */
+					if (option.getName().equals(INPUT_TYPE)) {
+						inputType = options.get(option.getName());
+					}
+					else {
+						reportOptionCollision(delegates, option.getName());
+					}
 				}
+
+				options.put(option.getName(), option.getName().equals(INPUT_TYPE) && inputType != null ? inputType
+						: option);
 				optionNames.add(option.getName());
 			}
 		}
@@ -129,8 +149,21 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 		for (ModuleOptionsMetadata mom : momToSupportedOptions.keySet()) {
 			Map<String, String> rawValuesSubset = distributed.get(mom);
 			ModuleOptions mo = mom.interpolate(rawValuesSubset);
-			for (String optionName : mo.asPropertySource().getPropertyNames()) {
-				nameToOptions.put(optionName, mo);
+			EnumerablePropertySource propertySource = mo.asPropertySource();
+			for (String optionName : propertySource.getPropertyNames()) {
+				/*
+				 * XD-1472: InputType treated as a special case. If the module defines a default value, do not replace
+				 * it with a null value (the global default)
+				 */
+
+				if (optionName.equals(INPUT_TYPE)) {
+					if (propertySource.getProperty(optionName) != null) {
+						nameToOptions.put(optionName, mo);
+					}
+				}
+				else {
+					nameToOptions.put(optionName, mo);
+				}
 			}
 		}
 
@@ -149,15 +182,17 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 					public String[] getPropertyNames() {
 						String[] result = nameToOptions.keySet().toArray(new String[nameToOptions.keySet().size()]);
 						FlattenedCompositeModuleOptionsMetadata.logger.debug(String.format(
-								"%s returning propertyNames: %s", FlattenedCompositeModuleOptionsMetadata.logger,
-								result));
+								"returning propertyNames: %s",
+								StringUtils.arrayToCommaDelimitedString(result)));
 						return result;
 					}
 
 					@Override
 					public Object getProperty(String name) {
 						ModuleOptions moduleOptions = nameToOptions.get(name);
-						return moduleOptions == null ? null : moduleOptions.asPropertySource().getProperty(name);
+						Object result = moduleOptions == null ? null : moduleOptions.asPropertySource().getProperty(
+								name);
+						return result;
 					}
 				};
 			}

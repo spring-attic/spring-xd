@@ -205,6 +205,57 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 		sendPayloadAndVerifyOutput("dateToString", now, test);
 	}
 
+	// TODO: Test with class value (testtupleprocessor) - fails currently because converted to string 'class
+	// <className>'
+	@Test
+	public void testModuleWithDefaultInputTypeProperties() {
+		deployStream(
+				"defaultInputType",
+				"source --outputType=application/json | testtupleprocessor | sink");
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				assertTrue(Tuple.class.isAssignableFrom(message.getPayload().getClass()));
+				assertEquals(MimeType.valueOf("application/x-java-object;type=" + DefaultTuple.class.getName()),
+						contentTypeResolver.resolve(message.getHeaders()));
+			}
+		};
+		sendPayloadAndVerifyOutput("defaultInputType", new Foo("hello", 123), test);
+	}
+
+	@Test
+	public void testOverrideInputTypeForModuleWithDefaultInputTypeProperties() {
+		deployStream(
+				"overrideInputType",
+				"source --outputType=application/json | testtupleprocessor --inputType=java.lang.String | sink");
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				assertTrue(message.getPayload() instanceof String);
+			}
+		};
+		sendPayloadAndVerifyOutput("overrideInputType", new Foo("hello", 123), test);
+	}
+
+	@Test
+	public void testModuleWithDefaultInputTypeDefinedAsClass() {
+		deployStream(
+				"classInputType",
+				"source --outputType=application/json | testtupleprocessor_pojo_config | sink");
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				assertTrue(Tuple.class.isAssignableFrom(message.getPayload().getClass()));
+				assertEquals(MimeType.valueOf("application/x-java-object;type=" + DefaultTuple.class.getName()),
+						contentTypeResolver.resolve(message.getHeaders()));
+			}
+		};
+
+		sendPayloadAndVerifyOutput("classInputType", new Foo("hello", 123), test);
+	}
 
 	@SuppressWarnings("serial")
 	static class Foo implements Serializable {

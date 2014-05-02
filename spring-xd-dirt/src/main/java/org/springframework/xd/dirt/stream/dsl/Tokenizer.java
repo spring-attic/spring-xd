@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
 
 /**
  * Lex some input data into a stream of tokens that can then then be parsed.
- * 
+ *
  * @author Andy Clement
  */
 class Tokenizer {
@@ -52,7 +52,7 @@ class Tokenizer {
 			char ch = toProcess[pos];
 
 			if (justProcessedEquals) {
-				if (!isWhitespace(ch) && !isQuote(ch) && ch != 0) {
+				if (!isWhitespace(ch) && ch != 0) {
 					// following an '=' we commence a variant of regular tokenization,
 					// here we consume everything up to the next special char.
 					// This allows SpEL expressions to be used without quoting in many
@@ -219,19 +219,56 @@ class Tokenizer {
 	 * we are about to digest an arg value. It is much more relaxed about what it will include in the identifier.
 	 */
 	private void lexArgValueIdentifier() {
+		// Much of the complexity in here relates to supporting cases like these:
+		// 'hi'+payload
+		// 'hi'+'world'
+		// In these situations it looks like a quoted string and that perhaps the entire
+		// argument value is being quoted, but in fact half way through it is discovered that the
+		// entire value is not quoted, only the first part of the argument value is a string literal.
+
 		int start = pos;
 		boolean quoteOpen = false;
+		int quoteClosedCount = 0; // Enables identification of this pattern: 'hello'+'world'
+		Character quoteInUse = null; // If set, indicates this is being treated as a quoted string
+		if (isQuote(toProcess[pos])) {
+			quoteOpen = true;
+			quoteInUse = toProcess[pos++];
+		}
 		do {
 			char ch = toProcess[pos];
-			// TODO [Andy] doesn't differentiate by quote kind
-			if (ch == '\'' || ch == '\"') {
-				quoteOpen = !quoteOpen;
+			if ((quoteInUse != null && ch == quoteInUse) || (quoteInUse == null && isQuote(ch))) {
+				if (quoteInUse != null && quoteInUse == '\'' && ch == '\'' && toProcess[pos + 1] == '\'') {
+					pos++; // skip over that too, and continue
+				}
+				else {
+					quoteOpen = !quoteOpen;
+					if (!quoteOpen) {
+						quoteClosedCount++;
+					}
+				}
 			}
 			pos++;
 		}
 		while (!isArgValueIdentifierTerminator(toProcess[pos], quoteOpen));
-		char[] subarray = subarray(start, pos);
-		tokens.add(new Token(TokenKind.IDENTIFIER, subarray, start, pos));
+		char[] subarray = null;
+		if (quoteClosedCount < 2 && sameQuotes(start, pos - 1)) {
+			tokens.add(new Token(TokenKind.LITERAL_STRING,
+					subarray(start, pos), start, pos));
+		}
+		else {
+			subarray = subarray(start, pos);
+			tokens.add(new Token(TokenKind.IDENTIFIER, subarray, start, pos));
+		}
+	}
+
+	private boolean sameQuotes(int pos1, int pos2) {
+		if (toProcess[pos1] == '\'') {
+			return toProcess[pos2] == '\'';
+		}
+		else if (toProcess[pos1] == '"') {
+			return toProcess[pos2] == '"';
+		}
+		return false;
 	}
 
 	private char[] subarray(int start, int end) {

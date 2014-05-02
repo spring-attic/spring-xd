@@ -114,7 +114,7 @@ public class SingleNodeApplication {
 
 		private static final String SPRING_DATASOURCE_URL_OPTION = "${spring.datasource.url}";
 
-		private static final String SINGLENODE_EMBEDDED_HSQL = "${singlenode.embeddedHsql}";
+		private static final String SINGLENODE_EMBEDDED_HSQL = "${embeddedHsql}";
 
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {

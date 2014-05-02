@@ -25,6 +25,9 @@
 		</constructor-arg>
 	</bean>
 
+<!-- The order of delegates matters here. The ModuleTypeConversionPluginMetadataResolver can override the default value of inputType if 
+explicitly set as a module option.
+ -->
 	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.EnvironmentAwareModuleOptionsMetadataResolver">
 		<property name="delegate">
 			<bean class="org.springframework.xd.module.options.DelegatingModuleOptionsMetadataResolver">

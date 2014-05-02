@@ -32,7 +32,9 @@ import org.springframework.util.Assert;
  */
 public class JmsSource extends AbstractModuleFixture {
 
-	protected int port = 61616;
+	public static final int DEFAULT_PORT = 61616;
+
+	protected int port;
 
 	private String host;
 
@@ -42,6 +44,18 @@ public class JmsSource extends AbstractModuleFixture {
 
 		this.host = host;
 		this.port = port;
+	}
+
+	/**
+	 * Generates a JmsSource instance using the default port 61616
+	 *
+	 * @param host The host machine where the JMS broker exists.
+	 * @return a fuly qualified JmsSource fixture instance.
+	 */
+	public static JmsSource withDefaultPort(String host) {
+		Assert.hasText(host, "host must not be empty nor null");
+
+		return new JmsSource(host, DEFAULT_PORT);
 	}
 
 	/**
@@ -99,4 +113,5 @@ public class JmsSource extends AbstractModuleFixture {
 		JmsTemplate template = new JmsTemplate(new ActiveMQConnectionFactory("tcp://" + host + ":" + port));
 		template.convertAndSend("ec2Test3", data);
 	}
+
 }

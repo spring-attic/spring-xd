@@ -190,9 +190,7 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 					@Override
 					public Object getProperty(String name) {
 						ModuleOptions moduleOptions = nameToOptions.get(name);
-						Object result = moduleOptions == null ? null : moduleOptions.asPropertySource().getProperty(
-								name);
-						return result;
+						return moduleOptions == null ? null : moduleOptions.asPropertySource().getProperty(name);
 					}
 				};
 			}

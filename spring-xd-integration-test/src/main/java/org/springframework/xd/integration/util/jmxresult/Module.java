@@ -16,12 +16,11 @@
 
 package org.springframework.xd.integration.util.jmxresult;
 
-import java.lang.reflect.Method;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
+import java.util.Map;
 
-import org.springframework.util.ReflectionUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.MutablePropertyValues;
 import org.springframework.util.StringUtils;
 
 /**
@@ -61,27 +60,19 @@ public class Module {
 
 	private String receiveErrorCount;
 
-	private final static int MODULE_NAME_OFFSET = 1;
-
-	private final static int MODULE_CHANNEL_OFFSET = 2;
-
 	/**
 	 * Retrieves the module data from the key and value data returned from Jackson.
 	 *
 	 * @param key The key for the module
-	 * @param value The value associated for the module.
+	 * @param map The value associated for the module.
 	 * @return Fully qualified Module Instance.
 	 */
-	public static Module generateModuleFromJackson(String key, Object value) {
-		@SuppressWarnings("unchecked")
-		Module module = setupModule((LinkedHashMap<String, Object>) value);
-		String moduleComponents[] = StringUtils
-				.commaDelimitedListToStringArray(key);
-		module.setModuleName(StringUtils.tokenizeToStringArray(
-				moduleComponents[MODULE_NAME_OFFSET], "=")[1]);
-		module.setModuleChannel(StringUtils.tokenizeToStringArray(
-				moduleComponents[MODULE_CHANNEL_OFFSET], "=")[1]);
-
+	public static Module generateModuleFromJackson(String key, Map<?, ?> map) {
+		Module module = new Module();
+		BeanWrapper bw = new BeanWrapperImpl(module);
+		MutablePropertyValues mpv = new MutablePropertyValues(map);
+		mpv = addKeyValuesToProperties(key, mpv);
+		bw.setPropertyValues(mpv, true, true);
 		return module;
 	}
 
@@ -209,21 +200,33 @@ public class Module {
 		this.receiveErrorCount = receiveErrorCount;
 	}
 
-	private static Module setupModule(LinkedHashMap<String, Object> value) {
-		Module module = new Module();
-		Iterator<Entry<String, Object>> iter = value.entrySet().iterator();
-		try {
-			while (iter.hasNext()) {
-				Entry<String, Object> entry = iter.next();
-				Method setter = module.getClass().getMethod("set" + entry.getKey(),
-						String.class);
-				setter.invoke(module, entry.getValue().toString());
+	/**
+	 * The key has the module name and module channel in a comma delimited list. This method extracts those values and
+	 * places them in new PropertyValues.
+	 *
+	 * @param key The key that contains the module name and channel .
+	 * @param properties The MutablePropertyValues that the module name and module channel will be added to.
+	 * @return A new MutablePropertyValues that has the contents of the properties passed in and the contents of the
+	 *         key.
+	 */
+	private static MutablePropertyValues addKeyValuesToProperties(String key, MutablePropertyValues properties) {
+		MutablePropertyValues result = new MutablePropertyValues();
+		result.addPropertyValues(properties);
+		String moduleComponents[] = StringUtils
+				.commaDelimitedListToStringArray(key);
+		for (String keyComponent : moduleComponents) {
+			String[] tokens = StringUtils.tokenizeToStringArray(
+					keyComponent, "=");
+			if (tokens.length == 2) {
+				if (tokens[0].equals("module")) {
+					result.add("moduleName", tokens[1]);
+				}
+				if (tokens[0].equals("name")) {
+					result.add("moduleChannel", tokens[1]);
+				}
 			}
 		}
-		catch (Exception ex) {
-			ReflectionUtils.handleReflectionException(ex);
-		}
-		return module;
+		return result;
 	}
 
 	@Override

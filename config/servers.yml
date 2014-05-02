@@ -19,14 +19,14 @@
 #       enabled: false
 
 ---
-#Config for singlenode. Transport for single node may be overridden by --transport command line option 
+#Config for singlenode.
+#Transport for single node may be overridden by --transport command line option
+#If the singlenode needs to use external datasource for batch embeddedHsql can be set to false
 spring:
   profiles: singlenode
 xd:
   transport: local  
-
-#singlenode:
-#  embeddedHsql: true
+#embeddedHsql: true
 
 ---
 #Config for use with HSQLDB

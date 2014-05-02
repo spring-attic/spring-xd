@@ -97,8 +97,8 @@ spring:
   profiles: singlenode
 transport: local
 analytics: memory
-singlenode:
-  embeddedHsql: ${XD_SINGLENODE_EMBEDHSQL:true}
+embeddedHsql: true
+
 ---
 
 # HSQL database configuration

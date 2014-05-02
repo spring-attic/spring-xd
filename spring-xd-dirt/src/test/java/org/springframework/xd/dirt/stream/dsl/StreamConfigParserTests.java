@@ -323,6 +323,51 @@ public class StreamConfigParserTests {
 	}
 
 	@Test
+	public void moduleArguments_xd1613() {
+		StreamNode ast = null;
+
+		// Want to treat all of 'hi'+payload as the argument value
+		ast = parse("http | transform --expression='hi'+payload | log");
+		assertEquals("'hi'+payload", ast.getModule("transform").getArguments()[0].getValue());
+
+		// Want to treat all of payload+'hi' as the argument value
+		ast = parse("http | transform --expression=payload+'hi' | log");
+		assertEquals("payload+'hi'", ast.getModule("transform").getArguments()[0].getValue());
+
+		// Alternatively, can quote all around it to achieve the same thing
+		ast = parse("http | transform --expression='payload+''hi''' | log");
+		assertEquals("payload+'hi'", ast.getModule("transform").getArguments()[0].getValue());
+		ast = parse("http | transform --expression='''hi''+payload' | log");
+		assertEquals("'hi'+payload", ast.getModule("transform").getArguments()[0].getValue());
+
+		ast = parse("http | transform --expression=\"payload+'hi'\" | log");
+		assertEquals("payload+'hi'", ast.getModule("transform").getArguments()[0].getValue());
+		ast = parse("http | transform --expression=\"'hi'+payload\" | log");
+		assertEquals("'hi'+payload", ast.getModule("transform").getArguments()[0].getValue());
+
+		ast = parse("http | transform --expression=payload+'hi'--param2='foobar' | log");
+		assertEquals("payload+'hi'--param2='foobar'", ast.getModule("transform").getArguments()[0].getValue());
+
+		ast = parse("http | transform --expression='hi'+payload--param2='foobar' | log");
+		assertEquals("'hi'+payload--param2='foobar'", ast.getModule("transform").getArguments()[0].getValue());
+
+		// This also works, which is cool
+		ast = parse("http | transform --expression='hi'+'world' | log");
+		assertEquals("'hi'+'world'", ast.getModule("transform").getArguments()[0].getValue());
+		ast = parse("http | transform --expression=\"'hi'+'world'\" | log");
+		assertEquals("'hi'+'world'", ast.getModule("transform").getArguments()[0].getValue());
+
+		ast = parse("http | filter --expression=payload.matches('hello world') | log");
+		assertEquals("payload.matches('hello world')", ast.getModule("filter").getArguments()[0].getValue());
+
+		ast = parse("http | transform --expression='''hi''' | log");
+		assertEquals("'hi'", ast.getModule("transform").getArguments()[0].getValue());
+
+		ast = parse("http | transform --expression=\"''''hi''''\" | log");
+		assertEquals("''hi''", ast.getModule("transform").getArguments()[0].getValue());
+	}
+
+	@Test
 	public void expressions_xd159_4() {
 		StreamNode ast = parse("foo |  transform --expression=\"'Hello, world!'\" | bar");
 		ModuleNode mn = ast.getModule("transform");
@@ -332,7 +377,11 @@ public class StreamConfigParserTests {
 		mn = ast.getModule("transform");
 		props = mn.getArgumentsAsProperties();
 		assertEquals("'Hello, world!'", props.get("expression"));
-		checkForParseError("foo |  transform --expression=''Hello, world!'' | bar", XDDSLMessages.UNEXPECTED_DATA, 37);
+		// Prior to the change for XD-1613, this error should point to the comma:
+		// checkForParseError("foo |  transform --expression=''Hello, world!'' | bar", XDDSLMessages.UNEXPECTED_DATA,
+		// 37);
+		// but now it points to the !
+		checkForParseError("foo |  transform --expression=''Hello, world!'' | bar", XDDSLMessages.UNEXPECTED_DATA, 44);
 	}
 
 	@Test

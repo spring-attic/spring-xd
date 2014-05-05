@@ -33,18 +33,24 @@ xd:
   messagebus:
     rabbit:
       default:
-        ackMode:        AUTO
+        ackMode:                   AUTO
             # Valid: AUTO (container acks), NONE (broker acks), MANUAL (consumer acks).
             # Upper case only.
             # Note: MANUAL requires specialized code in the consuming module and is unlikely to be
             # used in an XD application. For more information, see
             # http://docs.spring.io/spring-integration/reference/html/amqp.html#amqp-inbound-ack
-        concurrency:    1
-        maxConcurrency: 1
-        prefetch:       1
-        requeue:        true
-        transacted:     false
-        txSize:         1
+        backOffInitialInterval:    1000
+        backOffMaxInterval:        10000
+        backOffMultiplier:         2.0
+        concurrency:               1
+        maxAttempts:               3
+        maxConcurrency:            1
+        prefix:                    xdbus.
+            # prefix for queue/exchange names so policies (ha, dle etc.) can be applied
+        prefetch:                  1
+        requeue:                   true
+        transacted:                false
+        txSize:                    1
 ---
 
 server:

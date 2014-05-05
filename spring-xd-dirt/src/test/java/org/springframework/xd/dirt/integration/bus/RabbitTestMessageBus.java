@@ -24,7 +24,7 @@ import org.springframework.xd.dirt.integration.rabbit.RabbitMessageBus;
 
 /**
  * Test support class for {@link RabbitMessageBus}.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public class RabbitTestMessageBus extends AbstractTestMessageBus {
@@ -40,12 +40,12 @@ public class RabbitTestMessageBus extends AbstractTestMessageBus {
 	public void cleanup() {
 		if (!queues.isEmpty()) {
 			for (String queue : queues) {
-				rabbitAdmin.deleteQueue(queue);
+				rabbitAdmin.deleteQueue("xdbus." + queue);
 			}
 		}
 		if (!topics.isEmpty()) {
 			for (String exchange : topics) {
-				rabbitAdmin.deleteExchange(exchange);
+				rabbitAdmin.deleteExchange("xdbus." + exchange);
 			}
 		}
 	}

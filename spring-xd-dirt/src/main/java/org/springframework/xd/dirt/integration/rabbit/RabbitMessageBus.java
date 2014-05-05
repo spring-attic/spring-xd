@@ -16,20 +16,22 @@
 
 package org.springframework.xd.dirt.integration.rabbit;
 
+import java.util.UUID;
+
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.amqp.core.AcknowledgeMode;
-import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.rabbit.config.StatelessRetryOperationsInterceptorFactoryBean;
+import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
@@ -48,6 +50,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
@@ -63,6 +66,28 @@ import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
  */
 public class RabbitMessageBus extends MessageBusSupport implements DisposableBean {
 
+	private static final AcknowledgeMode DEFAULT_ACKNOWLEDGE_MODE = AcknowledgeMode.AUTO;
+
+	private static final int DEFAULT_BACKOFF_INITIAL_INTERVAL = 1000;
+
+	private static final int DEFAULT_BACKOFF_MAX_INTERVAL = 10000;
+
+	private static final double DEFAULT_BACKOFF_MULTIPLIER = 2.0;
+
+	private static final int DEFAULT_CONCURRENCY = 1;
+
+	private static final boolean DEFAULT_DEFAULT_REQUEUE_REJECTED = true;
+
+	private static final int DEFAULT_MAX_ATTEMPTS = 3;
+
+	private static final int DEFAULT_MAX_CONCURRENCY = 1;
+
+	private static final int DEFAULT_PREFETCH_COUNT = 1;
+
+	private static final String DEFAULT_RABBIT_PREFIX = "xdbus.";
+
+	private static final int DEFAULT_TX_SIZE = 1;
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final RabbitAdmin rabbitAdmin;
@@ -77,19 +102,29 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	// Default RabbitMQ Container properties
 
-	private volatile AcknowledgeMode defaultAcknowledgeMode = AcknowledgeMode.AUTO;
+	private volatile AcknowledgeMode defaultAcknowledgeMode = DEFAULT_ACKNOWLEDGE_MODE;
 
 	private volatile boolean defaultChannelTransacted;
 
-	private volatile int defaultConcurrentConsumers = 1;
+	private volatile int defaultConcurrentConsumers = DEFAULT_CONCURRENCY;
 
-	private volatile boolean defaultDefaultRequeueRejected = true;
+	private volatile boolean defaultDefaultRequeueRejected = DEFAULT_DEFAULT_REQUEUE_REJECTED;
 
-	private volatile int defaultMaxConcurrentConsumers = 1;
+	private volatile int defaultMaxConcurrentConsumers = DEFAULT_MAX_CONCURRENCY;
 
-	private volatile int defaultPrefetchCount = 1;
+	private volatile int defaultPrefetchCount = DEFAULT_PREFETCH_COUNT;
 
-	private volatile int defaultTxSize = 1;
+	private volatile int defaultTxSize = DEFAULT_TX_SIZE;
+
+	private volatile int defaultMaxAttempts = DEFAULT_MAX_ATTEMPTS;
+
+	private volatile long defaultBackOffInitialInterval = DEFAULT_BACKOFF_INITIAL_INTERVAL;
+
+	private volatile long defaultBackOffMaxInterval = DEFAULT_BACKOFF_MAX_INTERVAL;
+
+	private volatile double defaultBackOffMultiplier = DEFAULT_BACKOFF_MULTIPLIER;
+
+	private volatile String defaultPrefix = DEFAULT_RABBIT_PREFIX;
 
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
@@ -136,28 +171,51 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.defaultTxSize = defaultTxSize;
 	}
 
+	public void setDefaultMaxAttempts(int defaultMaxAttempts) {
+		this.defaultMaxAttempts = defaultMaxAttempts;
+	}
+
+	public void setDefaultBackOffInitialInterval(long defaultInitialBackOffInterval) {
+		this.defaultBackOffInitialInterval = defaultInitialBackOffInterval;
+	}
+
+	public void setDefaultBackOffMultiplier(double defaultBackOffMultiplier) {
+		this.defaultBackOffMultiplier = defaultBackOffMultiplier;
+	}
+
+	public void setDefaultBackOffMaxInterval(long defaultBackOffMaxInterval) {
+		this.defaultBackOffMaxInterval = defaultBackOffMaxInterval;
+	}
+
+	public void setDefaultPrefix(String defaultPrefix) {
+		Assert.notNull(defaultPrefix, "'defaultPrefix' cannot be null");
+		this.defaultPrefix = defaultPrefix.trim();
+	}
+
 	@Override
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
-		Queue queue = new Queue(name);
+		Queue queue = new Queue(this.defaultPrefix + name);
 		this.rabbitAdmin.declareQueue(queue);
 		doRegisterConsumer(name, moduleInputChannel, queue);
 	}
 
 	@Override
 	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel) {
-		FanoutExchange exchange = new FanoutExchange("topic." + name);
+		FanoutExchange exchange = new FanoutExchange(this.defaultPrefix + "topic." + name);
 		rabbitAdmin.declareExchange(exchange);
-		Queue queue = new AnonymousQueue();
+		Queue queue = new Queue(this.defaultPrefix + name + "." + UUID.randomUUID().toString(),
+				false, true, true);
 		this.rabbitAdmin.declareQueue(queue);
 		org.springframework.amqp.core.Binding binding = BindingBuilder.bind(queue).to(exchange);
 		this.rabbitAdmin.declareBinding(binding);
 		// register with context so they will be redeclared after a connection failure
 		this.autoDeclareContext.getBeanFactory().registerSingleton(queue.getName(), queue);
-		if (!autoDeclareContext.containsBean(exchange.getName() + ".binding")) {
-			this.autoDeclareContext.getBeanFactory().registerSingleton(exchange.getName() + ".binding", binding);
+		String bindingBeanName = exchange.getName() + "." + queue.getName() + ".binding";
+		if (!autoDeclareContext.containsBean(bindingBeanName)) {
+			this.autoDeclareContext.getBeanFactory().registerSingleton(bindingBeanName, binding);
 		}
 		doRegisterConsumer(name, moduleInputChannel, queue);
 	}
@@ -173,8 +231,13 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		listenerContainer.setPrefetchCount(this.defaultPrefetchCount);
 		listenerContainer.setTxSize(this.defaultTxSize);
 		listenerContainer.setQueues(queue);
-		Advice advice = new StatelessRetryOperationsInterceptorFactoryBean().getObject();
-		listenerContainer.setAdviceChain(new Advice[] { advice });
+		RetryOperationsInterceptor retryInterceptor = RetryInterceptorBuilder.stateless()
+				.maxAttempts(this.defaultMaxAttempts)
+				.backOffOptions(this.defaultBackOffInitialInterval, this.defaultBackOffMultiplier,
+						this.defaultBackOffMaxInterval)
+						.recoverer(new RejectAndDontRequeueRecoverer())
+						.build();
+		listenerContainer.setAdviceChain(new Advice[] { retryInterceptor });
 		listenerContainer.afterPropertiesSet();
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
 		adapter.setBeanFactory(this.getBeanFactory());
@@ -205,10 +268,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name) {
-		rabbitAdmin.declareQueue(new Queue(name));
+		rabbitAdmin.declareQueue(new Queue(this.defaultPrefix + name));
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
 		queue.setBeanFactory(this.getBeanFactory());
-		queue.setRoutingKey(name); // uses default exchange
+		queue.setRoutingKey(this.defaultPrefix + name); // uses default exchange
 		queue.setHeaderMapper(mapper);
 		queue.afterPropertiesSet();
 		return queue;
@@ -216,10 +279,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	@Override
 	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel) {
-		rabbitAdmin.declareExchange(new FanoutExchange("topic." + name));
+		String exchangeName = this.defaultPrefix + "topic." + name;
+		rabbitAdmin.declareExchange(new FanoutExchange(exchangeName));
 		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
 		fanout.setBeanFactory(this.getBeanFactory());
-		fanout.setExchangeName("topic." + name);
+		fanout.setExchangeName(exchangeName);
 		fanout.setHeaderMapper(mapper);
 		fanout.afterPropertiesSet();
 		doRegisterProducer(name, moduleOutputChannel, fanout);
@@ -253,7 +317,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(queueName);
 		queue.setBeanFactory(this.getBeanFactory());
 
-		String replyQueueName = name + ".replies." + this.getIdGenerator().generateId();
+		String replyQueueName = this.defaultPrefix + name + ".replies." + this.getIdGenerator().generateId();
 		this.doRegisterProducer(name, requests, queue, replyQueueName);
 		Queue replyQueue = new Queue(replyQueueName, false, false, true); // auto-delete
 		this.rabbitAdmin.declareQueue(replyQueue);
@@ -267,7 +331,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("binding replier: " + name);
 		}
-		Queue requestQueue = new Queue(name + ".requests");
+		Queue requestQueue = new Queue(this.defaultPrefix + name + ".requests");
 		this.rabbitAdmin.declareQueue(requestQueue);
 		this.doRegisterConsumer(name, requests, requestQueue);
 

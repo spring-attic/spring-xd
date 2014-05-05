@@ -29,9 +29,11 @@
 			<constructor-arg ref="jobLauncher" />
 			<constructor-arg ref="distributedJobLocator" />
 			<constructor-arg>
-				<bean
-					class="org.springframework.batch.core.repository.dao.JdbcExecutionContextDao">
+				<bean class="org.springframework.batch.core.repository.dao.JdbcExecutionContextDao">
 					<property name="jdbcTemplate" ref="jdbcTemplate" />
+					<property name="serializer">
+						<bean class="org.springframework.batch.core.repository.dao.XStreamExecutionContextStringSerializer" />
+					</property>
 				</bean>
 			</constructor-arg>
 		</bean>

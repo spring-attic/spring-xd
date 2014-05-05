@@ -24,7 +24,7 @@ import org.apache.curator.utils.EnsurePath;
 
 /**
  * Common paths and path utilities for XD components.
- * 
+ *
  * @author Patrick Peralta
  */
 public class Paths {
@@ -88,11 +88,11 @@ public class Paths {
 	public static final String JOB_DEPLOYMENTS = DEPLOYMENTS + '/' + JOBS;
 
 	/**
-	 * Strip path information from a string. For example, given an input of {@code /xd/path/location}, return
-	 * {@code location}.
-	 * 
+	 * Strip path information from a string. For example, given an input of
+	 * {@code /xd/path/location}, return {@code location}.
+	 *
 	 * @param path path string
-	 * 
+	 *
 	 * @return string with path stripped
 	 */
 	public static String stripPath(String path) {
@@ -102,15 +102,18 @@ public class Paths {
 
 	/**
 	 * Return a string with the provided path elements separated by a slash {@code /}.
-	 * 
+	 * The leading slash is created if required.
+	 *
 	 * @param elements path elements
-	 * 
+	 *
 	 * @return the full path
 	 */
 	public static String build(String... elements) {
 		StringBuilder builder = new StringBuilder();
-		builder.append('/');
 		for (int i = 0; i < elements.length; i++) {
+			if (i == 0 && elements[i].charAt(0) != '/') {
+				builder.append('/');
+			}
 			builder.append(elements[i]);
 			if (i + 1 < elements.length) {
 				builder.append('/');
@@ -121,11 +124,11 @@ public class Paths {
 	}
 
 	/**
-	 * Return a string with the provided path elements separated by a slash {@code /}. The {@link #XD_NAMESPACE} is
-	 * included as a prefix.
-	 * 
+	 * Return a string with the provided path elements separated by a slash {@code /}.
+	 * The {@link #XD_NAMESPACE} is included as a prefix.
+	 *
 	 * @param elements path elements
-	 * 
+	 *
 	 * @return the full path
 	 */
 	public static String buildWithNamespace(String... elements) {
@@ -134,7 +137,7 @@ public class Paths {
 
 	/**
 	 * Ensure the existence of the given path.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param path path to create, if needed
 	 */

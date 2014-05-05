@@ -9,11 +9,18 @@
 		<constructor-arg ref="rabbitConnectionFactory" />
 		<constructor-arg ref="codec"/>
 		<property name="defaultAcknowledgeMode" value="#{T(org.springframework.amqp.core.AcknowledgeMode).${xd.messagebus.rabbit.default.ackMode}}" />
+		<property name="defaultBackOffInitialInterval" value="${xd.messagebus.rabbit.default.backOffInitialInterval}" />
+		<property name="defaultBackOffMaxInterval" value="${xd.messagebus.rabbit.default.backOffMaxInterval}" />
+		<property name="defaultBackOffMultiplier" value="${xd.messagebus.rabbit.default.backOffMultiplier}" />
 		<property name="defaultChannelTransacted" value="${xd.messagebus.rabbit.default.transacted}" />
 		<property name="defaultConcurrentConsumers" value="${xd.messagebus.rabbit.default.concurrency}" />
 		<property name="defaultDefaultRequeueRejected" value="${xd.messagebus.rabbit.default.requeue}" />
+		<property name="defaultMaxAttempts" value="${xd.messagebus.rabbit.default.maxAttempts}" />
 		<property name="defaultMaxConcurrentConsumers" value="${xd.messagebus.rabbit.default.maxConcurrency}" />
 		<property name="defaultPrefetchCount" value="${xd.messagebus.rabbit.default.prefetch}" />
+		<property name="defaultPrefix" value="${xd.messagebus.rabbit.default.prefix}" />
+		<property name="defaultReplyHeaderPatterns" value="${xd.messagebus.rabbit.default.replyHeaderPatterns}" />
+		<property name="defaultRequestHeaderPatterns" value="${xd.messagebus.rabbit.default.requestHeaderPatterns}" />
 		<property name="defaultTxSize" value="${xd.messagebus.rabbit.default.txSize}" />
 	</bean>
 

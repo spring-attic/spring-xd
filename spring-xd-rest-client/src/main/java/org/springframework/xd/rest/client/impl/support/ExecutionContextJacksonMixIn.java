@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Jackson MixIn for {@link ExecutionContext} de-serialization.
- * 
+ *
  * @author Gunnar Hillert
  * @since 1.0
  */
-@JsonIgnoreProperties("empty")
+@JsonIgnoreProperties({ "empty", "values" })
 public abstract class ExecutionContextJacksonMixIn {
 
 	@JsonProperty

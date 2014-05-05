@@ -247,6 +247,11 @@ public class ContainerListener implements PathChildrenCacheListener {
 			String streamName = streamDeploymentIterator.next();
 			Stream stream = loadStream(client, streamName);
 
+			if (stream == null) {
+				// the stream for this module has either been undeployed or destroyed; skip
+				continue;
+			}
+
 			for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator();
 						descriptorIterator.hasNext();) {
 				ModuleDescriptor descriptor = descriptorIterator.next();
@@ -343,23 +348,32 @@ public class ContainerListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * This will load the {@link Stream} instance for a given stream name.
-	 * It will include the stream definition as well as any deployment
-	 * properties data for the stream deployment.
+	 * This will load the {@link Stream} instance for a given stream name
+	 * <i>if the stream is deployed</i>. It will include the stream definition as
+	 * well as any deployment properties data for the stream deployment.
 	 *
-	 * @param client {@link CuratorFramework} instance used to retrieve data for this stream
+	 * @param client     {@link CuratorFramework} instance used to retrieve data for this stream
 	 * @param streamName the name of the stream to load
-	 * @return the stream instance
+	 * @return the stream instance, or {@code null} if the stream does
+	 *         not exist or is not deployed
 	 * @throws Exception if ZooKeeper access fails for any reason
 	 */
 	private Stream loadStream(CuratorFramework client, String streamName) throws Exception {
-		Map<String, String> map = mapBytesUtility.toMap(streamDefinitions.getCurrentData(
-				Paths.build(Paths.STREAMS, streamName)).getData());
-		byte[] deploymentPropertiesData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
-		if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
-			map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
+		ChildData definitionData = streamDefinitions.getCurrentData(Paths.build(Paths.STREAMS, streamName));
+		if (definitionData != null) {
+			Map<String, String> map = mapBytesUtility.toMap(definitionData.getData());
+			try {
+				byte[] deploymentPropertiesData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
+				if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
+					map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
+				}
+				return streamFactory.createStream(streamName, map);
+			}
+			catch (KeeperException.NoNodeException e) {
+				// stream is not deployed
+			}
 		}
-		return streamFactory.createStream(streamName, map);
+		return null;
 	}
 
 	/**
@@ -383,8 +397,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 			List<String> deployments = client.getChildren().forPath(containerDeployments);
 
 			for (String deployment : deployments) {
-				ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(containerDeployments + '/'
-						+ deployment);
+				ModuleDeploymentsPath moduleDeploymentsPath =
+						new ModuleDeploymentsPath(Paths.build(containerDeployments, deployment));
 				String streamName = moduleDeploymentsPath.getStreamName();
 				String moduleType = moduleDeploymentsPath.getModuleType();
 				String moduleLabel = moduleDeploymentsPath.getModuleLabel();
@@ -414,9 +428,14 @@ public class ContainerListener implements PathChildrenCacheListener {
 				else {
 					Stream stream = streamMap.get(streamName);
 					if (stream == null) {
-						stream = loadStream(client, streamName);
-						streamMap.put(streamName, stream);
+						streamMap.put(streamName, stream = loadStream(client, streamName));
 					}
+
+					if (stream == null) {
+						// the stream for this module has either been undeployed or destroyed; skip
+						continue;
+					}
+
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
 					ModuleDeploymentProperties moduleDeploymentProperties =
 							StreamDeploymentListener.createModuleDeploymentProperties(

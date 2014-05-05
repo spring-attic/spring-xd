@@ -60,7 +60,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Listener implementation that is invoked when containers are added/removed/modified.
- *
+ * 
  * @author Patrick Peralta
  * @author Mark Fisher
  */
@@ -91,7 +91,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 	/**
 	 * {@link Converter} from {@link ChildData} in stream deployments to Stream name.
-	 *
+	 * 
 	 * @see #streamDeployments
 	 */
 	private final DeploymentNameConverter deploymentNameConverter = new DeploymentNameConverter();
@@ -119,14 +119,14 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 	/**
 	 * Construct a ContainerListener.
-	 *
-	 * @param containerRepository           repository for container data
-	 * @param streamDefinitionRepository    repository for streams
-	 * @param moduleDefinitionRepository    repository for module definitions
+	 * 
+	 * @param containerRepository repository for container data
+	 * @param streamDefinitionRepository repository for streams
+	 * @param moduleDefinitionRepository repository for module definitions
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
-	 * @param streamDeployments             cache of children for stream deployments path
-	 * @param streamDefinitions             cache of children for streams
-	 * @param jobDeployments                cache of children for job deployments path
+	 * @param streamDeployments cache of children for stream deployments path
+	 * @param streamDefinitions cache of children for streams
+	 * @param jobDeployments cache of children for job deployments path
 	 */
 	public ContainerListener(ContainerRepository containerRepository,
 			StreamDefinitionRepository streamDefinitionRepository,
@@ -170,9 +170,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * Handle the arrival of a container. This implementation will scan the existing
-	 * streams and determine if any modules should be deployed to the new container.
-	 *
+	 * Handle the arrival of a container. This implementation will scan the existing streams and determine if any
+	 * modules should be deployed to the new container.
+	 * 
 	 * @param client curator client
 	 * @param data node data for the container that arrived
 	 */
@@ -242,13 +242,16 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 		// check for "orphaned" stream modules that can be deployed to this new container
 		for (Iterator<String> streamDeploymentIterator =
-				new ChildPathIterator<String>(deploymentNameConverter, streamDeployments);
-						streamDeploymentIterator.hasNext();) {
+				new ChildPathIterator<String>(deploymentNameConverter, streamDeployments); streamDeploymentIterator.hasNext();) {
 			String streamName = streamDeploymentIterator.next();
 			Stream stream = loadStream(client, streamName);
 
-			for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator();
-						descriptorIterator.hasNext();) {
+			if (stream == null) {
+				// the stream for this module has either been undeployed or destroyed; skip
+				continue;
+			}
+
+			for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
 				ModuleDescriptor descriptor = descriptorIterator.next();
 				ModuleDeploymentProperties moduleDeploymentProperties =
 						StreamDeploymentListener.createModuleDeploymentProperties(
@@ -320,13 +323,13 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 	/**
 	 * Determine which containers, if any, have deployed a module for a stream.
-	 *
+	 * 
 	 * @param client curator client
 	 * @param descriptor module descriptor
-	 *
-	 * @return list of containers that have deployed this module; empty list
-	 *         is returned if no containers have deployed it
-	 *
+	 * 
+	 * @return list of containers that have deployed this module; empty list is returned if no containers have deployed
+	 *         it
+	 * 
 	 * @throws Exception thrown by Curator
 	 */
 	private List<String> getContainersForStreamModule(CuratorFramework client, ModuleDescriptor descriptor)
@@ -343,29 +346,37 @@ public class ContainerListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * This will load the {@link Stream} instance for a given stream name.
-	 * It will include the stream definition as well as any deployment
-	 * properties data for the stream deployment.
-	 *
+	 * This will load the {@link Stream} instance for a given stream name <i>if the stream is deployed</i>. It will
+	 * include the stream definition as well as any deployment properties data for the stream deployment.
+	 * 
 	 * @param client {@link CuratorFramework} instance used to retrieve data for this stream
 	 * @param streamName the name of the stream to load
-	 * @return the stream instance
+	 * @return the stream instance, or {@code null} if the stream does not exist or is not deployed
 	 * @throws Exception if ZooKeeper access fails for any reason
 	 */
 	private Stream loadStream(CuratorFramework client, String streamName) throws Exception {
-		Map<String, String> map = mapBytesUtility.toMap(streamDefinitions.getCurrentData(
-				Paths.build(Paths.STREAMS, streamName)).getData());
-		byte[] deploymentPropertiesData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
-		if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
-			map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
+		ChildData definitionData = streamDefinitions.getCurrentData(Paths.build(Paths.STREAMS, streamName));
+		if (definitionData != null) {
+			Map<String, String> map = mapBytesUtility.toMap(definitionData.getData());
+			try {
+				byte[] deploymentPropertiesData = client.getData().forPath(
+						Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
+				if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
+					map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
+				}
+				return streamFactory.createStream(streamName, map);
+			}
+			catch (KeeperException.NoNodeException e) {
+				// stream is not deployed
+			}
 		}
-		return streamFactory.createStream(streamName, map);
+		return null;
 	}
 
 	/**
-	 * Handle the departure of a container. This will scan the list of modules
-	 * deployed to the departing container and redeploy them if required.
-	 *
+	 * Handle the departure of a container. This will scan the list of modules deployed to the departing container and
+	 * redeploy them if required.
+	 * 
 	 * @param client curator client
 	 * @param data node data for the container that departed
 	 */
@@ -383,8 +394,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 			List<String> deployments = client.getChildren().forPath(containerDeployments);
 
 			for (String deployment : deployments) {
-				ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(containerDeployments + '/'
-						+ deployment);
+				ModuleDeploymentsPath moduleDeploymentsPath =
+						new ModuleDeploymentsPath(Paths.build(containerDeployments, deployment));
 				String streamName = moduleDeploymentsPath.getStreamName();
 				String moduleType = moduleDeploymentsPath.getModuleType();
 				String moduleLabel = moduleDeploymentsPath.getModuleLabel();
@@ -417,6 +428,12 @@ public class ContainerListener implements PathChildrenCacheListener {
 						stream = loadStream(client, streamName);
 						streamMap.put(streamName, stream);
 					}
+
+					if (stream == null) {
+						// the stream for this module has either been undeployed or destroyed; skip
+						continue;
+					}
+
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
 					ModuleDeploymentProperties moduleDeploymentProperties =
 							StreamDeploymentListener.createModuleDeploymentProperties(

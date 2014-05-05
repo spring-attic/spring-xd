@@ -18,7 +18,6 @@ package org.springframework.xd.integration.test;
 
 import java.util.UUID;
 
-import org.junit.Before;
 import org.junit.Test;
 
 
@@ -31,12 +30,6 @@ public class JmsTest extends AbstractIntegrationTest {
 
 
 	private static final String CONFIG_FILE = "jms-activemq";
-
-	@Before
-	public void initialize() throws Exception {
-		configUtil.pushConfigToContainer(CONFIG_FILE, sources.jms().jmsPropertyString());
-
-	}
 
 	/**
 	 * Verifies that the JMS retrieves the expected data.

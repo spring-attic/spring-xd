@@ -18,6 +18,7 @@ package org.springframework.xd.integration.fixtures;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.util.XdEnvironment;
+import org.springframework.xd.test.fixtures.HdfsSink;
 import org.springframework.xd.test.fixtures.JdbcSink;
 import org.springframework.xd.test.fixtures.LogSink;
 import org.springframework.xd.test.fixtures.MqttSink;
@@ -124,6 +125,15 @@ public class Sinks {
 			throw new IllegalStateException("Unable to connecto to database.");
 		}
 		return jdbcSink;
+	}
+
+	/**
+	 * Constructs a hdfs sink with a directory of /xd/acceptancetest & a file name of ACCTEST
+	 *
+	 * @return An instantiated instance of hdfs sink fixture.
+	 */
+	public HdfsSink hdfs() {
+		return HdfsSink.withDefaults();
 	}
 
 }

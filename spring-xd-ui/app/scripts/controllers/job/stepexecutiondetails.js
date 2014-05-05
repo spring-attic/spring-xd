@@ -21,23 +21,24 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobExecutions', 'XDCommon', '$state', '$stateParams',
-    function ($scope, jobExecutions, xdCommon, $state, $stateParams) {
+  return ['$scope', 'StepExecutions', 'XDCommon', '$state', '$stateParams',
+    function ($scope, stepExecutions, xdCommon, $state, $stateParams) {
       $scope.$apply(function () {
         $scope.moduleName = $stateParams.moduleName;
         $scope.optionsPredicate = 'name';
 
-        var singleJobExecutionPromise = jobExecutions.getSingleJobExecution($stateParams.executionId).$promise;
-        xdCommon.addBusyPromise(singleJobExecutionPromise);
+        var singleStepExecutionPromise = stepExecutions.getSingleStepExecution($stateParams.executionId, $stateParams.stepExecutionId).$promise;
+        xdCommon.addBusyPromise(singleStepExecutionPromise);
 
-        singleJobExecutionPromise.then(
+        singleStepExecutionPromise.then(
             function (result) {
                 xdCommon.$log.error(result);
-                $scope.jobExecutionDetails = result;
+                $scope.stepExecutionDetails = result;
               }, function (error) {
                 if (error.status === 404) {
-                  $scope.jobExecutionDetailsNotFound = true;
+                  $scope.stepExecutionDetailsNotFound = true;
                   $scope.executionId = $stateParams.executionId;
+                  $scope.stepExecutionId = $stateParams.stepExecutionId;
                 }
                 else {
                   xdCommon.$log.error('Error fetching data. Is the XD server running?');
@@ -47,16 +48,9 @@ define([], function () {
               }
             );
       });
-      $scope.closeJobExecutionDetails = function () {
-          xdCommon.$log.info('Closing Job Execution Details Window');
-          $state.go('home.jobs.tabs.executions');
-        };
-      $scope.viewStepExecutionDetails = function (jobExecution, stepExecution) {
-          xdCommon.$log.info('Showing Step Execution details for Job Execution with Id: ' + jobExecution.executionId);
-          $state.go('home.jobs.stepexecutiondetails', {
-            executionId: jobExecution.executionId,
-            stepExecutionId: stepExecution.id
-          });
+      $scope.closeStepExecutionDetails = function (stepExecutionDetails) {
+          xdCommon.$log.info('Closing Step Execution Details Window');
+          $state.go('home.jobs.executiondetails', {executionId: stepExecutionDetails.jobExecutionId});
         };
     }];
 });

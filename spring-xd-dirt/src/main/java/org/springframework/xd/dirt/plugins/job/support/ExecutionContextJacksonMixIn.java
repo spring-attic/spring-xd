@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client.impl.support;
+package org.springframework.xd.dirt.plugins.job.support;
 
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Jackson MixIn for {@link ExecutionContext} de-serialization.
+ * Jackson MixIn for the JSON serialization of the {@link ExecutionContext} class, which is used by the
+ * {@link StepExecution} class. By default, meaning without the {@link ExecutionContextJacksonMixIn} applied, Jackson
+ * will not render the values of the {@link ExecutionContext}.
  *
  * @author Gunnar Hillert
  * @since 1.0
  */
-@JsonIgnoreProperties({ "empty", "values" })
 public abstract class ExecutionContextJacksonMixIn {
 
-	@JsonProperty
-	abstract boolean isEmpty();
+	@JsonProperty("values")
+	abstract Set<Entry<String, Object>> entrySet();
 }

@@ -27,12 +27,14 @@ define([
   'ngGrowl',
   'angularHighlightjs',
   './controllers',
-  './services'
+  './services',
+  './directives'
 ], function (angular) {
   'use strict';
   return angular.module('xdAdmin', [
     'xdAdmin.services',
     'xdAdmin.controllers',
+    'xdAdmin.directives',
     'ui.router',
     'ngResource',
     'cgBusy',

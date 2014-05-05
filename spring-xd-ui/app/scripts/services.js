@@ -100,6 +100,14 @@ define(['angular'], function (angular) {
           }
         };
       })
+      .factory('StepExecutions', function ($resource, $rootScope, $log) {
+        return {
+          getSingleStepExecution: function (jobExecutionId, stepExecutionId) {
+            $log.info('Getting details for Step Execution with Id ' + stepExecutionId + '(Job Execution Id ' + jobExecutionId + ')');
+            return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecutionId +  '/steps/' + stepExecutionId + '.json').get();
+          }
+        };
+      })
       .factory('JobLaunchService', function ($resource, growl, $rootScope) {
         return {
           convertToJsonAndSend: function (jobLaunchRequest) {

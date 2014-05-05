@@ -63,7 +63,7 @@
     <tr>
       <th class="text-center">Step Id</th><th>Step Name</th><th class="text-center">Reads</th><th class="text-center">Writes</th>
       <th class="text-center">Commits</th>
-      <th class="text-center">Rollbacks</th><th>Duration</th><th>Status</th><th>Status Details</th>
+      <th class="text-center">Rollbacks</th><th>Duration</th><th>Status</th><th>Details</th>
     </tr>
   </thead>
   <tbody>
@@ -75,10 +75,10 @@
       <td class="text-center">{{stepExecution.commitCount}}</td>
       <td class="text-center">{{stepExecution.rollbackCount}}</td>
       <td>{{stepExecution.endTime-stepExecution.startTime}} ms</td>
-      <td ng-class="{'text-success': stepExecution.exitStatus.exitCode === 'COMPLETED', 'text-danger': stepExecution.exitStatus.exitCode === 'FAILED'}">{{stepExecution.exitStatus.exitCode}}</td>
-      <td><button type="button" data-toggle="modal" data-target="#step-execution-id-{{stepExecution.id}}"
-              class="btn btn-default" ng-click="viewJobExecutionDetails(item)" title="Exit Status Details"
-                ><span class="glyphicon glyphicon-search"></span></button></td>
+      <td ng-class="{'text-success': stepExecution.exitStatus.exitCode === 'COMPLETED', 'text-danger': stepExecution.exitStatus.exitCode === 'FAILED'}"><a href="" data-toggle="modal" data-target="#step-execution-id-{{stepExecution.id}}"
+             ng-click="viewJobExecutionDetails(item)" title="Exit Status Details"
+                >{{stepExecution.exitStatus.exitCode}}</a></td>
+      <td><button type="button" class="btn btn-default" ng-click="viewStepExecutionDetails(jobExecutionDetails, stepExecution)" title="Details"><span class="glyphicon glyphicon-search"></span></button></td>
     </tr>
   </tbody>
 </table>

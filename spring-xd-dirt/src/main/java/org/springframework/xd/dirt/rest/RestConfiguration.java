@@ -19,6 +19,7 @@ import static org.springframework.hateoas.config.EnableHypermediaSupport.Hyperme
 import java.util.List;
 
 import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -34,12 +35,13 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.xd.dirt.plugins.job.support.ExecutionContextJacksonMixIn;
 import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
 /**
  * Takes care of infrastructure setup for the web/rest layer.
- * 
+ *
  * @author Eric Bottard
  * @author David Turanski
  * @author Andrew Eisenberg
@@ -72,6 +74,8 @@ public class RestConfiguration {
 						final MappingJackson2HttpMessageConverter converter = (MappingJackson2HttpMessageConverter) httpMessageConverter;
 						converter.getObjectMapper().addMixInAnnotations(StepExecution.class,
 								StepExecutionJacksonMixIn.class);
+						converter.getObjectMapper().addMixInAnnotations(ExecutionContext.class,
+								ExecutionContextJacksonMixIn.class);
 					}
 				}
 

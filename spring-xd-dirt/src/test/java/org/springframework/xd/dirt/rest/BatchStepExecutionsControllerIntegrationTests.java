@@ -50,7 +50,7 @@ import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 
 /**
  * Tests REST compliance of {@link BatchStepExecutionsController} endpoints.
- * 
+ *
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -80,6 +80,8 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 		final StepExecution step1 = new StepExecution("step1", jobExecution1, 1L);
 		final StepExecution step2 = new StepExecution("step2", jobExecution1, 2L);
 		final StepExecution step3 = new StepExecution("step3", jobExecution1, 3L);
+
+		step1.getExecutionContext().put("contextTestKey", "howdy!");
 
 		final List<StepExecution> stepExecutions1 = new ArrayList<StepExecution>();
 		stepExecutions1.add(step1);
@@ -130,6 +132,10 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 
 	@Test
 	public void testGetSingleBatchStepExecution() throws Exception {
+		String s = mockMvc.perform(
+				get("/batch/executions/2/steps/1").accept(MediaType.APPLICATION_JSON)).andReturn().getResponse().getContentAsString();
+		System.out.println(s);
+
 		mockMvc.perform(
 				get("/batch/executions/2/steps/1").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -138,7 +144,13 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 				.andExpect(jsonPath("stepExecution.jobParameters.empty", Matchers.is(false)))
 				.andExpect(jsonPath("stepExecution.jobParameters.parameters.param1.value", Matchers.is("test")))
 				.andExpect(jsonPath("stepExecution.jobParameters.parameters.param2.value", Matchers.is(123)))
-				.andExpect(jsonPath("stepExecution.stepName", Matchers.is("step1")));
+				.andExpect(jsonPath("stepExecution.stepName", Matchers.is("step1")))
+				.andExpect(jsonPath("stepExecution.executionContext.empty", Matchers.is(false)))
+				.andExpect(jsonPath("stepExecution.executionContext.values", Matchers.not(Matchers.empty())))
+				.andExpect(jsonPath("stepExecution.executionContext.values", Matchers.hasSize(1)))
+				.andExpect(
+						jsonPath("stepExecution.executionContext.values[?(@.key == 'contextTestKey')].value",
+								Matchers.hasSize(1)));
 	}
 
 	@Test

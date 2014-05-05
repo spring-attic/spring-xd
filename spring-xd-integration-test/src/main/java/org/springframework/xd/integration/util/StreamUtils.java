@@ -42,7 +42,7 @@ import com.google.common.net.HostAndPort;
 
 /**
  * Utilities for creating and monitoring streams and the JMX hooks for those strings.
- * 
+ *
  * @author Glenn Renfro
  */
 public class StreamUtils {
@@ -51,7 +51,7 @@ public class StreamUtils {
 
 	/**
 	 * Creates the stream definition and deploys it to the cluster being tested.
-	 * 
+	 *
 	 * @param streamName The name of the stream
 	 * @param streamDefinition The definition that needs to be deployed for this stream.
 	 * @param adminServer The admin server that this stream will be deployed against.
@@ -72,7 +72,7 @@ public class StreamUtils {
 
 	/**
 	 * Executes a http get for the client and returns the results as a string
-	 * 
+	 *
 	 * @param url The location to execute the get against.
 	 * @return the string result of the get
 	 */
@@ -99,7 +99,7 @@ public class StreamUtils {
 
 	/**
 	 * Removes all the streams from the cluster. Used to guarantee a clean acceptance test.
-	 * 
+	 *
 	 * @param adminServer The admin server that the command will be executed against.
 	 */
 	public static void destroyAllStreams(final URL adminServer) {
@@ -115,8 +115,27 @@ public class StreamUtils {
 	}
 
 	/**
-	 * Copies the specified file from a remote machine to local machine.
+	 * Undeploys the specified stream name
 	 * 
+	 * @param adminServer The admin server that the command will be executed against.
+	 * @param streamName The name of the stream to undeploy
+	 */
+	public static void undeployStream(final URL adminServer, final String streamName)
+	{
+		Assert.notNull(adminServer, "The admin server must be specified.");
+		Assert.hasText(streamName, "The streamName must not be empty nor null");
+		try {
+			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
+			xdTemplate.streamOperations().undeploy(streamName);
+		}
+		catch (URISyntaxException uriException) {
+			throw new IllegalStateException(uriException.getMessage(), uriException);
+		}
+	}
+
+	/**
+	 * Copies the specified file from a remote machine to local machine.
+	 *
 	 * @param xdEnvironment The environment configuration for this test
 	 * @param url The remote machine's url.
 	 * @param fileName The fully qualified file name of the file to be transferred.
@@ -164,7 +183,7 @@ public class StreamUtils {
 
 	/**
 	 * Substitutes the port associated with the URL with another port.
-	 * 
+	 *
 	 * @param url The URL that needs a port replaced.
 	 * @param port The new port number
 	 * @return A new URL with the host from the URL passed in and the new port.

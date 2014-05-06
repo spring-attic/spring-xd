@@ -288,7 +288,7 @@ configure(javaProjects) { subproject ->
 
 	jar {
 		manifest.attributes["Created-By"] =
-				"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
+            "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
 		manifest.attributes["Implementation-Title"] = subproject.name
 		manifest.attributes["Implementation-Version"] = subproject.version
 		if (project != project(':spring-xd-exec')) { exclude 'log4j.properties' }
@@ -656,6 +656,9 @@ project('spring-xd-extension-jdbc') {
 		runtime "org.postgresql:postgresql:9.2-1002-jdbc4"
 		compile project(':spring-xd-module-spi')
 		compile "javax.validation:validation-api:1.0.0.GA"
+        testCompile("org.mockito:mockito-all:$mockitoVersion") {
+            exclude group: 'org.hamcrest'
+        }
 	}
 }
 

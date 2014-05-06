@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -32,12 +32,9 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
-import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
 import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
-import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
@@ -46,6 +43,7 @@ import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
@@ -62,11 +60,6 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	private final Logger logger = LoggerFactory.getLogger(StreamDeploymentListener.class);
 
 	/**
-	 * Provides access to the current container list.
-	 */
-	private final ContainerRepository containerRepository;
-
-	/**
 	 * Utility to convert maps to byte arrays.
 	 */
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
@@ -77,9 +70,9 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	private final StreamFactory streamFactory;
 
 	/**
-	 * todo: make this pluggable
+	 * Utility for writing module deployment requests to ZooKeeper.
 	 */
-	private final ContainerMatcher containerMatcher = new DefaultContainerMatcher();
+	private final ModuleDeploymentWriter moduleDeploymentWriter;
 
 	/**
 	 * Executor service dedicated to handling events raised from
@@ -104,14 +97,18 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 * @param containerRepository repository to obtain container data
 	 * @param moduleDefinitionRepository repository to obtain module data
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
+	 * @param containerMatcher matches modules to containers
 	 */
-	public StreamDeploymentListener(ContainerRepository containerRepository,
+	public StreamDeploymentListener(ZooKeeperConnection zkConnection,
+			ContainerRepository containerRepository,
 			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
-			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		this.containerRepository = containerRepository;
-		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
-				moduleOptionsMetadataResolver);
+			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
+			ContainerMatcher containerMatcher) {
+		this.streamFactory = new StreamFactory(streamDefinitionRepository,
+				moduleDefinitionRepository, moduleOptionsMetadataResolver);
+		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
+				containerRepository, containerMatcher);
 	}
 
 	/**
@@ -121,6 +118,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 */
 	@Override
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+		ZooKeeperConnection.logCacheEvent(logger, event);
 		executorService.submit(new EventHandler(client, event));
 	}
 
@@ -144,7 +142,8 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 
 		logger.info("Deploying stream {} with properties {}", stream, map);
 		prepareStream(client, stream);
-		deployStream(client, stream);
+		deployStream(stream);
+		logger.info("Stream {} deployment attempt complete", stream);
 	}
 
 	/**
@@ -186,79 +185,22 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	/**
 	 * Issue deployment requests for the modules of the given stream.
 	 *
-	 * @param client curator client
 	 * @param stream stream to be deployed
 	 *
 	 * @throws Exception
 	 */
-	private void deployStream(CuratorFramework client, Stream stream) throws Exception {
-		for (Iterator<ModuleDescriptor> iterator = stream.getDeploymentOrderIterator(); iterator.hasNext();) {
-			ModuleDescriptor descriptor = iterator.next();
-			String streamName = stream.getName();
-			String moduleType = descriptor.getModuleDefinition().getType().toString();
-			String moduleName = descriptor.getModuleDefinition().getName();
-			String moduleLabel = descriptor.getModuleLabel();
-			Map<Container, String> mapDeploymentStatus = new HashMap<Container, String>();
-
-			ModuleDeploymentProperties deploymentProperties =
-					createModuleDeploymentProperties(stream.getDeploymentProperties(), descriptor);
-			for (Container container : containerMatcher.match(descriptor, deploymentProperties, containerRepository)) {
-				String containerName = container.getName();
-				try {
-					client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
-							.setContainer(containerName)
-							.setStreamName(streamName)
-							.setModuleType(moduleType)
-							.setModuleLabel(moduleLabel).build());
-
-					mapDeploymentStatus.put(container, new StreamDeploymentsPath()
-							.setStreamName(streamName)
-							.setModuleType(moduleType)
-							.setModuleLabel(moduleLabel)
-							.setContainer(containerName).build());
-				}
-				catch (KeeperException.NodeExistsException e) {
-					logger.info("Module {} is already deployed to container {}", descriptor, container);
-				}
+	private void deployStream(final Stream stream) throws Exception {
+		ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider provider =
+				new ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider() {
+			@Override
+			public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
+				return createModuleDeploymentProperties(stream.getDeploymentProperties(), descriptor);
 			}
+		};
 
-			// wait for all deployments to succeed
-			// todo: make timeout configurable
-			long timeout = System.currentTimeMillis() + 10000;
-			do {
-				for (Iterator<Map.Entry<Container, String>> iteratorStatus = mapDeploymentStatus.entrySet().iterator(); iteratorStatus.hasNext();) {
-					Map.Entry<Container, String> entry = iteratorStatus.next();
-					if (client.checkExists().forPath(entry.getValue()) != null) {
-						iteratorStatus.remove();
-					}
-					Thread.sleep(10);
-				}
-			}
-			while (!mapDeploymentStatus.isEmpty() && System.currentTimeMillis() < timeout);
-
-			if (!mapDeploymentStatus.isEmpty()) {
-				// clean up failed deployment attempts
-				for (Container container : mapDeploymentStatus.keySet()) {
-					try {
-						client.delete().forPath(new ModuleDeploymentsPath()
-								.setContainer(container.getName())
-								.setStreamName(streamName)
-								.setModuleType(moduleType)
-								.setModuleLabel(moduleLabel).build());
-					}
-					catch (KeeperException e) {
-						// ignore
-					}
-				}
-
-				// todo: if the container went away we should select another one to deploy to;
-				// otherwise this reflects a bug in the container or some kind of network
-				// error in which case the state of deployment is "unknown"
-				throw new IllegalStateException(String.format(
-						"Deployment of %s module %s to the following containers failed: %s",
-						moduleType, moduleName, mapDeploymentStatus.keySet()));
-			}
-		}
+		Collection<ModuleDeploymentWriter.Result> results =
+				moduleDeploymentWriter.writeDeployment(stream.getDeploymentOrderIterator(), provider);
+		moduleDeploymentWriter.validateResults(results);
 	}
 
 	/**
@@ -317,14 +259,20 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 		 */
 		@Override
 		public Void call() throws Exception {
-			switch (event.getType()) {
-				case CHILD_ADDED:
-					onChildAdded(client, event.getData());
-					break;
-				default:
-					break;
+			try {
+				switch (event.getType()) {
+					case CHILD_ADDED:
+						onChildAdded(client, event.getData());
+						break;
+					default:
+						break;
+				}
+				return null;
 			}
-			return null;
+			catch (Exception e) {
+				logger.error("Exception caught while handling event", e);
+				throw e;
+			}
 		}
 	}
 

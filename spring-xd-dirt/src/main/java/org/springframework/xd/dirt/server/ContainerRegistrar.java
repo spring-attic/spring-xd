@@ -59,6 +59,7 @@ import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
@@ -158,8 +159,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Map of deployed modules.
 	 */
-	private final Map<ModuleDescriptor.ModuleDescriptorKey, ModuleDescriptor> mapDeployedModules =
-			new ConcurrentHashMap<ModuleDescriptor.ModuleDescriptorKey, ModuleDescriptor>();
+	private final Map<ModuleDescriptor.Key, ModuleDescriptor> mapDeployedModules =
+			new ConcurrentHashMap<ModuleDescriptor.Key, ModuleDescriptor>();
 
 	/**
 	 * The ModuleDeployer this container delegates to when deploying a Module.
@@ -221,12 +222,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private Module deployModule(ModuleDescriptor moduleDescriptor,
 			ModuleDeploymentProperties deploymentProperties) {
 		logger.info("Deploying module {}", moduleDescriptor);
-		ModuleDescriptor.ModuleDescriptorKey key = new ModuleDescriptor.ModuleDescriptorKey(moduleDescriptor.getGroup(), moduleDescriptor.getType(),
+		ModuleDescriptor.Key key = new ModuleDescriptor.Key(moduleDescriptor.getGroup(), moduleDescriptor.getType(),
 				moduleDescriptor.getModuleLabel());
 		mapDeployedModules.put(key, moduleDescriptor);
 		ModuleOptions moduleOptions = this.safeModuleOptionsInterpolate(moduleDescriptor);
-		Module module = (moduleDescriptor.isComposed()) ? createComposedModule(moduleDescriptor, moduleOptions,
-				deploymentProperties)
+		Module module = (moduleDescriptor.isComposed())
+				? createComposedModule(moduleDescriptor, moduleOptions, deploymentProperties)
 				: createSimpleModule(moduleDescriptor, moduleOptions, deploymentProperties);
 		// todo: rather than delegate, merge ContainerRegistrar itself into and remove most of ModuleDeployer
 		this.moduleDeployer.deployAndStore(module, moduleDescriptor);
@@ -241,7 +242,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param moduleLabel module label
 	 */
 	protected void undeployModule(String streamName, String moduleType, String moduleLabel) {
-		ModuleDescriptor.ModuleDescriptorKey key = new ModuleDescriptor.ModuleDescriptorKey(streamName, ModuleType.valueOf(moduleType), moduleLabel);
+		ModuleDescriptor.Key key = new ModuleDescriptor.Key(streamName, ModuleType.valueOf(moduleType), moduleLabel);
 		ModuleDescriptor descriptor = mapDeployedModules.get(key);
 		if (descriptor == null) {
 			// This is logged at trace level because every module undeployment
@@ -336,9 +337,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				deployments.getListenable().removeListener(deploymentListener);
 				deployments.close();
 
-				for (Iterator<ModuleDescriptor.ModuleDescriptorKey> iterator = mapDeployedModules.keySet().iterator(); iterator.hasNext();) {
-					ModuleDescriptor.ModuleDescriptorKey key = iterator.next();
-					undeployModule(key.getStream(), key.getType().name(), key.getLabel());
+				for (Iterator<ModuleDescriptor.Key> iterator = mapDeployedModules.keySet().iterator(); iterator.hasNext();) {
+					ModuleDescriptor.Key key = iterator.next();
+					undeployModule(key.getGroup(), key.getType().name(), key.getLabel());
 					iterator.remove();
 				}
 			}
@@ -354,24 +355,38 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param client curator client
 	 * @param data module data
 	 */
-	private void onChildAdded(CuratorFramework client, ChildData data) {
+	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(data.getPath());
 		String streamName = moduleDeploymentsPath.getStreamName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
-		Module module = (ModuleType.job.toString().equals(moduleType)) ? deployJob(client, streamName, moduleLabel)
-				: deployStreamModule(client, streamName, moduleType, moduleLabel);
-		if (module != null) {
-			Map<String, String> map = new HashMap<String, String>();
-			CollectionUtils.mergePropertiesIntoMap(module.getProperties(), map);
-			byte[] metadata = mapBytesUtility.toByteArray(map);
-			try {
-				client.create().withMode(CreateMode.EPHEMERAL).forPath(data.getPath() + "/metadata", metadata);
+		Module module;
+		Map<String, String> mapStatus = new HashMap<String, String>();
+		try {
+			module = (ModuleType.job.toString().equals(moduleType))
+					? deployJob(client, streamName, moduleLabel)
+					: deployStreamModule(client, streamName, moduleType, moduleLabel);
+			if (module == null) {
+				mapStatus.put(ModuleDeploymentWriter.STATUS_KEY, ModuleDeploymentWriter.Status.error.toString());
+				mapStatus.put(ModuleDeploymentWriter.ERROR_DESCRIPTION_KEY, "Module deployment returned null");
 			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
+			else {
+				Map<String, String> map = new HashMap<String, String>();
+				CollectionUtils.mergePropertiesIntoMap(module.getProperties(), map);
+				byte[] metadata = mapBytesUtility.toByteArray(map);
+				client.create().withMode(CreateMode.EPHEMERAL).forPath(
+						Paths.build(data.getPath(), "metadata"), metadata);
+				mapStatus.put(ModuleDeploymentWriter.STATUS_KEY, ModuleDeploymentWriter.Status.deployed.toString());
 			}
 		}
+		catch (Exception e) {
+			mapStatus.put(ModuleDeploymentWriter.STATUS_KEY, ModuleDeploymentWriter.Status.error.toString());
+			mapStatus.put(ModuleDeploymentWriter.ERROR_DESCRIPTION_KEY, e.toString());
+			logger.error("Exception deploying module", e);
+		}
+
+		// update the module deployment node with the deployment status
+		client.setData().forPath(moduleDeploymentsPath.build(), mapBytesUtility.toByteArray(mapStatus));
 	}
 
 	/**
@@ -382,38 +397,64 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param jobLabel job label
 	 * @return Module deployed job module
 	 */
-	private Module deployJob(CuratorFramework client, String jobName, String jobLabel) {
+	private Module deployJob(CuratorFramework client, String jobName, String jobLabel) throws Exception {
 		logger.info("Deploying job '{}'", jobName);
 
 		String jobPath = new JobDeploymentsPath().setJobName(jobName)
 				.setModuleLabel(jobLabel)
 				.setContainer(containerAttributes.getId()).build();
 
-		try {
-			Map<String, String> map = mapBytesUtility.toMap(client.getData().forPath(Paths.build(Paths.JOBS, jobName)));
-
-			// todo: do we need something like StreamFactory for jobs, or is that overkill?
-			String jobModuleName = jobLabel.substring(0, jobLabel.lastIndexOf('-'));
-			ModuleDefinition moduleDefinition = this.moduleDefinitionRepository.findByNameAndType(jobModuleName,
-					ModuleType.job);
-			List<ModuleDescriptor> requests = this.parser.parse(jobName, map.get("definition"),
-					ParsingContext.job);
-			ModuleDescriptor moduleDescriptor = requests.get(0);
+		Module module = null;
+		JobDefinition jobDefinition = loadJob(client, jobName);
+		if (jobDefinition != null) {
+			ModuleDescriptor moduleDescriptor = parser.parse(jobName,
+					jobDefinition.getDefinition(), ParsingContext.job).get(0);
 			// todo: support deployment properties for job modules
-			Module module = deployModule(moduleDescriptor, new ModuleDeploymentProperties());
+			module = deployModule(moduleDescriptor, ModuleDeploymentProperties.defaultInstance);
 
-			// this indicates that the container has deployed the module
-			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
-					.forPath(jobPath, mapBytesUtility.toByteArray(Collections.singletonMap("state", "deployed")));
+			try {
+				// this indicates that the container has deployed the module
+				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(jobPath);
 
-			// set a watch on this module in the job path;
-			// if the node is deleted this indicates an undeployment
-			client.getData().usingWatcher(jobModuleWatcher).forPath(jobPath);
-			return module;
+				// set a watch on this module in the job path;
+				// if the node is deleted this indicates an undeployment
+				client.getData().usingWatcher(jobModuleWatcher).forPath(jobPath);
+			}
+			catch (KeeperException.NodeExistsException e) {
+				// todo: review, this should not happen
+				logger.info("Module for job {} already deployed", jobName);
+			}
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+
+		// todo: this will return null if the job doesn't exist...needs review
+		return module;
+	}
+
+	/**
+	 * Load the {@link org.springframework.xd.dirt.stream.JobDefinition}
+	 * instance for a given job name if the job definition is present <i>and the
+	 * job is deployed</i>.
+	 *
+	 * @param client   curator client
+	 * @param jobName  the name of the job to load
+	 * @return the job instance, or {@code null} if the job does not exist or is not deployed
+	 * @throws Exception
+	 */
+	private JobDefinition loadJob(CuratorFramework client, String jobName) throws Exception {
+		/*
+		 * TODO: duplicate from JobDeploymentListener
+		 */
+		try {
+			if (client.checkExists().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, jobName)) != null) {
+				byte[] data = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
+				Map<String, String> map = mapBytesUtility.toMap(data);
+				return new JobDefinition(jobName, map.get("definition"));
+			}
 		}
+		catch (KeeperException.NoNodeException e) {
+			// job is not deployed
+		}
+		return null;
 	}
 
 	/**
@@ -425,7 +466,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param moduleLabel module label
 	 * @return Module deployed stream module
 	 */
-	private Module deployStreamModule(CuratorFramework client, String streamName, String moduleType, String moduleLabel) {
+	private Module deployStreamModule(CuratorFramework client, String streamName,
+			String moduleType, String moduleLabel) throws Exception {
 		logger.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
 
 		String streamPath = new StreamDeploymentsPath().setStreamName(streamName)
@@ -453,15 +495,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			// if the node is deleted this indicates an undeployment
 			client.getData().usingWatcher(streamModuleWatcher).forPath(streamPath);
 		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
 		catch (KeeperException.NodeExistsException e) {
 			// todo: review, this should not happen
-			logger.info("Module for stream {} already deployed", moduleLabel, streamName);
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+			logger.info("Module {} for stream {} already deployed", moduleLabel, streamName);
 		}
 		return module;
 	}
@@ -696,7 +732,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		 */
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-			logger.warn("Path cache event: {}", event);
+			ZooKeeperConnection.logCacheEvent(logger, event);
 			switch (event.getType()) {
 				case INITIALIZED:
 					break;

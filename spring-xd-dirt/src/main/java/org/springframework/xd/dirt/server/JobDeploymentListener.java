@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.server;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -31,10 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
-import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
-import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.JobDefinition;
@@ -42,6 +38,7 @@ import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -69,9 +66,9 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	/**
-	 * todo: make this pluggable
+	 * Container matcher for matching modules to containers.
 	 */
-	private final ContainerMatcher containerMatcher = new DefaultContainerMatcher();
+	private final ContainerMatcher containerMatcher;
 
 	/**
 	 * Stream factory.
@@ -85,17 +82,30 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	private final XDStreamParser parser;
 
 	/**
+	 * Utility for writing module deployment requests to containers.
+	 */
+	private final ModuleDeploymentWriter moduleDeploymentWriter;
+
+
+	/**
 	 * Construct a JobDeploymentListener.
 	 *
+	 * @param zkConnection                  ZooKeeper connection
 	 * @param containerRepository           repository to obtain container data
 	 * @param moduleDefinitionRepository    repository to obtain module data
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
+	 * @param containerMatcher              matches modules to containers
 	 */
-	public JobDeploymentListener(ContainerRepository containerRepository,
+	public JobDeploymentListener(ZooKeeperConnection zkConnection,
+			ContainerRepository containerRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
-			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
+			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
+			ContainerMatcher containerMatcher) {
 		this.containerRepository = containerRepository;
 		this.parser = new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
+		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
+				containerRepository, containerMatcher);
+		this.containerMatcher = containerMatcher;
 	}
 
 	/**
@@ -105,29 +115,12 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 */
 	@Override
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+		ZooKeeperConnection.logCacheEvent(logger, event);
 		switch (event.getType()) {
 			case CHILD_ADDED:
 				onChildAdded(client, event.getData());
 				break;
-			case CHILD_UPDATED:
-				break;
-			case CHILD_REMOVED:
-				onChildRemoved(client, event.getData());
-				break;
-			case CONNECTION_SUSPENDED:
-				break;
-			case CONNECTION_RECONNECTED:
-				break;
-			case CONNECTION_LOST:
-				break;
-			case INITIALIZED:
-				// TODO!!
-				// when this admin is first elected leader and there are
-				// jobs, it needs to verify that the jobs have been
-				// deployed
-				// for (ChildData childData : event.getInitialData()) {
-				// LOG.info("Existing job: {}", Paths.stripPath(childData.getPath()));
-				// }
+			default:
 				break;
 		}
 	}
@@ -140,148 +133,64 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String jobName = Paths.stripPath(data.getPath());
-		byte[] bytes = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
-		Map<String, String> map = mapBytesUtility.toMap(bytes);
-		JobDefinition jobDefinition = new JobDefinition(jobName, map.get("definition"));
-
-		logger.info("Deploying job {}", jobDefinition);
-		deployJob(client, jobDefinition);
+		deployJob(client, jobName);
 	}
 
 	/**
-	 * Handle the deletion of a job deployment.
+	 * Issue deployment requests for a job. This deployment will occur
+	 * if:
+	 * <ul>
+	 *     <li>the job has not been destroyed</li>
+	 *     <li>the job has not been undeployed</li>
+	 *     <li>there is a container that can deploy the job</li>
+	 * </ul>
 	 *
-	 * @param client curator client
-	 * @param data   job deployment request data
-	 */
-	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
-		String jobName = Paths.stripPath(data.getPath());
-		logger.info("Undeploying job {}", jobName);
-
-		try {
-			byte[] bytes = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
-			Map<String, String> map = mapBytesUtility.toMap(bytes);
-			JobDefinition jobDefinition = new JobDefinition(jobName, map.get("definition"));
-			undeployJob(client, jobDefinition);
-		}
-		catch (KeeperException.NoNodeException e) {
-			logger.debug("Job definition {} has already been removed", jobName);
-		}
-	}
-
-	/**
-	 * Issue deployment requests for the job.
-	 *
-	 * @param client        curator client
-	 * @param jobDefinition job to be deployed
-	 */
-	private void deployJob(CuratorFramework client, JobDefinition jobDefinition) throws Exception {
-		String jobName = jobDefinition.getName();
-
-		// create a ModuleDescriptor for the job using the static helper method;
-		// eventually ModuleDescriptor will be part of the Job object model
-		Iterator<Container> containerIterator = containerMatcher.match(
-				createJobModuleDescriptor(jobName),
-				new ModuleDeploymentProperties(), // todo: jobs do not yet use deployment properties
-				containerRepository).iterator();
-		if (containerIterator.hasNext()) {
-			Container container = containerIterator.next();
-			String containerName = container.getName();
-
-			List<ModuleDescriptor> results = this.parser.parse(jobName, jobDefinition.getDefinition(),
-					ParsingContext.job);
-			ModuleDescriptor mdr = results.get(0);
-			String moduleLabel = mdr.getModuleName() + "-0";
-			String moduleType = ModuleType.job.toString();
-			String moduleDeploymentRequestPath = new ModuleDeploymentsPath().setContainer(containerName)
-					.setStreamName(jobName)
-					.setModuleType(moduleType)
-					.setModuleLabel(moduleLabel).build();
-			try {
-				// todo: consider something more abstract for stream name
-				// OR separate path builders for stream-modules and jobs
-				client.create().creatingParentsIfNeeded().forPath(moduleDeploymentRequestPath);
-			}
-			catch (KeeperException.NodeExistsException e) {
-				logger.info("Job {} is already deployed to container {}", jobDefinition, container);
-			}
-
-			// wait for all deployments to succeed
-			// todo: make timeout configurable
-			long timeout = System.currentTimeMillis() + 10000;
-			String containerDeploymentPath = new JobDeploymentsPath().setJobName(jobName)
-					.setModuleLabel(moduleLabel)
-					.setContainer(containerName).build();
-
-			boolean deployed = client.checkExists().forPath(containerDeploymentPath) != null;
-			while (!deployed && System.currentTimeMillis() < timeout) {
-				Thread.sleep(10);
-				deployed = client.checkExists().forPath(containerDeploymentPath) != null;
-			}
-
-			if (!deployed) {
-				// clean up failed deployment attempts
-				try {
-					client.delete().forPath(moduleDeploymentRequestPath);
-				}
-				catch (KeeperException e) {
-					// ignore
-				}
-
-				// todo: if the container went away we should select another one to deploy to;
-				// otherwise this reflects a bug in the container or some kind of network
-				// error in which case the state of deployment is "unknown"
-				throw new IllegalStateException(String.format(
-						"Deployment of job %s to the following containers failed: %s", jobName, container));
-			}
-		}
-		else {
-			logger.info("No containers available to deploy job {}", jobName);
-		}
-
-	}
-
-	/**
-	 * Issue undeployment requests for the job.
-	 *
-	 * @param client curator client
-	 * @param jobDefinition job to be undeployed
-	 *
+	 * @param client      curator client
+	 * @param jobName     name of job to redeploy
 	 * @throws Exception
 	 */
-	private void undeployJob(CuratorFramework client, JobDefinition jobDefinition) throws Exception {
-		String jobPath = Paths.build(Paths.JOBS, jobDefinition.getName());
-		List<String> children = client.getChildren().forPath(jobPath);
-		for (String child : children) {
-			String path = jobPath + "/" + child;
-			try {
-				client.delete().deletingChildrenIfNeeded().forPath(path);
+	private void deployJob(CuratorFramework client, String jobName) throws Exception {
+		JobDefinition jobDefinition = loadJob(client, jobName);
+		if (jobDefinition != null) {
+			ModuleDescriptor descriptor = parser.parse(jobName, jobDefinition.getDefinition(),
+					ParsingContext.job).get(0);
+
+			Iterator<Container> iterator = containerMatcher.match(descriptor,
+					ModuleDeploymentProperties.defaultInstance, containerRepository).iterator();
+			if (iterator.hasNext()) {
+				Container targetContainer = iterator.next();
+				ModuleDeploymentWriter.Result result =
+						moduleDeploymentWriter.writeDeployment(descriptor, targetContainer);
+				moduleDeploymentWriter.validateResult(result);
 			}
-			catch (KeeperException.NoNodeException e) {
-				logger.trace("Path {} already deleted", path);
+			else {
+				logger.warn("No containers available for deployment of {}", jobName);
 			}
 		}
 	}
 
 	/**
-	 * Create an instance of {@link ModuleDescriptor} for a given job name.
-	 * This helper method is intended for use in
-	 * {@link ContainerMatcher#match(ModuleDescriptor, ModuleDeploymentProperties, ContainerRepository)}
-	 * when deploying jobs. This is intended to be temporary; future revisions of
-	 * Jobs will include ModuleDescriptors.
+	 * Load the {@link org.springframework.xd.dirt.stream.JobDefinition}
+	 * instance for a given job name if the job definition is present <i>and the
+	 * job is deployed</i>.
 	 *
-	 * @param jobName job name
-	 *
-	 * @return a ModuleDescriptor for the given job
+	 * @param client   curator client
+	 * @param jobName  the name of the job to load
+	 * @return the job instance, or {@code null} if the job does not exist or is not deployed
+	 * @throws Exception
 	 */
-	public static ModuleDescriptor createJobModuleDescriptor(String jobName) {
-		return new ModuleDescriptor.Builder()
-				.setGroup(jobName)
-				.setType(ModuleType.job)
-				.setModuleName(jobName)
-				.setModuleLabel(jobName)
-				.setIndex(0)
-				.build();
+	private JobDefinition loadJob(CuratorFramework client, String jobName) throws Exception {
+		try {
+			if (client.checkExists().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, jobName)) != null) {
+				byte[] data = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
+				Map<String, String> map = mapBytesUtility.toMap(data);
+				return new JobDefinition(jobName, map.get("definition"));
+			}
+		}
+		catch (KeeperException.NoNodeException e) {
+			// job is not deployed
+		}
+		return null;
 	}
 
 }

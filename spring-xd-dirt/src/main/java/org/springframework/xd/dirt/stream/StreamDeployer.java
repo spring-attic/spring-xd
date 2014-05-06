@@ -104,7 +104,9 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 	 */
 	@Override
 	protected void basicUndeploy(String name) {
-		streamRepository.delete(name);
+		// this empty method is here to prevent AbstractDeployer.basicUndeploy
+		// from being invoked because all of the undeploy logic is in the
+		// stream instance repository delete() method;
 	}
 
 	/**

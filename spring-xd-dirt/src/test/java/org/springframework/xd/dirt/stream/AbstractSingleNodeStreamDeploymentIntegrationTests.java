@@ -60,6 +60,7 @@ import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -461,6 +462,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		 */
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+			ZooKeeperConnection.logCacheEvent(logger, event);
 			ModuleDeploymentsPath path = new ModuleDeploymentsPath(event.getData().getPath());
 			if (event.getType().equals(Type.CHILD_ADDED)) {
 				deployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());

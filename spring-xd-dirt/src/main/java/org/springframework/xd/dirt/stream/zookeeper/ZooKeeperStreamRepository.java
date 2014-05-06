@@ -186,6 +186,8 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 
 	@Override
 	public void delete(String id) {
+		logger.info("Undeploying stream {}", id);
+
 		CuratorFramework client = zkConnection.getClient();
 		Deque<String> paths = new ArrayDeque<String>();
 

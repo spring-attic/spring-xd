@@ -35,7 +35,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
@@ -54,6 +56,7 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	private static final Log logger = LogFactory.getLog(JobCommandTests.class);
@@ -427,7 +430,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	}
 
 	@Test
-	public void testStopJobExecution() throws Exception {
+	public void doStopJobExecution() throws Exception {
 		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_STEP_EXECUTIONS);
 		checkForJobInList(jobName, JOB_WITH_STEP_EXECUTIONS, true);
@@ -460,7 +463,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	}
 
 	@Test
-	public void testStopAllJobExecutions() throws Exception {
+	public void doStopAllJobExecutions() throws Exception {
 		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_STEP_EXECUTIONS);
 		checkForJobInList(jobName, JOB_WITH_STEP_EXECUTIONS, true);

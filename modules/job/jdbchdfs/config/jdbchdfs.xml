@@ -2,10 +2,8 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:hdp="http://www.springframework.org/schema/hadoop"
-		xmlns:context="http://www.springframework.org/schema/context"
 		xmlns:batch="http://www.springframework.org/schema/batch"
 		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
@@ -25,11 +23,12 @@
 		<property name="initialSize" value="0" />
 	</bean>
 
-	<bean id="itemReader" class="org.springframework.xd.jdbc.NamedColumnJdbcItemReader">
+	<bean id="itemReader" class="org.springframework.xd.jdbc.NamedColumnJdbcItemReaderFactory">
 		<property name="dataSource" ref="dataSource" />
 		<property name="tableName" value="${tableName}" />
 		<property name="columnNames" value="${columns}" />
 		<property name="sql" value="${sql}"/>
+		<property name="fetchSize" value="100"/>
 	</bean>
 
 	<bean id="itemWriter" class="org.springframework.xd.batch.item.hadoop.HdfsTextItemWriter">

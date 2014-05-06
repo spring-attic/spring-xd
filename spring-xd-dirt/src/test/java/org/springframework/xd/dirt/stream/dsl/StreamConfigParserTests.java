@@ -326,6 +326,23 @@ public class StreamConfigParserTests {
 	public void moduleArguments_xd1613() {
 		StreamNode ast = null;
 
+		// notice no space between the ' and final >
+		ast = parse("queue:producer > transform --expression='payload.toUpperCase()' | filter --expression='payload.length() > 4'> queue:consumer");
+		assertEquals("payload.toUpperCase()", ast.getModule("transform").getArguments()[0].getValue());
+		assertEquals("payload.length() > 4", ast.getModule("filter").getArguments()[0].getValue());
+
+		ast = parse("time | transform --expression='T(org.joda.time.format.DateTimeFormat).forPattern(\"yyyy-MM-dd HH:mm:ss\").parseDateTime(payload)'");
+		assertEquals(
+				"T(org.joda.time.format.DateTimeFormat).forPattern(\"yyyy-MM-dd HH:mm:ss\").parseDateTime(payload)",
+				ast.getModule("transform").getArguments()[0].getValue());
+
+		// allow for pipe/semicolon if quoted
+		ast = parse("http | transform --outputType='text/plain|charset=UTF-8'  | log");
+		assertEquals("text/plain|charset=UTF-8", ast.getModule("transform").getArguments()[0].getValue());
+
+		ast = parse("http | transform --outputType='text/plain;charset=UTF-8'  | log");
+		assertEquals("text/plain;charset=UTF-8", ast.getModule("transform").getArguments()[0].getValue());
+
 		// Want to treat all of 'hi'+payload as the argument value
 		ast = parse("http | transform --expression='hi'+payload | log");
 		assertEquals("'hi'+payload", ast.getModule("transform").getArguments()[0].getValue());

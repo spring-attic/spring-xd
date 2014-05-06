@@ -210,7 +210,8 @@ class Tokenizer {
 	 * that and don't allow ' ' (space) and '\t' (tab) to terminate the value.
 	 */
 	private boolean isArgValueIdentifierTerminator(char ch, boolean quoteOpen) {
-		return ch == '|' || ch == ';' || ch == '\0' || (ch == ' ' && !quoteOpen) || (ch == '\t' && !quoteOpen)
+		return (ch == '|' && !quoteOpen) || (ch == ';' && !quoteOpen) || ch == '\0' || (ch == ' ' && !quoteOpen)
+				|| (ch == '\t' && !quoteOpen) || (ch == '>' && !quoteOpen)
 				|| ch == '\r' || ch == '\n';
 	}
 

@@ -93,8 +93,8 @@
 			<xsd:attribute name="idle-timeout" use="optional"/>
 			<xsd:attribute name="in-use-suffix" use="optional"/>
 			<xsd:attribute name="in-use-prefix" use="optional"/>
-			<xsd:attribute name="rollover-strategy" use="optional"/>
-			<xsd:attribute name="naming-strategy" use="optional"/>
+			<xsd:attribute name="rollover-strategy-bean-name" use="optional"/>
+			<xsd:attribute name="naming-strategy-bean-name" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 

@@ -57,7 +57,7 @@ public class RolloverStrategyParser extends AbstractBeanDefinitionParser {
 		}
 
 		builder = BeanDefinitionBuilder.genericBeanDefinition(ChainedRolloverStrategy.class);
-
+		builder.setScope(org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE);
 		for (Element e : sizeElements) {
 			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(SizeRolloverStrategy.class);
 

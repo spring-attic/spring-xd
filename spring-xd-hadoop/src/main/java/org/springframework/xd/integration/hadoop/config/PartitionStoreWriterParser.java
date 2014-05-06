@@ -49,10 +49,10 @@ public class PartitionStoreWriterParser extends AbstractBeanDefinitionParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "overwrite");
 
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "naming-strategy",
-				"fileNamingStrategy");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "rollover-strategy",
-				"rolloverStrategy");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "naming-strategy-bean-name",
+				"strategyBeanName");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "rollover-strategy-bean-name",
+				"rollOverBeanName");
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "internal-writer-name",
 				"internalWriterName");

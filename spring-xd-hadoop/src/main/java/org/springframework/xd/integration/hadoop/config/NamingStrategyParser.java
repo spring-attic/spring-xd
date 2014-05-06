@@ -56,13 +56,16 @@ public class NamingStrategyParser extends AbstractBeanDefinitionParser {
 
 		if (staticElements.size() == 0 && rollingElements.size() == 0 && codecElements.size() == 0) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(StaticFileNamingStrategy.class);
+
+
 			return builder.getBeanDefinition();
 		}
 
 		builder = BeanDefinitionBuilder.genericBeanDefinition(ChainedFileNamingStrategy.class);
-
+		builder.setScope(org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE);
 		for (Element e : staticElements) {
 			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticFileNamingStrategy.class);
+			nestedBuilder.setScope(org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "name");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "prefix");
@@ -74,6 +77,7 @@ public class NamingStrategyParser extends AbstractBeanDefinitionParser {
 
 		for (Element e : rollingElements) {
 			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(RollingFileNamingStrategy.class);
+			nestedBuilder.setScope(org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "prefix");
 			String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
@@ -84,6 +88,7 @@ public class NamingStrategyParser extends AbstractBeanDefinitionParser {
 
 		for (Element e : codecElements) {
 			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(CodecFileNamingStrategy.class);
+			nestedBuilder.setScope(org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
 			String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					nestedBuilder.getBeanDefinition(),

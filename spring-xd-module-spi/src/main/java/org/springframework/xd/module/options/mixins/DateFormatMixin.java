@@ -27,7 +27,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Provides a {@code dateFormat} module option, meant to hold a pattern that conforms to {@link SimpleDateFormat}.
- * 
+ *
  * @author Eric Bottard
  */
 public class DateFormatMixin {
@@ -45,7 +45,7 @@ public class DateFormatMixin {
 			new SimpleDateFormat(dateFormat);
 			return false;
 		}
-		catch (IllegalArgumentException _) {
+		catch (IllegalArgumentException e) {
 			return true;
 		}
 	}

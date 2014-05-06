@@ -21,13 +21,16 @@ import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Exception thrown when the configured admin port is not available to use.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
+@SuppressWarnings("serial")
 public class AdminPortNotAvailableException extends XDRuntimeException {
 
 	/**
-	 * @param port the admin port being used.
+	 * Construct an {@code AdminPortNotAvailableException}.
+	 *
+	 * @param adminPort the admin port being used
 	 */
 	public AdminPortNotAvailableException(String adminPort) {
 		super("Admin port '" + adminPort + "' already in use.");

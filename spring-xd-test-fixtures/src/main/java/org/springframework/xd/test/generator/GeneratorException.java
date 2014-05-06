@@ -18,15 +18,16 @@ package org.springframework.xd.test.generator;
 
 
 /**
- * Core exception for generators
- * 
+ * Core exception for generators.
+ *
  * @author Mark Pollack
  */
+@SuppressWarnings("serial")
 public class GeneratorException extends RuntimeException {
 
 	/**
 	 * Constructs a new <code>GeneratorException</code> instance.
-	 * 
+	 *
 	 * @param message message
 	 * @param ex exception
 	 */

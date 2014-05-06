@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  */
 public class JmsSource extends AbstractModuleFixture {
 
-	public final static int DEFAULT_PORT = 61616;
+	public static final int DEFAULT_PORT = 61616;
 
 	protected int port;
 
@@ -114,12 +114,4 @@ public class JmsSource extends AbstractModuleFixture {
 		template.convertAndSend("ec2Test3", data);
 	}
 
-	/**
-	 * Generates the connection string that can be placed in the jms-activemq.properties file.
-	 * 
-	 * @return the connection string for activemq.
-	 */
-	public String jmsPropertyString() {
-		return "amq.url=tcp://" + host + ":" + port;
-	}
 }

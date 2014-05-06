@@ -22,35 +22,55 @@
       <td>{{stepExecutionDetails.stepExecution.stepName}}</td>
     <tr>
     <tr>
-      <td>Reads</td>
-      <td>{{stepExecutionDetails.stepExecution.readCount}}</td>
-    <tr>
-    <tr>
-      <td>Writes</td>
-      <td>{{stepExecutionDetails.stepExecution.writeCount}}</td>
+      <td>Status</td>
+      <td ng-class="{'text-success': stepExecutionDetails.stepExecution.exitStatus.exitCode === 'COMPLETED', 'text-danger': stepExecutionDetails.stepExecution.exitStatus.exitCode === 'FAILED'}">{{stepExecutionDetails.stepExecution.exitStatus.exitCode}}</td>
     <tr>
     <tr>
       <td>Commits</td>
       <td>{{stepExecutionDetails.stepExecution.commitCount}}</td>
     <tr>
     <tr>
-      <td>Rollbacks</td>
-      <td>{{stepExecutionDetails.stepExecution.rollbackCount}}</td>
-    <tr>
-    <tr>
       <td>Duration</td>
       <td>{{stepExecutionDetails.stepExecution.endTime - stepExecutionDetails.stepExecution.startTime}} ms</td>
     <tr>
     <tr>
-      <td>Status</td>
-      <td ng-class="{'text-success': stepExecutionDetails.stepExecution.exitStatus.exitCode === 'COMPLETED', 'text-danger': stepExecutionDetails.stepExecution.exitStatus.exitCode === 'FAILED'}">{{stepExecutionDetails.stepExecution.exitStatus.exitCode}}</td>
+      <td>Filter Count</td>
+      <td>{{stepExecutionDetails.stepExecution.filterCount}}</td>
+    <tr>
+    <tr>
+      <td>Process Skips</td>
+      <td>{{stepExecutionDetails.stepExecution.processSkipCount}}</td>
+    <tr>
+    <tr>
+      <td>Reads</td>
+      <td>{{stepExecutionDetails.stepExecution.readCount}}</td>
+    <tr>
+    <tr>
+      <td>Read Skips</td>
+      <td>{{stepExecutionDetails.stepExecution.readSkipCount}}</td>
+    <tr>
+    <tr>
+      <td>Rollbacks</td>
+      <td>{{stepExecutionDetails.stepExecution.rollbackCount}}</td>
+    <tr>
+    <tr>
+      <td>Skips</td>
+      <td>{{stepExecutionDetails.stepExecution.skipCount}}</td>
+    <tr>
+    <tr>
+      <td>Writes</td>
+      <td>{{stepExecutionDetails.stepExecution.writeCount}}</td>
+    <tr>
+    <tr>
+      <td>Write Skips</td>
+      <td>{{stepExecutionDetails.stepExecution.writeSkipCount}}</td>
     <tr>
   </tbody>
 </table>
 
 <h4 ng-show="stepExecutionDetails">Exit Description</h4>
 
-<div style="overflow-x: auto;">
+<div style="overflow-x: auto;" ng-show="stepExecutionDetails">
 	<pre>{{stepExecutionDetails.stepExecution.exitStatus.exitDescription || 'N/A'}}</pre>
 </div>
 
@@ -66,7 +86,10 @@
   <tbody>
     <tr ng-repeat="contextValue in stepExecutionDetails.stepExecution.executionContext.values">
       <td>{{contextValue.key}}</td>
-      <td>{{contextValue.value}}</td>
+      <td xd-parse-urls>{{contextValue.value}}</td>
+    </tr>
+    <tr ng-show="stepExecutionDetails.stepExecution.executionContext.values.length == 0">
+      <td colspan="2">No Execution Context values are available.</td>
     </tr>
   </tbody>
 </table>

@@ -30,6 +30,12 @@ import java.util.Set;
 public class ModuleDeploymentProperties implements Map<String, String> {
 
 	/**
+	 * Default instance of {@code ModuleDeploymentProperties}. This instance
+	 * uses default values for all mandatory properties.
+	 */
+	public static final ModuleDeploymentProperties defaultInstance = new ModuleDeploymentProperties();
+
+	/**
 	 * Key for the {@code count} property. Value should be an integer.
 	 */
 	public static final String COUNT_KEY = "count";

@@ -10,11 +10,14 @@
 
 	<context:component-scan base-package="org.springframework.xd.dirt.stream.completion" />
 
+	<bean id="containerMatcher" class="org.springframework.xd.dirt.cluster.DefaultContainerMatcher" />
+
 	<bean id="deploymentSupervisor" class="org.springframework.xd.dirt.server.DeploymentSupervisor">
 		<constructor-arg ref="zooKeeperConnection"/>
 		<constructor-arg ref="streamDefinitionRepository"/>
 		<constructor-arg ref="moduleDefinitionRepository"/>
 		<constructor-arg ref="moduleOptionsMetadataResolver"/>
+		<constructor-arg ref="containerMatcher"/>
 	</bean>
 
 </beans>

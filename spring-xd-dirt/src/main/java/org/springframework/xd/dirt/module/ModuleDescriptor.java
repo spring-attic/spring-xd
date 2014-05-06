@@ -246,6 +246,14 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	}
 
 	/**
+	 * Create a new {@link Key} for this {@code ModuleDescriptor}.
+	 * @return new {@code Key}
+	 */
+	public Key createKey() {
+		return new Key(getGroup(), getType(), getModuleLabel());
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
@@ -590,12 +598,12 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	/**
 	 * Key to be used in Map of ModuleDescriptors.
 	 */
-	public static class ModuleDescriptorKey implements Comparable<ModuleDescriptorKey> {
+	public static class Key implements Comparable<Key> {
 
 		/**
-		 * Stream name.
+		 * Group name.
 		 */
-		private final String stream;
+		private final String group;
 
 		/**
 		 * Module type.
@@ -610,15 +618,15 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		/**
 		 * Construct a key.
 		 *
-		 * @param stream stream name
-		 * @param type module type
+		 * @param group group name
+		 * @param type  module type
 		 * @param label module label
 		 */
-		public ModuleDescriptorKey(String stream, ModuleType type, String label) {
-			Assert.notNull(stream, "Stream is required");
+		public Key(String group, ModuleType type, String label) {
+			Assert.notNull(group, "Group is required");
 			Assert.notNull(type, "Type is required");
 			Assert.hasText(label, "Label is required");
-			this.stream = stream;
+			this.group = group;
 			this.type = type;
 			this.label = label;
 		}
@@ -628,8 +636,8 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 *
 		 * @return stream name
 		 */
-		public String getStream() {
-			return stream;
+		public String getGroup() {
+			return group;
 		}
 
 		/**
@@ -654,7 +662,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * {@inheritDoc}
 		 */
 		@Override
-		public int compareTo(ModuleDescriptorKey other) {
+		public int compareTo(Key other) {
 			int c = type.compareTo(other.getType());
 			if (c == 0) {
 				c = label.compareTo(other.getLabel());
@@ -671,9 +679,9 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 				return true;
 			}
 
-			if (o instanceof ModuleDescriptorKey) {
-				ModuleDescriptorKey other = (ModuleDescriptorKey) o;
-				return stream.equals(other.getStream())
+			if (o instanceof Key) {
+				Key other = (Key) o;
+				return group.equals(other.getGroup())
 						&& type.equals(other.getType()) && label.equals(other.getLabel());
 			}
 
@@ -685,7 +693,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 */
 		@Override
 		public int hashCode() {
-			int result = stream.hashCode();
+			int result = group.hashCode();
 			result = 31 * result + type.hashCode();
 			result = 31 * result + label.hashCode();
 			return result;
@@ -697,7 +705,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		@Override
 		public String toString() {
 			return "ModuleDeploymentKey{" +
-					"stream='" + stream + '\'' +
+					"stream='" + group + '\'' +
 					", type=" + type +
 					", label='" + label + '\'' +
 					'}';

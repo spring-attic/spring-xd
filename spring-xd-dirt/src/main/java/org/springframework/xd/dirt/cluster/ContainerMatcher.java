@@ -22,7 +22,8 @@ import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
 
 /**
- * Strategy interface for matching a ModuleDeploymentRequest to one of the candidate container nodes.
+ * Strategy interface for matching a {@link org.springframework.xd.dirt.module.ModuleDescriptor}
+ * to one of the candidate container nodes.
  *
  * @author Mark Fisher
  */

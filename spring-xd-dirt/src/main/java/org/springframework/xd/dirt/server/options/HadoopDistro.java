@@ -20,5 +20,5 @@ package org.springframework.xd.dirt.server.options;
  * @author Thomas Risberg
  */
 public enum HadoopDistro {
-	hadoop12, hadoop22, phd1, cdh4, hdp13, hdp20
+	hadoop12, hadoop22, phd1, phd20, cdh4, cdh5, hdp13, hdp21
 }

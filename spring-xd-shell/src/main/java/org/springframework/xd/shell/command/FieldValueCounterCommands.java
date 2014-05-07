@@ -94,7 +94,7 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 		TreeMap<String, Double> sortedFvc = new TreeMap<String, Double>(fvc);
 		sortedFvc.putAll(fieldValueCounts);
 		Table t = new Table();
-		t.addHeader(1, new TableHeader("FieldName=" + fvcResource.getName())).addHeader(2, new TableHeader(""))
+		t.addHeader(1, new TableHeader("FieldValueCounter=" + fvcResource.getName())).addHeader(2, new TableHeader(""))
 				.addHeader(3, new TableHeader(""));
 		t.newRow().addValue(1, "VALUE").addValue(2, "-").addValue(3, "COUNT");
 		int rowSize = 1;

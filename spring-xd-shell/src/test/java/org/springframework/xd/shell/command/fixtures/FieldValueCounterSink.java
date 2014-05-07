@@ -49,8 +49,8 @@ public class FieldValueCounterSink extends AbstractMetricSink implements HasDisp
 	public Table constructFVCDisplay(TreeMap<String, Double> fvcMap) {
 		Table t = new Table();
 		NumberFormat pattern = new DecimalFormat();
-		// Should actually be fieldName:
-		t.addHeader(1, new TableHeader("FieldName=" + getName())).addHeader(2, new TableHeader("")).addHeader(
+		// TODO: Should actually be fieldName=
+		t.addHeader(1, new TableHeader("FieldValueCounter=" + getName())).addHeader(2, new TableHeader("")).addHeader(
 				3, new TableHeader(""));
 		t.newRow().addValue(1, "VALUE").addValue(2, "-").addValue(3, "COUNT");
 		for (Map.Entry<String, Double> entry : fvcMap.descendingMap().entrySet()) {

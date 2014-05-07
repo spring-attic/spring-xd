@@ -141,7 +141,7 @@ public class JobUtils {
 
 	/**
 	 * Create an new instance of the SpringXDTemplate given the Admin Server URL
-	 * 
+	 *
 	 * @param adminServer URL of the Admin Server
 	 * @return A new instance of SpringXDTemplate
 	 */

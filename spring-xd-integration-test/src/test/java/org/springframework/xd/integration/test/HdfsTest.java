@@ -19,7 +19,6 @@ package org.springframework.xd.integration.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collection;
 import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
@@ -68,12 +67,12 @@ public class HdfsTest extends AbstractIntegrationTest {
 
 		String path = HdfsSink.DEFAULT_DIRECTORY + "/" + HdfsSink.DEFAULT_FILE_NAME + "*";
 
-		path = getTestFilePath(HdfsSink.DEFAULT_DIRECTORY, getTestFileStatus(path));
+		path = getTestFilePath(HdfsSink.DEFAULT_DIRECTORY, hadoopUtil.getFileStatus(path));
 		// wait up to 10 seconds for file to be closed
 		assertTrue(path + " is missing from hdfs", hadoopUtil.waitForPath(10000, path));
 
 		assertEquals("File size should match the data size +1 for the //n", data.length() + 1,
-				getTestFileStatus(path).getLen());
+				hadoopUtil.getFileStatus(path).getLen());
 		assertEquals("The data returned from hadoop was different than was sent.  ", data + "\n",
 				hadoopUtil.getFileContentsFromHdfs(path));
 	}
@@ -85,12 +84,5 @@ public class HdfsTest extends AbstractIntegrationTest {
 			fileName = FilenameUtils.removeExtension(fileName);
 		}
 		return directory + "/" + fileName;
-	}
-
-	private FileStatus getTestFileStatus(String path) {
-		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(path);
-		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
-				fileStatuses.size());
-		return fileStatuses.iterator().next();
 	}
 }

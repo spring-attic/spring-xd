@@ -55,11 +55,14 @@ public abstract class AbstractIntegrationTest {
 
 	private final static String STREAM_NAME = "ec2Test3";
 
-	private final static String JOB_NAME = "ec2Job3";
+	protected final static String JOB_NAME = "ec2Job3";
 
 	protected final static String XD_DELIMETER = " | ";
 
 	public final static int WAIT_TIME = 10000;
+
+	protected final static String XD_TAP_DELIMETER = " > ";
+
 
 	@Autowired
 	protected XdEnvironment xdEnvironment;
@@ -180,12 +183,13 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Creates a job on the XD cluster defined by the test's Artifact or Environment variables Uses JOB_NAME as default
-	 * job name.
+	 * Creates a job on the XD cluster defined by the test's
+	 * Artifact or Environment variables Uses JOB_NAME as default job name.
 	 *
 	 * @param job the job definition
 	 */
 	public void job(String job) {
+		Assert.hasText(job, "job needs to be poopulated with a definition and can not be null");
 		job(JOB_NAME, job, WAIT_TIME);
 	}
 

@@ -16,6 +16,8 @@
 
 package org.springframework.xd.integration.util;
 
+import static org.junit.Assert.assertEquals;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -128,6 +130,18 @@ public class HadoopUtils {
 			exists = fileExists(path);
 		}
 		return exists;
+	}
+
+	/**
+	 * Retrieves the file status for the file path specified.
+	 * @param filePath path/file name of the file to interrogate 
+	 * @return the FileStatus for the file.
+	 */
+	public FileStatus getFileStatus(String filePath) {
+		Collection<FileStatus> fileStatuses = listDir(filePath);
+		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
+				fileStatuses.size());
+		return fileStatuses.iterator().next();
 	}
 
 	/**

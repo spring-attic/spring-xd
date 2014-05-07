@@ -31,6 +31,24 @@ public class SimpleFileSource extends AbstractModuleFixture {
 
 	private final String fileName;
 
+	private boolean reference;
+
+
+	/**
+	 * Construct a new SimpleFileSource using the provided directory and file names.
+	 *
+	 * @param dir directory name
+	 * @param fileName file name
+	 * @param reference false if file content should be sent to output channel, true if file object should be sent.
+	 */
+	public SimpleFileSource(String dir, String fileName, boolean reference) {
+		Assert.hasText(dir, "dir must not be null or empty");
+		Assert.hasText(fileName, "fileName must not be null or empty");
+		this.dir = dir;
+		this.fileName = fileName;
+		this.reference = reference;
+	}
+
 	/**
 	 * Construct a new SimpleFileSource using the provided directory and file names.
 	 *
@@ -38,10 +56,7 @@ public class SimpleFileSource extends AbstractModuleFixture {
 	 * @param fileName file name
 	 */
 	public SimpleFileSource(String dir, String fileName) {
-		Assert.hasText(dir, "dir must not be null or empty");
-		Assert.hasText(fileName, "fileName must not be null or empty");
-		this.dir = dir;
-		this.fileName = fileName;
+		this(dir, fileName, false);
 	}
 
 	/**
@@ -49,7 +64,17 @@ public class SimpleFileSource extends AbstractModuleFixture {
 	 */
 	@Override
 	protected String toDSL() {
-		return String.format("file --dir=%s --pattern='%s'", dir, fileName);
+		return String.format("file --dir=%s --pattern='%s' --ref=%s", dir, fileName, reference);
+	}
+
+	/**
+	 * Determines if the file object or the content of the file should be sent to the output channel.
+	 * @param reference Set to true to output the File object itself. False if content should be sent.
+	 * @return
+	 */
+	public SimpleFileSource reference(boolean reference) {
+		this.reference = reference;
+		return this;
 	}
 
 

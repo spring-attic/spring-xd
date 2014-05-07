@@ -97,21 +97,25 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 			}
 		}
 		else if (bean instanceof FlowJob) {
-			FlowJob job = (FlowJob) bean;
-			job.setName(this.groupName);
 			if (!jobRegistry.getJobNames().contains(groupName)) {
-				// Add the job name & job parameters incrementer flag to {@link DistributedJobLocator}
-				// Since, the Spring batch doesn't have persistent JobRegistry, the {@link DistributedJobLocator}
-				// acts as the store to have jobName & incrementer flag to be used by {@link DistributedJobService}
-				jobLocator.addJob(groupName, (job.getJobParametersIncrementer() != null) ? true : false);
-				jobLocator.addStepNames(groupName, job.getStepNames());
-				super.postProcessAfterInitialization(bean, beanName);
+				postProcessJob(bean, beanName);
 			}
 			else {
 				throw new BatchJobAlreadyExistsException(groupName);
 			}
 		}
 		return bean;
+	}
+
+	private void postProcessJob(Object bean, String beanName) {
+		FlowJob job = (FlowJob) bean;
+		job.setName(this.groupName);
+		// Add the job name & job parameters incrementer flag to {@link DistributedJobLocator}
+		// Since, the Spring batch doesn't have persistent JobRegistry, the {@link DistributedJobLocator}
+		// acts as the store to have jobName & incrementer flag to be used by {@link DistributedJobService}
+		jobLocator.addJob(groupName, (job.getJobParametersIncrementer() != null) ? true : false);
+		jobLocator.addStepNames(groupName, job.getStepNames());
+		super.postProcessAfterInitialization(bean, beanName);
 	}
 
 	private void addJobExecutionListener() {

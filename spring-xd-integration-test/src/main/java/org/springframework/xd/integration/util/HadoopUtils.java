@@ -114,6 +114,27 @@ public class HadoopUtils {
 	}
 
 	/**
+	 * Waits up to the timeout for the resource to be written to hdfs.
+	 *
+	 * @param waitTime The number of millis to wait.
+	 * @param path the path to the resource .
+	 */
+	public void waitForPath(int waitTime, String path) {
+		long timeout = System.currentTimeMillis() + waitTime;
+		boolean exists = test(path);
+		while (!exists && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException e) {
+				// keep trying
+			}
+			exists = test(path);
+		}
+
+	}
+
+	/**
 	 * Returns the host of the name node.
 	 *
 	 * @return String representation of the host.

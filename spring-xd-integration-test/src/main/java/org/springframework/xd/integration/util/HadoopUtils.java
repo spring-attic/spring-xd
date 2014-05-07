@@ -118,8 +118,9 @@ public class HadoopUtils {
 	 *
 	 * @param waitTime The number of millis to wait.
 	 * @param path the path to the resource .
+	 * @return false if the path was not present. True if it was present.
 	 */
-	public void waitForPath(int waitTime, String path) {
+	public boolean waitForPath(int waitTime, String path) {
 		long timeout = System.currentTimeMillis() + waitTime;
 		boolean exists = test(path);
 		while (!exists && System.currentTimeMillis() < timeout) {
@@ -127,11 +128,11 @@ public class HadoopUtils {
 				Thread.sleep(1000);
 			}
 			catch (InterruptedException e) {
-				// keep trying
+				throw new IllegalStateException(e.getMessage(), e);
 			}
 			exists = test(path);
 		}
-
+		return exists;
 	}
 
 	/**

@@ -61,15 +61,16 @@ public class HdfsTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		stream("trigger --payload='" + data + "'" + XD_DELIMETER + sinks.hdfs());
 		// wait up to 10 seconds for directory to be created
-		hadoopUtil.waitForPath(10000, HdfsSink.DEFAULT_DIRECTORY);
 		assertTrue(HdfsSink.DEFAULT_DIRECTORY + " directory is missing from hdfs",
-				hadoopUtil.test(HdfsSink.DEFAULT_DIRECTORY));
+				hadoopUtil.waitForPath(10000, HdfsSink.DEFAULT_DIRECTORY));
+
 		// This forces the hdfs to flush the contents to the file and close. So the tests can be executed.
 		undeployStream();
 		String path = HdfsSink.DEFAULT_DIRECTORY + "/" + HdfsSink.DEFAULT_FILE_NAME + "-0.txt";
+
 		// wait up to 10 seconds for file to be closed
-		hadoopUtil.waitForPath(10000, path);
-		assertTrue(HdfsSink.DEFAULT_FILE_NAME + ".txt is missing from hdfs", hadoopUtil.test(path));
+		assertTrue(HdfsSink.DEFAULT_FILE_NAME + ".txt is missing from hdfs", hadoopUtil.waitForPath(10000, path));
+
 		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(path);
 		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
 				fileStatuses.size());

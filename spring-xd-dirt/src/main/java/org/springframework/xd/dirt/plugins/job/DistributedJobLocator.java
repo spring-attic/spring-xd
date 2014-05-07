@@ -25,7 +25,6 @@ import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
-import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
 
 /**
  * Implementation of ListableJobLocator used by {@link DistributedJobService}. This class also provides support methods
@@ -101,17 +100,28 @@ public class DistributedJobLocator implements ListableJobLocator {
 	protected void addJob(String name, boolean isIncrementable) {
 		Collection<String> jobNames = this.getJobNames();
 		if (!jobNames.contains(name)) {
-			jdbcTemplate.update(ADD_JOB_NAME, name);
-			List<Boolean> incrementables = getIncrementable(name);
-			if (incrementables.isEmpty()) {
-				jdbcTemplate.update(ADD_JOB_INCREMENTABLE, name, isIncrementable);
-			} // valueList is always single row
-			else if (incrementables.get(0).booleanValue() != isIncrementable) {
-				jdbcTemplate.update(UPDATE_JOB_INCREMENTABLE, isIncrementable, name);
-			}
+			updateJobName(name, isIncrementable);
 		}
 		else {
-			throw new BatchJobAlreadyExistsException(name);
+			// XD admin server will prevent any action to deploy a job with the name that already exists.
+			// Only case where the container encounters the existing batch job deployment during the deployment of job
+			// module is when the container that had the job module deployed crashes(without graceful shutdown), thereby
+			// leaving the batch job in {@link DistributedJobLocator} and the available matching container tries to
+			// deploy. Had the container been shutdown gracefully, then the destroy life-cycle method on batch job
+			// will take care deleting the job name entry from {@link DistributedJobLocator}
+			this.deleteJobName(name);
+			updateJobName(name, isIncrementable);
+		}
+	}
+
+	private void updateJobName(String name, boolean isIncrementable) {
+		jdbcTemplate.update(ADD_JOB_NAME, name);
+		List<Boolean> incrementables = getIncrementable(name);
+		if (incrementables.isEmpty()) {
+			jdbcTemplate.update(ADD_JOB_INCREMENTABLE, name, isIncrementable);
+		} // valueList is always single row
+		else if (incrementables.get(0).booleanValue() != isIncrementable) {
+			jdbcTemplate.update(UPDATE_JOB_INCREMENTABLE, isIncrementable, name);
 		}
 	}
 

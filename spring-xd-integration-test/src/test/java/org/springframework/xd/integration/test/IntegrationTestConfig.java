@@ -46,8 +46,8 @@ public class IntegrationTestConfig {
 	}
 
 	@Bean
-	public XdEc2Validation validation() {
-		return new XdEc2Validation();
+	public XdEc2Validation validation() throws IOException {
+		return new XdEc2Validation(hadoopUtil(), xdEnvironment());
 	}
 
 	@Bean

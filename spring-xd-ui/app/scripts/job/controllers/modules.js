@@ -40,5 +40,8 @@ define([], function () {
               utils.$log.info('Showing Module details for module: ' + item.name);
               $state.go('home.jobs.moduledetails', {moduleName: item.name});
             };
+          $scope.createDefinition = function (item) {
+              $state.go('home.jobs.modulecreatedefinition', {moduleName: item.name});
+            };
         }];
 });

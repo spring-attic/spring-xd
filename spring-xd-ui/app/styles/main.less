@@ -49,6 +49,7 @@
 @table-border-color:                      @spring-brown;
 
 @import (less) "../../bower_components/angular-busy/dist/angular-busy.css";
+@import (less) "../../bower_components/highlightjs/styles/default.css";
 @import "growl.less";
 @import "typography.less";
 @import "header.less";
@@ -154,6 +155,10 @@ h1 {
 
 table td .progress {
   margin-bottom: 0;
+}
+
+.help-block {
+  color: lighten(@text-color, 0%); // lighten the text some for contrast
 }
 
 @import "responsive.less";

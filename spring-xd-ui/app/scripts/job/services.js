@@ -50,6 +50,19 @@ define(['angular'], function (angular) {
             $log.info('Getting details for module ' + moduleName);
             return $resource($rootScope.xdAdminServerUrl + '/modules/job/' + moduleName + '.json').get();
           },
+          createDefinition: function (name, definition, deploy) {
+            $log.info('Creating definition ' + definition);
+            return $resource($rootScope.xdAdminServerUrl + '/jobs', {}, {
+              createDefinition: {
+                method: 'POST',
+                params: {
+                  name: name,
+                  definition: definition,
+                  deploy: deploy
+                }
+              }
+            }).createDefinition();
+          },
           getModuleDefinition: function (moduleName) {
             $log.info('Getting module definition file for module ' + moduleName);
             return $http({

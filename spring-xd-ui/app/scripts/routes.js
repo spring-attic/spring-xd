@@ -22,10 +22,14 @@
  */
 define(['./app'], function (xdAdmin) {
   'use strict';
-  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider) {
+  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider) {
     $httpProvider.defaults.useXDomain = true;
 
     $urlRouterProvider.otherwise('/jobs/definitions');
+
+    hljsServiceProvider.setOptions({
+      tabReplace: '  '
+    });
 
     var jobTemplatesPath = 'scripts/job/views',
         streamTemplatesPath = 'scripts/stream/views',
@@ -150,6 +154,14 @@ define(['./app'], function (xdAdmin) {
       url : 'jobs/modules/{moduleName}',
       templateUrl : jobTemplatesPath + '/module-details.html',
       controller: 'ModuleDetailsController',
+      data:{
+        authenticate: true
+      }
+    })
+    .state('home.jobs.modulecreatedefinition', {
+      url : 'jobs/modules/{moduleName}/create-definition',
+      templateUrl : jobTemplatesPath + '/module-create-definition.html',
+      controller: 'ModuleCreateDefinitionController',
       data:{
         authenticate: true
       }

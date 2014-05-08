@@ -7,9 +7,12 @@
   <tbody>
     <tr ng-repeat="item in jobModules | orderBy:'name'">
       <td>{{item.name}}</td>
-      <td class="col-md-3 text-center"><button type="button"
+      <td class="col-md-3 text-center"><button type="button" title="Details"
         class="btn btn-default" ng-click="viewModuleDetails(item)"
-        ><span class="glyphicon glyphicon-search"></span> Details</button>
+        ><span class="glyphicon glyphicon-search"></span></button>
+        <button type="button"
+        class="btn btn-default" ng-click="createDefinition(item)" title="Create Definition"
+        ><span class="glyphicon glyphicon-import"></span></button>
       </td>
     </tr>
   </tbody>

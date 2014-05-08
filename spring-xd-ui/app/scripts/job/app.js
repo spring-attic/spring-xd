@@ -26,8 +26,11 @@ define([
   'ngResource',
   'cgBusy',
   'ngGrowl',
+  'angularHighlightjs',
   './controllers',
   './services',
+  '../directives',
+  '../filters',
   '../shared/services'
 ], function (angular) {
   'use strict';
@@ -35,9 +38,12 @@ define([
     'xdJobsAdmin.services',
     'xdJobsAdmin.controllers',
     'xdShared.services',
+    'xdAdmin.directives',
+    'xdAdmin.filters',
     'ui.router',
     'ngResource',
     'cgBusy',
+    'hljs',
     'angular-growl'
   ]);
 });

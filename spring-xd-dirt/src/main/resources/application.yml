@@ -48,6 +48,8 @@ xd:
         prefix:                    xdbus.
             # prefix for queue/exchange names so policies (ha, dle etc.) can be applied
         prefetch:                  1
+        replyHeaderPatterns:       STANDARD_REPLY_HEADERS,*
+        requestHeaderPatterns:     STANDARD_REQUEST_HEADERS,*
         requeue:                   true
         transacted:                false
         txSize:                    1

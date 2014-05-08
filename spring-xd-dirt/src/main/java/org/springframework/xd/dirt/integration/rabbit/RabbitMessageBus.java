@@ -88,6 +88,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private static final int DEFAULT_TX_SIZE = 1;
 
+	private static final String[] DEFAULT_REQUEST_HEADER_PATTERNS = new String[] { "STANDARD_REQUEST_HEADERS", "*" };
+
+	private static final String[] DEFAULT_REPLY_HEADER_PATTERNS = new String[] { "STANDARD_REPLY_HEADERS", "*" };
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final RabbitAdmin rabbitAdmin;
@@ -125,6 +129,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private volatile double defaultBackOffMultiplier = DEFAULT_BACKOFF_MULTIPLIER;
 
 	private volatile String defaultPrefix = DEFAULT_RABBIT_PREFIX;
+
+	private volatile String[] defaultRequestHeaderPatterns = DEFAULT_REQUEST_HEADER_PATTERNS;
+
+	private volatile String[] defaultReplyHeaderPatterns = DEFAULT_REPLY_HEADER_PATTERNS;
 
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
@@ -192,6 +200,14 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.defaultPrefix = defaultPrefix.trim();
 	}
 
+	public void setDefaultRequestHeaderPatterns(String[] defaultRequestHeaderPatterns) {
+		this.defaultRequestHeaderPatterns = defaultRequestHeaderPatterns;
+	}
+
+	public void setDefaultReplyHeaderPatterns(String[] defaultReplyHeaderPatterns) {
+		this.defaultReplyHeaderPatterns = defaultReplyHeaderPatterns;
+	}
+
 	@Override
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel) {
 		if (logger.isInfoEnabled()) {
@@ -247,6 +263,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setHeaderMapper(this.mapper);
 		adapter.setBeanName("inbound." + name);
+		// TODO: module properties for mapped headers
+		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
+		mapper.setRequestHeaderNames(this.defaultRequestHeaderPatterns);
+		mapper.setReplyHeaderNames(this.defaultReplyHeaderPatterns);
+		adapter.setHeaderMapper(mapper);
 		adapter.afterPropertiesSet();
 		Binding consumerBinding = Binding.forConsumer(adapter, moduleInputChannel);
 		addBinding(consumerBinding);
@@ -272,6 +293,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
 		queue.setBeanFactory(this.getBeanFactory());
 		queue.setRoutingKey(this.defaultPrefix + name); // uses default exchange
+		queue.setHeaderMapper(mapper);
+		// TODO: module properties for mapped headers
+		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
+		mapper.setRequestHeaderNames(this.defaultRequestHeaderPatterns);
+		mapper.setReplyHeaderNames(this.defaultReplyHeaderPatterns);
 		queue.setHeaderMapper(mapper);
 		queue.afterPropertiesSet();
 		return queue;

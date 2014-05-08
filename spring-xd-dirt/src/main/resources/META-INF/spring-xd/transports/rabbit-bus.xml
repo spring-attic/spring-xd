@@ -19,6 +19,8 @@
 		<property name="defaultMaxConcurrentConsumers" value="${xd.messagebus.rabbit.default.maxConcurrency}" />
 		<property name="defaultPrefetchCount" value="${xd.messagebus.rabbit.default.prefetch}" />
 		<property name="defaultPrefix" value="${xd.messagebus.rabbit.default.prefix}" />
+		<property name="defaultReplyHeaderPatterns" value="${xd.messagebus.rabbit.default.replyHeaderPatterns}" />
+		<property name="defaultRequestHeaderPatterns" value="${xd.messagebus.rabbit.default.requestHeaderPatterns}" />
 		<property name="defaultTxSize" value="${xd.messagebus.rabbit.default.txSize}" />
 	</bean>
 

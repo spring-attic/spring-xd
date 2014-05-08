@@ -24,22 +24,46 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
 /**
  * Captures options for the {@code log} sink module.
- * 
+ *
  * @author Eric Bottard
+ * @author Gary Russell
  */
 public class LogSinkOptionsMetadata {
 
 	private String name = ModulePlaceholders.XD_STREAM_NAME;
+
+	private String expression = "payload";
+
+	private String level = "INFO";
 
 	@NotBlank
 	public String getName() {
 		return name;
 	}
 
-	@ModuleOption("the name of the log category to log to")
+	@ModuleOption("the name of the log category to log to (prefixed by 'xd.sink.')")
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	@NotBlank
+	public String getExpression() {
+		return expression;
+	}
+
+	@ModuleOption("the expression to be evaluated for the log content, default 'payload'; use '#root' to log the full  message")
+	public void setExpression(String expression) {
+		this.expression = expression;
+	}
+
+	@NotBlank
+	public String getLevel() {
+		return level;
+	}
+
+	@ModuleOption("the log level; default 'WARN'")
+	public void setLevel(String level) {
+		this.level = level.toUpperCase();
+	}
 
 }

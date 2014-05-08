@@ -34,14 +34,14 @@ public class LogSinkOptionsMetadata {
 
 	private String expression = "payload";
 
-	private String level = "WARN";
+	private String level = "INFO";
 
 	@NotBlank
 	public String getName() {
 		return name;
 	}
 
-	@ModuleOption("the name of the log category to log to")
+	@ModuleOption("the name of the log category to log to (prefixed by 'xd.sink.')")
 	public void setName(String name) {
 		this.name = name;
 	}

@@ -29,10 +29,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
+import org.springframework.xd.integration.fixtures.Jobs;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
 import org.springframework.xd.integration.util.HadoopUtils;
+import org.springframework.xd.integration.util.JobUtils;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
@@ -50,6 +52,8 @@ import org.springframework.xd.test.fixtures.SimpleFileSink;
 public abstract class AbstractIntegrationTest {
 
 	private final static String STREAM_NAME = "ec2Test3";
+
+	private final static String JOB_NAME = "ec2Job3";
 
 	protected final static String XD_DELIMETER = " | ";
 
@@ -73,6 +77,9 @@ public abstract class AbstractIntegrationTest {
 
 	@Autowired
 	protected Sinks sinks;
+
+	@Autowired
+	protected Jobs jobs;
 
 	@Autowired
 	protected ConfigUtil configUtil;
@@ -117,6 +124,7 @@ public abstract class AbstractIntegrationTest {
 	public void setup() {
 		initializer();
 		StreamUtils.destroyAllStreams(adminServer);
+		JobUtils.destroyAllJobs(adminServer);
 		waitForXD();
 	}
 
@@ -126,6 +134,7 @@ public abstract class AbstractIntegrationTest {
 	@After
 	public void tearDown() {
 		StreamUtils.destroyAllStreams(adminServer);
+		JobUtils.destroyAllJobs(adminServer);
 		waitForXD();
 	}
 
@@ -152,6 +161,46 @@ public abstract class AbstractIntegrationTest {
 		Assert.hasText(stream, "stream needs to be populated with a definition and can not be null");
 		StreamUtils.stream(streamName, stream, adminServer);
 		waitForXD();
+	}
+
+	/**
+	 * Creates a job on the XD cluster defined by the test's Artifact or Environment variables Uses JOB_NAME as default
+	 * job name.
+	 *
+	 * @param job the job definition
+	 */
+	public void job(String job) {
+		Assert.hasText(job, "job needs to be poopulated with a definition and can not be null");
+		job(JOB_NAME, job);
+	}
+
+	/**
+	 * Creates a job on the XD cluster defined by the test's Artifact or Environment variables
+	 *
+	 * @param jobName the name of the job
+	 * @param job the job definition
+	 */
+	public void job(String jobName, String job) {
+		Assert.hasText(jobName, "job name can not be empty nor null");
+		Assert.hasText(job, "job needs to be populated with a definition and can not be null");
+		JobUtils.job(jobName, job, adminServer);
+		waitForXD();
+	}
+
+	/**
+	 * Launches a job with the test's JOB_NAME on the XD instance.
+	 */
+	public void jobLaunch() {
+		JobUtils.launch(adminServer, JOB_NAME);
+	}
+
+	/**
+	 * Launches a job on the XD instance
+	 *
+	 * @param jobName The name of the job to be launched
+	 */
+	public void jobLaunch(String jobName) {
+		JobUtils.launch(adminServer, jobName);
 	}
 
 	/**
@@ -227,6 +276,52 @@ public abstract class AbstractIntegrationTest {
 	public void undeployStream() {
 		StreamUtils.undeployStream(adminServer, STREAM_NAME);
 	}
+
+	/**
+	 * Wait the "waitTime" for a stream to be deployed.
+	 *
+	 * @param waitTime the time in millis to wait.
+	 * @return true if deployed else false.
+	 */
+	public boolean waitForStreamDeployment(int waitTime) {
+		return waitForStreamDeployment(STREAM_NAME, waitTime);
+	}
+
+	/**
+	 * Wait the "waitTime" for a stream to be deployed.
+	 *
+	 * @param streamName the name of stream to be evaluated.
+	 * @param waitTime the time in millis to wait.
+	 * @return true if deployed else false.
+	 */
+	public boolean waitForStreamDeployment(String streamName, int waitTime) {
+		Assert.hasText(streamName, "streamName must not be empty nor null");
+		return StreamUtils.waitForStreamDeployment(streamName, adminServer, waitTime);
+	}
+
+
+	/**
+	 * Wait the "waitTime" for a job to be deployed.
+	 *
+	 * @param waitTime the time in millis to wait.
+	 * @return true if deployed else false.
+	 */
+	public boolean waitForJobDeployment(int waitTime) {
+		return waitForJobDeployment(JOB_NAME, waitTime);
+	}
+
+	/**
+	 * Wait the "waitTime" for a job to be deployed.
+	 *
+	 * @param jobName the name of stream to be evaluated.
+	 * @param waitTime the time in millis to wait.
+	 * @return true if deployed else false.
+	 */
+	public boolean waitForJobDeployment(String jobName, int waitTime) {
+		Assert.hasText(jobName, "jobName must not be empty nor null");
+		return JobUtils.waitForJobDeployment(jobName, adminServer, waitTime);
+	}
+
 
 	/**
 	 * Checks the file data to see if the data is contained in the file.

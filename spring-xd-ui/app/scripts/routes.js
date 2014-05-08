@@ -153,6 +153,14 @@ define(['./app'], function (xdAdmin) {
       data:{
         authenticate: true
       }
+    })
+    .state('home.jobs.modulecreatedefinition', {
+      url : 'jobs/modules/{moduleName}/create-definition',
+      templateUrl : jobTemplatesPath + '/module-create-definition.html',
+      controller: 'ModuleCreateDefinitionController',
+      data:{
+        authenticate: true
+      }
     });
   });
   xdAdmin.run(function ($rootScope, $state, $stateParams, userService, $log) {

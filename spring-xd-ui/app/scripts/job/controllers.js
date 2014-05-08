@@ -83,5 +83,11 @@ define(['angular'], function (angular) {
             require(['job/controllers/module-details'], function (moduleDetailsController) {
               $injector.invoke(moduleDetailsController, this, {'$scope': $scope});
             });
+          }])
+      .controller('ModuleCreateDefinitionController',
+          ['$scope', '$injector', function ($scope, $injector) {
+            require(['job/controllers/module-create-definition'], function (moduleCreateDefinitionController) {
+              $injector.invoke(moduleCreateDefinitionController, this, {'$scope': $scope});
+            });
           }]);
 });

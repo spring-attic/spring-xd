@@ -1,0 +1,35 @@
+<h1 ng-show="moduleDetails.name">Create Definition for Job Module {{moduleDetails.name}}</h1>
+
+	<form class="form-horizontal" role="form">
+		<fieldset id="commonDefinitionParameters">
+			<div class="form-group">
+				<label for="definitionName" class="col-sm-2 control-label">Definition Name</label>
+				<div class="col-sm-10">
+					<input type="text" name="definitionName" class="form-control" placeholder="Enter a definition name" ng-model="jobDefinition.name">
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-offset-2 col-sm-10">
+					<div class="checkbox">
+						<label><input type="checkbox" ng-model="jobDefinition.deploy" name="deploy"> Deploy</label>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+		<fieldset id="jobParameters">
+			<legend>Parameters</legend>
+			<div class="form-group" ng-repeat="definitionParam in jobDefinition.parameters" ng-if="jobDefinition.parameters.length">
+				<label for="{{definitionParam.name}}" class="col-sm-2 control-label">{{definitionParam.name}}</label>
+				<div class="col-sm-10">
+					<input type="text" name="{{definitionParam.name}}" class="form-control" placeholder="" ng-model="definitionParam.value">
+					<p class="help-block">{{definitionParam.description}}</p>
+				</div>
+			</div>
+			<div class="row" ng-if="!jobDefinition.parameters.length">No parameters available.</div>
+		</fieldset>
+	</form>
+	<h2>Resulting Defintion: {{calculatedDefinition}}</h2>
+
+<button type="button" class="btn btn-default" ng-click="closeCreateDefinition()">Back</button>
+<button type="button" class="btn btn-default" ng-click="submitJobDefinition()">Submit</button>
+

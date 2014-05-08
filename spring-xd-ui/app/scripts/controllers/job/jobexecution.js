@@ -54,5 +54,17 @@ define([], function () {
             xdCommon.growl.addErrorMessage(error.data[0].message);
           });
     };
+    $scope.stopJob = function (job) {
+        xdCommon.$log.info('Stopping Job ' + job.name);
+        jobExecutions.stop(job).$promise.then(
+            function (result) {
+              xdCommon.$log.info(result);
+              xdCommon.growl.addSuccessMessage('Stop request sent.');
+              list();
+            }, function (error) {
+              xdCommon.$log.error(error);
+              xdCommon.growl.addErrorMessage(error.data[0].message);
+            });
+      };
   }];
 });

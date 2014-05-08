@@ -97,7 +97,13 @@ define(['angular'], function (angular) {
             return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecution.executionId, { 'restart': true }, {
               restart: { method: 'PUT' }
             }).restart();
-          }
+          },
+          stop: function (jobExecution) {
+              $log.info('Stop Job Execution' + jobExecution.executionId);
+              return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecution.executionId, { 'stop': true }, {
+                stop: { method: 'PUT' }
+              }).stop();
+            }
         };
       })
       .factory('StepExecutions', function ($resource, $rootScope, $log) {

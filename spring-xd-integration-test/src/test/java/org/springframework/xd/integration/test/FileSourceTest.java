@@ -42,7 +42,7 @@ public class FileSourceTest extends AbstractIntegrationTest {
 				+ sinks.file());
 		stream("dataSender",
 				"trigger  --payload='" + data + "'" + XD_DELIMETER
-						+ sinks.file(sourceDir, fileName).toDSL("REPLACE", "true"));
+				+ sinks.file(sourceDir, fileName).toDSL("REPLACE", "true"), WAIT_TIME);
 		waitForXD();
 		assertValid(data, sinks.file());
 	}
@@ -63,7 +63,7 @@ public class FileSourceTest extends AbstractIntegrationTest {
 		waitForXD();
 		stream("dataSender",
 				"trigger --payload='" + data + "'" + XD_DELIMETER
-						+ sinks.file(sourceDir, fileName).toDSL("REPLACE", "false"));
+				+ sinks.file(sourceDir, fileName).toDSL("REPLACE", "false"), WAIT_TIME);
 		assertValid(data, sinks.file());
 	}
 

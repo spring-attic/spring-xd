@@ -21,6 +21,7 @@ import java.io.IOException;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.integration.fixtures.Jobs;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
@@ -58,6 +59,12 @@ public class IntegrationTestConfig {
 	public Sources sources() {
 		// The Environment Assumes that the RabbitMQ broker is running on the same host as the admin server.
 		return new Sources(xdEnvironment());
+
+	}
+
+	@Bean
+	public Jobs jobs() {
+		return new Jobs();
 
 	}
 

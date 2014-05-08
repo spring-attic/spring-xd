@@ -7,6 +7,7 @@
 
 	<channel id="input"/>
 
-	<logging-channel-adapter channel="input" level="WARN" logger-name="logger.${name}"/>
+	<logging-channel-adapter channel="input" level="${level}" logger-name="logger.${name}"
+			expression="${expression}" />
 
 </beans:beans>

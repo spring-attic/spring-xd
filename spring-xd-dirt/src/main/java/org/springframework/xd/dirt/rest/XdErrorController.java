@@ -42,7 +42,7 @@ public class XdErrorController extends BasicErrorController {
 		Map<String, Object> map = extract(new ServletRequestAttributes(request), false,
 				false);
 
-		int status = (int) map.get("status");
+		int status = (Integer) map.get("status");
 
 		switch (status) {
 			case 404:

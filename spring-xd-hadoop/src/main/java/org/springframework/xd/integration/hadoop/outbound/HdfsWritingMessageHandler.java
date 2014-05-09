@@ -25,6 +25,8 @@ import org.springframework.xd.hadoop.fs.HdfsWriter;
 import org.springframework.xd.hadoop.fs.HdfsWriterFactory;
 
 /**
+ * Spring Integration {@code MessageHandler} handling {@code Message} writing into hdfs using {@code HdfsWriter}.
+ * 
  * @author Mark Pollack
  * @author Mark Fisher
  */

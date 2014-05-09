@@ -23,6 +23,8 @@ import org.springframework.xd.hadoop.fs.DatasetWriterFactory;
 import org.springframework.xd.integration.hadoop.outbound.HdfsWritingMessageHandler;
 
 /**
+ * Factory bean used to create {@link HdfsWritingMessageHandler}
+ * 
  * @author Thomas Risberg
  */
 public class DatasetWritingMessageHandlerFactoryBean implements FactoryBean<HdfsWritingMessageHandler> {

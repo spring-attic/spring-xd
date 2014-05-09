@@ -24,6 +24,8 @@ import org.springframework.xd.hadoop.fs.HdfsTextFileWriterFactory;
 import org.springframework.xd.integration.hadoop.outbound.HdfsWritingMessageHandler;
 
 /**
+ * Factory bean used to create {@link HdfsWritingMessageHandler}
+ * 
  * @author Mark Fisher
  */
 public class HdfsWritingMessageHandlerFactoryBean implements FactoryBean<HdfsWritingMessageHandler> {

@@ -40,17 +40,18 @@
 
     <bean id="datasetOperations" class="org.springframework.data.hadoop.store.dataset.DatasetTemplate">
 		<property name="datasetRepositoryFactory" ref="datasetRepositoryFactory"/>
-		<property name="defaultDatasetDefinition">
-			<bean class="org.springframework.data.hadoop.store.dataset.DatasetDefinition">
-				<constructor-arg index="0" value="${allowNullValues}"/>
-				<constructor-arg index="1" value="${format}"/>
-			</bean>
-		</property>
+		<property name="defaultDatasetDefinition" ref="defaultDatasetDefinition"/>
 	</bean>
 
 	<bean id="datasetRepositoryFactory" class="org.springframework.data.hadoop.store.dataset.DatasetRepositoryFactory">
 		<property name="conf" ref="hadoopConfiguration"/>
 		<property name="basePath" value="${directory:/xd/${xd.stream.name}}"/>
+	</bean>
+
+	<bean id="defaultDatasetDefinition" class="org.springframework.xd.hadoop.fs.DatasetDefinitionFactoryBean">
+		<property name="allowNullValues" value="${allowNullValues}"/>
+		<property name="format" value="${format}"/>
+		<property name="partitionPath" value="${partitionPath}"/>
 	</bean>
 
 	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">

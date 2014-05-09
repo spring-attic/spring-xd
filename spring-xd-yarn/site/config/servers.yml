@@ -1,8 +1,11 @@
 # XD on YARN deployment configuration
+xd:
+    adminServers: 1
+    containers: 3
+    container:
+        groups: yarn
+
 spring:
-    xd:
-        adminServers: 1
-        containers: 3
     yarn:
         applicationDir: /xd/app/
         appmaster:
@@ -19,6 +22,13 @@ spring:
 # Port that admin-ui is listening on
 #server:
 #    port: 9393
+
+---
+#Zookeeper properties
+# client connect string: host1:port1,host2:port2,...,hostN:portN
+#zk:
+#  client:
+#     connect: localhost:2181
 
 ---
 # Redis properties
@@ -48,14 +58,6 @@ spring:
 # Database settings
 #
 # Config for use with HSQLDB
-#
-# Change the database host, port and name
-#hsql:
-#  server:
-#    host: localhost
-#    port: 9102
-#    dbname: xdjob
-# Change database username and password
 #spring:
 #  datasource:
 #    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}

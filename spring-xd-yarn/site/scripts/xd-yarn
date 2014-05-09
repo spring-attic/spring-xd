@@ -161,10 +161,10 @@ fi
 
 # Write manifest
 if [ $ACTION = "push" ]; then
-    if [ ! -f $APP_HOME/config/xd-config.yml ]; then
-        die "XD configuration file 'xd-config.yml' not found in ${APP_HOME}/config"
+    if [ ! -f $APP_HOME/config/servers.yml ]; then
+        die "XD configuration file 'servers.yml' not found in ${APP_HOME}/config"
     fi
-    cp $APP_HOME/config/xd-config.yml $MANIFEST_PATH/manifest.yml
+    cp $APP_HOME/config/servers.yml $MANIFEST_PATH/manifest.yml
     echo "" >> $MANIFEST_PATH/manifest.yml
     echo "---" >> $MANIFEST_PATH/manifest.yml
     echo "# XD on YARN options" >> $MANIFEST_PATH/manifest.yml

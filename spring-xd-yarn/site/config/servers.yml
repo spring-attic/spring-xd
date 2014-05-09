@@ -1,8 +1,11 @@
 # XD on YARN deployment configuration
+xd:
+    adminServers: 1
+    containers: 3
+    container:
+        groups: yarn
+
 spring:
-    xd:
-        adminServers: 1
-        containers: 3
     yarn:
         applicationDir: /xd/app/
         appmaster:
@@ -48,14 +51,6 @@ spring:
 # Database settings
 #
 # Config for use with HSQLDB
-#
-# Change the database host, port and name
-#hsql:
-#  server:
-#    host: localhost
-#    port: 9102
-#    dbname: xdjob
-# Change database username and password
 #spring:
 #  datasource:
 #    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}

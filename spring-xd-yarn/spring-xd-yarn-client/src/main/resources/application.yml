@@ -9,12 +9,13 @@ spring:
             files:
                 - "file:${spring.xd.yarn.app.path}/${spring.xd.yarn.app.zip}"
                 - "file:${spring.xd.yarn.am.path}/${spring.xd.yarn.am.jar}"
-                - "file:${spring.xd.yarn.config.path}/xd-config.yml"
+                - "file:${spring.xd.yarn.config.path}/servers.yml"
+                - "file:${spring.xd.yarn.config.path}/modules.yml"
             launchcontext:
                 archiveFile: "${spring.xd.yarn.am.jar}"
             localizer:
                 patterns:
-                    - "xd-config.yml"
+                    - "servers.yml"
 ---
 spring:
     profiles: admin
@@ -25,8 +26,8 @@ spring:
                 arguments:
                     -Dspring.profiles.active: "admin"
                     -Dspring.xd.yarn.app.zip: "${spring.xd.yarn.app.zip}"
-                    -Dspring.config.location: "./xd-config.yml"
-                    --spring.yarn.appmaster.containerCount: "${spring.xd.adminServers:1}"
+                    -Dspring.config.location: "./servers.yml"
+                    --spring.yarn.appmaster.containerCount: "${xd.adminServers:1}"
 ---
 spring:
     profiles: container
@@ -38,5 +39,5 @@ spring:
                     -Dspring.profiles.active: "container"
                     -Dspring.xd.yarn.app.zip: "${spring.xd.yarn.app.zip}"
                     -Dspring.yarn.applicationDir: "${spring.yarn.applicationDir}"
-                    -Dspring.config.location: "./xd-config.yml"
-                    --spring.yarn.appmaster.containerCount: "${spring.xd.containers:1}"
+                    -Dspring.config.location: "./servers.yml"
+                    --spring.yarn.appmaster.containerCount: "${xd.containers:1}"

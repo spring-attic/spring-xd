@@ -7,7 +7,8 @@ spring:
             localizer:
                 patterns:
                     - "spring-xd-yarn*.zip"
-                    - "xd-config.yml"
+                    - "servers.yml"
+                    - "modules.yml"
 ---
 spring:
     profiles: admin
@@ -21,7 +22,8 @@ spring:
                 arguments:
                     -Dspring.application.name: "admin"
                     -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
-                    -Dspring.config.location: "./xd-config.yml"
+                    -Dspring.config.location: "./servers.yml"
+                    -Dxd.module.config.location: "file:./"
                 classpath:
                     - "./${spring.xd.yarn.app.zip}/config"
                     - "./${spring.xd.yarn.app.zip}/lib/*"
@@ -38,7 +40,8 @@ spring:
                 arguments:
                     -Dspring.application.name: "container"
                     -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
-                    -Dspring.config.location: "./xd-config.yml"
+                    -Dspring.config.location: "./servers.yml"
+                    -Dxd.module.config.location: "file:./"
                 classpath:
                     - "./${spring.xd.yarn.app.zip}/config"
                     - "./${spring.xd.yarn.app.zip}/lib/*"

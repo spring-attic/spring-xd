@@ -1565,21 +1565,24 @@ project('spring-xd-integration-test') {
 		compile project(":spring-xd-test-fixtures")
 		compile project(":spring-xd-test")
 		compile project(":spring-xd-rest-client")
-		compile "mysql:mysql-connector-java:5.1.23"
-		compile "commons-collections:commons-collections:$commonsCollectionsVersion"
 		compile "org.apache.jclouds.provider:aws-sts:$jcloudsVersion"
 		compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"
-		compile "org.springframework.shell:spring-shell:$springShellVersion"
-		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
-		compile "org.springframework:spring-web:$springVersion"
-		compile "org.springframework:spring-jms:$springVersion"
-		compile "org.apache.activemq:activemq-core:5.6.0"
-		testCompile group: 'junit', name: 'junit', version: '4.+'
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile ("org.apache.hadoop:hadoop-common:$hadoop22Version")
+		compile ("org.apache.hadoop:hadoop-client:$hadoop22Version")
+		testCompile "mysql:mysql-connector-java:5.1.23"
+		testCompile "commons-collections:commons-collections:$commonsCollectionsVersion"
+		testCompile "org.springframework.shell:spring-shell:$springShellVersion"
+		testCompile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
+		testCompile "org.springframework:spring-web:$springVersion"
+		testCompile "org.springframework:spring-jms:$springVersion"
+		testCompile ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
+							exclude group: 'org.apache.hadoop'
+						}
+		testCompile group: 'junit', name: 'junit', version: '4.+'
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
-				"org.slf4j:slf4j-log4j12:$slf4jVersion"
-	}
+				"org.slf4j:slf4j-log4j12:$slf4jVersion"	}
 
 }
 

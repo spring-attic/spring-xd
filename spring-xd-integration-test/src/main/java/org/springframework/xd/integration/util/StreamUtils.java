@@ -28,6 +28,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Iterator;
 
 import org.jclouds.domain.Credentials;
 import org.jclouds.domain.LoginCredentials;
@@ -35,14 +36,16 @@ import org.jclouds.http.handlers.BackoffLimitedRetryHandler;
 import org.jclouds.io.Payload;
 import org.jclouds.sshj.SshjSshClient;
 
+import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
+import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 
 import com.google.common.net.HostAndPort;
 
 /**
  * Utilities for creating and monitoring streams and the JMX hooks for those strings.
- * 
+ *
  * @author Glenn Renfro
  */
 public class StreamUtils {
@@ -51,7 +54,7 @@ public class StreamUtils {
 
 	/**
 	 * Creates the stream definition and deploys it to the cluster being tested.
-	 * 
+	 *
 	 * @param streamName The name of the stream
 	 * @param streamDefinition The definition that needs to be deployed for this stream.
 	 * @param adminServer The admin server that this stream will be deployed against.
@@ -72,7 +75,7 @@ public class StreamUtils {
 
 	/**
 	 * Executes a http get for the client and returns the results as a string
-	 * 
+	 *
 	 * @param url The location to execute the get against.
 	 * @return the string result of the get
 	 */
@@ -99,7 +102,7 @@ public class StreamUtils {
 
 	/**
 	 * Removes all the streams from the cluster. Used to guarantee a clean acceptance test.
-	 * 
+	 *
 	 * @param adminServer The admin server that the command will be executed against.
 	 */
 	public static void destroyAllStreams(final URL adminServer) {
@@ -116,7 +119,7 @@ public class StreamUtils {
 
 	/**
 	 * Copies the specified file from a remote machine to local machine.
-	 * 
+	 *
 	 * @param xdEnvironment The environment configuration for this test
 	 * @param url The remote machine's url.
 	 * @param fileName The fully qualified file name of the file to be transferred.
@@ -164,7 +167,7 @@ public class StreamUtils {
 
 	/**
 	 * Substitutes the port associated with the URL with another port.
-	 * 
+	 *
 	 * @param url The URL that needs a port replaced.
 	 * @param port The new port number
 	 * @return A new URL with the host from the URL passed in and the new port.
@@ -176,6 +179,65 @@ public class StreamUtils {
 		}
 		catch (MalformedURLException malformedUrlException) {
 			throw new IllegalStateException(malformedUrlException.getMessage(), malformedUrlException);
+		}
+	}
+
+	/**
+	 * Waits up to the wait time for a stream to be deployed.
+	 *
+	 * @param streamName The name of the stream to be evaluated.
+	 * @param adminServer The admin server URL that will be queried.
+	 * @param waitTime the amount of time in millis to wait.
+	 * @return true if the stream is deployed else false.
+	 */
+	public static boolean waitForStreamDeployment(String streamName, URL adminServer, int waitTime) {
+		boolean result = isStreamDeployed(streamName, adminServer);
+		long timeout = System.currentTimeMillis() + waitTime;
+		while (!result && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException e) {
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			result = isStreamDeployed(streamName, adminServer);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Checks to see if the specified stream is deployed on the XD cluster.
+	 *
+	 * @param streamName The name of the stream to be evaluated.
+	 * @param adminServer The admin server URL that will be queried.
+	 * @return true if the stream is deployed else false
+	 */
+	public static boolean isStreamDeployed(String streamName, URL adminServer) {
+		Assert.hasText(streamName, "The stream name must be specified.");
+		Assert.notNull(adminServer, "The admin server must be specified.");
+		try {
+			boolean result = false;
+			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
+			PagedResources<StreamDefinitionResource> resources = xdTemplate.streamOperations().list();
+			Iterator<StreamDefinitionResource> resourceIter = resources.iterator();
+			while (resourceIter.hasNext()) {
+				StreamDefinitionResource resource = resourceIter.next();
+				if (streamName.equals(resource.getName())) {
+					if (resource.isDeployed()) {
+						result = true;
+						break;
+					}
+					else {
+						result = false;
+						break;
+					}
+				}
+			}
+			return result;
+		}
+		catch (URISyntaxException uriException) {
+			throw new IllegalStateException(uriException.getMessage(), uriException);
 		}
 	}
 

@@ -21,9 +21,11 @@ import java.io.IOException;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.integration.fixtures.Jobs;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
+import org.springframework.xd.integration.util.HadoopUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
 
@@ -31,7 +33,7 @@ import org.springframework.xd.integration.util.XdEnvironment;
 /**
  * Provides the container configuration when running integration tests. Declares {@link XdEnvironment},
  * {@link XdEc2Validation}, {@link Sinks}, {@link Sources} and {@link ConfigUtil} in the application context.
- * 
+ *
  * @author Mark Pollack
  */
 @Configuration
@@ -61,7 +63,19 @@ public class IntegrationTestConfig {
 	}
 
 	@Bean
+	public Jobs jobs() {
+		return new Jobs(xdEnvironment());
+
+	}
+
+
+	@Bean
 	public ConfigUtil configUtil() throws IOException {
 		return new ConfigUtil(xdEnvironment());
+	}
+
+	@Bean
+	HadoopUtils hadoopUtil() throws IOException {
+		return new HadoopUtils(xdEnvironment());
 	}
 }

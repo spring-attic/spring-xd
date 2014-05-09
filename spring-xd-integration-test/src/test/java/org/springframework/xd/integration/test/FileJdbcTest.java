@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,18 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.xd.test.fixtures.FileJdbcJob;
 import org.springframework.xd.test.fixtures.JdbcSink;
 
 
 /**
- * Runs a basic suite of JDBC tests on an XD Cluster instance.
+ * Verifies that this job will read the specified file and place the results into the database.
  *
  * @author Glenn Renfro
  */
-public class JdbcTest extends AbstractIntegrationTest {
+public class FileJdbcTest extends AbstractIntegrationTest {
 
+	private final static String DEFAULT_FILE_NAME = "filejdbctest";
 
 	private JdbcSink jdbcSink;
 
@@ -46,24 +48,25 @@ public class JdbcTest extends AbstractIntegrationTest {
 	@Before
 	public void initialize() {
 		jdbcSink = sinks.jdbc();
-		tableName = "acceptanceTEST12345";
+		tableName = "filejdbctest";
 		jdbcSink.tableName(tableName);
 		cleanup();
 	}
 
 	/**
-	 * * Verifies that Jdbc sink has written the test data to the table.
+	 * Verifies that fileJdbcJob has written the test data from a file to the table.
 	 *
 	 */
 	@Test
-	public void testJDBCSink() {
+	public void testFileJdbcJob() {
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
-		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + jdbcSink, WAIT_TIME);
-
-		waitForXD(2000);
-
-		String query = String.format("SELECT payload FROM %s", tableName);
+		FileJdbcJob job = jobs.fileJdbcJob();
+		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER
+				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL("REPLACE", "true"), WAIT_TIME);
+		job(job.toDSL());
+		jobLaunch();
+		String query = String.format("SELECT data FROM %s", tableName);
 		assertEquals(
 				data,
 				jdbcSink.getJdbcTemplate().queryForObject(query, String.class));
@@ -84,4 +87,5 @@ public class JdbcTest extends AbstractIntegrationTest {
 			// This exception is thrown if the table is not present. In this case that is ok.
 		}
 	}
+
 }

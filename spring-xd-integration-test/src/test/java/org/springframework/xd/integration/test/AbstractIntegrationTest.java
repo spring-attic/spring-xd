@@ -16,6 +16,8 @@
 
 package org.springframework.xd.integration.test;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.net.URL;
 
@@ -56,6 +58,7 @@ public abstract class AbstractIntegrationTest {
 
 	protected final static String XD_DELIMETER = " | ";
 
+	public final static int WAIT_TIME = 10000;
 
 	@Autowired
 	protected XdEnvironment xdEnvironment;
@@ -143,7 +146,7 @@ public abstract class AbstractIntegrationTest {
 	 */
 	public void stream(String stream) {
 		Assert.hasText(stream, "stream needs to be poopulated with a definition and can not be null");
-		stream(STREAM_NAME, stream);
+		stream(STREAM_NAME, stream, WAIT_TIME);
 	}
 
 	/**
@@ -151,12 +154,15 @@ public abstract class AbstractIntegrationTest {
 	 *
 	 * @param streamName the name of the stream
 	 * @param stream the stream definition
+	 * @param waitTime the time to wait for a stream to be deployed
 	 */
-	public void stream(String streamName, String stream) {
+	public void stream(String streamName, String stream, int waitTime) {
 		Assert.hasText(streamName, "stream name can not be empty nor null");
 		Assert.hasText(stream, "stream needs to be populated with a definition and can not be null");
 		StreamUtils.stream(streamName, stream, adminServer);
 		waitForXD();
+		assertTrue("The stream to populate the data file did not deploy. ",
+				waitForStreamDeployment(streamName, waitTime));
 	}
 
 	/**
@@ -167,7 +173,7 @@ public abstract class AbstractIntegrationTest {
 	 */
 	public void job(String job) {
 		Assert.hasText(job, "job needs to be poopulated with a definition and can not be null");
-		job(JOB_NAME, job);
+		job(JOB_NAME, job, WAIT_TIME);
 	}
 
 	/**
@@ -175,19 +181,23 @@ public abstract class AbstractIntegrationTest {
 	 *
 	 * @param jobName the name of the job
 	 * @param job the job definition
+	 * @param waitTime the time to wait for a job to be deployed
 	 */
-	public void job(String jobName, String job) {
+	public void job(String jobName, String job, int waitTime) {
 		Assert.hasText(jobName, "job name can not be empty nor null");
 		Assert.hasText(job, "job needs to be populated with a definition and can not be null");
 		JobUtils.job(jobName, job, adminServer);
 		waitForXD();
+		assertTrue("The job did not deploy. ",
+				waitForJobDeployment(jobName, waitTime));
+
 	}
 
 	/**
 	 * Launches a job with the test's JOB_NAME on the XD instance.
 	 */
 	public void jobLaunch() {
-		JobUtils.launch(adminServer, JOB_NAME);
+		jobLaunch(JOB_NAME);
 	}
 
 	/**
@@ -197,6 +207,7 @@ public abstract class AbstractIntegrationTest {
 	 */
 	public void jobLaunch(String jobName) {
 		JobUtils.launch(adminServer, jobName);
+		waitForXD();
 	}
 
 	/**

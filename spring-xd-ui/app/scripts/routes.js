@@ -110,6 +110,11 @@ define(['./app'], function (xdAdmin) {
       templateUrl : 'views/jobs/stepexecution-details.html',
       controller: 'StepExecutionDetailsController'
     })
+    .state('home.jobs.stepexecutionprogress', {
+      url : 'jobs/executions/{executionId}/{stepExecutionId}/progress',
+      templateUrl : 'views/jobs/stepexecution-progress.html',
+      controller: 'StepExecutionProgressController'
+    })
     .state('home.jobs.tabs.deployments.launch', {
       url : '/launch/{jobName}',
       templateUrl : 'views/jobs/launch.html',

@@ -24,6 +24,13 @@ spring:
 #    port: 9393
 
 ---
+#Zookeeper properties
+# client connect string: host1:port1,host2:port2,...,hostN:portN
+#zk:
+#  client:
+#     connect: localhost:2181
+
+---
 # Redis properties
 #spring:
 #  redis:

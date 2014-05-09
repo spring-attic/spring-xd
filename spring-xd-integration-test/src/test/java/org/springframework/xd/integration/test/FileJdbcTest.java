@@ -17,7 +17,6 @@
 package org.springframework.xd.integration.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.util.UUID;
 
@@ -38,8 +37,6 @@ import org.springframework.xd.test.fixtures.JdbcSink;
 public class FileJdbcTest extends AbstractIntegrationTest {
 
 	private final static String DEFAULT_FILE_NAME = "filejdbctest";
-
-	private final static int WAIT_TIME = 10000;
 
 	private JdbcSink jdbcSink;
 
@@ -66,15 +63,9 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 		jdbcSink.getJdbcTemplate().getDataSource();
 		FileJdbcJob job = jobs.fileJdbcJob();
 		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER
-				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL("REPLACE", "true"));
-		assertTrue("The stream to populate the data file did not deploy. ",
-				waitForStreamDeployment("dataSender", WAIT_TIME));
+				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL("REPLACE", "true"), WAIT_TIME);
 		job(job.toDSL());
-		assertTrue("The job did not deploy. ",
-				waitForJobDeployment(WAIT_TIME));
 		jobLaunch();
-		waitForXD();
-
 		String query = String.format("SELECT data FROM %s", tableName);
 		assertEquals(
 				data,

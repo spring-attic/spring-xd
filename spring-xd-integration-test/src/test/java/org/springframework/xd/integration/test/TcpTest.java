@@ -51,7 +51,7 @@ public class TcpTest extends AbstractIntegrationTest {
 	public void testTCPSink() {
 		String data = UUID.randomUUID().toString();
 		stream(sources.tcp() + XD_DELIMETER + sinks.file());
-		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.tcp());
+		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.tcp(), WAIT_TIME);
 
 		assertReceived(1);
 		assertValid(data, sinks.file());

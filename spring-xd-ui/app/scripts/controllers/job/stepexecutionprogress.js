@@ -15,7 +15,7 @@
  */
 
 /**
- * Definition of the Step Execution Details controller
+ * Definition of the Step Execution Progress controller
  *
  * @author Gunnar Hillert
  */
@@ -23,14 +23,9 @@ define([], function () {
   'use strict';
   return ['$scope', 'StepExecutions', 'XDCommon', '$state', '$stateParams',
     function ($scope, stepExecutions, xdCommon, $state, $stateParams) {
-
-      $scope.showStepExecutionProgress = function (stepExecutionProgress) {
-          xdCommon.$log.info('Showing Step Execution Progress');
-          xdCommon.$log.info(stepExecutionProgress);
-          $state.go('home.jobs.stepexecutionprogress', {
-            executionId: $stateParams.executionId,
-            stepExecutionId: $stateParams.stepExecutionId
-          });
+      $scope.closeStepExecutionProgress = function () {
+          xdCommon.$log.info('Closing Step Execution Progress Window');
+          $state.go('home.jobs.stepexecutiondetails', {executionId: $stateParams.executionId, stepExecutionId: $stateParams.stepExecutionId});
         };
       $scope.refreshStepExecutionProgress = function () {
           xdCommon.$log.info('Refresh Step Execution Progress');
@@ -47,33 +42,7 @@ define([], function () {
                     xdCommon.growl.addErrorMessage(error);
                   });
         };
-      $scope.closeStepExecutionDetails = function (stepExecutionDetails) {
-          xdCommon.$log.info('Closing Step Execution Details Window');
-          $state.go('home.jobs.executiondetails', {executionId: stepExecutionDetails.jobExecutionId});
-        };
       $scope.$apply(function () {
-        $scope.moduleName = $stateParams.moduleName;
-        $scope.optionsPredicate = 'name';
-
-        var singleStepExecutionPromise = stepExecutions.getSingleStepExecution($stateParams.executionId, $stateParams.stepExecutionId).$promise;
-        xdCommon.addBusyPromise(singleStepExecutionPromise);
-
-        singleStepExecutionPromise.then(
-            function (result) {
-                $scope.stepExecutionDetails = result;
-              }, function (error) {
-                if (error.status === 404) {
-                  $scope.stepExecutionDetailsNotFound = true;
-                  $scope.executionId = $stateParams.executionId;
-                  $scope.stepExecutionId = $stateParams.stepExecutionId;
-                }
-                else {
-                  xdCommon.$log.error('Error fetching data. Is the XD server running?');
-                  xdCommon.$log.error(error);
-                  xdCommon.growl.addErrorMessage(error);
-                }
-              }
-            );
         $scope.refreshStepExecutionProgress();
       });
     }];

@@ -54,6 +54,12 @@ define(['angular'], function (angular) {
               $injector.invoke(stepExecutionDetailsController, this, {'$scope': $scope});
             });
           }])
+      .controller('StepExecutionProgressController',
+          ['$scope', '$injector', function ($scope, $injector) {
+            require(['controllers/job/stepexecutionprogress'], function (stepExecutionDetailsController) {
+              $injector.invoke(stepExecutionDetailsController, this, {'$scope': $scope});
+            });
+          }])
       .controller('LoginController',
           ['$scope', '$injector', function ($scope, $injector) {
             require(['controllers/security/login'], function (loginController) {

@@ -111,6 +111,10 @@ define(['angular'], function (angular) {
           getSingleStepExecution: function (jobExecutionId, stepExecutionId) {
             $log.info('Getting details for Step Execution with Id ' + stepExecutionId + '(Job Execution Id ' + jobExecutionId + ')');
             return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecutionId +  '/steps/' + stepExecutionId + '.json').get();
+          },
+          getStepExecutionProgress: function (jobExecutionId, stepExecutionId) {
+            $log.info('Getting progress details for Step Execution with Id ' + stepExecutionId + '(Job Execution Id ' + jobExecutionId + ')');
+            return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecutionId +  '/steps/' + stepExecutionId + '/progress.json').get();
           }
         };
       })

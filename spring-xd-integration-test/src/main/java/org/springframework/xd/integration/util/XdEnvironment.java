@@ -39,9 +39,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Extracts the host and port information for the XD Instances.
- * 
+ *
  * Assumes that the host that runs the RabbitMQ broker is the same host that runs the admin server.
- * 
+ *
  * @author Glenn Renfro
  */
 public class XdEnvironment implements BeanClassLoaderAware {
@@ -128,13 +128,19 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	private SimpleDriverDataSource dataSource;
 
+	@Value("${spring.hadoop.fsUri}")
+	private String nameNode;
+
+	@Value("${dfs.datanode.http.port:50075}")
+	private String dataNodePort;
+
 
 	private Properties artifactProperties;
 
 	/**
 	 * If not running tests on a local XD Instance it will retrieve the information from the artifact and setup the
 	 * environment to test against a remote XD. Als initializes the dataSource for JDBC Tests.
-	 * 
+	 *
 	 * @throws MalformedURLException
 	 */
 	@PostConstruct()
@@ -234,7 +240,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	/**
 	 * Default value is the same as the admin server host.
-	 * 
+	 *
 	 * @return the host where the rabbitmq broker is running.
 	 */
 	public String getRabbitMQHost() {
@@ -243,7 +249,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	/**
 	 * The default target for http,tcp sources to send data to
-	 * 
+	 *
 	 * @return the first host in the collection of xd-container nodes.
 	 */
 	public String getDefaultTargetHost() {
@@ -252,7 +258,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	/**
 	 * The twitter consumer key
-	 * 
+	 *
 	 * @return consumer key
 	 */
 	public String getTwitterConsumerKey() {
@@ -262,17 +268,34 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	/**
 	 * The twitter consumer secret key
-	 * 
+	 *
 	 * @return consumer secret key
 	 */
 	public String getTwitterConsumerSecretKey() {
 		return twitterConsumerSecretKey;
 	}
 
+	/**
+	 * The hadoop name node that is available for this environment.
+	 *
+	 * @return the hadoop name node.
+	 */
+	public String getNameNode() {
+		return nameNode;
+	}
+
+	/**
+	 * The hadoop data node port that is available for this environment.
+	 *
+	 * @return the data node port.
+	 */
+	public String getDataNodePort() {
+		return dataNodePort;
+	}
 
 	/**
 	 * Parses the string of container URLs provied by the ec2 property file.
-	 * 
+	 *
 	 * @param A comma delimited list of container URLs
 	 * @return a List of container URLs
 	 */

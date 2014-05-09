@@ -35,6 +35,7 @@ import org.springframework.xd.integration.fixtures.Jobs;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
+import org.springframework.xd.integration.util.HadoopUtils;
 import org.springframework.xd.integration.util.JobUtils;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
@@ -85,6 +86,9 @@ public abstract class AbstractIntegrationTest {
 
 	@Autowired
 	protected ConfigUtil configUtil;
+
+	@Autowired
+	protected HadoopUtils hadoopUtil;
 
 	private boolean initialized = false;
 

@@ -25,6 +25,7 @@ import org.springframework.xd.integration.fixtures.Jobs;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
+import org.springframework.xd.integration.util.HadoopUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
 
@@ -73,4 +74,8 @@ public class IntegrationTestConfig {
 		return new ConfigUtil(xdEnvironment());
 	}
 
+	@Bean
+	HadoopUtils hadoopUtil() throws IOException {
+		return new HadoopUtils(xdEnvironment());
+	}
 }

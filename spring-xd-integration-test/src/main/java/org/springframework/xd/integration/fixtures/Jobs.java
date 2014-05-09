@@ -19,6 +19,7 @@ package org.springframework.xd.integration.fixtures;
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.FileJdbcJob;
+import org.springframework.xd.test.fixtures.JdbcHdfsJob;
 
 
 /**
@@ -47,6 +48,15 @@ public class Jobs {
 	 */
 	public FileJdbcJob fileJdbcJob() {
 		return FileJdbcJob.withDefaults();
+	}
+
+	/**
+	 * Create an instance of the JdbcHdfs job with the default hdfs target dir, fileName and source sql statement.
+	 *
+	 * @return instance of a FileJDBCJob Fixture.
+	 */
+	public JdbcHdfsJob jdbcHdfsJob() {
+		return JdbcHdfsJob.withDefaults();
 	}
 
 }

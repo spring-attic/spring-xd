@@ -99,17 +99,17 @@ public class DistributedJobLocator implements ListableJobLocator {
 	 */
 	protected void addJob(String name, boolean isIncrementable) {
 		Collection<String> jobNames = this.getJobNames();
+		// XD admin server will prevent any REST client requests create a job definition with an existing name.
+		// The container could handle the deployment of mutilple job modules with the same name in the following
+		// scenarios:
+		// 1) There could be multiple deployments of job modules (of the *same* job definition) inside a single
+		// or multiple containers.
+		// 2) The container that had the job module deployed crashes(without graceful shutdown), thereby
+		// leaving the batch job entry in {@link DistributedJobLocator}. Had the container been shutdown gracefully,
+		// then the destroy life-cycle method on batch job will take care deleting the job name entry from
+		// {@link DistributedJobLocator}
+		// Since, it is the same job with the given name, we can skip the update into {@link DistributedJobLocator}
 		if (!jobNames.contains(name)) {
-			updateJobName(name, isIncrementable);
-		}
-		else {
-			// XD admin server will prevent any action to deploy a job with the name that already exists.
-			// Only case where the container encounters the existing batch job deployment during the deployment of job
-			// module is when the container that had the job module deployed crashes(without graceful shutdown), thereby
-			// leaving the batch job in {@link DistributedJobLocator} and the available matching container tries to
-			// deploy. Had the container been shutdown gracefully, then the destroy life-cycle method on batch job
-			// will take care deleting the job name entry from {@link DistributedJobLocator}
-			this.deleteJobName(name);
 			updateJobName(name, isIncrementable);
 		}
 	}

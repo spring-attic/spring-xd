@@ -109,11 +109,6 @@ public class ContainerListener implements PathChildrenCacheListener {
 	private final PathChildrenCache streamDeployments;
 
 	/**
-	 * Cache of children under the streams path.
-	 */
-	private final PathChildrenCache streamDefinitions;
-
-	/**
 	 * The parser.
 	 */
 	private final XDStreamParser parser;
@@ -122,6 +117,11 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * Utility for writing module deployment requests to containers.
 	 */
 	private final ModuleDeploymentWriter moduleDeploymentWriter;
+
+	/**
+	 * Utility for loading streams and jobs (including deployment metadata).
+	 */
+	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
 
 
 	/**
@@ -148,7 +148,6 @@ public class ContainerListener implements PathChildrenCacheListener {
 		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
 		this.streamDeployments = streamDeployments;
-		this.streamDefinitions = streamDefinitions;
 		this.jobDeployments = jobDeployments;
 		this.parser = new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
 		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
@@ -214,7 +213,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 			String jobName = jobDeploymentIterator.next();
 
 			// if jobDefinition is null this means the job was destroyed or undeployed
-			JobDefinition jobDefinition = loadJob(client, jobName);
+			JobDefinition jobDefinition = deploymentLoader.loadJob(client, jobName);
 			if (jobDefinition != null) {
 				ModuleDescriptor descriptor = parser.parse(jobName, jobDefinition.getDefinition(),
 						ParsingContext.job).iterator().next();
@@ -251,7 +250,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 					new ChildPathIterator<String>(deploymentNameConverter, streamDeployments);
 							streamDeploymentIterator.hasNext();) {
 			String streamName = streamDeploymentIterator.next();
-			Stream stream = loadStream(client, streamName);
+			Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
 
 			// if stream is null this means the stream was destroyed or undeployed
 			if (stream != null) {
@@ -335,59 +334,6 @@ public class ContainerListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * Load the {@link Stream} instance for a given stream name
-	 * <i>if the stream is deployed</i>. It will include the stream definition
-	 * as well as any deployment properties data for the stream deployment.
-	 *
-	 * @param client     curator client
-	 * @param streamName the name of the stream to load
-	 * @return the stream instance, or {@code null} if the stream does not exist or is not deployed
-	 * @throws Exception if ZooKeeper access fails for any reason
-	 */
-	private Stream loadStream(CuratorFramework client, String streamName) throws Exception {
-		ChildData definitionData = streamDefinitions.getCurrentData(Paths.build(Paths.STREAMS, streamName));
-		if (definitionData != null) {
-			Map<String, String> map = mapBytesUtility.toMap(definitionData.getData());
-			try {
-				byte[] deploymentPropertiesData = client.getData().forPath(
-						Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
-				if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
-					map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
-				}
-				return streamFactory.createStream(streamName, map);
-			}
-			catch (KeeperException.NoNodeException e) {
-				// stream is not deployed
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Load the {@link org.springframework.xd.dirt.stream.JobDefinition}
-	 * instance for a given job name if the job definition is present <i>and the
-	 * job is deployed</i>.
-	 *
-	 * @param client   curator client
-	 * @param jobName  the name of the job to load
-	 * @return the job instance, or {@code null} if the job does not exist or is not deployed
-	 * @throws Exception
-	 */
-	private JobDefinition loadJob(CuratorFramework client, String jobName) throws Exception {
-		try {
-			if (client.checkExists().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, jobName)) != null) {
-				byte[] data = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
-				Map<String, String> map = mapBytesUtility.toMap(data);
-				return new JobDefinition(jobName, map.get("definition"));
-			}
-		}
-		catch (KeeperException.NoNodeException e) {
-			// job is not deployed
-		}
-		return null;
-	}
-
-	/**
 	 * Handle the departure of a container. This will scan the list of modules
 	 * deployed to the departing container and redeploy them if required.
 	 *
@@ -422,7 +368,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 			else {
 				Stream stream = streamMap.get(unitName);
 				if (stream == null) {
-					stream = loadStream(client, unitName);
+					stream = deploymentLoader.loadStream(client, unitName, streamFactory);
 					streamMap.put(unitName, stream);
 				}
 				if (stream != null) {
@@ -496,10 +442,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @throws Exception
 	 */
 	private void redeployJob(CuratorFramework client, String jobName) throws Exception {
-		/*
-		 * TODO: see JobDeploymentListener deployJob; perhaps these can be merged
-		 */
-		JobDefinition jobDefinition = loadJob(client, jobName);
+		JobDefinition jobDefinition = deploymentLoader.loadJob(client, jobName);
 		if (jobDefinition != null) {
 			ModuleDescriptor descriptor = parser.parse(jobName, jobDefinition.getDefinition(),
 					ParsingContext.job).get(0);

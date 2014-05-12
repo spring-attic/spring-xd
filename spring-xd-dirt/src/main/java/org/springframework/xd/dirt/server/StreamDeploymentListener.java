@@ -75,6 +75,11 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	private final ModuleDeploymentWriter moduleDeploymentWriter;
 
 	/**
+	 * Utility for loading streams and jobs (including deployment metadata).
+	 */
+	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
+
+	/**
 	 * Executor service dedicated to handling events raised from
 	 * {@link org.apache.curator.framework.recipes.cache.PathChildrenCache}.
 	 *
@@ -90,6 +95,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 			return thread;
 		}
 	});
+
 
 	/**
 	 * Construct a StreamDeploymentListener.
@@ -130,20 +136,13 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
-
-		byte[] streamDefinition = client.getData().forPath(Paths.build(Paths.STREAMS, streamName));
-		Map<String, String> map = mapBytesUtility.toMap(streamDefinition);
-
-		byte[] deploymentPropertiesData = data.getData();
-		if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
-			map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
+		Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
+		if (stream != null) {
+			logger.info("Deploying stream {}", stream);
+			prepareStream(client, stream);
+			deployStream(stream);
+			logger.info("Stream {} deployment attempt complete", stream);
 		}
-		Stream stream = streamFactory.createStream(streamName, map);
-
-		logger.info("Deploying stream {} with properties {}", stream, map);
-		prepareStream(client, stream);
-		deployStream(stream);
-		logger.info("Stream {} deployment attempt complete", stream);
 	}
 
 	/**

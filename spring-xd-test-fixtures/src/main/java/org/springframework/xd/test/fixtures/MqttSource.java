@@ -16,9 +16,6 @@
 
 package org.springframework.xd.test.fixtures;
 
-import java.io.IOException;
-import java.net.Socket;
-
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -57,39 +54,13 @@ public class MqttSource extends AbstractModuleFixture {
 	}
 
 	/**
-	 * Verifies that the port to the broker is available. If not throws an IllegalStateException. The timeout is set for
-	 * 2 seconds.
-	 *
-	 * @return a reference to the mqtt source.
+	 * Ensure that the Mqtt broker socket is available by polling it for up to 2 seconds
+	 * @return MqttSource to use in fluent API chaining
+	 * @throws IllegalStateException if can not connect in 2 seconds.
 	 */
 	public MqttSource ensureReady() {
-		return ensureReady(2000);
-	}
-
-	/**
-	 * Verifies that the port to the broker is available. If not throws an IllegalStateException.
-	 *
-	 * @param timeout The max time to try to get the connection to the broker.
-	 * @return a reference to the mqtt source.
-	 */
-	public MqttSource ensureReady(int timeout) {
-		long giveUpAt = System.currentTimeMillis() + timeout;
-		while (System.currentTimeMillis() < giveUpAt) {
-			try {
-				new Socket(host, port);
-				return this;
-			}
-			catch (IOException e) {
-				try {
-					Thread.sleep(100);
-				}
-				catch (InterruptedException e1) {
-					Thread.currentThread().interrupt();
-				}
-			}
-		}
-		throw new IllegalStateException(String.format(
-				"Source [%s] does not seem to be listening after waiting for %dms", this, timeout));
+		AvailableSocketPorts.ensureReady(this, host, port, 2000);
+		return this;
 	}
 
 	/**

@@ -22,6 +22,7 @@ import org.springframework.xd.test.fixtures.HdfsSink;
 import org.springframework.xd.test.fixtures.JdbcSink;
 import org.springframework.xd.test.fixtures.LogSink;
 import org.springframework.xd.test.fixtures.MqttSink;
+import org.springframework.xd.test.fixtures.RabbitSink;
 import org.springframework.xd.test.fixtures.SimpleFileSink;
 import org.springframework.xd.test.fixtures.TcpSink;
 
@@ -134,6 +135,15 @@ public class Sinks {
 	 */
 	public HdfsSink hdfs() {
 		return HdfsSink.withDefaults();
+	}
+
+	/**
+	 * Construct a new rabbitSink that will push messages to rabbit broker.
+	 *
+	 * @return an instantiated rabbit sink
+	 */
+	public RabbitSink rabbit(String routingKey) {
+		return RabbitSink.withDefaults();
 	}
 
 }

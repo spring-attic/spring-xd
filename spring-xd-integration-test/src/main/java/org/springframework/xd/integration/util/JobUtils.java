@@ -58,7 +58,6 @@ public class JobUtils {
 	public static void destroyAllJobs(final URL adminServer) {
 		Assert.notNull(adminServer, "The admin server must be specified.");
 		createSpringXDTemplate(adminServer).jobOperations().destroyAll();
-
 	}
 
 	/**
@@ -120,7 +119,6 @@ public class JobUtils {
 	public static boolean isJobDeployed(String jobName, URL adminServer) {
 		Assert.hasText(jobName, "The job name must be specified.");
 		Assert.notNull(adminServer, "The admin server must be specified.");
-
 		boolean result = false;
 		SpringXDTemplate xdTemplate = createSpringXDTemplate(adminServer);
 		PagedResources<JobDefinitionResource> resources = xdTemplate.jobOperations().list();

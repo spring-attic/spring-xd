@@ -16,9 +16,6 @@
 
 package org.springframework.xd.test.fixtures;
 
-import java.io.IOException;
-import java.net.Socket;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 import org.springframework.jms.core.JmsTemplate;
@@ -67,40 +64,16 @@ public class JmsSource extends AbstractModuleFixture {
 	}
 
 	/**
-	 * Verifies that the port to the broker is available. If not throws an IllegalStateException. The timeout is set for
-	 * 2 seconds.
-	 *
-	 * @return a reference to the mqtt source.
+	 * Ensure that the Jms broker socket is available by polling it for up to 2 seconds
+	 * 
+	 * @return JmsSource to use in fluent API chaining
+	 * @throws IllegalStateException if can not connect in 2 seconds.
 	 */
 	public JmsSource ensureReady() {
-		return ensureReady(2000);
+		AvailableSocketPorts.ensureReady(this, host, port, 2000);
+		return this;
 	}
 
-	/**
-	 * Verifies that the port to the broker is available. If not throws an IllegalStateException.
-	 *
-	 * @param timeout The max time to try to get the connection to the broker.
-	 * @return a reference to the mqtt source.
-	 */
-	public JmsSource ensureReady(int timeout) {
-		long giveUpAt = System.currentTimeMillis() + timeout;
-		while (System.currentTimeMillis() < giveUpAt) {
-			try {
-				new Socket(host, port);
-				return this;
-			}
-			catch (IOException e) {
-				try {
-					Thread.sleep(100);
-				}
-				catch (InterruptedException e1) {
-					Thread.currentThread().interrupt();
-				}
-			}
-		}
-		throw new IllegalStateException(String.format(
-				"Source [%s] does not seem to be listening after waiting for %dms", this, timeout));
-	}
 
 	/**
 	 * Sends data to the JMS broker via TCP.

@@ -16,6 +16,9 @@
 
 package org.springframework.xd.test.fixtures;
 
+import java.io.IOException;
+import java.net.Socket;
+
 import org.springframework.integration.test.util.SocketUtils;
 
 
@@ -46,6 +49,36 @@ public class AvailableSocketPorts {
 			lastAllocatedPort = 1025;
 		}
 		return result;
+	}
+
+	/**
+	 * Verifies that the port to the broker is available. If not throws an IllegalStateException.
+	 *
+	 * @param fixtre WThe module fixture is calling this method, used in case of exception
+	 * @param host the host to connect to
+	 * @param port the port to connect to
+	 * @param timeout The max time to try to get the connection to the broker in milliseconds
+	 * 
+	 * @throws IllegalStateException if can not connect in the specified timeout.
+	 */
+	public static void ensureReady(AbstractModuleFixture fixture, String host, int port, int timeout) {
+		long giveUpAt = System.currentTimeMillis() + timeout;
+		while (System.currentTimeMillis() < giveUpAt) {
+			try {
+				new Socket(host, port);
+				return;
+			}
+			catch (IOException e) {
+				try {
+					Thread.sleep(100);
+				}
+				catch (InterruptedException e1) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		}
+		throw new IllegalStateException(String.format(
+				"Module [%s] does not seem to be listening after waiting for %dms", fixture, timeout));
 	}
 
 }

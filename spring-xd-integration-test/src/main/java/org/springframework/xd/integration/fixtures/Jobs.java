@@ -22,7 +22,7 @@ import org.springframework.xd.test.fixtures.JdbcHdfsJob;
 
 /**
  * A factory that provides fully instantiated job fixtures using default values.
- *
+
  * @author Glenn Renfro
  */
 public class Jobs {

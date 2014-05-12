@@ -23,8 +23,6 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.test.fixtures.FileJdbcJob;
 import org.springframework.xd.test.fixtures.JdbcSink;
@@ -36,8 +34,6 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  * @author Glenn Renfro
  */
 public class FileJdbcTest extends AbstractIntegrationTest {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(FileJdbcTest.class);
 
 	private final static String DEFAULT_FILE_NAME = "filejdbctest";
 
@@ -85,5 +81,4 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 			jdbcSink.dropTable(tableName);
 		}
 	}
-
 }

@@ -212,6 +212,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 	}
 
+
 	/**
 	 * Gets the URL of the container where the stream was deployed
 	 *
@@ -280,7 +281,6 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	<<<<<<< HEAD
 	 * Undeploys the test stream
 	 */
 	public void undeployStream() {
@@ -288,8 +288,6 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	=======
-	>>>>>>> 6ee43a1c9321961447f6eb91ae1838b16f3aade3
 	 * Wait the "waitTime" for a stream to be deployed.
 	 *
 	 * @param waitTime the time in millis to wait.

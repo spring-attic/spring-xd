@@ -79,30 +79,22 @@ public class TcpSource extends AbstractModuleFixture {
 		return String.format("tcp --port=%d", port);
 	}
 
+	/**
+	 * Ensure that the TcpSource socket is available by polling it for up to 2 seconds
+	 * 
+	 * @return TcpSource to use in fluent API chaining
+	 * @throws IllegalStateException if can not connect in 2 seconds.
+	 */
 	public TcpSource ensureReady() {
-		return ensureReady(2000);
+		AvailableSocketPorts.ensureReady(this, host, port, 2000);
+		return this;
 	}
 
-	public TcpSource ensureReady(int timeout) {
-		long giveUpAt = System.currentTimeMillis() + timeout;
-		while (System.currentTimeMillis() < giveUpAt) {
-			try {
-				new Socket(host, port);
-				return this;
-			}
-			catch (IOException e) {
-				try {
-					Thread.sleep(100);
-				}
-				catch (InterruptedException e1) {
-					Thread.currentThread().interrupt();
-				}
-			}
-		}
-		throw new IllegalStateException(String.format(
-				"Source [%s] does not seem to be listening after waiting for %dms", this, timeout));
-	}
-
+	/**
+	 * Send the specified types to the host and and port of the TCP source.
+	 * 
+	 * @param bytes data to send
+	 */
 	public void sendBytes(byte[] bytes) {
 		Socket socket = null;
 		try {
@@ -110,7 +102,7 @@ public class TcpSource extends AbstractModuleFixture {
 			socket.getOutputStream().write(bytes);
 		}
 		catch (IOException ioException) {
-			throw new IllegalStateException(ioException.getMessage());
+			throw new IllegalStateException(ioException.getMessage(), ioException);
 		}
 		finally {
 			if (socket != null) {

@@ -202,7 +202,8 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 					SocketChannel channel = SocketChannel.open();
 					channel.connect(connectAddr);
 					out = channel;
-				} else {
+				}
+				else {
 					DatagramChannel channel = DatagramChannel.open();
 					channel.connect(connectAddr);
 					out = channel;
@@ -221,7 +222,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 
 				out.close();
 			}
-			catch (IOException | InterruptedException e) {
+			catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
 		}

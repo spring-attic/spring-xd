@@ -623,7 +623,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param label module label
 		 */
 		public Key(String group, ModuleType type, String label) {
-			Assert.notNull(group, "Stream is required");
+			Assert.notNull(group, "Group is required");
 			Assert.notNull(type, "Type is required");
 			Assert.hasText(label, "Label is required");
 			this.group = group;

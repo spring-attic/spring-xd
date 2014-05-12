@@ -235,8 +235,11 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 	/**
 	 * Deploy any "orphaned" stream modules. These are stream modules that
-	 * are supposed to be deployed but currently do not have any containers
-	 * available to meet the deployment criteria.
+	 * are supposed to be deployed but currently do not have enough containers
+	 * available to meet the deployment criteria (i.e. if a module requires
+	 * 3 containers but only 2 are available). Furthermore this will deploy
+	 * modules with a count of 0 if this container matches the deployment
+	 * criteria.
 	 *
 	 * @param client     curator client
 	 * @param container  target container for stream module deployment

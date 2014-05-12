@@ -15,20 +15,22 @@
  */
 
 /**
- * Definition of xdAdmin app module.
+ * Definition of XD auth services.
  *
+ * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  */
-define([
-  'angular',
-  './job/app',
-  './stream/app',
-  './auth/app'
-], function (angular) {
+define(['angular'], function (angular) {
   'use strict';
-  return angular.module('xdAdmin', [
-    'xdJobsAdmin',
-    'xdStreamsAdmin',
-    'xdAuth'
-  ]);
+
+  return angular.module('xdAuth.services', [])
+      .factory('userService', function() {
+          var sdo = {
+            isAuthenticated: false,
+            username: ''
+          };
+          return sdo;
+        });
 });
+
+

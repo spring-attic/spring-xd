@@ -21,18 +21,18 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobExecutions', 'XDCommon', '$state', '$stateParams',
-    function ($scope, jobExecutions, xdCommon, $state, $stateParams) {
+  return ['$scope', 'JobExecutions', 'XDUtils', '$state', '$stateParams',
+    function ($scope, jobExecutions, utils, $state, $stateParams) {
       $scope.$apply(function () {
         $scope.moduleName = $stateParams.moduleName;
         $scope.optionsPredicate = 'name';
 
         var singleJobExecutionPromise = jobExecutions.getSingleJobExecution($stateParams.executionId).$promise;
-        xdCommon.addBusyPromise(singleJobExecutionPromise);
+        utils.addBusyPromise(singleJobExecutionPromise);
 
         singleJobExecutionPromise.then(
             function (result) {
-                xdCommon.$log.error(result);
+                utils.$log.error(result);
                 $scope.jobExecutionDetails = result;
               }, function (error) {
                 if (error.status === 404) {
@@ -40,19 +40,19 @@ define([], function () {
                   $scope.executionId = $stateParams.executionId;
                 }
                 else {
-                  xdCommon.$log.error('Error fetching data. Is the XD server running?');
-                  xdCommon.$log.error(error);
-                  xdCommon.growl.addErrorMessage(error);
+                  utils.$log.error('Error fetching data. Is the XD server running?');
+                  utils.$log.error(error);
+                  utils.growl.addErrorMessage(error);
                 }
               }
             );
       });
       $scope.closeJobExecutionDetails = function () {
-          xdCommon.$log.info('Closing Job Execution Details Window');
+          utils.$log.info('Closing Job Execution Details Window');
           $state.go('home.jobs.tabs.executions');
         };
       $scope.viewStepExecutionDetails = function (jobExecution, stepExecution) {
-          xdCommon.$log.info('Showing Step Execution details for Job Execution with Id: ' + jobExecution.executionId);
+          utils.$log.info('Showing Step Execution details for Job Execution with Id: ' + jobExecution.executionId);
           $state.go('home.jobs.stepexecutiondetails', {
             executionId: jobExecution.executionId,
             stepExecutionId: stepExecution.id

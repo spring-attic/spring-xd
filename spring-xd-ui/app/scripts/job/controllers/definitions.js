@@ -22,45 +22,45 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDCommon',
-    function ($scope, jobDefinitions, jobDefinitionService, xdCommon) {
+  return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils',
+    function ($scope, jobDefinitions, jobDefinitionService, utils) {
 
-      xdCommon.addBusyPromise(jobDefinitions.get(function (data) {
-        xdCommon.$log.info(data);
+      utils.addBusyPromise(jobDefinitions.get(function (data) {
+        utils.$log.info(data);
         $scope.jobDefinitions = data.content;
       }, function (error) {
-        xdCommon.$log.error('Error fetching data. Is the XD server running?');
-        xdCommon.$log.error(error);
-        xdCommon.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+        utils.$log.error('Error fetching data. Is the XD server running?');
+        utils.$log.error(error);
+        utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
       }));
 
       $scope.deployJob = function (jobDefinition) {
-        xdCommon.$log.info('Deploying Job ' + jobDefinition.name);
-        xdCommon.$log.info(jobDefinitionService);
+        utils.$log.info('Deploying Job ' + jobDefinition.name);
+        utils.$log.info(jobDefinitionService);
         jobDefinitionService.deploy(jobDefinition).$promise.then(
               function () {
-                xdCommon.growl.addSuccessMessage('Deployment Request Sent.');
+                utils.growl.addSuccessMessage('Deployment Request Sent.');
                 jobDefinition.deployed = true;
               },
               function (error) {
-                xdCommon.$log.error('Error Deploying Job.');
-                xdCommon.$log.error(error);
-                xdCommon.growl.addErrorMessage('Error Deploying Job.');
+                utils.$log.error('Error Deploying Job.');
+                utils.$log.error(error);
+                utils.growl.addErrorMessage('Error Deploying Job.');
               }
             );
       };
       $scope.undeployJob = function (jobDefinition) {
-        xdCommon.$log.info('Undeploying Job ' + jobDefinition.name);
-        xdCommon.$log.info(jobDefinitionService);
+        utils.$log.info('Undeploying Job ' + jobDefinition.name);
+        utils.$log.info(jobDefinitionService);
         jobDefinitionService.undeploy(jobDefinition).$promise.then(
               function () {
-                xdCommon.growl.addSuccessMessage('Undeployment Request Sent.');
+                utils.growl.addSuccessMessage('Undeployment Request Sent.');
                 jobDefinition.deployed = false;
               },
               function (error) {
-                xdCommon.$log.error('Error Undeploying Job.');
-                xdCommon.$log.error(error);
-                xdCommon.growl.addErrorMessage('Error Undeploying Job.');
+                utils.$log.error('Error Undeploying Job.');
+                utils.$log.error(error);
+                utils.growl.addErrorMessage('Error Undeploying Job.');
               }
             );
       };

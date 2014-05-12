@@ -15,28 +15,36 @@
  */
 
 /**
+ * XD UI Routes configuration
  *
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  */
 define(['./app'], function (xdAdmin) {
   'use strict';
-  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider) {
+  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider) {
     $httpProvider.defaults.useXDomain = true;
 
-    hljsServiceProvider.setOptions({
-      // replace tab with 2 spaces
-      tabReplace: '  '
-    });
-
     $urlRouterProvider.otherwise('/jobs/definitions');
+
+    var jobTemplatesPath = 'scripts/job/views',
+        streamTemplatesPath = 'scripts/stream/views',
+        authTemplatesPath = 'scripts/auth/views',
+        sharedTemplatesPath = 'scripts/shared/views';
 
     $stateProvider.state('home', {
       url : '/',
       abstract:true,
-      templateUrl : 'views/home.html'
+      templateUrl : sharedTemplatesPath + '/home.html'
     })
     .state('home.jobs', {
+      abstract:true,
+      template: '<ui-view/>',
+      data:{
+        authenticate: true
+      }
+    })
+    .state('home.streams', {
       abstract:true,
       template: '<ui-view/>',
       data:{
@@ -49,11 +57,11 @@ define(['./app'], function (xdAdmin) {
       data:{
         authenticate: true
       },
-      templateUrl : 'views/jobs/jobs.html'
+      templateUrl : jobTemplatesPath + '/jobs.html'
     })
     .state('home.about', {
       url : 'about',
-      templateUrl : 'views/about.html',
+      templateUrl : sharedTemplatesPath + '/about.html',
       data:{
         authenticate: false
       }
@@ -61,7 +69,7 @@ define(['./app'], function (xdAdmin) {
     .state('login', {
       url : '/login',
       controller: 'LoginController',
-      templateUrl : 'views/login.html',
+      templateUrl : authTemplatesPath + '/login.html',
       data:{
         authenticate: false
       }
@@ -69,76 +77,94 @@ define(['./app'], function (xdAdmin) {
     .state('logout', {
       url : '/logout',
       controller: 'LogoutController',
-      templateUrl : 'views/login.html',
+      templateUrl : authTemplatesPath + '/login.html',
       data:{
         authenticate: true
       }
     })
+    .state('home.streams.tabs', {
+      url : 'streams',
+      abstract:true,
+      data:{
+        authenticate: true
+      },
+      templateUrl : streamTemplatesPath + '/streams.html'
+    })
+    .state('home.streams.tabs.definitions', {
+      url : '/definitions',
+      templateUrl : streamTemplatesPath + '/definitions.html',
+      controller: 'StreamsDefinitionsController'
+    })
     .state('home.jobs.tabs.modules', {
       url : '/modules',
-      templateUrl : 'views/jobs/modules.html',
+      templateUrl : jobTemplatesPath + '/modules.html',
       controller: 'ModuleController'
     })
     .state('home.jobs.tabs.definitions', {
       url : '/definitions',
-      templateUrl : 'views/jobs/definitions.html',
-      controller: 'ListDefinitionController'
+      templateUrl : jobTemplatesPath + '/definitions.html',
+      controller: 'JobDefinitionsController'
     })
     .state('home.jobs.tabs.deployments', {
       url : '/deployments',
-      templateUrl : 'views/jobs/deployments.html',
-      controller: 'ListJobDeploymentsController'
+      templateUrl : jobTemplatesPath + '/deployments.html',
+      controller: 'JobDeploymentsController'
     })
-      //TODO: Once ScheduleJobsController is available we can have the routes configured.
-//    .state('home.jobs.scheduledJobs', {
+      //todo: for ScheduleJobs page
+//    .state('home.jobs.tabs.schedule', {
 //      url : '/scheduled-jobs',
-//      templateUrl : 'views/jobs/scheduledJobs.html',
+//      templateUrl : jobTemplatesPath + '/scheduledJobs.html',
 //      controller: 'ScheduledJobsController'
 //    })
     .state('home.jobs.tabs.executions', {
       url : '/executions',
-      templateUrl : 'views/jobs/executions.html',
-      controller: 'ListJobExecutionsController'
+      templateUrl : jobTemplatesPath + '/executions.html',
+      controller: 'JobExecutionsController'
     })
     .state('home.jobs.executiondetails', {
       url : 'jobs/executions/{executionId}',
-      templateUrl : 'views/jobs/execution-details.html',
+      templateUrl : jobTemplatesPath + '/execution-details.html',
       controller: 'JobExecutionDetailsController'
     })
     .state('home.jobs.stepexecutiondetails', {
       url : 'jobs/executions/{executionId}/{stepExecutionId}',
-      templateUrl : 'views/jobs/stepexecution-details.html',
+      templateUrl : jobTemplatesPath + '/stepexecution-details.html',
       controller: 'StepExecutionDetailsController'
     })
     .state('home.jobs.stepexecutionprogress', {
       url : 'jobs/executions/{executionId}/{stepExecutionId}/progress',
-      templateUrl : 'views/jobs/stepexecution-progress.html',
+      templateUrl : jobTemplatesPath + '/stepexecution-progress.html',
       controller: 'StepExecutionProgressController'
     })
     .state('home.jobs.tabs.deployments.launch', {
       url : '/launch/{jobName}',
-      templateUrl : 'views/jobs/launch.html',
+      templateUrl : jobTemplatesPath + '/launch.html',
       controller: 'JobLaunchController'
     })
-    .state('home.jobs.modulesdetails', {
+    .state('home.jobs.tabs.deployments.schedule', {
+      url : '/schedule/{jobName}',
+      templateUrl : jobTemplatesPath + '/schedule.html',
+      controller: 'JobScheduleController'
+    })
+    .state('home.jobs.moduledetails', {
       url : 'jobs/modules/{moduleName}',
-      templateUrl : 'views/jobs/module-details.html',
+      templateUrl : jobTemplatesPath + '/module-details.html',
       controller: 'ModuleDetailsController',
       data:{
         authenticate: true
       }
     });
   });
-  xdAdmin.run(function ($rootScope, $state, $stateParams, User, $log) {
+  xdAdmin.run(function ($rootScope, $state, $stateParams, userService, $log) {
     $rootScope.$state = $state;
     $rootScope.$stateParams = $stateParams;
     $rootScope.xdAdminServerUrl = window.location.protocol + '//' + window.location.host;
     $rootScope.authenticationEnabled = false;
-    $rootScope.user = User;
+    $rootScope.user = userService;
 
     $rootScope.$on('$stateChangeStart', function(event, toState) {
         $log.info('Need to authenticate? ' + toState.data.authenticate);
-        if ($rootScope.authenticationEnabled && toState.data.authenticate && !User.isAuthenticated){
+        if ($rootScope.authenticationEnabled && toState.data.authenticate && !userService.isAuthenticated){
           // User is not authenticated
           $state.transitionTo('login');
           event.preventDefault();

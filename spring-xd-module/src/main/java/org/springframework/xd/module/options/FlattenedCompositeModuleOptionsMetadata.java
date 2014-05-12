@@ -38,7 +38,7 @@ import org.springframework.validation.MapBindingResult;
 
 /**
  * A composite {@link ModuleOptionsMetadata} made of several {@link ModuleOptionsMetadata} that will appear "flattened".
- * 
+ *
  * @author Eric Bottard
  * @author David Turanski
  */
@@ -149,7 +149,7 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 		for (ModuleOptionsMetadata mom : momToSupportedOptions.keySet()) {
 			Map<String, String> rawValuesSubset = distributed.get(mom);
 			ModuleOptions mo = mom.interpolate(rawValuesSubset);
-			EnumerablePropertySource propertySource = mo.asPropertySource();
+			EnumerablePropertySource<?> propertySource = mo.asPropertySource();
 			for (String optionName : propertySource.getPropertyNames()) {
 				/*
 				 * XD-1472: InputType treated as a special case. If the module defines a default value, do not replace

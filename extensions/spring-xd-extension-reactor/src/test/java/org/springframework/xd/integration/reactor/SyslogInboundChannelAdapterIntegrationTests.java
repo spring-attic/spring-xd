@@ -21,6 +21,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.DatagramChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -30,8 +32,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -102,7 +107,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 
 	private void stop() {
 		end = System.currentTimeMillis();
-		elapsed = end - start;
+		elapsed = (end - start);
 
 		long throughput = Math.round((MSG_COUNT * 4) / (elapsed / 1000));
 		System.out.println("Sent " + (MSG_COUNT * 4) + " msgs in " + Math.round(elapsed) + "ms. Throughput: " +
@@ -117,13 +122,20 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		syslogWriter2.start();
 		syslogWriter3.start();
 		syslogWriter4.start();
-		assertTrue("Latch did not time out", latch.await(30, TimeUnit.SECONDS));
+		assertTrue("Latch did not time out", latch.await(60, TimeUnit.SECONDS));
 		stop();
 	}
 
 	@Configuration
 	@EnableReactor
 	static class TestConfiguration {
+
+		static @Bean public PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
+			return new PropertyPlaceholderConfigurer();
+		}
+
+		@Value("${transport:tcp}")
+		String transport;
 
 		@Bean
 		public Reactor reactor(Environment env) {
@@ -140,40 +152,43 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		public SyslogInboundChannelAdapter syslogInboundChannelAdapter(Environment env, DirectChannel output) {
 			SyslogInboundChannelAdapter sica = new SyslogInboundChannelAdapter(env);
 			sica.setOutputChannel(output);
+			sica.setTransport(transport);
 			return sica;
 		}
 
 		@Bean
 		public SyslogWriter syslogWriter1() {
-			return new SyslogWriter(MSG_COUNT);
+			return new SyslogWriter(transport, MSG_COUNT);
 		}
 
 		@Bean
 		public SyslogWriter syslogWriter2() {
-			return new SyslogWriter(MSG_COUNT);
+			return new SyslogWriter(transport, MSG_COUNT);
 		}
 
 		@Bean
 		public SyslogWriter syslogWriter3() {
-			return new SyslogWriter(MSG_COUNT);
+			return new SyslogWriter(transport, MSG_COUNT);
 		}
 
 		@Bean
 		public SyslogWriter syslogWriter4() {
-			return new SyslogWriter(MSG_COUNT);
+			return new SyslogWriter(transport, MSG_COUNT);
 		}
 	}
 
 	static class SyslogWriter extends Thread {
 
 		final int runs;
+		final String transport;
 
 		SyslogWriter() {
-			this(1);
+			this("tcp", 1);
 		}
 
-		SyslogWriter(int runs) {
+		SyslogWriter(String transport, int runs) {
 			super();
+			this.transport = transport;
 			this.runs = runs;
 		}
 
@@ -181,24 +196,37 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		public void run() {
 			try {
 				InetSocketAddress connectAddr = new InetSocketAddress("127.0.0.1", 5140);
-				SocketChannel channel = SocketChannel.open();
-				channel.connect(connectAddr);
+
+				ByteChannel out;
+				if("tcp".equals(transport)) {
+					SocketChannel channel = SocketChannel.open();
+					channel.connect(connectAddr);
+					out = channel;
+				}
+				else {
+					DatagramChannel channel = DatagramChannel.open();
+					channel.connect(connectAddr);
+					out = channel;
+				}
 
 				ByteBuffer buff = ByteBuffer.wrap(
 						("<34>Oct 11 22:14:15 mymachine su: 'su root' failed for lonvick on /dev/pts/8\n").getBytes()
-						);
+				);
 				for (int i = 0; i < runs; i++) {
-					channel.write(buff);
+					out.write(buff);
 					buff.flip();
+					if("udp".equals(transport)) {
+						Thread.sleep(5);
+					}
 				}
 
-				channel.close();
+				out.close();
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
-
 		}
+
 	}
 
 }

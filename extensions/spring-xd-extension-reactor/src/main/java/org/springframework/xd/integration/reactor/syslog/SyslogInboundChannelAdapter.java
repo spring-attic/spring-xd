@@ -24,6 +24,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.messaging.Message;
 
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.Assert;
 import reactor.core.Environment;
 import reactor.event.dispatch.SynchronousDispatcher;
 import reactor.function.Consumer;
@@ -32,11 +34,15 @@ import reactor.io.Buffer;
 import reactor.io.encoding.DelimitedCodec;
 import reactor.io.encoding.StandardCodecs;
 import reactor.net.NetChannel;
+import reactor.net.NetServer;
 import reactor.net.encoding.syslog.SyslogCodec;
 import reactor.net.encoding.syslog.SyslogMessage;
 import reactor.net.netty.tcp.NettyTcpServer;
+import reactor.net.netty.udp.NettyDatagramServer;
+import reactor.net.spec.NetServerSpec;
 import reactor.net.tcp.TcpServer;
 import reactor.net.tcp.spec.TcpServerSpec;
+import reactor.net.udp.spec.DatagramServerSpec;
 
 /**
  * {@code InboundChannelAdapter} implementation that uses the Reactor TCP support to read in syslog messages and
@@ -46,15 +52,66 @@ import reactor.net.tcp.spec.TcpServerSpec;
  */
 public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 
-	private final TcpServerSpec<Buffer, Buffer> spec;
+	private final Environment env;
 
-	private volatile TcpServer<Buffer, Buffer> server;
+	private volatile NetServer server;
+
+	private volatile String transport = "tcp";
 
 	private volatile String host = "0.0.0.0";
 
 	private volatile int port = 5140;
 
 	public SyslogInboundChannelAdapter(Environment env) {
+		this.env = env;
+	}
+
+	/**
+	 * Set the transport to use. Should be either 'tcp' or 'udp'.
+	 *
+	 * @param transport transport
+	 */
+	public void setTransport(String transport) {
+		if(null == transport || (!"tcp".equals(transport.toLowerCase()) && !"udp".equals(transport.toLowerCase()))) {
+			throw new IllegalArgumentException("Transport must be 'tcp' or 'udp'");
+		}
+		this.transport = transport.toLowerCase();
+	}
+
+	/**
+	 * Set hostname to bind this server to.
+	 *
+	 * @param host hostname
+	 */
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	/**
+	 * Set port to bind this server to.
+	 *
+	 * @param port port
+	 */
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "int-reactor:syslog-inbound-channel-adapter";
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+
+		NetServerSpec<Buffer, Buffer, ? extends NetServerSpec<Buffer, Buffer, ?, ?>, ? extends NetServer> spec;
+		if("udp".equals(transport)) {
+			spec = new DatagramServerSpec<Buffer, Buffer>(NettyDatagramServer.class);
+		} else {
+			spec = new TcpServerSpec<Buffer, Buffer>(NettyTcpServer.class);
+		}
+
 		// this is faster than putting the codec directly on the server
 		final Function<Buffer, SyslogMessage> decoder = new SyslogCodec()
 				.decoder(new Consumer<SyslogMessage>() {
@@ -70,19 +127,18 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 						m.put(SyslogToMapTransformer.HOST, syslogMsg.getHost());
 						m.put(SyslogToMapTransformer.MESSAGE, syslogMsg.getMessage());
 
-						Message<Map<String, Object>> siMsg = MessageBuilder.withPayload(m).build();
+						Message<Map<String, Object>> siMsg = new GenericMessage<Map<String, Object>>(m);
 						sendMessage(siMsg);
 					}
 				});
 
-		this.spec = new TcpServerSpec<Buffer, Buffer>(NettyTcpServer.class)
-				.env(env)
+		spec.env(env)
 				// safest guess of Dispatcher since we don't know what's happening downstream
 				.dispatcher(new SynchronousDispatcher())
 				// optimize for massive throughput by using lightweight codec in server
 				.codec(new DelimitedCodec<Buffer, Buffer>(false, StandardCodecs.PASS_THROUGH_CODEC))
+				.listen(host, port)
 				.consume(new Consumer<NetChannel<Buffer, Buffer>>() {
-
 					@Override
 					public void accept(NetChannel<Buffer, Buffer> conn) {
 						// consume lines and delegate to codec
@@ -95,36 +151,8 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 						});
 					}
 				});
-	}
 
-	/**
-	 * Set hostname to bind this server to.
-	 * 
-	 * @param host hostname
-	 */
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	/**
-	 * Set port to bind this server to.
-	 * 
-	 * @param port port
-	 */
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	@Override
-	public String getComponentType() {
-		return "int-reactor:syslog-inbound-channel-adapter";
-	}
-
-	@Override
-	protected void onInit() {
-		super.onInit();
-		spec.listen(host, port);
-		this.server = spec.get();
+		server = spec.get();
 	}
 
 	@Override

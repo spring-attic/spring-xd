@@ -86,6 +86,11 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 */
 	private final ModuleDeploymentWriter moduleDeploymentWriter;
 
+	/**
+	 * Utility for loading streams and jobs (including deployment metadata).
+	 */
+	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
+
 
 	/**
 	 * Construct a JobDeploymentListener.
@@ -150,7 +155,7 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 * @throws Exception
 	 */
 	private void deployJob(CuratorFramework client, String jobName) throws Exception {
-		JobDefinition jobDefinition = loadJob(client, jobName);
+		JobDefinition jobDefinition = deploymentLoader.loadJob(client, jobName);
 		if (jobDefinition != null) {
 			ModuleDescriptor descriptor = parser.parse(jobName, jobDefinition.getDefinition(),
 					ParsingContext.job).get(0);
@@ -167,30 +172,6 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 				logger.warn("No containers available for deployment of {}", jobName);
 			}
 		}
-	}
-
-	/**
-	 * Load the {@link org.springframework.xd.dirt.stream.JobDefinition}
-	 * instance for a given job name if the job definition is present <i>and the
-	 * job is deployed</i>.
-	 *
-	 * @param client   curator client
-	 * @param jobName  the name of the job to load
-	 * @return the job instance, or {@code null} if the job does not exist or is not deployed
-	 * @throws Exception
-	 */
-	private JobDefinition loadJob(CuratorFramework client, String jobName) throws Exception {
-		try {
-			if (client.checkExists().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, jobName)) != null) {
-				byte[] data = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
-				Map<String, String> map = mapBytesUtility.toMap(data);
-				return new JobDefinition(jobName, map.get("definition"));
-			}
-		}
-		catch (KeeperException.NoNodeException e) {
-			// job is not deployed
-		}
-		return null;
 	}
 
 }

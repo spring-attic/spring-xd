@@ -227,7 +227,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 			Paths.ensurePath(client, Paths.JOBS);
 
 			if (leaderSelector == null) {
-				leaderSelector = new LeaderSelector(client, Paths.build(Paths.ADMIN), leaderListener);
+				leaderSelector = new LeaderSelector(client, Paths.build(Paths.ADMINS), leaderListener);
 				leaderSelector.setId(getId());
 				leaderSelector.start();
 			}

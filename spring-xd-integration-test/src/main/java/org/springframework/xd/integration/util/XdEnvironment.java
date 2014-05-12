@@ -31,6 +31,7 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
@@ -128,6 +129,8 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	private SimpleDriverDataSource dataSource;
 
+	private CachingConnectionFactory mqConnectionFactory;
+
 	@Value("${spring.hadoop.fsUri}")
 	private String nameNode;
 
@@ -161,6 +164,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 			return;
 		}
 		dataSource = new SimpleDriverDataSource();
+		mqConnectionFactory = new CachingConnectionFactory(adminServerUrl.getHost());
 		try {
 			@SuppressWarnings("unchecked")
 			Class<? extends Driver> classz = (Class<? extends Driver>) ClassUtils.forName(jdbcDriver,
@@ -227,6 +231,9 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		return dataSource;
 	}
 
+	public CachingConnectionFactory getMqConnectionFactory() {
+		return mqConnectionFactory;
+	}
 
 	public String getJmsHost() {
 		return jmsHost;

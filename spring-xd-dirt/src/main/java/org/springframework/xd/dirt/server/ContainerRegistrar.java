@@ -61,7 +61,7 @@ import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.DeploymentUtility;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -401,7 +401,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		Job job = deploymentLoader.loadJob(client, jobName, jobFactory);
 		if (job != null) {
 			ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
-			ModuleDeploymentProperties deploymentProperties = DeploymentUtility.createModuleDeploymentProperties(
+			ModuleDeploymentProperties deploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
 					job.getDeploymentProperties(), moduleDescriptor);
 			module = deployModule(moduleDescriptor, deploymentProperties);
 
@@ -448,7 +448,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 			ModuleDescriptor descriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
 			ModuleDeploymentProperties moduleDeploymentProperties =
-					DeploymentUtility.createModuleDeploymentProperties(
+					DeploymentPropertiesUtility.createModuleDeploymentProperties(
 							stream.getDeploymentProperties(), descriptor);
 
 			module = deployModule(descriptor, moduleDeploymentProperties);

@@ -35,7 +35,7 @@ import org.springframework.xd.dirt.module.ModuleDescriptor;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class DeploymentUtility {
+public class DeploymentPropertiesUtility {
 
 	/**
 	 * Pattern used for parsing a String of comma-delimited key=value pairs.
@@ -52,16 +52,16 @@ public class DeploymentUtility {
 	 * @return deployment properties for the module
 	 */
 	public static ModuleDeploymentProperties createModuleDeploymentProperties(
-			Map<String, String> streamDeploymentProperties, ModuleDescriptor descriptor) {
-		ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
-		for (String key : streamDeploymentProperties.keySet()) {
+			Map<String, String> deploymentProperties, ModuleDescriptor descriptor) {
+		ModuleDeploymentProperties moduleDeploymentProperties = new ModuleDeploymentProperties();
+		for (String key : deploymentProperties.keySet()) {
 			String prefix = String.format("module.%s.", descriptor.getModuleName());
 			if (key.startsWith(prefix)) {
-				deploymentProperties.put(key.substring(prefix.length()),
-						streamDeploymentProperties.get(key));
+				moduleDeploymentProperties.put(key.substring(prefix.length()),
+						deploymentProperties.get(key));
 			}
 		}
-		return deploymentProperties;
+		return moduleDeploymentProperties;
 	}
 
 	/**

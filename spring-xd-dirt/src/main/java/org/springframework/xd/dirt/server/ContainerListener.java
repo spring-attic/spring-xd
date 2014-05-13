@@ -47,7 +47,7 @@ import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.DeploymentUtility;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -61,7 +61,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class ContainerListener extends DeploymentHandler implements PathChildrenCacheListener {
+public class ContainerListener implements PathChildrenCacheListener {
 
 	/**
 	 * Logger.
@@ -72,6 +72,26 @@ public class ContainerListener extends DeploymentHandler implements PathChildren
 	 * Utility to convert maps to byte arrays.
 	 */
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+
+	/**
+	 * Provides access to the current container list.
+	 */
+	protected final ContainerRepository containerRepository;
+
+	/**
+	 * Container matcher for matching modules to containers.
+	 */
+	protected final ContainerMatcher containerMatcher;
+
+	/**
+	 * Utility for writing module deployment requests to ZooKeeper.
+	 */
+	protected final ModuleDeploymentWriter moduleDeploymentWriter;
+
+	/**
+	 * Utility for loading streams and jobs (including deployment metadata).
+	 */
+	protected final DeploymentLoader deploymentLoader = new DeploymentLoader();
 
 	/**
 	 * Stream factory.
@@ -117,7 +137,10 @@ public class ContainerListener extends DeploymentHandler implements PathChildren
 			StreamFactory streamFactory, JobFactory jobFactory,
 			PathChildrenCache streamDeployments, PathChildrenCache jobDeployments,
 			ContainerMatcher containerMatcher) {
-		super(zkConnection, containerRepository, containerMatcher);
+		this.containerMatcher = containerMatcher;
+		this.containerRepository = containerRepository;
+		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
+				containerRepository, containerMatcher);
 		this.streamFactory = streamFactory;
 		this.jobFactory = jobFactory;
 		this.streamDeployments = streamDeployments;
@@ -184,7 +207,7 @@ public class ContainerListener extends DeploymentHandler implements PathChildren
 			Job job = deploymentLoader.loadJob(client, jobName, this.jobFactory);
 			if (job != null) {
 				ModuleDescriptor descriptor = job.getJobModuleDescriptor();
-				ModuleDeploymentProperties moduleDeploymentProperties = DeploymentUtility.createModuleDeploymentProperties(
+				ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
 						job.getDeploymentProperties(), descriptor);
 				if (isCandidateForDeployment(container, descriptor, moduleDeploymentProperties)) {
 					// obtain all of the containers that have deployed this module
@@ -232,7 +255,7 @@ public class ContainerListener extends DeploymentHandler implements PathChildren
 			if (stream != null) {
 				for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
 					ModuleDescriptor descriptor = descriptorIterator.next();
-					ModuleDeploymentProperties moduleDeploymentProperties = DeploymentUtility.createModuleDeploymentProperties(
+					ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
 							stream.getDeploymentProperties(), descriptor);
 
 					if (isCandidateForDeployment(container, descriptor, moduleDeploymentProperties)) {
@@ -298,9 +321,9 @@ public class ContainerListener extends DeploymentHandler implements PathChildren
 			throws Exception {
 		try {
 			return client.getChildren().forPath(new StreamDeploymentsPath()
-			.setStreamName(descriptor.getGroup())
-			.setModuleType(descriptor.getModuleDefinition().getType().toString())
-			.setModuleLabel(descriptor.getModuleLabel()).build());
+					.setStreamName(descriptor.getGroup())
+					.setModuleType(descriptor.getModuleDefinition().getType().toString())
+					.setModuleLabel(descriptor.getModuleLabel()).build());
 		}
 		catch (KeeperException.NoNodeException e) {
 			return Collections.emptyList();
@@ -322,8 +345,8 @@ public class ContainerListener extends DeploymentHandler implements PathChildren
 			throws Exception {
 		try {
 			return client.getChildren().forPath(new JobDeploymentsPath()
-			.setJobName(descriptor.getGroup())
-			.setModuleLabel(descriptor.getModuleLabel()).build());
+					.setJobName(descriptor.getGroup())
+					.setModuleLabel(descriptor.getModuleLabel()).build());
 		}
 		catch (KeeperException.NoNodeException e) {
 			return Collections.emptyList();
@@ -400,7 +423,7 @@ public class ContainerListener extends DeploymentHandler implements PathChildren
 			throws Exception {
 		String streamName = stream.getName();
 		ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
-		ModuleDeploymentProperties moduleDeploymentProperties = DeploymentUtility.createModuleDeploymentProperties(
+		ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
 				stream.getDeploymentProperties(), moduleDescriptor);
 		if (moduleDeploymentProperties.getCount() > 0) {
 			Iterator<Container> iterator = containerMatcher.match(moduleDescriptor,
@@ -443,7 +466,7 @@ public class ContainerListener extends DeploymentHandler implements PathChildren
 		String jobName = job.getName();
 		String moduleLabel = job.getJobModuleDescriptor().getModuleLabel();
 		ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
-		ModuleDeploymentProperties moduleDeploymentProperties = DeploymentUtility.createModuleDeploymentProperties(
+		ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
 				job.getDeploymentProperties(), moduleDescriptor);
 		if (moduleDeploymentProperties.getCount() > 0) {
 			Iterator<Container> iterator = containerMatcher.match(moduleDescriptor, moduleDeploymentProperties,
@@ -473,6 +496,12 @@ public class ContainerListener extends DeploymentHandler implements PathChildren
 		}
 	}
 
+	/**
+	 * Log unwanted re-deployment of the module if the module count is less
+	 * than or equal to zero.
+	 * @param criteria the criteria for the module deployment
+	 * @param moduleLabel the module label
+	 */
 	private void logUnwantedRedeployment(String criteria, String moduleLabel) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Module '").append(moduleLabel).append("' is targeted to all containers");

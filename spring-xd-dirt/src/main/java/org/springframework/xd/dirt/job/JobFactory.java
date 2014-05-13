@@ -26,11 +26,11 @@ import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDStreamParser;
-import org.springframework.xd.dirt.util.DeploymentUtility;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
- * Factory class that builds {@link Job} using properties.
+ * Factory class that builds {@link Job} using {@link ModuleDescriptor} and deployment properties.
  *
  * @author Ilayaperumal Gopinathan
  */
@@ -38,6 +38,12 @@ public class JobFactory {
 
 	private final XDStreamParser parser;
 
+	/**
+	 * JobFactory to create {@link Job} domain model.
+	 * @param jobDefinitionRepository
+	 * @param moduleDefinitionRepository
+	 * @param moduleOptionsMetadataResolver
+	 */
 	public JobFactory(JobDefinitionRepository jobDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
@@ -45,6 +51,13 @@ public class JobFactory {
 				moduleOptionsMetadataResolver);
 	}
 
+	/**
+	 * Construct {@link Job} using job module descriptor and deployment properties.
+	 *
+	 * @param name the name of the Job
+	 * @param properties the deployment properties
+	 * @return Job the runtime domain model
+	 */
 	public Job createJob(String name, Map<String, String> properties) {
 		Assert.hasText(name, "Job name is required");
 		Assert.notNull(properties, "Job properties are required");
@@ -57,7 +70,7 @@ public class JobFactory {
 		return new Job.Builder()
 				.setName(name)
 				.setDeploymentProperties(
-						DeploymentUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
+						DeploymentPropertiesUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
 				.setModuleDescriptor(descriptors.get(0)).build();
 	}
 

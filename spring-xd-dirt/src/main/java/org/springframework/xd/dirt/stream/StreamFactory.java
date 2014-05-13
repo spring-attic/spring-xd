@@ -24,10 +24,12 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
-import org.springframework.xd.dirt.util.DeploymentUtility;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
+ * Factory class that builds {@link Stream} using properties.
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  */
@@ -56,7 +58,7 @@ public class StreamFactory {
 
 		return new Stream.Builder()
 				.setName(name)
-				.setDeploymentProperties(DeploymentUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
+				.setDeploymentProperties(DeploymentPropertiesUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
 				.setModuleDescriptors(descriptors).build();
 	}
 

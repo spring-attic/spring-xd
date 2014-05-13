@@ -38,7 +38,7 @@ import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.DeploymentUtility;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
@@ -48,12 +48,32 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  * @author Patrick Peralta
  * @author Mark Fisher
  */
-public class StreamDeploymentListener extends DeploymentHandler implements PathChildrenCacheListener {
+public class StreamDeploymentListener implements PathChildrenCacheListener {
 
 	/**
 	 * Logger.
 	 */
 	private final Logger logger = LoggerFactory.getLogger(StreamDeploymentListener.class);
+
+	/**
+	 * Provides access to the current container list.
+	 */
+	protected final ContainerRepository containerRepository;
+
+	/**
+	 * Container matcher for matching modules to containers.
+	 */
+	protected final ContainerMatcher containerMatcher;
+
+	/**
+	 * Utility for writing module deployment requests to ZooKeeper.
+	 */
+	protected final ModuleDeploymentWriter moduleDeploymentWriter;
+
+	/**
+	 * Utility for loading streams and jobs (including deployment metadata).
+	 */
+	protected final DeploymentLoader deploymentLoader = new DeploymentLoader();
 
 	/**
 	 * Stream factory.
@@ -90,7 +110,10 @@ public class StreamDeploymentListener extends DeploymentHandler implements PathC
 			ContainerRepository containerRepository,
 			StreamFactory streamFactory,
 			ContainerMatcher containerMatcher) {
-		super(zkConnection, containerRepository, containerMatcher);
+		this.containerMatcher = containerMatcher;
+		this.containerRepository = containerRepository;
+		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
+				containerRepository, containerMatcher);
 		this.streamFactory = streamFactory;
 	}
 
@@ -171,7 +194,7 @@ public class StreamDeploymentListener extends DeploymentHandler implements PathC
 
 					@Override
 					public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
-						return DeploymentUtility.createModuleDeploymentProperties(stream.getDeploymentProperties(),
+						return DeploymentPropertiesUtility.createModuleDeploymentProperties(stream.getDeploymentProperties(),
 								descriptor);
 					}
 				};

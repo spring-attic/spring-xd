@@ -22,10 +22,11 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.xd.dirt.util.DeploymentUtility;
+import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 
 /**
- * Tests for the {@link DeploymentProperties} parser.
+ * Tests for the {@link ModuleDeploymentProperties} parser.
  *
  * @author Mark Fisher
  */
@@ -65,7 +66,7 @@ public class DeploymentPropertiesParserTests {
 	}
 
 	private static Map<String, String> testDeploymentPropertiesParser(String s) {
-		return DeploymentUtility.parseDeploymentProperties(s);
+		return DeploymentPropertiesUtility.parseDeploymentProperties(s);
 	}
 
 }

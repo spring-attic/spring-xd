@@ -158,7 +158,8 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 	 * Construct a {@code DeploymentSupervisor}.
 	 *
 	 * @param zkConnection ZooKeeper connection
-	 * @param streamDefinitionRepository repository for streams
+	 * @param streamDefinitionRepository repository for streams definitions
+	 * @param jobDefinitionRepository repository for job definitions
 	 * @param moduleDefinitionRepository repository for modules
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 * @param containerMatcher matches modules to containers
@@ -412,7 +413,8 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 
 			for (String oldContainer : containerDeployments) {
 				try {
-					client.delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.MODULE_DEPLOYMENTS, oldContainer));
+					client.delete().deletingChildrenIfNeeded().forPath(
+							Paths.build(Paths.MODULE_DEPLOYMENTS, oldContainer));
 				}
 				catch (KeeperException.NoNodeException e) {
 					// ignore

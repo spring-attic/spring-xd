@@ -22,14 +22,14 @@ import java.util.Map;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
 
 /**
- * Domain model for an XD Job definition. A Job consists of a single job module.
+ * Domain model for Job runtime module. A Job consists of a single job module.
  *
  * @author Ilayaperumal Gopinathan
  */
 public class Job {
 
 	/**
-	 * the name of the job
+	 * The name of the job
 	 */
 	private final String name;
 
@@ -75,9 +75,9 @@ public class Job {
 	}
 
 	/**
-	 * Return the deployment properties for this stream.
+	 * Return the deployment properties for this job.
 	 *
-	 * @return stream deployment properties
+	 * @return job deployment properties
 	 */
 	public Map<String, String> getDeploymentProperties() {
 		return deploymentProperties;
@@ -112,9 +112,9 @@ public class Job {
 		private ModuleDescriptor moduleDescriptor;
 
 		/**
-		 * Set the stream name.
+		 * Set the job name.
 		 *
-		 * @param name stream name
+		 * @param name job name
 		 *
 		 * @return this builder
 		 */
@@ -135,9 +135,9 @@ public class Job {
 		}
 
 		/**
-		 * Set the deployment properties for the stream.
+		 * Set the deployment properties for the job.
 		 *
-		 * @param deploymentProperties stream deployment properties
+		 * @param deploymentProperties job deployment properties
 		 *
 		 * @return this builder
 		 */
@@ -149,7 +149,7 @@ public class Job {
 		/**
 		 * Create a new instance of {@link Job}.
 		 *
-		 * @return new Stream instance
+		 * @return new Job instance
 		 */
 		public Job build() {
 			return new Job(name, moduleDescriptor, deploymentProperties);

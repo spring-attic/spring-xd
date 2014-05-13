@@ -33,10 +33,9 @@ import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
-import org.springframework.xd.dirt.util.DeploymentUtility;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.module.ModuleType;
 
 /**
  * Listener implementation that handles job deployment requests.
@@ -45,12 +44,32 @@ import org.springframework.xd.module.ModuleType;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class JobDeploymentListener extends DeploymentHandler implements PathChildrenCacheListener {
+public class JobDeploymentListener implements PathChildrenCacheListener {
 
 	/**
 	 * Logger.
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(JobDeploymentListener.class);
+
+	/**
+	 * Provides access to the current container list.
+	 */
+	protected final ContainerRepository containerRepository;
+
+	/**
+	 * Container matcher for matching modules to containers.
+	 */
+	protected final ContainerMatcher containerMatcher;
+
+	/**
+	 * Utility for writing module deployment requests to ZooKeeper.
+	 */
+	protected final ModuleDeploymentWriter moduleDeploymentWriter;
+
+	/**
+	 * Utility for loading streams and jobs (including deployment metadata).
+	 */
+	protected final DeploymentLoader deploymentLoader = new DeploymentLoader();
 
 	/**
 	 * Job factory.
@@ -67,7 +86,10 @@ public class JobDeploymentListener extends DeploymentHandler implements PathChil
 	 */
 	public JobDeploymentListener(ZooKeeperConnection zkConnection, ContainerRepository containerRepository,
 			JobFactory jobFactory, ContainerMatcher containerMatcher) {
-		super(zkConnection, containerRepository, containerMatcher);
+		this.containerMatcher = containerMatcher;
+		this.containerRepository = containerRepository;
+		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
+				containerRepository, containerMatcher);
 		this.jobFactory = jobFactory;
 	}
 
@@ -108,51 +130,28 @@ public class JobDeploymentListener extends DeploymentHandler implements PathChil
 	 *     <li>there is a container that can deploy the job</li>
 	 * </ul>
 	 *
-	 * @param client curator client
 	 * @param job the job instance to redeploy
 	 * @throws Exception
 	 */
 	private void deployJob(final Job job) throws Exception {
 		if (job != null) {
-			ModuleDescriptor descriptor = createJobModuleDescriptor(job.getName(),
-					job.getJobModuleDescriptor().getModuleName());
 			ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider provider =
 					new ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider() {
 
 						@Override
 						public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
-							return DeploymentUtility.createModuleDeploymentProperties(job.getDeploymentProperties(),
+							return DeploymentPropertiesUtility.createModuleDeploymentProperties(
+									job.getDeploymentProperties(),
 									descriptor);
 						}
 					};
 
 			List<ModuleDescriptor> descriptors = new ArrayList<ModuleDescriptor>();
-			descriptors.add(descriptor);
+			descriptors.add(job.getJobModuleDescriptor());
 			Collection<ModuleDeploymentWriter.Result> results =
 					moduleDeploymentWriter.writeDeployment(descriptors.iterator(), provider);
 			moduleDeploymentWriter.validateResults(results);
 		}
 	}
-
-	/**
-	 * Create an instance of {@link ModuleDescriptor} for a given job name.
-	 *
-	 * @param jobName job name
-	 * @param moduleName job module name
-	 *
-	 * @return a ModuleDescriptor for the given job
-	 */
-	public static ModuleDescriptor createJobModuleDescriptor(String jobName, String moduleName) {
-		return new ModuleDescriptor.Builder()
-				.setGroup(jobName)
-				.setType(ModuleType.job)
-				.setModuleName(moduleName)
-				// By default, module label is null for job module, explicitly set to use "modulename-index" pattern
-				// here.
-				.setModuleLabel(moduleName + "-0")
-				.setIndex(0)
-				.build();
-	}
-
 
 }

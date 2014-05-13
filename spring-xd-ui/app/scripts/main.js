@@ -28,7 +28,9 @@ require.config({
     ngResource: '../lib/angular-resource/angular-resource',
     uiRouter: '../lib/angular-ui-router/angular-ui-router',
     cgBusy: '../lib/angular-busy/angular-busy',
-    ngGrowl: '../lib/angular-growl/angular-growl'
+    ngGrowl: '../lib/angular-growl/angular-growl',
+    angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
+    highlightjs: '../lib/highlightjs/highlight.pack',
   },
   shim: {
     angular: {
@@ -48,6 +50,9 @@ require.config({
     },
     'ngGrowl': {
       deps: ['angular']
+    },
+    'angularHighlightjs': {
+      deps: ['angular', 'highlightjs']
     }
   }
 });

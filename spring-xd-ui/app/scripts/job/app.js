@@ -26,6 +26,7 @@ define([
   'ngResource',
   'cgBusy',
   'ngGrowl',
+  'angularHighlightjs',
   './controllers',
   './services',
   '../directives',
@@ -42,6 +43,7 @@ define([
     'ui.router',
     'ngResource',
     'cgBusy',
+    'hljs',
     'angular-growl'
   ]);
 });

@@ -1464,17 +1464,17 @@ project('spring-xd-shell') {
 		}
 		compile "com.google.guava:guava:14.0.1"
 		testCompile project(":spring-xd-test-fixtures")
-		compile project(":spring-xd-dirt")
-		configurations.compile.exclude(group: "xerces")
-		compile project(":spring-xd-test")
+		testCompile project(":spring-xd-dirt")
+//		configurations.compile.exclude(group: "xerces")
+//		compile project(":spring-xd-test")
 
 		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"
-		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
-				"org.slf4j:slf4j-log4j12:$slf4jVersion",
-				"log4j:log4j:$log4jVersion",
-				"org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
+		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+		runtime	"org.slf4j:slf4j-log4j12:$slf4jVersion"
+		runtime	"log4j:log4j:$log4jVersion"
+		compile	"org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
 		compile "commons-io:commons-io:$commonsIoVersion"
-		compile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
+		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 	}
 
 	// skip the startScripts task to avoid default start script generation

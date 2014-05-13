@@ -16,6 +16,9 @@
 
 package org.springframework.xd.shell.command;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -23,8 +26,6 @@ import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
@@ -35,7 +36,7 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Commands to interact with runtime containers/modules.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  */
 @Component
@@ -58,30 +59,21 @@ public class RuntimeCommands implements CommandMarker {
 		final PagedResources<ContainerAttributesResource> containers = runtimeOperations().listRuntimeContainers();
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Container Id"))
-		.addHeader(2, new TableHeader("Host"))
-		.addHeader(3, new TableHeader("IP Address"))
-		.addHeader(4, new TableHeader("PID"))
-		.addHeader(5, new TableHeader("Groups"))
-		.addHeader(6, new TableHeader("Custom Attributes"));
+				.addHeader(2, new TableHeader("Host"))
+				.addHeader(3, new TableHeader("IP Address"))
+				.addHeader(4, new TableHeader("PID"))
+				.addHeader(5, new TableHeader("Groups"))
+				.addHeader(6, new TableHeader("Custom Attributes"));
 		for (ContainerAttributesResource container : containers) {
-			ContainerAttributes attributes = new ContainerAttributes(container.getAttributes());
+			Map<String, String> copy = new HashMap<String, String>(container.getAttributes());
 			final TableRow row = table.newRow();
-			row.addValue(1, attributes.getId())
-			.addValue(2, attributes.getHost())
-			.addValue(3, attributes.getIp())
-			.addValue(4, String.valueOf(attributes.getPid()));
-			if (attributes.getGroups().size() > 0) {
-				row.addValue(5, StringUtils.collectionToCommaDelimitedString(attributes.getGroups()));
-			}
-			else {
-				row.addValue(5, "");
-			}
-			if (attributes.getCustomAttributes().size() > 0) {
-				row.addValue(6, attributes.getCustomAttributes().toString());
-			}
-			else {
-				row.addValue(6, "");
-			}
+			row.addValue(1, copy.remove("id"))
+					.addValue(2, copy.remove("host"))
+					.addValue(3, copy.remove("ip"))
+					.addValue(4, copy.remove("pid"));
+			String groups = copy.remove("groups");
+			row.addValue(5, groups == null ? "" : groups);
+			row.addValue(6, copy.isEmpty() ? "" : copy.toString());
 		}
 		return table;
 	}

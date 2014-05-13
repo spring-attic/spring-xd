@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,19 @@
  */
 
 /**
- * Definition of XD jobs admin app module.
+ * Definition of custom filters.
  *
  * @author Gunnar Hillert
- * @author Ilayaperumal Gopinathan
  */
-define([
-  'angular',
-  'uiRouter',
-  'ngResource',
-  'cgBusy',
-  'ngGrowl',
-  './controllers',
-  './services',
-  '../directives',
-  '../filters',
-  '../shared/services'
-], function (angular) {
+define(['angular'], function(angular) {
   'use strict';
-  return angular.module('xdJobsAdmin', [
-    'xdJobsAdmin.services',
-    'xdJobsAdmin.controllers',
-    'xdShared.services',
-    'xdAdmin.directives',
-    'xdAdmin.filters',
-    'ui.router',
-    'ngResource',
-    'cgBusy',
-    'angular-growl'
-  ]);
+  angular.module('xdAdmin.filters', [])
+    .filter('capitalize', function() {
+      return function(input) {
+        if (input) {
+          return input.substring(0,1).toUpperCase()+input.substring(1);
+        }
+        return input;
+      };
+    });
 });

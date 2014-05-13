@@ -100,7 +100,7 @@ echo -e "\n\n Test 5. Load single tab delimited file using filejdbc job with def
 cp $PWD/csv/data.csv $TEST_DIR/delete_after_use.csv
 sed 's/\,/	/g' $TEST_DIR/delete_after_use.csv > $TEST_DIR/delete_after_use_tabs.csv
 
-create_job csvjdbcjob0 "filejdbc $JDBC_PARAMS --names=col1,col2,col3 --resources=file://$TEST_DIR/delete_after_use_tabs.csv --initializeDatabase=true --deleteFiles=true --delimiter=\\t" 'true'
+create_job csvjdbcjob0 "filejdbc $JDBC_PARAMS --names=col1,col2,col3 --resources=file://$TEST_DIR/delete_after_use_tabs.csv --initializeDatabase=true --deleteFiles=true --delimiter='	'" 'true'
 launch_job csvjdbcjob0
 sleep 5
 rows=`sqlite3 $DB_FILE 'select count(*) from csvjdbcjob0'`
@@ -119,18 +119,3 @@ rm -R $TEST_DIR/delete_after_use.csv &> /dev/null
 
 echo -e '\nAll good :-)'
 
-
-commas_to_tabs() {
-	case "$OSTYPE" in
-	  darwin*)  echo "OSX" ;;
-	  linux*)   echo "LINUX" ;;
-	  bsd*)     echo "BSD" ;;
-	esac
-
-	if [ os == "OSX"]
-	then
-		sed 's/\,/	/g' $1 > $2
-	else
-		sed 's/\,/\t/g' $1 > $2
-	fi
-}

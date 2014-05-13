@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.server;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,14 +36,11 @@ import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
-import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Listener implementation that handles stream deployment requests.
@@ -60,16 +56,6 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	private final Logger logger = LoggerFactory.getLogger(StreamDeploymentListener.class);
 
 	/**
-	 * Utility to convert maps to byte arrays.
-	 */
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
-
-	/**
-	 * Stream factory.
-	 */
-	private final StreamFactory streamFactory;
-
-	/**
 	 * Utility for writing module deployment requests to ZooKeeper.
 	 */
 	private final ModuleDeploymentWriter moduleDeploymentWriter;
@@ -78,6 +64,11 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 * Utility for loading streams and jobs (including deployment metadata).
 	 */
 	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
+
+	/**
+	 * Stream factory.
+	 */
+	private final StreamFactory streamFactory;
 
 	/**
 	 * Executor service dedicated to handling events raised from
@@ -100,21 +91,18 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	/**
 	 * Construct a StreamDeploymentListener.
 	 *
+	 * @param zkConnection ZooKeeper connection
 	 * @param containerRepository repository to obtain container data
-	 * @param moduleDefinitionRepository repository to obtain module data
-	 * @param moduleOptionsMetadataResolver resolver for module options metadata
+	 * @param streamFactory factory to construct {@link Stream}
 	 * @param containerMatcher matches modules to containers
 	 */
 	public StreamDeploymentListener(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository,
-			StreamDefinitionRepository streamDefinitionRepository,
-			ModuleDefinitionRepository moduleDefinitionRepository,
-			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
+			StreamFactory streamFactory,
 			ContainerMatcher containerMatcher) {
-		this.streamFactory = new StreamFactory(streamDefinitionRepository,
-				moduleDefinitionRepository, moduleOptionsMetadataResolver);
 		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
 				containerRepository, containerMatcher);
+		this.streamFactory = streamFactory;
 	}
 
 	/**
@@ -191,38 +179,17 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	private void deployStream(final Stream stream) throws Exception {
 		ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider provider =
 				new ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider() {
-			@Override
-			public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
-				return createModuleDeploymentProperties(stream.getDeploymentProperties(), descriptor);
-			}
-		};
+
+					@Override
+					public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
+						return DeploymentPropertiesUtility.createModuleDeploymentProperties(stream.getDeploymentProperties(),
+								descriptor);
+					}
+				};
 
 		Collection<ModuleDeploymentWriter.Result> results =
 				moduleDeploymentWriter.writeDeployment(stream.getDeploymentOrderIterator(), provider);
 		moduleDeploymentWriter.validateResults(results);
-	}
-
-	/**
-	 * Based on the deployment properties for a {@link Stream}, create an instance
-	 * of {@link org.springframework.xd.dirt.core.ModuleDeploymentProperties} for
-	 * a specific module in the stream.
-	 *
-	 * @param streamDeploymentProperties deployment properties for a stream
-	 * @param descriptor descriptor for module in the stream for which
-	 *        to create the properties
-	 * @return deployment properties for the module
-	 */
-	public static ModuleDeploymentProperties createModuleDeploymentProperties(
-			Map<String, String> streamDeploymentProperties, ModuleDescriptor descriptor) {
-		ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
-		for (String key : streamDeploymentProperties.keySet()) {
-			String prefix = String.format("module.%s.", descriptor.getModuleName());
-			if (key.startsWith(prefix)) {
-				deploymentProperties.put(key.substring(prefix.length()),
-						streamDeploymentProperties.get(key));
-			}
-		}
-		return deploymentProperties;
 	}
 
 	/**

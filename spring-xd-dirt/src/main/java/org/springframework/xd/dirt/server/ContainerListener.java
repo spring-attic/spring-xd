@@ -29,7 +29,6 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,30 +38,28 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
+import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
-import org.springframework.xd.dirt.stream.JobDefinition;
-import org.springframework.xd.dirt.stream.ParsingContext;
-import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.stream.XDStreamParser;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Listener implementation that is invoked when containers are added/removed/modified.
  *
  * @author Patrick Peralta
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
 public class ContainerListener implements PathChildrenCacheListener {
 
@@ -70,6 +67,11 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * Logger.
 	 */
 	private final Logger logger = LoggerFactory.getLogger(ContainerListener.class);
+
+	/**
+	 * Utility to convert maps to byte arrays.
+	 */
+	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	/**
 	 * Provides access to the current container list.
@@ -82,14 +84,24 @@ public class ContainerListener implements PathChildrenCacheListener {
 	private final ContainerMatcher containerMatcher;
 
 	/**
-	 * Utility to convert maps to byte arrays.
+	 * Utility for writing module deployment requests to ZooKeeper.
 	 */
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+	private final ModuleDeploymentWriter moduleDeploymentWriter;
+
+	/**
+	 * Utility for loading streams and jobs (including deployment metadata).
+	 */
+	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
 
 	/**
 	 * Stream factory.
 	 */
 	private final StreamFactory streamFactory;
+
+	/**
+	 * Job factory.
+	 */
+	private final JobFactory jobFactory;
 
 	/**
 	 * {@link Converter} from {@link ChildData} in stream deployments to Stream name.
@@ -108,51 +120,31 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private final PathChildrenCache streamDeployments;
 
-	/**
-	 * The parser.
-	 */
-	private final XDStreamParser parser;
-
-	/**
-	 * Utility for writing module deployment requests to containers.
-	 */
-	private final ModuleDeploymentWriter moduleDeploymentWriter;
-
-	/**
-	 * Utility for loading streams and jobs (including deployment metadata).
-	 */
-	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
-
 
 	/**
 	 * Construct a ContainerListener.
 	 *
 	 * @param zkConnection ZooKeeper connection
 	 * @param containerRepository repository for container data
-	 * @param streamDefinitionRepository repository for streams
-	 * @param moduleDefinitionRepository repository for module definitions
-	 * @param moduleOptionsMetadataResolver resolver for module options metadata
+	 * @param streamFactory factory to construct {@link Stream}
+	 * @param jobFactory factory to construct {@link Job}
 	 * @param streamDeployments cache of children for stream deployments path
-	 * @param streamDefinitions cache of children for streams
 	 * @param jobDeployments cache of children for job deployments path
 	 * @param containerMatcher matches modules to containers
 	 */
 	public ContainerListener(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository,
-			StreamDefinitionRepository streamDefinitionRepository,
-			ModuleDefinitionRepository moduleDefinitionRepository,
-			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
-			PathChildrenCache streamDeployments, PathChildrenCache streamDefinitions,
-			PathChildrenCache jobDeployments, ContainerMatcher containerMatcher) {
+			StreamFactory streamFactory, JobFactory jobFactory,
+			PathChildrenCache streamDeployments, PathChildrenCache jobDeployments,
+			ContainerMatcher containerMatcher) {
+		this.containerMatcher = containerMatcher;
 		this.containerRepository = containerRepository;
-		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
-				moduleOptionsMetadataResolver);
-		this.streamDeployments = streamDeployments;
-		this.jobDeployments = jobDeployments;
-		this.parser = new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
 		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
 				containerRepository, containerMatcher);
-		this.containerMatcher = containerMatcher;
+		this.streamFactory = streamFactory;
+		this.jobFactory = jobFactory;
+		this.streamDeployments = streamDeployments;
+		this.jobDeployments = jobDeployments;
 	}
 
 	/**
@@ -201,32 +193,40 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * Deploy any "orphaned" jobs (jobs that are supposed to be deployed but
 	 * do not have any modules deployed in any container).
 	 *
-	 * @param client      curator client
-	 * @param container   target container for job module deployment
+	 * @param client curator client
+	 * @param container target container for job module deployment
 	 * @throws Exception
 	 */
 	private void deployOrphanedJobs(CuratorFramework client, Container container) throws Exception {
 		// check for "orphaned" jobs that can be deployed to this new container
 		for (Iterator<String> jobDeploymentIterator =
-				new ChildPathIterator<String>(deploymentNameConverter, jobDeployments);
-						jobDeploymentIterator.hasNext();) {
+				new ChildPathIterator<String>(deploymentNameConverter, jobDeployments); jobDeploymentIterator.hasNext();) {
 			String jobName = jobDeploymentIterator.next();
 
-			// if jobDefinition is null this means the job was destroyed or undeployed
-			JobDefinition jobDefinition = deploymentLoader.loadJob(client, jobName);
-			if (jobDefinition != null) {
-				ModuleDescriptor descriptor = parser.parse(jobName, jobDefinition.getDefinition(),
-						ParsingContext.job).iterator().next();
-				String moduleLabel = descriptor.getModuleLabel();
-				String path = new JobDeploymentsPath().setJobName(jobName).setModuleLabel(moduleLabel).build();
-				Stat stat = client.checkExists().forPath(path);
-				// if stat is null, this means that the job deployment request was written out
-				// to ZK but JobDeploymentListener hasn't picked it up yet; in that case skip
-				// this job deployment since JobDeploymentListener will handle it
-				if (stat != null && stat.getNumChildren() == 0) {
-					// no ephemeral nodes under the job module path; this job should be deployed
-					ModuleDeploymentWriter.Result result = moduleDeploymentWriter.writeDeployment(descriptor, container);
-					moduleDeploymentWriter.validateResults(Collections.singleton(result));
+			// if job is null this means the job was destroyed or undeployed
+			Job job = deploymentLoader.loadJob(client, jobName, this.jobFactory);
+			if (job != null) {
+				ModuleDescriptor descriptor = job.getJobModuleDescriptor();
+				ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
+						job.getDeploymentProperties(), descriptor);
+				if (isCandidateForDeployment(container, descriptor, moduleDeploymentProperties)) {
+					// obtain all of the containers that have deployed this module
+					List<String> containersForModule = getContainersForJobModule(client, descriptor);
+					if (!containersForModule.contains(container.getName())) {
+						// this container has not deployed this module; determine if it should
+						int moduleCount = moduleDeploymentProperties.getCount();
+						if (moduleCount <= 0 || containersForModule.size() < moduleCount) {
+							// either the module has a count of 0 (therefore it should be deployed everywhere)
+							// or the number of containers that have deployed the module is less than the
+							// amount specified by the module descriptor
+							logger.info("Deploying module {} to {}",
+									descriptor.getModuleDefinition().getName(), container);
+
+							ModuleDeploymentWriter.Result result =
+									moduleDeploymentWriter.writeDeployment(descriptor, container);
+							moduleDeploymentWriter.validateResults(Collections.singleton(result));
+						}
+					}
 				}
 			}
 		}
@@ -240,26 +240,23 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * modules with a count of 0 if this container matches the deployment
 	 * criteria.
 	 *
-	 * @param client     curator client
-	 * @param container  target container for stream module deployment
+	 * @param client curator client
+	 * @param container target container for stream module deployment
 	 * @throws Exception
 	 */
 	private void deployOrphanedStreams(CuratorFramework client, Container container) throws Exception {
 		// iterate the cache of stream deployments
 		for (Iterator<String> streamDeploymentIterator =
-					new ChildPathIterator<String>(deploymentNameConverter, streamDeployments);
-							streamDeploymentIterator.hasNext();) {
+				new ChildPathIterator<String>(deploymentNameConverter, streamDeployments); streamDeploymentIterator.hasNext();) {
 			String streamName = streamDeploymentIterator.next();
 			Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
 
 			// if stream is null this means the stream was destroyed or undeployed
 			if (stream != null) {
-				for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator();
-						descriptorIterator.hasNext();) {
+				for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
 					ModuleDescriptor descriptor = descriptorIterator.next();
-					ModuleDeploymentProperties moduleDeploymentProperties =
-							StreamDeploymentListener.createModuleDeploymentProperties(
-									stream.getDeploymentProperties(), descriptor);
+					ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
+							stream.getDeploymentProperties(), descriptor);
 
 					if (isCandidateForDeployment(container, descriptor, moduleDeploymentProperties)) {
 						// obtain all of the containers that have deployed this module
@@ -291,9 +288,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * given the criteria present in the
 	 * {@link org.springframework.xd.dirt.core.ModuleDeploymentProperties}.
 	 *
-	 * @param container   target container
-	 * @param descriptor  module descriptor
-	 * @param properties  deployment properties
+	 * @param container target container
+	 * @param descriptor module descriptor
+	 * @param properties deployment properties
 	 * @return true if the container is allowed to deploy the module
 	 */
 	private boolean isCandidateForDeployment(final Container container, ModuleDescriptor descriptor,
@@ -315,8 +312,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param client curator client
 	 * @param descriptor module descriptor
 	 *
-	 * @return list of containers that have deployed this module; empty list is
-	 *         returned if no containers have deployed it
+	 * @return list of containers that have deployed this module; empty
+	 * list is returned if no containers have deployed it
 	 *
 	 * @throws Exception thrown by Curator
 	 */
@@ -334,11 +331,34 @@ public class ContainerListener implements PathChildrenCacheListener {
 	}
 
 	/**
+	 * Determine which containers, if any, have deployed job module of the given job.
+	 *
+	 * @param client curator client
+	 * @param descriptor module descriptor
+	 *
+	 * @return list of containers that have deployed this module; empty list is returned if no containers have deployed
+	 *         it
+	 *
+	 * @throws Exception thrown by Curator
+	 */
+	private List<String> getContainersForJobModule(CuratorFramework client, ModuleDescriptor descriptor)
+			throws Exception {
+		try {
+			return client.getChildren().forPath(new JobDeploymentsPath()
+					.setJobName(descriptor.getGroup())
+					.setModuleLabel(descriptor.getModuleLabel()).build());
+		}
+		catch (KeeperException.NoNodeException e) {
+			return Collections.emptyList();
+		}
+	}
+
+	/**
 	 * Handle the departure of a container. This will scan the list of modules
 	 * deployed to the departing container and redeploy them if required.
 	 *
 	 * @param client curator client
-	 * @param data   node data for the container that departed
+	 * @param data node data for the container that departed
 	 */
 	private void onChildLeft(CuratorFramework client, ChildData data) throws Exception {
 		String path = data.getPath();
@@ -363,16 +383,19 @@ public class ContainerListener implements PathChildrenCacheListener {
 			String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 
 			if (ModuleType.job.toString().equals(moduleType)) {
-				redeployJob(client, unitName);
+				Job job = deploymentLoader.loadJob(client, unitName, this.jobFactory);
+				if (job != null) {
+					redeployJob(client, job);
+				}
 			}
 			else {
 				Stream stream = streamMap.get(unitName);
 				if (stream == null) {
-					stream = deploymentLoader.loadStream(client, unitName, streamFactory);
+					stream = deploymentLoader.loadStream(client, unitName, this.streamFactory);
 					streamMap.put(unitName, stream);
 				}
 				if (stream != null) {
-					redeployStreamModule(stream, moduleType, moduleLabel);
+					redeployStreamModule(client, stream, moduleType, moduleLabel);
 				}
 			}
 		}
@@ -385,80 +408,108 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * Redeploy a module for a stream to a container. This redeployment will occur
 	 * if:
 	 * <ul>
-	 *     <li>the module needs to be redeployed per the deployment properties</li>
-	 *     <li>the stream has not been destroyed</li>
-	 *     <li>the stream has not been undeployed</li>
-	 *     <li>there is a container that can deploy the stream module</li>
+	 * 		<li>the module needs to be redeployed per the deployment properties</li>
+	 * 		<li>the stream has not been destroyed</li>
+	 * 		<li>the stream has not been undeployed</li>
+	 * 		<li>there is a container that can deploy the stream module</li>
 	 * </ul>
 	 *
-	 * @param stream       stream for module
-	 * @param moduleType   module type
-	 * @param moduleLabel  module label
+	 * @param stream stream for module
+	 * @param moduleType module type
+	 * @param moduleLabel module label
 	 * @throws InterruptedException
 	 */
-	private void redeployStreamModule(Stream stream, String moduleType, String moduleLabel) throws InterruptedException {
+	private void redeployStreamModule(CuratorFramework client, Stream stream, String moduleType, String moduleLabel)
+			throws Exception {
 		String streamName = stream.getName();
 		ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
-		ModuleDeploymentProperties moduleDeploymentProperties =
-				StreamDeploymentListener.createModuleDeploymentProperties(
-						stream.getDeploymentProperties(), moduleDescriptor);
+		ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
+				stream.getDeploymentProperties(), moduleDescriptor);
 		if (moduleDeploymentProperties.getCount() > 0) {
 			Iterator<Container> iterator = containerMatcher.match(moduleDescriptor,
 					moduleDeploymentProperties, containerRepository).iterator();
-			if (iterator.hasNext()) {
+			List<String> containersForStreamModule = getContainersForStreamModule(client, moduleDescriptor);
+			boolean streamModuleDeployed = false;
+			while (iterator.hasNext()) {
 				Container targetContainer = iterator.next();
-				ModuleDeploymentWriter.Result result =
-						moduleDeploymentWriter.writeDeployment(moduleDescriptor, targetContainer);
-				moduleDeploymentWriter.validateResult(result);
+				if (!containersForStreamModule.contains(targetContainer.getName())) {
+					ModuleDeploymentWriter.Result result =
+							moduleDeploymentWriter.writeDeployment(moduleDescriptor, targetContainer);
+					moduleDeploymentWriter.validateResult(result);
+					streamModuleDeployed = true;
+					break;
+				}
 			}
-			else {
+			if (!streamModuleDeployed) {
 				logger.warn("No containers available for redeployment of {} for stream {}", moduleLabel,
 						streamName);
 			}
 		}
 		else {
-			StringBuilder builder = new StringBuilder();
-			String criteria = moduleDeploymentProperties.getCriteria();
-			builder.append("Module '").append(moduleLabel).append("' is targeted to all containers");
-			if (StringUtils.hasText(criteria)) {
-				builder.append(" matching criteria '").append(criteria).append('\'');
-			}
-			builder.append("; it does not need to be redeployed");
-			logger.info(builder.toString());
+			logUnwantedRedeployment(moduleDeploymentProperties.getCriteria(), moduleLabel);
 		}
 	}
 
 	/**
-	 * Redeploy a module for a job to a container. This redeployment will occur
-	 * if:
+	 * Redeploy a module for a job to a container. This redeployment will occur if:
 	 * <ul>
-	 *     <li>the job has not been destroyed</li>
-	 *     <li>the job has not been undeployed</li>
-	 *     <li>there is a container that can deploy the job</li>
+	 * 		<li>the job has not been destroyed</li>
+	 * 		<li>the job has not been undeployed</li>
+	 * 		<li>there is a container that can deploy the job</li>
 	 * </ul>
 	 *
-	 * @param client      curator client
-	 * @param jobName     name of job to redeploy
+	 * @param client curator client
+	 * @param job job instance to redeploy
 	 * @throws Exception
 	 */
-	private void redeployJob(CuratorFramework client, String jobName) throws Exception {
-		JobDefinition jobDefinition = deploymentLoader.loadJob(client, jobName);
-		if (jobDefinition != null) {
-			ModuleDescriptor descriptor = parser.parse(jobName, jobDefinition.getDefinition(),
-					ParsingContext.job).get(0);
-
-			Iterator<Container> iterator = containerMatcher.match(descriptor,
-					ModuleDeploymentProperties.defaultInstance, containerRepository).iterator();
-			if (iterator.hasNext()) {
-				Container targetContainer = iterator.next();
-				ModuleDeploymentWriter.Result result =
-						moduleDeploymentWriter.writeDeployment(descriptor, targetContainer);
-				moduleDeploymentWriter.validateResult(result);
+	private void redeployJob(CuratorFramework client, Job job) throws Exception {
+		String jobName = job.getName();
+		String moduleLabel = job.getJobModuleDescriptor().getModuleLabel();
+		ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
+		ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
+				job.getDeploymentProperties(), moduleDescriptor);
+		if (moduleDeploymentProperties.getCount() > 0) {
+			Iterator<Container> iterator = containerMatcher.match(moduleDescriptor, moduleDeploymentProperties,
+					containerRepository).iterator();
+			List<String> containersForJobModule = getContainersForJobModule(client, moduleDescriptor);
+			boolean jobModuleDeployed = false;
+			while (iterator.hasNext()) {
+				Container target = iterator.next();
+				String targetName = target.getName();
+				// Don't allow more than one job module for the same job name to be
+				// deployed into a single container
+				if (!containersForJobModule.contains(targetName)) {
+					logger.info("Redeploying job {} to container {}", jobName, targetName);
+					ModuleDeploymentWriter.Result result =
+							moduleDeploymentWriter.writeDeployment(moduleDescriptor, target);
+					moduleDeploymentWriter.validateResult(result);
+					jobModuleDeployed = true;
+					break;
+				}
 			}
-			else {
-				logger.warn("No containers available for redeployment of {}", jobName);
+			if (!jobModuleDeployed) {
+				logger.warn("No containers available for redeployment of job {}", jobName);
 			}
 		}
+		else {
+			logUnwantedRedeployment(moduleDeploymentProperties.getCriteria(), moduleLabel);
+		}
+	}
+
+	/**
+	 * Log unwanted re-deployment of the module if the module count is less
+	 * than or equal to zero.
+	 * @param criteria the criteria for the module deployment
+	 * @param moduleLabel the module label
+	 */
+	private void logUnwantedRedeployment(String criteria, String moduleLabel) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Module '").append(moduleLabel).append("' is targeted to all containers");
+		if (StringUtils.hasText(criteria)) {
+			builder.append(" matching criteria '").append(criteria).append('\'');
+		}
+		builder.append("; it does not need to be redeployed");
+		logger.info(builder.toString());
 	}
 
 

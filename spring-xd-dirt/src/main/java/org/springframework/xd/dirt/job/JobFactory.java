@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.dirt.job;
 
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.Stream;
+import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.dirt.stream.ParsingContext;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
- * Factory class that builds {@link Stream} instances.
+ * Factory class that builds {@link Job} instances.
  *
- * @author Patrick Peralta
- * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
-public class StreamFactory {
+public class JobFactory {
 
 	/**
 	 * DSL parser.
@@ -41,54 +42,52 @@ public class StreamFactory {
 	private final XDStreamParser parser;
 
 	/**
-	 * Construct a StreamFactory to create {@link Stream} domain model instances.
+	 * Construct a JobFactory to create {@link Job} domain model instances.
 	 *
-	 * @param streamDefinitionRepository     repository for stream definitions
+	 * @param jobDefinitionRepository        repository for job definitions
 	 * @param moduleDefinitionRepository     repository for module definitions
 	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
 	 */
-	public StreamFactory(StreamDefinitionRepository streamDefinitionRepository,
+	public JobFactory(JobDefinitionRepository jobDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		this.parser = new XDStreamParser(streamDefinitionRepository, moduleDefinitionRepository,
+		this.parser = new XDStreamParser(jobDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
 	}
 
 	/**
-	 * Create a new instance of {@link Stream} for the given name and
+	 * Create a new instance of {@link Job} for the given name and
 	 * properties. The properties should at minimum contain the following
 	 * entries:
 	 * <table>
 	 *   <tr>
 	 *     <th>definition</th>
-	 *     <td>DSL definition for stream</td>
+	 *     <td>DSL definition for job</td>
 	 *   </tr>
 	 *   <tr>
 	 *     <th>deploymentProperties</th>
-	 *     <td>Deployment properties for stream</td>
+	 *     <td>Deployment properties for job</td>
 	 *   </tr>
 	 * </table>
 	 *
-	 * @param name        stream name
-	 * @param properties  properties for stream
-	 * @return new {@code Stream} domain model instance
+	 * @param name        job name
+	 * @param properties  properties for job
+	 * @return new {@code Job} domain model instance
 	 */
-	public Stream createStream(String name, Map<String, String> properties) {
-		Assert.hasText(name, "Stream name is required");
-		Assert.notNull(properties, "Stream properties are required");
+	public Job createJob(String name, Map<String, String> properties) {
+		Assert.hasText(name, "Job name is required");
+		Assert.notNull(properties, "Job properties are required");
 
 		String definition = properties.get("definition");
-		Assert.hasText(definition, "Stream properties requires a 'definition' property");
+		Assert.hasText(definition, "Job properties requires a 'definition' property");
 
-		Deque<ModuleDescriptor> descriptors = new LinkedList<ModuleDescriptor>();
-		for (ModuleDescriptor request : parser.parse(name, definition, ParsingContext.stream)) {
-			descriptors.addFirst(request);
-		}
-
-		return new Stream.Builder()
+		List<ModuleDescriptor> descriptors = parser.parse(name, definition, ParsingContext.job);
+		Assert.isTrue(descriptors.size() == 1);
+		return new Job.Builder()
 				.setName(name)
-				.setDeploymentProperties(DeploymentPropertiesUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
-				.setModuleDescriptors(descriptors).build();
+				.setDeploymentProperties(
+						DeploymentPropertiesUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
+				.setModuleDescriptor(descriptors.get(0)).build();
 	}
 
 }

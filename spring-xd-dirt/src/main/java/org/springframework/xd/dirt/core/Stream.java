@@ -20,13 +20,12 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.xd.dirt.module.ModuleDescriptor;
 
 /**
- * Domain model for an XD Stream definition. A stream consists of a set of modules used
+ * Domain model for runtime Stream modules. A stream consists of a set of modules used
  * to process the flow of data.
  *
  * @author Patrick Peralta

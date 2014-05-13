@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
@@ -44,11 +42,6 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Patrick Peralta
  */
 public class StreamPathProvider implements DeploymentPathProvider {
-
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = LoggerFactory.getLogger(StreamPathProvider.class);
 
 	/**
 	 * ZooKeeper connection.

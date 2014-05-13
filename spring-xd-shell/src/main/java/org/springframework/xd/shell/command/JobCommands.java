@@ -319,8 +319,9 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")
 	public String deployJob(
-			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job undeployed disable-string-converter") String name) {
-		jobOperations().deploy(name, null);
+			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job undeployed disable-string-converter") String name,
+			@CliOption(key = { "properties" }, help = "the properties for this deployment", mandatory = false) String properties) {
+		jobOperations().deploy(name, properties);
 		return String.format("Deployed job '%s'", name);
 	}
 

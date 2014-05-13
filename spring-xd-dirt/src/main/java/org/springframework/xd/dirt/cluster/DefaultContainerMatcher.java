@@ -62,7 +62,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = LoggerFactory.getLogger(DefaultContainerMatcher.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultContainerMatcher.class);
 
 	/**
 	 * Current index for iterating over containers.
@@ -96,7 +96,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		Assert.notNull(moduleDescriptor, "'moduleDescriptor' cannot be null.");
 		Assert.notNull(deploymentProperties, "'deploymentProperties' cannot be null.");
 
-		LOG.debug("Matching containers for module {}", moduleDescriptor);
+		logger.debug("Matching containers for module {}", moduleDescriptor);
 		List<Container> candidates = findAllContainersMatchingCriteria(containerRepository,
 				deploymentProperties.getCriteria());
 
@@ -144,21 +144,21 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 * @return the list of containers matching the criteria
 	 */
 	private List<Container> findAllContainersMatchingCriteria(ContainerRepository containerRepository, String criteria) {
-		LOG.debug("Matching containers for criteria '{}'", criteria);
+		logger.debug("Matching containers for criteria '{}'", criteria);
 
 		List<Container> candidates = new ArrayList<Container>();
 
 		for (Iterator<Container> iterator = containerRepository.getContainerIterator(); iterator.hasNext();) {
 			Container container = iterator.next();
-			LOG.trace("Evaluating container {}", container);
+			logger.trace("Evaluating container {}", container);
 			if (StringUtils.isEmpty(criteria) || isCandidate(container, criteria)) {
-				LOG.trace("\tAdded container {}", container);
+				logger.trace("\tAdded container {}", container);
 				candidates.add(container);
 			}
 		}
 
 		if (candidates.isEmpty()) {
-			LOG.warn("No currently available containers match criteria '{}'", criteria);
+			logger.warn("No currently available containers match criteria '{}'", criteria);
 		}
 		return candidates;
 	}
@@ -178,12 +178,12 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		}
 		catch (SpelEvaluationException e) {
 			if (e.getMessageCode().equals(SpelMessage.PROPERTY_OR_FIELD_NOT_READABLE)) {
-				LOG.debug("candidate does not contain an attribute referenced in the criteria {}", criteria);
+				logger.debug("candidate does not contain an attribute referenced in the criteria {}", criteria);
 			}
 			return false;
 		}
 		catch (EvaluationException e) {
-			LOG.debug("candidate not a match due to evaluation exception", e);
+			logger.debug("candidate not a match due to evaluation exception", e);
 			return false;
 		}
 	}

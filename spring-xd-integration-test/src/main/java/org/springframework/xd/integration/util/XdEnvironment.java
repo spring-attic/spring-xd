@@ -129,7 +129,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	private SimpleDriverDataSource dataSource;
 
-	private CachingConnectionFactory mqConnectionFactory;
+	private CachingConnectionFactory rabbitConnectionFactory;
 
 	@Value("${spring.hadoop.fsUri}")
 	private String nameNode;
@@ -164,7 +164,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 			return;
 		}
 		dataSource = new SimpleDriverDataSource();
-		mqConnectionFactory = new CachingConnectionFactory(adminServerUrl.getHost());
+		rabbitConnectionFactory = new CachingConnectionFactory(adminServerUrl.getHost());
 		try {
 			@SuppressWarnings("unchecked")
 			Class<? extends Driver> classz = (Class<? extends Driver>) ClassUtils.forName(jdbcDriver,
@@ -231,8 +231,8 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		return dataSource;
 	}
 
-	public CachingConnectionFactory getMqConnectionFactory() {
-		return mqConnectionFactory;
+	public CachingConnectionFactory getRabbitConnectionFactory() {
+		return rabbitConnectionFactory;
 	}
 
 	public String getJmsHost() {

@@ -116,12 +116,12 @@ public class RabbitSource extends AbstractModuleFixture {
 	 */
 	public void createQueue() {
 		RabbitAdmin admin = new RabbitAdmin(connectionFactory);
-		Queue sourceQueue = new Queue(queue);
+		Queue sourceQueue = new Queue(queue, false, false, true);
 		admin.declareQueue(sourceQueue);
 		TopicExchange exchange = new TopicExchange(DEFAULT_EXCHANGE);
 		admin.declareExchange(exchange);
 		admin.declareBinding(
-				BindingBuilder.bind(sourceQueue).to(exchange).with("foo." + queue));
+				BindingBuilder.bind(sourceQueue).to(exchange).with("rabbitfixture.*"));
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class RabbitSource extends AbstractModuleFixture {
 	public void sendData(String data) {
 		Assert.hasText(data, "data must not be null nor empty");
 		RabbitTemplate template = new RabbitTemplate(connectionFactory);
-		template.convertAndSend(DEFAULT_EXCHANGE, "foo." + queue, data);
+		template.convertAndSend(DEFAULT_EXCHANGE, "rabbitfixture.source", data);
 	}
 
 	/**

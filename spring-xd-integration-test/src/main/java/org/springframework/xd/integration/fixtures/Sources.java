@@ -138,7 +138,7 @@ public class Sources {
 	 * @return An instance of the rabbitsource fixture.
 	 */
 	public RabbitSource rabbitSource() {
-		return RabbitSource.withDefaults(xdEnvironment.getMqConnectionFactory());
+		return RabbitSource.withDefaults(xdEnvironment.getRabbitConnectionFactory());
 	}
 
 	/**

@@ -154,6 +154,17 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 	}
 
+
+	/**
+	 * Gets the URL of the container for the stream being tested.
+	 *
+	 * @return The URL that contains the stream.
+	 */
+	public URL getContainerForStream() {
+		// Assuming one container for now.
+		return xdEnvironment.getContainerUrls().get(0);
+	}
+
 	/**
 	 * Gets the URL of the container where the stream was deployed
 	 *
@@ -226,6 +237,15 @@ public abstract class AbstractIntegrationTest {
 	 */
 	public void undeployStream() {
 		StreamUtils.undeployStream(adminServer, STREAM_NAME);
+	}
+
+	/**
+	 * Undeploys the specified stream
+	 *
+	 * @param streamName the name of the stream to be undeployed.
+	 */
+	public void undeployStream(String streamName) {
+		StreamUtils.undeployStream(adminServer, streamName);
 	}
 
 	/**

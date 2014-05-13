@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.xd.test.fixtures.RabbitSink;
 import org.springframework.xd.test.fixtures.RabbitSource;
 
 
@@ -33,7 +34,10 @@ import org.springframework.xd.test.fixtures.RabbitSource;
  */
 public class RabbitTest extends AbstractIntegrationTest {
 
+	private final static String DATA_SENDER_NAME = "datasender";
+
 	private RabbitSource rabbitSource;
+
 
 	/**
 	 * Verifies connectivity to the broker instance and creates the queue for the test.
@@ -41,11 +45,25 @@ public class RabbitTest extends AbstractIntegrationTest {
 	@Before
 	public void initialize() {
 		rabbitSource = sources.rabbitSource();
-		String queue = UUID.randomUUID().toString();
 		rabbitSource.ensureReady();
-		rabbitSource.queue(queue).createQueue();
+		rabbitSource.createQueue();
 	}
 
+	/**
+	 * Verfies that a message will be dispatched by the rabbit sink and processed by a rabbit source.
+	 *
+	 */
+	@Test
+	public void testRabbitSink() {
+		String data = UUID.randomUUID().toString();
+		RabbitSink rabbitSink = sinks.rabbit(RabbitSource.DEFAULT_QUEUE).host(adminServer.getHost());
+		stream(rabbitSource + XD_DELIMETER + sinks.file());
+		waitForXD();
+		stream(DATA_SENDER_NAME, "trigger --payload='" + data + "'" + XD_DELIMETER + rabbitSink);
+		waitForXD();
+		assertValid(data, sinks.file());
+
+	}
 
 	/**
 	 * Verfies that a message dispatched to a queue can be picked up and properly processed by the Rabbit Source.

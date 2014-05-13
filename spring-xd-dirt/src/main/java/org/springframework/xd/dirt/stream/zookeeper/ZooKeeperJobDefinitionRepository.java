@@ -50,7 +50,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 // support multiple impls at that point
 public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository, InitializingBean {
 
-	private final Logger LOG = LoggerFactory.getLogger(ZooKeeperJobDefinitionRepository.class);
+	private final Logger logger = LoggerFactory.getLogger(ZooKeeperJobDefinitionRepository.class);
 
 	private final ZooKeeperConnection zkConnection;
 
@@ -122,7 +122,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 
 			op.forPath(path, binary);
 
-			LOG.info("Saved job {} with properties {}", path, map);
+			logger.info("Saved job {} with properties {}", path, map);
 		}
 		catch (NodeExistsException e) {
 			// this exception indicates that we tried to create the

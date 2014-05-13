@@ -52,7 +52,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 // support multiple impls at that point
 public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepository, InitializingBean {
 
-	private final Logger LOG = LoggerFactory.getLogger(ZooKeeperStreamDefinitionRepository.class);
+	private final Logger logger = LoggerFactory.getLogger(ZooKeeperStreamDefinitionRepository.class);
 
 	private final ZooKeeperConnection zkConnection;
 
@@ -126,7 +126,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 			op.forPath(path, binary);
 
-			LOG.trace("Saved stream {} with properties {}", path, map);
+			logger.trace("Saved stream {} with properties {}", path, map);
 
 			StreamDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, entity);
 		}
@@ -203,7 +203,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	@Override
 	public void delete(String id) {
-		LOG.trace("Deleting stream {}", id);
+		logger.trace("Deleting stream {}", id);
 		String path = Paths.build(Paths.STREAMS, id);
 		try {
 			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);

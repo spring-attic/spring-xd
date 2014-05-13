@@ -21,8 +21,9 @@ import java.util.Map;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 
+import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.stream.JobDefinition;
+import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -39,6 +40,7 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * @see org.springframework.xd.dirt.server.StreamDeploymentListener
  *
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 public class DeploymentLoader {
 
@@ -49,23 +51,28 @@ public class DeploymentLoader {
 
 
 	/**
-	 * Load the {@link org.springframework.xd.dirt.stream.JobDefinition}
-	 * instance for a given job name if the job definition is present <i>and the
-	 * job is deployed</i>.
+	 * Load the {@link org.springframework.xd.dirt.core.Job}
+	 * instance for a given job name<i>if the job is deployed</i>.
 	 *
 	 * @param client   curator client
 	 * @param jobName  the name of the job to load
+	 * @param jobFactory job factory used to create instance of job
 	 * @return the job instance, or {@code null} if the job does not exist
 	 *         or is not deployed
 	 * @throws Exception
 	 */
-	public JobDefinition loadJob(CuratorFramework client, String jobName) throws Exception {
+	public Job loadJob(CuratorFramework client, String jobName,
+			JobFactory jobFactory) throws Exception {
 		try {
-			if (client.checkExists().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, jobName)) != null) {
-				byte[] data = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
-				Map<String, String> map = mapBytesUtility.toMap(data);
-				return new JobDefinition(jobName, map.get("definition"));
-			}
+				byte[] definition = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
+				Map<String, String> definitionMap = mapBytesUtility.toMap(definition);
+
+				byte[] deploymentPropertiesData = client.getData().forPath(
+						Paths.build(Paths.JOB_DEPLOYMENTS, jobName));
+				if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
+					definitionMap.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
+				}
+				return jobFactory.createJob(jobName, definitionMap);
 		}
 		catch (KeeperException.NoNodeException e) {
 			// job is not deployed

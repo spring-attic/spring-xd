@@ -45,8 +45,11 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
+import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -62,6 +65,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  *
  * @author Patrick Peralta
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  *
  * @see org.apache.curator.framework.recipes.leader.LeaderSelector
  */
@@ -70,7 +74,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = LoggerFactory.getLogger(DeploymentSupervisor.class);
+	private static final Logger logger = LoggerFactory.getLogger(DeploymentSupervisor.class);
 
 	/**
 	 * ZooKeeper connection.
@@ -78,9 +82,14 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 	private final ZooKeeperConnection zkConnection;
 
 	/**
-	 * Repository to load streams.
+	 * Repository to load stream definitions.
 	 */
 	private final StreamDefinitionRepository streamDefinitionRepository;
+
+	/**
+	 * Repository to load job definitions.
+	 */
+	private final JobDefinitionRepository jobDefinitionRepository;
 
 	/**
 	 * Repository to load module definitions.
@@ -148,14 +157,16 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 	/**
 	 * Construct a {@code DeploymentSupervisor}.
 	 *
-	 * @param zkConnection                   ZooKeeper connection
-	 * @param streamDefinitionRepository     repository for streams
-	 * @param moduleDefinitionRepository     repository for modules
-	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
-	 * @param containerMatcher               matches modules to containers
+	 * @param zkConnection ZooKeeper connection
+	 * @param streamDefinitionRepository repository for streams definitions
+	 * @param jobDefinitionRepository repository for job definitions
+	 * @param moduleDefinitionRepository repository for modules
+	 * @param moduleOptionsMetadataResolver resolver for module options metadata
+	 * @param containerMatcher matches modules to containers
 	 */
 	public DeploymentSupervisor(ZooKeeperConnection zkConnection,
 			StreamDefinitionRepository streamDefinitionRepository,
+			JobDefinitionRepository jobDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
 			ContainerMatcher containerMatcher) {
@@ -166,6 +177,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 		Assert.notNull(containerMatcher, "containerMatcher must not be null");
 		this.zkConnection = zkConnection;
 		this.streamDefinitionRepository = streamDefinitionRepository;
+		this.jobDefinitionRepository = jobDefinitionRepository;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 		this.containerMatcher = containerMatcher;
@@ -197,7 +209,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 	public Iterator<Container> getContainerIterator() {
 		PathChildrenCache cache = containers.get();
 		return cache == null
-				? Collections.<Container>emptyIterator()
+				? Collections.<Container> emptyIterator()
 				: new ChildPathIterator<Container>(containerConverter, cache);
 	}
 
@@ -259,7 +271,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 		 */
 		@Override
 		public void onConnect(CuratorFramework client) {
-			LOG.info("Admin {} CONNECTED", getId());
+			logger.info("Admin {} CONNECTED", getId());
 			requestLeadership(client);
 		}
 
@@ -272,7 +284,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 				destroy();
 			}
 			catch (Exception e) {
-				LOG.warn("exception occurred while closing leader selector", e);
+				logger.warn("exception occurred while closing leader selector", e);
 			}
 		}
 	}
@@ -307,47 +319,50 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 		 */
 		@Override
 		public void takeLeadership(CuratorFramework client) throws Exception {
-			LOG.info("Leader Admin {} is watching for stream/job deployment requests.", getId());
+			logger.info("Leader Admin {} is watching for stream/job deployment requests.", getId());
 
 			cleanupDeployments(client);
 
-			PathChildrenCache streams = null;
 			PathChildrenCache streamDeployments = null;
 			PathChildrenCache jobDeployments = null;
-			PathChildrenCacheListener streamListener;
-			PathChildrenCacheListener jobListener;
+			PathChildrenCacheListener streamDeploymentListener;
+			PathChildrenCacheListener jobDeploymentListener;
 			PathChildrenCacheListener containerListener;
 
 			try {
-				streamListener = new StreamDeploymentListener(zkConnection,
-						DeploymentSupervisor.this,
-						streamDefinitionRepository,
-						moduleDefinitionRepository,
-						moduleOptionsMetadataResolver,
-						containerMatcher);
+				StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
+						moduleOptionsMetadataResolver);
 
-				streams = new PathChildrenCache(client, Paths.STREAMS, true,
-						ThreadUtils.newThreadFactory("StreamDefinitionPathChildrenCache"));
-				streams.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
+				JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleDefinitionRepository,
+						moduleOptionsMetadataResolver);
+
+				streamDeploymentListener = new StreamDeploymentListener(zkConnection,
+						DeploymentSupervisor.this,
+						streamFactory,
+						containerMatcher);
 
 				streamDeployments = new PathChildrenCache(client, Paths.STREAM_DEPLOYMENTS, true,
 						ThreadUtils.newThreadFactory("StreamDeploymentsPathChildrenCache"));
-				streamDeployments.getListenable().addListener(streamListener);
+				streamDeployments.getListenable().addListener(streamDeploymentListener);
 				streamDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
-				jobListener = new JobDeploymentListener(zkConnection,
-						DeploymentSupervisor.this, moduleDefinitionRepository,
-						moduleOptionsMetadataResolver, containerMatcher);
+				jobDeploymentListener = new JobDeploymentListener(zkConnection,
+						DeploymentSupervisor.this,
+						jobFactory,
+						containerMatcher);
 
 				jobDeployments = new PathChildrenCache(client, Paths.JOB_DEPLOYMENTS, true,
 						ThreadUtils.newThreadFactory("JobDeploymentsPathChildrenCache"));
-				jobDeployments.getListenable().addListener(jobListener);
+				jobDeployments.getListenable().addListener(jobDeploymentListener);
 				jobDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
 				containerListener = new ContainerListener(zkConnection,
-						DeploymentSupervisor.this, streamDefinitionRepository,
-						moduleDefinitionRepository, moduleOptionsMetadataResolver,
-						streamDeployments, streams, jobDeployments, containerMatcher);
+						DeploymentSupervisor.this,
+						streamFactory,
+						jobFactory,
+						streamDeployments,
+						jobDeployments,
+						containerMatcher);
 
 				PathChildrenCache containersCache = new PathChildrenCache(client, Paths.CONTAINERS, true,
 						ThreadUtils.newThreadFactory("ContainersPathChildrenCache"));
@@ -359,17 +374,13 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 				Thread.sleep(Long.MAX_VALUE);
 			}
 			catch (InterruptedException e) {
-				LOG.info("Leadership canceled due to thread interrupt");
+				logger.info("Leadership canceled due to thread interrupt");
 				Thread.currentThread().interrupt();
 			}
 			finally {
 				PathChildrenCache containersCache = containers.getAndSet(null);
 				if (containersCache != null) {
 					containersCache.close();
-				}
-
-				if (streams != null) {
-					streams.close();
 				}
 
 				if (streamDeployments != null) {
@@ -385,7 +396,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 		/**
 		 * Remove module deployments targeted to containers that are no longer running.
 		 *
-		 * @param client    the {@link CuratorFramework} client
+		 * @param client the {@link CuratorFramework} client
 		 *
 		 * @throws Exception
 		 */
@@ -402,7 +413,8 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 
 			for (String oldContainer : containerDeployments) {
 				try {
-					client.delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.MODULE_DEPLOYMENTS, oldContainer));
+					client.delete().deletingChildrenIfNeeded().forPath(
+							Paths.build(Paths.MODULE_DEPLOYMENTS, oldContainer));
 				}
 				catch (KeeperException.NoNodeException e) {
 					// ignore

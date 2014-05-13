@@ -51,20 +51,17 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
+import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
-import org.springframework.xd.dirt.stream.JobDefinition;
-import org.springframework.xd.dirt.stream.ParsingContext;
-import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.stream.XDParser;
-import org.springframework.xd.dirt.stream.XDStreamParser;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -90,6 +87,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  *
  * @author Mark Fisher
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 // todo: Rename ContainerServer or ModuleDeployer since it's driven by callbacks and not really a "server".
 public class ContainerRegistrar implements ApplicationListener<ContextRefreshedEvent>, ApplicationContextAware,
@@ -142,11 +140,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	/**
-	 * ModuleDefinition repository
-	 */
-	private final ModuleDefinitionRepository moduleDefinitionRepository;
-
-	/**
 	 * Module options metadata resolver.
 	 */
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
@@ -155,6 +148,11 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * Stream factory.
 	 */
 	private final StreamFactory streamFactory;
+
+	/**
+	 * Job factory.
+	 */
+	private final JobFactory jobFactory;
 
 	/**
 	 * Map of deployed modules.
@@ -168,11 +166,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private final ModuleDeployer moduleDeployer;
 
 	/**
-	 * The parser for streams and jobs.
-	 */
-	private final XDParser parser;
-
-	/**
 	 * Application context within which this registrar is defined.
 	 */
 	private volatile ApplicationContext context;
@@ -183,35 +176,35 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private volatile ClassLoader parentClassLoader;
 
 	/**
+	 * Utility for loading streams and jobs (including deployment metadata).
+	 */
+	protected final DeploymentLoader deploymentLoader = new DeploymentLoader();
+
+	/**
 	 * Create an instance that will register the provided {@link ContainerAttributes} whenever the underlying
 	 * {@link ZooKeeperConnection} is established. If that connection is already established at the time this instance
 	 * receives a {@link ContextRefreshedEvent}, the attributes will be registered then. Otherwise, registration occurs
 	 * within a callback that is invoked for connected events as well as reconnected events.
 	 *
 	 * @param containerAttributes runtime and configured attributes for the container
-	 * @param streamDefinitionRepository repository for streams
-	 * @param moduleDefinitionRepository repository for modules
+	 * @param containerAttributesRepository repository for the containerAttributes
+	 * @param streamFactory factory to construct {@link Stream}
+	 * @param jobFactory factory to construct {@link Job}
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 * @param moduleDeployer module deployer
 	 * @param zkConnection ZooKeeper connection
 	 */
-	public ContainerRegistrar(ContainerAttributes containerAttributes,
+	public ContainerRegistrar(ZooKeeperConnection zkConnection, ContainerAttributes containerAttributes,
 			ContainerAttributesRepository containerAttributesRepository,
-			StreamDefinitionRepository streamDefinitionRepository,
-			ModuleDefinitionRepository moduleDefinitionRepository,
-			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
-			ModuleDeployer moduleDeployer,
-			ZooKeeperConnection zkConnection) {
+			StreamFactory streamFactory, JobFactory jobFactory,
+			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver, ModuleDeployer moduleDeployer) {
+		this.zkConnection = zkConnection;
 		this.containerAttributes = containerAttributes;
 		this.containerAttributesRepository = containerAttributesRepository;
-		this.zkConnection = zkConnection;
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.streamFactory = streamFactory;
+		this.jobFactory = jobFactory;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 		this.moduleDeployer = moduleDeployer;
-		// todo: the streamFactory should be injected
-		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
-				moduleOptionsMetadataResolver);
-		this.parser = new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
 	}
 
 	/**
@@ -405,12 +398,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				.setContainer(containerAttributes.getId()).build();
 
 		Module module = null;
-		JobDefinition jobDefinition = loadJob(client, jobName);
-		if (jobDefinition != null) {
-			ModuleDescriptor moduleDescriptor = parser.parse(jobName,
-					jobDefinition.getDefinition(), ParsingContext.job).get(0);
-			// todo: support deployment properties for job modules
-			module = deployModule(moduleDescriptor, ModuleDeploymentProperties.defaultInstance);
+		Job job = deploymentLoader.loadJob(client, jobName, jobFactory);
+		if (job != null) {
+			ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
+			ModuleDeploymentProperties deploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
+					job.getDeploymentProperties(), moduleDescriptor);
+			module = deployModule(moduleDescriptor, deploymentProperties);
 
 			try {
 				// this indicates that the container has deployed the module
@@ -428,33 +421,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 		// todo: this will return null if the job doesn't exist...needs review
 		return module;
-	}
-
-	/**
-	 * Load the {@link org.springframework.xd.dirt.stream.JobDefinition}
-	 * instance for a given job name if the job definition is present <i>and the
-	 * job is deployed</i>.
-	 *
-	 * @param client   curator client
-	 * @param jobName  the name of the job to load
-	 * @return the job instance, or {@code null} if the job does not exist or is not deployed
-	 * @throws Exception
-	 */
-	private JobDefinition loadJob(CuratorFramework client, String jobName) throws Exception {
-		/*
-		 * TODO: duplicate from JobDeploymentListener
-		 */
-		try {
-			if (client.checkExists().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, jobName)) != null) {
-				byte[] data = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
-				Map<String, String> map = mapBytesUtility.toMap(data);
-				return new JobDefinition(jobName, map.get("definition"));
-			}
-		}
-		catch (KeeperException.NoNodeException e) {
-			// job is not deployed
-		}
-		return null;
 	}
 
 	/**
@@ -482,7 +448,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 			ModuleDescriptor descriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
 			ModuleDeploymentProperties moduleDeploymentProperties =
-					StreamDeploymentListener.createModuleDeploymentProperties(
+					DeploymentPropertiesUtility.createModuleDeploymentProperties(
 							stream.getDeploymentProperties(), descriptor);
 
 			module = deployModule(descriptor, moduleDeploymentProperties);
@@ -613,8 +579,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 
 	/**
-	 * Watcher for the modules deployed to this container under the {@link Paths#STREAMS} location. If the node is
-	 * deleted, this container will undeploy the module.
+	 * Watcher for the modules deployed to this container under the {@link Paths#STREAM_DEPLOYMENTS} location. If the
+	 * node is deleted, this container will undeploy the module.
 	 */
 	class StreamModuleWatcher implements CuratorWatcher {
 
@@ -669,8 +635,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	}
 
 	/**
-	 * Watcher for the modules deployed to this container under the {@link Paths#JOBS} location. If the node is deleted,
-	 * this container will undeploy the module.
+	 * Watcher for the modules deployed to this container under the {@link Paths#JOB_DEPLOYMENTS} location. If the node
+	 * is deleted, this container will undeploy the module.
 	 */
 	class JobModuleWatcher implements CuratorWatcher {
 

@@ -18,19 +18,19 @@ package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.util.ReflectionUtils;
+import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 
 /**
- * Tests for the StreamFactory.
+ * Tests for the {@link ModuleDeploymentProperties} parser.
  *
  * @author Mark Fisher
  */
-public class StreamFactoryTests {
+public class DeploymentPropertiesParserTests {
 
 	@Test
 	public void singleProperty() {
@@ -65,11 +65,8 @@ public class StreamFactoryTests {
 		assertEquals("groups.contains('foo')", map.get("module.x.criteria"));
 	}
 
-	@SuppressWarnings("unchecked")
 	private static Map<String, String> testDeploymentPropertiesParser(String s) {
-		Method method = ReflectionUtils.findMethod(StreamFactory.class, "parseDeploymentProperties", String.class);
-		method.setAccessible(true);
-		return (Map<String, String>) ReflectionUtils.invokeMethod(method, null, s);
+		return DeploymentPropertiesUtility.parseDeploymentProperties(s);
 	}
 
 }

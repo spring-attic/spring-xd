@@ -105,7 +105,7 @@ public class XDStreamParserTests {
 		List<ModuleDescriptor> requests = parser.parse("test", "foo --bar='payload.matches(''hello'')' | file",
 				stream);
 		assertEquals(2, requests.size());
-		// ModuleDeploymentRequest sink = requests.get(0);
+		// ModuleDescriptor sink = requests.get(0);
 		ModuleDescriptor source = requests.get(1);
 		assertEquals("foo", source.getModuleName());
 		assertEquals("test", source.getGroup());
@@ -177,7 +177,8 @@ public class XDStreamParserTests {
 	@Test
 	public void tap() throws Exception {
 		StreamDefinitionRepository streamRepo = mock(StreamDefinitionRepository.class);
-		parser = new XDStreamParser(streamRepo, moduleDefinitionRepository(), new DefaultModuleOptionsMetadataResolver());
+		parser = new XDStreamParser(streamRepo, moduleDefinitionRepository(),
+				new DefaultModuleOptionsMetadataResolver());
 		when(streamRepo.findOne("xxx")).thenReturn(new StreamDefinition("xxx", "http | file"));
 		List<ModuleDescriptor> requests = parser.parse("test", "tap:stream:xxx.http > file", stream);
 		assertEquals(1, requests.size());

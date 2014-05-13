@@ -76,9 +76,9 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (repository.findOne(definition.getName()) != null) {
 			throwDefinitionAlreadyExistsException(definition);
 		}
-		List<ModuleDescriptor> moduleDeploymentRequests = streamParser.parse(definition.getName(),
+		List<ModuleDescriptor> moduleDescriptors = streamParser.parse(definition.getName(),
 				definition.getDefinition(), definitionKind);
-		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDeploymentRequests);
+		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
 		if (!moduleDefinitions.isEmpty()) {
 			definition.setModuleDefinitions(moduleDefinitions);
 		}
@@ -89,18 +89,16 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	/**
 	 * Create a list of ModuleDefinitions given the results of parsing the definition.
 	 *
-	 * @param moduleDeploymentRequests The list of ModuleDeploymentRequest resulting from parsing the definition.
+	 * @param moduleDescriptors The list of ModuleDescriptors resulting from parsing the definition.
 	 * @return a list of ModuleDefinitions
 	 */
-	private List<ModuleDefinition> createModuleDefinitions(List<ModuleDescriptor> moduleDeploymentRequests) {
-		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDeploymentRequests.size());
-
-		for (ModuleDescriptor moduleDeploymentRequest : moduleDeploymentRequests) {
-			ModuleDefinition moduleDefinition = new ModuleDefinition(moduleDeploymentRequest.getModuleName(),
-					moduleDeploymentRequest.getType());
+	private List<ModuleDefinition> createModuleDefinitions(List<ModuleDescriptor> moduleDescriptors) {
+		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDescriptors.size());
+		for (ModuleDescriptor moduleDescriptor : moduleDescriptors) {
+			ModuleDefinition moduleDefinition = new ModuleDefinition(moduleDescriptor.getModuleName(),
+					moduleDescriptor.getType());
 			moduleDefinitions.add(moduleDefinition);
 		}
-
 		return moduleDefinitions;
 	}
 

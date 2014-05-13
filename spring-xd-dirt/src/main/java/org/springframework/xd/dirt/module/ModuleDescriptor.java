@@ -97,7 +97,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 
 
 	/**
-	 * Construct a {@code ModuleDeploymentRequest}. This constructor is private; use
+	 * Construct a {@code ModuleDescriptor}. This constructor is private; use
 	 * {@link org.springframework.xd.dirt.module.ModuleDescriptor.Builder} to create a new instance.
 	 *
 	 * @param moduleName name of module
@@ -276,7 +276,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	 */
 	@Override
 	public int compareTo(ModuleDescriptor o) {
-		Assert.notNull(o, "ModuleDeploymentRequest must not be null");
+		Assert.notNull(o, "ModuleDescriptor must not be null");
 		return Integer.compare(index, o.index);
 	}
 
@@ -558,7 +558,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param descriptor module descriptor
 		 * @return pre-populated builder object
 		 */
-		public static Builder fromModuleDeploymentRequest(ModuleDescriptor descriptor) {
+		public static Builder fromModuleDescriptor(ModuleDescriptor descriptor) {
 			Builder builder = new Builder();
 			builder.setModuleName(descriptor.getModuleName());
 			builder.setModuleLabel(descriptor.getModuleLabel());
@@ -577,7 +577,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		/**
 		 * Return a new instance of {@link org.springframework.xd.dirt.module.ModuleDescriptor}.
 		 *
-		 * @return new instance of {@code ModuleDeploymentRequest}
+		 * @return new instance of {@code ModuleDescriptor}
 		 */
 		public ModuleDescriptor build() {
 			return new ModuleDescriptor(moduleName, moduleLabel, group,

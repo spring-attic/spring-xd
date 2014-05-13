@@ -166,7 +166,7 @@ public class XDStreamParser implements XDParser {
 				}
 			}
 
-			result.add(buildModuleDeploymentRequest(builder));
+			result.add(buildModuleDescriptor(builder));
 		}
 		return result;
 	}
@@ -243,9 +243,9 @@ public class XDStreamParser implements XDParser {
 	 * under {@link org.springframework.xd.dirt.module.ModuleDescriptor#getChildren()}.
 	 *
 	 * @param builder builder object
-	 * @return new instance of {@code ModuleDeploymentRequest}
+	 * @return new instance of {@code ModuleDescriptor}
 	 */
-	private ModuleDescriptor buildModuleDeploymentRequest(ModuleDescriptor.Builder builder) {
+	private ModuleDescriptor buildModuleDescriptor(ModuleDescriptor.Builder builder) {
 		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(builder.getModuleName(), builder.getType());
 		if (def != null && def.getDefinition() != null) {
 			List<ModuleDescriptor> children = parse(def.getName(), def.getDefinition(), ParsingContext.module);
@@ -268,13 +268,13 @@ public class XDStreamParser implements XDParser {
 				builder.setParameter(entry.getKey(), entry.getValue());
 			}
 
-			// Since ModuleDeploymentRequest is immutable, the children created
+			// Since ModuleDescriptor is immutable, the children created
 			// by the parse method above have to be recreated since the group
 			// name needs to be modified
 			List<ModuleDescriptor> list = new ArrayList<ModuleDescriptor>();
 			for (ModuleDescriptor child : children) {
 				ModuleDescriptor.Builder childBuilder =
-						ModuleDescriptor.Builder.fromModuleDeploymentRequest(child);
+						ModuleDescriptor.Builder.fromModuleDescriptor(child);
 				childBuilder.setGroup(builder.getGroup() + "." + child.getModuleName());
 				list.add(childBuilder.build());
 			}

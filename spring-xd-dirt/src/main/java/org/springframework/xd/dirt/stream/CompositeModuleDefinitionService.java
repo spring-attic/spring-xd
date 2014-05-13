@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class CompositeModuleDefinitionService {
 			throw new ModuleAlreadyExistsException(name, type);
 		}
 
-		// Create ModuleDefinition instance from list of ModuleDeploymentRequests
+		// Create ModuleDefinition instance from list of ModuleDescriptors
 		ModuleDefinition moduleDefinition = new ModuleDefinition(name, type);
 		moduleDefinition.setDefinition(definition);
 		List<ModuleDefinition> composedModuleDefinitions = createComposedModuleDefinitions(modules);
@@ -93,17 +93,14 @@ public class CompositeModuleDefinitionService {
 		this.moduleDefinitionRepository.delete(definition);
 	}
 
-
 	private List<ModuleDefinition> createComposedModuleDefinitions(
-			List<ModuleDescriptor> moduleDeploymentRequests) {
+			List<ModuleDescriptor> moduleDescriptors) {
 
-		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDeploymentRequests.size());
-
-		for (ModuleDescriptor moduleDeploymentRequest : moduleDeploymentRequests) {
-			moduleDefinitions.add(moduleDefinitionRepository.findByNameAndType(moduleDeploymentRequest.getModuleName(),
-					moduleDeploymentRequest.getType()));
+		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDescriptors.size());
+		for (ModuleDescriptor moduleDescriptor : moduleDescriptors) {
+			moduleDefinitions.add(moduleDefinitionRepository.findByNameAndType(moduleDescriptor.getModuleName(),
+					moduleDescriptor.getType()));
 		}
-
 		return moduleDefinitions;
 	}
 

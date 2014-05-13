@@ -67,6 +67,9 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "true");
+		if (properties != null) {
+			values.add("properties", properties);
+		}
 		restTemplate.put(uriTemplate, values, name);
 	}
 

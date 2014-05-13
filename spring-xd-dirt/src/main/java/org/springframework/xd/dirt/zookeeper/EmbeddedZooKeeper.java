@@ -46,7 +46,7 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 	/**
 	 * Logger.
 	 */
-	private static final Logger LOG = LoggerFactory.getLogger(EmbeddedZooKeeper.class);
+	private static final Logger logger = LoggerFactory.getLogger(EmbeddedZooKeeper.class);
 
 	/**
 	 * ZooKeeper client port. This will be determined dynamically upon startup.
@@ -187,7 +187,7 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 				zkServerThread = null;
 			}
 			catch (InterruptedException e) {
-				LOG.warn("Interrupted while waiting for embedded ZooKeeper to exit");
+				logger.warn("Interrupted while waiting for embedded ZooKeeper to exit");
 				// abandoning zk thread
 				zkServerThread = null;
 			}
@@ -242,7 +242,7 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 					errorHandler.handleError(e);
 				}
 				else {
-					LOG.error("Exception running embedded ZooKeeper", e);
+					logger.error("Exception running embedded ZooKeeper", e);
 				}
 			}
 		}

@@ -16,39 +16,36 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.Iterator;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
+import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
-import org.springframework.xd.dirt.stream.JobDefinition;
-import org.springframework.xd.dirt.stream.ParsingContext;
-import org.springframework.xd.dirt.stream.XDStreamParser;
-import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.util.DeploymentUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Listener implementation that handles job deployment requests.
  *
  * @author Patrick Peralta
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
-public class JobDeploymentListener implements PathChildrenCacheListener {
+public class JobDeploymentListener extends DeploymentHandler implements PathChildrenCacheListener {
 
 	/**
 	 * Logger.
@@ -56,61 +53,22 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	private static final Logger logger = LoggerFactory.getLogger(JobDeploymentListener.class);
 
 	/**
-	 * Provides access to the current container list.
+	 * Job factory.
 	 */
-	private final ContainerRepository containerRepository;
-
-	/**
-	 * Utility to convert maps to byte arrays.
-	 */
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
-
-	/**
-	 * Container matcher for matching modules to containers.
-	 */
-	private final ContainerMatcher containerMatcher;
-
-	/**
-	 * Stream factory.
-	 */
-	// todo: something similar for Jobs (both should actually be the result of parseStream/parseJob)
-	// private final StreamFactory streamFactory;
-
-	/**
-	 * The parser.
-	 */
-	private final XDStreamParser parser;
-
-	/**
-	 * Utility for writing module deployment requests to containers.
-	 */
-	private final ModuleDeploymentWriter moduleDeploymentWriter;
-
-	/**
-	 * Utility for loading streams and jobs (including deployment metadata).
-	 */
-	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
-
+	private final JobFactory jobFactory;
 
 	/**
 	 * Construct a JobDeploymentListener.
 	 *
-	 * @param zkConnection                  ZooKeeper connection
-	 * @param containerRepository           repository to obtain container data
-	 * @param moduleDefinitionRepository    repository to obtain module data
-	 * @param moduleOptionsMetadataResolver resolver for module options metadata
-	 * @param containerMatcher              matches modules to containers
+	 * @param zkConnection ZooKeeper connection
+	 * @param containerRepository repository to obtain container data
+	 * @param jobFactory factory to construct {@link Job}
+	 * @param containerMatcher matches modules to containers
 	 */
-	public JobDeploymentListener(ZooKeeperConnection zkConnection,
-			ContainerRepository containerRepository,
-			ModuleDefinitionRepository moduleDefinitionRepository,
-			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
-			ContainerMatcher containerMatcher) {
-		this.containerRepository = containerRepository;
-		this.parser = new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
-		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
-				containerRepository, containerMatcher);
-		this.containerMatcher = containerMatcher;
+	public JobDeploymentListener(ZooKeeperConnection zkConnection, ContainerRepository containerRepository,
+			JobFactory jobFactory, ContainerMatcher containerMatcher) {
+		super(zkConnection, containerRepository, containerMatcher);
+		this.jobFactory = jobFactory;
 	}
 
 	/**
@@ -134,44 +92,67 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 * Handle the creation of a new job deployment.
 	 *
 	 * @param client curator client
-	 * @param data   job deployment request data
+	 * @param data job deployment request data
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String jobName = Paths.stripPath(data.getPath());
-		deployJob(client, jobName);
+		Job job = deploymentLoader.loadJob(client, jobName, jobFactory);
+		deployJob(job);
 	}
 
 	/**
-	 * Issue deployment requests for a job. This deployment will occur
-	 * if:
+	 * Issue deployment requests for a job. This deployment will occur if:
 	 * <ul>
 	 *     <li>the job has not been destroyed</li>
 	 *     <li>the job has not been undeployed</li>
 	 *     <li>there is a container that can deploy the job</li>
 	 * </ul>
 	 *
-	 * @param client      curator client
-	 * @param jobName     name of job to redeploy
+	 * @param client curator client
+	 * @param job the job instance to redeploy
 	 * @throws Exception
 	 */
-	private void deployJob(CuratorFramework client, String jobName) throws Exception {
-		JobDefinition jobDefinition = deploymentLoader.loadJob(client, jobName);
-		if (jobDefinition != null) {
-			ModuleDescriptor descriptor = parser.parse(jobName, jobDefinition.getDefinition(),
-					ParsingContext.job).get(0);
+	private void deployJob(final Job job) throws Exception {
+		if (job != null) {
+			ModuleDescriptor descriptor = createJobModuleDescriptor(job.getName(),
+					job.getJobModuleDescriptor().getModuleName());
+			ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider provider =
+					new ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider() {
 
-			Iterator<Container> iterator = containerMatcher.match(descriptor,
-					ModuleDeploymentProperties.defaultInstance, containerRepository).iterator();
-			if (iterator.hasNext()) {
-				Container targetContainer = iterator.next();
-				ModuleDeploymentWriter.Result result =
-						moduleDeploymentWriter.writeDeployment(descriptor, targetContainer);
-				moduleDeploymentWriter.validateResult(result);
-			}
-			else {
-				logger.warn("No containers available for deployment of {}", jobName);
-			}
+						@Override
+						public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
+							return DeploymentUtility.createModuleDeploymentProperties(job.getDeploymentProperties(),
+									descriptor);
+						}
+					};
+
+			List<ModuleDescriptor> descriptors = new ArrayList<ModuleDescriptor>();
+			descriptors.add(descriptor);
+			Collection<ModuleDeploymentWriter.Result> results =
+					moduleDeploymentWriter.writeDeployment(descriptors.iterator(), provider);
+			moduleDeploymentWriter.validateResults(results);
 		}
 	}
+
+	/**
+	 * Create an instance of {@link ModuleDescriptor} for a given job name.
+	 *
+	 * @param jobName job name
+	 * @param moduleName job module name
+	 *
+	 * @return a ModuleDescriptor for the given job
+	 */
+	public static ModuleDescriptor createJobModuleDescriptor(String jobName, String moduleName) {
+		return new ModuleDescriptor.Builder()
+				.setGroup(jobName)
+				.setType(ModuleType.job)
+				.setModuleName(moduleName)
+				// By default, module label is null for job module, explicitly set to use "modulename-index" pattern
+				// here.
+				.setModuleLabel(moduleName + "-0")
+				.setIndex(0)
+				.build();
+	}
+
 
 }

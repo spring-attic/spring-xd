@@ -50,10 +50,13 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
+import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.RuntimeUtils;
@@ -214,6 +217,9 @@ class ContainerConfiguration {
 	private StreamDefinitionRepository streamDefinitionRepository;
 
 	@Autowired
+	private JobDefinitionRepository jobDefinitionRepository;
+
+	@Autowired
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
 	@Autowired
@@ -247,13 +253,18 @@ class ContainerConfiguration {
 			zooKeeperConnection.start();
 		}
 
-		return new ContainerRegistrar(containerAttributes,
+		StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
+				moduleOptionsMetadataResolver);
+
+		JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleDefinitionRepository,
+				moduleOptionsMetadataResolver);
+
+		return new ContainerRegistrar(zooKeeperConnection, containerAttributes,
 				containerAttributesRepository,
-				streamDefinitionRepository,
-				moduleDefinitionRepository,
+				streamFactory,
+				jobFactory,
 				moduleOptionsMetadataResolver,
-				moduleDeployer,
-				zooKeeperConnection);
+				moduleDeployer);
 	}
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")

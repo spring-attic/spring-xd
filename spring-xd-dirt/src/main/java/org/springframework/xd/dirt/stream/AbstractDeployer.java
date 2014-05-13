@@ -46,7 +46,7 @@ import org.springframework.xd.module.ModuleDefinition;
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractDeployer.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
 
 	private final PagingAndSortingRepository<D, String> repository;
 
@@ -184,7 +184,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 */
 	protected D basicDeploy(String name, String properties) {
 		Assert.hasText(name, "name cannot be blank or null");
-		LOG.trace("Deploying {}", name);
+		logger.trace("Deploying {}", name);
 
 		final D definition = getDefinitionRepository().findOne(name);
 		if (definition == null) {
@@ -209,7 +209,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 */
 	protected void basicUndeploy(String name) {
 		Assert.hasText(name, "name cannot be blank or null");
-		LOG.trace("Undeploying {}", name);
+		logger.trace("Undeploying {}", name);
 
 		D definition = getDefinitionRepository().findOne(name);
 		if (definition == null) {

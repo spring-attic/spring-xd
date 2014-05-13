@@ -14,50 +14,51 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.dirt.job;
 
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.Stream;
+import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.dirt.stream.ParsingContext;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.util.DeploymentUtility;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
- * @author Patrick Peralta
- * @author Mark Fisher
+ * Factory class that builds {@link Job} using properties.
+ *
+ * @author Ilayaperumal Gopinathan
  */
-public class StreamFactory {
+public class JobFactory {
 
 	private final XDStreamParser parser;
 
-	public StreamFactory(StreamDefinitionRepository streamDefinitionRepository,
+	public JobFactory(JobDefinitionRepository jobDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		this.parser = new XDStreamParser(streamDefinitionRepository, moduleDefinitionRepository,
+		this.parser = new XDStreamParser(jobDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
 	}
 
-	public Stream createStream(String name, Map<String, String> properties) {
-		Assert.hasText(name, "Stream name is required");
-		Assert.notNull(properties, "Stream properties are required");
+	public Job createJob(String name, Map<String, String> properties) {
+		Assert.hasText(name, "Job name is required");
+		Assert.notNull(properties, "Job properties are required");
 
 		String definition = properties.get("definition");
-		Assert.hasText(definition, "Stream properties requires a 'definition' property");
+		Assert.hasText(definition, "Job properties requires a 'definition' property");
 
-		Deque<ModuleDescriptor> descriptors = new LinkedList<ModuleDescriptor>();
-		for (ModuleDescriptor request : parser.parse(name, definition, ParsingContext.stream)) {
-			descriptors.addFirst(request);
-		}
-
-		return new Stream.Builder()
+		List<ModuleDescriptor> descriptors = parser.parse(name, definition, ParsingContext.job);
+		Assert.isTrue(descriptors.size() == 1);
+		return new Job.Builder()
 				.setName(name)
-				.setDeploymentProperties(DeploymentUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
-				.setModuleDescriptors(descriptors).build();
+				.setDeploymentProperties(
+						DeploymentUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
+				.setModuleDescriptor(descriptors.get(0)).build();
 	}
 
 }

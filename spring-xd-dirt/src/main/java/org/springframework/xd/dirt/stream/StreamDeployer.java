@@ -21,9 +21,6 @@ import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.dirt.stream.dsl.XDDSLMessages;
@@ -46,19 +43,9 @@ import org.springframework.xd.module.ModuleDefinition;
 public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDefinition, Stream> {
 
 	/**
-	 * Logger.
-	 */
-	private final Logger LOG = LoggerFactory.getLogger(StreamDeployer.class);
-
-	/**
 	 * Stream definition parser.
 	 */
 	private final XDParser parser;
-
-	/**
-	 * Repository for streams.
-	 */
-	private final StreamRepository streamRepository;
 
 	/**
 	 * Construct a StreamDeployer.
@@ -72,7 +59,6 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 			StreamRepository streamRepository, XDParser parser) {
 		super(zkConnection, repository, streamRepository, parser, stream);
 		this.parser = parser;
-		this.streamRepository = streamRepository;
 	}
 
 	/**

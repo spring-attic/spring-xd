@@ -23,9 +23,9 @@ import java.util.regex.Pattern;
 
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.Job;
-import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 
 
 /**

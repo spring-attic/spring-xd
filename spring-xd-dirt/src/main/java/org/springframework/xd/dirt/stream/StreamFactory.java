@@ -23,8 +23,8 @@ import java.util.Map;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**

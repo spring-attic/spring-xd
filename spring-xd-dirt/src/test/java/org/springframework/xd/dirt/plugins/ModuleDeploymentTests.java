@@ -26,7 +26,7 @@ import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelA
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.integration.bus.BusTestUtils;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.test.redis.RedisTestSupport;
 

@@ -26,12 +26,12 @@ import org.apache.curator.framework.CuratorFramework;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**

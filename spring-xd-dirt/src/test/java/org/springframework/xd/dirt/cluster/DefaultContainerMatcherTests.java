@@ -35,9 +35,9 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
-import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 
 

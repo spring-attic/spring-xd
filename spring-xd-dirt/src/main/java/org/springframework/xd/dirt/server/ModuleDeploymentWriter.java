@@ -37,11 +37,11 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
-import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -211,7 +211,7 @@ public class ModuleDeploymentWriter {
 	/**
 	 * Write module deployment requests for the modules returned by the {@code descriptors}
 	 * iterator. The target containers are indicated by {@link #containerMatcher} and
-	 * the {@link org.springframework.xd.dirt.core.ModuleDeploymentProperties} provided
+	 * the {@link org.springframework.xd.module.ModuleDeploymentProperties} provided
 	 * by the {@link ModuleDeploymentPropertiesProvider}.
 	 *
 	 * @param descriptors  descriptors for modules to deploy
@@ -227,7 +227,7 @@ public class ModuleDeploymentWriter {
 	/**
 	 * Write module deployment requests for the modules returned by the {@code descriptors}
 	 * iterator. The target containers are indicated by the provided {@code containerMatcher}
-	 * and the {@link org.springframework.xd.dirt.core.ModuleDeploymentProperties} provided
+	 * and the {@link org.springframework.xd.module.ModuleDeploymentProperties} provided
 	 * by the {@link ModuleDeploymentPropertiesProvider}.
 	 *
 	 * @param descriptors       descriptors for modules to deploy
@@ -687,8 +687,8 @@ public class ModuleDeploymentWriter {
 	}
 
 	/**
-	 * Callback interface to obtain {@link org.springframework.xd.dirt.core.ModuleDeploymentProperties}
-	 * for a {@link org.springframework.xd.dirt.module.ModuleDescriptor}.
+	 * Callback interface to obtain {@link org.springframework.xd.module.ModuleDeploymentProperties}
+	 * for a {@link org.springframework.xd.module.ModuleDescriptor}.
 	 */
 	public interface ModuleDeploymentPropertiesProvider {
 		/**

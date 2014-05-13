@@ -33,8 +33,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 
 /**
  * Implementation of {@link ContainerMatcher} that returns a collection of containers to deploy a

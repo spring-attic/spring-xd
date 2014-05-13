@@ -40,18 +40,18 @@ import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
-import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.job.JobFactory;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -284,9 +284,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 	/**
 	 * Return true if the {@link org.springframework.xd.dirt.cluster.Container}
-	 * is allowed to deploy the {@link org.springframework.xd.dirt.module.ModuleDescriptor}
+	 * is allowed to deploy the {@link org.springframework.xd.module.ModuleDescriptor}
 	 * given the criteria present in the
-	 * {@link org.springframework.xd.dirt.core.ModuleDeploymentProperties}.
+	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
 	 *
 	 * @param container target container
 	 * @param descriptor module descriptor

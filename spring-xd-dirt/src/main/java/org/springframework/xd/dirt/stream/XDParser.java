@@ -18,11 +18,11 @@ package org.springframework.xd.dirt.stream;
 
 import java.util.List;
 
-import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleDescriptor;
 
 /**
  * Parser to convert a DSL string for a deployable unit (i.e. stream, job)
- * into a list of {@link org.springframework.xd.dirt.module.ModuleDescriptor}
+ * into a list of {@link org.springframework.xd.module.ModuleDescriptor}
  * objects that comprise the given unit.
  *
  * @author Mark Fisher
@@ -38,7 +38,7 @@ public interface XDParser {
 	 * @param type    the context under which the parsing is occurring
 	 *                (for example, is it a stream, module, or job being
 	 *                parsed, how far into the DSL has parsing occurred, etc)
-	 * @return list of {@link org.springframework.xd.dirt.module.ModuleDescriptor}
+	 * @return list of {@link org.springframework.xd.module.ModuleDescriptor}
 	 *         that reflect the modules required for the deployable unit
 	 *         described by the DSL.
 	 */

@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.core;
 import java.util.Collections;
 import java.util.Map;
 
-import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleDescriptor;
 
 /**
  * Domain model for Job runtime module. A Job consists of a single job module.

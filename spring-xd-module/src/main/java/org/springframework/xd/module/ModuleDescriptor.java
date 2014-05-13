@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.module;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,8 +24,6 @@ import java.util.Map;
 
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
-import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleType;
 
 /**
  * Representation of a module in the context of a defined stream or job.
@@ -98,7 +96,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 
 	/**
 	 * Construct a {@code ModuleDescriptor}. This constructor is private; use
-	 * {@link org.springframework.xd.dirt.module.ModuleDescriptor.Builder} to create a new instance.
+	 * {@link org.springframework.xd.module.ModuleDescriptor.Builder} to create a new instance.
 	 *
 	 * @param moduleName name of module
 	 * @param moduleLabel label used for module in stream/job definition
@@ -282,54 +280,54 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 
 
 	/**
-	 * Builder object for {@link org.springframework.xd.dirt.module.ModuleDescriptor}.
+	 * Builder object for {@link org.springframework.xd.module.ModuleDescriptor}.
 	 * This object is mutable to allow for flexibility in specifying module
 	 * type/fields/parameters during parsing.
 	 */
 	public static class Builder {
 
 		/**
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#moduleName
+		 * @see org.springframework.xd.module.ModuleDescriptor#moduleName
 		 */
 		private String moduleName;
 
 		/**
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#moduleLabel
+		 * @see org.springframework.xd.module.ModuleDescriptor#moduleLabel
 		 */
 		private String moduleLabel;
 
 		/**
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#group
+		 * @see org.springframework.xd.module.ModuleDescriptor#group
 		 */
 		private String group;
 
 		/**
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#sourceChannelName
+		 * @see org.springframework.xd.module.ModuleDescriptor#sourceChannelName
 		 */
 		private String sourceChannelName;
 
 		/**
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#sinkChannelName
+		 * @see org.springframework.xd.module.ModuleDescriptor#sinkChannelName
 		 */
 		private String sinkChannelName;
 
 		/**
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#index
+		 * @see org.springframework.xd.module.ModuleDescriptor#index
 		 */
 		private int index;
 
 		/**
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#type
+		 * @see org.springframework.xd.module.ModuleDescriptor#type
 		 */
 		private ModuleType type;
 
 		/**
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#parameters
+		 * @see org.springframework.xd.module.ModuleDescriptor#parameters
 		 */
 		private final Map<String, String> parameters = new HashMap<String, String>();
 
 		/**
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#children
+		 * @see org.springframework.xd.module.ModuleDescriptor#children
 		 */
 		private final List<ModuleDescriptor> children = new ArrayList<ModuleDescriptor>();
 
@@ -341,7 +339,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param moduleName name of module
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#moduleName
+		 * @see org.springframework.xd.module.ModuleDescriptor#moduleName
 		 */
 		public Builder setModuleName(String moduleName) {
 			this.moduleName = moduleName;
@@ -354,7 +352,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param moduleLabel name of module label
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#moduleLabel
+		 * @see org.springframework.xd.module.ModuleDescriptor#moduleLabel
 		 */
 		public Builder setModuleLabel(String moduleLabel) {
 			this.moduleLabel = moduleLabel;
@@ -367,7 +365,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param group name of module group
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#group
+		 * @see org.springframework.xd.module.ModuleDescriptor#group
 		 */
 		public Builder setGroup(String group) {
 			this.group = group;
@@ -380,7 +378,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param sourceChannelName name of source channel; may be {@code null}
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#sourceChannelName
+		 * @see org.springframework.xd.module.ModuleDescriptor#sourceChannelName
 		 */
 		public Builder setSourceChannelName(String sourceChannelName) {
 			this.sourceChannelName = sourceChannelName;
@@ -393,7 +391,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param sinkChannelName name of sink channel; may be {@code null}
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#sinkChannelName
+		 * @see org.springframework.xd.module.ModuleDescriptor#sinkChannelName
 		 */
 		public Builder setSinkChannelName(String sinkChannelName) {
 			this.sinkChannelName = sinkChannelName;
@@ -406,7 +404,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param index position of module in stream/job definition
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#index
+		 * @see org.springframework.xd.module.ModuleDescriptor#index
 		 */
 		public Builder setIndex(int index) {
 			this.index = index;
@@ -419,7 +417,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param type module type
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#type
+		 * @see org.springframework.xd.module.ModuleDescriptor#type
 		 */
 		public Builder setType(ModuleType type) {
 			this.type = type;
@@ -433,7 +431,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param children sub modules
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#children
+		 * @see org.springframework.xd.module.ModuleDescriptor#children
 		 */
 		public Builder addChildren(List<ModuleDescriptor> children) {
 			this.children.addAll(children);
@@ -447,7 +445,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param value parameter value
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#parameters
+		 * @see org.springframework.xd.module.ModuleDescriptor#parameters
 		 */
 		public Builder setParameter(String name, String value) {
 			this.parameters.put(name, value);
@@ -460,7 +458,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param parameters module parameters
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.dirt.module.ModuleDescriptor#parameters
+		 * @see org.springframework.xd.module.ModuleDescriptor#parameters
 		 */
 		public Builder addParameters(Map<String, String> parameters) {
 			this.parameters.putAll(parameters);
@@ -553,7 +551,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 
 		/**
 		 * Create a {@code Builder} object pre-populated with the configuration
-		 * for the provided {@link org.springframework.xd.dirt.module.ModuleDescriptor}.
+		 * for the provided {@link org.springframework.xd.module.ModuleDescriptor}.
 		 *
 		 * @param descriptor module descriptor
 		 * @return pre-populated builder object
@@ -575,7 +573,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		}
 
 		/**
-		 * Return a new instance of {@link org.springframework.xd.dirt.module.ModuleDescriptor}.
+		 * Return a new instance of {@link org.springframework.xd.module.ModuleDescriptor}.
 		 *
 		 * @return new instance of {@code ModuleDescriptor}
 		 */

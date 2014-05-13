@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.core;
+package org.springframework.xd.module;
 
 import java.util.Collection;
 import java.util.Collections;

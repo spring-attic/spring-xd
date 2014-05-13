@@ -22,8 +22,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
+import org.springframework.xd.module.ModuleDeploymentProperties;
 
 /**
  * Tests for the {@link ModuleDeploymentProperties} parser.

@@ -34,6 +34,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.OrderComparator;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 

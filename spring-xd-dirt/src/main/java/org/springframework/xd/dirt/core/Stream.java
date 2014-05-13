@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
-import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleDescriptor;
 
 /**
  * Domain model for runtime Stream modules. A stream consists of a set of modules used

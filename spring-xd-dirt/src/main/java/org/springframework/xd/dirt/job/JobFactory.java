@@ -22,11 +22,11 @@ import java.util.Map;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**

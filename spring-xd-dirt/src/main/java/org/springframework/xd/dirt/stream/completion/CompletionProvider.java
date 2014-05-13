@@ -22,9 +22,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDParser;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**

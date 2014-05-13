@@ -28,9 +28,9 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.DependencyException;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 
 

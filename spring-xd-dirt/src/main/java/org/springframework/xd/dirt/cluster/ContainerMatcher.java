@@ -18,11 +18,11 @@ package org.springframework.xd.dirt.cluster;
 
 import java.util.Collection;
 
-import org.springframework.xd.dirt.core.ModuleDeploymentProperties;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 
 /**
- * Strategy interface for matching a {@link org.springframework.xd.dirt.module.ModuleDescriptor}
+ * Strategy interface for matching a {@link org.springframework.xd.module.ModuleDescriptor}
  * to one of the candidate container nodes.
  *
  * @author Mark Fisher

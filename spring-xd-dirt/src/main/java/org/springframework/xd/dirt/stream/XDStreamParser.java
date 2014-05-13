@@ -29,7 +29,6 @@ import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDescriptor;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.dirt.stream.ParsingContext.Position;
@@ -40,6 +39,7 @@ import org.springframework.xd.dirt.stream.dsl.SourceChannelNode;
 import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
 import org.springframework.xd.dirt.stream.dsl.StreamNode;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
@@ -47,7 +47,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Parser to convert a DSL string for a stream into a list of
- * {@link org.springframework.xd.dirt.module.ModuleDescriptor}
+ * {@link org.springframework.xd.module.ModuleDescriptor}
  * objects that comprise the given stream.
  *
  * @author Andy Clement
@@ -237,10 +237,10 @@ public class XDStreamParser implements XDParser {
 	}
 
 	/**
-	 * Return a {@link org.springframework.xd.dirt.module.ModuleDescriptor}
+	 * Return a {@link org.springframework.xd.module.ModuleDescriptor}
 	 * per the specifications indicated by the provided builder. If the module
 	 * is a composite module, the children modules are also built and included
-	 * under {@link org.springframework.xd.dirt.module.ModuleDescriptor#getChildren()}.
+	 * under {@link org.springframework.xd.module.ModuleDescriptor#getChildren()}.
 	 *
 	 * @param builder builder object
 	 * @return new instance of {@code ModuleDescriptor}

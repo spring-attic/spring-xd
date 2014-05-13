@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.stream.completion;
 
 import java.util.List;
 
-import org.springframework.xd.dirt.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**

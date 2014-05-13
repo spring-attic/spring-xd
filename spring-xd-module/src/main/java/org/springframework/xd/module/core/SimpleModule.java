@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,49 +62,6 @@ import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
  */
 public class SimpleModule extends AbstractModule {
 
-	/**
-	 * Dedicated sublcass of {@link ParentContextCloserApplicationListener} used to create its own version of
-	 * ContextCloserListener that is aware of module order. Special care is taken so that no strong references to the
-	 * module context are retained (this is a *static* inner class).
-	 *
-	 * @author Eric Bottard
-	 */
-	private static final class ModuleParentContextCloserApplicationListener extends
-			ParentContextCloserApplicationListener {
-
-		private final int index;
-
-		public ModuleParentContextCloserApplicationListener(int index) {
-			this.index = index;
-		}
-
-		@Override
-		protected ContextCloserListener createContextCloserListener(ConfigurableApplicationContext child) {
-			return new ModuleContextCloserListener(child, index);
-		}
-
-		/**
-		 * Module context closer listener that sets the order based on the module deployment index.
-		 */
-		final static class ModuleContextCloserListener extends ContextCloserListener implements Ordered {
-
-			private int index;
-
-			public ModuleContextCloserListener(ConfigurableApplicationContext moduleContext, int index) {
-				super(moduleContext);
-				this.index = index;
-			}
-
-			@Override
-			public int getOrder() {
-				// Make sure producer modules get closed before the consumer modules (sink/processor)
-				// by setting them the highest precedence. Smaller values come first.
-				return index;
-			}
-
-		}
-	}
-
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private ConfigurableApplicationContext context;
@@ -125,15 +82,6 @@ public class SimpleModule extends AbstractModule {
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
 		this(definition, metadata, null, defaultModuleOptions());
-	}
-
-	private static ModuleOptions defaultModuleOptions() {
-		try {
-			return new PassthruModuleOptionsMetadata().interpolate(Collections.<String, String> emptyMap());
-		}
-		catch (BindException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader,
@@ -281,6 +229,59 @@ public class SimpleModule extends AbstractModule {
 			catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
+		}
+	}
+
+	private static ModuleOptions defaultModuleOptions() {
+		try {
+			return new PassthruModuleOptionsMetadata().interpolate(Collections.<String, String> emptyMap());
+		}
+		catch (BindException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+
+	/**
+	 * Dedicated sublcass of {@link ParentContextCloserApplicationListener} used to create its own version of
+	 * ContextCloserListener that is aware of module order. Special care is taken so that no strong references to the
+	 * module context are retained (this is a *static* inner class).
+	 *
+	 * @author Eric Bottard
+	 */
+	private static final class ModuleParentContextCloserApplicationListener extends
+			ParentContextCloserApplicationListener {
+
+		private final int index;
+
+		public ModuleParentContextCloserApplicationListener(int index) {
+			this.index = index;
+		}
+
+		@Override
+		protected ContextCloserListener createContextCloserListener(ConfigurableApplicationContext child) {
+			return new ModuleContextCloserListener(child, index);
+		}
+
+		/**
+		 * Module context closer listener that sets the order based on the module deployment index.
+		 */
+		final static class ModuleContextCloserListener extends ContextCloserListener implements Ordered {
+
+			private int index;
+
+			public ModuleContextCloserListener(ConfigurableApplicationContext moduleContext, int index) {
+				super(moduleContext);
+				this.index = index;
+			}
+
+			@Override
+			public int getOrder() {
+				// Make sure producer modules get closed before the consumer modules (sink/processor)
+				// by setting them the highest precedence. Smaller values come first.
+				return index;
+			}
+
 		}
 	}
 

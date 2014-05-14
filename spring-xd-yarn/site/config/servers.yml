@@ -8,13 +8,6 @@ xd:
 spring:
     yarn:
         applicationDir: /xd/app/
-        appmaster:
-            launchcontext:
-                classpath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*"
-# Hadoop configuration
-#    hadoop:
-#        fsUri: hdfs://localhost:8020
-#        resourceManagerHost: localhost
 
 # Transport used
 #transport: rabbit
@@ -22,6 +15,41 @@ spring:
 # Port that admin-ui is listening on
 #server:
 #    port: 9393
+
+---
+
+# Hadoop configuration
+#spring:
+#    hadoop:
+#        fsUri: hdfs://localhost:8020
+#        resourceManagerHost: localhost
+
+---
+
+# YARN classpath settings -- in the next Spring XD release we hope to make this more auto-configured, but for now we need to provide the
+# classpath that each distro uses for "yarn.application.classpath" and it should also include "mapreduce.application.classpath".
+# Just comment out the ones not needed and make sure the one for your current distro is not commented out. These settings are based
+# on single-node VMs provided for each distro and they might need tweaking for other installation types.
+
+# Hadoop 2.2.0 (hadoop22):
+spring:
+    yarn:
+        defaultYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*"
+
+# Pivotal HD 2.0 (phd20):
+#spring:
+#    yarn:
+#        defaultYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/hadoop-annotations.jar,$HADOOP_COMMON_HOME/hadoop-auth.jar,$HADOOP_COMMON_HOME/hadoop-common.jar,$HADOOP_COMMON_HOME/hadoop-nfs.jar,$HADOOP_HDFS_HOME/hadoop-hdfs.jar,$HADOOP_HDFS_HOME/hadoop-hdfs-nfs.jar,$HADOOP_YARN_HOME/hadoop-yarn-api.jar,$HADOOP_YARN_HOME/hadoop-yarn-client.jar,$HADOOP_YARN_HOME/hadoop-yarn-common.jar,$HADOOP_YARN_HOME/hadoop-yarn-server-common.jar,$HADOOP_YARN_HOME/hadoop-yarn-server-nodemanager.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-common.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-core.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-jobclient.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-shuffle.jar,$HADOOP_MAPRED_HOME/hadoop-streaming.jar,$HADOOP_MAPRED_HOME/hadoop-distcp.jar,$HADOOP_COMMON_HOME/lib/slf4j-log4j12-1.7.5.jar,$HADOOP_COMMON_HOME/lib/log4j-1.2.17.jar"
+
+# Hortonworks HDP 2.1 (hdp21):
+#spring:
+#    yarn:
+#        defaultYarnAppClasspath: "/etc/hadoop/conf,/usr/lib/hadoop/hadoop-annotations.jar,/usr/lib/hadoop/hadoop-auth.jar,/usr/lib/hadoop/hadoop-common.jar,/usr/lib/hadoop/hadoop-nfs.jar,/usr/lib/hadoop-hdfs/hadoop-hdfs.jar,/usr/lib/hadoop-hdfs/hadoop-hdfs-nfs.jar,/usr/lib/hadoop-yarn/hadoop-yarn-api.jar,/usr/lib/hadoop-yarn/hadoop-yarn-client.jar,/usr/lib/hadoop-yarn/hadoop-yarn-common.jar,/usr/lib/hadoop-yarn/hadoop-yarn-server-common.jar,/usr/lib/hadoop-yarn/hadoop-yarn-server-nodemanager.jar,/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-common.jar,/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-core.jar,/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-jobclient.jar,/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-shuffle.jar,/usr/lib/hadoop-mapreduce/hadoop-streaming.jar,/usr/lib/hadoop-mapreduce/hadoop-distcp.jar,/usr/lib/hadoop/lib/slf4j-log4j12-1.7.5.jar,/usr/lib/hadoop/lib/log4j-1.2.17.jar"
+
+# Cloudera CDH5 (cdh5):
+#spring:
+#    yarn:
+#        defaultYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/hadoop-annotations.jar,$HADOOP_COMMON_HOME/hadoop-auth.jar,$HADOOP_COMMON_HOME/hadoop-common.jar,$HADOOP_COMMON_HOME/hadoop-nfs.jar,$HADOOP_HDFS_HOME/hadoop-hdfs.jar,$HADOOP_HDFS_HOME/hadoop-hdfs-nfs.jar,$HADOOP_YARN_HOME/hadoop-yarn-api.jar,$HADOOP_YARN_HOME/hadoop-yarn-client.jar,$HADOOP_YARN_HOME/hadoop-yarn-common.jar,$HADOOP_YARN_HOME/hadoop-yarn-server-common.jar,$HADOOP_YARN_HOME/hadoop-yarn-server-nodemanager.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-common.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-core.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-jobclient.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-shuffle.jar,$HADOOP_MAPRED_HOME/hadoop-streaming.jar,$HADOOP_MAPRED_HOME/hadoop-distcp.jar,$HADOOP_COMMON_HOME/lib/slf4j-log4j12.jar,$HADOOP_COMMON_HOME/lib/log4j-1.2.17.jar"
 
 ---
 #Zookeeper properties
@@ -60,7 +88,7 @@ spring:
 # Config for use with HSQLDB
 #spring:
 #  datasource:
-#    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+#    url: jdbc:hsqldb:hsql://localhost:9101/xdjob
 #    username: sa
 #    password:
 #    driverClassName: org.hsqldb.jdbc.JDBCDriver
@@ -68,7 +96,7 @@ spring:
 # Config for use with MySQL - uncomment and edit with relevant values for your environment
 #spring:
 #  datasource:
-#    url: jdbc:mysql://yourDBhost:3306/yourDB
+#    url: jdbc:mysql://localhost:3306/xdjob
 #    username: yourUsername
 #    password: yourPassword
 #    driverClassName: com.mysql.jdbc.Driver
@@ -78,7 +106,7 @@ spring:
 # Config for use with Postgres - uncomment and edit with relevant values for your environment
 #spring:
 #  datasource:
-#    url: jdbc:postgresql://yourDBhost:5432/yourDB
+#    url: jdbc:postgresql://localhost:5432/xdjob
 #    username: yourUsername
 #    password: yourPassword
 #    driverClassName: org.postgresql.Driver

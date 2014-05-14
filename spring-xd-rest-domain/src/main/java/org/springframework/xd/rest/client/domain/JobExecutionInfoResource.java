@@ -100,7 +100,7 @@ public class JobExecutionInfoResource extends ResourceSupport {
 			BatchStatus status = jobExecution.getStatus();
 			this.restartable = status.isGreaterThan(BatchStatus.STOPPING) && status.isLessThan(BatchStatus.ABANDONED);
 			this.abandonable = status.isGreaterThan(BatchStatus.STARTED) && status != BatchStatus.ABANDONED;
-			this.stoppable = status.isLessThan(BatchStatus.STOPPING);
+			this.stoppable = status.isLessThan(BatchStatus.STOPPING) && status != BatchStatus.COMPLETED;
 		}
 		else {
 			this.jobName = "?";

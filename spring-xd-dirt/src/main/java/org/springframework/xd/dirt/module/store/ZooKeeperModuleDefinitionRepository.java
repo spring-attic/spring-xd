@@ -35,6 +35,7 @@ import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.support.ModuleDefinitionRepositoryUtils;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -45,6 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * {@code /xd/modules/[moduletype]/[modulename]}.
  * 
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepository {
 
@@ -87,11 +89,10 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 				shallowValue.setComposedModuleDefinitions(deepModules);
 				definition = shallowValue;
 			}
-			catch (NoNodeException e) {
-				// will return null
-			}
+
+			// NoNodeException will return null
 			catch (Exception e) {
-				throw new RuntimeException(e);
+				ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 			}
 		}
 		return definition;
@@ -160,11 +161,11 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 					zooKeeperConnection.getClient().setData().forPath(path, data);
 				}
 				catch (Exception e) {
-					throw new RuntimeException(e);
+					throw ZooKeeperUtils.wrapThrowable(e);
 				}
 			}
 			catch (Exception e) {
-				throw new RuntimeException(e);
+				throw ZooKeeperUtils.wrapThrowable(e);
 			}
 		}
 		for (ModuleDefinition child : moduleDefinition.getComposedModuleDefinitions()) {
@@ -192,11 +193,10 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 						dependencyKey(moduleDefinition));
 			}
 		}
-		catch (NoNodeException e) {
-			// nothing to delete
-		}
+
+		// NoNodeException - nothing to delete
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}
 

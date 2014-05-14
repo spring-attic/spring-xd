@@ -35,6 +35,7 @@ import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -49,6 +50,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Ilayaperumal Gopinathan
  */
 public class SingleNodeIntegrationTestSupport {
+
 	private static final Logger logger = LoggerFactory.getLogger(SingleNodeIntegrationTestSupport.class);
 
 	private StreamDefinitionRepository streamDefinitionRepository;
@@ -177,11 +179,8 @@ public class SingleNodeIntegrationTestSupport {
 				cache.getListenable().addListener(listener);
 				cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
 			}
-			catch (RuntimeException e) {
-				throw e;
-			}
 			catch (Exception e) {
-				throw new RuntimeException(e);
+				throw ZooKeeperUtils.wrapThrowable(e);
 			}
 		}
 		else {
@@ -205,7 +204,7 @@ public class SingleNodeIntegrationTestSupport {
 					mapChildren.remove(path);
 				}
 				catch (Exception e) {
-					throw e instanceof RuntimeException ? ((RuntimeException) e) : new RuntimeException(e);
+					throw ZooKeeperUtils.wrapThrowable(e);
 				}
 			}
 		}

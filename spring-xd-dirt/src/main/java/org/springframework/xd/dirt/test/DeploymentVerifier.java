@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.core.RuntimeTimeoutException;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
  * Verifies deployments or undeployments via inspection of ZooKeeper
@@ -166,11 +167,8 @@ public class DeploymentVerifier {
 		try {
 			return zkConnection.getClient().checkExists().forPath(path) != null;
 		}
-		catch (RuntimeException e) {
-			throw e;
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -186,11 +184,8 @@ public class DeploymentVerifier {
 			Stat stat = zkConnection.getClient().checkExists().forPath(path);
 			return stat == null ? 0 : stat.getNumChildren();
 		}
-		catch (RuntimeException e) {
-			throw e;
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 

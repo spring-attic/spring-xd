@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -35,6 +36,7 @@ import org.springframework.xd.module.ModuleType;
  * {@code /xd/modules/[moduletype]/[modulename]/dependencies/[target]}.
  * 
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class ZooKeeperModuleDependencyRepository implements ModuleDependencyRepository {
 
@@ -55,11 +57,9 @@ public class ZooKeeperModuleDependencyRepository implements ModuleDependencyRepo
 		try {
 			connection.getClient().create().creatingParentsIfNeeded().forPath(path);
 		}
-		catch (NodeExistsException e) {
-			// already created
-		}
+		// NodeExistsException - already created
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NodeExistsException.class);
 		}
 	}
 
@@ -74,7 +74,7 @@ public class ZooKeeperModuleDependencyRepository implements ModuleDependencyRepo
 			return Collections.emptySet();
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -84,11 +84,10 @@ public class ZooKeeperModuleDependencyRepository implements ModuleDependencyRepo
 		try {
 			connection.getClient().delete().forPath(path);
 		}
-		catch (NoNodeException e) {
-			// nothing to delete
-		}
+
+		//NoNodeException - nothing to delete
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}
 

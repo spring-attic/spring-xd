@@ -55,6 +55,7 @@ import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
@@ -245,7 +246,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 			}
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 

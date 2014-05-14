@@ -34,11 +34,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
  * ZooKeeper backed repository for runtime info about deployed modules.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  */
 public class ZooKeeperModuleMetadataRepository implements ModuleMetadataRepository {
 
@@ -99,11 +101,9 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 				metadata = new ModuleMetadata(moduleId, containerId, moduleProperties);
 			}
 		}
-		catch (NoNodeException e) {
-			// this node does not exist, will return null
-		}
+		// NoNodeException - this node does not exist, will return null
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 		return metadata;
 	}
@@ -126,7 +126,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 					.forPath(path(id));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -148,7 +148,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			return results;
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -166,7 +166,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			return new PageImpl<ModuleMetadata>(results);
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -193,7 +193,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			}
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return count;
 	}

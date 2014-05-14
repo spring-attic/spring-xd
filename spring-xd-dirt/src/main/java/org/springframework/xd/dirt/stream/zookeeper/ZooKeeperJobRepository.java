@@ -39,11 +39,13 @@ import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
  * Job instance repository. It should only return values for Jobs that are deployed.
  *
  * @author Mark Fisher
+ * @author David Turanski
  */
 // todo: the JobRepository abstraction can be removed once we are fully zk-enabled since we do not need to
 // support multiple impls at that point
@@ -125,7 +127,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 			}
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return null;
 	}
@@ -141,7 +143,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 			return findAll(zkConnection.getClient().getChildren().forPath(Paths.JOBS));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -157,7 +159,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 			}
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return results;
 	}
@@ -169,7 +171,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 			return stat != null ? stat.getNumChildren() : 0;
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -178,11 +180,8 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 		try {
 			zkConnection.getClient().delete().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));
 		}
-		catch (KeeperException.NoNodeException e) {
-			// ignore
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 	}
 
@@ -206,11 +205,8 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 				delete(child);
 			}
 		}
-		catch (KeeperException.NoNodeException e) {
-			// ignore
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 	}
 

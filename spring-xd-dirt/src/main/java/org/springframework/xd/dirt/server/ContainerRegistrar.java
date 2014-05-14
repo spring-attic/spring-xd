@@ -64,6 +64,7 @@ import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
@@ -302,7 +303,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			logger.info("Started container {}", containerAttributes);
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -337,7 +338,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				}
 			}
 			catch (Exception e) {
-				throw new RuntimeException(e);
+				throw ZooKeeperUtils.wrapThrowable(e);
 			}
 		}
 	}
@@ -617,7 +618,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 					// to delete a deployment path will only be rethrown
 					// if the client is in a connected/started state
 					if (client.getState() == CuratorFrameworkState.STARTED) {
-						throw new RuntimeException(e);
+						throw ZooKeeperUtils.wrapThrowable(e);
 					}
 				}
 			}
@@ -671,7 +672,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 					// to delete a deployment path will only be rethrown
 					// if the client is in a connected/started state
 					if (client.getState() == CuratorFrameworkState.STARTED) {
-						throw new RuntimeException(e);
+						throw ZooKeeperUtils.wrapThrowable(e);
 					}
 				}
 			}

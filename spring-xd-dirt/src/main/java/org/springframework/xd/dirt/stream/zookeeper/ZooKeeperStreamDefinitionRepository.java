@@ -44,6 +44,7 @@ import org.springframework.xd.dirt.stream.StreamDefinitionRepositoryUtils;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
  * @author Mark Fisher
@@ -130,12 +131,11 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 			StreamDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, entity);
 		}
-		catch (NodeExistsException e) {
-			// this exception indicates that we tried to create the
-			// path just after another thread/jvm successfully created it
-		}
+
+		// NodeExistsException indicates that we tried to create the
+		// path just after another thread/jvm successfully created it 
 		catch (Exception e) {
-			throw e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NodeExistsException.class);
 		}
 		return entity;
 	}
@@ -150,12 +150,10 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			Map<String, String> map = this.mapBytesUtility.toMap(bytes);
 			return new StreamDefinition(id, map.get("definition"));
 		}
-		catch (NoNodeException e) {
-			return null;
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
+		return null;
 	}
 
 	@Override
@@ -164,7 +162,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			return (null != zkConnection.getClient().checkExists().forPath(Paths.build(Paths.STREAMS, id)));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -174,7 +172,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			return this.findAll(zkConnection.getClient().getChildren().forPath(Paths.STREAMS));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -197,7 +195,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			return stat == null ? 0 : stat.getNumChildren();
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -208,11 +206,8 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 		try {
 			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
 		}
-		catch (NoNodeException e) {
-			// ignore
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}
 
@@ -234,12 +229,8 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 		try {
 			delete(findAll());
 		}
-		catch (RuntimeException e) {
-			if (e.getCause() instanceof NoNodeException) {
-				// no top level node, ignore
-				return;
-			}
-			throw e;
+		catch (Exception e) {
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}
 

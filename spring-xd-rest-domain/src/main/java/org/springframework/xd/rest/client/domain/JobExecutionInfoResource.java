@@ -175,4 +175,13 @@ public class JobExecutionInfoResource extends ResourceSupport {
 	public Properties getJobParameters() {
 		return jobParameters;
 	}
+
+	/**
+	 * Set restartable flag explicitly based on the job executions status of the same job instance.
+	 *
+	 * @param restartable flag to identify if the job execution can be restarted
+	 */
+	public void setRestartable(boolean restartable) {
+		this.restartable = restartable;
+	}
 }

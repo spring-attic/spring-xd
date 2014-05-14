@@ -87,8 +87,9 @@ public class SyslogUdpSource extends AbstractModuleFixture {
 	 * @param bytes the data to be sent.
 	 */
 	public void sendBytes(byte[] bytes) {
+		DatagramSocket clientSocket = null;
 		try {
-			DatagramSocket clientSocket = new DatagramSocket();
+			clientSocket = new DatagramSocket();
 
 			InetAddress IPAddress = InetAddress.getByName(host);
 			DatagramPacket sendPacket =
@@ -102,6 +103,12 @@ public class SyslogUdpSource extends AbstractModuleFixture {
 		catch (IOException ioe) {
 			throw new IllegalStateException(ioe.getMessage(), ioe);
 		}
+		finally {
+			if (clientSocket != null) {
+				clientSocket.close();
+			}
+		}
+
 	}
 
 	/**

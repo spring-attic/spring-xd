@@ -84,13 +84,23 @@ public class SyslogTcpSource extends AbstractModuleFixture {
 	 * @param bytes the data to be sent.
 	 */
 	public void sendBytes(byte[] bytes) {
+		Socket socket = null;
 		try {
-			Socket socket = new Socket(host, port);
+			socket = new Socket(host, port);
 			socket.getOutputStream().write(bytes);
 			socket.close();
 		}
 		catch (IOException ioe) {
 			throw new IllegalStateException(ioe.getMessage(), ioe);
+		}
+		finally {
+			try {
+				if (socket != null) {
+					socket.close();
+				}
+			}
+			catch (IOException ioe) {
+			}
 		}
 	}
 

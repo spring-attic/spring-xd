@@ -35,6 +35,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -42,16 +44,22 @@ import org.springframework.xd.module.ModuleType;
 
 
 /**
- * 
+ * Tests for {@link DefaultContainerMatcher}
+ *
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultContainerMatcherTests {
 
 	private DefaultContainerMatcher containerMatcher = new DefaultContainerMatcher();
 
+	private EmbeddedZooKeeper zk = new EmbeddedZooKeeper();
+
 	@Mock
 	private ContainerRepository containerRepository;
+
+	private ZooKeeperConnection zooKeeperConnection;
 
 	private List<Container> containers;
 
@@ -63,6 +71,10 @@ public class DefaultContainerMatcherTests {
 
 	@Before
 	public void setUp() {
+		zk = new EmbeddedZooKeeper();
+		zk.start();
+		zooKeeperConnection = new ZooKeeperConnection("localhost:" + zk.getClientPort());
+		containerMatcher.setZooKeeperConnection(zooKeeperConnection);
 		moduleDefinition = new ModuleDefinition("foo", ModuleType.processor);
 		deploymentProperties = new ModuleDeploymentProperties();
 		moduleDescriptor = new ModuleDescriptor.Builder()

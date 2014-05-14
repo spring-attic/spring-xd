@@ -154,6 +154,18 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 	}
 
+
+	/**
+	 * Gets the URL of the container where the testing stream was deployed
+	 *
+	 * @return The URL that contains the stream.
+	 */
+	public URL getContainerForStream() {
+		Assert.hasText(STREAM_NAME, "stream name can not be empty nor null");
+		// Assuming one container for now.
+		return xdEnvironment.getContainerUrls().get(0);
+	}
+
 	/**
 	 * Gets the URL of the container where the stream was deployed
 	 *

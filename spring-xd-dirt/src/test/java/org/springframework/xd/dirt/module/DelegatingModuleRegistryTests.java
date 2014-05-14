@@ -17,13 +17,20 @@
 package org.springframework.xd.dirt.module;
 
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.module.ModuleType.processor;
+import static org.springframework.xd.module.ModuleType.sink;
+import static org.springframework.xd.module.ModuleType.source;
 
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
+import org.hamcrest.Description;
+import org.hamcrest.DiagnosingMatcher;
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,6 +40,7 @@ import org.springframework.xd.module.ModuleType;
 
 
 /**
+ * Tests for DelegatingModuleRegistry.
  * 
  * @author Eric Bottard
  * @author Glenn Renfro
@@ -43,101 +51,87 @@ public class DelegatingModuleRegistryTests {
 
 	@Before
 	public void setup() {
-		ResourceModuleRegistry cp = new ResourceModuleRegistry("classpath:/testmodules/");
-		ResourceModuleRegistry file = new ResourceModuleRegistry(
-				"file:src/test/resources/testmodules");
+		String thisClass = DelegatingModuleRegistryTests.class.getName().replace(".", "/");
+
+		ResourceModuleRegistry cp = new ResourceModuleRegistry(
+				String.format("classpath:/%s/classpath-based", thisClass));
+		ResourceModuleRegistry file = new ResourceModuleRegistry(String.format(
+				"file:src/test/resources/%s/file-based", thisClass));
 		registry = new DelegatingModuleRegistry(cp, file);
 	}
 
+	/**
+	 * Tests that when at least one delegate has a module, it is found.
+	 */
 	@Test
 	public void testFound() {
-		ModuleDefinition def = registry.findDefinition("file", ModuleType.source);
-		Assert.assertNotNull(def);
-		Assert.assertTrue(def.getResource() instanceof ClassPathResource);
-
-		def = registry.findDefinition("sink", ModuleType.sink);
-		Assert.assertNotNull(def);
-		Assert.assertTrue(def.getResource() instanceof ClassPathResource);
+		ModuleDefinition def = registry.findDefinition("test-source", source);
+		assertThat(def, notNullValue());
+		assertThat(def, module("test-source", source));
 	}
 
+	/**
+	 * Tests that when no delegate has a module, it is not found.
+	 */
 	@Test
 	public void testNotFound() {
-		ModuleDefinition def = registry.findDefinition("foo", ModuleType.sink);
+		ModuleDefinition def = registry.findDefinition("foo", sink);
 		assertNull(def);
 	}
 
+
+	/**
+	 * Tests the find [all] definitions behavior.
+	 */
 	@Test
-	public void testFindSource() {
-		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.source);
-		Assert.assertNotNull("A result list should always be returned", definitions);
-		Assert.assertEquals(4, definitions.size());
-		ArrayList<String> moduleNames = new ArrayList<String>();
-		for (ModuleDefinition definition : definitions) {
-			moduleNames.add(definition.getName());
-		}
-		Assert.assertTrue("File Source should be available",
-				moduleNames.contains("file"));
-
-	}
-
-	@Test
-	public void testFindSink() {
-		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.sink);
-		Assert.assertNotNull("A result list should always be returned", definitions);
-		Assert.assertEquals(1, definitions.size());
-		ArrayList<String> moduleNames = new ArrayList<String>();
-		for (ModuleDefinition definition : definitions) {
-			moduleNames.add(definition.getName());
-		}
-		Assert.assertTrue("Sink Sink should be available",
-				moduleNames.contains("sink"));
-
-	}
-
-	@Test
-	public void testFindAll() {
+	public void testFindDefinitions() {
 		List<ModuleDefinition> definitions = registry.findDefinitions();
-		Assert.assertNotNull("A result list should always be returned", definitions);
-		Assert.assertEquals(9, definitions.size());
-		ArrayList<String> moduleNames = new ArrayList<String>();
-		for (ModuleDefinition definition : definitions) {
-			moduleNames.add(definition.getName());
-		}
-		Assert.assertTrue("File Source should be available",
-				moduleNames.contains("file"));
-		Assert.assertTrue(" Source should be available",
-				moduleNames.contains("source"));
-		Assert.assertTrue(" Sink should be available",
-				moduleNames.contains("sink"));
-		Assert.assertTrue(" source-config should be available",
-				moduleNames.contains("source-config"));
+
+		assertThat(definitions, containsInAnyOrder(module("test-source", source),
+				module("test-processor", processor),
+				module("test-sink", sink),
+				module("foobar", source),
+				module("foobar", sink)
+				));
+
+	}
+
+	private Matcher<ModuleDefinition> module(final String name, final ModuleType type) {
+		return new DiagnosingMatcher<ModuleDefinition>() {
+
+			@Override
+			public void describeTo(Description description) {
+				description.appendText("a module named ").appendValue(name).appendText(" with type ").appendValue(type);
+			}
+
+			@Override
+			protected boolean matches(Object item, Description mismatchDescription) {
+				ModuleDefinition def = (ModuleDefinition) item;
+				mismatchDescription.appendText("a module named ").appendValue(def.getName())
+						.appendText(" with type ").appendValue(def.getType());
+				return name.equals(def.getName()) && type == def.getType();
+			}
+		};
+	}
+
+	/**
+	 * Tests that when several delegates define the same module, the first one wins.
+	 */
+	@Test
+	public void testShadowing() {
+		ModuleDefinition def = registry.findDefinition("test-processor", processor);
+		assertThat(def.getResource(), instanceOf(ClassPathResource.class));
 	}
 
 	@Test
-	public void testClassPath() {
-		List<ModuleDefinition> definitions = registry.findDefinitions();
-		String sourceConfigClassPath = null;
-		URL[] sourceConfigNoLib = null;
+	public void testFindByName() {
+		List<ModuleDefinition> result = registry.findDefinitions("foobar");
+		assertThat(result, containsInAnyOrder(module("foobar", source), module("foobar", sink)));
+	}
 
-		ModuleDefinition fileModule = null;
-
-		for (ModuleDefinition definition : definitions) {
-			if (definition.getName().equals("source-config") && definition.getClasspath().length == 1) {
-				sourceConfigClassPath = definition.getClasspath()[0].toString();
-			}
-			if (definition.getName().equals("source-config-no-lib")) {
-				sourceConfigNoLib = definition.getClasspath();
-			}
-
-			if (definition.getName().equals("file")) {
-				fileModule = definition;
-			}
-		}
-		Assert.assertNull("File Source should not have a associated jar", fileModule.getClasspath());
-		Assert.assertNotNull("sourceConfigClassPath should not be null", sourceConfigClassPath);
-		Assert.assertTrue("source-config classpath should end with /lib/source-config.jar",
-				sourceConfigClassPath.endsWith("/lib/source-config.jar"));
-		Assert.assertNull("source-config-no-lib should have no associated libraries", sourceConfigNoLib);
-
+	@Test
+	public void testFindByType() {
+		List<ModuleDefinition> result = registry.findDefinitions(source);
+		assertThat(result, containsInAnyOrder(module("test-source", source), module("foobar", source)));
 	}
 }

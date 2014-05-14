@@ -41,6 +41,7 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.xd.integration.util.jmxresult.JMXChannelResult;
 import org.springframework.xd.integration.util.jmxresult.JMXResult;
 import org.springframework.xd.integration.util.jmxresult.Module;
 
@@ -51,7 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Validates that all instances of the cluster is up and running. Also verifies that streams are running and available.
- * 
+ *
  * @author Glenn Renfro
  */
 @Configuration
@@ -72,7 +73,7 @@ public class XdEc2Validation {
 
 	/**
 	 * Assert is the admin server is available.
-	 * 
+	 *
 	 * @param adminServer the location of the admin server
 	 */
 	public void verifyXDAdminReady(final URL adminServer) {
@@ -84,7 +85,7 @@ public class XdEc2Validation {
 
 	/**
 	 * Assert that at least one server the user specified is available.
-	 * 
+	 *
 	 * @param containers the location of xd-containers
 	 * @param jmxPort the JMX port to connect to the container
 	 */
@@ -117,23 +118,30 @@ public class XdEc2Validation {
 	}
 
 	/**
-	 * Verifies that the module has in fact processed the data. Keep in mind that any module name must be suffixed with
-	 * index number for example .1. So if I have a stream of http|file, to access the modules I will need to have a
-	 * module name of http.1 for the source and file.1 for the sink.
-	 * 
+	 * Verifies that the instances for the channel and module has in fact processed the correct number of messages. Keep
+	 * in mind that any module name must be suffixed with index number for example .1. So if I have a stream of
+	 * http|file, to access the modules I will need to have a module name of http.1 for the source and file.1 for the
+	 * sink.
+	 *
 	 * @param url The server where the stream is deployed
 	 * @param streamName The stream to analyze.
-	 * @param moduleName The name of the module
+	 * @param moduleName The name of the module.
+	 * @param channelName The name of the channel to interrogate.
+	 * @param msgCountExpected expected number of messages to have been successfully processed by the module.
 	 */
 	public void assertReceived(URL url, String streamName,
-			String moduleName, int msgCountExpected) {
+			String moduleName, String channelName, int msgCountExpected) {
 		Assert.notNull(url, "The url should not be null");
 		Assert.hasText(moduleName, "The modulName can not be empty nor null");
 		Assert.hasText(streamName, "The streamName can not be empty nor null");
-		String request = buildJMXRequest(url, streamName, moduleName);
+		Assert.hasText(channelName, "The channelName can not be empty nor null");
+		String request = buildJMXRequest(url, streamName, moduleName, channelName);
 		try {
-			List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(request)));
-			verifySendCounts(modules, msgCountExpected);
+			Module module = getModule(StreamUtils.httpGet(new URL(request)));
+			assertEquals("Module "
+					+ moduleName + " for channel " + channelName
+					+ " did not have expected count ", msgCountExpected, Integer.parseInt(module.getSendCount()));
+
 		}
 		catch (IOException ioException) {
 			throw new IllegalStateException(ioException.getMessage(), ioException);
@@ -143,7 +151,7 @@ public class XdEc2Validation {
 
 	/**
 	 * Retrieves the stream and verifies that all modules in the stream processed the data.
-	 * 
+	 *
 	 * @param url The server where the stream is deployed
 	 * @param streamName The stream to analyze.
 	 * @throws Exception Error processing JSON or making HTTP GET request
@@ -151,12 +159,10 @@ public class XdEc2Validation {
 	public void assertReceived(URL url, String streamName,
 			int msgCountExpected) {
 		Assert.notNull(url, "The url should not be null");
-		Assert.hasText(streamName, "streamName can not be empty nor null");
-
+		Assert.hasText(streamName, "The streamName can not be empty nor null");
+		String request = buildJMXRequest(url, streamName, "*", "*");
 		try {
-			String request = buildJMXRequest(url, streamName, "*");
-			List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(
-					request)));
+			List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(request)));
 			verifySendCounts(modules, msgCountExpected);
 		}
 		catch (IOException ioException) {
@@ -164,10 +170,9 @@ public class XdEc2Validation {
 		}
 	}
 
-
 	/**
 	 * Verifies that the data user gave us is what was stored after the stream has processed the flow.
-	 * 
+	 *
 	 * @param xdEnvironment the Acceptance Test Environment.
 	 * @param url The server that the stream is deployed.
 	 * @param fileName The file that contains the data to check.
@@ -187,7 +192,6 @@ public class XdEc2Validation {
 		try {
 			Reader fileReader = new InputStreamReader(new FileInputStream(resultFileName));
 			String result = FileCopyUtils.copyToString(fileReader);
-			fileReader.close();
 			assertEquals("Data in the result file is not what was sent. Read \""
 					+ result + "\"\n but expected \"" + data + "\"", data, result);
 		}
@@ -204,7 +208,7 @@ public class XdEc2Validation {
 
 	/**
 	 * Verifies that the data user gave us is contained in the result.
-	 * 
+	 *
 	 * @param xdEnvironment the Acceptance Test Environment.
 	 * @param url The server that the stream is deployed.
 	 * @param fileName The file that contains the data to check.
@@ -216,7 +220,40 @@ public class XdEc2Validation {
 		Assert.notNull(url, "url can not be null");
 		Assert.hasText(fileName, "fileName can not be empty nor null");
 		Assert.hasText(data, "data can not be empty nor null");
+		String result = getDataFromResultFile(xdEnvironment, url, fileName);
+		assertTrue("Could not find data in result file.. Read \""
+				+ result + "\"\n but didn't see \"" + data + "\"", result.contains(data));
+	}
 
+	/**
+	 * Verifies that the data user gave us is contained in the result.
+	 *
+	 * @param xdEnvironment the Acceptance Test Environment.
+	 * @param url The server that the stream is deployed.
+	 * @param fileName The file that contains the data to check.
+	 * @param data The data used to evaluate the results of the stream.
+	 */
+	public void verifyContentContainsIgnoreCase(XdEnvironment xdEnvironment, URL url, String fileName,
+			String data) {
+		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
+		Assert.notNull(url, "url can not be null");
+		Assert.hasText(fileName, "fileName can not be empty nor null");
+		Assert.hasText(data, "data can not be empty nor null");
+		String result = getDataFromResultFile(xdEnvironment, url, fileName);
+		assertTrue("Could not find data in result file.. Read \""
+				+ result + "\"\n but didn't see \"" + data + "\"", result.toLowerCase().contains(data.toLowerCase()));
+	}
+
+	/**
+	 * Takes the content of the file and places it in a string. If the file is on EC2 it will copy the file from ec2 to
+	 * the local machine.
+	 *
+	 * @param xdEnvironment The test environment
+	 * @param url The URL of the EC2 instance where the file is located. (if tests on ec2)
+	 * @param fileName The name of the file that contains the data
+	 * @return The content of the file as a string.
+	 */
+	private String getDataFromResultFile(XdEnvironment xdEnvironment, URL url, String fileName) {
 		String resultFileName = fileName;
 		File file = new File(resultFileName);
 		try {
@@ -226,11 +263,7 @@ public class XdEc2Validation {
 				file = new File(resultFileName);
 			}
 
-			Reader fileReader = new InputStreamReader(new FileInputStream(resultFileName));
-			String result = FileCopyUtils.copyToString(fileReader);
-			assertTrue("Could not find data in result file.. Read \""
-					+ result + "\"\n but didn't see \"" + data + "\"", result.contains(data));
-			fileReader.close();
+			return FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream(resultFileName)));
 		}
 		catch (IOException ioException) {
 			throw new IllegalStateException(ioException.getMessage(), ioException);
@@ -240,21 +273,23 @@ public class XdEc2Validation {
 				file.delete();
 			}
 		}
+
 	}
 
-
 	/**
-	 * generates the JMX query string for getting module data.
-	 * 
+	 * Generates the Jolokia URL that will return module metrics data for a given stream, module, and 
+	 * channel name.
+	 *
 	 * @param url the container url where the stream is deployed
 	 * @param streamName the name of the stream
-	 * @param moduleName the module to evaluate on the stream
-	 * @return
+	 * @param moduleName the module to evaluate on the stream. Set it to * if you want all modules.
+	 * @param channelName the channel to evaluate for the module.
+	 * @return A URL to access module metrics data for the provided stream, module and channel name.
 	 */
 	private String buildJMXRequest(URL url, String streamName,
-			String moduleName) {
+			String moduleName, String channelName) {
 		String result = url.toString() + "/management/jolokia/read/xd." + streamName
-				+ ":module=" + moduleName + ",component=MessageChannel,name=*";
+				+ ":module=" + moduleName + ",component=MessageChannel,name=" + channelName;
 		return result;
 	}
 
@@ -265,7 +300,7 @@ public class XdEc2Validation {
 
 	/**
 	 * retrieves a list of modules from the json result that was returned by Jolokia.
-	 * 
+	 *
 	 * @param json raw json response string from jolokia
 	 * @return A list of module information
 	 * @throws Exception error parsing JSON
@@ -280,9 +315,24 @@ public class XdEc2Validation {
 	}
 
 	/**
+	 * Maps Jolokia's JSON return value for module metrics to a Java Module object.
+	 *
+	 * @param json raw json response string from jolokia
+	 * @return A module metrics result
+	 * @throws Exception error parsing JSON
+	 */
+	private Module getModule(String json) throws JsonMappingException, JsonParseException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		JMXChannelResult jmxResult = mapper.readValue(json,
+				new TypeReference<JMXChannelResult>() {
+				});
+		return jmxResult.getValue();
+	}
+
+	/**
 	 * Asserts that the expected number of messages were processed by the modules in the stream and that no errors
 	 * occurred.
-	 * 
+	 *
 	 * @param modules The list of modules in the stream
 	 * @param msgCountExpected The expected count
 	 */
@@ -293,7 +343,7 @@ public class XdEc2Validation {
 	/**
 	 * Asserts that the expected number (or greater than or equal to the expected number) of messages were processed by
 	 * the modules in the stream. Also asserts that no errors occurred.
-	 * 
+	 *
 	 * @param modules The list of modules to evaluate.
 	 * @param msgCountExpected The expected count
 	 * @param greaterThanOrEqualTo true if should use greaterThanOrEqualToComparison

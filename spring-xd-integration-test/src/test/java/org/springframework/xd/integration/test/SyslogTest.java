@@ -45,7 +45,7 @@ public class SyslogTest extends AbstractIntegrationTest {
 		waitForXD();
 		syslogTcp.sendBytes((data + "\r\n").getBytes());
 		assertReceived(1);
-		assertContains(data);
+		assertFileContains(data);
 	}
 
 	/**
@@ -61,6 +61,6 @@ public class SyslogTest extends AbstractIntegrationTest {
 		waitForXD();
 		syslogUdp.sendBytes((data + "\r\n").getBytes());
 		assertReceived(1);
-		this.assertContains(data);
+		this.assertFileContains(data);
 	}
 }

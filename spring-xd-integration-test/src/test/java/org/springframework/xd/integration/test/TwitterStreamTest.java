@@ -35,7 +35,7 @@ public class TwitterStreamTest extends AbstractIntegrationTest {
 				+ XD_DELIMETER
 				+ sinks.file());
 		this.waitForXD(2000);
-		assertContains(data);
+		assertFileContains(data);
 
 	}
 }

@@ -23,31 +23,45 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents an XD Module that is returned from a JMX Query.
  *
  * @author Glenn Renfro
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Module {
 
+	@JsonProperty("SendCount")
 	private String sendCount;
 
+	@JsonProperty("TimeSinceLastSend")
 	private String timeSinceLastSend;
 
+	@JsonProperty("MeanSendRate")
 	private String meanSendRate;
 
+	@JsonProperty("MeanSendDuration")
 	private String meanSendDuration;
 
+	@JsonProperty("SendErrorCount")
 	private String sendErrorCount;
 
+	@JsonProperty("StandardDeviationSendDuration")
 	private String standardDeviationSendDuration;
 
+	@JsonProperty("MaxSendDuration")
 	private String maxSendDuration;
 
+	@JsonProperty("MeanErrorRatio")
 	private String meanErrorRatio;
 
+	@JsonProperty("MeanErrorRate")
 	private String meanErrorRate;
 
+	@JsonProperty("MinSendDuration")
 	private String minSendDuration;
 
 	private String request;
@@ -239,6 +253,5 @@ public class Module {
 				+ ", moduleChannel=" + moduleChannel + ", receiveCount=" + receiveCount + ", receiveErrorCount="
 				+ receiveErrorCount + "]";
 	}
-
 
 }

@@ -94,7 +94,7 @@ public abstract class AbstractIntegrationTest {
 
 
 	/**
-	 * Initializes the environment before the test. Also verfies that the admin is up and at least one container is
+	 * Initializes the environment before the test. Also asserts that the admin server is up and at least one container is
 	 * available.
 	 *
 	 */
@@ -237,7 +237,7 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Verifies that the expected number of messages were received by all modules in a stream.
+	 * Asserts that the expected number of messages were received by all modules in a stream.
 	 *
 	 */
 	public void assertReceived(int msgCountExpected) {
@@ -249,22 +249,25 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Verifies that a message was received by the module.
+	 * Asserts that all channels of the module channel combination, processed the correct number of messages
 	 *
+	 * @param moduleName the name of the module jmx element to interrogate.
+	 * @param channelName the name of the channel jmx element to interrogate
+	 * @param msgCountExpected The number of messages this module and channel should have sent.
 	 */
-	public void assertReceived(String moduleName, int msgCountExpected) {
-		Assert.hasText(moduleName, "moduleName must not be empty nor null");
+	public void assertReceived(String moduleName, String channelName, int msgCountExpected) {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
 				getContainerForStream(STREAM_NAME), xdEnvironment.getJmxPort()),
-				STREAM_NAME, moduleName, msgCountExpected);
+				STREAM_NAME, moduleName, channelName, msgCountExpected);
+
 	}
 
 	/**
-	 * Verifies that the data stored by the sink is what was expected.
+	 * Asserts that the data stored by the file or log sink is what was expected.
 	 *
-	 * @param data - expected data
+	 * @param data The data expected in the file or log sink
 	 * @param sinkInstance determines whether to look at the log or file for the result
 	 */
 	public void assertValid(String data, AbstractModuleFixture sinkInstance) {
@@ -281,14 +284,23 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Verifies that the data stored by the sink is what was expected.
+	 * Asserts that the data stored by the file sink, whose name is based off the stream
+	 * name, is what was expected.
 	 *
-	 * @param data - expected data
-	 * @param sinkInstance determines whether to look at the log or file for the result
+	 * @param data The data expected in the file
 	 */
-	public void assertContains(String data) {
-		Assert.hasText(data, "data can not be empty nor null");
+	public void assertFileContains(String data) {
 		assertFileContains(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
+	}
+
+	/**
+	 * Asserts that the data stored by a file sink, whose name is based off the stream name,
+	 * is what was expected.  The assertion is case insensitive.
+	 *
+	 * @param data The data expected in the file
+	 */
+	public void assertFileContainsIgnoreCase(String data) {
+		assertFileContainsIgnoreCase(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
 	}
 
 	/**
@@ -345,14 +357,15 @@ public abstract class AbstractIntegrationTest {
 
 
 	/**
-	 * Checks the file data to see if the data is contained in the file.
+	 * Asserts that the data stored by the file sink is what was expected.  
 	 *
-	 * @param data The data to validate the file content against.
-	 * @param url The URL of the server that we will ssh, to get the data.
-	 * @param streamName the name of the file we are retrieving from the remote server.
+	 * @param data The data expected in the file
+	 * @param url The URL of the server that we will ssh into to get the data
+	 * @param streamName the name of the stream, used to form the filename we are retrieving from the remote server
 	 */
 	private void assertFileContains(String data, URL url, String streamName)
 	{
+		Assert.hasText(data, "data can not be empty nor null");
 		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
@@ -360,11 +373,28 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Checks the file data to see if it matches what is expected.
+	 * Asserts that the data stored by a file sink, whose name is based off the stream name,
+	 * is what was expected.  The assertion is case insensitive.
 	 *
-	 * @param data The data to validate the file content against.
-	 * @param url The URL of the server that we will ssh, to get the data.
-	 * @param streamName the name of the file we are retrieving from the remote server.
+	 * @param data The data to validate the file content against
+	 * @param url The URL of the server that we will ssh, to get the data
+	 * @param streamName the name of the file we are retrieving from the remote server
+	 */
+	private void assertFileContainsIgnoreCase(String data, URL url, String streamName)
+	{
+		Assert.hasText(data, "data can not be empty nor null");
+		waitForXD(pauseTime * 2000);
+		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
+				+ ".out";
+		validation.verifyContentContainsIgnoreCase(xdEnvironment, url, fileName, data);
+	}
+
+	/**
+	 * Asserts the file data to see if it matches what is expected.
+	 *
+	 * @param data The data to validate the file content against
+	 * @param url The URL of the server that we will ssh, to get the data
+	 * @param streamName the name of the file we are retrieving from the remote server
 	 */
 	private void assertValidFile(String data, URL url, String streamName)
 	{
@@ -375,7 +405,7 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Checks the log to see if the data specified is in the log.
+	 * Asserts the log to see if the data specified is in the log.
 	 *
 	 * @param data The data to check if it is in the log file
 	 * @param url The URL of the server we will ssh, to get the data.
@@ -400,6 +430,10 @@ public abstract class AbstractIntegrationTest {
 
 	}
 
+	/**
+	 * Get the {@see XdEnvironment}
+	 * @return the XdEnvironment
+	 */
 	public XdEnvironment getEnvironment() {
 		return xdEnvironment;
 	}

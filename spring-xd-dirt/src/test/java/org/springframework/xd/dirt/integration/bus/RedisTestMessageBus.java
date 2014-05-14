@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
@@ -24,15 +25,24 @@ import org.springframework.xd.dirt.integration.redis.RedisMessageBus;
 
 /**
  * Test support class for {@link RedisMessageBus}.
- * 
+ *
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 public class RedisTestMessageBus extends AbstractTestMessageBus {
 
 	private StringRedisTemplate template;
 
+	public RedisTestMessageBus(RedisConnectionFactory connectionFactory) {
+		template = new StringRedisTemplate(connectionFactory);
+	}
+
 	public RedisTestMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
-		super(new RedisMessageBus(connectionFactory, codec));
+		RedisMessageBus messageBus = new RedisMessageBus(connectionFactory, codec);
+		GenericApplicationContext context = new GenericApplicationContext();
+		context.refresh();
+		messageBus.setApplicationContext(context);
+		setMessageBus(messageBus);
 		template = new StringRedisTemplate(connectionFactory);
 	}
 

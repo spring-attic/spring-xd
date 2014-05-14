@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,9 +55,8 @@ public class StreamPlugin extends AbstractStreamPlugin {
 				@Override
 				public void onApplicationEvent(ApplicationPreparedEvent event) {
 					MessageBusAwareRouterBeanPostProcessor bpp = new MessageBusAwareRouterBeanPostProcessor(messageBus);
-					bpp.setBeanFactory(event.getApplicationContext());
-					event.getApplicationContext().getBeanFactory().registerSingleton(
-							"messageBusAwareRouterBeanPostProcessor", bpp);
+					bpp.setBeanFactory(event.getApplicationContext().getBeanFactory());
+					event.getApplicationContext().getBeanFactory().addBeanPostProcessor(bpp);
 				}
 
 			});

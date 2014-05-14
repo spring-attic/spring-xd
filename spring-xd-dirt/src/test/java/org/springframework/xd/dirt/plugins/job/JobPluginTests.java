@@ -70,12 +70,12 @@ import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
- * 
+ *
  * @author Michael Minella
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
- * 
+ *
  */
 public class JobPluginTests extends RandomConfigurationSupport {
 
@@ -342,6 +342,18 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		@Override
 		public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
 			Assert.fail("Should not be called.");
+		}
+
+		@Override
+		public MessageChannel bindDynamicProducer(String name) {
+			Assert.fail("Should not be called.");
+			return null;
+		}
+
+		@Override
+		public MessageChannel bindDynamicPubSubProducer(String name) {
+			Assert.fail("Should not be called.");
+			return null;
 		}
 
 	}

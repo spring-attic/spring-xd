@@ -26,11 +26,21 @@ import org.springframework.util.Assert;
  * could be for a consumer or a producer. A consumer binding represents a connection from an adapter on the bus to a
  * module's input channel. A producer binding represents a connection from a module's output channel to an adapter on
  * the bus.
- * 
+ *
  * @author Jennifer Hickey
  * @author Mark Fisher
  */
 public class Binding implements Lifecycle {
+
+	/**
+	 *
+	 */
+	public static final String PRODUCER = "producer";
+
+	/**
+	 *
+	 */
+	public static final String CONSUMER = "consumer";
 
 	private final MessageChannel channel;
 
@@ -47,11 +57,11 @@ public class Binding implements Lifecycle {
 	}
 
 	public static Binding forConsumer(AbstractEndpoint adapterFromBus, MessageChannel moduleInputChannel) {
-		return new Binding(moduleInputChannel, adapterFromBus, "consumer");
+		return new Binding(moduleInputChannel, adapterFromBus, CONSUMER);
 	}
 
 	public static Binding forProducer(MessageChannel moduleOutputChannel, AbstractEndpoint adapterToBus) {
-		return new Binding(moduleOutputChannel, adapterToBus, "producer");
+		return new Binding(moduleOutputChannel, adapterToBus, PRODUCER);
 	}
 
 	public MessageChannel getChannel() {
@@ -60,6 +70,10 @@ public class Binding implements Lifecycle {
 
 	public AbstractEndpoint getEndpoint() {
 		return endpoint;
+	}
+
+	protected String getType() {
+		return type;
 	}
 
 	@Override

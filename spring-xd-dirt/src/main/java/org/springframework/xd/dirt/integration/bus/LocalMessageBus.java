@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,20 +19,14 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
-import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
-import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -54,11 +48,7 @@ import org.springframework.util.Assert;
  * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
-public class LocalMessageBus extends MessageBusSupport implements ApplicationContextAware, InitializingBean {
-
-	private volatile AbstractApplicationContext applicationContext;
-
-	private int queueSize = Integer.MAX_VALUE;
+public class LocalMessageBus extends MessageBusSupport {
 
 	private PollerMetadata poller;
 
@@ -66,56 +56,8 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 	private final ExecutorService executor = Executors.newCachedThreadPool();
 
-	private static final String P2P_NAMED_CHANNEL_TYPE_PREFIX = "queue:";
-
-	private static final String JOB_CHANNEL_TYPE_PREFIX = "job:";
-
-	/**
-	 * Used in the canonical case, when the binding does not involve an alias name.
-	 */
-	private SharedChannelProvider<DirectChannel> directChannelProvider = new SharedChannelProvider<DirectChannel>(
-			DirectChannel.class) {
-
-		@Override
-		protected DirectChannel createSharedChannel(String name) {
-			return new DirectChannel();
-		}
-	};
-
-	/**
-	 * Used to create and customize {@link QueueChannel}s when the binding operation involves aliased names.
-	 */
-	private SharedChannelProvider<QueueChannel> queueChannelProvider = new SharedChannelProvider<QueueChannel>(
-			QueueChannel.class) {
-
-		@Override
-		protected QueueChannel createSharedChannel(String name) {
-			QueueChannel queueChannel = new QueueChannel(queueSize);
-			queueChannel.setBeanFactory(applicationContext);
-			return queueChannel;
-		}
-	};
-
-	private SharedChannelProvider<PublishSubscribeChannel> pubsubChannelProvider = new SharedChannelProvider<PublishSubscribeChannel>(
-			PublishSubscribeChannel.class) {
-
-		@Override
-		protected PublishSubscribeChannel createSharedChannel(String name) {
-			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel();
-			publishSubscribeChannel.setBeanFactory(applicationContext);
-			return publishSubscribeChannel;
-		}
-	};
-
 	@SuppressWarnings("unused")
 	private boolean hasCodec;
-
-	/**
-	 * Set the size of the queue when using {@link QueueChannel}s.
-	 */
-	public void setQueueSize(int queueSize) {
-		this.queueSize = queueSize;
-	}
 
 	/**
 	 * Set the poller to use when QueueChannels are used.
@@ -124,15 +66,26 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		this.poller = poller;
 	}
 
+	/**
+	 * For the local bus we bridge the router "output" channel to a queue channel.
+	 * {@inheritDoc}
+	 */
 	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		Assert.isInstanceOf(AbstractApplicationContext.class, applicationContext);
-		this.applicationContext = (AbstractApplicationContext) applicationContext;
+	public MessageChannel bindDynamicProducer(String name) {
+		MessageChannel channel = this.directChannelProvider.createSharedChannel("dynamic.output.to." + name);
+		bindProducer(name, channel);
+		return channel;
 	}
 
+	/**
+	 * For the local bus we bridge the router "output" channel to a queue channel.
+	 * {@inheritDoc}
+	 */
 	@Override
-	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(applicationContext, "The 'applicationContext' property cannot be null");
+	public MessageChannel bindDynamicPubSubProducer(String name) {
+		MessageChannel channel = this.directChannelProvider.createAndRegisterChannel("dynamic.output.to." + name);
+		bindPubSubProducer(name, channel);
+		return channel;
 	}
 
 	private SharedChannelProvider<?> getChannelProvider(String name) {
@@ -163,8 +116,9 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 			SharedChannelProvider<?> channelProvider) {
 		Assert.hasText(name, "a valid name is required to register an inbound channel");
 		Assert.notNull(moduleInputChannel, "channel must not be null");
-		AbstractMessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
-		bridge(registeredChannel, moduleInputChannel, "inbound." + registeredChannel.getComponentName());
+		MessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
+		bridge(registeredChannel, moduleInputChannel,
+				"inbound." + ((NamedComponent) registeredChannel).getComponentName());
 	}
 
 	/**
@@ -185,8 +139,9 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 			SharedChannelProvider<?> channelProvider) {
 		Assert.hasText(name, "a valid name is required to register an outbound channel");
 		Assert.notNull(moduleOutputChannel, "channel must not be null");
-		AbstractMessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
-		bridge(moduleOutputChannel, registeredChannel, "outbound." + registeredChannel.getComponentName());
+		MessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
+		bridge(moduleOutputChannel, registeredChannel,
+				"outbound." + ((NamedComponent) registeredChannel).getComponentName());
 	}
 
 	@Override
@@ -239,7 +194,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		ExecutorChannel channel = this.requestReplyChannels.get(name);
 		if (channel == null) {
 			channel = new ExecutorChannel(this.executor);
-			channel.setBeanFactory(applicationContext);
+			channel.setBeanFactory(getBeanFactory());
 			this.requestReplyChannels.put(name, channel);
 		}
 		return channel;
@@ -251,21 +206,6 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		MessageChannel requestChannel = this.requestReplyChannels.remove("requestor." + name);
 		if (requestChannel == null) {
 			super.unbindProducer(name, channel);
-		}
-	}
-
-	protected <T extends AbstractMessageChannel> T createSharedChannel(String name, Class<T> requiredType) {
-		try {
-			T channel = requiredType.newInstance();
-			channel.setComponentName(name);
-			channel.setBeanFactory(applicationContext);
-			channel.setBeanName(name);
-			channel.afterPropertiesSet();
-			applicationContext.getBeanFactory().registerSingleton(name, channel);
-			return channel;
-		}
-		catch (Exception e) {
-			throw new IllegalArgumentException("failed to create channel: " + name, e);
 		}
 	}
 
@@ -288,7 +228,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 		};
 
-		handler.setBeanFactory(applicationContext.getBeanFactory());
+		handler.setBeanFactory(getBeanFactory());
 		handler.setOutputChannel(to);
 		handler.setBeanName(bridgeName);
 		handler.afterPropertiesSet();
@@ -297,7 +237,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		ConsumerEndpointFactoryBean cefb = new ConsumerEndpointFactoryBean();
 		cefb.setInputChannel(from);
 		cefb.setHandler(handler);
-		cefb.setBeanFactory(applicationContext.getBeanFactory());
+		cefb.setBeanFactory(getBeanFactory());
 		if (from instanceof PollableChannel) {
 			cefb.setPollerMetadata(poller);
 		}
@@ -322,49 +262,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	}
 
 	protected <T> T getBean(String name, Class<T> requiredType) {
-		return this.applicationContext.getBean(name, requiredType);
+		return getApplicationContext().getBean(name, requiredType);
 	}
 
-	/**
-	 * Looks up or optionally creates a new channel to use.
-	 *
-	 * @author Eric Bottard
-	 */
-	private abstract class SharedChannelProvider<T extends AbstractMessageChannel> {
-
-		private final Class<T> requiredType;
-
-		private SharedChannelProvider(Class<T> clazz) {
-			this.requiredType = clazz;
-		}
-
-		private synchronized final T lookupOrCreateSharedChannel(String name) {
-			T channel = lookupSharedChannel(name);
-			if (channel == null) {
-				channel = createSharedChannel(name);
-				channel.setComponentName(name);
-				channel.setBeanFactory(applicationContext);
-				channel.setBeanName(name);
-				channel.afterPropertiesSet();
-				applicationContext.getBeanFactory().registerSingleton(name, channel);
-			}
-			return channel;
-		}
-
-		protected abstract T createSharedChannel(String name);
-
-		protected T lookupSharedChannel(String name) {
-			T channel = null;
-			if (applicationContext.containsBean(name)) {
-				try {
-					channel = applicationContext.getBean(name, requiredType);
-				}
-				catch (Exception e) {
-					throw new IllegalArgumentException("bean '" + name
-							+ "' is already registered but does not match the required type");
-				}
-			}
-			return channel;
-		}
-	}
 }

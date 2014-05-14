@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.integration.bus;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.rabbit.RabbitMessageBus;
 
@@ -26,13 +27,22 @@ import org.springframework.xd.dirt.integration.rabbit.RabbitMessageBus;
  * Test support class for {@link RabbitMessageBus}.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 public class RabbitTestMessageBus extends AbstractTestMessageBus {
 
 	private final RabbitAdmin rabbitAdmin;
 
+	public RabbitTestMessageBus(ConnectionFactory connectionFactory) {
+		this.rabbitAdmin = new RabbitAdmin(connectionFactory);
+	}
+
 	public RabbitTestMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
-		super(new RabbitMessageBus(connectionFactory, codec));
+		RabbitMessageBus messageBus = new RabbitMessageBus(connectionFactory, codec);
+		GenericApplicationContext context = new GenericApplicationContext();
+		context.refresh();
+		messageBus.setApplicationContext(context);
+		this.setMessageBus(messageBus);
 		this.rabbitAdmin = new RabbitAdmin(connectionFactory);
 	}
 

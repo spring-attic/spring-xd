@@ -86,11 +86,16 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 				this.connectionFactory);
 		adapter.setBeanFactory(this.getBeanFactory());
 		adapter.setSerializer(null);
+		registerNamedChannelForConsumerIfNecessary(name, false);
 		doRegisterConsumer(name, moduleInputChannel, adapter);
 	}
 
 	@Override
 	public void bindPubSubConsumer(final String name, MessageChannel moduleInputChannel) {
+		if (logger.isInfoEnabled()) {
+			logger.info("declaring pubsub for inbound: " + name);
+		}
+		registerNamedChannelForConsumerIfNecessary(name, true);
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.connectionFactory);
 		adapter.setBeanFactory(this.getBeanFactory());
 		adapter.setSerializer(null);

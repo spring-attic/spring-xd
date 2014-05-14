@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,18 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolutionException;
 
 /**
  * A {@link org.springframework.messaging.core.DestinationResolver} implementation that first checks for any channel
  * whose name begins with a colon in the {@link MessageBus}.
- * 
+ *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDestinationResolver {
-
-	private final Map<String, MessageChannel> channels = new HashMap<String, MessageChannel>();
 
 	private final MessageBus messageBus;
 
@@ -43,23 +38,24 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 	@Override
 	public MessageChannel resolveDestination(String name) {
 		MessageChannel channel = null;
+		try {
+			return super.resolveDestination(name);
+		}
+		catch (DestinationResolutionException e) {
+		}
 		if (name.indexOf(":") != -1) {
-			channel = channels.get(name);
-			if (channel == null && messageBus != null) {
+			if (messageBus != null) {
 				String[] tokens = name.split(":", 2);
 				String type = tokens[0];
 				if ("queue".equals(type)) {
-					channel = new DirectChannel();
-					messageBus.bindProducer(name, channel);
+					channel = this.messageBus.bindDynamicProducer(name);
 				}
 				else if ("topic".equals(type)) {
-					channel = new PublishSubscribeChannel();
-					messageBus.bindPubSubProducer(name, channel);
+					channel = this.messageBus.bindDynamicPubSubProducer(name);
 				}
 				else {
 					throw new IllegalArgumentException("unrecognized channel type: " + type);
 				}
-				channels.put(name, channel);
 			}
 		}
 		if (channel == null) {

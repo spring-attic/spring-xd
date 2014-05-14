@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
@@ -45,8 +46,10 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  * @author David Turanski
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 @Configuration
+@EnableIntegration
 @Import(PropertyPlaceholderAutoConfiguration.class)
 @ImportResource({
 	ConfigLocations.XD_CONFIG_ROOT + "bus/*.xml",

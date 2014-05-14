@@ -14,12 +14,15 @@
 package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
 import org.springframework.xd.dirt.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -32,8 +35,7 @@ import org.springframework.xd.test.rabbit.RabbitTestSupport;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
-		AbstractSingleNodeStreamDeploymentIntegrationTests {
+public class RabbitSingleNodeStreamDeploymentIntegrationTests extends AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	@ClassRule
 	public static RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
@@ -52,7 +54,7 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 		@Override
 		protected void before() {
 			if (testMessageBus == null || !(testMessageBus instanceof RabbitTestMessageBus)) {
-				testMessageBus = new RabbitTestMessageBus(rabbitAvailableRule.getResource(), getCodec());
+				testMessageBus = new RabbitTestMessageBus(rabbitAvailableRule.getResource());
 			}
 		}
 	};
@@ -75,4 +77,16 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 		source.unbind();
 		sink.unbind();
 	}
+
+	@Override
+	protected void verifyQueues(MessageChannel y3, MessageChannel z3) {
+		RabbitTemplate template = new RabbitTemplate(rabbitAvailableRule.getResource());
+		Object y = template.receiveAndConvert("xdbus.queue:y");
+		assertNotNull(y);
+		assertEquals("y", y);
+		Object z = template.receiveAndConvert("xdbus.queue:z");
+		assertNotNull(z);
+		assertEquals("z", z);
+	}
+
 }

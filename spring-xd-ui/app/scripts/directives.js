@@ -45,5 +45,47 @@ define(['angular'], function(angular) {
           element.html(newHtml);
         }
       };
-    }]);
+    }])
+    .directive('integer', function() {
+      var INTEGER_REGEXP = /^\-?\d+$/;
+      return {
+        require: 'ngModel',
+        link: function(scope, element, attributes, controller) {
+          controller.$parsers.unshift(function(viewValue) {
+            if (INTEGER_REGEXP.test(viewValue)) {
+              // it is valid
+              controller.$setValidity('integer', true);
+              return viewValue;
+            } else {
+              // it is invalid, return undefined (no model update)
+              controller.$setValidity('integer', false);
+              return undefined;
+            }
+          });
+        }
+      };
+    })
+    .directive('notTheSameAs', function() {
+      return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function(scope, element, attributes, controller) {
+          var validate = function(viewValue) {
+            var comparisonModel = attributes.notTheSameAs;
+
+            if(!viewValue || !comparisonModel){
+              controller.$setValidity('notTheSameAs', true);
+            }
+            controller.$setValidity('notTheSameAs', viewValue !== comparisonModel);
+            return viewValue;
+          };
+          controller.$parsers.unshift(validate);
+          controller.$formatters.push(validate);
+
+          attributes.$observe('notTheSameAs', function(){
+            return validate(controller.$viewValue);
+          });
+        }
+      };
+    });
 });

@@ -37,7 +37,6 @@ define([], function () {
                   deploy: true,
                   parameters: []
                 };
-                $scope.jobDefinition.name = result.name;
                 var arrayLength = result.options.length;
                 for (var i = 0; i < arrayLength; i++) {
                   var option = result.options[i];

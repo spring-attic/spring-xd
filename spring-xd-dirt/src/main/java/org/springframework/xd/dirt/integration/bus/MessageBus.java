@@ -19,7 +19,7 @@ import org.springframework.messaging.MessageChannel;
  * A strategy interface used to bind a {@link MessageChannel} to a logical name. The name is intended to identify a
  * logical consumer or producer of messages. This may be a queue, a channel adapter, another message channel, a Spring
  * bean, etc.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
@@ -31,7 +31,7 @@ public interface MessageBus {
 
 	/**
 	 * Bind a message consumer on a p2p channel
-	 * 
+	 *
 	 * @param name the logical identity of the message source
 	 * @param moduleInputChannel the channel bound as a consumer
 	 */
@@ -40,7 +40,7 @@ public interface MessageBus {
 
 	/**
 	 * Bind a message consumer on a pub/sub channel
-	 * 
+	 *
 	 * @param name the logical identity of the message source
 	 * @param inputChannel the channel bound as a pub/sub consumer
 	 */
@@ -48,7 +48,7 @@ public interface MessageBus {
 
 	/**
 	 * Bind a message producer on a p2p channel.
-	 * 
+	 *
 	 * @param name the logical identity of the message target
 	 * @param moduleOutputChannel the channel bound as a producer
 	 */
@@ -57,7 +57,7 @@ public interface MessageBus {
 
 	/**
 	 * Bind a message producer on a pub/sub channel.
-	 * 
+	 *
 	 * @param name the logical identity of the message target
 	 * @param outputChannel the channel bound as a producer
 	 */
@@ -65,21 +65,21 @@ public interface MessageBus {
 
 	/**
 	 * Unbind an inbound inter-module channel and stop any active components that use the channel.
-	 * 
+	 *
 	 * @param name the channel name
 	 */
 	void unbindConsumers(String name);
 
 	/**
 	 * Unbind an outbound inter-module channel and stop any active components that use the channel.
-	 * 
+	 *
 	 * @param name the channel name
 	 */
 	void unbindProducers(String name);
 
 	/**
 	 * Unbind a specific p2p or pub/sub message consumer
-	 * 
+	 *
 	 * @param name The logical identify of a message source
 	 * @param channel The channel bound as a consumer
 	 */
@@ -87,7 +87,7 @@ public interface MessageBus {
 
 	/**
 	 * Unbind a specific p2p or pub/sub message producer
-	 * 
+	 *
 	 * @param name the logical identity of the message target
 	 * @param channel the channel bound as a producer
 	 */
@@ -95,7 +95,7 @@ public interface MessageBus {
 
 	/**
 	 * Bind a producer that expects async replies. To unbind, invoke unbindProducer() and unbindConsumer().
-	 * 
+	 *
 	 * @param name The name of the requestor.
 	 * @param requests The request channel - sends requests.
 	 * @param replies The reply channel - receives replies.
@@ -105,11 +105,27 @@ public interface MessageBus {
 	/**
 	 * Bind a consumer that handles requests from a requestor and asynchronously sends replies. To unbind, invoke
 	 * unbindProducer() and unbindConsumer().
-	 * 
+	 *
 	 * @param name The name of the requestor for which this replier will handle requests.
 	 * @param requests The request channel - receives requests.
 	 * @param replies The reply channel - sends replies.
 	 */
 	void bindReplier(String name, MessageChannel requests, MessageChannel replies);
+
+	/**
+	 * Create a channel and bind a producer dynamically, creating the infrastructure
+	 * required by the bus technology.
+	 * @param name The name of the "queue:" channel.
+	 * @return The channel.
+	 */
+	MessageChannel bindDynamicProducer(String name);
+
+	/**
+	 * Create a channel and bind a producer dynamically, creating the infrastructure
+	 * required by the bus technology to broadcast messages to consumers.
+	 * @param name The name of the "topic:" channel.
+	 * @return The channel.
+	 */
+	MessageChannel bindDynamicPubSubProducer(String name);
 
 }

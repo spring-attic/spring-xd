@@ -23,18 +23,29 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -51,9 +62,19 @@ import org.springframework.xd.dirt.integration.bus.serializer.SerializationExcep
  * @author David Turanski
  * @author Gary Russell
  */
-public abstract class MessageBusSupport implements MessageBus, BeanFactoryAware {
+public abstract class MessageBusSupport implements MessageBus, ApplicationContextAware, InitializingBean {
+
+	private static final String P2P_NAMED_CHANNEL_TYPE_PREFIX = "queue:";
+
+	private static final String PUBSUB_NAMED_CHANNEL_TYPE_PREFIX = "topic:";
+
+	private static final String JOB_CHANNEL_TYPE_PREFIX = "job:";
 
 	protected final Log logger = LogFactory.getLog(getClass());
+
+	private volatile AbstractApplicationContext applicationContext;
+
+	private int queueSize = Integer.MAX_VALUE;
 
 	private volatile MultiTypeCodec<Object> codec;
 
@@ -67,15 +88,62 @@ public abstract class MessageBusSupport implements MessageBus, BeanFactoryAware 
 
 	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
 
-	private volatile BeanFactory beanFactory;
+	private final Set<MessageChannel> createdChannels = Collections.synchronizedSet(new HashSet<MessageChannel>());
+
+	/**
+	 * Used in the canonical case, when the binding does not involve an alias name.
+	 */
+	protected final SharedChannelProvider<DirectChannel> directChannelProvider = new SharedChannelProvider<DirectChannel>(
+			DirectChannel.class) {
+
+		@Override
+		protected DirectChannel createSharedChannel(String name) {
+			return new DirectChannel();
+		}
+	};
+
+	/**
+	 * Used to create and customize {@link QueueChannel}s when the binding operation involves aliased names.
+	 */
+	protected final SharedChannelProvider<QueueChannel> queueChannelProvider = new SharedChannelProvider<QueueChannel>(
+			QueueChannel.class) {
+
+		@Override
+		protected QueueChannel createSharedChannel(String name) {
+			QueueChannel queueChannel = new QueueChannel(queueSize);
+			return queueChannel;
+		}
+	};
+
+	protected final SharedChannelProvider<PublishSubscribeChannel> pubsubChannelProvider = new SharedChannelProvider<PublishSubscribeChannel>(
+			PublishSubscribeChannel.class) {
+
+		@Override
+		protected PublishSubscribeChannel createSharedChannel(String name) {
+			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel();
+			return publishSubscribeChannel;
+		}
+	};
 
 	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		Assert.isInstanceOf(AbstractApplicationContext.class, applicationContext);
+		this.applicationContext = (AbstractApplicationContext) applicationContext;
 	}
 
-	protected BeanFactory getBeanFactory() {
-		return beanFactory;
+	protected AbstractApplicationContext getApplicationContext() {
+		return this.applicationContext;
+	}
+
+	protected ConfigurableListableBeanFactory getBeanFactory() {
+		return this.applicationContext.getBeanFactory();
+	}
+
+	/**
+	 * Set the size of the queue when using {@link QueueChannel}s.
+	 */
+	public void setQueueSize(int queueSize) {
+		this.queueSize = queueSize;
 	}
 
 	public void setCodec(MultiTypeCodec<Object> codec) {
@@ -84,6 +152,89 @@ public abstract class MessageBusSupport implements MessageBus, BeanFactoryAware 
 
 	protected IdGenerator getIdGenerator() {
 		return idGenerator;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(applicationContext, "The 'applicationContext' property cannot be null");
+	}
+
+	/**
+	 * For buses with an external broker, we can simply register a direct channel as the
+	 * router output channel.
+	 * @param name The name.
+	 * @return The channel.
+	 */
+	@Override
+	public synchronized MessageChannel bindDynamicProducer(String name) {
+		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
+		if (channel == null) {
+			channel = this.directChannelProvider.createAndRegisterChannel(name);
+			bindProducer(name, channel);
+		}
+		return channel;
+	}
+
+	/**
+	 * For buses with an external broker, we can simply register a direct channel as the
+	 * router output channel. Note: even though it's pub/sub, we still use a
+	 * direct channel. It will be bridged to a pub/sub channel in the local
+	 * bus and bound to an appropriate element for other buses.
+	 * @param name The name.
+	 * @return The channel.
+	 */
+	@Override
+	public MessageChannel bindDynamicPubSubProducer(String name) {
+		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
+		if (channel == null) {
+			channel = this.directChannelProvider.createAndRegisterChannel(name);
+			bindPubSubProducer(name, channel);
+		}
+		return channel;
+	}
+
+	protected final void registerNamedChannelForConsumerIfNecessary(final String name, boolean pubSub) {
+		if (isNamedChannel(name)) {
+			if (pubSub) {
+				bindDynamicPubSubProducer(name);
+			}
+			else {
+				bindDynamicProducer(name);
+			}
+		}
+	}
+
+	protected SharedChannelProvider<?> getChannelProvider(String name) {
+		if (isNamedChannel(name)) {
+			return getNamedChannelProvider();
+		}
+		else {
+			return getDefaultChannelProvider();
+		}
+	}
+
+	/**
+	 * Default is the directChannelProvider, for buses that use an external
+	 * broker to queue messages.
+	 * @return the named channel provider
+	 */
+	protected SharedChannelProvider<?> getNamedChannelProvider() {
+		return this.directChannelProvider;
+	}
+
+	/**
+	 * Buses that use an external broker don't need an internal
+	 * shared channel.
+	 * @return The default channel provider.
+	 */
+	protected SharedChannelProvider<?> getDefaultChannelProvider() {
+		return null;
+	}
+
+	protected boolean isNamedChannel(String name) {
+		return name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)
+				|| name.startsWith(PUBSUB_NAMED_CHANNEL_TYPE_PREFIX)
+				|| name.startsWith(JOB_CHANNEL_TYPE_PREFIX);
 	}
 
 	@Override
@@ -119,6 +270,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanFactoryAware 
 				if (binding.getEndpoint().getComponentName().equals(name)) {
 					binding.stop();
 					iterator.remove();
+					destroyCreatedChannel(binding);
 				}
 			}
 		}
@@ -135,7 +287,23 @@ public abstract class MessageBusSupport implements MessageBus, BeanFactoryAware 
 						binding.getEndpoint().getComponentName().equals(name)) {
 					binding.stop();
 					iterator.remove();
+					destroyCreatedChannel(binding);
 					return;
+				}
+			}
+		}
+	}
+
+	protected void destroyCreatedChannel(Binding binding) {
+		MessageChannel channel = binding.getChannel();
+		if ("producer".equals(binding.getType()) && this.createdChannels.contains(channel)) {
+			this.createdChannels.remove(channel);
+			BeanFactory beanFactory = this.applicationContext.getBeanFactory();
+			if (beanFactory instanceof DefaultListableBeanFactory) {
+				String name = ((NamedComponent) channel).getComponentName();
+				((DefaultListableBeanFactory) beanFactory).destroySingleton(name);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Removed channel:" + name);
 				}
 			}
 		}
@@ -253,6 +421,57 @@ public abstract class MessageBusSupport implements MessageBus, BeanFactoryAware 
 			return TEXT_PLAIN_VALUE;
 		}
 		return "application/x-java-object;type=" + originalPayload.getClass().getName();
+	}
+
+	/**
+	 * Looks up or optionally creates a new channel to use.
+	 *
+	 * @author Eric Bottard
+	 */
+	protected abstract class SharedChannelProvider<T extends MessageChannel> {
+
+		private final Class<T> requiredType;
+
+		private SharedChannelProvider(Class<T> clazz) {
+			this.requiredType = clazz;
+		}
+
+		protected synchronized final T lookupOrCreateSharedChannel(String name) {
+			T channel = lookupSharedChannel(name);
+			if (channel == null) {
+				channel = createAndRegisterChannel(name);
+			}
+			return channel;
+		}
+
+		@SuppressWarnings("unchecked")
+		protected T createAndRegisterChannel(String name) {
+			T channel = createSharedChannel(name);
+			ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
+			beanFactory.registerSingleton(name, channel);
+			channel = (T) beanFactory.initializeBean(channel, name);
+			MessageBusSupport.this.createdChannels.add(channel);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Registered channel:" + name);
+			}
+			return channel;
+		}
+
+		protected abstract T createSharedChannel(String name);
+
+		protected T lookupSharedChannel(String name) {
+			T channel = null;
+			if (applicationContext.containsBean(name)) {
+				try {
+					channel = applicationContext.getBean(name, requiredType);
+				}
+				catch (Exception e) {
+					throw new IllegalArgumentException("bean '" + name
+							+ "' is already registered but does not match the required type");
+				}
+			}
+			return channel;
+		}
 	}
 
 }

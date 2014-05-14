@@ -44,7 +44,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -100,8 +99,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private final ConnectionFactory connectionFactory;
 
-	private final DefaultAmqpHeaderMapper mapper;
-
 	private final GenericApplicationContext autoDeclareContext = new GenericApplicationContext();
 
 	// Default RabbitMQ Container properties
@@ -145,9 +142,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.autoDeclareContext.refresh();
 		this.rabbitAdmin.setApplicationContext(this.autoDeclareContext);
 		this.rabbitAdmin.afterPropertiesSet();
-		this.mapper = new DefaultAmqpHeaderMapper();
-		this.mapper.setRequestHeaderNames(new String[] { AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN,
-			ORIGINAL_CONTENT_TYPE_HEADER });
 		this.setCodec(codec);
 	}
 
@@ -213,6 +207,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
+		registerNamedChannelForConsumerIfNecessary(name, false);
 		Queue queue = new Queue(this.defaultPrefix + name);
 		this.rabbitAdmin.declareQueue(queue);
 		doRegisterConsumer(name, moduleInputChannel, queue);
@@ -220,6 +215,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	@Override
 	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel) {
+		if (logger.isInfoEnabled()) {
+			logger.info("declaring pubsub for inbound: " + name);
+		}
+		registerNamedChannelForConsumerIfNecessary(name, true);
 		FanoutExchange exchange = new FanoutExchange(this.defaultPrefix + "topic." + name);
 		rabbitAdmin.declareExchange(exchange);
 		Queue queue = new Queue(this.defaultPrefix + name + "." + UUID.randomUUID().toString(),
@@ -251,7 +250,16 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				.maxAttempts(this.defaultMaxAttempts)
 				.backOffOptions(this.defaultBackOffInitialInterval, this.defaultBackOffMultiplier,
 						this.defaultBackOffMaxInterval)
-						.recoverer(new RejectAndDontRequeueRecoverer())
+						.recoverer(new RejectAndDontRequeueRecoverer() {
+
+							@Override
+							public void recover(org.springframework.amqp.core.Message message, Throwable cause) {
+								if (logger.isWarnEnabled()) {
+									logger.warn("Retries exhausted for message " + message, cause);
+								}
+							}
+
+						})
 						.build();
 		listenerContainer.setAdviceChain(new Advice[] { retryInterceptor });
 		listenerContainer.afterPropertiesSet();
@@ -261,7 +269,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		bridgeToModuleChannel.setBeanFactory(this.getBeanFactory());
 		bridgeToModuleChannel.setBeanName(name + ".bridge");
 		adapter.setOutputChannel(bridgeToModuleChannel);
-		adapter.setHeaderMapper(this.mapper);
 		adapter.setBeanName("inbound." + name);
 		// TODO: module properties for mapped headers
 		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
@@ -293,7 +300,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
 		queue.setBeanFactory(this.getBeanFactory());
 		queue.setRoutingKey(this.defaultPrefix + name); // uses default exchange
-		queue.setHeaderMapper(mapper);
 		// TODO: module properties for mapped headers
 		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
 		mapper.setRequestHeaderNames(this.defaultRequestHeaderPatterns);
@@ -310,6 +316,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
 		fanout.setBeanFactory(this.getBeanFactory());
 		fanout.setExchangeName(exchangeName);
+		// TODO: module properties for mapped headers
+		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
+		mapper.setRequestHeaderNames(this.defaultRequestHeaderPatterns);
+		mapper.setReplyHeaderNames(this.defaultReplyHeaderPatterns);
 		fanout.setHeaderMapper(mapper);
 		fanout.afterPropertiesSet();
 		doRegisterProducer(name, moduleOutputChannel, fanout);
@@ -365,6 +375,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		replyQueue.setBeanFactory(this.getBeanFactory());
 		replyQueue.setBeanFactory(new DefaultListableBeanFactory());
 		replyQueue.setRoutingKeyExpression("headers['" + AmqpHeaders.REPLY_TO + "']");
+		// TODO: module properties for mapped headers
+		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
+		mapper.setRequestHeaderNames(this.defaultRequestHeaderPatterns);
+		mapper.setReplyHeaderNames(this.defaultReplyHeaderPatterns);
 		replyQueue.setHeaderMapper(mapper);
 		replyQueue.afterPropertiesSet();
 		doRegisterProducer(name, replies, replyQueue);

@@ -13,26 +13,27 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.RedisTestMessageBus;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	@ClassRule
 	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
-
-	@Autowired
-	StringRedisTemplate stringRedisTemplate;
 
 	@BeforeClass
 	public static void setUp() {
@@ -45,7 +46,7 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		@Override
 		protected void before() {
 			if (testMessageBus == null || !(testMessageBus instanceof RedisTestMessageBus)) {
-				testMessageBus = new RedisTestMessageBus(redisAvailableRule.getResource(), getCodec());
+				testMessageBus = new RedisTestMessageBus(redisAvailableRule.getResource());
 			}
 		}
 	};
@@ -54,4 +55,17 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 	public static void cleanup() {
 		singleNodeApplication.close();
 	}
+
+	@Override
+	protected void verifyQueues(MessageChannel y3, MessageChannel z3) {
+		StringRedisTemplate template = new StringRedisTemplate(redisAvailableRule.getResource());
+		String y = template.boundListOps("queue.queue:y").rightPop();
+		assertNotNull(y);
+		assertTrue(y.endsWith("y")); // bus headers
+		String z = template.boundListOps("queue.queue:z").rightPop();
+		assertNotNull(z);
+		assertTrue(z.endsWith("z")); // bus headers
+	}
+
+
 }

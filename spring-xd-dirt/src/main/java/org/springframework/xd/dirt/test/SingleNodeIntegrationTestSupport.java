@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.RuntimeTimeoutException;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
@@ -49,6 +50,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Ilayaperumal Gopinathan
  */
 public class SingleNodeIntegrationTestSupport {
+
 	private static final Logger logger = LoggerFactory.getLogger(SingleNodeIntegrationTestSupport.class);
 
 	private StreamDefinitionRepository streamDefinitionRepository;
@@ -57,7 +59,7 @@ public class SingleNodeIntegrationTestSupport {
 
 	private StreamDeployer streamDeployer;
 
-	private MessageBus messageBus;
+	private MessageBusSupport messageBus;
 
 	private final ModuleDeployer moduleDeployer;
 
@@ -85,7 +87,7 @@ public class SingleNodeIntegrationTestSupport {
 		streamDefinitionRepository = application.pluginContext().getBean(StreamDefinitionRepository.class);
 		streamRepository = application.pluginContext().getBean(StreamRepository.class);
 		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
-		messageBus = application.pluginContext().getBean(MessageBus.class);
+		messageBus = application.pluginContext().getBean(MessageBusSupport.class);
 		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
 		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
 		streamDeploymentVerifier = new DeploymentVerifier(zooKeeperConnection,
@@ -127,7 +129,7 @@ public class SingleNodeIntegrationTestSupport {
 		return streamDefinitionRepository;
 	}
 
-	public final MessageBus messageBus() {
+	public final MessageBusSupport messageBus() {
 		return this.messageBus;
 	}
 

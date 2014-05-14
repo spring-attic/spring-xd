@@ -34,10 +34,9 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 
 	protected Set<String> topics = new HashSet<String>();
 
-	private final MessageBusSupport messageBus;
+	private MessageBusSupport messageBus;
 
-	public AbstractTestMessageBus(MessageBusSupport messageBus) {
-		messageBus.setBeanFactory(BusTestUtils.MOCK_BF);
+	public void setMessageBus(MessageBusSupport messageBus) {
 		this.messageBus = messageBus;
 	}
 
@@ -105,6 +104,18 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 	@Override
 	public void unbindProducer(String name, MessageChannel channel) {
 		messageBus.unbindProducer(name, channel);
+	}
+
+	@Override
+	public MessageChannel bindDynamicProducer(String name) {
+		this.queues.add(name);
+		return this.messageBus.bindDynamicProducer(name);
+	}
+
+	@Override
+	public MessageChannel bindDynamicPubSubProducer(String name) {
+		this.topics.add(name);
+		return this.messageBus.bindDynamicPubSubProducer(name);
 	}
 
 	public MessageBus getMessageBus() {

@@ -18,9 +18,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -39,7 +37,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.SocketUtils;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
@@ -47,11 +49,6 @@ import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
@@ -61,7 +58,6 @@ import org.springframework.xd.dirt.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.tuple.Tuple;
 
 /**
  * Base class for testing stream deployments across different transport types.
@@ -69,9 +65,10 @@ import org.springframework.xd.tuple.Tuple;
  * with a @BeforeClass annotation, for example:
  *
  * <pre>
+ *
  * &#064;BeforeClass
  * public static void setUp() {
- *     setUp("redis");
+ * 	setUp(&quot;redis&quot;);
  * }
  * </pre>
  *
@@ -166,10 +163,12 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			testMessageBus = null;
 		}
 		else {
+			testMessageBus.setMessageBus(integrationSupport.messageBus());
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
 		ContainerAttributes attributes = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
-		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attributes.getId()), deploymentsListener);
+		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attributes.getId()),
+				deploymentsListener);
 	}
 
 	/**
@@ -196,18 +195,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		integrationSupport.streamDeployer().undeployAll();
 		integrationSupport.streamRepository().deleteAll();
 		integrationSupport.streamDefinitionRepository().deleteAll();
-	}
-
-	/**
-	 * Return the codec used by the message bus.
-	 *
-	 * @return code used by message bus
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected static MultiTypeCodec<Object> getCodec() {
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
-		codecs.put(Tuple.class, new TupleCodec());
-		return new CompositeCodec(codecs, new PojoCodec());
 	}
 
 	/**
@@ -320,7 +307,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			String streamName = "test" + i;
 			StreamDefinition definition = new StreamDefinition(streamName,
 					"http --port=" + SocketUtils.findAvailableTcpPort()
-							+ "| transform --expression=payload | filter --expression=true | log");
+					+ "| transform --expression=payload | filter --expression=true | log");
 			integrationSupport.streamDeployer().save(definition);
 			assertTrue(String.format("stream %s (%s) not deployed", streamName, definition),
 					integrationSupport.deployStream(definition));
@@ -353,6 +340,100 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		integrationSupport.undeployAndDestroyStream(sd);
 		assertEquals(originalBindings, getMessageBusBindingCount());
 
+	}
+
+	@Test
+	public void verifyQueueChannelsRegisteredOnDemand() throws InterruptedException {
+		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
+				"queue:x > router --expression=payload.contains('y')?'queue:y':'queue:z'");
+		integrationSupport.streamDefinitionRepository().save(routerDefinition);
+		integrationSupport.deployStream(routerDefinition);
+		Thread.sleep(1000);
+
+		singleNodeApplication.pluginContext().getBean("queue:x", MessageChannel.class);
+		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:y"));
+		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:z"));
+
+
+		DirectChannel testChannel = new DirectChannel();
+		MessageBus bus = testMessageBus;
+		bus.bindProducer("queue:x", testChannel);
+		testChannel.send(MessageBuilder.withPayload("y").build());
+		Thread.sleep(2000);
+
+		singleNodeApplication.pluginContext().getBean("queue:y", MessageChannel.class);
+		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:z"));
+
+		testChannel.send(MessageBuilder.withPayload("z").build());
+		Thread.sleep(2000);
+		MessageChannel y3 = singleNodeApplication.pluginContext().getBean("queue:y", MessageChannel.class);
+		MessageChannel z3 = singleNodeApplication.pluginContext().getBean("queue:z", MessageChannel.class);
+		assertNotNull(y3);
+		assertNotNull(z3);
+
+		verifyQueues(y3, z3);
+
+		bus.unbindProducer("queue:x", testChannel);
+		bus.unbindConsumer("queue:y", y3);
+		bus.unbindConsumer("queue:z", z3);
+	}
+
+	protected void verifyQueues(MessageChannel y3, MessageChannel z3) {
+		QueueChannel y3q = (QueueChannel) y3;
+		assertEquals(1, y3q.getQueueSize());
+		QueueChannel z3q = (QueueChannel) z3;
+		assertEquals(1, z3q.getQueueSize());
+		final Message<?> yMessage = y3q.receive(2000);
+		final Message<?> zMessage = z3q.receive(2000);
+		assertEquals("y", yMessage.getPayload());
+		assertEquals("z", zMessage.getPayload());
+	}
+
+	@Test
+	public void verifyTopicChannelsRegisteredOnDemand() throws InterruptedException {
+		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
+				"topic:x > router --expression=payload.contains('y')?'topic:y':'topic:z'");
+		integrationSupport.streamDefinitionRepository().save(routerDefinition);
+		integrationSupport.deployStream(routerDefinition);
+		Thread.sleep(1000);
+
+		singleNodeApplication.pluginContext().getBean("topic:x", MessageChannel.class);
+		assertFalse(singleNodeApplication.pluginContext().containsBean("topic:y"));
+		assertFalse(singleNodeApplication.pluginContext().containsBean("topic:z"));
+
+
+		DirectChannel testChannel = new DirectChannel();
+		MessageBus bus = testMessageBus;
+		bus.bindPubSubProducer("topic:x", testChannel);
+		testChannel.send(MessageBuilder.withPayload("y").build());
+		Thread.sleep(2000);
+
+		singleNodeApplication.pluginContext().getBean("topic:y", MessageChannel.class);
+		assertFalse(singleNodeApplication.pluginContext().containsBean("topic:z"));
+
+		testChannel.send(MessageBuilder.withPayload("z").build());
+		Thread.sleep(2000);
+		MessageChannel y3 = singleNodeApplication.pluginContext().getBean("topic:y", MessageChannel.class);
+		MessageChannel z3 = singleNodeApplication.pluginContext().getBean("topic:z", MessageChannel.class);
+		assertNotNull(y3);
+		assertNotNull(z3);
+
+		QueueChannel consumer = new QueueChannel();
+		bus.bindPubSubConsumer("topic:y", consumer);
+		bus.bindPubSubConsumer("topic:z", consumer);
+		testChannel.send(MessageBuilder.withPayload("y").build());
+		testChannel.send(MessageBuilder.withPayload("z").build());
+		Thread.sleep(2000);
+		assertEquals("y", consumer.receive(2000).getPayload());
+		assertEquals("z", consumer.receive(2000).getPayload());
+		assertEquals(0, consumer.getQueueSize());
+
+		bus.unbindProducer("topic:x", testChannel);
+		bus.unbindConsumers("topic:x");
+		bus.unbindConsumers("topic:y");
+		bus.unbindConsumers("topic:z");
+		bus.unbindProducers("topic:y");
+		bus.unbindProducers("topic:z");
 	}
 
 	protected void assertModuleRequest(String streamName, String moduleName, boolean remove) {

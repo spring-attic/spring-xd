@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Glenn Renfro
  */
+
 public class XdEnvironment implements BeanClassLoaderAware {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(XdEnvironment.class);
@@ -125,6 +126,12 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	@Value("${twitterConsumerSecretKey}")
 	private String twitterConsumerSecretKey;
+
+	@Value("${twitterAccessToken}")
+	private String twitterAccessToken;
+
+	@Value("${twitterAccessTokenSecret}")
+	private String twitterAccessTokenSecret;
 
 	private SimpleDriverDataSource dataSource;
 
@@ -264,7 +271,6 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		return twitterConsumerKey;
 	}
 
-
 	/**
 	 * The twitter consumer secret key
 	 *
@@ -274,6 +280,23 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		return twitterConsumerSecretKey;
 	}
 
+	/**
+	 * The Twitter Access Token
+	 *
+	 * @return twitter access token
+	 */
+	public String getTwitterAccessToken() {
+		return twitterAccessToken;
+	}
+
+	/**
+	 * The Twitter Access Token Secret
+	 *
+	 * @return twitter access token secret
+	 */
+	public String getTwitterAccessTokenSecret() {
+		return twitterAccessTokenSecret;
+	}
 
 	/**
 	 * The hadoop name node that is available for this environment.

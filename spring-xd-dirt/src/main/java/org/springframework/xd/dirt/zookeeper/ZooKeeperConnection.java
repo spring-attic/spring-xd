@@ -270,7 +270,6 @@ public class ZooKeeperConnection implements SmartLifecycle {
 		}
 	}
 
-
 	/**
 	 * Listener for Curator {@link ConnectionState} events that delegates to any registered ZooKeeperListeners.
 	 */

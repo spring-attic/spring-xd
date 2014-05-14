@@ -42,9 +42,13 @@ import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
+ * A Zookeeper backed repository for persisting {@link JobDefinition}s.
+ * 
  * @author Mark Fisher
+ * @author David Turanski
  */
 // todo: the JobDefinitionRepository abstraction can be removed once we are fully zk-enabled since we do not need to
 // support multiple impls at that point
@@ -124,12 +128,11 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 
 			logger.info("Saved job {} with properties {}", path, map);
 		}
-		catch (NodeExistsException e) {
-			// this exception indicates that we tried to create the
-			// path just after another thread/jvm successfully created it
-		}
+
 		catch (Exception e) {
-			throw e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e);
+			//NodeExistsException indicates that we tried to create the
+			// path just after another thread/jvm successfully created it
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NodeExistsException.class);
 		}
 		return entity;
 	}
@@ -144,12 +147,10 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			Map<String, String> map = this.mapBytesUtility.toMap(bytes);
 			return new JobDefinition(id, map.get("definition"));
 		}
-		catch (NoNodeException e) {
-			return null;
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
+		return null;
 	}
 
 	@Override
@@ -158,7 +159,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			return (null != zkConnection.getClient().checkExists().forPath(Paths.build(Paths.JOBS, id)));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -168,7 +169,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			return this.findAll(zkConnection.getClient().getChildren().forPath(Paths.JOBS));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -188,7 +189,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			return stat == null ? 0 : stat.getNumChildren();
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -197,11 +198,9 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 		try {
 			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.JOBS, id));
 		}
-		catch (NoNodeException e) {
-			// ignore
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			//NoNodeException - nothing to delete
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}
 
@@ -222,12 +221,9 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 		try {
 			delete(findAll());
 		}
-		catch (RuntimeException e) {
-			if (e.getCause() instanceof NoNodeException) {
-				// no top level node, ignore
-				return;
-			}
-			throw e;
+		catch (Exception e) {
+			//NoNodeException - no top level node, ignore
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}
 

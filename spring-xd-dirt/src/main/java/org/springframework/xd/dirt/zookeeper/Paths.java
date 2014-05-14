@@ -26,6 +26,7 @@ import org.apache.curator.utils.EnsurePath;
  * Common paths and path utilities for XD components.
  *
  * @author Patrick Peralta
+ * @author David Turanski
  */
 public class Paths {
 
@@ -152,7 +153,7 @@ public class Paths {
 			ensurePath.ensure(client.getZookeeperClient());
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 

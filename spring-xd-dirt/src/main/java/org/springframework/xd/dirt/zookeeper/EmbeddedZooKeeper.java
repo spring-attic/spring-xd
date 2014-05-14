@@ -175,8 +175,9 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 				shutdown.setAccessible(true);
 				shutdown.invoke(zkServer);
 			}
+
 			catch (Exception e) {
-				throw new RuntimeException(e);
+				throw ZooKeeperUtils.wrapThrowable(e);
 			}
 
 			// It is expected that the thread will exit after

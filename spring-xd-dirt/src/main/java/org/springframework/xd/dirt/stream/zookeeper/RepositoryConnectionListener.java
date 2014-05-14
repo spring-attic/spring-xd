@@ -21,6 +21,7 @@ import org.apache.zookeeper.KeeperException;
 
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
  * ZooKeeper connection listener that ensures path creation for
@@ -28,6 +29,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
  * use ZooKeeper.
  *
  * @author Patrick Peralta
+ * @author David Turanski
  */
 public class RepositoryConnectionListener implements ZooKeeperConnectionListener {
 
@@ -60,11 +62,9 @@ public class RepositoryConnectionListener implements ZooKeeperConnectionListener
 		try {
 			client.create().creatingParentsIfNeeded().forPath(path);
 		}
-		catch (KeeperException.NodeExistsException e) {
-			// already created
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			//NodeExistsException -already created
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NodeExistsException.class);
 		}
 	}
 

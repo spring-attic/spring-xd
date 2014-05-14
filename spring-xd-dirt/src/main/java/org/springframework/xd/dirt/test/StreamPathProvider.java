@@ -31,6 +31,7 @@ import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -137,11 +138,8 @@ public class StreamPathProvider implements DeploymentPathProvider {
 			byte[] data = client.getData().forPath(Paths.build(Paths.STREAMS, streamName));
 			return mapBytesUtility.toMap(data);
 		}
-		catch (RuntimeException e) {
-			throw e;
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 

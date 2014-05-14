@@ -47,6 +47,7 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -136,7 +137,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			}
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return null;
 	}
@@ -152,7 +153,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			return findAll(zkConnection.getClient().getChildren().forPath(Paths.STREAM_DEPLOYMENTS));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -168,7 +169,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			}
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return results;
 	}
@@ -180,7 +181,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			return stat != null ? stat.getNumChildren() : 0;
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -210,14 +211,9 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 				txMap.put(stat.getCzxid(), path);
 			}
 		}
-		catch (KeeperException.NoNodeException e) {
-			// ignore
-		}
-		catch (RuntimeException e) {
-			throw e;
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			//NoNodeException - nothing to delete
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 
 		paths.add(new StreamDeploymentsPath().setStreamName(id).setModuleType(ModuleType.sink.toString()).build());
@@ -233,11 +229,8 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 				logger.trace("removing path {}", path);
 				client.delete().deletingChildrenIfNeeded().forPath(path);
 			}
-			catch (KeeperException.NoNodeException e) {
-				// ignore
-			}
 			catch (Exception e) {
-				throw new RuntimeException(e);
+				ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 			}
 		}
 
@@ -257,10 +250,10 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 				children.add("Could not load list of children due to " + ex);
 			}
 			throw new IllegalStateException(String.format(
-					"The following children were not deleted from %s: %s",streamDeploymentPath, children), e);
+					"The following children were not deleted from %s: %s", streamDeploymentPath, children), e);
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -285,11 +278,9 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 				delete(child);
 			}
 		}
-		catch (KeeperException.NoNodeException e) {
-			// ignore
-		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			//NoNodeException - nothing to delete
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 	}
 

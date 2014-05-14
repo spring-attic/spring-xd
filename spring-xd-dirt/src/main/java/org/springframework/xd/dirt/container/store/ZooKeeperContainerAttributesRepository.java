@@ -32,6 +32,7 @@ import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
  * ZooKeeper backed repository for runtime info about Containers.
@@ -72,7 +73,7 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 			return entity;
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -96,7 +97,7 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 			}
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return containerAttributes;
 	}
@@ -107,7 +108,7 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 			return null != zkConnection.getClient().checkExists().forPath(path(id));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -122,7 +123,7 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 			return results;
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
@@ -145,7 +146,7 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 			return (stat != null) ? stat.getNumChildren() : 0;
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 

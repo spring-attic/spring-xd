@@ -61,9 +61,10 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
 		FileJdbcJob job = jobs.fileJdbcJob();
-		//Create a stream that writes to a file.  This file will be used by the job.
+		// Create a stream that writes to a file. This file will be used by the job.
 		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER
 				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL("REPLACE", "true"), WAIT_TIME);
+		waitForXD();
 		job(job.toDSL());
 		jobLaunch();
 		String query = String.format("SELECT data FROM %s", tableName);

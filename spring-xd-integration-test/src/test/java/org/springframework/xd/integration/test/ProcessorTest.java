@@ -27,17 +27,38 @@ import org.junit.Test;
 public class ProcessorTest extends AbstractIntegrationTest {
 
 
+	private final static String HTTP_MODULE_NAME = "http.0";
+
+	private final static String FILTER_MODULE_NAME = "filter.1";
+
+	private final static String OUTPUT_CHANNEL_NAME = "output";
+
+	private final static String INPUT_CHANNEL_NAME = "input";
+
+	private final static String TO_SPEL_CHANNEL_NAME = "to.spel";
+
+	private final static String TO_SCRIPT_CHANNEL_NAME = "to.script";
+
+
 	/**
-	 * Evaluates that a single data entry of "BAD" is filtered out and not stored.
+	 * Evaluates that a single data entry of "BAD" is filtered out and not stored. Verifies that the correct elements of
+	 * the filter, filtered out the data.
 	 *
 	 */
-	@Test(expected = AssertionError.class)
+	@Test
 	public void testFailedSink() {
 		String filterContent = "BAD";
-		stream("trigger  --payload='" + filterContent + "'"
-				+ XD_DELIMETER + " filter --expression=payload=='good' " + XD_DELIMETER
+		stream(sources.http() + XD_DELIMETER + " filter --expression=payload=='good' " + XD_DELIMETER
 				+ sinks.file());
-		assertReceived(1);
+		waitForXD();
+		sources.http().postData(filterContent);
+		waitForXD(2000);
+		assertReceived(FILTER_MODULE_NAME, INPUT_CHANNEL_NAME, 1);
+		assertReceived(FILTER_MODULE_NAME, OUTPUT_CHANNEL_NAME, 0);
+		assertReceived(FILTER_MODULE_NAME, TO_SPEL_CHANNEL_NAME, 1);
+		assertReceived(FILTER_MODULE_NAME, TO_SCRIPT_CHANNEL_NAME, 0);
+		assertReceived(HTTP_MODULE_NAME, OUTPUT_CHANNEL_NAME, 1);
+
 	}
 
 	/**

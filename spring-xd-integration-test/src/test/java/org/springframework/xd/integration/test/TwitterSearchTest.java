@@ -23,7 +23,7 @@ import org.springframework.xd.test.fixtures.TwitterSearchSource;
 
 /**
  * Test Twitter search to make sure it is returning what we requested.
- * 
+ *
  * @author Glenn Renfro
  */
 
@@ -36,8 +36,8 @@ public class TwitterSearchTest extends AbstractIntegrationTest {
 		TwitterSearchSource twitterSearchSource = sources.twitterSearch(data);
 		stream(twitterSearchSource + XD_DELIMETER + sinks.file());
 		this.waitForXD();
-		assertReceived("file.1", 1);
-		assertContains(data);
+		assertReceived("file.1", "input", 1);
+		assertContainsIgnoreCase(data);
 
 	}
 }

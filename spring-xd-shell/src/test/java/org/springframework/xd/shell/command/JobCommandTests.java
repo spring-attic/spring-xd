@@ -438,7 +438,12 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		Thread.sleep(5000);
 		String executionId = getJobExecutionId(jobName);
 		String executionStatus = getJobExecutionStatus(jobName);
-		assertTrue(executionStatus.equals("STARTING") || executionStatus.equals("STARTED"));
+		long timeout = System.currentTimeMillis() + 10000;
+		while ((executionStatus.equals("STARTING") || executionStatus.equals("STARTED"))
+				&& System.currentTimeMillis() < timeout) {
+			executionStatus = getJobExecutionStatus(jobName);
+			executionId = getJobExecutionId(jobName);
+		}
 		// Stop the execution by the given executionId.
 		executeCommand("job execution stop " + executionId);
 		// sleep for stop() until the step2 is invoked.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,5 +174,14 @@ public class JobExecutionInfoResource extends ResourceSupport {
 
 	public Properties getJobParameters() {
 		return jobParameters;
+	}
+
+	/**
+	 * Set restartable flag explicitly based on the job executions status of the same job instance.
+	 *
+	 * @param restartable flag to identify if the job execution can be restarted
+	 */
+	public void setRestartable(boolean restartable) {
+		this.restartable = restartable;
 	}
 }

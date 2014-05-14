@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
+import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
@@ -75,10 +77,43 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 			@RequestParam(defaultValue = "20") int pageSize) {
 
 		Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
+		JobExecutionInfoResource jobExecutionInfoResource;
 		for (JobExecution jobExecution : jobService.listJobExecutions(startJobExecution, pageSize)) {
-			result.add(jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone)));
+			jobExecutionInfoResource = jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution,
+					timeZone));
+			// Set restartable flag for the JobExecutionResource based on the actual JobInstance
+			// If any one of the jobExecutions for the jobInstance is complete, set the restartable flag for
+			// all the jobExecutions to false.
+			if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
+				jobExecutionInfoResource.setRestartable(isJobExecutionRestartable(jobExecution));
+			}
+			result.add(jobExecutionInfoResource);
 		}
 		return result;
+	}
+
+	/**
+	 * Check if the {@link JobInstance} corresponds to the given {@link JobExecution}
+	 * has any of the JobExecutions in {@link BatchStatus.COMPLETED} status
+	 * @param jobExecution the jobExecution to check for
+	 * @return boolean flag to set if this job execution can be restarted
+	 */
+	private boolean isJobExecutionRestartable(JobExecution jobExecution) {
+		JobInstance jobInstance = jobExecution.getJobInstance();
+		BatchStatus status = jobExecution.getStatus();
+		try {
+			List<JobExecution> jobExecutionsForJobInstance = (List<JobExecution>) jobService.getJobExecutionsForJobInstance(
+					jobInstance.getJobName(), jobInstance.getId());
+			for (JobExecution jobExecutionForJobInstance : jobExecutionsForJobInstance) {
+				if (jobExecutionForJobInstance.getStatus() == BatchStatus.COMPLETED) {
+					return false;
+				}
+			}
+		}
+		catch (NoSuchJobException e) {
+			throw new NoSuchBatchJobException(jobInstance.getJobName());
+		}
+		return status.isGreaterThan(BatchStatus.STOPPING) && status.isLessThan(BatchStatus.ABANDONED);
 	}
 
 	/**

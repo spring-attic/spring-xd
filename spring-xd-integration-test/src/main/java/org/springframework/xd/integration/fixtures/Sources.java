@@ -180,7 +180,7 @@ public class Sources {
 
 	/**
 	 * Constructs a SyslogUdpSource that receives syslog events via udp.
-	 * 
+	 *
 	 * @param host the ip of the machine where simulated syslog traffic will be sent.
 	 * @return an instance of SyslogUdpSource.
 	 */

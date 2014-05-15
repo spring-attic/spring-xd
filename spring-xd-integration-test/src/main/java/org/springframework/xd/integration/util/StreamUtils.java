@@ -16,15 +16,10 @@
 
 package org.springframework.xd.integration.util;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -38,6 +33,7 @@ import org.jclouds.sshj.SshjSshClient;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 
@@ -75,22 +71,14 @@ public class StreamUtils {
 	 */
 	public static String httpGet(final URL url) {
 		Assert.notNull(url, "The URL must be specified");
-		try {
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		RestTemplate template = new RestTemplate();
 
-			InputStream response = conn.getInputStream();
-			BufferedInputStream in = new BufferedInputStream(response);
-			BufferedReader diReader = new BufferedReader(new InputStreamReader(in));
-			String result = "";
-			while (diReader.ready()) {
-				result += diReader.readLine();
-			}
-			diReader.close();
-			conn.disconnect();
+		try {
+			String result = template.getForObject(url.toURI(), String.class);
 			return result;
 		}
-		catch (IOException ioException) {
-			throw new IllegalStateException(ioException.getMessage(), ioException);
+		catch (URISyntaxException uriException) {
+			throw new IllegalStateException(uriException.getMessage(), uriException);
 		}
 	}
 
@@ -132,6 +120,9 @@ public class StreamUtils {
 		Assert.hasText(fileName, "The remote file name must be specified.");
 
 		File file = new File(fileName);
+		FileOutputStream writer = null;
+		InputStream iStream = null;
+
 		try {
 			File tmpFile = createTmpDir();
 			String fileLocation = tmpFile.getAbsolutePath() + file.getName();
@@ -141,27 +132,33 @@ public class StreamUtils {
 			final HostAndPort socket = HostAndPort.fromParts(url.getHost(), 22);
 			final SshjSshClient client = new SshjSshClient(
 					new BackoffLimitedRetryHandler(), socket, credential, 5000);
+
 			Payload payload = client.get(fileName);
-			InputStream iStream = payload.openStream();
-			BufferedWriter writer = new BufferedWriter(new FileWriter(fileLocation));
-			boolean isRead = true;
-			while (isRead) {
-				byte[] b = new byte[10];
-				int bytesRead = iStream.read(b);
-				if (bytesRead < 0) {
-					break;
-				}
-				String buffer = new String(b, 0, bytesRead);
-				writer.write(buffer);
-				if (bytesRead < 10) {
-					isRead = false;
-				}
-			}
-			writer.close();
+			iStream = payload.openStream();
+			writer = new FileOutputStream(fileLocation);
+			writer.write(org.springframework.util.StreamUtils.copyToByteArray(iStream));
 			return fileLocation;
 		}
 		catch (IOException ioException) {
 			throw new IllegalStateException(ioException.getMessage(), ioException);
+		}
+		finally {
+			if (writer != null) {
+				try {
+					writer.close();
+				}
+				catch (IOException ioException) {
+					throw new IllegalStateException(ioException.getMessage(), ioException);
+				}
+			}
+			if (iStream != null) {
+				try {
+					iStream.close();
+				}
+				catch (IOException ioException) {
+					throw new IllegalStateException(ioException.getMessage(), ioException);
+				}
+			}
 		}
 	}
 
@@ -246,7 +243,7 @@ public class StreamUtils {
 
 	/**
 	 * Create an new instance of the SpringXDTemplate given the Admin Server URL
-	 * 
+	 *
 	 * @param adminServer URL of the Admin Server
 	 * @return A new instance of SpringXDTemplate
 	 */

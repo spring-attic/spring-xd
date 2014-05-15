@@ -193,9 +193,8 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 						dependencyKey(moduleDefinition));
 			}
 		}
-
-		// NoNodeException - nothing to delete
 		catch (Exception e) {
+			// NoNodeException - nothing to delete
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}

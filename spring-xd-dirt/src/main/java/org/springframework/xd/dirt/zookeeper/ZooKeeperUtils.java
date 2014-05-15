@@ -53,10 +53,13 @@ public abstract class ZooKeeperUtils {
 	 * @param t the throwable
 	 * @param ignored a varargs list of ignored exception types
 	 */
-	public static void wrapAndThrowIgnoring(Throwable t, Class<? extends Exception> ignored) {
+	@SuppressWarnings("unchecked")
+	public static void wrapAndThrowIgnoring(Throwable t, Class... ignored) {
 		if (ignored != null) {
-			if (ignored.isAssignableFrom(t.getClass())) {
-				return;
+			for (Class<? extends Exception> e : ignored) {
+				if (e.isAssignableFrom(t.getClass())) {
+					return;
+				}
 			}
 		}
 		throw wrapThrowable(t);

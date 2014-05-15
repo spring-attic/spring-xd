@@ -437,8 +437,15 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		triggerJobWithDelay(jobName, "5");
 		Thread.sleep(5000);
 		String executionId = getJobExecutionId(jobName);
+		System.out.println("ExecutionId: " + executionId);
 		String executionStatus = getJobExecutionStatus(jobName);
-		assertTrue(executionStatus.equals("STARTING") || executionStatus.equals("STARTED"));
+		System.out.println("ExecutionStatus: " + executionStatus);
+		long timeout = System.currentTimeMillis() + 10000;
+		while ((executionStatus.equals("STARTING") || executionStatus.equals("STARTED"))
+				&& System.currentTimeMillis() < timeout) {
+			executionStatus = getJobExecutionStatus(jobName);
+			executionId = getJobExecutionId(jobName);
+		}
 		// Stop the execution by the given executionId.
 		executeCommand("job execution stop " + executionId);
 		// sleep for stop() until the step2 is invoked.

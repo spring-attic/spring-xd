@@ -79,13 +79,14 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 		Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
 		JobExecutionInfoResource jobExecutionInfoResource;
 		for (JobExecution jobExecution : jobService.listJobExecutions(startJobExecution, pageSize)) {
-			boolean isRestartable = isJobExecutionRestartable(jobExecution);
 			jobExecutionInfoResource = jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution,
 					timeZone));
-			// Set the {@link JobExecutionResource} restartable based on the actual jobInstance
+			// Set restartable flag for the JobExecutionResource based on the actual JobInstance
 			// If any one of the jobExecutions for the jobInstance is complete, set the restartable flag for
 			// all the jobExecutions to false.
-			jobExecutionInfoResource.setRestartable(isRestartable);
+			if (jobExecution.getStatus() != BatchStatus.COMPLETED) {
+				jobExecutionInfoResource.setRestartable(isJobExecutionRestartable(jobExecution));
+			}
 			result.add(jobExecutionInfoResource);
 		}
 		return result;

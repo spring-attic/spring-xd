@@ -1464,14 +1464,16 @@ project('spring-xd-shell') {
 			exclude group: 'hsqldb'
 		}
 		compile "com.google.guava:guava:14.0.1"
-		testCompile project(":spring-xd-test-fixtures")
-		testCompile project(":spring-xd-dirt")
-		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"
+		compile	"org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
+		compile "commons-io:commons-io:$commonsIoVersion"
+		configurations.compile.exclude(group: "xerces")
+		
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
 		runtime	"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		runtime	"log4j:log4j:$log4jVersion"
-		compile	"org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
-		compile "commons-io:commons-io:$commonsIoVersion"
+		testCompile project(":spring-xd-test-fixtures")
+		testCompile project(":spring-xd-dirt")
+		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 	}
 

@@ -60,9 +60,10 @@ public class SyslogTcpSource extends AbstractModuleFixture {
 	}
 
 	/**
-	 * Returns a SyslogTcpSource fixture instance that is initialized with default port and the host param.
+	 * Returns a SyslogTcpSource fixture instance that is initialized with default port and the 
+	 * provided host parameter
 	 *
-	 * @param host The host that tcp will be sent.
+	 * @param host The host that tcp data will be sent.
 	 * @return a SyslogTcpSource instance
 	 */
 	public static SyslogTcpSource withDefaults(String host) {

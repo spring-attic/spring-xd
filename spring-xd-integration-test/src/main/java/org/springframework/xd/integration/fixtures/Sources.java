@@ -168,22 +168,24 @@ public class Sources {
 	}
 
 	/**
-	* Constructs a SyslogTcpSource that receives syslog events via tcp.
-	*
-	* @return an instance of SyslogTcpSource.
-	*/
-	public SyslogTcpSource syslogTcpSource() {
-		return SyslogTcpSource.withDefaults();
+	 * Constructs a SyslogTcpSource that receives syslog events via tcp.
+	 *
+	 * @param host the ip of the machine where simulated syslog traffic will be sent.
+	 * @return an instance of SyslogTcpSource.
+	 */
+	public SyslogTcpSource syslogTcpSource(String host) {
+		return SyslogTcpSource.withDefaults(host);
 	}
 
 
 	/**
-	* Constructs a SyslogUdpSource that receives syslog events via udp.
-	*
-	* @return an instance of SyslogUdpSource.
-	*/
-	public SyslogUdpSource syslogUdpSource() {
-		return SyslogUdpSource.withDefaults();
+	 * Constructs a SyslogUdpSource that receives syslog events via udp.
+	 * 
+	 * @param host the ip of the machine where simulated syslog traffic will be sent.
+	 * @return an instance of SyslogUdpSource.
+	 */
+	public SyslogUdpSource syslogUdpSource(String host) {
+		return SyslogUdpSource.withDefaults(host);
 	}
 
 }

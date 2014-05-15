@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,9 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
-import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.SimpleModule;
@@ -77,8 +78,12 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule(new ModuleDefinition("testsource", ModuleType.source),
-				new DeploymentMetadata("foo", 0));
+		Module module = new SimpleModule(new ModuleDescriptor.Builder()
+				.setModuleDefinition(new ModuleDefinition("testsource", ModuleType.source))
+				.setGroup("foo")
+				.setIndex(0)
+				.build(),
+				new ModuleDeploymentProperties());
 		module.initialize();
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
@@ -89,7 +94,10 @@ public class StreamPluginTests {
 	@Test
 	public void streamChannelTests() {
 		Module module = mock(Module.class);
-		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
+		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
+				.setGroup("foo")
+				.setIndex(1)
+				.build());
 		when(module.getType()).thenReturn(ModuleType.processor);
 		when(module.getName()).thenReturn("testing");
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
@@ -110,7 +118,10 @@ public class StreamPluginTests {
 	@Test
 	public void testTapOnProxy() {
 		Module module = mock(Module.class);
-		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
+		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
+				.setGroup("foo")
+				.setIndex(1)
+				.build());
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		DirectChannel output = new DirectChannel();
 		MessageChannel proxy = (MessageChannel) new ProxyFactory(output).getProxy();

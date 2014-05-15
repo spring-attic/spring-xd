@@ -39,8 +39,8 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
-import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -63,9 +63,9 @@ public class CompositeModule extends AbstractModule {
 
 	private final AtomicBoolean isRunning = new AtomicBoolean();
 
-	public CompositeModule(String name, ModuleType type, List<Module> modules,
-			DeploymentMetadata metadata) {
-		super(new ModuleDefinition(name, type), metadata);
+	public CompositeModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
+			List<Module> modules) {
+		super(descriptor, deploymentProperties);
 		this.modules = modules;
 		this.validate();
 	}

@@ -37,12 +37,6 @@ import org.springframework.util.Assert;
 public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 
 	/**
-	 * Name of module. Typically this module is present under
-	 * {@code $XD_HOME/modules/[module type]}.
-	 */
-	private final String moduleName;
-
-	/**
 	 * Symbolic name of a module. This may be generated to a default
 	 * value or specified in the DSL string.
 	 */
@@ -72,11 +66,6 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	private final int index;
 
 	/**
-	 * Module type.
-	 */
-	private final ModuleType type;
-
-	/**
 	 * Parameters for module. This is specific to the type of module - for
 	 * instance an http module would include a port number as a parameter.
 	 */
@@ -89,7 +78,9 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	private final List<ModuleDescriptor> children;
 
 	/**
-	 * Contains information required for module deployment (i.e. classpath).
+	 * Provides the name and type of the module. Typically this module is present under
+	 * {@code $XD_HOME/modules/[module_type]/[module_name]}.
+	 * Also contains information required for module deployment (i.e. classpath).
 	 */
 	private final ModuleDefinition moduleDefinition;
 
@@ -98,29 +89,25 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	 * Construct a {@code ModuleDescriptor}. This constructor is private; use
 	 * {@link org.springframework.xd.module.ModuleDescriptor.Builder} to create a new instance.
 	 *
-	 * @param moduleName name of module
 	 * @param moduleLabel label used for module in stream/job definition
 	 * @param group group this module belongs to (stream/job)
 	 * @param sourceChannelName name of source channel; may be {@code null}
 	 * @param sinkChannelName name of sink channel; may be {@code null}
 	 * @param index position of module in stream/job definition
-	 * @param type module type
 	 * @param moduleDefinition module definition
 	 * @param parameters module parameters; may be {@code null}
 	 * @param children if this is a composite module, this list contains the modules
 	 *                 that comprise this module; may be {@code null}
 	 */
-	private ModuleDescriptor(String moduleName, String moduleLabel,
-			String group, String sourceChannelName, String sinkChannelName,
-			int index, ModuleType type, ModuleDefinition moduleDefinition,
+	private ModuleDescriptor(String moduleLabel, String group,
+			String sourceChannelName, String sinkChannelName,
+			int index, ModuleDefinition moduleDefinition,
 			Map<String, String> parameters, List<ModuleDescriptor> children) {
-		this.moduleName = moduleName;
 		this.moduleLabel = moduleLabel;
 		this.group = group;
 		this.sourceChannelName = sourceChannelName;
 		this.sinkChannelName = sinkChannelName;
 		this.index = index;
-		this.type = type;
 		this.moduleDefinition = moduleDefinition;
 		this.parameters = parameters == null
 				? Collections.<String, String> emptyMap()
@@ -137,7 +124,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	 * @return module name
 	 */
 	public String getModuleName() {
-		return moduleName;
+		return moduleDefinition.getName();
 	}
 
 	/**
@@ -148,7 +135,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	 */
 	public String getModuleLabel() {
 		if (moduleLabel == null) {
-			return moduleName + "-" + index;
+			return getModuleName() + "-" + index;
 		}
 		return moduleLabel;
 	}
@@ -179,7 +166,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	 * @return module type
 	 */
 	public ModuleType getType() {
-		return type;
+		return moduleDefinition.getType();
 	}
 
 	/**
@@ -257,14 +244,14 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	@Override
 	public String toString() {
 		return new ToStringCreator(this)
-				.append("moduleName", moduleName)
+				.append("moduleName", moduleDefinition != null ? moduleDefinition.getName() : null)
 				.append("moduleLabel", moduleLabel)
 				.append("group", group)
 				.append("sourceChannelName", sourceChannelName)
 				.append("sinkChannelName", sinkChannelName)
 				.append("sinkChannelName", sinkChannelName)
 				.append("index", index)
-				.append("type", type)
+				.append("type", moduleDefinition != null ? moduleDefinition.getType() : null)
 				.append("parameters", parameters)
 				.append("children", children).toString();
 	}
@@ -578,8 +565,9 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @return new instance of {@code ModuleDescriptor}
 		 */
 		public ModuleDescriptor build() {
-			return new ModuleDescriptor(moduleName, moduleLabel, group,
-					sourceChannelName, sinkChannelName, index, type, moduleDefinition,
+			return new ModuleDescriptor(moduleLabel, group,
+					sourceChannelName, sinkChannelName,
+					index, getModuleDefinition(),
 					parameters, children);
 		}
 
@@ -589,6 +577,9 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		}
 
 		public ModuleDefinition getModuleDefinition() {
+			if (moduleDefinition == null) {
+				moduleDefinition = new ModuleDefinition(moduleName, type);
+			}
 			return moduleDefinition;
 		}
 	}

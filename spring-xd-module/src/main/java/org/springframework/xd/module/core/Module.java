@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.io.Resource;
-import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -41,7 +42,9 @@ public interface Module extends Lifecycle {
 
 	ModuleType getType();
 
-	DeploymentMetadata getDeploymentMetadata();
+	ModuleDescriptor getDescriptor();
+
+	ModuleDeploymentProperties getDeploymentProperties();
 
 	void setParentContext(ApplicationContext parentContext);
 

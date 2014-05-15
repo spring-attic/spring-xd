@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package org.springframework.xd.module.core;
 
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 
 /**
- * Base support class for modules, wrapping {@link ModuleDefinition} and {@link DeploymentMetadata}.
+ * Base support class for modules, wrapping {@link ModuleDescriptor} and {@link ModuleDeploymentProperties}.
  * 
  * @author Mark Fisher
  * @author David Turanski
@@ -31,40 +31,41 @@ import org.springframework.xd.module.ModuleType;
  */
 public abstract class AbstractModule implements Module {
 
-	private final ModuleDefinition definition;
+	private final ModuleDescriptor descriptor;
 
-	private final DeploymentMetadata metadata;
+	private final ModuleDeploymentProperties deploymentProperties;
 
-	public AbstractModule(ModuleDefinition definition, DeploymentMetadata metadata) {
-		Assert.notNull(definition, "definition must not be null");
-		Assert.notNull(metadata, "metadata must not be null");
-		this.definition = definition;
-		this.metadata = metadata;
+	public AbstractModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties) {
+		Assert.notNull(descriptor, "descriptor must not be null");
+		Assert.notNull(deploymentProperties, "deploymentProperties must not be null");
+		this.descriptor = descriptor;
+		this.deploymentProperties = deploymentProperties;
 	}
 
 	@Override
 	public String getName() {
-		return this.definition.getName();
+		return this.descriptor.getModuleName();
 	}
 
 	@Override
 	public ModuleType getType() {
-		return this.definition.getType();
-	}
-
-	protected ModuleDefinition getDefinition() {
-		return definition;
+		return this.descriptor.getType();
 	}
 
 	@Override
-	public DeploymentMetadata getDeploymentMetadata() {
-		return this.metadata;
+	public ModuleDescriptor getDescriptor() {
+		return descriptor;
+	}
+
+	@Override
+	public ModuleDeploymentProperties getDeploymentProperties() {
+		return this.deploymentProperties;
 	}
 
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + " [name=" + this.getName() + ", type=" + this.getType() + ", group="
-				+ this.metadata.getGroup() + ", index=" + this.metadata.getIndex()
+				+ this.descriptor.getGroup() + ", index=" + this.descriptor.getIndex()
 				+ " @" + ObjectUtils.getIdentityHexString(this) + "]";
 	}
 

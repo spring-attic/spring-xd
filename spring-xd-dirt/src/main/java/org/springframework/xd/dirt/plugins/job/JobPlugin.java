@@ -49,7 +49,7 @@ public class JobPlugin extends AbstractJobPlugin {
 
 	private void configureProperties(Module module) {
 		final Properties properties = new Properties();
-		properties.setProperty(XD_JOB_NAME_KEY, module.getDeploymentMetadata().getGroup());
+		properties.setProperty(XD_JOB_NAME_KEY, module.getDescriptor().getGroup());
 		module.addProperties(properties);
 	}
 

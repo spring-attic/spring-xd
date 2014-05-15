@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.plugins;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 
@@ -28,6 +28,7 @@ import org.springframework.xd.module.core.Module;
  * stream plugins.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Mark Fisher
  */
 public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugin {
 
@@ -37,21 +38,25 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 
 	@Override
 	protected String getInputChannelName(Module module) {
-		return module.getDeploymentMetadata().getInputChannelName();
+		ModuleDescriptor descriptor = module.getDescriptor();
+		String sourceChannel = descriptor.getSourceChannelName();
+		return (sourceChannel != null) ? sourceChannel : descriptor.getGroup() + "." + (descriptor.getIndex() - 1);
 	}
 
 	@Override
 	protected String getOutputChannelName(Module module) {
-		return module.getDeploymentMetadata().getOutputChannelName();
+		ModuleDescriptor descriptor = module.getDescriptor();
+		String sinkChannel = descriptor.getSinkChannelName();
+		return (sinkChannel != null) ? sinkChannel : descriptor.getGroup() + "." + descriptor.getIndex();
 	}
 
 	@Override
 	protected String buildTapChannelName(Module module) {
 		Assert.isTrue(module.getType() != ModuleType.job, "Job module type not supported.");
-		DeploymentMetadata dm = module.getDeploymentMetadata();
+		ModuleDescriptor descriptor = module.getDescriptor();
 		// for Stream return channel name with indexed elements
-		return String.format("%s%s%s.%s.%s", TAP_CHANNEL_PREFIX, "stream:", dm.getGroup(), module.getName(),
-				dm.getIndex());
+		return String.format("%s%s%s.%s.%s", TAP_CHANNEL_PREFIX, "stream:", descriptor.getGroup(),
+				module.getName(), descriptor.getIndex());
 	}
 
 	@Override

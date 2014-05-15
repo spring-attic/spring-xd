@@ -25,7 +25,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusAwareRouterBeanPostProcessor;
 import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
-import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 
@@ -45,9 +44,8 @@ public class StreamPlugin extends AbstractStreamPlugin {
 
 	@Override
 	public void preProcessModule(Module module) {
-		DeploymentMetadata md = module.getDeploymentMetadata();
 		Properties properties = new Properties();
-		properties.setProperty(XD_STREAM_NAME_KEY, md.getGroup());
+		properties.setProperty(XD_STREAM_NAME_KEY, module.getDescriptor().getGroup());
 		module.addProperties(properties);
 		if (module.getType() == ModuleType.sink) {
 			module.addListener(new ApplicationListener<ApplicationPreparedEvent>() {

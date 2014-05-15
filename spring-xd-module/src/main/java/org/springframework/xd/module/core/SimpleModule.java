@@ -45,8 +45,9 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
-import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 
@@ -80,13 +81,14 @@ public class SimpleModule extends AbstractModule {
 
 	private ModuleOptions moduleOptions;
 
-	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
-		this(definition, metadata, null, defaultModuleOptions());
+	public SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties) {
+		this(descriptor, deploymentProperties, null, defaultModuleOptions());
 	}
 
-	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader,
+	public SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
+			ClassLoader classLoader,
 			ModuleOptions moduleOptions) {
-		super(definition, metadata);
+		super(descriptor, deploymentProperties);
 		this.moduleOptions = moduleOptions;
 		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class).web(false);
 		if (classLoader != null) {
@@ -99,11 +101,11 @@ public class SimpleModule extends AbstractModule {
 
 		application.profiles(moduleOptions.profilesToActivate());
 
+		ModuleDefinition definition = descriptor.getModuleDefinition();
 		if (definition != null && definition.getResource().isReadable()) {
 			this.addComponents(definition.getResource());
 		}
 	}
-
 
 	private Map<Object, Object> moduleOptionsToProperties(ModuleOptions moduleOptions) {
 		Map<Object, Object> result = new HashMap<Object, Object>();
@@ -185,7 +187,7 @@ public class SimpleModule extends AbstractModule {
 		if (this.listeners.size() > 0) {
 			application.listeners(this.listeners.toArray(new ApplicationListener<?>[this.listeners.size()]));
 		}
-		this.application.listeners(new ModuleParentContextCloserApplicationListener(getDeploymentMetadata().getIndex()));
+		this.application.listeners(new ModuleParentContextCloserApplicationListener(getDescriptor().getIndex()));
 		this.context = this.application.run();
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized module: " + this.toString());

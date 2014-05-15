@@ -65,7 +65,7 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 	 */
 	private Map<String, String> getEventListenerChannels(Module module) {
 		Map<String, String> eventListenerChannels = new HashMap<String, String>();
-		String jobName = module.getDeploymentMetadata().getGroup();
+		String jobName = module.getDescriptor().getGroup();
 		Assert.notNull(jobName, "Job name should not be null");
 		eventListenerChannels.put(XD_JOB_EXECUTION_EVENTS_CHANNEL,
 				getEventListenerChannelName(jobName, JOB_EXECUTION_EVENTS_SUFFIX));
@@ -87,7 +87,7 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 	}
 
 	private void bindAggregatedEventsChannel(Module module) {
-		String jobName = module.getDeploymentMetadata().getGroup();
+		String jobName = module.getDescriptor().getGroup();
 		MessageChannel aggEventsChannel = module.getComponent(XD_AGGREGATED_EVENTS_CHANNEL, SubscribableChannel.class);
 		Assert.notNull(aggEventsChannel,
 				"The pub/sub aggregatedEvents channel should be available in the module context.");
@@ -101,6 +101,6 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 			messageBus.unbindProducers(channelEntry.getValue());
 		}
 		// unbind aggregatedEvents channel
-		messageBus.unbindProducers(getEventListenerChannelName(module.getDeploymentMetadata().getGroup()));
+		messageBus.unbindProducers(getEventListenerChannelName(module.getDescriptor().getGroup()));
 	}
 }

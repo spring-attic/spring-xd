@@ -35,7 +35,7 @@ public class AbstractJobPlugin extends AbstractMessageBusBinderPlugin {
 
 	@Override
 	protected String getInputChannelName(Module module) {
-		return JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup();
+		return JOB_CHANNEL_PREFIX + module.getDescriptor().getGroup();
 	}
 
 	@Override

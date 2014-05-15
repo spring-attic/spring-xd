@@ -20,7 +20,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
-import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.core.Module;
 
 /**
@@ -46,15 +46,14 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 
 	@Override
 	public void postProcessModule(Module module) {
-		DeploymentMetadata md = module.getDeploymentMetadata();
 		if (messageBus != null) {
 			if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
-				this.processPartitionedJob(module, md);
+				this.processPartitionedJob(module);
 			}
 		}
 	}
 
-	private void processPartitionedJob(Module module, DeploymentMetadata md) {
+	private void processPartitionedJob(Module module) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("binding job partitioning channels for " + module);
 		}
@@ -62,7 +61,8 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 		Assert.notNull(partitionsOut, "Partitioned jobs must have a " + JOB_PARTIONER_REQUEST_CHANNEL);
 		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
 		Assert.notNull(partitionsIn, "Partitioned jobs must have a " + JOB_PARTIONER_REPLY_CHANNEL);
-		String name = md.getGroup() + "." + md.getIndex();
+		ModuleDescriptor descriptor = module.getDescriptor();
+		String name = descriptor.getGroup() + "." + descriptor.getIndex();
 		messageBus.bindRequestor(name, partitionsOut, partitionsIn);
 
 		MessageChannel stepExecutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
@@ -77,9 +77,9 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 		if (logger.isDebugEnabled()) {
 			logger.debug("unbinding job partitioning channels for " + module);
 		}
-		DeploymentMetadata md = module.getDeploymentMetadata();
 		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
-		String name = md.getGroup() + "." + md.getIndex();
+		ModuleDescriptor descriptor = module.getDescriptor();
+		String name = descriptor.getGroup() + "." + descriptor.getIndex();
 		if (partitionsOut != null) {
 			messageBus.unbindProducer(name, partitionsOut);
 		}

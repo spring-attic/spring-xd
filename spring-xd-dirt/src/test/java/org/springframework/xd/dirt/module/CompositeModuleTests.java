@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,9 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDeploymentProperties;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
@@ -56,6 +57,8 @@ public class CompositeModuleTests {
 
 	private volatile ModuleDefinition sinkDefinition;
 
+	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
+
 	@Before
 	public void setupModuleDefinitions() {
 		moduleRegistry = new ResourceModuleRegistry("file:src/test/resources/testmodules/");
@@ -67,22 +70,38 @@ public class CompositeModuleTests {
 
 	@Test
 	public void testCompositeSource() {
-		DeploymentMetadata metadata = new DeploymentMetadata("compositesourcegroup", 0);
 		List<Module> modules = new ArrayList<Module>();
-		modules.add(new SimpleModule(sourceDefinition, metadata));
-		modules.add(new SimpleModule(processor1Definition, metadata));
-		modules.add(new SimpleModule(processor2Definition, metadata));
-		CompositeModule module = new CompositeModule("compositesource", ModuleType.source, modules, metadata);
+		ModuleDescriptor sourceDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(sourceDefinition).setGroup("compositesourcegroup").setIndex(0).build();
+		modules.add(new SimpleModule(sourceDescriptor, deploymentProperties));
+		ModuleDescriptor processor1Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor1Definition).setGroup("compositesourcegroup").setIndex(1).build();
+		modules.add(new SimpleModule(processor1Descriptor, deploymentProperties));
+		ModuleDescriptor processor2Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor2Definition).setGroup("compositesourcegroup").setIndex(2).build();
+		modules.add(new SimpleModule(processor2Descriptor, deploymentProperties));
+		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder().setModuleDefinition(
+				new ModuleDefinition("compositesource", ModuleType.source)).build();
+		CompositeModule module = new CompositeModule(compositeDescriptor, deploymentProperties, modules);
 		assertEquals(source, module.getType());
 	}
 
 	@Test
 	public void testCompositeProcessor() {
-		DeploymentMetadata metadata = new DeploymentMetadata("compositeprocessorgroup", 1);
 		List<Module> modules = new ArrayList<Module>();
-		modules.add(new SimpleModule(processor1Definition, metadata));
-		modules.add(new SimpleModule(processor2Definition, metadata));
-		CompositeModule module = new CompositeModule("compositeprocessor", ModuleType.processor, modules, metadata);
+		ModuleDescriptor processor1Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor1Definition)
+				.setGroup("compositeprocessorgroup")
+				.build();
+		ModuleDescriptor processor2Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor2Definition)
+				.setGroup("compositeprocessorgroup")
+				.build();
+		modules.add(new SimpleModule(processor1Descriptor, deploymentProperties));
+		modules.add(new SimpleModule(processor2Descriptor, deploymentProperties));
+		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder().setModuleDefinition(
+				new ModuleDefinition("compositeprocessor", ModuleType.processor)).build();
+		CompositeModule module = new CompositeModule(compositeDescriptor, deploymentProperties, modules);
 		module.initialize();
 		module.start();
 		assertEquals(processor, module.getType());
@@ -105,12 +124,27 @@ public class CompositeModuleTests {
 
 	@Test
 	public void testCompositeSink() {
-		DeploymentMetadata metadata = new DeploymentMetadata("compositesinkgroup", 2);
+		ModuleDescriptor processor1Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor1Definition)
+				.setGroup("compositesinkgroup")
+				.build();
+		ModuleDescriptor processor2Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor2Definition)
+				.setGroup("compositesinkgroup")
+				.build();
+		ModuleDescriptor sinkDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(sinkDefinition)
+				.setGroup("compositesinkgroup")
+				.build();
 		List<Module> modules = new ArrayList<Module>();
-		modules.add(new SimpleModule(processor1Definition, metadata));
-		modules.add(new SimpleModule(processor2Definition, metadata));
-		modules.add(new SimpleModule(sinkDefinition, metadata));
-		CompositeModule module = new CompositeModule("compositesink", ModuleType.sink, modules, metadata);
+		modules.add(new SimpleModule(processor1Descriptor, deploymentProperties));
+		modules.add(new SimpleModule(processor2Descriptor, deploymentProperties));
+		modules.add(new SimpleModule(sinkDescriptor, deploymentProperties));
+		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(new ModuleDefinition("compositesink", ModuleType.sink))
+				.setIndex(2)
+				.build();
+		CompositeModule module = new CompositeModule(compositeDescriptor, deploymentProperties, modules);
 		assertEquals(sink, module.getType());
 	}
 

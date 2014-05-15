@@ -27,7 +27,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.core.Module;
 
 /**
@@ -44,7 +44,10 @@ public class MessageBusRegistrationTests {
 	@Mock
 	private Module module;
 
-	private DeploymentMetadata deploymentMetadata = new DeploymentMetadata("mystream", 1);
+	private ModuleDescriptor descriptor = new ModuleDescriptor.Builder()
+			.setGroup("mystream")
+			.setIndex(1)
+			.build();
 
 	private MessageChannel input = new DirectChannel();
 
@@ -56,7 +59,7 @@ public class MessageBusRegistrationTests {
 		streamPlugin = new StreamPlugin(bus);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
-		when(module.getDeploymentMetadata()).thenReturn(deploymentMetadata);
+		when(module.getDescriptor()).thenReturn(descriptor);
 	}
 
 	@Test

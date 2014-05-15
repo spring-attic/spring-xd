@@ -131,10 +131,9 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 			StreamDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, entity);
 		}
-
-		// NodeExistsException indicates that we tried to create the
-		// path just after another thread/jvm successfully created it 
 		catch (Exception e) {
+			// NodeExistsException indicates that we tried to create the
+			// path just after another thread/jvm successfully created it 
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NodeExistsException.class);
 		}
 		return entity;
@@ -151,6 +150,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			return new StreamDefinition(id, map.get("definition"));
 		}
 		catch (Exception e) {
+			//NoNodeException - the definition does not exist
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 		return null;
@@ -207,6 +207,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
 		}
 		catch (Exception e) {
+			//NoNodeException - nothing to delete
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}
@@ -230,6 +231,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			delete(findAll());
 		}
 		catch (Exception e) {
+			//NoNodeException - nothing to delete
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}

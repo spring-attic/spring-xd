@@ -212,6 +212,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			}
 		}
 		catch (Exception e) {
+			//NoNodeException - nothing to delete
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 
@@ -278,6 +279,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			}
 		}
 		catch (Exception e) {
+			//NoNodeException - nothing to delete
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 	}

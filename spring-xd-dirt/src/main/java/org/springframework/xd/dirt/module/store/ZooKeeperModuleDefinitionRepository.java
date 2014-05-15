@@ -90,8 +90,8 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 				definition = shallowValue;
 			}
 
-			// NoNodeException will return null
 			catch (Exception e) {
+				// NoNodeException will return null
 				ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 			}
 		}

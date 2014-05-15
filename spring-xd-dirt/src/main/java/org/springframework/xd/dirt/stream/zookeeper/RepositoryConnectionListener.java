@@ -63,6 +63,7 @@ public class RepositoryConnectionListener implements ZooKeeperConnectionListener
 			client.create().creatingParentsIfNeeded().forPath(path);
 		}
 		catch (Exception e) {
+			//NodeExistsException -already created
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NodeExistsException.class);
 		}
 	}

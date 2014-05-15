@@ -181,6 +181,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 			zkConnection.getClient().delete().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));
 		}
 		catch (Exception e) {
+			//NoNodeException - nothing to delete
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 	}
@@ -206,6 +207,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 			}
 		}
 		catch (Exception e) {
+			//NoNodeException - nothing to delete
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 	}

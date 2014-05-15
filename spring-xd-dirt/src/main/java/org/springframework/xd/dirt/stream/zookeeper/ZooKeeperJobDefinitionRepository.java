@@ -127,9 +127,9 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			logger.info("Saved job {} with properties {}", path, map);
 		}
 
-		//NodeExistsException indicates that we tried to create the
-		// path just after another thread/jvm successfully created it
 		catch (Exception e) {
+			//NodeExistsException indicates that we tried to create the
+			// path just after another thread/jvm successfully created it
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NodeExistsException.class);
 		}
 		return entity;
@@ -197,6 +197,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.JOBS, id));
 		}
 		catch (Exception e) {
+			//NoNodeException - nothing to delete
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}
@@ -219,7 +220,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			delete(findAll());
 		}
 		catch (Exception e) {
-			// no top level node, ignore
+			//NoNodeException - no top level node, ignore
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}

@@ -101,8 +101,8 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 				metadata = new ModuleMetadata(moduleId, containerId, moduleProperties);
 			}
 		}
-		// NoNodeException - this node does not exist, will return null
 		catch (Exception e) {
+			// NoNodeException - this node does not exist, will return null
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 		return metadata;

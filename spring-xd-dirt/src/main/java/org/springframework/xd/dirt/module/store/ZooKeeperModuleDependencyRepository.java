@@ -57,8 +57,8 @@ public class ZooKeeperModuleDependencyRepository implements ModuleDependencyRepo
 		try {
 			connection.getClient().create().creatingParentsIfNeeded().forPath(path);
 		}
-		// NodeExistsException - already created
 		catch (Exception e) {
+			// NodeExistsException - already created
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NodeExistsException.class);
 		}
 	}
@@ -84,9 +84,8 @@ public class ZooKeeperModuleDependencyRepository implements ModuleDependencyRepo
 		try {
 			connection.getClient().delete().forPath(path);
 		}
-
-		//NoNodeException - nothing to delete
 		catch (Exception e) {
+			//NoNodeException - nothing to delete
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 	}

@@ -104,26 +104,4 @@ public class SyslogTcpSource extends AbstractModuleFixture {
 		}
 	}
 
-	/**
-	 * Sets the port that TCP traffic will be sent
-	 *
-	 * @param port The port where syslog source is monitoring.
-	 * @return the syslog tcp instance
-	 */
-	public SyslogTcpSource port(int port) {
-		this.port = port;
-		return this;
-	}
-
-	/**
-	 * Sets the host that TCP traffic will be sent
-	 *
-	 * @param port The host where syslog source is monitoring.
-	 * @return the syslog tcp instance
-	 */
-	public SyslogTcpSource host(String host) {
-		this.host = host;
-		return this;
-	}
-
 }

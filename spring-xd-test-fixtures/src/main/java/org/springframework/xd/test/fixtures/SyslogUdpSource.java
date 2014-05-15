@@ -111,26 +111,5 @@ public class SyslogUdpSource extends AbstractModuleFixture {
 
 	}
 
-	/**
-	 * Sets the port that UDP traffic will be sent
-	 *
-	 * @param port The port where syslog source is monitoring.
-	 * @return the syslog udp instance
-	 */
-	public SyslogUdpSource port(int port) {
-		this.port = port;
-		return this;
-	}
-
-	/**
-	 * Sets the host that UDP traffic will be sent
-	 *
-	 * @param port The host where syslog source is monitoring.
-	 * @return the syslog udp instance
-	 */
-	public SyslogUdpSource host(String host) {
-		this.host = host;
-		return this;
-	}
 
 }

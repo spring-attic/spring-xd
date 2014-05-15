@@ -22,11 +22,13 @@ import static org.mockito.Mockito.when;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.core.Module;
 
@@ -47,6 +49,7 @@ public class MessageBusRegistrationTests {
 	private ModuleDescriptor descriptor = new ModuleDescriptor.Builder()
 			.setGroup("mystream")
 			.setIndex(1)
+			.setModuleDefinition(Mockito.mock(ModuleDefinition.class))
 			.build();
 
 	private MessageChannel input = new DirectChannel();

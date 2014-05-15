@@ -97,6 +97,7 @@ public class StreamPluginTests {
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
 				.setIndex(1)
+				.setModuleDefinition(mock(ModuleDefinition.class))
 				.build());
 		when(module.getType()).thenReturn(ModuleType.processor);
 		when(module.getName()).thenReturn("testing");
@@ -121,6 +122,7 @@ public class StreamPluginTests {
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
 				.setIndex(1)
+				.setModuleDefinition(mock(ModuleDefinition.class))
 				.build());
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		DirectChannel output = new DirectChannel();

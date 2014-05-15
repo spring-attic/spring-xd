@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.xd.dirt.stream.ParsingContext.job;
 import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -242,74 +242,78 @@ public class XDStreamParserTests {
 		setupMockFindsForProcessor(registry, resource);
 		setupMockFindsForJobs(registry, resource);
 
-		ModuleDefinition sourceDefinition = new ModuleDefinition("source",
-				ModuleType.source, resource);
-		ModuleDefinition sinkDefinition = new ModuleDefinition("sink", ModuleType.sink,
-				resource);
-		ModuleDefinition processorDefinition = new ModuleDefinition("processor",
-				ModuleType.processor, resource);
-		ModuleDefinition jobDefinition = new ModuleDefinition("job",
-				ModuleType.job, resource);
+		when(registry.findDefinition("bart", ModuleType.source)).thenReturn(new ModuleDefinition("bart",
+				ModuleType.source, resource));
+		when(registry.findDefinition("foo", ModuleType.source)).thenReturn(new ModuleDefinition("foo",
+				ModuleType.source, resource));
+		when(registry.findDefinition("boo", ModuleType.source)).thenReturn(new ModuleDefinition("boo",
+				ModuleType.source, resource));
+		when(registry.findDefinition("http", ModuleType.source)).thenReturn(new ModuleDefinition("http",
+				ModuleType.source, resource));
 
-		when(registry.findDefinition("bart", ModuleType.source)).thenReturn(sourceDefinition);
-		when(registry.findDefinition("foo", ModuleType.source)).thenReturn(sourceDefinition);
-		when(registry.findDefinition("boo", ModuleType.source)).thenReturn(sourceDefinition);
-		when(registry.findDefinition("http", ModuleType.source)).thenReturn(sourceDefinition);
+		when(registry.findDefinition("boot", ModuleType.sink)).thenReturn(new ModuleDefinition("boot",
+				ModuleType.sink, resource));
+		when(registry.findDefinition("bar", ModuleType.sink)).thenReturn(new ModuleDefinition("bar",
+				ModuleType.sink, resource));
+		when(registry.findDefinition("badLog", ModuleType.sink)).thenReturn(new ModuleDefinition("badLog",
+				ModuleType.sink, resource));
+		when(registry.findDefinition("file", ModuleType.sink)).thenReturn(new ModuleDefinition("file",
+				ModuleType.sink, resource));
 
-		when(registry.findDefinition("boot", ModuleType.sink)).thenReturn(sinkDefinition);
-		when(registry.findDefinition("bar", ModuleType.sink)).thenReturn(sinkDefinition);
-		when(registry.findDefinition("badLog", ModuleType.sink)).thenReturn(sinkDefinition);
-		when(registry.findDefinition("file", ModuleType.sink)).thenReturn(sinkDefinition);
+		when(registry.findDefinition("job", ModuleType.job)).thenReturn(new ModuleDefinition("job",
+				ModuleType.job, resource));
 
-		when(registry.findDefinition("job", ModuleType.job)).thenReturn(jobDefinition);
-
-		when(registry.findDefinition("aaak", ModuleType.processor)).thenReturn(processorDefinition);
-		when(registry.findDefinition("goo", ModuleType.processor)).thenReturn(processorDefinition);
-		when(registry.findDefinition("blah", ModuleType.processor)).thenReturn(processorDefinition);
-		when(registry.findDefinition("filter", ModuleType.processor)).thenReturn(processorDefinition);
+		when(registry.findDefinition("aaak", ModuleType.processor)).thenReturn(new ModuleDefinition("aaak",
+				ModuleType.processor, resource));
+		when(registry.findDefinition("goo", ModuleType.processor)).thenReturn(new ModuleDefinition("goo",
+				ModuleType.processor, resource));
+		when(registry.findDefinition("blah", ModuleType.processor)).thenReturn(new ModuleDefinition("blah",
+				ModuleType.processor, resource));
+		when(registry.findDefinition("filter", ModuleType.processor)).thenReturn(new ModuleDefinition("filter",
+				ModuleType.processor, resource));
 
 		return registry;
 	}
 
 	private void setupMockFindsForSource(ModuleRegistry registry, Resource resource) {
-		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		ModuleDefinition sourceDefinition = new ModuleDefinition("source",
-				ModuleType.source, resource);
-		definitions.add(sourceDefinition);
-
-		when(registry.findDefinitions("source")).thenReturn(definitions);
-		when(registry.findDefinitions("foo")).thenReturn(definitions);
-		when(registry.findDefinitions("boo")).thenReturn(definitions);
-		when(registry.findDefinitions("http")).thenReturn(definitions);
+		when(registry.findDefinitions("source")).thenReturn(Collections.singletonList(new ModuleDefinition("source",
+				ModuleType.source, resource)));
+		when(registry.findDefinitions("foo")).thenReturn(Collections.singletonList(new ModuleDefinition("foo",
+				ModuleType.source, resource)));
+		when(registry.findDefinitions("boo")).thenReturn(Collections.singletonList(new ModuleDefinition("boo",
+				ModuleType.source, resource)));
+		when(registry.findDefinitions("http")).thenReturn(Collections.singletonList(new ModuleDefinition("http",
+				ModuleType.source, resource)));
 	}
 
 	private void setupMockFindsForSink(ModuleRegistry registry, Resource resource) {
-		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		ModuleDefinition sinkDefinition = new ModuleDefinition(ModuleType.sink.name(), ModuleType.sink,
-				resource);
-		definitions.add(sinkDefinition);
-		when(registry.findDefinitions("sink")).thenReturn(definitions);
-		when(registry.findDefinitions("file")).thenReturn(definitions);
-		when(registry.findDefinitions("boot")).thenReturn(definitions);
-		when(registry.findDefinitions("bar")).thenReturn(definitions);
+		when(registry.findDefinitions("sink")).thenReturn(Collections.singletonList(new ModuleDefinition("sink",
+				ModuleType.sink, resource)));
+		when(registry.findDefinitions("file")).thenReturn(Collections.singletonList(new ModuleDefinition("file",
+				ModuleType.sink, resource)));
+		when(registry.findDefinitions("boot")).thenReturn(Collections.singletonList(new ModuleDefinition("boot",
+				ModuleType.sink, resource)));
+		when(registry.findDefinitions("bar")).thenReturn(Collections.singletonList(new ModuleDefinition("bar",
+				ModuleType.sink, resource)));
 	}
 
 	private void setupMockFindsForProcessor(ModuleRegistry registry, Resource resource) {
-		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		ModuleDefinition processorDefinition = new ModuleDefinition("processor",
-				ModuleType.processor, resource);
-		definitions.add(processorDefinition);
-		when(registry.findDefinitions("processor")).thenReturn(definitions);
-		when(registry.findDefinitions("blah")).thenReturn(definitions);
-		when(registry.findDefinitions("filter")).thenReturn(definitions);
-		when(registry.findDefinitions("goo")).thenReturn(definitions);
-		when(registry.findDefinitions("aaak")).thenReturn(definitions);
+		when(registry.findDefinitions("processor")).thenReturn(
+				Collections.singletonList(new ModuleDefinition("processor",
+						ModuleType.processor, resource)));
+		when(registry.findDefinitions("blah")).thenReturn(Collections.singletonList(new ModuleDefinition("blah",
+				ModuleType.processor, resource)));
+		when(registry.findDefinitions("filter")).thenReturn(Collections.singletonList(new ModuleDefinition("filter",
+				ModuleType.processor, resource)));
+		when(registry.findDefinitions("goo")).thenReturn(Collections.singletonList(new ModuleDefinition("goo",
+				ModuleType.processor, resource)));
+		when(registry.findDefinitions("aaak")).thenReturn(Collections.singletonList(new ModuleDefinition("aaak",
+				ModuleType.processor, resource)));
 	}
 
 	private void setupMockFindsForJobs(ModuleRegistry registry, Resource resource) {
-		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("job", ModuleType.job, resource));
-		when(registry.findDefinitions("job")).thenReturn(definitions);
+		when(registry.findDefinitions("job")).thenReturn(Collections.singletonList(new ModuleDefinition("job",
+				ModuleType.job, resource)));
 
 	}
 

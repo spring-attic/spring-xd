@@ -64,13 +64,7 @@ public class StreamUtils {
 		Assert.hasText(streamName, "The stream name must be specified.");
 		Assert.hasText(streamDefinition, "a stream definition must be supplied.");
 		Assert.notNull(adminServer, "The admin server must be specified.");
-		try {
-			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-			xdTemplate.streamOperations().createStream(streamName, streamDefinition, true);
-		}
-		catch (URISyntaxException uriException) {
-			throw new IllegalStateException(uriException.getMessage(), uriException);
-		}
+		createSpringXDTemplate(adminServer).streamOperations().createStream(streamName, streamDefinition, true);
 	}
 
 	/**
@@ -107,14 +101,7 @@ public class StreamUtils {
 	 */
 	public static void destroyAllStreams(final URL adminServer) {
 		Assert.notNull(adminServer, "The admin server must be specified.");
-		try {
-			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-			xdTemplate.streamOperations().destroyAll();
-		}
-		catch (URISyntaxException uriException) {
-			throw new IllegalStateException(uriException.getMessage(), uriException);
-		}
-
+		createSpringXDTemplate(adminServer).streamOperations().destroyAll();
 	}
 
 	/**
@@ -127,13 +114,7 @@ public class StreamUtils {
 	{
 		Assert.notNull(adminServer, "The admin server must be specified.");
 		Assert.hasText(streamName, "The streamName must not be empty nor null");
-		try {
-			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-			xdTemplate.streamOperations().undeploy(streamName);
-		}
-		catch (URISyntaxException uriException) {
-			throw new IllegalStateException(uriException.getMessage(), uriException);
-		}
+		createSpringXDTemplate(adminServer).streamOperations().undeploy(streamName);
 	}
 
 	/**
@@ -235,29 +216,24 @@ public class StreamUtils {
 	public static boolean isStreamDeployed(String streamName, URL adminServer) {
 		Assert.hasText(streamName, "The stream name must be specified.");
 		Assert.notNull(adminServer, "The admin server must be specified.");
-		try {
-			boolean result = false;
-			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-			PagedResources<StreamDefinitionResource> resources = xdTemplate.streamOperations().list();
-			Iterator<StreamDefinitionResource> resourceIter = resources.iterator();
-			while (resourceIter.hasNext()) {
-				StreamDefinitionResource resource = resourceIter.next();
-				if (streamName.equals(resource.getName())) {
-					if (resource.isDeployed()) {
-						result = true;
-						break;
-					}
-					else {
-						result = false;
-						break;
-					}
+		boolean result = false;
+		SpringXDTemplate xdTemplate = createSpringXDTemplate(adminServer);
+		PagedResources<StreamDefinitionResource> resources = xdTemplate.streamOperations().list();
+		Iterator<StreamDefinitionResource> resourceIter = resources.iterator();
+		while (resourceIter.hasNext()) {
+			StreamDefinitionResource resource = resourceIter.next();
+			if (streamName.equals(resource.getName())) {
+				if (resource.isDeployed()) {
+					result = true;
+					break;
+				}
+				else {
+					result = false;
+					break;
 				}
 			}
-			return result;
 		}
-		catch (URISyntaxException uriException) {
-			throw new IllegalStateException(uriException.getMessage(), uriException);
-		}
+		return result;
 	}
 
 	private static File createTmpDir() throws IOException {
@@ -266,6 +242,21 @@ public class StreamUtils {
 			tmpFile.createNewFile();
 		}
 		return tmpFile;
+	}
+
+	/**
+	 * Create an new instance of the SpringXDTemplate given the Admin Server URL
+	 * 
+	 * @param adminServer URL of the Admin Server
+	 * @return A new instance of SpringXDTemplate
+	 */
+	private static SpringXDTemplate createSpringXDTemplate(URL adminServer) {
+		try {
+			return new SpringXDTemplate(adminServer.toURI());
+		}
+		catch (URISyntaxException uriException) {
+			throw new IllegalStateException(uriException.getMessage(), uriException);
+		}
 	}
 
 

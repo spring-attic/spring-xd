@@ -175,7 +175,6 @@ public abstract class AbstractIntegrationTest {
 	 * @param job the job definition
 	 */
 	public void job(String job) {
-		Assert.hasText(job, "job needs to be poopulated with a definition and can not be null");
 		job(JOB_NAME, job, WAIT_TIME);
 	}
 
@@ -281,6 +280,7 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
+	<<<<<<< HEAD
 	 * Undeploys the test stream
 	 */
 	public void undeployStream() {
@@ -288,6 +288,8 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
+	=======
+	>>>>>>> 6ee43a1c9321961447f6eb91ae1838b16f3aade3
 	 * Wait the "waitTime" for a stream to be deployed.
 	 *
 	 * @param waitTime the time in millis to wait.

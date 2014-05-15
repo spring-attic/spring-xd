@@ -45,8 +45,8 @@ public class HdfsTest extends AbstractIntegrationTest {
 	 */
 	@Before
 	public void initialize() throws Exception {
-		if (hadoopUtil.test(HdfsSink.DEFAULT_DIRECTORY)) {
-			hadoopUtil.rmr(HdfsSink.DEFAULT_DIRECTORY);
+		if (hadoopUtil.fileExists(HdfsSink.DEFAULT_DIRECTORY)) {
+			hadoopUtil.fileRemove(HdfsSink.DEFAULT_DIRECTORY);
 		}
 	}
 
@@ -77,7 +77,7 @@ public class HdfsTest extends AbstractIntegrationTest {
 		Iterator<FileStatus> statuses = fileStatuses.iterator();
 		assertEquals("File size should match the data size +1 for the //n", data.length() + 1, statuses.next().getLen());
 		assertEquals("The data returned from hadoop was different than was sent.  ", data + "\n",
-				hadoopUtil.getTestContent(path));
+				hadoopUtil.getFileContentsFromHdfs(path));
 	}
 
 }

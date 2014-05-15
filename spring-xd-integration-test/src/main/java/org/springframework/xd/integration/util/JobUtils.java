@@ -46,13 +46,7 @@ public class JobUtils {
 		Assert.hasText(jobName, "The job name must be specified.");
 		Assert.hasText(jobDefinition, "a job definition must be supplied.");
 		Assert.notNull(adminServer, "The admin server must be specified.");
-		try {
-			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-			xdTemplate.jobOperations().createJob(jobName, jobDefinition, true);
-		}
-		catch (URISyntaxException uriException) {
-			throw new IllegalStateException(uriException.getMessage(), uriException);
-		}
+		createSpringXDTemplate(adminServer).jobOperations().createJob(jobName, jobDefinition, true);
 	}
 
 
@@ -63,13 +57,7 @@ public class JobUtils {
 	 */
 	public static void destroyAllJobs(final URL adminServer) {
 		Assert.notNull(adminServer, "The admin server must be specified.");
-		try {
-			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-			xdTemplate.jobOperations().destroyAll();
-		}
-		catch (URISyntaxException uriException) {
-			throw new IllegalStateException(uriException.getMessage(), uriException);
-		}
+		createSpringXDTemplate(adminServer).jobOperations().destroyAll();
 
 	}
 
@@ -83,13 +71,7 @@ public class JobUtils {
 	{
 		Assert.notNull(adminServer, "The admin server must be specified.");
 		Assert.hasText(jobName, "The jobName must not be empty nor null");
-		try {
-			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-			xdTemplate.jobOperations().undeploy(jobName);
-		}
-		catch (URISyntaxException uriException) {
-			throw new IllegalStateException(uriException.getMessage(), uriException);
-		}
+		createSpringXDTemplate(adminServer).jobOperations().undeploy(jobName);
 	}
 
 	/**
@@ -101,14 +83,7 @@ public class JobUtils {
 	public static void launch(final URL adminServer, final String jobName) {
 		Assert.notNull(adminServer, "The admin server must be specified.");
 		Assert.hasText(jobName, "The jobName must not be empty nor null");
-		try {
-			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-			xdTemplate.jobOperations().launchJob(jobName, "");// should this be empty or null?
-		}
-		catch (URISyntaxException uriException) {
-			throw new IllegalStateException(uriException.getMessage(), uriException);
-		}
-
+		createSpringXDTemplate(adminServer).jobOperations().launchJob(jobName, "");// should this be empty or null?
 	}
 
 	/**
@@ -145,25 +120,36 @@ public class JobUtils {
 	public static boolean isJobDeployed(String jobName, URL adminServer) {
 		Assert.hasText(jobName, "The job name must be specified.");
 		Assert.notNull(adminServer, "The admin server must be specified.");
-		try {
-			boolean result = false;
-			SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-			PagedResources<JobDefinitionResource> resources = xdTemplate.jobOperations().list();
-			Iterator<JobDefinitionResource> resourceIter = resources.iterator();
-			while (resourceIter.hasNext()) {
-				JobDefinitionResource resource = resourceIter.next();
-				if (jobName.equals(resource.getName())) {
-					if (resource.isDeployed()) {
-						result = true;
-						break;
-					}
-					else {
-						result = false;
-						break;
-					}
+
+		boolean result = false;
+		SpringXDTemplate xdTemplate = createSpringXDTemplate(adminServer);
+		PagedResources<JobDefinitionResource> resources = xdTemplate.jobOperations().list();
+		Iterator<JobDefinitionResource> resourceIter = resources.iterator();
+		while (resourceIter.hasNext()) {
+			JobDefinitionResource resource = resourceIter.next();
+			if (jobName.equals(resource.getName())) {
+				if (resource.isDeployed()) {
+					result = true;
+					break;
+				}
+				else {
+					result = false;
+					break;
 				}
 			}
-			return result;
+		}
+		return result;
+	}
+
+	/**
+	 * Create an new instance of the SpringXDTemplate given the Admin Server URL
+	 * 
+	 * @param adminServer URL of the Admin Server
+	 * @return A new instance of SpringXDTemplate
+	 */
+	private static SpringXDTemplate createSpringXDTemplate(URL adminServer) {
+		try {
+			return new SpringXDTemplate(adminServer.toURI());
 		}
 		catch (URISyntaxException uriException) {
 			throw new IllegalStateException(uriException.getMessage(), uriException);

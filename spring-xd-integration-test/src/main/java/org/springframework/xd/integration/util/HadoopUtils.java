@@ -23,8 +23,6 @@ import java.util.Collection;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.data.hadoop.fs.FsShell;
 import org.springframework.util.Assert;
@@ -38,9 +36,6 @@ import org.springframework.web.client.RestTemplate;
  */
 
 public class HadoopUtils {
-
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(HadoopUtils.class);
 
 	private FsShell shell;
 
@@ -82,7 +77,7 @@ public class HadoopUtils {
 	 * @param uri The uri of the file to verify.
 	 * @return True if it exists else false.
 	 */
-	public boolean test(String uri) {
+	public boolean fileExists(String uri) {
 		Assert.hasText(uri, "uri can not be empty nor null");
 		return shell.test(uri);
 	}
@@ -92,7 +87,7 @@ public class HadoopUtils {
 	 *
 	 * @param uri Path to the file or directory.
 	 */
-	public void rmr(String uri) {
+	public void fileRemove(String uri) {
 		Assert.hasText(uri, "uri can not be empty nor null");
 		shell.rmr(uri);
 	}
@@ -103,7 +98,7 @@ public class HadoopUtils {
 	 * @param path The URI to the file to be retrieved.
 	 * @return The string contents of the file.
 	 */
-	public String getTestContent(String path) {
+	public String getFileContentsFromHdfs(String path) {
 		Assert.hasText(path, "path can not be empty nor null");
 		String result = null;
 		RestTemplate template = new RestTemplate();
@@ -122,7 +117,7 @@ public class HadoopUtils {
 	 */
 	public boolean waitForPath(int waitTime, String path) {
 		long timeout = System.currentTimeMillis() + waitTime;
-		boolean exists = test(path);
+		boolean exists = fileExists(path);
 		while (!exists && System.currentTimeMillis() < timeout) {
 			try {
 				Thread.sleep(1000);
@@ -130,7 +125,7 @@ public class HadoopUtils {
 			catch (InterruptedException e) {
 				throw new IllegalStateException(e.getMessage(), e);
 			}
-			exists = test(path);
+			exists = fileExists(path);
 		}
 		return exists;
 	}

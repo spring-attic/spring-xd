@@ -21,6 +21,10 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
@@ -33,6 +37,8 @@ import org.springframework.util.Assert;
  * @author Glenn Renfro
  */
 public class JdbcSink extends AbstractModuleFixture implements Disposable {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSink.class);
 
 	private JdbcTemplate jdbcTemplate;
 
@@ -84,6 +90,16 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 	@Override
 	public void cleanup() {
 		jdbcTemplate.execute("SHUTDOWN");
+	}
+
+	public void dropTable(String tableName) {
+		Assert.hasText(tableName, "The tableName can not be empty nor null");
+		try {
+			jdbcTemplate.execute("drop table if exists " + tableName);
+		}
+		catch (DataAccessException ex) {
+			LOGGER.error("Could not drop table [" + tableName + "]", ex);
+		}
 	}
 
 	/**

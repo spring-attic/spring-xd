@@ -23,8 +23,9 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.xd.test.fixtures.FileJdbcJob;
 import org.springframework.xd.test.fixtures.JdbcSink;
 
@@ -35,6 +36,8 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  * @author Glenn Renfro
  */
 public class FileJdbcTest extends AbstractIntegrationTest {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileJdbcTest.class);
 
 	private final static String DEFAULT_FILE_NAME = "filejdbctest";
 
@@ -62,6 +65,7 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
 		FileJdbcJob job = jobs.fileJdbcJob();
+		//Create a stream that writes to a file.  This file will be used by the job.
 		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER
 				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL("REPLACE", "true"), WAIT_TIME);
 		job(job.toDSL());
@@ -77,14 +81,8 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 	 */
 	@After
 	public void cleanup() {
-		if (jdbcSink == null) {
-			return;
-		}
-		try {
-			jdbcSink.getJdbcTemplate().execute("drop table " + tableName);
-		}
-		catch (DataAccessException daException) {
-			// This exception is thrown if the table is not present. In this case that is ok.
+		if (jdbcSink != null) {
+			jdbcSink.dropTable(tableName);
 		}
 	}
 

@@ -65,7 +65,6 @@ public class IntegrationTestConfig {
 	@Bean
 	public Jobs jobs() {
 		return new Jobs();
-
 	}
 
 	@Bean

@@ -169,6 +169,17 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
+	 * Gets the URL of the container for the stream being tested.
+	 *
+	 * @return The URL that contains the stream.
+	 */
+	public URL getContainerForStream() {
+		Assert.hasText(STREAM_NAME, "stream name can not be empty nor null");
+		// Assuming one container for now.
+		return xdEnvironment.getContainerUrls().get(0);
+	}
+
+	/**
 	 * Creates a job on the XD cluster defined by the test's Artifact or Environment variables Uses JOB_NAME as default
 	 * job name.
 	 *

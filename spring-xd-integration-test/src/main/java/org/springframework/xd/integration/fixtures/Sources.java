@@ -24,6 +24,8 @@ import org.springframework.xd.test.fixtures.RabbitSource;
 import org.springframework.xd.test.fixtures.SimpleFileSource;
 import org.springframework.xd.test.fixtures.SimpleHttpSource;
 import org.springframework.xd.test.fixtures.SimpleTailSource;
+import org.springframework.xd.test.fixtures.SyslogTcpSource;
+import org.springframework.xd.test.fixtures.SyslogUdpSource;
 import org.springframework.xd.test.fixtures.TcpSource;
 import org.springframework.xd.test.fixtures.TwitterSearchSource;
 import org.springframework.xd.test.fixtures.TwitterStreamSource;
@@ -163,6 +165,25 @@ public class Sources {
 		return new TwitterStreamSource(xdEnvironment.getTwitterConsumerKey(),
 				xdEnvironment.getTwitterConsumerSecretKey(), xdEnvironment.getTwitterAccessToken(),
 				xdEnvironment.getTwitterAccessTokenSecret());
+	}
+
+	/**
+	* Constructs a SyslogTcpSource that receives syslog events via tcp.
+	*
+	* @return an instance of SyslogTcpSource.
+	*/
+	public SyslogTcpSource syslogTcpSource() {
+		return SyslogTcpSource.withDefaults();
+	}
+
+
+	/**
+	* Constructs a SyslogUdpSource that receives syslog events via udp.
+	*
+	* @return an instance of SyslogUdpSource.
+	*/
+	public SyslogUdpSource syslogUdpSource() {
+		return SyslogUdpSource.withDefaults();
 	}
 
 }

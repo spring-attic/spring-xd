@@ -250,17 +250,18 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				.maxAttempts(this.defaultMaxAttempts)
 				.backOffOptions(this.defaultBackOffInitialInterval, this.defaultBackOffMultiplier,
 						this.defaultBackOffMaxInterval)
-						.recoverer(new RejectAndDontRequeueRecoverer() {
+				.recoverer(new RejectAndDontRequeueRecoverer() {
 
-							@Override
-							public void recover(org.springframework.amqp.core.Message message, Throwable cause) {
-								if (logger.isWarnEnabled()) {
-									logger.warn("Retries exhausted for message " + message, cause);
-								}
-							}
+					@Override
+					public void recover(org.springframework.amqp.core.Message message, Throwable cause) {
+						if (logger.isWarnEnabled()) {
+							logger.warn("Retries exhausted for message " + message, cause);
+						}
+						super.recover(message, cause);
+					}
 
-						})
-						.build();
+				})
+				.build();
 		listenerContainer.setAdviceChain(new Advice[] { retryInterceptor });
 		listenerContainer.afterPropertiesSet();
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);

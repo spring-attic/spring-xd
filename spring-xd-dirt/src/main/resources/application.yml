@@ -5,31 +5,29 @@ spring:
     show_banner: false
 endpoints:
   jolokia:
-    enabled: ${XD_JMX_ENABLED:true}
+    enabled: ${xd.jmx.enabled}
   jmx:
-    enabled: ${XD_JMX_ENABLED:true}
+    enabled: ${xd.jmx.enabled}
     uniqueNames: true
 
-XD_ANALYTICS: ${analytics:redis}
-XD_TRANSPORT: ${xd.transport:${transport:redis}}
-XD_HOME: ${xdHomeDir:..}
-XD_JMX_ENABLED: true
-
 xd:
+  analytics: ${analytics:redis}
+  transport: ${transport:redis}
+  home: ${xdHomeDir:..}
+  jmx:
+    enabled: true
   data:
-    home: file:${XD_HOME}/data
+    home: file:${xd.home}/data
   config:
-    home: file:${XD_HOME}/config
+    home: file:${xd.home}/config
   module:
-    home: file:${XD_HOME}/modules
+    home: file:${xd.home}/modules
   ui:
-    home: file:${XD_HOME}/spring-xd-ui/dist/
+    home: file:${xd.home}/spring-xd-ui/dist/
     allow_origin: http://localhost:9889
   extensions:
        basepackages:
        locations: META-INF/spring-xd/ext
-  container:
-    groups: ${XD_CONTAINER_GROUPS:}
   messagebus:
     rabbit:
       default:
@@ -56,15 +54,10 @@ xd:
 ---
 
 server:
-  port: ${PORT:9393}
+  port: ${port:9393}
 management:
-  port: ${XD_MGMT_PORT:${PORT:9393}}
+  port: ${XD_MGMT_PORT:${server.port}}
   contextPath: /management
----
-zk:
-  client:
-    connect: ${ZK_CLIENT_CONNECT:}
-
 ---
 spring:
   profiles: rabbit
@@ -80,16 +73,19 @@ xdHomeDir: .
 # XD admin profile
 spring:
   profiles: admin
+analytics: redis
 ---
 
 # XD container profile
 spring:
   profiles: container
 server:
-  port: ${PORT:0}
-management:
-  port: ${XD_MGMT_PORT:${PORT:}}
+  port: 0
   contextPath: /management
+analytics: redis
+xd:
+  container:
+     groups: ${XD_CONTAINER_GROUPS:}
 ---
 
 spring:

@@ -59,7 +59,7 @@ public class RestConfiguration {
 		return new WebMvcConfigurerAdapter() {
 
 			// N.B. must end in "/"
-			@Value("${xd.ui.home:file:${XD_HOME}/spring-xd-ui/dist/}")
+			@Value("${xd.ui.home:file:${xd.home}/spring-xd-ui/dist/}")
 			private String resourceRoot;
 
 			@Value("${xd.ui.allow_origin:http://localhost:9889}")

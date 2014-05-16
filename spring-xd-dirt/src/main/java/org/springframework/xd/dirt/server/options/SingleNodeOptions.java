@@ -31,7 +31,7 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
  * @author Eric Bottard
  * @author David Turanski
  */
-@ConfigurationProperties
+@ConfigurationProperties(prefix = "xd")
 public class SingleNodeOptions extends CommonOptions {
 
 	@Option(name = "--analytics", handler = SingleNodeAnalyticsOptionHandler.class,
@@ -48,29 +48,29 @@ public class SingleNodeOptions extends CommonOptions {
 	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
 	private HadoopDistro distro = ContainerOptions.DEFAULT_HADOOP_DISTRO;
 
-	public Integer getPORT() {
+	public Integer getPort() {
 		return httpPort;
 	}
 
-	public void setPORT(int httpPort) {
+	public void setPort(int httpPort) {
 		this.httpPort = httpPort;
 	}
 
 	@NotNull
-	public String getXD_ANALYTICS() {
+	public String getAnalytics() {
 		return analytics;
 	}
 
 	@NotNull
-	public String getXD_TRANSPORT() {
+	public String getTransport() {
 		return transport;
 	}
 
-	public void setXD_ANALYTICS(String analytics) {
+	public void setAnalytics(String analytics) {
 		this.analytics = analytics;
 	}
 
-	public void setXD_TRANSPORT(String transport) {
+	public void setTransport(String transport) {
 		this.transport = transport;
 	}
 

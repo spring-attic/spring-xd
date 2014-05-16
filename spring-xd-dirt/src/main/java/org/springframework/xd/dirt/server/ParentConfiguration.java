@@ -47,7 +47,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * @author Mark Fisher
  */
 @EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
-		JmxAutoConfiguration.class })
+	JmxAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "batch/batch.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {
@@ -95,7 +95,7 @@ public class ParentConfiguration {
 		return new HealthEndpoint<Object>(new VanillaHealthIndicator());
 	}
 
-	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
+	@ConditionalOnExpression("${xd.jmx.enabled}")
 	@EnableMBeanExport(defaultDomain = "xd.parent")
 	protected static class JmxConfiguration {
 

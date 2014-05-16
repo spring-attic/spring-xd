@@ -30,7 +30,7 @@ import org.springframework.util.SocketUtils;
  */
 public class RandomConfigurationSupport {
 
-	private static final String ADMIN_SERVER_PORT = "PORT";
+	private static final String ADMIN_SERVER_PORT = "port";
 
 	private static final String XD_DATA_HOME = "xd.data.home";
 
@@ -75,7 +75,7 @@ public class RandomConfigurationSupport {
 	}
 
 	private void disableJmx() {
-		System.setProperty("XD_JMX_ENABLED", "false");
+		System.setProperty("xd.jmx.enabled", "false");
 	}
 
 	public String getAdminServerPort() {

@@ -24,6 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * Holds configuration options that are valid for the Admin server, when using distributed mode.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
 @ConfigurationProperties
 public class AdminOptions extends CommonDistributedOptions {
@@ -31,11 +32,11 @@ public class AdminOptions extends CommonDistributedOptions {
 	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
 	private Integer httpPort;
 
-	public Integer getPORT() {
+	public Integer getPort() {
 		return httpPort;
 	}
 
-	public void setPORT(int httpPort) {
+	public void setPort(int httpPort) {
 		this.httpPort = httpPort;
 	}
 

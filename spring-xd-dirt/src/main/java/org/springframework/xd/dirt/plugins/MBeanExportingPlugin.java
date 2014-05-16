@@ -28,7 +28,7 @@ public class MBeanExportingPlugin extends AbstractPlugin {
 
 	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/jmx/";
 
-	@Value("${XD_JMX_ENABLED}")
+	@Value("${xd.jmx.enabled}")
 	private boolean jmxEnabled;
 
 	@Override

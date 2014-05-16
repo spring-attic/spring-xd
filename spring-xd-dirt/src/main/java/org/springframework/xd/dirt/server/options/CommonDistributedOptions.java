@@ -20,6 +20,7 @@ import javax.validation.constraints.NotNull;
 
 import org.kohsuke.args4j.Option;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedAnalyticsOptionHandler;
 
 
@@ -28,7 +29,9 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
  * node has its own options class, because valid values are different.
  *
  * @author Eric Bottard
+ * @author David Turanski
  */
+@ConfigurationProperties(prefix = "xd")
 public class CommonDistributedOptions extends CommonOptions {
 
 	@Option(name = "--analytics", handler = DistributedAnalyticsOptionHandler.class,
@@ -36,11 +39,11 @@ public class CommonDistributedOptions extends CommonOptions {
 	private String analytics;
 
 	@NotNull
-	public String getXD_ANALYTICS() {
+	public String getAnalytics() {
 		return analytics;
 	}
 
-	public void setXD_ANALYTICS(String analytics) {
+	public void setAnalytics(String analytics) {
 		this.analytics = analytics;
 	}
 

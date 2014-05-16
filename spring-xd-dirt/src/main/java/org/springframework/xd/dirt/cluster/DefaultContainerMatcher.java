@@ -94,6 +94,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 			ModuleDeploymentProperties deploymentProperties, Iterable<Container> containers) {
 		Assert.notNull(moduleDescriptor, "'moduleDescriptor' cannot be null.");
 		Assert.notNull(deploymentProperties, "'deploymentProperties' cannot be null.");
+		Assert.notNull(containers, "'containers' cannot be null.");
 		logger.debug("Matching containers for module {}", moduleDescriptor);
 		List<Container> candidates = findAllContainersMatchingCriteria(containers, deploymentProperties.getCriteria());
 		return distributeForRequestedCount(candidates, deploymentProperties.getCount());

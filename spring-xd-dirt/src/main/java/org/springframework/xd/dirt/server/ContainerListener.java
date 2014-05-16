@@ -475,7 +475,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	private Iterator<Container> getContainersToMatch(CuratorFramework client, ContainerRepository containerRepository,
 			ModuleDescriptor moduleDescriptor) throws Exception {
 		List<Container> containersToMatch = new ArrayList<Container>();
-		List<String> containersToExclude = getContainerExclusions(client, moduleDescriptor);
+		List<String> containersToExclude = getContainersForModule(client, moduleDescriptor);
 		Iterator<Container> containerIterator = containerRepository.getContainerIterator();
 		for (Container container = containerIterator.next(); containerIterator.hasNext();) {
 			if (!containersToExclude.contains(container)) {
@@ -486,26 +486,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * Get the list of container names that correspond to the containers where the module
-	 * representing given {@link ModuleDescriptor} is already deployed.
-	 *
-	 * @param   client curator client
-	 * @param   moduleDescriptor the {@link ModuleDescriptor}
-	 * @return  list of container names that should be excluded
-	 * @throws Exception
-	 */
-	private List<String> getContainerExclusions(CuratorFramework client, ModuleDescriptor moduleDescriptor)
-			throws Exception {
-		try {
-			return getContainersForModule(client, moduleDescriptor);
-		}
-		catch (KeeperException.NoNodeException e) {
-			return Collections.emptyList();
-		}
-	}
-
-	/**
-	 * Determine which containers, if any, have deployed a module for a stream/job.
+	 * Determine which containers, if any, have deployed the given module for a stream/job.
 	 *
 	 * @param client curator client
 	 * @param descriptor module descriptor

@@ -394,7 +394,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private Module deployJob(CuratorFramework client, String jobName, String jobLabel) throws Exception {
 		logger.info("Deploying job '{}'", jobName);
 
-		String jobPath = new JobDeploymentsPath().setJobName(jobName)
+		String jobDeploymentPath = new JobDeploymentsPath().setJobName(jobName)
 				.setModuleLabel(jobLabel)
 				.setContainer(containerAttributes.getId()).build();
 
@@ -407,12 +407,14 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			module = deployModule(moduleDescriptor, deploymentProperties);
 
 			try {
+
 				// this indicates that the container has deployed the module
-				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(jobPath);
+				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(jobDeploymentPath,
+						getDeployedMessage());
 
 				// set a watch on this module in the job path;
 				// if the node is deleted this indicates an undeployment
-				client.getData().usingWatcher(jobModuleWatcher).forPath(jobPath);
+				client.getData().usingWatcher(jobModuleWatcher).forPath(jobDeploymentPath);
 			}
 			catch (KeeperException.NodeExistsException e) {
 				// todo: review, this should not happen
@@ -437,7 +439,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			String moduleType, String moduleLabel) throws Exception {
 		logger.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
 
-		String streamPath = new StreamDeploymentsPath().setStreamName(streamName)
+		String streamDeploymentPath = new StreamDeploymentsPath().setStreamName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel)
 				.setContainer(containerAttributes.getId()).build();
@@ -455,18 +457,26 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			module = deployModule(descriptor, moduleDeploymentProperties);
 
 			// this indicates that the container has deployed the module
-			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
-					.forPath(streamPath, mapBytesUtility.toByteArray(Collections.singletonMap("state", "deployed")));
+			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(streamDeploymentPath,
+					getDeployedMessage());
 
 			// set a watch on this module in the stream path;
 			// if the node is deleted this indicates an undeployment
-			client.getData().usingWatcher(streamModuleWatcher).forPath(streamPath);
+			client.getData().usingWatcher(streamModuleWatcher).forPath(streamDeploymentPath);
 		}
 		catch (KeeperException.NodeExistsException e) {
 			// todo: review, this should not happen
 			logger.info("Module {} for stream {} already deployed", moduleLabel, streamName);
 		}
 		return module;
+	}
+
+	/**
+	 * Get the byte[] representation of deployed state message.
+	 * @return byte array
+	 */
+	private byte[] getDeployedMessage() {
+		return mapBytesUtility.toByteArray(Collections.singletonMap("state", "deployed"));
 	}
 
 	/**

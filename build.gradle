@@ -273,6 +273,14 @@ configure(javaProjects) { subproject ->
 		logging.captureStandardOutput LogLevel.INFO // suppress "## warnings" message
 	}
 
+        if (JavaVersion.current().isJava8Compatible()) {
+            allprojects {
+                tasks.withType(Javadoc) {
+                    options.addStringOption('Xdoclint:none', '-quiet')
+                }
+            }
+        }
+
 	task sourcesJar(type: Jar) {
 		classifier = 'sources'
 		from sourceSets.main.allJava
@@ -1954,7 +1962,16 @@ task wrapper(type: Wrapper) {
 
 apply plugin: 'jacoco'
 
-configure (coverageProjects) { project -> apply plugin: 'jacoco' }
+jacoco {
+    toolVersion = "0.7.0.201403182114"
+}
+
+configure (coverageProjects) {
+    project -> apply plugin: 'jacoco'
+    jacoco {
+        toolVersion = "0.7.0.201403182114"
+    }
+}
 
 task coverageReport(type: JacocoReport) {
 	coverageProjects.collect { p -> executionData p.jacocoTestReport.executionData }

@@ -49,9 +49,11 @@ public class DelegatingModuleRegistryTests {
 
 	private ModuleRegistry registry;
 
+	private static final String REGISTRY_ROOT = "org.springframework.xd.dirt.module.delegating_module_registry_tests";
+
 	@Before
 	public void setup() {
-		String thisClass = DelegatingModuleRegistryTests.class.getName().replace(".", "/");
+		String thisClass = REGISTRY_ROOT.replace(".", "/");
 
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(
 				String.format("classpath:/%s/classpath-based", thisClass));
@@ -83,6 +85,7 @@ public class DelegatingModuleRegistryTests {
 	/**
 	 * Tests the find [all] definitions behavior.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testFindDefinitions() {
 		List<ModuleDefinition> definitions = registry.findDefinitions();
@@ -123,12 +126,14 @@ public class DelegatingModuleRegistryTests {
 		assertThat(def.getResource(), instanceOf(ClassPathResource.class));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testFindByName() {
 		List<ModuleDefinition> result = registry.findDefinitions("foobar");
 		assertThat(result, containsInAnyOrder(module("foobar", source), module("foobar", sink)));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testFindByType() {
 		List<ModuleDefinition> result = registry.findDefinitions(source);

@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.cluster;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,12 +30,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
-import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -52,16 +47,12 @@ import org.springframework.xd.module.ModuleType;
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultContainerMatcherTests {
 
-	private DefaultContainerMatcher containerMatcher = new DefaultContainerMatcher();
-
-	private EmbeddedZooKeeper zk = new EmbeddedZooKeeper();
-
 	@Mock
 	private ContainerRepository containerRepository;
 
-	private ZooKeeperConnection zooKeeperConnection;
+	private DefaultContainerMatcher containerMatcher = new DefaultContainerMatcher();
 
-	private List<Container> containers;
+	private List<Container> containers = new ArrayList<Container>();
 
 	private ModuleDefinition moduleDefinition;
 
@@ -71,10 +62,6 @@ public class DefaultContainerMatcherTests {
 
 	@Before
 	public void setUp() {
-		zk = new EmbeddedZooKeeper();
-		zk.start();
-		zooKeeperConnection = new ZooKeeperConnection("localhost:" + zk.getClientPort());
-		containerMatcher.setZooKeeperConnection(zooKeeperConnection);
 		moduleDefinition = new ModuleDefinition("foo", ModuleType.processor);
 		deploymentProperties = new ModuleDeploymentProperties();
 		moduleDescriptor = new ModuleDescriptor.Builder()
@@ -103,37 +90,30 @@ public class DefaultContainerMatcherTests {
 
 		final Container container3 = new Container("container3", container3Attributes);
 
-		when(containerRepository.getContainerIterator()).thenAnswer(
-				new Answer<Iterator<Container>>() {
-
-					@Override
-					public Iterator<Container> answer(InvocationOnMock invocation) throws Throwable {
-						containers = new ArrayList<Container>();
-						containers.add(container1);
-						containers.add(container2);
-						containers.add(container3);
-						return containers.iterator();
-					}
-				}
-				);
+		containers.add(container1);
+		containers.add(container2);
+		containers.add(container3);
 	}
 
 	@Test
 	public void basicRoundRobin() {
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(1, matched.size());
 		assertSame(containers.get(0), matched.iterator().next());
 
-		matched = containerMatcher.match(moduleDescriptor, deploymentProperties, containerRepository);
+		matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
+				containers);
 		assertEquals(1, matched.size());
 		assertSame(containers.get(1), matched.iterator().next());
 
-		matched = containerMatcher.match(moduleDescriptor, deploymentProperties, containerRepository);
+		matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
+				containers);
 		assertEquals(1, matched.size());
 		assertSame(containers.get(2), matched.iterator().next());
 
-		matched = containerMatcher.match(moduleDescriptor, deploymentProperties, containerRepository);
+		matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
+				containers);
 		assertEquals(1, matched.size());
 		assertSame(containers.get(0), matched.iterator().next());
 	}
@@ -142,25 +122,28 @@ public class DefaultContainerMatcherTests {
 	public void matchWithCountLessThanNumberOfContainers() {
 		deploymentProperties.setCount(2);
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(2, matched.size());
 		Iterator<Container> matchedIterator = matched.iterator();
 		assertSame(containers.get(0), matchedIterator.next());
 		assertSame(containers.get(1), matchedIterator.next());
 
-		matched = containerMatcher.match(moduleDescriptor, deploymentProperties, containerRepository);
+		matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
+				containers);
 		assertEquals(2, matched.size());
 		matchedIterator = matched.iterator();
 		assertSame(containers.get(2), matchedIterator.next());
 		assertSame(containers.get(0), matchedIterator.next());
 
-		matched = containerMatcher.match(moduleDescriptor, deploymentProperties, containerRepository);
+		matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
+				containers);
 		assertEquals(2, matched.size());
 		matchedIterator = matched.iterator();
 		assertSame(containers.get(1), matchedIterator.next());
 		assertSame(containers.get(2), matchedIterator.next());
 
-		matched = containerMatcher.match(moduleDescriptor, deploymentProperties, containerRepository);
+		matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
+				containers);
 		assertEquals(2, matched.size());
 		matchedIterator = matched.iterator();
 		assertSame(containers.get(0), matchedIterator.next());
@@ -171,7 +154,7 @@ public class DefaultContainerMatcherTests {
 	public void matchWithCountEqualToNumberOfContainers() {
 		deploymentProperties.setCount(3);
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(3, matched.size());
 	}
 
@@ -179,7 +162,7 @@ public class DefaultContainerMatcherTests {
 	public void matchWithZeroCount() {
 		deploymentProperties.setCount(0);
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(3, matched.size());
 	}
 
@@ -187,7 +170,7 @@ public class DefaultContainerMatcherTests {
 	public void matchWithCountGreaterThanToNumberOfContainers() {
 		deploymentProperties.setCount(5);
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(3, matched.size());
 	}
 
@@ -197,7 +180,7 @@ public class DefaultContainerMatcherTests {
 		deploymentProperties.setCount(0);
 		deploymentProperties.setCriteria("color=='green'");
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(2, matched.size());
 		Iterator<Container> matchedIterator = matched.iterator();
 		assertSame(containers.get(0), matchedIterator.next());
@@ -209,13 +192,14 @@ public class DefaultContainerMatcherTests {
 		deploymentProperties.setCount(3);
 		deploymentProperties.setCriteria("group=='group2'");
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(2, matched.size());
 		Iterator<Container> matchedIterator = matched.iterator();
 		assertSame(containers.get(1), matchedIterator.next());
 		assertSame(containers.get(2), matchedIterator.next());
 
-		matched = containerMatcher.match(moduleDescriptor, deploymentProperties, containerRepository);
+		matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
+				containers);
 		assertEquals(2, matched.size());
 		matchedIterator = matched.iterator();
 		assertSame(containers.get(1), matchedIterator.next());
@@ -227,17 +211,19 @@ public class DefaultContainerMatcherTests {
 		deploymentProperties.setCount(1);
 		deploymentProperties.setCriteria("group=='group2'");
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(1, matched.size());
 		Iterator<Container> matchedIterator = matched.iterator();
 		assertSame(containers.get(1), matchedIterator.next());
 
-		matched = containerMatcher.match(moduleDescriptor, deploymentProperties, containerRepository);
+		matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
+				containers);
 		assertEquals(1, matched.size());
 		matchedIterator = matched.iterator();
 		assertSame(containers.get(2), matchedIterator.next());
 
-		matched = containerMatcher.match(moduleDescriptor, deploymentProperties, containerRepository);
+		matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
+				containers);
 		assertEquals(1, matched.size());
 		matchedIterator = matched.iterator();
 		assertSame(containers.get(1), matchedIterator.next());
@@ -249,7 +235,7 @@ public class DefaultContainerMatcherTests {
 		deploymentProperties.setCount(0);
 		deploymentProperties.setCriteria("foo=='bar'");
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(0, matched.size());
 	}
 
@@ -258,7 +244,7 @@ public class DefaultContainerMatcherTests {
 		deploymentProperties.setCount(0);
 		deploymentProperties.setCriteria("color");
 		Collection<Container> matched = containerMatcher.match(moduleDescriptor, deploymentProperties,
-				containerRepository);
+				containers);
 		assertEquals(0, matched.size());
 	}
 }

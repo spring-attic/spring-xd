@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,6 +70,11 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * Logger.
 	 */
 	private final Logger logger = LoggerFactory.getLogger(ContainerListener.class);
+
+	/**
+	 * Repository from which to obtain containers in the cluster.
+	 */
+	private final ContainerRepository containerRepository;
 
 	/**
 	 * Utility to convert maps to byte arrays.
@@ -133,6 +139,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 			StreamFactory streamFactory, JobFactory jobFactory,
 			PathChildrenCache streamDeployments, PathChildrenCache jobDeployments,
 			ContainerMatcher containerMatcher) {
+		this.containerRepository = containerRepository;
 		this.containerMatcher = containerMatcher;
 		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
 				containerRepository, containerMatcher);
@@ -281,15 +288,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private boolean isCandidateForDeployment(final Container container, ModuleDescriptor descriptor,
 			ModuleDeploymentProperties properties) {
-		ContainerRepository containerRepository = new ContainerRepository() {
-
-			@Override
-			public Iterator<Container> getContainerIterator() {
-				return Collections.singletonList(container).iterator();
-			}
-		};
-
-		return !CollectionUtils.isEmpty(containerMatcher.match(descriptor, properties, containerRepository));
+		return !CollectionUtils.isEmpty(containerMatcher.match(descriptor, properties,
+				Collections.singletonList(container)));
 	}
 
 	/**
@@ -453,12 +453,80 @@ public class ContainerListener implements PathChildrenCacheListener {
 				};
 		ModuleDeploymentProperties moduleDeploymentProperties = provider.propertiesForDescriptor(moduleDescriptor);
 		if (moduleDeploymentProperties.getCount() > 0) {
+			Iterator<Container> containersToMatch = getContainersToMatch(client, containerRepository, moduleDescriptor);
 			Collection<ModuleDeploymentWriter.Result> results = moduleDeploymentWriter.writeDeployment(
-					Arrays.asList(moduleDescriptor).iterator(), provider);
+					Arrays.asList(moduleDescriptor).iterator(), provider, containerMatcher, containersToMatch);
 			moduleDeploymentWriter.validateResults(results);
 		}
 		else {
 			logUnwantedRedeployment(moduleDeploymentProperties.getCriteria(), moduleDescriptor.getModuleLabel());
+		}
+	}
+
+	/**
+	 * Obtain the list of containers to match by the {@link ContainerMatcher} after excluding the containers
+	 * that have the same module of the given stream/job already deployed.
+	 * @param  client the ZooKeeper connection client
+	 * @param  containerRepository the container repository to obtain the containers in the cluster
+	 * @param  moduleDescriptor the module descriptor for the module
+	 * @return the list of containers to match
+	 * @throws Exception
+	 */
+	private Iterator<Container> getContainersToMatch(CuratorFramework client, ContainerRepository containerRepository,
+			ModuleDescriptor moduleDescriptor) throws Exception {
+		List<Container> containersToMatch = new ArrayList<Container>();
+		List<String> containersToExclude = getContainerExclusions(client, moduleDescriptor);
+		Iterator<Container> containerIterator = containerRepository.getContainerIterator();
+		for (Container container = containerIterator.next(); containerIterator.hasNext();) {
+			if (!containersToExclude.contains(container)) {
+				containersToMatch.add(container);
+			}
+		}
+		return containersToMatch.iterator();
+	}
+
+	/**
+	 * Get the list of container names that correspond to the containers where the module
+	 * representing given {@link ModuleDescriptor} is already deployed.
+	 *
+	 * @param   client curator client
+	 * @param   moduleDescriptor the {@link ModuleDescriptor}
+	 * @return  list of container names that should be excluded
+	 * @throws Exception
+	 */
+	private List<String> getContainerExclusions(CuratorFramework client, ModuleDescriptor moduleDescriptor)
+			throws Exception {
+		try {
+			return getContainersForModule(client, moduleDescriptor);
+		}
+		catch (KeeperException.NoNodeException e) {
+			return Collections.emptyList();
+		}
+	}
+
+	/**
+	 * Determine which containers, if any, have deployed a module for a stream/job.
+	 *
+	 * @param client curator client
+	 * @param descriptor module descriptor
+	 *
+	 * @return list of containers that have deployed this module; empty
+	 * list is returned if no containers have deployed it
+	 *
+	 * @throws Exception thrown by Curator
+	 */
+	private List<String> getContainersForModule(CuratorFramework client, ModuleDescriptor moduleDescriptor)
+			throws Exception {
+		try {
+			if (moduleDescriptor.getType() != ModuleType.job) {
+				return getContainersForStreamModule(client, moduleDescriptor);
+			}
+			else {
+				return getContainersForJobModule(client, moduleDescriptor);
+			}
+		}
+		catch (KeeperException.NoNodeException e) {
+			return Collections.emptyList();
 		}
 	}
 

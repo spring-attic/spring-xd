@@ -103,7 +103,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr ng-repeat="contextValue in stepExecutionDetails.stepExecution.executionContext.values">
+    <tr ng-repeat="contextValue in stepExecutionDetails.stepExecution.executionContext.values | orderBy:'key'">
       <td>{{contextValue.key}}</td>
       <td xd-parse-urls>{{contextValue.value}}</td>
     </tr>

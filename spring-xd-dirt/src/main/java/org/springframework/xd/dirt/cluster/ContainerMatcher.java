@@ -26,6 +26,7 @@ import org.springframework.xd.module.ModuleDescriptor;
  * to one of the candidate container nodes.
  *
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
 public interface ContainerMatcher {
 
@@ -36,12 +37,11 @@ public interface ContainerMatcher {
 	 * @param deploymentProperties  deployment properties for the module; this provides
 	 *                              hints such as the number of containers and other
 	 *                              matching criteria
-	 * @param containerRepository   the container repository that provides the ability
-	 *                              to look up containers
+	 * @param containers            iterable list of containers to match against
 	 *
 	 * @return a collection of matched containers; collection is empty if no suitable containers are found
 	 */
 	Collection<Container> match(ModuleDescriptor moduleDescriptor,
-			ModuleDeploymentProperties deploymentProperties, ContainerRepository containerRepository);
+			ModuleDeploymentProperties deploymentProperties, Iterable<Container> containers);
 
 }

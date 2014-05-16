@@ -19,7 +19,6 @@ package org.springframework.xd.dirt.cluster;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -56,6 +55,7 @@ import org.springframework.xd.module.ModuleDescriptor;
  * @author Patrick Peralta
  * @author Mark Fisher
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public class DefaultContainerMatcher implements ContainerMatcher {
 
@@ -91,15 +91,12 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 */
 	@Override
 	public Collection<Container> match(ModuleDescriptor moduleDescriptor,
-			ModuleDeploymentProperties deploymentProperties, ContainerRepository containerRepository) {
-		Assert.notNull(containerRepository, "'containerRepository' cannot be null.");
+			ModuleDeploymentProperties deploymentProperties, Iterable<Container> containers) {
 		Assert.notNull(moduleDescriptor, "'moduleDescriptor' cannot be null.");
 		Assert.notNull(deploymentProperties, "'deploymentProperties' cannot be null.");
-
+		Assert.notNull(containers, "'containers' cannot be null.");
 		logger.debug("Matching containers for module {}", moduleDescriptor);
-		List<Container> candidates = findAllContainersMatchingCriteria(containerRepository,
-				deploymentProperties.getCriteria());
-
+		List<Container> candidates = findAllContainersMatchingCriteria(containers, deploymentProperties.getCriteria());
 		return distributeForRequestedCount(candidates, deploymentProperties.getCount());
 	}
 
@@ -138,18 +135,18 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 
 	/**
 	 * Test all containers in the containerRepository against selection criteria
-	 * 
-	 * @param containerRepository the containerRepository
+	 *
+	 * @param containers the containers of Iterator type to match against
 	 * @param criteria an optional SpEL expression evaluated against container attribute values
+	 *
 	 * @return the list of containers matching the criteria
 	 */
-	private List<Container> findAllContainersMatchingCriteria(ContainerRepository containerRepository, String criteria) {
+	private List<Container> findAllContainersMatchingCriteria(Iterable<Container> containers, String criteria) {
 		logger.debug("Matching containers for criteria '{}'", criteria);
 
 		List<Container> candidates = new ArrayList<Container>();
 
-		for (Iterator<Container> iterator = containerRepository.getContainerIterator(); iterator.hasNext();) {
-			Container container = iterator.next();
+		for (Container container : containers) {
 			logger.trace("Evaluating container {}", container);
 			if (StringUtils.isEmpty(criteria) || isCandidate(container, criteria)) {
 				logger.trace("\tAdded container {}", container);

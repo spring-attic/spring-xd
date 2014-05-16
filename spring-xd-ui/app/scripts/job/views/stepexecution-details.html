@@ -2,6 +2,25 @@
 
 <h4 ng-show="stepExecutionDetailsNotFound">The Step Execution Details for Step Execution ID {{stepExecutionId}} could not be found.</h4>
 
+<h4 ng-show="stepExecutionProgress">Step Execution Progress</h4>
+
+<table class="table table-striped table-hover" ng-show="stepExecutionProgress">
+  <tbody>
+    <tr>
+      <th>Percentage Complete</th>
+      <td><div class="progress"
+        ><div class="progress-bar" role="progressbar" aria-valuenow="{{stepExecutionProgress.percentageFormatted}}" aria-valuemin="0" aria-valuemax="100" style="width: {{stepExecutionProgress.percentageFormatted}}%;"
+        >{{stepExecutionProgress.percentageFormatted}} %</div></div></td>
+      <td style="width: 1px;"><button type="button" class="btn btn-default btn-xs"
+          ng-click="refreshStepExecutionProgress(stepExecutionDetails)">
+          <span class="glyphicon glyphicon-refresh"></span></button></td>
+      <td style="width: 1px;"><button type="button" class="btn btn-default btn-xs"
+          ng-click="showStepExecutionProgress(stepExecutionProgress)">
+          <span class="glyphicon glyphicon-stats"></span></button></td>
+    </tr>
+  </tbody>
+</table>
+
 <table class="table table-striped table-hover" ng-show="stepExecutionDetails">
   <thead>
     <tr>
@@ -65,25 +84,6 @@
       <td>Write Skips</td>
       <td>{{stepExecutionDetails.stepExecution.writeSkipCount}}</td>
     <tr>
-  </tbody>
-</table>
-
-<h4 ng-show="stepExecutionProgress">Step Execution Progress</h4>
-
-<table class="table table-striped table-hover" ng-show="stepExecutionProgress">
-  <tbody>
-    <tr>
-      <th>Percentage Complete</th>
-      <td><div class="progress"
-        ><div class="progress-bar" role="progressbar" aria-valuenow="{{stepExecutionProgress.percentageFormatted}}" aria-valuemin="0" aria-valuemax="100" style="width: {{stepExecutionProgress.percentageFormatted}}%;"
-        >{{stepExecutionProgress.percentageFormatted}} %</div></div></td>
-      <td style="width: 1px;"><button type="button" class="btn btn-default btn-xs"
-          ng-click="refreshStepExecutionProgress(stepExecutionDetails)">
-          <span class="glyphicon glyphicon-refresh"></span></button></td>
-      <td style="width: 1px;"><button type="button" class="btn btn-default btn-xs"
-          ng-click="showStepExecutionProgress(stepExecutionProgress)">
-          <span class="glyphicon glyphicon-stats"></span></button></td>
-    </tr>
   </tbody>
 </table>
 

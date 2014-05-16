@@ -30,7 +30,7 @@ require.config({
     cgBusy: '../lib/angular-busy/angular-busy',
     ngGrowl: '../lib/angular-growl/angular-growl',
     angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
-    highlightjs: '../lib/highlightjs/highlight.pack',
+    highlightjs: '../lib/highlightjs/highlight.pack'
   },
   shim: {
     angular: {

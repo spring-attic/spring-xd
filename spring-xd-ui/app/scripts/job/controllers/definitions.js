@@ -64,5 +64,23 @@ define([], function () {
               }
             );
       };
+      $scope.clickModal = function (streamDefinition) {
+        $scope.destroyItem = streamDefinition;
+      };
+      $scope.destroyJob = function (jobDefinition) {
+        utils.$log.info('Destroying Job ' + jobDefinition.name);
+        utils.$log.info(jobDefinitionService);
+        jobDefinitionService.destroy(jobDefinition).$promise.then(
+            function () {
+              utils.growl.addSuccessMessage('Destroy Request Sent.');
+              jobDefinition.inactive = true;
+            },
+            function (error) {
+              utils.$log.error('Error Destroying Job.');
+              utils.$log.error(error);
+              utils.growl.addErrorMessage('Error Destroying Job.');
+            }
+        );
+      };
     }];
 });

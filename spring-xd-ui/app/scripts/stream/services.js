@@ -43,6 +43,12 @@ define(['angular'], function (angular) {
             return $resource($rootScope.xdAdminServerUrl + '/streams/' + streamDefinition.name, { 'deploy': false }, {
               undeploy: { method: 'PUT' }
             }).undeploy();
+          },
+          destroy: function (streamDefinition) {
+            $log.info('Undeploy Stream ' + streamDefinition.name);
+            return $resource($rootScope.xdAdminServerUrl + '/streams/' + streamDefinition.name, null, {
+              destroy: { method: 'DELETE' }
+            }).destroy();
           }
         };
       });

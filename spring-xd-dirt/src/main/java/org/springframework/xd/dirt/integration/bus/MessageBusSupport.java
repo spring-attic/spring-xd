@@ -64,11 +64,11 @@ import org.springframework.xd.dirt.integration.bus.serializer.SerializationExcep
  */
 public abstract class MessageBusSupport implements MessageBus, ApplicationContextAware, InitializingBean {
 
-	private static final String P2P_NAMED_CHANNEL_TYPE_PREFIX = "queue:";
+	protected static final String P2P_NAMED_CHANNEL_TYPE_PREFIX = "queue:";
 
-	private static final String PUBSUB_NAMED_CHANNEL_TYPE_PREFIX = "topic:";
+	protected static final String PUBSUB_NAMED_CHANNEL_TYPE_PREFIX = "topic:";
 
-	private static final String JOB_CHANNEL_TYPE_PREFIX = "job:";
+	protected static final String JOB_CHANNEL_TYPE_PREFIX = "job:";
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -184,7 +184,7 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 	 * @return The channel.
 	 */
 	@Override
-	public MessageChannel bindDynamicPubSubProducer(String name) {
+	public synchronized MessageChannel bindDynamicPubSubProducer(String name) {
 		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
 		if (channel == null) {
 			channel = this.directChannelProvider.createAndRegisterChannel(name);
@@ -202,33 +202,6 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 				bindDynamicProducer(name);
 			}
 		}
-	}
-
-	protected SharedChannelProvider<?> getChannelProvider(String name) {
-		if (isNamedChannel(name)) {
-			return getNamedChannelProvider();
-		}
-		else {
-			return getDefaultChannelProvider();
-		}
-	}
-
-	/**
-	 * Default is the directChannelProvider, for buses that use an external
-	 * broker to queue messages.
-	 * @return the named channel provider
-	 */
-	protected SharedChannelProvider<?> getNamedChannelProvider() {
-		return this.directChannelProvider;
-	}
-
-	/**
-	 * Buses that use an external broker don't need an internal
-	 * shared channel.
-	 * @return The default channel provider.
-	 */
-	protected SharedChannelProvider<?> getDefaultChannelProvider() {
-		return null;
 	}
 
 	protected boolean isNamedChannel(String name) {
@@ -296,7 +269,7 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 
 	protected void destroyCreatedChannel(Binding binding) {
 		MessageChannel channel = binding.getChannel();
-		if ("producer".equals(binding.getType()) && this.createdChannels.contains(channel)) {
+		if (Binding.PRODUCER.equals(binding.getType()) && this.createdChannels.contains(channel)) {
 			this.createdChannels.remove(channel);
 			BeanFactory beanFactory = this.applicationContext.getBeanFactory();
 			if (beanFactory instanceof DefaultListableBeanFactory) {

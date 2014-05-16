@@ -16,11 +16,9 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
+import org.springframework.messaging.core.DestinationResolutionException;
 
 /**
  * A {@link org.springframework.messaging.core.DestinationResolver} implementation that first checks for any channel
@@ -31,8 +29,6 @@ import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationRe
  */
 public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDestinationResolver {
 
-	private final Map<String, MessageChannel> channels = new HashMap<String, MessageChannel>();
-
 	private final MessageBus messageBus;
 
 	public MessageBusAwareChannelResolver(MessageBus messageBus) {
@@ -42,9 +38,13 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 	@Override
 	public MessageChannel resolveDestination(String name) {
 		MessageChannel channel = null;
+		try {
+			return super.resolveDestination(name);
+		}
+		catch (DestinationResolutionException e) {
+		}
 		if (name.indexOf(":") != -1) {
-			channel = channels.get(name);
-			if (channel == null && messageBus != null) {
+			if (messageBus != null) {
 				String[] tokens = name.split(":", 2);
 				String type = tokens[0];
 				if ("queue".equals(type)) {
@@ -56,7 +56,6 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 				else {
 					throw new IllegalArgumentException("unrecognized channel type: " + type);
 				}
-				channels.put(name, channel);
 			}
 		}
 		if (channel == null) {

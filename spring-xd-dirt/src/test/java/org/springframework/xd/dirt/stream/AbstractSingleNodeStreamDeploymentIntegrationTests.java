@@ -356,7 +356,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 
 		DirectChannel testChannel = new DirectChannel();
-		MessageBus bus = testMessageBus;
+		MessageBus bus = testMessageBus != null ? testMessageBus : integrationSupport.messageBus();
 		bus.bindProducer("queue:x", testChannel);
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
@@ -403,7 +403,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 
 		DirectChannel testChannel = new DirectChannel();
-		MessageBus bus = testMessageBus;
+		MessageBus bus = testMessageBus != null ? testMessageBus : integrationSupport.messageBus();
 		bus.bindPubSubProducer("topic:x", testChannel);
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
@@ -422,6 +422,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		bus.bindPubSubConsumer("topic:y", consumer);
 		bus.bindPubSubConsumer("topic:z", consumer);
 		testChannel.send(MessageBuilder.withPayload("y").build());
+		Thread.sleep(2000);
 		testChannel.send(MessageBuilder.withPayload("z").build());
 		Thread.sleep(2000);
 		assertEquals("y", consumer.receive(2000).getPayload());

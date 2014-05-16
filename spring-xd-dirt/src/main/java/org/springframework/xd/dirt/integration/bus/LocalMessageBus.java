@@ -88,14 +88,14 @@ public class LocalMessageBus extends MessageBusSupport {
 		return channel;
 	}
 
-	@Override
-	protected SharedChannelProvider<?> getDefaultChannelProvider() {
-		return directChannelProvider;
-	}
-
-	@Override
-	protected SharedChannelProvider<QueueChannel> getNamedChannelProvider() {
-		return queueChannelProvider;
+	private SharedChannelProvider<?> getChannelProvider(String name) {
+		SharedChannelProvider<?> channelProvider = directChannelProvider;
+		// Use queue channel provider in case of named channels:
+		// point-to-point type syntax (queue:) and job input channel syntax (job:)
+		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX) || name.startsWith(JOB_CHANNEL_TYPE_PREFIX)) {
+			channelProvider = queueChannelProvider;
+		}
+		return channelProvider;
 	}
 
 	/**

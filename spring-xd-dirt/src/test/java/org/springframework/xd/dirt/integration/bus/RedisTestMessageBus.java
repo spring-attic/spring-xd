@@ -39,11 +39,10 @@ public class RedisTestMessageBus extends AbstractTestMessageBus {
 
 	public RedisTestMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		RedisMessageBus messageBus = new RedisMessageBus(connectionFactory, codec);
-		this.setMessageBus(messageBus);
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.refresh();
 		messageBus.setApplicationContext(context);
-		this.setMessageBus(messageBus);
+		setMessageBus(messageBus);
 		template = new StringRedisTemplate(connectionFactory);
 	}
 

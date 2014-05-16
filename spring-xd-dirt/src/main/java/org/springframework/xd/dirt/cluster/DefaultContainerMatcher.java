@@ -19,11 +19,8 @@ package org.springframework.xd.dirt.cluster;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +32,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.core.JobDeploymentsPath;
-import org.springframework.xd.dirt.core.StreamDeploymentsPath;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
-import org.springframework.xd.module.ModuleType;
 
 /**
  * Implementation of {@link ContainerMatcher} that returns a collection of containers to deploy a
@@ -87,11 +80,6 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	/**
-	 * ZooKeeper Connection
-	 */
-	private ZooKeeperConnection zooKeeperConnection;
-
-	/**
 	 * Creates a container matcher instance and prepares the SpEL evaluation context to support Map properties directly.
 	 */
 	public DefaultContainerMatcher() {
@@ -103,66 +91,12 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 */
 	@Override
 	public Collection<Container> match(ModuleDescriptor moduleDescriptor,
-			ModuleDeploymentProperties deploymentProperties, ContainerRepository containerRepository) {
-		Assert.notNull(containerRepository, "'containerRepository' cannot be null.");
+			ModuleDeploymentProperties deploymentProperties, Iterable<Container> containers) {
 		Assert.notNull(moduleDescriptor, "'moduleDescriptor' cannot be null.");
 		Assert.notNull(deploymentProperties, "'deploymentProperties' cannot be null.");
-		Assert.notNull(zooKeeperConnection, "'zooKeeperConnection' cannot be null.");
-		List<String> containerExclusions = getContainerExclusions(zooKeeperConnection, moduleDescriptor);
 		logger.debug("Matching containers for module {}", moduleDescriptor);
-		List<Container> candidates = findAllContainersMatchingCriteria(containerRepository,
-				deploymentProperties.getCriteria(), containerExclusions);
-
+		List<Container> candidates = findAllContainersMatchingCriteria(containers, deploymentProperties.getCriteria());
 		return distributeForRequestedCount(candidates, deploymentProperties.getCount());
-	}
-
-	/**
-	 * Get the list of container names that correspond to the containers where the module
-	 * representing given {@link ModuleDescriptor} is already deployed.
-	 *
-	 * @param zooKeeperConnection the zooKeeperConnection to get ZooKeeper connection client
-	 * @param moduleDescriptor the {@link ModuleDescriptor}
-	 * @return list of container names that should be excluded
-	 */
-	private List<String> getContainerExclusions(ZooKeeperConnection zooKeeperConnection,
-			ModuleDescriptor moduleDescriptor) {
-		try {
-			return getContainersForModule(zooKeeperConnection.getClient(), moduleDescriptor);
-		}
-		catch (Exception e) {
-			return Collections.emptyList();
-		}
-	}
-
-	/**
-	 * Determine which containers, if any, have deployed a module for a stream/job.
-	 *
-	 * @param client curator client
-	 * @param descriptor module descriptor
-	 *
-	 * @return list of containers that have deployed this module; empty
-	 * list is returned if no containers have deployed it
-	 *
-	 * @throws Exception thrown by Curator
-	 */
-	private List<String> getContainersForModule(CuratorFramework client, ModuleDescriptor moduleDescriptor)
-			throws Exception {
-		try {
-			if (moduleDescriptor.getType() != ModuleType.job) {
-				return client.getChildren().forPath(new StreamDeploymentsPath()
-						.setStreamName(moduleDescriptor.getGroup())
-						.setModuleType(moduleDescriptor.getModuleDefinition().getType().toString())
-						.setModuleLabel(moduleDescriptor.getModuleLabel()).build());
-			}
-			else {
-				return client.getChildren().forPath(new JobDeploymentsPath()
-						.setJobName(moduleDescriptor.getGroup())
-						.setModuleLabel(moduleDescriptor.getModuleLabel()).build());
-			}
-		}
-		catch (KeeperException.NoNodeException e) {
-			return Collections.emptyList();
-		}
 	}
 
 	/**
@@ -201,24 +135,21 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	/**
 	 * Test all containers in the containerRepository against selection criteria
 	 *
-	 * @param containerRepository the containerRepository
+	 * @param containers the containers of Iterator type to match against
 	 * @param criteria an optional SpEL expression evaluated against container attribute values
 	 *
 	 * @return the list of containers matching the criteria
 	 */
-	private List<Container> findAllContainersMatchingCriteria(ContainerRepository containerRepository, String criteria,
-			List<String> containerExclusions) {
+	private List<Container> findAllContainersMatchingCriteria(Iterable<Container> containers, String criteria) {
 		logger.debug("Matching containers for criteria '{}'", criteria);
 
 		List<Container> candidates = new ArrayList<Container>();
 
-		for (Iterator<Container> iterator = containerRepository.getContainerIterator(); iterator.hasNext();) {
-			Container container = iterator.next();
+		for (Container container : containers) {
 			logger.trace("Evaluating container {}", container);
 			if (StringUtils.isEmpty(criteria) || isCandidate(container, criteria)) {
 				logger.trace("\tAdded container {}", container);
-				if (!containerExclusions.contains(container.getName()))
-					candidates.add(container);
+				candidates.add(container);
 			}
 		}
 
@@ -266,15 +197,6 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		int i = index % availableContainerCount;
 		index = i + 1;
 		return i;
-	}
-
-	/**
-	 * Set ZooKeeperConnection.
-	 *
-	 * @param zooKeeperConnection the ZooKeeperConnection to use
-	 */
-	public void setZooKeeperConnection(ZooKeeperConnection zooKeeperConnection) {
-		this.zooKeeperConnection = zooKeeperConnection;
 	}
 
 }

@@ -16,12 +16,14 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -99,8 +101,8 @@ public class ModuleDeploymentWriter {
 	 * Implementation of {@link ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider}
 	 * that returns {@link ModuleDeploymentProperties#defaultInstance}.
 	 */
-	private static final ModuleDeploymentPropertiesProvider defaultProvider
-			= new ModuleDeploymentPropertiesProvider() {
+	private static final ModuleDeploymentPropertiesProvider defaultProvider = new ModuleDeploymentPropertiesProvider() {
+
 		@Override
 		public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
 			return ModuleDeploymentProperties.defaultInstance;
@@ -196,10 +198,11 @@ public class ModuleDeploymentWriter {
 	 */
 	public Result writeDeployment(ModuleDescriptor descriptor, final Container container) throws InterruptedException {
 		ContainerMatcher matcher = new ContainerMatcher() {
+
 			@Override
 			public Collection<Container> match(ModuleDescriptor moduleDescriptor,
 					ModuleDeploymentProperties deploymentProperties,
-					ContainerRepository containerRepository) {
+					Iterable<Container> containers) {
 				return Collections.singleton(container);
 			}
 		};
@@ -238,12 +241,33 @@ public class ModuleDeploymentWriter {
 	 */
 	protected Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
 			ModuleDeploymentPropertiesProvider provider, ContainerMatcher containerMatcher) throws InterruptedException {
+		Iterator<Container> containersToMatch = containerRepository.getContainerIterator();
+		return writeDeployment(descriptors, provider, containerMatcher, containersToMatch);
+	}
+
+	/**
+	 * Write module deployment requests for the modules returned by the {@code descriptors}
+	 * iterator. The target containers are indicated by the provided {@code containerMatcher}
+	 * and the {@link org.springframework.xd.module.ModuleDeploymentProperties} provided
+	 * by the {@link ModuleDeploymentPropertiesProvider}.
+	 *
+	 * @param descriptors       descriptors for modules to deploy
+	 * @param provider          callback to obtain the deployment properties for a module
+	 * @param containerMatcher  matcher for modules to containers
+	 * @param containersToMatch        the list of containers to match against
+	 * @return result of request
+	 * @throws InterruptedException
+	 */
+	protected Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
+			ModuleDeploymentPropertiesProvider provider, ContainerMatcher containerMatcher,
+			Iterator<Container> containersToMatch) throws InterruptedException {
 		CuratorFramework client = zkConnection.getClient();
 		ResultCollector collector = new ResultCollector();
+		Iterable<Container> iterableContainersToMatch = getIterableContainers(containersToMatch);
 		while (descriptors.hasNext()) {
 			ModuleDescriptor descriptor = descriptors.next();
 			for (Container container : containerMatcher.match(descriptor,
-					provider.propertiesForDescriptor(descriptor), containerRepository)) {
+					provider.propertiesForDescriptor(descriptor), iterableContainersToMatch)) {
 				String containerName = container.getName();
 				String path = new ModuleDeploymentsPath()
 						.setContainer(containerName)
@@ -296,6 +320,20 @@ public class ModuleDeploymentWriter {
 		}
 
 		return results;
+	}
+
+	/**
+	 * Return {@Iterable} list of containers from {@Iterator} containers.
+	 *
+	 * @param {@Iterator} containers
+	 * @return the {@link Iterable} containers
+	 */
+	private Iterable<Container> getIterableContainers(Iterator<Container> containers) {
+		List<Container> iterableContainers = new ArrayList<Container>();
+		while (containers.hasNext()) {
+			iterableContainers.add(containers.next());
+		}
+		return iterableContainers;
 	}
 
 	/**
@@ -588,7 +626,7 @@ public class ModuleDeploymentWriter {
 			for (ContainerModuleKey key : pending) {
 				results.put(key,
 						new Result(key.container, key.moduleDescriptorKey,
-								Status.timedOut, /*errorDescription*/ null));
+								Status.timedOut, /*errorDescription*/null));
 			}
 			return results.values();
 		}
@@ -691,6 +729,7 @@ public class ModuleDeploymentWriter {
 	 * for a {@link org.springframework.xd.module.ModuleDescriptor}.
 	 */
 	public interface ModuleDeploymentPropertiesProvider {
+
 		/**
 		 * Return the deployment properties for the module descriptor.
 		 *

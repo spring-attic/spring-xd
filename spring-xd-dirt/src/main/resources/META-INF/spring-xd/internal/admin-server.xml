@@ -10,9 +10,7 @@
 
 	<context:component-scan base-package="org.springframework.xd.dirt.stream.completion" />
 
-	<bean id="containerMatcher" class="org.springframework.xd.dirt.cluster.DefaultContainerMatcher">
-		<property name="zooKeeperConnection" ref="zooKeeperConnection"/>
-	</bean>
+	<bean id="containerMatcher" class="org.springframework.xd.dirt.cluster.DefaultContainerMatcher"/>
 
 	<bean id="deploymentSupervisor" class="org.springframework.xd.dirt.server.DeploymentSupervisor">
 		<constructor-arg ref="zooKeeperConnection"/>

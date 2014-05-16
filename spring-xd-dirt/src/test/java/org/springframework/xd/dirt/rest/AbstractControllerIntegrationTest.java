@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.junit.Before;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
@@ -43,6 +44,7 @@ import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperAccessException;
 
 /**
  * Base class for Controller layer tests. Takes care of resetting the mocked (be them mockito mocks or <i>e.g.</i> in
@@ -140,7 +142,15 @@ public class AbstractControllerIntegrationTest {
 			Mockito.reset(new Object[] { repo });
 		}
 		else {
-			repo.deleteAll();
+			try {
+				repo.deleteAll();
+			}
+			catch (ZooKeeperAccessException e) {
+				if (e.getCause() instanceof NoNodeException) {
+					// ignore if the deleteAll() throws NoNodeException
+					return;
+				}
+			}
 		}
 	}
 

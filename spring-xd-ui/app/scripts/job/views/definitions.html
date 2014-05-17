@@ -20,23 +20,45 @@
     <tr ng-repeat="item in jobDefinitions | filter:filterQuery | orderBy:'name'" ng-show="!item.inactive">
         <td>{{item.name}}</td>
         <td>{{item.definition}}</td>
-        <td align="center">
+        <td>
             <button type="button" ng-click="undeployJob(item)"
                     ng-disabled="!item.deployed"
                     class="btn btn-default"
                     ><span class="glyphicon glyphicon-stop"></span> Undeploy
             </button>
+        </td>
+        <td>
             <button type="button" ng-click="deployJob(item)"
                     ng-disabled="item.deployed"
                     class="btn btn-default"
                     ><span class="glyphicon glyphicon-play"></span> Deploy
             </button>
-            <button type="button" ng-click="destroyJob(item)"
-                    ng-disabled="!item.deployed"
-                    class="btn btn-default"
+        </td>
+        <td>
+            <button type="button" ng-disabled="!item.deployed" ng-click="clickModal(item)"
+                    class="btn btn-default" data-toggle="modal" data-target="#confirm-destroy"
                     ><span class="glyphicon glyphicon-remove"></span> Destroy
             </button>
         </td>
     </tr>
     </tbody>
 </table>
+<div class="modal" id="confirm-destroy">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Confirm Destroy Action</h4>
+            </div>
+            <div class="modal-body">
+                <p>This action will undeploy and delete the job <b>{{destroyItem.name}}</b>. Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" ng-disabled="destroyItem.inactive"
+                        ng-click="destroyJob(destroyItem)">Confirm Destroy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

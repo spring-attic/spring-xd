@@ -63,6 +63,9 @@ define([], function () {
               }
             );
       };
+      $scope.clickModal = function (streamDefinition) {
+        $scope.destroyItem = streamDefinition;
+      };
       $scope.destroyStream = function (streamDefinition) {
         utils.$log.info('Destroying Stream ' + streamDefinition.name);
         utils.$log.info(streamService);

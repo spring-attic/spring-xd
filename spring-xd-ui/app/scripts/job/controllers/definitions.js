@@ -64,6 +64,9 @@ define([], function () {
               }
             );
       };
+      $scope.clickModal = function (streamDefinition) {
+        $scope.destroyItem = streamDefinition;
+      };
       $scope.destroyJob = function (jobDefinition) {
         utils.$log.info('Destroying Job ' + jobDefinition.name);
         utils.$log.info(jobDefinitionService);

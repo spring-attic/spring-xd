@@ -85,6 +85,12 @@ define(['angular'], function (angular) {
             return $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': false }, {
               undeploy: { method: 'PUT' }
             }).undeploy();
+          },
+          destroy: function (jobDefinition) {
+            $log.info('Undeploy Job ' + jobDefinition.name);
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, null, {
+              destroy: { method: 'DELETE' }
+            }).destroy();
           }
         };
       })

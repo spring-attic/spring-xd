@@ -44,7 +44,7 @@ define([], function () {
               function (error) {
                 utils.$log.error('Error Deploying Stream.');
                 utils.$log.error(error);
-                utils.growl.addErrorMessage('Error Deploying Job.');
+                utils.growl.addErrorMessage('Error Deploying Stream.');
               }
             );
       };
@@ -57,11 +57,29 @@ define([], function () {
                 streamDefinition.deployed = false;
               },
               function (error) {
-                utils.$log.error('Error Undeploying Job.');
+                utils.$log.error('Error Undeploying Stream.');
                 utils.$log.error(error);
-                utils.growl.addErrorMessage('Error Undeploying Job.');
+                utils.growl.addErrorMessage('Error Undeploying Stream.');
               }
             );
+      };
+      $scope.clickModal = function (streamDefinition) {
+        $scope.destroyItem = streamDefinition;
+      };
+      $scope.destroyStream = function (streamDefinition) {
+        utils.$log.info('Destroying Stream ' + streamDefinition.name);
+        utils.$log.info(streamService);
+        streamService.destroy(streamDefinition).$promise.then(
+            function () {
+              utils.growl.addSuccessMessage('Destroy Request Sent.');
+              streamDefinition.inactive = true;
+            },
+            function (error) {
+              utils.$log.error('Error Destroying Stream.');
+              utils.$log.error(error);
+              utils.growl.addErrorMessage('Error Destroying Stream.');
+            }
+        );
       };
     }];
 });

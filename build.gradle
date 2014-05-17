@@ -1841,6 +1841,14 @@ task api(type: Javadoc) {
 	classpath = files(rootProject.javaProjects.collect { project ->
 		project.sourceSets.main.compileClasspath
 	})
+
+        if (JavaVersion.current().isJava8Compatible()) {
+            allprojects {
+                tasks.withType(Javadoc) {
+                    options.addStringOption('Xdoclint:none', '-quiet')
+                }
+            }
+        }
 }
 
 task docsZip(type: Zip) {

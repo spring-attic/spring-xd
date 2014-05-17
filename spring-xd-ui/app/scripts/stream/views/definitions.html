@@ -20,21 +20,21 @@
     <tr ng-repeat="item in streamDefinitions | filter:filterQuery | orderBy:'name'" ng-show="!item.inactive">
         <td>{{item.name}}</td>
         <td>{{item.definition}}</td>
-        <td>
+        <td style="width: 1px;">
             <button type="button" ng-click="undeployStream(item)"
                     ng-disabled="!item.deployed"
                     class="btn btn-default"
                     ><span class="glyphicon glyphicon-stop"></span> Undeploy
             </button>
         </td>
-        <td>
+        <td style="width: 1px;">
             <button type="button" ng-click="deployStream(item)"
                     ng-disabled="item.deployed"
                     class="btn btn-default"
                     ><span class="glyphicon glyphicon-play"></span> Deploy
             </button>
         </td>
-        <td>
+        <td style="width: 1px;">
             <button type="button" ng-disabled="!item.deployed" ng-click="clickModal(item)"
                     class="btn btn-default" data-toggle="modal" data-target="#confirm-destroy"
                     ><span class="glyphicon glyphicon-remove"></span> Destroy
@@ -43,7 +43,7 @@
     </tr>
     </tbody>
 </table>
-<div class="modal" id="confirm-destroy">
+<div class="modal fade" xd-modal id="confirm-destroy" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">

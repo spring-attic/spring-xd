@@ -34,6 +34,7 @@ require.config({
   },
   shim: {
     angular: {
+      deps: ['bootstrap'],
       exports: 'angular'
     },
     bootstrap: {

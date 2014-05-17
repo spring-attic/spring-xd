@@ -74,11 +74,13 @@ define([], function () {
             function () {
               utils.growl.addSuccessMessage('Destroy Request Sent.');
               jobDefinition.inactive = true;
+              $scope.closeModal();
             },
             function (error) {
               utils.$log.error('Error Destroying Job.');
               utils.$log.error(error);
               utils.growl.addErrorMessage('Error Destroying Job.');
+              $scope.closeModal();
             }
         );
       };

@@ -65,6 +65,16 @@ define(['angular'], function(angular) {
         }
       };
     })
+    .directive('xdModal', function() {
+      return {
+        restrict: 'A',
+        link: function(scope, element) {
+          scope.closeModal = function() {
+            element.modal('hide');
+          };
+        }
+      };
+    })
     .directive('notTheSameAs', function() {
       return {
         restrict: 'A',

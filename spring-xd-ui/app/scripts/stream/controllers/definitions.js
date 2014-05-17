@@ -69,15 +69,18 @@ define([], function () {
       $scope.destroyStream = function (streamDefinition) {
         utils.$log.info('Destroying Stream ' + streamDefinition.name);
         utils.$log.info(streamService);
+
         streamService.destroy(streamDefinition).$promise.then(
             function () {
               utils.growl.addSuccessMessage('Destroy Request Sent.');
               streamDefinition.inactive = true;
+              $scope.closeModal();
             },
             function (error) {
               utils.$log.error('Error Destroying Stream.');
               utils.$log.error(error);
               utils.growl.addErrorMessage('Error Destroying Stream.');
+              $scope.closeModal();
             }
         );
       };

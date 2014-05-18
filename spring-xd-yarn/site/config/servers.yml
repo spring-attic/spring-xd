@@ -39,17 +39,17 @@ spring:
 # Pivotal HD 2.0 (phd20):
 #spring:
 #    yarn:
-#        defaultYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/hadoop-annotations.jar,$HADOOP_COMMON_HOME/hadoop-auth.jar,$HADOOP_COMMON_HOME/hadoop-common.jar,$HADOOP_COMMON_HOME/hadoop-nfs.jar,$HADOOP_HDFS_HOME/hadoop-hdfs.jar,$HADOOP_HDFS_HOME/hadoop-hdfs-nfs.jar,$HADOOP_YARN_HOME/hadoop-yarn-api.jar,$HADOOP_YARN_HOME/hadoop-yarn-client.jar,$HADOOP_YARN_HOME/hadoop-yarn-common.jar,$HADOOP_YARN_HOME/hadoop-yarn-server-common.jar,$HADOOP_YARN_HOME/hadoop-yarn-server-nodemanager.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-common.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-core.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-jobclient.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-shuffle.jar,$HADOOP_MAPRED_HOME/hadoop-streaming.jar,$HADOOP_MAPRED_HOME/hadoop-distcp.jar,$HADOOP_COMMON_HOME/lib/slf4j-log4j12-1.7.5.jar,$HADOOP_COMMON_HOME/lib/log4j-1.2.17.jar"
+#        defaultYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*,$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
 # Hortonworks HDP 2.1 (hdp21):
 #spring:
 #    yarn:
-#        defaultYarnAppClasspath: "/etc/hadoop/conf,/usr/lib/hadoop/hadoop-annotations.jar,/usr/lib/hadoop/hadoop-auth.jar,/usr/lib/hadoop/hadoop-common.jar,/usr/lib/hadoop/hadoop-nfs.jar,/usr/lib/hadoop-hdfs/hadoop-hdfs.jar,/usr/lib/hadoop-hdfs/hadoop-hdfs-nfs.jar,/usr/lib/hadoop-yarn/hadoop-yarn-api.jar,/usr/lib/hadoop-yarn/hadoop-yarn-client.jar,/usr/lib/hadoop-yarn/hadoop-yarn-common.jar,/usr/lib/hadoop-yarn/hadoop-yarn-server-common.jar,/usr/lib/hadoop-yarn/hadoop-yarn-server-nodemanager.jar,/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-common.jar,/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-core.jar,/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-jobclient.jar,/usr/lib/hadoop-mapreduce/hadoop-mapreduce-client-shuffle.jar,/usr/lib/hadoop-mapreduce/hadoop-streaming.jar,/usr/lib/hadoop-mapreduce/hadoop-distcp.jar,/usr/lib/hadoop/lib/slf4j-log4j12-1.7.5.jar,/usr/lib/hadoop/lib/log4j-1.2.17.jar"
+#        defaultYarnAppClasspath: "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*"
 
 # Cloudera CDH5 (cdh5):
 #spring:
 #    yarn:
-#        defaultYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/hadoop-annotations.jar,$HADOOP_COMMON_HOME/hadoop-auth.jar,$HADOOP_COMMON_HOME/hadoop-common.jar,$HADOOP_COMMON_HOME/hadoop-nfs.jar,$HADOOP_HDFS_HOME/hadoop-hdfs.jar,$HADOOP_HDFS_HOME/hadoop-hdfs-nfs.jar,$HADOOP_YARN_HOME/hadoop-yarn-api.jar,$HADOOP_YARN_HOME/hadoop-yarn-client.jar,$HADOOP_YARN_HOME/hadoop-yarn-common.jar,$HADOOP_YARN_HOME/hadoop-yarn-server-common.jar,$HADOOP_YARN_HOME/hadoop-yarn-server-nodemanager.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-common.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-core.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-jobclient.jar,$HADOOP_MAPRED_HOME/hadoop-mapreduce-client-shuffle.jar,$HADOOP_MAPRED_HOME/hadoop-streaming.jar,$HADOOP_MAPRED_HOME/hadoop-distcp.jar,$HADOOP_COMMON_HOME/lib/slf4j-log4j12.jar,$HADOOP_COMMON_HOME/lib/log4j-1.2.17.jar"
+#        defaultYarnAppClasspath: "$HADOOP_CLIENT_CONF_DIR,$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_COMMON_HOME/lib/*,$HADOOP_HDFS_HOME/*,$HADOOP_HDFS_HOME/lib/*,$HADOOP_YARN_HOME/*,$HADOOP_YARN_HOME/lib/*,$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
 ---
 #Zookeeper properties

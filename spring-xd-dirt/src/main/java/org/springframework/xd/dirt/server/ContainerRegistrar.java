@@ -350,25 +350,20 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(data.getPath());
-		String streamName = moduleDeploymentsPath.getStreamName();
+		String unitName = moduleDeploymentsPath.getStreamName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
-		Module module;
+		Module module = null;
 		Map<String, String> mapStatus = new HashMap<String, String>();
 		try {
 			module = (ModuleType.job.toString().equals(moduleType))
-					? deployJob(client, streamName, moduleLabel)
-					: deployStreamModule(client, streamName, moduleType, moduleLabel);
+					? deployJob(client, unitName, moduleLabel)
+					: deployStreamModule(client, unitName, moduleType, moduleLabel);
 			if (module == null) {
 				mapStatus.put(ModuleDeploymentWriter.STATUS_KEY, ModuleDeploymentWriter.Status.error.toString());
 				mapStatus.put(ModuleDeploymentWriter.ERROR_DESCRIPTION_KEY, "Module deployment returned null");
 			}
 			else {
-				Map<String, String> map = new HashMap<String, String>();
-				CollectionUtils.mergePropertiesIntoMap(module.getProperties(), map);
-				byte[] metadata = mapBytesUtility.toByteArray(map);
-				client.create().withMode(CreateMode.EPHEMERAL).forPath(
-						Paths.build(data.getPath(), "metadata"), metadata);
 				mapStatus.put(ModuleDeploymentWriter.STATUS_KEY, ModuleDeploymentWriter.Status.deployed.toString());
 			}
 		}
@@ -378,8 +373,36 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			logger.error("Exception deploying module", e);
 		}
 
-		// update the module deployment node with the deployment status
-		client.setData().forPath(moduleDeploymentsPath.build(), mapBytesUtility.toByteArray(mapStatus));
+		try {
+			writeModuleMetadata(module, data.getPath(), client);
+			// update the module deployment node with the deployment status
+			client.setData().forPath(moduleDeploymentsPath.build(), mapBytesUtility.toByteArray(mapStatus));
+		}
+		catch (KeeperException.NoNodeException e) {
+			logger.warn("During deployment of module {} of type {} for {}, an undeployment request " +
+					"was detected; this module will be undeployed.", moduleLabel, moduleType, unitName);
+			if (logger.isTraceEnabled()) {
+				logger.trace("Path " + data.getPath() + " was removed", e);
+			}
+		}
+	}
+
+	/**
+	 * If the provided module is not null, write its properties to the provided
+	 * ZooKeeper path. If the module is null, no action is taken.
+	 *
+	 * @param module     module for which to write properties; may be null
+	 * @param path       path to write properties to
+	 * @param client     curator client
+	 * @throws Exception
+	 */
+	private void writeModuleMetadata(Module module, String path, CuratorFramework client) throws Exception {
+		if (module != null) {
+			Map<String, String> mapMetadata = new HashMap<String, String>();
+			CollectionUtils.mergePropertiesIntoMap(module.getProperties(), mapMetadata);
+			client.create().withMode(CreateMode.EPHEMERAL).forPath(
+					Paths.build(path, "metadata"), mapBytesUtility.toByteArray(mapMetadata));
+		}
 	}
 
 	/**

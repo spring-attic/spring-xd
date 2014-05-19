@@ -249,16 +249,19 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Verifies that a message was received by the module.
+	 * Verifies that all channels of the module channel combination, processed the correct number of messages
 	 *
+	 * @param moduleName the name of the module jmx element to interrogate.
+	 * @param channelName the name of the channel jmx element to interrogate
+	 * @param msgCountExpected The number of messages this module and channel should have sent.
 	 */
-	public void assertReceived(String moduleName, int msgCountExpected) {
-		Assert.hasText(moduleName, "moduleName must not be empty nor null");
+	public void assertReceived(String moduleName, String channelName, int msgCountExpected) {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
 				getContainerForStream(STREAM_NAME), xdEnvironment.getJmxPort()),
-				STREAM_NAME, moduleName, msgCountExpected);
+				STREAM_NAME, moduleName, channelName, msgCountExpected);
+
 	}
 
 	/**
@@ -289,6 +292,17 @@ public abstract class AbstractIntegrationTest {
 	public void assertContains(String data) {
 		Assert.hasText(data, "data can not be empty nor null");
 		assertFileContains(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
+	}
+
+	/**
+	 * Verifies that the data stored by the sink is what was expected ignoring case.
+	 *
+	 * @param data - expected data
+	 * @param sinkInstance determines whether to look at the log or file for the result
+	 */
+	public void assertContainsIgnoreCase(String data) {
+		Assert.hasText(data, "data can not be empty nor null");
+		assertFileContainsIgnoreCase(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
 	}
 
 	/**
@@ -357,6 +371,21 @@ public abstract class AbstractIntegrationTest {
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
 		validation.verifyContentContains(xdEnvironment, url, fileName, data);
+	}
+
+	/**
+	 * Checks the file data to see if the data is contained in the file ignoring case.
+	 *
+	 * @param data The data to validate the file content against.
+	 * @param url The URL of the server that we will ssh, to get the data.
+	 * @param streamName the name of the file we are retrieving from the remote server.
+	 */
+	private void assertFileContainsIgnoreCase(String data, URL url, String streamName)
+	{
+		waitForXD(pauseTime * 2000);
+		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
+				+ ".out";
+		validation.verifyContentContainsIgnoreCase(xdEnvironment, url, fileName, data);
 	}
 
 	/**

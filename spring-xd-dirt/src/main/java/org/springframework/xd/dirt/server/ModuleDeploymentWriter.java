@@ -80,7 +80,7 @@ public class ModuleDeploymentWriter {
 	 *
 	 * @see #configuredTimeout
 	 */
-	private final static long DEFAULT_TIMEOUT = 10000;
+	private final static long DEFAULT_TIMEOUT = 30000;
 
 	/**
 	 * ZooKeeper connection.

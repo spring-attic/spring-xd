@@ -334,4 +334,16 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().destroyStream(streamName);
 		stream().destroyStream(tapName);
 	}
+
+	@Test
+	public void testUsingPlaceholdersInsideStreamDefinition() {
+		String streamName = generateStreamName();
+		HttpSource source = newHttpSource();
+		FileSink sink = newFileSink().binary(true);
+
+		stream().create(streamName, "%s | transform --expression=\"'${xd.stream.name}'\" | %s", source, sink);
+
+		source.ensureReady().postData("whatever");
+		assertThat(sink, eventually(hasContentsThat(equalTo(streamName))));
+	}
 }

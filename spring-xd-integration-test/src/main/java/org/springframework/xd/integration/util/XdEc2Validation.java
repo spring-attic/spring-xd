@@ -68,7 +68,7 @@ public class XdEc2Validation {
 	public XdEc2Validation() {
 		restTemplate = new RestTemplate();
 		((SimpleClientHttpRequestFactory) restTemplate.getRequestFactory())
-		.setConnectTimeout(2000);
+				.setConnectTimeout(2000);
 	}
 
 	/**
@@ -133,6 +133,7 @@ public class XdEc2Validation {
 		Assert.notNull(url, "The url should not be null");
 		Assert.hasText(moduleName, "The modulName can not be empty nor null");
 		Assert.hasText(streamName, "The streamName can not be empty nor null");
+		Assert.hasText(channelName, "The channelName can not be empty nor null");
 		String request = buildJMXRequest(url, streamName, moduleName, channelName);
 		try {
 			Module module = getModule(StreamUtils.httpGet(new URL(request)));
@@ -306,7 +307,7 @@ public class XdEc2Validation {
 		ObjectMapper mapper = new ObjectMapper();
 		JMXResult jmxResult = mapper.readValue(json,
 				new TypeReference<JMXResult>() {
-		});
+				});
 		List<Module> result = jmxResult.getValue().getModules();
 		return result;
 	}
@@ -322,7 +323,7 @@ public class XdEc2Validation {
 		ObjectMapper mapper = new ObjectMapper();
 		JMXChannelResult jmxResult = mapper.readValue(json,
 				new TypeReference<JMXChannelResult>() {
-		});
+				});
 		return jmxResult.getValue();
 	}
 

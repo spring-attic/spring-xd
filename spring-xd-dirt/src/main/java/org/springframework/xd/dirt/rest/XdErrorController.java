@@ -16,14 +16,14 @@
 
 package org.springframework.xd.dirt.rest;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.boot.actuate.web.BasicErrorController;
-import org.springframework.boot.actuate.web.ErrorController;
+import org.springframework.boot.autoconfigure.web.BasicErrorController;
+import org.springframework.boot.autoconfigure.web.DefaultErrorAttributes;
+import org.springframework.boot.autoconfigure.web.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
@@ -36,14 +36,18 @@ import org.springframework.web.servlet.view.RedirectView;
 @Controller
 public class XdErrorController extends BasicErrorController {
 
+	public XdErrorController() {
+		super(new DefaultErrorAttributes());
+	}
+
 	@Override
 	@RequestMapping(value = "${error.path:/error}", produces = "text/html")
 	public ModelAndView errorHtml(HttpServletRequest request) {
-		Map<String, Object> map = extract(new ServletRequestAttributes(request), false,
-				false);
 
-		int status = (Integer) map.get("status");
+		Integer status = (Integer) new ServletRequestAttributes(request).getAttribute(
+				"javax.servlet.error.status_code", RequestAttributes.SCOPE_REQUEST);
 
+		// TODO: better to toss this class completely and use an error page for 404
 		switch (status) {
 			case 404:
 				return new ModelAndView(new RedirectView("/admin-ui/404.html"));

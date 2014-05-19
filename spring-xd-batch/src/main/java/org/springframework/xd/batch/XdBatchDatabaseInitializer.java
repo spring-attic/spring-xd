@@ -23,12 +23,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.batch.BatchDatabaseInitializer;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.datasource.init.DatabasePopulatorUtils;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.jdbc.support.MetaDataAccessException;
 
 /**
  * A {@link BatchDatabaseInitializer} for XD batch datasource.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 
@@ -46,18 +49,26 @@ public class XdBatchDatabaseInitializer extends BatchDatabaseInitializer {
 	private boolean enabled = true;
 
 	@Override
-	protected void initialize() throws Exception {
+	protected void initialize() throws DataAccessException {
 		super.initialize();
 		if (enabled) {
-			String platform = DatabaseType.fromMetaData(dataSource).toString().toLowerCase();
-			if ("hsql".equals(platform))
-				platform = "hsqldb";
-			if ("postgres".equals(platform))
-				platform = "postgresql";
-			ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-			populator.addScript(resourceLoader.getResource(REGISTRY_SCHEMA_LOCATION.replace("@@platform@@", platform)));
-			populator.setContinueOnError(true);
-			DatabasePopulatorUtils.execute(populator, dataSource);
+			String platform;
+			try {
+				platform = DatabaseType.fromMetaData(dataSource).toString().toLowerCase();
+				if ("hsql".equals(platform))
+					platform = "hsqldb";
+				if ("postgres".equals(platform))
+					platform = "postgresql";
+				ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+				populator.addScript(resourceLoader.getResource(REGISTRY_SCHEMA_LOCATION.replace("@@platform@@",
+						platform)));
+				populator.setContinueOnError(true);
+				DatabasePopulatorUtils.execute(populator, dataSource);
+			}
+			catch (MetaDataAccessException e) {
+				// @PostConstruct is not supposed to throw checked exceptions
+				throw new DataRetrievalFailureException("Could not retrieve ", e);
+			}
 		}
 	}
 }

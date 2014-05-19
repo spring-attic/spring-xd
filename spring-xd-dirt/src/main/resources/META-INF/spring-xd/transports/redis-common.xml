@@ -9,12 +9,4 @@
 	<bean id="redisSerializer"
 		class="org.springframework.xd.dirt.integration.redis.KryoMessageSerializer" />
 
-	<!-- TODO: remove when Boot gets to 1.1 -->
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
-
-	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
-		<property name="defaultSerializer" ref="redisSerializer" />
-		<property name="connectionFactory" ref="redisConnectionFactory" />
-	</bean>
-
 </beans>

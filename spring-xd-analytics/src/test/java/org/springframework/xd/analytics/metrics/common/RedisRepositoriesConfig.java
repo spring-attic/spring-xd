@@ -36,11 +36,11 @@ import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
 
 /**
  * Provides Redis backed repositories, to be tested one by one in Redis variant of tests.
- * 
+ *
  * @author Mark Pollack
  * @author Luke Taylor
  * @author Gary Russell
- * 
+ *
  */
 @Configuration
 public class RedisRepositoriesConfig {

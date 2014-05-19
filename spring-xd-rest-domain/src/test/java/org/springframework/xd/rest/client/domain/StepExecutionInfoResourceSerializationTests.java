@@ -16,17 +16,15 @@
 
 package org.springframework.xd.rest.client.domain;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -46,8 +44,8 @@ public class StepExecutionInfoResourceSerializationTests {
 		final StepExecution stepExecution1 = new StepExecution("first step", new JobExecution(123L));
 		final StepExecution stepExecution2 = new StepExecution("second step", new JobExecution(123L));
 
-		final StepExecutionInfoResource executionInfoResource1 = new StepExecutionInfoResource(123L, stepExecution1);
-		final StepExecutionInfoResource executionInfoResource2 = new StepExecutionInfoResource(123L, stepExecution2);
+		final StepExecutionInfoResource executionInfoResource1 = new StepExecutionInfoResource(123L, stepExecution1, "stepType");
+		final StepExecutionInfoResource executionInfoResource2 = new StepExecutionInfoResource(123L, stepExecution2, "stepType");
 
 		stepExecutionInfoResources.add(executionInfoResource1);
 		stepExecutionInfoResources.add(executionInfoResource2);

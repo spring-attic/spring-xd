@@ -1,15 +1,13 @@
 package org.springframework.xd.jdbc;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.JdbcUtils;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * Reader which reads a row from a database as a delimited string from a
@@ -38,18 +36,6 @@ public class NamedColumnJdbcItemReader extends JdbcCursorItemReader<Tuple> {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		if (!StringUtils.hasText(getSql())) {
-			Assert.hasText(tableName, "tableName must be set");
-			Assert.hasText(names, "columns must be set");
-
-			String sql = "select " + names + " from " + tableName;
-			log.info("Setting SQL to: " + sql);
-			setSql(sql);
-		}
-		else if (StringUtils.hasText(names) || StringUtils.hasText(tableName)) {
-			log.warn("You must set either the 'sql' property or 'tableName' and 'columns'.");
-		}
-
 		setRowMapper(new RowMapper<Tuple>() {
 			@Override
 			public Tuple mapRow(ResultSet rs, int rowNum) throws SQLException {

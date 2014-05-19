@@ -52,7 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author David Turanski
  * @author Gary Russell
- * 
+ *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = RichGaugeHandlerTestsConfig.class)
@@ -173,7 +173,7 @@ class RichGaugeHandlerTestsConfig {
 			cf.getConnection().close();
 			return cf;
 		} // The following is to have setup properly finishing
-			// The actual test(s) won't be executed thx to RedisAvailableRule
+		// The actual test(s) won't be executed thx to RedisAvailableRule
 		catch (RedisConnectionFailureException e) {
 			RedisConnectionFactory mockCF = mock(RedisConnectionFactory.class);
 			when(mockCF.getConnection()).thenReturn(mock(RedisConnection.class));

@@ -3,12 +3,15 @@ spring:
     active: default
   main:
     show_banner: false
+  freemarker:
+    checkTemplateLocation: false
 endpoints:
   jolokia:
     enabled: ${XD_JMX_ENABLED:true}
   jmx:
     enabled: ${XD_JMX_ENABLED:true}
     uniqueNames: true
+  
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${xd.transport:${transport:redis}}

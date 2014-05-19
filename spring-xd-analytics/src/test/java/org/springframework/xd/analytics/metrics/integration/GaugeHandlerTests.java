@@ -56,7 +56,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author David Turanski
  * @author Luke Taylor
  * @author Gary Russell
- * 
+ *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = GaugeHandlerTestsConfig.class)

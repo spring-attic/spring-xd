@@ -23,7 +23,7 @@ import org.springframework.xd.test.AbstractExternalResourceTestSupport;
 
 /**
  * JUnit {@link Rule} that detects the fact that a Redis server is running on localhost.
- * 
+ *
  * @author Gary Russell
  * @author Eric Bottard
  */

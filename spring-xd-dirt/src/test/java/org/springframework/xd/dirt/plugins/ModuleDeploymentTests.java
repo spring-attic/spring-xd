@@ -20,7 +20,7 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.integration.support.MessageBuilder;
@@ -45,7 +45,7 @@ public class ModuleDeploymentTests {
 
 	@Test
 	public void testProcessor() throws Exception {
-		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
+		RedisConnectionFactory connectionFactory = redisAvailableRule.getResource();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter(deployerQueue,
 				connectionFactory);
 		adapter.setBeanFactory(BusTestUtils.MOCK_BF);
@@ -63,7 +63,7 @@ public class ModuleDeploymentTests {
 
 	@Test
 	public void testSimpleStream() throws Exception {
-		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
+		RedisConnectionFactory connectionFactory = redisAvailableRule.getResource();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter(deployerQueue,
 				connectionFactory);
 		adapter.setBeanFactory(BusTestUtils.MOCK_BF);

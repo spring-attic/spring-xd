@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.integration.redis;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Rule;
 
 import org.springframework.xd.dirt.integration.bus.AbstractMessageBusTests;
@@ -37,6 +39,14 @@ public class RedisMessageBusTests extends AbstractMessageBusTests {
 			testMessageBus = new RedisTestMessageBus(redisAvailableRule.getResource(), getCodec());
 		}
 		return testMessageBus;
+	}
+
+	@Override
+	public void testSendAndReceivePubSub() throws Exception {
+
+		TimeUnit.SECONDS.sleep(2); //TODO remove timing issue
+
+		super.testSendAndReceivePubSub();
 	}
 
 }

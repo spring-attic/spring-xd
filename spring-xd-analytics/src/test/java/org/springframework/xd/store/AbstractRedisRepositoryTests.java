@@ -20,7 +20,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -31,14 +31,14 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  */
 public class AbstractRedisRepositoryTests extends BaseRepositoryTests<AbstractRedisRepository<String, Integer>> {
 
-	private static LettuceConnectionFactory connectionFactory;
+	private static JedisConnectionFactory connectionFactory;
 
 	@Rule
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@BeforeClass
 	public static void setupConnection() {
-		connectionFactory = new LettuceConnectionFactory();
+		connectionFactory = new JedisConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 	}
 

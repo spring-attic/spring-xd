@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterRepository;
@@ -86,7 +86,7 @@ public class RedisRepositoriesConfig {
 	@Bean
 	public RedisConnectionFactory redisConnectionFactory() {
 		try {
-			LettuceConnectionFactory cf = new LettuceConnectionFactory();
+			JedisConnectionFactory cf = new JedisConnectionFactory();
 			cf.setHostName("localhost");
 			cf.setPort(6379);
 			cf.afterPropertiesSet();

@@ -485,7 +485,6 @@ project('spring-xd-dirt') {
 			exclude group: 'org.fusesource.fuse-extra'
 		}
 		testCompile "org.springframework:spring-jms:$springVersion"
-		testCompile group:"org.springframework.boot", name:"spring-boot", version: "$springBootVersion", classifier:"tests"
 
 		// The following because of org/springframework/integration/x/bus/serializer/TweetSerializationTests.groovy
 		testCompile "org.springframework.social:spring-social-twitter:1.1.0.M4"

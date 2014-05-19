@@ -9,9 +9,6 @@ spring:
     yarn:
         applicationDir: /xd/app/
 
-# Transport used
-#transport: rabbit
-
 # Port that admin-ui is listening on
 #server:
 #    port: 9393
@@ -23,6 +20,12 @@ spring:
 #    hadoop:
 #        fsUri: hdfs://localhost:8020
 #        resourceManagerHost: localhost
+
+---
+
+#XD data transport (default is redis)
+#xd:
+#    transport: rabbit
 
 ---
 

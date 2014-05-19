@@ -30,7 +30,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
@@ -55,7 +55,7 @@ public class RedisQueueInboundChannelAdapterTests {
 
 	private static final String QUEUE_NAME = "inboundadaptertest";
 
-	private LettuceConnectionFactory connectionFactory;
+	private RedisConnectionFactory connectionFactory;
 
 	private final BlockingDeque<Object> messages = new LinkedBlockingDeque<Object>(99);
 
@@ -64,6 +64,8 @@ public class RedisQueueInboundChannelAdapterTests {
 	@Rule
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
+	private String currentQueueName;
+
 	@Before
 	public void setUp() {
 		messages.clear();
@@ -71,7 +73,10 @@ public class RedisQueueInboundChannelAdapterTests {
 		DirectChannel outputChannel = new DirectChannel();
 		outputChannel.setBeanFactory(BusTestUtils.MOCK_BF);
 		outputChannel.subscribe(new TestMessageHandler());
-		adapter = new RedisQueueMessageDrivenEndpoint(QUEUE_NAME, connectionFactory);
+
+		this.currentQueueName = QUEUE_NAME + ":" + System.nanoTime();
+
+		adapter = new RedisQueueMessageDrivenEndpoint(currentQueueName, connectionFactory);
 		adapter.setBeanFactory(BusTestUtils.MOCK_BF);
 		adapter.setOutputChannel(outputChannel);
 	}
@@ -79,7 +84,7 @@ public class RedisQueueInboundChannelAdapterTests {
 	@After
 	public void tearDown() {
 		adapter.stop();
-		connectionFactory.getConnection().del(QUEUE_NAME.getBytes());
+		connectionFactory.getConnection().del(currentQueueName.getBytes());
 	}
 
 	@Test
@@ -92,7 +97,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		template.boundListOps(QUEUE_NAME).rightPush("message1");
+		template.boundListOps(currentQueueName).rightPush("message1");
 		@SuppressWarnings("unchecked")
 		Message<String> message = (Message<String>) messages.poll(1, TimeUnit.SECONDS);
 		assertNotNull(message);
@@ -113,7 +118,7 @@ public class RedisQueueInboundChannelAdapterTests {
 
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("header1", "foo");
-		template.boundListOps(QUEUE_NAME).rightPush(new GenericMessage<String>("message2", headers));
+		template.boundListOps(currentQueueName).rightPush(new GenericMessage<String>("message2", headers));
 		@SuppressWarnings("unchecked")
 		Message<String> message = (Message<String>) messages.poll(1, TimeUnit.SECONDS);
 		assertEquals("message2", message.getPayload());
@@ -133,7 +138,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		template.boundListOps(QUEUE_NAME).rightPush("message3".getBytes());
+		template.boundListOps(currentQueueName).rightPush("message3".getBytes());
 		Message<byte[]> message = (Message<byte[]>) messages.poll(1, TimeUnit.SECONDS);
 		assertEquals("message3", new String(message.getPayload()));
 	}
@@ -164,7 +169,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		template.boundListOps(QUEUE_NAME).rightPush(5l);
+		template.boundListOps(currentQueueName).rightPush(5l);
 		@SuppressWarnings("unchecked")
 		Message<Long> message = (Message<Long>) messages.poll(1, TimeUnit.SECONDS);
 		assertEquals(5L, (long) message.getPayload());
@@ -183,7 +188,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		adapter.afterPropertiesSet();
 		adapter.start();
 
-		template.boundListOps(QUEUE_NAME).rightPush(new GenericMessage<Long>(10l));
+		template.boundListOps(currentQueueName).rightPush(new GenericMessage<Long>(10l));
 		@SuppressWarnings("unchecked")
 		Message<Long> message = (Message<Long>) messages.poll(1, TimeUnit.SECONDS);
 		assertEquals(10L, (long) message.getPayload());

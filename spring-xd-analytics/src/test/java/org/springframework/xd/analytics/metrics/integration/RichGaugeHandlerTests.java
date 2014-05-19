@@ -34,7 +34,7 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -166,7 +166,7 @@ class RichGaugeHandlerTestsConfig {
 	@Bean
 	public RedisConnectionFactory connectionFactory() {
 		try {
-			LettuceConnectionFactory cf = new LettuceConnectionFactory();
+			JedisConnectionFactory cf = new JedisConnectionFactory();
 			cf.setHostName("localhost");
 			cf.setPort(6379);
 			cf.afterPropertiesSet();

@@ -26,7 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
@@ -50,7 +50,7 @@ public class RedisQueueOutboundChannelAdapterTests {
 
 	private static final String QUEUE_NAME = "outboundadaptertest";
 
-	private LettuceConnectionFactory connectionFactory;
+	private RedisConnectionFactory connectionFactory;
 
 	private RedisQueueOutboundChannelAdapter adapter;
 

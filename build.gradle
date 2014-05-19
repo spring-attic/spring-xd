@@ -78,6 +78,7 @@ allprojects {
 ext {
 	args4jVersion = '2.0.16'
 	commonsBeanUtilsVersion = '1.6'
+  commonsPool2Version = '2.0'
 	commonsCollectionsVersion = '3.2'
 	commonsIoVersion = '2.4'
 	curatorVersion = '2.5.0'
@@ -97,7 +98,7 @@ ext {
 	jsonPathVersion = '0.8.1'
 	junitVersion = '4.11'
 	kryoVersion = '2.22'
-	lettuceVersion = '2.3.3'
+	jedisVersion = '2.4.1'
 	log4jVersion = '1.2.17'
 	mockitoVersion = '1.9.5'
 	reactorVersion = '1.1.0.RELEASE'
@@ -114,7 +115,7 @@ ext {
 	springDataHadoopBase = '2.0.0.RC4'
 	springDataHadoopVersion = "${springDataHadoopBase}"
 	springDataMongoVersion = '1.5.0.RELEASE'
-	springDataRedisVersion = '1.1.1.RELEASE'
+	springDataRedisVersion = '1.2.1.RELEASE'
 	springHATEOASVersion = '0.9.0.RELEASE'
 	springIntegrationVersion = '4.0.2.RELEASE'
 	springIntegrationSplunkVersion = '1.1.0.M2'
@@ -374,7 +375,7 @@ project('spring-xd-analytics') {
 		compile "org.springframework:spring-core:$springVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework.data:spring-data-commons:$springDataCommonsVersion"
-		compile "com.lambdaworks:lettuce:$lettuceVersion"
+		compile "redis.clients:jedis:$jedisVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "joda-time:joda-time:$jodaTimeVersion"
 		compile project(':spring-xd-module-spi')
@@ -385,7 +386,7 @@ project('spring-xd-analytics') {
 		testCompile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
-				"org.slf4j:slf4j-log4j12:$slf4jVersion"
+				"org.slf4j:slf4j-log4j12:$slf4jVersion","org.apache.commons:commons-pool2:$commonsPool2Version"
 	}
 }
 
@@ -425,7 +426,7 @@ project('spring-xd-dirt') {
 		compile "log4j:log4j:$log4jVersion"
 		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
-		compile "com.lambdaworks:lettuce:$lettuceVersion"
+		compile "redis.clients:jedis:$jedisVersion"
 		compile ("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
 			exclude group: 'jline'
 		}
@@ -1462,7 +1463,7 @@ project('spring-xd-test') {
 		compile "org.springframework:spring-context-support:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
-		compile "com.lambdaworks:lettuce:$lettuceVersion"
+		compile "redis.clients:jedis:$jedisVersion"
 		compile "org.hsqldb:hsqldb:$hsqldbVersion"
 		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile "junit:junit:$junitVersion"

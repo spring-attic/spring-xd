@@ -41,6 +41,6 @@ public class StepExecutionInfoResourceAssembler extends
 
 	@Override
 	protected StepExecutionInfoResource instantiateResource(StepExecutionInfo entity) {
-		return new StepExecutionInfoResource(entity.getJobExecutionId(), entity.getStepExecution());
+		return new StepExecutionInfoResource(entity.getJobExecutionId(), entity.getStepExecution(), entity.getStepType());
 	}
 }

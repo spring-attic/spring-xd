@@ -16,13 +16,12 @@
 
 package org.springframework.xd.rest.client.domain;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 /**
@@ -38,6 +37,8 @@ public class StepExecutionInfoResource extends ResourceSupport {
 
 	private final StepExecution stepExecution;
 
+	private final String stepType;
+
 	/**
 	 * 
 	 * @param jobExecutionId Must not be null
@@ -45,18 +46,21 @@ public class StepExecutionInfoResource extends ResourceSupport {
 	 */
 	public StepExecutionInfoResource(
 			@JsonProperty("jobExecutionId") Long jobExecutionId,
-			@JsonProperty("stepExecution") StepExecution stepExecution) {
+			@JsonProperty("stepExecution") StepExecution stepExecution,
+			@JsonProperty("stepType") String stepType) {
 
 		Assert.notNull(jobExecutionId, "jobExecutionId must not be null.");
 		Assert.notNull(stepExecution, "stepExecution must not be null.");
 
 		this.stepExecution = stepExecution;
 		this.jobExecutionId = jobExecutionId;
+		this.stepType = stepType;
 	}
 
 	public StepExecutionInfoResource() {
 		this.stepExecution = null;
 		this.jobExecutionId = null;
+		this.stepType = null;
 	}
 
 	/**
@@ -72,5 +76,7 @@ public class StepExecutionInfoResource extends ResourceSupport {
 	public StepExecution getStepExecution() {
 		return stepExecution;
 	}
+
+	public String getStepType() { return this.stepType; }
 
 }

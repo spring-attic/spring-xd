@@ -41,6 +41,10 @@
       <td>{{stepExecutionDetails.stepExecution.stepName}}</td>
     <tr>
     <tr>
+        <td>Step Type</td>
+        <td>{{stepExecutionDetails.stepType}}</td>
+    <tr>
+    <tr>
       <td>Status</td>
       <td ng-class="{'text-success': stepExecutionDetails.stepExecution.exitStatus.exitCode === 'COMPLETED', 'text-danger': stepExecutionDetails.stepExecution.exitStatus.exitCode === 'FAILED'}">{{stepExecutionDetails.stepExecution.exitStatus.exitCode}}</td>
     <tr>

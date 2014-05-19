@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,21 @@
 
 package org.springframework.xd.dirt.job;
 
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.step.tasklet.TaskletStep;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.StepExecution;
 
 /**
  * Represents Batch step execution info.
  * 
  * @author Dave Syer
  * @author Gunnar Hillert
+ * @author Michael Minella
  * @since 1.0
  */
 public class StepExecutionInfo {
@@ -55,6 +58,8 @@ public class StepExecutionInfo {
 	private StepExecution stepExecution;
 
 	private long durationMillis;
+
+	private String stepType = StepType.UNKNOWN.getDisplayName();
 
 	public StepExecutionInfo(String jobName, Long jobExecutionId, String name, TimeZone timeZone) {
 		this.jobName = jobName;
@@ -84,6 +89,25 @@ public class StepExecutionInfo {
 			this.duration = durationFormat.format(new Date(durationMillis));
 		}
 
+		if(stepExecution.getExecutionContext().containsKey(TaskletStep.TASKLET_TYPE_KEY)) {
+			String taskletClassName = stepExecution.getExecutionContext().getString(TaskletStep.TASKLET_TYPE_KEY);
+			TaskletType type = TaskletType.fromClassName(taskletClassName);
+
+			if(type == TaskletType.UNKNOWN) {
+				this.stepType = taskletClassName;
+			} else {
+				this.stepType = type.getDisplayName();
+			}
+		} else if(stepExecution.getExecutionContext().containsKey(Step.STEP_TYPE_KEY)) {
+			String stepClassName = stepExecution.getExecutionContext().getString(Step.STEP_TYPE_KEY);
+			StepType type = StepType.fromClassName(stepClassName);
+
+			if(type == StepType.UNKNOWN) {
+				this.stepType = stepClassName;
+			} else {
+				this.stepType = type.getDisplayName();
+			}
+		}
 	}
 
 	public Long getId() {
@@ -135,5 +159,7 @@ public class StepExecutionInfo {
 	public StepExecution getStepExecution() {
 		return stepExecution;
 	}
+
+	public String getStepType() { return this.stepType; }
 
 }

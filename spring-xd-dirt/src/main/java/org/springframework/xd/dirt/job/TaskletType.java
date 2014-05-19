@@ -1,0 +1,115 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.xd.dirt.job;
+
+/**
+ * Types of {@link org.springframework.batch.core.step.tasklet.Tasklet} implementations known by Spring XD.  These
+ * include tasklets provided by Spring Batch and Spring for Apache Hadoop.
+ *
+ * @author Michael Minella
+ * @since 1.0
+ */
+public enum TaskletType {
+	/**
+	 * {@link org.springframework.batch.core.step.item.ChunkOrientedTasklet}
+	 */
+	CHUNK_ORIENTED_TASKLET("org.springframework.batch.core.step.item.ChunkOrientedTasklet", "Chunk Oriented Step"),
+	/**
+	 * {@link org.springframework.batch.core.step.tasklet.SystemCommandTasklet}
+	 */
+	SYSTEM_COMMAND_TASKLET("org.springframework.batch.core.step.tasklet.SystemCommandTasklet", "System Command Step"),
+	/**
+	 * {@link org.springframework.batch.core.step.tasklet.CallableTaskletAdapter}
+	 */
+	CALLABLE_TASKLET_ADAPTER("org.springframework.batch.core.step.tasklet.CallableTaskletAdapter", "Callable Tasklet Adapter Step"),
+	/**
+	 * {@link org.springframework.batch.core.step.tasklet.MethodInvokingTaskletAdapter}
+	 */
+	METHOD_INVOKING_TASKLET_ADAPTER("org.springframework.batch.core.step.tasklet.MethodInvokingTaskletAdapter", "Method Invoking Tasklet Adapter Step"),
+	/**
+	 * {@link org.springframework.data.hadoop.batch.hive.HiveTasklet}
+	 */
+	HIVE_TASKLET("org.springframework.data.hadoop.batch.hive.HiveTasklet", "Hive Step"),
+	/**
+	 * {@link org.springframework.data.hadoop.batch.mapreduce.JarTasklet}
+	 */
+	JAR_TASKLET("org.springframework.data.hadoop.batch.mapreduce.JarTasklet", "JAR Step"),
+	/**
+	 * {@link org.springframework.data.hadoop.batch.mapreduce.JobTasklet}
+	 */
+	JOB_TASKLET("org.springframework.data.hadoop.batch.mapreduce.JobTasklet", "Map/Reduce Job Step"),
+	/**
+	 * {@link org.springframework.data.hadoop.batch.pig.PigTasklet}
+	 */
+	PIG_TASKLET("org.springframework.data.hadoop.batch.pig.PigTasklet", "Pig Step"),
+	/**
+	 * {@link org.springframework.data.hadoop.batch.scripting.ScriptTasklet}
+	 */
+	SCRIPT_TASKLET("org.springframework.data.hadoop.batch.scripting.ScriptTasklet", "Script Step"),
+	/**
+	 * {@link org.springframework.data.hadoop.batch.mapreduce.ToolTasklet}
+	 */
+	TOOL_TASKLET("org.springframework.data.hadoop.batch.mapreduce.ToolTasklet", "Tool Step"),
+	/**
+	 * Used when the type of tasklet is unknown to the system
+	 */
+	UNKNOWN("", "");
+
+	private final String className;
+	private final String displayName;
+
+	private TaskletType(String className, String displayName) {
+		this.className = className;
+		this.displayName = displayName;
+	}
+
+	/**
+	 * @param className the fully qualified name of the {@link org.springframework.batch.core.step.tasklet.Tasklet}
+	 *                     implementation
+	 * @return the type if known, otherwise {@link #UNKNOWN}
+	 */
+	public static TaskletType fromClassName(String className) {
+		TaskletType type = UNKNOWN;
+
+		if(className != null) {
+			String name = className.trim();
+
+			for (TaskletType curType : values()) {
+				if(curType.className.equals(name)) {
+					type = curType;
+					break;
+				}
+			}
+		}
+
+		return type;
+	}
+
+	/**
+	 * @return the name of the class the current value represents
+	 */
+	public String getClassName() {
+		return this.className;
+	}
+
+	/**
+	 * @return the value to display in the UI or return via the REST API
+	 */
+	public String getDisplayName() {
+		return this.displayName;
+	}
+}
+

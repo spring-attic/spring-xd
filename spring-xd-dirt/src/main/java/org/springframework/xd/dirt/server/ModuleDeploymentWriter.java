@@ -16,14 +16,12 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -239,35 +237,16 @@ public class ModuleDeploymentWriter {
 	 * @return result of request
 	 * @throws InterruptedException
 	 */
-	protected Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
-			ModuleDeploymentPropertiesProvider provider, ContainerMatcher containerMatcher) throws InterruptedException {
-		Iterator<Container> containersToMatch = containerRepository.getContainerIterator();
-		return writeDeployment(descriptors, provider, containerMatcher, containersToMatch);
-	}
-
-	/**
-	 * Write module deployment requests for the modules returned by the {@code descriptors}
-	 * iterator. The target containers are indicated by the provided {@code containerMatcher}
-	 * and the {@link org.springframework.xd.module.ModuleDeploymentProperties} provided
-	 * by the {@link ModuleDeploymentPropertiesProvider}.
-	 *
-	 * @param descriptors       descriptors for modules to deploy
-	 * @param provider          callback to obtain the deployment properties for a module
-	 * @param containerMatcher  matcher for modules to containers
-	 * @param containersToMatch        the list of containers to match against
-	 * @return result of request
-	 * @throws InterruptedException
-	 */
-	protected Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
-			ModuleDeploymentPropertiesProvider provider, ContainerMatcher containerMatcher,
-			Iterator<Container> containersToMatch) throws InterruptedException {
+	public Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
+			ModuleDeploymentPropertiesProvider provider, ContainerMatcher containerMatcher)
+			throws InterruptedException {
 		CuratorFramework client = zkConnection.getClient();
 		ResultCollector collector = new ResultCollector();
-		Iterable<Container> iterableContainersToMatch = getIterableContainers(containersToMatch);
 		while (descriptors.hasNext()) {
 			ModuleDescriptor descriptor = descriptors.next();
 			for (Container container : containerMatcher.match(descriptor,
-					provider.propertiesForDescriptor(descriptor), iterableContainersToMatch)) {
+					provider.propertiesForDescriptor(descriptor),
+					wrapAsIterable(containerRepository.getContainerIterator()))) {
 				String containerName = container.getName();
 				String path = new ModuleDeploymentsPath()
 						.setContainer(containerName)
@@ -323,17 +302,21 @@ public class ModuleDeploymentWriter {
 	}
 
 	/**
-	 * Return {@Iterable} list of containers from {@Iterator} containers.
+	 * Wrap an {@link Iterator} of {@link Container} in an instance
+	 * of {@link Iterable}.
 	 *
-	 * @param {@Iterator} containers
-	 * @return the {@link Iterable} containers
+	 * @param containers iterator of containers to wrap
+	 *
+	 * @return instance of {@code Iterable} for the provided
+	 *         {@code Iterator} of {@code Container}s.
 	 */
-	private Iterable<Container> getIterableContainers(Iterator<Container> containers) {
-		List<Container> iterableContainers = new ArrayList<Container>();
-		while (containers.hasNext()) {
-			iterableContainers.add(containers.next());
-		}
-		return iterableContainers;
+	private Iterable<Container> wrapAsIterable(final Iterator<Container> containers) {
+		return new Iterable<Container>() {
+			@Override
+			public Iterator<Container> iterator() {
+				return containers;
+			}
+		};
 	}
 
 	/**

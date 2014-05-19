@@ -20,13 +20,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.UUID;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.hadoop.fs.FileStatus;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.util.StringUtils;
 import org.springframework.xd.test.fixtures.HdfsSink;
 
 
@@ -66,18 +67,33 @@ public class HdfsTest extends AbstractIntegrationTest {
 
 		// This forces the hdfs to flush the contents to the file and close. So the tests can be executed.
 		undeployStream();
-		String path = HdfsSink.DEFAULT_DIRECTORY + "/" + HdfsSink.DEFAULT_FILE_NAME + "-0.txt";
 
+		String path = HdfsSink.DEFAULT_DIRECTORY + "/" + HdfsSink.DEFAULT_FILE_NAME + "*";
+
+		path = getTestFilePath(HdfsSink.DEFAULT_DIRECTORY, getTestFileStatus(path));
 		// wait up to 10 seconds for file to be closed
 		assertTrue(HdfsSink.DEFAULT_FILE_NAME + ".txt is missing from hdfs", hadoopUtil.waitForPath(10000, path));
 
-		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(path);
-		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
-				fileStatuses.size());
-		Iterator<FileStatus> statuses = fileStatuses.iterator();
-		assertEquals("File size should match the data size +1 for the //n", data.length() + 1, statuses.next().getLen());
+		assertEquals("File size should match the data size +1 for the //n", data.length() + 1,
+				getTestFileStatus(path).getLen());
 		assertEquals("The data returned from hadoop was different than was sent.  ", data + "\n",
 				hadoopUtil.getFileContentsFromHdfs(path));
 	}
 
+
+	private String getTestFilePath(String directory, FileStatus status) {
+		String fileName = status.getPath().getName();
+		String extension = StringUtils.getFilenameExtension(fileName);
+		if (extension.equals("tmp")) {
+			fileName = FilenameUtils.removeExtension(fileName);
+		}
+		return directory + "/" + fileName;
+	}
+
+	private FileStatus getTestFileStatus(String path) {
+		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(path);
+		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
+				fileStatuses.size());
+		return fileStatuses.iterator().next();
+	}
 }

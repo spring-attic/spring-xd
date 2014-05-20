@@ -9,8 +9,7 @@
 # used instead.
 
 #XD data transport (default is redis for distributed, local for single node)
-#xd:
-#  transport: rabbit
+#transport: rabbit
 
 #  messagebus:
 #    rabbit:
@@ -48,8 +47,7 @@
 #If the singlenode needs to use external datasource for batch embeddedHsql can be set to false
 spring:
   profiles: singlenode
-xd:
-  transport: local  
+transport: local  
 #embeddedHsql: true
 
 ---
@@ -88,12 +86,14 @@ xd:
 
 ---
 # Config to enable/disable JMX/jolokia endpoints
-#XD_JMX_ENABLED: true
+#xd
+#  jmx:
+#    enabled: true
 #endpoints:
 #  jolokia:
-#    enabled: ${XD_JMX_ENABLED:true}
+#    enabled: ${xd.jmx.enabled:true}
 #  jmx:
-#    enabled: ${XD_JMX_ENABLED:true}
+#    enabled: ${xd.jmx.enabled:true}
 #    uniqueNames: true
 
 ---

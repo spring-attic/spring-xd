@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.server.options;
 
 import org.kohsuke.args4j.Option;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 /**
  * Base class for command line options that are common to absolutely every setup (single and distributed).
  * 
@@ -25,10 +27,14 @@ import org.kohsuke.args4j.Option;
  * @author Ilayaperumal Gopinathan
  * @author David Turanski
  */
+@ConfigurationProperties
 public class CommonOptions {
 
 	@Option(name = "--help", usage = "Show this help screen", aliases = { "-?", "-h" })
 	private boolean showHelp = false;
+
+	@Option(name = "--verbose", usage = "Display all configuration properties", aliases = { "-v" })
+	private boolean verbose = false;
 
 	@Option(name = "--mgmtPort", usage = "The port for the management server", metaVar = "<mgmtPort>")
 	private Integer mgmtPort;
@@ -36,6 +42,14 @@ public class CommonOptions {
 	// Using wrapped here so that "showHelp" is not returned as a property by BeanPropertiesPropertySource
 	public Boolean isShowHelp() {
 		return showHelp ? true : null;
+	}
+
+	public boolean isVerbose() {
+		return verbose;
+	}
+
+	public void setVerbose(boolean verbose) {
+		this.verbose = verbose;
 	}
 
 	public Integer getXD_MGMT_PORT() {

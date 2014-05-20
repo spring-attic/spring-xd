@@ -267,7 +267,7 @@ class ContainerConfiguration {
 				moduleDeployer);
 	}
 
-	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
+	@ConditionalOnExpression("${xd.jmx.enabled}")
 	@EnableMBeanExport(defaultDomain = "xd.container")
 	protected static class JmxConfiguration {
 

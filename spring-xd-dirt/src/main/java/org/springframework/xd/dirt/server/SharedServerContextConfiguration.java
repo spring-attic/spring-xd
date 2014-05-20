@@ -54,7 +54,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 @ImportResource({
 	ConfigLocations.XD_CONFIG_ROOT + "bus/*.xml",
 	ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
-	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml"
+	ConfigLocations.XD_CONFIG_ROOT + "analytics/${xd.analytics}-analytics.xml"
 })
 public class SharedServerContextConfiguration {
 
@@ -64,7 +64,7 @@ public class SharedServerContextConfiguration {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
 
-	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
+	@ConditionalOnExpression("${xd.jmx.enabled}")
 	@EnableMBeanExport(defaultDomain = "xd.shared.server")
 	protected static class JmxConfiguration {
 
@@ -81,7 +81,7 @@ public class SharedServerContextConfiguration {
 	static class SingleNodeZooKeeperConfig extends ZookeeperConnectionConfig {
 
 		@Bean
-		@ConditionalOnExpression("'${zk.client.connect}'.isEmpty()")
+		@ConditionalOnExpression("'${zk.client.connect:}'.isEmpty()")
 		EmbeddedZooKeeper embeddedZooKeeper() {
 			if (zkEmbeddedServerPort != null) {
 				return new EmbeddedZooKeeper(zkEmbeddedServerPort);

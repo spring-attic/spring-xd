@@ -16,13 +16,20 @@
 
 package org.springframework.xd.dirt.util;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
 
@@ -43,10 +50,10 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	private static final String HADOOP_DISTRO_OPTION = "${HADOOP_DISTRO}";
 
-	private static final String ZK_CONNECT_OPTION = "${" + SharedServerContextConfiguration.ZK_CONNECT + "}";
+	private static final String ZK_CONNECT_OPTION = "${" + SharedServerContextConfiguration.ZK_CONNECT + ":}";
 
 	private static final String EMBEDDED_ZK_CONNECT_OPTION = "${"
-			+ SharedServerContextConfiguration.EMBEDDED_ZK_CONNECT + "}";
+			+ SharedServerContextConfiguration.EMBEDDED_ZK_CONNECT + ":}";
 
 	public XdConfigLoggingInitializer(boolean isContainer) {
 		this.isContainer = isContainer;
@@ -59,13 +66,16 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		logger.info("XD Home: " + environment.resolvePlaceholders("${XD_HOME}"));
+		logger.info("XD Home: " + environment.resolvePlaceholders("${xd.home}"));
 		if (isContainer) {
-			logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
+			logger.info("Transport: " + environment.resolvePlaceholders("${xd.transport}"));
 			logHadoopDistro();
 		}
 		logZkConnectString();
-		logger.info("Analytics: " + environment.resolvePlaceholders("${XD_ANALYTICS}"));
+		logger.info("Analytics: " + environment.resolvePlaceholders("${xd.analytics}"));
+		if ("true".equals(environment.getProperty("verbose"))) {
+			logAllProperties();
+		}
 	}
 
 	private void logHadoopDistro() {
@@ -80,5 +90,25 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 		String connectString = (!StringUtils.hasText(zkConnectString) && StringUtils.hasText(embeddedZkConnectString)) ? embeddedZkConnectString
 				: zkConnectString;
 		logger.info("Zookeeper at: " + connectString);
+	}
+
+	private void logAllProperties() {
+		Set<String> propertyNames = new TreeSet<String>();
+
+		ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
+		for (PropertySource<?> ps : env.getPropertySources()) {
+			if (ps instanceof EnumerablePropertySource) {
+				EnumerablePropertySource eps = (EnumerablePropertySource) ps;
+				propertyNames.addAll(Arrays.asList(eps.getPropertyNames()));
+			}
+		}
+
+		StringBuffer sb = new StringBuffer("\n");
+
+		for (String key : propertyNames) {
+			sb.append(String.format("\t%s=%s\n", key,
+					environment.resolvePlaceholders(environment.getProperty(key).toString())));
+		}
+		logger.info(sb);
 	}
 }

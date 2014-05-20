@@ -36,7 +36,7 @@ public interface MessageBus {
 	 *
 	 * @param name the logical identity of the message source
 	 * @param moduleInputChannel the channel bound as a consumer
-	 * @param properties the deployment properties
+	 * @param properties arbitrary String key/value pairs that will be used in the binding
 	 */
 	void bindConsumer(String name, MessageChannel moduleInputChannel, Properties properties);
 
@@ -46,7 +46,7 @@ public interface MessageBus {
 	 *
 	 * @param name the logical identity of the message source
 	 * @param inputChannel the channel bound as a pub/sub consumer
-	 * @param properties the deployment properties
+	 * @param properties arbitrary String key/value pairs that will be used in the binding
 	 */
 	void bindPubSubConsumer(final String name, MessageChannel inputChannel, Properties properties);
 
@@ -55,7 +55,7 @@ public interface MessageBus {
 	 *
 	 * @param name the logical identity of the message target
 	 * @param moduleOutputChannel the channel bound as a producer
-	 * @param properties the deployment properties
+	 * @param properties arbitrary String key/value pairs that will be used in the binding
 	 */
 	void bindProducer(String name, MessageChannel moduleOutputChannel, Properties properties);
 
@@ -65,7 +65,7 @@ public interface MessageBus {
 	 *
 	 * @param name the logical identity of the message target
 	 * @param outputChannel the channel bound as a producer
-	 * @param properties the deployment properties
+	 * @param properties arbitrary String key/value pairs that will be used in the binding
 	 */
 	void bindPubSubProducer(final String name, MessageChannel outputChannel, Properties properties);
 
@@ -105,7 +105,7 @@ public interface MessageBus {
 	 * @param name The name of the requestor.
 	 * @param requests The request channel - sends requests.
 	 * @param replies The reply channel - receives replies.
-	 * @param properties the deployment properties
+	 * @param properties arbitrary String key/value pairs that will be used in the binding.
 	 */
 	void bindRequestor(String name, MessageChannel requests, MessageChannel replies, Properties properties);
 
@@ -116,7 +116,7 @@ public interface MessageBus {
 	 * @param name The name of the requestor for which this replier will handle requests.
 	 * @param requests The request channel - receives requests.
 	 * @param replies The reply channel - sends replies.
-	 * @param properties the deployment properties
+	 * @param properties arbitrary String key/value pairs that will be used in the binding.
 	 */
 	void bindReplier(String name, MessageChannel requests, MessageChannel replies, Properties properties);
 

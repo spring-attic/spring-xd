@@ -459,6 +459,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	};
 
+	/**
+	 * Property accessor for the RabbitMessageBus. Refer to the Spring-AMQP
+	 * documentation for information on the specific properties.
+	 */
 	private class RabbitPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
 		public RabbitPropertiesAccessor(Properties properties) {

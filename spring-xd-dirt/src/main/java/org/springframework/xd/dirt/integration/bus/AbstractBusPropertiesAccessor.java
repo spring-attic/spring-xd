@@ -40,14 +40,33 @@ public abstract class AbstractBusPropertiesAccessor {
 		}
 	}
 
+	/**
+	 * Return the property for the key, or null if it doesn't exist.
+	 * @param key The property.
+	 * @return The key.
+	 */
 	public String getProperty(String key) {
 		return this.properties.getProperty(key);
 	}
 
+	/**
+	 * Return the property for the key, or the default value if the
+	 * property doesn't exist.
+	 * @param key The key.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public String getProperty(String key, String defaultValue) {
 		return this.properties.getProperty(key, defaultValue);
 	}
 
+	/**
+	 * Return the property for the key, or the default value if the
+	 * property doesn't exist.
+	 * @param key The key.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public boolean getProperty(String key, boolean defaultValue) {
 		String property = this.properties.getProperty(key);
 		if (property != null) {
@@ -58,6 +77,13 @@ public abstract class AbstractBusPropertiesAccessor {
 		}
 	}
 
+	/**
+	 * Return the property for the key, or the default value if the
+	 * property doesn't exist.
+	 * @param key The key.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public int getProperty(String key, int defaultValue) {
 		String property = this.properties.getProperty(key);
 		if (property != null) {
@@ -68,6 +94,13 @@ public abstract class AbstractBusPropertiesAccessor {
 		}
 	}
 
+	/**
+	 * Return the property for the key, or the default value if the
+	 * property doesn't exist.
+	 * @param key The key.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public long getProperty(String key, long defaultValue) {
 		String property = this.properties.getProperty(key);
 		if (property != null) {
@@ -78,6 +111,13 @@ public abstract class AbstractBusPropertiesAccessor {
 		}
 	}
 
+	/**
+	 * Return the property for the key, or the default value if the
+	 * property doesn't exist.
+	 * @param key The key.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public double getProperty(String key, double defaultValue) {
 		String property = properties.getProperty(key);
 		if (property != null) {
@@ -88,34 +128,81 @@ public abstract class AbstractBusPropertiesAccessor {
 		}
 	}
 
+	/**
+	 * Return the 'concurrency' property or the default value.
+	 * The meaning of concurrency depends on the bus implementation.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public int getConcurrency(int defaultValue) {
 		return getProperty("concurrency", defaultValue);
 	}
 
+	/**
+	 * Return the 'maxConcurrency' property or the default value.
+	 * The meaning of maxConcurrency depends on the bus implementation.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public int getMaxConcurrency(int defaultValue) {
 		return getProperty("maxConcurrency", defaultValue);
 	}
 
 	// Retry properties
 
+	/**
+	 * Return the 'maxAttempts' property or the default value.
+	 * This is used in the retry template's SimpleRetryPolicy
+	 * in buses that support retry.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public int getMaxAttempts(int defaultValue) {
 		return getProperty("maxAttempts", defaultValue);
 	}
 
+	/**
+	 * Return the 'backOffInitialInterval' property or the default value.
+	 * This is used in the retry template's ExponentialBackOffPolicy
+	 * in buses that support retry.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public long getBackOffInitialInterval(long defaultValue) {
 		return getProperty("backOffInitialInterval", defaultValue);
 	}
 
+	/**
+	 * Return the 'backOffMultiplier' property or the default value.
+	 * This is used in the retry template's ExponentialBackOffPolicy
+	 * in buses that support retry.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public double getBackOffMultiplier(double defaultValue) {
 		return getProperty("backOffMultiplier", defaultValue);
 	}
 
+	/**
+	 * Return the 'backOffMaxInterval' property or the default value.
+	 * This is used in the retry template's ExponentialBackOffPolicy
+	 * in buses that support retry.
+	 * @param defaultValue The default value.
+	 * @return The property or default value.
+	 */
 	public long getBackOffMaxInterval(long defaultValue) {
 		return getProperty("backOffMaxInterval", defaultValue);
 	}
 
 	// Utility methods
 
+	/**
+	 * Convert a comma-delimited String property to a String[] if
+	 * present, or return the default value.
+	 * @param value The property value.
+	 * @param defaultValue The default value.
+	 * @return The converted property or default value.
+	 */
 	protected String[] asStringArray(String value, String[] defaultValue) {
 		if (StringUtils.hasText(value)) {
 			return StringUtils.commaDelimitedListToStringArray(value);

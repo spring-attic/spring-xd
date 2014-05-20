@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,10 +68,31 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 
 	@Override
 	public <S extends ContainerAttributes> S save(S entity) {
+		CuratorFramework client = zkConnection.getClient();
+		String path = Paths.build(Paths.CONTAINERS, entity.getId());
+
 		try {
-			zkConnection.getClient().create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(
-					Paths.build(Paths.CONTAINERS, entity.getId()),
-					mapBytesUtility.toByteArray(entity));
+			if (client.checkExists().forPath(path) != null) {
+				// if this container disconnected from ZooKeeper
+				// and reconnects, the ephemeral node may not
+				// have been cleaned up yet...this can happen
+				// in cases where the machine running both the
+				// container and ZooKeeper goes to sleep
+				client.delete().forPath(path);
+			}
+		}
+		catch (KeeperException.NoNodeException e) {
+			// trapping the case where the ephemeral node exists
+			// but is removed by ZK before this container gets
+			// the chance to remove it
+		}
+		catch (Exception e) {
+			throw ZooKeeperUtils.wrapThrowable(e);
+		}
+
+		try {
+			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
+					.forPath(path, mapBytesUtility.toByteArray(entity));
 			return entity;
 		}
 		catch (Exception e) {

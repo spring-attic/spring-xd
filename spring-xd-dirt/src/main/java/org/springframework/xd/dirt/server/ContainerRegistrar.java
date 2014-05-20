@@ -718,7 +718,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		 */
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-			ZooKeeperConnection.logCacheEvent(logger, event);
+			ZooKeeperUtils.logCacheEvent(logger, event);
 			switch (event.getType()) {
 				case INITIALIZED:
 					break;

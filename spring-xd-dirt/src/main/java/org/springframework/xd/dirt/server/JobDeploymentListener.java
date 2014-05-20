@@ -34,6 +34,7 @@ import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 
@@ -89,7 +90,7 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 */
 	@Override
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-		ZooKeeperConnection.logCacheEvent(logger, event);
+		ZooKeeperUtils.logCacheEvent(logger, event);
 		switch (event.getType()) {
 			case CHILD_ADDED:
 				onChildAdded(client, event.getData());

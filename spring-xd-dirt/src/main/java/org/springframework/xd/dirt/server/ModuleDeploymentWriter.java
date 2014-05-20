@@ -76,7 +76,7 @@ public class ModuleDeploymentWriter {
 	/**
 	 * Default timeout in milliseconds.
 	 *
-	 * @see #configuredTimeout
+	 * @see #timeout
 	 */
 	private final static long DEFAULT_TIMEOUT = 30000;
 
@@ -116,7 +116,7 @@ public class ModuleDeploymentWriter {
 	 * Amount of time to wait for a status to be written to all module
 	 * deployment request paths.
 	 */
-	private final long configuredTimeout;
+	private final long timeout;
 
 	/**
 	 * Key used in status map to indicate the module deployment status.
@@ -175,14 +175,14 @@ public class ModuleDeploymentWriter {
 	 * @param zkConnection         ZooKeeper connection
 	 * @param containerRepository  repository for containers in the cluster
 	 * @param containerMatcher     matcher for modules to containers
-	 * @param configuredTimeout    amount of time to wait for module deployments
+	 * @param timeout    amount of time to wait for module deployments
 	 */
 	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository, ContainerMatcher containerMatcher,
-			long configuredTimeout) {
+			long timeout) {
 		this.zkConnection = zkConnection;
 		this.containerRepository = containerRepository;
-		this.configuredTimeout = configuredTimeout;
+		this.timeout = timeout;
 		this.containerMatcher = containerMatcher;
 	}
 
@@ -597,9 +597,9 @@ public class ModuleDeploymentWriter {
 		 */
 		public synchronized Collection<Result> getResults() throws InterruptedException {
 			long now = System.currentTimeMillis();
-			long timeout = now + configuredTimeout;
-			while (pending.size() > 0 && now < timeout) {
-				wait(timeout - now);
+			long expiryTime = now + timeout;
+			while (pending.size() > 0 && now < expiryTime) {
+				wait(expiryTime - now);
 				now = System.currentTimeMillis();
 			}
 

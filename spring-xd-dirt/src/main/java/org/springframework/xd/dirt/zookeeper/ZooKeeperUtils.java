@@ -17,6 +17,12 @@
 package org.springframework.xd.dirt.zookeeper;
 
 
+import java.io.UnsupportedEncodingException;
+
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.slf4j.Logger;
+
 /**
  * Utility methods for ZooKeeper.
  * @author David Turanski
@@ -63,5 +69,33 @@ public abstract class ZooKeeperUtils {
 			}
 		}
 		throw wrapThrowable(t);
+	}
+
+	/**
+	 * Utility method to log {@link org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent events}.
+	 *
+	 * @param logger logger to write to
+	 * @param event  event to log
+	 */
+	public static void logCacheEvent(Logger logger, PathChildrenCacheEvent event) {
+		ChildData data = event.getData();
+		String path = (data == null) ? "null" : data.getPath();
+		logger.info("Path cache event: {}, type: {}", path, event.getType());
+		if (data != null && logger.isTraceEnabled()) {
+			String content;
+			byte[] bytes = data.getData();
+			if (bytes == null || bytes.length == 0) {
+				content = "empty";
+			}
+			else {
+				try {
+					content = new String(data.getData(), "UTF-8");
+				}
+				catch (UnsupportedEncodingException e) {
+					content = "Could not convert content to UTF-8: " + e.toString();
+				}
+			}
+			logger.trace("Data for path {}: {}", path, content);
+		}
 	}
 }

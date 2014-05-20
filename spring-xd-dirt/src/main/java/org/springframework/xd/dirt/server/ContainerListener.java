@@ -52,6 +52,7 @@ import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
@@ -147,7 +148,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	@Override
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-		ZooKeeperConnection.logCacheEvent(logger, event);
+		ZooKeeperUtils.logCacheEvent(logger, event);
 		switch (event.getType()) {
 			case CHILD_ADDED:
 				onChildAdded(client, event.getData());
@@ -180,8 +181,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 		Container container = new Container(Paths.stripPath(data.getPath()), mapBytesUtility.toMap(data.getData()));
 		logger.info("Container arrived: {}", container.getName());
 
-		deployOrphanedJobs(client, container);
-		deployOrphanedStreams(client, container);
+		redeployJobs(client, container);
+		redeployStreams(client, container);
 	}
 
 	/**
@@ -192,7 +193,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param container target container for job module deployment
 	 * @throws Exception
 	 */
-	private void deployOrphanedJobs(CuratorFramework client, Container container) throws Exception {
+	private void redeployJobs(CuratorFramework client, Container container) throws Exception {
 		// check for "orphaned" jobs that can be deployed to this new container
 		for (Iterator<String> jobDeploymentIterator =
 				new ChildPathIterator<String>(deploymentNameConverter, jobDeployments); jobDeploymentIterator.hasNext();) {
@@ -215,7 +216,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 						ModuleDeploymentWriter.Result result =
 								moduleDeploymentWriter.writeDeployment(descriptor, container);
-						moduleDeploymentWriter.validateResults(Collections.singleton(result));
+						moduleDeploymentWriter.validateResult(result);
 					}
 				}
 			}
@@ -234,7 +235,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param container target container for stream module deployment
 	 * @throws Exception
 	 */
-	private void deployOrphanedStreams(CuratorFramework client, Container container) throws Exception {
+	private void redeployStreams(CuratorFramework client, Container container) throws Exception {
 		// iterate the cache of stream deployments
 		for (Iterator<String> streamDeploymentIterator =
 				new ChildPathIterator<String>(deploymentNameConverter, streamDeployments); streamDeploymentIterator.hasNext();) {
@@ -260,7 +261,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 							ModuleDeploymentWriter.Result result =
 									moduleDeploymentWriter.writeDeployment(descriptor, container);
-							moduleDeploymentWriter.validateResults(Collections.singleton(result));
+							moduleDeploymentWriter.validateResult(result);
 						}
 					}
 				}

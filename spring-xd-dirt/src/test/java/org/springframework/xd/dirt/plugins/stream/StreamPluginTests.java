@@ -39,7 +39,6 @@ import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -73,7 +72,7 @@ public class StreamPluginTests {
 
 	@After
 	public void clearContextProperties() {
-		System.clearProperty(XDPropertyKeys.XD_TRANSPORT);
+		System.clearProperty("XD_TRANSPORT");
 	}
 
 	@Test

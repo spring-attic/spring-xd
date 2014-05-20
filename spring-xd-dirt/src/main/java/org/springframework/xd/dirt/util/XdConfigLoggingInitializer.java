@@ -16,13 +16,20 @@
 
 package org.springframework.xd.dirt.util;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
 
@@ -80,5 +87,28 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 		String connectString = (!StringUtils.hasText(zkConnectString) && StringUtils.hasText(embeddedZkConnectString)) ? embeddedZkConnectString
 				: zkConnectString;
 		logger.info("Zookeeper at: " + connectString);
+		if ("true".equals(environment.getProperty("verbose"))) {
+			logAllProperties();
+		}
+	}
+
+	private void logAllProperties() {
+		Set<String> propertyNames = new TreeSet<String>();
+
+		ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
+		for (PropertySource<?> ps : env.getPropertySources()) {
+			if (ps instanceof EnumerablePropertySource) {
+				EnumerablePropertySource eps = (EnumerablePropertySource) ps;
+				propertyNames.addAll(Arrays.asList(eps.getPropertyNames()));
+			}
+		}
+
+		StringBuffer sb = new StringBuffer("\n");
+
+		for (String key : propertyNames) {
+			sb.append(String.format("\t%s=%s\n", key,
+					environment.resolvePlaceholders(environment.getProperty(key).toString())));
+		}
+		logger.info(sb);
 	}
 }

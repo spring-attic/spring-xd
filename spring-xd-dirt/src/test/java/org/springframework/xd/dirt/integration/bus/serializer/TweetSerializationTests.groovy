@@ -1,4 +1,4 @@
-package org.springframework.integration.x.bus.serializer
+package org.springframework.xd.dirt.integration.bus.serializer
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -20,10 +20,10 @@ import groovy.json.JsonSlurper
 
 import org.junit.Test
 
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec
 import org.springframework.social.twitter.api.Entities
 import org.springframework.social.twitter.api.Tweet
 import org.springframework.social.twitter.api.TwitterProfile
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec
 
 /**
  *

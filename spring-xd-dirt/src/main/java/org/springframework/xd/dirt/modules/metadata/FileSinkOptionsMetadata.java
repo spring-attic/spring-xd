@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.modules.metadata;
 
 import static org.springframework.xd.dirt.modules.metadata.FileSinkOptionsMetadata.Mode.APPEND;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
 
 import javax.validation.constraints.NotNull;
 
@@ -38,8 +39,7 @@ public class FileSinkOptionsMetadata {
 
 	private String dir = "/tmp/xd/output/";
 
-	// Don't provide default here but in xml file for now
-	private String name;
+	private String name = XD_STREAM_NAME;
 
 	private String suffix = "out";
 

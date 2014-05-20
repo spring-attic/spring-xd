@@ -9,15 +9,15 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="../../../common/jms-${provider:activemq}-infrastructure-context.xml"/>
+	<import resource="../../../common/jms-${provider}-infrastructure-context.xml"/>
 
 	<int-jms:message-driven-channel-adapter id="jmsSource"
 		auto-startup="false"
-		destination-name="${destination:${xd.stream.name}}"
-		pub-sub-domain="${pubSub:false}"
-		subscription-durable="${durableSubscription:false}"
-		durable-subscription-name="#{'${subscriptionName:}' == '' ? null : '${subscriptionName:}'}"
-		client-id="#{'${clientId:}' == '' ? null : '${clientId:}'}"
+		destination-name="${destination}"
+		pub-sub-domain="${pubSub}"
+		subscription-durable="${durableSubscription}"
+		durable-subscription-name="${subscriptionName:#{null}}"
+		client-id="${clientId:#{null}}"
 		channel="output"
 		connection-factory="connectionFactory"/>
 

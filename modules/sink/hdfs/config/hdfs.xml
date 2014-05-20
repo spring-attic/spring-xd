@@ -34,10 +34,9 @@
 	<!--
 	Order attributes needed because xml parsers don't yet support
 	ordering in a way it exists in this file.
-	Default value for fileName set here due to use of xd.stream.name variable.
 	-->
 	<int-hadoop:naming-strategy>
-		<int-hadoop:static order="1" name="${fileName:${xd.stream.name}}_#{uuid}" />
+		<int-hadoop:static order="1" name="${fileName}_#{uuid}" />
 		<int-hadoop:rolling order="2" />
 		<int-hadoop:static order="3" prefix="." name="${fileExtension}" />
 		<int-hadoop:codec />
@@ -45,7 +44,7 @@
 
 	<!-- default option for directory set here due to variable -->
 	<int-hadoop:store-writer
-		base-path="${directory:/xd/${xd.stream.name}}"
+		base-path="${directory}"
 		codec="${codec}"
 		overwrite="${overwrite}"
 		idle-timeout="${idleTimeout}"

@@ -12,8 +12,8 @@
 	<bean id="handler"
 		class="org.springframework.xd.analytics.metrics.integration.RichGaugeHandler">
 		<constructor-arg ref="richGaugeRepository" />
-		<constructor-arg value="${name:${xd.stream.name}}" />
-		<constructor-arg value="${alpha:-1}"/>
+		<constructor-arg value="${name}" />
+		<constructor-arg value="${alpha}"/>
 	</bean>
 
 </beans>

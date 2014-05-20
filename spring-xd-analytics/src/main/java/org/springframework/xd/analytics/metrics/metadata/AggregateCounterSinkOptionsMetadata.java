@@ -29,7 +29,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 @Mixin({ DateFormatMixin.class, MetricNameMixin.class })
 public class AggregateCounterSinkOptionsMetadata {
 
-	private String timeField = null;
+	private String timeField = "null";
 
 	public String getTimeField() {
 		return timeField;

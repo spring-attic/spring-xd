@@ -23,6 +23,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * Runtime exception used to wrap native ZooKeeper checked exceptions thrown while accessing ZooKeeper nodes.
  * @author dturanski
  */
+@SuppressWarnings("serial")
 public class ZooKeeperAccessException extends XDRuntimeException {
 
 	public ZooKeeperAccessException(String message, Throwable cause) {

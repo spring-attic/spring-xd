@@ -29,7 +29,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
 
 
 /**
- * Verifies that this job will read the specified file and place the results into the database.
+ * Asserts that this job will read the specified file and place the results into the database.
  *
  * @author Glenn Renfro
  */
@@ -53,7 +53,7 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 	}
 
 	/**
-	 * Verifies that fileJdbcJob has written the test data from a file to the table.
+	 * Asserts that fileJdbcJob has written the test data from a file to the table.
 	 *
 	 */
 	@Test
@@ -62,11 +62,15 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 		jdbcSink.getJdbcTemplate().getDataSource();
 		FileJdbcJob job = jobs.fileJdbcJob();
 		// Create a stream that writes to a file. This file will be used by the job.
-		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER
+		stream("dataSender", sources.http() + XD_DELIMETER
 				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL("REPLACE", "true"), WAIT_TIME);
 		waitForXD();
+		sources.http().postData(data);
+
 		job(job.toDSL());
+		waitForXD();
 		jobLaunch();
+		waitForXD();
 		String query = String.format("SELECT data FROM %s", tableName);
 		assertEquals(
 				data,

@@ -62,7 +62,7 @@ public class JdbcHdfsTest extends AbstractIntegrationTest {
 
 
 	/**
-	 * Verifies that jdbcHdfsJob has written the test data from a jdbc source table to a hdfs file system.
+	 * Asserts that jdbcHdfsJob has written the test data from a jdbc source table to a hdfs file system.
 	 *
 	 */
 	@Test
@@ -72,11 +72,15 @@ public class JdbcHdfsTest extends AbstractIntegrationTest {
 		jdbcSink.getJdbcTemplate().getDataSource();
 		JdbcHdfsJob job = jobs.jdbcHdfsJob();
 		// Use a trigger to send data to JDBC
-		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER
+		stream("dataSender", sources.http() + XD_DELIMETER
 				+ jdbcSink, WAIT_TIME);
+		waitForXD();
+		sources.http().postData(data);
+
 		job(job.toDSL());
+		waitForXD();
 		jobLaunch();
-		waitForXD(5000);
+		waitForXD(2000);
 		// Evaluate the results of the test.
 		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-0.csv";
 		assertTrue(JdbcHdfsJob.DEFAULT_FILE_NAME + "-0.csv is missing from hdfs",

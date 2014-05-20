@@ -16,18 +16,32 @@
 
 package org.springframework.xd.dirt.util;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
 
 
 /**
+ * Utilities for obtaining runtime information for the running process.
  *
  * @author David Turanski
+ * @author Patrick Peralta
  */
 public abstract class RuntimeUtils {
 
-	public final static String getHost() {
+	/**
+	 * Return the name of the host for the machine running this process.
+	 *
+	 * @return host name for the machine running this process
+	 *
+	 * @see java.net.InetAddress#getLocalHost
+	 * @see java.net.InetAddress#getHostName
+	 */
+	public static String getHost() {
 		String host;
 		try {
 			host = InetAddress.getLocalHost().getHostName();
@@ -38,20 +52,46 @@ public abstract class RuntimeUtils {
 		return host;
 	}
 
-	public final static String getIpAddress() {
-		String ip;
-
+	/**
+	 * Return a non loopback IPv4 address for the machine running this process.
+	 * If the machine has multiple network interfaces, the IP address for the
+	 * first interface returned by {@link java.net.NetworkInterface#getNetworkInterfaces}
+	 * is returned.
+	 *
+	 * @return non loopback IPv4 address for the machine running this process
+	 *
+	 * @see java.net.NetworkInterface#getNetworkInterfaces
+	 * @see java.net.NetworkInterface#getInetAddresses
+	 */
+	public static String getIpAddress() {
 		try {
-			ip = InetAddress.getLocalHost().getHostAddress();
+			for(Enumeration<NetworkInterface> enumNic = NetworkInterface.getNetworkInterfaces();
+					enumNic.hasMoreElements();) {
+				NetworkInterface ifc = enumNic.nextElement();
+				if (ifc.isUp()) {
+					for (Enumeration<InetAddress> enumAddr = ifc.getInetAddresses();
+							enumAddr.hasMoreElements(); ) {
+						InetAddress address = enumAddr.nextElement();
+						if (address instanceof Inet4Address && !address.isLoopbackAddress()) {
+							return address.getHostAddress();
+						}
+					}
+				}
+			}
 		}
-		catch (UnknownHostException uhe) {
-			ip = "unknown";
+		catch (IOException e) {
+			// ignore
 		}
-		return ip;
 
+		return "unknown";
 	}
 
-	public final static int getPid() {
+	/**
+	 * Return the process id for this process.
+	 *
+	 * @return process id for this process
+	 */
+	public static int getPid() {
 		String jvmName = ManagementFactory.getRuntimeMXBean().getName();
 		return jvmName.indexOf('@') != -1 ? Integer.parseInt(jvmName.split("@")[0]) : -1;
 	}

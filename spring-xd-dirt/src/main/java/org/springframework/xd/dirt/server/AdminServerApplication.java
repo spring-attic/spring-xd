@@ -51,6 +51,7 @@ import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
+import org.springframework.xd.dirt.util.RuntimeUtils;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 import org.springframework.xd.dirt.util.XdProfiles;
 
@@ -118,7 +119,7 @@ public class AdminServerApplication {
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {
 			String adminContextId = applicationContext.getId();
-			applicationContext.setId(XdProfiles.ADMIN_PROFILE
+			applicationContext.setId(RuntimeUtils.getIpAddress()
 					+ adminContextId.substring(adminContextId.lastIndexOf(":")));
 		}
 	}

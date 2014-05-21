@@ -81,13 +81,11 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 				client.delete().forPath(path);
 			}
 		}
-		catch (KeeperException.NoNodeException e) {
+		catch (Exception e) {
 			// trapping the case where the ephemeral node exists
 			// but is removed by ZK before this container gets
 			// the chance to remove it
-		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 
 		try {

@@ -361,6 +361,16 @@ public abstract class AbstractIntegrationTest {
 
 
 	/**
+	 * Verifies that the content of file on HDFS is the same as the data.
+	 * @param data The data expected in the file.
+	 * @param path The path/filename of the file on hdfs.  
+	 */
+	public void assertValidHdfs(String data, String path) {
+		waitForXD(pauseTime * 2000);
+		validation.verifyHdfsTestContent(data, path);
+	}
+
+	/**
 	 * Asserts that the data stored by the file sink is what was expected.  
 	 *
 	 * @param data The data expected in the file
@@ -373,7 +383,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
-		validation.verifyContentContains(xdEnvironment, url, fileName, data);
+		validation.verifyContentContains(url, fileName, data);
 	}
 
 	/**
@@ -390,7 +400,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
-		validation.verifyContentContainsIgnoreCase(xdEnvironment, url, fileName, data);
+		validation.verifyContentContainsIgnoreCase(url, fileName, data);
 	}
 
 	/**
@@ -405,7 +415,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
-		validation.verifyTestContent(xdEnvironment, url, fileName, data);
+		validation.verifyTestContent(url, fileName, data);
 	}
 
 	/**
@@ -417,7 +427,7 @@ public abstract class AbstractIntegrationTest {
 	private void assertLogEntry(String data, URL url)
 	{
 		waitForXD();
-		validation.verifyContentContains(xdEnvironment, url, xdEnvironment.getContainerLogLocation(), data);
+		validation.verifyContentContains(url, xdEnvironment.getContainerLogLocation(), data);
 	}
 
 	protected void waitForXD() {

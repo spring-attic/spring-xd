@@ -16,7 +16,6 @@
 
 package org.springframework.xd.integration.test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.UUID;
@@ -68,13 +67,7 @@ public class HdfsTest extends AbstractIntegrationTest {
 		String path = HdfsSink.DEFAULT_DIRECTORY + "/" + HdfsSink.DEFAULT_FILE_NAME + "*";
 
 		path = getTestFilePath(HdfsSink.DEFAULT_DIRECTORY, hadoopUtil.getFileStatus(path));
-		// wait up to 10 seconds for file to be closed
-		assertTrue(path + " is missing from hdfs", hadoopUtil.waitForPath(10000, path));
-
-		assertEquals("File size should match the data size +1 for the //n", data.length() + 1,
-				hadoopUtil.getFileStatus(path).getLen());
-		assertEquals("The data returned from hadoop was different than was sent.  ", data + "\n",
-				hadoopUtil.getFileContentsFromHdfs(path));
+		assertValidHdfs(data, path);
 	}
 
 

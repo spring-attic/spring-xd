@@ -16,9 +16,6 @@
 
 package org.springframework.xd.integration.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.UUID;
 
 import org.junit.Before;
@@ -69,14 +66,7 @@ public class FilePollHdfsTest extends AbstractIntegrationTest {
 				+ sinks.file(FilePollHdfsJob.DEFAULT_FILE_NAME, sourceFileName).toDSL("REPLACE", "true"), WAIT_TIME);
 		waitForXD();
 		sources.http().postData(data);
-		String path = FilePollHdfsJob.DEFAULT_DIRECTORY + "/" + FilePollHdfsJob.DEFAULT_FILE_NAME + "-0.csv";
-		assertTrue(path + " is not present on hdfs file system", hadoopUtil.waitForPath(WAIT_TIME, path));
-		assertEquals("File size should match the data size +1 for the //n", data.length() + 1,
-				hadoopUtil.getFileStatus(path).getLen());
-		waitForXD(); //wait for Hadoop
-		assertEquals("The data returned from hadoop was different than was sent.  ", data + "\n",
-				hadoopUtil.getFileContentsFromHdfs(path));
+		assertValidHdfs(data, FilePollHdfsJob.DEFAULT_DIRECTORY + "/" + FilePollHdfsJob.DEFAULT_FILE_NAME + "-0.csv");
 	}
-
 
 }

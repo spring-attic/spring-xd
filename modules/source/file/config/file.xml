@@ -12,7 +12,7 @@
 
 	<file:inbound-channel-adapter
 			auto-startup="false"
-			channel="router" directory="${dir:/tmp/xd/input/${xd.stream.name}}"
+			channel="router" directory="${dir}"
 			prevent-duplicates="${preventDuplicates}"
 			filename-pattern="${pattern}">
 		<poller fixed-delay="${fixedDelay}" time-unit="SECONDS"/>

@@ -13,7 +13,7 @@
 	<channel id="input" />
 
 	<aggregator input-channel="input" output-channel="output"
-		correlation-strategy-expression="${correlation:'${xd.stream.name}'}"
+		correlation-strategy-expression="${correlation}"
 		release-strategy-expression="${release}" expression="${aggregation}"
 		send-partial-result-on-expiry="true" expire-groups-upon-completion="true"
 		message-store="messageStore">

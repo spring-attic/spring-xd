@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.modules.metadata;
 
 import static org.springframework.xd.dirt.modules.metadata.AggregatorProcessorModuleOptionsMetadata.StoreKind.memory;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -38,7 +39,7 @@ import org.springframework.xd.module.options.spi.ValidationGroupsProvider;
 public class AggregatorProcessorModuleOptionsMetadata implements
 		ProfileNamesProvider, ValidationGroupsProvider {
 
-	private String correlation;
+	private String correlation = "'" + XD_STREAM_NAME + "'";
 
 	private String release;
 

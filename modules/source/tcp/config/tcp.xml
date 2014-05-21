@@ -20,11 +20,9 @@
 		using-direct-buffers="${useDirectBuffers}"
 		deserializer="${decoder}"/>
 
-	<int-ip:tcp-inbound-channel-adapter id="adapter" channel="toString"
+	<int-ip:tcp-inbound-channel-adapter id="adapter" channel="output"
 			auto-startup="false"
 			connection-factory="connectionFactory"/>
-
-	<int:transformer input-channel="toString" output-channel="output" expression="new String(payload, '${charset}')"/>
 
 	<int:channel id="output"/>
 

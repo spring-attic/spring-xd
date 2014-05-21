@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 
 import org.springframework.http.MediaType;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
@@ -65,6 +65,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
+ * @author Gary Russell
  */
 public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
@@ -97,7 +98,7 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param executor The {@link Executor} to use with the Netty {@link ExecutionHandler} in the pipeline. This allows
 	 *        any potential blocking operations done by message consumers to be removed from the I/O thread. The default
 	 *        executor is an {@link OrderedMemoryAwareThreadPoolExecutor}, which is highly recommended because it
@@ -147,25 +148,36 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 			HttpRequest request = (HttpRequest) e.getMessage();
 			ChannelBuffer content = request.getContent();
 			Charset charsetToUse = null;
+			boolean binary = false;
 			HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
 			if (content.readable()) {
 				Map<String, String> messageHeaders = new HashMap<String, String>();
 				for (Entry<String, String> entry : request.getHeaders()) {
 					if (entry.getKey().equalsIgnoreCase("Content-Type")) {
-						charsetToUse = MediaType.parseMediaType(entry.getValue()).getCharSet();
+						MediaType contentType = MediaType.parseMediaType(entry.getValue());
+						charsetToUse = contentType.getCharSet();
 						messageHeaders.put(MessageHeaders.CONTENT_TYPE, entry.getValue());
+						binary = MediaType.APPLICATION_OCTET_STREAM.equals(contentType);
 					}
 					else if (!entry.getKey().toUpperCase().startsWith("ACCEPT")
 							&& !entry.getKey().toUpperCase().equals("CONNECTION")) {
 						messageHeaders.put(entry.getKey(), entry.getValue());
 					}
 				}
-				// ISO-8859-1 is the default http charset when not set
-				charsetToUse = charsetToUse == null ? Charset.forName("ISO-8859-1") : charsetToUse;
 				messageHeaders.put("requestPath", request.getUri());
 				messageHeaders.put("requestMethod", request.getMethod().toString());
 				try {
-					sendMessage(MessageBuilder.withPayload(content.toString(charsetToUse)).copyHeaders(messageHeaders).build());
+					AbstractIntegrationMessageBuilder<?> builder;
+					if (binary) {
+						builder = getMessageBuilderFactory().withPayload(content.array());
+					}
+					else {
+						// ISO-8859-1 is the default http charset when not set
+						charsetToUse = charsetToUse == null ? Charset.forName("ISO-8859-1") : charsetToUse;
+						builder = getMessageBuilderFactory().withPayload(content.toString(charsetToUse));
+					}
+					builder.copyHeaders(messageHeaders);
+					sendMessage(builder.build());
 				}
 				catch (Exception ex) {
 					logger.error("Error sending message", ex);

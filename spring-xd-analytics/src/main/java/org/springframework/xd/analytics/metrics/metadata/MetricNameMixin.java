@@ -16,6 +16,8 @@
 
 package org.springframework.xd.analytics.metrics.metadata;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 
@@ -26,10 +28,8 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class MetricNameMixin {
 
-	// Default to null until ${xd.stream.name} is supported
-	private String name = null;
+	private String name = XD_STREAM_NAME;
 
-	// @Pattern("[a-zA-Z0-9]+")
 	public String getName() {
 		return name;
 	}

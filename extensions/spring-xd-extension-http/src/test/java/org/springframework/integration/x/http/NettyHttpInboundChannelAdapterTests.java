@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.x.http;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
@@ -31,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.http.HttpEntity;
@@ -52,6 +54,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Mark Fisher
  * @author David Turanski
  * @author Jennifer Hickey
+ * @author Gary Russell
  */
 public class NettyHttpInboundChannelAdapterTests {
 
@@ -87,6 +90,8 @@ public class NettyHttpInboundChannelAdapterTests {
 		assertEquals("bar", message2.getPayload());
 		assertEquals("/test1", message1.getHeaders().get("requestPath"));
 		assertEquals("/test2", message2.getHeaders().get("requestPath"));
+
+		adapter.stop();
 	}
 
 	@Test
@@ -121,6 +126,46 @@ public class NettyHttpInboundChannelAdapterTests {
 		Message<?> message = messages.get(0);
 
 		assertEquals(MediaType.TEXT_PLAIN_VALUE, message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+
+		adapter.stop();
+	}
+
+	@Test
+	public void testBinaryContent() throws Exception {
+		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				messages.add(message);
+				latch.countDown();
+			}
+		});
+		int port = SocketUtils.findAvailableServerSocket();
+		NettyHttpInboundChannelAdapter adapter = new NettyHttpInboundChannelAdapter(port);
+		adapter.setOutputChannel(channel);
+		adapter.start();
+		RestTemplate template = new RestTemplate();
+		URI uri1 = new URI("http://localhost:" + port + "/test1");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+		HttpEntity<byte[]> entity = new HttpEntity<byte[]>("foo".getBytes(), headers);
+
+		ResponseEntity<?> response = template.postForEntity(uri1, entity, HttpEntity.class);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertEquals(1, messages.size());
+		Message<?> message = messages.get(0);
+
+		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE, message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertThat(message.getPayload(), Matchers.instanceOf(byte[].class));
+		assertEquals("foo", new String((byte[]) message.getPayload()));
+
+		adapter.stop();
 	}
 
 	@Test(expected = HttpServerErrorException.class)
@@ -140,6 +185,8 @@ public class NettyHttpInboundChannelAdapterTests {
 		RestTemplate template = new RestTemplate();
 		URI uri1 = new URI("http://localhost:" + port + "/test1");
 		template.postForEntity(uri1, "foo", Object.class);
+
+		adapter.stop();
 	}
 
 	@Test
@@ -185,6 +232,8 @@ public class NettyHttpInboundChannelAdapterTests {
 		assertEquals("bar", message2.getPayload());
 		assertEquals("/test1", message1.getHeaders().get("requestPath"));
 		assertEquals("/test2", message2.getHeaders().get("requestPath"));
+
+		adapter.stop();
 	}
 
 	@Test(expected = IllegalArgumentException.class)

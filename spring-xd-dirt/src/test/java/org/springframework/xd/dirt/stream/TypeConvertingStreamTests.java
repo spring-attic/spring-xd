@@ -18,6 +18,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -25,7 +27,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.MimeType;
@@ -255,6 +259,31 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 		};
 
 		sendPayloadAndVerifyOutput("classInputType", new Foo("hello", 123), test);
+	}
+
+	@Test
+	public void testStringToByteArray() {
+		deployStream(
+				"stringToBytes",
+				"source --outputType=application/octet-stream | sink");
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				assertTrue(byte[].class.isAssignableFrom(message.getPayload().getClass()));
+				assertEquals(MimeType.valueOf("text/plain;charset=UTF-8"),
+						contentTypeResolver.resolve(message.getHeaders()));
+				try {
+					assertEquals("hello\u00F6\u00FF", new String((byte[]) message.getPayload(), "UTF-8"));
+				}
+				catch (UnsupportedEncodingException e) {
+				}
+			}
+		};
+
+		Message<String> msg = MessageBuilder.withPayload("hello\u00F6\u00FF").
+				copyHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "text/plain;charset=UTF-8")).build();
+		sendMessageAndVerifyOutput("stringToBytes", msg, test);
 	}
 
 	@SuppressWarnings("serial")

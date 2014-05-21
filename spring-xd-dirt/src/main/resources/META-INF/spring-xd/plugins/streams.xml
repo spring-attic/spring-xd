@@ -21,6 +21,7 @@
 			<bean class="org.springframework.xd.dirt.integration.bus.converter.TupleToJsonMessageConverter"/>
 			<bean class="org.springframework.xd.dirt.integration.bus.converter.PojoToJsonMessageConverter"/>
 			<bean class="org.springframework.xd.dirt.integration.bus.converter.ByteArrayToStringMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.StringToByteArrayMessageConverter"/>
 			<bean class="org.springframework.xd.dirt.integration.bus.converter.PojoToStringMessageConverter"/>
 			<bean class="org.springframework.xd.dirt.integration.bus.converter.JavaToSerializedMessageConverter"/>
 			<bean class="org.springframework.xd.dirt.integration.bus.converter.SerializedToJavaMessageConverter"/>

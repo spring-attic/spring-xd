@@ -51,6 +51,7 @@ public class RabbitTestMessageBus extends AbstractTestMessageBus {
 		if (!queues.isEmpty()) {
 			for (String queue : queues) {
 				rabbitAdmin.deleteQueue("xdbus." + queue);
+				rabbitAdmin.deleteQueue("foo." + queue);
 			}
 		}
 		if (!topics.isEmpty()) {

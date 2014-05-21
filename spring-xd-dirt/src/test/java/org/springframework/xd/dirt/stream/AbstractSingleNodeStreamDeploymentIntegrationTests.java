@@ -498,7 +498,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		Thread.sleep(1000);
 		assertModuleRequest(routerDefinition.getName(), "router", false);
 
-		MessageBus bus = integrationSupport.messageBus();
+		MessageBus bus = testMessageBus != null ? testMessageBus : integrationSupport.messageBus();
 		assertNotNull(bus);
 
 		SingleNodeNamedChannelSinkFactory sinkFactory = new SingleNodeNamedChannelSinkFactory(bus);

@@ -274,18 +274,17 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 				assertEquals(MimeType.valueOf("text/plain;charset=UTF-8"),
 						contentTypeResolver.resolve(message.getHeaders()));
 				try {
-					assertEquals("hello", new String((byte[]) message.getPayload(), "UTF-8"));
+					assertEquals("hello\u00F6\u00FF", new String((byte[]) message.getPayload(), "UTF-8"));
 				}
 				catch (UnsupportedEncodingException e) {
 				}
 			}
 		};
 
-		Message<String> msg = MessageBuilder.withPayload("hello").
+		Message<String> msg = MessageBuilder.withPayload("hello\u00F6\u00FF").
 				copyHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, "text/plain;charset=UTF-8")).build();
 		sendMessageAndVerifyOutput("stringToBytes", msg, test);
 	}
-
 
 	@SuppressWarnings("serial")
 	static class Foo implements Serializable {

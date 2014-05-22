@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -240,9 +241,10 @@ public class ModuleDeploymentWriter {
 	public Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
 			ModuleDeploymentPropertiesProvider provider, ContainerMatcher containerMatcher)
 			throws InterruptedException {
+		Collection<Result> results = new ArrayList<Result>();
 		CuratorFramework client = zkConnection.getClient();
-		ResultCollector collector = new ResultCollector();
 		while (descriptors.hasNext()) {
+			ResultCollector collector = new ResultCollector();
 			ModuleDescriptor descriptor = descriptors.next();
 			for (Container container : containerMatcher.match(descriptor,
 					provider.propertiesForDescriptor(descriptor),
@@ -273,9 +275,29 @@ public class ModuleDeploymentWriter {
 					collector.addResult(createResult(path, e));
 				}
 			}
+			// for each individual module, block until all containers
+			// have responded to (or timed out) the module deployment request;
+			// the blocking has to occur for each individual module in
+			// order to ensure that modules for streams are deployed
+			// in the correct order
+			results.addAll(processResults(client, collector));
 		}
 
-		// block until all results are back or until timeout
+		return results;
+	}
+
+	/**
+	 * Block the calling thread until all expected results are returned
+	 * or until a timeout occurs. Additionally, remove any module deployment
+	 * paths for deployments that failed or timed out.
+	 *
+	 * @param client     Curator client
+	 * @param collector  ZooKeeper watch used to collect results
+	 * @return collection of results for module deployment requests
+	 * @throws InterruptedException
+	 */
+	private Collection<Result> processResults(CuratorFramework client,
+			ResultCollector collector) throws InterruptedException {
 		Collection<Result> results = collector.getResults();
 
 		// remove the ZK path for any failed deployments
@@ -297,7 +319,6 @@ public class ModuleDeploymentWriter {
 				}
 			}
 		}
-
 		return results;
 	}
 

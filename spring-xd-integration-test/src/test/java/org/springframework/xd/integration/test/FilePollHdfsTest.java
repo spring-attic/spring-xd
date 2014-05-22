@@ -57,13 +57,13 @@ public class FilePollHdfsTest extends AbstractIntegrationTest {
 		String sourceFileName = UUID.randomUUID().toString();
 		SimpleFileSource fileSource = sources.file(FilePollHdfsJob.DEFAULT_FILE_NAME, sourceFileName + ".out").reference(
 				true);
-
+		waitForXD();
 		job(jobs.filePollHdfsJob(DEFAULT_NAMES).toDSL());
 		waitForXD();
 		stream(fileSource + XD_TAP_DELIMETER + " queue:job:" + JOB_NAME);
 		waitForXD();
 		stream("DataReceiver", sources.http() + XD_DELIMETER
-				+ sinks.file(FilePollHdfsJob.DEFAULT_FILE_NAME, sourceFileName).toDSL("REPLACE", "true"), WAIT_TIME);
+				+ sinks.file(FilePollHdfsJob.DEFAULT_FILE_NAME, sourceFileName), WAIT_TIME);
 		waitForXD();
 		sources.http().postData(data);
 		assertValidHdfs(data, FilePollHdfsJob.DEFAULT_DIRECTORY + "/" + FilePollHdfsJob.DEFAULT_FILE_NAME + "-0.csv");

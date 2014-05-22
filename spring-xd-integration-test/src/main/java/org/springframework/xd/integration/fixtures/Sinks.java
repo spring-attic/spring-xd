@@ -89,7 +89,7 @@ public class Sinks {
 	 * @return an instantiated file sink
 	 */
 	public SimpleFileSink file(String dir, String fileName) {
-		return new SimpleFileSink(dir, fileName);
+		return SimpleFileSink.withDefaults(dir, fileName);
 	}
 
 	/**

@@ -47,14 +47,14 @@ import reactor.net.udp.spec.DatagramServerSpec;
 /**
  * {@code InboundChannelAdapter} implementation that uses the Reactor TCP support to read in syslog messages and
  * transform them to a {@code Map} for use in downstream modules.
- * 
+ *
  * @author Jon Brisbin
  */
 public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 
 	private final Environment env;
 
-	private volatile NetServer server;
+	private volatile NetServer<Buffer, Buffer> server;
 
 	private volatile String transport = "tcp";
 
@@ -105,7 +105,7 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 	protected void onInit() {
 		super.onInit();
 
-		NetServerSpec<Buffer, Buffer, ? extends NetServerSpec<Buffer, Buffer, ?, ?>, ? extends NetServer> spec;
+		NetServerSpec<Buffer, Buffer, ? extends NetServerSpec<Buffer, Buffer, ?, ?>, ? extends NetServer<Buffer, Buffer>> spec;
 		if("udp".equals(transport)) {
 			spec = new DatagramServerSpec<Buffer, Buffer>(NettyDatagramServer.class);
 		} else {

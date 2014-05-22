@@ -53,8 +53,6 @@ public class SimpleFileSink extends AbstractModuleFixture {
 	 * @param mode determines if the file should be REPLACE, APPEND, etc 
 	 */
 	public SimpleFileSink(String dir, String fileName, boolean binary, String mode) {
-		Assert.hasText(dir, "dir must not be empty");
-		Assert.hasText(fileName, "fileName must not be empty");
 		Assert.hasText(mode, "mode must not be null nor empty");
 		this.dir = dir;
 		this.fileName = fileName;
@@ -80,9 +78,11 @@ public class SimpleFileSink extends AbstractModuleFixture {
 	public String toDSL() {
 		String result = String.format("file --binary=%s --mode=%s ", binary, mode);
 		if (fileName != null) {
+			Assert.hasText(fileName, "fileName must not be empty");
 			result += "--name='" + fileName + "' ";
 		}
 		if (dir != null) {
+			Assert.hasText(dir, "dir must not be empty");
 			result += "--dir='" + dir + "' ";
 		}
 		return result;
@@ -94,9 +94,6 @@ public class SimpleFileSink extends AbstractModuleFixture {
 	 * @return the current instance of the SimpleFileSink
 	 */
 	public SimpleFileSink dir(String dir) {
-		if (dir != null) {
-			Assert.hasText(dir, "directory must not be empty");
-		}
 		this.dir = dir;
 		return this;
 	}
@@ -107,9 +104,6 @@ public class SimpleFileSink extends AbstractModuleFixture {
 	 * @return the current instance of the SimpleFileSink
 	 */
 	public SimpleFileSink fileName(String fileName) {
-		if (fileName != null) {
-			Assert.hasText(fileName, "fileName must not be empty");
-		}
 		this.fileName = fileName;
 		return this;
 	}

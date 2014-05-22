@@ -35,7 +35,7 @@ import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
 
 /**
  * Initializer that can print useful stuff about an XD context on startup.
- * 
+ *
  * @author Dave Syer
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
@@ -98,7 +98,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 		ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 		for (PropertySource<?> ps : env.getPropertySources()) {
 			if (ps instanceof EnumerablePropertySource) {
-				EnumerablePropertySource eps = (EnumerablePropertySource) ps;
+				EnumerablePropertySource<?> eps = (EnumerablePropertySource<?>) ps;
 				propertyNames.addAll(Arrays.asList(eps.getPropertyNames()));
 			}
 		}

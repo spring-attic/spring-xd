@@ -34,6 +34,8 @@
 
 	<bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore">
 		<property name="timeoutOnIdle" value="true"/>
+		<!-- TODO: The following property will default to "false" in Spring Integration 4.1 -->
+		<property name="copyOnGet" value="false"/>
 	</bean>
 
 	<int-hadoop:dataset-outbound-channel-adapter id="objects" dataset-operations="datasetOperations"/>

@@ -26,7 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
@@ -53,7 +53,7 @@ public class RedisPublishingMessageHandlerTests {
 
 	private static final int NUM_MESSAGES = 10;
 
-	private LettuceConnectionFactory connectionFactory;
+	private RedisConnectionFactory connectionFactory;
 
 	private RedisMessageListenerContainer container;
 

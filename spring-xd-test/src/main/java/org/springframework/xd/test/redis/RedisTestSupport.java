@@ -18,7 +18,7 @@ package org.springframework.xd.test.redis;
 
 import org.junit.Rule;
 
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
 
 /**
@@ -27,7 +27,7 @@ import org.springframework.xd.test.AbstractExternalResourceTestSupport;
  * @author Gary Russell
  * @author Eric Bottard
  */
-public class RedisTestSupport extends AbstractExternalResourceTestSupport<LettuceConnectionFactory> {
+public class RedisTestSupport extends AbstractExternalResourceTestSupport<JedisConnectionFactory> {
 
 	public RedisTestSupport() {
 		super("REDIS");
@@ -35,7 +35,7 @@ public class RedisTestSupport extends AbstractExternalResourceTestSupport<Lettuc
 
 	@Override
 	protected void obtainResource() throws Exception {
-		resource = new LettuceConnectionFactory();
+		resource = new JedisConnectionFactory();
 		resource.afterPropertiesSet();
 		resource.getConnection().close();
 	}

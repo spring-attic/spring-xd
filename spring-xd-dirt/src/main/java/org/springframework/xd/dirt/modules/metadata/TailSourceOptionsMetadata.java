@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
+
 import javax.validation.constraints.AssertTrue;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
@@ -29,7 +31,7 @@ public class TailSourceOptionsMetadata {
 
 	private int lines = 0;
 
-	private String name;
+	private String name = "/tmp/xd/input/" + XD_STREAM_NAME;
 
 	private String nativeOptions;
 

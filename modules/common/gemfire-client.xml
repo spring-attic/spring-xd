@@ -8,7 +8,7 @@
 
 	<gfe:client-cache id="client-cache" use-bean-factory-locator="false" close="false"/>
 	<gfe:client-region id="region" cache-ref="client-cache"
-		name="${regionName:${xd.stream.name}}" data-policy="EMPTY"/>
+		name="${regionName}" data-policy="EMPTY"/>
 
 	<beans profile="use-server">
 		<gfe:pool id="client-pool">

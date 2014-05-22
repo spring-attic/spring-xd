@@ -16,6 +16,8 @@
 
 package org.springframework.xd.gemfire;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
@@ -31,9 +33,9 @@ public class GemfireServerSinkModuleOptionsMetadata implements ProfileNamesProvi
 
 	private int port = 40404;
 
-	private String regionName;
+	private String regionName = XD_STREAM_NAME;
 
-	private String keyExpression;
+	private String keyExpression = "'" + XD_STREAM_NAME + "'";
 
 	private boolean useLocator = false;
 

@@ -62,13 +62,22 @@ public class XdEc2Validation {
 
 	private final RestTemplate restTemplate;
 
+	private HadoopUtils hadoopUtil;
+
+	private XdEnvironment xdEnvironment;
+
+
 	/**
 	 * Construct a new instance of XdEc2Validation
 	 */
-	public XdEc2Validation() {
+	public XdEc2Validation(HadoopUtils hadoopUtil, XdEnvironment xdEnvironment) {
+		Assert.notNull(hadoopUtil, "hadoopUtil should not be null");
+		Assert.notNull(xdEnvironment, "xdEnvironment should not be null");
 		restTemplate = new RestTemplate();
 		((SimpleClientHttpRequestFactory) restTemplate.getRequestFactory())
 				.setConnectTimeout(2000);
+		this.xdEnvironment = xdEnvironment;
+		this.hadoopUtil = hadoopUtil;
 	}
 
 	/**
@@ -173,14 +182,12 @@ public class XdEc2Validation {
 	/**
 	 * Verifies that the data user gave us is what was stored after the stream has processed the flow.
 	 *
-	 * @param xdEnvironment the Acceptance Test Environment.
 	 * @param url The server that the stream is deployed.
 	 * @param fileName The file that contains the data to check.
 	 * @param data The data used to evaluate the results of the stream.
 	 */
-	public void verifyTestContent(XdEnvironment xdEnvironment, URL url, String fileName,
+	public void verifyTestContent(URL url, String fileName,
 			String data) {
-		Assert.notNull(xdEnvironment, "xdEnvironment should not be null");
 		Assert.notNull(url, "url should not be null");
 		Assert.hasText(fileName, "fileName can not be empty nor null");
 		Assert.hasText(data, "data can not be empty nor null");
@@ -209,18 +216,16 @@ public class XdEc2Validation {
 	/**
 	 * Verifies that the data user gave us is contained in the result.
 	 *
-	 * @param xdEnvironment the Acceptance Test Environment.
 	 * @param url The server that the stream is deployed.
 	 * @param fileName The file that contains the data to check.
 	 * @param data The data used to evaluate the results of the stream.
 	 */
-	public void verifyContentContains(XdEnvironment xdEnvironment, URL url, String fileName,
+	public void verifyContentContains(URL url, String fileName,
 			String data) {
-		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
 		Assert.notNull(url, "url can not be null");
 		Assert.hasText(fileName, "fileName can not be empty nor null");
 		Assert.hasText(data, "data can not be empty nor null");
-		String result = getDataFromResultFile(xdEnvironment, url, fileName);
+		String result = getDataFromResultFile(url, fileName);
 		assertTrue("Could not find data in result file.. Read \""
 				+ result + "\"\n but didn't see \"" + data + "\"", result.contains(data));
 	}
@@ -228,32 +233,45 @@ public class XdEc2Validation {
 	/**
 	 * Verifies that the data user gave us is contained in the result.
 	 *
-	 * @param xdEnvironment the Acceptance Test Environment.
 	 * @param url The server that the stream is deployed.
 	 * @param fileName The file that contains the data to check.
 	 * @param data The data used to evaluate the results of the stream.
 	 */
-	public void verifyContentContainsIgnoreCase(XdEnvironment xdEnvironment, URL url, String fileName,
+	public void verifyContentContainsIgnoreCase(URL url, String fileName,
 			String data) {
-		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
 		Assert.notNull(url, "url can not be null");
 		Assert.hasText(fileName, "fileName can not be empty nor null");
 		Assert.hasText(data, "data can not be empty nor null");
-		String result = getDataFromResultFile(xdEnvironment, url, fileName);
+		String result = getDataFromResultFile(url, fileName);
 		assertTrue("Could not find data in result file.. Read \""
 				+ result + "\"\n but didn't see \"" + data + "\"", result.toLowerCase().contains(data.toLowerCase()));
 	}
 
 	/**
+	 * Evaluates the content of the hdfs file against a result.  If equal no action is taken else an assert is thrown.
+	 * @param expectedResult The data that should be within the hdfs file.
+	 * @param pathToHdfsFile The location of the file on the hdfs file system
+	 */
+	public void verifyHdfsTestContent(String expectedResult, String pathToHdfsFile) {
+		Assert.hasText(pathToHdfsFile, "pathToHdfsFile must not be empty nor null");
+		Assert.notNull(expectedResult, "pathToHdfsFile must not be null");
+
+		assertTrue(pathToHdfsFile + " is not present on hdfs file system",
+				hadoopUtil.waitForPath(10000, pathToHdfsFile));
+		assertEquals("The data returned from hadoop was different than was sent.  ", expectedResult + "\n",
+				hadoopUtil.getFileContentsFromHdfs(pathToHdfsFile));
+	}
+
+
+	/**
 	 * Takes the content of the file and places it in a string. If the file is on EC2 it will copy the file from ec2 to
 	 * the local machine.
 	 *
-	 * @param xdEnvironment The test environment
 	 * @param url The URL of the EC2 instance where the file is located. (if tests on ec2)
 	 * @param fileName The name of the file that contains the data
 	 * @return The content of the file as a string.
 	 */
-	private String getDataFromResultFile(XdEnvironment xdEnvironment, URL url, String fileName) {
+	private String getDataFromResultFile(URL url, String fileName) {
 		String resultFileName = fileName;
 		File file = new File(resultFileName);
 		try {

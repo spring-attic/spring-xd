@@ -63,7 +63,7 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 		FileJdbcJob job = jobs.fileJdbcJob();
 		// Create a stream that writes to a file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMETER
-				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL("REPLACE", "true"), WAIT_TIME);
+				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL(), WAIT_TIME);
 		waitForXD();
 		sources.http().postData(data);
 

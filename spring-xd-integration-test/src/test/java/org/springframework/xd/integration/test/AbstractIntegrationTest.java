@@ -55,11 +55,14 @@ public abstract class AbstractIntegrationTest {
 
 	private final static String STREAM_NAME = "ec2Test3";
 
-	private final static String JOB_NAME = "ec2Job3";
+	protected final static String JOB_NAME = "ec2Job3";
 
 	protected final static String XD_DELIMETER = " | ";
 
 	public final static int WAIT_TIME = 10000;
+
+	protected final static String XD_TAP_DELIMETER = " > ";
+
 
 	@Autowired
 	protected XdEnvironment xdEnvironment;
@@ -180,12 +183,13 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Creates a job on the XD cluster defined by the test's Artifact or Environment variables Uses JOB_NAME as default
-	 * job name.
+	 * Creates a job on the XD cluster defined by the test's
+	 * Artifact or Environment variables Uses JOB_NAME as default job name.
 	 *
 	 * @param job the job definition
 	 */
 	public void job(String job) {
+		Assert.hasText(job, "job needs to be poopulated with a definition and can not be null");
 		job(JOB_NAME, job, WAIT_TIME);
 	}
 
@@ -357,6 +361,16 @@ public abstract class AbstractIntegrationTest {
 
 
 	/**
+	 * Verifies that the content of file on HDFS is the same as the data.
+	 * @param data The data expected in the file.
+	 * @param path The path/filename of the file on hdfs.  
+	 */
+	public void assertValidHdfs(String data, String path) {
+		waitForXD(pauseTime * 2000);
+		validation.verifyHdfsTestContent(data, path);
+	}
+
+	/**
 	 * Asserts that the data stored by the file sink is what was expected.  
 	 *
 	 * @param data The data expected in the file
@@ -369,7 +383,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
-		validation.verifyContentContains(xdEnvironment, url, fileName, data);
+		validation.verifyContentContains(url, fileName, data);
 	}
 
 	/**
@@ -386,7 +400,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
-		validation.verifyContentContainsIgnoreCase(xdEnvironment, url, fileName, data);
+		validation.verifyContentContainsIgnoreCase(url, fileName, data);
 	}
 
 	/**
@@ -401,7 +415,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
-		validation.verifyTestContent(xdEnvironment, url, fileName, data);
+		validation.verifyTestContent(url, fileName, data);
 	}
 
 	/**
@@ -413,7 +427,7 @@ public abstract class AbstractIntegrationTest {
 	private void assertLogEntry(String data, URL url)
 	{
 		waitForXD();
-		validation.verifyContentContains(xdEnvironment, url, xdEnvironment.getContainerLogLocation(), data);
+		validation.verifyContentContains(url, xdEnvironment.getContainerLogLocation(), data);
 	}
 
 	protected void waitForXD() {

@@ -17,12 +17,13 @@
 package org.springframework.xd.integration.fixtures;
 
 import org.springframework.xd.test.fixtures.FileJdbcJob;
+import org.springframework.xd.test.fixtures.FilePollHdfsJob;
 import org.springframework.xd.test.fixtures.JdbcHdfsJob;
 
 
 /**
  * A factory that provides fully instantiated job fixtures using default values.
-
+ *
  * @author Glenn Renfro
  */
 public class Jobs {
@@ -31,7 +32,7 @@ public class Jobs {
 	 * Create an instance of the FileJdbc job with the default target dir, fileName, tableName and column names.
 	 *
 	 * @see FileJdbcJob for default values
-	 * 
+	 *
 	 * @return instance of a FileJDBCJob Fixture.
 	 */
 	public FileJdbcJob fileJdbcJob() {
@@ -40,12 +41,22 @@ public class Jobs {
 
 	/**
 	 * Create an instance of the JdbcHdfs job with the default hdfs target dir, fileName and source sql statement.
-	 * 
+	 *
 	 * @see JdbcHdfsJob for default values
 	 * @return instance of a FileJDBCJob Fixture.
 	 */
 	public JdbcHdfsJob jdbcHdfsJob() {
 		return JdbcHdfsJob.withDefaults();
+	}
+
+	/**
+	 * Creates an instance of the FilePollHdfsJob using defaults.
+	 *
+	 * @param names A comma delimited list of column names
+	 * @return an instance of the FilePollHdfsJob fixture.
+	 */
+	public FilePollHdfsJob filePollHdfsJob(String names) {
+		return FilePollHdfsJob.withDefaults(names);
 	}
 
 }

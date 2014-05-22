@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.job;
 
 
-
 /**
  * Represents Batch job info.
  * 
@@ -37,25 +36,29 @@ public class JobInfo {
 
 	private final Long jobInstanceId;
 
-	public JobInfo(String name, int executionCount) {
-		this(name, executionCount, false);
-	}
+	private boolean deployed = false;
 
 	public JobInfo(String name, int executionCount, boolean launchable) {
-		this(name, executionCount, null, launchable, false);
+		this(name, executionCount, null, launchable, false, false);
 	}
 
 	public JobInfo(String name, int executionCount, boolean launchable, boolean incrementable) {
-		this(name, executionCount, null, launchable, incrementable);
+		this(name, executionCount, null, launchable, incrementable, false);
 	}
 
-	public JobInfo(String name, int executionCount, Long jobInstanceId, boolean launchable, boolean incrementable) {
+	public JobInfo(String name, int executionCount, boolean launchable, boolean incrementable, boolean deployed) {
+		this(name, executionCount, null, launchable, incrementable, deployed);
+	}
+
+	public JobInfo(String name, int executionCount, Long jobInstanceId, boolean launchable, boolean incrementable,
+			boolean deployed) {
 		super();
 		this.name = name;
 		this.executionCount = executionCount;
 		this.jobInstanceId = jobInstanceId;
 		this.launchable = launchable;
 		this.incrementable = incrementable;
+		this.deployed = deployed;
 	}
 
 	public String getName() {
@@ -76,5 +79,9 @@ public class JobInfo {
 
 	public boolean isIncrementable() {
 		return incrementable;
+	}
+
+	public boolean isDeployed() {
+		return deployed;
 	}
 }

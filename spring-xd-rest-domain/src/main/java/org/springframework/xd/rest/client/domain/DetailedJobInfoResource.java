@@ -50,8 +50,8 @@ public class DetailedJobInfoResource extends JobInfoResource {
 	}
 
 	public DetailedJobInfoResource(String name, int executionCount, boolean launchable, boolean incrementable,
-			JobExecutionInfoResource lastExecution) {
-		super(name, executionCount, null, launchable, incrementable);
+			JobExecutionInfoResource lastExecution, boolean deployed) {
+		super(name, executionCount, null, launchable, incrementable, deployed);
 		if (lastExecution != null) {
 			jobParameters = lastExecution.getJobParametersString();
 			duration = lastExecution.getDuration();

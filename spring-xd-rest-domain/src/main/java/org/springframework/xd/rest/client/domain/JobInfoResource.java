@@ -39,6 +39,8 @@ public class JobInfoResource extends ResourceSupport {
 
 	private Long jobInstanceId;
 
+	private boolean deployed;
+
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
@@ -46,12 +48,13 @@ public class JobInfoResource extends ResourceSupport {
 	}
 
 	public JobInfoResource(String name, int executionCount, Long jobInstanceId, boolean launchable,
-			boolean incrementable) {
+			boolean incrementable, boolean deployed) {
 		this.name = name;
 		this.executionCount = executionCount;
 		this.jobInstanceId = jobInstanceId;
 		this.launchable = launchable;
 		this.incrementable = incrementable;
+		this.deployed = deployed;
 	}
 
 	public String getName() {
@@ -72,5 +75,9 @@ public class JobInfoResource extends ResourceSupport {
 
 	public boolean isIncrementable() {
 		return incrementable;
+	}
+
+	public boolean isDeployed() {
+		return deployed;
 	}
 }

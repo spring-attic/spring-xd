@@ -82,6 +82,7 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 	public void before() throws Exception {
 		SimpleJob job1 = new SimpleJob("job1");
 		SimpleJob job2 = new SimpleJob("job2");
+
 		Collection<String> jobNames = new ArrayList<String>();
 		jobNames.add(job1.getName());
 		jobNames.add(job2.getName());
@@ -149,6 +150,7 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 				status().isOk()).andExpect(jsonPath("$", Matchers.hasSize(2))).andExpect(
 				jsonPath("$[*].executionCount", contains(2, 1))).andExpect(
 				jsonPath("$[*].launchable", contains(false, true))).andExpect(
+				jsonPath("$[*].deployed", contains(false, false))).andExpect(
 				jsonPath("$[*].incrementable", contains(false, true))).andExpect(
 				jsonPath("$[*].jobInstanceId", contains(nullValue(), nullValue()))).andExpect(
 				jsonPath("$[*].duration", contains(info.getDuration(), null))).andExpect(
@@ -189,7 +191,8 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 				get("/batch/jobs/job1").param("startJobInstance", "0").param("pageSize", "20").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.executionCount").value(2)).andExpect(jsonPath("$.launchable").value(false)).andExpect(
-				jsonPath("$.incrementable").value(false)).andExpect(jsonPath("$.jobInstanceId", nullValue()));
+				jsonPath("$.incrementable").value(false)).andExpect(jsonPath("$.deployed").value(false)).andExpect(
+				jsonPath("$.jobInstanceId", nullValue()));
 
 	}
 

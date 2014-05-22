@@ -41,8 +41,8 @@ public class DetailedJobInfo extends JobInfo {
 	private JobExecutionInfo lastExecutionInfo;
 
 	public DetailedJobInfo(String name, int executionCount, boolean launchable, boolean incrementable,
-			JobExecutionInfo lastExecution) {
-		super(name, executionCount, launchable, incrementable);
+			JobExecutionInfo lastExecution, boolean deployed) {
+		super(name, executionCount, launchable, incrementable, deployed);
 		this.lastExecutionInfo = lastExecution;
 		if (lastExecutionInfo != null) {
 			jobParameters = lastExecution.getJobParametersString();

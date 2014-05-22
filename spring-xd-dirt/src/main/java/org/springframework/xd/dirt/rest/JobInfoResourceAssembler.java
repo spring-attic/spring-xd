@@ -40,6 +40,6 @@ public class JobInfoResourceAssembler extends ResourceAssemblerSupport<JobInfo, 
 	@Override
 	protected JobInfoResource instantiateResource(JobInfo entity) {
 		return new JobInfoResource(entity.getName(), entity.getExecutionCount(), entity.getJobInstanceId(),
-				entity.isLaunchable(), entity.isIncrementable());
+				entity.isLaunchable(), entity.isIncrementable(), entity.isDeployed());
 	}
 }

@@ -55,6 +55,6 @@ public class DetailedJobInfoResourceAssembler extends
 			jobExecutionInfoResource = null;
 		}
 		return new DetailedJobInfoResource(entity.getName(), entity.getExecutionCount(),
-				entity.isLaunchable(), entity.isIncrementable(), jobExecutionInfoResource);
+				entity.isLaunchable(), entity.isIncrementable(), jobExecutionInfoResource, entity.isDeployed());
 	}
 }

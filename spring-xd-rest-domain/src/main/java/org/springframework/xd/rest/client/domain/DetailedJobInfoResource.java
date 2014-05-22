@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ public class DetailedJobInfoResource extends JobInfoResource {
 	}
 
 	public DetailedJobInfoResource(String name, int executionCount, boolean launchable, boolean incrementable,
-			JobExecutionInfoResource lastExecution) {
-		super(name, executionCount, null, launchable, incrementable);
+			JobExecutionInfoResource lastExecution, boolean deployed) {
+		super(name, executionCount, null, launchable, incrementable, deployed);
 		if (lastExecution != null) {
 			jobParameters = lastExecution.getJobParametersString();
 			duration = lastExecution.getDuration();

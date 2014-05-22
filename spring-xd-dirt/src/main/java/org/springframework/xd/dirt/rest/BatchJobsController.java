@@ -35,6 +35,7 @@ import org.springframework.xd.dirt.job.DetailedJobInfo;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.JobInstanceInfo;
 import org.springframework.xd.dirt.job.NoSuchBatchJobException;
+import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.rest.client.domain.DetailedJobInfoResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
@@ -65,8 +66,17 @@ public class BatchJobsController extends AbstractBatchJobsController {
 			@RequestParam(defaultValue = "20") int pageSize) {
 		Collection<String> names = jobService.listJobs(startJob, pageSize);
 		List<DetailedJobInfoResource> jobs = new ArrayList<DetailedJobInfoResource>();
+		// Check if the job is deployed into XD
+		List<Job> deployedJobs = (List<Job>) xdJobrepository.findAll();
 		for (String name : names) {
-			jobs.add(internalGetJobInfo(name));
+			boolean deployed = false;
+			for (Job deployedJob : deployedJobs) {
+				if (deployedJob.getDefinition().getName().equals(name)) {
+					deployed = true;
+					break;
+				}
+			}
+			jobs.add(getJobInfo(name, deployed));
 		}
 		return jobs;
 	}
@@ -111,20 +121,28 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	public DetailedJobInfoResource jobinfo(@PathVariable String jobName) {
-		return internalGetJobInfo(jobName);
+		return getJobInfo(jobName);
+	}
+
+	private DetailedJobInfoResource getJobInfo(String jobName) {
+		Job deployedJob = xdJobrepository.findOne(jobName);
+		return getJobInfo(jobName, (null != deployedJob));
 	}
 
 	/**
+	 * Get detailed job info
+	 *
 	 * @param jobName name of the job
+	 * @param deployed the deployment status of the job
 	 * @return a job info for this job
 	 */
-	private DetailedJobInfoResource internalGetJobInfo(String jobName) {
+	private DetailedJobInfoResource getJobInfo(String jobName, boolean deployed) {
 		boolean launchable = jobService.isLaunchable(jobName);
 		try {
 			int count = jobService.countJobExecutionsForJob(jobName);
 			DetailedJobInfo detailedJobInfo = new DetailedJobInfo(jobName, count, launchable,
 					jobService.isIncrementable(jobName),
-					getLastExecution(jobName));
+					getLastExecution(jobName), deployed);
 			return jobInfoResourceAssembler.toResource(detailedJobInfo);
 		}
 		catch (NoSuchJobException e) {

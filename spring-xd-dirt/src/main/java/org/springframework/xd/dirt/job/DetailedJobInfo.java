@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,9 +40,19 @@ public class DetailedJobInfo extends JobInfo {
 
 	private JobExecutionInfo lastExecutionInfo;
 
+	/**
+	 * Construct detailed job info.
+	 *
+	 * @param name the name of the job
+	 * @param executionCount the number of job executions
+	 * @param launchable flag to specify if the job is launchable
+	 * @param incrementable flag to specify if the job parameter is incrementable
+	 * @param lastExecution the last job execution for this job
+	 * @param deployed flag to specify if the job is deployed
+	 */
 	public DetailedJobInfo(String name, int executionCount, boolean launchable, boolean incrementable,
-			JobExecutionInfo lastExecution) {
-		super(name, executionCount, launchable, incrementable);
+			JobExecutionInfo lastExecution, boolean deployed) {
+		super(name, executionCount, launchable, incrementable, deployed);
 		this.lastExecutionInfo = lastExecution;
 		if (lastExecutionInfo != null) {
 			jobParameters = lastExecution.getJobParametersString();

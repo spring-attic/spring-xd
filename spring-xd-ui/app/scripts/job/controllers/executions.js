@@ -51,20 +51,25 @@ define([], function () {
             list();
           }, function (error) {
             utils.$log.error(error);
-            utils.growl.addErrorMessage(error.data[0].message);
+            if (error.data[0].logref === 'NoSuchBatchJobException') {
+              utils.growl.addErrorMessage('The BatchJob ' + job.name + ' is currently not deployed.');
+            }
+            else {
+              utils.growl.addErrorMessage(error.data[0].message);
+            }
           });
     };
     $scope.stopJob = function (job) {
-        utils.$log.info('Stopping Job ' + job.name);
-        jobExecutions.stop(job).$promise.then(
-            function (result) {
-              utils.$log.info(result);
-              utils.growl.addSuccessMessage('Stop request sent.');
-              list();
-            }, function (error) {
-              utils.$log.error(error);
-              utils.growl.addErrorMessage(error.data[0].message);
-            });
-      };
+      utils.$log.info('Stopping Job ' + job.name);
+      jobExecutions.stop(job).$promise.then(
+          function (result) {
+            utils.$log.info(result);
+            utils.growl.addSuccessMessage('Stop request sent.');
+            list();
+          }, function (error) {
+            utils.$log.error(error);
+            utils.growl.addErrorMessage(error.data[0].message);
+          });
+    };
   }];
 });

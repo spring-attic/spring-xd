@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 package org.springframework.xd.dirt.job;
-
 
 
 /**
@@ -37,25 +36,62 @@ public class JobInfo {
 
 	private final Long jobInstanceId;
 
-	public JobInfo(String name, int executionCount) {
-		this(name, executionCount, false);
-	}
+	private boolean deployed = false;
 
+	/**
+	 * Construct JobInfo
+	 *
+	 * @param name the name of the job
+	 * @param executionCount the number of executions
+	 * @param launchable flag to specify if the job is launchable
+	 */
 	public JobInfo(String name, int executionCount, boolean launchable) {
-		this(name, executionCount, null, launchable, false);
+		this(name, executionCount, null, launchable, false, false);
 	}
 
+	/**
+	 * Construct JobInfo
+	 *
+	 * @param name the name of the job
+	 * @param executionCount the number of executions
+	 * @param launchable flag to specify if the job is launchable
+	 * @param incrementable flag to specify if the job parameter is incrementable
+	 */
 	public JobInfo(String name, int executionCount, boolean launchable, boolean incrementable) {
-		this(name, executionCount, null, launchable, incrementable);
+		this(name, executionCount, null, launchable, incrementable, false);
 	}
 
-	public JobInfo(String name, int executionCount, Long jobInstanceId, boolean launchable, boolean incrementable) {
+	/**
+	 * Construct JobInfo
+	 *
+	 * @param name the name of the job
+	 * @param executionCount the number of executions
+	 * @param launchable flag to specify if the job is launchable
+	 * @param incrementable flag to specify if the job parameter is incrementable
+	 */
+	public JobInfo(String name, int executionCount, boolean launchable, boolean incrementable, boolean deployed) {
+		this(name, executionCount, null, launchable, incrementable, deployed);
+	}
+
+	/**
+	 * Construct JobInfo
+	 *
+	 * @param name the name of the job
+	 * @param executionCount the number of executions
+	 * @param jobInstanceId the job instnace id associated with this job info
+	 * @param launchable flag to specify if the job is launchable
+	 * @param incrementable flag to specify if the job parameter is incrementable
+	 * @param deployed flag to specify if the job is deployed
+	 */
+	public JobInfo(String name, int executionCount, Long jobInstanceId, boolean launchable, boolean incrementable,
+			boolean deployed) {
 		super();
 		this.name = name;
 		this.executionCount = executionCount;
 		this.jobInstanceId = jobInstanceId;
 		this.launchable = launchable;
 		this.incrementable = incrementable;
+		this.deployed = deployed;
 	}
 
 	public String getName() {
@@ -76,5 +112,13 @@ public class JobInfo {
 
 	public boolean isIncrementable() {
 		return incrementable;
+	}
+
+	/**
+	 * Return the deployment status from job info.
+	 * @return deployed the boolean value to specify the deployment status
+	 */
+	public boolean isDeployed() {
+		return deployed;
 	}
 }

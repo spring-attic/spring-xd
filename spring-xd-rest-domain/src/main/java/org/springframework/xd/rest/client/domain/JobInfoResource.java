@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ public class JobInfoResource extends ResourceSupport {
 
 	private Long jobInstanceId;
 
+	private boolean deployed;
+
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
@@ -46,12 +48,13 @@ public class JobInfoResource extends ResourceSupport {
 	}
 
 	public JobInfoResource(String name, int executionCount, Long jobInstanceId, boolean launchable,
-			boolean incrementable) {
+			boolean incrementable, boolean deployed) {
 		this.name = name;
 		this.executionCount = executionCount;
 		this.jobInstanceId = jobInstanceId;
 		this.launchable = launchable;
 		this.incrementable = incrementable;
+		this.deployed = deployed;
 	}
 
 	public String getName() {
@@ -72,5 +75,13 @@ public class JobInfoResource extends ResourceSupport {
 
 	public boolean isIncrementable() {
 		return incrementable;
+	}
+
+	/**
+	 * Return the deployment status from job info resource.
+	 * @return deployed the boolean value to specify the deployment status
+	 */
+	public boolean isDeployed() {
+		return deployed;
 	}
 }

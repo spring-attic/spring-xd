@@ -21,6 +21,7 @@ import java.util.TimeZone;
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.xd.dirt.stream.JobRepository;
 
 
 /**
@@ -33,6 +34,9 @@ public abstract class AbstractBatchJobsController {
 
 	@Autowired
 	protected JobService jobService;
+
+	@Autowired
+	protected JobRepository xdJobrepository;
 
 	protected TimeZone timeZone = TimeZone.getDefault();
 

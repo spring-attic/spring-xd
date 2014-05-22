@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.xd.rest.client.domain.JobInfoResource;
 
 /**
  * Knows how to build a REST resource out of our domain model {@link JobInfo}.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public class JobInfoResourceAssembler extends ResourceAssemblerSupport<JobInfo, JobInfoResource> {
@@ -40,6 +40,6 @@ public class JobInfoResourceAssembler extends ResourceAssemblerSupport<JobInfo, 
 	@Override
 	protected JobInfoResource instantiateResource(JobInfo entity) {
 		return new JobInfoResource(entity.getName(), entity.getExecutionCount(), entity.getJobInstanceId(),
-				entity.isLaunchable(), entity.isIncrementable());
+				entity.isLaunchable(), entity.isIncrementable(), entity.isDeployed());
 	}
 }

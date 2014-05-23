@@ -110,7 +110,6 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class, HsqlDatasourceConfiguration.class,
 				HsqlServerApplication.class)
 				.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE)
-				.properties("spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest") //
 				.web(false).run();
 		messageBus = sharedContext.getBean(LocalMessageBus.class);
 		jobPlugin = new JobPlugin(messageBus);

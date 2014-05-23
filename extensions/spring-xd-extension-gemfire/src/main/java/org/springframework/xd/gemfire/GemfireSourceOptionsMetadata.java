@@ -16,20 +16,60 @@
 
 package org.springframework.xd.gemfire;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
+
 import org.hibernate.validator.constraints.NotBlank;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 /**
  * Describes options to the {@code gemfire} source module.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
-public class GemfireSourceOptionsMetadata {
+public class GemfireSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private String cacheEventExpression = "newValue";
 
-	private String regionName;
+	private String regionName = XD_STREAM_NAME;
 
+	private String host = "localhost";
+
+	private int port = 40404;
+
+	private boolean useLocator = false;
+
+	public String getHost() {
+		return host;
+	}
+
+
+	@ModuleOption("host name of the cache server or locator (if useLocator=true)")
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+
+	public int getPort() {
+		return port;
+	}
+
+	@ModuleOption("port of the cache server or locator (if useLocator=true)")
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	@Override
+	public String[] profilesToActivate() {
+		if (useLocator) {
+			return new String[] { "use-locator" };
+		}
+		else {
+			return new String[] { "use-server" };
+		}
+	}
 
 	@NotBlank
 	public String getCacheEventExpression() {

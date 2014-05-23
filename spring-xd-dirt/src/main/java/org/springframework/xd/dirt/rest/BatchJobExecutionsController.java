@@ -174,9 +174,8 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 		}
 
 		if (jobExecution.isRunning()) {
-			throw new org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException("Job Execution "
-					+ jobExecution.getId()
-					+ " is already running.");
+			throw new org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException(
+					"Job Execution for this job is already running: " + jobExecution.getJobInstance());
 		}
 
 		final JobInstance lastInstance = jobExecution.getJobInstance();

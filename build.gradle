@@ -492,9 +492,6 @@ project('spring-xd-dirt') {
 			exclude group: 'org.fusesource.fuse-extra'
 		}
 		testCompile "org.springframework:spring-jms:$springVersion"
-
-		// The following because of org/springframework/integration/x/bus/serializer/TweetSerializationTests.groovy
-		testCompile "org.springframework.social:spring-social-twitter:1.1.0.M4"
 	}
 
 	apply plugin:'application'
@@ -623,9 +620,13 @@ project('spring-xd-extension-tcp') {
 project('spring-xd-extension-twitter') {
 	description = 'Spring XD Twitter'
 	dependencies {
-		compile "org.springframework.integration:spring-integration-twitter:$springIntegrationVersion"
+		compile project(':spring-xd-module-spi')
+		compile "javax.validation:validation-api:1.0.0.GA"
 		// Override the version which social-twitter brings in
 		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile "org.springframework.social:spring-social-twitter:1.1.0.RELEASE"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "org.codehaus.groovy:groovy-all:2.2.2"
 	}
 }
 

@@ -26,6 +26,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -87,17 +88,18 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		try {
 			byte[] data = zkConnection.getClient().getData().forPath(metadataPath);
 			if (data != null) {
-				Map<String, String> metadataMap = new HashMap<String, String>();
-				Map<String, String> map = mapBytesUtility.toMap(data);
+				Map<String, String> optionsMap = new HashMap<String, String>();
+				Map<String, String> metadataMap = mapBytesUtility.toMap(data);
 				String moduleId = getModuleId(metadataPath);
 				String containerId = getContainerId(metadataPath);
-				for (String propertyKey : map.keySet()) {
+				for (String propertyKey : metadataMap.keySet()) {
+					String propertyValue = metadataMap.get(propertyKey);
 					if (!propertyKey.startsWith(XD_MODULE_PROPERTIES_PREFIX)
-							&& !StringUtils.isEmpty(map.get(propertyKey))) {
-						metadataMap.put(propertyKey, map.get(propertyKey));
+							&& !StringUtils.isEmpty(propertyValue)) {
+						resolveModuleOptionValues(optionsMap, metadataMap, propertyKey, propertyValue);
 					}
 				}
-				String moduleProperties = (!metadataMap.isEmpty()) ? MapUtils.toProperties(metadataMap).toString() : "";
+				String moduleProperties = (!optionsMap.isEmpty()) ? MapUtils.toProperties(optionsMap).toString() : "";
 				metadata = new ModuleMetadata(moduleId, containerId, moduleProperties);
 			}
 		}
@@ -106,6 +108,29 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 		return metadata;
+	}
+
+	/**
+	 * Resolve the module option value using the module metadata.
+	 *
+	 * @param optionsMap the options map that has resolved properties
+	 * @param metadataMap the metadata map from ZK module metadata
+	 * @param propertyKey the module option proeperty key
+	 * @param propertyValue the module option property value to resolve
+	 */
+	private void resolveModuleOptionValues(Map<String, String> optionsMap,
+			Map<String, String> metadataMap, String propertyKey,
+			String propertyValue) {
+		if (propertyValue.startsWith(PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX) &&
+				propertyValue.endsWith(PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX)) {
+			// For a property ${module.property}, we just extract "module.property" and
+			// check if the metadataMap has a value for it.
+			String placeholderKey = propertyValue.substring(2, propertyValue.length() - 1);
+			if (metadataMap.get(placeholderKey) != null) {
+				propertyValue = metadataMap.get(placeholderKey);
+			}
+		}
+		optionsMap.put(propertyKey, propertyValue);
 	}
 
 	private String getModuleId(String metadataPath) {

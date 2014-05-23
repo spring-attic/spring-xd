@@ -26,19 +26,12 @@ import org.springframework.util.Assert;
  */
 public class TwitterSearchSource extends AbstractModuleFixture {
 
-	public static final String DEFAULT_OUTPUT_TYPE = "application/json ";
-
-	public static final int DEFAULT_FIXED_DELAY = 30000;
-
 	private String consumerKey;
 
 	private String consumerSecret;
 
-	private int fixedDelay;
-
 	private String query;
 
-	private String outputType;
 
 	/**
 	 * Initializes a TwitterSearchSource fixture.
@@ -46,21 +39,15 @@ public class TwitterSearchSource extends AbstractModuleFixture {
 	 * @param consumerKey The users twitter consumer key
 	 * @param consumerSecret The users twitter comsumer secret key
 	 * @param query The query the twitter source will execute.
-	 * @param outputType the format in which the output will be written.
-	 * @param fixedDelay the number of millis between searches.
 	 */
-	public TwitterSearchSource(String consumerKey, String consumerSecret, String query, String outputType,
-			int fixedDelay) {
+	public TwitterSearchSource(String consumerKey, String consumerSecret, String query) {
 		Assert.hasText(consumerKey, "consumerKey must not be empty nor null");
 		Assert.hasText(consumerSecret, "consumerSecret must not be empty nor null");
 		Assert.hasText(query, "query must not be empty nor null");
-		Assert.hasText(outputType, "outputType must not be empty nor null");
 
 		this.consumerKey = consumerKey;
 		this.consumerSecret = consumerSecret;
 		this.query = query;
-		this.outputType = outputType;
-		this.fixedDelay = fixedDelay;
 	}
 
 	/**
@@ -76,7 +63,7 @@ public class TwitterSearchSource extends AbstractModuleFixture {
 		Assert.hasText(consumerSecret, "consumerSecret must not be empty nor null");
 		Assert.hasText(query, "query must not be empty nor null");
 
-		return new TwitterSearchSource(consumerKey, consumerSecret, query, DEFAULT_OUTPUT_TYPE, DEFAULT_FIXED_DELAY);
+		return new TwitterSearchSource(consumerKey, consumerSecret, query);
 	}
 
 	/**
@@ -84,27 +71,7 @@ public class TwitterSearchSource extends AbstractModuleFixture {
 	 */
 	@Override
 	protected String toDSL() {
-		return "twittersearch --fixedDelay=" + fixedDelay + " --consumerKey=" + this.consumerKey
-				+ " --consumerSecret=" + consumerSecret + " --query=" + query + " --outputType=application/json ";
+		return "twittersearch " + " --consumerKey=" + this.consumerKey
+				+ " --consumerSecret=" + consumerSecret + " --query=" + query;
 	}
-
-
-	public int getFixedDelay() {
-		return fixedDelay;
-	}
-
-
-	public void setFixedDelay(int fixedDelay) {
-		this.fixedDelay = fixedDelay;
-	}
-
-	public String getOutputType() {
-		return outputType;
-	}
-
-	public void setOutputType(String outputType) {
-		this.outputType = outputType;
-	}
-
-
 }

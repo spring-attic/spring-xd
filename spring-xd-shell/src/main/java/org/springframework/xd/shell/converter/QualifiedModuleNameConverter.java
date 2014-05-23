@@ -16,12 +16,17 @@
 
 package org.springframework.xd.shell.converter;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.shell.ShellException;
 import org.springframework.shell.core.Completion;
 import org.springframework.shell.core.Converter;
 import org.springframework.shell.core.MethodTarget;
+import org.springframework.shell.core.SimpleParser;
+import org.springframework.shell.support.logging.HandlerUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
@@ -33,11 +38,14 @@ import org.springframework.xd.shell.command.ModuleCommands.QualifiedModuleName;
 
 /**
  * Knows how to build and query {@link ModuleCommands.QualifiedModuleName}s.
- * 
+ *
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 @Component
 public class QualifiedModuleNameConverter implements Converter<QualifiedModuleName> {
+
+	private static final Logger logger = HandlerUtils.getLogger(SimpleParser.class);
 
 	@Autowired
 	private XDShell xdShell;
@@ -49,10 +57,34 @@ public class QualifiedModuleNameConverter implements Converter<QualifiedModuleNa
 
 	@Override
 	public QualifiedModuleName convertFromText(String value, Class<?> targetType, String optionContext) {
-		int colon = value.indexOf(':');
-		QualifiedModuleName result = new QualifiedModuleName(value.substring(colon + 1),
-				RESTModuleType.valueOf(value.substring(0, colon)));
+		int colonIndex = value.indexOf(':');
+		if (colonIndex == -1) {
+			logger.warning("Incorrect syntax. Valid syntax is '<ModuleType>:<ModuleName>'.");
+			logger.warning("For example, 'module info source:file' to get 'file' <source> module info.");
+			throw new ShellException();
+		}
+		RESTModuleType moduleType = validateAndReturnModuleType(value.substring(0, colonIndex));
+		QualifiedModuleName result = new QualifiedModuleName(value.substring(colonIndex + 1), moduleType);
 		return result;
+	}
+
+	/**
+	 * Verify the module type used in the option value
+	 * and return the valid module type.
+	 * @param value the value to validate
+	 * @return RESTModuleType the valid module type
+	 */
+	private RESTModuleType validateAndReturnModuleType(String value) {
+		RESTModuleType moduleType;
+		try {
+			moduleType = RESTModuleType.valueOf(value);
+		}
+		catch (IllegalArgumentException e) {
+			logger.warning("Not a valid module type. Valid module types are: "
+					+ Arrays.toString(RESTModuleType.values()));
+			throw new ShellException();
+		}
+		return moduleType;
 	}
 
 	@Override

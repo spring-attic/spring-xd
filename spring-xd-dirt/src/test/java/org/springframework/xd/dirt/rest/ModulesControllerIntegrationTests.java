@@ -56,6 +56,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Glenn Renfro
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -208,4 +209,9 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 						jsonPath("$.type").value("sink"));
 	}
 
+	@Test
+	public void testModuleInfoWithIncorrectModuleName() throws Exception {
+		mockMvc.perform(get("/modules/source/test")).andExpect(status().isNotFound()).andExpect(
+				jsonPath("$[0].message", Matchers.is("Could not find module with name 'test' and type 'source'")));
+	}
 }

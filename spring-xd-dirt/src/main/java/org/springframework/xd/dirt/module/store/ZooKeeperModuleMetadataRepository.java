@@ -88,18 +88,12 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		try {
 			byte[] data = zkConnection.getClient().getData().forPath(metadataPath);
 			if (data != null) {
-				Map<String, String> optionsMap = new HashMap<String, String>();
 				Map<String, String> metadataMap = mapBytesUtility.toMap(data);
 				String moduleId = getModuleId(metadataPath);
 				String containerId = getContainerId(metadataPath);
-				for (String propertyKey : metadataMap.keySet()) {
-					String propertyValue = metadataMap.get(propertyKey);
-					if (!propertyKey.startsWith(XD_MODULE_PROPERTIES_PREFIX)
-							&& !StringUtils.isEmpty(propertyValue)) {
-						resolveModuleOptionValues(optionsMap, metadataMap, propertyKey, propertyValue);
-					}
-				}
-				String moduleProperties = (!optionsMap.isEmpty()) ? MapUtils.toProperties(optionsMap).toString() : "";
+				Map<String, String> resolvedOptions = resolveModuleOptionValues(metadataMap);
+				String moduleProperties = (resolvedOptions.isEmpty()) ? ""
+						: MapUtils.toProperties(resolvedOptions).toString();
 				metadata = new ModuleMetadata(moduleId, containerId, moduleProperties);
 			}
 		}
@@ -113,24 +107,28 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	/**
 	 * Resolve the module option value using the module metadata.
 	 *
-	 * @param optionsMap the options map that has resolved properties
-	 * @param metadataMap the metadata map from ZK module metadata
-	 * @param propertyKey the module option proeperty key
-	 * @param propertyValue the module option property value to resolve
+	 * @param metadataMap the values map from ZK module metadata
+	 * @return the resolved option values map
 	 */
-	private void resolveModuleOptionValues(Map<String, String> optionsMap,
-			Map<String, String> metadataMap, String propertyKey,
-			String propertyValue) {
-		if (propertyValue.startsWith(PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX) &&
-				propertyValue.endsWith(PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX)) {
-			// For a property ${module.property}, we just extract "module.property" and
-			// check if the metadataMap has a value for it.
-			String placeholderKey = propertyValue.substring(2, propertyValue.length() - 1);
-			if (metadataMap.get(placeholderKey) != null) {
-				propertyValue = metadataMap.get(placeholderKey);
+	private Map<String, String> resolveModuleOptionValues(Map<String, String> metadataMap) {
+		Map<String, String> optionsMap = new HashMap<String, String>();
+		for (String propertyKey : metadataMap.keySet()) {
+			String propertyValue = metadataMap.get(propertyKey);
+			if (!propertyKey.startsWith(XD_MODULE_PROPERTIES_PREFIX)
+					&& !StringUtils.isEmpty(propertyValue)) {
+				if (propertyValue.startsWith(PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX) &&
+						propertyValue.endsWith(PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_SUFFIX)) {
+					// For a property ${module.property}, we just extract "module.property" and
+					// check if the metadataMap has a value for it.
+					String placeholderKey = propertyValue.substring(2, propertyValue.length() - 1);
+					if (metadataMap.get(placeholderKey) != null) {
+						propertyValue = metadataMap.get(placeholderKey);
+					}
+				}
+				optionsMap.put(propertyKey, propertyValue);
 			}
 		}
-		optionsMap.put(propertyKey, propertyValue);
+		return optionsMap;
 	}
 
 	private String getModuleId(String metadataPath) {

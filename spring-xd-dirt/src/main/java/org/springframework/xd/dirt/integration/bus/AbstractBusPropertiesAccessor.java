@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.integration.bus;
 
 import java.util.Properties;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.StringUtils;
 
 
@@ -28,6 +30,8 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public abstract class AbstractBusPropertiesAccessor {
+
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private final Properties properties;
 
@@ -192,6 +196,54 @@ public abstract class AbstractBusPropertiesAccessor {
 	 */
 	public long getBackOffMaxInterval(long defaultValue) {
 		return getProperty("backOffMaxInterval", defaultValue);
+	}
+
+	// Partitioning
+
+	/**
+	 * The expression to determine the partition key, evaluated against the
+	 * message as the root object.
+	 * @return The key.
+	 */
+	public Expression getPartitionKeyExpression() {
+		String partionKeyExpression = getProperty("partitionKeyExpression");
+		Expression expression = null;
+		if (partionKeyExpression != null) {
+			expression = PARSER.parseExpression(partionKeyExpression);
+		}
+		return expression;
+	}
+
+	/**
+	 * The expression evaluated against the partition key to determine
+	 * the partition to which the message will be sent. The result should
+	 * be an integer that will subsequently be mod'd with the module's
+	 * partition count.
+	 * @return The expression.
+	 */
+	public Expression getPartitionExpression() {
+		String partionExpression = getProperty("partitionExpression");
+		Expression expression = null;
+		if (partionExpression != null) {
+			expression = PARSER.parseExpression(partionExpression);
+		}
+		return expression;
+	}
+
+	/**
+	 * The number of partitions for this module.
+	 * @return The count.
+	 */
+	public int getModuleCount() {
+		return getProperty("partition.count", 1);
+	}
+
+	/**
+	 * The partition that this consumer supports.
+	 * @return The partition.
+	 */
+	public int getModulePartition() {
+		return getProperty("partition", -1);
 	}
 
 	// Utility methods

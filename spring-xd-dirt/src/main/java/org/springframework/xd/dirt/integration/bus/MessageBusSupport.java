@@ -40,10 +40,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
@@ -62,7 +65,8 @@ import org.springframework.xd.dirt.integration.bus.serializer.SerializationExcep
  * @author David Turanski
  * @author Gary Russell
  */
-public abstract class MessageBusSupport implements MessageBus, ApplicationContextAware, InitializingBean {
+public abstract class MessageBusSupport
+		implements MessageBus, ApplicationContextAware, InitializingBean, IntegrationEvaluationContextAware {
 
 	protected static final String P2P_NAMED_CHANNEL_TYPE_PREFIX = "queue:";
 
@@ -89,6 +93,10 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
 
 	private final Set<MessageChannel> createdChannels = Collections.synchronizedSet(new HashSet<MessageChannel>());
+
+	private volatile EvaluationContext evaluationContext;
+
+	private volatile PartitionStrategy partitionStrategy = new DefaultPartitionStrategy();
 
 	/**
 	 * Used in the canonical case, when the binding does not involve an alias name.
@@ -152,6 +160,11 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 
 	protected IdGenerator getIdGenerator() {
 		return idGenerator;
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
 	}
 
 	@Override
@@ -394,6 +407,50 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 			return TEXT_PLAIN_VALUE;
 		}
 		return "application/x-java-object;type=" + originalPayload.getClass().getName();
+	}
+
+	/**
+	 * Determine the partition to which to send this message. The partition key expression
+	 * evaluates to a key value. If the partition expression is not null, it is evaluated
+	 * against the evaluated key and is expected to return an integer to which the modulo function
+	 * will be applied, using the divisor.
+	 * <p>
+	 * If no partition expression is provided, the key will be passed to the bus partition
+	 * strategy along with the divisor.
+	 * The default partition strategy uses {@code key.hashCode()}, and the result will
+	 * be the mod of that value.
+	 *
+	 * @param message the message
+	 * @param partitionKeyExpression the key expression.
+	 * @param partitionExpression the partition expression, or null.
+	 * @param divisor the divisor.
+	 * @return the partition.
+	 */
+	protected int determinePartition(Message<?> message, Expression partitionKeyExpression,
+			Expression partitionExpression, int divisor) {
+		Assert.notNull(partitionKeyExpression, "'partitionKeyExpression' cannot be null");
+		Object key = partitionKeyExpression.getValue(this.evaluationContext, message);
+		if (partitionExpression != null) {
+			return partitionExpression.getValue(evaluationContext, key, Integer.class) % divisor;
+		}
+		else {
+			int partition = this.partitionStrategy.partition(key, divisor);
+			Assert.isTrue(partition < divisor, "The partition function returned " + partition
+					+ "; it should be less than " + divisor);
+			return partition;
+		}
+	}
+
+	/**
+	 * Default partition strategy; only works on keys with "real" hash codes, such as String.
+	 */
+	private class DefaultPartitionStrategy implements PartitionStrategy {
+
+		@Override
+		public int partition(Object key, int divisor) {
+			return key.hashCode() % divisor;
+		}
+
 	}
 
 	/**

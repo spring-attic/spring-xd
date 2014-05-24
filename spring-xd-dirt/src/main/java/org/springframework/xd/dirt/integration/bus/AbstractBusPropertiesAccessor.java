@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.integration.bus;
 
 import java.util.Properties;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.StringUtils;
 
 
@@ -28,6 +30,8 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  */
 public abstract class AbstractBusPropertiesAccessor {
+
+	private static final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
 
 	private final Properties properties;
 
@@ -192,6 +196,70 @@ public abstract class AbstractBusPropertiesAccessor {
 	 */
 	public long getBackOffMaxInterval(long defaultValue) {
 		return getProperty("backOffMaxInterval", defaultValue);
+	}
+
+	// Partitioning
+
+	/**
+	 * A class name for extracting partition keys from messages.
+	 * @return The class name,
+	 */
+	public String getPartitionKeyExtractorClass() {
+		return getProperty("partitionKeyExtractorClass");
+	}
+
+	/**
+	 * The expression to determine the partition key, evaluated against the
+	 * message as the root object.
+	 * @return The key.
+	 */
+	public Expression getPartitionKeyExpression() {
+		String partionKeyExpression = getProperty("partitionKeyExpression");
+		Expression expression = null;
+		if (partionKeyExpression != null) {
+			expression = spelExpressionParser.parseExpression(partionKeyExpression);
+		}
+		return expression;
+	}
+
+	/**
+	 * A class name for calculating a partition from a key.
+	 * @return The class name,
+	 */
+	public String getPartitionSelectorClass() {
+		return getProperty("partitionSelectorClass");
+	}
+
+	/**
+	 * The expression evaluated against the partition key to determine
+	 * the partition to which the message will be sent. The result should
+	 * be an integer that will subsequently be mod'd with the module's
+	 * partition count.
+	 * @return The expression.
+	 */
+	public Expression getPartitionSelectorExpression() {
+		String partionSelectorExpression = getProperty("partitionSelectorExpression");
+		Expression expression = null;
+		if (partionSelectorExpression != null) {
+			expression = spelExpressionParser.parseExpression(partionSelectorExpression);
+		}
+		return expression;
+	}
+
+	/**
+	 * The number of partitions for this module.
+	 * @return The count.
+	 */
+	public int getPartitionCount() {
+		return getProperty("partitionCount", 1);
+	}
+
+	/**
+	 * The partition index that this consumer supports.
+	 * @return The partition index.
+	 */
+	public int getPartitionIndex() {
+		return getProperty("partitionIndex", -1);
 	}
 
 	// Utility methods

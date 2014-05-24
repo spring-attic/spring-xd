@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.integration.rabbit;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -37,6 +39,7 @@ import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.http.MediaType;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
@@ -46,7 +49,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -223,7 +225,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		registerNamedChannelForConsumerIfNecessary(name, false);
-		Queue queue = new Queue(accessor.getPrefix(this.defaultPrefix) + name);
+		String queueName = accessor.getPrefix(this.defaultPrefix) + name;
+		int partitionIndex = accessor.getPartitionIndex();
+		if (partitionIndex >= 0) {
+			queueName += "-" + partitionIndex;
+		}
+		Queue queue = new Queue(queueName);
 		this.rabbitAdmin.declareQueue(queue);
 		doRegisterConsumer(name, moduleInputChannel, queue, accessor);
 	}
@@ -316,10 +323,22 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name, RabbitPropertiesAccessor properties) {
 		String queueName = properties.getPrefix(this.defaultPrefix) + name;
-		rabbitAdmin.declareQueue(new Queue(queueName));
+		String partitionKeyExtractorClass = properties.getPartitionKeyExtractorClass();
+		Expression partitionKeyExpression = properties.getPartitionKeyExpression();
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
 		queue.setBeanFactory(this.getBeanFactory());
-		queue.setRoutingKey(queueName); // uses default exchange
+		if (partitionKeyExpression == null && !StringUtils.hasText(partitionKeyExtractorClass)) {
+			rabbitAdmin.declareQueue(new Queue(queueName));
+			queue.setRoutingKey(queueName); // uses default exchange
+		}
+		else {
+			queue.setRoutingKeyExpression("'"
+					+ queueName
+					+ "-' + headers['partition']");
+			for (int i = 0; i < properties.getPartitionCount(); i++) {
+				this.rabbitAdmin.declareQueue(new Queue(queueName + "-" + i));
+			}
+		}
 		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
 		mapper.setRequestHeaderNames(properties.getRequestHeaderPattens(this.defaultRequestHeaderPatterns));
 		mapper.setReplyHeaderNames(properties.getReplyHeaderPattens(this.defaultReplyHeaderPatterns));
@@ -355,7 +374,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		mapper.setRequestHeaderNames(properties.getRequestHeaderPattens(this.defaultRequestHeaderPatterns));
 		mapper.setReplyHeaderNames(properties.getReplyHeaderPattens(this.defaultReplyHeaderPatterns));
 		delegate.setHeaderMapper(mapper);
-		MessageHandler handler = new SendingHandler(delegate, replyTo);
+		MessageHandler handler = new SendingHandler(delegate, replyTo, properties);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanFactory(this.getBeanFactory());
 		consumer.setBeanName("outbound." + name);
@@ -417,9 +436,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		private final String replyTo;
 
-		private SendingHandler(MessageHandler delegate, String replyTo) {
+		private final PartitioningMetadata partitioningMetadata;
+
+		private SendingHandler(MessageHandler delegate, String replyTo, RabbitPropertiesAccessor properties) {
 			this.delegate = delegate;
 			this.replyTo = replyTo;
+			this.partitioningMetadata = new PartitioningMetadata(properties);
 			this.setBeanFactory(RabbitMessageBus.this.getBeanFactory());
 		}
 
@@ -427,9 +449,20 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			Message<?> messageToSend = serializePayloadIfNecessary(message,
 					MediaType.APPLICATION_OCTET_STREAM);
+			Map<String, Object> additionalHeaders = null;
 			if (replyTo != null) {
-				messageToSend = MessageBuilder.fromMessage(messageToSend)
-						.setHeader(AmqpHeaders.REPLY_TO, this.replyTo)
+				additionalHeaders = new HashMap<String, Object>();
+				additionalHeaders.put(AmqpHeaders.REPLY_TO, this.replyTo);
+			}
+			if (this.partitioningMetadata.isPartitionedModule()) {
+				if (additionalHeaders == null) {
+					additionalHeaders = new HashMap<String, Object>();
+				}
+				additionalHeaders.put("partition", determinePartition(message, this.partitioningMetadata));
+			}
+			if (additionalHeaders != null) {
+				messageToSend = getMessageBuilderFactory().fromMessage(messageToSend)
+						.copyHeaders(additionalHeaders)
 						.build();
 			}
 			this.delegate.handleMessage(messageToSend);

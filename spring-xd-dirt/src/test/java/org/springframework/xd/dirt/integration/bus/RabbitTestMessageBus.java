@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.integration.bus;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.rabbit.RabbitMessageBus;
 
@@ -42,6 +43,7 @@ public class RabbitTestMessageBus extends AbstractTestMessageBus {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.refresh();
 		messageBus.setApplicationContext(context);
+		messageBus.setIntegrationEvaluationContext(new StandardEvaluationContext());
 		this.setMessageBus(messageBus);
 		this.rabbitAdmin = new RabbitAdmin(connectionFactory);
 	}
@@ -51,6 +53,11 @@ public class RabbitTestMessageBus extends AbstractTestMessageBus {
 		if (!queues.isEmpty()) {
 			for (String queue : queues) {
 				rabbitAdmin.deleteQueue("xdbus." + queue);
+				if (queue.contains("part")) {
+					for (int i = 0; i < 10; i++) {
+						rabbitAdmin.deleteQueue("xdbus." + queue + "-" + i);
+					}
+				}
 				rabbitAdmin.deleteQueue("foo." + queue);
 			}
 		}

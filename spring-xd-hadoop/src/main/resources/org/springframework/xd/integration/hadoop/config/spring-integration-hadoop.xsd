@@ -31,6 +31,7 @@
 							<xsd:element name="static" type="staticNamingStrategyType"/>
 							<xsd:element name="rolling" type="rollingNamingStrategyType"/>
 							<xsd:element name="codec" type="codecNamingStrategyType"/>
+							<xsd:element name="uuid" type="uuidNamingStrategyType"/>
 						</xsd:choice>
 					</xsd:sequence>
 				</xsd:extension>
@@ -74,6 +75,8 @@
 			<xsd:attribute name="in-use-prefix" use="optional"/>
 			<xsd:attribute name="rollover-strategy" use="optional"/>
 			<xsd:attribute name="naming-strategy" use="optional"/>
+			<xsd:attribute name="partition-expression" use="optional"/>
+			<xsd:attribute name="file-open-attempts" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -145,6 +148,12 @@
 	<xsd:complexType name="rollingNamingStrategyType" mixed="true">
 		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
 		<xsd:attribute name="prefix" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="uuidNamingStrategyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+		<xsd:attribute name="enabled" use="optional"/>
+		<xsd:attribute name="uuid" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
 </xsd:schema>

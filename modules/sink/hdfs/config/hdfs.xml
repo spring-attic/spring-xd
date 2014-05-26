@@ -15,12 +15,6 @@
 	<task:executor id="taskExecutor" pool-size="1"/>
 	<task:scheduler id="taskScheduler" pool-size="1"/>
 
-	<!-- to generate something unique for each instance's file name -->
-	<!-- TODO: remove the use of '_' once we fix https://jira.spring.io/browse/SHDP-345 -->
-	<bean id="uuid" class="java.lang.String">
-		<constructor-arg value="#{T(java.util.UUID).randomUUID().toString().replaceAll('-', '_') }"/>
-	</bean>
-
 	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">
 		fs.default.name=${spring.hadoop.fsUri}
 	</hdp:configuration>
@@ -36,9 +30,10 @@
 	ordering in a way it exists in this file.
 	-->
 	<int-hadoop:naming-strategy>
-		<int-hadoop:static order="1" name="${fileName}_#{uuid}" />
-		<int-hadoop:rolling order="2" />
-		<int-hadoop:static order="3" prefix="." name="${fileExtension}" />
+		<int-hadoop:static order="1" name="${fileName:${xd.stream.name}}" />
+		<int-hadoop:uuid order="2" enabled="${fileUuid}"/>
+		<int-hadoop:rolling order="3" />
+		<int-hadoop:static order="4" prefix="." name="${fileExtension}" />
 		<int-hadoop:codec />
 	</int-hadoop:naming-strategy>
 
@@ -51,7 +46,9 @@
 		in-use-suffix="${inUseSuffix}"
 		in-use-prefix="${inUsePrefix}"
 		rollover-strategy="fileRolloverStrategy"
-		naming-strategy="fileNamingStrategy" />
+		naming-strategy="fileNamingStrategy"
+		partition-expression="${partitionPath}"
+		file-open-attempts="${fileOpenAttempts}" />
 
 	<int-hadoop:hdfs-outbound-channel-adapter channel="input"
 		writer="storeWriter" />

@@ -21,9 +21,8 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
+import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.data.hadoop.store.output.TextFileWriter;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.integration.hadoop.IntegrationHadoopSystemConstants;
@@ -34,28 +33,28 @@ import org.springframework.xd.integration.hadoop.IntegrationHadoopSystemConstant
  * @author Janne Valkealahti
  * 
  */
-public class StoreWriterParser extends AbstractBeanDefinitionParser {
+public class StoreWriterParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TextFileWriter.class);
-
-		builder.addConstructorArgReference(element.getAttribute("configuration"));
-		IntegrationHadoopNamespaceUtils.addPathConstructorArgReference(element, parserContext, builder, "base-path",
-				IntegrationHadoopSystemConstants.DEFAULT_DATA_PATH);
-		IntegrationHadoopNamespaceUtils.addCodecInfoConstructorArgReference(element, parserContext, builder, "codec");
-
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "in-use-suffix", "inWritingSuffix");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "in-use-prefix", "inWritingPrefix");
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "configuration");
+		IntegrationHadoopNamespaceUtils.setPathReference(element, parserContext, builder,
+				"base-path", IntegrationHadoopSystemConstants.DEFAULT_DATA_PATH);
+		IntegrationHadoopNamespaceUtils.setCodecInfoReference(element, parserContext, builder,
+				"codec");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "in-use-suffix");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "in-use-prefix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "overwrite");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "naming-strategy");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "rollover-strategy");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "partition-expression");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "file-open-attempts");
+	}
 
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "naming-strategy",
-				"fileNamingStrategy");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "rollover-strategy",
-				"rolloverStrategy");
-
-		return builder.getBeanDefinition();
+	@Override
+	protected Class<?> getBeanClass(Element element) {
+		return StoreWriterFactoryBean.class;
 	}
 
 	@Override

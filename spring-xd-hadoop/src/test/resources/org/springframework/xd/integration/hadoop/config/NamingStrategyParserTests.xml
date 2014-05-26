@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xmlns:int-hadoop="http://www.springframework.org/schema/integration/hadoop"
+			xmlns:hdp="http://www.springframework.org/schema/hadoop"
+			xsi:schemaLocation="http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
+
+	<int-hadoop:naming-strategy>
+		<int-hadoop:static order="1" name="base" />
+		<int-hadoop:rolling order="3" />
+		<int-hadoop:codec />
+		<int-hadoop:static order="4" prefix="." name="extension" />
+		<int-hadoop:uuid order="2" enabled="true" uuid="fakeuuid"/>
+	</int-hadoop:naming-strategy>
+
+</beans>

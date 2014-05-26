@@ -25,14 +25,15 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.Conventions;
 import org.springframework.data.hadoop.store.codec.Codecs;
 import org.springframework.util.StringUtils;
 
 /**
  * Utility methods for namespace.
- * 
+ *
  * @author Janne Valkealahti
- * 
+ *
  */
 public final class IntegrationHadoopNamespaceUtils {
 
@@ -42,16 +43,16 @@ public final class IntegrationHadoopNamespaceUtils {
 	}
 
 	/**
-	 * Adds the path constructor arg reference. Creates new hdfs {@code Path} as a spring bean order to play nice with
-	 * property placeholder and expressions.
-	 * 
+	 * Sets the path reference. Creates new hdfs {@code Path} as a spring bean order to play nice with property
+	 * placeholder and expressions.
+	 *
 	 * @param element the element
 	 * @param parserContext the parser context
 	 * @param builder the builder
 	 * @param attributeName the attribute name
 	 * @param defaultPath the default path
 	 */
-	public static void addPathConstructorArgReference(Element element, ParserContext parserContext,
+	public static void setPathReference(Element element, ParserContext parserContext,
 			BeanDefinitionBuilder builder, String attributeName, String defaultPath) {
 		String attribute = element.getAttribute(attributeName);
 		if (!StringUtils.hasText(attribute)) {
@@ -62,22 +63,22 @@ public final class IntegrationHadoopNamespaceUtils {
 		AbstractBeanDefinition beanDef = pathBuilder.getBeanDefinition();
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
-		builder.addConstructorArgReference(beanName);
+		builder.addPropertyReference(Conventions.attributeNameToPropertyName(attributeName), beanName);
 	}
 
 	/**
-	 * Adds the codec info constructor arg reference. Creates new {@code CodecInfo} bean via
-	 * {@code MethodInvokingFactoryBean} by calling static {@code Codecs#getCodecInfo(String)} order to play nice with
-	 * property placeholder and expressions.
-	 * 
+	 * Sets the codec info reference. Creates new {@code CodecInfo} bean via {@code MethodInvokingFactoryBean} by
+	 * calling static {@code Codecs#getCodecInfo(String)} order to play nice with property placeholder and expressions.
+	 *
 	 * @param element the element
 	 * @param parserContext the parser context
 	 * @param builder the builder
 	 * @param attributeName the attribute name
 	 */
-	public static void addCodecInfoConstructorArgReference(Element element, ParserContext parserContext,
+	public static void setCodecInfoReference(Element element, ParserContext parserContext,
 			BeanDefinitionBuilder builder, String attributeName) {
-		BeanDefinitionBuilder codecBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
+		BeanDefinitionBuilder codecBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
 
 		codecBuilder.addPropertyValue("targetClass", Codecs.class);
 		codecBuilder.addPropertyValue("targetMethod", "getCodecInfo");
@@ -86,7 +87,7 @@ public final class IntegrationHadoopNamespaceUtils {
 		AbstractBeanDefinition beanDef = codecBuilder.getBeanDefinition();
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
-		builder.addConstructorArgReference(beanName);
+		builder.addPropertyReference(Conventions.attributeNameToPropertyName(attributeName), beanName);
 	}
 
 }

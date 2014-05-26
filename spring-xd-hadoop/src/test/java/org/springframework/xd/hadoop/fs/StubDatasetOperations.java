@@ -20,7 +20,6 @@ import java.util.Collection;
 
 import org.kitesdk.data.DatasetDescriptor;
 import org.kitesdk.data.PartitionKey;
-import org.kitesdk.data.PartitionStrategy;
 
 import org.springframework.data.hadoop.store.dataset.DatasetOperations;
 import org.springframework.data.hadoop.store.dataset.DatasetRepositoryCallback;
@@ -41,17 +40,17 @@ public class StubDatasetOperations implements DatasetOperations {
 		throw new UnsupportedOperationException("not implemented");
 	}
 
-    @Override
-    public <T> void read(Class<T> targetClass, RecordCallback<T> callback, PartitionKey partitionKey) {
-        throw new UnsupportedOperationException("not implemented");
-    }
+	@Override
+	public <T> void read(Class<T> targetClass, RecordCallback<T> callback, PartitionKey partitionKey) {
+		throw new UnsupportedOperationException("not implemented");
+	}
 
-    @Override
-    public <T> Collection<T> read(Class<T> targetClass, PartitionKey partitionKey) {
-        throw new UnsupportedOperationException("not implemented");
-    }
+	@Override
+	public <T> Collection<T> read(Class<T> targetClass, PartitionKey partitionKey) {
+		throw new UnsupportedOperationException("not implemented");
+	}
 
-    @Override
+	@Override
 	public <T> void write(Collection<T> records) {
 		throw new UnsupportedOperationException("not implemented");
 	}
@@ -61,13 +60,14 @@ public class StubDatasetOperations implements DatasetOperations {
 		throw new UnsupportedOperationException("not implemented");
 	}
 
-    @Override
-    public <T> DatasetDescriptor getDatasetDescriptor(Class<T> targetClass) {
-        throw new UnsupportedOperationException("not implemented");
-    }
+	@Override
+	public <T> DatasetDescriptor getDatasetDescriptor(Class<T> targetClass) {
+		throw new UnsupportedOperationException("not implemented");
+	}
 
-    @Override
+	@Override
 	public <T> String getDatasetName(Class<T> clazz) {
 		throw new UnsupportedOperationException("not implemented");
 	}
+
 }

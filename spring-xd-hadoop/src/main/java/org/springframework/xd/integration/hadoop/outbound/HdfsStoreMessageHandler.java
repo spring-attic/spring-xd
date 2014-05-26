@@ -22,19 +22,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.SmartLifecycle;
-import org.springframework.data.hadoop.store.DataStoreWriter;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
-import org.springframework.util.Assert;
 
 /**
- * Spring Integration {@code MessageHandler} handling {@code Message} writing into hdfs using {@code DataStoreWriter}.
- * 
+ * Base implementation of Spring Integration {@code MessageHandler} handling {@code Message}.
+ *
  * @author Janne Valkealahti
- * 
  */
-public class HdfsStoreMessageHandler extends AbstractMessageHandler implements SmartLifecycle {
+public abstract class HdfsStoreMessageHandler extends AbstractMessageHandler implements SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(HdfsStoreMessageHandler.class);
 
@@ -45,8 +42,6 @@ public class HdfsStoreMessageHandler extends AbstractMessageHandler implements S
 	private volatile boolean running;
 
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
-
-	private DataStoreWriter<String> storeWriter;
 
 	@Override
 	public final boolean isAutoStartup() {
@@ -126,19 +121,19 @@ public class HdfsStoreMessageHandler extends AbstractMessageHandler implements S
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
-		doWrite(message);
-	}
-
-	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-		Assert.notNull(storeWriter, "Data Writer must be set");
+	protected final void handleMessageInternal(Message<?> message) throws Exception {
+		try {
+			doWrite(message);
+		}
+		catch (Exception e) {
+			throw new MessageHandlingException(message,
+					"failed to write Message payload to HDFS", e);
+		}
 	}
 
 	/**
 	 * Sets the auto startup.
-	 * 
+	 *
 	 * @param autoStartup the new auto startup
 	 * @see SmartLifecycle
 	 */
@@ -148,21 +143,12 @@ public class HdfsStoreMessageHandler extends AbstractMessageHandler implements S
 
 	/**
 	 * Sets the phase.
-	 * 
+	 *
 	 * @param phase the new phase
 	 * @see SmartLifecycle
 	 */
 	public void setPhase(int phase) {
 		this.phase = phase;
-	}
-
-	/**
-	 * Sets the store writer.
-	 * 
-	 * @param storeWriter the new store writer
-	 */
-	public void setStoreWriter(DataStoreWriter<String> storeWriter) {
-		this.storeWriter = storeWriter;
 	}
 
 	/**
@@ -177,34 +163,13 @@ public class HdfsStoreMessageHandler extends AbstractMessageHandler implements S
 	 * {@link #lifecycleLock}.
 	 */
 	protected void doStop() {
-		try {
-			storeWriter.close();
-		}
-		catch (Exception e) {
-			logger.error("Error closing writer", e);
-		}
 	};
 
 	/**
-	 * Writes a {@link Message} into a {@link DataStoreWriter}.
-	 * 
-	 * @param message the message
+	 * Subclasses need to implement this method to handle {@link Message} in its writer.
+	 *
+	 * @param message the message to write
 	 */
-	protected void doWrite(Message<?> message) {
-		try {
-			Object payload = message.getPayload();
-			if (payload instanceof String) {
-				storeWriter.write((String) payload);
-			}
-			else {
-				throw new MessageHandlingException(message,
-						"message not a String");
-			}
-		}
-		catch (Exception e) {
-			throw new MessageHandlingException(message,
-					"failed to write Message payload to HDFS", e);
-		}
-	}
+	protected abstract void doWrite(Message<?> message) throws Exception;
 
 }

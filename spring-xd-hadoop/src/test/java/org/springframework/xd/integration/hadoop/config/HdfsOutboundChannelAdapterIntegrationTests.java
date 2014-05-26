@@ -21,6 +21,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -37,7 +39,7 @@ import org.springframework.messaging.MessageChannel;
 public class HdfsOutboundChannelAdapterIntegrationTests {
 
 	@Test
-	public void test() throws Exception {
+	public void testWritesWithRollover() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"org/springframework/xd/integration/hadoop/config/HdfsOutboundChannelAdapterIntegrationTests.xml");
 		MessageChannel channel = context.getBean("hdfsOut", MessageChannel.class);
@@ -49,6 +51,37 @@ public class HdfsOutboundChannelAdapterIntegrationTests {
 		Path basepath = new Path(path + "/testdir/");
 		Path filepath0 = new Path(basepath, "testfile-0");
 		Path filepath1 = new Path(basepath, "testfile-1");
+		assertTrue(fileSystem.exists(basepath));
+		assertTrue(fileSystem.exists(filepath0));
+		assertTrue(fileSystem.exists(filepath1));
+		BufferedReader reader0 = new BufferedReader(new InputStreamReader(fileSystem.open(filepath0)));
+		assertEquals("foo", reader0.readLine());
+		BufferedReader reader1 = new BufferedReader(new InputStreamReader(fileSystem.open(filepath1)));
+		assertEquals("bar", reader1.readLine());
+		reader0.close();
+		reader1.close();
+		assertTrue(fileSystem.delete(basepath, true));
+	}
+
+	@Test
+	public void testWritesWithPartition() throws Exception {
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"org/springframework/xd/integration/hadoop/config/HdfsOutboundChannelAdapterIntegrationPartitionTests.xml");
+		MessageChannel channel = context.getBean("hdfsOut", MessageChannel.class);
+
+		FileSystem fileSystem = context.getBean("hadoopFs", FileSystem.class);
+		String path = context.getBean("path", String.class);
+		String YYYYMM = new SimpleDateFormat("yyyy/MM").format(new Date());
+		Path basepath = new Path(path + "/testdir2/");
+		Path filepath0 = new Path(basepath, YYYYMM + "/0_hash/foos_list/testfile-0");
+		Path filepath1 = new Path(basepath, YYYYMM + "/0_hash/bars_list/testfile-0");
+
+		fileSystem.delete(basepath, true);
+
+		channel.send(MessageBuilder.withPayload("foo").build());
+		channel.send(MessageBuilder.withPayload("bar").build());
+		context.close();
 		assertTrue(fileSystem.exists(basepath));
 		assertTrue(fileSystem.exists(filepath0));
 		assertTrue(fileSystem.exists(filepath1));

@@ -1,0 +1,284 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.xd.integration.hadoop.config;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
+import org.springframework.data.hadoop.store.DataStoreWriter;
+import org.springframework.data.hadoop.store.codec.CodecInfo;
+import org.springframework.data.hadoop.store.output.PartitionTextFileWriter;
+import org.springframework.data.hadoop.store.output.TextFileWriter;
+import org.springframework.data.hadoop.store.strategy.naming.FileNamingStrategy;
+import org.springframework.data.hadoop.store.strategy.rollover.RolloverStrategy;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.messaging.Message;
+import org.springframework.util.StringUtils;
+import org.springframework.xd.integration.hadoop.partition.MessagePartitionStrategy;
+
+/**
+ * A {@link FactoryBean} creating a {@link DataStoreWriter}. Created writer will be either
+ * {@link PartitionTextFileWriter} or {@link TextFileWriter} depending whether partition
+ * path expression is set.
+ *
+ * @author Janne Valkealahti
+ */
+public class StoreWriterFactoryBean implements InitializingBean, DisposableBean, FactoryBean<DataStoreWriter<?>>,
+		BeanFactoryAware, Lifecycle, IntegrationEvaluationContextAware {
+
+	private DataStoreWriter<?> storeWriter;
+
+	private Configuration configuration;
+
+	private Path basePath;
+
+	private CodecInfo codec;
+
+	private long idleTimeout;
+
+	private String inUseSuffix;
+
+	private String inUsePrefix;
+
+	private boolean overwrite = false;
+
+	private String partitionExpression;
+
+	private int fileOpenAttempts;
+
+	private FileNamingStrategy fileNamingStrategy;
+
+	private RolloverStrategy rolloverStrategy;
+
+	private BeanFactory beanFactory;
+
+	private EvaluationContext evaluationContext;
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
+	@Override
+	public DataStoreWriter<?> getObject() throws Exception {
+		return storeWriter;
+	}
+
+	@Override
+	public Class<?> getObjectType() {
+		return DataStoreWriter.class;
+	}
+
+	@Override
+	public boolean isSingleton() {
+		return true;
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		storeWriter = null;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (StringUtils.hasText(partitionExpression)) {
+			// we'll reuse evaluation context if it was given passed on to
+			// us by SI. on default we register additional method executor
+			// and property accessor.
+			MessagePartitionStrategy<String> partitionStrategy = new MessagePartitionStrategy<String>(
+					partitionExpression, evaluationContext);
+			PartitionTextFileWriter<Message<?>> writer = new PartitionTextFileWriter<Message<?>>(configuration,
+					basePath,
+					codec,
+					partitionStrategy);
+			writer.setIdleTimeout(idleTimeout);
+			writer.setInWritingPrefix(inUsePrefix);
+			writer.setInWritingSuffix(inUseSuffix);
+			writer.setOverwrite(overwrite);
+			writer.setFileNamingStrategyFactory(fileNamingStrategy);
+			writer.setRolloverStrategyFactory(rolloverStrategy);
+			if (beanFactory != null) {
+				writer.setBeanFactory(beanFactory);
+			}
+			if (fileOpenAttempts > 0) {
+				writer.setMaxOpenAttempts(fileOpenAttempts);
+			}
+			storeWriter = writer;
+		}
+		else {
+			TextFileWriter writer = new TextFileWriter(configuration, basePath, codec);
+			writer.setIdleTimeout(idleTimeout);
+			writer.setInWritingPrefix(inUsePrefix);
+			writer.setInWritingSuffix(inUseSuffix);
+			writer.setOverwrite(overwrite);
+			writer.setFileNamingStrategy(fileNamingStrategy);
+			writer.setRolloverStrategy(rolloverStrategy);
+			if (beanFactory != null) {
+				writer.setBeanFactory(beanFactory);
+			}
+			if (fileOpenAttempts > 0) {
+				writer.setMaxOpenAttempts(fileOpenAttempts);
+			}
+			storeWriter = writer;
+		}
+		if (storeWriter instanceof InitializingBean) {
+			((InitializingBean) storeWriter).afterPropertiesSet();
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		if (storeWriter instanceof Lifecycle) {
+			return ((Lifecycle) storeWriter).isRunning();
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
+	public void start() {
+		if (storeWriter instanceof Lifecycle) {
+			((Lifecycle) storeWriter).start();
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (storeWriter instanceof Lifecycle) {
+			((Lifecycle) storeWriter).stop();
+		}
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		// used with partition writer spel if set
+		this.evaluationContext = evaluationContext;
+	}
+
+	/**
+	 * Sets the hadoop configuration for the writer.
+	 *
+	 * @param configuration the new configuration
+	 */
+	public void setConfiguration(Configuration configuration) {
+		this.configuration = configuration;
+	}
+
+	/**
+	 * Sets the base path for the writer.
+	 *
+	 * @param basePath the new base path
+	 */
+	public void setBasePath(Path basePath) {
+		this.basePath = basePath;
+	}
+
+	/**
+	 * Sets the codec for the writer.
+	 *
+	 * @param codec the new codec
+	 */
+	public void setCodec(CodecInfo codec) {
+		this.codec = codec;
+	}
+
+	/**
+	 * Sets the idle timeout for the writer.
+	 *
+	 * @param idleTimeout the new idle timeout
+	 */
+	public void setIdleTimeout(long idleTimeout) {
+		this.idleTimeout = idleTimeout;
+	}
+
+	/**
+	 * Sets the in use suffix for the writer.
+	 *
+	 * @param inUseSuffix the new in use suffix
+	 */
+	public void setInUseSuffix(String inUseSuffix) {
+		this.inUseSuffix = inUseSuffix;
+	}
+
+	/**
+	 * Sets the in use prefix for the writer.
+	 *
+	 * @param inUsePrefix the new in use prefix
+	 */
+	public void setInUsePrefix(String inUsePrefix) {
+		this.inUsePrefix = inUsePrefix;
+	}
+
+	/**
+	 * Sets the file overwrite flag for the writer.
+	 *
+	 * @param overwrite the new overwrite
+	 */
+	public void setOverwrite(boolean overwrite) {
+		this.overwrite = overwrite;
+	}
+
+	/**
+	 * Sets the partition expression. This expression is used to determine
+	 * if this factory creates an instance of {@link PartitionTextFileWriter}
+	 * or {@link TextFileWriter}. Validity of this spel expression
+	 * is not checked in this factory, thus any non empty string will
+	 * result creation of {@link PartitionTextFileWriter}.
+	 *
+	 * @param partitionExpression the new partition expression
+	 */
+	public void setPartitionExpression(String partitionExpression) {
+		this.partitionExpression = partitionExpression;
+	}
+
+	/**
+	 * Sets the file open attempts for the writer.
+	 *
+	 * @param fileOpenAttempts the new file open attempts
+	 */
+	public void setFileOpenAttempts(int fileOpenAttempts) {
+		this.fileOpenAttempts = fileOpenAttempts;
+	}
+
+	/**
+	 * Sets the naming strategy.
+	 *
+	 * @param fileNamingStrategy the new naming strategy
+	 */
+	public void setNamingStrategy(FileNamingStrategy fileNamingStrategy) {
+		this.fileNamingStrategy = fileNamingStrategy;
+	}
+
+	/**
+	 * Sets the rollover strategy.
+	 *
+	 * @param rolloverStrategy the new rollover strategy
+	 */
+	public void setRolloverStrategy(RolloverStrategy rolloverStrategy) {
+		this.rolloverStrategy = rolloverStrategy;
+	}
+
+}

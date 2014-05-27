@@ -28,6 +28,7 @@ import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
@@ -57,7 +58,7 @@ public class MessagePartitionStrategy<T extends Object> extends AbstractPartitio
 	 * @param expression the expression
 	 * @param evaluationContext the evaluation context
 	 */
-	public MessagePartitionStrategy(Expression expression, EvaluationContext evaluationContext) {
+	public MessagePartitionStrategy(Expression expression, StandardEvaluationContext evaluationContext) {
 		super(new MessagePartitionResolver(expression, evaluationContext), new MessagePartitionKeyResolver<T>());
 	}
 
@@ -77,7 +78,7 @@ public class MessagePartitionStrategy<T extends Object> extends AbstractPartitio
 	 * @param expression the expression
 	 * @param evaluationContext the evaluation context
 	 */
-	public MessagePartitionStrategy(String expression, EvaluationContext evaluationContext) {
+	public MessagePartitionStrategy(String expression, StandardEvaluationContext evaluationContext) {
 		super(new MessagePartitionResolver(expression, evaluationContext), new MessagePartitionKeyResolver<T>());
 	}
 
@@ -91,14 +92,14 @@ public class MessagePartitionStrategy<T extends Object> extends AbstractPartitio
 
 		private final MessageExpressionMethods methods;
 
-		public MessagePartitionResolver(String expression, EvaluationContext evaluationContext) {
+		public MessagePartitionResolver(String expression, StandardEvaluationContext evaluationContext) {
 			ExpressionParser parser = new SpelExpressionParser();
 			this.expression = parser.parseExpression(expression);
 			this.methods = new MessageExpressionMethods(evaluationContext);
 			log.info("Using expression=[" + this.expression.getExpressionString() + "]");
 		}
 
-		public MessagePartitionResolver(Expression expression, EvaluationContext evaluationContext) {
+		public MessagePartitionResolver(Expression expression, StandardEvaluationContext evaluationContext) {
 			this.expression = expression;
 			this.methods = new MessageExpressionMethods(evaluationContext);
 			log.info("Using expression=[" + this.expression.getExpressionString() + "]");

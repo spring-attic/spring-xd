@@ -16,10 +16,6 @@
 
 package org.springframework.xd.integration.hadoop.partition;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -28,16 +24,14 @@ import org.springframework.util.Assert;
 
 /**
  * Helper class to work with a spel expressions resolving values
- * from a {@link Message}. On default a {@link StandardEvaluationContext} is created with
- * a registered {@link MessagePartitionKeyMethodResolver} and {@link MessagePartitionKeyPropertyAccessor}.
- *
+ * from a {@link Message}. A {@link StandardEvaluationContext} is expected and
+ * {@link MessagePartitionKeyMethodResolver} and {@link MessagePartitionKeyPropertyAccessor}
+ * registered with it.
  *
  * @author Janne Valkealahti
  *
  */
 public class MessageExpressionMethods {
-
-	private final static Log logger = LogFactory.getLog(MessageExpressionMethods.class);
 
 	private final StandardEvaluationContext context;
 
@@ -58,39 +52,29 @@ public class MessageExpressionMethods {
 	}
 
 	/**
-	 * Instantiates a new message expression methods.
+	 * Instantiates a new message expression methods with
+	 * a {@link StandardEvaluationContext}.
 	 *
-	 * @param evaluationContext the evaluation context
+	 * @param evaluationContext the spel evaluation context
 	 */
-	public MessageExpressionMethods(EvaluationContext evaluationContext) {
+	public MessageExpressionMethods(StandardEvaluationContext evaluationContext) {
 		this(evaluationContext, true);
 	}
 
 	/**
 	 * Instantiates a new message expression methods with
-	 * a {@link EvaluationContext} which is expected to be
 	 * a {@link StandardEvaluationContext}.
 	 *
 	 * @param evaluationContext the spel evaluation context
 	 * @param register if method resolver and property accessor should be registered
 	 */
-	public MessageExpressionMethods(EvaluationContext evaluationContext, boolean register) {
-		StandardEvaluationContext context = null;
-		if (evaluationContext instanceof StandardEvaluationContext) {
-			context = (StandardEvaluationContext) evaluationContext;
-		}
-		else if (evaluationContext != null) {
-			logger.warn("Expecting evaluation context of type StandardEvaluationContext, but it was "
-					+ evaluationContext + " going to create a new StandardEvaluationContext");
-		}
-		if (context == null) {
-			context = new StandardEvaluationContext();
-		}
+	public MessageExpressionMethods(StandardEvaluationContext evaluationContext, boolean register) {
+		Assert.notNull(evaluationContext, "Evaluation context cannot be null");
 		if (register) {
-			context.addMethodResolver(new MessagePartitionKeyMethodResolver());
-			context.addPropertyAccessor(new MessagePartitionKeyPropertyAccessor());
+			evaluationContext.addMethodResolver(new MessagePartitionKeyMethodResolver());
+			evaluationContext.addPropertyAccessor(new MessagePartitionKeyPropertyAccessor());
 		}
-		this.context = context;
+		this.context = evaluationContext;
 	}
 
 	/**

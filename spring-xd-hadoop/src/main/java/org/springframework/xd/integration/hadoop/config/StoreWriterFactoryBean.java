@@ -33,6 +33,7 @@ import org.springframework.data.hadoop.store.output.TextFileWriter;
 import org.springframework.data.hadoop.store.strategy.naming.FileNamingStrategy;
 import org.springframework.data.hadoop.store.strategy.rollover.RolloverStrategy;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.util.StringUtils;
@@ -104,11 +105,14 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (StringUtils.hasText(partitionExpression)) {
-			// we'll reuse evaluation context if it was given passed on to
-			// us by SI. on default we register additional method executor
-			// and property accessor.
+			// we require that we were given StandardEvaluationContext
+			// via IntegrationEvaluationContextAware
+			if (!(evaluationContext instanceof StandardEvaluationContext)) {
+				throw new RuntimeException("Expecting evaluationContext of type StandardEvaluationContext but was "
+						+ evaluationContext);
+			}
 			MessagePartitionStrategy<String> partitionStrategy = new MessagePartitionStrategy<String>(
-					partitionExpression, evaluationContext);
+					partitionExpression, (StandardEvaluationContext) evaluationContext);
 			PartitionTextFileWriter<Message<?>> writer = new PartitionTextFileWriter<Message<?>>(configuration,
 					basePath,
 					codec,

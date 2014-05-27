@@ -7,11 +7,11 @@
     <tbody>
     <tr ng-repeat="item in jobDeployments | orderBy: 'name'">
         <td>{{item.name}}</td>
-        <td><button type="button" ng-disabled="!item.deployed" ng-click="launchJob(item)"
+        <td style="width: 1px;"><button type="button" ng-disabled="!item.deployed" ng-click="launchJob(item)"
                     class="btn btn-default"
                 ><span class="glyphicon glyphicon-play"></span><span class="hidden-xs"> Launch</span></button>
         </td>
-        <td><button type="button" ng-disabled="!item.deployed" ng-click="scheduleJob(item)"
+        <td style="width: 1px;"><button type="button" ng-disabled="!item.deployed" ng-click="scheduleJob(item)"
                     class="btn btn-default"
                 ><span class="glyphicon glyphicon-time"></span><span class="hidden-xs"> Schedule</span></button>
         </td>

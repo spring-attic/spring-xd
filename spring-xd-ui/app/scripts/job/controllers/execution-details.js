@@ -21,8 +21,8 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobExecutions', 'XDUtils', '$state', '$stateParams',
-    function ($scope, jobExecutions, utils, $state, $stateParams) {
+  return ['$scope', 'JobExecutions', 'XDUtils', '$state', '$stateParams', 'JobDefinitions', 'ModuleMetaData',
+    function ($scope, jobExecutions, utils, $state, $stateParams, jobDefinitions, moduleMetaData) {
       $scope.$apply(function () {
         $scope.moduleName = $stateParams.moduleName;
         $scope.optionsPredicate = 'name';
@@ -34,6 +34,28 @@ define([], function () {
             function (result) {
                 utils.$log.error(result);
                 $scope.jobExecutionDetails = result;
+                
+                var singleJobDefinitionPromise = jobDefinitions.getSingleJobDefinition(result.name);
+                utils.addBusyPromise(singleJobDefinitionPromise);
+                singleJobDefinitionPromise.then(
+                        function (result) {
+                            $scope.jobDefinition = result.data;
+                          }, function (error) {
+                            utils.$log.error(error);
+                            utils.growl.addErrorMessage(error);
+                          }
+                        );
+                var jobModuleMetaDataPromise = moduleMetaData.getModuleMetaDataForJob(result.name).$promise;
+                utils.addBusyPromise(jobModuleMetaDataPromise);
+
+                jobModuleMetaDataPromise.then(
+                        function (result) {
+                            $scope.jobModuleMetaData = result;
+                          }, function (error) {
+                            utils.$log.error(error);
+                            utils.growl.addErrorMessage(error);
+                          }
+                        );
               }, function (error) {
                 if (error.status === 404) {
                   $scope.jobExecutionDetailsNotFound = true;

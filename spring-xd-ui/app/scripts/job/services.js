@@ -24,13 +24,25 @@ define(['angular'], function (angular) {
   'use strict';
 
   return angular.module('xdJobsAdmin.services', [])
-      .factory('JobDefinitions', function ($resource, $rootScope) {
-        return $resource($rootScope.xdAdminServerUrl + '/jobs.json?deployments=true', {}, {
-          query: {
-            method: 'GET',
-            isArray: true
+      .factory('JobDefinitions', function ($resource, $rootScope, $log, $http) {
+        return {
+          getSingleJobDefinition: function (jobname) {
+            $log.info('Getting single job definiton for job named ' + jobname);
+            return $http({
+              method: 'GET',
+              url: $rootScope.xdAdminServerUrl + '/jobs/' + jobname
+            });
+          },
+          getAllJobDefinitions: function () {
+            $log.info('Getting all job definitions.');
+            return $resource($rootScope.xdAdminServerUrl + '/jobs.json?deployments=true', {}, {
+              query: {
+                method: 'GET',
+                isArray: true
+              }
+            }).get();
           }
-        });
+        };
       })
       .factory('JobModules', function ($resource, $rootScope) {
         return $resource($rootScope.xdAdminServerUrl + '/modules.json?type=job', {}, {
@@ -38,7 +50,21 @@ define(['angular'], function (angular) {
             method: 'GET',
             isArray: true
           }
-        });
+        }).query();
+      })
+      .factory('ModuleMetaData', function ($resource, $log, $rootScope) {
+        return {
+          getModuleMetaDataForJob: function (jobname) {
+              $log.info('Getting ModuleMetaData for job ' + jobname);
+              return $resource($rootScope.xdAdminServerUrl + '/runtime/modules?jobname=:jobname',
+              {'jobname' : jobname}, {
+                getModuleMetaDataForJob: {
+                  method: 'GET',
+                  isArray: true
+                }
+              }).getModuleMetaDataForJob();
+            }
+        };
       })
       .factory('JobModuleService', function ($resource, $http, $log, $rootScope) {
         return {

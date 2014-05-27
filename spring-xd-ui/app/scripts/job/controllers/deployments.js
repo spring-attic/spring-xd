@@ -44,5 +44,10 @@ define([], function () {
         utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
       }).$promise;
       utils.addBusyPromise(jobDeploymentsPromise);
+
+      $scope.viewDeploymentDetails = function (item) {
+          utils.$log.info('Showing Deployment details for job: ' + item.name);
+          $state.go('home.jobs.deploymentdetails', {jobName: item.name});
+        };
     }];
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,9 @@ import org.springframework.xd.dirt.module.store.ModuleMetadata;
 
 /**
  * Tests REST compliance of module metadata endpoint.
- * 
+ *
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -54,33 +55,54 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		PageRequest pageable = new PageRequest(0, 20);
 		ModuleMetadata entity1 = new ModuleMetadata("s1.source-0", "1", "{entity1: value1}");
 		ModuleMetadata entity2 = new ModuleMetadata("s2.sink-1", "2", "{entity2: value2}");
+		ModuleMetadata entity3 = new ModuleMetadata("s3.job.myjob-0", "3", "{entity3: value3}");
 		List<ModuleMetadata> entities1 = new ArrayList<ModuleMetadata>();
 		List<ModuleMetadata> entities2 = new ArrayList<ModuleMetadata>();
 		entities1.add(entity1);
 		entities1.add(entity2);
+		entities1.add(entity3);
 		entities2.add(entity2);
 		Page<ModuleMetadata> pagedEntity1 = new PageImpl<>(entities1);
 		Page<ModuleMetadata> pagedEntity2 = new PageImpl<>(entities2);
 		when(moduleMetadataRepository.findAll(pageable)).thenReturn(pagedEntity1);
+		when(moduleMetadataRepository.findAll()).thenReturn(entities1);
 		when(moduleMetadataRepository.findAllByContainerId(pageable, "2")).thenReturn(pagedEntity2);
 	}
 
 	@Test
 	public void testListModules() throws Exception {
 		mockMvc.perform(get("/runtime/modules").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
-				jsonPath("$.content", Matchers.hasSize(2))).andExpect(
-				jsonPath("$.content[*].moduleId", contains("s1.source-0", "s2.sink-1"))).andExpect(
-				jsonPath("$.content[*].containerId", contains("1", "2"))).andExpect(
-				jsonPath("$.content[*].properties", contains("{entity1: value1}", "{entity2: value2}")));
+				jsonPath("$.content", Matchers.hasSize(3))).andExpect(
+						jsonPath("$.content[*].moduleId", contains("s1.source-0", "s2.sink-1", "s3.job.myjob-0"))).andExpect(
+								jsonPath("$.content[*].containerId", contains("1", "2", "3"))).andExpect(
+										jsonPath("$.content[*].properties",
+						contains("{entity1: value1}", "{entity2: value2}", "{entity3: value3}")));
+	}
+
+	@Test
+	public void testListModulesByJobName() throws Exception {
+		mockMvc.perform(get("/runtime/modules?jobname=s3").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk()).andExpect(
+				jsonPath("$", Matchers.hasSize(1))).andExpect(
+								jsonPath("$[*].moduleId", contains("s3.job.myjob-0"))).andExpect(
+										jsonPath("$[*].containerId", contains("3"))).andExpect(
+												jsonPath("$[*].properties", contains("{entity3: value3}")));
+	}
+
+	@Test
+	public void testListModulesByNonExistingJobName() throws Exception {
+		mockMvc.perform(get("/runtime/modules?jobname=notthere").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk()).andExpect(
+				jsonPath("$", Matchers.hasSize(0)));
 	}
 
 	@Test
 	public void testListModulesByContainer() throws Exception {
 		mockMvc.perform(get("/runtime/modules?containerId=2").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
-				jsonPath("$.content[*].moduleId", contains("s2.sink-1"))).andExpect(
-				jsonPath("$.content[*].containerId", contains("2"))).andExpect(
-				jsonPath("$.content[*].properties", contains("{entity2: value2}")));
+						jsonPath("$.content", Matchers.hasSize(1))).andExpect(
+								jsonPath("$.content[*].moduleId", contains("s2.sink-1"))).andExpect(
+										jsonPath("$.content[*].containerId", contains("2"))).andExpect(
+												jsonPath("$.content[*].properties", contains("{entity2: value2}")));
 	}
 }

@@ -429,7 +429,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param data module data
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
-		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(data.getPath());
+		String path = data.getPath();
+		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(path);
 		String unitName = moduleDeploymentsPath.getStreamName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
@@ -454,15 +455,15 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 
 		try {
-			writeModuleMetadata(module, data.getPath(), client);
+			writeModuleMetadata(module, path, client);
 			// update the module deployment node with the deployment status
-			client.setData().forPath(moduleDeploymentsPath.build(), mapBytesUtility.toByteArray(mapStatus));
+			client.setData().forPath(Paths.build(path, Paths.STATUS), mapBytesUtility.toByteArray(mapStatus));
 		}
 		catch (KeeperException.NoNodeException e) {
 			logger.warn("During deployment of module {} of type {} for {}, an undeployment request " +
 					"was detected; this module will be undeployed.", moduleLabel, moduleType, unitName);
 			if (logger.isTraceEnabled()) {
-				logger.trace("Path " + data.getPath() + " was removed", e);
+				logger.trace("Path " + path + " was removed", e);
 			}
 		}
 	}

@@ -77,6 +77,11 @@ public class Paths {
 	public static final String DEPLOYMENTS = "deployments";
 
 	/**
+	 * Name of status node. The data for this node contains status information.
+	 */
+	public static final String STATUS = "status";
+
+	/**
 	 * Name of module deployments node. Module deployment requests for
 	 * individual containers are written as children of this node.
 	 */

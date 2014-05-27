@@ -227,7 +227,9 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@Test
 	public void testRestartAlreadyRunningJobExecution() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "4")).andExpect(status().isBadRequest()).andExpect(
-				jsonPath("$[0].message", Matchers.is("Job Execution 4 is already running.")));
+				jsonPath(
+						"$[0].message",
+						Matchers.is("Job Execution for this job is already running: JobInstance: id=4, version=null, Job=[job4running]")));
 	}
 
 	@Test

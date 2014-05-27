@@ -101,6 +101,9 @@ public class ModulesController {
 			@PathVariable("name") String name) {
 		ModuleDefinition def = compositeModuleDefinitionService.getModuleDefinitionRepository().findByNameAndType(name,
 				type);
+		if (def == null) {
+			throw new NoSuchModuleException(name, type);
+		}
 		return detailedAssembler.toResource(def);
 	}
 

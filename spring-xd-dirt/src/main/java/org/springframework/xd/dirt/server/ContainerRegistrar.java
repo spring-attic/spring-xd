@@ -435,11 +435,13 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 		Module module = null;
+		ModuleDeploymentProperties properties = new ModuleDeploymentProperties();
+		properties.putAll(mapBytesUtility.toMap(data.getData()));
 		Map<String, String> mapStatus = new HashMap<String, String>();
 		try {
 			module = (ModuleType.job.toString().equals(moduleType))
-					? deployJob(client, unitName, moduleLabel)
-					: deployStreamModule(client, unitName, moduleType, moduleLabel);
+					? deployJob(client, unitName, moduleLabel, properties)
+					: deployStreamModule(client, unitName, moduleType, moduleLabel, properties);
 			if (module == null) {
 				mapStatus.put(ModuleDeploymentWriter.STATUS_KEY, ModuleDeploymentWriter.Status.error.toString());
 				mapStatus.put(ModuleDeploymentWriter.ERROR_DESCRIPTION_KEY, "Module deployment returned null");
@@ -489,12 +491,14 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Deploy the requested job.
 	 *
-	 * @param client curator client
-	 * @param jobName job name
-	 * @param jobLabel job label
+	 * @param client      curator client
+	 * @param jobName     job name
+	 * @param jobLabel    job label
+	 * @param properties  module deployment properties
 	 * @return Module deployed job module
 	 */
-	private Module deployJob(CuratorFramework client, String jobName, String jobLabel) throws Exception {
+	private Module deployJob(CuratorFramework client, String jobName, String jobLabel,
+			ModuleDeploymentProperties properties) throws Exception {
 		logger.info("Deploying job '{}'", jobName);
 
 		String jobDeploymentPath = new JobDeploymentsPath().setJobName(jobName)
@@ -505,12 +509,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		Job job = deploymentLoader.loadJob(client, jobName, jobFactory);
 		if (job != null) {
 			ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
-			ModuleDeploymentProperties deploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
-					job.getDeploymentProperties(), moduleDescriptor);
-			module = deployModule(moduleDescriptor, deploymentProperties);
+			module = deployModule(moduleDescriptor, properties);
 
 			try {
-
 				// this indicates that the container has deployed the module
 				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(jobDeploymentPath,
 						getDeployedMessage());
@@ -532,14 +533,15 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Deploy the requested module for a stream.
 	 *
-	 * @param client curator client
-	 * @param streamName name of the stream for the module
-	 * @param moduleType module type
+	 * @param client      curator client
+	 * @param streamName  name of the stream for the module
+	 * @param moduleType  module type
 	 * @param moduleLabel module label
+	 * @param properties  module deployment properties
 	 * @return Module deployed stream module
 	 */
 	private Module deployStreamModule(CuratorFramework client, String streamName,
-			String moduleType, String moduleLabel) throws Exception {
+			String moduleType, String moduleLabel, ModuleDeploymentProperties properties) throws Exception {
 		logger.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
 
 		String streamDeploymentPath = new StreamDeploymentsPath().setStreamName(streamName)
@@ -551,11 +553,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
 		if (stream != null) {
 			ModuleDescriptor descriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
-			ModuleDeploymentProperties moduleDeploymentProperties =
-					DeploymentPropertiesUtility.createModuleDeploymentProperties(
-							stream.getDeploymentProperties(), descriptor);
+			module = deployModule(descriptor, properties);
 
-			module = deployModule(descriptor, moduleDeploymentProperties);
 			try {
 				// this indicates that the container has deployed the module
 				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(streamDeploymentPath,

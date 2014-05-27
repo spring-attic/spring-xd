@@ -228,6 +228,39 @@ public class ModuleDeploymentWriter {
 	}
 
 	/**
+	 * Write a module deployment request for the provided module descriptor
+	 * using the provided properties. Since one module descriptor and one
+	 * instance of {@link ModuleDeploymentProperties} are provided,  it is
+	 * assumed that the provided {@link ContainerMatcher} will only return
+	 * one container. This method should be used for module redeployment
+	 * when a container exits the cluster.
+	 *
+	 * @param moduleDescriptor      descriptor for module to deploy
+	 * @param deploymentProperties  deployment properties for module
+	 * @param containerMatcher      matcher for modules to containers
+	 * @return result of request
+	 * @throws InterruptedException
+	 */
+	public Result writeDeployment(ModuleDescriptor moduleDescriptor,
+			final ModuleDeploymentProperties deploymentProperties,
+			ContainerMatcher containerMatcher) throws InterruptedException {
+		Collection<Result> results = writeDeployment(Collections.singleton(moduleDescriptor).iterator(),
+				new ModuleDeploymentPropertiesProvider() {
+					@Override
+					public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
+						return deploymentProperties;
+					}
+				}, containerMatcher);
+
+		if (results.size() > 1) {
+			throw new IllegalStateException("Expected to deploy to one container; " +
+					"deployment results: " + results);
+		}
+
+		return results.iterator().next();
+	}
+
+	/**
 	 * Write module deployment requests for the modules returned by the {@code descriptors}
 	 * iterator. The target containers are indicated by the provided {@code containerMatcher}
 	 * and the {@link org.springframework.xd.module.ModuleDeploymentProperties} provided
@@ -247,33 +280,40 @@ public class ModuleDeploymentWriter {
 		while (descriptors.hasNext()) {
 			ResultCollector collector = new ResultCollector();
 			ModuleDescriptor descriptor = descriptors.next();
-			for (Container container : containerMatcher.match(descriptor,
-					provider.propertiesForDescriptor(descriptor),
+			ModuleDeploymentProperties deploymentProperties = provider.propertiesForDescriptor(descriptor);
+			for (Container container : containerMatcher.match(descriptor, deploymentProperties,
 					wrapAsIterable(containerRepository.getContainerIterator()))) {
 				String containerName = container.getName();
-				String path = Paths.build(new ModuleDeploymentsPath()
+				String deploymentPath = new ModuleDeploymentsPath()
 						.setContainer(containerName)
 						.setStreamName(descriptor.getGroup())
 						.setModuleType(descriptor.getType().toString())
-						.setModuleLabel(descriptor.getModuleLabel()).build(), Paths.STATUS);
+						.setModuleLabel(descriptor.getModuleLabel()).build();
+				String statusPath = Paths.build(deploymentPath, Paths.STATUS);
 				collector.addPending(containerName, descriptor.createKey());
 				try {
-					ensureModuleDeploymentPath(path, descriptor, container);
+					if (provider instanceof ContainerAwareModuleDeploymentPropertiesProvider) {
+						deploymentProperties.putAll(((ContainerAwareModuleDeploymentPropertiesProvider) provider)
+								.propertiesForDescriptor(descriptor, container));
+					}
+
+					ensureModuleDeploymentPath(deploymentPath, statusPath, descriptor,
+							deploymentProperties, container);
 
 					// set the collector as a watch; it is possible that
 					// a. that the container has already updated this node (unlikely)
 					// b. the deployment was previously written; in this case read
 					//    the status written by the container
-					byte[] data = client.getData().usingWatcher(collector).forPath(path);
+					byte[] data = client.getData().usingWatcher(collector).forPath(statusPath);
 					if (data != null && data.length > 0) {
-						collector.addResult(createResult(path, data));
+						collector.addResult(createResult(deploymentPath, data));
 					}
 				}
 				catch (InterruptedException e) {
 					throw e;
 				}
 				catch (Exception e) {
-					collector.addResult(createResult(path, e));
+					collector.addResult(createResult(deploymentPath, e));
 				}
 			}
 			// for each individual module, block until all containers
@@ -335,6 +375,7 @@ public class ModuleDeploymentWriter {
 	 */
 	private Iterable<Container> wrapAsIterable(final Iterator<Container> containers) {
 		return new Iterable<Container>() {
+
 			@Override
 			public Iterator<Container> iterator() {
 				return containers;
@@ -347,15 +388,21 @@ public class ModuleDeploymentWriter {
 	 * If the path already exists, the {@link org.apache.zookeeper.KeeperException.NodeExistsException}
 	 * is swallowed. All other exceptions are rethrown.
 	 *
-	 * @param path         ZooKeeper path to create for module deployment
-	 * @param descriptor   module descriptor for module to be deployed
-	 * @param container    target container for deployment
+	 * @param deploymentPath ZooKeeper path to create for module deployment
+	 * @param statusPath     ZooKeeper path for module deployment status
+	 * @param descriptor     module descriptor for module to be deployed
+	 * @param properties     module deployment properties
+	 * @param container      target container for deployment
+	 *
 	 * @throws Exception if an exception is thrown during path creation
 	 */
-	private void ensureModuleDeploymentPath(String path, ModuleDescriptor descriptor, Container container)
+	private void ensureModuleDeploymentPath(String deploymentPath, String statusPath, ModuleDescriptor descriptor,
+			ModuleDeploymentProperties properties, Container container)
 			throws Exception {
 		try {
-			zkConnection.getClient().create().creatingParentsIfNeeded().forPath(path);
+			zkConnection.getClient().inTransaction()
+					.create().forPath(deploymentPath, mapBytesUtility.toByteArray(properties)).and()
+					.create().forPath(statusPath).and().commit();
 		}
 		catch (KeeperException.NodeExistsException e) {
 			logger.info("Module {} is already deployed to container {}", descriptor, container);
@@ -730,9 +777,10 @@ public class ModuleDeploymentWriter {
 		}
 	}
 
+
 	/**
-	 * Callback interface to obtain {@link org.springframework.xd.module.ModuleDeploymentProperties}
-	 * for a {@link org.springframework.xd.module.ModuleDescriptor}.
+	 * Callback interface to obtain {@link ModuleDeploymentProperties}
+	 * for a {@link ModuleDescriptor}.
 	 */
 	public interface ModuleDeploymentPropertiesProvider {
 
@@ -743,6 +791,26 @@ public class ModuleDeploymentWriter {
 		 * @return deployment properties for module
 		 */
 		ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor);
+	}
+
+	/**
+	 * Callback interface to obtain {@link ModuleDeploymentProperties}
+	 * for a {@link ModuleDescriptor} within the context of deployment
+	 * to the provided {@link Container}.
+	 */
+	public interface ContainerAwareModuleDeploymentPropertiesProvider
+			extends ModuleDeploymentPropertiesProvider {
+
+		/**
+		 * Return the deployment properties for the module descriptor
+		 * that are specific for deployment to the provided {@link Container}.
+		 *
+		 * @param descriptor module descriptor for module to be deployed
+		 * @param container  target container for deployment
+		 * @return deployment properties for module
+		 */
+		ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor,
+				Container container);
 	}
 
 }

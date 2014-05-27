@@ -30,12 +30,19 @@ import org.springframework.xd.module.ModuleDescriptor;
 
 /**
  * Wrapper for {@link org.springframework.xd.dirt.cluster.ContainerMatcher}
- * that excludes containers whose names are present in the provided
- * {@code exclusions} collection.
+ * used for redeployment of modules when a container exits the cluster.
+ * This matcher provides the following functionality:
+ * <ol>
+ *     <li>only one container is returned</li>
+ *     <li>containers whose names are present in the provided
+ *         {@code exclusions} collection are not returned;
+ *         these containers are presumed to have already
+ *         deployed the module</li>
+ * </ol>
  *
  * @author Patrick Peralta
  */
-public class ExcludingContainerMatcher implements ContainerMatcher {
+public class RedeploymentContainerMatcher implements ContainerMatcher {
 
 	/**
 	 * Wrapped {@link org.springframework.xd.dirt.cluster.ContainerMatcher}.
@@ -58,7 +65,7 @@ public class ExcludingContainerMatcher implements ContainerMatcher {
 	 * @param containerMatcher  container matcher to wrap
 	 * @param exclusions        collection of container names to exclude
 	 */
-	public ExcludingContainerMatcher(ContainerMatcher containerMatcher, Collection<String> exclusions) {
+	public RedeploymentContainerMatcher(ContainerMatcher containerMatcher, Collection<String> exclusions) {
 		Assert.notNull(containerMatcher);
 		Assert.notNull(exclusions);
 		this.containerMatcher = containerMatcher;
@@ -73,8 +80,12 @@ public class ExcludingContainerMatcher implements ContainerMatcher {
 	public Collection<Container> match(ModuleDescriptor moduleDescriptor,
 			ModuleDeploymentProperties deploymentProperties, Iterable<Container> containers) {
 
-		return containerMatcher.match(moduleDescriptor, deploymentProperties,
-				Iterables.filter(containers, matchingPredicate));
+		Collection<Container> matches = containerMatcher.match(moduleDescriptor,
+				deploymentProperties, Iterables.filter(containers, matchingPredicate));
+
+		return (matches.size() == 0)
+				? matches
+				: Collections.singleton(matches.iterator().next());
 	}
 
 	/**

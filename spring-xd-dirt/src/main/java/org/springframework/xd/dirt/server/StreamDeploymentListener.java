@@ -17,7 +17,10 @@
 package org.springframework.xd.dirt.server;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,6 +34,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.util.Assert;
+import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.core.Stream;
@@ -178,19 +183,146 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 * @throws Exception
 	 */
 	private void deployStream(final Stream stream) throws Exception {
-		ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider provider =
-				new ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider() {
-
-					@Override
-					public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
-						return DeploymentPropertiesUtility.createModuleDeploymentProperties(stream.getDeploymentProperties(),
-								descriptor);
-					}
-				};
-
 		Collection<ModuleDeploymentWriter.Result> results =
-				moduleDeploymentWriter.writeDeployment(stream.getDeploymentOrderIterator(), provider);
+				moduleDeploymentWriter.writeDeployment(stream.getDeploymentOrderIterator(),
+						new StreamModuleDeploymentPropertiesProvider(stream));
 		moduleDeploymentWriter.validateResults(results);
+	}
+
+
+	/**
+	 * Module deployment properties provider for stream modules. This provider
+	 * generates properties required for stream partitioning support.
+	 */
+	class StreamModuleDeploymentPropertiesProvider
+			implements ModuleDeploymentWriter.ContainerAwareModuleDeploymentPropertiesProvider {
+
+		/**
+		 * Map to keep track of how many instances of a module this provider
+		 * has generated properties for. This is used to generate a unique
+		 * id for each module deployment per container for stream partitioning.
+		 */
+		private final Map<ModuleDescriptor.Key, Integer> mapModuleCount =
+				new HashMap<ModuleDescriptor.Key, Integer>();
+
+		/**
+		 * Cache of module deployment properties.
+		 */
+		private final Map<ModuleDescriptor.Key, ModuleDeploymentProperties> mapDeploymentProperties =
+				new HashMap<ModuleDescriptor.Key, ModuleDeploymentProperties>();
+
+		/**
+		 * Stream to create module deployment properties for.
+		 */
+		private final Stream stream;
+
+		/**
+		 * Construct a {@code StreamModuleDeploymentPropertiesProvider} for
+		 * a {@link org.springframework.xd.dirt.core.Stream}.
+		 *
+		 * @param stream stream to create module properties for
+		 */
+		StreamModuleDeploymentPropertiesProvider(Stream stream) {
+			this.stream = stream;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor moduleDescriptor) {
+			ModuleDescriptor.Key key = moduleDescriptor.createKey();
+			ModuleDeploymentProperties properties = mapDeploymentProperties.get(key);
+			if (properties == null) {
+				properties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
+						stream.getDeploymentProperties(), moduleDescriptor);
+				mapDeploymentProperties.put(key, properties);
+			}
+			return properties;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor, Container container) {
+			List<ModuleDescriptor> streamModules = stream.getDescriptorsAsList();
+			ModuleDeploymentProperties properties = propertiesForDescriptor(descriptor);
+
+			int moduleIndex = descriptor.getIndex();
+			if (moduleIndex > 0) {
+				ModuleDescriptor previous = streamModules.get(moduleIndex - 1);
+				ModuleDeploymentProperties previousProperties = propertiesForDescriptor(previous);
+				if (hasPartitionKeyProperty(previousProperties)) {
+					ModuleDescriptor.Key moduleKey = descriptor.createKey();
+					Integer index = mapModuleCount.get(moduleKey);
+					if (index == null) {
+						index = 0;
+					}
+					properties.put("consumer.partitionIndex", String.valueOf(index++));
+					mapModuleCount.put(moduleKey, index);
+				}
+			}
+			if (hasPartitionKeyProperty(properties)) {
+				try {
+					ModuleDeploymentProperties nextProperties =
+							propertiesForDescriptor(streamModules.get(moduleIndex + 1));
+
+					String count = nextProperties.get("count");
+					validateCountProperty(count, descriptor);
+					properties.put("producer.partitionCount", count);
+				}
+				catch (IndexOutOfBoundsException e) {
+					logger.warn("Module '{}' is a sink module which contains a property " +
+							"of '{}' used for data partitioning; this feature is only " +
+							"supported for modules that produce data", descriptor,
+							"producer.partitionKeyExpression");
+
+				}
+			}
+			mapDeploymentProperties.put(descriptor.createKey(), properties);
+			return properties;
+		}
+
+		/**
+		 * Return {@code true} if the provided properties include a property
+		 * used to extract a partition key.
+		 *
+		 * @param properties properties to examine for a partition key property
+		 * @return true if the properties contain a partition key property
+		 */
+		private boolean hasPartitionKeyProperty(ModuleDeploymentProperties properties) {
+			return (properties.containsKey("producer.partitionKeyExpression") ||
+					properties.containsKey("producer.partitionKeyExtractorClass"));
+		}
+
+		/**
+		 * Validate the value of {@code count} for the purposes of partitioning.
+		 * The value of the string must consist of an integer > 1.
+		 *
+		 * @param count       value to validate
+		 * @param descriptor  module descriptor this {@code count} property
+		 *                    is associated with
+		 *
+		 * @throws IllegalArgumentException if the value of the string
+		 *         does not consist of an integer > 1
+		 */
+		private void validateCountProperty(String count, ModuleDescriptor descriptor) {
+			Assert.hasText(count, String.format("'count' property is required " +
+					"in properties for module '%s' in order to support partitioning", descriptor));
+
+			try {
+				Assert.isTrue(Integer.parseInt(count) > 1,
+						String.format("'count' property for module '%s' must contain an " +
+								"integer > 1, current value is '%s'", descriptor, count));
+			}
+			catch (NumberFormatException e) {
+				throw new IllegalArgumentException(String.format("'count' property for " +
+						"module %s does not contain a valid integer, current value is '%s'",
+						descriptor, count));
+			}
+		}
+
 	}
 
 	/**

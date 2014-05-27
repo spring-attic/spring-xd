@@ -13,7 +13,6 @@ spring:
                 - "file:${spring.xd.yarn.config.path}/modules.yml"
             launchcontext:
                 archiveFile: "${spring.xd.yarn.am.jar}"
-                useYarnAppClasspath: true
             localizer:
                 patterns:
                     - "servers.yml"

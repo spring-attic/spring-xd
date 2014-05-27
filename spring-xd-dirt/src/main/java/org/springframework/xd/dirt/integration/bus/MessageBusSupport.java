@@ -445,7 +445,7 @@ public abstract class MessageBusSupport
 		if (StringUtils.hasText(meta.partitionKeyExtractorClass)) {
 			key = invokeExtractor(meta.partitionKeyExtractorClass, message);
 		}
-		else if (meta.partitionSelectorExpression != null) {
+		else if (meta.partitionKeyExpression != null) {
 			key = meta.partitionKeyExpression.getValue(this.evaluationContext, message);
 		}
 		Assert.notNull(key, "Partition key cannot be null");

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.xd.module.ModuleDescriptor;
@@ -41,7 +42,7 @@ public class Stream {
 	 * Ordered list of {@link ModuleDescriptor}s comprising this stream.
 	 * The source is the first entry and the sink is the last entry.
 	 */
-	private final Deque<ModuleDescriptor> descriptors;
+	private final LinkedList<ModuleDescriptor> descriptors;
 
 	/**
 	 * Deployment properties for this stream.
@@ -56,7 +57,7 @@ public class Stream {
 	 *                             flow order (source is first, sink is last)
 	 * @param deploymentProperties stream deployment properties
 	 */
-	private Stream(String name, Deque<ModuleDescriptor> descriptors, Map<String, String> deploymentProperties) {
+	private Stream(String name, LinkedList<ModuleDescriptor> descriptors, Map<String, String> deploymentProperties) {
 		this.name = name;
 		this.descriptors = descriptors;
 		this.deploymentProperties = deploymentProperties;
@@ -72,12 +73,23 @@ public class Stream {
 	}
 
 	/**
-	 * Return the ordered list of processors for this stream. Modules
+	 * Return the ordered list of modules for this stream. Modules
 	 * are maintained in stream flow order (source is first, sink is last).
 	 *
 	 * @return list of module descriptors for this stream definition
 	 */
 	public Deque<ModuleDescriptor> getDescriptors() {
+		return descriptors;
+	}
+
+	/**
+	 * Return the ordered list of modules for this stream as a {@link List}.
+	 * This allows for retrieval of modules in the stream by index.
+	 * Modules are maintained in stream flow order (source is first, sink is last).
+	 *
+	 * @return list of module descriptors for this stream definition
+	 */
+	public List<ModuleDescriptor> getDescriptorsAsList() {
 		return descriptors;
 	}
 
@@ -139,7 +151,7 @@ public class Stream {
 		/**
 		 * @see Stream#descriptors
 		 */
-		private Deque<ModuleDescriptor> moduleDescriptors = new LinkedList<ModuleDescriptor>();
+		private LinkedList<ModuleDescriptor> moduleDescriptors = new LinkedList<ModuleDescriptor>();
 
 		/**
 		 * Set the stream name.

@@ -492,29 +492,29 @@ public abstract class MessageBusSupport
 		}
 	}
 
-	private int invokePartitioner(String partionerClassName, Object key, int divisor) {
-		if (this.applicationContext.containsBean(partionerClassName)) {
-			return this.applicationContext.getBean(partionerClassName, PartitionerStrategy.class)
+	private int invokePartitioner(String partitionerClassName, Object key, int divisor) {
+		if (this.applicationContext.containsBean(partitionerClassName)) {
+			return this.applicationContext.getBean(partitionerClassName, PartitionerStrategy.class)
 					.partition(key, divisor);
 		}
 		Class<?> clazz;
 		try {
-			clazz = ClassUtils.forName(partionerClassName, this.applicationContext.getClassLoader());
+			clazz = ClassUtils.forName(partitionerClassName, this.applicationContext.getClassLoader());
 		}
 		catch (Exception e) {
 			logger.error("Failed to load partitioner", e);
-			throw new MessageBusException("Failed to load partitioner: " + partionerClassName, e);
+			throw new MessageBusException("Failed to load partitioner: " + partitionerClassName, e);
 		}
 		try {
 			Object extractor = clazz.newInstance();
 			Assert.isInstanceOf(PartitionKeyExtractorStrategy.class, extractor);
-			this.applicationContext.getBeanFactory().registerSingleton(partionerClassName, extractor);
-			this.applicationContext.getBeanFactory().initializeBean(extractor, partionerClassName);
+			this.applicationContext.getBeanFactory().registerSingleton(partitionerClassName, extractor);
+			this.applicationContext.getBeanFactory().initializeBean(extractor, partitionerClassName);
 			return ((PartitionerStrategy) extractor).partition(key, divisor);
 		}
 		catch (Exception e) {
 			logger.error("Failed to instantiate partitioner", e);
-			throw new MessageBusException("Failed to instantiate partitioner: " + partionerClassName, e);
+			throw new MessageBusException("Failed to instantiate partitioner: " + partitionerClassName, e);
 		}
 	}
 

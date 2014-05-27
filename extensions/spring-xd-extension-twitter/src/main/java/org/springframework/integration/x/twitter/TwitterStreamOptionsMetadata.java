@@ -122,7 +122,7 @@ public class TwitterStreamOptionsMetadata {
 		return accessTokenSecret;
 	}
 
-	@ModuleOption("OAuth secret corresponding to the access token")
+	@ModuleOption("an OAuth secret corresponding to the access token")
 	public void setAccessTokenSecret(String accessTokenSecret) {
 		this.accessTokenSecret = accessTokenSecret;
 	}

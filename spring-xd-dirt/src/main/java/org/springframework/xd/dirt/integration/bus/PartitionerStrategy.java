@@ -23,7 +23,7 @@ package org.springframework.xd.dirt.integration.bus;
  * 
  * @author Gary Russell
  */
-public interface PartitionStrategy {
+public interface PartitionerStrategy {
 
 	/**
 	 * Determine the partition based on a key.

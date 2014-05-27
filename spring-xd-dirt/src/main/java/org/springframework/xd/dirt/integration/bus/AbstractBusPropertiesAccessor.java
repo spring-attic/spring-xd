@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractBusPropertiesAccessor {
 
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+	private static final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
 
 	private final Properties properties;
 
@@ -201,6 +201,14 @@ public abstract class AbstractBusPropertiesAccessor {
 	// Partitioning
 
 	/**
+	 * A class name for extracting partition keys from messages.
+	 * @return The class name,
+	 */
+	public String getPartitionKeyExtractorClass() {
+		return getProperty("partitionKeyExtractorClass");
+	}
+
+	/**
 	 * The expression to determine the partition key, evaluated against the
 	 * message as the root object.
 	 * @return The key.
@@ -209,9 +217,17 @@ public abstract class AbstractBusPropertiesAccessor {
 		String partionKeyExpression = getProperty("partitionKeyExpression");
 		Expression expression = null;
 		if (partionKeyExpression != null) {
-			expression = PARSER.parseExpression(partionKeyExpression);
+			expression = spelExpressionParser.parseExpression(partionKeyExpression);
 		}
 		return expression;
+	}
+
+	/**
+	 * A class name for calculating a partition from a key.
+	 * @return The class name,
+	 */
+	public String getPartitionerClass() {
+		return getProperty("partitionerClass");
 	}
 
 	/**
@@ -225,7 +241,7 @@ public abstract class AbstractBusPropertiesAccessor {
 		String partionExpression = getProperty("partitionExpression");
 		Expression expression = null;
 		if (partionExpression != null) {
-			expression = PARSER.parseExpression(partionExpression);
+			expression = spelExpressionParser.parseExpression(partionExpression);
 		}
 		return expression;
 	}
@@ -234,16 +250,16 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * The number of partitions for this module.
 	 * @return The count.
 	 */
-	public int getModuleCount() {
-		return getProperty("partition.count", 1);
+	public int getPartitionCount() {
+		return getProperty("partitionCount", 1);
 	}
 
 	/**
-	 * The partition that this consumer supports.
-	 * @return The partition.
+	 * The partition index that this consumer supports.
+	 * @return The partition index.
 	 */
-	public int getModulePartition() {
-		return getProperty("partition", -1);
+	public int getModulePartitionIndex() {
+		return getProperty("partitionIndex", -1);
 	}
 
 	// Utility methods

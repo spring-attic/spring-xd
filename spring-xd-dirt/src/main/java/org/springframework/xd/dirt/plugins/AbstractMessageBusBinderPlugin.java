@@ -84,19 +84,13 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		Properties producerProperties = new Properties();
 		String consumerKeyPrefix = "consumer.";
 		String producerKeyPrefix = "producer.";
-		String partitionPrefix = "partition.";
 		if (module.getDeploymentProperties() != null) {
 			for (Map.Entry<String, String> entry : module.getDeploymentProperties().entrySet()) {
-				String key = entry.getKey();
-				if (key.startsWith(consumerKeyPrefix)) {
-					consumerProperties.put(key.substring(consumerKeyPrefix.length()), entry.getValue());
+				if (entry.getKey().startsWith(consumerKeyPrefix)) {
+					consumerProperties.put(entry.getKey().substring(consumerKeyPrefix.length()), entry.getValue());
 				}
-				else if (key.startsWith(producerKeyPrefix)) {
-					producerProperties.put(key.substring(producerKeyPrefix.length()), entry.getValue());
-				}
-				else if (key.startsWith(partitionPrefix)) {
-					consumerProperties.put(key, entry.getValue());
-					producerProperties.put(key, entry.getValue());
+				else if (entry.getKey().startsWith(producerKeyPrefix)) {
+					producerProperties.put(entry.getKey().substring(producerKeyPrefix.length()), entry.getValue());
 				}
 			}
 		}

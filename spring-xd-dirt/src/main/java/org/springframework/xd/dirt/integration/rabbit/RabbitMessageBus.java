@@ -226,9 +226,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		registerNamedChannelForConsumerIfNecessary(name, false);
 		String queueName = accessor.getPrefix(this.defaultPrefix) + name;
-		int partition = accessor.getModulePartition();
-		if (partition >= 0) {
-			queueName += "-" + partition;
+		int partitionIndex = accessor.getModulePartitionIndex();
+		if (partitionIndex >= 0) {
+			queueName += "-" + partitionIndex;
 		}
 		Queue queue = new Queue(queueName);
 		this.rabbitAdmin.declareQueue(queue);
@@ -323,10 +323,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name, RabbitPropertiesAccessor properties) {
 		String queueName = properties.getPrefix(this.defaultPrefix) + name;
+		String partitionKeyExtractorClass = properties.getPartitionKeyExtractorClass();
 		Expression partitionKeyExpression = properties.getPartitionKeyExpression();
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
 		queue.setBeanFactory(this.getBeanFactory());
-		if (partitionKeyExpression == null) {
+		if (partitionKeyExpression == null && !StringUtils.hasText(partitionKeyExtractorClass)) {
 			rabbitAdmin.declareQueue(new Queue(queueName));
 			queue.setRoutingKey(queueName); // uses default exchange
 		}
@@ -334,7 +335,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			queue.setRoutingKeyExpression("'"
 					+ queueName
 					+ "-' + headers['partition']");
-			for (int i = 0; i < properties.getModuleCount(); i++) {
+			for (int i = 0; i < properties.getPartitionCount(); i++) {
 				this.rabbitAdmin.declareQueue(new Queue(queueName + "-" + i));
 			}
 		}
@@ -435,18 +436,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		private final String replyTo;
 
-		private final Expression partitionKeyExpression;
-
-		private final Expression partitionExpression;
-
-		private final int divisor;
+		private final PartitioningMetadata partitioningMetadata;
 
 		private SendingHandler(MessageHandler delegate, String replyTo, RabbitPropertiesAccessor properties) {
 			this.delegate = delegate;
 			this.replyTo = replyTo;
-			this.partitionKeyExpression = properties.getPartitionKeyExpression();
-			this.partitionExpression = properties.getPartitionExpression();
-			this.divisor = properties.getModuleCount();
+			this.partitioningMetadata = new PartitioningMetadata(properties);
 			this.setBeanFactory(RabbitMessageBus.this.getBeanFactory());
 		}
 
@@ -459,14 +454,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				additionalHeaders = new HashMap<String, Object>();
 				additionalHeaders.put(AmqpHeaders.REPLY_TO, this.replyTo);
 			}
-			if (this.partitionKeyExpression != null) {
+			if (this.partitioningMetadata.isPartitionedModule()) {
 				if (additionalHeaders == null) {
 					additionalHeaders = new HashMap<String, Object>();
 				}
-				additionalHeaders.put(
-						"partition",
-						determinePartition(message, this.partitionKeyExpression,
-								this.partitionExpression, this.divisor));
+				additionalHeaders.put("partition", determinePartition(message, this.partitioningMetadata));
 			}
 			if (additionalHeaders != null) {
 				messageToSend = getMessageBuilderFactory().fromMessage(messageToSend)

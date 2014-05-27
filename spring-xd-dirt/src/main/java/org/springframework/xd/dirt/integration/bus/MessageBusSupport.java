@@ -55,8 +55,10 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.IdGenerator;
 import org.springframework.util.MimeType;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.SerializationException;
 
@@ -96,7 +98,7 @@ public abstract class MessageBusSupport
 
 	private volatile EvaluationContext evaluationContext;
 
-	private volatile PartitionStrategy partitionStrategy = new DefaultPartitionStrategy();
+	private volatile PartitionerStrategy partitionerStrategy = new DefaultPartitionerStrategy();
 
 	/**
 	 * Used in the canonical case, when the binding does not involve an alias name.
@@ -165,6 +167,15 @@ public abstract class MessageBusSupport
 	@Override
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		this.evaluationContext = evaluationContext;
+	}
+
+	/**
+	 * Set the partition strategy to be used by this bus if no partitionExpression
+	 * is provided for a module.
+	 * @param partitionerStrategy The strategy.
+	 */
+	public void setPartitionerStrategy(PartitionerStrategy partitionerStrategy) {
+		this.partitionerStrategy = partitionerStrategy;
 	}
 
 	@Override
@@ -410,9 +421,14 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Determine the partition to which to send this message. The partition key expression
-	 * evaluates to a key value. If the partition expression is not null, it is evaluated
-	 * against the evaluated key and is expected to return an integer to which the modulo function
+	 * Determine the partition to which to send this message.
+	 * If a partition key extractor class is provided, it is invoked to determine the key.
+	 * Otherwise, the partition key expression is evaluated to obtain the
+	 * key value.
+	 * If a partitioner class is provided, it will be invoked to determine the
+	 * partition. Otherwise,
+	 * if the partition expression is not null, it is evaluated
+	 * against the key and is expected to return an integer to which the modulo function
 	 * will be applied, using the divisor.
 	 * <p>
 	 * If no partition expression is provided, the key will be passed to the bus partition
@@ -420,37 +436,123 @@ public abstract class MessageBusSupport
 	 * The default partition strategy uses {@code key.hashCode()}, and the result will
 	 * be the mod of that value.
 	 *
-	 * @param message the message
-	 * @param partitionKeyExpression the key expression.
-	 * @param partitionExpression the partition expression, or null.
-	 * @param divisor the divisor.
+	 * @param message the message.
+	 * @param meta the partitioning metadata.
 	 * @return the partition.
 	 */
-	protected int determinePartition(Message<?> message, Expression partitionKeyExpression,
-			Expression partitionExpression, int divisor) {
-		Assert.notNull(partitionKeyExpression, "'partitionKeyExpression' cannot be null");
-		Object key = partitionKeyExpression.getValue(this.evaluationContext, message);
-		if (partitionExpression != null) {
-			return partitionExpression.getValue(evaluationContext, key, Integer.class) % divisor;
+	protected int determinePartition(Message<?> message, PartitioningMetadata meta) {
+		Object key = null;
+		if (StringUtils.hasText(meta.partitionKeyExtractorClass)) {
+			key = invokeExtractor(meta.partitionKeyExtractorClass, message);
+		}
+		else if (meta.partitionExpression != null) {
+			key = meta.partitionKeyExpression.getValue(this.evaluationContext, message);
+		}
+		Assert.notNull(key, "Partition key cannot be null");
+		if (StringUtils.hasText(meta.partitionerClass)) {
+			int partition = invokePartitioner(meta.partitionerClass, key, meta.divisor);
+			Assert.isTrue(partition < meta.divisor, "The partition function returned " + partition
+					+ "; it should be less than " + meta.divisor);
+			return partition;
+		}
+		else if (meta.partitionExpression != null) {
+			return meta.partitionExpression.getValue(this.evaluationContext, key, Integer.class) % meta.divisor;
 		}
 		else {
-			int partition = this.partitionStrategy.partition(key, divisor);
-			Assert.isTrue(partition < divisor, "The partition function returned " + partition
-					+ "; it should be less than " + divisor);
+			int partition = this.partitionerStrategy.partition(key, meta.divisor);
+			Assert.isTrue(partition < meta.divisor, "The partition function returned " + partition
+					+ "; it should be less than " + meta.divisor);
 			return partition;
+		}
+	}
+
+	private Object invokeExtractor(String partitionKeyExtractorClassName, Message<?> message) {
+		if (this.applicationContext.containsBean(partitionKeyExtractorClassName)) {
+			return this.applicationContext.getBean(partitionKeyExtractorClassName, PartitionKeyExtractorStrategy.class)
+					.extractKey(message);
+		}
+		Class<?> clazz;
+		try {
+			clazz = ClassUtils.forName(partitionKeyExtractorClassName, this.applicationContext.getClassLoader());
+		}
+		catch (Exception e) {
+			logger.error("Failed to load key extractor", e);
+			throw new MessageBusException("Failed to load key extractor: " + partitionKeyExtractorClassName, e);
+		}
+		try {
+			Object extractor = clazz.newInstance();
+			Assert.isInstanceOf(PartitionKeyExtractorStrategy.class, extractor);
+			this.applicationContext.getBeanFactory().registerSingleton(partitionKeyExtractorClassName, extractor);
+			this.applicationContext.getBeanFactory().initializeBean(extractor, partitionKeyExtractorClassName);
+			return ((PartitionKeyExtractorStrategy) extractor).extractKey(message);
+		}
+		catch (Exception e) {
+			logger.error("Failed to instantiate key extractor", e);
+			throw new MessageBusException("Failed to instantiate key extractor: " + partitionKeyExtractorClassName, e);
+		}
+	}
+
+	private int invokePartitioner(String partionerClassName, Object key, int divisor) {
+		if (this.applicationContext.containsBean(partionerClassName)) {
+			return this.applicationContext.getBean(partionerClassName, PartitionerStrategy.class)
+					.partition(key, divisor);
+		}
+		Class<?> clazz;
+		try {
+			clazz = ClassUtils.forName(partionerClassName, this.applicationContext.getClassLoader());
+		}
+		catch (Exception e) {
+			logger.error("Failed to load partitioner", e);
+			throw new MessageBusException("Failed to load partitioner: " + partionerClassName, e);
+		}
+		try {
+			Object extractor = clazz.newInstance();
+			Assert.isInstanceOf(PartitionKeyExtractorStrategy.class, extractor);
+			this.applicationContext.getBeanFactory().registerSingleton(partionerClassName, extractor);
+			this.applicationContext.getBeanFactory().initializeBean(extractor, partionerClassName);
+			return ((PartitionerStrategy) extractor).partition(key, divisor);
+		}
+		catch (Exception e) {
+			logger.error("Failed to instantiate partitioner", e);
+			throw new MessageBusException("Failed to instantiate partitioner: " + partionerClassName, e);
 		}
 	}
 
 	/**
 	 * Default partition strategy; only works on keys with "real" hash codes, such as String.
 	 */
-	private class DefaultPartitionStrategy implements PartitionStrategy {
+	private class DefaultPartitionerStrategy implements PartitionerStrategy {
 
 		@Override
 		public int partition(Object key, int divisor) {
 			return key.hashCode() % divisor;
 		}
 
+	}
+
+	protected class PartitioningMetadata {
+
+		private final String partitionKeyExtractorClass;
+
+		private final Expression partitionKeyExpression;
+
+		private final String partitionerClass;
+
+		private final Expression partitionExpression;
+
+		private final int divisor;
+
+		public PartitioningMetadata(AbstractBusPropertiesAccessor properties) {
+			this.partitionKeyExtractorClass = properties.getPartitionKeyExtractorClass();
+			this.partitionKeyExpression = properties.getPartitionKeyExpression();
+			this.partitionerClass = properties.getPartitionerClass();
+			this.partitionExpression = properties.getPartitionExpression();
+			this.divisor = properties.getPartitionCount();
+		}
+
+		public boolean isPartitionedModule() {
+			return StringUtils.hasText(this.partitionKeyExtractorClass) || this.partitionKeyExpression != null;
+		}
 	}
 
 	/**

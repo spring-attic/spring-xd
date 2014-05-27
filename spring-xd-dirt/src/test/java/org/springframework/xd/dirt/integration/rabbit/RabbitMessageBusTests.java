@@ -191,12 +191,12 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 	}
 
 	@Test
-	public void testPartitionedModule() {
+	public void testPartitionedModuleSpEL() {
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();
 		properties.put("partitionKeyExpression", "payload");
 		properties.put("partitionExpression", "hashCode()");
-		properties.put("partition.count", "3");
+		properties.put("partitionCount", "3");
 
 		DirectChannel output = new DirectChannel();
 		bus.bindProducer("part.0", output, properties);
@@ -207,19 +207,64 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		assertEquals("'xdbus.part.0-' + headers['partition']",
 				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
 
-		properties.put("partition", "0");
+		properties.put("partitionIndex", "0");
 		QueueChannel input0 = new QueueChannel();
 		bus.bindConsumer("part.0", input0, properties);
-		properties.put("partition", "1");
+		properties.put("partitionIndex", "1");
 		QueueChannel input1 = new QueueChannel();
 		bus.bindConsumer("part.0", input1, properties);
-		properties.put("partition", "2");
+		properties.put("partitionIndex", "2");
 		QueueChannel input2 = new QueueChannel();
 		bus.bindConsumer("part.0", input2, properties);
 
-		output.send(new GenericMessage<Integer>(0));
-		output.send(new GenericMessage<Integer>(1));
 		output.send(new GenericMessage<Integer>(2));
+		output.send(new GenericMessage<Integer>(1));
+		output.send(new GenericMessage<Integer>(0));
+
+		Message<?> receive0 = input0.receive(1000);
+		assertNotNull(receive0);
+		assertEquals(0, receive0.getPayload());
+		Message<?> receive1 = input1.receive(1000);
+		assertNotNull(receive1);
+		assertEquals(1, receive1.getPayload());
+		Message<?> receive2 = input2.receive(1000);
+		assertNotNull(receive2);
+		assertEquals(2, receive2.getPayload());
+
+		bus.unbindConsumers("part.0");
+		bus.unbindConsumers("part.0");
+	}
+
+	@Test
+	public void testPartitionedModuleJava() {
+		MessageBus bus = getMessageBus();
+		Properties properties = new Properties();
+		properties.put("partitionKeyExtractorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
+		properties.put("partitionerClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
+		properties.put("partitionCount", "3");
+
+		DirectChannel output = new DirectChannel();
+		bus.bindProducer("part.0", output, properties);
+		@SuppressWarnings("unchecked")
+		List<Binding> bindings = TestUtils.getPropertyValue(bus, "messageBus.bindings", List.class);
+		assertEquals(1, bindings.size());
+		AbstractEndpoint endpoint = bindings.get(0).getEndpoint();
+		assertEquals("'xdbus.part.0-' + headers['partition']",
+				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
+
+		properties.put("partitionIndex", "0");
+		QueueChannel input0 = new QueueChannel();
+		bus.bindConsumer("part.0", input0, properties);
+		properties.put("partitionIndex", "1");
+		QueueChannel input1 = new QueueChannel();
+		bus.bindConsumer("part.0", input1, properties);
+		properties.put("partitionIndex", "2");
+		QueueChannel input2 = new QueueChannel();
+		bus.bindConsumer("part.0", input2, properties);
+
+		output.send(new GenericMessage<Integer>(2));
+		output.send(new GenericMessage<Integer>(1));
+		output.send(new GenericMessage<Integer>(0));
 
 		Message<?> receive0 = input0.receive(1000);
 		assertNotNull(receive0);

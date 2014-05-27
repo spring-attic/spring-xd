@@ -40,10 +40,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
@@ -52,8 +55,10 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.IdGenerator;
 import org.springframework.util.MimeType;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.SerializationException;
 
@@ -62,7 +67,8 @@ import org.springframework.xd.dirt.integration.bus.serializer.SerializationExcep
  * @author David Turanski
  * @author Gary Russell
  */
-public abstract class MessageBusSupport implements MessageBus, ApplicationContextAware, InitializingBean {
+public abstract class MessageBusSupport
+		implements MessageBus, ApplicationContextAware, InitializingBean, IntegrationEvaluationContextAware {
 
 	protected static final String P2P_NAMED_CHANNEL_TYPE_PREFIX = "queue:";
 
@@ -89,6 +95,10 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
 
 	private final Set<MessageChannel> createdChannels = Collections.synchronizedSet(new HashSet<MessageChannel>());
+
+	private volatile EvaluationContext evaluationContext;
+
+	private volatile PartitionSelectorStrategy partitionSelector = new DefaultPartitionSelector();
 
 	/**
 	 * Used in the canonical case, when the binding does not involve an alias name.
@@ -152,6 +162,20 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 
 	protected IdGenerator getIdGenerator() {
 		return idGenerator;
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
+
+	/**
+	 * Set the partition strategy to be used by this bus if no partitionExpression
+	 * is provided for a module.
+	 * @param partitionSelector The selector.
+	 */
+	public void setPartitionSelector(PartitionSelectorStrategy partitionSelector) {
+		this.partitionSelector = partitionSelector;
 	}
 
 	@Override
@@ -394,6 +418,141 @@ public abstract class MessageBusSupport implements MessageBus, ApplicationContex
 			return TEXT_PLAIN_VALUE;
 		}
 		return "application/x-java-object;type=" + originalPayload.getClass().getName();
+	}
+
+	/**
+	 * Determine the partition to which to send this message.
+	 * If a partition key extractor class is provided, it is invoked to determine the key.
+	 * Otherwise, the partition key expression is evaluated to obtain the
+	 * key value.
+	 * If a partition selector class is provided, it will be invoked to determine the
+	 * partition. Otherwise,
+	 * if the partition expression is not null, it is evaluated
+	 * against the key and is expected to return an integer to which the modulo function
+	 * will be applied, using the divisor.
+	 * <p>
+	 * If no partition expression is provided, the key will be passed to the bus partition
+	 * strategy along with the divisor.
+	 * The default partition strategy uses {@code key.hashCode()}, and the result will
+	 * be the mod of that value.
+	 *
+	 * @param message the message.
+	 * @param meta the partitioning metadata.
+	 * @return the partition.
+	 */
+	protected int determinePartition(Message<?> message, PartitioningMetadata meta) {
+		Object key = null;
+		if (StringUtils.hasText(meta.partitionKeyExtractorClass)) {
+			key = invokeExtractor(meta.partitionKeyExtractorClass, message);
+		}
+		else if (meta.partitionSelectorExpression != null) {
+			key = meta.partitionKeyExpression.getValue(this.evaluationContext, message);
+		}
+		Assert.notNull(key, "Partition key cannot be null");
+		if (StringUtils.hasText(meta.partitionSelectorClass)) {
+			int partition = invokePartitionSelector(meta.partitionSelectorClass, key, meta.divisor);
+			Assert.isTrue(partition < meta.divisor, "The partition function returned " + partition
+					+ "; it should be less than " + meta.divisor);
+			return partition;
+		}
+		else if (meta.partitionSelectorExpression != null) {
+			return meta.partitionSelectorExpression.getValue(this.evaluationContext, key, Integer.class) % meta.divisor;
+		}
+		else {
+			int partition = this.partitionSelector.selectPartition(key, meta.divisor);
+			Assert.isTrue(partition < meta.divisor, "The partition function returned " + partition
+					+ "; it should be less than " + meta.divisor);
+			return partition;
+		}
+	}
+
+	private Object invokeExtractor(String partitionKeyExtractorClassName, Message<?> message) {
+		if (this.applicationContext.containsBean(partitionKeyExtractorClassName)) {
+			return this.applicationContext.getBean(partitionKeyExtractorClassName, PartitionKeyExtractorStrategy.class)
+					.extractKey(message);
+		}
+		Class<?> clazz;
+		try {
+			clazz = ClassUtils.forName(partitionKeyExtractorClassName, this.applicationContext.getClassLoader());
+		}
+		catch (Exception e) {
+			logger.error("Failed to load key extractor", e);
+			throw new MessageBusException("Failed to load key extractor: " + partitionKeyExtractorClassName, e);
+		}
+		try {
+			Object extractor = clazz.newInstance();
+			Assert.isInstanceOf(PartitionKeyExtractorStrategy.class, extractor);
+			this.applicationContext.getBeanFactory().registerSingleton(partitionKeyExtractorClassName, extractor);
+			this.applicationContext.getBeanFactory().initializeBean(extractor, partitionKeyExtractorClassName);
+			return ((PartitionKeyExtractorStrategy) extractor).extractKey(message);
+		}
+		catch (Exception e) {
+			logger.error("Failed to instantiate key extractor", e);
+			throw new MessageBusException("Failed to instantiate key extractor: " + partitionKeyExtractorClassName, e);
+		}
+	}
+
+	private int invokePartitionSelector(String partitionSelectorClassName, Object key, int divisor) {
+		if (this.applicationContext.containsBean(partitionSelectorClassName)) {
+			return this.applicationContext.getBean(partitionSelectorClassName, PartitionSelectorStrategy.class)
+					.selectPartition(key, divisor);
+		}
+		Class<?> clazz;
+		try {
+			clazz = ClassUtils.forName(partitionSelectorClassName, this.applicationContext.getClassLoader());
+		}
+		catch (Exception e) {
+			logger.error("Failed to load partition selector", e);
+			throw new MessageBusException("Failed to load partition selector: " + partitionSelectorClassName, e);
+		}
+		try {
+			Object extractor = clazz.newInstance();
+			Assert.isInstanceOf(PartitionKeyExtractorStrategy.class, extractor);
+			this.applicationContext.getBeanFactory().registerSingleton(partitionSelectorClassName, extractor);
+			this.applicationContext.getBeanFactory().initializeBean(extractor, partitionSelectorClassName);
+			return ((PartitionSelectorStrategy) extractor).selectPartition(key, divisor);
+		}
+		catch (Exception e) {
+			logger.error("Failed to instantiate partition selector", e);
+			throw new MessageBusException("Failed to instantiate partition selector: " + partitionSelectorClassName, e);
+		}
+	}
+
+	/**
+	 * Default partition strategy; only works on keys with "real" hash codes, such as String.
+	 */
+	private class DefaultPartitionSelector implements PartitionSelectorStrategy {
+
+		@Override
+		public int selectPartition(Object key, int divisor) {
+			return key.hashCode() % divisor;
+		}
+
+	}
+
+	protected class PartitioningMetadata {
+
+		private final String partitionKeyExtractorClass;
+
+		private final Expression partitionKeyExpression;
+
+		private final String partitionSelectorClass;
+
+		private final Expression partitionSelectorExpression;
+
+		private final int divisor;
+
+		public PartitioningMetadata(AbstractBusPropertiesAccessor properties) {
+			this.partitionKeyExtractorClass = properties.getPartitionKeyExtractorClass();
+			this.partitionKeyExpression = properties.getPartitionKeyExpression();
+			this.partitionSelectorClass = properties.getPartitionSelectorClass();
+			this.partitionSelectorExpression = properties.getPartitionSelectorExpression();
+			this.divisor = properties.getPartitionCount();
+		}
+
+		public boolean isPartitionedModule() {
+			return StringUtils.hasText(this.partitionKeyExtractorClass) || this.partitionKeyExpression != null;
+		}
 	}
 
 	/**

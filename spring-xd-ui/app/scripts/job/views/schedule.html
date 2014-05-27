@@ -49,7 +49,7 @@
 <div class="modal-footer">
     <button type="button" class="btn btn-default" ng-click="cancelJobSchedule()">Close</button>
     <button type="button" class="btn btn-primary schedule-job"
-            ng-show="jobScheduleRequest.schedulerName && !jobScheduler.fixedDelay.$error.min"
+            ng-disabled="!jobScheduleRequest.schedulerName || jobScheduler.fixedDelay.$error.min"
             ng-click="scheduleJob(jobScheduleRequest)">Schedule
         Job <span class="glyphicon glyphicon-play"></span></button>
 </div>

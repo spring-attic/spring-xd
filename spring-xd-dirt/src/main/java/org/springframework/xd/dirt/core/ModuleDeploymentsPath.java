@@ -36,7 +36,7 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * assertEquals("/xd/deployments/modules/4dbd28e2-880d-4774/my-stream.source.http-0", deploymentsPath.build());
  * </code>
  * </p>
- * 
+ *
  * @author Patrick Peralta
  */
 public class ModuleDeploymentsPath {
@@ -99,7 +99,7 @@ public class ModuleDeploymentsPath {
 	 * Construct a {@code DeploymentsPath}. Use of this constructor means that an existing path will be provided and
 	 * this object will be used to extract the individual elements of the path. Both full paths (including and excluding
 	 * the {@link Paths#XD_NAMESPACE XD namespace prefix}) are supported.
-	 * 
+	 *
 	 * @param path stream path
 	 */
 	public ModuleDeploymentsPath(String path) {
@@ -123,7 +123,7 @@ public class ModuleDeploymentsPath {
 					"Path '%s' does not include a '%s' element", path, Paths.DEPLOYMENTS));
 		}
 
-		System.arraycopy(pathElements, offset, elements, 0, pathElements.length - offset);
+		System.arraycopy(pathElements, offset, elements, 0, elements.length);
 
 		Assert.noNullElements(elements);
 		Assert.state(elements[DEPLOYMENTS].equals(Paths.DEPLOYMENTS));
@@ -137,7 +137,7 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Return the container name.
-	 * 
+	 *
 	 * @return container name
 	 */
 	public String getContainer() {
@@ -146,9 +146,9 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Set the container name.
-	 * 
+	 *
 	 * @param container container name
-	 * 
+	 *
 	 * @return this object
 	 */
 	public ModuleDeploymentsPath setContainer(String container) {
@@ -158,7 +158,7 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Return the stream name.
-	 * 
+	 *
 	 * @return stream name
 	 */
 	public String getStreamName() {
@@ -167,9 +167,9 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Set the stream name.
-	 * 
+	 *
 	 * @param streamName stream name
-	 * 
+	 *
 	 * @return this object
 	 */
 	public ModuleDeploymentsPath setStreamName(String streamName) {
@@ -179,7 +179,7 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Return the module type.
-	 * 
+	 *
 	 * @return module type
 	 */
 	public String getModuleType() {
@@ -188,9 +188,9 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Set the module type.
-	 * 
+	 *
 	 * @param moduleType module type
-	 * 
+	 *
 	 * @return this object
 	 */
 	public ModuleDeploymentsPath setModuleType(String moduleType) {
@@ -200,7 +200,7 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Return the module label.
-	 * 
+	 *
 	 * @return module label
 	 */
 	public String getModuleLabel() {
@@ -209,9 +209,9 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Set the module label.
-	 * 
+	 *
 	 * @param moduleLabel module label
-	 * 
+	 *
 	 * @return this object
 	 */
 	public ModuleDeploymentsPath setModuleLabel(String moduleLabel) {
@@ -221,9 +221,9 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Build the path string using the field values.
-	 * 
+	 *
 	 * @return path string
-	 * 
+	 *
 	 * @see Paths#build
 	 */
 	public String build() {
@@ -234,9 +234,9 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Build the path string using the field values, including the namespace prefix.
-	 * 
+	 *
 	 * @return path string with namespace
-	 * 
+	 *
 	 * @see Paths#buildWithNamespace
 	 */
 	public String buildWithNamespace() {

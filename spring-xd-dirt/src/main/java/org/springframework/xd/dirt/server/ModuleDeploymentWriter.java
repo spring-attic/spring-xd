@@ -40,6 +40,7 @@ import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -250,11 +251,11 @@ public class ModuleDeploymentWriter {
 					provider.propertiesForDescriptor(descriptor),
 					wrapAsIterable(containerRepository.getContainerIterator()))) {
 				String containerName = container.getName();
-				String path = new ModuleDeploymentsPath()
+				String path = Paths.build(new ModuleDeploymentsPath()
 						.setContainer(containerName)
 						.setStreamName(descriptor.getGroup())
 						.setModuleType(descriptor.getType().toString())
-						.setModuleLabel(descriptor.getModuleLabel()).build();
+						.setModuleLabel(descriptor.getModuleLabel()).build(), Paths.STATUS);
 				collector.addPending(containerName, descriptor.createKey());
 				try {
 					ensureModuleDeploymentPath(path, descriptor, container);
@@ -303,6 +304,7 @@ public class ModuleDeploymentWriter {
 		// remove the ZK path for any failed deployments
 		for (Result result : results) {
 			if (result.status != Status.deployed) {
+				logger.trace("Unsuccessful deployment: {}", result);
 				String path = new ModuleDeploymentsPath()
 						.setContainer(result.container)
 						.setStreamName(result.key.getGroup())

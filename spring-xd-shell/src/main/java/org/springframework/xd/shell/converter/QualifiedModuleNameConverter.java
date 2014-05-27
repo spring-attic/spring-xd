@@ -63,7 +63,7 @@ public class QualifiedModuleNameConverter implements Converter<QualifiedModuleNa
 			logger.warning("For example, 'module info source:file' to get 'file' <source> module info.");
 			throw new ShellException();
 		}
-		RESTModuleType moduleType = validateAndReturnModuleType(colonIndex, value);
+		RESTModuleType moduleType = validateAndReturnModuleType(value.substring(0, colonIndex));
 		QualifiedModuleName result = new QualifiedModuleName(value.substring(colonIndex + 1), moduleType);
 		return result;
 	}
@@ -71,15 +71,13 @@ public class QualifiedModuleNameConverter implements Converter<QualifiedModuleNa
 	/**
 	 * Verify the module type used in the option value
 	 * and return the valid module type.
-	 * @param colonIndex the index number of the colon in the option value
 	 * @param value the value to validate
 	 * @return RESTModuleType the valid module type
 	 */
-	private RESTModuleType validateAndReturnModuleType(int colonIndex, String value) {
-		String givenModuleType = value.substring(0, colonIndex);
+	private RESTModuleType validateAndReturnModuleType(String value) {
 		RESTModuleType moduleType;
 		try {
-			moduleType = RESTModuleType.valueOf(givenModuleType);
+			moduleType = RESTModuleType.valueOf(value);
 		}
 		catch (IllegalArgumentException e) {
 			logger.warning("Not a valid module type. Valid module types are: "

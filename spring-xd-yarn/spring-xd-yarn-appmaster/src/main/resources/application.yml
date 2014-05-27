@@ -4,6 +4,9 @@ spring:
             appmasterClass: org.springframework.yarn.am.StaticEventingAppmaster
             containerCount: 1
             keepContextAlive: false
+            launchcontext:
+                useYarnAppClasspath: true
+                useMapreduceAppClasspath: true
             localizer:
                 patterns:
                     - "spring-xd-yarn*.zip"
@@ -24,7 +27,7 @@ spring:
                     -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                     -Dspring.config.location: "./servers.yml"
                     -Dxd.module.config.location: "file:./"
-                classpath:
+                containerAppClasspath:
                     - "./${spring.xd.yarn.app.zip}/config"
                     - "./${spring.xd.yarn.app.zip}/lib/*"
 ---
@@ -42,7 +45,7 @@ spring:
                     -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                     -Dspring.config.location: "./servers.yml"
                     -Dxd.module.config.location: "file:./"
-                classpath:
+                containerAppClasspath:
                     - "./${spring.xd.yarn.app.zip}/config"
                     - "./${spring.xd.yarn.app.zip}/lib/*"
                     - "./${spring.xd.yarn.app.zip}/modules/processor/scripts"

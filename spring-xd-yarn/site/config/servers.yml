@@ -23,7 +23,7 @@ spring:
 
 ---
 
-#XD data transport (default is redis)
+# XD data transport (default is redis)
 #xd:
 #    transport: rabbit
 
@@ -37,25 +37,29 @@ spring:
 # Hadoop 2.2.0 (hadoop22):
 spring:
     yarn:
-        defaultYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*"
+        siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*"
+        siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*"
 
 # Pivotal HD 2.0 (phd20):
 #spring:
 #    yarn:
-#        defaultYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*,$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
+#        siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*"
+#        siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
 # Hortonworks HDP 2.1 (hdp21):
 #spring:
 #    yarn:
-#        defaultYarnAppClasspath: "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*"
+#        siteYarnAppClasspath: "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*"
+#        siteMapreduceAppClasspath: "/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*"
 
 # Cloudera CDH5 (cdh5):
 #spring:
 #    yarn:
-#        defaultYarnAppClasspath: "$HADOOP_CLIENT_CONF_DIR,$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_COMMON_HOME/lib/*,$HADOOP_HDFS_HOME/*,$HADOOP_HDFS_HOME/lib/*,$HADOOP_YARN_HOME/*,$HADOOP_YARN_HOME/lib/*,$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
+#        siteYarnAppClasspath: "$HADOOP_CLIENT_CONF_DIR,$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_COMMON_HOME/lib/*,$HADOOP_HDFS_HOME/*,$HADOOP_HDFS_HOME/lib/*,$HADOOP_YARN_HOME/*,$HADOOP_YARN_HOME/lib/*"
+#        siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
 ---
-#Zookeeper properties
+# Zookeeper properties
 # client connect string: host1:port1,host2:port2,...,hostN:portN
 #zk:
 #  client:

@@ -48,33 +48,33 @@ import org.springframework.xd.integration.hadoop.partition.MessagePartitionStrat
 public class StoreWriterFactoryBean implements InitializingBean, DisposableBean, FactoryBean<DataStoreWriter<?>>,
 		BeanFactoryAware, Lifecycle, IntegrationEvaluationContextAware {
 
-	private DataStoreWriter<?> storeWriter;
+	private volatile DataStoreWriter<?> storeWriter;
 
-	private Configuration configuration;
+	private volatile Configuration configuration;
 
-	private Path basePath;
+	private volatile Path basePath;
 
-	private CodecInfo codec;
+	private volatile CodecInfo codec;
 
-	private long idleTimeout;
+	private volatile long idleTimeout;
 
-	private String inUseSuffix;
+	private volatile String inUseSuffix;
 
-	private String inUsePrefix;
+	private volatile String inUsePrefix;
 
-	private boolean overwrite = false;
+	private volatile boolean overwrite = false;
 
-	private String partitionExpression;
+	private volatile String partitionExpression;
 
-	private int fileOpenAttempts;
+	private volatile int fileOpenAttempts;
 
-	private FileNamingStrategy fileNamingStrategy;
+	private volatile FileNamingStrategy fileNamingStrategy;
 
-	private RolloverStrategy rolloverStrategy;
+	private volatile RolloverStrategy rolloverStrategy;
 
-	private BeanFactory beanFactory;
+	private volatile BeanFactory beanFactory;
 
-	private EvaluationContext evaluationContext;
+	private volatile EvaluationContext evaluationContext;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

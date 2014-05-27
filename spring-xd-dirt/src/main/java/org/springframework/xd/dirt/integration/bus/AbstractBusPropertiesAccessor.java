@@ -226,8 +226,8 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * A class name for calculating a partition from a key.
 	 * @return The class name,
 	 */
-	public String getPartitionerClass() {
-		return getProperty("partitionerClass");
+	public String getPartitionSelectorClass() {
+		return getProperty("partitionSelectorClass");
 	}
 
 	/**
@@ -237,11 +237,11 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * partition count.
 	 * @return The expression.
 	 */
-	public Expression getPartitionExpression() {
-		String partionExpression = getProperty("partitionExpression");
+	public Expression getPartitionSelectorExpression() {
+		String partionSelectorExpression = getProperty("partitionSelectorExpression");
 		Expression expression = null;
-		if (partionExpression != null) {
-			expression = spelExpressionParser.parseExpression(partionExpression);
+		if (partionSelectorExpression != null) {
+			expression = spelExpressionParser.parseExpression(partionSelectorExpression);
 		}
 		return expression;
 	}
@@ -258,7 +258,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * The partition index that this consumer supports.
 	 * @return The partition index.
 	 */
-	public int getModulePartitionIndex() {
+	public int getPartitionIndex() {
 		return getProperty("partitionIndex", -1);
 	}
 

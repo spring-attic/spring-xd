@@ -23,10 +23,10 @@ import org.springframework.messaging.Message;
  * 
  * @author Gary Russell
  */
-public class PartitionTestSupport implements PartitionKeyExtractorStrategy, PartitionerStrategy {
+public class PartitionTestSupport implements PartitionKeyExtractorStrategy, PartitionSelectorStrategy {
 
 	@Override
-	public int partition(Object key, int divisor) {
+	public int selectPartition(Object key, int divisor) {
 		return key.hashCode() % divisor;
 	}
 

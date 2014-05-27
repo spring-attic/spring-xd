@@ -226,7 +226,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		registerNamedChannelForConsumerIfNecessary(name, false);
 		String queueName = accessor.getPrefix(this.defaultPrefix) + name;
-		int partitionIndex = accessor.getModulePartitionIndex();
+		int partitionIndex = accessor.getPartitionIndex();
 		if (partitionIndex >= 0) {
 			queueName += "-" + partitionIndex;
 		}

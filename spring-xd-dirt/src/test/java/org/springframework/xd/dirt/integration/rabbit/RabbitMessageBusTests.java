@@ -195,7 +195,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();
 		properties.put("partitionKeyExpression", "payload");
-		properties.put("partitionExpression", "hashCode()");
+		properties.put("partitionSelectorExpression", "hashCode()");
 		properties.put("partitionCount", "3");
 
 		DirectChannel output = new DirectChannel();
@@ -240,7 +240,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();
 		properties.put("partitionKeyExtractorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
-		properties.put("partitionerClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
+		properties.put("partitionSelectorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
 		properties.put("partitionCount", "3");
 
 		DirectChannel output = new DirectChannel();

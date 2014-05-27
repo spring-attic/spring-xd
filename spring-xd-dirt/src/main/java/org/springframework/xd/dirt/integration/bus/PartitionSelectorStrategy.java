@@ -23,14 +23,15 @@ package org.springframework.xd.dirt.integration.bus;
  * 
  * @author Gary Russell
  */
-public interface PartitionerStrategy {
+public interface PartitionSelectorStrategy {
 
 	/**
 	 * Determine the partition based on a key.
 	 * @param key The key.
-	 * @param divisor 1 greater than the maximum value that can be returned.
+	 * @param divisor 1 greater than the maximum value that can be returned; typical
+	 * implementations will return {@code someValue % divisor}.
 	 * @return The partition
 	 */
-	int partition(Object key, int divisor);
+	int selectPartition(Object key, int divisor);
 
 }

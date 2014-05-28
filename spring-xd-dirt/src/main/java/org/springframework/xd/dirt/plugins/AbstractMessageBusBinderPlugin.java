@@ -190,7 +190,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	 * @param outputChannel the channel to tap
 	 */
 	private void createAndBindTapChannel(String tapChannelName, MessageChannel outputChannel) {
-		logger.info("creating and binding tap channel for %s", tapChannelName);
+		logger.info("creating and binding tap channel for {}", tapChannelName);
 		if (outputChannel instanceof ChannelInterceptorAware) {
 			MessageChannel tapChannel = tapOutputChannel(tapChannelName, (ChannelInterceptorAware) outputChannel);
 			messageBus.bindPubSubProducer(tapChannelName, tapChannel, null); // TODO tap producer props
@@ -242,8 +242,8 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 				}
 			}
 			interceptorAware.setInterceptors(interceptors);
+			messageBus.unbindProducers(tapChannelName);
 		}
-		messageBus.unbindProducers(tapChannelName);
 	}
 
 	private boolean isChannelPubSub(String channelName) {

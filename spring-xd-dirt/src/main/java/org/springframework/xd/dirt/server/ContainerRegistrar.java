@@ -306,6 +306,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 					client.delete().forPath(Paths.build(Paths.TAPS, tapChannelName, this.containerAttributes.getId()));
 					client.delete().forPath(Paths.build(Paths.TAPS, tapChannelName));
 				}
+				catch (NoNodeException e) {
+					// already deleted, ignore
+				}
 				catch (NotEmptyException e) {
 					// attempted to delete a node that still has other children, let it be
 				}

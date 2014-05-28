@@ -11,7 +11,7 @@
 	<thead>
 		<tr>
 			<th>Name</th><th class="text-center">Instance Id</th><th class="text-center">Execution Id</th><th>Job Start Time</th>
-			<th class="text-center">Step Executions Count</th><th>Status</th><th colspan="2" class="text-center">Actions</th>
+			<th class="text-center">Step Executions Count</th><th>Status</th><th colspan="3" class="text-center">Actions</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -22,12 +22,13 @@
 			<td>{{item.startDate}} {{item.startTime}}</td>
 			<td class="text-center">{{item.stepExecutionCount}}</td>
 			<td ng-class="{'text-success': item.jobExecution.status === 'COMPLETED', 'text-danger': item.jobExecution.status === 'FAILED'}">{{item.jobExecution.status}}</td>
-            <td style="width: 1px;"><button type="button" class="btn btn-default" ng-click="viewJobExecutionDetails(item)" title="Details"><span class="glyphicon glyphicon-search"></span></button></td>
-            <td style="width: 1px;"><button ng-show="{{item.restartable}}" type="button" class="btn btn-default" ng-click="restartJob(item)" title="Restart Job Execution">
-                <span class="glyphicon glyphicon-retweet"></span></button>
-                <button ng-show="{{item.stoppable}}" type="button" class="btn btn-default" ng-click="stopJob(item)" title="Stop Job Execution">
+            <td class="action-column"><button ng-disabled="!item.restartable" type="button" class="btn btn-default" ng-click="restartJob(item)" title="Restart Job Execution">
+                <span class="glyphicon glyphicon-retweet"></span></button></td>
+            <td class="action-column">
+                <button ng-disabled="!item.stoppable" type="button" class="btn btn-default" ng-click="stopJob(item)" title="Stop Job Execution">
                 <span class="glyphicon glyphicon-stop"></span></button>
             </td>
+            <td class="action-column"><button type="button" class="btn btn-default" ng-click="viewJobExecutionDetails(item)" title="Details"><span class="glyphicon glyphicon-search"></span></button></td>
 		</tr>
 	</tbody>
 </table>

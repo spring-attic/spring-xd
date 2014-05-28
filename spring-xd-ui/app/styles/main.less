@@ -48,7 +48,7 @@
 @nav-tabs-border-color:                   @spring-brown;
 @table-border-color:                      @spring-brown;
 
-@import (less) "../../bower_components/angular-busy/dist/angular-busy.css";
+@import (less) "angular-busy.css";
 @import (less) "../../bower_components/highlightjs/styles/default.css";
 @import "growl.less";
 @import "typography.less";
@@ -153,8 +153,16 @@ h1 {
   margin: 30px 0 0;
 }
 
+table td {
+  vertical-align: middle !important;
+}
+
 table td .progress {
   margin-bottom: 0;
+}
+
+table td.action-column {
+  width: 1px;
 }
 
 .help-block {

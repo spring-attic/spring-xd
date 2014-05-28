@@ -26,6 +26,7 @@ define([
   'ngResource',
   'cgBusy',
   'ngGrowl',
+  'ngAnimate',
   'angularHighlightjs',
   './controllers',
   './services',
@@ -42,6 +43,7 @@ define([
     'xdAdmin.filters',
     'ui.router',
     'ngResource',
+    'ngAnimate',
     'cgBusy',
     'hljs',
     'angular-growl'

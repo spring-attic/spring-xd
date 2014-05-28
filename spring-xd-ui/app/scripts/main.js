@@ -29,6 +29,7 @@ require.config({
     uiRouter: '../lib/angular-ui-router/angular-ui-router',
     cgBusy: '../lib/angular-busy/angular-busy',
     ngGrowl: '../lib/angular-growl/angular-growl',
+    ngAnimate: '../lib/angular-animate/angular-animate',
     angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
     highlightjs: '../lib/highlightjs/highlight.pack'
   },
@@ -46,11 +47,14 @@ require.config({
     'ngResource': {
       deps: ['angular']
     },
+    'ngAnimate': {
+      deps: ['angular']
+    },
     'cgBusy': {
       deps: ['angular']
     },
     'ngGrowl': {
-      deps: ['angular']
+      deps: ['angular', 'ngAnimate']
     },
     'angularHighlightjs': {
       deps: ['angular', 'highlightjs']

@@ -13,28 +13,28 @@
     <tr>
         <th>Name</th>
         <th>Definition</th>
-        <th colspan="3" class="text-center">Deploy / Undeploy / Destroy</th>
+        <th colspan="3" class="text-center">Actions</th>
     </tr>
     </thead>
     <tbody>
     <tr ng-repeat="item in jobDefinitions | filter:filterQuery | orderBy:'name'" ng-show="!item.inactive">
         <td>{{item.name}}</td>
         <td>{{item.definition}}</td>
-        <td style="width: 1px;">
+        <td class="action-column">
             <button type="button" ng-click="undeployJob(item)"
                     ng-disabled="!item.deployed"
                     class="btn btn-default"
                     ><span class="glyphicon glyphicon-stop"></span> Undeploy
             </button>
         </td>
-        <td style="width: 1px;">
+        <td class="action-column">
             <button type="button" ng-click="deployJob(item)"
                     ng-disabled="item.deployed"
                     class="btn btn-default"
                     ><span class="glyphicon glyphicon-play"></span> Deploy
             </button>
         </td>
-        <td style="width: 1px;">
+        <td class="action-column">
             <button type="button" ng-click="clickModal(item)"
                     class="btn btn-default" data-toggle="modal" data-target="#confirm-destroy"
                     ><span class="glyphicon glyphicon-remove"></span> Destroy

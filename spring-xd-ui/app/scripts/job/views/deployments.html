@@ -10,15 +10,15 @@
         <td>{{item.name}}</td>
         <td class="text-center">{{item.executionCount}}</td>
         <td ng-class="{'text-success': item.exitStatus.exitCode === 'COMPLETED', 'text-danger': item.exitStatus.exitCode === 'FAILED'}">{{item.exitStatus.exitCode}}</td>
-        <td style="width: 1px;"><button type="button" ng-disabled="!item.deployed" ng-click="launchJob(item)"
+        <td class="action-column"><button type="button" ng-disabled="!item.deployed" ng-click="launchJob(item)"
           class="btn btn-default"
           ><span class="glyphicon glyphicon-play"></span><span class="hidden-xs"> Launch</span></button>
         </td>
-        <td style="width: 1px;"><button type="button" ng-disabled="!item.deployed" ng-click="scheduleJob(item)"
+        <td class="action-column"><button type="button" ng-disabled="!item.deployed" ng-click="scheduleJob(item)"
           class="btn btn-default"
           ><span class="glyphicon glyphicon-time"></span><span class="hidden-xs"> Schedule</span></button>
         </td>
-        <td class="col-md-3 text-center" style="width: 1px;"><button type="button" title="Details"
+        <td class="action-column"><button type="button" title="Details"
           class="btn btn-default" ng-click='viewDeploymentDetails(item)'>
           <span class="glyphicon glyphicon-search"></span></button></td>
     </tr>

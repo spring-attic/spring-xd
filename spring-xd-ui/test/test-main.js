@@ -20,6 +20,7 @@ require.config({
     uiRouter: '/base/app/lib/angular-ui-router/angular-ui-router',
     cgBusy: '/base/app/lib/angular-busy/angular-busy',
     ngGrowl: '/base/app/lib/angular-growl/angular-growl',
+    ngGrowl: '/base/app/lib/angular-animate/angular-animate',
   },
   baseUrl: '/base/app/scripts',
   shim: {

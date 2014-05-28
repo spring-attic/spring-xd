@@ -67,7 +67,7 @@ destroy_stream 'httpfilter1'
 
 echo -e '*** Test 5. tcp | file stream\n'
 
-create_stream 'tcptofile' "tcp --port=21234 --socketTimeout=2000 | file --dir=$TEST_DIR" 'true'
+create_stream 'tcptofile' "tcp --outputType=text/plain --port=21234 --socketTimeout=2000 | file --dir=$TEST_DIR" 'true'
 
 sleep 5
 echo -en 'blahblah\r\n' | netcat localhost 21234

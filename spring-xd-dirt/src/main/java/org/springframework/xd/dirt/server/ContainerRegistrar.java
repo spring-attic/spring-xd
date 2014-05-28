@@ -467,26 +467,27 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				.setContainer(containerAttributes.getId()).build();
 
 		Module module = null;
-		try {
-			Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
+		Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
+		if (stream != null) {
 			ModuleDescriptor descriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
 			ModuleDeploymentProperties moduleDeploymentProperties =
 					DeploymentPropertiesUtility.createModuleDeploymentProperties(
 							stream.getDeploymentProperties(), descriptor);
 
 			module = deployModule(descriptor, moduleDeploymentProperties);
+			try {
+				// this indicates that the container has deployed the module
+				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(streamDeploymentPath,
+						getDeployedMessage());
 
-			// this indicates that the container has deployed the module
-			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(streamDeploymentPath,
-					getDeployedMessage());
-
-			// set a watch on this module in the stream path;
-			// if the node is deleted this indicates an undeployment
-			client.getData().usingWatcher(streamModuleWatcher).forPath(streamDeploymentPath);
-		}
-		catch (KeeperException.NodeExistsException e) {
-			// todo: review, this should not happen
-			logger.info("Module {} for stream {} already deployed", moduleLabel, streamName);
+				// set a watch on this module in the stream path;
+				// if the node is deleted this indicates an undeployment
+				client.getData().usingWatcher(streamModuleWatcher).forPath(streamDeploymentPath);
+			}
+			catch (KeeperException.NodeExistsException e) {
+				// todo: review, this should not happen
+				logger.info("Module {} for stream {} already deployed", moduleLabel, streamName);
+			}
 		}
 		return module;
 	}

@@ -20,20 +20,25 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
 import org.hibernate.validator.constraints.NotBlank;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 /**
  * Describes options to the {@code gemfire-cq} source module.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
-public class GemfireCQSourceOptionsMetadata {
+public class GemfireCQSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private int port = 40404;
 
 	private String host = "localhost";
 
 	private String query;
+
+	private boolean useLocator = false;
 
 
 	@Min(0)
@@ -69,5 +74,23 @@ public class GemfireCQSourceOptionsMetadata {
 		this.query = query;
 	}
 
+	public boolean isUseLocator() {
+		return useLocator;
+	}
+
+	@ModuleOption("set to true if using a locator")
+	public void setUseLocator(boolean useLocator) {
+		this.useLocator = useLocator;
+	}
+
+	@Override
+	public String[] profilesToActivate() {
+		if (useLocator) {
+			return new String[] { "use-locator" };
+		}
+		else {
+			return new String[] { "use-server" };
+		}
+	}
 
 }

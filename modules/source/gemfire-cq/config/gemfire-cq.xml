@@ -14,12 +14,10 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<gfe:client-cache id="client-cache" use-bean-factory-locator="false"/>
-	<gfe:pool id="cq-pool" subscription-enabled="true">
-		<gfe:server host="${host}" port="${port}" />
-	</gfe:pool>
+	 
 
 	<gfe:cq-listener-container id="cqContainer"
-		cache="client-cache" pool-name="cq-pool" />
+		cache="client-cache"/>
 
 	<int:channel id="output"/>
 
@@ -28,4 +26,15 @@
 	<int:transformer input-channel="to.transformer" output-channel="output" method="toString">
 		<bean class="org.springframework.integration.x.gemfire.JsonStringToObjectTransformer"/>
 	</int:transformer>
+	
+	<beans profile="use-server">
+		<gfe:pool subscription-enabled="true">
+			<gfe:server host="${host}" port="${port}" />
+		</gfe:pool>
+	</beans>
+	<beans profile="use-locator">
+		<gfe:pool subscription-enabled="true">
+			<gfe:locator host="${host}" port="${port}" />
+		</gfe:pool>
+	</beans>
 </beans>

@@ -61,16 +61,6 @@ public class GemfireSourceOptionsMetadata implements ProfileNamesProvider {
 		this.port = port;
 	}
 
-	@Override
-	public String[] profilesToActivate() {
-		if (useLocator) {
-			return new String[] { "use-locator" };
-		}
-		else {
-			return new String[] { "use-server" };
-		}
-	}
-
 	@NotBlank
 	public String getCacheEventExpression() {
 		return cacheEventExpression;
@@ -91,5 +81,22 @@ public class GemfireSourceOptionsMetadata implements ProfileNamesProvider {
 		this.regionName = regionName;
 	}
 
+	public boolean isUseLocator() {
+		return useLocator;
+	}
 
+	@ModuleOption("set to true if using a locator")
+	public void setUseLocator(boolean useLocator) {
+		this.useLocator = useLocator;
+	}
+
+	@Override
+	public String[] profilesToActivate() {
+		if (useLocator) {
+			return new String[] { "use-locator" };
+		}
+		else {
+			return new String[] { "use-server" };
+		}
+	}
 }

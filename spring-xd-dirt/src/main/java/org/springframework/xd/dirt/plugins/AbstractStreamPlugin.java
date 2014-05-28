@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.plugins;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
@@ -34,6 +35,10 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 
 	public AbstractStreamPlugin(MessageBus messageBus) {
 		super(messageBus);
+	}
+
+	public AbstractStreamPlugin(MessageBus messageBus, ZooKeeperConnection zkConnection) {
+		super(messageBus, zkConnection);
 	}
 
 	@Override

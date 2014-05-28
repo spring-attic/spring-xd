@@ -130,7 +130,10 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	}
 
 	/**
+	 * Get detailed job info
+	 *
 	 * @param jobName name of the job
+	 * @param deployed the deployment status of the job
 	 * @return a job info for this job
 	 */
 	private DetailedJobInfoResource getJobInfo(String jobName, boolean deployed) {

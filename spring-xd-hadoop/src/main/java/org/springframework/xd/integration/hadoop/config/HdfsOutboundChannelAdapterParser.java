@@ -22,12 +22,10 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.xd.integration.hadoop.outbound.HdfsStoreMessageHandler;
 
 /**
  * Parser for the 'hdfs-outbound-channel-adapter' element.
- * 
+ *
  * @author Mark Fisher
  * @author Janne Valkealahti
  */
@@ -35,10 +33,9 @@ public class HdfsOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HdfsStoreMessageHandler.class);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "writer", "storeWriter");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		return builder.getBeanDefinition();
+		BeanDefinitionBuilder handlerBuilder = HdfsStoreMessageHandlerBeanDefinitionBuilder.configure(element,
+				parserContext);
+		return handlerBuilder.getBeanDefinition();
 	}
 
 }

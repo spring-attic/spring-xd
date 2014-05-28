@@ -32,16 +32,17 @@ import org.springframework.data.hadoop.store.strategy.naming.ChainedFileNamingSt
 import org.springframework.data.hadoop.store.strategy.naming.CodecFileNamingStrategy;
 import org.springframework.data.hadoop.store.strategy.naming.RollingFileNamingStrategy;
 import org.springframework.data.hadoop.store.strategy.naming.StaticFileNamingStrategy;
+import org.springframework.data.hadoop.store.strategy.naming.UuidFileNamingStrategy;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.springframework.xd.integration.hadoop.IntegrationHadoopSystemConstants;
 
 /**
- * Parser for the 'naming-policy' element.
- * 
+ * Parser for the 'naming-strategy' element.
+ *
  * @author Janne Valkealahti
- * 
+ *
  */
 public class NamingStrategyParser extends AbstractBeanDefinitionParser {
 
@@ -53,8 +54,10 @@ public class NamingStrategyParser extends AbstractBeanDefinitionParser {
 		List<Element> staticElements = DomUtils.getChildElementsByTagName(element, "static");
 		List<Element> rollingElements = DomUtils.getChildElementsByTagName(element, "rolling");
 		List<Element> codecElements = DomUtils.getChildElementsByTagName(element, "codec");
+		List<Element> uuidElements = DomUtils.getChildElementsByTagName(element, "uuid");
 
-		if (staticElements.size() == 0 && rollingElements.size() == 0 && codecElements.size() == 0) {
+		if (staticElements.size() == 0 && rollingElements.size() == 0 && codecElements.size() == 0
+				&& uuidElements.size() == 0) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(StaticFileNamingStrategy.class);
 			return builder.getBeanDefinition();
 		}
@@ -85,6 +88,17 @@ public class NamingStrategyParser extends AbstractBeanDefinitionParser {
 		for (Element e : codecElements) {
 			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(CodecFileNamingStrategy.class);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
+			String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					nestedBuilder.getBeanDefinition(),
+					parserContext.getRegistry());
+			strategies.add(new RuntimeBeanReference(nestedBeanName));
+		}
+
+		for (Element e : uuidElements) {
+			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(UuidFileNamingStrategy.class);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "enabled");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "uuid");
 			String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					nestedBuilder.getBeanDefinition(),
 					parserContext.getRegistry());

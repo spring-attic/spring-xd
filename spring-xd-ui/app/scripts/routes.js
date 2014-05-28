@@ -22,7 +22,7 @@
  */
 define(['./app'], function (xdAdmin) {
   'use strict';
-  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider) {
+  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider, growlProvider) {
     $httpProvider.defaults.useXDomain = true;
 
     $urlRouterProvider.otherwise('/jobs/definitions');
@@ -30,6 +30,8 @@ define(['./app'], function (xdAdmin) {
     hljsServiceProvider.setOptions({
       tabReplace: '  '
     });
+
+    growlProvider.globalTimeToLive(5000);
 
     var jobTemplatesPath = 'scripts/job/views',
         streamTemplatesPath = 'scripts/stream/views',

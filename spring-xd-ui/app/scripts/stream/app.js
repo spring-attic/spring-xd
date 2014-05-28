@@ -24,6 +24,7 @@ define([
   'uiRouter',
   'ngResource',
   'cgBusy',
+  'ngAnimate',
   'ngGrowl',
   './controllers',
   './services',
@@ -36,6 +37,7 @@ define([
     'xdShared.services',
     'ui.router',
     'ngResource',
+    'ngAnimate',
     'cgBusy',
     'angular-growl'
   ]);

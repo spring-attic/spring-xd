@@ -11,10 +11,10 @@
       <td><div class="progress"
         ><div class="progress-bar" role="progressbar" aria-valuenow="{{stepExecutionProgress.percentageFormatted}}" aria-valuemin="0" aria-valuemax="100" style="width: {{stepExecutionProgress.percentageFormatted}}%;"
         >{{stepExecutionProgress.percentageFormatted}} %</div></div></td>
-      <td style="width: 1px;"><button type="button" class="btn btn-default btn-xs"
+      <td class="action-column"><button type="button" class="btn btn-default btn-xs"
           ng-click="refreshStepExecutionProgress(stepExecutionDetails)">
           <span class="glyphicon glyphicon-refresh"></span></button></td>
-      <td style="width: 1px;"><button type="button" class="btn btn-default btn-xs"
+      <td class="action-column"><button type="button" class="btn btn-default btn-xs"
           ng-click="showStepExecutionProgress(stepExecutionProgress)">
           <span class="glyphicon glyphicon-stats"></span></button></td>
     </tr>

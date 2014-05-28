@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,8 +64,7 @@ public class QualifiedModuleNameConverter implements Converter<QualifiedModuleNa
 			throw new ShellException();
 		}
 		RESTModuleType moduleType = validateAndReturnModuleType(value.substring(0, colonIndex));
-		QualifiedModuleName result = new QualifiedModuleName(value.substring(colonIndex + 1), moduleType);
-		return result;
+		return new QualifiedModuleName(value.substring(colonIndex + 1), moduleType);
 	}
 
 	/**
@@ -75,16 +74,14 @@ public class QualifiedModuleNameConverter implements Converter<QualifiedModuleNa
 	 * @return RESTModuleType the valid module type
 	 */
 	private RESTModuleType validateAndReturnModuleType(String value) {
-		RESTModuleType moduleType;
 		try {
-			moduleType = RESTModuleType.valueOf(value);
+			return RESTModuleType.valueOf(value);
 		}
 		catch (IllegalArgumentException e) {
 			logger.warning("Not a valid module type. Valid module types are: "
 					+ Arrays.toString(RESTModuleType.values()));
 			throw new ShellException();
 		}
-		return moduleType;
 	}
 
 	@Override

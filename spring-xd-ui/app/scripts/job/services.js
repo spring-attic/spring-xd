@@ -54,10 +54,10 @@ define(['angular'], function (angular) {
       })
       .factory('ModuleMetaData', function ($resource, $log, $rootScope) {
         return {
-          getModuleMetaDataForJob: function (jobname) {
-              $log.info('Getting ModuleMetaData for job ' + jobname);
-              return $resource($rootScope.xdAdminServerUrl + '/runtime/modules?jobname=:jobname',
-              {'jobname' : jobname}, {
+          getModuleMetaDataForJob: function (jobName) {
+              $log.info('Getting ModuleMetaData for job ' + jobName);
+              return $resource($rootScope.xdAdminServerUrl + '/runtime/modules',
+              {'jobname' : jobName}, {
                 getModuleMetaDataForJob: {
                   method: 'GET',
                   isArray: true

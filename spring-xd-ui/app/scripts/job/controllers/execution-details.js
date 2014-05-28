@@ -21,8 +21,8 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobExecutions', 'XDUtils', '$state', '$stateParams', 'JobDefinitions', 'ModuleMetaData',
-    function ($scope, jobExecutions, utils, $state, $stateParams, jobDefinitions, moduleMetaData) {
+  return ['$scope', 'JobExecutions', 'XDUtils', '$state', '$stateParams',
+    function ($scope, jobExecutions, utils, $state, $stateParams) {
       $scope.$apply(function () {
         $scope.moduleName = $stateParams.moduleName;
         $scope.optionsPredicate = 'name';
@@ -31,54 +31,32 @@ define([], function () {
         utils.addBusyPromise(singleJobExecutionPromise);
 
         singleJobExecutionPromise.then(
-            function (result) {
-                utils.$log.error(result);
-                $scope.jobExecutionDetails = result;
-                
-                var singleJobDefinitionPromise = jobDefinitions.getSingleJobDefinition(result.name);
-                utils.addBusyPromise(singleJobDefinitionPromise);
-                singleJobDefinitionPromise.then(
-                        function (result) {
-                            $scope.jobDefinition = result.data;
-                          }, function (error) {
-                            utils.$log.error(error);
-                            utils.growl.addErrorMessage(error);
-                          }
-                        );
-                var jobModuleMetaDataPromise = moduleMetaData.getModuleMetaDataForJob(result.name).$promise;
-                utils.addBusyPromise(jobModuleMetaDataPromise);
-
-                jobModuleMetaDataPromise.then(
-                        function (result) {
-                            $scope.jobModuleMetaData = result;
-                          }, function (error) {
-                            utils.$log.error(error);
-                            utils.growl.addErrorMessage(error);
-                          }
-                        );
-              }, function (error) {
-                if (error.status === 404) {
-                  $scope.jobExecutionDetailsNotFound = true;
-                  $scope.executionId = $stateParams.executionId;
-                }
-                else {
-                  utils.$log.error('Error fetching data. Is the XD server running?');
-                  utils.$log.error(error);
-                  utils.growl.addErrorMessage(error);
-                }
-              }
-            );
+          function (result) {
+            utils.$log.error(result);
+            $scope.jobExecutionDetails = result;
+          }, function (error) {
+            if (error.status === 404) {
+              $scope.jobExecutionDetailsNotFound = true;
+              $scope.executionId = $stateParams.executionId;
+            }
+            else {
+              utils.$log.error('Error fetching data. Is the XD server running?');
+              utils.$log.error(error);
+              utils.growl.addErrorMessage(error);
+            }
+          }
+        );
       });
       $scope.closeJobExecutionDetails = function () {
-          utils.$log.info('Closing Job Execution Details Window');
-          $state.go('home.jobs.tabs.executions');
-        };
+        utils.$log.info('Closing Job Execution Details Window');
+        $state.go('home.jobs.tabs.executions');
+      };
       $scope.viewStepExecutionDetails = function (jobExecution, stepExecution) {
-          utils.$log.info('Showing Step Execution details for Job Execution with Id: ' + jobExecution.executionId);
-          $state.go('home.jobs.stepexecutiondetails', {
-            executionId: jobExecution.executionId,
-            stepExecutionId: stepExecution.id
-          });
-        };
+        utils.$log.info('Showing Step Execution details for Job Execution with Id: ' + jobExecution.executionId);
+        $state.go('home.jobs.stepexecutiondetails', {
+          executionId: jobExecution.executionId,
+          stepExecutionId: stepExecution.id
+        });
+      };
     }];
 });

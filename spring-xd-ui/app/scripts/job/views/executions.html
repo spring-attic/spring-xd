@@ -22,8 +22,8 @@
 			<td>{{item.startDate}} {{item.startTime}}</td>
 			<td class="text-center">{{item.stepExecutionCount}}</td>
 			<td ng-class="{'text-success': item.jobExecution.status === 'COMPLETED', 'text-danger': item.jobExecution.status === 'FAILED'}">{{item.jobExecution.status}}</td>
-            <td><button type="button" class="btn btn-default" ng-click="viewJobExecutionDetails(item)" title="Details"><span class="glyphicon glyphicon-search"></span></button></td>
-            <td><button ng-show="{{item.restartable}}" type="button" class="btn btn-default" ng-click="restartJob(item)" title="Restart Job Execution">
+            <td style="width: 1px;"><button type="button" class="btn btn-default" ng-click="viewJobExecutionDetails(item)" title="Details"><span class="glyphicon glyphicon-search"></span></button></td>
+            <td style="width: 1px;"><button ng-show="{{item.restartable}}" type="button" class="btn btn-default" ng-click="restartJob(item)" title="Restart Job Execution">
                 <span class="glyphicon glyphicon-retweet"></span></button>
                 <button ng-show="{{item.stoppable}}" type="button" class="btn btn-default" ng-click="stopJob(item)" title="Stop Job Execution">
                 <span class="glyphicon glyphicon-stop"></span></button>

@@ -114,12 +114,14 @@ define(['./app'], function (xdAdmin) {
       templateUrl : jobTemplatesPath + '/deployments.html',
       controller: 'JobDeploymentsController'
     })
-      //todo: for ScheduleJobs page
-//    .state('home.jobs.tabs.schedule', {
-//      url : '/scheduled-jobs',
-//      templateUrl : jobTemplatesPath + '/scheduledJobs.html',
-//      controller: 'ScheduledJobsController'
-//    })
+    .state('home.jobs.deploymentdetails', {
+      url : 'jobs/deployments/{jobName}',
+      templateUrl : jobTemplatesPath + '/deployment-details.html',
+      controller: 'JobDeploymentDetailsController',
+      data:{
+        authenticate: true
+      }
+    })
     .state('home.jobs.tabs.executions', {
       url : '/executions',
       templateUrl : jobTemplatesPath + '/executions.html',

@@ -36,6 +36,12 @@ define(['angular'], function (angular) {
               $injector.invoke(jobDeploymentsController, this, {'$scope': $scope});
             });
           }])
+      .controller('JobDeploymentDetailsController',
+          ['$scope', '$injector', function ($scope, $injector) {
+            require(['job/controllers/deployment-details'], function (jobDeploymentDetailsController) {
+              $injector.invoke(jobDeploymentDetailsController, this, {'$scope': $scope});
+            });
+          }])
       .controller('JobExecutionsController',
           ['$scope', '$injector', function ($scope, $injector) {
             require(['job/controllers/executions'], function (jobExecutionsController) {

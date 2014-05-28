@@ -25,14 +25,19 @@ define([], function () {
   return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils',
     function ($scope, jobDefinitions, jobDefinitionService, utils) {
 
-      utils.addBusyPromise(jobDefinitions.get(function (data) {
-        utils.$log.info(data);
-        $scope.jobDefinitions = data.content;
-      }, function (error) {
-        utils.$log.error('Error fetching data. Is the XD server running?');
-        utils.$log.error(error);
-        utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
-      }));
+      var definitionPromise = jobDefinitions.getAllJobDefinitions().$promise;
+      utils.addBusyPromise(definitionPromise);
+
+      definitionPromise.then(
+        function (result) {
+          utils.$log.info(result);
+          $scope.jobDefinitions = result.content;
+        }, function (error) {
+          utils.$log.error('Error fetching data. Is the XD server running?');
+          utils.$log.error(error);
+          utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+        }
+      );
 
       $scope.deployJob = function (jobDefinition) {
         utils.$log.info('Deploying Job ' + jobDefinition.name);

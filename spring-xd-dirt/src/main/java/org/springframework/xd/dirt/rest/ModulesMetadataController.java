@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.xd.dirt.rest;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -37,8 +40,9 @@ import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 
 /**
  * Controller that handles the interaction with the deployed modules.
- * 
+ *
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 @Controller
 @RequestMapping("/runtime/modules")
@@ -75,4 +79,29 @@ public class ModulesMetadataController {
 		return result;
 	}
 
+	/**
+	 * Will return a collection of {@link ModuleMetadata} that are associated with
+	 * the provided {@code jobname} request parameter.
+	 *
+	 * @param jobName parameter must not be null
+	 * @return Collection of {@link ModuleMetadata}, might be empty but never {@code null}
+	 */
+	@RequestMapping(value = "", method = RequestMethod.GET, params = { "jobname" })
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public List<ModuleMetadataResource> displayForJobname(@RequestParam("jobname") String jobName) {
+
+		final Iterable<ModuleMetadata> moduleMetadataIterable = this.moduleMetadataRepository.findAll();
+		final List<ModuleMetadata> moduleMetadataListToReturn = new ArrayList<ModuleMetadata>();
+
+		for (ModuleMetadata moduleMetadata : moduleMetadataIterable) {
+			final String jobnameFragment[] = moduleMetadata.getId().split("\\.job\\.");
+
+			if (jobnameFragment.length > 0 && jobName.equals(jobnameFragment[0])) {
+				moduleMetadataListToReturn.add(moduleMetadata);
+			}
+		}
+
+		return moduleMetadataResourceAssembler.toResources(moduleMetadataListToReturn);
+	}
 }

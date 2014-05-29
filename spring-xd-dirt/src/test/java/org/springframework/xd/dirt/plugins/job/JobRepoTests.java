@@ -104,7 +104,7 @@ public class JobRepoTests extends RandomConfigurationSupport {
 		int count = jdbcTemplate.queryForObject(
 				"select count(*) from INFORMATION_SCHEMA.system_tables  WHERE TABLE_NAME LIKE 'JOB_REGISTRY%'",
 				Integer.class).intValue();
-		assertEquals("The number of batch tables returned from hsqldb did not match.", 3, count);
+		assertEquals("The number of batch tables returned from hsqldb did not match.", 4, count);
 	}
 
 	@Test

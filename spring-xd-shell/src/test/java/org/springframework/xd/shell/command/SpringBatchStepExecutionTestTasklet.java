@@ -28,7 +28,7 @@ public class SpringBatchStepExecutionTestTasklet extends StepExecutionListenerSu
 		System.out.println("Running Step: " + stepExecution.getStepName());
 		// The sleep allows some time for any other jobService operations happening
 		// between step executions. For example: job execution stop.
-		Thread.sleep(3000);
+		Thread.sleep(5000);
 		return RepeatStatus.FINISHED;
 	}
 }

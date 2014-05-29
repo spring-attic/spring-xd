@@ -489,7 +489,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 				break;
 			}
 		}
-		assertEquals("STOPPED", executionStatus);
+		assertTrue(executionStatus.equals("STOPPING") || executionStatus.equals("STOPPED"));
 	}
 
 	public void testStepExecutionProgress() {

@@ -110,10 +110,11 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 	private void postProcessJob(Object bean, String beanName) {
 		FlowJob job = (FlowJob) bean;
 		job.setName(this.groupName);
-		// Add the job name & job parameters incrementer flag to {@link DistributedJobLocator}
+		// Add the job name, job parameters incrementer and job restartable flag to {@link DistributedJobLocator}
 		// Since, the Spring batch doesn't have persistent JobRegistry, the {@link DistributedJobLocator}
-		// acts as the store to have jobName & incrementer flag to be used by {@link DistributedJobService}
-		jobLocator.addJob(groupName, (job.getJobParametersIncrementer() != null) ? true : false);
+		// acts as the store to have jobName , job parameter incrementer and restartable flag to be
+		// used by {@link DistributedJobService}
+		jobLocator.addJob(groupName, (job.getJobParametersIncrementer() != null) ? true : false, job.isRestartable());
 		jobLocator.addStepNames(groupName, job.getStepNames());
 		super.postProcessAfterInitialization(bean, beanName);
 	}

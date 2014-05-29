@@ -526,7 +526,7 @@ public abstract class MessageBusSupport
 
 		@Override
 		public int selectPartition(Object key, int divisor) {
-			return key.hashCode() % divisor;
+			return Math.abs(key.hashCode()) % divisor;
 		}
 
 	}

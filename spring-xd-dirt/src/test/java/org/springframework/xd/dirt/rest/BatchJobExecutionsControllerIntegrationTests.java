@@ -140,6 +140,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		jobExecutions1.add(jobExecution2);
 		jobExecutions2.add(jobExecution2);
 		when(jobLocator.getJobNames()).thenReturn(jobNames);
+		when(jobLocator.isRestartable("job1")).thenReturn(true);
 		when(jobService.listJobs(0, 20)).thenReturn(jobNames);
 		when(jobService.countJobExecutionsForJob(job1.getName())).thenReturn(2);
 		when(jobService.countJobExecutionsForJob(job2.getName())).thenReturn(1);

@@ -429,10 +429,10 @@ public abstract class MessageBusSupport
 	 * partition. Otherwise,
 	 * if the partition expression is not null, it is evaluated
 	 * against the key and is expected to return an integer to which the modulo function
-	 * will be applied, using the divisor.
+	 * will be applied, using the partitionCount as the divisor.
 	 * <p>
 	 * If no partition expression is provided, the key will be passed to the bus partition
-	 * strategy along with the divisor.
+	 * strategy along with the partitionCount.
 	 * The default partition strategy uses {@code key.hashCode()}, and the result will
 	 * be the mod of that value.
 	 *
@@ -449,21 +449,23 @@ public abstract class MessageBusSupport
 			key = meta.partitionKeyExpression.getValue(this.evaluationContext, message);
 		}
 		Assert.notNull(key, "Partition key cannot be null");
+		int partition;
 		if (StringUtils.hasText(meta.partitionSelectorClass)) {
-			int partition = invokePartitionSelector(meta.partitionSelectorClass, key, meta.divisor);
-			Assert.isTrue(partition < meta.divisor, "The partition function returned " + partition
-					+ "; it should be less than " + meta.divisor);
-			return partition;
+			partition = invokePartitionSelector(meta.partitionSelectorClass, key, meta.partitionCount);
 		}
 		else if (meta.partitionSelectorExpression != null) {
-			return meta.partitionSelectorExpression.getValue(this.evaluationContext, key, Integer.class) % meta.divisor;
+			partition = meta.partitionSelectorExpression.getValue(this.evaluationContext, key, Integer.class);
 		}
 		else {
-			int partition = this.partitionSelector.selectPartition(key, meta.divisor);
-			Assert.isTrue(partition < meta.divisor, "The partition function returned " + partition
-					+ "; it should be less than " + meta.divisor);
-			return partition;
+			partition = this.partitionSelector.selectPartition(key, meta.partitionCount);
 		}
+		if (partition >= meta.partitionCount) {
+			partition = partition % meta.partitionCount;
+		}
+		if (partition < 0) {
+			partition = Math.abs(partition);
+		}
+		return partition;
 	}
 
 	private Object invokeExtractor(String partitionKeyExtractorClassName, Message<?> message) {
@@ -492,10 +494,10 @@ public abstract class MessageBusSupport
 		}
 	}
 
-	private int invokePartitionSelector(String partitionSelectorClassName, Object key, int divisor) {
+	private int invokePartitionSelector(String partitionSelectorClassName, Object key, int partitionCount) {
 		if (this.applicationContext.containsBean(partitionSelectorClassName)) {
 			return this.applicationContext.getBean(partitionSelectorClassName, PartitionSelectorStrategy.class)
-					.selectPartition(key, divisor);
+					.selectPartition(key, partitionCount);
 		}
 		Class<?> clazz;
 		try {
@@ -510,7 +512,7 @@ public abstract class MessageBusSupport
 			Assert.isInstanceOf(PartitionKeyExtractorStrategy.class, extractor);
 			this.applicationContext.getBeanFactory().registerSingleton(partitionSelectorClassName, extractor);
 			this.applicationContext.getBeanFactory().initializeBean(extractor, partitionSelectorClassName);
-			return ((PartitionSelectorStrategy) extractor).selectPartition(key, divisor);
+			return ((PartitionSelectorStrategy) extractor).selectPartition(key, partitionCount);
 		}
 		catch (Exception e) {
 			logger.error("Failed to instantiate partition selector", e);
@@ -524,8 +526,8 @@ public abstract class MessageBusSupport
 	private class DefaultPartitionSelector implements PartitionSelectorStrategy {
 
 		@Override
-		public int selectPartition(Object key, int divisor) {
-			return key.hashCode() % divisor;
+		public int selectPartition(Object key, int partitionCount) {
+			return Math.abs(key.hashCode()) % partitionCount;
 		}
 
 	}
@@ -540,14 +542,14 @@ public abstract class MessageBusSupport
 
 		private final Expression partitionSelectorExpression;
 
-		private final int divisor;
+		private final int partitionCount;
 
 		public PartitioningMetadata(AbstractBusPropertiesAccessor properties) {
 			this.partitionKeyExtractorClass = properties.getPartitionKeyExtractorClass();
 			this.partitionKeyExpression = properties.getPartitionKeyExpression();
 			this.partitionSelectorClass = properties.getPartitionSelectorClass();
 			this.partitionSelectorExpression = properties.getPartitionSelectorExpression();
-			this.divisor = properties.getPartitionCount();
+			this.partitionCount = properties.getPartitionCount();
 		}
 
 		public boolean isPartitionedModule() {

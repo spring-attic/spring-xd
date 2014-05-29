@@ -18,20 +18,24 @@ package org.springframework.xd.dirt.integration.bus;
 
 
 /**
- *
  * Strategy for determining the partition to which a message should be sent.
- * 
+ *
  * @author Gary Russell
  */
 public interface PartitionSelectorStrategy {
 
 	/**
-	 * Determine the partition based on a key.
-	 * @param key The key.
-	 * @param divisor 1 greater than the maximum value that can be returned; typical
-	 * implementations will return {@code someValue % divisor}.
-	 * @return The partition
+	 * Determine the partition based on a key. The partitionCount is 1 greater
+	 * than the maximum value of a valid partition. Typical implementations
+	 * will return {@code someValue % partitionCount}. The caller will apply
+	 * that same modulo operation (as well as enforcing absolute value) if the
+	 * value exceeds partitionCount - 1.
+	 *
+	 * @param key the key
+	 * @param partitionCount the number of partitions
+	 *
+	 * @return the partition
 	 */
-	int selectPartition(Object key, int divisor);
+	int selectPartition(Object key, int partitionCount);
 
 }

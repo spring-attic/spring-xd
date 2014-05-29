@@ -1566,6 +1566,41 @@ project('spring-xd-integration-test') {
 
 }
 
+// Distributed (multi container) tests
+project('spring-xd-distributed-test') {
+	description = 'Spring XD Distributed tests'
+
+	test {
+		onlyIf {
+			Boolean.getBoolean('run_distributed_tests')
+		}
+
+		// all tests are included in the test suite
+		include('org/springframework/xd/distributed/test/DistributedTestSuite.class')
+	}
+
+	dependencies {
+		compile project(":spring-xd-test-fixtures")
+		compile project(":spring-xd-test")
+		compile project(":spring-xd-rest-client")
+		compile project(":spring-xd-dirt")
+		compile ("org.apache.curator:curator-test:$curatorVersion") {
+			exclude group: 'org.apache.zookeeper'
+			exclude group: 'org.jboss.netty'
+		}
+		compile "org.apache.httpcomponents:httpclient:4.2.5"
+		compile "com.oracle.tools:oracle-tools-runtime:1.2.2"
+		compile "com.oracle.tools:oracle-tools-core:1.2.2"
+		compile "com.oracle.tools:oracle-tools-testing-support:1.2.2"
+		testCompile group: 'junit', name: 'junit', version: '4.+'
+		runtime "log4j:log4j:$log4jVersion",
+				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
+				"org.slf4j:slf4j-log4j12:$slf4jVersion"
+	}
+
+}
+
+
 apply plugin: 'sonar-runner'
 
 sonarRunner {
@@ -1738,7 +1773,7 @@ task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-dirt:buil
 }
 
 task shellReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-shell:compileTestJava", pullDocs]) {
-	classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath 
+	classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath
 	main = 'org.springframework.xd.shell.util.ReferenceDoc'
 	args = [
 		"$rootDir/build/asciidoc-raw/guide/ShellReference.asciidoc"

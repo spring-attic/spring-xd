@@ -26,6 +26,7 @@ include 'modules'
 include 'spring-xd-exec'
 include 'spring-xd-integration-test'
 include 'spring-xd-test-fixtures'
+include 'spring-xd-distributed-test'
 
 ['source', 'processor', 'sink', 'job'].each {kind->
 	new File(rootDir, "modules/${kind}").eachDir { dir ->

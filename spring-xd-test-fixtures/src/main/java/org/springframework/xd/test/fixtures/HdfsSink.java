@@ -42,8 +42,8 @@ public class HdfsSink extends AbstractModuleFixture<HdfsSink> {
 	 * @param fileName The name of file to write on the hdfs.
 	 */
 	public HdfsSink(String directoryName, String fileName) {
-		Assert.hasText(directoryName, "directoryName must not be empty nor null");
-		Assert.hasText(fileName, "fileName must not be empty nor null");
+		Assert.hasText(directoryName, "DirectoryName must not be empty nor null");
+		Assert.hasText(fileName, "FileName must not be empty nor null");
 
 		this.fileName = fileName;
 		this.directoryName = directoryName;
@@ -62,8 +62,29 @@ public class HdfsSink extends AbstractModuleFixture<HdfsSink> {
 	 * Renders the DSL for this fixture.
 	 */
 	@Override
-	protected String toDSL() {
+	public String toDSL() {
 		return String.format("hdfs --directory=%s --fileName=%s ", directoryName, fileName);
 	}
 
+	/**
+	 * Sets the file Name that the hdfs sink will write the data.
+	 * @param fileName the name of the file
+	 * @return the current HdfsSink instance.
+	 */
+	public HdfsSink fileName(String fileName) {
+		Assert.hasText(fileName, "FileName must not be empty nor null.");
+		this.fileName = fileName;
+		return this;
+	}
+
+	/**
+	 * Sets the directory that the file will be written on hdfs
+	 * @param directoryName the name of the directory
+	 * @return the current HdfsSink instance.
+	 */
+	public HdfsSink directoryName(String directoryName) {
+		Assert.hasText(directoryName, "DirectoryName must not be empty nor null");
+		this.directoryName = directoryName;
+		return this;
+	}
 }

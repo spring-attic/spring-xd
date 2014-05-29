@@ -203,7 +203,14 @@ public class ContainerListener implements PathChildrenCacheListener {
 			Job job = deploymentLoader.loadJob(client, jobName, this.jobFactory);
 			if (job != null) {
 				ModuleDescriptor descriptor = job.getJobModuleDescriptor();
-				// todo: read deployment properties from ZK
+
+				// See XD-1777: in order to support partitioning we now include
+				// module deployment properties in the module deployment request
+				// path. However in this case the original path is not available
+				// so this redeployment will simply create a new instance of
+				// properties. As a result, if this module had a partition index
+				// assigned to it, it will no longer be associated with that
+				// partition index. This will be fixed in the future.
 				ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
 						job.getDeploymentProperties(), descriptor);
 				if (isCandidateForDeployment(container, descriptor, moduleDeploymentProperties)) {
@@ -247,7 +254,14 @@ public class ContainerListener implements PathChildrenCacheListener {
 			if (stream != null) {
 				for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
 					ModuleDescriptor descriptor = descriptorIterator.next();
-					// todo: read deployment properties from ZK
+
+					// See XD-1777: in order to support partitioning we now include
+					// module deployment properties in the module deployment request
+					// path. However in this case the original path is not available
+					// so this redeployment will simply create a new instance of
+					// properties. As a result, if this module had a partition index
+					// assigned to it, it will no longer be associated with that
+					// partition index. This will be fixed in the future.
 					ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
 							stream.getDeploymentProperties(), descriptor);
 

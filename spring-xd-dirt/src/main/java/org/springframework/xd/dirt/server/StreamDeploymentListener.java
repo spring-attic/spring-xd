@@ -253,8 +253,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 			if (moduleIndex > 0) {
 				ModuleDescriptor previous = streamModules.get(moduleIndex - 1);
 				ModuleDeploymentProperties previousProperties = propertiesForDescriptor(previous);
-				// todo: all property keys should be constants
-				if (previousProperties.containsKey("producer.partitionKeyExpression")) {
+				if (hasPartitionKeyProperty(previousProperties)) {
 					ModuleDescriptor.Key moduleKey = descriptor.createKey();
 					Integer index = mapModuleCount.get(moduleKey);
 					if (index == null) {
@@ -264,16 +263,13 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 					mapModuleCount.put(moduleKey, index);
 				}
 			}
-
-			if (properties.containsKey("producer.partitionKeyExpression")) {
+			if (hasPartitionKeyProperty(properties)) {
 				try {
 					ModuleDeploymentProperties nextProperties =
 							propertiesForDescriptor(streamModules.get(moduleIndex + 1));
 
 					String count = nextProperties.get("count");
-					Assert.hasText(count, String.format("'count' property is required " +
-							"in properties for module '%s' in order to support partitioning", descriptor));
-
+					validateCountProperty(count, descriptor);
 					properties.put("producer.partitionCount", count);
 				}
 				catch (IndexOutOfBoundsException e) {
@@ -286,6 +282,45 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 			}
 			mapDeploymentProperties.put(descriptor.createKey(), properties);
 			return properties;
+		}
+
+		/**
+		 * Return {@code true} if the provided properties include a property
+		 * used to extract a partition key.
+		 *
+		 * @param properties properties to examine for a partition key property
+		 * @return true if the properties contain a partition key property
+		 */
+		private boolean hasPartitionKeyProperty(ModuleDeploymentProperties properties) {
+			return (properties.containsKey("producer.partitionKeyExpression") ||
+					properties.containsKey("producer.partitionKeyExtractorClass"));
+		}
+
+		/**
+		 * Validate the value of {@code count} for the purposes of partitioning.
+		 * The value of the string must consist of an integer > 1.
+		 *
+		 * @param count       value to validate
+		 * @param descriptor  module descriptor this {@code count} property
+		 *                    is associated with
+		 *
+		 * @throws IllegalArgumentException if the value of the string
+		 *         does not consist of an integer > 1
+		 */
+		private void validateCountProperty(String count, ModuleDescriptor descriptor) {
+			Assert.hasText(count, String.format("'count' property is required " +
+					"in properties for module '%s' in order to support partitioning", descriptor));
+
+			try {
+				Assert.isTrue(Integer.parseInt(count) > 1,
+						String.format("'count' property for module '%s' must contain an " +
+								"integer > 1, current value is '%s'", descriptor, count));
+			}
+			catch (NumberFormatException e) {
+				throw new IllegalArgumentException(String.format("'count' property for " +
+						"module %s does not contain a valid integer, current value is '%s'",
+						descriptor, count));
+			}
 		}
 
 	}

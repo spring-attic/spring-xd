@@ -18,6 +18,7 @@ package org.springframework.xd.integration.fixtures;
 
 import org.springframework.xd.test.fixtures.FileJdbcJob;
 import org.springframework.xd.test.fixtures.FilePollHdfsJob;
+import org.springframework.xd.test.fixtures.HdfsJdbcJob;
 import org.springframework.xd.test.fixtures.JdbcHdfsJob;
 
 
@@ -37,6 +38,17 @@ public class Jobs {
 	 */
 	public FileJdbcJob fileJdbcJob() {
 		return FileJdbcJob.withDefaults();
+	}
+
+	/**
+	 * Create an instance of the HdfsJdbc job with the default target dir, fileName, tableName and column names.
+	 *
+	 * @see HdfsJdbcJob for default values
+	 *
+	 * @return instance of a HdfsJDBCJob Fixture.
+	 */
+	public HdfsJdbcJob hdfsJdbcJob() {
+		return HdfsJdbcJob.withDefaults();
 	}
 
 	/**

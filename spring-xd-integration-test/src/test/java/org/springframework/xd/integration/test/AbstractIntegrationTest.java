@@ -311,7 +311,15 @@ public abstract class AbstractIntegrationTest {
 	 * Undeploys the test stream
 	 */
 	public void undeployStream() {
-		StreamUtils.undeployStream(adminServer, STREAM_NAME);
+		undeployStream(STREAM_NAME);
+	}
+
+	/**
+	 * Undeploys the stream specified by the streamName
+	 * @param streamName the name of the stream to undeploy.
+	 */
+	public void undeployStream(String streamName) {
+		StreamUtils.undeployStream(adminServer, streamName);
 	}
 
 	/**

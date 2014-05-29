@@ -1571,6 +1571,8 @@ project('spring-xd-test-fixtures') {
 			exclude group: 'org.mortbay.jetty'
 		}
 		compile "org.springframework:spring-web:$springVersion"
+		compile ("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") { exclude group: 'org.slf4j' }
+		
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
@@ -1597,6 +1599,7 @@ project('spring-xd-integration-test') {
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile ("org.apache.hadoop:hadoop-common:$hadoop22Version")
 		compile ("org.apache.hadoop:hadoop-client:$hadoop22Version")
+		compile ("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") { exclude group: 'org.slf4j' }
 		testCompile "mysql:mysql-connector-java:5.1.23"
 		testCompile "commons-collections:commons-collections:$commonsCollectionsVersion"
 		testCompile "org.springframework.shell:spring-shell:$springShellVersion"

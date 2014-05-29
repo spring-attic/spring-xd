@@ -16,8 +16,12 @@
 
 package org.springframework.xd.integration.fixtures;
 
+import org.springframework.util.Assert;
+import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.FileJdbcJob;
 import org.springframework.xd.test.fixtures.FilePollHdfsJob;
+import org.springframework.xd.test.fixtures.HdfsJdbcJob;
+import org.springframework.xd.test.fixtures.HdfsMongoDbJob;
 import org.springframework.xd.test.fixtures.JdbcHdfsJob;
 
 
@@ -28,6 +32,18 @@ import org.springframework.xd.test.fixtures.JdbcHdfsJob;
  */
 public class Jobs {
 
+	private XdEnvironment environment;
+
+	/**
+	 * Initializes the instance with xdEnvironment
+	 *
+	 * @param environment
+	 */
+	public Jobs(XdEnvironment environment) {
+		Assert.notNull(environment, "xdEnvironment must not be null");
+		this.environment = environment;
+	}
+
 	/**
 	 * Create an instance of the FileJdbc job with the default target dir, fileName, tableName and column names.
 	 *
@@ -37,6 +53,17 @@ public class Jobs {
 	 */
 	public FileJdbcJob fileJdbcJob() {
 		return FileJdbcJob.withDefaults();
+	}
+
+	/**
+	 * Create an instance of the HdfsJdbc job with the default target dir, fileName, tableName and column names.
+	 *
+	 * @see HdfsJdbcJob for default values
+	 *
+	 * @return instance of a HdfsJDBCJob Fixture.
+	 */
+	public HdfsJdbcJob hdfsJdbcJob() {
+		return HdfsJdbcJob.withDefaults();
 	}
 
 	/**
@@ -59,4 +86,20 @@ public class Jobs {
 		return FilePollHdfsJob.withDefaults(names);
 	}
 
+	/**
+	 * Create a new HdfsMongoDbJob that constructs a job that will read data from hdfs and output to mongo .
+	 *
+	 * @return a HdfsMongoDbJob instance.
+	 */
+	public HdfsMongoDbJob hdfsMongoDb() {
+		if (environment.getMongoDbFactory() == null) {
+			return null;
+		}
+		HdfsMongoDbJob hdfsMongoDbJob = HdfsMongoDbJob.withDefaults(environment.getMongoDbFactory());
+
+		if (!hdfsMongoDbJob.isReady()) {
+			throw new IllegalStateException("Unable to connect to database.");
+		}
+		return hdfsMongoDbJob;
+	}
 }

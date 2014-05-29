@@ -449,21 +449,22 @@ public abstract class MessageBusSupport
 			key = meta.partitionKeyExpression.getValue(this.evaluationContext, message);
 		}
 		Assert.notNull(key, "Partition key cannot be null");
+		int partition;
 		if (StringUtils.hasText(meta.partitionSelectorClass)) {
-			int partition = invokePartitionSelector(meta.partitionSelectorClass, key, meta.divisor);
-			Assert.isTrue(partition < meta.divisor, "The partition function returned " + partition
-					+ "; it should be less than " + meta.divisor);
-			return partition;
+			partition = invokePartitionSelector(meta.partitionSelectorClass, key, meta.divisor);
+			Assert.isTrue(partition >= 0 && partition < meta.divisor, "The partition function returned " + partition
+					+ "; it should be greater than or equal to 0 and less than " + meta.divisor);
 		}
 		else if (meta.partitionSelectorExpression != null) {
-			return meta.partitionSelectorExpression.getValue(this.evaluationContext, key, Integer.class) % meta.divisor;
+			partition = Math.abs(meta.partitionSelectorExpression.getValue(this.evaluationContext, key, Integer.class))
+					% meta.divisor;
 		}
 		else {
-			int partition = this.partitionSelector.selectPartition(key, meta.divisor);
-			Assert.isTrue(partition < meta.divisor, "The partition function returned " + partition
-					+ "; it should be less than " + meta.divisor);
-			return partition;
+			partition = this.partitionSelector.selectPartition(key, meta.divisor);
+			Assert.isTrue(partition >= 0 && partition < meta.divisor, "The partition function returned " + partition
+					+ "; it should be greater than or equal to 0 and less than " + meta.divisor);
 		}
+		return partition;
 	}
 
 	private Object invokeExtractor(String partitionKeyExtractorClassName, Message<?> message) {
@@ -525,7 +526,7 @@ public abstract class MessageBusSupport
 
 		@Override
 		public int selectPartition(Object key, int divisor) {
-			return key.hashCode() % divisor;
+			return Math.abs(key.hashCode()) % divisor;
 		}
 
 	}

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
+import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
@@ -121,9 +122,9 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 * </ul>
 	 *
 	 * @param job the job instance to redeploy
-	 * @throws Exception
+	 * @throws InterruptedException
 	 */
-	private void deployJob(final Job job) throws Exception {
+	private void deployJob(final Job job) throws InterruptedException {
 		if (job != null) {
 			ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider provider =
 					new ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider() {
@@ -138,9 +139,15 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 
 			List<ModuleDescriptor> descriptors = new ArrayList<ModuleDescriptor>();
 			descriptors.add(job.getJobModuleDescriptor());
-			Collection<ModuleDeploymentWriter.Result> results =
-					moduleDeploymentWriter.writeDeployment(descriptors.iterator(), provider);
-			moduleDeploymentWriter.validateResults(results);
+
+			try {
+				Collection<ModuleDeploymentWriter.Result> results =
+						moduleDeploymentWriter.writeDeployment(descriptors.iterator(), provider);
+				moduleDeploymentWriter.validateResults(results);
+			}
+			catch (NoContainerException e) {
+				logger.warn("No containers available for deployment of job {}", job.getName());
+			}
 		}
 	}
 

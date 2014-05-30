@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
+import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.stream.StreamFactory;
@@ -180,13 +181,18 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 *
 	 * @param stream stream to be deployed
 	 *
-	 * @throws Exception
+	 * @throws InterruptedException
 	 */
-	private void deployStream(final Stream stream) throws Exception {
-		Collection<ModuleDeploymentWriter.Result> results =
-				moduleDeploymentWriter.writeDeployment(stream.getDeploymentOrderIterator(),
-						new StreamModuleDeploymentPropertiesProvider(stream));
-		moduleDeploymentWriter.validateResults(results);
+	private void deployStream(final Stream stream) throws InterruptedException {
+		try {
+			Collection<ModuleDeploymentWriter.Result> results =
+					moduleDeploymentWriter.writeDeployment(stream.getDeploymentOrderIterator(),
+							new StreamModuleDeploymentPropertiesProvider(stream));
+			moduleDeploymentWriter.validateResults(results);
+		}
+		catch (NoContainerException e) {
+			logger.warn("No containers available for deployment of stream {}", stream.getName());
+		}
 	}
 
 

@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
+import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.cluster.RedeploymentContainerMatcher;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
@@ -222,9 +223,15 @@ public class ContainerListener implements PathChildrenCacheListener {
 						logger.info("Deploying module {} to {}",
 								descriptor.getModuleDefinition().getName(), container);
 
-						ModuleDeploymentWriter.Result result =
-								moduleDeploymentWriter.writeDeployment(descriptor, container);
-						moduleDeploymentWriter.validateResult(result);
+						try {
+							ModuleDeploymentWriter.Result result =
+									moduleDeploymentWriter.writeDeployment(descriptor, container);
+							moduleDeploymentWriter.validateResult(result);
+						}
+						catch (NoContainerException e) {
+							logger.warn("Could not deploy job {} to container {}; " +
+									"this container may have just departed the cluster", job.getName(), container);
+						}
 					}
 				}
 			}
@@ -275,9 +282,17 @@ public class ContainerListener implements PathChildrenCacheListener {
 							logger.info("Deploying module {} to {}",
 									descriptor.getModuleDefinition().getName(), container);
 
-							ModuleDeploymentWriter.Result result =
-									moduleDeploymentWriter.writeDeployment(descriptor, container);
-							moduleDeploymentWriter.validateResult(result);
+							try {
+								ModuleDeploymentWriter.Result result =
+										moduleDeploymentWriter.writeDeployment(descriptor, container);
+								moduleDeploymentWriter.validateResult(result);
+							}
+							catch (NoContainerException e) {
+								logger.warn("Could not deploy module {} for stream {} to container {}; " +
+										"this container may have just departed the cluster",
+										descriptor.getModuleDefinition().getName(),
+										stream.getName(), container);
+							}
 						}
 					}
 				}
@@ -429,10 +444,17 @@ public class ContainerListener implements PathChildrenCacheListener {
 			String moduleLabel, ModuleDeploymentProperties deploymentProperties) throws Exception {
 		ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
 		if (deploymentProperties.getCount() > 0) {
-			ModuleDeploymentWriter.Result result = moduleDeploymentWriter.writeDeployment(
-					moduleDescriptor, deploymentProperties,
-					instantiateContainerMatcher(client, moduleDescriptor));
-			moduleDeploymentWriter.validateResult(result);
+			try {
+				ModuleDeploymentWriter.Result result = moduleDeploymentWriter.writeDeployment(
+						moduleDescriptor, deploymentProperties,
+						instantiateContainerMatcher(client, moduleDescriptor));
+				moduleDeploymentWriter.validateResult(result);
+			}
+			catch (NoContainerException e) {
+				logger.warn("No containers available for redeployment of {} for stream {}",
+						moduleDescriptor.getModuleLabel(),
+						stream.getName());
+			}
 		}
 		else {
 			logUnwantedRedeployment(deploymentProperties.getCriteria(), moduleDescriptor.getModuleLabel());
@@ -456,10 +478,17 @@ public class ContainerListener implements PathChildrenCacheListener {
 			ModuleDeploymentProperties deploymentProperties) throws Exception {
 		ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
 		if (deploymentProperties.getCount() > 0) {
-			ModuleDeploymentWriter.Result result = moduleDeploymentWriter.writeDeployment(
-					moduleDescriptor, deploymentProperties,
-					instantiateContainerMatcher(client, moduleDescriptor));
-			moduleDeploymentWriter.validateResult(result);
+			try {
+				ModuleDeploymentWriter.Result result = moduleDeploymentWriter.writeDeployment(
+						moduleDescriptor, deploymentProperties,
+						instantiateContainerMatcher(client, moduleDescriptor));
+				moduleDeploymentWriter.validateResult(result);
+			}
+			catch (NoContainerException e) {
+				logger.warn("No containers available for redeployment of {} for job {}",
+						moduleDescriptor.getModuleLabel(),
+						job.getName());
+			}
 		}
 		else {
 			logUnwantedRedeployment(deploymentProperties.getCriteria(), moduleDescriptor.getModuleLabel());

@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
+import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -194,9 +195,12 @@ public class ModuleDeploymentWriter {
 	 * @param descriptor  module descriptor for module to be deployed
 	 * @param container   target container for deployment
 	 * @return result of request
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the executing thread is interrupted
+	 * @throws NoContainerException if there are no containers that match the criteria
+	 *                              for module deployment
 	 */
-	public Result writeDeployment(ModuleDescriptor descriptor, final Container container) throws InterruptedException {
+	public Result writeDeployment(ModuleDescriptor descriptor, final Container container)
+			throws InterruptedException, NoContainerException {
 		ContainerMatcher matcher = new ContainerMatcher() {
 
 			@Override
@@ -220,10 +224,13 @@ public class ModuleDeploymentWriter {
 	 * @param descriptors  descriptors for modules to deploy
 	 * @param provider     callback to obtain the deployment properties for a module
 	 * @return result of request
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the executing thread is interrupted
+	 * @throws NoContainerException if there are no containers that match the criteria
+	 *                              for module deployment
 	 */
 	public Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
-			ModuleDeploymentPropertiesProvider provider) throws InterruptedException {
+			ModuleDeploymentPropertiesProvider provider)
+			throws InterruptedException, NoContainerException {
 		return writeDeployment(descriptors, provider, containerMatcher);
 	}
 
@@ -239,11 +246,13 @@ public class ModuleDeploymentWriter {
 	 * @param deploymentProperties  deployment properties for module
 	 * @param containerMatcher      matcher for modules to containers
 	 * @return result of request
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the executing thread is interrupted
+	 * @throws NoContainerException if there are no containers that match the criteria
+	 *                              for module deployment
 	 */
 	public Result writeDeployment(ModuleDescriptor moduleDescriptor,
 			final ModuleDeploymentProperties deploymentProperties,
-			ContainerMatcher containerMatcher) throws InterruptedException {
+			ContainerMatcher containerMatcher) throws InterruptedException, NoContainerException {
 		Collection<Result> results = writeDeployment(Collections.singleton(moduleDescriptor).iterator(),
 				new ModuleDeploymentPropertiesProvider() {
 					@Override
@@ -270,11 +279,13 @@ public class ModuleDeploymentWriter {
 	 * @param provider          callback to obtain the deployment properties for a module
 	 * @param containerMatcher  matcher for modules to containers
 	 * @return result of request
-	 * @throws InterruptedException
+	 * @throws InterruptedException if the executing thread is interrupted
+	 * @throws NoContainerException if there are no containers that match the criteria
+	 *                              for module deployment
 	 */
 	public Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
 			ModuleDeploymentPropertiesProvider provider, ContainerMatcher containerMatcher)
-			throws InterruptedException {
+			throws InterruptedException, NoContainerException {
 		Collection<Result> results = new ArrayList<Result>();
 		CuratorFramework client = zkConnection.getClient();
 		while (descriptors.hasNext()) {
@@ -322,6 +333,10 @@ public class ModuleDeploymentWriter {
 			// order to ensure that modules for streams are deployed
 			// in the correct order
 			results.addAll(processResults(client, collector));
+		}
+
+		if (results.isEmpty()) {
+			throw new NoContainerException();
 		}
 
 		return results;

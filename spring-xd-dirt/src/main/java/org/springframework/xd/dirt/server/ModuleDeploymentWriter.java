@@ -255,6 +255,7 @@ public class ModuleDeploymentWriter {
 			ContainerMatcher containerMatcher) throws InterruptedException, NoContainerException {
 		Collection<Result> results = writeDeployment(Collections.singleton(moduleDescriptor).iterator(),
 				new ModuleDeploymentPropertiesProvider() {
+
 					@Override
 					public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
 						return deploymentProperties;
@@ -366,10 +367,15 @@ public class ModuleDeploymentWriter {
 						.setModuleType(result.key.getType().toString())
 						.setModuleLabel(result.key.getLabel()).build();
 				try {
-					client.delete().forPath(path);
+					client.delete().deletingChildrenIfNeeded().forPath(path);
 				}
 				catch (InterruptedException e) {
 					throw e;
+				}
+				catch (KeeperException.NoNodeException e) {
+					// this node was already removed (perhaps by the supervisor
+					// as a result of the target container departing the cluster);
+					// this is safe to ignore
 				}
 				catch (Exception e) {
 					logger.warn("Error while cleaning up failed deployment " + path, e);

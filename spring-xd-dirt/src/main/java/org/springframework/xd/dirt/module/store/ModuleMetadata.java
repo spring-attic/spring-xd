@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.module.store;
 
+import java.util.Properties;
+
 /**
  * Represents runtime module model info.
  * 
@@ -27,12 +29,16 @@ public class ModuleMetadata {
 
 	private final String containerId;
 
-	private final String properties;
+	private final Properties moduleOptions;
 
-	public ModuleMetadata(String id, String containerId, String properties) {
+	private final Properties deploymentProperties;
+
+
+	public ModuleMetadata(String id, String containerId, Properties moduleOptions, Properties deploymentProperties) {
 		this.id = id;
 		this.containerId = containerId;
-		this.properties = properties;
+		this.moduleOptions = moduleOptions;
+		this.deploymentProperties = deploymentProperties;
 	}
 
 	public String getId() {
@@ -43,8 +49,11 @@ public class ModuleMetadata {
 		return containerId;
 	}
 
-	public String getProperties() {
-		return properties;
+	public Properties getModuleOptions() {
+		return moduleOptions;
 	}
 
+	public Properties getDeploymentProperties() {
+		return deploymentProperties;
+	}
 }

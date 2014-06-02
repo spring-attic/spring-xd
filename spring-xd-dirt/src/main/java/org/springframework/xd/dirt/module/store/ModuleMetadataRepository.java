@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.module.store;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.xd.store.DomainRepository;
 
 /**
@@ -27,6 +26,10 @@ import org.springframework.xd.store.DomainRepository;
  */
 public interface ModuleMetadataRepository extends DomainRepository<ModuleMetadata, String> {
 
-	Page<ModuleMetadata> findAllByContainerId(Pageable page, String containerId);
+	Page<ModuleMetadata> findAllByContainerId(String containerId);
+
+	Page<ModuleMetadata> findAllByModuleId(String moduleId);
+
+	ModuleMetadata findOne(String containerId, String moduleId);
 
 }

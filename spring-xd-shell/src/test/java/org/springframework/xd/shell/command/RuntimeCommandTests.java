@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,16 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 		stream().create(streamName, "time | log");
 
 		assertThat(2, eventually(moduleCountForStream(streamName)));
+	}
+
+	@Test
+	public void testListRuntimeModulesByModuleId() {
+		logger.info("List runtime modules");
+		String streamName = generateStreamName();
+		stream().create(streamName, "time | log");
+		CommandResult cmdResult = executeCommand("runtime modules --moduleId " + streamName + ".sink.log-1");
+		Table table = (Table) cmdResult.getResult();
+		assertEquals(1, table.getRows().size());
 	}
 
 	@Test

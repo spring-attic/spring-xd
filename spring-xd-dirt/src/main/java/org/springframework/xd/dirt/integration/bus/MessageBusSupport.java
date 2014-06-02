@@ -13,11 +13,11 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import static org.springframework.http.MediaType.ALL;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
-import static org.springframework.http.MediaType.TEXT_PLAIN;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import static org.springframework.util.MimeTypeUtils.ALL;
+import static org.springframework.util.MimeTypeUtils.APPLICATION_OCTET_STREAM;
+import static org.springframework.util.MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
+import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN;
+import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -42,7 +42,6 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -61,7 +60,6 @@ import org.springframework.util.MimeType;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.SerializationException;
-
 
 /**
  * @author David Turanski
@@ -88,7 +86,7 @@ public abstract class MessageBusSupport
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
 
-	protected static final List<MediaType> MEDIATYPES_MEDIATYPE_ALL = Collections.singletonList(MediaType.ALL);
+	protected static final List<MimeType> MEDIATYPES_MEDIATYPE_ALL = Collections.singletonList(ALL);
 
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
 
@@ -319,8 +317,7 @@ public abstract class MessageBusSupport
 		}
 	}
 
-	// TODO: Performs serialization currently no transformation
-	protected final Message<?> serializePayloadIfNecessary(Message<?> message, MediaType to) {
+	protected final Message<?> serializePayloadIfNecessary(Message<?> message, MimeType to) {
 		Object originalPayload = message.getPayload();
 		Object originalContentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
 		Object contentType = originalContentType;
@@ -328,7 +325,8 @@ public abstract class MessageBusSupport
 			return message;
 		}
 		else if (to.equals(APPLICATION_OCTET_STREAM)) {
-			contentType = resolveContentType(originalPayload);
+			//Pass content type as String since some transport adapters will exclude CONTENT_TYPE Header otherwise
+			contentType = JavaClassMimeTypeConversion.mimeTypeFromObject(originalPayload).toString();
 			Object payload = serializePayloadIfNecessary(originalPayload);
 			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload)
 					.copyHeaders(message.getHeaders())
@@ -396,8 +394,8 @@ public abstract class MessageBusSupport
 			if (contentType.equals(TEXT_PLAIN)) {
 				return new String(bytes, "UTF-8");
 			}
-			targetType = Class.forName(contentType.getParameter("type"));
-
+			String className = JavaClassMimeTypeConversion.classNameFromMimeType(contentType);
+			targetType = Class.forName(className);
 
 			return codec.deserialize(bytes, targetType);
 		}
@@ -408,16 +406,6 @@ public abstract class MessageBusSupport
 			throw new SerializationException("unable to deserialize [" + targetType + "]", e);
 		}
 
-	}
-
-	private String resolveContentType(Object originalPayload) {
-		if (originalPayload instanceof byte[]) {
-			return APPLICATION_OCTET_STREAM_VALUE;
-		}
-		if (originalPayload instanceof String) {
-			return TEXT_PLAIN_VALUE;
-		}
-		return "application/x-java-object;type=" + originalPayload.getClass().getName();
 	}
 
 	/**
@@ -605,6 +593,52 @@ public abstract class MessageBusSupport
 				}
 			}
 			return channel;
+		}
+	}
+
+	/**
+	 * Handles representing any java class as a {@link MimeType}.
+	 * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName"/>
+	 * @author David Turanski
+	 */
+	abstract static class JavaClassMimeTypeConversion {
+
+		static MimeType mimeTypeFromObject(Object obj) {
+			Assert.notNull(obj, "object cannot be null.");
+			if (obj instanceof byte[]) {
+				return MimeType.valueOf(APPLICATION_OCTET_STREAM_VALUE);
+			}
+			if (obj instanceof String) {
+				return MimeType.valueOf(TEXT_PLAIN_VALUE);
+			}
+			String className = obj.getClass().getName();
+			if (obj.getClass().isArray()) {
+				// Need to remove trailing ';' for an object array, e.g. "[Ljava.lang.String;" or multi-dimensional "[[[Ljava.lang.String;"
+				if (className.endsWith(";")) {
+					className = className.substring(0, className.length() - 1);
+				}
+				// Wrap in quotes to handle the illegal '[' character
+				className = "\"" + className + "\"";
+			}
+
+			String mimeType = "application/x-java-object;type=" + className;
+			return MimeType.valueOf(mimeType);
+		}
+
+		static String classNameFromMimeType(MimeType mimeType) {
+			Assert.notNull(mimeType, "mimeType cannot be null.");
+			String className = mimeType.getParameter("type");
+			if (className == null) {
+				return null;
+			}
+			//unwrap quotes if any
+			className = className.replace("\"", "");
+
+			// restore trailing ';'
+			if (className.contains("[L")) {
+				className += ";";
+			}
+			return className;
 		}
 	}
 

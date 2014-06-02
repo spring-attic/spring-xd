@@ -29,7 +29,6 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.http.MediaType;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -37,6 +36,8 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.xd.dirt.integration.bus.MessageBusSupport.JavaClassMimeTypeConversion;
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
@@ -68,9 +69,9 @@ public class MessageBusSupportTests {
 		byte[] payload = "foo".getBytes();
 		Message<byte[]> message = MessageBuilder.withPayload(payload).build();
 		Message<?> converted = messageBus.serializePayloadIfNecessary(message,
-				MediaType.APPLICATION_OCTET_STREAM);
+				MimeTypeUtils.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
-		assertEquals(MediaType.APPLICATION_OCTET_STREAM,
+		assertEquals(MimeTypeUtils.APPLICATION_OCTET_STREAM,
 				contentTypeResolver.resolve(converted.getHeaders()));
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		payload = (byte[]) reconstructed.getPayload();
@@ -82,17 +83,17 @@ public class MessageBusSupportTests {
 	public void testBytesPassThruContentType() {
 		byte[] payload = "foo".getBytes();
 		Message<byte[]> message = MessageBuilder.withPayload(payload)
-				.setHeader(MessageHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+				.setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE)
 				.build();
 		Message<?> converted = messageBus.serializePayloadIfNecessary(message,
-				MediaType.APPLICATION_OCTET_STREAM);
+				MimeTypeUtils.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
-		assertEquals(MediaType.APPLICATION_OCTET_STREAM,
+		assertEquals(MimeTypeUtils.APPLICATION_OCTET_STREAM,
 				contentTypeResolver.resolve(converted.getHeaders()));
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
-		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE,
+		assertEquals(MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE,
 				reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		assertNull(reconstructed.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 	}
@@ -100,9 +101,9 @@ public class MessageBusSupportTests {
 	@Test
 	public void testString() throws IOException {
 		Message<?> converted = messageBus.serializePayloadIfNecessary(
-				new GenericMessage<String>("foo"), MediaType.APPLICATION_OCTET_STREAM);
+				new GenericMessage<String>("foo"), MimeTypeUtils.APPLICATION_OCTET_STREAM);
 
-		assertEquals(MediaType.TEXT_PLAIN,
+		assertEquals(MimeTypeUtils.TEXT_PLAIN,
 				contentTypeResolver.resolve(converted.getHeaders()));
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		assertEquals("foo", reconstructed.getPayload());
@@ -112,25 +113,25 @@ public class MessageBusSupportTests {
 	@Test
 	public void testContentTypePreserved() throws IOException {
 		Message<String> inbound = MessageBuilder.withPayload("{\"foo\":\"foo\"}")
-				.copyHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+				.copyHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON))
 				.build();
 		Message<?> converted = messageBus.serializePayloadIfNecessary(
-				inbound, MediaType.APPLICATION_OCTET_STREAM);
+				inbound, MimeTypeUtils.APPLICATION_OCTET_STREAM);
 
-		assertEquals(MediaType.TEXT_PLAIN,
+		assertEquals(MimeTypeUtils.TEXT_PLAIN,
 				contentTypeResolver.resolve(converted.getHeaders()));
-		assertEquals(MediaType.APPLICATION_JSON,
+		assertEquals(MimeTypeUtils.APPLICATION_JSON,
 				converted.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		assertEquals("{\"foo\":\"foo\"}", reconstructed.getPayload());
-		assertEquals(MediaType.APPLICATION_JSON, reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(MimeTypeUtils.APPLICATION_JSON, reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testPojoSerialization() {
 		Message<?> converted = messageBus.serializePayloadIfNecessary(
 				new GenericMessage<Foo>(new Foo("bar")),
-				MediaType.APPLICATION_OCTET_STREAM);
+				MimeTypeUtils.APPLICATION_OCTET_STREAM);
 		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
 		assertEquals("application", mimeType.getType());
 		assertEquals("x-java-object", mimeType.getSubtype());
@@ -142,10 +143,10 @@ public class MessageBusSupportTests {
 	}
 
 	@Test
-	public void testPojoWithXJavaObjectMediaTypeNoType() {
+	public void testPojoWithXJavaObjectMimeTypeNoType() {
 		Message<?> converted = messageBus.serializePayloadIfNecessary(
 				new GenericMessage<Foo>(new Foo("bar")),
-				MediaType.APPLICATION_OCTET_STREAM);
+				MimeTypeUtils.APPLICATION_OCTET_STREAM);
 		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
 		assertEquals("application", mimeType.getType());
 		assertEquals("x-java-object", mimeType.getSubtype());
@@ -157,10 +158,10 @@ public class MessageBusSupportTests {
 	}
 
 	@Test
-	public void testPojoWithXJavaObjectMediaTypeExplicitType() {
+	public void testPojoWithXJavaObjectMimeTypeExplicitType() {
 		Message<?> converted = messageBus.serializePayloadIfNecessary(
 				new GenericMessage<Foo>(new Foo("bar")),
-				MediaType.APPLICATION_OCTET_STREAM);
+				MimeTypeUtils.APPLICATION_OCTET_STREAM);
 		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
 		assertEquals("application", mimeType.getType());
 		assertEquals("x-java-object", mimeType.getSubtype());
@@ -175,7 +176,7 @@ public class MessageBusSupportTests {
 	public void testTupleSerialization() {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
 		Message<?> converted = messageBus.serializePayloadIfNecessary(new GenericMessage<Tuple>(payload),
-				MediaType.APPLICATION_OCTET_STREAM);
+				MimeTypeUtils.APPLICATION_OCTET_STREAM);
 		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
 		assertEquals("application", mimeType.getType());
 		assertEquals("x-java-object", mimeType.getSubtype());
@@ -184,6 +185,41 @@ public class MessageBusSupportTests {
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		assertEquals("bar", ((Tuple) reconstructed.getPayload()).getString("foo"));
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void mimeTypeIsSimpleObject() throws ClassNotFoundException {
+		MimeType mt = JavaClassMimeTypeConversion.mimeTypeFromObject(new Object());
+		String className = JavaClassMimeTypeConversion.classNameFromMimeType(mt);
+		assertEquals(Object.class, Class.forName(className));
+	}
+
+	@Test
+	public void mimeTypeIsObjectArray() throws ClassNotFoundException {
+		MimeType mt = JavaClassMimeTypeConversion.mimeTypeFromObject(new String[0]);
+		String className = JavaClassMimeTypeConversion.classNameFromMimeType(mt);
+		assertEquals(String[].class, Class.forName(className));
+	}
+
+	@Test
+	public void mimeTypeIsMultiDimensionalObjectArray() throws ClassNotFoundException {
+		MimeType mt = JavaClassMimeTypeConversion.mimeTypeFromObject(new String[0][0][0]);
+		String className = JavaClassMimeTypeConversion.classNameFromMimeType(mt);
+		assertEquals(String[][][].class, Class.forName(className));
+	}
+
+	@Test
+	public void mimeTypeIsPrimitiveArray() throws ClassNotFoundException {
+		MimeType mt = JavaClassMimeTypeConversion.mimeTypeFromObject(new int[0]);
+		String className = JavaClassMimeTypeConversion.classNameFromMimeType(mt);
+		assertEquals(int[].class, Class.forName(className));
+	}
+
+	@Test
+	public void mimeTypeIsMultiDimensionalPrimitiveArray() throws ClassNotFoundException {
+		MimeType mt = JavaClassMimeTypeConversion.mimeTypeFromObject(new int[0][0][0]);
+		String className = JavaClassMimeTypeConversion.classNameFromMimeType(mt);
+		assertEquals(int[][][].class, Class.forName(className));
 	}
 
 	public static class Foo {

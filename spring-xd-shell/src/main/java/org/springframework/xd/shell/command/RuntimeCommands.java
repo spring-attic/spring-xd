@@ -80,22 +80,17 @@ public class RuntimeCommands implements CommandMarker {
 
 	@CliCommand(value = LIST_MODULES, help = "List runtime modules")
 	public Table listDeployedModules(
-			@CliOption(mandatory = false, key = { "", "containerId" }, help = "to filter by container id") String containerId) {
+			@CliOption(mandatory = false, key = { "", "containerId" }, help = "to filter by container id") String containerId,
+			@CliOption(mandatory = false, key = { "", "moduleId" }, help = "to filter by module id") String moduleId) {
 
-		Iterable<ModuleMetadataResource> runtimeModules;
-		if (containerId != null) {
-			runtimeModules = runtimeOperations().listRuntimeModulesByContainer(containerId);
-		}
-		else {
-			runtimeModules = runtimeOperations().listRuntimeModules();
-		}
+		Iterable<ModuleMetadataResource> runtimeModules = runtimeOperations().listRuntimeModules(containerId, moduleId);
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Module")).addHeader(2, new TableHeader("Container Id")).addHeader(
-				3, new TableHeader("Options"));
+				3, new TableHeader("Options")).addHeader(4, new TableHeader("Deployment Properties"));
 		for (ModuleMetadataResource module : runtimeModules) {
 			final TableRow row = table.newRow();
 			row.addValue(1, module.getModuleId()).addValue(2, module.getContainerId()).addValue(3,
-					module.getProperties());
+					module.getModuleProperties()).addValue(4, module.getDeploymentProperties());
 		}
 		return table;
 	}

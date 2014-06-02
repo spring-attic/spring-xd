@@ -47,9 +47,10 @@ public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperatio
 	}
 
 	@Override
-	public ModuleMetadataResource.Page listRuntimeModulesByContainer(String containerId) {
+	public ModuleMetadataResource.Page listRuntimeModules(String containerId, String moduleId) {
 		String url = resources.get("runtime/modules").toString();
-		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("containerId", containerId).build().toUriString();
-		return restTemplate.getForObject(uriString, ModuleMetadataResource.Page.class, containerId);
+		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("containerId", containerId).queryParam(
+				"moduleId", moduleId).build().toUriString();
+		return restTemplate.getForObject(uriString, ModuleMetadataResource.Page.class);
 	}
 }

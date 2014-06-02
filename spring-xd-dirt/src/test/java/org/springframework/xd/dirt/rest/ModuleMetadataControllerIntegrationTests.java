@@ -53,30 +53,41 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 	@Before
 	public void before() {
 		PageRequest pageable = new PageRequest(0, 20);
-		ModuleMetadata entity1 = new ModuleMetadata("s1.source-0", "1", "{entity1: value1}");
-		ModuleMetadata entity2 = new ModuleMetadata("s2.sink-1", "2", "{entity2: value2}");
-		ModuleMetadata entity3 = new ModuleMetadata("s3.job.myjob-0", "3", "{entity3: value3}");
+		ModuleMetadata entity1 = new ModuleMetadata("s1.source.http-0", "1", "{entity1: value1}", "{count:1}");
+		ModuleMetadata entity2 = new ModuleMetadata("s2.sink.log-1", "2", "{entity2: value2}", "{count:2}");
+		ModuleMetadata entity3 = new ModuleMetadata("s3.job.myjob-0", "3", "{entity3: value3}",
+				"{criteria:groups.contains('hdfs')}");
 		List<ModuleMetadata> entities1 = new ArrayList<ModuleMetadata>();
 		List<ModuleMetadata> entities2 = new ArrayList<ModuleMetadata>();
+		List<ModuleMetadata> entities3 = new ArrayList<ModuleMetadata>();
+		List<ModuleMetadata> all = new ArrayList<ModuleMetadata>();
 		entities1.add(entity1);
-		entities1.add(entity2);
-		entities1.add(entity3);
 		entities2.add(entity2);
+		entities3.add(entity3);
+		all.add(entity1);
+		all.add(entity2);
+		all.add(entity3);
 		Page<ModuleMetadata> pagedEntity1 = new PageImpl<>(entities1);
 		Page<ModuleMetadata> pagedEntity2 = new PageImpl<>(entities2);
-		when(moduleMetadataRepository.findAll(pageable)).thenReturn(pagedEntity1);
-		when(moduleMetadataRepository.findAll()).thenReturn(entities1);
-		when(moduleMetadataRepository.findAllByContainerId(pageable, "2")).thenReturn(pagedEntity2);
+		Page<ModuleMetadata> pagedEntity3 = new PageImpl<>(entities3);
+		Page<ModuleMetadata> allPages = new PageImpl<>(all);
+		when(moduleMetadataRepository.findAll(pageable)).thenReturn(allPages);
+		when(moduleMetadataRepository.findAll()).thenReturn(all);
+		when(moduleMetadataRepository.findAllByContainerId("2")).thenReturn(pagedEntity2);
+		when(moduleMetadataRepository.findAllByContainerAndModuleId("1", "s1.source.http-0")).thenReturn(pagedEntity1);
+		when(moduleMetadataRepository.findAllByModuleId("s3.job.myjob-0")).thenReturn(pagedEntity3);
 	}
 
 	@Test
 	public void testListModules() throws Exception {
 		mockMvc.perform(get("/runtime/modules").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(3))).andExpect(
-						jsonPath("$.content[*].moduleId", contains("s1.source-0", "s2.sink-1", "s3.job.myjob-0"))).andExpect(
-								jsonPath("$.content[*].containerId", contains("1", "2", "3"))).andExpect(
-										jsonPath("$.content[*].properties",
-						contains("{entity1: value1}", "{entity2: value2}", "{entity3: value3}")));
+				jsonPath("$.content[*].moduleId", contains("s1.source.http-0", "s2.sink.log-1", "s3.job.myjob-0"))).andExpect(
+				jsonPath("$.content[*].containerId", contains("1", "2", "3"))).andExpect(
+				jsonPath("$.content[*].moduleProperties",
+						contains("{entity1: value1}", "{entity2: value2}", "{entity3: value3}"))).andExpect(
+				jsonPath("$.content[*].deploymentProperties",
+						contains("{count:1}", "{count:2}", "{criteria:groups.contains('hdfs')}")));
 	}
 
 	@Test
@@ -84,9 +95,21 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		mockMvc.perform(get("/runtime/modules?jobname=s3").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$", Matchers.hasSize(1))).andExpect(
-								jsonPath("$[*].moduleId", contains("s3.job.myjob-0"))).andExpect(
-										jsonPath("$[*].containerId", contains("3"))).andExpect(
-												jsonPath("$[*].properties", contains("{entity3: value3}")));
+				jsonPath("$[*].moduleId", contains("s3.job.myjob-0"))).andExpect(
+				jsonPath("$[*].containerId", contains("3"))).andExpect(
+				jsonPath("$[*].moduleProperties", contains("{entity3: value3}"))).andExpect(
+				jsonPath("$[*].deploymentProperties", contains("{criteria:groups.contains('hdfs')}")));
+	}
+
+	@Test
+	public void testListModuleByModuleId() throws Exception {
+		mockMvc.perform(get("/runtime/modules?moduleId=s3.job.myjob-0").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk()).andExpect(
+				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
+				jsonPath("$content[*].moduleId", contains("s3.job.myjob-0"))).andExpect(
+				jsonPath("$content[*].containerId", contains("3"))).andExpect(
+				jsonPath("$content[*].moduleProperties", contains("{entity3: value3}"))).andExpect(
+				jsonPath("$content[*].deploymentProperties", contains("{criteria:groups.contains('hdfs')}")));
 	}
 
 	@Test
@@ -100,9 +123,22 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 	public void testListModulesByContainer() throws Exception {
 		mockMvc.perform(get("/runtime/modules?containerId=2").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-						jsonPath("$.content", Matchers.hasSize(1))).andExpect(
-								jsonPath("$.content[*].moduleId", contains("s2.sink-1"))).andExpect(
-										jsonPath("$.content[*].containerId", contains("2"))).andExpect(
-												jsonPath("$.content[*].properties", contains("{entity2: value2}")));
+				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
+				jsonPath("$.content[*].moduleId", contains("s2.sink.log-1"))).andExpect(
+				jsonPath("$.content[*].containerId", contains("2"))).andExpect(
+				jsonPath("$.content[*].moduleProperties", contains("{entity2: value2}"))).andExpect(
+				jsonPath("$.content[*].deploymentProperties", contains("{count:2}")));
+	}
+
+	@Test
+	public void testListModulesByContainerAndModuleId() throws Exception {
+		mockMvc.perform(
+				get("/runtime/modules?containerId=1&moduleId=s1.source.http-0").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk()).andExpect(
+				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
+				jsonPath("$.content[*].moduleId", contains("s1.source.http-0"))).andExpect(
+				jsonPath("$.content[*].containerId", contains("1"))).andExpect(
+				jsonPath("$.content[*].moduleProperties", contains("{entity1: value1}"))).andExpect(
+				jsonPath("$.content[*].deploymentProperties", contains("{count:1}")));
 	}
 }

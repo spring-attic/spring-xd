@@ -28,6 +28,7 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -67,10 +68,17 @@ public class ModulesMetadataController {
 	@ResponseBody
 	public PagedResources<ModuleMetadataResource> list(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler,
-			@RequestParam(value = "containerId", required = false) String containerId) {
+			@RequestParam(value = "containerId", required = false) String containerId,
+			@RequestParam(value = "moduleId", required = false) String moduleId) {
 		Page<ModuleMetadata> page;
-		if (containerId != null) {
-			page = this.moduleMetadataRepository.findAllByContainerId(pageable, containerId);
+		if (StringUtils.hasText(containerId) && StringUtils.hasText(moduleId)) {
+			page = this.moduleMetadataRepository.findAllByContainerAndModuleId(containerId, moduleId);
+		}
+		else if (StringUtils.hasText(containerId)) {
+			page = this.moduleMetadataRepository.findAllByContainerId(containerId);
+		}
+		else if (StringUtils.hasText(moduleId)) {
+			page = this.moduleMetadataRepository.findAllByModuleId(moduleId);
 		}
 		else {
 			page = this.moduleMetadataRepository.findAll(pageable);

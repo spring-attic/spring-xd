@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,16 +34,20 @@ public class ModuleMetadataResource extends ResourceSupport {
 
 	private String containerId;
 
-	private String properties;
+	private String moduleProperties;
+
+	private String deploymentProperties;
 
 	@SuppressWarnings("unused")
 	private ModuleMetadataResource() {
 	}
 
-	public ModuleMetadataResource(String moduleId, String containerId, String properties) {
+	public ModuleMetadataResource(String moduleId, String containerId, String moduleProperties,
+			String deploymentProperties) {
 		this.moduleId = moduleId;
 		this.containerId = containerId;
-		this.properties = properties;
+		this.moduleProperties = moduleProperties;
+		this.deploymentProperties = deploymentProperties;
 	}
 
 	public String getModuleId() {
@@ -54,8 +58,12 @@ public class ModuleMetadataResource extends ResourceSupport {
 		return containerId;
 	}
 
-	public String getProperties() {
-		return properties;
+	public String getModuleProperties() {
+		return moduleProperties;
+	}
+
+	public String getDeploymentProperties() {
+		return deploymentProperties;
 	}
 
 	@Override

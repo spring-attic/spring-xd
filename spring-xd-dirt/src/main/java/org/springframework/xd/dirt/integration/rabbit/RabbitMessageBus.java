@@ -16,9 +16,12 @@
 
 package org.springframework.xd.dirt.integration.rabbit;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 import org.aopalliance.aop.Advice;
@@ -58,6 +61,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
@@ -98,6 +102,36 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private static final String[] DEFAULT_REQUEST_HEADER_PATTERNS = new String[] { "STANDARD_REQUEST_HEADERS", "*" };
 
 	private static final String[] DEFAULT_REPLY_HEADER_PATTERNS = new String[] { "STANDARD_REPLY_HEADERS", "*" };
+
+	private static final Set<Object> SUPPORTED_CONSUMER_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
+		BusProperties.BACK_OFF_INITIAL_INTERVAL,
+		BusProperties.BACK_OFF_MAX_INTERVAL,
+		BusProperties.BACK_OFF_MULTIPLIER,
+		BusProperties.CONCURRENCY,
+		BusProperties.MAX_ATTEMPTS,
+		BusProperties.MAX_CONCURRENCY,
+		BusProperties.PARTITION_INDEX,
+		RabbitPropertiesAccessor.ACK_MODE,
+		RabbitPropertiesAccessor.PREFETCH,
+		RabbitPropertiesAccessor.PREFIX,
+		RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS,
+		RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS,
+		RabbitPropertiesAccessor.REQUEUE,
+		RabbitPropertiesAccessor.TRANSACTED,
+		RabbitPropertiesAccessor.TX_SIZE
+	}));
+
+	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
+		BusProperties.PARTITION_COUNT,
+		BusProperties.PARTITION_KEY_EXPRESSION,
+		BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
+		BusProperties.PARTITION_SELECTOR_CLASS,
+		BusProperties.PARTITION_SELECTOR_EXPRESSION,
+		RabbitPropertiesAccessor.DELIVERY_MODE,
+		RabbitPropertiesAccessor.PREFIX,
+		RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS,
+		RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS
+	}));
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -219,10 +253,21 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
+	protected Set<Object> getSupportedConsumerProperties() {
+		return SUPPORTED_CONSUMER_PROPERTIES;
+	}
+
+	@Override
+	protected Set<Object> getSupportedProducerProperties() {
+		return SUPPORTED_PRODUCER_PROPERTIES;
+	}
+
+	@Override
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel, Properties properties) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
+		validateConsumerProperties(properties);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		registerNamedChannelForConsumerIfNecessary(name, false);
 		String queueName = accessor.getPrefix(this.defaultPrefix) + name;
@@ -241,6 +286,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			logger.info("declaring pubsub for inbound: " + name);
 		}
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
+		validateConsumerProperties(properties);
 		registerNamedChannelForConsumerIfNecessary(name, true);
 		String prefix = accessor.getPrefix(this.defaultPrefix);
 		FanoutExchange exchange = new FanoutExchange(prefix + "topic." + name);
@@ -307,6 +353,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for outbound: " + name);
 		}
+		validateProducerProperties(properties);
 		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(name, new RabbitPropertiesAccessor(properties));
 		doRegisterProducer(name, moduleOutputChannel, queue, new RabbitPropertiesAccessor(properties));
 	}
@@ -341,6 +388,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	@Override
 	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel,
 			Properties properties) {
+		validateProducerProperties(properties);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String exchangeName = accessor.getPrefix(this.defaultPrefix) + "topic." + name;
 		rabbitAdmin.declareExchange(new FanoutExchange(exchangeName));
@@ -380,6 +428,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("binding requestor: " + name);
 		}
+		validateProducerProperties(properties);
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String queueName = name + ".requests";
@@ -402,6 +451,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("binding replier: " + name);
 		}
+		validateConsumerProperties(properties);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		Queue requestQueue = new Queue(accessor.getPrefix(this.defaultPrefix) + name + ".requests");
 		this.rabbitAdmin.declareQueue(requestQueue);
@@ -488,12 +538,57 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	 */
 	private class RabbitPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
+		/**
+		 * The acknowledge mode.
+		 */
+		private static final String ACK_MODE = "ackMode";
+
+		/**
+		 * The delivery mode.
+		 */
+		private static final String DELIVERY_MODE = "deliveryMode";
+
+		/**
+		 * The prefetch count (basic qos).
+		 */
+		private static final String PREFETCH = "prefetch";
+
+		/**
+		 * The prefix for queues, exchanges.
+		 */
+		private static final String PREFIX = "prefix";
+
+		/**
+		 * The reply header patterns.
+		 */
+		private static final String REPLY_HEADER_PATTERNS = "replyHeaderPatterns";
+
+		/**
+		 * The request header patterns.
+		 */
+		private static final String REQUEST_HEADER_PATTERNS = "requestHeaderPatterns";
+
+		/**
+		 * Whether delivery failures should be requeued.
+		 */
+		private static final String REQUEUE = "requeue";
+
+		/**
+		 * Whether to use transacted channels.
+		 */
+		private static final String TRANSACTED = "transacted";
+
+		/**
+		 * The number of deliveries between acks.
+		 */
+		private static final String TX_SIZE = "txSize";
+
 		public RabbitPropertiesAccessor(Properties properties) {
 			super(properties);
 		}
 
 		public AcknowledgeMode getAcknowledgeMode(AcknowledgeMode defaultValue) {
-			String ackknowledgeMode = getProperty("ackMode");
+			String ackknowledgeMode = getProperty(ACK_MODE);
 			if (StringUtils.hasText(ackknowledgeMode)) {
 				return AcknowledgeMode.valueOf(ackknowledgeMode);
 			}
@@ -503,7 +598,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 
 		public MessageDeliveryMode getDeliveryMode(MessageDeliveryMode defaultValue) {
-			String deliveryMode = getProperty("deliveryMode");
+			String deliveryMode = getProperty(DELIVERY_MODE);
 			if (StringUtils.hasText(deliveryMode)) {
 				return MessageDeliveryMode.valueOf(deliveryMode);
 			}
@@ -513,31 +608,31 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 
 		public int getPrefetchCount(int defaultValue) {
-			return getProperty("prefetch", defaultValue);
+			return getProperty(PREFETCH, defaultValue);
 		}
 
 		public String getPrefix(String defaultValue) {
-			return getProperty("prefix", defaultValue);
+			return getProperty(PREFIX, defaultValue);
 		}
 
 		public String[] getReplyHeaderPattens(String[] defaultValue) {
-			return asStringArray(getProperty("replyHeaderPatterns"), defaultValue);
+			return asStringArray(getProperty(REPLY_HEADER_PATTERNS), defaultValue);
 		}
 
 		public String[] getRequestHeaderPattens(String[] defaultValue) {
-			return asStringArray(getProperty("requestHeaderPatterns"), defaultValue);
+			return asStringArray(getProperty(REQUEST_HEADER_PATTERNS), defaultValue);
 		}
 
 		public boolean getRequeueRejected(boolean defaultValue) {
-			return getProperty("requeue", defaultValue);
-		}
-
-		public int getTxSize(int defaultValue) {
-			return getProperty("txSize", defaultValue);
+			return getProperty(REQUEUE, defaultValue);
 		}
 
 		public boolean getTransacted(boolean defaultValue) {
-			return getProperty("transacted", defaultValue);
+			return getProperty(TRANSACTED, defaultValue);
+		}
+
+		public int getTxSize(int defaultValue) {
+			return getProperty(TX_SIZE, defaultValue);
 		}
 
 	}

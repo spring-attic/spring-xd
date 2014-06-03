@@ -16,9 +16,11 @@
 
 package org.springframework.xd.dirt.integration.rabbit;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -191,6 +193,30 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 	}
 
 	@Test
+	public void testBadProperties() {
+		MessageBus bus = getMessageBus();
+		Properties properties = new Properties();
+		properties.put("foo", "bar");
+		properties.put("baz", "qux");
+
+		DirectChannel output = new DirectChannel();
+		try {
+			bus.bindProducer("badprops.0", output, properties);
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support producer properties: baz,foo"));
+		}
+
+		properties.remove("baz");
+		try {
+			bus.bindConsumer("badprops.0", output, properties);
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support consumer property: foo"));
+		}
+	}
+
+	@Test
 	public void testPartitionedModuleSpEL() {
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();
@@ -207,6 +233,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		assertEquals("'xdbus.part.0-' + headers['partition']",
 				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
 
+		properties.clear();
 		properties.put("partitionIndex", "0");
 		QueueChannel input0 = new QueueChannel();
 		bus.bindConsumer("part.0", input0, properties);
@@ -252,6 +279,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		assertEquals("'xdbus.part.0-' + headers['partition']",
 				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
 
+		properties.clear();
 		properties.put("partitionIndex", "0");
 		QueueChannel input0 = new QueueChannel();
 		bus.bindConsumer("part.0", input0, properties);

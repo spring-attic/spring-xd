@@ -16,6 +16,8 @@
 
 package org.springframework.xd.rest.client.domain;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.springframework.hateoas.PagedResources;
 
 /**
@@ -24,6 +26,7 @@ import org.springframework.hateoas.PagedResources;
  * @author Glenn Renfro
  * @since 1.0
  */
+@XmlRootElement
 public class JobDefinitionResource extends DeployableResource {
 
 	/**

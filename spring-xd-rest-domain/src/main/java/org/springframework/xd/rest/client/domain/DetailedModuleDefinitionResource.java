@@ -19,6 +19,8 @@ package org.springframework.xd.rest.client.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.springframework.hateoas.PagedResources;
 
 
@@ -27,6 +29,7 @@ import org.springframework.hateoas.PagedResources;
  * 
  * @author Eric Bottard
  */
+@XmlRootElement
 public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 
 	/**

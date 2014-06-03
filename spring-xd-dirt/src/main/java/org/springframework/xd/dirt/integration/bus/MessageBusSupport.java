@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -518,6 +520,29 @@ public abstract class MessageBusSupport
 			logger.error("Failed to instantiate partition selector", e);
 			throw new MessageBusException("Failed to instantiate partition selector: " + partitionSelectorClassName, e);
 		}
+	}
+
+	protected void validateSupportedProperties(Properties properties) {
+		if (properties != null) {
+			Set<Object> supported = getSupportedProperties();
+			StringBuilder builder = new StringBuilder();
+			int errors = 0;
+			for (Entry<Object, Object> entry : properties.entrySet()) {
+				if (!supported.contains(entry.getKey())) {
+					builder.append(entry.getKey()).append(",");
+					errors++;
+				}
+			}
+			if (errors > 0) {
+				throw new IllegalArgumentException(getClass().getSimpleName() + " does not support propert"
+						+ (errors == 1 ? "y: " : "ies: ")
+						+ builder.substring(0, builder.length() - 1));
+			}
+		}
+	}
+
+	protected Set<Object> getSupportedProperties() {
+		return Collections.emptySet();
 	}
 
 	/**

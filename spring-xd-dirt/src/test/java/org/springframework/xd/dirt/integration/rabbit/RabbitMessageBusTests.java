@@ -16,9 +16,11 @@
 
 package org.springframework.xd.dirt.integration.rabbit;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -188,6 +190,30 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		assertEquals("foo", requestHeaders.get(0));
 		bus.unbindProducers("props.0");
 		assertEquals(0, bindings.size());
+	}
+
+	@Test
+	public void testBadProperties() {
+		MessageBus bus = getMessageBus();
+		Properties properties = new Properties();
+		properties.put("foo", "bar");
+		properties.put("baz", "qux");
+
+		DirectChannel output = new DirectChannel();
+		try {
+			bus.bindProducer("badprops.0", output, properties);
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support properties: baz,foo"));
+		}
+
+		properties.remove("baz");
+		try {
+			bus.bindConsumer("badprops.0", output, properties);
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support property: foo"));
+		}
 	}
 
 	@Test

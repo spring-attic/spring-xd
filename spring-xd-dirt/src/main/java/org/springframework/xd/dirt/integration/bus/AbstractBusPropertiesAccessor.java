@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  */
-public abstract class AbstractBusPropertiesAccessor {
+public abstract class AbstractBusPropertiesAccessor extends BusProperties {
 
 	private static final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
 
@@ -139,7 +139,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The property or default value.
 	 */
 	public int getConcurrency(int defaultValue) {
-		return getProperty("concurrency", defaultValue);
+		return getProperty(CONCURRENCY, defaultValue);
 	}
 
 	/**
@@ -149,7 +149,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The property or default value.
 	 */
 	public int getMaxConcurrency(int defaultValue) {
-		return getProperty("maxConcurrency", defaultValue);
+		return getProperty(MAX_CONCURRENCY, defaultValue);
 	}
 
 	// Retry properties
@@ -162,7 +162,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The property or default value.
 	 */
 	public int getMaxAttempts(int defaultValue) {
-		return getProperty("maxAttempts", defaultValue);
+		return getProperty(MAX_ATTEMPTS, defaultValue);
 	}
 
 	/**
@@ -173,7 +173,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The property or default value.
 	 */
 	public long getBackOffInitialInterval(long defaultValue) {
-		return getProperty("backOffInitialInterval", defaultValue);
+		return getProperty(BACK_OFF_INITIAL_INTERVAL, defaultValue);
 	}
 
 	/**
@@ -184,7 +184,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The property or default value.
 	 */
 	public double getBackOffMultiplier(double defaultValue) {
-		return getProperty("backOffMultiplier", defaultValue);
+		return getProperty(BACK_OFF_MULTIPLIER, defaultValue);
 	}
 
 	/**
@@ -195,7 +195,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The property or default value.
 	 */
 	public long getBackOffMaxInterval(long defaultValue) {
-		return getProperty("backOffMaxInterval", defaultValue);
+		return getProperty(BACK_OFF_MAX_INTERVAL, defaultValue);
 	}
 
 	// Partitioning
@@ -205,7 +205,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The class name,
 	 */
 	public String getPartitionKeyExtractorClass() {
-		return getProperty("partitionKeyExtractorClass");
+		return getProperty(PARTITION_KEY_EXTRACTOR_CLASS);
 	}
 
 	/**
@@ -214,7 +214,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The key.
 	 */
 	public Expression getPartitionKeyExpression() {
-		String partionKeyExpression = getProperty("partitionKeyExpression");
+		String partionKeyExpression = getProperty(PARTITION_KEY_EXPRESSION);
 		Expression expression = null;
 		if (partionKeyExpression != null) {
 			expression = spelExpressionParser.parseExpression(partionKeyExpression);
@@ -227,7 +227,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The class name,
 	 */
 	public String getPartitionSelectorClass() {
-		return getProperty("partitionSelectorClass");
+		return getProperty(PARTITION_SELECTOR_CLASS);
 	}
 
 	/**
@@ -238,7 +238,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The expression.
 	 */
 	public Expression getPartitionSelectorExpression() {
-		String partionSelectorExpression = getProperty("partitionSelectorExpression");
+		String partionSelectorExpression = getProperty(PARTITION_SELECTOR_EXPRESSION);
 		Expression expression = null;
 		if (partionSelectorExpression != null) {
 			expression = spelExpressionParser.parseExpression(partionSelectorExpression);
@@ -251,7 +251,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The count.
 	 */
 	public int getPartitionCount() {
-		return getProperty("partitionCount", 1);
+		return getProperty(PARTITION_COUNT, 1);
 	}
 
 	/**
@@ -259,7 +259,7 @@ public abstract class AbstractBusPropertiesAccessor {
 	 * @return The partition index.
 	 */
 	public int getPartitionIndex() {
-		return getProperty("partitionIndex", -1);
+		return getProperty(PARTITION_INDEX, -1);
 	}
 
 	// Utility methods

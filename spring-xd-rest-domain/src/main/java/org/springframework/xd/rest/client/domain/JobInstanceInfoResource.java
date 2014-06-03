@@ -18,6 +18,8 @@ package org.springframework.xd.rest.client.domain;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.springframework.batch.core.JobInstance;
 import org.springframework.hateoas.ResourceSupport;
 
@@ -27,6 +29,7 @@ import org.springframework.hateoas.ResourceSupport;
  * 
  * @author Ilayaperumal Gopinathan
  */
+@XmlRootElement
 public class JobInstanceInfoResource extends ResourceSupport {
 
 	private String jobName;

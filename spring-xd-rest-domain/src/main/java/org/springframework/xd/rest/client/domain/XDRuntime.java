@@ -16,6 +16,8 @@
 
 package org.springframework.xd.rest.client.domain;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.springframework.hateoas.ResourceSupport;
 
 /**
@@ -24,6 +26,7 @@ import org.springframework.hateoas.ResourceSupport;
  * @author Eric Bottard
  * 
  */
+@XmlRootElement
 public class XDRuntime extends ResourceSupport {
 
 }

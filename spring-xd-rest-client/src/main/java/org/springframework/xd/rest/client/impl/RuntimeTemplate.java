@@ -16,6 +16,10 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import org.springframework.util.Assert;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
@@ -47,10 +51,30 @@ public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperatio
 	}
 
 	@Override
-	public ModuleMetadataResource.Page listRuntimeModules(String containerId, String moduleId) {
+	public ModuleMetadataResource listRuntimeModule(String containerId, String moduleId) {
+		Assert.isTrue(StringUtils.hasText(containerId));
+		Assert.isTrue(StringUtils.hasText(moduleId));
 		String url = resources.get("runtime/modules").toString();
-		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("containerId", containerId).queryParam(
-				"moduleId", moduleId).build().toUriString();
-		return restTemplate.getForObject(uriString, ModuleMetadataResource.Page.class);
+		MultiValueMap<String, String> values = new LinkedMultiValueMap<String, String>();
+		values.add("containerId", containerId);
+		values.add("moduleId", moduleId);
+		String uriString = UriComponentsBuilder.fromUriString(url).queryParams(values).build().toUriString();
+		return restTemplate.getForObject(uriString, ModuleMetadataResource.class);
+	}
+
+	@Override
+	public ModuleMetadataResource[] listRuntimeModulesByContainer(String containerId) {
+		Assert.isTrue(StringUtils.hasText(containerId));
+		String url = resources.get("runtime/modules").toString();
+		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("containerId", containerId).build().toUriString();
+		return restTemplate.getForObject(uriString, ModuleMetadataResource[].class);
+	}
+
+	@Override
+	public ModuleMetadataResource[] listRuntimeModulesByModuleId(String moduleId) {
+		Assert.isTrue(StringUtils.hasText(moduleId));
+		String url = resources.get("runtime/modules").toString();
+		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("moduleId", moduleId).build().toUriString();
+		return restTemplate.getForObject(uriString, ModuleMetadataResource[].class);
 	}
 }

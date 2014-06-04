@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -78,7 +79,17 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		return results;
 	}
 
-	private ModuleMetadata findOne(String containerId, String moduleId) {
+	/**
+	 * Find the module metadata for the modules that are deployed into the
+	 * given container and module id.
+	 *
+	 * @param containerId the containerId of the container
+	 * @param moduleId the module id to use.
+	 *
+	 * @return {@link ModuleMetadata} of the module.
+	 */
+	@Override
+	public ModuleMetadata findOne(String containerId, String moduleId) {
 		ModuleMetadata md = findOne(metadataPath(containerId, moduleId));
 		return md;
 	}
@@ -92,16 +103,8 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 				Map<String, String> metadataMap = mapBytesUtility.toMap(data);
 				String moduleId = getModuleId(metadataPath);
 				String containerId = getContainerId(metadataPath);
-				Map<String, String> resolvedProperties = resolveModuleOptionValues(metadataMap);
-				// Get the deployment properties from module deployment path
-				String moduleDeploymentsPath = metadataPath.substring(0, metadataPath.lastIndexOf("/"));
-				Map<String, String> deploymentProps = mapBytesUtility.toMap(zkConnection.getClient().getData().forPath(
-						moduleDeploymentsPath));
-				String deploymentProperties = (deploymentProps.isEmpty()) ? ""
-						: MapUtils.toProperties(deploymentProps).toString();
-				String moduleProperties = (resolvedProperties.isEmpty()) ? ""
-						: MapUtils.toProperties(resolvedProperties).toString();
-				metadata = new ModuleMetadata(moduleId, containerId, moduleProperties, deploymentProperties);
+				metadata = new ModuleMetadata(moduleId, containerId, getResolvedModuleOptions(metadataMap),
+						getDeploymentProperties(metadataPath));
 			}
 		}
 		catch (Exception e) {
@@ -112,12 +115,32 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	}
 
 	/**
+	 * Get the deployment properties associated with this module metadata path.
+	 *
+	 * @param metadataPath the module metadata path
+	 * @return the deployment
+	 */
+	private Properties getDeploymentProperties(String metadataPath) {
+		Map<String, String> deploymentProperties = new HashMap<String, String>();
+		try {
+			// Get the deployment properties from module deployment path
+			String moduleDeploymentsPath = metadataPath.substring(0, metadataPath.lastIndexOf("/"));
+			deploymentProperties = mapBytesUtility.toMap(zkConnection.getClient().getData().forPath(
+					moduleDeploymentsPath));
+		}
+		catch (Exception e) {
+			ZooKeeperUtils.wrapAndThrowIgnoring(e);
+		}
+		return MapUtils.toProperties(deploymentProperties);
+	}
+
+	/**
 	 * Resolve the module option value using the module metadata.
 	 *
 	 * @param metadataMap the values map from ZK module metadata
-	 * @return the resolved option values map
+	 * @return the resolved option values
 	 */
-	private Map<String, String> resolveModuleOptionValues(Map<String, String> metadataMap) {
+	private Properties getResolvedModuleOptions(Map<String, String> metadataMap) {
 		Map<String, String> optionsMap = new HashMap<String, String>();
 		for (String propertyKey : metadataMap.keySet()) {
 			String propertyValue = metadataMap.get(propertyKey);
@@ -135,7 +158,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 				optionsMap.put(propertyKey, propertyValue);
 			}
 		}
-		return optionsMap;
+		return MapUtils.toProperties(optionsMap);
 	}
 
 	private String getModuleId(String metadataPath) {
@@ -181,33 +204,6 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	}
 
 	/**
-	 * Get the list of {@link ModuleMetadata} for the given moduleId.
-	 *
-	 * @param moduleIdToUse the moduleId to use when filtering
-	 * @return the {@link ModuleMetadata} list for the deployed modules
-	 */
-	public List<ModuleMetadata> findAll(String moduleIdToUse) {
-		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
-		try {
-			for (String containerId : getAvailableContainerIds()) {
-				List<String> deployedModules = getDeployedModules(containerId);
-				for (String moduleId : deployedModules) {
-					if (moduleId.equals(moduleIdToUse)) {
-						ModuleMetadata metadata = findOne(containerId, moduleId);
-						if (metadata != null) {
-							results.add(metadata);
-						}
-					}
-				}
-			}
-			return results;
-		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
-		}
-	}
-
-	/**
 	 * Get all the available containers' ids.
 	 *
 	 * @return the list of all available containers' ids.
@@ -230,14 +226,14 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 * @return {@link ModuleMetadata} of the modules.
 	 */
 	@Override
-	public Page<ModuleMetadata> findAllByContainerId(String containerId) {
+	public List<ModuleMetadata> findAllByContainerId(String containerId) {
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
 			List<String> deployedModules = getDeployedModules(containerId);
 			for (String moduleId : deployedModules) {
 				results.add(findOne(containerId, moduleId));
 			}
-			return new PageImpl<ModuleMetadata>(results);
+			return results;
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
@@ -251,36 +247,16 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 * @return the pageable {@link ModuleMetadata}
 	 */
 	@Override
-	public Page<ModuleMetadata> findAllByModuleId(String moduleId) {
+	public List<ModuleMetadata> findAllByModuleId(String moduleId) {
 		try {
-			return new PageImpl<ModuleMetadata>(findAll(moduleId));
-		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
-		}
-	}
-
-	/**
-	 * Find the module metadata for the modules that are deployed into the
-	 * given container and module id.
-	 *
-	 * @param containerId the containerId of the container
-	 * @param moduleId the module id to use.
-	 *
-	 * @return {@link ModuleMetadata} of the modules.
-	 */
-	@Override
-	public Page<ModuleMetadata> findAllByContainerAndModuleId(String containerId,
-			String moduleIdToFilter) {
-		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
-		try {
-			List<String> deployedModules = getDeployedModules(containerId);
-			for (String moduleId : deployedModules) {
-				if (moduleIdToFilter.equals(moduleId)) {
-					results.add(findOne(containerId, moduleId));
+			List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
+			for (String containerId : getAvailableContainerIds()) {
+				ModuleMetadata metadata = findOne(containerId, moduleId);
+				if (metadata != null) {
+					results.add(metadata);
 				}
 			}
-			return new PageImpl<ModuleMetadata>(results);
+			return results;
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);

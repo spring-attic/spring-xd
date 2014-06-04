@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.module.store;
 
+import java.util.Properties;
+
 /**
  * Represents runtime module model info.
  * 
@@ -27,15 +29,15 @@ public class ModuleMetadata {
 
 	private final String containerId;
 
-	private final String moduleProperties;
+	private final Properties moduleOptions;
 
-	private final String deploymentProperties;
+	private final Properties deploymentProperties;
 
 
-	public ModuleMetadata(String id, String containerId, String moduleProperties, String deploymentProperties) {
+	public ModuleMetadata(String id, String containerId, Properties moduleOptions, Properties deploymentProperties) {
 		this.id = id;
 		this.containerId = containerId;
-		this.moduleProperties = moduleProperties;
+		this.moduleOptions = moduleOptions;
 		this.deploymentProperties = deploymentProperties;
 	}
 
@@ -47,11 +49,11 @@ public class ModuleMetadata {
 		return containerId;
 	}
 
-	public String getModuleProperties() {
-		return moduleProperties;
+	public Properties getModuleOptions() {
+		return moduleOptions;
 	}
 
-	public String getDeploymentProperties() {
+	public Properties getDeploymentProperties() {
 		return deploymentProperties;
 	}
 }

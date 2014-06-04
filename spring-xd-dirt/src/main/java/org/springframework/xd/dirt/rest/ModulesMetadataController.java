@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,29 +62,73 @@ public class ModulesMetadataController {
 	}
 
 	/**
-	 * List all the available modules
+	 * List module metadata for all the deployed modules.
+	 */
+	/**
+	 * @param pageable pagination information
+	 * @param assembler paged resource assembler
+	 * @return paged {@link ModuleMetadataResource}
 	 */
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public PagedResources<ModuleMetadataResource> list(Pageable pageable,
-			PagedResourcesAssembler<ModuleMetadata> assembler,
+			PagedResourcesAssembler<ModuleMetadata> assembler) {
+		Page<ModuleMetadata> page = this.moduleMetadataRepository.findAll(pageable);
+		return assembler.toResource(page, moduleMetadataResourceAssembler);
+	}
+
+	/**
+	 * List the module metadata for all the modules that are deployed to the given container.
+	 *
+	 * @param containerId the container id of the container to choose
+	 * @return the list of {@link ModuleMetadataResource}
+	 */
+	@RequestMapping(value = "", method = RequestMethod.GET, params = { "containerId" })
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public List<ModuleMetadataResource> listByContainer(
+			@RequestParam(value = "containerId", required = false) String containerId) {
+		if (StringUtils.hasText(containerId)) {
+			return moduleMetadataResourceAssembler.toResources(this.moduleMetadataRepository.findAllByContainerId(containerId));
+		}
+		return Collections.emptyList();
+	}
+
+	/**
+	 * List the module metadata for all the modules with the given moduleId.
+	 *
+	 * @param moduleId the module id of the module metadata to list
+	 * @return the list of {@link ModuleMetadataResource}
+	 */
+	@RequestMapping(value = "", method = RequestMethod.GET, params = { "moduleId" })
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public List<ModuleMetadataResource> listByModule(@RequestParam(value = "moduleId", required = false) String moduleId) {
+		if (StringUtils.hasText(moduleId)) {
+			return moduleMetadataResourceAssembler.toResources(this.moduleMetadataRepository.findAllByModuleId(moduleId));
+		}
+		return Collections.emptyList();
+	}
+
+	/**
+	 * List the module metadata for the given moduleId and deployed to the given containerId.
+	 *
+	 * @param containerId the container id of the container to choose
+	 * @param moduleId the module id of the module metadata to list
+	 * @return the {@link ModuleMetadataResource} of the module
+	 */
+	@RequestMapping(value = "", method = RequestMethod.GET, params = { "containerId", "moduleId" })
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public ModuleMetadataResource listByContainerAndModuleId(
 			@RequestParam(value = "containerId", required = false) String containerId,
 			@RequestParam(value = "moduleId", required = false) String moduleId) {
-		Page<ModuleMetadata> page;
+		ModuleMetadataResource result = null;
 		if (StringUtils.hasText(containerId) && StringUtils.hasText(moduleId)) {
-			page = this.moduleMetadataRepository.findAllByContainerAndModuleId(containerId, moduleId);
+			result = moduleMetadataResourceAssembler.toResource(this.moduleMetadataRepository.findOne(containerId,
+					moduleId));
 		}
-		else if (StringUtils.hasText(containerId)) {
-			page = this.moduleMetadataRepository.findAllByContainerId(containerId);
-		}
-		else if (StringUtils.hasText(moduleId)) {
-			page = this.moduleMetadataRepository.findAllByModuleId(moduleId);
-		}
-		else {
-			page = this.moduleMetadataRepository.findAll(pageable);
-		}
-		PagedResources<ModuleMetadataResource> result = assembler.toResource(page, moduleMetadataResourceAssembler);
 		return result;
 	}
 

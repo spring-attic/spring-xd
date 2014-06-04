@@ -16,6 +16,8 @@
 
 package org.springframework.xd.rest.client.domain;
 
+import java.util.Properties;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.hateoas.PagedResources;
@@ -34,19 +36,19 @@ public class ModuleMetadataResource extends ResourceSupport {
 
 	private String containerId;
 
-	private String moduleProperties;
+	private Properties moduleOptions;
 
-	private String deploymentProperties;
+	private Properties deploymentProperties;
 
 	@SuppressWarnings("unused")
 	private ModuleMetadataResource() {
 	}
 
-	public ModuleMetadataResource(String moduleId, String containerId, String moduleProperties,
-			String deploymentProperties) {
+	public ModuleMetadataResource(String moduleId, String containerId, Properties moduleProperties,
+			Properties deploymentProperties) {
 		this.moduleId = moduleId;
 		this.containerId = containerId;
-		this.moduleProperties = moduleProperties;
+		this.moduleOptions = moduleProperties;
 		this.deploymentProperties = deploymentProperties;
 	}
 
@@ -58,11 +60,11 @@ public class ModuleMetadataResource extends ResourceSupport {
 		return containerId;
 	}
 
-	public String getModuleProperties() {
-		return moduleProperties;
+	public Properties getModuleOptions() {
+		return moduleOptions;
 	}
 
-	public String getDeploymentProperties() {
+	public Properties getDeploymentProperties() {
 		return deploymentProperties;
 	}
 

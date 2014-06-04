@@ -40,7 +40,7 @@ public class ModuleMetadataResourceAssembler extends
 
 	@Override
 	protected ModuleMetadataResource instantiateResource(ModuleMetadata entity) {
-		return new ModuleMetadataResource(entity.getId(), entity.getContainerId(), entity.getModuleProperties(),
+		return new ModuleMetadataResource(entity.getId(), entity.getContainerId(), entity.getModuleOptions(),
 				entity.getDeploymentProperties());
 	}
 

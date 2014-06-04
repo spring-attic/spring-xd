@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +28,7 @@ import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
@@ -81,16 +84,27 @@ public class RuntimeCommands implements CommandMarker {
 	@CliCommand(value = LIST_MODULES, help = "List runtime modules")
 	public Table listDeployedModules(
 			@CliOption(mandatory = false, key = { "", "containerId" }, help = "to filter by container id") String containerId,
-			@CliOption(mandatory = false, key = { "", "moduleId" }, help = "to filter by module id") String moduleId) {
-
-		Iterable<ModuleMetadataResource> runtimeModules = runtimeOperations().listRuntimeModules(containerId, moduleId);
+			@CliOption(mandatory = false, key = { "moduleId" }, help = "to filter by module id") String moduleId) {
+		Iterable<ModuleMetadataResource> runtimeModules;
+		if (StringUtils.hasText(containerId) && StringUtils.hasText(moduleId)) {
+			runtimeModules = Collections.singletonList(runtimeOperations().listRuntimeModule(containerId, moduleId));
+		}
+		else if (StringUtils.hasText(containerId)) {
+			runtimeModules = Arrays.asList(runtimeOperations().listRuntimeModulesByContainer(containerId));
+		}
+		else if (StringUtils.hasText(moduleId)) {
+			runtimeModules = Arrays.asList(runtimeOperations().listRuntimeModulesByModuleId(moduleId));
+		}
+		else {
+			runtimeModules = runtimeOperations().listRuntimeModules();
+		}
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Module")).addHeader(2, new TableHeader("Container Id")).addHeader(
 				3, new TableHeader("Options")).addHeader(4, new TableHeader("Deployment Properties"));
 		for (ModuleMetadataResource module : runtimeModules) {
 			final TableRow row = table.newRow();
 			row.addValue(1, module.getModuleId()).addValue(2, module.getContainerId()).addValue(3,
-					module.getModuleProperties()).addValue(4, module.getDeploymentProperties());
+					module.getModuleOptions().toString()).addValue(4, module.getDeploymentProperties().toString());
 		}
 		return table;
 	}

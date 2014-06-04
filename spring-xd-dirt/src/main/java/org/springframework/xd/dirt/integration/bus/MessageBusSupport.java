@@ -78,6 +78,8 @@ public abstract class MessageBusSupport
 
 	protected static final String JOB_CHANNEL_TYPE_PREFIX = "job:";
 
+	protected static final String PARTITION_HEADER = "partition";
+
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private volatile AbstractApplicationContext applicationContext;
@@ -92,13 +94,15 @@ public abstract class MessageBusSupport
 
 	protected static final List<MediaType> MEDIATYPES_MEDIATYPE_ALL = Collections.singletonList(MediaType.ALL);
 
+	private static final int DEFAULT_CONCURRENCY = 1;
+
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
 
 	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
 
 	private final Set<MessageChannel> createdChannels = Collections.synchronizedSet(new HashSet<MessageChannel>());
 
-	private volatile EvaluationContext evaluationContext;
+	protected volatile EvaluationContext evaluationContext;
 
 	private volatile PartitionSelectorStrategy partitionSelector = new DefaultPartitionSelector();
 
@@ -136,6 +140,8 @@ public abstract class MessageBusSupport
 			return publishSubscribeChannel;
 		}
 	};
+
+	protected volatile int defaultConcurrentConsumers = DEFAULT_CONCURRENCY;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -178,6 +184,10 @@ public abstract class MessageBusSupport
 	 */
 	public void setPartitionSelector(PartitionSelectorStrategy partitionSelector) {
 		this.partitionSelector = partitionSelector;
+	}
+
+	public void setDefaultConcurrentConsumers(int defaultConcurrentConsumers) {
+		this.defaultConcurrentConsumers = defaultConcurrentConsumers;
 	}
 
 	@Override
@@ -528,10 +538,11 @@ public abstract class MessageBusSupport
 	 * the underlying infrastructure and sends them to the next module. Consumer properties are
 	 * used to configure the consumer.
 	 * @param properties The properties.
+	 * @param supported The supported properties.
 	 */
-	protected void validateConsumerProperties(Properties properties) {
+	protected void validateConsumerProperties(Properties properties, Set<Object> supported) {
 		if (properties != null) {
-			validateProperties(properties, getSupportedConsumerProperties(), "consumer");
+			validateProperties(properties, supported, "consumer");
 		}
 	}
 
@@ -540,10 +551,11 @@ public abstract class MessageBusSupport
 	 * this bus implementation. When a module sends a message to the bus, the producer uses
 	 * these properties while sending it to the underlying infrastructure.
 	 * @param properties The properties.
+	 * @param supported The supported properties.
 	 */
-	protected void validateProducerProperties(Properties properties) {
+	protected void validateProducerProperties(Properties properties, Set<Object> supported) {
 		if (properties != null) {
-			validateProperties(properties, getSupportedProducerProperties(), "producer");
+			validateProperties(properties, supported, "producer");
 		}
 	}
 
@@ -565,27 +577,8 @@ public abstract class MessageBusSupport
 		}
 	}
 
-	/**
-	 * Return the consumer properties supported by this bus implementation.
-	 * The consumer is that part of the bus that consumes messages from
-	 * the underlying infrastructure and sends them to the next module. Consumer properties are
-	 * used to configure the consumer.
-	 * By default, no properties are supported.
-	 * @return The properties.
-	 */
-	protected Set<Object> getSupportedConsumerProperties() {
-		return Collections.emptySet();
-	}
-
-	/**
-	 * Return the producer properties supported by this bus implementation.
-	 * When a module sends a message to the bus, the producer uses
-	 * these properties while sending it to the underlying infrastructure.
-	 * By default, no properties are supported.
-	 * @return The properties.
-	 */
-	protected Set<Object> getSupportedProducerProperties() {
-		return Collections.emptySet();
+	protected String buildPartitionRoutingExpression(String expressionRoot) {
+		return "'" + expressionRoot + "-' + headers['" + PARTITION_HEADER + "']";
 	}
 
 	/**

@@ -83,8 +83,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private static final double DEFAULT_BACKOFF_MULTIPLIER = 2.0;
 
-	private static final int DEFAULT_CONCURRENCY = 1;
-
 	private static final MessageDeliveryMode DEFAULT_DEFAULT_DELIVERY_MODE = MessageDeliveryMode.PERSISTENT;
 
 	private static final boolean DEFAULT_DEFAULT_REQUEUE_REJECTED = true;
@@ -121,6 +119,22 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		RabbitPropertiesAccessor.TX_SIZE
 	}));
 
+	private static final Set<Object> SUPPORTED_PUBSUB_CONSUMER_PROPERTIES = new HashSet<Object>(
+			Arrays.asList(new String[] {
+				BusProperties.BACK_OFF_INITIAL_INTERVAL,
+				BusProperties.BACK_OFF_MAX_INTERVAL,
+				BusProperties.BACK_OFF_MULTIPLIER,
+				BusProperties.MAX_ATTEMPTS,
+				BusProperties.PARTITION_INDEX,
+				RabbitPropertiesAccessor.ACK_MODE,
+				RabbitPropertiesAccessor.PREFETCH,
+				RabbitPropertiesAccessor.PREFIX,
+				RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS,
+				RabbitPropertiesAccessor.REQUEUE,
+				RabbitPropertiesAccessor.TRANSACTED,
+				RabbitPropertiesAccessor.TX_SIZE
+			}));
+
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
 		BusProperties.PARTITION_COUNT,
 		BusProperties.PARTITION_KEY_EXPRESSION,
@@ -148,8 +162,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private volatile AcknowledgeMode defaultAcknowledgeMode = DEFAULT_ACKNOWLEDGE_MODE;
 
 	private volatile boolean defaultChannelTransacted;
-
-	private volatile int defaultConcurrentConsumers = DEFAULT_CONCURRENCY;
 
 	private volatile MessageDeliveryMode defaultDefaultDeliveryMode = DEFAULT_DEFAULT_DELIVERY_MODE;
 
@@ -196,10 +208,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	public void setDefaultChannelTransacted(boolean defaultChannelTransacted) {
 		this.defaultChannelTransacted = defaultChannelTransacted;
-	}
-
-	public void setDefaultConcurrentConsumers(int defaultConcurrentConsumers) {
-		this.defaultConcurrentConsumers = defaultConcurrentConsumers;
 	}
 
 	public void setDefaultDefaultDeliveryMode(MessageDeliveryMode defaultDefaultDeliveryMode) {
@@ -253,21 +261,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
-	protected Set<Object> getSupportedConsumerProperties() {
-		return SUPPORTED_CONSUMER_PROPERTIES;
-	}
-
-	@Override
-	protected Set<Object> getSupportedProducerProperties() {
-		return SUPPORTED_PRODUCER_PROPERTIES;
-	}
-
-	@Override
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel, Properties properties) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
-		validateConsumerProperties(properties);
+		validateConsumerProperties(properties, SUPPORTED_CONSUMER_PROPERTIES);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		registerNamedChannelForConsumerIfNecessary(name, false);
 		String queueName = accessor.getPrefix(this.defaultPrefix) + name;
@@ -277,7 +275,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		Queue queue = new Queue(queueName);
 		this.rabbitAdmin.declareQueue(queue);
-		doRegisterConsumer(name, moduleInputChannel, queue, accessor);
+		doRegisterConsumer(name, moduleInputChannel, queue, accessor, false);
 	}
 
 	@Override
@@ -286,12 +284,17 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			logger.info("declaring pubsub for inbound: " + name);
 		}
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
-		validateConsumerProperties(properties);
+		validateConsumerProperties(properties, SUPPORTED_PUBSUB_CONSUMER_PROPERTIES);
 		registerNamedChannelForConsumerIfNecessary(name, true);
 		String prefix = accessor.getPrefix(this.defaultPrefix);
-		FanoutExchange exchange = new FanoutExchange(prefix + "topic." + name);
+		String topicName = name;
+		int partitionIndex = accessor.getPartitionIndex();
+		if (partitionIndex >= 0) {
+			topicName += "-" + partitionIndex;
+		}
+		FanoutExchange exchange = new FanoutExchange(prefix + "topic." + topicName);
 		rabbitAdmin.declareExchange(exchange);
-		Queue queue = new Queue(prefix + name + "." + UUID.randomUUID().toString(),
+		Queue queue = new Queue(prefix + topicName + "." + UUID.randomUUID().toString(),
 				false, true, true);
 		this.rabbitAdmin.declareQueue(queue);
 		org.springframework.amqp.core.Binding binding = BindingBuilder.bind(queue).to(exchange);
@@ -302,17 +305,22 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (!autoDeclareContext.containsBean(bindingBeanName)) {
 			this.autoDeclareContext.getBeanFactory().registerSingleton(bindingBeanName, binding);
 		}
-		doRegisterConsumer(name, moduleInputChannel, queue, accessor);
+		doRegisterConsumer(name, moduleInputChannel, queue, accessor, true);
 	}
 
 	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel, Queue queue,
-			RabbitPropertiesAccessor properties) {
+			RabbitPropertiesAccessor properties, boolean isPubSub) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
 		listenerContainer.setAcknowledgeMode(properties.getAcknowledgeMode(this.defaultAcknowledgeMode));
 		listenerContainer.setChannelTransacted(properties.getTransacted(this.defaultChannelTransacted));
-		listenerContainer.setConcurrentConsumers(properties.getConcurrency(this.defaultConcurrentConsumers));
 		listenerContainer.setDefaultRequeueRejected(properties.getRequeueRejected(this.defaultDefaultRequeueRejected));
-		listenerContainer.setMaxConcurrentConsumers(properties.getMaxConcurrency(this.defaultMaxConcurrentConsumers));
+		if (!isPubSub) {
+			listenerContainer.setConcurrentConsumers(properties.getConcurrency(this.defaultConcurrentConsumers));
+			int maxConcurrency = properties.getMaxConcurrency(this.defaultMaxConcurrentConsumers);
+			if (maxConcurrency != DEFAULT_MAX_CONCURRENCY) {
+				listenerContainer.setMaxConcurrentConsumers(maxConcurrency);
+			}
+		}
 		listenerContainer.setPrefetchCount(properties.getPrefetchCount(this.defaultPrefetchCount));
 		listenerContainer.setTxSize(properties.getTxSize(this.defaultTxSize));
 		listenerContainer.setQueues(queue);
@@ -353,7 +361,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for outbound: " + name);
 		}
-		validateProducerProperties(properties);
+		validateProducerProperties(properties, SUPPORTED_PRODUCER_PROPERTIES);
 		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(name, new RabbitPropertiesAccessor(properties));
 		doRegisterProducer(name, moduleOutputChannel, queue, new RabbitPropertiesAccessor(properties));
 	}
@@ -369,9 +377,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			queue.setRoutingKey(queueName); // uses default exchange
 		}
 		else {
-			queue.setRoutingKeyExpression("'"
-					+ queueName
-					+ "-' + headers['partition']");
+			queue.setRoutingKeyExpression(buildPartitionRoutingExpression(queueName));
 			for (int i = 0; i < properties.getPartitionCount(); i++) {
 				this.rabbitAdmin.declareQueue(new Queue(queueName + "-" + i));
 			}
@@ -388,13 +394,23 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	@Override
 	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel,
 			Properties properties) {
-		validateProducerProperties(properties);
+		validateProducerProperties(properties, SUPPORTED_PRODUCER_PROPERTIES);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
+		String partitionKeyExtractorClass = accessor.getPartitionKeyExtractorClass();
+		Expression partitionKeyExpression = accessor.getPartitionKeyExpression();
 		String exchangeName = accessor.getPrefix(this.defaultPrefix) + "topic." + name;
-		rabbitAdmin.declareExchange(new FanoutExchange(exchangeName));
 		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
 		fanout.setBeanFactory(this.getBeanFactory());
-		fanout.setExchangeName(exchangeName);
+		if (partitionKeyExpression == null && !StringUtils.hasText(partitionKeyExtractorClass)) {
+			rabbitAdmin.declareExchange(new FanoutExchange(exchangeName));
+			fanout.setExchangeName(exchangeName);
+		}
+		else {
+			for (int i = 0; i < accessor.getPartitionCount(); i++) {
+				rabbitAdmin.declareExchange(new FanoutExchange(exchangeName + "-" + i));
+			}
+			fanout.setExchangeNameExpression(buildPartitionRoutingExpression(exchangeName));
+		}
 		fanout.afterPropertiesSet();
 		doRegisterProducer(name, moduleOutputChannel, fanout, accessor);
 	}
@@ -428,7 +444,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("binding requestor: " + name);
 		}
-		validateProducerProperties(properties);
+		validateProducerProperties(properties, SUPPORTED_PRODUCER_PROPERTIES);
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String queueName = name + ".requests";
@@ -442,7 +458,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.rabbitAdmin.declareQueue(replyQueue);
 		// register with context so it will be redeclared after a connection failure
 		this.autoDeclareContext.getBeanFactory().registerSingleton(replyQueueName, replyQueue);
-		this.doRegisterConsumer(name, replies, replyQueue, accessor);
+		this.doRegisterConsumer(name, replies, replyQueue, accessor, false);
 	}
 
 	@Override
@@ -451,11 +467,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("binding replier: " + name);
 		}
-		validateConsumerProperties(properties);
+		validateConsumerProperties(properties, SUPPORTED_CONSUMER_PROPERTIES);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		Queue requestQueue = new Queue(accessor.getPrefix(this.defaultPrefix) + name + ".requests");
 		this.rabbitAdmin.declareQueue(requestQueue);
-		this.doRegisterConsumer(name, requests, requestQueue, accessor);
+		this.doRegisterConsumer(name, requests, requestQueue, accessor, false);
 
 		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
 		replyQueue.setBeanFactory(this.getBeanFactory());
@@ -498,7 +514,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				if (additionalHeaders == null) {
 					additionalHeaders = new HashMap<String, Object>();
 				}
-				additionalHeaders.put("partition", determinePartition(message, this.partitioningMetadata));
+				additionalHeaders.put(PARTITION_HEADER, determinePartition(message, this.partitioningMetadata));
 			}
 			if (additionalHeaders != null) {
 				messageToSend = getMessageBuilderFactory().fromMessage(messageToSend)

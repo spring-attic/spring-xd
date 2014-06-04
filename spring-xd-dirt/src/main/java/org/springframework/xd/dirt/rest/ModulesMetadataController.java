@@ -28,11 +28,13 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.module.ModuleNotDeployedException;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
@@ -60,23 +62,87 @@ public class ModulesMetadataController {
 	}
 
 	/**
-	 * List all the available modules
+	 * List module metadata for all the deployed modules.
+	 *
+	 * @param pageable pagination information
+	 * @param assembler paged resource assembler
+	 * @return paged {@link ModuleMetadataResource}
 	 */
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public PagedResources<ModuleMetadataResource> list(Pageable pageable,
+			PagedResourcesAssembler<ModuleMetadata> assembler) {
+		Page<ModuleMetadata> page = this.moduleMetadataRepository.findAll(pageable);
+		return assembler.toResource(page, moduleMetadataResourceAssembler);
+	}
+
+	/**
+	 * List the module metadata for all the modules that are deployed to the given container.
+	 *
+	 * @param pageable pagination information
+	 * @param assembler paged resource assembler
+	 * @param containerId the container id of the container to choose
+	 * @return paged {@link ModuleMetadataResource}
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "", method = RequestMethod.GET, params = { "containerId" })
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public PagedResources<ModuleMetadataResource> listByContainer(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler,
 			@RequestParam(value = "containerId", required = false) String containerId) {
-		Page<ModuleMetadata> page;
-		if (containerId != null) {
-			page = this.moduleMetadataRepository.findAllByContainerId(pageable, containerId);
+		if (StringUtils.hasText(containerId)) {
+			return assembler.toResource(this.moduleMetadataRepository.findAllByContainerId(containerId),
+					moduleMetadataResourceAssembler);
 		}
-		else {
-			page = this.moduleMetadataRepository.findAll(pageable);
+		return (PagedResources<ModuleMetadataResource>) PagedResources.NO_PAGE;
+	}
+
+	/**
+	 * List the module metadata for all the modules with the given moduleId.
+	 *
+	 * @param pageable pagination information
+	 * @param assembler paged resource assembler
+	 * @param moduleId the module id of the module metadata to list
+	 * @return paged {@link ModuleMetadataResource}
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "", method = RequestMethod.GET, params = { "moduleId" })
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public PagedResources<ModuleMetadataResource> listByModule(Pageable pageable,
+			PagedResourcesAssembler<ModuleMetadata> assembler,
+			@RequestParam(value = "moduleId", required = false) String moduleId) {
+		if (StringUtils.hasText(moduleId)) {
+			return assembler.toResource(this.moduleMetadataRepository.findAllByModuleId(moduleId),
+					moduleMetadataResourceAssembler);
 		}
-		PagedResources<ModuleMetadataResource> result = assembler.toResource(page, moduleMetadataResourceAssembler);
-		return result;
+		return (PagedResources<ModuleMetadataResource>) PagedResources.NO_PAGE;
+	}
+
+	/**
+	 * List the module metadata for the given moduleId and deployed to the given containerId.
+	 *
+	 * @param containerId the container id of the container to choose
+	 * @param moduleId the module id of the module metadata to list
+	 * @return the {@link ModuleMetadataResource} of the module
+	 */
+	@RequestMapping(value = "", method = RequestMethod.GET, params = { "containerId", "moduleId" })
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public ModuleMetadataResource listByContainerAndModuleId(
+			@RequestParam(value = "containerId", required = false) String containerId,
+			@RequestParam(value = "moduleId", required = false) String moduleId) {
+		ModuleMetadata moduleMetadata = null;
+		if (StringUtils.hasText(containerId) && StringUtils.hasText(moduleId)) {
+			moduleMetadata = this.moduleMetadataRepository.findOne(containerId, moduleId);
+		}
+		if (moduleMetadata == null) {
+			throw new ModuleNotDeployedException(containerId, moduleId);
+		}
+		return moduleMetadataResourceAssembler.toResource(moduleMetadata);
+
 	}
 
 	/**

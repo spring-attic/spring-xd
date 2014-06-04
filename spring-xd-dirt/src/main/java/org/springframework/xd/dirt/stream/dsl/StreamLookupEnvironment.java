@@ -37,26 +37,4 @@ public interface StreamLookupEnvironment {
 	 */
 	StreamNode lookupStream(String name);
 
-	/**
-	 * Look up an existing label or module name. The stream name is optionally supplied to restrict the search to a
-	 * particular stream. The returned value is the computed output channel for that label/module if it is found. For
-	 * example:
-	 * 
-	 * <pre>
-	 * <code>
-	 * mystream = http | foo | file
-	 * tap mystream.foo > count
-	 * </code>
-	 * </pre>
-	 * 
-	 * will cause a lookup for stream 'mystream' module 'foo' when the tap is being resolved. The return value would be
-	 * 'mystream.1' (The output channel for a module is based on the index of the module within the stream, starting at
-	 * 0).
-	 * 
-	 * @param streamName the name of the stream
-	 * @param labelOrModuleName a label or name of a module
-	 * @return the label or module name
-	 */
-	String lookupChannelForLabelOrModule(String streamName, String labelOrModuleName);
-
 }

@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Gary Russell
  */
-public abstract class AbstractBusPropertiesAccessor extends BusProperties {
+public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 
 	private static final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
 

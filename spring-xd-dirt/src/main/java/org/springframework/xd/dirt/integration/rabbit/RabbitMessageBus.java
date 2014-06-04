@@ -103,21 +103,15 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private static final String[] DEFAULT_REPLY_HEADER_PATTERNS = new String[] { "STANDARD_REPLY_HEADERS", "*" };
 
-	private static final Set<Object> SUPPORTED_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
+	private static final Set<Object> SUPPORTED_CONSUMER_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
 		BusProperties.BACK_OFF_INITIAL_INTERVAL,
 		BusProperties.BACK_OFF_MAX_INTERVAL,
 		BusProperties.BACK_OFF_MULTIPLIER,
 		BusProperties.CONCURRENCY,
 		BusProperties.MAX_ATTEMPTS,
 		BusProperties.MAX_CONCURRENCY,
-		BusProperties.PARTITION_COUNT,
 		BusProperties.PARTITION_INDEX,
-		BusProperties.PARTITION_KEY_EXPRESSION,
-		BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
-		BusProperties.PARTITION_SELECTOR_CLASS,
-		BusProperties.PARTITION_SELECTOR_EXPRESSION,
 		RabbitPropertiesAccessor.ACK_MODE,
-		RabbitPropertiesAccessor.DELIVERY_MODE,
 		RabbitPropertiesAccessor.PREFETCH,
 		RabbitPropertiesAccessor.PREFIX,
 		RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS,
@@ -125,6 +119,18 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		RabbitPropertiesAccessor.REQUEUE,
 		RabbitPropertiesAccessor.TRANSACTED,
 		RabbitPropertiesAccessor.TX_SIZE
+	}));
+
+	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
+		BusProperties.PARTITION_COUNT,
+		BusProperties.PARTITION_KEY_EXPRESSION,
+		BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
+		BusProperties.PARTITION_SELECTOR_CLASS,
+		BusProperties.PARTITION_SELECTOR_EXPRESSION,
+		RabbitPropertiesAccessor.DELIVERY_MODE,
+		RabbitPropertiesAccessor.PREFIX,
+		RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS,
+		RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS
 	}));
 
 	private final Log logger = LogFactory.getLog(this.getClass());
@@ -247,11 +253,21 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
+	protected Set<Object> getSupportedConsumerProperties() {
+		return SUPPORTED_CONSUMER_PROPERTIES;
+	}
+
+	@Override
+	protected Set<Object> getSupportedProducerProperties() {
+		return SUPPORTED_PRODUCER_PROPERTIES;
+	}
+
+	@Override
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel, Properties properties) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
-		validateSupportedProperties(properties);
+		validateConsumerProperties(properties);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		registerNamedChannelForConsumerIfNecessary(name, false);
 		String queueName = accessor.getPrefix(this.defaultPrefix) + name;
@@ -265,17 +281,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
-	protected Set<Object> getSupportedProperties() {
-		return SUPPORTED_PROPERTIES;
-	}
-
-	@Override
 	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring pubsub for inbound: " + name);
 		}
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
-		validateSupportedProperties(properties);
+		validateConsumerProperties(properties);
 		registerNamedChannelForConsumerIfNecessary(name, true);
 		String prefix = accessor.getPrefix(this.defaultPrefix);
 		FanoutExchange exchange = new FanoutExchange(prefix + "topic." + name);
@@ -342,7 +353,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for outbound: " + name);
 		}
-		validateSupportedProperties(properties);
+		validateProducerProperties(properties);
 		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(name, new RabbitPropertiesAccessor(properties));
 		doRegisterProducer(name, moduleOutputChannel, queue, new RabbitPropertiesAccessor(properties));
 	}
@@ -377,7 +388,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	@Override
 	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel,
 			Properties properties) {
-		validateSupportedProperties(properties);
+		validateProducerProperties(properties);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String exchangeName = accessor.getPrefix(this.defaultPrefix) + "topic." + name;
 		rabbitAdmin.declareExchange(new FanoutExchange(exchangeName));
@@ -417,7 +428,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("binding requestor: " + name);
 		}
-		validateSupportedProperties(properties);
+		validateProducerProperties(properties);
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String queueName = name + ".requests";
@@ -440,7 +451,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("binding replier: " + name);
 		}
-		validateSupportedProperties(properties);
+		validateConsumerProperties(properties);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		Queue requestQueue = new Queue(accessor.getPrefix(this.defaultPrefix) + name + ".requests");
 		this.rabbitAdmin.declareQueue(requestQueue);
@@ -538,7 +549,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		private static final String DELIVERY_MODE = "deliveryMode";
 
 		/**
-		 * The prefecth count (basic qos).
+		 * The prefetch count (basic qos).
 		 */
 		private static final String PREFETCH = "prefetch";
 

@@ -18,11 +18,11 @@ package org.springframework.xd.dirt.integration.bus;
 
 
 /**
- * Base class for properties accessors; including common properties.
+ * Common bus properties.
  * 
  * @author Gary Russell
  */
-public abstract class BusProperties {
+public interface BusProperties {
 
 	/**
 	 * The retry back off initial interval.
@@ -83,8 +83,5 @@ public abstract class BusProperties {
 	 * The partition selector expression.
 	 */
 	public static final String PARTITION_SELECTOR_EXPRESSION = "partitionSelectorExpression";
-
-	protected BusProperties() {
-	}
 
 }

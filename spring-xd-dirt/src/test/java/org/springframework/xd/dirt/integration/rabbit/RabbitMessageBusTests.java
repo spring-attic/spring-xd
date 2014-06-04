@@ -204,7 +204,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 			bus.bindProducer("badprops.0", output, properties);
 		}
 		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support properties: baz,foo"));
+			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support producer properties: baz,foo"));
 		}
 
 		properties.remove("baz");
@@ -212,7 +212,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 			bus.bindConsumer("badprops.0", output, properties);
 		}
 		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support property: foo"));
+			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support consumer property: foo"));
 		}
 	}
 
@@ -233,6 +233,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		assertEquals("'xdbus.part.0-' + headers['partition']",
 				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
 
+		properties.clear();
 		properties.put("partitionIndex", "0");
 		QueueChannel input0 = new QueueChannel();
 		bus.bindConsumer("part.0", input0, properties);
@@ -278,6 +279,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		assertEquals("'xdbus.part.0-' + headers['partition']",
 				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
 
+		properties.clear();
 		properties.put("partitionIndex", "0");
 		QueueChannel input0 = new QueueChannel();
 		bus.bindConsumer("part.0", input0, properties);

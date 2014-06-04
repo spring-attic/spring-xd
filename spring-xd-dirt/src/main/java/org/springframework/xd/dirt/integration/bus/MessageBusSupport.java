@@ -522,26 +522,41 @@ public abstract class MessageBusSupport
 		}
 	}
 
-	protected void validateSupportedProperties(Properties properties) {
+	protected void validateConsumerProperties(Properties properties) {
 		if (properties != null) {
-			Set<Object> supported = getSupportedProperties();
-			StringBuilder builder = new StringBuilder();
-			int errors = 0;
-			for (Entry<Object, Object> entry : properties.entrySet()) {
-				if (!supported.contains(entry.getKey())) {
-					builder.append(entry.getKey()).append(",");
-					errors++;
-				}
-			}
-			if (errors > 0) {
-				throw new IllegalArgumentException(getClass().getSimpleName() + " does not support propert"
-						+ (errors == 1 ? "y: " : "ies: ")
-						+ builder.substring(0, builder.length() - 1));
-			}
+			validateProperties(properties, getSupportedConsumerProperties(), "consumer");
 		}
 	}
 
-	protected Set<Object> getSupportedProperties() {
+	protected void validateProducerProperties(Properties properties) {
+		if (properties != null) {
+			validateProperties(properties, getSupportedProducerProperties(), "producer");
+		}
+	}
+
+	private void validateProperties(Properties properties, Set<Object> supported, String type) {
+		StringBuilder builder = new StringBuilder();
+		int errors = 0;
+		for (Entry<Object, Object> entry : properties.entrySet()) {
+			if (!supported.contains(entry.getKey())) {
+				builder.append(entry.getKey()).append(",");
+				errors++;
+			}
+		}
+		if (errors > 0) {
+			throw new IllegalArgumentException(getClass().getSimpleName() + " does not support "
+					+ type
+					+ " propert"
+					+ (errors == 1 ? "y: " : "ies: ")
+					+ builder.substring(0, builder.length() - 1));
+		}
+	}
+
+	protected Set<Object> getSupportedConsumerProperties() {
+		return Collections.emptySet();
+	}
+
+	protected Set<Object> getSupportedProducerProperties() {
 		return Collections.emptySet();
 	}
 

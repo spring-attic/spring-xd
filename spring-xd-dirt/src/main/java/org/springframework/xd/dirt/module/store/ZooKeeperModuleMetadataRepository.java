@@ -223,17 +223,17 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 * given container.
 	 *
 	 * @param containerId the containerId of the container
-	 * @return {@link ModuleMetadata} of the modules.
+	 * @return the pageable {@link ModuleMetadata} of the modules.
 	 */
 	@Override
-	public List<ModuleMetadata> findAllByContainerId(String containerId) {
+	public Page<ModuleMetadata> findAllByContainerId(String containerId) {
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
 			List<String> deployedModules = getDeployedModules(containerId);
 			for (String moduleId : deployedModules) {
 				results.add(findOne(containerId, moduleId));
 			}
-			return results;
+			return new PageImpl<ModuleMetadata>(results);
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
@@ -247,7 +247,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 * @return the pageable {@link ModuleMetadata}
 	 */
 	@Override
-	public List<ModuleMetadata> findAllByModuleId(String moduleId) {
+	public Page<ModuleMetadata> findAllByModuleId(String moduleId) {
 		try {
 			List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 			for (String containerId : getAvailableContainerIds()) {
@@ -256,7 +256,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 					results.add(metadata);
 				}
 			}
-			return results;
+			return new PageImpl<ModuleMetadata>(results);
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);

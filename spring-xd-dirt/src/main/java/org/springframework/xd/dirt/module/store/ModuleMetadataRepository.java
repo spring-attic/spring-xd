@@ -16,8 +16,7 @@
 
 package org.springframework.xd.dirt.module.store;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.xd.store.DomainRepository;
 
 /**
@@ -27,9 +26,9 @@ import org.springframework.xd.store.DomainRepository;
  */
 public interface ModuleMetadataRepository extends DomainRepository<ModuleMetadata, String> {
 
-	List<ModuleMetadata> findAllByContainerId(String containerId);
+	Page<ModuleMetadata> findAllByContainerId(String containerId);
 
-	List<ModuleMetadata> findAllByModuleId(String moduleId);
+	Page<ModuleMetadata> findAllByModuleId(String moduleId);
 
 	ModuleMetadata findOne(String containerId, String moduleId);
 

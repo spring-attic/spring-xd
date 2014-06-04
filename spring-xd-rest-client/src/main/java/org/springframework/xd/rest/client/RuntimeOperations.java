@@ -31,9 +31,9 @@ public interface RuntimeOperations {
 
 	public PagedResources<ModuleMetadataResource> listRuntimeModules();
 
-	public ModuleMetadataResource[] listRuntimeModulesByContainer(String containerId);
+	public PagedResources<ModuleMetadataResource> listRuntimeModulesByContainer(String containerId);
 
-	public ModuleMetadataResource[] listRuntimeModulesByModuleId(String moduleId);
+	public PagedResources<ModuleMetadataResource> listRuntimeModulesByModuleId(String moduleId);
 
 	public ModuleMetadataResource listRuntimeModule(String containerId, String moduleId);
 

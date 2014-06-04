@@ -16,7 +16,6 @@
 
 package org.springframework.xd.shell.command;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,10 +89,10 @@ public class RuntimeCommands implements CommandMarker {
 			runtimeModules = Collections.singletonList(runtimeOperations().listRuntimeModule(containerId, moduleId));
 		}
 		else if (StringUtils.hasText(containerId)) {
-			runtimeModules = Arrays.asList(runtimeOperations().listRuntimeModulesByContainer(containerId));
+			runtimeModules = runtimeOperations().listRuntimeModulesByContainer(containerId);
 		}
 		else if (StringUtils.hasText(moduleId)) {
-			runtimeModules = Arrays.asList(runtimeOperations().listRuntimeModulesByModuleId(moduleId));
+			runtimeModules = runtimeOperations().listRuntimeModulesByModuleId(moduleId);
 		}
 		else {
 			runtimeModules = runtimeOperations().listRuntimeModules();

@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.module.ModuleNotExistException;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
@@ -63,8 +63,7 @@ public class ModulesMetadataController {
 
 	/**
 	 * List module metadata for all the deployed modules.
-	 */
-	/**
+	 *
 	 * @param pageable pagination information
 	 * @param assembler paged resource assembler
 	 * @return paged {@link ModuleMetadataResource}
@@ -81,34 +80,45 @@ public class ModulesMetadataController {
 	/**
 	 * List the module metadata for all the modules that are deployed to the given container.
 	 *
+	 * @param pageable pagination information
+	 * @param assembler paged resource assembler
 	 * @param containerId the container id of the container to choose
-	 * @return the list of {@link ModuleMetadataResource}
+	 * @return paged {@link ModuleMetadataResource}
 	 */
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "", method = RequestMethod.GET, params = { "containerId" })
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public List<ModuleMetadataResource> listByContainer(
+	public PagedResources<ModuleMetadataResource> listByContainer(Pageable pageable,
+			PagedResourcesAssembler<ModuleMetadata> assembler,
 			@RequestParam(value = "containerId", required = false) String containerId) {
 		if (StringUtils.hasText(containerId)) {
-			return moduleMetadataResourceAssembler.toResources(this.moduleMetadataRepository.findAllByContainerId(containerId));
+			return assembler.toResource(this.moduleMetadataRepository.findAllByContainerId(containerId),
+					moduleMetadataResourceAssembler);
 		}
-		return Collections.emptyList();
+		return (PagedResources<ModuleMetadataResource>) PagedResources.NO_PAGE;
 	}
 
 	/**
 	 * List the module metadata for all the modules with the given moduleId.
 	 *
+	 * @param pageable pagination information
+	 * @param assembler paged resource assembler
 	 * @param moduleId the module id of the module metadata to list
-	 * @return the list of {@link ModuleMetadataResource}
+	 * @return paged {@link ModuleMetadataResource}
 	 */
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "", method = RequestMethod.GET, params = { "moduleId" })
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public List<ModuleMetadataResource> listByModule(@RequestParam(value = "moduleId", required = false) String moduleId) {
+	public PagedResources<ModuleMetadataResource> listByModule(Pageable pageable,
+			PagedResourcesAssembler<ModuleMetadata> assembler,
+			@RequestParam(value = "moduleId", required = false) String moduleId) {
 		if (StringUtils.hasText(moduleId)) {
-			return moduleMetadataResourceAssembler.toResources(this.moduleMetadataRepository.findAllByModuleId(moduleId));
+			return assembler.toResource(this.moduleMetadataRepository.findAllByModuleId(moduleId),
+					moduleMetadataResourceAssembler);
 		}
-		return Collections.emptyList();
+		return (PagedResources<ModuleMetadataResource>) PagedResources.NO_PAGE;
 	}
 
 	/**
@@ -124,12 +134,15 @@ public class ModulesMetadataController {
 	public ModuleMetadataResource listByContainerAndModuleId(
 			@RequestParam(value = "containerId", required = false) String containerId,
 			@RequestParam(value = "moduleId", required = false) String moduleId) {
-		ModuleMetadataResource result = null;
+		ModuleMetadata moduleMetadata = null;
 		if (StringUtils.hasText(containerId) && StringUtils.hasText(moduleId)) {
-			result = moduleMetadataResourceAssembler.toResource(this.moduleMetadataRepository.findOne(containerId,
-					moduleId));
+			moduleMetadata = this.moduleMetadataRepository.findOne(containerId, moduleId);
 		}
-		return result;
+		if (moduleMetadata == null) {
+			throw new ModuleNotExistException(containerId, moduleId);
+		}
+		return moduleMetadataResourceAssembler.toResource(moduleMetadata);
+
 	}
 
 	/**

@@ -81,11 +81,13 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		all.add(entity2);
 		all.add(entity3);
 		Page<ModuleMetadata> allPages = new PageImpl<>(all);
+		Page<ModuleMetadata> pageEntity2 = new PageImpl<>(entities2);
+		Page<ModuleMetadata> pageEntity3 = new PageImpl<>(entities3);
 		when(moduleMetadataRepository.findAll(pageable)).thenReturn(allPages);
 		when(moduleMetadataRepository.findAll()).thenReturn(all);
-		when(moduleMetadataRepository.findAllByContainerId("2")).thenReturn(entities2);
+		when(moduleMetadataRepository.findAllByContainerId("2")).thenReturn(pageEntity2);
 		when(moduleMetadataRepository.findOne("1", "s1.source.http-0")).thenReturn(entity1);
-		when(moduleMetadataRepository.findAllByModuleId("s3.job.myjob-0")).thenReturn(entities3);
+		when(moduleMetadataRepository.findAllByModuleId("s3.job.myjob-0")).thenReturn(pageEntity3);
 	}
 
 	@Test
@@ -113,11 +115,11 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 	public void testListModuleByModuleId() throws Exception {
 		mockMvc.perform(get("/runtime/modules?moduleId=s3.job.myjob-0").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-				jsonPath("$.", Matchers.hasSize(1))).andExpect(
-				jsonPath("$[*].moduleId", contains("s3.job.myjob-0"))).andExpect(
-				jsonPath("$[*].containerId", contains("3"))).andExpect(
-				jsonPath("$[*].moduleOptions.entity3", contains("value3"))).andExpect(
-				jsonPath("$[*].deploymentProperties.criteria", contains("groups.contains('hdfs')")));
+				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
+				jsonPath("$.content[*].moduleId", contains("s3.job.myjob-0"))).andExpect(
+				jsonPath("$.content[*].containerId", contains("3"))).andExpect(
+				jsonPath("$.content[*].moduleOptions.entity3", contains("value3"))).andExpect(
+				jsonPath("$.content[*].deploymentProperties.criteria", contains("groups.contains('hdfs')")));
 	}
 
 	@Test
@@ -131,11 +133,11 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 	public void testListModulesByContainer() throws Exception {
 		mockMvc.perform(get("/runtime/modules?containerId=2").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-				jsonPath("$", Matchers.hasSize(1))).andExpect(
-				jsonPath("$[*].moduleId", contains("s2.sink.log-1"))).andExpect(
-				jsonPath("$[*].containerId", contains("2"))).andExpect(
-				jsonPath("$[*].moduleOptions.entity2", contains("value2"))).andExpect(
-				jsonPath("$[*].deploymentProperties.count", contains("2")));
+				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
+				jsonPath("$.content[*].moduleId", contains("s2.sink.log-1"))).andExpect(
+				jsonPath("$.content[*].containerId", contains("2"))).andExpect(
+				jsonPath("$.content[*].moduleOptions.entity2", contains("value2"))).andExpect(
+				jsonPath("$.content[*].deploymentProperties.count", contains("2")));
 	}
 
 	@Test
@@ -147,5 +149,14 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 				jsonPath("$.containerId", containsString("1"))).andExpect(
 				jsonPath("$.moduleOptions.entity1", containsString("value1"))).andExpect(
 				jsonPath("$.deploymentProperties.count", containsString("1")));
+	}
+
+	@Test
+	public void testListNonExistingModule() throws Exception {
+		mockMvc.perform(
+				get("/runtime/modules?containerId=1&moduleId=random").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isNotFound()).andExpect(
+				jsonPath("$[0].message",
+						Matchers.is("The module with id 'random' doesn't exist in the container with id '1'")));
 	}
 }

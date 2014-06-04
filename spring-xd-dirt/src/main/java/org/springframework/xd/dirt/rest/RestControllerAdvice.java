@@ -39,6 +39,7 @@ import org.springframework.xd.dirt.job.NoSuchBatchJobInstanceException;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.dirt.job.NoSuchStepExecutionException;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
+import org.springframework.xd.dirt.module.ModuleNotExistException;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.AlreadyDeployedException;
 import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
@@ -153,6 +154,14 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchMetricException(NoSuchMetricException e) {
+		String logref = logDebug(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onNoSuchRuntimeModuleException(ModuleNotExistException e) {
 		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}

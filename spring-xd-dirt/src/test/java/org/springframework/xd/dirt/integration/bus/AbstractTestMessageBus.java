@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.messaging.MessageChannel;
 
 
@@ -38,6 +39,13 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 	private MessageBusSupport messageBus;
 
 	public void setMessageBus(MessageBusSupport messageBus) {
+		messageBus.setIntegrationEvaluationContext(new StandardEvaluationContext());
+		try {
+			messageBus.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Failed to initialize message bus", e);
+		}
 		this.messageBus = messageBus;
 	}
 

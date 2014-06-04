@@ -19,6 +19,11 @@ package org.springframework.xd.dirt.integration.bus;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.redis.RedisMessageBus;
 
@@ -40,6 +45,16 @@ public class RedisTestMessageBus extends AbstractTestMessageBus {
 	public RedisTestMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		RedisMessageBus messageBus = new RedisMessageBus(connectionFactory, codec);
 		GenericApplicationContext context = new GenericApplicationContext();
+		context.getBeanFactory().registerSingleton(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+				new DefaultMessageBuilderFactory());
+		DefaultHeaderChannelRegistry channelRegistry = new DefaultHeaderChannelRegistry();
+		channelRegistry.setReaperDelay(Long.MAX_VALUE);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.afterPropertiesSet();
+		channelRegistry.setTaskScheduler(taskScheduler);
+		context.getBeanFactory().registerSingleton(
+				IntegrationContextUtils.INTEGRATION_HEADER_CHANNEL_REGISTRY_BEAN_NAME,
+				channelRegistry);
 		context.refresh();
 		messageBus.setApplicationContext(context);
 		setMessageBus(messageBus);

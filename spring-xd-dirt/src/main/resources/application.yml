@@ -57,6 +57,13 @@ xd:
         requeue:                   true
         transacted:                false
         txSize:                    1
+    redis:
+      default:
+        backOffInitialInterval:    1000
+        backOffMaxInterval:        10000
+        backOffMultiplier:         2.0
+        concurrency:               1
+        maxAttempts:               3
 ---
 
 server:

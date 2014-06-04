@@ -16,10 +16,7 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -36,10 +33,6 @@ public class StreamNode extends AstNode {
 	private SourceChannelNode sourceChannelNode;
 
 	private SinkChannelNode sinkChannelNode;
-
-	// List of stream names that have been replaced during resolution of
-	// this stream
-	private List<String> inlinedStreams = new ArrayList<String>();
 
 	public StreamNode(String streamText, String streamName, List<ModuleNode> moduleNodes,
 			SourceChannelNode sourceChannelNode, SinkChannelNode sinkChannelNode) {
@@ -128,83 +121,11 @@ public class StreamNode extends AstNode {
 	}
 
 	public void resolve(StreamLookupEnvironment env) {
-		// Module resolution, in the case where substreams are discovered, may introduce
-		// source/sink channel so resolve modules first
-		resolveModuleNodes(env, moduleNodes);
 		if (sourceChannelNode != null) {
 			sourceChannelNode.resolve(env);
 		}
 	}
 
-	/**
-	 * Does the lookup of module nodes to see if any previously defined and if so replaces them in this stream.
-	 */
-	public void resolveModuleNodes(StreamLookupEnvironment env, List<ModuleNode> moduleNodes) {
-		for (int m = moduleNodes.size() - 1; m >= 0; m--) {
-			ModuleNode moduleNode = moduleNodes.get(m);
-			StreamNode sn = env.lookupStream(moduleNode.getName());
-			if (sn != null) {
-				if (m == 0) {
-					if (sn.getSourceChannelNode() != null) {
-						if (getSourceChannelNode() != null) {
-							throw new StreamDefinitionException(this.streamText, moduleNode.startpos,
-									XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_ALREADY_HAS_SOURCE_CHANNEL,
-									moduleNode.getName());
-						}
-						sourceChannelNode = sn.getSourceChannelNode().copyOf();
-					}
-				}
-				else if (m == moduleNodes.size() - 1) {
-					// Copy over the sink channel
-					if (sn.getSinkChannelNode() != null) {
-						if (getSinkChannelNode() != null) {
-							throw new StreamDefinitionException(this.streamText, moduleNode.startpos,
-									XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_ALREADY_HAS_SINK_CHANNEL,
-									moduleNode.getName());
-						}
-						sinkChannelNode = sn.getSinkChannelNode().copyOf();
-					}
-				}
-				else {
-					if (sn.getSourceChannelNode() != null) {
-						throw new StreamDefinitionException(this.streamText, moduleNode.startpos,
-								XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SOURCE_CHANNEL,
-								moduleNode.getName());
-					}
-					else if (sn.getSinkChannelNode() != null) {
-						throw new StreamDefinitionException(this.streamText, moduleNode.startpos,
-								XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SINK_CHANNEL,
-								moduleNode.getName());
-					}
-				}
-
-				// this moduleNode is a reference to an already defined stream
-				// Replace this moduleNode with a copy of the other stream
-				List<ModuleNode> newNodes = sn.getModuleNodes();
-				moduleNodes.remove(m);
-				for (int m2 = newNodes.size() - 1; m2 >= 0; m2--) {
-					moduleNodes.add(m, newNodes.get(m2).copyOf(moduleNode.getArguments(), newNodes.size() == 1));
-				}
-				inlinedStreams.add(moduleNode.getName());
-			}
-		}
-		// Check no duplicate labels across the stream
-		Map<String, ModuleNode> labeledModules = new HashMap<String, ModuleNode>();
-		for (int m = 0, max = moduleNodes.size(); m < max; m++) {
-			ModuleNode moduleNode = moduleNodes.get(m);
-			if (moduleNode.getLabelName() != null) {
-				String label = moduleNode.getLabelName();
-				ModuleNode existingLabeledModule = labeledModules.get(label);
-				if (existingLabeledModule != null) {
-					// ERROR
-					throw new StreamDefinitionException(this.streamText, existingLabeledModule.startpos,
-							XDDSLMessages.DUPLICATE_LABEL, label, existingLabeledModule.getName(),
-							moduleNode.getName());
-				}
-				labeledModules.put(label, moduleNode);
-			}
-		}
-	}
 
 	public int getIndexOfLabelOrModuleName(String labelOrModuleName) {
 		for (int m = 0; m < moduleNodes.size(); m++) {
@@ -240,10 +161,6 @@ public class StreamNode extends AstNode {
 
 	public String getName() {
 		return this.streamName;
-	}
-
-	public List<String> getInlinedStream() {
-		return this.inlinedStreams;
 	}
 
 }

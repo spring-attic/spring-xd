@@ -129,7 +129,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 					moduleDeploymentsPath));
 		}
 		catch (Exception e) {
-			ZooKeeperUtils.wrapAndThrowIgnoring(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 		return MapUtils.toProperties(deploymentProperties);
 	}
@@ -210,8 +210,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 */
 	private List<String> getAvailableContainerIds() {
 		try {
-			CuratorFramework client = zkConnection.getClient();
-			return client.getChildren().forPath(Paths.CONTAINERS);
+			return zkConnection.getClient().getChildren().forPath(Paths.CONTAINERS);
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
@@ -277,7 +276,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			}
 		}
 		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
 		return Collections.emptyList();
 	}

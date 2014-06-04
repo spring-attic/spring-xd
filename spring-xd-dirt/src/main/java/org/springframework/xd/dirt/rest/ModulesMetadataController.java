@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.module.ModuleNotExistException;
+import org.springframework.xd.dirt.module.ModuleNotDeployedException;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
@@ -139,7 +139,7 @@ public class ModulesMetadataController {
 			moduleMetadata = this.moduleMetadataRepository.findOne(containerId, moduleId);
 		}
 		if (moduleMetadata == null) {
-			throw new ModuleNotExistException(containerId, moduleId);
+			throw new ModuleNotDeployedException(containerId, moduleId);
 		}
 		return moduleMetadataResourceAssembler.toResource(moduleMetadata);
 

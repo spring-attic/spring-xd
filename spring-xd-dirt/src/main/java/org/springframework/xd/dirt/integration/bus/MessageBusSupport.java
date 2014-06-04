@@ -522,12 +522,25 @@ public abstract class MessageBusSupport
 		}
 	}
 
+	/**
+	 * Validate the provided deployment properties for the consumer against those supported by
+	 * this bus implementation. The consumer is that part of the bus that consumes messages from
+	 * the underlying infrastructure and sends them to the next module. Consumer properties are
+	 * used to configure the consumer.
+	 * @param properties The properties.
+	 */
 	protected void validateConsumerProperties(Properties properties) {
 		if (properties != null) {
 			validateProperties(properties, getSupportedConsumerProperties(), "consumer");
 		}
 	}
 
+	/**
+	 * Validate the provided deployment properties for the producer against those supported by
+	 * this bus implementation. When a module sends a message to the bus, the producer uses
+	 * these properties while sending it to the underlying infrastructure.
+	 * @param properties The properties.
+	 */
 	protected void validateProducerProperties(Properties properties) {
 		if (properties != null) {
 			validateProperties(properties, getSupportedProducerProperties(), "producer");
@@ -552,10 +565,25 @@ public abstract class MessageBusSupport
 		}
 	}
 
+	/**
+	 * Return the consumer properties supported by this bus implementation.
+	 * The consumer is that part of the bus that consumes messages from
+	 * the underlying infrastructure and sends them to the next module. Consumer properties are
+	 * used to configure the consumer.
+	 * By default, no properties are supported.
+	 * @return The properties.
+	 */
 	protected Set<Object> getSupportedConsumerProperties() {
 		return Collections.emptySet();
 	}
 
+	/**
+	 * Return the producer properties supported by this bus implementation.
+	 * When a module sends a message to the bus, the producer uses
+	 * these properties while sending it to the underlying infrastructure.
+	 * By default, no properties are supported.
+	 * @return The properties.
+	 */
 	protected Set<Object> getSupportedProducerProperties() {
 		return Collections.emptySet();
 	}

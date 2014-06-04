@@ -116,8 +116,8 @@ ext {
 	springDataMongoVersion = '1.5.0.RELEASE'
 	springDataRedisVersion = '1.1.1.RELEASE'
 	springHATEOASVersion = '0.9.0.RELEASE'
-	springIntegrationSplunkVersion = '1.1.0.M2'
 	springIntegrationVersion = '4.0.2.RELEASE'
+	springIntegrationSplunkVersion = '1.1.0.M2'
 	springPluginVersion = '0.8.0.RELEASE'
 	springShellVersion = '1.1.0.RC3'
 	springVersion = '4.0.3.RELEASE'
@@ -1333,6 +1333,14 @@ project('modules.sink.throughput-sampler') {
 		runtime(project(":spring-xd-extension-throughput")) { exclude module: 'spring-integration-core' }
 	}
 }
+
+project('modules.sink.mongodb') {
+	dependencies {
+		runtime ("org.springframework.integration:spring-integration-mongodb:$springIntegrationVersion") 
+	}
+}
+
+
 
 // ================ M O D U L E S : J O B S ============================
 

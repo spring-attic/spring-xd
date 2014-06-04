@@ -16,15 +16,11 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME;
-
-import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.Range;
-
 import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
+import org.springframework.xd.module.options.mixins.IntoMongoDbOptionMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
@@ -35,62 +31,14 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Ilayaperumal Gopinathan
  */
 @Mixin({ BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class, BatchJobFieldNamesOptionMixin.class,
-		 BatchJobFieldDelimiterOptionMixin.class})
+	BatchJobFieldDelimiterOptionMixin.class, IntoMongoDbOptionMixin.Job.class })
 public class HdfsMongodbJobOptionsMetadata {
 
-	private String databaseName = "xd";
-
-	private String host = "localhost";
-
-	private int port = 27017;
-
-	private String collectionName = XD_JOB_NAME;
-
 	private String idField;
-
-	@ModuleOption("the MongoDB collection to store")
-	public void setCollectionName(String collectionName) {
-		this.collectionName = collectionName;
-	}
-
-	@ModuleOption("the MongoDB database name")
-	public void setDatabaseName(String databaseName) {
-		this.databaseName = databaseName;
-	}
-
-	@ModuleOption("the MongoDB host")
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	@ModuleOption("the MongoDB port")
-	public void setPort(int port) {
-		this.port = port;
-	}
 
 	@ModuleOption("the name of the field to use as the identity in MongoDB")
 	public void setIdField(String idField) {
 		this.idField = idField;
-	}
-
-	// @NotBlank
-	public String getCollectionName() {
-		return this.collectionName;
-	}
-
-	@NotBlank
-	public String getDatabaseName() {
-		return this.databaseName;
-	}
-
-	@NotBlank
-	public String getHost() {
-		return this.host;
-	}
-
-	@Range(min = 0, max = 65535)
-	public int getPort() {
-		return this.port;
 	}
 
 	public String getIdField() {

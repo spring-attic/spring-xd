@@ -13,11 +13,11 @@
 		<property name="defaultBackOffMaxInterval" value="${xd.messagebus.rabbit.default.backOffMaxInterval}" />
 		<property name="defaultBackOffMultiplier" value="${xd.messagebus.rabbit.default.backOffMultiplier}" />
 		<property name="defaultChannelTransacted" value="${xd.messagebus.rabbit.default.transacted}" />
-		<property name="defaultConcurrentConsumers" value="${xd.messagebus.rabbit.default.concurrency}" />
+		<property name="defaultConcurrency" value="${xd.messagebus.rabbit.default.concurrency}" />
 		<property name="defaultDefaultDeliveryMode" value="#{T(org.springframework.amqp.core.MessageDeliveryMode).${xd.messagebus.rabbit.default.deliveryMode}}" />
 		<property name="defaultDefaultRequeueRejected" value="${xd.messagebus.rabbit.default.requeue}" />
 		<property name="defaultMaxAttempts" value="${xd.messagebus.rabbit.default.maxAttempts}" />
-		<property name="defaultMaxConcurrentConsumers" value="${xd.messagebus.rabbit.default.maxConcurrency}" />
+		<property name="defaultMaxConcurrency" value="${xd.messagebus.rabbit.default.maxConcurrency}" />
 		<property name="defaultPrefetchCount" value="${xd.messagebus.rabbit.default.prefetch}" />
 		<property name="defaultPrefix" value="${xd.messagebus.rabbit.default.prefix}" />
 		<property name="defaultReplyHeaderPatterns" value="${xd.messagebus.rabbit.default.replyHeaderPatterns}" />

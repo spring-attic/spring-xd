@@ -14,6 +14,7 @@
 package org.springframework.xd.dirt.integration.bus;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -105,11 +106,13 @@ public class LocalMessageBus extends MessageBusSupport {
 	 */
 	@Override
 	public void bindConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
+		validateConsumerProperties(name, properties, Collections.emptySet());
 		doRegisterConsumer(name, moduleInputChannel, getChannelProvider(name));
 	}
 
 	@Override
 	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
+		validateConsumerProperties(name, properties, Collections.emptySet());
 		doRegisterConsumer(name, moduleInputChannel, pubsubChannelProvider);
 	}
 
@@ -128,12 +131,14 @@ public class LocalMessageBus extends MessageBusSupport {
 	 */
 	@Override
 	public void bindProducer(String name, MessageChannel moduleOutputChannel, Properties properties) {
+		validateConsumerProperties(name, properties, Collections.emptySet());
 		doRegisterProducer(name, moduleOutputChannel, getChannelProvider(name));
 	}
 
 	@Override
 	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel,
 			Properties properties) {
+		validateConsumerProperties(name, properties, Collections.emptySet());
 		doRegisterProducer(name, moduleOutputChannel, pubsubChannelProvider);
 	}
 
@@ -149,6 +154,7 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public void bindRequestor(final String name, MessageChannel requests, final MessageChannel replies,
 			Properties properties) {
+		validateConsumerProperties(name, properties, Collections.emptySet());
 		final MessageChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
 		// TODO: handle Pollable ?
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
@@ -173,6 +179,7 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public void bindReplier(String name, final MessageChannel requests, MessageChannel replies,
 			Properties properties) {
+		validateConsumerProperties(name, properties, Collections.emptySet());
 		SubscribableChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
 		requestChannel.subscribe(new MessageHandler() {
 

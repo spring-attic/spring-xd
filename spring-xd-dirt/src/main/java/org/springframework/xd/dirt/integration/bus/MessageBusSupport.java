@@ -22,6 +22,7 @@ import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -54,6 +55,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.ContentTypeResolver;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -76,6 +80,8 @@ public abstract class MessageBusSupport
 
 	protected static final String JOB_CHANNEL_TYPE_PREFIX = "job:";
 
+	protected static final String PARTITION_HEADER = "partition";
+
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private volatile AbstractApplicationContext applicationContext;
@@ -90,13 +96,39 @@ public abstract class MessageBusSupport
 
 	protected static final List<MimeType> MEDIATYPES_MEDIATYPE_ALL = Collections.singletonList(ALL);
 
+	private static final int DEFAULT_BACKOFF_INITIAL_INTERVAL = 1000;
+
+	private static final int DEFAULT_BACKOFF_MAX_INTERVAL = 10000;
+
+	private static final double DEFAULT_BACKOFF_MULTIPLIER = 2.0;
+
+	private static final int DEFAULT_CONCURRENCY = 1;
+
+	private static final int DEFAULT_MAX_ATTEMPTS = 3;
+
+	protected static final Set<Object> CONSUMER_RETRY_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
+		BusProperties.BACK_OFF_INITIAL_INTERVAL,
+		BusProperties.BACK_OFF_MAX_INTERVAL,
+		BusProperties.BACK_OFF_MULTIPLIER,
+		BusProperties.MAX_ATTEMPTS
+	}));
+
+	protected static final Set<Object> PRODUCER_PARTITIONING_PROPERTIES = new HashSet<Object>(
+			Arrays.asList(new String[] {
+				BusProperties.PARTITION_COUNT,
+				BusProperties.PARTITION_KEY_EXPRESSION,
+				BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
+				BusProperties.PARTITION_SELECTOR_CLASS,
+				BusProperties.PARTITION_SELECTOR_EXPRESSION,
+			}));
+
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
 
 	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
 
 	private final Set<MessageChannel> createdChannels = Collections.synchronizedSet(new HashSet<MessageChannel>());
 
-	private volatile EvaluationContext evaluationContext;
+	protected volatile EvaluationContext evaluationContext;
 
 	private volatile PartitionSelectorStrategy partitionSelector = new DefaultPartitionSelector();
 
@@ -134,6 +166,16 @@ public abstract class MessageBusSupport
 			return publishSubscribeChannel;
 		}
 	};
+
+	protected volatile long defaultBackOffInitialInterval = DEFAULT_BACKOFF_INITIAL_INTERVAL;
+
+	protected volatile long defaultBackOffMaxInterval = DEFAULT_BACKOFF_MAX_INTERVAL;
+
+	protected volatile double defaultBackOffMultiplier = DEFAULT_BACKOFF_MULTIPLIER;
+
+	protected volatile int defaultConcurrency = DEFAULT_CONCURRENCY;
+
+	protected volatile int defaultMaxAttempts = DEFAULT_MAX_ATTEMPTS;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -178,9 +220,59 @@ public abstract class MessageBusSupport
 		this.partitionSelector = partitionSelector;
 	}
 
+	/**
+	 * Set the default retry back off initial interval for this bus; can be overridden
+	 * with consumer 'backOffInitialInterval' property.
+	 * @param defaultBackOffInitialInterval
+	 */
+	public void setDefaultBackOffInitialInterval(long defaultBackOffInitialInterval) {
+		this.defaultBackOffInitialInterval = defaultBackOffInitialInterval;
+	}
+
+	/**
+	 * Set the default retry back off multiplier for this bus; can be overridden
+	 * with consumer 'backOffMultiplier' property.
+	 * @param defaultBackOffMultiplier
+	 */
+	public void setDefaultBackOffMultiplier(double defaultBackOffMultiplier) {
+		this.defaultBackOffMultiplier = defaultBackOffMultiplier;
+	}
+
+	/**
+	 * Set the default retry back off max interval for this bus; can be overridden
+	 * with consumer 'backOffMaxInterval' property.
+	 * @param defaultBackOffMaxInterval
+	 */
+	public void setDefaultBackOffMaxInterval(long defaultBackOffMaxInterval) {
+		this.defaultBackOffMaxInterval = defaultBackOffMaxInterval;
+	}
+
+	/**
+	 * Set the default concurrency for this bus; can be overridden
+	 * with consumer 'concurrency' property.
+	 * @param defaultConcurrency
+	 */
+	public void setDefaultConcurrency(int defaultConcurrency) {
+		this.defaultConcurrency = defaultConcurrency;
+	}
+
+	/**
+	 * The default maximum delivery attempts for this bus. Can be overridden by
+	 * consumer property 'maxattempts' if supported. Values less than 2 disable
+	 * retry and one delivery attempt is made.
+	 * @param defaultMaxAttempts The default maximum attempts.
+	 */
+	public void setDefaultMaxAttempts(int defaultMaxAttempts) {
+		this.defaultMaxAttempts = defaultMaxAttempts;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(applicationContext, "The 'applicationContext' property cannot be null");
+		onInit();
+	}
+
+	protected void onInit() {
 	}
 
 	/**
@@ -515,11 +607,13 @@ public abstract class MessageBusSupport
 	 * this bus implementation. The consumer is that part of the bus that consumes messages from
 	 * the underlying infrastructure and sends them to the next module. Consumer properties are
 	 * used to configure the consumer.
+	 * @param name The name.
 	 * @param properties The properties.
+	 * @param supported The supported properties.
 	 */
-	protected void validateConsumerProperties(Properties properties) {
+	protected void validateConsumerProperties(String name, Properties properties, Set<Object> supported) {
 		if (properties != null) {
-			validateProperties(properties, getSupportedConsumerProperties(), "consumer");
+			validateProperties(name, properties, supported, "consumer");
 		}
 	}
 
@@ -527,15 +621,17 @@ public abstract class MessageBusSupport
 	 * Validate the provided deployment properties for the producer against those supported by
 	 * this bus implementation. When a module sends a message to the bus, the producer uses
 	 * these properties while sending it to the underlying infrastructure.
+	 * @param name The name.
 	 * @param properties The properties.
+	 * @param supported The supported properties.
 	 */
-	protected void validateProducerProperties(Properties properties) {
+	protected void validateProducerProperties(String name, Properties properties, Set<Object> supported) {
 		if (properties != null) {
-			validateProperties(properties, getSupportedProducerProperties(), "producer");
+			validateProperties(name, properties, supported, "producer");
 		}
 	}
 
-	private void validateProperties(Properties properties, Set<Object> supported, String type) {
+	private void validateProperties(String name, Properties properties, Set<Object> supported, String type) {
 		StringBuilder builder = new StringBuilder();
 		int errors = 0;
 		for (Entry<Object, Object> entry : properties.entrySet()) {
@@ -549,31 +645,37 @@ public abstract class MessageBusSupport
 					+ type
 					+ " propert"
 					+ (errors == 1 ? "y: " : "ies: ")
-					+ builder.substring(0, builder.length() - 1));
+					+ builder.substring(0, builder.length() - 1)
+					+ " for " + name + ".");
 		}
 	}
 
-	/**
-	 * Return the consumer properties supported by this bus implementation.
-	 * The consumer is that part of the bus that consumes messages from
-	 * the underlying infrastructure and sends them to the next module. Consumer properties are
-	 * used to configure the consumer.
-	 * By default, no properties are supported.
-	 * @return The properties.
-	 */
-	protected Set<Object> getSupportedConsumerProperties() {
-		return Collections.emptySet();
+	protected String buildPartitionRoutingExpression(String expressionRoot) {
+		return "'" + expressionRoot + "-' + headers['" + PARTITION_HEADER + "']";
 	}
 
 	/**
-	 * Return the producer properties supported by this bus implementation.
-	 * When a module sends a message to the bus, the producer uses
-	 * these properties while sending it to the underlying infrastructure.
-	 * By default, no properties are supported.
-	 * @return The properties.
+	 * Create and configure a retry template if the consumer 'maxAttempts' property is set.
+	 * @param properties The properties.
+	 * @return The retry template, or null if retry is not enabled.
 	 */
-	protected Set<Object> getSupportedProducerProperties() {
-		return Collections.emptySet();
+	protected RetryTemplate buildRetryTemplateIfRetryEnabled(AbstractBusPropertiesAccessor properties) {
+		int maxAttempts = properties.getMaxAttempts(this.defaultMaxAttempts);
+		if (maxAttempts > 1) {
+			RetryTemplate template = new RetryTemplate();
+			SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+			retryPolicy.setMaxAttempts(maxAttempts);
+			ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+			backOffPolicy.setInitialInterval(properties.getBackOffInitialInterval(this.defaultBackOffInitialInterval));
+			backOffPolicy.setMultiplier(properties.getBackOffMultiplier(this.defaultBackOffMultiplier));
+			backOffPolicy.setMaxInterval(properties.getBackOffMaxInterval(this.defaultBackOffMaxInterval));
+			template.setRetryPolicy(retryPolicy);
+			template.setBackOffPolicy(backOffPolicy);
+			return template;
+		}
+		else {
+			return null;
+		}
 	}
 
 	/**
@@ -707,6 +809,25 @@ public abstract class MessageBusSupport
 				className += ";";
 			}
 			return className;
+		}
+	}
+
+	public static class SetBuilder {
+
+		private final Set<Object> set = new HashSet<Object>();
+
+		public SetBuilder add(Object o) {
+			this.set.add(o);
+			return this;
+		}
+
+		public SetBuilder addAll(Set<Object> set) {
+			this.set.addAll(set);
+			return this;
+		}
+
+		public Set<Object> build() {
+			return this.set;
 		}
 	}
 

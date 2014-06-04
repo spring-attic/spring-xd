@@ -16,12 +16,15 @@
 
 package org.springframework.xd.dirt.integration.rabbit;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 import java.util.Properties;
@@ -37,17 +40,15 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
-import org.springframework.messaging.support.GenericMessage;
-import org.springframework.xd.dirt.integration.bus.AbstractMessageBusTests;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
 import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
@@ -55,7 +56,7 @@ import org.springframework.xd.test.rabbit.RabbitTestSupport;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class RabbitMessageBusTests extends AbstractMessageBusTests {
+public class RabbitMessageBusTests extends PartitionCapableBusTests {
 
 	@Rule
 	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
@@ -87,6 +88,8 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		});
 		moduleOutputChannel.send(message);
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		messageBus.unbindConsumers("bad.0");
+		messageBus.unbindProducers("bad.0");
 	}
 
 	@Test
@@ -105,7 +108,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		assertEquals("xdbus.props.0", container.getQueueNames()[0]);
 		assertTrue(TestUtils.getPropertyValue(container, "transactional", Boolean.class));
 		assertEquals(1, TestUtils.getPropertyValue(container, "concurrentConsumers"));
-		assertEquals(1, TestUtils.getPropertyValue(container, "maxConcurrentConsumers"));
+		assertNull(TestUtils.getPropertyValue(container, "maxConcurrentConsumers"));
 		assertTrue(TestUtils.getPropertyValue(container, "defaultRequeueRejected", Boolean.class));
 		assertEquals(1, TestUtils.getPropertyValue(container, "prefetchCount"));
 		assertEquals(1, TestUtils.getPropertyValue(container, "txSize"));
@@ -130,27 +133,37 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		properties.put("requestHeaderPatterns", "foo");
 		properties.put("requeue", "false");
 		properties.put("txSize", "10");
+		properties.put("partitionIndex", 0);
 		bus.bindConsumer("props.0", new DirectChannel(), properties);
 
 		@SuppressWarnings("unchecked")
 		List<Binding> bindingsNow = TestUtils.getPropertyValue(bus, "messageBus.bindings", List.class);
-		assertEquals(1, bindings.size());
+		assertEquals(1, bindingsNow.size());
 		endpoint = bindingsNow.get(0).getEndpoint();
-		container = TestUtils.getPropertyValue(endpoint, "messageListenerContainer",
-				SimpleMessageListenerContainer.class);
-		assertEquals(AcknowledgeMode.NONE, container.getAcknowledgeMode());
+		container = verifyContainer(endpoint);
+
 		assertEquals("foo.props.0", container.getQueueNames()[0]);
-		assertFalse(TestUtils.getPropertyValue(container, "transactional", Boolean.class));
-		assertEquals(2, TestUtils.getPropertyValue(container, "concurrentConsumers"));
-		assertEquals(3, TestUtils.getPropertyValue(container, "maxConcurrentConsumers"));
-		assertFalse(TestUtils.getPropertyValue(container, "defaultRequeueRejected", Boolean.class));
-		assertEquals(20, TestUtils.getPropertyValue(container, "prefetchCount"));
-		assertEquals(10, TestUtils.getPropertyValue(container, "txSize"));
-		retry = TestUtils.getPropertyValue(container, "adviceChain", Advice[].class)[0];
-		assertEquals(23, TestUtils.getPropertyValue(retry, "retryOperations.retryPolicy.maxAttempts"));
-		assertEquals(2000L, TestUtils.getPropertyValue(retry, "retryOperations.backOffPolicy.initialInterval"));
-		assertEquals(20000L, TestUtils.getPropertyValue(retry, "retryOperations.backOffPolicy.maxInterval"));
-		assertEquals(5.0, TestUtils.getPropertyValue(retry, "retryOperations.backOffPolicy.multiplier"));
+
+		try {
+			bus.bindPubSubConsumer("dummy", null, properties);
+			fail("Expected exception");
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), allOf(
+					containsString("RabbitMessageBus does not support consumer properties: "),
+					containsString("partitionIndex"),
+					containsString("concurrency"),
+					containsString(" for dummy.")));
+		}
+		try {
+			bus.bindConsumer("queue:dummy", null, properties);
+			fail("Expected exception");
+		}
+		catch (IllegalArgumentException e) {
+			assertEquals("RabbitMessageBus does not support consumer property: partitionIndex for queue:dummy.",
+					e.getMessage());
+		}
+
 		bus.unbindConsumers("props.0");
 		assertEquals(0, bindingsNow.size());
 	}
@@ -177,10 +190,18 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		properties.put("prefix", "foo.");
 		properties.put("deliveryMode", "NON_PERSISTENT");
 		properties.put("requestHeaderPatterns", "foo");
+		properties.put("partitionKeyExpression", "'foo'");
+		properties.put("partitionKeyExtractorClass", "foo");
+		properties.put("partitionSelectorExpression", "0");
+		properties.put("partitionSelectorClass", "foo");
+		properties.put("partitionCount", "1");
+
 		bus.bindProducer("props.0", new DirectChannel(), properties);
 		assertEquals(1, bindings.size());
 		endpoint = bindings.get(0).getEndpoint();
-		assertEquals("foo.props.0", TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKey"));
+		assertEquals(
+				"'foo.props.0-' + headers['partition']",
+				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
 		mode = TestUtils.getPropertyValue(endpoint, "handler.delegate.defaultDeliveryMode",
 				MessageDeliveryMode.class);
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, mode);
@@ -188,124 +209,236 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 				List.class);
 		assertEquals(1, requestHeaders.size());
 		assertEquals("foo", requestHeaders.get(0));
+
+		try {
+			bus.bindPubSubProducer("dummy", null, properties);
+			fail("Expected exception");
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), allOf(
+					containsString("RabbitMessageBus does not support producer properties: "),
+					containsString("partitionCount"),
+					containsString("partitionSelectorExpression"),
+					containsString("partitionKeyExtractorClass"),
+					containsString("partitionKeyExpression"),
+					containsString("partitionSelectorClass")));
+			assertThat(e.getMessage(), containsString("for dummy."));
+		}
+		try {
+			bus.bindProducer("queue:dummy", null, properties);
+			fail("Expected exception");
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), allOf(
+					containsString("RabbitMessageBus does not support producer properties: "),
+					containsString("partitionCount"),
+					containsString("partitionSelectorExpression"),
+					containsString("partitionKeyExtractorClass"),
+					containsString("partitionKeyExpression"),
+					containsString("partitionSelectorClass")));
+			assertThat(e.getMessage(), containsString("for queue:dummy."));
+		}
+
 		bus.unbindProducers("props.0");
 		assertEquals(0, bindings.size());
 	}
 
 	@Test
-	public void testBadProperties() {
+	public void testRequestReplyRequestorProperties() throws Exception {
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();
-		properties.put("foo", "bar");
-		properties.put("baz", "qux");
+		properties.put("prefix", "foo.");
+		properties.put("deliveryMode", "NON_PERSISTENT");
 
-		DirectChannel output = new DirectChannel();
+		properties.put("requestHeaderPatterns", "foo");
+		properties.put("replyHeaderPatterns", "bar");
+
+		properties.put("ackMode", "NONE");
+		properties.put("backOffInitialInterval", "2000");
+		properties.put("backOffMaxInterval", "20000");
+		properties.put("backOffMultiplier", "5.0");
+		properties.put("concurrency", "2");
+		properties.put("maxAttempts", "23");
+		properties.put("maxConcurrency", "3");
+		properties.put("prefix", "foo.");
+		properties.put("prefetch", "20");
+		properties.put("requeue", "false");
+		properties.put("txSize", "10");
+
+		bus.bindRequestor("props.0", new DirectChannel(), new DirectChannel(), properties);
+		@SuppressWarnings("unchecked")
+		List<Binding> bindings = TestUtils.getPropertyValue(bus, "messageBus.bindings", List.class);
+
+		assertEquals(2, bindings.size());
+		AbstractEndpoint endpoint = bindings.get(0).getEndpoint(); // producer
+		assertEquals("foo.props.0.requests",
+				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKey"));
+		MessageDeliveryMode mode = TestUtils.getPropertyValue(endpoint, "handler.delegate.defaultDeliveryMode",
+				MessageDeliveryMode.class);
+		assertEquals(MessageDeliveryMode.NON_PERSISTENT, mode);
+		List<?> requestHeaders = TestUtils.getPropertyValue(endpoint,
+				"handler.delegate.headerMapper.requestHeaderNames",
+				List.class);
+		assertEquals(1, requestHeaders.size());
+		assertEquals("foo", requestHeaders.get(0));
+		List<?> replyHeaders = TestUtils.getPropertyValue(endpoint,
+				"handler.delegate.headerMapper.replyHeaderNames",
+				List.class);
+		assertEquals(1, replyHeaders.size());
+		assertEquals("bar", replyHeaders.get(0));
+
+		endpoint = bindings.get(1).getEndpoint(); // consumer
+
+		verifyContainer(endpoint);
+
+		replyHeaders = TestUtils.getPropertyValue(endpoint,
+				"headerMapper.replyHeaderNames",
+				List.class);
+		assertEquals(1, replyHeaders.size());
+		assertEquals("bar", replyHeaders.get(0));
+
+		properties.put("partitionKeyExpression", "'foo'");
+		properties.put("partitionKeyExtractorClass", "foo");
+		properties.put("partitionSelectorExpression", "0");
+		properties.put("partitionSelectorClass", "foo");
+		properties.put("partitionCount", "1");
+		properties.put("partitionIndex", "0");
 		try {
-			bus.bindProducer("badprops.0", output, properties);
+			bus.bindRequestor("dummy", null, null, properties);
+			fail("Expected exception");
 		}
 		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support producer properties: baz,foo"));
+			assertThat(e.getMessage(), allOf(
+					containsString("RabbitMessageBus does not support producer properties: "),
+					containsString("partitionCount"),
+					containsString("partitionSelectorExpression"),
+					containsString("partitionKeyExtractorClass"),
+					containsString("partitionKeyExpression"),
+					containsString("partitionSelectorClass")));
+			assertThat(e.getMessage(), allOf(containsString("partitionIndex"), containsString("for dummy.")));
 		}
 
-		properties.remove("baz");
-		try {
-			bus.bindConsumer("badprops.0", output, properties);
-		}
-		catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(), equalTo("RabbitMessageBus does not support consumer property: foo"));
-		}
+		bus.unbindConsumers("props.0");
+		bus.unbindProducers("props.0");
+		assertEquals(0, bindings.size());
 	}
 
 	@Test
-	public void testPartitionedModuleSpEL() {
+	public void testRequestReplyReplierProperties() throws Exception {
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();
-		properties.put("partitionKeyExpression", "payload");
-		properties.put("partitionSelectorExpression", "hashCode()");
-		properties.put("partitionCount", "3");
+		properties.put("prefix", "foo.");
+		properties.put("deliveryMode", "NON_PERSISTENT");
 
-		DirectChannel output = new DirectChannel();
-		bus.bindProducer("part.0", output, properties);
+		properties.put("requestHeaderPatterns", "foo");
+		properties.put("replyHeaderPatterns", "bar");
+
+		properties.put("ackMode", "NONE");
+		properties.put("backOffInitialInterval", "2000");
+		properties.put("backOffMaxInterval", "20000");
+		properties.put("backOffMultiplier", "5.0");
+		properties.put("concurrency", "2");
+		properties.put("maxAttempts", "23");
+		properties.put("maxConcurrency", "3");
+		properties.put("prefix", "foo.");
+		properties.put("prefetch", "20");
+		properties.put("requeue", "false");
+		properties.put("txSize", "10");
+
+		bus.bindReplier("props.0", new DirectChannel(), new DirectChannel(), properties);
 		@SuppressWarnings("unchecked")
 		List<Binding> bindings = TestUtils.getPropertyValue(bus, "messageBus.bindings", List.class);
-		assertEquals(1, bindings.size());
-		AbstractEndpoint endpoint = bindings.get(0).getEndpoint();
-		assertEquals("'xdbus.part.0-' + headers['partition']",
+
+		assertEquals(2, bindings.size());
+		AbstractEndpoint endpoint = bindings.get(1).getEndpoint(); // producer
+		assertEquals("headers['amqp_replyTo']",
 				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
+		MessageDeliveryMode mode = TestUtils.getPropertyValue(endpoint, "handler.delegate.defaultDeliveryMode",
+				MessageDeliveryMode.class);
+		assertEquals(MessageDeliveryMode.NON_PERSISTENT, mode);
+		List<?> requestHeaders = TestUtils.getPropertyValue(endpoint,
+				"handler.delegate.headerMapper.requestHeaderNames",
+				List.class);
+		assertEquals(1, requestHeaders.size());
+		assertEquals("foo", requestHeaders.get(0));
+		List<?> replyHeaders = TestUtils.getPropertyValue(endpoint,
+				"handler.delegate.headerMapper.replyHeaderNames",
+				List.class);
+		assertEquals(1, replyHeaders.size());
+		assertEquals("bar", replyHeaders.get(0));
 
-		properties.clear();
+		endpoint = bindings.get(0).getEndpoint(); // consumer
+
+		verifyContainer(endpoint);
+
+		replyHeaders = TestUtils.getPropertyValue(endpoint,
+				"headerMapper.replyHeaderNames",
+				List.class);
+		assertEquals(1, replyHeaders.size());
+		assertEquals("bar", replyHeaders.get(0));
+
+		properties.put("partitionKeyExpression", "'foo'");
+		properties.put("partitionKeyExtractorClass", "foo");
+		properties.put("partitionSelectorExpression", "0");
+		properties.put("partitionSelectorClass", "foo");
+		properties.put("partitionCount", "1");
 		properties.put("partitionIndex", "0");
-		QueueChannel input0 = new QueueChannel();
-		bus.bindConsumer("part.0", input0, properties);
-		properties.put("partitionIndex", "1");
-		QueueChannel input1 = new QueueChannel();
-		bus.bindConsumer("part.0", input1, properties);
-		properties.put("partitionIndex", "2");
-		QueueChannel input2 = new QueueChannel();
-		bus.bindConsumer("part.0", input2, properties);
+		try {
+			bus.bindReplier("dummy", null, null, properties);
+			fail("Expected exception");
+		}
+		catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), allOf(
+					containsString("RabbitMessageBus does not support consumer properties: "),
+					containsString("partitionCount"),
+					containsString("partitionSelectorExpression"),
+					containsString("partitionKeyExtractorClass"),
+					containsString("partitionKeyExpression"),
+					containsString("partitionSelectorClass")));
+			assertThat(e.getMessage(), allOf(containsString("partitionIndex"), containsString("for dummy.")));
+		}
 
-		output.send(new GenericMessage<Integer>(2));
-		output.send(new GenericMessage<Integer>(1));
-		output.send(new GenericMessage<Integer>(0));
-
-		Message<?> receive0 = input0.receive(1000);
-		assertNotNull(receive0);
-		assertEquals(0, receive0.getPayload());
-		Message<?> receive1 = input1.receive(1000);
-		assertNotNull(receive1);
-		assertEquals(1, receive1.getPayload());
-		Message<?> receive2 = input2.receive(1000);
-		assertNotNull(receive2);
-		assertEquals(2, receive2.getPayload());
-
-		bus.unbindConsumers("part.0");
-		bus.unbindConsumers("part.0");
+		bus.unbindConsumers("props.0");
+		bus.unbindProducers("props.0");
+		assertEquals(0, bindings.size());
 	}
 
-	@Test
-	public void testPartitionedModuleJava() {
-		MessageBus bus = getMessageBus();
-		Properties properties = new Properties();
-		properties.put("partitionKeyExtractorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
-		properties.put("partitionSelectorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
-		properties.put("partitionCount", "3");
+	private SimpleMessageListenerContainer verifyContainer(AbstractEndpoint endpoint) {
+		SimpleMessageListenerContainer container;
+		Advice retry;
+		container = TestUtils.getPropertyValue(endpoint, "messageListenerContainer",
+				SimpleMessageListenerContainer.class);
+		assertEquals(AcknowledgeMode.NONE, container.getAcknowledgeMode());
+		assertThat(container.getQueueNames()[0], startsWith("foo.props.0"));
+		assertFalse(TestUtils.getPropertyValue(container, "transactional", Boolean.class));
+		assertEquals(2, TestUtils.getPropertyValue(container, "concurrentConsumers"));
+		assertEquals(3, TestUtils.getPropertyValue(container, "maxConcurrentConsumers"));
+		assertFalse(TestUtils.getPropertyValue(container, "defaultRequeueRejected", Boolean.class));
+		assertEquals(20, TestUtils.getPropertyValue(container, "prefetchCount"));
+		assertEquals(10, TestUtils.getPropertyValue(container, "txSize"));
+		retry = TestUtils.getPropertyValue(container, "adviceChain", Advice[].class)[0];
+		assertEquals(23, TestUtils.getPropertyValue(retry, "retryOperations.retryPolicy.maxAttempts"));
+		assertEquals(2000L, TestUtils.getPropertyValue(retry, "retryOperations.backOffPolicy.initialInterval"));
+		assertEquals(20000L, TestUtils.getPropertyValue(retry, "retryOperations.backOffPolicy.maxInterval"));
+		assertEquals(5.0, TestUtils.getPropertyValue(retry, "retryOperations.backOffPolicy.multiplier"));
 
-		DirectChannel output = new DirectChannel();
-		bus.bindProducer("part.0", output, properties);
-		@SuppressWarnings("unchecked")
-		List<Binding> bindings = TestUtils.getPropertyValue(bus, "messageBus.bindings", List.class);
-		assertEquals(1, bindings.size());
-		AbstractEndpoint endpoint = bindings.get(0).getEndpoint();
-		assertEquals("'xdbus.part.0-' + headers['partition']",
-				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
+		List<?> requestHeaders = TestUtils.getPropertyValue(endpoint,
+				"headerMapper.requestHeaderNames",
+				List.class);
+		assertEquals(1, requestHeaders.size());
+		assertEquals("foo", requestHeaders.get(0));
 
-		properties.clear();
-		properties.put("partitionIndex", "0");
-		QueueChannel input0 = new QueueChannel();
-		bus.bindConsumer("part.0", input0, properties);
-		properties.put("partitionIndex", "1");
-		QueueChannel input1 = new QueueChannel();
-		bus.bindConsumer("part.0", input1, properties);
-		properties.put("partitionIndex", "2");
-		QueueChannel input2 = new QueueChannel();
-		bus.bindConsumer("part.0", input2, properties);
+		return container;
+	}
 
-		output.send(new GenericMessage<Integer>(2));
-		output.send(new GenericMessage<Integer>(1));
-		output.send(new GenericMessage<Integer>(0));
+	@Override
+	protected String getEndpointRouting(AbstractEndpoint endpoint) {
+		return TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression", String.class);
+	}
 
-		Message<?> receive0 = input0.receive(1000);
-		assertNotNull(receive0);
-		assertEquals(0, receive0.getPayload());
-		Message<?> receive1 = input1.receive(1000);
-		assertNotNull(receive1);
-		assertEquals(1, receive1.getPayload());
-		Message<?> receive2 = input2.receive(1000);
-		assertNotNull(receive2);
-		assertEquals(2, receive2.getPayload());
-
-		bus.unbindConsumers("part.0");
-		bus.unbindConsumers("part.0");
+	@Override
+	protected String getPubSubEndpointRouting(AbstractEndpoint endpoint) {
+		return TestUtils.getPropertyValue(endpoint, "handler.delegate.exchangeNameExpression", String.class);
 	}
 
 }

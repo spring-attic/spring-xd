@@ -150,11 +150,6 @@ public class ChannelNode extends AstNode {
 			}
 			else {
 				// Easter Egg: can use index of module in a stream when tapping.
-				// Key benefit:
-				// You can tap into something that perhaps wasn't labeled
-				// in some stream but needed to be because it was a dup:
-				// Note: need to be aware of how indexes will move when
-				// stream composition has occurred!
 				try {
 					int index = Integer.parseInt(indexingElements.get(0));
 					indexingElements.remove(0);

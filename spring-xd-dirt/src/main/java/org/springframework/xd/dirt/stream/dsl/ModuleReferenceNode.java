@@ -53,6 +53,7 @@ public class ModuleReferenceNode extends AstNode {
 		return s.toString();
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		if (streamName != null) {
@@ -71,18 +72,6 @@ public class ModuleReferenceNode extends AstNode {
 
 	public String getModuleName() {
 		return labelOrModuleName;
-	}
-
-	public void resolve(StreamLookupEnvironment env) {
-		resolvedChannel = env.lookupChannelForLabelOrModule(streamName, labelOrModuleName);
-		if (streamName == null && resolvedChannel == null) {
-			// it is possible the singular name in labelOrModuleName is actually
-			// a stream reference
-			StreamNode sn = env.lookupStream(labelOrModuleName);
-			if (sn != null) {
-				resolvedChannel = sn.getStreamName() + ".0";
-			}
-		}
 	}
 
 	public ModuleReferenceNode copyOf() {

@@ -34,21 +34,13 @@ define([], function () {
             function (result) {
                 $scope.moduleDetails = result;
               }, function (error) {
-                utils.$log.error('Error fetching data. Is the XD server running?');
-                utils.$log.error(error);
-                utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+                utils.growl.addErrorMessage('Error fetching module details. ' + error.data[0].message);
               }
             );
-
         var moduleDefinitionPromise = jobModuleService.getModuleDefinition($stateParams.moduleName);
         utils.addBusyPromise(moduleDefinitionPromise);
         moduleDefinitionPromise.success(function(data){
           $scope.moduleDefinition = data;
-        })
-        .error(function(error){
-          utils.$log.error('Error fetching data. Is the XD server running?');
-          utils.$log.error(error);
-          utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
         });
         $scope.closeModuleDetails = function () {
             utils.$log.info('Closing Job Details Window');

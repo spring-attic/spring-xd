@@ -32,13 +32,15 @@ define([
   './services',
   '../directives',
   '../filters',
-  '../shared/services'
+  '../shared/services',
+  '../shared/interceptors'
 ], function (angular) {
   'use strict';
   return angular.module('xdJobsAdmin', [
     'xdJobsAdmin.services',
     'xdJobsAdmin.controllers',
     'xdShared.services',
+    'xdShared.interceptors',
     'xdAdmin.directives',
     'xdAdmin.filters',
     'ui.router',

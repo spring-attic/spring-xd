@@ -38,7 +38,6 @@ define([], function () {
                     $scope.stepExecutionProgress = result;
                   },
                   function (error) {
-                    utils.$log.error(error);
                     utils.growl.addErrorMessage(error);
                   });
         };

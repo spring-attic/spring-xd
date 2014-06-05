@@ -38,9 +38,7 @@ define([], function () {
           utils.$log.info('Scheduling Job: ' + item.name);
           $state.go('home.jobs.tabs.deployments.schedule', {jobName: item.name});
         };
-      }, function (error) {
-        utils.$log.error('Error fetching data. Is the XD server running?');
-        utils.$log.error(error);
+      }, function () {
         utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
       }).$promise;
       utils.addBusyPromise(jobDeploymentsPromise);

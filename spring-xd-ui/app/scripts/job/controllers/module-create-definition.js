@@ -48,8 +48,7 @@ define([], function () {
                   });
                 }
                 $scope.moduleDetails = result;
-              }, function (error) {
-                utils.$log.error(error);
+              }, function () {
                 utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
               });
         $scope.closeCreateDefinition = function () {
@@ -67,7 +66,6 @@ define([], function () {
                       utils.growl.addSuccessMessage('The Definition was created.');
                       $state.go('home.jobs.tabs.modules');
                     }, function (error) {
-                      utils.$log.error(error);
                       utils.growl.addErrorMessage(error.data[0].message);
                     });
           };

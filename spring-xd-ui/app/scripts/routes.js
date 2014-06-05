@@ -24,7 +24,7 @@ define(['./app'], function (xdAdmin) {
   'use strict';
   xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider, growlProvider) {
     $httpProvider.defaults.useXDomain = true;
-
+    $httpProvider.interceptors.push('httpErrorInterceptor');
     $urlRouterProvider.otherwise('/jobs/definitions');
 
     hljsServiceProvider.setOptions({

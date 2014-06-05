@@ -30,7 +30,6 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -43,6 +42,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 
 /**
@@ -62,7 +62,7 @@ public class MessageBusRegistrationTests {
 	private ModuleDescriptor descriptor = new ModuleDescriptor.Builder()
 			.setGroup("mystream")
 			.setIndex(1)
-			.setModuleDefinition(Mockito.mock(ModuleDefinition.class))
+			.setModuleDefinition(new ModuleDefinition("messageBusRegistrationTests", ModuleType.processor))
 			.build();
 
 	private MessageChannel input = new DirectChannel();

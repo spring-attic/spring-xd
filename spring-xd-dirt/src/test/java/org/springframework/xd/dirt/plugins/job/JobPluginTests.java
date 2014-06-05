@@ -156,7 +156,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		when(module.getProperties()).thenReturn(properties);
 		when(module.getDescriptor()).thenReturn(
 				new ModuleDescriptor.Builder().setGroup(moduleGroupName).setIndex(moduleIndex).setModuleDefinition(
-						Mockito.mock(ModuleDefinition.class)).build());
+						new ModuleDefinition("testjob", ModuleType.job)).build());
 
 		MessageChannel stepsOut = new DirectChannel();
 		when(module.getComponent("stepExecutionRequests.output", MessageChannel.class)).thenReturn(stepsOut);
@@ -201,7 +201,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		Mockito.when(module.getProperties()).thenReturn(properties);
 		Mockito.when(module.getDescriptor()).thenReturn(
 				new ModuleDescriptor.Builder().setGroup("job").setIndex(0).setModuleDefinition(
-						Mockito.mock(ModuleDefinition.class)).build());
+						new ModuleDefinition("testjob", ModuleType.job)).build());
 
 		jobPlugin.preProcessModule(module);
 		Mockito.verify(module).addComponents(Matchers.any(Resource.class));

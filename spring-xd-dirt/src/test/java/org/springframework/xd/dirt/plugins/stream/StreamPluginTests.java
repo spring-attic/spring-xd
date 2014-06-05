@@ -111,14 +111,15 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamChannelTests() throws InterruptedException {
+		ModuleDefinition moduleDefinition = new ModuleDefinition("testing", ModuleType.processor);
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
 				.setIndex(1)
-				.setModuleDefinition(mock(ModuleDefinition.class))
+				.setModuleDefinition(moduleDefinition)
 				.build());
-		when(module.getType()).thenReturn(ModuleType.processor);
-		when(module.getName()).thenReturn("testing");
+		when(module.getType()).thenReturn(moduleDefinition.getType());
+		when(module.getName()).thenReturn(moduleDefinition.getName());
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
@@ -135,14 +136,15 @@ public class StreamPluginTests {
 
 	@Test
 	public void testTapOnProxy() throws Exception {
+		ModuleDefinition moduleDefinition = new ModuleDefinition("testing", ModuleType.processor);
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
 				.setIndex(1)
-				.setModuleDefinition(mock(ModuleDefinition.class))
+				.setModuleDefinition(moduleDefinition)
 				.build());
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
-		when(module.getName()).thenReturn("testing");
+		when(module.getName()).thenReturn(moduleDefinition.getName());
 		DirectChannel output = new DirectChannel();
 		MessageChannel proxy = (MessageChannel) new ProxyFactory(output).getProxy();
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(proxy);

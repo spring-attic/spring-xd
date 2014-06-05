@@ -260,24 +260,19 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testUsingLabels() throws IOException {
 		FileSink sink1 = newFileSink().binary(true);
 		FileSink sink2 = newFileSink().binary(true);
-		FileSink sink3 = newFileSink().binary(true);
 
 		HttpSource source = newHttpSource();
 
 		String streamName = generateStreamName();
 		stream().create(streamName, "%s | flibble: transform --expression=payload.toUpperCase() | %s", source, sink1);
 		stream().create(generateStreamName(),
-				"%s.transform > transform --expression=payload.replaceAll('a','.') | %s", getTapName(streamName), sink2);
-		stream().create(generateStreamName(),
-				"%s.flibble > transform --expression=payload.replaceAll('a','.') | %s", getTapName(streamName), sink3);
+				"%s.flibble > transform --expression=payload.replaceAll('a','.') | %s", getTapName(streamName), sink2);
 
 		source.ensureReady().postData("Dracarys!");
 
 		assertThat(sink1, eventually(hasContentsThat(equalTo("DRACARYS!"))));
 
 		assertThat(sink2, eventually(hasContentsThat(equalTo("DRACARYS!"))));
-
-		assertThat(sink3, eventually(hasContentsThat(equalTo("DRACARYS!"))));
 	}
 
 	@Test

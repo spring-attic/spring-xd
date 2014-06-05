@@ -74,7 +74,7 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("List runtime modules");
 		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
-		CommandResult cmdResult = executeCommand("runtime modules --moduleId " + streamName + ".sink.log-1");
+		CommandResult cmdResult = executeCommand("runtime modules --moduleId " + streamName + ".sink.log");
 		Table table = (Table) cmdResult.getResult();
 		assertEquals(1, table.getRows().size());
 	}

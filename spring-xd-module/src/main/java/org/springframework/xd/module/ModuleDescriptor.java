@@ -103,6 +103,8 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 			String sourceChannelName, String sinkChannelName,
 			int index, ModuleDefinition moduleDefinition,
 			Map<String, String> parameters, List<ModuleDescriptor> children) {
+		Assert.notNull(moduleLabel, "moduleLabel must not be null");
+		Assert.notNull(group, "group must not be null");
 		this.moduleLabel = moduleLabel;
 		this.group = group;
 		this.sourceChannelName = sourceChannelName;
@@ -128,15 +130,13 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	}
 
 	/**
-	 * Return symbolic name of a module. This may be generated to a default
-	 * value or specified in the DSL string.
+	 * Return symbolic name of a module. This may be explicitly specified in
+	 * the DSL string, which is required if the stream contains another module
+	 * with the same name. Otherwise, it will be the same as the module name.
 	 *
 	 * @return module label
 	 */
 	public String getModuleLabel() {
-		if (moduleLabel == null) {
-			return getModuleName() + "-" + index;
-		}
 		return moduleLabel;
 	}
 
@@ -463,15 +463,13 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		}
 
 		/**
-		 * Return symbolic name of a module. This may be generated to a default
-		 * value or specified in the DSL string.
+		 * Return symbolic name of a module. This may be explicitly specified in
+		 * the DSL string, which is required if the stream contains another module
+		 * with the same name. Otherwise, it will be the same as the module name.
 		 *
 		 * @return module label
 		 */
 		public String getModuleLabel() {
-			if (moduleLabel == null) {
-				moduleLabel = moduleName + "-" + index;
-			}
 			return moduleLabel;
 		}
 
@@ -565,7 +563,8 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @return new instance of {@code ModuleDescriptor}
 		 */
 		public ModuleDescriptor build() {
-			return new ModuleDescriptor(moduleLabel, group,
+			String label = moduleLabel != null ? moduleLabel : getModuleDefinition().getName();
+			return new ModuleDescriptor(label, group,
 					sourceChannelName, sinkChannelName,
 					index, getModuleDefinition(),
 					parameters, children);

@@ -158,14 +158,7 @@ public class ChannelNode extends AstNode {
 				catch (NumberFormatException nfe) {
 					// this is ok, probably wasn't a number
 					String indexString = toString(indexingElements);
-					if (sn.labelOrModuleNameOccursMultipleTimesInStream(indexString)) {
-						throw new StreamDefinitionException(getChannelName(),
-								getLengthOfPrefixPlusNameComponents() + 1,
-								XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE,
-								indexString,
-								sn.getStreamText());
-					}
-					int index = sn.getIndexOfLabelOrModuleName(indexString);
+					int index = sn.getIndexOfLabel(indexString);
 					if (index != -1) {
 						indexingElements.clear();
 						indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);

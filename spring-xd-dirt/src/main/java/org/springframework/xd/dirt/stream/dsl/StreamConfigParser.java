@@ -19,7 +19,9 @@ package org.springframework.xd.dirt.stream.dsl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
@@ -77,9 +79,21 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		if (ast.getName() != null && !isValidStreamName(ast.getName())) {
 			throw new StreamDefinitionException(ast.getName(), 0, XDDSLMessages.ILLEGAL_STREAM_NAME, ast.getName());
 		}
-
 		if (name != null && !isValidStreamName(name)) {
 			throw new StreamDefinitionException(name, 0, XDDSLMessages.ILLEGAL_STREAM_NAME, name);
+		}
+
+		// Check that each module has a unique label (either explicit or implicit)
+		Map<String, ModuleNode> alreadySeen = new LinkedHashMap<String, ModuleNode>();
+		for (int m = 0; m < ast.getModuleNodes().size(); m++) {
+			ModuleNode node = ast.getModuleNodes().get(m);
+			ModuleNode previous = alreadySeen.put(node.getLabelName(), node);
+			if (previous != null) {
+				String duplicate = node.getLabelName();
+				int previousIndex = new ArrayList<String>(alreadySeen.keySet()).indexOf(duplicate);
+				throw new StreamDefinitionException(stream, node.startpos, XDDSLMessages.DUPLICATE_LABEL,
+						duplicate, previous.getName(), previousIndex, node.getName(), m);
+			}
 		}
 
 		// Check if the stream name is same as that of any of its modules' names

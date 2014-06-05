@@ -80,8 +80,10 @@ public class CompositeModuleTests {
 		ModuleDescriptor processor2Descriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(processor2Definition).setGroup("compositesourcegroup").setIndex(2).build();
 		modules.add(new SimpleModule(processor2Descriptor, deploymentProperties));
-		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder().setModuleDefinition(
-				new ModuleDefinition("compositesource", ModuleType.source)).build();
+		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(new ModuleDefinition("compositesource", ModuleType.source))
+				.setGroup("compositesourcegroup")
+				.build();
 		CompositeModule module = new CompositeModule(compositeDescriptor, deploymentProperties, modules);
 		assertEquals(source, module.getType());
 	}
@@ -99,8 +101,10 @@ public class CompositeModuleTests {
 				.build();
 		modules.add(new SimpleModule(processor1Descriptor, deploymentProperties));
 		modules.add(new SimpleModule(processor2Descriptor, deploymentProperties));
-		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder().setModuleDefinition(
-				new ModuleDefinition("compositeprocessor", ModuleType.processor)).build();
+		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(new ModuleDefinition("compositeprocessor", ModuleType.processor))
+				.setGroup("compositeprocessorgroup")
+				.build();
 		CompositeModule module = new CompositeModule(compositeDescriptor, deploymentProperties, modules);
 		module.initialize();
 		module.start();
@@ -142,6 +146,7 @@ public class CompositeModuleTests {
 		modules.add(new SimpleModule(sinkDescriptor, deploymentProperties));
 		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(new ModuleDefinition("compositesink", ModuleType.sink))
+				.setGroup("compositesinkgroup")
 				.setIndex(2)
 				.build();
 		CompositeModule module = new CompositeModule(compositeDescriptor, deploymentProperties, modules);

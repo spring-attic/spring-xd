@@ -127,28 +127,14 @@ public class StreamNode extends AstNode {
 	}
 
 
-	public int getIndexOfLabelOrModuleName(String labelOrModuleName) {
+	public int getIndexOfEffectiveLabel(String labelOrModuleName) {
 		for (int m = 0; m < moduleNodes.size(); m++) {
 			ModuleNode moduleNode = moduleNodes.get(m);
-			if (labelOrModuleName.equals(moduleNode.getName()) || labelOrModuleName.equals(moduleNode.getLabelName())) {
+			if (moduleNode.getEffectiveLabel().equals(labelOrModuleName)) {
 				return m;
 			}
 		}
 		return -1;
-	}
-
-	public boolean labelOrModuleNameOccursMultipleTimesInStream(String labelOrModuleName) {
-		int foundModule = -1;
-		for (int m = 0; m < moduleNodes.size(); m++) {
-			ModuleNode moduleNode = moduleNodes.get(m);
-			if (labelOrModuleName.equals(moduleNode.getName()) || labelOrModuleName.equals(moduleNode.getLabelName())) {
-				if (foundModule != -1) {
-					return true;
-				}
-				foundModule = m;
-			}
-		}
-		return false;
 	}
 
 	public String getStreamData() {

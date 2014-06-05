@@ -33,7 +33,6 @@ import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.core.io.Resource;
@@ -257,15 +256,6 @@ public class StreamConfigParserTests {
 		// post resolution 'group1' is transformed to transform
 		assertEquals("[(tap:stream:mystream.transform.2)>(ModuleNode:file)]", ast.stringify());
 		// TODO: Index should still be present in this case
-		ast = parse("tap:stream:mystream > file");
-		assertEquals("[(tap:stream:mystream.http.0)>(ModuleNode:file)]", ast.stringify());
-	}
-
-	@Test
-	public void tapWithIndexReference() {
-		parse("mystream = http | transform | filter | transform | file");
-		StreamNode ast = parse("tap:stream:mystream.transform.1 > file");
-		assertEquals("[(tap:stream:mystream.transform.1)>(ModuleNode:file)]", ast.stringify());
 		ast = parse("tap:stream:mystream > file");
 		assertEquals("[(tap:stream:mystream.http.0)>(ModuleNode:file)]", ast.stringify());
 	}
@@ -580,22 +570,18 @@ public class StreamConfigParserTests {
 	}
 
 	@Test
-	@Ignore("XD-1772")
-	public void errorCases12() {
-		checkForParseError("xxx: http | xxx: file", XDDSLMessages.DUPLICATE_LABEL, 0, "xxx", "http", "file");
+	public void duplicateExplicitLabels() {
+		checkForParseError("xxx: http | xxx: file", XDDSLMessages.DUPLICATE_LABEL, 12, "xxx", "http", 0, "file", 1);
 		checkForParseError("xxx: http | yyy: filter | transform | xxx: transform | file",
-				XDDSLMessages.DUPLICATE_LABEL, 0, "xxx", "http", "transform");
+				XDDSLMessages.DUPLICATE_LABEL, 38, "xxx", "http", 0, "transform", 3);
 		checkForParseError("xxx: http | yyy: filter | transform | xxx: transform | xxx: file",
-				XDDSLMessages.DUPLICATE_LABEL, 0, "xxx", "http", "transform");
+				XDDSLMessages.DUPLICATE_LABEL, 38, "xxx", "http", 0, "transform", 3);
 	}
 
 	@Test
-	public void errorCases13() {
-		parse("mystream = http | transform | filter | transform | file");
-		checkForParseError("tap:stream:mystream.transform > file", XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE, 20,
-				"transform");
-		sn = parse("tap:stream:mystream.transform.1 > file");
-		assertEquals("tap:stream:mystream.transform.1", sn.getSourceChannelNode().getChannelName());
+	public void duplicateImplicitLabels() {
+		checkForParseError("http | filter | transform | transform | file",
+				XDDSLMessages.DUPLICATE_LABEL, 28, "transform", "transform", 2, "transform", 3);
 	}
 
 	@Test
@@ -671,7 +657,7 @@ public class StreamConfigParserTests {
 		}
 	}
 
-	private void checkForParseError(String stream, XDDSLMessages msg, int pos, String... inserts) {
+	private void checkForParseError(String stream, XDDSLMessages msg, int pos, Object... inserts) {
 		try {
 			StreamNode sn = parse(stream);
 			fail("expected to fail but parsed " + sn.stringify());

@@ -96,6 +96,9 @@ public class ModuleNode extends AstNode {
 		return arguments != null;
 	}
 
+	/**
+	 * Return the actual label supplied to this module, if any.
+	 */
 	public String getLabelName() {
 		if (label == null) {
 			return null;
@@ -103,6 +106,16 @@ public class ModuleNode extends AstNode {
 		else {
 			return label.getLabelName();
 		}
+	}
+
+	/**
+	 * Return the effective label for this module, that is<ul>
+	 * <li>an actual label if provided</li>
+	 * <li>the module name if no label was provided.</li>
+	 * </ul>
+	 */
+	public String getEffectiveLabel() {
+		return label == null ? getName() : getLabelName();
 	}
 
 	/**
@@ -117,30 +130,5 @@ public class ModuleNode extends AstNode {
 		}
 		return props;
 	}
-
-	/**
-	 * Whilst working through arguments when creating a copy of the module, instances of this class tag whether an
-	 * argument has been used to satisfy a variable in a parameterized stream (e.g. ${NAME}).
-	 */
-	static class ConsumableArgumentNode {
-
-		private boolean consumed;
-
-		ArgumentNode argumentNode;
-
-		ConsumableArgumentNode(ArgumentNode argumentNode) {
-			this.consumed = false;
-			this.argumentNode = argumentNode;
-		}
-
-		public void setConsumed(boolean consumed) {
-			this.consumed = consumed;
-		}
-
-		public boolean isConsumed() {
-			return this.consumed;
-		}
-	}
-
 
 }

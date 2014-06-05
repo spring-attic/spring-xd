@@ -30,9 +30,7 @@ define([], function () {
              function (result) {
                   utils.$log.info(result);
                   $scope.jobModules = result.content;
-                }, function (error) {
-                  utils.$log.error('Error fetching data. Is the XD server running?');
-                  utils.$log.error(error);
+                }, function () {
                   utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
                 }
              );

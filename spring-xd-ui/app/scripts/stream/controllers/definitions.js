@@ -41,9 +41,7 @@ define([], function () {
                 utils.growl.addSuccessMessage('Deployment Request Sent.');
                 streamDefinition.deployed = true;
               },
-              function (error) {
-                utils.$log.error('Error Deploying Stream.');
-                utils.$log.error(error);
+              function () {
                 utils.growl.addErrorMessage('Error Deploying Stream.');
               }
             );
@@ -56,9 +54,7 @@ define([], function () {
                 utils.growl.addSuccessMessage('Undeployment Request Sent.');
                 streamDefinition.deployed = false;
               },
-              function (error) {
-                utils.$log.error('Error Undeploying Stream.');
-                utils.$log.error(error);
+              function () {
                 utils.growl.addErrorMessage('Error Undeploying Stream.');
               }
             );
@@ -76,9 +72,7 @@ define([], function () {
               streamDefinition.inactive = true;
               $scope.closeModal();
             },
-            function (error) {
-              utils.$log.error('Error Destroying Stream.');
-              utils.$log.error(error);
+            function () {
               utils.growl.addErrorMessage('Error Destroying Stream.');
               $scope.closeModal();
             }

@@ -28,13 +28,15 @@ define([
   'ngGrowl',
   './controllers',
   './services',
-  '../shared/services'
+  '../shared/services',
+  '../shared/interceptors'
 ], function (angular) {
   'use strict';
   return angular.module('xdStreamsAdmin', [
     'xdStreamsAdmin.services',
     'xdStreamsAdmin.controllers',
     'xdShared.services',
+    'xdShared.interceptors',
     'ui.router',
     'ngResource',
     'ngAnimate',

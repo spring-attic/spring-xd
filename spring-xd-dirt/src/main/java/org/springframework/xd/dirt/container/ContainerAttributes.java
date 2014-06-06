@@ -34,8 +34,9 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
-public class ContainerAttributes implements Map<String, String> {
+public class ContainerAttributes implements Map<String, String>, Comparable<ContainerAttributes> {
 
 	public final static String CONTAINER_ID_KEY = "id";
 
@@ -244,6 +245,14 @@ public class ContainerAttributes implements Map<String, String> {
 	@Override
 	public String toString() {
 		return map.toString();
+	}
+
+	/**
+	 * Compares using the containerId.
+	 */
+	@Override
+	public int compareTo(ContainerAttributes other) {
+		return this.getId().compareTo(other.getId());
 	}
 
 }

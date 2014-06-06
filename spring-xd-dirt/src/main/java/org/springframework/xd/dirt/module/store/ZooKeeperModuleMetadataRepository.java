@@ -30,12 +30,12 @@ import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -52,6 +52,8 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
+	private final PagingUtility<ModuleMetadata> pagingUtility = new PagingUtility<ModuleMetadata>();
+
 	private static final String XD_MODULE_PROPERTIES_PREFIX = "xd.";
 
 	@Autowired
@@ -67,8 +69,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 
 	@Override
 	public Page<ModuleMetadata> findAll(Pageable pageable) {
-		// todo: add support for paging
-		return new PageImpl<ModuleMetadata>(findAll());
+		return pagingUtility.getPagedData(pageable, findAll());
 	}
 
 	@Override
@@ -224,11 +225,12 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 * Find the module metadata for the modules that are deployed into the
 	 * given container.
 	 *
+	 * @param pageable the paging metadata information
 	 * @param containerId the containerId of the container
 	 * @return the pageable {@link ModuleMetadata} of the modules.
 	 */
 	@Override
-	public Page<ModuleMetadata> findAllByContainerId(String containerId) {
+	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId) {
 		Assert.hasLength(containerId, "containerId is required");
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
@@ -236,7 +238,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			for (String moduleId : deployedModules) {
 				results.add(findOne(containerId, moduleId));
 			}
-			return new PageImpl<ModuleMetadata>(results);
+			return pagingUtility.getPagedData(pageable, results);
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
@@ -246,11 +248,12 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	/**
 	 * Find all module metadata by the given module id.
 	 *
+	 * @param pageable the paging metadata information
 	 * @param moduleId the module id to use
 	 * @return the pageable {@link ModuleMetadata}
 	 */
 	@Override
-	public Page<ModuleMetadata> findAllByModuleId(String moduleId) {
+	public Page<ModuleMetadata> findAllByModuleId(Pageable pageable, String moduleId) {
 		Assert.hasLength(moduleId, "moduleId is required");
 		try {
 			List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
@@ -260,7 +263,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 					results.add(metadata);
 				}
 			}
-			return new PageImpl<ModuleMetadata>(results);
+			return pagingUtility.getPagedData(pageable, results);
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);

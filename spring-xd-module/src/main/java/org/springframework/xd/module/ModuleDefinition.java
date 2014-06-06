@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,9 @@ import org.springframework.util.CollectionUtils;
  * @author Gary Russell
  * @author Eric Bottard
  * @author Mark Pollack
+ * @author Ilayaperumal Gopinathan
  */
-public class ModuleDefinition {
+public class ModuleDefinition implements Comparable<ModuleDefinition> {
 
 	private volatile String name;
 
@@ -126,6 +127,14 @@ public class ModuleDefinition {
 		int nbJars = getClasspath() == null ? 0 : getClasspath().length;
 		return String.format("%s[%s:%s with %d jars at %s]", getClass().getSimpleName(), getType(), getName(), nbJars,
 				getResource().getDescription());
+	}
+
+	/**
+	 * Compares the module definitions using the name of the {@link ModuleDefinition}
+	 */
+	@Override
+	public int compareTo(ModuleDefinition other) {
+		return this.getName().compareTo(other.getName());
 	}
 
 }

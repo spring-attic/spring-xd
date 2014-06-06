@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
@@ -45,6 +44,7 @@ import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -64,6 +64,8 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 	private final ZooKeeperConnection zkConnection;
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+
+	private final PagingUtility<Stream> pagingUtility = new PagingUtility<Stream>();
 
 	private final RepositoryConnectionListener connectionListener = new RepositoryConnectionListener();
 
@@ -89,21 +91,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 
 	@Override
 	public Page<Stream> findAll(Pageable pageable) {
-		List<Stream> all = findAll();
-		if (CollectionUtils.isEmpty(all)) {
-			return new PageImpl<Stream>(all);
-		}
-		Collections.sort(all);
-
-		int offSet = pageable.getOffset();
-		int size = pageable.getPageSize();
-
-		List<Stream> page = new ArrayList<Stream>();
-		for (int i = offSet; i < Math.min(all.size(), offSet + size); i++) {
-			page.add(all.get(i));
-		}
-
-		return new PageImpl<Stream>(page, pageable, all.size());
+		return pagingUtility.getPagedData(pageable, findAll());
 	}
 
 	@Override

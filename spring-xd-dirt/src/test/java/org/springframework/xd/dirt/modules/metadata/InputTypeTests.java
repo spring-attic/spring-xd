@@ -1,11 +1,11 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,9 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,43 +42,45 @@ import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolve
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.tuple.DefaultTuple;
+
 
 /**
- * Integration test class to do various tests about {@link ModuleOptionsMetadata} provided by XD.
+ * Tests about the special {@code inputType} option.
  * 
- * @author Eric Bottard
  * @author David Turanski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = ModuleOptionsMetadataSanityTests.Config.class)
-public class ModuleOptionsMetadataSanityTests {
+@ContextConfiguration(classes = InputTypeTests.Config.class)
+public class InputTypeTests {
 
 	@Autowired
-	private ModuleRegistry moduleRegistry;
+	private ModuleRegistry testModuleRegistry;
 
 	@Autowired
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
 	@Test
-	public void sanityChecks() {
-		for (ModuleType moduleType : ModuleType.values()) {
-			for (ModuleDefinition def : moduleRegistry.findDefinitions(moduleType)) {
-				ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(def);
-				for (ModuleOption mo : moduleOptionsMetadata) {
-					assertNotNull(
-							String.format("ModuleOption type should be provided for %s:%s/%s", moduleType,
-									def.getName(), mo.getName()), mo.getType());
-					assertFalse(
-							String.format("ModuleOption description for %s:%s/%s should start with lowercase : '%s'",
-									moduleType, def.getName(), mo.getName(), mo.getDescription()),
-							Character.isUpperCase(mo.getDescription().charAt(0)));
-					assertFalse(String.format("ModuleOption description for %s:%s/%s should not end with a dot : '%s'",
-							moduleType, def.getName(), mo.getName(), mo.getDescription()),
-							mo.getDescription().endsWith("."));
+	public void testDefaultInputType() {
+		testInputTypeConfigured(
+				testModuleRegistry.findDefinition("testtupleprocessor_pojo_config", ModuleType.processor),
+				DefaultTuple.class.getName());
 
-				}
+		testInputTypeConfigured(testModuleRegistry.findDefinition("testtupleprocessor", ModuleType.processor),
+				"application/x-xd-tuple");
+	}
+
+	private void testInputTypeConfigured(ModuleDefinition md, Object expectedValue) {
+		assertNotNull(md);
+		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(md);
+		boolean hasInputType = false;
+		for (ModuleOption mo : moduleOptionsMetadata) {
+			if (mo.getName().equals("inputType")) {
+				assertEquals(expectedValue, mo.getDefaultValue());
+				hasInputType = true;
 			}
 		}
+		assertTrue(hasInputType);
 	}
 
 
@@ -92,9 +95,10 @@ public class ModuleOptionsMetadataSanityTests {
 		}
 
 		@Bean
-		public ModuleRegistry moduleRegistry() {
-			return new ResourceModuleRegistry("file:../modules");
+		public ModuleRegistry testModuleRegistry() {
+			return new ResourceModuleRegistry("classpath:testmodules");
 		}
+
 
 		@Bean
 		public ModuleOptionsMetadataResolver moduleOptionsMetadataResolver() {
@@ -102,5 +106,4 @@ public class ModuleOptionsMetadataSanityTests {
 		}
 
 	}
-
 }

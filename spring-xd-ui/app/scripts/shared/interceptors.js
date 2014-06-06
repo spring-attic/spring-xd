@@ -25,12 +25,6 @@ define(['angular'], function (angular) {
   return angular.module('xdShared.interceptors', [])
   .factory('httpErrorInterceptor', function(XDUtils){
     return {
-      response: function(response){
-        if (response.status === 404) {
-          XDUtils.$log.error('Response status 404', response);
-        }
-        return response || XDUtils.$q.when(response);
-      },
       responseError: function(rejection) {
         if (rejection.status === 0) {
           XDUtils.growl.addErrorMessage('Looks like the XD server is down.');

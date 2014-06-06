@@ -128,7 +128,7 @@ public class AggregatorProcessorModuleOptionsMetadata implements
 		this.initializeDatabase = initializeDatabase;
 	}
 
-	@ModuleOption("which flavor of init scripts to use for the jdbc store (default attempts autodetection)")
+	@ModuleOption("which flavor of init scripts to use for the jdbc store (blank to attempt autodetection)")
 	public void setDbkind(String dbkind) {
 		this.dbkind = dbkind;
 	}

@@ -92,7 +92,7 @@ public class JdbcHdfsOptionsMetadata {
 		this.directory = directory;
 	}
 
-	@ModuleOption("the file extension to use (defaults to 'csv')")
+	@ModuleOption("the file extension to use")
 	public void setFileExtension(String fileExtension) {
 		this.fileExtension = fileExtension;
 	}

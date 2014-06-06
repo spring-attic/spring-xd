@@ -32,6 +32,7 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.fixtures.Jobs;
+import org.springframework.xd.integration.fixtures.Processors;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
@@ -86,6 +87,9 @@ public abstract class AbstractIntegrationTest {
 
 	@Autowired
 	protected Jobs jobs;
+
+	@Autowired
+	protected Processors processors;
 
 	@Autowired
 	protected ConfigUtil configUtil;

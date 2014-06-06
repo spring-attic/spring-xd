@@ -36,7 +36,6 @@ define([], function () {
               $scope.jobDefinitionNotFound = true;
             }
             else {
-              utils.$log.error(error);
               utils.growl.addErrorMessage(error);
             }
           }
@@ -48,7 +47,6 @@ define([], function () {
           function (result) {
             $scope.jobModuleMetaData = result;
           }, function (error) {
-            utils.$log.error(error);
             utils.growl.addErrorMessage(error);
           }
         );

@@ -32,9 +32,7 @@ define([], function () {
         function (result) {
           utils.$log.info(result);
           $scope.jobDefinitions = result.content;
-        }, function (error) {
-          utils.$log.error('Error fetching data. Is the XD server running?');
-          utils.$log.error(error);
+        }, function () {
           utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
         }
       );
@@ -47,9 +45,7 @@ define([], function () {
                 utils.growl.addSuccessMessage('Deployment Request Sent.');
                 jobDefinition.deployed = true;
               },
-              function (error) {
-                utils.$log.error('Error Deploying Job.');
-                utils.$log.error(error);
+              function () {
                 utils.growl.addErrorMessage('Error Deploying Job.');
               }
             );
@@ -62,9 +58,7 @@ define([], function () {
                 utils.growl.addSuccessMessage('Undeployment Request Sent.');
                 jobDefinition.deployed = false;
               },
-              function (error) {
-                utils.$log.error('Error Undeploying Job.');
-                utils.$log.error(error);
+              function () {
                 utils.growl.addErrorMessage('Error Undeploying Job.');
               }
             );
@@ -81,9 +75,7 @@ define([], function () {
               jobDefinition.inactive = true;
               $scope.closeModal();
             },
-            function (error) {
-              utils.$log.error('Error Destroying Job.');
-              utils.$log.error(error);
+            function () {
               utils.growl.addErrorMessage('Error Destroying Job.');
               $scope.closeModal();
             }

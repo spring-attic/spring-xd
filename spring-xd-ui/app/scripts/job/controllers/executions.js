@@ -31,9 +31,7 @@ define([], function () {
           function (result) {
             utils.$log.info(result);
             $scope.jobExecutions = result;
-          }, function (error) {
-            utils.$log.error('Error fetching data. Is the XD server running?');
-            utils.$log.error(error);
+          }, function () {
             utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
           });
     };
@@ -50,7 +48,6 @@ define([], function () {
             utils.growl.addSuccessMessage('Job was relaunched.');
             list();
           }, function (error) {
-            utils.$log.error(error);
             if (error.data[0].logref === 'NoSuchBatchJobException') {
               utils.growl.addErrorMessage('The BatchJob ' + job.name + ' is currently not deployed.');
             }
@@ -67,7 +64,6 @@ define([], function () {
             utils.growl.addSuccessMessage('Stop request sent.');
             list();
           }, function (error) {
-            utils.$log.error(error);
             utils.growl.addErrorMessage(error.data[0].message);
           });
     };

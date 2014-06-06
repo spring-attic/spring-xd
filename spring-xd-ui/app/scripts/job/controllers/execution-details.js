@@ -40,8 +40,6 @@ define([], function () {
               $scope.executionId = $stateParams.executionId;
             }
             else {
-              utils.$log.error('Error fetching data. Is the XD server running?');
-              utils.$log.error(error);
               utils.growl.addErrorMessage(error);
             }
           }

@@ -43,7 +43,6 @@ define([], function () {
               $scope.stepExecutionProgress = result;
             },
             function (error) {
-              utils.$log.error(error);
               utils.growl.addErrorMessage(error);
             });
       };
@@ -68,8 +67,6 @@ define([], function () {
                 $scope.stepExecutionId = $stateParams.stepExecutionId;
               }
               else {
-                utils.$log.error('Error fetching data. Is the XD server running?');
-                utils.$log.error(error);
                 utils.growl.addErrorMessage(error);
               }
             }

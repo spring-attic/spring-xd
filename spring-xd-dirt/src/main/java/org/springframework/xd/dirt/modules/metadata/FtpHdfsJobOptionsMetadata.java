@@ -81,7 +81,7 @@ public class FtpHdfsJobOptionsMetadata {
 		return partitionResultsTimeout;
 	}
 
-	@ModuleOption("time (ms) that the partition handler will wait for results, default 5 mins")
+	@ModuleOption("time (ms) that the partition handler will wait for results")
 	public void setPartitionResultsTimeout(long partitionResultsTimeout) {
 		this.partitionResultsTimeout = partitionResultsTimeout;
 	}

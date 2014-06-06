@@ -132,7 +132,7 @@ public class TwitterStreamOptionsMetadata {
 		return discardDeletes;
 	}
 
-	@ModuleOption("set to discard 'delete' events. True by default")
+	@ModuleOption("set to discard 'delete' events")
 	public void setDiscardDeletes(boolean discardDeletes) {
 		this.discardDeletes = discardDeletes;
 	}

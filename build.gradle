@@ -1465,12 +1465,19 @@ project('spring-xd-shell') {
 
 	applicationDistribution.from(configFiles) { into "config" }
 
-	// Will be run as a side effect of
+	// Will be run as a side effect of main asciidoc generation
 	task referenceDoc(type: JavaExec, dependsOn: compileTestJava) {
-		classpath = sourceSets.test.runtimeClasspath //configurations.testCompile
+		classpath = sourceSets.test.runtimeClasspath
 		main = 'org.springframework.xd.shell.util.ReferenceDoc'
 		args = [
 			"$rootDir/build/asciidoc/guide/ShellReference.asciidoc"
+		]
+	}
+	task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: compileTestJava) {
+		classpath = sourceSets.test.runtimeClasspath
+		main = 'org.springframework.xd.shell.util.ModuleOptionsReferenceDoc'
+		args = [
+			"$rootDir/build/asciidoc/guide/modules"
 		]
 	}
 
@@ -1715,7 +1722,8 @@ import org.asciidoctor.gradle.*
 
 task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [
 	pullDocs,
-	':spring-xd-shell:referenceDoc'
+	':spring-xd-shell:referenceDoc',
+	':spring-xd-shell:moduleOptionsReferenceDoc'
 ]) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
@@ -1738,7 +1746,8 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [
 
 task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [
 	pullDocs,
-	':spring-xd-shell:referenceDoc'
+	':spring-xd-shell:referenceDoc',
+	':spring-xd-shell:moduleOptionsReferenceDoc'
 ]) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")

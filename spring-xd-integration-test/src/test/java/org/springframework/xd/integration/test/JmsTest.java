@@ -42,9 +42,8 @@ public class JmsTest extends AbstractIntegrationTest {
 		stream(sources.jms() + XD_DELIMITER + sinks.file());
 		sources.jms().ensureReady();
 		sources.jms().sendData(data);
-		waitForXD(2000);
-		assertReceived(1);
 		assertValid(data, sinks.file());
+		assertReceived(1);
 	}
 
 }

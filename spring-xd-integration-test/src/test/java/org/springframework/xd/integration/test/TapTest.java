@@ -43,7 +43,6 @@ public class TapTest extends AbstractIntegrationTest {
 
 		waitForXD();
 		sources.http().postData(data);
-		waitForXD();
 		assertValid(data, sinks.file());
 	}
 
@@ -62,7 +61,6 @@ public class TapTest extends AbstractIntegrationTest {
 
 		waitForXD();
 		sources.http().postData(data);
-		waitForXD();
 		assertValid(data.toUpperCase(), sinks.file());
 	}
 
@@ -81,7 +79,6 @@ public class TapTest extends AbstractIntegrationTest {
 
 		waitForXD();
 		sources.http().postData(data);
-		waitForXD();
 		assertValid(data.toUpperCase().substring(3), sinks.file());
 	}
 
@@ -100,7 +97,6 @@ public class TapTest extends AbstractIntegrationTest {
 
 		waitForXD();
 		sources.http().postData(data);
-		waitForXD();
 		assertValid(data.toUpperCase(), sinks.file());
 	}
 

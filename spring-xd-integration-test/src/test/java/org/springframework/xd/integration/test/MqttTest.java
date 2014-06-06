@@ -39,9 +39,8 @@ public class MqttTest extends AbstractIntegrationTest {
 		stream(sources.mqtt() + XD_DELIMITER + sinks.file());
 		sources.mqtt().ensureReady();
 		sources.mqtt().sendData(data);
-		waitForXD(2000);
-		assertReceived(1);
 		assertValid(data, sinks.file());
+		assertReceived(1);
 	}
 
 	/**
@@ -55,9 +54,8 @@ public class MqttTest extends AbstractIntegrationTest {
 		stream(sources.mqtt() + XD_DELIMITER + sinks.file());
 		sources.mqtt().ensureReady();
 		stream("mqttSender", "trigger --payload='" + data + "'" + XD_DELIMITER + sinks.mqtt(), WAIT_TIME);
-		waitForXD(2000);
-		assertReceived(1);
 		assertValid(data, sinks.file());
+		assertReceived(1);
 
 	}
 

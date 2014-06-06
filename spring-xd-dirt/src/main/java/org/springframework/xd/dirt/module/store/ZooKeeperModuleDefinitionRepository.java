@@ -26,13 +26,13 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.support.ModuleDefinitionRepositoryUtils;
+import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -57,6 +57,8 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 	private final ZooKeeperConnection zooKeeperConnection;
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
+
+	private final PagingUtility<ModuleDefinition> pagingUtility = new PagingUtility<ModuleDefinition>();
 
 	@Autowired
 	public ZooKeeperModuleDefinitionRepository(ModuleRegistry moduleRegistry,
@@ -125,7 +127,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 			// continue
 		}
 		Assert.isNull(pageable.getSort(), "Arbitrary sorting is not implemented");
-		return slice(results, pageable);
+		return pagingUtility.getPagedData(pageable, results);
 	}
 
 	private Page<ModuleDefinition> findAll(Pageable pageable) {
@@ -133,7 +135,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 		for (ModuleType type : ModuleType.values()) {
 			results.addAll(findByType(pageable, type).getContent());
 		}
-		return slice(results, pageable);
+		return pagingUtility.getPagedData(pageable, results);
 	}
 
 	@Override
@@ -207,15 +209,6 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 	 */
 	private String dependencyKey(ModuleDefinition moduleDefinition) {
 		return String.format("module:%s:%s", moduleDefinition.getType(), moduleDefinition.getName());
-	}
-
-	/**
-	 * Post-process the list to only return elements matching the page request.
-	 */
-	private Page<ModuleDefinition> slice(List<ModuleDefinition> list, Pageable pageable) {
-		int to = Math.min(list.size(), pageable.getOffset() + pageable.getPageSize());
-		List<ModuleDefinition> data = list.subList(pageable.getOffset(), to);
-		return new PageImpl<ModuleDefinition>(data, pageable, list.size());
 	}
 
 }

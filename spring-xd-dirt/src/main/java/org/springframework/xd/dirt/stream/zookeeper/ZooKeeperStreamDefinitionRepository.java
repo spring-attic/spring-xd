@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.stream.zookeeper;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,15 +32,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepositoryUtils;
 import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -60,6 +58,8 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 	private final ModuleDependencyRepository moduleDependencyRepository;
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+
+	private final PagingUtility<StreamDefinition> pagingUtility = new PagingUtility<StreamDefinition>();
 
 	private final RepositoryConnectionListener connectionListener = new RepositoryConnectionListener();
 
@@ -86,21 +86,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	@Override
 	public Page<StreamDefinition> findAll(Pageable pageable) {
-		List<StreamDefinition> all = findAll();
-		if (CollectionUtils.isEmpty(all)) {
-			return new PageImpl<StreamDefinition>(all);
-		}
-		Collections.sort(all);
-
-		int offSet = pageable.getOffset();
-		int size = pageable.getPageSize();
-
-		List<StreamDefinition> page = new ArrayList<StreamDefinition>();
-		for (int i = offSet; i < Math.min(all.size(), offSet + size); i++) {
-			page.add(all.get(i));
-		}
-
-		return new PageImpl<StreamDefinition>(page, pageable, all.size());
+		return pagingUtility.getPagedData(pageable, findAll());
 	}
 
 	@Override

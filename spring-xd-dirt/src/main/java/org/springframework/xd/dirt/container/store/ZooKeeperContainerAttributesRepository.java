@@ -27,11 +27,11 @@ import org.apache.zookeeper.data.Stat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -49,6 +49,8 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
+	private final PagingUtility<ContainerAttributes> pagingUtility = new PagingUtility<ContainerAttributes>();
+
 	@Autowired
 	public ZooKeeperContainerAttributesRepository(ZooKeeperConnection zkConnection) {
 		this.zkConnection = zkConnection;
@@ -62,8 +64,7 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 
 	@Override
 	public Page<ContainerAttributes> findAll(Pageable pageable) {
-		// todo: add support for paging
-		return new PageImpl<ContainerAttributes>(findAll());
+		return pagingUtility.getPagedData(pageable, findAll());
 	}
 
 	@Override

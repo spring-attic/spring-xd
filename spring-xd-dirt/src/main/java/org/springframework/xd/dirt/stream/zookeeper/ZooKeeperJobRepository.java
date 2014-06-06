@@ -30,13 +30,13 @@ import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -54,6 +54,8 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 	private final ZooKeeperConnection zkConnection;
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+
+	private final PagingUtility<Job> pagingUtility = new PagingUtility<Job>();
 
 	private final RepositoryConnectionListener connectionListener = new RepositoryConnectionListener();
 
@@ -79,21 +81,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 
 	@Override
 	public Page<Job> findAll(Pageable pageable) {
-		List<Job> all = findAll();
-		if (CollectionUtils.isEmpty(all)) {
-			return new PageImpl<Job>(all);
-		}
-		Collections.sort(all);
-
-		int offSet = pageable.getOffset();
-		int size = pageable.getPageSize();
-
-		List<Job> page = new ArrayList<Job>();
-		for (int i = offSet; i < Math.min(all.size(), offSet + size); i++) {
-			page.add(all.get(i));
-		}
-
-		return new PageImpl<Job>(page, pageable, all.size());
+		return pagingUtility.getPagedData(pageable, findAll());
 	}
 
 	@Override

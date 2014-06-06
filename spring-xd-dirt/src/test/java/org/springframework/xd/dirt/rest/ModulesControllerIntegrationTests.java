@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,11 +143,11 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	public void testListAll() throws Exception {
 		mockMvc.perform(get("/modules").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-				jsonPath("$.content", Matchers.hasSize(13))).andExpect(jsonPath("$.content[0].name").value("source_0")).andExpect(
-				jsonPath("$.content[3].name").value("processor_0")).andExpect(
-				jsonPath("$.content[6].name").value("sink_0")).andExpect(
-				jsonPath("$.content[9].name").value("job_0")).andExpect(
-				jsonPath("$.content[12].name").value("job_4_with_resource"));
+				jsonPath("$.content", Matchers.hasSize(13))).andExpect(jsonPath("$.content[0].name").value("job_0")).andExpect(
+				jsonPath("$.content[3].name").value("job_4_with_resource")).andExpect(
+				jsonPath("$.content[6].name").value("processor_2")).andExpect(
+				jsonPath("$.content[9].name").value("sink_2")).andExpect(
+				jsonPath("$.content[12].name").value("source_2"));
 	}
 
 	@Test

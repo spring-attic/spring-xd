@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.module.store;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.xd.store.DomainRepository;
 
 /**
@@ -26,9 +27,9 @@ import org.springframework.xd.store.DomainRepository;
  */
 public interface ModuleMetadataRepository extends DomainRepository<ModuleMetadata, String> {
 
-	Page<ModuleMetadata> findAllByContainerId(String containerId);
+	Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId);
 
-	Page<ModuleMetadata> findAllByModuleId(String moduleId);
+	Page<ModuleMetadata> findAllByModuleId(Pageable pageable, String moduleId);
 
 	ModuleMetadata findOne(String containerId, String moduleId);
 

@@ -23,7 +23,7 @@ import java.util.Properties;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleMetadata {
+public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
 	private final String id;
 
@@ -55,5 +55,10 @@ public class ModuleMetadata {
 
 	public Properties getDeploymentProperties() {
 		return deploymentProperties;
+	}
+
+	@Override
+	public int compareTo(ModuleMetadata other) {
+		return this.getId().compareTo(other.getId());
 	}
 }

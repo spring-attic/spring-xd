@@ -85,9 +85,9 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		Page<ModuleMetadata> pageEntity3 = new PageImpl<>(entities3);
 		when(moduleMetadataRepository.findAll(pageable)).thenReturn(allPages);
 		when(moduleMetadataRepository.findAll()).thenReturn(all);
-		when(moduleMetadataRepository.findAllByContainerId("2")).thenReturn(pageEntity2);
+		when(moduleMetadataRepository.findAllByContainerId(pageable, "2")).thenReturn(pageEntity2);
 		when(moduleMetadataRepository.findOne("1", "s1.source.http-0")).thenReturn(entity1);
-		when(moduleMetadataRepository.findAllByModuleId("s3.job.myjob-0")).thenReturn(pageEntity3);
+		when(moduleMetadataRepository.findAllByModuleId(pageable, "s3.job.myjob-0")).thenReturn(pageEntity3);
 	}
 
 	@Test

@@ -90,7 +90,7 @@ public class ModulesMetadataController {
 	public PagedResources<ModuleMetadataResource> listByContainer(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler,
 			@RequestParam("containerId") String containerId) {
-		return assembler.toResource(this.moduleMetadataRepository.findAllByContainerId(containerId),
+		return assembler.toResource(this.moduleMetadataRepository.findAllByContainerId(pageable, containerId),
 				moduleMetadataResourceAssembler);
 	}
 
@@ -108,7 +108,7 @@ public class ModulesMetadataController {
 	public PagedResources<ModuleMetadataResource> listByModule(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler,
 			@RequestParam("moduleId") String moduleId) {
-		return assembler.toResource(this.moduleMetadataRepository.findAllByModuleId(moduleId),
+		return assembler.toResource(this.moduleMetadataRepository.findAllByModuleId(pageable, moduleId),
 				moduleMetadataResourceAssembler);
 	}
 

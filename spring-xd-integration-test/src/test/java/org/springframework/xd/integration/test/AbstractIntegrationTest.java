@@ -32,6 +32,7 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.fixtures.Jobs;
+import org.springframework.xd.integration.fixtures.Processors;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
@@ -86,6 +87,9 @@ public abstract class AbstractIntegrationTest {
 
 	@Autowired
 	protected Jobs jobs;
+
+	@Autowired
+	protected Processors processors;
 
 	@Autowired
 	protected ConfigUtil configUtil;
@@ -374,7 +378,6 @@ public abstract class AbstractIntegrationTest {
 	 * @param path The path/filename of the file on hdfs.  
 	 */
 	public void assertValidHdfs(String data, String path) {
-		waitForXD(pauseTime * 2000);
 		validation.verifyHdfsTestContent(data, path);
 	}
 
@@ -388,9 +391,9 @@ public abstract class AbstractIntegrationTest {
 	private void assertFileContains(String data, URL url, String streamName)
 	{
 		Assert.hasText(data, "data can not be empty nor null");
-		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
+		waitForPath(pauseTime * 2000, fileName);
 		validation.verifyContentContains(url, fileName, data);
 	}
 
@@ -405,9 +408,9 @@ public abstract class AbstractIntegrationTest {
 	private void assertFileContainsIgnoreCase(String data, URL url, String streamName)
 	{
 		Assert.hasText(data, "data can not be empty nor null");
-		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
+		waitForPath(pauseTime * 2000, fileName);
 		validation.verifyContentContainsIgnoreCase(url, fileName, data);
 	}
 
@@ -420,10 +423,34 @@ public abstract class AbstractIntegrationTest {
 	 */
 	private void assertValidFile(String data, URL url, String streamName)
 	{
-		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
+		waitForPath(pauseTime * 2000, fileName);
 		validation.verifyTestContent(url, fileName, data);
+	}
+
+	/**
+	 * Waits up to the timeout for the resource to be written to filesystem.
+	 *
+	 * @param waitTime The number of millis to wait.
+	 * @param path the path to the resource .
+	 * @return false if the path was not present. True if it was present.
+	 */
+	public boolean waitForPath(int waitTime, String path) {
+		long timeout = System.currentTimeMillis() + waitTime;
+		File file = new File(path);
+		boolean exists = file.exists();
+		while (!exists && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			exists = file.exists();
+		}
+		return exists;
 	}
 
 	/**

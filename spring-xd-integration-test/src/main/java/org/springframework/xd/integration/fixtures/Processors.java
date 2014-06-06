@@ -14,36 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.integration.test;
+package org.springframework.xd.integration.fixtures;
 
-import java.util.UUID;
-
-import org.junit.Test;
+import org.springframework.xd.test.fixtures.Transform;
 
 
 /**
- * Runs a basic suite of JMS Source tests on an XD Cluster instance.
+ * A factory that provides fully instantiated processor fixtures.
  *
  * @author Glenn Renfro
  */
-public class JmsTest extends AbstractIntegrationTest {
-
-
-	private static final String CONFIG_FILE = "jms-activemq";
+public class Processors {
 
 	/**
-	 * Verifies that the JMS retrieves the expected data.
-	 *
-	 * @throws Exception
+	 * Construct a new Transform fixture.
+	 * 
+	 * @return a Transform instance
 	 */
-	@Test
-	public void testJmsBasic() throws Exception {
-		String data = UUID.randomUUID().toString();
-		stream(sources.jms() + XD_DELIMITER + sinks.file());
-		sources.jms().ensureReady();
-		sources.jms().sendData(data);
-		assertValid(data, sinks.file());
-		assertReceived(1);
+	public Transform transform() {
+		return new Transform();
 	}
-
 }

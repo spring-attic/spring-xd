@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -70,7 +72,8 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  *
  * @see org.apache.curator.framework.recipes.leader.LeaderSelector
  */
-public class DeploymentSupervisor implements ContainerRepository, ApplicationListener<ApplicationEvent>, DisposableBean {
+public class DeploymentSupervisor implements ContainerRepository,
+		ApplicationListener<ApplicationEvent>, DisposableBean {
 
 	/**
 	 * Logger.
@@ -154,6 +157,15 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 	 * the ZooKeeper connection is established.
 	 */
 	private final ConnectionListener connectionListener = new ConnectionListener();
+
+	/**
+	 * Executor service used to execute Curator path cache events.
+	 *
+	 * @see #instantiatePathChildrenCache
+	 */
+	private final ExecutorService executorService =
+			Executors.newSingleThreadExecutor(ThreadUtils.newThreadFactory("DeploymentSupervisorCacheListener"));
+
 
 	/**
 	 * Construct a {@code DeploymentSupervisor}.
@@ -262,6 +274,24 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 	}
 
 	/**
+	 * Instantiate a Curator {@link PathChildrenCache} for the provided path with
+	 * the following parameters:
+	 * <ul>
+	 *     <li>node cache enabled</li>
+	 *     <li>data compression disabled</li>
+	 *     <li>executor service {@link #executorService} for invoking event handlers</li>
+	 * </ul>
+	 *
+	 * @param client the {@link CuratorFramework} client
+	 * @param path   the path for the cache
+	 * @return Curator path children cache
+	 */
+	private PathChildrenCache instantiatePathChildrenCache(CuratorFramework client, String path) {
+		return new PathChildrenCache(client, path, true, false, executorService);
+	}
+
+
+	/**
 	 * {@link ZooKeeperConnectionListener} implementation that requests leadership
 	 * upon connection to ZooKeeper.
 	 */
@@ -342,8 +372,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 						streamFactory,
 						containerMatcher);
 
-				streamDeployments = new PathChildrenCache(client, Paths.STREAM_DEPLOYMENTS, true,
-						ThreadUtils.newThreadFactory("StreamDeploymentsPathChildrenCache"));
+				streamDeployments = instantiatePathChildrenCache(client, Paths.STREAM_DEPLOYMENTS);
 				streamDeployments.getListenable().addListener(streamDeploymentListener);
 				streamDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
@@ -352,8 +381,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 						jobFactory,
 						containerMatcher);
 
-				jobDeployments = new PathChildrenCache(client, Paths.JOB_DEPLOYMENTS, true,
-						ThreadUtils.newThreadFactory("JobDeploymentsPathChildrenCache"));
+				jobDeployments = instantiatePathChildrenCache(client, Paths.JOB_DEPLOYMENTS);
 				jobDeployments.getListenable().addListener(jobDeploymentListener);
 				jobDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
@@ -365,8 +393,7 @@ public class DeploymentSupervisor implements ContainerRepository, ApplicationLis
 						jobDeployments,
 						containerMatcher);
 
-				PathChildrenCache containersCache = new PathChildrenCache(client, Paths.CONTAINERS, true,
-						ThreadUtils.newThreadFactory("ContainersPathChildrenCache"));
+				PathChildrenCache containersCache = instantiatePathChildrenCache(client, Paths.CONTAINERS);
 				containersCache.getListenable().addListener(containerListener);
 				containersCache.start();
 

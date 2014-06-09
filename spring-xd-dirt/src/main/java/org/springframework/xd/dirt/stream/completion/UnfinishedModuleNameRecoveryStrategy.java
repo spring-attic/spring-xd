@@ -51,7 +51,7 @@ public class UnfinishedModuleNameRecoveryStrategy extends
 	 */
 	@Autowired
 	public UnfinishedModuleNameRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
-		super(parser, NoSuchModuleException.class, "ht", "file | brid", "file | bridge | jd");
+		super(parser, NoSuchModuleException.class, "ht", "file | brid", "file | bridge | jd", "queue:foo > bar");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 

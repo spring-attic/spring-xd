@@ -31,11 +31,22 @@ public class CheckpointedStreamDefinitionException extends StreamDefinitionExcep
 
 	private List<Token> tokens;
 
+	private int tokenPointer;
 
-	public CheckpointedStreamDefinitionException(String expressionString, int position, int checkpointPointer,
-			List<Token> tokens, XDDSLMessages message,
-			Object... inserts) {
-		super(expressionString, position, message, inserts);
+	/**
+	 * Construct a new exception
+	 * @param expressionString the raw, untokenized text that was being parsed
+	 * @param textPosition the text offset where the error occurs
+	 * @param checkpointPointer the token-index of the last known good token
+	 * @param tokenPointer the token-index of token where the error occured
+	 * @param tokens the list of tokens that make up expressionString
+	 * @param message the error message
+	 * @param inserts variables that may be inserted in the error message
+	 */
+	public CheckpointedStreamDefinitionException(String expressionString, int textPosition, int tokenPointer,
+			int checkpointPointer, List<Token> tokens, XDDSLMessages message, Object... inserts) {
+		super(expressionString, textPosition, message, inserts);
+		this.tokenPointer = tokenPointer;
 		this.checkpointPointer = checkpointPointer;
 		this.tokens = tokens;
 	}
@@ -95,6 +106,11 @@ public class CheckpointedStreamDefinitionException extends StreamDefinitionExcep
 
 	public List<Token> getTokens() {
 		return tokens;
+	}
+
+
+	public int getTokenPointer() {
+		return tokenPointer;
 	}
 
 }

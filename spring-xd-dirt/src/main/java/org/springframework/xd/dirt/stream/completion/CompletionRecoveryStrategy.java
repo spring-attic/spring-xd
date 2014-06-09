@@ -32,7 +32,7 @@ public interface CompletionRecoveryStrategy<E extends Exception> {
 	/**
 	 * Whether this completion should be triggered.
 	 */
-	boolean shouldTrigger(Exception exception, CompletionKind kind);
+	boolean shouldTrigger(String dslStart, Exception exception, CompletionKind kind);
 
 	/**
 	 * Perform code completion by adding proposals to the {@code proposals} list.

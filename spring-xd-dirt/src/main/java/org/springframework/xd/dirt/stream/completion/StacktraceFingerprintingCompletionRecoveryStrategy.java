@@ -137,7 +137,7 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public boolean shouldTrigger(Exception exception, CompletionKind kind) {
+	public boolean shouldTrigger(String dslStart, Exception exception, CompletionKind kind) {
 		if (!exceptionClass.isAssignableFrom(exception.getClass())) {
 			return false;
 		}

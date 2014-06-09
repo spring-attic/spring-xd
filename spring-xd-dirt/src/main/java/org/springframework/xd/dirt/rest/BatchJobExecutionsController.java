@@ -42,6 +42,7 @@ import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
+import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 
@@ -79,10 +80,20 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 		Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
 		JobExecutionInfoResource jobExecutionInfoResource;
 		Collection<String> restartableJobs = jobLocator.getAllRestartableJobs();
+		Collection<String> deployedJobs = jobLocator.getJobNames();
+		Collection<String> jobDefinitionNames = getJobDefinitionNames();
 		for (JobExecution jobExecution : jobService.listJobExecutions(startJobExecution, pageSize)) {
 			jobExecutionInfoResource = jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution,
 					timeZone));
-			if (restartableJobs.contains(jobExecution.getJobInstance().getJobName())) {
+			String jobName = jobExecution.getJobInstance().getJobName();
+			if (jobDefinitionNames.contains(jobName) && !deployedJobs.contains(jobName)) {
+				jobExecutionInfoResource.setDeployed(false);
+			}
+			if (!jobDefinitionNames.contains(jobName)) {
+				jobExecutionInfoResource.setDeployed(false);
+				jobExecutionInfoResource.setDeleted(true);
+			}
+			if (restartableJobs.contains(jobName)) {
 				// Set restartable flag for the JobExecutionResource based on the actual JobInstance
 				// If any one of the jobExecutions for the jobInstance is complete, set the restartable flag for
 				// all the jobExecutions to false.
@@ -97,6 +108,20 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 			result.add(jobExecutionInfoResource);
 		}
 		return result;
+	}
+
+	/**
+	 * Get all existing job definition names.
+	 *
+	 * @return the collection of job definition names
+	 */
+	private Collection<String> getJobDefinitionNames() {
+		Collection<String> jobDefinitionNames = new ArrayList<String>();
+		Iterable<JobDefinition> jobDefinitions = xdJobDefinitionRepository.findAll();
+		for (JobDefinition definition : jobDefinitions) {
+			jobDefinitionNames.add(definition.getName());
+		}
+		return jobDefinitionNames;
 	}
 
 	/**

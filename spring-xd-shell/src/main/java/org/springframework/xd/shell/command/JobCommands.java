@@ -141,7 +141,8 @@ public class JobCommands implements CommandMarker {
 				.addHeader(2, new TableHeader("Job Name"))
 				.addHeader(3, new TableHeader("Start Time"))
 				.addHeader(4, new TableHeader("Step Execution Count"))
-				.addHeader(5, new TableHeader("Status"));
+				.addHeader(5, new TableHeader("Execution Status"))
+				.addHeader(6, new TableHeader("Deployment Status"));
 
 		for (JobExecutionInfoResource jobExecutionInfoResource : jobExecutions) {
 			final TableRow row = new TableRow();
@@ -153,7 +154,8 @@ public class JobCommands implements CommandMarker {
 					.addValue(2, jobExecutionInfoResource.getName())
 					.addValue(3, startTimeAsString)
 					.addValue(4, String.valueOf(jobExecutionInfoResource.getStepExecutionCount()))
-					.addValue(5, jobExecutionInfoResource.getJobExecution().getStatus().name());
+					.addValue(5, jobExecutionInfoResource.getJobExecution().getStatus().name())
+					.addValue(6, (jobExecutionInfoResource.isDeployed()) ? "Deployed" : "Undeployed");
 			table.getRows().add(row);
 		}
 
@@ -259,7 +261,7 @@ public class JobCommands implements CommandMarker {
 				.addRow("Running", String.valueOf(jobExecutionInfoResource.getJobExecution().isRunning()))
 				.addRow("Stopping", String.valueOf(jobExecutionInfoResource.getJobExecution().isStopping()))
 				.addRow("Step Execution Count", String.valueOf(jobExecutionInfoResource.getStepExecutionCount()))
-				.addRow("Status", jobExecutionInfoResource.getJobExecution().getStatus().name());
+				.addRow("Execution Status", jobExecutionInfoResource.getJobExecution().getStatus().name());
 
 		details.append(jobExecutionTable);
 

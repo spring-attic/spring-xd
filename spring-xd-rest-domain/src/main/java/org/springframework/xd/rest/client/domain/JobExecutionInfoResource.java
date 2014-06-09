@@ -76,6 +76,10 @@ public class JobExecutionInfoResource extends ResourceSupport {
 
 	private boolean stoppable = false;
 
+	private boolean deployed = true;
+
+	private boolean deleted = false;
+
 	private JobParametersConverter converter = new DefaultJobParametersConverter();
 
 	private final TimeZone timeZone;
@@ -168,6 +172,14 @@ public class JobExecutionInfoResource extends ResourceSupport {
 		return stoppable;
 	}
 
+	public boolean isDeployed() {
+		return deployed;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
 	public String getJobParametersString() {
 		return jobParametersString;
 	}
@@ -183,5 +195,23 @@ public class JobExecutionInfoResource extends ResourceSupport {
 	 */
 	public void setRestartable(boolean restartable) {
 		this.restartable = restartable;
+	}
+
+	/**
+	 * Set deployed flag
+	 *
+	 * @param deployed flag to identify if the job for the given job execution is deployed.
+	 */
+	public void setDeployed(boolean deployed) {
+		this.deployed = deployed;
+	}
+
+	/**
+	 * Set deleted flag explicitly if the job doesn't exist in job definition
+	 *
+	 * @param deleted flag to identify if the job for the given job execution is deleted.
+	 */
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
 	}
 }

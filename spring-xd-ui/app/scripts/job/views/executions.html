@@ -16,7 +16,8 @@
 	</thead>
 	<tbody>
 		<tr ng-repeat="item in jobExecutions | filter:filterQuery">
-			<td>{{item.name}}</td>
+			<td>{{item.name}}&nbsp;<span class="label label-danger" ng-show="item.deleted">Deleted</span>
+            <span class="label label-warning" ng-show="!item.deleted && !item.deployed">Undeployed</span></td>
             <td class="text-center">{{item.jobExecution.jobInstance.id}}</td>
             <td class="text-center">{{item.jobExecution.id}}</td>
 			<td>{{item.startDate}} {{item.startTime}}</td>

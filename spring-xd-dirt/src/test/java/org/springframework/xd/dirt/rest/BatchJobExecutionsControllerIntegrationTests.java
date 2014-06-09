@@ -176,7 +176,9 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$[*].executionId", contains(0, 3))).andExpect(
 				jsonPath("$[*].jobExecution[*].stepExecutions", Matchers.hasSize(3))).andExpect(
-				jsonPath("$[*].jobId", contains(0, 2))).andExpect(jsonPath("$[*].jobExecution[*].id", contains(0, 3))).andExpect(
+				jsonPath("$[*].jobId", contains(0, 2))).andExpect(jsonPath("$[*].deleted", contains(true, true))).andExpect(
+				jsonPath("$[*].deployed", contains(false, false))).andExpect(
+				jsonPath("$[*].jobExecution[*].id", contains(0, 3))).andExpect(
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.value", contains("test", "test"))).andExpect(
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.type", contains("STRING", "STRING"))).andExpect(
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.identifying", contains(true, true))).andExpect(

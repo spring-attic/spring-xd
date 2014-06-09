@@ -100,6 +100,9 @@ spring:
     username: root
     password:
     driverClassName: com.mysql.jdbc.Driver
+    testOnBorrow: true
+    validationQuery: select 1
+    validationInterval: 30000
 ---
 
 spring:
@@ -117,6 +120,9 @@ embeddedHsql: true
     username: sa
     password:
     driverClassName: org.hsqldb.jdbc.JDBCDriver
+    testOnBorrow: true
+    validationQuery: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
+    validationInterval: 30000
 ---
 
 # Redis properties

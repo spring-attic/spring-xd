@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.stream.completion;
 
 import static org.springframework.xd.module.ModuleType.job;
 import static org.springframework.xd.module.ModuleType.processor;
+import static org.springframework.xd.module.ModuleType.sink;
 import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.List;
@@ -26,16 +27,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
+import org.springframework.xd.dirt.stream.dsl.TokenKind;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
- * Provides completion when the user has typed in an empty string signaling the start of a new job or stream source,
- * processor, or sink definition.
+ * Proposes module names when the user has either<ul>
+ * <li>typed nothing</li>
+ * <li>typed a channel name followed by a ">"</li>
+ * </ul>
  * 
  * @author Eric Bottard
  */
@@ -54,7 +59,7 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 	@Autowired
 	public EmptyStartYieldsModulesRecoveryStrategy(XDParser parser,
 			ModuleDefinitionRepository moduleDefinitionRepository) {
-		super(parser, CheckpointedStreamDefinitionException.class, "");
+		super(parser, CheckpointedStreamDefinitionException.class, "", "queue:foo >");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 
@@ -62,25 +67,42 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 	@SuppressWarnings("fallthrough")
 	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind,
 			List<String> proposals) {
-		switch (kind) {
-			case module:
-				// Add processors
-				addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), processor);
-				// FALL THRU as composed modules can be either
-				// source | processors - or -
-				// processors | sink
-			case stream:
-				// Add sources
-				addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), source);
-				break;
-			case job:
-				// Add jobs
-				addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), job);
-				break;
+		if ("".equals(dsl)) {
+			switch (kind) {
+				case module:
+					// Add processors
+					addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), processor);
+					// FALL THRU as composed modules can be either
+					// source | processors - or -
+					// processors | sink
+				case stream:
+					// Add sources
+					addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), source);
+					break;
+				case job:
+					// Add jobs
+					addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), job);
+					break;
 
-			default:
-				break;
+				default:
+					break;
+			}
+		} // There *was* some text, make sure it was a channel prefix
+		else if (exception.getTokenPointer() > 0) {
+			Assert.isTrue(exception.getTokens().get(exception.getTokenPointer() - 1).getKind() == TokenKind.GT);
+			switch (kind) {
+				case stream:
+					addAllModulesOfType(proposals, dsl, processor);
+					addAllModulesOfType(proposals, dsl, sink);
+					break;
+				case job:
+				case module:
+				default:
+					break;
+			}
 		}
+
+
 	}
 
 	private void addAllModulesOfType(List<String> results, String start, ModuleType type) {

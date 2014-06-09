@@ -273,6 +273,34 @@ public class CompletionProviderTests {
 		assertThat(completions, not(hasItem(startsWith("transform | syslog-tcp"))));
 	}
 
+	@Test
+	// queue:foo > <TAB>  ==> add module names
+	public void testXD1706() {
+		List<String> completions = completionProvider.complete(stream, "queue:foo > ");
+		assertThat(completions, hasItem(startsWith("queue:foo > http-client")));
+		assertThat(completions, hasItem(startsWith("queue:foo > splunk")));
+		assertThat(completions, not(hasItem(startsWith("queue:foo > twittersearch"))));
+	}
+
+	@Test
+	// tap:stream:foo > <TAB>  ==> add module names
+	public void testXD1706Variant() {
+		List<String> completions = completionProvider.complete(stream, "tap:stream:foo > ");
+		assertThat(completions, hasItem(startsWith("tap:stream:foo > http-client")));
+		assertThat(completions, hasItem(startsWith("tap:stream:foo > splunk")));
+		assertThat(completions, not(hasItem(startsWith("tap:stream:foo > twittersearch"))));
+	}
+
+	@Test
+	public void testCompleteAlreadyStartedNameAfterChannel() {
+		List<String> completions = completionProvider.complete(stream, "queue:foo > s");
+		// XD-1830: Currently does not support adding processors due do the way
+		// module type guessing works
+		//assertThat(completions, hasItem(startsWith("queue:foo > splitter")));
+		assertThat(completions, hasItem(startsWith("queue:foo > splunk")));
+		assertThat(completions, not(hasItem(startsWith("queue:foo > syslog"))));
+	}
+
 	private List<String> namesOfModulesWithType(ModuleType type) {
 		Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
 		List<String> result = new ArrayList<String>();

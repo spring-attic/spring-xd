@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -139,7 +140,8 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		jobExecutions1.add(jobExecution1);
 		jobExecutions1.add(jobExecution2);
 		jobExecutions2.add(jobExecution2);
-		when(jobLocator.getJobNames()).thenReturn(jobNames);
+		// all the jobs are undeployed/deleted.
+		when(jobLocator.getJobNames()).thenReturn(Collections.<String> emptyList());
 		when(jobLocator.isRestartable("job1")).thenReturn(true);
 		when(jobService.listJobs(0, 20)).thenReturn(jobNames);
 		when(jobService.countJobExecutionsForJob(job1.getName())).thenReturn(2);
@@ -176,7 +178,9 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$[*].executionId", contains(0, 3))).andExpect(
 				jsonPath("$[*].jobExecution[*].stepExecutions", Matchers.hasSize(3))).andExpect(
-				jsonPath("$[*].jobId", contains(0, 2))).andExpect(jsonPath("$[*].jobExecution[*].id", contains(0, 3))).andExpect(
+				jsonPath("$[*].jobId", contains(0, 2))).andExpect(jsonPath("$[*].deleted", contains(true, true))).andExpect(
+				jsonPath("$[*].deployed", contains(false, false))).andExpect(
+				jsonPath("$[*].jobExecution[*].id", contains(0, 3))).andExpect(
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.value", contains("test", "test"))).andExpect(
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.type", contains("STRING", "STRING"))).andExpect(
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.identifying", contains(true, true))).andExpect(

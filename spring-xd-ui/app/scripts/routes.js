@@ -159,6 +159,7 @@ define(['./app'], function (xdAdmin) {
       templateUrl : jobTemplatesPath + '/module-details.html',
       controller: 'ModuleDetailsController',
       data:{
+        title: 'Module Details',
         authenticate: true
       }
     })
@@ -167,6 +168,7 @@ define(['./app'], function (xdAdmin) {
       templateUrl : jobTemplatesPath + '/module-create-definition.html',
       controller: 'ModuleCreateDefinitionController',
       data:{
+        title: 'Module Create Definition',
         authenticate: true
       }
     });

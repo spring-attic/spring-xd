@@ -75,7 +75,7 @@ This will implicitly also install a local [Node.js][] instance.
 ### Other Gradle tasks
 
 * **ui_test** - Runs all tests (incl. E2E) with an XD Single Node instance in the background
-* **cleanUI** - clean Node Modules, Bower files, clean dist folder 
+* **cleanUI** - clean Node Modules, Bower files, clean dist folder
 
 | **Important** If End-to-End (E2E) testing fails, you may have to execute `./node_modules/protractor/bin/webdriver-manager update`.
 
@@ -111,7 +111,7 @@ Use [https://github.com/tjunnone/npm-check-updates](https://github.com/tjunnone/
 
 # E2E Testing using Protractor
 
-End-to-End tests are executed using [Protractor][]. By default we use [ChromeDriver][]. 
+End-to-End tests are executed using [Protractor][]. By default we use [ChromeDriver][].
 
 | **Note**: Chrome Driver "expects you to have Chrome installed in the default location for each system", e.g. for Mac it is: `/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome`. For further details, please see: https://code.google.com/p/selenium/wiki/ChromeDriver
 
@@ -121,12 +121,21 @@ When running E2E tests, you may need to execute first: `./node_modules/protracto
 
 In order to improve the situation we may consider adding a special Grunt task for that as illustrated here: http://gitelephant.cypresslab.net/angular-js/commit/2ed4ad55022f6e5519617a3797649fe1e68f3734
 
+## Protractor in Debug Mode
+
+During development you can use the provided script `e2e-test.sh` to run the E2E tests
+against a running Admin UI instance. If you like to run Protractor in debug mode,
+execute:
+
+    $ ./e2e-test.sh debug
+
 
 [AngularJS]: http://angularjs.org/
 [AngularJS generator]: https://github.com/yeoman/generator-angular
 [Yeoman]: http://yeoman.io/
 [ngRoute]: http://docs.angularjs.org/api/ngRoute
 [AngularUI Router]: https://github.com/angular-ui/ui-router
+[Gradle]: http://www.gradle.org/
 [Grunt]: http://gruntjs.com/
 [Bower]: http://bower.io/
 [Node.js]: http://nodejs.org/

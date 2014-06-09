@@ -42,7 +42,7 @@
     "karma": "~0.12.1",
     "karma-ng-html2js-preprocessor": "~0.1.0",
     "phantomjs": "~1.9.7-1",
-    "protractor": "~0.22.0",
+    "protractor": "~0.24.0",
     "grunt-protractor-runner": "~0.2.4",
     "grunt-contrib-nodeunit": "~0.3.3"
   },

@@ -656,6 +656,9 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 			if (c == 0) {
 				c = label.compareTo(other.getLabel());
 			}
+			if (c == 0) {
+				c = group.compareTo(other.getGroup());
+			}
 			return c;
 		}
 

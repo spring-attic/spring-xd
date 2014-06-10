@@ -172,10 +172,20 @@ public class JobExecutionInfoResource extends ResourceSupport {
 		return stoppable;
 	}
 
+	/**
+	 * Check if the job is deployed.
+	 *
+	 * @return the boolean value to specify if the job is deployed.
+	 */
 	public boolean isDeployed() {
 		return deployed;
 	}
 
+	/**
+	 * Check if the job definition is deleted/destroyed.
+	 *
+	 * @returnn the boolean value to specify if the job is deleted.
+	 */
 	public boolean isDeleted() {
 		return deleted;
 	}

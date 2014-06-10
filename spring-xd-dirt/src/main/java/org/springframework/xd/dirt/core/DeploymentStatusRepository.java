@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.dirt.core;
 
-import org.springframework.xd.dirt.core.DeploymentStatusRepository;
-import org.springframework.xd.store.DomainRepository;
-
+import java.io.Serializable;
 
 /**
- * A repository for persisting {@link Job} instances.
+ * Interface definition for repositories that support the reporting
+ * of deployment unit state.
  *
- * @author Eric Bottard
+ * @author Patrick Peralta
  */
-public interface JobRepository extends DomainRepository<Job, String>,
-		DeploymentStatusRepository<Job, String> {
+public interface DeploymentStatusRepository<T, ID extends Serializable & Comparable<ID>> {
 
+	/**
+	 * For the given deployment unit id, return the deployment status.
+	 *
+	 * @param id id for deployment unit
+	 * @return deployment status
+	 */
+	DeploymentUnitStatus getDeploymentStatus(ID id);
 }

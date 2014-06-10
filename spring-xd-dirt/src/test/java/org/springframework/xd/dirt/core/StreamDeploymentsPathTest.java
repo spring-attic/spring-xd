@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.core;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import java.util.UUID;
 
@@ -27,17 +26,24 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.module.ModuleType;
 
 /**
+ * Unit tests for {@link StreamDeploymentsPath}.
+ *
  * @author Patrick Peralta
  */
 public class StreamDeploymentsPathTest {
 
+	/**
+	 * Test the usage of {@link StreamDeploymentsPath} when
+	 * providing the entire path. Assert that the path is parsed
+	 * and generated as expected.
+	 */
 	@Test
 	public void testFullPath() {
 		String streamName = "my-stream";
 		String moduleType = ModuleType.source.toString();
 		String moduleLabel = "my-label";
 		String container = UUID.randomUUID().toString();
-		String path = Paths.buildWithNamespace(Paths.STREAM_DEPLOYMENTS, streamName,
+		String path = Paths.buildWithNamespace(Paths.STREAM_DEPLOYMENTS, streamName, Paths.MODULES,
 				String.format("%s.%s.%s", moduleType, moduleLabel, container));
 
 		StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(path);
@@ -56,18 +62,15 @@ public class StreamDeploymentsPathTest {
 		assertEquals(path, streamDeploymentsPathEmptyCtor.buildWithNamespace());
 	}
 
-	@Test
+	/**
+	 * Assert that an {@link java.lang.IllegalStateException} is thrown
+	 * when attempting to build an incomplete {@link StreamDeploymentsPath}.
+	 */
+	@Test(expected=IllegalStateException.class)
 	public void testStreamNameOnly() {
 		String streamName = "my-stream";
-		String path = Paths.build(Paths.STREAM_DEPLOYMENTS, streamName);
 		StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath().setStreamName(streamName);
 
-		assertEquals(path, streamDeploymentsPath.build());
-
-		StreamDeploymentsPath fromPath = new StreamDeploymentsPath(path);
-		assertEquals(streamName, fromPath.getStreamName());
-		assertNull(fromPath.getModuleType());
-		assertNull(fromPath.getModuleLabel());
-		assertNull(fromPath.getContainer());
+		streamDeploymentsPath.build();
 	}
 }

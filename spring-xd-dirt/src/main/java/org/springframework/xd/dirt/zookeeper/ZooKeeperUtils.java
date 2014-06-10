@@ -18,16 +18,49 @@ package org.springframework.xd.dirt.zookeeper;
 
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.slf4j.Logger;
 
+import org.springframework.xd.dirt.util.MapBytesUtility;
+
 /**
  * Utility methods for ZooKeeper.
+ *
  * @author David Turanski
+ * @author Patrick Peralta
  */
 public abstract class ZooKeeperUtils {
+
+	/**
+	 * Utility to convert byte arrays to maps of strings.
+	 */
+	private static final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+
+
+	/**
+	 * Convert a map of string key/value pairs to a JSON string in a byte array.
+	 *
+	 * @param map map to convert
+	 *
+	 * @return byte array
+	 */
+	public static byte[] mapToBytes(Map<String, String> map) {
+		return mapBytesUtility.toByteArray(map);
+	}
+
+	/**
+	 * Convert a byte array containing a JSON string to a map of key/value pairs.
+	 *
+	 * @param bytes byte array containing the key/value pair strings
+	 *
+	 * @return a new map instance containing the key/value pairs
+	 */
+	public static Map<String, String> bytesToMap(byte[] bytes) {
+		return mapBytesUtility.toMap(bytes);
+	}
 
 	/**
 	 * Utility method to wrap a Throwable in a {@link ZooKeeperAccessException}.

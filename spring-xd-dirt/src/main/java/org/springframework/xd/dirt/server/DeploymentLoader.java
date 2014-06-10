@@ -64,15 +64,15 @@ public class DeploymentLoader {
 	public Job loadJob(CuratorFramework client, String jobName,
 			JobFactory jobFactory) throws Exception {
 		try {
-				byte[] definition = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
-				Map<String, String> definitionMap = mapBytesUtility.toMap(definition);
+			byte[] definition = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
+			Map<String, String> definitionMap = mapBytesUtility.toMap(definition);
 
-				byte[] deploymentPropertiesData = client.getData().forPath(
-						Paths.build(Paths.JOB_DEPLOYMENTS, jobName));
-				if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
-					definitionMap.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
-				}
-				return jobFactory.createJob(jobName, definitionMap);
+			byte[] deploymentPropertiesData = client.getData().forPath(
+					Paths.build(Paths.JOB_DEPLOYMENTS, jobName));
+			if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
+				definitionMap.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
+			}
+			return jobFactory.createJob(jobName, definitionMap);
 		}
 		catch (KeeperException.NoNodeException e) {
 			// job is not deployed

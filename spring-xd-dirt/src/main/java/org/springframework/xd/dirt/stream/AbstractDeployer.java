@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.stream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ResourceDeployer;
+import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDescriptor;
 
@@ -189,15 +193,22 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			throwNoSuchDefinitionException(name);
 		}
 		try {
-			byte[] data = properties != null ? properties.getBytes("UTF-8") : null;
-			zkConnection.getClient().create().creatingParentsIfNeeded().forPath(getDeploymentPath(definition), data);
+			String deploymentPath = getDeploymentPath(definition);
+			String statusPath = Paths.build(deploymentPath, Paths.STATUS);
+			byte[] propertyBytes = properties != null ? properties.getBytes("UTF-8") : null;
+			byte[] statusBytes = ZooKeeperUtils.mapToBytes(
+					new DeploymentUnitStatus(DeploymentUnitStatus.State.deploying).toMap());
+
+			zkConnection.getClient().inTransaction()
+					.create().forPath(deploymentPath, propertyBytes).and()
+					.create().withMode(CreateMode.EPHEMERAL).forPath(statusPath, statusBytes).and()
+					.commit();
 		}
 		catch (KeeperException.NodeExistsException e) {
-			// todo: is this the right exception to throw here?
-			throw new IllegalStateException(String.format("Stream %s is already deployed", name));
+			throw new IllegalStateException(String.format("'%s' is already deployed", name));
 		}
 		catch (Exception e) {
-			throw new RuntimeException(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return definition;
 	}

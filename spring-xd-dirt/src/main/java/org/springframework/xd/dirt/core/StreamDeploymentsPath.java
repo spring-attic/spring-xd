@@ -29,12 +29,10 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * </pre>
  * It can also be used to build a path, for example:
  * <pre>
- * StreamDeploymentsPath path = new StreamDeploymentsPath().setStreamName("my-stream");
+ * StreamDeploymentsPath path = new StreamDeploymentsPath().setStreamName("my-stream")...
  * assertEquals("/deployments/streams/my-stream", path.build());
  * </pre>
- * Note that when building a full deployment path a module label, module type, and
- * container must all be set; if one of these is omitted an {@code IllegalStateException}
- * will be thrown upon invocation of {@link #build}.
+ * Note that all fields must be set prior to invoking {@link #build}.
  *
  * @author Patrick Peralta
  */
@@ -56,9 +54,14 @@ public class StreamDeploymentsPath {
 	private static final int STREAM_NAME = 2;
 
 	/**
+	 * Index for {@link Paths#MODULES} in {@link #elements} array.
+	 */
+	private static final int MODULES = 3;
+
+	/**
 	 * Index for dot delimited module deployment description in {@link #elements} array.
 	 */
-	private static final int DEPLOYMENT_DESC = 3;
+	private static final int DEPLOYMENT_DESC = 4;
 
 	/**
 	 * Index for module type in {@link #deploymentDesc} array.
@@ -78,7 +81,7 @@ public class StreamDeploymentsPath {
 	/**
 	 * Array of path elements.
 	 */
-	private final String[] elements = new String[4];
+	private final String[] elements = new String[5];
 
 	/**
 	 * Array of module deployment description elements.
@@ -94,6 +97,7 @@ public class StreamDeploymentsPath {
 	public StreamDeploymentsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;
 		elements[STREAMS] = Paths.STREAMS;
+		elements[MODULES] = Paths.MODULES;
 	}
 
 	/**
@@ -128,11 +132,13 @@ public class StreamDeploymentsPath {
 
 		System.arraycopy(pathElements, offset, elements, 0, pathElements.length - offset);
 		Assert.state(elements[DEPLOYMENTS].equals(Paths.DEPLOYMENTS));
+		Assert.state(elements[MODULES].equals(Paths.MODULES));
 
 		if (elements[DEPLOYMENT_DESC] != null) {
+			int deploymentDescCount = deploymentDesc.length;
 			String[] deploymentElements = elements[DEPLOYMENT_DESC].split(" ")[0].split("\\.");
-			Assert.state(deploymentElements.length == 3);
-			System.arraycopy(deploymentElements, 0, deploymentDesc, 0, 3);
+			Assert.state(deploymentElements.length == deploymentDescCount);
+			System.arraycopy(deploymentElements, 0, deploymentDesc, 0, deploymentDescCount);
 		}
 
 	}
@@ -225,77 +231,39 @@ public class StreamDeploymentsPath {
 	 * Build the path string using the field values.
 	 *
 	 * @return path string
-	 * @throws java.lang.IllegalStateException if partial deployment info is present
-	 *         (for example, if module type/label is present but container is missing)
+	 * @throws java.lang.IllegalStateException if there are missing fields
 	 * @see Paths#build
 	 */
 	public String build() throws IllegalStateException {
-		elements[DEPLOYMENT_DESC] = (hasDeploymentInfo())
-				? String.format("%s.%s.%s", deploymentDesc[MODULE_TYPE],
-						deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER])
-				: null;
-		return Paths.build(stripNullElements());
+		validate();
+		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s", deploymentDesc[MODULE_TYPE],
+						deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER]);
+		return Paths.build(elements);
 	}
 
 	/**
 	 * Build the path string using the field values, including the namespace prefix.
 	 *
 	 * @return path string with namespace
-	 * @throws java.lang.IllegalStateException if partial deployment info is present
-	 *         (for example, if module type/label is present but container is missing)
-	 * @see Paths#buildWithNamespace
+	 * @throws java.lang.IllegalStateException if there are missing fields	 * @see Paths#buildWithNamespace
 	 */
 	public String buildWithNamespace() throws IllegalStateException {
-		elements[DEPLOYMENT_DESC] = (hasDeploymentInfo())
-				? String.format("%s.%s.%s", deploymentDesc[MODULE_TYPE],
-						deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER])
-				: null;
-		return Paths.buildWithNamespace(stripNullElements());
+		validate();
+		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s",
+				deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER]);
+		return Paths.buildWithNamespace(elements);
 	}
 
 	/**
-	 * Return true if this path contains module deployment info
-	 * (module type, module label, container). If false, this indicates
-	 * the path only contains the stream name.
+	 * Assert that all fields are populated.
 	 *
-	 * @return true if this path contains module deployment info
-	 * @throws java.lang.IllegalStateException if partial deployment info is present
-	 *         (for example, if module type/label is present but container is missing)
+	 * @throws java.lang.IllegalStateException if there are missing fields
 	 */
-	private boolean hasDeploymentInfo() {
-		boolean hasValue = false;
-		for (String s : deploymentDesc) {
-			hasValue |= StringUtils.hasText(s);
-		}
-		if (!hasValue) {
-			return false;
-		}
+	private void validate() {
+		Assert.state(StringUtils.hasText(elements[STREAM_NAME]), "Stream name missing");
 		Assert.state(StringUtils.hasText(deploymentDesc[MODULE_TYPE]), "Module type missing");
 		Assert.state(StringUtils.hasText(deploymentDesc[MODULE_LABEL]), "Module label missing");
 		Assert.state(StringUtils.hasText(deploymentDesc[CONTAINER]), "Container missing");
-
-		return true;
-	}
-
-	/**
-	 * Return an array omitting the null values in {@link #elements}.
-	 *
-	 * @return {@code elements} array without null values
-	 */
-	protected String[] stripNullElements() {
-		int i = elements.length;
-
-		// assuming that 'i' will never be < 0 because
-		// both constructors assign a value to elements[0]
-		while (elements[i - 1] == null) {
-			--i;
-		}
-		if (i == elements.length) {
-			return elements;
-		}
-		String[] s = new String[i];
-		System.arraycopy(elements, 0, s, 0, i);
-		return s;
 	}
 
 	/**

@@ -12,6 +12,8 @@
 
 	<bean id="containerMatcher" class="org.springframework.xd.dirt.cluster.DefaultContainerMatcher"/>
 
+	<bean id="stateCalculator" class="org.springframework.xd.dirt.core.DefaultStateCalculator" />
+
 	<bean id="deploymentSupervisor" class="org.springframework.xd.dirt.server.DeploymentSupervisor">
 		<constructor-arg ref="zooKeeperConnection"/>
 		<constructor-arg ref="containerRepository"/>
@@ -20,6 +22,7 @@
 		<constructor-arg ref="moduleDefinitionRepository"/>
 		<constructor-arg ref="moduleOptionsMetadataResolver"/>
 		<constructor-arg ref="containerMatcher"/>
+		<constructor-arg ref="stateCalculator"/>
 	</bean>
 
 </beans>

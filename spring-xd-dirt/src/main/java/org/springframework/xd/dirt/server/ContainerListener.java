@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.Container;
@@ -44,6 +45,9 @@ import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.cluster.RedeploymentContainerMatcher;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.core.DeploymentUnitStateCalculator;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.dirt.core.DeploymentUnit;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
@@ -122,6 +126,11 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private final PathChildrenCache streamDeployments;
 
+	/**
+	 * State calculator for stream/job state.
+	 */
+	private final DeploymentUnitStateCalculator stateCalculator;
+
 
 	/**
 	 * Construct a ContainerListener.
@@ -132,12 +141,13 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param streamDeployments cache of children for stream deployments path
 	 * @param jobDeployments cache of children for job deployments path
 	 * @param containerMatcher matches modules to containers
+	 * @param stateCalculator calculator for stream/job state
 	 */
 	public ContainerListener(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository,
 			StreamFactory streamFactory, JobFactory jobFactory,
 			PathChildrenCache streamDeployments, PathChildrenCache jobDeployments,
-			ContainerMatcher containerMatcher) {
+			ContainerMatcher containerMatcher, DeploymentUnitStateCalculator stateCalculator) {
 		this.containerMatcher = containerMatcher;
 		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
 				containerRepository, containerMatcher);
@@ -145,6 +155,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 		this.jobFactory = jobFactory;
 		this.streamDeployments = streamDeployments;
 		this.jobDeployments = jobDeployments;
+		this.stateCalculator = stateCalculator;
 	}
 
 	/**
@@ -215,8 +226,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 				// properties. As a result, if this module had a partition index
 				// assigned to it, it will no longer be associated with that
 				// partition index. This will be fixed in the future.
-				ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
-						job.getDeploymentProperties(), descriptor);
+				ModuleDeploymentProperties moduleDeploymentProperties =
+						DeploymentPropertiesUtility.createModuleDeploymentProperties(
+								job.getDeploymentProperties(), descriptor);
 				if (isCandidateForDeployment(container, descriptor, moduleDeploymentProperties)) {
 					int moduleCount = moduleDeploymentProperties.getCount();
 					if (moduleCount <= 0 || getContainersForJobModule(client, descriptor).size() < moduleCount) {
@@ -226,14 +238,18 @@ public class ContainerListener implements PathChildrenCacheListener {
 						logger.info("Deploying module {} to {}",
 								descriptor.getModuleDefinition().getName(), container);
 
+						ModuleDeploymentStatus deploymentStatus = null;
+						ModuleDeployment moduleDeployment = new ModuleDeployment(job,
+								descriptor, moduleDeploymentProperties);
 						try {
-							ModuleDeploymentWriter.Result result =
-									moduleDeploymentWriter.writeDeployment(descriptor, container);
-							moduleDeploymentWriter.validateResult(result);
+							deploymentStatus = deployModule(client, moduleDeployment, container);
 						}
 						catch (NoContainerException e) {
 							logger.warn("Could not deploy job {} to container {}; " +
 									"this container may have just departed the cluster", job.getName(), container);
+						}
+						finally {
+							updateDeploymentUnitState(client, moduleDeployment, deploymentStatus);
 						}
 					}
 				}
@@ -256,14 +272,16 @@ public class ContainerListener implements PathChildrenCacheListener {
 	private void redeployStreams(CuratorFramework client, Container container) throws Exception {
 		// iterate the cache of stream deployments
 		for (Iterator<String> streamDeploymentIterator =
-				new ChildPathIterator<String>(deploymentNameConverter, streamDeployments); streamDeploymentIterator.hasNext();) {
+				new ChildPathIterator<String>(deploymentNameConverter, streamDeployments);
+						streamDeploymentIterator.hasNext();) {
 			String streamName = streamDeploymentIterator.next();
-			Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
+			final Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
 
 			// if stream is null this means the stream was destroyed or undeployed
 			if (stream != null) {
-				for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
-					ModuleDescriptor descriptor = descriptorIterator.next();
+				for (Iterator<ModuleDescriptor> descriptorIterator =
+							stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
+					final ModuleDescriptor moduleDescriptor = descriptorIterator.next();
 
 					// See XD-1777: in order to support partitioning we now include
 					// module deployment properties in the module deployment request
@@ -272,29 +290,34 @@ public class ContainerListener implements PathChildrenCacheListener {
 					// properties. As a result, if this module had a partition index
 					// assigned to it, it will no longer be associated with that
 					// partition index. This will be fixed in the future.
-					ModuleDeploymentProperties moduleDeploymentProperties = DeploymentPropertiesUtility.createModuleDeploymentProperties(
-							stream.getDeploymentProperties(), descriptor);
+					final ModuleDeploymentProperties moduleDeploymentProperties =
+							DeploymentPropertiesUtility.createModuleDeploymentProperties(
+									stream.getDeploymentProperties(), moduleDescriptor);
 
-					if (isCandidateForDeployment(container, descriptor, moduleDeploymentProperties)) {
+					if (isCandidateForDeployment(container, moduleDescriptor, moduleDeploymentProperties)) {
 						// this container has not deployed this module; determine if it should
 						int moduleCount = moduleDeploymentProperties.getCount();
-						if (moduleCount <= 0 || getContainersForStreamModule(client, descriptor).size() < moduleCount) {
+						if (moduleCount <= 0 || getContainersForStreamModule(client, moduleDescriptor).size() < moduleCount) {
 							// either the module has a count of 0 (therefore it should be deployed everywhere)
 							// or the number of containers that have deployed the module is less than the
 							// amount specified by the module descriptor
 							logger.info("Deploying module {} to {}",
-									descriptor.getModuleDefinition().getName(), container);
+									moduleDescriptor.getModuleDefinition().getName(), container);
 
+							ModuleDeploymentStatus deploymentStatus = null;
+							ModuleDeployment moduleDeployment =  new ModuleDeployment(
+									stream, moduleDescriptor, moduleDeploymentProperties);
 							try {
-								ModuleDeploymentWriter.Result result =
-										moduleDeploymentWriter.writeDeployment(descriptor, container);
-								moduleDeploymentWriter.validateResult(result);
+								deploymentStatus = deployModule(client, moduleDeployment, container);
 							}
 							catch (NoContainerException e) {
 								logger.warn("Could not deploy module {} for stream {} to container {}; " +
 										"this container may have just departed the cluster",
-										descriptor.getModuleDefinition().getName(),
+										moduleDescriptor.getModuleDefinition().getName(),
 										stream.getName(), container);
+							}
+							finally {
+								updateDeploymentUnitState(client, moduleDeployment, deploymentStatus);
 							}
 						}
 					}
@@ -336,7 +359,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 		List<String> containers = new ArrayList<String>();
 		String moduleType = descriptor.getModuleDefinition().getType().toString();
 		String moduleLabel = descriptor.getModuleLabel();
-		String moduleDeploymentPath = Paths.build(Paths.STREAM_DEPLOYMENTS, descriptor.getGroup());
+		String moduleDeploymentPath = Paths.build(Paths.STREAM_DEPLOYMENTS, descriptor.getGroup(), Paths.MODULES);
 		try {
 			List<String> moduleDeployments = client.getChildren().forPath(moduleDeploymentPath);
 			for (String moduleDeployment : moduleDeployments) {
@@ -360,21 +383,31 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param client curator client
 	 * @param descriptor module descriptor
 	 *
-	 * @return list of containers that have deployed this module; empty list is returned if no containers have deployed
-	 *         it
+	 * @return list of containers that have deployed this module; empty
+	 * list is returned if no containers have deployed it
 	 *
 	 * @throws Exception thrown by Curator
 	 */
 	private List<String> getContainersForJobModule(CuratorFramework client, ModuleDescriptor descriptor)
 			throws Exception {
+		List<String> containers = new ArrayList<String>();
+		String moduleType = descriptor.getModuleDefinition().getType().toString();
+		String moduleLabel = descriptor.getModuleLabel();
+		String moduleDeploymentPath = Paths.build(Paths.JOB_DEPLOYMENTS, descriptor.getGroup(), Paths.MODULES);
 		try {
-			return client.getChildren().forPath(new JobDeploymentsPath()
-					.setJobName(descriptor.getGroup())
-					.setModuleLabel(descriptor.getModuleLabel()).build());
+			List<String> moduleDeployments = client.getChildren().forPath(moduleDeploymentPath);
+			for (String moduleDeployment : moduleDeployments) {
+				JobDeploymentsPath path = new JobDeploymentsPath(
+						Paths.build(moduleDeploymentPath, moduleDeployment));
+				if (path.getModuleLabel().equals(moduleLabel)) {
+					containers.add(path.getContainer());
+				}
+			}
 		}
 		catch (KeeperException.NoNodeException e) {
-			return Collections.emptyList();
+			// job has not been (or is no longer) deployed
 		}
+		return containers;
 	}
 
 	/**
@@ -432,8 +465,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 				}
 				if (stream != null) {
 					streamModuleDeployments.add(new ModuleDeployment(stream,
-							stream.getModuleDescriptor(moduleDeploymentsPath.getModuleLabel(), moduleType),
-									deploymentProperties));
+							stream.getModuleDescriptor(moduleDeploymentsPath.getModuleLabel()),
+							deploymentProperties));
 				}
 			}
 		}
@@ -462,29 +495,31 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private void redeployStreamModule(CuratorFramework client, ModuleDeployment moduleDeployment)
 			throws Exception {
-		Stream stream = moduleDeployment.stream;
+		Stream stream = (Stream) moduleDeployment.deploymentUnit;
 		ModuleDescriptor moduleDescriptor = moduleDeployment.moduleDescriptor;
 		ModuleDeploymentProperties deploymentProperties = moduleDeployment.deploymentProperties;
 
 		// the passed in deploymentProperties were loaded from the
 		// deployment path...merge with deployment properties
 		// created at the stream level
-		ModuleDeploymentProperties mergedProperties =
+		final ModuleDeploymentProperties mergedProperties =
 				DeploymentPropertiesUtility.createModuleDeploymentProperties(
 						stream.getDeploymentProperties(), moduleDescriptor);
 		mergedProperties.putAll(deploymentProperties);
 
+		ModuleDeploymentStatus deploymentStatus = null;
 		if (mergedProperties.getCount() > 0) {
 			try {
-				ModuleDeploymentWriter.Result result = moduleDeploymentWriter.writeDeployment(
-						moduleDescriptor, mergedProperties,
+				deploymentStatus = deployModule(client, moduleDeployment,
 						instantiateContainerMatcher(client, moduleDescriptor));
-				moduleDeploymentWriter.validateResult(result);
 			}
 			catch (NoContainerException e) {
 				logger.warn("No containers available for redeployment of {} for stream {}",
 						moduleDescriptor.getModuleLabel(),
 						stream.getName());
+			}
+			finally {
+				updateDeploymentUnitState(client, moduleDeployment, deploymentStatus);
 			}
 		}
 		else {
@@ -517,17 +552,22 @@ public class ContainerListener implements PathChildrenCacheListener {
 						job.getDeploymentProperties(), moduleDescriptor);
 		mergedProperties.putAll(deploymentProperties);
 
+		ModuleDeploymentStatus deploymentStatus = null;
+		ModuleDeployment moduleDeployment = new ModuleDeployment(job, moduleDescriptor, deploymentProperties);
 		if (deploymentProperties.getCount() > 0) {
 			try {
-				ModuleDeploymentWriter.Result result = moduleDeploymentWriter.writeDeployment(
-						moduleDescriptor, mergedProperties,
+				deploymentStatus = deployModule(client, moduleDeployment,
 						instantiateContainerMatcher(client, moduleDescriptor));
-				moduleDeploymentWriter.validateResult(result);
 			}
 			catch (NoContainerException e) {
 				logger.warn("No containers available for redeployment of {} for job {}",
 						moduleDescriptor.getModuleLabel(),
 						job.getName());
+			}
+			finally {
+				updateDeploymentUnitState(client,
+						new ModuleDeployment(job, moduleDescriptor, deploymentProperties),
+						deploymentStatus);
 			}
 		}
 		else {
@@ -572,11 +612,194 @@ public class ContainerListener implements PathChildrenCacheListener {
 		logger.info(builder.toString());
 	}
 
+	/**
+	 * Issue a module deployment request for the provided module using
+	 * the provided container matcher. This also transitions the deployment
+	 * unit state to {@link DeploymentUnitStatus.State#deploying}. Once
+	 * the deployment attempt completes, the status for the deployment unit
+	 * should be updated via {@link #updateDeploymentUnitState} using the
+	 * {@link ModuleDeploymentStatus} returned from this method.
+	 *
+	 * @param client             curator client
+	 * @param moduleDeployment   contains module redeployment details such as
+	 *                           stream, module descriptor, and deployment properties
+	 * @param containerMatcher   matches modules to containers
+	 * @return result of module deployment request
+	 * @throws Exception
+	 * @see #transitionToDeploying
+	 */
+	private ModuleDeploymentStatus deployModule(CuratorFramework client,
+			ModuleDeployment moduleDeployment, ContainerMatcher containerMatcher) throws Exception {
+		transitionToDeploying(client, moduleDeployment.deploymentUnit);
+
+		return moduleDeploymentWriter.writeDeployment(moduleDeployment.moduleDescriptor,
+				moduleDeployment.deploymentProperties, containerMatcher);
+	}
+
+	/**
+	 * Issue a module deployment request for the provided module to
+	 * the provided container. This also transitions the deployment
+	 * unit state to {@link DeploymentUnitStatus.State#deploying}. Once
+	 * the deployment attempt completes, the status for the deployment unit
+	 * should be updated via {@link #updateDeploymentUnitState} using the
+	 * {@link ModuleDeploymentStatus} returned from this method.
+	 *
+	 * @param client             curator client
+	 * @param moduleDeployment   contains module redeployment details such as
+	 *                           stream, module descriptor, and deployment properties
+	 * @param container          target container for module deployment
+	 * @return result of module deployment request
+	 * @throws Exception
+	 * @see #transitionToDeploying
+	 */
+	private ModuleDeploymentStatus deployModule(CuratorFramework client,
+			ModuleDeployment moduleDeployment, Container container) throws Exception {
+		transitionToDeploying(client, moduleDeployment.deploymentUnit);
+
+		return moduleDeploymentWriter.writeDeployment(moduleDeployment.moduleDescriptor, container);
+	}
+
+	/**
+	 * Transitions the deployment unit state to {@link DeploymentUnitStatus.State#deploying}.
+	 * This transition should occur before making a module deployment attempt.
+	 *
+	 * @param client         curator client
+	 * @param deploymentUnit deployment unit that contains a module to be deployed
+	 * @throws Exception
+	 * @see #deployModule
+	 * @see #updateDeploymentUnitState
+	 */
+	private void transitionToDeploying(CuratorFramework client, DeploymentUnit deploymentUnit) throws Exception {
+		String pathPrefix = (deploymentUnit instanceof Stream)
+				? Paths.STREAM_DEPLOYMENTS
+				: Paths.JOB_DEPLOYMENTS;
+
+		client.setData().forPath(
+				Paths.build(pathPrefix, deploymentUnit.getName(), Paths.STATUS),
+				ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(
+						DeploymentUnitStatus.State.deploying).toMap()));
+	}
+
+	/**
+	 * Return a <em>mutable</em> collection of {@link ModuleDeploymentStatus module statuses}
+	 * for all of the modules that comprise the provided {@link DeploymentUnit}. This
+	 * information is obtained from ZooKeeper via the ephemeral nodes created
+	 * by the individual containers that have deployed these modules.
+	 * <p />
+	 * This collection is used (and modified) in {@link #updateDeploymentUnitState}.
+	 *
+	 * @param client          curator client
+	 * @param deploymentUnit  deployment unit for which to return the individual
+	 *                        module statuses
+	 * @return mutable collection of status objects
+	 * @throws Exception
+	 * @see #updateDeploymentUnitState
+	 */
+	private Collection<ModuleDeploymentStatus> aggregateState(CuratorFramework client,
+			DeploymentUnit deploymentUnit) throws Exception {
+		Assert.state(deploymentUnit instanceof Stream || deploymentUnit instanceof Job);
+		String pathPrefix = (deploymentUnit instanceof Stream)
+				? Paths.STREAM_DEPLOYMENTS
+				: Paths.JOB_DEPLOYMENTS;
+
+		String path = Paths.build(pathPrefix, deploymentUnit.getName(), Paths.MODULES);
+		List<String> modules = client.getChildren().forPath(path);
+		Collection<ModuleDeploymentStatus> results = new ArrayList<ModuleDeploymentStatus>();
+		for (String module : modules) {
+			String deploymentUnitName;
+			ModuleType type;
+			String label;
+			String container;
+
+			if (deploymentUnit instanceof Stream) {
+				StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(Paths.build(path, module));
+				deploymentUnitName = streamDeploymentsPath.getStreamName();
+				Assert.state(deploymentUnitName.equals(deploymentUnit.getName()));
+				type = ModuleType.valueOf(streamDeploymentsPath.getModuleType());
+				label = streamDeploymentsPath.getModuleLabel();
+				container = streamDeploymentsPath.getContainer();
+			}
+			else {
+				JobDeploymentsPath jobDeploymentsPath = new JobDeploymentsPath(Paths.build(path, module));
+				deploymentUnitName = jobDeploymentsPath.getJobName();
+				Assert.state(deploymentUnitName.equals(deploymentUnit.getName()));
+				type = ModuleType.job;
+				label = jobDeploymentsPath.getModuleLabel();
+				container = jobDeploymentsPath.getContainer();
+			}
+
+			ModuleDescriptor.Key moduleDescriptorKey = new ModuleDescriptor.Key(deploymentUnitName, type, label);
+			results.add(new ModuleDeploymentStatus(container, moduleDescriptorKey,
+					ModuleDeploymentStatus.State.deployed, null));
+		}
+
+		return results;
+	}
+
+	/**
+	 * Update the ZooKeeper ephemeral node that indicates the status for the
+	 * provided deployment unit.
+	 *
+	 * @param client            curator client
+	 * @param moduleDeployment  module that a redeploy was attempted for
+	 * @param deploymentStatus  deployment status for the module; may be null
+	 *                          if a module deployment was not attempted
+	 *                          (for example if there were no containers
+	 *                          available for deployment)
+	 * @throws Exception
+	 */
+	private void updateDeploymentUnitState(CuratorFramework client, ModuleDeployment moduleDeployment,
+			ModuleDeploymentStatus deploymentStatus) throws Exception {
+		final DeploymentUnit deploymentUnit = moduleDeployment.deploymentUnit;
+		final ModuleDescriptor moduleDescriptor = moduleDeployment.moduleDescriptor;
+
+		Collection<ModuleDeploymentStatus> aggregateStatuses = aggregateState(client, deploymentUnit);
+
+		// If the module deployment was successful, it will be present in this
+		// list; remove it to avoid duplication since the deployment status
+		// that was returned from the deployment request will be used instead.
+		// This is especially important if the deployment failed because
+		// that deployment status will contain the error condition that
+		// caused the failure.
+		if (deploymentStatus != null) {
+			for (Iterator<ModuleDeploymentStatus> iterator = aggregateStatuses.iterator(); iterator.hasNext();) {
+				ModuleDeploymentStatus status = iterator.next();
+				if (logger.isTraceEnabled()) {
+					logger.trace("module deployment status: {}", status);
+					logger.trace("deploymentStatus: {}", deploymentStatus);
+				}
+
+				if (status.getKey().getLabel().equals(moduleDescriptor.getModuleLabel())
+						&& status.getContainer().equals(deploymentStatus.getContainer())) {
+					iterator.remove();
+				}
+			}
+			aggregateStatuses.add(deploymentStatus);
+		}
+
+		Assert.state(deploymentUnit instanceof Stream || deploymentUnit instanceof Job);
+		boolean isStream = (deploymentUnit instanceof Stream);
+
+		ModuleDeploymentPropertiesProvider provider = (isStream)
+				? new StreamDeploymentListener.StreamModuleDeploymentPropertiesProvider((Stream) deploymentUnit)
+				: new JobDeploymentListener.JobModuleDeploymentPropertiesProvider((Job) deploymentUnit);
+
+		DeploymentUnitStatus status = stateCalculator.calculate(deploymentUnit, provider, aggregateStatuses);
+
+		logger.info("Deployment state for {} '{}': {}",
+				isStream ? "stream" : "job", deploymentUnit.getName(), status);
+
+		client.setData().forPath(
+				Paths.build(isStream ? Paths.STREAM_DEPLOYMENTS : Paths.JOB_DEPLOYMENTS,
+						deploymentUnit.getName(), Paths.STATUS),
+				ZooKeeperUtils.mapToBytes(status.toMap()));
+	}
+
 
 	/**
 	 * Converter from {@link ChildData} to deployment name string.
 	 */
-	private static class DeploymentNameConverter implements Converter<ChildData, String> {
+	public static class DeploymentNameConverter implements Converter<ChildData, String> {
 
 		/**
 		 * {@inheritDoc}
@@ -589,29 +812,31 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 
 	/**
-	 * Holds information about a module that needs to be re-deployed. Natural order
-	 * is per-stream, with consumers (bigger index) coming first.
+	 * Holds information about a module that needs to be re-deployed.
+	 * The {@link Comparable} implementation for this class sorts
+	 * first by deployment unit name followed by (reverse) module descriptor
+	 * index - i.e., the biggest index appearing first.
 	 *
 	 * @author Eric Bottard
 	 */
 	private static class ModuleDeployment implements Comparable<ModuleDeployment> {
 
-		private final Stream stream;
+		private final DeploymentUnit deploymentUnit;
 
 		private final ModuleDescriptor moduleDescriptor;
 
 		private final ModuleDeploymentProperties deploymentProperties;
 
-		private ModuleDeployment(Stream stream, ModuleDescriptor moduleDescriptor,
+		private ModuleDeployment(DeploymentUnit deploymentUnit, ModuleDescriptor moduleDescriptor,
 				ModuleDeploymentProperties deploymentProperties) {
-			this.stream = stream;
+			this.deploymentUnit = deploymentUnit;
 			this.moduleDescriptor = moduleDescriptor;
 			this.deploymentProperties = deploymentProperties;
 		}
 
 		@Override
 		public int compareTo(ModuleDeployment o) {
-			int c = this.stream.getName().compareTo(o.stream.getName());
+			int c = this.deploymentUnit.getName().compareTo(o.deploymentUnit.getName());
 			if (c == 0) {
 				c = o.moduleDescriptor.getIndex() - this.moduleDescriptor.getIndex();
 			}

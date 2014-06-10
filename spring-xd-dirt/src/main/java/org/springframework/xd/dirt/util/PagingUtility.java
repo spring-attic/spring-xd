@@ -25,6 +25,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.util.Assert;
 
 
 /**
@@ -44,6 +45,7 @@ public class PagingUtility<T extends Comparable<? super T>> {
 	 */
 	public Page<T> getPagedData(Pageable pageable, List<T> list) {
 
+		Assert.notNull(pageable);
 		if (CollectionUtils.isEmpty(list)) {
 			return new PageImpl<T>(list);
 		}

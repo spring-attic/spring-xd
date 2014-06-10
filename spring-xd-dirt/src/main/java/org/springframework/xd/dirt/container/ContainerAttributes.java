@@ -247,6 +247,9 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 		return map.toString();
 	}
 
+	/**
+	 * Compares using the containerId.
+	 */
 	@Override
 	public int compareTo(ContainerAttributes other) {
 		return this.getId().compareTo(other.getId());

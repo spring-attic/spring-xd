@@ -27,10 +27,33 @@ import org.springframework.xd.store.DomainRepository;
  */
 public interface ModuleMetadataRepository extends DomainRepository<ModuleMetadata, String> {
 
+
+	/**
+	 * Find paged {@link ModuleMetadata} for all the modules deployed into the given container.
+	 *
+	 * @param pageable the pageable metadata
+	 * @param containerId the container Id
+	 * @return Paged the {@link ModuleMetadata}
+	 */
 	Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId);
 
+	/**
+	 * Find paged {@link ModuleMetadata} for the modules of given moduleId.
+	 *
+	 * @param pageable the pageable metadata
+	 * @param moduleId the module Id
+	 * @return Paged the {@link ModuleMetadata}
+	 */
 	Page<ModuleMetadata> findAllByModuleId(Pageable pageable, String moduleId);
 
+	/**
+	 * Find {@link ModuleMetadata} for the module that has the given module id and
+	 * deployed into given container.
+	 *
+	 * @param containerId the contaienrId
+	 * @param moduleId the moduleId
+	 * @return the corresponding {@link ModuleMetadata}
+	 */
 	ModuleMetadata findOne(String containerId, String moduleId);
 
 }

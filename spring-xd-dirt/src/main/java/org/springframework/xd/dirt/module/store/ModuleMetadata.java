@@ -57,6 +57,9 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 		return deploymentProperties;
 	}
 
+	/**
+	 * Compares ModuleMetadata using module id.
+	 */
 	@Override
 	public int compareTo(ModuleMetadata other) {
 		return this.getId().compareTo(other.getId());

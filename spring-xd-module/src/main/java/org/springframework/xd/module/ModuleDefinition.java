@@ -129,6 +129,9 @@ public class ModuleDefinition implements Comparable<ModuleDefinition> {
 				getResource().getDescription());
 	}
 
+	/**
+	 * Compares the module definitions using the name of the {@link ModuleDefinition}
+	 */
 	@Override
 	public int compareTo(ModuleDefinition other) {
 		return this.getName().compareTo(other.getName());

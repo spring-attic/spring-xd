@@ -32,7 +32,7 @@ public class TwitterStreamTest extends AbstractIntegrationTest {
 
 		final String data = "screen_name";
 		stream(sources.twitterStream()
-				+ XD_DELIMETER
+				+ XD_DELIMITER
 				+ sinks.file());
 		this.waitForXD(2000);
 		assertFileContains(data);

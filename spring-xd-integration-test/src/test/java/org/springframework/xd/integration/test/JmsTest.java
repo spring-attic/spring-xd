@@ -39,7 +39,7 @@ public class JmsTest extends AbstractIntegrationTest {
 	@Test
 	public void testJmsBasic() throws Exception {
 		String data = UUID.randomUUID().toString();
-		stream(sources.jms() + XD_DELIMETER + sinks.file());
+		stream(sources.jms() + XD_DELIMITER + sinks.file());
 		sources.jms().ensureReady();
 		sources.jms().sendData(data);
 		waitForXD(2000);

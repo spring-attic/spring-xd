@@ -34,7 +34,7 @@ public class TwitterSearchTest extends AbstractIntegrationTest {
 
 		final String data = "#springio";
 		TwitterSearchSource twitterSearchSource = sources.twitterSearch(data);
-		stream(twitterSearchSource + XD_DELIMETER + " file");
+		stream(twitterSearchSource + XD_DELIMITER + " file");
 		this.waitForXD();
 		assertFileContainsIgnoreCase(data);
 

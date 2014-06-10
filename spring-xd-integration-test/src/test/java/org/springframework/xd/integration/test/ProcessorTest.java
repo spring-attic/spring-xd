@@ -48,7 +48,7 @@ public class ProcessorTest extends AbstractIntegrationTest {
 	@Test
 	public void testFailedSink() {
 		String filterContent = "BAD";
-		stream(sources.http() + XD_DELIMETER + " filter --expression=payload=='good' " + XD_DELIMETER
+		stream(sources.http() + XD_DELIMITER + " filter --expression=payload=='good' " + XD_DELIMITER
 				+ sinks.file());
 		waitForXD();
 		sources.http().postData(filterContent);
@@ -68,7 +68,7 @@ public class ProcessorTest extends AbstractIntegrationTest {
 	@Test
 	public void testFilter() {
 		String filterContent = "good";
-		stream(sources.http() + XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
+		stream(sources.http() + XD_DELIMITER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMITER
 				+ sinks.file());
 		waitForXD();
 		sources.http().postData(filterContent);

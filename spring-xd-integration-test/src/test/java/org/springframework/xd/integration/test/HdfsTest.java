@@ -56,7 +56,7 @@ public class HdfsTest extends AbstractIntegrationTest {
 	@Test
 	public void testHdfsSink() {
 		String data = UUID.randomUUID().toString();
-		stream("trigger --payload='" + data + "'" + XD_DELIMETER + sinks.hdfs());
+		stream("trigger --payload='" + data + "'" + XD_DELIMITER + sinks.hdfs());
 		// wait up to 10 seconds for directory to be created
 		assertTrue(HdfsSink.DEFAULT_DIRECTORY + " directory is missing from hdfs",
 				hadoopUtil.waitForPath(10000, HdfsSink.DEFAULT_DIRECTORY));

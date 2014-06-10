@@ -57,9 +57,9 @@ public class RabbitTest extends AbstractIntegrationTest {
 	public void testRabbitSink() {
 		String data = UUID.randomUUID().toString();
 		RabbitSink rabbitSink = sinks.rabbit(RabbitSource.DEFAULT_QUEUE).host(adminServer.getHost());
-		stream(rabbitSource + XD_DELIMETER + sinks.file());
+		stream(rabbitSource + XD_DELIMITER + sinks.file());
 		waitForXD();
-		stream(DATA_SENDER_NAME, "trigger --payload='" + data + "'" + XD_DELIMETER + rabbitSink, WAIT_TIME);
+		stream(DATA_SENDER_NAME, "trigger --payload='" + data + "'" + XD_DELIMITER + rabbitSink, WAIT_TIME);
 		waitForXD();
 		assertValid(data, sinks.file());
 
@@ -72,7 +72,7 @@ public class RabbitTest extends AbstractIntegrationTest {
 	@Test
 	public void testRabbitSource() {
 		String data = UUID.randomUUID().toString();
-		stream(rabbitSource + XD_DELIMETER + sinks.file());
+		stream(rabbitSource + XD_DELIMITER + sinks.file());
 		waitForXD();
 		rabbitSource.sendData(data);
 		waitForXD();

@@ -31,7 +31,7 @@ public class TickTockTest extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void testHeartBeat() {
-		stream("time --fixedDelay=30 " + XD_DELIMETER + sinks.file());
+		stream("time --fixedDelay=30 " + XD_DELIMITER + sinks.file());
 		assertReceived(1);
 	}
 

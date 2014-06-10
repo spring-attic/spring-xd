@@ -72,7 +72,7 @@ public class JdbcHdfsTest extends AbstractIntegrationTest {
 		jdbcSink.getJdbcTemplate().getDataSource();
 		JdbcHdfsJob job = jobs.jdbcHdfsJob();
 		// Use a trigger to send data to JDBC
-		stream("dataSender", sources.http() + XD_DELIMETER
+		stream("dataSender", sources.http() + XD_DELIMITER
 				+ jdbcSink, WAIT_TIME);
 		waitForXD();
 		sources.http().postData(data);

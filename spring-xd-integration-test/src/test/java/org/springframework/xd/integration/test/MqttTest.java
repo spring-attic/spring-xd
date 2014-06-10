@@ -36,7 +36,7 @@ public class MqttTest extends AbstractIntegrationTest {
 	@Test
 	public void testMqttSource() {
 		String data = UUID.randomUUID().toString();
-		stream(sources.mqtt() + XD_DELIMETER + sinks.file());
+		stream(sources.mqtt() + XD_DELIMITER + sinks.file());
 		sources.mqtt().ensureReady();
 		sources.mqtt().sendData(data);
 		waitForXD(2000);
@@ -52,9 +52,9 @@ public class MqttTest extends AbstractIntegrationTest {
 	@Test
 	public void testMqttSink() {
 		String data = UUID.randomUUID().toString();
-		stream(sources.mqtt() + XD_DELIMETER + sinks.file());
+		stream(sources.mqtt() + XD_DELIMITER + sinks.file());
 		sources.mqtt().ensureReady();
-		stream("mqttSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.mqtt(), WAIT_TIME);
+		stream("mqttSender", "trigger --payload='" + data + "'" + XD_DELIMITER + sinks.mqtt(), WAIT_TIME);
 		waitForXD(2000);
 		assertReceived(1);
 		assertValid(data, sinks.file());

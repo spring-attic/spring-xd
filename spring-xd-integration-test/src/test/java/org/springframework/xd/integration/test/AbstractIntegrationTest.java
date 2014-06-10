@@ -57,11 +57,11 @@ public abstract class AbstractIntegrationTest {
 
 	protected final static String JOB_NAME = "ec2Job3";
 
-	protected final static String XD_DELIMETER = " | ";
+	protected final static String XD_DELIMITER = " | ";
 
 	public final static int WAIT_TIME = 10000;
 
-	protected final static String XD_TAP_DELIMETER = " > ";
+	protected final static String XD_TAP_DELIMITER = " > ";
 
 
 	@Autowired

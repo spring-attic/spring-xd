@@ -36,7 +36,7 @@ public class TcpTest extends AbstractIntegrationTest {
 	@Test
 	public void testTCPSourceCRLF() {
 		String data = UUID.randomUUID().toString();
-		stream(sources.tcp() + XD_DELIMETER + sinks.file());
+		stream(sources.tcp() + XD_DELIMITER + sinks.file());
 		waitForXD();
 		sources.tcp().sendBytes((data + "\r\n").getBytes());
 		assertReceived(1);
@@ -50,8 +50,8 @@ public class TcpTest extends AbstractIntegrationTest {
 	@Test
 	public void testTCPSink() {
 		String data = UUID.randomUUID().toString();
-		stream(sources.tcp() + XD_DELIMETER + sinks.file());
-		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.tcp(), WAIT_TIME);
+		stream(sources.tcp() + XD_DELIMITER + sinks.file());
+		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMITER + sinks.tcp(), WAIT_TIME);
 
 		assertReceived(1);
 		assertValid(data, sinks.file());

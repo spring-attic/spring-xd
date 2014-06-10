@@ -40,7 +40,7 @@ public class SyslogTest extends AbstractIntegrationTest {
 	public void testSyslogTcp() {
 		String data = UUID.randomUUID().toString();
 		SyslogTcpSource syslogTcp = sources.syslogTcpSource(getContainerForStream().getHost());
-		stream(syslogTcp + XD_DELIMETER
+		stream(syslogTcp + XD_DELIMITER
 				+ "file");
 		waitForXD();
 		syslogTcp.sendBytes((data + "\r\n").getBytes());
@@ -56,7 +56,7 @@ public class SyslogTest extends AbstractIntegrationTest {
 	public void testSyslogUdp() {
 		String data = UUID.randomUUID().toString();
 		SyslogUdpSource syslogUdp = sources.syslogUdpSource(getContainerForStream().getHost());
-		stream(syslogUdp + XD_DELIMETER
+		stream(syslogUdp + XD_DELIMITER
 				+ "file");
 		waitForXD();
 		syslogUdp.sendBytes((data + "\r\n").getBytes());

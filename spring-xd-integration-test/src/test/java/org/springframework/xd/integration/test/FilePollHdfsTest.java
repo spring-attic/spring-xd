@@ -60,9 +60,9 @@ public class FilePollHdfsTest extends AbstractIntegrationTest {
 		waitForXD();
 		job(jobs.filePollHdfsJob(DEFAULT_NAMES).toDSL());
 		waitForXD();
-		stream(fileSource + XD_TAP_DELIMETER + " queue:job:" + JOB_NAME);
+		stream(fileSource + XD_TAP_DELIMITER + " queue:job:" + JOB_NAME);
 		waitForXD();
-		stream("DataReceiver", sources.http() + XD_DELIMETER
+		stream("DataReceiver", sources.http() + XD_DELIMITER
 				+ sinks.file(FilePollHdfsJob.DEFAULT_FILE_NAME, sourceFileName), WAIT_TIME);
 		waitForXD();
 		sources.http().postData(data);

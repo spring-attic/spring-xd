@@ -25,7 +25,7 @@ import org.springframework.xd.dirt.util.XdProfiles;
 
 /**
  * Single Node XD Runtime.
- * 
+ *
  * @author Dave Syer
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
@@ -50,13 +50,13 @@ public class SingleNodeApplication {
 
 		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
 				ParentConfiguration.class)
-				.listeners(bootstrapContext.commandLineListener())
-				.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
-				.initializers(new HsqldbServerProfileActivator())
-				.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
-				.listeners(bootstrapContext.commandLineListener())
-				.child(SingleNodeOptions.class, AdminServerApplication.class)
-				.listeners(bootstrapContext.commandLineListener());
+		.listeners(bootstrapContext.commandLineListener())
+		.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
+		.initializers(new HsqldbServerProfileActivator())
+		.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
+		.listeners(bootstrapContext.commandLineListener())
+		.child(SingleNodeOptions.class, AdminServerApplication.class)
+		.listeners(bootstrapContext.commandLineListener());
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
@@ -64,9 +64,9 @@ public class SingleNodeApplication {
 				.profiles(XdProfiles.CONTAINER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
 				.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
 						bootstrapContext.pluginContextInitializers()))
-				.child(ContainerConfiguration.class)
-				.listeners(bootstrapContext.commandLineListener())
-				.web(false);
+						.child(ContainerConfiguration.class)
+						.listeners(bootstrapContext.commandLineListener())
+						.web(false);
 		container.run(args);
 
 		adminContext = admin.context();
@@ -78,17 +78,17 @@ public class SingleNodeApplication {
 	}
 
 	public void close() {
-		if (containerContext != null) {
-			containerContext.close();
-		}
-		if (pluginContext != null) {
-			pluginContext.close();
-		}
-		if (adminContext != null) {
-			adminContext.close();
-			ApplicationContext parent = adminContext.getParent();
+		close(containerContext);
+		close(pluginContext);
+		close(adminContext);
+	}
+
+	private void close(ConfigurableApplicationContext context) {
+		if (context != null) {
+			context.close();
+			ApplicationContext parent = context.getParent();
 			if (parent instanceof ConfigurableApplicationContext) {
-				((ConfigurableApplicationContext) parent).close();
+				close((ConfigurableApplicationContext) parent);
 			}
 		}
 	}
@@ -110,7 +110,7 @@ public class SingleNodeApplication {
 	 * is hsql and embedded hsqldb is opted.
 	 */
 	class HsqldbServerProfileActivator implements
-			ApplicationContextInitializer<ConfigurableApplicationContext> {
+	ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		private static final String SPRING_DATASOURCE_URL_OPTION = "${spring.datasource.url}";
 

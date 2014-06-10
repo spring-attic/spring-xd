@@ -162,6 +162,7 @@ public class ModuleOptionsDefaultsOrderingTests {
 
 		assertTrue("stream " + testStream.getName() + "not undeployed",
 				integrationSupport.undeployAndDestroyStream(testStream));
+		application.close();
 	}
 
 

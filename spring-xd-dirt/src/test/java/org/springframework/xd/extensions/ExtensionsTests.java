@@ -59,6 +59,13 @@ public class ExtensionsTests {
 		context = application.pluginContext();
 	}
 
+	@AfterClass
+	public static void close() {
+		if (application != null) {
+			application.close();
+		}
+	}
+
 	@Test
 	public void addBeans() {
 		context.getBean("javaConfigExtension");

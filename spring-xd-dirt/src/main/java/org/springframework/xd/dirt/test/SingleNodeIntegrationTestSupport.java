@@ -18,8 +18,6 @@ import java.util.Map;
 
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.RuntimeTimeoutException;
@@ -51,8 +49,6 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Ilayaperumal Gopinathan
  */
 public class SingleNodeIntegrationTestSupport {
-
-	private static final Logger logger = LoggerFactory.getLogger(SingleNodeIntegrationTestSupport.class);
 
 	private StreamDefinitionRepository streamDefinitionRepository;
 

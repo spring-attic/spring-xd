@@ -105,22 +105,23 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public void bindConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
 		validateConsumerProperties(name, properties, Collections.emptySet());
-		doRegisterConsumer(name, moduleInputChannel, getChannelProvider(name));
+		doRegisterConsumer(name, moduleInputChannel, getChannelProvider(name), properties);
 	}
 
 	@Override
 	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
 		validateConsumerProperties(name, properties, Collections.emptySet());
-		doRegisterConsumer(name, moduleInputChannel, pubsubChannelProvider);
+		doRegisterConsumer(name, moduleInputChannel, this.pubsubChannelProvider, properties);
 	}
 
 	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel,
-			SharedChannelProvider<?> channelProvider) {
+			SharedChannelProvider<?> channelProvider, Properties properties) {
 		Assert.hasText(name, "a valid name is required to register an inbound channel");
 		Assert.notNull(moduleInputChannel, "channel must not be null");
 		MessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
-		bridge(registeredChannel, moduleInputChannel,
-				"inbound." + ((NamedComponent) registeredChannel).getComponentName());
+		bridge(name, registeredChannel, moduleInputChannel,
+				"inbound." + ((NamedComponent) registeredChannel).getComponentName(),
+				new LocalBusPropertiesAccessor(properties));
 	}
 
 	/**
@@ -130,23 +131,24 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public void bindProducer(String name, MessageChannel moduleOutputChannel, Properties properties) {
 		validateConsumerProperties(name, properties, Collections.emptySet());
-		doRegisterProducer(name, moduleOutputChannel, getChannelProvider(name));
+		doRegisterProducer(name, moduleOutputChannel, getChannelProvider(name), properties);
 	}
 
 	@Override
 	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel,
 			Properties properties) {
 		validateConsumerProperties(name, properties, Collections.emptySet());
-		doRegisterProducer(name, moduleOutputChannel, pubsubChannelProvider);
+		doRegisterProducer(name, moduleOutputChannel, this.pubsubChannelProvider, properties);
 	}
 
 	private void doRegisterProducer(String name, MessageChannel moduleOutputChannel,
-			SharedChannelProvider<?> channelProvider) {
+			SharedChannelProvider<?> channelProvider, Properties properties) {
 		Assert.hasText(name, "a valid name is required to register an outbound channel");
 		Assert.notNull(moduleOutputChannel, "channel must not be null");
 		MessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
-		bridge(moduleOutputChannel, registeredChannel,
-				"outbound." + ((NamedComponent) registeredChannel).getComponentName());
+		bridge(name, moduleOutputChannel, registeredChannel,
+				"outbound." + ((NamedComponent) registeredChannel).getComponentName(),
+				new LocalBusPropertiesAccessor(properties));
 	}
 
 	@Override
@@ -218,13 +220,14 @@ public class LocalMessageBus extends MessageBusSupport {
 		}
 	}
 
-	protected BridgeHandler bridge(MessageChannel from, MessageChannel to, String bridgeName) {
-		return bridge(from, to, bridgeName, null);
+	protected BridgeHandler bridge(String name, MessageChannel from, MessageChannel to, String bridgeName,
+			LocalBusPropertiesAccessor properties) {
+		return bridge(name, from, to, bridgeName, null, properties);
 	}
 
 
-	protected BridgeHandler bridge(MessageChannel from, MessageChannel to, String bridgeName,
-			final Collection<MediaType> acceptedMediaTypes) {
+	protected BridgeHandler bridge(String name, MessageChannel from, MessageChannel to, String bridgeName,
+			final Collection<MediaType> acceptedMediaTypes, LocalBusPropertiesAccessor properties) {
 
 		final boolean isInbound = bridgeName.startsWith("inbound.");
 
@@ -259,8 +262,8 @@ public class LocalMessageBus extends MessageBusSupport {
 
 		try {
 			cefb.getObject().setComponentName(handler.getComponentName());
-			Binding binding = isInbound ? Binding.forConsumer(cefb.getObject(), to)
-					: Binding.forProducer(from, cefb.getObject());
+			Binding binding = isInbound ? Binding.forConsumer(name, cefb.getObject(), to, properties)
+					: Binding.forProducer(name, from, cefb.getObject(), properties);
 			addBinding(binding);
 			binding.start();
 		}
@@ -272,6 +275,14 @@ public class LocalMessageBus extends MessageBusSupport {
 
 	protected <T> T getBean(String name, Class<T> requiredType) {
 		return getApplicationContext().getBean(name, requiredType);
+	}
+
+	private class LocalBusPropertiesAccessor extends AbstractBusPropertiesAccessor {
+
+		public LocalBusPropertiesAccessor(Properties properties) {
+			super(properties);
+		}
+
 	}
 
 }

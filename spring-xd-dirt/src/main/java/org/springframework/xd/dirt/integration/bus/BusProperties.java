@@ -84,4 +84,9 @@ public interface BusProperties {
 	 */
 	public static final String PARTITION_SELECTOR_EXPRESSION = "partitionSelectorExpression";
 
+	/**
+	 * If true, the bus will attempt to short circuit the producer/consumer. 
+	 */
+	public static final String SHORT_CIRCUIT_ALLOWED = "shortCircuitAllowed";
+
 }

@@ -45,6 +45,14 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 	}
 
 	/**
+	 * Return the underlying properties object.
+	 * @return The properties.
+	 */
+	public Properties getProperties() {
+		return properties;
+	}
+
+	/**
 	 * Return the property for the key, or null if it doesn't exist.
 	 * @param key The property.
 	 * @return The key.
@@ -260,6 +268,15 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 	 */
 	public int getPartitionIndex() {
 		return getProperty(PARTITION_INDEX, -1);
+	}
+
+	// Short Circuit
+
+	/**
+	 * If true, the bus can attempt a short circuit.
+	 */
+	public boolean isShortCircuitAllowed() {
+		return getProperty(SHORT_CIRCUIT_ALLOWED, false);
 	}
 
 	// Utility methods

@@ -162,6 +162,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new SetBuilder()
 			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
 			.addAll(SUPPORTED_BASIC_PRODUCER_PROPERTIES)
+			.add(BusProperties.SHORT_CIRCUIT_ALLOWED)
 			.build();
 
 	/**
@@ -290,6 +291,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		Queue queue = new Queue(queueName);
 		this.rabbitAdmin.declareQueue(queue);
 		doRegisterConsumer(name, moduleInputChannel, queue, accessor, false);
+		shortCircuitExistingProducerIfPossible(name, moduleInputChannel);
 	}
 
 	@Override
@@ -358,7 +360,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		mapper.setReplyHeaderNames(properties.getReplyHeaderPattens(this.defaultReplyHeaderPatterns));
 		adapter.setHeaderMapper(mapper);
 		adapter.afterPropertiesSet();
-		Binding consumerBinding = Binding.forConsumer(adapter, moduleInputChannel);
+		Binding consumerBinding = Binding.forConsumer(name, adapter, moduleInputChannel, properties);
 		addBinding(consumerBinding);
 		ReceivingHandler convertingBridge = new ReceivingHandler();
 		convertingBridge.setOutputChannel(moduleInputChannel);
@@ -371,17 +373,21 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	@Override
 	public void bindProducer(final String name, MessageChannel moduleOutputChannel,
 			Properties properties) {
-		if (logger.isInfoEnabled()) {
-			logger.info("declaring queue for outbound: " + name);
-		}
+		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
+		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)) {
 			validateProducerProperties(name, properties, SUPPORTED_NAMED_PRODUCER_PROPERTIES);
 		}
 		else {
 			validateProducerProperties(name, properties, SUPPORTED_PRODUCER_PROPERTIES);
 		}
-		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(name, new RabbitPropertiesAccessor(properties));
-		doRegisterProducer(name, moduleOutputChannel, queue, new RabbitPropertiesAccessor(properties));
+		if (!shortCircuitNewProducerIfPossible(name, (SubscribableChannel) moduleOutputChannel, accessor)) {
+			if (logger.isInfoEnabled()) {
+				logger.info("declaring queue for outbound: " + name);
+			}
+			AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(name, accessor);
+			doRegisterProducer(name, moduleOutputChannel, queue, accessor);
+		}
 	}
 
 	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name, RabbitPropertiesAccessor properties) {
@@ -435,10 +441,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new SendingHandler(delegate, replyTo, properties);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
-		consumer.setBeanFactory(this.getBeanFactory());
+		consumer.setBeanFactory(getBeanFactory());
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
-		Binding producerBinding = Binding.forProducer(moduleOutputChannel, consumer);
+		Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer, properties);
 		addBinding(producerBinding);
 		producerBinding.start();
 	}

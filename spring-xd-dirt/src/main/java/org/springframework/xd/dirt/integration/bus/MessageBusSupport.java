@@ -48,11 +48,15 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -90,6 +94,8 @@ public abstract class MessageBusSupport
 	private volatile MultiTypeCodec<Object> codec;
 
 	private final ContentTypeResolver contentTypeResolver = new StringConvertingContentTypeResolver();
+
+	private final ThreadLocal<Boolean> revertingShortCircuit = new ThreadLocal<Boolean>();
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
 
@@ -381,15 +387,17 @@ public abstract class MessageBusSupport
 
 	protected void deleteBindings(String name) {
 		Assert.hasText(name, "a valid name is required to remove bindings");
+		List<Binding> bindingsToRemove = new ArrayList<Binding>();
 		synchronized (this.bindings) {
 			Iterator<Binding> iterator = this.bindings.iterator();
 			while (iterator.hasNext()) {
 				Binding binding = iterator.next();
 				if (binding.getEndpoint().getComponentName().equals(name)) {
-					binding.stop();
-					iterator.remove();
-					break;
+					bindingsToRemove.add(binding);
 				}
+			}
+			for (Binding binding : bindingsToRemove) {
+				doDeleteBinding(binding);
 			}
 		}
 	}
@@ -397,18 +405,34 @@ public abstract class MessageBusSupport
 	protected void deleteBinding(String name, MessageChannel channel) {
 		Assert.hasText(name, "a valid name is required to remove a binding");
 		Assert.notNull(channel, "a valid channel is required to remove a binding");
+		Binding bindingToRemove = null;
 		synchronized (this.bindings) {
 			Iterator<Binding> iterator = this.bindings.iterator();
 			while (iterator.hasNext()) {
 				Binding binding = iterator.next();
 				if (binding.getChannel().equals(channel) &&
 						binding.getEndpoint().getComponentName().equals(name)) {
-					binding.stop();
-					iterator.remove();
-					return;
+					bindingToRemove = binding;
+					break;
 				}
 			}
+			if (bindingToRemove != null) {
+				doDeleteBinding(bindingToRemove);
+			}
 		}
+
+	}
+
+	private void doDeleteBinding(Binding binding) {
+		if (Binding.CONSUMER.equals(binding.getType())) {
+			/*
+			 * Revert the direct binding before stopping the consumer; the module
+			 * outputChannel will temporarily have 2 subscribers.
+			 */
+			revertShortCircuitedBindingIfNecessary(binding);
+		}
+		binding.stop();
+		this.bindings.remove(binding);
 	}
 
 	protected void stopBindings() {
@@ -691,6 +715,125 @@ public abstract class MessageBusSupport
 		}
 	}
 
+	protected boolean isNamedChannel(String name) {
+		return name.startsWith(PUBSUB_NAMED_CHANNEL_TYPE_PREFIX) || name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)
+				|| name.startsWith(JOB_CHANNEL_TYPE_PREFIX);
+	}
+
+	/**
+	 * Attempt to short-circuit the bus if the consumer is local. Named channel producers are
+	 * not short-circuited.
+	 * @param name The name.
+	 * @param moduleOutputChannel The channel to bind.
+	 * @param properties The producer properties.
+	 * @return true if the producer is bound.
+	 */
+	protected boolean shortCircuitNewProducerIfPossible(String name, SubscribableChannel moduleOutputChannel,
+			AbstractBusPropertiesAccessor properties) {
+		if (!properties.isShortCircuitAllowed()) {
+			return false;
+		}
+		else if (isNamedChannel(name)) {
+			return false;
+		}
+		else if (this.revertingShortCircuit.get() != null) {
+			// we're in the process of unbinding a short circuit
+			this.revertingShortCircuit.remove();
+			return false;
+		}
+		else {
+			Binding consumerBinding = null;
+			synchronized (this.bindings) {
+				for (Binding binding : this.bindings) {
+					if (binding.getName().equals(name) && Binding.CONSUMER.equals(binding.getType())) {
+						consumerBinding = binding;
+						break;
+					}
+				}
+			}
+			if (consumerBinding == null) {
+				return false;
+			}
+			else {
+				shortCircuitProducer(name, moduleOutputChannel, consumerBinding.getChannel(), properties);
+				return true;
+			}
+		}
+	}
+
+	private void shortCircuitProducer(String name, SubscribableChannel producerChannel,
+			MessageChannel consumerChannel, AbstractBusPropertiesAccessor properties) {
+		DirectHandler handler = new DirectHandler(consumerChannel);
+		EventDrivenConsumer consumer = new EventDrivenConsumer(producerChannel, handler);
+		consumer.setBeanFactory(getBeanFactory());
+		consumer.setBeanName("outbound." + name);
+		consumer.afterPropertiesSet();
+		Binding binding = Binding.forDirectProducer(name, producerChannel, consumer, properties);
+		addBinding(binding);
+		binding.start();
+		if (logger.isInfoEnabled()) {
+			logger.info("Producer short-circuited: " + binding);
+		}
+	}
+
+	/**
+	 * Attempt to short-circuit the bus if there is already a local producer. PubSub producers are
+	 * not short-circuited. Bind the short circuit, then unbind the bus producer.
+	 * @param name The name.
+	 * @param consumerChannel The channel to bind the producer to.
+	 */
+	protected void shortCircuitExistingProducerIfPossible(String name, MessageChannel consumerChannel) {
+		if (!isNamedChannel(name)) {
+			Binding producerBinding = null;
+			synchronized (this.bindings) {
+				for (Binding binding : this.bindings) {
+					if (binding.getName().equals(name) && Binding.PRODUCER.equals(binding.getType())) {
+						producerBinding = binding;
+						break;
+					}
+				}
+				if (producerBinding != null && producerBinding.getChannel() instanceof SubscribableChannel) {
+					AbstractBusPropertiesAccessor properties = producerBinding.getPropertiesAccessor();
+					if (properties.isShortCircuitAllowed()) {
+						shortCircuitProducer(name, (SubscribableChannel) producerBinding.getChannel(), consumerChannel,
+								properties);
+						producerBinding.stop();
+						this.bindings.remove(producerBinding);
+					}
+				}
+			}
+		}
+	}
+
+	private void revertShortCircuitedBindingIfNecessary(Binding binding) {
+		try {
+			synchronized (this.bindings) { // Not necessary, called while synchronized, but just in case...
+				Binding directBinding = null;
+				Iterator<Binding> iterator = this.bindings.iterator();
+				while (iterator.hasNext()) {
+					Binding producer = iterator.next();
+					if (Binding.DIRECT.equals(producer.getType()) && binding.getName().equals(producer.getName())) {
+						this.revertingShortCircuit.set(Boolean.TRUE);
+						bindProducer(producer.getName(), producer.getChannel(),
+								producer.getPropertiesAccessor().getProperties());
+						directBinding = producer;
+						break;
+					}
+				}
+				if (directBinding != null) {
+					directBinding.stop();
+					this.bindings.remove(directBinding);
+					if (logger.isInfoEnabled()) {
+						logger.info("Short-circuited binding reverted: " + directBinding);
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			logger.error("Could not revert short-circuited binding: " + binding, e);
+		}
+	}
+
 	/**
 	 * Default partition strategy; only works on keys with "real" hash codes, such as String.
 	 */
@@ -841,6 +984,22 @@ public abstract class MessageBusSupport
 		public Set<Object> build() {
 			return this.set;
 		}
+
+	}
+
+	public static class DirectHandler implements MessageHandler {
+
+		private final MessageChannel outputChannel;
+
+		public DirectHandler(MessageChannel outputChannel) {
+			this.outputChannel = outputChannel;
+		}
+
+		@Override
+		public void handleMessage(Message<?> message) throws MessagingException {
+			this.outputChannel.send(message);
+		}
+
 	}
 
 }

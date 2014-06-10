@@ -37,6 +37,7 @@ import org.junit.Test;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.integration.channel.DirectChannel;
@@ -211,7 +212,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		assertEquals("foo", requestHeaders.get(0));
 
 		try {
-			bus.bindPubSubProducer("dummy", null, properties);
+			bus.bindPubSubProducer("dummy", new DirectChannel(), properties);
 			fail("Expected exception");
 		}
 		catch (IllegalArgumentException e) {
@@ -225,7 +226,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 			assertThat(e.getMessage(), containsString("for dummy."));
 		}
 		try {
-			bus.bindProducer("queue:dummy", null, properties);
+			bus.bindProducer("queue:dummy", new DirectChannel(), properties);
 			fail("Expected exception");
 		}
 		catch (IllegalArgumentException e) {
@@ -439,6 +440,23 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 	@Override
 	protected String getPubSubEndpointRouting(AbstractEndpoint endpoint) {
 		return TestUtils.getPropertyValue(endpoint, "handler.delegate.exchangeNameExpression", String.class);
+	}
+
+	@Override
+	public Object receive(String queue, boolean expectNull) throws Exception {
+		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
+		if (expectNull) {
+			Thread.sleep(50);
+			return template.receiveAndConvert("xdbus." + queue);
+		}
+		Object bar = null;
+		int n = 0;
+		while (n++ < 100 && bar == null) {
+			bar = template.receiveAndConvert("xdbus." + queue);
+			Thread.sleep(100);
+		}
+		assertTrue("Message did not arrive in RabbitMQ", n < 100);
+		return bar;
 	}
 
 }

@@ -38,10 +38,11 @@ import org.springframework.messaging.support.GenericMessage;
 
 
 /**
+ * Tests for buses that support partitioning.
  * 
  * @author Gary Russell
  */
-abstract public class PartitionCapableBusTests extends AbstractMessageBusTests {
+abstract public class PartitionCapableBusTests extends BrokerBusTests {
 
 	@Test
 	public void testBadProperties() throws Exception {

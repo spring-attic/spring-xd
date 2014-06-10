@@ -28,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchDatabaseInitializer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -39,11 +38,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.xd.batch.XdBatchDatabaseInitializer;
 import org.springframework.xd.dirt.rest.RestConfiguration;
@@ -62,8 +59,6 @@ import org.springframework.xd.dirt.util.XdProfiles;
 public class AdminServerApplication {
 
 	private static final Log logger = LogFactory.getLog(AdminServerApplication.class);
-
-	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDAdminMBeanExporter";
 
 	private ConfigurableApplicationContext context;
 
@@ -169,18 +164,6 @@ public class AdminServerApplication {
 		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(false);
 		delegate.setEnvironment(context.getEnvironment());
 		return new SourceFilteringListener(context, delegate);
-	}
-
-	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
-	@EnableMBeanExport(defaultDomain = "xd.admin")
-	protected static class JmxConfiguration {
-
-		@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
-		public IntegrationMBeanExporter integrationMBeanExporter() {
-			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
-			exporter.setDefaultDomain("xd.admin");
-			return exporter;
-		}
 	}
 
 	@Bean

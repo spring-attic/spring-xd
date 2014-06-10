@@ -25,7 +25,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
@@ -33,7 +32,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.integration.config.EnableIntegration;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdProfiles;
@@ -61,20 +59,6 @@ public class SharedServerContextConfiguration {
 	public static final String ZK_CONNECT = "zk.client.connect";
 
 	public static final String EMBEDDED_ZK_CONNECT = "zk.embedded.client.connect";
-
-	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
-
-	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
-	@EnableMBeanExport(defaultDomain = "xd.shared.server")
-	protected static class JmxConfiguration {
-
-		@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
-		public IntegrationMBeanExporter integrationMBeanExporter() {
-			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
-			exporter.setDefaultDomain("xd.shared.server");
-			return exporter;
-		}
-	}
 
 	@Configuration
 	@Profile(XdProfiles.SINGLENODE_PROFILE)

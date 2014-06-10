@@ -30,10 +30,8 @@ import org.springframework.cloud.Cloud;
 import org.springframework.cloud.CloudFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.xd.dirt.post.DelegatingHandlerMapping;
 import org.springframework.xd.dirt.util.ConfigLocations;
@@ -46,7 +44,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * @author Mark Fisher
  */
 @EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
-		JmxAutoConfiguration.class })
+	JmxAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "batch/batch.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {
@@ -94,15 +92,4 @@ public class ParentConfiguration {
 		return new VanillaHealthIndicator();
 	}
 
-	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
-	@EnableMBeanExport(defaultDomain = "xd.parent")
-	protected static class JmxConfiguration {
-
-		@Bean(name = "XDParentMBean")
-		public IntegrationMBeanExporter integrationMBeanExporter() {
-			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
-			exporter.setDefaultDomain("xd.parent");
-			return exporter;
-		}
-	}
 }

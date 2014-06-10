@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -36,7 +35,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
@@ -44,7 +42,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -205,8 +202,6 @@ public class ContainerServerApplication implements EnvironmentAware {
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
 class ContainerConfiguration {
 
-	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDContainerMBeanExporter";
-
 	@Autowired
 	private ContainerAttributes containerAttributes;
 
@@ -265,17 +260,5 @@ class ContainerConfiguration {
 				jobFactory,
 				moduleOptionsMetadataResolver,
 				moduleDeployer);
-	}
-
-	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
-	@EnableMBeanExport(defaultDomain = "xd.container")
-	protected static class JmxConfiguration {
-
-		@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
-		public IntegrationMBeanExporter integrationMBeanExporter() {
-			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
-			exporter.setDefaultDomain("xd.container");
-			return exporter;
-		}
 	}
 }

@@ -84,7 +84,7 @@ public class StreamPathProvider implements DeploymentPathProvider {
 	 */
 	@Override
 	public String getDeploymentPath(String streamName) {
-		return Paths.build(Paths.STREAM_DEPLOYMENTS, streamName);
+		return Paths.build(Paths.STREAM_DEPLOYMENTS, streamName, Paths.MODULES);
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class StreamPathProvider implements DeploymentPathProvider {
 	public int getDeploymentPathChildrenCount(String streamName) {
 		try {
 			Stream stream = streamFactory.createStream(streamName, getStreamProperties(streamName));
-			return stream.getDescriptorsAsList().size();
+			return stream.getModuleDescriptors().size();
 		}
 		catch (Exception e) {
 			String definition;

@@ -41,6 +41,7 @@ import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.core.DeploymentUnitStateCalculator;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
@@ -138,6 +139,10 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	private final ExecutorService executorService =
 			Executors.newSingleThreadExecutor(ThreadUtils.newThreadFactory("DeploymentSupervisorCacheListener"));
 
+	/**
+	 * State calculator for stream/job state.
+	 */
+	private final DeploymentUnitStateCalculator stateCalculator;
 
 	/**
 	 * Construct a {@code DeploymentSupervisor}.
@@ -149,6 +154,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	 * @param moduleDefinitionRepository repository for modules
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 * @param containerMatcher matches modules to containers
+	 * @param stateCalculator calculator for stream/job state
 	 */
 	public DeploymentSupervisor(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository,
@@ -156,13 +162,15 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			JobDefinitionRepository jobDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
-			ContainerMatcher containerMatcher) {
+			ContainerMatcher containerMatcher,
+			DeploymentUnitStateCalculator stateCalculator) {
 		Assert.notNull(zkConnection, "ZooKeeperConnection must not be null");
 		Assert.notNull(containerRepository, "ContainerRepository must not be null");
 		Assert.notNull(streamDefinitionRepository, "StreamDefinitionRepository must not be null");
 		Assert.notNull(moduleDefinitionRepository, "ModuleDefinitionRepository must not be null");
 		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver must not be null");
 		Assert.notNull(containerMatcher, "containerMatcher must not be null");
+		Assert.notNull(stateCalculator, "stateCalculator must not be null");
 		this.zkConnection = zkConnection;
 		this.containerRepository = containerRepository;
 		this.streamDefinitionRepository = streamDefinitionRepository;
@@ -170,6 +178,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 		this.containerMatcher = containerMatcher;
+		this.stateCalculator = stateCalculator;
 	}
 
 	/**
@@ -308,8 +317,8 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			PathChildrenCache containers = null;
 			PathChildrenCache streamDeployments = null;
 			PathChildrenCache jobDeployments = null;
-			PathChildrenCacheListener streamDeploymentListener;
-			PathChildrenCacheListener jobDeploymentListener;
+			StreamDeploymentListener streamDeploymentListener;
+			JobDeploymentListener jobDeploymentListener;
 			PathChildrenCacheListener containerListener;
 
 			try {
@@ -322,20 +331,28 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				streamDeploymentListener = new StreamDeploymentListener(zkConnection,
 						containerRepository,
 						streamFactory,
-						containerMatcher);
+						containerMatcher,
+						stateCalculator);
 
 				streamDeployments = instantiatePathChildrenCache(client, Paths.STREAM_DEPLOYMENTS);
 				streamDeployments.getListenable().addListener(streamDeploymentListener);
-				streamDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+
+				// using BUILD_INITIAL_CACHE so that all known streams are populated
+				// in the cache before invoking recalculateStreamStates; same for
+				// jobs below
+				streamDeployments.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
+				streamDeploymentListener.recalculateStreamStates(client, streamDeployments);
 
 				jobDeploymentListener = new JobDeploymentListener(zkConnection,
 						containerRepository,
 						jobFactory,
-						containerMatcher);
+						containerMatcher,
+						stateCalculator);
 
 				jobDeployments = instantiatePathChildrenCache(client, Paths.JOB_DEPLOYMENTS);
 				jobDeployments.getListenable().addListener(jobDeploymentListener);
-				jobDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+				jobDeployments.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
+				jobDeploymentListener.recalculateJobStates(client, jobDeployments);
 
 				containerListener = new ContainerListener(zkConnection,
 						containerRepository,
@@ -343,7 +360,8 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 						jobFactory,
 						streamDeployments,
 						jobDeployments,
-						containerMatcher);
+						containerMatcher,
+						stateCalculator);
 
 				containers = instantiatePathChildrenCache(client, Paths.CONTAINERS);
 				containers.getListenable().addListener(containerListener);

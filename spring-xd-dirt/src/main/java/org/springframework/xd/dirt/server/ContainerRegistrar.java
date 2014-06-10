@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.server;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -434,32 +433,36 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		String unitName = moduleDeploymentsPath.getStreamName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
+		ModuleDescriptor.Key key = new ModuleDescriptor.Key(unitName, ModuleType.valueOf(moduleType), moduleLabel);
+		String container = moduleDeploymentsPath.getContainer();
 		Module module = null;
+		ModuleDeploymentStatus status;
+
 		ModuleDeploymentProperties properties = new ModuleDeploymentProperties();
 		properties.putAll(mapBytesUtility.toMap(data.getData()));
-		Map<String, String> mapStatus = new HashMap<String, String>();
+
 		try {
 			module = (ModuleType.job.toString().equals(moduleType))
 					? deployJob(client, unitName, moduleLabel, properties)
 					: deployStreamModule(client, unitName, moduleType, moduleLabel, properties);
 			if (module == null) {
-				mapStatus.put(ModuleDeploymentWriter.STATUS_KEY, ModuleDeploymentWriter.Status.error.toString());
-				mapStatus.put(ModuleDeploymentWriter.ERROR_DESCRIPTION_KEY, "Module deployment returned null");
+				status = new ModuleDeploymentStatus(container, key,
+						ModuleDeploymentStatus.State.failed, "Module deployment returned null");
 			}
 			else {
-				mapStatus.put(ModuleDeploymentWriter.STATUS_KEY, ModuleDeploymentWriter.Status.deployed.toString());
+				status = new ModuleDeploymentStatus(container, key,
+						ModuleDeploymentStatus.State.deployed, null);
 			}
 		}
 		catch (Exception e) {
-			mapStatus.put(ModuleDeploymentWriter.STATUS_KEY, ModuleDeploymentWriter.Status.error.toString());
-			mapStatus.put(ModuleDeploymentWriter.ERROR_DESCRIPTION_KEY, e.toString());
+			status = new ModuleDeploymentStatus(container, key,
+					ModuleDeploymentStatus.State.failed, e.toString());
 			logger.error("Exception deploying module", e);
 		}
 
 		try {
 			writeModuleMetadata(module, path, client);
-			// update the module deployment node with the deployment status
-			client.setData().forPath(Paths.build(path, Paths.STATUS), mapBytesUtility.toByteArray(mapStatus));
+			client.setData().forPath(status.buildPath(), mapBytesUtility.toByteArray(status.toMap()));
 		}
 		catch (KeeperException.NoNodeException e) {
 			logger.warn("During deployment of module {} of type {} for {}, an undeployment request " +
@@ -513,8 +516,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 			try {
 				// this indicates that the container has deployed the module
-				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(jobDeploymentPath,
-						getDeployedMessage());
+				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(jobDeploymentPath);
 
 				// set a watch on this module in the job path;
 				// if the node is deleted this indicates an undeployment
@@ -552,13 +554,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		Module module = null;
 		Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
 		if (stream != null) {
-			ModuleDescriptor descriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
+			ModuleDescriptor descriptor = stream.getModuleDescriptor(moduleLabel);
 			module = deployModule(descriptor, properties);
 
 			try {
 				// this indicates that the container has deployed the module
-				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(streamDeploymentPath,
-						getDeployedMessage());
+				client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(streamDeploymentPath);
 
 				// set a watch on this module in the stream path;
 				// if the node is deleted this indicates an undeployment
@@ -570,14 +571,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			}
 		}
 		return module;
-	}
-
-	/**
-	 * Get the byte[] representation of deployed state message.
-	 * @return byte array
-	 */
-	private byte[] getDeployedMessage() {
-		return mapBytesUtility.toByteArray(Collections.singletonMap("state", "deployed"));
 	}
 
 	/**

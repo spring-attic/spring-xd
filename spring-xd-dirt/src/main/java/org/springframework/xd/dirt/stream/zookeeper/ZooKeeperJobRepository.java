@@ -26,12 +26,15 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobRepository;
@@ -50,6 +53,8 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 // todo: the JobRepository abstraction can be removed once we are fully zk-enabled since we do not need to
 // support multiple impls at that point
 public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
+
+	private static final Logger logger = LoggerFactory.getLogger(ZooKeeperJobRepository.class);
 
 	private final ZooKeeperConnection zkConnection;
 
@@ -165,8 +170,22 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 
 	@Override
 	public void delete(String id) {
+		CuratorFramework client = zkConnection.getClient();
+
 		try {
-			zkConnection.getClient().delete().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));
+			client.setData().forPath(
+					Paths.build(Paths.JOB_DEPLOYMENTS, id, Paths.STATUS),
+					ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(
+							DeploymentUnitStatus.State.undeploying).toMap()));
+		}
+		catch (Exception e) {
+			logger.warn("Exception while transitioning job state to " +
+					DeploymentUnitStatus.State.undeploying, e);
+		}
+
+		try {
+			client.delete().deletingChildrenIfNeeded()
+					.forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));
 		}
 		catch (Exception e) {
 			//NoNodeException - nothing to delete
@@ -219,6 +238,24 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 			results.add(job);
 		}
 		return results;
+	}
+
+	@Override
+	public DeploymentUnitStatus getDeploymentStatus(String s) {
+		String path = Paths.build(Paths.JOB_DEPLOYMENTS, s, Paths.STATUS);
+		byte[] statusBytes = null;
+
+		try {
+			statusBytes = zkConnection.getClient().getData().forPath(path);
+		}
+		catch (Exception e) {
+			// missing node means this job has not been deployed
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
+		}
+
+		return (statusBytes == null)
+				? new DeploymentUnitStatus(DeploymentUnitStatus.State.undeployed)
+				: new DeploymentUnitStatus(ZooKeeperUtils.bytesToMap(statusBytes));
 	}
 
 }

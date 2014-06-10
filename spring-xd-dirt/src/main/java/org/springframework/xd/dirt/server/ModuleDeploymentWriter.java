@@ -34,7 +34,6 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.NoContainerException;
@@ -54,7 +53,7 @@ import org.springframework.xd.module.ModuleType;
  * by the {@link org.springframework.xd.dirt.cluster.ContainerMatcher} passed into
  * the constructor.
  * <p/>
- * General usage is to invoke {@code writeDeployment} and examine the {@link Result}
+ * General usage is to invoke {@code writeDeployment} and examine the {@link ModuleDeploymentStatus}
  * object that is returned. This invocation will block until:
  * <ul>
  *     <li>all containers have "responded" by updating the ZooKeeper nodes</li>
@@ -62,12 +61,11 @@ import org.springframework.xd.module.ModuleType;
  *         (default value is {@link #DEFAULT_TIMEOUT}.</li>
  *     <li>the waiting thread is interrupted</li>
  * </ul>
- * Convenience methods {@link #validateResult} and {@link #validateResults} can
- * be used to examine the returned result and throw an {@link java.lang.IllegalStateException}
- * if a module deployment timed out. Otherwise the results may be examined to
- * obtain detailed information about each deployment attempt and its result.
+ * The results may be examined to obtain detailed information about each deployment
+ * attempt and its result.
  *
  * @author Patrick Peralta
+ * @see org.springframework.xd.dirt.core.DeploymentUnitStateCalculator
  */
 public class ModuleDeploymentWriter {
 
@@ -99,7 +97,7 @@ public class ModuleDeploymentWriter {
 	private final ContainerMatcher containerMatcher;
 
 	/**
-	 * Implementation of {@link ModuleDeploymentWriter.ModuleDeploymentPropertiesProvider}
+	 * Implementation of {@link ModuleDeploymentPropertiesProvider}
 	 * that returns {@link ModuleDeploymentProperties#defaultInstance}.
 	 */
 	private static final ModuleDeploymentPropertiesProvider defaultProvider = new ModuleDeploymentPropertiesProvider() {
@@ -121,43 +119,6 @@ public class ModuleDeploymentWriter {
 	 */
 	private final long timeout;
 
-	/**
-	 * Key used in status map to indicate the module deployment status.
-	 * The status map is written by the container deploying the module.
-	 *
-	 * @see org.springframework.xd.dirt.server.ContainerRegistrar
-	 */
-	public static final String STATUS_KEY = "status";
-
-	/**
-	 * Key used in status map to provide an error description.
-	 * The status map is written by the container deploying the module.
-	 * This value will be written if there is an error deploying the module.
-	 *
-	 * @see org.springframework.xd.dirt.server.ContainerRegistrar
-	 */
-	public static final String ERROR_DESCRIPTION_KEY = "errorDescription";
-
-	/**
-	 * Module deployment statuses.
-	 */
-	enum Status {
-		/**
-		 * Module was successfully deployed.
-		 */
-		deployed,
-
-		/**
-		 * Module deployment request timed out; a response was never received
-		 * from the container.
-		 */
-		timedOut,
-
-		/**
-		 * An error occurred during module deployment (usually on the container side).
-		 */
-		error
-	}
 
 	/**
 	 * Construct a {@code ModuleDeploymentWriter} with the default timeout
@@ -199,7 +160,7 @@ public class ModuleDeploymentWriter {
 	 * @throws NoContainerException if there are no containers that match the criteria
 	 *                              for module deployment
 	 */
-	public Result writeDeployment(ModuleDescriptor descriptor, final Container container)
+	public ModuleDeploymentStatus writeDeployment(ModuleDescriptor descriptor, final Container container)
 			throws InterruptedException, NoContainerException {
 		ContainerMatcher matcher = new ContainerMatcher() {
 
@@ -228,7 +189,7 @@ public class ModuleDeploymentWriter {
 	 * @throws NoContainerException if there are no containers that match the criteria
 	 *                              for module deployment
 	 */
-	public Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
+	public Collection<ModuleDeploymentStatus> writeDeployment(Iterator<ModuleDescriptor> descriptors,
 			ModuleDeploymentPropertiesProvider provider)
 			throws InterruptedException, NoContainerException {
 		return writeDeployment(descriptors, provider, containerMatcher);
@@ -250,10 +211,10 @@ public class ModuleDeploymentWriter {
 	 * @throws NoContainerException if there are no containers that match the criteria
 	 *                              for module deployment
 	 */
-	public Result writeDeployment(ModuleDescriptor moduleDescriptor,
+	public ModuleDeploymentStatus writeDeployment(ModuleDescriptor moduleDescriptor,
 			final ModuleDeploymentProperties deploymentProperties,
 			ContainerMatcher containerMatcher) throws InterruptedException, NoContainerException {
-		Collection<Result> results = writeDeployment(Collections.singleton(moduleDescriptor).iterator(),
+		Collection<ModuleDeploymentStatus> deploymentStatus = writeDeployment(Collections.singleton(moduleDescriptor).iterator(),
 				new ModuleDeploymentPropertiesProvider() {
 
 					@Override
@@ -262,12 +223,12 @@ public class ModuleDeploymentWriter {
 					}
 				}, containerMatcher);
 
-		if (results.size() > 1) {
+		if (deploymentStatus.size() > 1) {
 			throw new IllegalStateException("Expected to deploy to one container; " +
-					"deployment results: " + results);
+					"deployment results: " + deploymentStatus);
 		}
 
-		return results.iterator().next();
+		return deploymentStatus.iterator().next();
 	}
 
 	/**
@@ -284,10 +245,10 @@ public class ModuleDeploymentWriter {
 	 * @throws NoContainerException if there are no containers that match the criteria
 	 *                              for module deployment
 	 */
-	public Collection<Result> writeDeployment(Iterator<ModuleDescriptor> descriptors,
+	public Collection<ModuleDeploymentStatus> writeDeployment(Iterator<ModuleDescriptor> descriptors,
 			ModuleDeploymentPropertiesProvider provider, ContainerMatcher containerMatcher)
 			throws InterruptedException, NoContainerException {
-		Collection<Result> results = new ArrayList<Result>();
+		Collection<ModuleDeploymentStatus> deploymentStatus = new ArrayList<ModuleDeploymentStatus>();
 		CuratorFramework client = zkConnection.getClient();
 		while (descriptors.hasNext()) {
 			ResultCollector collector = new ResultCollector();
@@ -333,14 +294,14 @@ public class ModuleDeploymentWriter {
 			// the blocking has to occur for each individual module in
 			// order to ensure that modules for streams are deployed
 			// in the correct order
-			results.addAll(processResults(client, collector));
+			deploymentStatus.addAll(processResults(client, collector));
 		}
 
-		if (results.isEmpty()) {
+		if (deploymentStatus.isEmpty()) {
 			throw new NoContainerException();
 		}
 
-		return results;
+		return deploymentStatus;
 	}
 
 	/**
@@ -353,19 +314,19 @@ public class ModuleDeploymentWriter {
 	 * @return collection of results for module deployment requests
 	 * @throws InterruptedException
 	 */
-	private Collection<Result> processResults(CuratorFramework client,
+	private Collection<ModuleDeploymentStatus> processResults(CuratorFramework client,
 			ResultCollector collector) throws InterruptedException {
-		Collection<Result> results = collector.getResults();
+		Collection<ModuleDeploymentStatus> statuses = collector.getResults();
 
 		// remove the ZK path for any failed deployments
-		for (Result result : results) {
-			if (result.status != Status.deployed) {
-				logger.trace("Unsuccessful deployment: {}", result);
+		for (ModuleDeploymentStatus deploymentStatus : statuses) {
+			if (deploymentStatus.getState() != ModuleDeploymentStatus.State.deployed) {
+				logger.trace("Unsuccessful deployment: {}", deploymentStatus);
 				String path = new ModuleDeploymentsPath()
-						.setContainer(result.container)
-						.setStreamName(result.key.getGroup())
-						.setModuleType(result.key.getType().toString())
-						.setModuleLabel(result.key.getLabel()).build();
+						.setContainer(deploymentStatus.getContainer())
+						.setStreamName(deploymentStatus.getKey().getGroup())
+						.setModuleType(deploymentStatus.getKey().getType().toString())
+						.setModuleLabel(deploymentStatus.getKey().getLabel()).build();
 				try {
 					client.delete().deletingChildrenIfNeeded().forPath(path);
 				}
@@ -382,7 +343,7 @@ public class ModuleDeploymentWriter {
 				}
 			}
 		}
-		return results;
+		return statuses;
 	}
 
 	/**
@@ -412,117 +373,47 @@ public class ModuleDeploymentWriter {
 	}
 
 	/**
-	 * Create a {@link Result} from a ZooKeeper path and data.
+	 * Create a {@link ModuleDeploymentStatus} from a ZooKeeper path and data.
 	 *
 	 * @param pathString  ZooKeeper module deployment path
 	 * @param data        data for the path
 	 * @return result based on data
 	 */
-	private Result createResult(String pathString, byte[] data) {
+	private ModuleDeploymentStatus createResult(String pathString, byte[] data) {
 		return createResult(pathString, mapBytesUtility.toMap(data));
 	}
 
 	/**
-	 * Create a {@link Result} from a ZooKeeper path and status map.
+	 * Create a {@link ModuleDeploymentStatus} from a ZooKeeper path and status map.
 	 *
 	 * @param pathString  ZooKeeper module deployment path
 	 * @param statusMap   status map
 	 * @return result based on status map
-	 *
-	 * @see #STATUS_KEY
-	 * @see #ERROR_DESCRIPTION_KEY
 	 */
-	private Result createResult(String pathString, Map<String, String> statusMap) {
+	private ModuleDeploymentStatus createResult(String pathString, Map<String, String> statusMap) {
 		ModuleDeploymentsPath path = new ModuleDeploymentsPath(pathString);
-
 		ModuleDescriptor.Key key = new ModuleDescriptor.Key(
 				path.getStreamName(),
 				ModuleType.valueOf(path.getModuleType()),
 				path.getModuleLabel());
-		String status = statusMap.get(STATUS_KEY);
-		Assert.hasText(status, "Expected a '" + STATUS_KEY + "' key in result map");
-		return new Result(path.getContainer(), key,
-				Status.valueOf(status),
-				statusMap.get(ERROR_DESCRIPTION_KEY));
+		return new ModuleDeploymentStatus(path.getContainer(), key, statusMap);
 	}
 
 	/**
-	 * Create a {@link Result} from a ZooKeeper path and a {@code Throwable}.
+	 * Create a {@link ModuleDeploymentStatus} from a ZooKeeper path and a {@code Throwable}.
 	 *
 	 * @param pathString  ZooKeeper module deployment path
 	 * @param t           exception thrown while attempting deployment
 	 * @return result based on exception
 	 */
-	private Result createResult(String pathString, Throwable t) {
+	private ModuleDeploymentStatus createResult(String pathString, Throwable t) {
 		ModuleDeploymentsPath path = new ModuleDeploymentsPath(pathString);
 		ModuleDescriptor.Key key = new ModuleDescriptor.Key(
 				path.getStreamName(),
 				ModuleType.valueOf(path.getModuleType()),
 				path.getModuleLabel());
 
-		return new Result(path.getContainer(), key, Status.error, t.toString());
-	}
-
-	/**
-	 * Validate the result. An exception is thrown if the request
-	 * did not succeed.
-	 *
-	 * @param result result to validate
-	 * @throws IllegalStateException if the result does not indicate
-	 *                               a successful deployment
-	 */
-	public void validateResult(Result result) {
-		validateResults(Collections.singleton(result));
-	}
-
-	/**
-	 * Validate the results. An exception is thrown if a request
-	 * in the collection did not succeed. The error message will
-	 * contain a summary of all failed deployments.
-	 *
-	 * @param results results to validate
-	 * @throws IllegalStateException if the result does not indicate
-	 *                               a successful deployment
-	 */
-	public void validateResults(Collection<Result> results) throws IllegalStateException {
-		StringBuilder error = new StringBuilder();
-		for (ModuleDeploymentWriter.Result result : results) {
-			switch (result.getStatus()) {
-				case deployed:
-					break;
-				case error:
-					if (error.length() > 0) {
-						error.append("; ");
-					}
-					error.append("Container ")
-							.append(result.getContainer())
-							.append(" experienced the following error deploying module ")
-							.append(result.getKey().getLabel())
-							.append(" of type ")
-							.append(result.getKey().getType())
-							.append(": ")
-							.append(result.getErrorDescription());
-					break;
-				case timedOut:
-					if (error.length() > 0) {
-						error.append("; ");
-					}
-					error.append("Container ")
-							.append(result.getContainer())
-							.append(" timed out deploying module ")
-							.append(result.getKey().getLabel())
-							.append(" of type ")
-							.append(result.getKey().getType())
-							.append(": ")
-							.append(result.getErrorDescription());
-					break;
-				default:
-					break;
-			}
-		}
-		if (error.length() > 0) {
-			throw new IllegalStateException(error.toString());
-		}
+		return new ModuleDeploymentStatus(path.getContainer(), key, ModuleDeploymentStatus.State.failed, t.toString());
 	}
 
 
@@ -607,8 +498,8 @@ public class ModuleDeploymentWriter {
 		/**
 		 * Deployment request results for modules and containers.
 		 */
-		private final Map<ContainerModuleKey, Result> results =
-				new HashMap<ContainerModuleKey, Result>();
+		private final Map<ContainerModuleKey, ModuleDeploymentStatus> results =
+				new HashMap<ContainerModuleKey, ModuleDeploymentStatus>();
 
 
 		/**
@@ -644,12 +535,13 @@ public class ModuleDeploymentWriter {
 		/**
 		 * Add an incoming result for a module deployment request.
 		 *
-		 * @param result incoming result
+		 * @param deploymentStatus incoming result
 		 */
-		public synchronized void addResult(Result result) {
-			ContainerModuleKey key = new ContainerModuleKey(result.container, result.key);
+		public synchronized void addResult(ModuleDeploymentStatus deploymentStatus) {
+			ContainerModuleKey key = new ContainerModuleKey(deploymentStatus.getContainer(),
+					deploymentStatus.getKey());
 			pending.remove(key);
-			results.put(key, result);
+			results.put(key, deploymentStatus);
 			notifyAll();
 		}
 
@@ -658,7 +550,7 @@ public class ModuleDeploymentWriter {
 		 * <ul>
 		 *     <li>All pending requests have been responded to.</li>
 		 *     <li>A timeout occurs; in this case a collection of
-		 *     {@link org.springframework.xd.dirt.server.ModuleDeploymentWriter.Result}
+		 *     {@link ModuleDeploymentStatus}
 		 *     is returned. These results can be examined to see which container(s)
 		 *     timed out.</li>
 		 *     <li>The thread invoking this method is interrupted.</li>
@@ -667,7 +559,7 @@ public class ModuleDeploymentWriter {
 		 * @return collection of results
 		 * @throws InterruptedException
 		 */
-		public synchronized Collection<Result> getResults() throws InterruptedException {
+		public synchronized Collection<ModuleDeploymentStatus> getResults() throws InterruptedException {
 			long now = System.currentTimeMillis();
 			long expiryTime = now + timeout;
 			while (pending.size() > 0 && now < expiryTime) {
@@ -680,139 +572,11 @@ public class ModuleDeploymentWriter {
 			// was never updated
 			for (ContainerModuleKey key : pending) {
 				results.put(key,
-						new Result(key.container, key.moduleDescriptorKey,
-								Status.timedOut, /*errorDescription*/null));
+						new ModuleDeploymentStatus(key.container, key.moduleDescriptorKey,
+								ModuleDeploymentStatus.State.timedOut, /*errorDescription*/null));
 			}
 			return results.values();
 		}
-	}
-
-
-	/**
-	 * Result of a module deployment request.
-	 */
-	public static class Result {
-
-		/**
-		 * Target container for module deployment request.
-		 */
-		private final String container;
-
-		/**
-		 * Module descriptor key for the module being deployed.
-		 */
-		private final ModuleDescriptor.Key key;
-
-		/**
-		 * Status of module deployment.
-		 */
-		private final Status status;
-
-		/**
-		 * Error description; will be null unless there was an error
-		 * deploying the module.
-		 */
-		private final String errorDescription;
-
-		/**
-		 * Construct a {@code Result}.
-		 *
-		 * @param container         target container name
-		 * @param key               module descriptor key
-		 * @param status            deployment status
-		 * @param errorDescription  error description (may be null)
-		 */
-		public Result(String container, ModuleDescriptor.Key key, Status status, String errorDescription) {
-			this.container = container;
-			this.key = key;
-			this.status = status;
-			this.errorDescription = errorDescription;
-		}
-
-		/**
-		 * @return target container name
-		 *
-		 * @see #container
-		 */
-		public String getContainer() {
-			return container;
-		}
-
-		/**
-		 * @return module descriptor key
-		 *
-		 * @see #key
-		 */
-		public ModuleDescriptor.Key getKey() {
-			return key;
-		}
-
-		/**
-		 * @return module deployment status
-		 *
-		 * @see #status
-		 */
-		public Status getStatus() {
-			return status;
-		}
-
-		/**
-		 * @return error description; may be null
-		 *
-		 * @see #errorDescription
-		 */
-		public String getErrorDescription() {
-			return errorDescription;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public String toString() {
-			return "Result{" +
-					"container='" + container + '\'' +
-					", key=" + key +
-					", status=" + status +
-					", errorDescription='" + errorDescription + '\'' +
-					'}';
-		}
-	}
-
-
-	/**
-	 * Callback interface to obtain {@link ModuleDeploymentProperties}
-	 * for a {@link ModuleDescriptor}.
-	 */
-	public interface ModuleDeploymentPropertiesProvider {
-
-		/**
-		 * Return the deployment properties for the module descriptor.
-		 *
-		 * @param descriptor module descriptor for module to be deployed
-		 * @return deployment properties for module
-		 */
-		ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor);
-	}
-
-	/**
-	 * Callback interface to obtain {@link ModuleDeploymentProperties}
-	 * for a {@link ModuleDescriptor} within the context of deployment
-	 * to the provided {@link Container}.
-	 */
-	public interface ContainerAwareModuleDeploymentPropertiesProvider
-			extends ModuleDeploymentPropertiesProvider {
-
-		/**
-		 * Return the deployment properties for the module descriptor
-		 * that are specific for deployment to the provided {@link Container}.
-		 *
-		 * @param descriptor module descriptor for module to be deployed
-		 * @param container  target container for deployment
-		 * @return deployment properties for module
-		 */
-		ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor,
-				Container container);
 	}
 
 }

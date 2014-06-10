@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.core;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.xd.module.ModuleDescriptor;
@@ -26,7 +27,7 @@ import org.springframework.xd.module.ModuleDescriptor;
  *
  * @author Ilayaperumal Gopinathan
  */
-public class Job {
+public class Job implements DeploymentUnit {
 
 	/**
 	 * The name of the job.
@@ -61,6 +62,7 @@ public class Job {
 	 *
 	 * @return job name
 	 */
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -75,10 +77,19 @@ public class Job {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<ModuleDescriptor> getModuleDescriptors() {
+		return Collections.singletonList(descriptor);
+	}
+
+	/**
 	 * Return the deployment properties for this job.
 	 *
 	 * @return job deployment properties
 	 */
+	@Override
 	public Map<String, String> getDeploymentProperties() {
 		return deploymentProperties;
 	}

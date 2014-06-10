@@ -31,7 +31,7 @@ import org.springframework.xd.module.ModuleDescriptor;
  *
  * @author Patrick Peralta
  */
-public class Stream {
+public class Stream implements DeploymentUnit {
 
 	/**
 	 * Name of stream.
@@ -57,7 +57,8 @@ public class Stream {
 	 *                             flow order (source is first, sink is last)
 	 * @param deploymentProperties stream deployment properties
 	 */
-	private Stream(String name, LinkedList<ModuleDescriptor> descriptors, Map<String, String> deploymentProperties) {
+	private Stream(String name, LinkedList<ModuleDescriptor> descriptors,
+			Map<String, String> deploymentProperties) {
 		this.name = name;
 		this.descriptors = descriptors;
 		this.deploymentProperties = deploymentProperties;
@@ -68,6 +69,7 @@ public class Stream {
 	 *
 	 * @return stream name
 	 */
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -78,7 +80,7 @@ public class Stream {
 	 *
 	 * @return list of module descriptors for this stream definition
 	 */
-	public Deque<ModuleDescriptor> getDescriptors() {
+	public Deque<ModuleDescriptor> getModuleDescriptorsAsDeque() {
 		return descriptors;
 	}
 
@@ -89,7 +91,8 @@ public class Stream {
 	 *
 	 * @return list of module descriptors for this stream definition
 	 */
-	public List<ModuleDescriptor> getDescriptorsAsList() {
+	@Override
+	public List<ModuleDescriptor> getModuleDescriptors() {
 		return descriptors;
 	}
 
@@ -110,6 +113,7 @@ public class Stream {
 	 *
 	 * @return stream deployment properties
 	 */
+	@Override
 	public Map<String, String> getDeploymentProperties() {
 		return deploymentProperties;
 	}
@@ -126,22 +130,20 @@ public class Stream {
 	 * Return the module descriptor for the provided label and type.
 	 *
 	 * @param moduleLabel module label
-	 * @param moduleType  module type
 	 * @return module descriptor
 	 * @throws IllegalStateException if the requested module label and type
 	 *                               are not part of this stream
 	 */
-	public ModuleDescriptor getModuleDescriptor(String moduleLabel, String moduleType)
+	public ModuleDescriptor getModuleDescriptor(String moduleLabel)
 			throws IllegalStateException {
 		for (ModuleDescriptor descriptor : descriptors) {
-			if (descriptor.getModuleLabel().equals(moduleLabel)
-					&& descriptor.getType().toString().equals(moduleType)) {
+			if (descriptor.getModuleLabel().equals(moduleLabel)) {
 				return descriptor;
 			}
 		}
 		throw new IllegalStateException(String.format(
-				"Could not find module with label '%s' of type '%s' in the list of modules for " +
-						"stream '%s': %s", moduleLabel, moduleType, getName(), getDescriptorsAsList()));
+				"Could not find module with label '%s' in the list of modules for " +
+						"stream '%s': %s", moduleLabel, getName(), getModuleDescriptors()));
 	}
 
 

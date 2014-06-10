@@ -48,7 +48,7 @@ public class JobPathProvider implements DeploymentPathProvider {
 	 */
 	@Override
 	public String getDeploymentPath(String jobName) {
-		return Paths.build(Paths.JOB_DEPLOYMENTS, jobName);
+		return Paths.build(Paths.JOB_DEPLOYMENTS, jobName, Paths.MODULES);
 	}
 
 	/**

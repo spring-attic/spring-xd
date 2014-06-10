@@ -139,11 +139,11 @@ Out of the box the acceptance tests will be configured using the provided applic
 There are 2 steps to running a your acceptance tests.  
 1) Set your XD_HOME
 * While in your spring-xd project, use your favorite editor to open spring-xd-integration-test/src/test/resources/application-singlenode.properties
-* set the XD_HOME property to the location where you XD is deployed. For Example:
+* set the XD_HOME property to the location where you deployed XD. For Example:
 
 ```
 #Location
-XD_HOME=/Users/renfrg/projects/spring-xd/build/dist/spring-xd
+XD_HOME=/Users/renfrg/projects/spring-xd/build/dist/spring-xd/xd
 ```
 2) Run All Acceptance tests
 
@@ -160,7 +160,7 @@ In this case you can add the -Dtest.single=  along with the test you want ot run
 
 Following the Singlenode instructions above, you will only need to make one additional change (Assuming you are running the hsqldb-server).  Since we will be running an Admin and Container combination, the logs for which the Acceptance tests will be monitoring will be the container's.  So, the xd\_container\_log\_dir will have to be updated as shown below:
 ```
-xd_container_log_dir=${XD_HOME}/xd/logs/container.log
+xd_container_log_dir=${XD_HOME}/logs/container.log
 ```
 
 ### Running on EC2

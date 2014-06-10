@@ -579,6 +579,14 @@ public class StreamConfigParserTests {
 	}
 
 	@Test
+	public void addingALabelLiftsAmbiguity() {
+		StreamNode ast = parse("file | out: file");
+		assertEquals("file", ast.getModuleNodes().get(0).getEffectiveLabel());
+		assertEquals("out", ast.getModuleNodes().get(1).getEffectiveLabel());
+
+	}
+
+	@Test
 	public void duplicateImplicitLabels() {
 		checkForParseError("http | filter | transform | transform | file",
 				XDDSLMessages.DUPLICATE_LABEL, 28, "transform", "transform", 2, "transform", 3);

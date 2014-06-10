@@ -83,7 +83,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		}
 
 		// Check if the stream name is same as that of any of its modules' names
-		// Can lead to infinite recursion during resolution
+		// Can lead to infinite recursion during resolution, when parsing a composite module.
 		if (ast.getModule(name) != null) {
 			throw new StreamDefinitionException(stream, stream.indexOf(name),
 					XDDSLMessages.STREAM_NAME_MATCHING_MODULE_NAME,
@@ -645,43 +645,4 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		return null;
 	}
 
-	// Expects channel naming scheme of stream.NNN where NNN is the module index in the
-	// stream
-	@Override
-	public String lookupChannelForLabelOrModule(String streamName, String streamOrLabelOrModuleName) {
-		if (streamName != null) {
-			BaseDefinition basedef = repository.findOne(streamName);
-			if (basedef == null) {
-				// TODO error/warning?
-				return null;
-			}
-			StreamNode streamNode = new StreamConfigParser(repository).parse(basedef.getDefinition());
-			if (streamNode != null) {
-				int index = streamNode.getIndexOfLabelOrModuleName(streamOrLabelOrModuleName);
-				if (index == -1) {
-					// TODO could be an error
-					return streamName + "." + 0;
-				}
-				else {
-					return streamName + "." + index;
-				}
-			}
-		}
-		else {
-			// Is it a stream?
-			BaseDefinition basedef = repository.findOne(streamOrLabelOrModuleName);
-			if (basedef != null) {
-				return streamOrLabelOrModuleName + ".0";
-			}
-			// look through all streams...
-			for (BaseDefinition bd : repository.findAll()) {
-				StreamNode streamNode = new StreamConfigParser(repository).parse(bd.getDefinition());
-				int index = streamNode.getIndexOfLabelOrModuleName(streamOrLabelOrModuleName);
-				if (index != -1) {
-					return streamNode.getStreamName() + "." + index;
-				}
-			}
-		}
-		return null;
-	}
 }

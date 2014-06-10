@@ -33,6 +33,7 @@ import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.core.io.Resource;
@@ -520,145 +521,6 @@ public class StreamConfigParserTests {
 	}
 
 	@Test
-	public void substreams() {
-		parse("myhttp = http --port=9000");
-		StreamNode stream = parse("myhttp | file");
-		assertEquals("[(ModuleNode:http --port=9000:9>25)(ModuleNode:file:9>13)]",
-				stream.stringify(true));
-	}
-
-	@Test
-	public void substreamsWithSourceChannels() {
-		parse("myhttp = queue:foo > filter --name=payload");
-
-		sn = parse("myhttp | file");
-
-		assertEquals("[(queue:foo:9>18)>(ModuleNode:filter --name=payload:21>42)(ModuleNode:file:9>13)]",
-				sn.stringify(true));
-
-		checkForParseError("queue:foo > myhttp | file",
-				XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_ALREADY_HAS_SOURCE_CHANNEL, 12, "myhttp");
-
-		checkForParseError("foo | myhttp | file",
-				XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SOURCE_CHANNEL, 6, "myhttp");
-
-		sn = parse("myhttp > topic:wibble");
-		assertEquals("[(queue:foo)>(ModuleNode:filter --name=payload)>(topic:wibble)]", sn.stringify());
-	}
-
-	@Test
-	public void substreamsWithSinkChannels() {
-		checkForParseError("myhttp = filter > :foo", XDDSLMessages.EXPECTED_CHANNEL_PREFIX_QUEUE_TOPIC, 18, ":");
-
-		parse("mysink = filter --payload=true > queue:foo");
-
-		sn = parse("http | mysink");
-		assertEquals("[(ModuleNode:http:0>4)(ModuleNode:filter --payload=true:9>30)>(queue:foo:33>42)]",
-				sn.stringify(true));
-
-		checkForParseError("http | mysink > topic:bar",
-				XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_ALREADY_HAS_SINK_CHANNEL, 7, "mysink");
-
-		checkForParseError("foo | mysink | file",
-				XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SINK_CHANNEL, 6, "mysink");
-
-		sn = parse("myhttp > topic:wibble");
-		assertEquals("[(ModuleNode:myhttp)>(topic:wibble)]", sn.stringify());
-	}
-
-	@Test
-	public void substreamsMultipleModules() {
-		parse("foo = transform --expression='abc' | transform --expression='def'");
-		StreamNode stream = parse("http | foo | file");
-		// TODO after macro insertion the source locations for the inserted modules are
-		// kind of meaningless, reset them?
-		assertEquals(
-				"[(ModuleNode:http:0>4)(ModuleNode:transform --expression=abc:6>32)(ModuleNode:transform --expression=def:35>61)(ModuleNode:file:13>17)]",
-				stream.stringify(true));
-	}
-
-	@Test
-	public void substreamsAdditionalParams() {
-		parse("myhttp = http --port=9000");
-		StreamNode stream = parse("myhttp --setting2=value2 | file");
-		assertEquals("[(ModuleNode:http --port=9000 --setting2=value2)(ModuleNode:file)]", stream.stringify());
-	}
-
-	@Test
-	public void substreamsOverrideParams() {
-		parse("myhttp = http --port=9000");
-		StreamNode stream = parse("myhttp --port=9010| file");
-		assertEquals("[(ModuleNode:http --port=9010)(ModuleNode:file)]", stream.stringify());
-	}
-
-	@Test
-	public void parameterizedStreams() {
-		parse("nameReplacer = transform --expression=payload.replaceAll('${name}','x')");
-		StreamNode stream = parse("http | nameReplacer --name='Andy' | file");
-		assertEquals(
-				"[(ModuleNode:http)(ModuleNode:transform --expression=payload.replaceAll('Andy','x'))(ModuleNode:file)]",
-				stream.stringify());
-	}
-
-	@Test
-	public void parameterizedStreamsMissingValue() {
-		parse("nameReplacer = transform --expression=payload.replaceAll('${name}','x')");
-		checkForParseError("http | nameReplacer --name2='Andy' | file", XDDSLMessages.MISSING_VALUE_FOR_VARIABLE, -1,
-				"name");
-	}
-
-	@Test
-	public void parameterizedStreamsMissingCloseCurly() {
-		parse("nameReplacer = transform --expression=payload.replaceAll('${name','x')");
-		checkForParseError("http | nameReplacer --name2='Andy' | file", XDDSLMessages.VARIABLE_NOT_TERMINATED, -1,
-				"--expression=payload.replaceAll('${name','x')");
-	}
-
-	@Test
-	public void parameterizedStreamsDefaultValues() {
-		parse("nameReplacer = transform --expression=payload.replaceAll('${name:foo}','x')");
-		StreamNode stream = parse("http | nameReplacer | file");
-		assertEquals(
-				"[(ModuleNode:http)(ModuleNode:transform --expression=payload.replaceAll('foo','x'))(ModuleNode:file)]",
-				stream.stringify());
-	}
-
-	@Test
-	public void parameterizedStreamsMixingItUp() {
-		parse("nameReplacer = transform --expression=payload.replaceAll('${name:foo}','x')");
-		StreamNode stream = parse("http | nameReplacer --setting2=value2 | file");
-		assertEquals(
-				"[(ModuleNode:http)(ModuleNode:transform --expression=payload.replaceAll('foo','x') --setting2=value2)(ModuleNode:file)]",
-				stream.stringify());
-	}
-
-	@Test
-	public void parameterizedStreamsMixingItUp2() {
-		parse("nameReplacer = transform --a1=${foo} --b1=${bar}");
-		StreamNode stream = parse("http | nameReplacer --foo=abc --bar=def | file");
-		assertEquals("[(ModuleNode:http)(ModuleNode:transform --a1=abc --b1=def)(ModuleNode:file)]",
-				stream.stringify());
-	}
-
-	@Test
-	public void parameterizedSubstreamsMultipleModules() {
-		parse("nameReplacer = transform --a1=${foo} | transform --b1=${bar}");
-		StreamNode stream = parse("http | nameReplacer --foo=abc --bar=def | file");
-		assertEquals(
-				"[(ModuleNode:http)(ModuleNode:transform --a1=abc)(ModuleNode:transform --b1=def)(ModuleNode:file)]",
-				stream.stringify());
-	}
-
-	@Test
-	public void parameterizedSubstreamsMultipleModulesDefaultValues() {
-		parse("nameReplacer = transform --a1=${foo:default} | transform --b1=${bar}");
-		StreamNode stream = parse("http | nameReplacer --bar=def | file");
-		assertEquals(
-				"[(ModuleNode:http)(ModuleNode:transform --a1=default)(ModuleNode:transform --b1=def)(ModuleNode:file)]",
-				stream.stringify());
-	}
-
-	@Test
 	public void nameSpaceTestWithSpaces() {
 		checkForParseError("trigger > queue:job:myjob   too", XDDSLMessages.UNEXPECTED_DATA_AFTER_STREAMDEF, 28, "too");
 	}
@@ -718,6 +580,7 @@ public class StreamConfigParserTests {
 	}
 
 	@Test
+	@Ignore("XD-1772")
 	public void errorCases12() {
 		checkForParseError("xxx: http | xxx: file", XDDSLMessages.DUPLICATE_LABEL, 0, "xxx", "http", "file");
 		checkForParseError("xxx: http | yyy: filter | transform | xxx: transform | file",

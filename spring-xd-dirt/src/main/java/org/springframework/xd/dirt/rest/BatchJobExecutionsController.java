@@ -88,10 +88,15 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 			String jobName = jobExecution.getJobInstance().getJobName();
 			if (jobDefinitionNames.contains(jobName) && !deployedJobs.contains(jobName)) {
 				jobExecutionInfoResource.setDeployed(false);
+				jobExecutionInfoResource.setDeleted(false);
 			}
-			if (!jobDefinitionNames.contains(jobName)) {
+			else if (!jobDefinitionNames.contains(jobName)) {
 				jobExecutionInfoResource.setDeployed(false);
 				jobExecutionInfoResource.setDeleted(true);
+			}
+			else {
+				jobExecutionInfoResource.setDeployed(true);
+				jobExecutionInfoResource.setDeleted(false);
 			}
 			if (restartableJobs.contains(jobName)) {
 				// Set restartable flag for the JobExecutionResource based on the actual JobInstance

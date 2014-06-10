@@ -143,7 +143,7 @@ public class JobCommands implements CommandMarker {
 				.addHeader(4, new TableHeader("Step Execution Count"))
 				.addHeader(5, new TableHeader("Execution Status"))
 				.addHeader(6, new TableHeader("Deployment Status"))
-				.addHeader(7, new TableHeader("Existence Status"));
+				.addHeader(7, new TableHeader("Definition Status"));
 
 		for (JobExecutionInfoResource jobExecutionInfoResource : jobExecutions) {
 			final TableRow row = new TableRow();

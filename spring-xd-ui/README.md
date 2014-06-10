@@ -121,14 +121,72 @@ When running E2E tests, you may need to execute first: `./node_modules/protracto
 
 In order to improve the situation we may consider adding a special Grunt task for that as illustrated here: http://gitelephant.cypresslab.net/angular-js/commit/2ed4ad55022f6e5519617a3797649fe1e68f3734
 
+You should now be able to execute the E2E tests using grunt:
+
+	$ grunt test:e2e
+
+You should be able to see console output similar to the following:
+
+```
+Started connect web server on http://0.0.0.0:8000
+
+Running "protractor:run" (protractor) task
+Starting selenium standalone server...
+Selenium standalone server started at http://10.0.1.4:60164/wd/hub
+.....................................
+
+Finished in 42.012 seconds
+37 tests, 55 assertions, 0 failures
+
+Shutting down selenium standalone server.
+
+Done, without errors.
+
+
+Execution Time (2014-06-10 13:59:50 UTC)
+concurrent:server     3s  ▇▇▇▇▇▇▇ 6%
+protractor:run     49.2s  ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 94%
+Total 52.2s
+```
+
 ## Protractor in Debug Mode
 
-During development you can use the provided script `e2e-test.sh` to run the E2E tests
-against a running Admin UI instance. If you like to run Protractor in debug mode,
-execute:
+During development you may want to run E2E tests while working on the UI portions of the application. For this purpose you can use the provided script `e2e-test.sh` to run the E2E tests
+against a running Admin UI instance. As a requirement you need to have running:
 
-    $ ./e2e-test.sh debug
+* Admin UI Server
+* Admin UI started from the console using `grunt serve`
 
+You may also need to install `protractor` using
+
+	$ npm install -g protractor
+
+To execute the E2E tests, execute `./e2e-test.sh` via the console and all E2E tests should run.
+`
+This option also allows you to run Protractor in `debug` mode allowing you to pause the execution of individual tests. For this to happen, execute:
+
+	$ ./e2e-test.sh debug
+
+You should see the following console output:
+
+```
+Starting Protractor...
+.
+-------------------------------------------------------------------
+Starting selenium standalone server...
+Hit SIGUSR1 - starting debugger agent.
+debugger listening on port 5858
+connecting... ok
+break in timers.js:77
+  75 }
+  76
+  77 function listOnTimeout() {
+  78   var msecs = this.msecs;
+  79   var list = this;
+debug>
+```
+
+Please press `c` to continue with the execution. All E2E tests should now execute. In order to set 'breakpoints', add `browser.debugger();` at the appropriate places within your E2E tests. Fur further information see: https://github.com/angular/protractor/blob/master/docs/debugging.md
 
 [AngularJS]: http://angularjs.org/
 [AngularJS generator]: https://github.com/yeoman/generator-angular

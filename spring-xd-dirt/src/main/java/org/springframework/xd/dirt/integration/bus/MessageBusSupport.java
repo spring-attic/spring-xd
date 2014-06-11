@@ -279,14 +279,15 @@ public abstract class MessageBusSupport
 	 * For buses with an external broker, we can simply register a direct channel as the
 	 * router output channel.
 	 * @param name The name.
+	 * @param properties The properties.
 	 * @return The channel.
 	 */
 	@Override
-	public synchronized MessageChannel bindDynamicProducer(String name) {
+	public synchronized MessageChannel bindDynamicProducer(String name, Properties properties) {
 		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
 		if (channel == null) {
 			channel = this.directChannelProvider.createAndRegisterChannel(name);
-			bindProducer(name, channel, null); // TODO: dynamic producer options
+			bindProducer(name, channel, properties);
 		}
 		return channel;
 	}
@@ -297,33 +298,17 @@ public abstract class MessageBusSupport
 	 * direct channel. It will be bridged to a pub/sub channel in the local
 	 * bus and bound to an appropriate element for other buses.
 	 * @param name The name.
+	 * @param properties The properties.
 	 * @return The channel.
 	 */
 	@Override
-	public synchronized MessageChannel bindDynamicPubSubProducer(String name) {
+	public synchronized MessageChannel bindDynamicPubSubProducer(String name, Properties properties) {
 		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
 		if (channel == null) {
 			channel = this.directChannelProvider.createAndRegisterChannel(name);
-			bindPubSubProducer(name, channel, null); // TODO: dynamic producer options
+			bindPubSubProducer(name, channel, properties);
 		}
 		return channel;
-	}
-
-	protected final void registerNamedChannelForConsumerIfNecessary(final String name, boolean pubSub) {
-		if (isNamedChannel(name)) {
-			if (pubSub) {
-				bindDynamicPubSubProducer(name);
-			}
-			else {
-				bindDynamicProducer(name);
-			}
-		}
-	}
-
-	protected boolean isNamedChannel(String name) {
-		return name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)
-				|| name.startsWith(PUBSUB_NAMED_CHANNEL_TYPE_PREFIX)
-				|| name.startsWith(JOB_CHANNEL_TYPE_PREFIX);
 	}
 
 	@Override

@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
+import java.util.Properties;
+
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 import org.springframework.messaging.core.DestinationResolutionException;
@@ -31,8 +33,11 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 
 	private final MessageBus messageBus;
 
-	public MessageBusAwareChannelResolver(MessageBus messageBus) {
+	private final Properties producerProperties;
+
+	public MessageBusAwareChannelResolver(MessageBus messageBus, Properties producerProperties) {
 		this.messageBus = messageBus;
+		this.producerProperties = producerProperties;
 	}
 
 	@Override
@@ -48,10 +53,10 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 				String[] tokens = name.split(":", 2);
 				String type = tokens[0];
 				if ("queue".equals(type)) {
-					channel = this.messageBus.bindDynamicProducer(name);
+					channel = this.messageBus.bindDynamicProducer(name, this.producerProperties);
 				}
 				else if ("topic".equals(type)) {
-					channel = this.messageBus.bindDynamicPubSubProducer(name);
+					channel = this.messageBus.bindDynamicPubSubProducer(name, this.producerProperties);
 				}
 				else {
 					throw new IllegalArgumentException("unrecognized channel type: " + type);

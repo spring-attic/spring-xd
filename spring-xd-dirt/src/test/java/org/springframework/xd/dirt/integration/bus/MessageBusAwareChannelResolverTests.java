@@ -20,15 +20,21 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -45,6 +51,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class MessageBusAwareChannelResolverTests {
 
@@ -59,7 +66,7 @@ public class MessageBusAwareChannelResolverTests {
 		this.bus = new LocalMessageBus();
 		this.bus.setApplicationContext(context);
 		this.bus.afterPropertiesSet();
-		this.resolver = new MessageBusAwareChannelResolver(this.bus);
+		this.resolver = new MessageBusAwareChannelResolver(this.bus, null);
 		this.resolver.setBeanFactory(context);
 		context.getBeanFactory().registerSingleton("channelResolver",
 				this.resolver);
@@ -107,7 +114,7 @@ public class MessageBusAwareChannelResolverTests {
 	public void resolveTopicChannel() {
 		MessageChannel registered = resolver.resolveDestination("topic:bar");
 		PublishSubscribeChannel[] testChannels = {
-				new PublishSubscribeChannel(), new PublishSubscribeChannel(), new PublishSubscribeChannel()
+			new PublishSubscribeChannel(), new PublishSubscribeChannel(), new PublishSubscribeChannel()
 		};
 		final CountDownLatch latch = new CountDownLatch(testChannels.length);
 		final List<Message<?>> received = new ArrayList<Message<?>>();
@@ -142,6 +149,21 @@ public class MessageBusAwareChannelResolverTests {
 	public void resolveNonRegisteredChannel() {
 		MessageChannel other = resolver.resolveDestination("other");
 		assertSame(context.getBean("other"), other);
+	}
+
+	@Test
+	public void propertyPassthrough() {
+		Properties properties = new Properties();
+		MessageBus bus = mock(MessageBus.class);
+		doReturn(new DirectChannel()).when(bus).bindDynamicProducer("queue:foo", properties);
+		doReturn(new DirectChannel()).when(bus).bindDynamicPubSubProducer("topic:bar", properties);
+		MessageBusAwareChannelResolver resolver = new MessageBusAwareChannelResolver(bus, properties);
+		BeanFactory beanFactory = new DefaultListableBeanFactory();
+		resolver.setBeanFactory(beanFactory);
+		resolver.resolveDestination("queue:foo");
+		resolver.resolveDestination("topic:bar");
+		verify(bus).bindDynamicProducer("queue:foo", properties);
+		verify(bus).bindDynamicPubSubProducer("topic:bar", properties);
 	}
 
 }

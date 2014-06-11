@@ -118,15 +118,15 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 	}
 
 	@Override
-	public MessageChannel bindDynamicProducer(String name) {
+	public MessageChannel bindDynamicProducer(String name, Properties properties) {
 		this.queues.add(name);
-		return this.messageBus.bindDynamicProducer(name);
+		return this.messageBus.bindDynamicProducer(name, properties);
 	}
 
 	@Override
-	public MessageChannel bindDynamicPubSubProducer(String name) {
+	public MessageChannel bindDynamicPubSubProducer(String name, Properties properties) {
 		this.topics.add(name);
-		return this.messageBus.bindDynamicPubSubProducer(name);
+		return this.messageBus.bindDynamicPubSubProducer(name, properties);
 	}
 
 	public MessageBus getMessageBus() {

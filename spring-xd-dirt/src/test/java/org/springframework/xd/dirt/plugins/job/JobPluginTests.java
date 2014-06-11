@@ -359,13 +359,13 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		}
 
 		@Override
-		public MessageChannel bindDynamicProducer(String name) {
+		public MessageChannel bindDynamicProducer(String name, Properties properties) {
 			Assert.fail("Should not be called.");
 			return null;
 		}
 
 		@Override
-		public MessageChannel bindDynamicPubSubProducer(String name) {
+		public MessageChannel bindDynamicPubSubProducer(String name, Properties properties) {
 			Assert.fail("Should not be called.");
 			return null;
 		}

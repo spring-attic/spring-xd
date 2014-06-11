@@ -73,9 +73,9 @@ public class LocalMessageBus extends MessageBusSupport {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public MessageChannel bindDynamicProducer(String name) {
+	public MessageChannel bindDynamicProducer(String name, Properties properties) {
 		MessageChannel channel = this.directChannelProvider.createSharedChannel("dynamic.output.to." + name);
-		bindProducer(name, channel, null); // TODO: dynamic producer options
+		bindProducer(name, channel, properties);
 		return channel;
 	}
 
@@ -84,9 +84,9 @@ public class LocalMessageBus extends MessageBusSupport {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public MessageChannel bindDynamicPubSubProducer(String name) {
+	public MessageChannel bindDynamicPubSubProducer(String name, Properties properties) {
 		MessageChannel channel = this.directChannelProvider.createAndRegisterChannel("dynamic.output.to." + name);
-		bindPubSubProducer(name, channel, null); // TODO: dynamic producer options
+		bindPubSubProducer(name, channel, properties);
 		return channel;
 	}
 

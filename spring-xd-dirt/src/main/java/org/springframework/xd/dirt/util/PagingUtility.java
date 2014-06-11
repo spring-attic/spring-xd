@@ -39,13 +39,13 @@ public class PagingUtility<T extends Comparable<? super T>> {
 	/**
 	 * Get the paged data of the given list.
 	 *
-	 * @param pageable the paging metadata
+	 * @param pageable the paging information
 	 * @param list the list of content to paginate
 	 * @return the paginated implementation of the given list of <T>
 	 */
 	public Page<T> getPagedData(Pageable pageable, List<T> list) {
 
-		Assert.notNull(pageable);
+		Assert.notNull(pageable, "Pagination info can't be null.");
 		if (CollectionUtils.isEmpty(list)) {
 			return new PageImpl<T>(list);
 		}

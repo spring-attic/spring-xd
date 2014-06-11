@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -139,7 +140,8 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		jobExecutions1.add(jobExecution1);
 		jobExecutions1.add(jobExecution2);
 		jobExecutions2.add(jobExecution2);
-		when(jobLocator.getJobNames()).thenReturn(jobNames);
+		// all the jobs are undeployed/deleted.
+		when(jobLocator.getJobNames()).thenReturn(Collections.<String> emptyList());
 		when(jobLocator.isRestartable("job1")).thenReturn(true);
 		when(jobService.listJobs(0, 20)).thenReturn(jobNames);
 		when(jobService.countJobExecutionsForJob(job1.getName())).thenReturn(2);

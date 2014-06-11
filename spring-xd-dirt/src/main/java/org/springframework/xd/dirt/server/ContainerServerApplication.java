@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
@@ -206,7 +206,7 @@ class ContainerConfiguration {
 	private ContainerAttributes containerAttributes;
 
 	@Autowired
-	private ContainerAttributesRepository containerAttributesRepository;
+	private ContainerRepository containerRepository;
 
 	@Autowired
 	private StreamDefinitionRepository streamDefinitionRepository;
@@ -255,7 +255,7 @@ class ContainerConfiguration {
 				moduleOptionsMetadataResolver);
 
 		return new ContainerRegistrar(zooKeeperConnection, containerAttributes,
-				containerAttributesRepository,
+				containerRepository,
 				streamFactory,
 				jobFactory,
 				moduleOptionsMetadataResolver,

@@ -42,7 +42,7 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
-import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
@@ -196,8 +196,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public ContainerAttributesRepository containerAttributesRepository() {
-		return mock(ContainerAttributesRepository.class);
+	public ContainerRepository containerRepository() {
+		return mock(ContainerRepository.class);
 	}
 
 	@Bean

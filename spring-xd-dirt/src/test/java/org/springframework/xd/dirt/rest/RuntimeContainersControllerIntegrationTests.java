@@ -37,6 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 
 /**
@@ -54,13 +55,16 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 	@Before
 	public void before() {
 		PageRequest pageable = new PageRequest(0, 20);
-		ContainerAttributes container1 = new ContainerAttributes("1").setPid(1234).setHost("host1").setIp("127.0.0.1");
-		ContainerAttributes container2 = new ContainerAttributes("2").setPid(2345).setHost("host2").setIp("192.168.2.1");
-		List<ContainerAttributes> containerEntities = new ArrayList<ContainerAttributes>();
-		containerEntities.add(container1);
-		containerEntities.add(container2);
-		Page<ContainerAttributes> pagedEntity = new PageImpl<ContainerAttributes>(containerEntities);
-		when(containerAttributesRepository.findAll(pageable)).thenReturn(pagedEntity);
+		ContainerAttributes attributes1 = new ContainerAttributes("1").setPid(1234).setHost("host1").setIp("127.0.0.1");
+		ContainerAttributes attributes2 = new ContainerAttributes("2").setPid(2345).setHost("host2").setIp(
+				"192.168.2.1");
+		List<Container> containers = new ArrayList<Container>();
+		Container container1 = new Container(attributes1.getId(), attributes1);
+		Container container2 = new Container(attributes2.getId(), attributes2);
+		containers.add(container1);
+		containers.add(container2);
+		Page<Container> pagedEntity = new PageImpl<Container>(containers);
+		when(containerRepository.findAll(pageable)).thenReturn(pagedEntity);
 	}
 
 	@Test

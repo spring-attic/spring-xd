@@ -52,8 +52,9 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
+import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
@@ -62,7 +63,6 @@ import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -112,9 +112,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private final ContainerAttributes containerAttributes;
 
 	/**
-	 * Repository where {@link ContainerAttributes} are stored.
+	 * Repository where {@link Container}s are stored.
 	 */
-	private final ContainerAttributesRepository containerAttributesRepository;
+	private final ContainerRepository containerRepository;
 
 	/**
 	 * The ZooKeeperConnection.
@@ -195,7 +195,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * within a callback that is invoked for connected events as well as reconnected events.
 	 *
 	 * @param containerAttributes runtime and configured attributes for the container
-	 * @param containerAttributesRepository repository for the containerAttributes
+	 * @param containerRepository repository for the containers
 	 * @param streamFactory factory to construct {@link Stream}
 	 * @param jobFactory factory to construct {@link Job}
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
@@ -203,12 +203,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param zkConnection ZooKeeper connection
 	 */
 	public ContainerRegistrar(ZooKeeperConnection zkConnection, ContainerAttributes containerAttributes,
-			ContainerAttributesRepository containerAttributesRepository,
+			ContainerRepository containerRepository,
 			StreamFactory streamFactory, JobFactory jobFactory,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver, ModuleDeployer moduleDeployer) {
 		this.zkConnection = zkConnection;
 		this.containerAttributes = containerAttributes;
-		this.containerAttributesRepository = containerAttributesRepository;
+		this.containerRepository = containerRepository;
 		this.streamFactory = streamFactory;
 		this.jobFactory = jobFactory;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
@@ -370,7 +370,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			// deploy path. This is done because the admin leader/supervisor
 			// will delete deployment paths for containers that aren't
 			// present in the containers path.
-			containerAttributesRepository.save(containerAttributes);
+			containerRepository.save(new Container(containerAttributes.getId(), containerAttributes));
 
 			String moduleDeploymentPath = Paths.build(Paths.MODULE_DEPLOYMENTS, containerAttributes.getId());
 			Paths.ensurePath(client, moduleDeploymentPath);

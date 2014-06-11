@@ -29,9 +29,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
+import org.springframework.xd.dirt.cluster.Container;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
+import org.springframework.xd.rest.client.domain.ContainerResource;
 
 /**
  * Handles interaction with the runtime containers/and its modules.
@@ -44,14 +45,14 @@ import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 @ExposesResourceFor(ContainerAttributesResource.class)
 public class RuntimeContainersController {
 
-	private ContainerAttributesRepository containerAttributesRepository;
+	private ContainerRepository containerRepository;
 
-	private ResourceAssemblerSupport<ContainerAttributes, ContainerAttributesResource> containerAttributesResourceAssemblerSupport;
+	private ResourceAssemblerSupport<Container, ContainerResource> containerResourceAssemblerSupport;
 
 	@Autowired
-	public RuntimeContainersController(ContainerAttributesRepository containerAttributesRepository) {
-		this.containerAttributesRepository = containerAttributesRepository;
-		containerAttributesResourceAssemblerSupport = new ContainerAttributesResourceAssembler();
+	public RuntimeContainersController(ContainerRepository containerRepository) {
+		this.containerRepository = containerRepository;
+		containerResourceAssemblerSupport = new ContainerResourceAssembler();
 	}
 
 	/**
@@ -60,11 +61,11 @@ public class RuntimeContainersController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<ContainerAttributesResource> list(Pageable pageable,
-			PagedResourcesAssembler<ContainerAttributes> assembler) {
-		Page<ContainerAttributes> page = this.containerAttributesRepository.findAll(pageable);
-		PagedResources<ContainerAttributesResource> result = assembler.toResource(page,
-				containerAttributesResourceAssemblerSupport);
+	public PagedResources<ContainerResource> list(Pageable pageable,
+			PagedResourcesAssembler<Container> assembler) {
+		Page<Container> page = this.containerRepository.findAll(pageable);
+		PagedResources<ContainerResource> result = assembler.toResource(page,
+				containerResourceAssemblerSupport);
 		return result;
 	}
 

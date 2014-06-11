@@ -185,10 +185,10 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 
 	// return true if the specified tokenpointer appears to be pointing at a channel
 	private boolean looksLikeChannel(int tp) {
-		if (tokenStream.get(tp).getKind() == TokenKind.IDENTIFIER) {
+		if (moreTokens() && tokenStream.get(tp).getKind() == TokenKind.IDENTIFIER) {
 			String prefix = tokenStream.get(tp).data;
 			if (isLegalChannelPrefix(prefix)) {
-				if (tokenStream.get(tp + 1).getKind() == TokenKind.COLON) {
+				if (tokenStreamPointer + 1 < tokenStream.size() && tokenStream.get(tp + 1).getKind() == TokenKind.COLON) {
 					// if (isNextTokenAdjacent(tp) && isNextTokenAdjacent(tp + 1)) {
 					return true;
 					// }
@@ -620,8 +620,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	}
 
 	private void raiseException(int pos, XDDSLMessages message, Object... inserts) {
-		throw new CheckpointedStreamDefinitionException(expressionString, pos, lastGoodPoint, tokenStream, message,
-				inserts);
+		throw new CheckpointedStreamDefinitionException(expressionString, pos, tokenStreamPointer, lastGoodPoint,
+				tokenStream, message, inserts);
 	}
 
 	private void checkpoint() {

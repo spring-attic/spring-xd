@@ -18,6 +18,7 @@ package org.springframework.xd.integration.util;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -34,9 +35,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+
+import com.mongodb.MongoClient;
 
 /**
  * Extracts the host and port information for the XD Instances.
@@ -134,7 +139,15 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	@Value("${twitterAccessTokenSecret}")
 	private String twitterAccessTokenSecret;
 
+	@Value("${spring.mongo.host}")
+	private String mongoHost;
+
+	@Value("${spring.mongo.port}")
+	private String mongoPort;
+
 	private SimpleDriverDataSource dataSource;
+
+	MongoDbFactory mongoDbFactory;
 
 	private CachingConnectionFactory rabbitConnectionFactory;
 
@@ -188,6 +201,13 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		}
 		if (jdbcPassword != null) {
 			dataSource.setPassword(jdbcPassword);
+		}
+
+		try {
+			mongoDbFactory = new SimpleMongoDbFactory(new MongoClient(mongoHost + ":" + mongoPort), "xd");
+		}
+		catch (UnknownHostException unknownHostException) {
+			throw new IllegalStateException(unknownHostException.getMessage(), unknownHostException);
 		}
 
 	}
@@ -322,6 +342,31 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	public String getDataNodePort() {
 		return dataNodePort;
 	}
+
+	/**
+	 * The mongo db factory to be used for the tests.
+	 * @return The current mongoDbFactory instance.
+	 */
+	public MongoDbFactory getMongoDbFactory() {
+		return mongoDbFactory;
+	}
+
+	/**
+	 * Retrieves the host where the mongo server is running.
+	 * @return the mongo host
+	 */
+	public String getMongoHost() {
+		return mongoHost;
+	}
+
+	/**
+	 * Retrieves the port that the mongo server is monitoring.
+	 * @return the mongo server port.
+	 */
+	public String getMongoPort() {
+		return mongoPort;
+	}
+
 
 	/**
 	 * Parses the string of container URLs provied by the ec2 property file.

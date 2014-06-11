@@ -64,7 +64,7 @@ public class IntegrationTestConfig {
 
 	@Bean
 	public Jobs jobs() {
-		return new Jobs();
+		return new Jobs(xdEnvironment());
 	}
 
 	@Bean

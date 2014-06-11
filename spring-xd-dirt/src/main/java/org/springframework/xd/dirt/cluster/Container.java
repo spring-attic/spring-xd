@@ -16,22 +16,24 @@
 
 package org.springframework.xd.dirt.cluster;
 
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 
 /**
  * Domain object for an XD container. This object is typically constructed
  * from container data maintained in ZooKeeper.
  *
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
-public class Container {
+public class Container implements Comparable<Container> {
+
 	/**
 	 * Container name.
 	 */
@@ -40,7 +42,7 @@ public class Container {
 	/**
 	 * Container attributes.
 	 */
-	private final Map<String, String> attributes;
+	private final ContainerAttributes attributes;
 
 	/**
 	 * Set of groups this container belongs to.
@@ -56,7 +58,7 @@ public class Container {
 	public Container(String name, Map<String, String> attributes) {
 		Assert.hasText(name);
 		this.name = name;
-		this.attributes = Collections.unmodifiableMap(new HashMap<String, String>(attributes));
+		this.attributes = new ContainerAttributes(attributes);
 		String groupList = attributes.get("groups");
 		if (groupList == null) {
 			groups = Collections.emptySet();
@@ -78,11 +80,11 @@ public class Container {
 	}
 
 	/**
-	 * Return the container attributes.
+	 * Return the {@link ContainerAttributes}.
 	 *
 	 * @return read-only map of container attributes
 	 */
-	public Map<String, String> getAttributes() {
+	public ContainerAttributes getAttributes() {
 		return attributes;
 	}
 
@@ -93,6 +95,14 @@ public class Container {
 	 */
 	public Set<String> getGroups() {
 		return groups;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int compareTo(Container other) {
+		return this.getName().compareTo(other.getName());
 	}
 
 	/**

@@ -14,6 +14,7 @@
 
 	<bean id="deploymentSupervisor" class="org.springframework.xd.dirt.server.DeploymentSupervisor">
 		<constructor-arg ref="zooKeeperConnection"/>
+		<constructor-arg ref="containerRepository"/>
 		<constructor-arg ref="streamDefinitionRepository"/>
 		<constructor-arg ref="jobDefinitionRepository"/>
 		<constructor-arg ref="moduleDefinitionRepository"/>

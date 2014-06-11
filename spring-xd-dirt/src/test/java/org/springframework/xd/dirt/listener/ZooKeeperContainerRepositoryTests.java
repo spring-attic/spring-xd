@@ -33,28 +33,29 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
-import org.springframework.xd.dirt.container.store.ZooKeeperContainerAttributesRepository;
-import org.springframework.xd.dirt.listener.ZooKeeperContainerAttributesRepositoryTests.ZooKeeperContainerAttributesRepositoryTestsConfig;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.container.store.ZooKeeperContainerRepository;
+import org.springframework.xd.dirt.listener.ZooKeeperContainerRepositoryTests.ZooKeeperContainerRepositoryTestsConfig;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
- * Integration test of {@link ZooKeeperContainerAttributesRepository}.
+ * Integration test of {@link ZooKeeperContainerRepository}.
  *
  * @author Jennifer Hickey
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
-@ContextConfiguration(classes = ZooKeeperContainerAttributesRepositoryTestsConfig.class)
+@ContextConfiguration(classes = ZooKeeperContainerRepositoryTestsConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ZooKeeperContainerAttributesRepositoryTests {
+public class ZooKeeperContainerRepositoryTests {
 
 	@Autowired
-	private ContainerAttributesRepository containerAttributesRepository;
+	private ContainerRepository containerRepository;
 
 	@Autowired
 	private ZooKeeperConnection zooKeeperConnection;
@@ -75,46 +76,51 @@ public class ZooKeeperContainerAttributesRepositoryTests {
 	public void setUp() throws Exception {
 		zooKeeperConnection.getClient().create().creatingParentsIfNeeded().forPath(Paths.CONTAINERS);
 
-		ContainerAttributes entity = new ContainerAttributes(id).setPid(pid).setHost(host).setIp(ip);
-		entity.put("groups", "g1,g2,g3");
-		ContainerAttributes saved = containerAttributesRepository.save(entity);
-		assertNotNull(saved);
-		assertEquals(id, saved.getId());
-		assertEquals(pid, saved.getPid());
-		assertEquals(host, saved.getHost());
-		assertEquals(ip, saved.getIp());
-		assertEquals(groups, saved.getGroups());
+		ContainerAttributes containerAttributes = new ContainerAttributes(id).setPid(pid).setHost(host).setIp(ip);
+		containerAttributes.put("groups", "g1,g2,g3");
+		Container entity = new Container(id, containerAttributes);
+		Container savedContainer = containerRepository.save(entity);
+		assertNotNull(savedContainer);
+		ContainerAttributes savedAttributes = savedContainer.getAttributes();
+		assertEquals(id, savedAttributes.getId());
+		assertEquals(pid, savedAttributes.getPid());
+		assertEquals(host, savedAttributes.getHost());
+		assertEquals(ip, savedAttributes.getIp());
+		assertEquals(groups, savedAttributes.getGroups());
 
-		entity = new ContainerAttributes(id2).setPid(pid).setHost(host).setIp(ip);
-		saved = containerAttributesRepository.save(entity);
-		assertNotNull(saved);
+		containerAttributes = new ContainerAttributes(id2).setPid(pid).setHost(host).setIp(ip);
+		entity = new Container(id2, containerAttributes);
+		savedContainer = containerRepository.save(entity);
+		assertNotNull(savedContainer);
 	}
 
 	@Test
 	public void findContainerAttributesById() {
-		ContainerAttributes found = containerAttributesRepository.findOne(id);
-		assertNotNull(found);
-		assertEquals(id, found.getId());
-		assertEquals(pid, found.getPid());
-		assertEquals(host, found.getHost());
-		assertEquals(ip, found.getIp());
-		assertEquals(groups, found.getGroups());
+		Container foundContainer = containerRepository.findOne(id);
+		ContainerAttributes attributes = foundContainer.getAttributes();
+		assertNotNull(attributes);
+		assertEquals(id, attributes.getId());
+		assertEquals(pid, attributes.getPid());
+		assertEquals(host, attributes.getHost());
+		assertEquals(ip, attributes.getIp());
+		assertEquals(groups, attributes.getGroups());
 	}
 
 	@Test
 	public void findContainerNoGroups() {
-		ContainerAttributes found = containerAttributesRepository.findOne(id2);
-		assertNotNull(found);
-		assertEquals(id2, found.getId());
-		assertEquals(pid, found.getPid());
-		assertEquals(host, found.getHost());
-		assertEquals(ip, found.getIp());
-		assertEquals(0, found.getGroups().size());
+		Container foundContainer = containerRepository.findOne(id2);
+		ContainerAttributes attributes = foundContainer.getAttributes();
+		assertNotNull(attributes);
+		assertEquals(id2, attributes.getId());
+		assertEquals(pid, attributes.getPid());
+		assertEquals(host, attributes.getHost());
+		assertEquals(ip, attributes.getIp());
+		assertEquals(0, attributes.getGroups().size());
 	}
 
 
 	@Configuration
-	public static class ZooKeeperContainerAttributesRepositoryTestsConfig {
+	public static class ZooKeeperContainerRepositoryTestsConfig {
 
 		@Bean
 		public EmbeddedZooKeeper embeddedZooKeeper() {
@@ -127,8 +133,8 @@ public class ZooKeeperContainerAttributesRepositoryTests {
 		}
 
 		@Bean
-		public ContainerAttributesRepository containerAttributesRepository() {
-			return new ZooKeeperContainerAttributesRepository(zooKeeperConnection());
+		public ContainerRepository containerAttributesRepository() {
+			return new ZooKeeperContainerRepository(zooKeeperConnection());
 		}
 	}
 

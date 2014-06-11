@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.xd.dirt.container.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -41,36 +41,37 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
  *
  * @author Mark Fisher
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
-public class ZooKeeperContainerAttributesRepository implements ContainerAttributesRepository {
+public class ZooKeeperContainerRepository implements ContainerRepository {
 
 
 	private final ZooKeeperConnection zkConnection;
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
-	private final PagingUtility<ContainerAttributes> pagingUtility = new PagingUtility<ContainerAttributes>();
+	private final PagingUtility<Container> pagingUtility = new PagingUtility<Container>();
 
 	@Autowired
-	public ZooKeeperContainerAttributesRepository(ZooKeeperConnection zkConnection) {
+	public ZooKeeperContainerRepository(ZooKeeperConnection zkConnection) {
 		this.zkConnection = zkConnection;
 	}
 
 	@Override
-	public Iterable<ContainerAttributes> findAll(Sort sort) {
+	public Iterable<Container> findAll(Sort sort) {
 		// todo: add support for sort
 		return findAll();
 	}
 
 	@Override
-	public Page<ContainerAttributes> findAll(Pageable pageable) {
+	public Page<Container> findAll(Pageable pageable) {
 		return pagingUtility.getPagedData(pageable, findAll());
 	}
 
 	@Override
-	public <S extends ContainerAttributes> S save(S entity) {
+	public <S extends Container> S save(S entity) {
 		CuratorFramework client = zkConnection.getClient();
-		String path = Paths.build(Paths.CONTAINERS, entity.getId());
+		String path = Paths.build(Paths.CONTAINERS, entity.getName());
 
 		try {
 			if (client.checkExists().forPath(path) != null) {
@@ -91,7 +92,7 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 
 		try {
 			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
-					.forPath(path, mapBytesUtility.toByteArray(entity));
+					.forPath(path, mapBytesUtility.toByteArray(entity.getAttributes()));
 			return entity;
 		}
 		catch (Exception e) {
@@ -100,7 +101,7 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 	}
 
 	@Override
-	public <S extends ContainerAttributes> Iterable<S> save(Iterable<S> entities) {
+	public <S extends Container> Iterable<S> save(Iterable<S> entities) {
 		List<S> results = new ArrayList<S>();
 		for (S entity : entities) {
 			results.add(save(entity));
@@ -109,19 +110,20 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 	}
 
 	@Override
-	public ContainerAttributes findOne(String id) {
-		ContainerAttributes containerAttributes = null;
+	public Container findOne(String id) {
+		Container container = null;
 		try {
-			byte[] data = zkConnection.getClient().getData().forPath(path(id));
+			String containerPath = path(id);
+			byte[] data = zkConnection.getClient().getData().forPath(containerPath);
 			if (data != null) {
 				Map<String, String> map = mapBytesUtility.toMap(data);
-				containerAttributes = new ContainerAttributes(map);
+				container = new Container(Paths.stripPath(containerPath), map);
 			}
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
 		}
-		return containerAttributes;
+		return container;
 	}
 
 	@Override
@@ -135,8 +137,8 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 	}
 
 	@Override
-	public List<ContainerAttributes> findAll() {
-		List<ContainerAttributes> results = new ArrayList<ContainerAttributes>();
+	public List<Container> findAll() {
+		List<Container> results = new ArrayList<Container>();
 		try {
 			List<String> children = zkConnection.getClient().getChildren().forPath(Paths.CONTAINERS);
 			for (String id : children) {
@@ -150,10 +152,10 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 	}
 
 	@Override
-	public Iterable<ContainerAttributes> findAll(Iterable<String> ids) {
-		List<ContainerAttributes> results = new ArrayList<ContainerAttributes>();
+	public Iterable<Container> findAll(Iterable<String> ids) {
+		List<Container> results = new ArrayList<Container>();
 		for (String id : ids) {
-			ContainerAttributes entity = findOne(id);
+			Container entity = findOne(id);
 			if (entity != null) {
 				results.add(entity);
 			}
@@ -178,12 +180,12 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 	}
 
 	@Override
-	public void delete(ContainerAttributes entity) {
+	public void delete(Container entity) {
 		// Container metadata is "deleted" when a Container departs
 	}
 
 	@Override
-	public void delete(Iterable<? extends ContainerAttributes> entities) {
+	public void delete(Iterable<? extends Container> entities) {
 		// Container metadata is "deleted" when a Container departs
 	}
 
@@ -193,7 +195,7 @@ public class ZooKeeperContainerAttributesRepository implements ContainerAttribut
 	}
 
 	@Override
-	public Iterable<ContainerAttributes> findAllInRange(String from, boolean fromInclusive, String to,
+	public Iterable<Container> findAllInRange(String from, boolean fromInclusive, String to,
 			boolean toInclusive) {
 		throw new UnsupportedOperationException("Auto-generated method stub");
 	}

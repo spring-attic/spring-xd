@@ -40,7 +40,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.http.MediaType;
@@ -283,7 +282,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			validateConsumerProperties(name, properties, SUPPORTED_CONSUMER_PROPERTIES);
 		}
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
-		registerNamedChannelForConsumerIfNecessary(name, false);
 		String queueName = accessor.getPrefix(this.defaultPrefix) + name;
 		int partitionIndex = accessor.getPartitionIndex();
 		if (partitionIndex >= 0) {
@@ -301,7 +299,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		validateConsumerProperties(name, properties, SUPPORTED_PUBSUB_CONSUMER_PROPERTIES);
-		registerNamedChannelForConsumerIfNecessary(name, true);
 		String prefix = accessor.getPrefix(this.defaultPrefix);
 		FanoutExchange exchange = new FanoutExchange(prefix + "topic." + name);
 		rabbitAdmin.declareExchange(exchange);
@@ -392,7 +389,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		String partitionKeyExtractorClass = properties.getPartitionKeyExtractorClass();
 		Expression partitionKeyExpression = properties.getPartitionKeyExpression();
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
-		queue.setBeanFactory(this.getBeanFactory());
 		if (partitionKeyExpression == null && !StringUtils.hasText(partitionKeyExtractorClass)) {
 			rabbitAdmin.declareQueue(new Queue(queueName));
 			queue.setRoutingKey(queueName); // uses default exchange
@@ -403,13 +399,18 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				this.rabbitAdmin.declareQueue(new Queue(queueName + "-" + i));
 			}
 		}
+		configureOutboundHandler(queue, properties);
+		return queue;
+	}
+
+	private void configureOutboundHandler(AmqpOutboundEndpoint handler, RabbitPropertiesAccessor properties) {
 		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
 		mapper.setRequestHeaderNames(properties.getRequestHeaderPattens(this.defaultRequestHeaderPatterns));
 		mapper.setReplyHeaderNames(properties.getReplyHeaderPattens(this.defaultReplyHeaderPatterns));
-		queue.setHeaderMapper(mapper);
-		queue.setDefaultDeliveryMode(properties.getDeliveryMode(this.defaultDefaultDeliveryMode));
-		queue.afterPropertiesSet();
-		return queue;
+		handler.setHeaderMapper(mapper);
+		handler.setDefaultDeliveryMode(properties.getDeliveryMode(this.defaultDefaultDeliveryMode));
+		handler.setBeanFactory(this.getBeanFactory());
+		handler.afterPropertiesSet();
 	}
 
 	@Override
@@ -419,9 +420,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String exchangeName = accessor.getPrefix(this.defaultPrefix) + "topic." + name;
 		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
-		fanout.setBeanFactory(this.getBeanFactory());
 		fanout.setExchangeName(exchangeName);
-		fanout.afterPropertiesSet();
+		configureOutboundHandler(fanout, accessor);
 		doRegisterProducer(name, moduleOutputChannel, fanout, accessor);
 	}
 
@@ -433,11 +433,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private void doRegisterProducer(final String name, MessageChannel moduleOutputChannel,
 			AmqpOutboundEndpoint delegate, String replyTo, RabbitPropertiesAccessor properties) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
-		delegate.setDefaultDeliveryMode(properties.getDeliveryMode(this.defaultDefaultDeliveryMode));
-		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
-		mapper.setRequestHeaderNames(properties.getRequestHeaderPattens(this.defaultRequestHeaderPatterns));
-		mapper.setReplyHeaderNames(properties.getReplyHeaderPattens(this.defaultReplyHeaderPatterns));
-		delegate.setHeaderMapper(mapper);
 		MessageHandler handler = new SendingHandler(delegate, replyTo, properties);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanFactory(this.getBeanFactory());
@@ -484,10 +479,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.doRegisterConsumer(name, requests, requestQueue, accessor, false);
 
 		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
-		replyQueue.setBeanFactory(this.getBeanFactory());
-		replyQueue.setBeanFactory(new DefaultListableBeanFactory());
 		replyQueue.setRoutingKeyExpression("headers['" + AmqpHeaders.REPLY_TO + "']");
-		replyQueue.afterPropertiesSet();
+		configureOutboundHandler(replyQueue, accessor);
 		doRegisterProducer(name, replies, replyQueue, accessor);
 	}
 

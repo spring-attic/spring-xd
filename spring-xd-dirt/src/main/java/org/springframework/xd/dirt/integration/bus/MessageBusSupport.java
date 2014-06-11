@@ -50,7 +50,6 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -125,8 +124,6 @@ public abstract class MessageBusSupport
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
 
 	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
-
-	private final Set<MessageChannel> createdChannels = Collections.synchronizedSet(new HashSet<MessageChannel>());
 
 	protected volatile EvaluationContext evaluationContext;
 
@@ -276,54 +273,86 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * For buses with an external broker, we can simply register a direct channel as the
-	 * router output channel.
+	 * Dynamically create a producer for the named channel.
 	 * @param name The name.
+	 * @param properties The properties.
 	 * @return The channel.
 	 */
 	@Override
-	public synchronized MessageChannel bindDynamicProducer(String name) {
-		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
+	public MessageChannel bindDynamicProducer(String name, Properties properties) {
+		return doBindDynamicProducer(name, name, properties);
+	}
+
+	/**
+	 * Create a producer for the named channel and bind it to the bus. Synchronized to
+	 * avoid creating multiple instances.
+	 * @param name The name.
+	 * @param channelName The name of the channel to be created, and registered as bean.
+	 * @param properties The properties.
+	 * @return The channel.
+	 */
+	protected synchronized MessageChannel doBindDynamicProducer(String name, String channelName, Properties properties) {
+		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(channelName);
 		if (channel == null) {
-			channel = this.directChannelProvider.createAndRegisterChannel(name);
-			bindProducer(name, channel, null); // TODO: dynamic producer options
+			try {
+				channel = this.directChannelProvider.createAndRegisterChannel(channelName);
+				bindProducer(name, channel, properties);
+			}
+			catch (RuntimeException e) {
+				destroyCreatedChannel(channelName, channel);
+				throw new MessageBusException(
+						"Failed to bind dynamic channel '" + name + "' with properties " + properties, e);
+			}
 		}
 		return channel;
 	}
 
 	/**
-	 * For buses with an external broker, we can simply register a direct channel as the
-	 * router output channel. Note: even though it's pub/sub, we still use a
+	 * Dynamically create a producer for the named channel.
+	 * Note: even though it's pub/sub, we still use a
 	 * direct channel. It will be bridged to a pub/sub channel in the local
 	 * bus and bound to an appropriate element for other buses.
 	 * @param name The name.
+	 * @param properties The properties.
 	 * @return The channel.
 	 */
 	@Override
-	public synchronized MessageChannel bindDynamicPubSubProducer(String name) {
-		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
+	public MessageChannel bindDynamicPubSubProducer(String name, Properties properties) {
+		return doBindDynamicPubSubProducer(name, name, properties);
+	}
+
+	/**
+	 * Create a producer for the named channel and bind it to the bus. Synchronized to
+	 * avoid creating multiple instances.
+	 * @param name The name.
+	 * @param channelName The name of the channel to be created, and registered as bean.
+	 * @param properties The properties.
+	 * @return The channel.
+	 */
+	protected synchronized MessageChannel doBindDynamicPubSubProducer(String name, String channelName,
+			Properties properties) {
+		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(channelName);
 		if (channel == null) {
-			channel = this.directChannelProvider.createAndRegisterChannel(name);
-			bindPubSubProducer(name, channel, null); // TODO: dynamic producer options
+			try {
+				channel = this.directChannelProvider.createAndRegisterChannel(channelName);
+				bindPubSubProducer(name, channel, properties);
+			}
+			catch (RuntimeException e) {
+				destroyCreatedChannel(channelName, channel);
+				throw new MessageBusException(
+						"Failed to bind dynamic channel '" + name + "' with properties " + properties, e);
+			}
 		}
 		return channel;
 	}
 
-	protected final void registerNamedChannelForConsumerIfNecessary(final String name, boolean pubSub) {
-		if (isNamedChannel(name)) {
-			if (pubSub) {
-				bindDynamicPubSubProducer(name);
-			}
-			else {
-				bindDynamicProducer(name);
+	private void destroyCreatedChannel(String name, MessageChannel channel) {
+		BeanFactory beanFactory = this.applicationContext.getBeanFactory();
+		if (beanFactory.containsBean(name)) {
+			if (beanFactory instanceof DefaultListableBeanFactory) {
+				((DefaultListableBeanFactory) beanFactory).destroySingleton(name);
 			}
 		}
-	}
-
-	protected boolean isNamedChannel(String name) {
-		return name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)
-				|| name.startsWith(PUBSUB_NAMED_CHANNEL_TYPE_PREFIX)
-				|| name.startsWith(JOB_CHANNEL_TYPE_PREFIX);
 	}
 
 	@Override
@@ -359,7 +388,7 @@ public abstract class MessageBusSupport
 				if (binding.getEndpoint().getComponentName().equals(name)) {
 					binding.stop();
 					iterator.remove();
-					destroyCreatedChannel(binding);
+					break;
 				}
 			}
 		}
@@ -376,23 +405,7 @@ public abstract class MessageBusSupport
 						binding.getEndpoint().getComponentName().equals(name)) {
 					binding.stop();
 					iterator.remove();
-					destroyCreatedChannel(binding);
 					return;
-				}
-			}
-		}
-	}
-
-	protected void destroyCreatedChannel(Binding binding) {
-		MessageChannel channel = binding.getChannel();
-		if (Binding.PRODUCER.equals(binding.getType()) && this.createdChannels.contains(channel)) {
-			this.createdChannels.remove(channel);
-			BeanFactory beanFactory = this.applicationContext.getBeanFactory();
-			if (beanFactory instanceof DefaultListableBeanFactory) {
-				String name = ((NamedComponent) channel).getComponentName();
-				((DefaultListableBeanFactory) beanFactory).destroySingleton(name);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Removed channel:" + name);
 				}
 			}
 		}
@@ -742,7 +755,6 @@ public abstract class MessageBusSupport
 			ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
 			beanFactory.registerSingleton(name, channel);
 			channel = (T) beanFactory.initializeBean(channel, name);
-			MessageBusSupport.this.createdChannels.add(channel);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Registered channel:" + name);
 			}

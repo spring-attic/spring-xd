@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.util;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,15 +50,9 @@ public class PagingUtility<T extends Comparable<? super T>> {
 		}
 
 		Collections.sort(list);
-
-		int offSet = pageable.getOffset();
-		int size = pageable.getPageSize();
-
-		List<T> page = new ArrayList<T>();
-		for (int i = offSet; i < Math.min(list.size(), offSet + size); i++) {
-			page.add(list.get(i));
-		}
-		return new PageImpl<T>(page, pageable, list.size());
+		int to = Math.min(list.size(), pageable.getOffset() + pageable.getPageSize());
+		List<T> data = list.subList(pageable.getOffset(), to);
+		return new PageImpl<T>(data, pageable, list.size());
 	}
 
 }

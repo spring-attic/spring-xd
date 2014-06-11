@@ -17,8 +17,6 @@
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -98,6 +96,9 @@ public class ModuleNode extends AstNode {
 		return arguments != null;
 	}
 
+	/**
+	 * Return the actual label supplied to this module, if any.
+	 */
 	public String getLabelName() {
 		if (label == null) {
 			return null;
@@ -105,6 +106,16 @@ public class ModuleNode extends AstNode {
 		else {
 			return label.getLabelName();
 		}
+	}
+
+	/**
+	 * Return the effective label for this module, that is<ul>
+	 * <li>an actual label if provided</li>
+	 * <li>the module name if no label was provided.</li>
+	 * </ul>
+	 */
+	public String getEffectiveLabel() {
+		return label == null ? getName() : getLabelName();
 	}
 
 	/**
@@ -118,68 +129,6 @@ public class ModuleNode extends AstNode {
 			}
 		}
 		return props;
-	}
-
-	/**
-	 * Whilst working through arguments when creating a copy of the module, instances of this class tag whether an
-	 * argument has been used to satisfy a variable in a parameterized stream (e.g. ${NAME}).
-	 */
-	static class ConsumableArgumentNode {
-
-		private boolean consumed;
-
-		ArgumentNode argumentNode;
-
-		ConsumableArgumentNode(ArgumentNode argumentNode) {
-			this.consumed = false;
-			this.argumentNode = argumentNode;
-		}
-
-		public void setConsumed(boolean consumed) {
-			this.consumed = consumed;
-		}
-
-		public boolean isConsumed() {
-			return this.consumed;
-		}
-	}
-
-	/**
-	 * Construct a copy of the module node but the supplied replacement arguments can adjust the argument set that the
-	 * resultant copy will have, in three ways: - they can be used to fill in variables in parameters - they can
-	 * override existing parameters with the same name - they can behave as additional parameters
-	 */
-	public ModuleNode copyOf(ArgumentNode[] arguments, boolean argumentOverriding) {
-		Map<String, ConsumableArgumentNode> extraArgumentsMap = new LinkedHashMap<String, ConsumableArgumentNode>();
-		if (arguments != null) {
-			for (ArgumentNode argument : arguments) {
-				extraArgumentsMap.put(argument.getName(), new ConsumableArgumentNode(argument));
-			}
-		}
-
-		Map<String, ArgumentNode> newModuleArguments = new LinkedHashMap<String, ArgumentNode>();
-
-		// Variable replacement first
-		if (this.arguments != null) {
-			for (ArgumentNode existingArgument : this.arguments) {
-				ArgumentNode arg = existingArgument.withReplacedVariables(extraArgumentsMap);
-				newModuleArguments.put(arg.getName(), arg);
-			}
-		}
-
-		if (argumentOverriding) {
-			for (ConsumableArgumentNode can : extraArgumentsMap.values()) {
-				if (!can.isConsumed()) {
-					newModuleArguments.put(can.argumentNode.getName(), can.argumentNode);
-				}
-			}
-		}
-		ArgumentNode[] newModuleArgumentsArray = null;
-		if (newModuleArguments.size() != 0) {
-			newModuleArgumentsArray =
-					newModuleArguments.values().toArray(new ArgumentNode[newModuleArguments.values().size()]);
-		}
-		return new ModuleNode(this.label, this.moduleName, this.startpos, this.endpos, newModuleArgumentsArray);
 	}
 
 }

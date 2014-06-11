@@ -80,7 +80,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 		FileSink sink = newFileSink().binary(true);
 
 		source.appendToFile("Hi there!");
-		stream().create(generateStreamName(), "%s | %s", source, sink);
+		stream().create(generateStreamName(), "in: %s | out: %s", source, sink);
 		assertThat(sink, eventually(hasContentsThat(equalTo("Hi there!"))));
 
 
@@ -102,7 +102,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 
 		try {
 			FileCopyUtils.copy("hello", new FileWriter(in));
-			stream().create(streamName, "file --outputType=text/plain | file " + sinkParam);
+			stream().create(streamName, "in: file --outputType=text/plain | out: file " + sinkParam);
 			Thread.sleep(1000);
 			String actual = FileCopyUtils.copyToString(new FileReader(out));
 			assertEquals("hello", actual.trim());

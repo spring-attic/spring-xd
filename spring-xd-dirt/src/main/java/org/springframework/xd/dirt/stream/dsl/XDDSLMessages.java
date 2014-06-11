@@ -94,7 +94,7 @@ public enum XDDSLMessages {
 			"tapping only allowed on 'stream', 'topic', 'job' or 'queue'. Not allowed on ''{0}''"), //
 	DUPLICATE_LABEL(ERROR,
 			143,
-			"Label ''{0}'' should be unique but module ''{1}'' and module ''{2}'' both use it"), //
+			"Label ''{0}'' should be unique but module ''{1}'' (at position {2}) and module ''{3}'' (at position {4}) both use it"), //
 	MODULE_REFERENCE_NOT_UNIQUE(ERROR,
 			144,
 			"Reference to ''{0}'' is not unique in the target stream ''{1}'', please label the relevant module and use the label, or use a suffix index to indicate which occurrence of the module, e.g. ''{0}.0''"), //

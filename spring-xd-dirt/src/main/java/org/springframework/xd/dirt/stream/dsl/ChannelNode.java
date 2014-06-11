@@ -150,11 +150,6 @@ public class ChannelNode extends AstNode {
 			}
 			else {
 				// Easter Egg: can use index of module in a stream when tapping.
-				// Key benefit:
-				// You can tap into something that perhaps wasn't labeled
-				// in some stream but needed to be because it was a dup:
-				// Note: need to be aware of how indexes will move when
-				// stream composition has occurred!
 				try {
 					int index = Integer.parseInt(indexingElements.get(0));
 					indexingElements.remove(0);
@@ -163,14 +158,7 @@ public class ChannelNode extends AstNode {
 				catch (NumberFormatException nfe) {
 					// this is ok, probably wasn't a number
 					String indexString = toString(indexingElements);
-					if (sn.labelOrModuleNameOccursMultipleTimesInStream(indexString)) {
-						throw new StreamDefinitionException(getChannelName(),
-								getLengthOfPrefixPlusNameComponents() + 1,
-								XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE,
-								indexString,
-								sn.getStreamText());
-					}
-					int index = sn.getIndexOfLabelOrModuleName(indexString);
+					int index = sn.getIndexOfEffectiveLabel(indexString);
 					if (index != -1) {
 						indexingElements.clear();
 						indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);

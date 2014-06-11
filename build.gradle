@@ -78,7 +78,7 @@ allprojects {
 ext {
 	args4jVersion = '2.0.16'
 	commonsBeanUtilsVersion = '1.6'
-  commonsPool2Version = '2.0'
+	commonsPool2Version = '2.0'
 	commonsCollectionsVersion = '3.2'
 	commonsIoVersion = '2.4'
 	curatorVersion = '2.5.0'
@@ -120,7 +120,7 @@ ext {
 	springIntegrationVersion = '4.0.2.RELEASE'
 	springIntegrationSplunkVersion = '1.1.0.M2'
 	springPluginVersion = '0.8.0.RELEASE'
-	springShellVersion = '1.1.0.RC3'
+	springShellVersion = '1.1.0.BUILD-SNAPSHOT'
 	springVersion = '4.0.3.RELEASE'
 	tomcatJdbcPoolVersion = '7.0.42'
 	tomcatVersion = '7.0.35'

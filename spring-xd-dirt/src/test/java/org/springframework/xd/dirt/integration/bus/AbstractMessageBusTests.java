@@ -266,9 +266,7 @@ public abstract class AbstractMessageBusTests {
 		return new CompositeCodec(codecs, new PojoCodec());
 	}
 
-	protected MessageBus getMessageBus() throws Exception {
-		throw new IllegalStateException("Subclasses must override getMessageBus()");
-	}
+	protected abstract MessageBus getMessageBus() throws Exception;
 
 	@After
 	public void cleanup() {

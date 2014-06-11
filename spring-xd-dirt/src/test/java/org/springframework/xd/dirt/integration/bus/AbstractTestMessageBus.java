@@ -44,7 +44,7 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 			messageBus.afterPropertiesSet();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			throw new RuntimeException("Failed to initialize message bus", e);
 		}
 		this.messageBus = messageBus;
 	}

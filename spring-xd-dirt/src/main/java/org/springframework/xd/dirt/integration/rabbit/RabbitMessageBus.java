@@ -171,10 +171,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private static final Set<Object> SUPPORTED_REQUESTING_PRODUCER_PROPERTIES = new SetBuilder()
 			// request
 			.addAll(SUPPORTED_BASIC_PRODUCER_PROPERTIES)
-			.add(RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS)
 			// reply
 			.addAll(SUPPORTED_BASIC_CONSUMER_PROPERTIES)
 			.add(BusProperties.CONCURRENCY)
+			.add(RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS)
 			.build();
 
 	private final Log logger = LogFactory.getLog(this.getClass());
@@ -242,7 +242,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	/**
-	 * Aet the bus's default max consumers; can be overridden by consumer.maxConcurrency. Values
+	 * Set the bus's default max consumers; can be overridden by consumer.maxConcurrency. Values
 	 * less than 'concurrency' will be coerced to be equal to concurrency.
 	 * @param defaultMaxConcurrency The default max concurrency.
 	 */

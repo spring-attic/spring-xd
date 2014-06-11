@@ -258,7 +258,7 @@ public abstract class MessageBusSupport
 
 	/**
 	 * The default maximum delivery attempts for this bus. Can be overridden by
-	 * consumer property 'maxattempts' if supported. Values less than 2 disable
+	 * consumer property 'maxAttempts' if supported. Values less than 2 disable
 	 * retry and one delivery attempt is made.
 	 * @param defaultMaxAttempts The default maximum attempts.
 	 */

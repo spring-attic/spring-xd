@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
-import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.NoContainerException;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.stream.StreamFactory;
@@ -298,8 +298,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 		 * @return true if the properties contain a partition key property
 		 */
 		private boolean hasPartitionKeyProperty(ModuleDeploymentProperties properties) {
-			return (properties.containsKey("producer.partitionKeyExpression") ||
-					properties.containsKey("producer.partitionKeyExtractorClass"));
+			return (properties.containsKey("producer.partitionKeyExpression") || properties.containsKey("producer.partitionKeyExtractorClass"));
 		}
 
 		/**

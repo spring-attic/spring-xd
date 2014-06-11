@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
-import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.NoContainerException;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -294,7 +294,7 @@ public class ModuleDeploymentWriter {
 			ModuleDescriptor descriptor = descriptors.next();
 			ModuleDeploymentProperties deploymentProperties = provider.propertiesForDescriptor(descriptor);
 			for (Container container : containerMatcher.match(descriptor, deploymentProperties,
-					wrapAsIterable(containerRepository.getContainerIterator()))) {
+					containerRepository.findAll())) {
 				String containerName = container.getName();
 				String deploymentPath = new ModuleDeploymentsPath()
 						.setContainer(containerName)
@@ -383,25 +383,6 @@ public class ModuleDeploymentWriter {
 			}
 		}
 		return results;
-	}
-
-	/**
-	 * Wrap an {@link Iterator} of {@link Container} in an instance
-	 * of {@link Iterable}.
-	 *
-	 * @param containers iterator of containers to wrap
-	 *
-	 * @return instance of {@code Iterable} for the provided
-	 *         {@code Iterator} of {@code Container}s.
-	 */
-	private Iterable<Container> wrapAsIterable(final Iterator<Container> containers) {
-		return new Iterable<Container>() {
-
-			@Override
-			public Iterator<Container> iterator() {
-				return containers;
-			}
-		};
 	}
 
 	/**

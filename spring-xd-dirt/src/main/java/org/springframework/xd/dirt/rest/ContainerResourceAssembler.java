@@ -17,30 +17,30 @@
 package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
+import org.springframework.xd.dirt.cluster.Container;
+import org.springframework.xd.rest.client.domain.ContainerResource;
 
 /**
- * Knows how to assemble {@link ContainerAttributesResource}s out of {@link ContainerAttributes} instances.
+ * Knows how to assemble {@link ContainerResource}s out of {@link Container} instances.
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
-public class ContainerAttributesResourceAssembler extends
-ResourceAssemblerSupport<ContainerAttributes, ContainerAttributesResource> {
+public class ContainerResourceAssembler extends
+		ResourceAssemblerSupport<Container, ContainerResource> {
 
-	public ContainerAttributesResourceAssembler() {
-		super(RuntimeContainersController.class, ContainerAttributesResource.class);
+	public ContainerResourceAssembler() {
+		super(RuntimeContainersController.class, ContainerResource.class);
 	}
 
 	@Override
-	public ContainerAttributesResource toResource(ContainerAttributes entity) {
-		return createResourceWithId(entity.getId(), entity);
+	public ContainerResource toResource(Container entity) {
+		return createResourceWithId(entity.getName(), entity);
 	}
 
 	@Override
-	protected ContainerAttributesResource instantiateResource(ContainerAttributes entity) {
-		return new ContainerAttributesResource(entity);
+	protected ContainerResource instantiateResource(Container entity) {
+		return new ContainerResource(entity.getAttributes());
 	}
 
 }

@@ -16,16 +16,13 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
@@ -42,18 +39,14 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
-import org.springframework.xd.dirt.cluster.ContainerRepository;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.MapBytesUtility;
-import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
@@ -72,8 +65,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  *
  * @see org.apache.curator.framework.recipes.leader.LeaderSelector
  */
-public class DeploymentSupervisor implements ContainerRepository,
-		ApplicationListener<ApplicationEvent>, DisposableBean {
+public class DeploymentSupervisor implements ApplicationListener<ApplicationEvent>, DisposableBean {
 
 	/**
 	 * Logger.
@@ -84,6 +76,11 @@ public class DeploymentSupervisor implements ContainerRepository,
 	 * ZooKeeper connection.
 	 */
 	private final ZooKeeperConnection zkConnection;
+
+	/**
+	 * Repository to load the containers.
+	 */
+	private final ContainerRepository containerRepository;
 
 	/**
 	 * Repository to load stream definitions.
@@ -126,16 +123,6 @@ public class DeploymentSupervisor implements ContainerRepository,
 	private final AtomicReference<PathChildrenCache> containers = new AtomicReference<PathChildrenCache>();
 
 	/**
-	 * Converter from {@link ChildData} types to {@link Container}.
-	 */
-	private final ContainerConverter containerConverter = new ContainerConverter();
-
-	/**
-	 * Utility to convert maps to byte arrays.
-	 */
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
-
-	/**
 	 * Container matcher for matching modules to containers.
 	 */
 	private final ContainerMatcher containerMatcher;
@@ -171,6 +158,7 @@ public class DeploymentSupervisor implements ContainerRepository,
 	 * Construct a {@code DeploymentSupervisor}.
 	 *
 	 * @param zkConnection ZooKeeper connection
+	 * @param containerRepository repository for the containers
 	 * @param streamDefinitionRepository repository for streams definitions
 	 * @param jobDefinitionRepository repository for job definitions
 	 * @param moduleDefinitionRepository repository for modules
@@ -178,17 +166,20 @@ public class DeploymentSupervisor implements ContainerRepository,
 	 * @param containerMatcher matches modules to containers
 	 */
 	public DeploymentSupervisor(ZooKeeperConnection zkConnection,
+			ContainerRepository containerRepository,
 			StreamDefinitionRepository streamDefinitionRepository,
 			JobDefinitionRepository jobDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
 			ContainerMatcher containerMatcher) {
 		Assert.notNull(zkConnection, "ZooKeeperConnection must not be null");
+		Assert.notNull(containerRepository, "ContainerRepository must not be null");
 		Assert.notNull(streamDefinitionRepository, "StreamDefinitionRepository must not be null");
 		Assert.notNull(moduleDefinitionRepository, "ModuleDefinitionRepository must not be null");
 		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver must not be null");
 		Assert.notNull(containerMatcher, "containerMatcher must not be null");
 		this.zkConnection = zkConnection;
+		this.containerRepository = containerRepository;
 		this.streamDefinitionRepository = streamDefinitionRepository;
 		this.jobDefinitionRepository = jobDefinitionRepository;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
@@ -213,17 +204,6 @@ public class DeploymentSupervisor implements ContainerRepository,
 				this.leaderSelector.close();
 			}
 		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Iterator<Container> getContainerIterator() {
-		PathChildrenCache cache = containers.get();
-		return cache == null
-				? Collections.<Container> emptyIterator()
-				: new ChildPathIterator<Container>(containerConverter, cache);
 	}
 
 	/**
@@ -321,20 +301,6 @@ public class DeploymentSupervisor implements ContainerRepository,
 	}
 
 	/**
-	 * Converts a {@link ChildData} node to a {@link Container}.
-	 */
-	public class ContainerConverter implements Converter<ChildData, Container> {
-
-		@Override
-		public Container convert(ChildData source) {
-			// This converter will be invoked upon every iteration of the
-			// iterator returned by getContainerIterator. While elegant,
-			// this isn't exactly efficient. TODO - revisit
-			return new Container(Paths.stripPath(source.getPath()), mapBytesUtility.toMap(source.getData()));
-		}
-	}
-
-	/**
 	 * Listener implementation that is invoked when this server becomes the leader.
 	 */
 	class LeaderListener extends LeaderSelectorListenerAdapter {
@@ -368,7 +334,7 @@ public class DeploymentSupervisor implements ContainerRepository,
 						moduleOptionsMetadataResolver);
 
 				streamDeploymentListener = new StreamDeploymentListener(zkConnection,
-						DeploymentSupervisor.this,
+						containerRepository,
 						streamFactory,
 						containerMatcher);
 
@@ -377,7 +343,7 @@ public class DeploymentSupervisor implements ContainerRepository,
 				streamDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
 				jobDeploymentListener = new JobDeploymentListener(zkConnection,
-						DeploymentSupervisor.this,
+						containerRepository,
 						jobFactory,
 						containerMatcher);
 
@@ -386,7 +352,7 @@ public class DeploymentSupervisor implements ContainerRepository,
 				jobDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
 				containerListener = new ContainerListener(zkConnection,
-						DeploymentSupervisor.this,
+						containerRepository,
 						streamFactory,
 						jobFactory,
 						streamDeployments,

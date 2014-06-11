@@ -437,6 +437,7 @@ public abstract class AbstractIntegrationTest {
 				Thread.sleep(1000);
 			}
 			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				throw new IllegalStateException(e.getMessage(), e);
 			}
 			exists = file.exists();

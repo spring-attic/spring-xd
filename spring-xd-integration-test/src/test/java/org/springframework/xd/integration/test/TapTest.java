@@ -36,9 +36,9 @@ public class TapTest extends AbstractIntegrationTest {
 	public void testStreamTap() {
 		String data = UUID.randomUUID().toString();
 		stream("dataSender",
-				sources.http() + XD_DELIMETER
+				sources.http() + XD_DELIMITER
 						+ sinks.log(), WAIT_TIME);
-		stream(sources.tap("dataSender") + XD_TAP_DELIMETER
+		stream(sources.tap("dataSender") + XD_TAP_DELIMITER
 				+ sinks.file());
 
 		waitForXD();
@@ -54,9 +54,9 @@ public class TapTest extends AbstractIntegrationTest {
 	public void testStreamTapSingleProcessor() {
 		String data = UUID.randomUUID().toString();
 		stream("dataSender",
-				sources.http() + XD_DELIMETER + processors.transform().expression("payload.toUpperCase()")
-						+ XD_DELIMETER + sinks.log(), WAIT_TIME);
-		stream(sources.tap("dataSender").moduleName("transform") + XD_TAP_DELIMETER
+				sources.http() + XD_DELIMITER + processors.transform().expression("payload.toUpperCase()")
+						+ XD_DELIMITER + sinks.log(), WAIT_TIME);
+		stream(sources.tap("dataSender").moduleName("transform") + XD_TAP_DELIMITER
 				+ sinks.file());
 
 		waitForXD();
@@ -65,16 +65,18 @@ public class TapTest extends AbstractIntegrationTest {
 	}
 
 	/**
-	 * Evaluates whether the tap can retrieve data from a stream with a 2 processor using an index.
+	 * Evaluates whether the tap can retrieve data from a stream with a 2 processor using labels.
 	 */
 	@Test
 	public void testStreamTapTwoProcessors() {
 		String data = UUID.randomUUID().toString();
 		stream("dataSender",
-				sources.http() + XD_DELIMETER + processors.transform().expression("payload.toUpperCase()")
-						+ XD_DELIMETER + processors.transform().expression("payload.substring(3)") + XD_DELIMETER
+				sources.http() + XD_DELIMITER
+						+ processors.transform().expression("payload.toUpperCase()").label("label1")
+						+ XD_DELIMITER + processors.transform().expression("payload.substring(3)").label("label2")
+						+ XD_DELIMITER
 						+ sinks.log(), WAIT_TIME);
-		stream(sources.tap("dataSender").moduleName("transform").moduleIndex("2") + XD_TAP_DELIMETER
+		stream(sources.tap("dataSender").moduleName("transform").label("label2") + XD_TAP_DELIMITER
 				+ sinks.file());
 
 		waitForXD();
@@ -89,10 +91,10 @@ public class TapTest extends AbstractIntegrationTest {
 	public void testStreamLabel() {
 		String data = UUID.randomUUID().toString();
 		stream("dataSender",
-				sources.http() + XD_DELIMETER + processors.transform().expression("payload.toUpperCase()").label("ds1")
-						+ XD_DELIMETER + processors.transform().expression("payload.substring(3)") + XD_DELIMETER
+				sources.http() + XD_DELIMITER + processors.transform().expression("payload.toUpperCase()").label("ds1")
+						+ XD_DELIMITER + processors.transform().expression("payload.substring(3)") + XD_DELIMITER
 						+ sinks.log(), WAIT_TIME);
-		stream(sources.tap("dataSender").moduleName("transform").label("ds1") + XD_TAP_DELIMETER
+		stream(sources.tap("dataSender").moduleName("transform").label("ds1") + XD_TAP_DELIMITER
 				+ sinks.file());
 
 		waitForXD();

@@ -51,12 +51,15 @@ public class RabbitTestMessageBus extends AbstractTestMessageBus {
 		if (!queues.isEmpty()) {
 			for (String queue : queues) {
 				rabbitAdmin.deleteQueue("xdbus." + queue);
-				if (queue.contains("part")) {
-					for (int i = 0; i < 10; i++) {
-						rabbitAdmin.deleteQueue("xdbus." + queue + "-" + i);
-					}
+				// delete any partitioned queues
+				for (int i = 0; i < 10; i++) {
+					rabbitAdmin.deleteQueue("xdbus." + queue + "-" + i);
 				}
 				rabbitAdmin.deleteQueue("foo." + queue);
+				// delete any partitioned queues
+				for (int i = 0; i < 10; i++) {
+					rabbitAdmin.deleteQueue("foo." + queue + "-" + i);
+				}
 			}
 		}
 		if (!topics.isEmpty()) {

@@ -134,45 +134,8 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 		Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
 		if (stream != null) {
 			logger.info("Deploying stream {}", stream);
-			prepareStream(client, stream);
 			deployStream(stream);
 			logger.info("Stream {} deployment attempt complete", stream);
-		}
-	}
-
-	/**
-	 * Prepare the new stream for deployment. This updates the ZooKeeper znode for the stream by adding the following
-	 * under {@code /xd/streams/[stream-name]}:
-	 * <ul>
-	 * <li>{@code .../source/[module-name.module-label]}</li>
-	 * <li>{@code .../processor/[module-name.module-label]}</li>
-	 * <li>{@code .../sink/[module-name.module-label]}</li>
-	 * </ul>
-	 * The children of these nodes will be ephemeral nodes written by the containers that accept deployment of the
-	 * modules.
-	 *
-	 * @param client curator client
-	 * @param stream stream to be prepared
-	 */
-	private void prepareStream(CuratorFramework client, Stream stream) throws Exception {
-		for (Iterator<ModuleDescriptor> iterator = stream.getDeploymentOrderIterator(); iterator.hasNext();) {
-			ModuleDescriptor descriptor = iterator.next();
-			String streamName = stream.getName();
-			String moduleType = descriptor.getModuleDefinition().getType().toString();
-			String moduleLabel = descriptor.getModuleLabel();
-
-			String path = new StreamDeploymentsPath()
-					.setStreamName(streamName)
-					.setModuleType(moduleType)
-					.setModuleLabel(moduleLabel).build();
-
-			try {
-				client.create().creatingParentsIfNeeded().forPath(path);
-			}
-			catch (KeeperException.NodeExistsException e) {
-				// todo: this would be somewhat unexpected
-				logger.info("Path {} already exists", path);
-			}
 		}
 	}
 

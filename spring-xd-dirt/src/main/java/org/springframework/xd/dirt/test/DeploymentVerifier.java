@@ -199,28 +199,27 @@ public class DeploymentVerifier {
 	public void waitForDeploy(String name) throws RuntimeTimeoutException {
 		waitForCreate(name);
 
-		Set<String> paths = new HashSet<String>(provider.getModuleDeploymentPaths(name));
+		String path = provider.getDeploymentPath(name);
+		int childrenCount = 0;
+		int expectedCount = provider.getDeploymentPathChildrenCount(name);
 		long timeout = System.currentTimeMillis() + verifyTimeout;
 
 		try {
-			while (!paths.isEmpty() && System.currentTimeMillis() < timeout) {
-				for (Iterator<String> iterator = paths.iterator(); iterator.hasNext();) {
-					String path = iterator.next();
-					if (pathChildrenCount(path) > 0) {
-						iterator.remove();
-					}
-				}
+			while (childrenCount != expectedCount && System.currentTimeMillis() < timeout) {
 				Thread.sleep(100);
+				childrenCount = pathChildrenCount(path);
 			}
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 
-		if (!paths.isEmpty()) {
+		if (childrenCount != expectedCount) {
 			throw new RuntimeTimeoutException(
-					String.format("Creation of the following module paths timed out for %s: %s", name, paths));
+					String.format("Expected %d children under path '%s', found %d",
+							expectedCount, path, childrenCount));
 		}
+
 	}
 
 	/**

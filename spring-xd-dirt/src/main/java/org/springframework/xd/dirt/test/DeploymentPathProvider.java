@@ -43,13 +43,14 @@ public interface DeploymentPathProvider {
 	String getDeploymentPath(String name);
 
 	/**
-	 * Return the expected paths for the module deployments for a
-	 * named deployment.
+	 * Return the number of children expected under the deployment path
+	 * for this deployment. When the expected number of children exist,
+	 * it is assumed that all modules were deployed.
 	 *
 	 * @param name definition name
 	 *
-	 * @return list of expected deployment paths for the modules
+	 * @return number of children expected under the deployment path
 	 *         for this deployment
 	 */
-	List<String> getModuleDeploymentPaths(String name);
+	int getDeploymentPathChildrenCount(String name);
 }

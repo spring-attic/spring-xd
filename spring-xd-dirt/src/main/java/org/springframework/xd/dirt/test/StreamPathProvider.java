@@ -16,15 +16,11 @@
 
 package org.springframework.xd.dirt.test;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.curator.framework.CuratorFramework;
 
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
@@ -32,7 +28,6 @@ import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
-import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
@@ -96,18 +91,10 @@ public class StreamPathProvider implements DeploymentPathProvider {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<String> getModuleDeploymentPaths(String streamName) {
-		List<String> moduleDeploymentPaths = new ArrayList<String>();
+	public int getDeploymentPathChildrenCount(String streamName) {
 		try {
 			Stream stream = streamFactory.createStream(streamName, getStreamProperties(streamName));
-			for (Iterator<ModuleDescriptor> iterator = stream.getDeploymentOrderIterator(); iterator.hasNext();) {
-				ModuleDescriptor descriptor = iterator.next();
-				moduleDeploymentPaths.add(new StreamDeploymentsPath()
-						.setStreamName(stream.getName())
-						.setModuleType(descriptor.getModuleDefinition().getType().toString())
-						.setModuleLabel(descriptor.getModuleLabel())
-						.build());
-			}
+			return stream.getDescriptorsAsList().size();
 		}
 		catch (Exception e) {
 			String definition;
@@ -122,7 +109,6 @@ public class StreamPathProvider implements DeploymentPathProvider {
 					"Failed to determine module deployment paths for stream %s, definition: %s",
 					streamName, definition), e);
 		}
-		return moduleDeploymentPaths;
 	}
 
 	/**

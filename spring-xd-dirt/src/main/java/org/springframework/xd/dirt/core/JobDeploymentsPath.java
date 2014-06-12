@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.core;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
@@ -31,6 +32,8 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * JobDeploymentsPath path = new JobDeploymentsPath().setJobName("my-job");
  * assertEquals("/deployments/jobs/my-job", path.build());
  * </pre>
+ * Note that when building a deployment path, if a module label is set,
+ * a container must also be set (and vice versa).
  *
  * @author Patrick Peralta
  * @author Mark Fisher
@@ -53,19 +56,29 @@ public class JobDeploymentsPath {
 	private static final int JOB_NAME = 2;
 
 	/**
-	 * Index for module label in {@link #elements} array.
+	 * Index for dot delimited module deployment description in {@link #elements} array.
 	 */
-	private static final int MODULE_LABEL = 3;
+	private static final int DEPLOYMENT_DESC = 3;
 
 	/**
-	 * Index for container name in {@link #elements} array.
+	 * Index for module label in {@link #deploymentDesc} array.
 	 */
-	private static final int CONTAINER = 4;
+	private static final int MODULE_LABEL = 0;
+
+	/**
+	 * Index for container name in {@link #deploymentDesc} array.
+	 */
+	private static final int CONTAINER = 1;
 
 	/**
 	 * Array of path elements.
 	 */
-	private final String[] elements = new String[5];
+	private final String[] elements = new String[4];
+
+	/**
+	 * Array of module deployment description elements.
+	 */
+	private final String[] deploymentDesc = new String[2];
 
 
 	/**
@@ -112,6 +125,12 @@ public class JobDeploymentsPath {
 
 		Assert.state(elements[DEPLOYMENTS].equals(Paths.DEPLOYMENTS));
 		Assert.state(elements[JOBS].equals(Paths.JOBS));
+
+		if (elements[DEPLOYMENT_DESC] != null) {
+			String[] deploymentElements = elements[DEPLOYMENT_DESC].split(" ")[0].split("\\.");
+			Assert.state(deploymentElements.length == 2);
+			System.arraycopy(deploymentElements, 0, deploymentDesc, 0, 2);
+		}
 	}
 
 	/**
@@ -141,7 +160,7 @@ public class JobDeploymentsPath {
 	 * @return module label
 	 */
 	public String getModuleLabel() {
-		return elements[MODULE_LABEL];
+		return deploymentDesc[MODULE_LABEL];
 	}
 
 	/**
@@ -152,7 +171,7 @@ public class JobDeploymentsPath {
 	 * @return this object
 	 */
 	public JobDeploymentsPath setModuleLabel(String label) {
-		elements[MODULE_LABEL] = label;
+		deploymentDesc[MODULE_LABEL] = label;
 		return this;
 	}
 
@@ -162,7 +181,7 @@ public class JobDeploymentsPath {
 	 * @return container name
 	 */
 	public String getContainer() {
-		return elements[CONTAINER];
+		return deploymentDesc[CONTAINER];
 	}
 
 	/**
@@ -173,7 +192,7 @@ public class JobDeploymentsPath {
 	 * @return this object
 	 */
 	public JobDeploymentsPath setContainer(String container) {
-		elements[CONTAINER] = container;
+		deploymentDesc[CONTAINER] = container;
 		return this;
 	}
 
@@ -182,9 +201,14 @@ public class JobDeploymentsPath {
 	 *
 	 * @return path string
 	 *
+	 * @throws java.lang.IllegalStateException if partial deployment info is present
+	 *         (for example, if module type/label is present but container is missing)
 	 * @see Paths#build
 	 */
-	public String build() {
+	public String build() throws IllegalStateException {
+		elements[DEPLOYMENT_DESC] = (hasDeploymentInfo())
+				? String.format("%s.%s", deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER])
+				: null;
 		return Paths.build(stripNullElements());
 	}
 
@@ -193,10 +217,38 @@ public class JobDeploymentsPath {
 	 *
 	 * @return path string with namespace
 	 *
+	 * @throws java.lang.IllegalStateException if partial deployment info is present
+	 *         (for example, if module type/label is present but container is missing)
 	 * @see Paths#buildWithNamespace
 	 */
-	public String buildWithNamespace() {
+	public String buildWithNamespace() throws IllegalStateException {
+		elements[DEPLOYMENT_DESC] = (hasDeploymentInfo())
+				? String.format("%s.%s", deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER])
+				: null;
 		return Paths.buildWithNamespace(stripNullElements());
+	}
+
+	/**
+	 * Return true if this path contains module deployment info
+	 * (module type, module label, container). If false, this indicates
+	 * the path only contains the stream name.
+	 *
+	 * @return true if this path contains module deployment info
+	 * @throws java.lang.IllegalStateException if partial deployment info is present
+	 *         (for example, if module type/label is present but container is missing)
+	 */
+	private boolean hasDeploymentInfo() {
+		boolean hasValue = false;
+		for (String s : deploymentDesc) {
+			hasValue |= StringUtils.hasText(s);
+		}
+		if (!hasValue) {
+			return false;
+		}
+		Assert.state(StringUtils.hasText(deploymentDesc[MODULE_LABEL]), "Module label missing");
+		Assert.state(StringUtils.hasText(deploymentDesc[CONTAINER]), "Container missing");
+
+		return true;
 	}
 
 	/**

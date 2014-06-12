@@ -48,7 +48,6 @@ import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
-import org.springframework.xd.module.ModuleType;
 
 /**
  * Stream instance repository. It should only return values for Streams that are deployed.
@@ -177,23 +176,20 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 	public void delete(String id) {
 		logger.info("Undeploying stream {}", id);
 
+		String streamDeploymentPath = Paths.build(Paths.STREAM_DEPLOYMENTS, id);
 		CuratorFramework client = zkConnection.getClient();
 		Deque<String> paths = new ArrayDeque<String>();
 
-		// If this stream contains processor modules, place them into
-		// a tree keyed by the ZK transaction id. The ZK transaction
-		// id maintains total ordering of all changes. This allows
-		// the undeployment of processor modules in the reverse order in
+		// Place all module deployments into a tree keyed by the
+		// ZK transaction id. The ZK transaction id maintains
+		// total ordering of all changes. This allows the
+		// undeployment of modules in the reverse order in
 		// which they were deployed.
 		Map<Long, String> txMap = new TreeMap<Long, String>();
 		try {
-			List<String> processorDeployments = client.getChildren().forPath(new StreamDeploymentsPath()
-					.setStreamName(id).setModuleType(ModuleType.processor.toString()).build());
-			for (String processorName : processorDeployments) {
-				String path = new StreamDeploymentsPath()
-						.setStreamName(id)
-						.setModuleType(ModuleType.processor.toString())
-						.setModuleLabel(processorName).build();
+			List<String> deployments = client.getChildren().forPath(streamDeploymentPath);
+			for (String deployment : deployments) {
+				String path = new StreamDeploymentsPath(Paths.build(streamDeploymentPath, deployment)).build();
 				Stat stat = client.checkExists().forPath(path);
 				Assert.notNull(stat);
 				txMap.put(stat.getCzxid(), path);
@@ -204,12 +200,9 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 
-		paths.add(new StreamDeploymentsPath().setStreamName(id).setModuleType(ModuleType.sink.toString()).build());
-		paths.add(new StreamDeploymentsPath().setStreamName(id).setModuleType(ModuleType.processor.toString()).build());
-		for (String processorDeployment : txMap.values()) {
-			paths.add(processorDeployment);
+		for (String deployment : txMap.values()) {
+			paths.add(deployment);
 		}
-		paths.add(new StreamDeploymentsPath().setStreamName(id).setModuleType(ModuleType.source.toString()).build());
 
 		for (Iterator<String> iterator = paths.descendingIterator(); iterator.hasNext();) {
 			try {
@@ -222,12 +215,8 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			}
 		}
 
-		String streamDeploymentPath = Paths.build(Paths.STREAM_DEPLOYMENTS, id);
 		try {
 			client.delete().forPath(streamDeploymentPath);
-		}
-		catch (KeeperException.NoNodeException e) {
-			// ignore
 		}
 		catch (KeeperException.NotEmptyException e) {
 			List<String> children = new ArrayList<String>();
@@ -241,7 +230,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 					"The following children were not deleted from %s: %s", streamDeploymentPath, children), e);
 		}
 		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 	}
 

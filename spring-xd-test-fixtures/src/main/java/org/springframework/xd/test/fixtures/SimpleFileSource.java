@@ -33,7 +33,6 @@ public class SimpleFileSource extends AbstractModuleFixture {
 
 	private boolean reference;
 
-	private String label;
 
 	/**
 	 * Construct a new SimpleFileSource using the provided directory and file names.
@@ -80,17 +79,6 @@ public class SimpleFileSource extends AbstractModuleFixture {
 	 */
 	public SimpleFileSource reference(boolean reference) {
 		this.reference = reference;
-		return this;
-	}
-
-	/**
-	 * Sets the label for the file source.
-	 * @param label The name to be associated with the label.
-	 * @return the current instance of the SimpleFileSource fixture.
-	 */
-	public SimpleFileSource label(String label) {
-		Assert.hasText(label, "Label should not be null nor empty");
-		this.label = label;
 		return this;
 	}
 

@@ -16,13 +16,19 @@ package org.springframework.xd.dirt.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.List;
+
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
 import org.springframework.xd.dirt.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -35,7 +41,8 @@ import org.springframework.xd.test.rabbit.RabbitTestSupport;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class RabbitSingleNodeStreamDeploymentIntegrationTests extends AbstractSingleNodeStreamDeploymentIntegrationTests {
+public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
+		AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	@ClassRule
 	public static RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
@@ -79,7 +86,12 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends AbstractSi
 	}
 
 	@Override
-	protected void verifyQueues(MessageChannel y3, MessageChannel z3) {
+	protected String onDemandProperties() {
+		return "module.router.producer.deliveryMode=NON_PERSISTENT";
+	}
+
+	@Override
+	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {
 		RabbitTemplate template = new RabbitTemplate(rabbitAvailableRule.getResource());
 		Object y = template.receiveAndConvert("xdbus.queue:y");
 		assertNotNull(y);
@@ -87,6 +99,22 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends AbstractSi
 		Object z = template.receiveAndConvert("xdbus.queue:z");
 		assertNotNull(z);
 		assertEquals("z", z);
+	}
+
+	@Override
+	protected void verifyDynamicProperties(MessageBus bus, String type) {
+		@SuppressWarnings("unchecked")
+		List<Binding> bindings = TestUtils.getPropertyValue(bus, "messageBus.bindings", List.class);
+		for (Binding binding : bindings) {
+			if (binding.getEndpoint().getComponentName().equals("outbound." + type + ":x")) {
+				assertEquals(MessageDeliveryMode.PERSISTENT, TestUtils.getPropertyValue(binding.getEndpoint(),
+						"handler.delegate.defaultDeliveryMode", MessageDeliveryMode.class));
+			}
+			else if (binding.getEndpoint().getComponentName().matches("outbound." + type + ":(y|z)")) {
+				assertEquals(MessageDeliveryMode.NON_PERSISTENT, TestUtils.getPropertyValue(binding.getEndpoint(),
+						"handler.delegate.defaultDeliveryMode", MessageDeliveryMode.class));
+			}
+		}
 	}
 
 }

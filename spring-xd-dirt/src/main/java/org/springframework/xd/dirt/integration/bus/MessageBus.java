@@ -124,16 +124,18 @@ public interface MessageBus {
 	 * Create a channel and bind a producer dynamically, creating the infrastructure
 	 * required by the bus technology.
 	 * @param name The name of the "queue:" channel.
+	 * @param properties arbitrary String key/value pairs that will be used in the binding.
 	 * @return The channel.
 	 */
-	MessageChannel bindDynamicProducer(String name);
+	MessageChannel bindDynamicProducer(String name, Properties properties);
 
 	/**
 	 * Create a channel and bind a producer dynamically, creating the infrastructure
 	 * required by the bus technology to broadcast messages to consumers.
 	 * @param name The name of the "topic:" channel.
+	 * @param properties arbitrary String key/value pairs that will be used in the binding.
 	 * @return The channel.
 	 */
-	MessageChannel bindDynamicPubSubProducer(String name);
+	MessageChannel bindDynamicPubSubProducer(String name, Properties properties);
 
 }

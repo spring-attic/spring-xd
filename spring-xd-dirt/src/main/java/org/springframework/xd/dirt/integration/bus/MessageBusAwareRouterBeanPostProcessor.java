@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
+import java.util.Properties;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -27,13 +29,14 @@ import org.springframework.integration.router.AbstractMappingMessageRouter;
  * {@link AbstractMappingMessageRouter} within the context.
  * 
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class MessageBusAwareRouterBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
 
 	private final MessageBusAwareChannelResolver channelResolver;
 
-	public MessageBusAwareRouterBeanPostProcessor(MessageBus messageBus) {
-		this.channelResolver = new MessageBusAwareChannelResolver(messageBus);
+	public MessageBusAwareRouterBeanPostProcessor(MessageBus messageBus, Properties producerProperties) {
+		this.channelResolver = new MessageBusAwareChannelResolver(messageBus, producerProperties);
 	}
 
 	@Override

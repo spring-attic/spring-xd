@@ -57,7 +57,7 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 	}
 
 	@Override
-	protected void verifyQueues(MessageChannel y3, MessageChannel z3) {
+	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {
 		StringRedisTemplate template = new StringRedisTemplate(redisAvailableRule.getResource());
 		String y = template.boundListOps("queue.queue:y").rightPop();
 		assertNotNull(y);

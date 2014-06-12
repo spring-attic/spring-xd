@@ -48,7 +48,7 @@ public class StreamPlugin extends AbstractStreamPlugin {
 	}
 
 	@Override
-	public void preProcessModule(Module module) {
+	public void preProcessModule(final Module module) {
 		Properties properties = new Properties();
 		properties.setProperty(XD_STREAM_NAME_KEY, module.getDescriptor().getGroup());
 		module.addProperties(properties);
@@ -57,7 +57,9 @@ public class StreamPlugin extends AbstractStreamPlugin {
 
 				@Override
 				public void onApplicationEvent(ApplicationPreparedEvent event) {
-					MessageBusAwareRouterBeanPostProcessor bpp = new MessageBusAwareRouterBeanPostProcessor(messageBus);
+					Properties producerProperties = extractConsumerProducerProperties(module)[1];
+					MessageBusAwareRouterBeanPostProcessor bpp =
+							new MessageBusAwareRouterBeanPostProcessor(messageBus, producerProperties);
 					bpp.setBeanFactory(event.getApplicationContext().getBeanFactory());
 					event.getApplicationContext().getBeanFactory().addBeanPostProcessor(bpp);
 				}

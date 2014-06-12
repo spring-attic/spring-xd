@@ -48,6 +48,7 @@ import org.springframework.xd.dirt.config.TestMessageBusInjection;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
@@ -353,16 +354,18 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
 				"queue:x > router --expression=payload.contains('y')?'queue:y':'queue:z'");
 		integrationSupport.streamDefinitionRepository().save(routerDefinition);
-		integrationSupport.deployStream(routerDefinition);
+		integrationSupport.deployStream(routerDefinition, onDemandProperties());
 		Thread.sleep(1000);
 
-		singleNodeApplication.pluginContext().getBean("queue:x", MessageChannel.class);
+		MessageBus bus = testMessageBus != null ? testMessageBus : integrationSupport.messageBus();
+		if (bus instanceof LocalMessageBus) { // no such bean for other buses
+			singleNodeApplication.pluginContext().getBean("queue:x", MessageChannel.class);
+		}
 		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:y"));
 		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:z"));
 
 
 		DirectChannel testChannel = new DirectChannel();
-		MessageBus bus = testMessageBus != null ? testMessageBus : integrationSupport.messageBus();
 		bus.bindProducer("queue:x", testChannel, null);
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
@@ -377,14 +380,23 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		assertNotNull(y3);
 		assertNotNull(z3);
 
-		verifyQueues(y3, z3);
+		verifyDynamicProperties(bus, "queue");
+
+		verifyOnDemandQueues(y3, z3);
 
 		bus.unbindProducer("queue:x", testChannel);
 		bus.unbindConsumer("queue:y", y3);
 		bus.unbindConsumer("queue:z", z3);
 	}
 
-	protected void verifyQueues(MessageChannel y3, MessageChannel z3) {
+	protected void verifyDynamicProperties(MessageBus bus, String string) {
+	}
+
+	protected String onDemandProperties() {
+		return null;
+	}
+
+	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {
 		QueueChannel y3q = (QueueChannel) y3;
 		assertEquals(1, y3q.getQueueSize());
 		QueueChannel z3q = (QueueChannel) z3;
@@ -400,16 +412,18 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
 				"topic:x > router --expression=payload.contains('y')?'topic:y':'topic:z'");
 		integrationSupport.streamDefinitionRepository().save(routerDefinition);
-		integrationSupport.deployStream(routerDefinition);
+		integrationSupport.deployStream(routerDefinition, onDemandProperties());
 		Thread.sleep(1000);
 
-		singleNodeApplication.pluginContext().getBean("topic:x", MessageChannel.class);
+		MessageBus bus = testMessageBus != null ? testMessageBus : integrationSupport.messageBus();
+		if (bus instanceof LocalMessageBus) { // no such bean for other buses
+			singleNodeApplication.pluginContext().getBean("topic:x", MessageChannel.class);
+		}
 		assertFalse(singleNodeApplication.pluginContext().containsBean("topic:y"));
 		assertFalse(singleNodeApplication.pluginContext().containsBean("topic:z"));
 
 
 		DirectChannel testChannel = new DirectChannel();
-		MessageBus bus = testMessageBus != null ? testMessageBus : integrationSupport.messageBus();
 		bus.bindPubSubProducer("topic:x", testChannel, null);
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
@@ -434,6 +448,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		assertEquals("y", consumer.receive(2000).getPayload());
 		assertEquals("z", consumer.receive(2000).getPayload());
 		assertEquals(0, consumer.getQueueSize());
+
+		verifyDynamicProperties(bus, "topic");
 
 		bus.unbindProducer("topic:x", testChannel);
 		bus.unbindConsumers("topic:x");

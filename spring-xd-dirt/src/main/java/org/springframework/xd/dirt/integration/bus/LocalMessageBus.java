@@ -69,25 +69,23 @@ public class LocalMessageBus extends MessageBusSupport {
 	}
 
 	/**
-	 * For the local bus we bridge the router "output" channel to a queue channel.
+	 * For the local bus we bridge the router "output" channel to a queue channel; the queue
+	 * channel gets the name and the source channel is named 'dynamic.output.to.' + name.
 	 * {@inheritDoc}
 	 */
 	@Override
-	public MessageChannel bindDynamicProducer(String name) {
-		MessageChannel channel = this.directChannelProvider.createSharedChannel("dynamic.output.to." + name);
-		bindProducer(name, channel, null); // TODO: dynamic producer options
-		return channel;
+	public MessageChannel bindDynamicProducer(String name, Properties properties) {
+		return doBindDynamicProducer(name, "dynamic.output.to." + name, properties);
 	}
 
 	/**
-	 * For the local bus we bridge the router "output" channel to a queue channel.
+	 * For the local bus we bridge the router "output" channel to a pub/sub channel; the pub/sub
+	 * channel gets the name and the source channel is named 'dynamic.output.to.' + name.
 	 * {@inheritDoc}
 	 */
 	@Override
-	public MessageChannel bindDynamicPubSubProducer(String name) {
-		MessageChannel channel = this.directChannelProvider.createAndRegisterChannel("dynamic.output.to." + name);
-		bindPubSubProducer(name, channel, null); // TODO: dynamic producer options
-		return channel;
+	public MessageChannel bindDynamicPubSubProducer(String name, Properties properties) {
+		return doBindDynamicPubSubProducer(name, "dynamic.output.to." + name, properties);
 	}
 
 	private SharedChannelProvider<?> getChannelProvider(String name) {

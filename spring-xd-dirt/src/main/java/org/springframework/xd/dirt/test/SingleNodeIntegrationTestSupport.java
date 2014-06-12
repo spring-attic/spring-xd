@@ -134,6 +134,10 @@ public class SingleNodeIntegrationTestSupport {
 		return waitForDeploy(definition);
 	}
 
+	public final boolean deployStream(StreamDefinition definition, String properties) {
+		return waitForDeploy(definition, properties);
+	}
+
 	public final boolean createAndDeployStream(StreamDefinition definition) {
 		streamDeployer.save(definition);
 		return waitForDeploy(definition);
@@ -219,7 +223,11 @@ public class SingleNodeIntegrationTestSupport {
 	}
 
 	private boolean waitForDeploy(StreamDefinition definition) {
-		streamDeployer.deploy(definition.getName(), null);
+		return waitForDeploy(definition, null);
+	}
+
+	private boolean waitForDeploy(StreamDefinition definition, String properties) {
+		streamDeployer.deploy(definition.getName(), properties);
 		try {
 			streamDeploymentVerifier.waitForDeploy(definition.getName());
 			return true;

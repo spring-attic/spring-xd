@@ -21,12 +21,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Test;
@@ -242,6 +244,25 @@ public abstract class AbstractMessageBusTests {
 		messageBus.unbindProducer("baz.0", moduleOutputChannel);
 		messageBus.unbindProducers("tap:baz.http");
 		assertTrue(getBindings(messageBus).isEmpty());
+	}
+
+	@Test
+	public void testBadDynamic() throws Exception {
+		Properties properties = new Properties();
+		properties.setProperty(BusProperties.PARTITION_KEY_EXPRESSION, "'foo'");
+		MessageBus messageBus = getMessageBus();
+		try {
+			messageBus.bindDynamicProducer("queue:foo", properties);
+			fail("Exception expected");
+		}
+		catch (MessageBusException mbe) {
+			assertEquals("Failed to bind dynamic channel 'queue:foo' with properties {partitionKeyExpression='foo'}",
+					mbe.getMessage());
+			if (messageBus instanceof AbstractTestMessageBus) {
+				messageBus = ((AbstractTestMessageBus) messageBus).getCoreMessageBus();
+			}
+			assertFalse(((MessageBusSupport) messageBus).getApplicationContext().containsBean("queue:foo"));
+		}
 	}
 
 	protected Collection<?> getBindings(MessageBus testMessageBus) {

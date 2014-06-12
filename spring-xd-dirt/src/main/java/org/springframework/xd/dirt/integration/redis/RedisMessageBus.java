@@ -168,7 +168,6 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			queueName += "-" + partitionIndex;
 		}
 		MessageProducerSupport adapter = createInboundAdapter(accessor, queueName);
-		registerNamedChannelForConsumerIfNecessary(name, false);
 		doRegisterConsumer(name, name + (partitionIndex >= 0 ? "-" + partitionIndex : ""), moduleInputChannel, adapter,
 				accessor);
 	}
@@ -197,7 +196,6 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			logger.info("declaring pubsub for inbound: " + name);
 		}
 		validateConsumerProperties(name, properties, SUPPORTED_PUBSUB_CONSUMER_PROPERTIES);
-		registerNamedChannelForConsumerIfNecessary(name, true);
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.connectionFactory);
 		adapter.setBeanFactory(this.getBeanFactory());
 		adapter.setSerializer(null);

@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,7 +76,12 @@ public class ZooKeeperContainerRepositoryTests {
 
 	@Before
 	public void setUp() throws Exception {
-		zooKeeperConnection.getClient().create().creatingParentsIfNeeded().forPath(Paths.CONTAINERS);
+		try {
+			zooKeeperConnection.getClient().create().creatingParentsIfNeeded().forPath(Paths.CONTAINERS);
+		}
+		catch (KeeperException.NodeExistsException e) {
+			// ignore
+		}
 
 		ContainerAttributes containerAttributes = new ContainerAttributes(id).setPid(pid).setHost(host).setIp(ip);
 		containerAttributes.put("groups", "g1,g2,g3");
@@ -140,7 +147,10 @@ public class ZooKeeperContainerRepositoryTests {
 
 	@After
 	public void tearDown() throws Exception {
-		zooKeeperConnection.getClient().delete().deletingChildrenIfNeeded().forPath(Paths.CONTAINERS);
+		CuratorFramework client = zooKeeperConnection.getClient();
+		for (String path : client.getChildren().forPath(Paths.CONTAINERS)) {
+			client.delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.CONTAINERS, path));
+		}
 	}
 
 }

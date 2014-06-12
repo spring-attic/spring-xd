@@ -18,17 +18,22 @@ package org.springframework.xd.dirt.container.store;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.utils.ThreadUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.data.Stat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.util.PagingUtility;
@@ -37,37 +42,135 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
- * ZooKeeper backed repository for runtime info about Containers.
+ * ZooKeeper backed repository for runtime info about Containers. This
+ * implementation uses {@link PathChildrenCache} to cache container
+ * info from ZooKeeper. The cache is used for all <em>reads</em>, whereas
+ * all <em>writes</em> are written directly to ZooKeeper. This means
+ * that a read that immediately follows a write <em>may</em> return
+ * {@code null} if the cache has not been updated yet.
  *
  * @author Mark Fisher
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
+ * @author Patrick Peralta
  */
 public class ZooKeeperContainerRepository implements ContainerRepository {
 
-
+	/**
+	 * ZooKeeper connection.
+	 */
 	private final ZooKeeperConnection zkConnection;
 
+	/**
+	 * Utility to convert maps to byte arrays.
+	 */
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	private final PagingUtility<Container> pagingUtility = new PagingUtility<Container>();
 
+	/**
+	 * Atomic reference to the {@link PathChildrenCache} for containers
+	 * under the {@link Paths#CONTAINERS} node. This reference should
+	 * <em>not</em> be used directly; instead use {@link #ensureCache}
+	 * to ensure the cache is initialized.
+	 *
+	 * @see #ensureCache
+	 */
+	private final AtomicReference<PathChildrenCache> cacheRef = new AtomicReference<PathChildrenCache>();
+
+	/**
+	 * Construct a {@code ZooKeeperContainerRepository}.
+	 *
+	 * @param zkConnection the ZooKeeper connection
+	 */
 	@Autowired
 	public ZooKeeperContainerRepository(ZooKeeperConnection zkConnection) {
 		this.zkConnection = zkConnection;
 	}
 
+	/**
+	 * Return a {@link PathChildrenCache} for containers, creating and
+	 * initializing a new instance if necessary.
+	 *
+	 * @return a {@code PathChildrenCache} for containers
+	 * @throws java.lang.IllegalStateException if the cache could not be initialized
+	 *        (likely due to a ZooKeeper connection error)
+	 */
+	private PathChildrenCache ensureCache() {
+		if (cacheRef.get() == null) {
+			synchronized (cacheRef) {
+				if (cacheRef.get() == null) {
+					CuratorFramework client = zkConnection.getClient();
+					PathChildrenCache cache = new PathChildrenCache(client, Paths.CONTAINERS,
+							true, ThreadUtils.newThreadFactory("ContainerCache"));
+					cache.getListenable().addListener(new PathChildrenCacheListener() {
+						@Override
+						public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) {
+							// shut down the cache if ZooKeeper connection goes away
+							if (event.getType() == PathChildrenCacheEvent.Type.CONNECTION_SUSPENDED ||
+									event.getType() == PathChildrenCacheEvent.Type.CONNECTION_LOST) {
+								PathChildrenCache cache = cacheRef.get();
+								if (cache != null) {
+									try {
+										cache.close();
+									}
+									catch (Exception e) {
+										// ignore exception on close
+									}
+									finally {
+										cacheRef.compareAndSet(cache, null);
+									}
+								}
+							}
+						}
+					});
+					try {
+						Paths.ensurePath(client, Paths.CONTAINERS);
+						cacheRef.set(cache);
+						cache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
+					}
+					catch (Exception e) {
+						try {
+							cache.close();
+						}
+						catch (Exception ce) {
+							// ignore exception on close
+						}
+						finally {
+							cacheRef.compareAndSet(cache, null);
+						}
+						throw ZooKeeperUtils.wrapThrowable(e);
+					}
+				}
+			}
+		}
+
+		PathChildrenCache cache = cacheRef.get();
+		Assert.state(cache != null, "Container cache not initialized " +
+				"(likely as a result of a ZooKeeper connection error)");
+		return cache;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Iterable<Container> findAll(Sort sort) {
 		// todo: add support for sort
 		return findAll();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Page<Container> findAll(Pageable pageable) {
 		return pagingUtility.getPagedData(pageable, findAll());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public <S extends Container> S save(S entity) {
 		CuratorFramework client = zkConnection.getClient();
@@ -100,6 +203,9 @@ public class ZooKeeperContainerRepository implements ContainerRepository {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public <S extends Container> Iterable<S> save(Iterable<S> entities) {
 		List<S> results = new ArrayList<S>();
@@ -109,48 +215,50 @@ public class ZooKeeperContainerRepository implements ContainerRepository {
 		return results;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Container findOne(String id) {
 		Container container = null;
-		try {
-			String containerPath = path(id);
-			byte[] data = zkConnection.getClient().getData().forPath(containerPath);
-			if (data != null) {
-				Map<String, String> map = mapBytesUtility.toMap(data);
-				container = new Container(Paths.stripPath(containerPath), map);
-			}
+		String containerPath = path(id);
+		ChildData childData = ensureCache().getCurrentData(containerPath);
+		byte[] data = null;
+
+		if (childData != null) {
+			data = childData.getData();
 		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
+		if (data != null) {
+			container = new Container(id, mapBytesUtility.toMap(data));
 		}
+
 		return container;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean exists(String id) {
-		try {
-			return null != zkConnection.getClient().checkExists().forPath(path(id));
-		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
-		}
+		return ensureCache().getCurrentData(path(id)) != null;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public List<Container> findAll() {
 		List<Container> results = new ArrayList<Container>();
-		try {
-			List<String> children = zkConnection.getClient().getChildren().forPath(Paths.CONTAINERS);
-			for (String id : children) {
-				results.add(findOne(id));
-			}
-			return results;
+		List<ChildData> children = ensureCache().getCurrentData();
+		for (ChildData childData : children) {
+			results.add(findOne(Paths.stripPath(childData.getPath())));
 		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
-		}
+		return results;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Iterable<Container> findAll(Iterable<String> ids) {
 		List<Container> results = new ArrayList<Container>();
@@ -163,43 +271,62 @@ public class ZooKeeperContainerRepository implements ContainerRepository {
 		return results;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public long count() {
-		try {
-			Stat stat = zkConnection.getClient().checkExists().forPath(Paths.CONTAINERS);
-			return (stat != null) ? stat.getNumChildren() : 0;
-		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
-		}
+		return ensureCache().getCurrentData().size();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void delete(String id) {
 		// Container metadata is "deleted" when a Container departs
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void delete(Container entity) {
 		// Container metadata is "deleted" when a Container departs
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void delete(Iterable<? extends Container> entities) {
 		// Container metadata is "deleted" when a Container departs
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void deleteAll() {
 		// Container metadata is "deleted" when a Container departs
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Iterable<Container> findAllInRange(String from, boolean fromInclusive, String to,
 			boolean toInclusive) {
 		throw new UnsupportedOperationException("Auto-generated method stub");
 	}
 
+	/**
+	 * Return the path for a container.
+	 *
+	 * @param id container id
+	 * @return path for the container
+	 * @see Paths#build
+	 */
 	private String path(String id) {
 		return Paths.build(Paths.CONTAINERS, id);
 	}

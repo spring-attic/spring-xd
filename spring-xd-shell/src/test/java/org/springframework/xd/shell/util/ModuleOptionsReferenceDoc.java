@@ -142,13 +142,13 @@ public class ModuleOptionsReferenceDoc {
 		@Autowired
 		public void setEnvironment(Environment environment) {
 			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("xd.config.home", "file:../config");
+			map.put("xd.config.home", "file:./config");
 			((ConfigurableEnvironment) environment).getPropertySources().addFirst(new MapPropertySource("foo", map));
 		}
 
 		@Bean
 		public ModuleRegistry moduleRegistry() {
-			return new ResourceModuleRegistry("file:../modules");
+			return new ResourceModuleRegistry("file:./modules");
 		}
 
 		@Bean

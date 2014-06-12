@@ -13,7 +13,7 @@ buildscript {
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.3")
 		classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.8")
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.0'
-		classpath 'org.ajoberstar:gradle-git:0.4.0'
+		classpath 'org.ajoberstar:gradle-git:0.8.0'
 		classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
 		classpath 'com.moowork.gradle:gradle-grunt-plugin:0.4'
 	}
@@ -1465,22 +1465,6 @@ project('spring-xd-shell') {
 
 	applicationDistribution.from(configFiles) { into "config" }
 
-	// Will be run as a side effect of main asciidoc generation
-	task referenceDoc(type: JavaExec, dependsOn: compileTestJava) {
-		classpath = sourceSets.test.runtimeClasspath
-		main = 'org.springframework.xd.shell.util.ReferenceDoc'
-		args = [
-			"$rootDir/build/asciidoc/guide/ShellReference.asciidoc"
-		]
-	}
-	task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: compileTestJava) {
-		classpath = sourceSets.test.runtimeClasspath
-		main = 'org.springframework.xd.shell.util.ModuleOptionsReferenceDoc'
-		args = [
-			"$rootDir/build/asciidoc/guide/modules"
-		]
-	}
-
 }
 
 project('spring-xd-batch') {
@@ -1674,57 +1658,68 @@ task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstal
 
 configurations { dist }
 
-import org.ajoberstar.gradle.git.tasks.*
+import org.ajoberstar.grgit.*
 import org.apache.tools.ant.filters.TokenFilter
 
-task pullDocs(type: GitClone) {
+task(pullDocs) {
 	if (project.gradle.startParameter.offline) {
 		enabled = false
 	}
-
-	def destination = file("$buildDir/asciidoc-raw")
-
-	uri = "git://github.com/spring-projects/spring-xd.wiki.git"
-	destinationPath = destination
-	bare = false
-
-	doFirst {
-		if (destination.exists()) {
-			destination.deleteDir()
-			file("$buildDir/asciidoc").deleteDir()
-		}
-	}
-
-	doLast {
-		copy {
-			from("$buildDir/asciidoc-raw") {
-				include  "**/*.asciidoc"
-				filter { line ->
-					// TODO: refine regex to only match local documents
-					def match = (line =~ /link:(.*?)#(.*?)\[(.*?)\]/)
-					if (match) match.replaceAll('xref:$2[$3]') else line
-				}
-			}
-			from("$buildDir/asciidoc-raw") { exclude "**/*.asciidoc" }
-			into("$buildDir/asciidoc")
-
-		}
-
-		new File("$buildDir/asciidoc/guide/FullGuide.adoc")
-				.renameTo(new File("$buildDir/asciidoc/guide/index.adoc"))
-		new File("$buildDir/asciidoc/guide/FullGuide-docinfo.xml")
-				.renameTo(new File("$buildDir/asciidoc/guide/index-docinfo.xml"))
-
-	}
 }
+
+pullDocs << {
+
+	def cloneDestination = file("$buildDir/asciidoc-raw")
+	def uri = "git://github.com/spring-projects/spring-xd.wiki.git"
+
+	if (cloneDestination.exists()) {
+		cloneDestination.deleteDir()
+		file("$buildDir/asciidoc").deleteDir()
+	}
+
+	def repo = Grgit.clone(dir: cloneDestination, uri: uri)
+
+	copy {
+		from(cloneDestination) {
+			include  "**/*.asciidoc"
+			filter { line ->
+				// TODO: refine regex to only match local documents
+				def match = (line =~ /link:(.*?)#(.*?)\[(.*?)\]/)
+				if (match) match.replaceAll('xref:$2[$3]') else line
+			}
+		}
+		from(cloneDestination) { exclude "**/*.asciidoc" }
+		into("$buildDir/asciidoc")
+	}
+
+	new File("$buildDir/asciidoc/guide/FullGuide.adoc")
+			.renameTo(new File("$buildDir/asciidoc/guide/index.adoc"))
+	new File("$buildDir/asciidoc/guide/FullGuide-docinfo.xml")
+			.renameTo(new File("$buildDir/asciidoc/guide/index-docinfo.xml"))
+
+}
+
+
+task referenceDoc(type: JavaExec, dependsOn: [":spring-xd-shell:compileTestJava", pullDocs]) {
+	classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath 
+	main = 'org.springframework.xd.shell.util.ReferenceDoc'
+	args = [
+		"$rootDir/build/asciidoc/guide/ShellReference.asciidoc"
+	]
+}
+task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-shell:compileTestJava", pullDocs]) {
+	classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath
+	main = 'org.springframework.xd.shell.util.ModuleOptionsReferenceDoc'
+	args = [
+		"$rootDir/build/asciidoc/guide/modules"
+	]
+}
+
+
 
 import org.asciidoctor.gradle.*
 
-task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [
-	pullDocs,
-	':spring-xd-shell:referenceDoc',
-	':spring-xd-shell:moduleOptionsReferenceDoc'
-]) {
+task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	pullDocs, referenceDoc, moduleOptionsReferenceDoc] ) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	baseDir = sourceDir
@@ -1744,11 +1739,7 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [
 	}
 }
 
-task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [
-	pullDocs,
-	':spring-xd-shell:referenceDoc',
-	':spring-xd-shell:moduleOptionsReferenceDoc'
-]) {
+task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [pullDocs, referenceDoc, moduleOptionsReferenceDoc ]) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	baseDir = sourceDir

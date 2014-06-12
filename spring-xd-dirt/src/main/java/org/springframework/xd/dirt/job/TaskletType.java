@@ -15,6 +15,18 @@
  */
 package org.springframework.xd.dirt.job;
 
+import org.springframework.batch.core.step.item.ChunkOrientedTasklet;
+import org.springframework.batch.core.step.tasklet.CallableTaskletAdapter;
+import org.springframework.batch.core.step.tasklet.MethodInvokingTaskletAdapter;
+import org.springframework.batch.core.step.tasklet.SystemCommandTasklet;
+import org.springframework.data.hadoop.batch.hive.HiveTasklet;
+import org.springframework.data.hadoop.batch.mapreduce.JarTasklet;
+import org.springframework.data.hadoop.batch.mapreduce.JobTasklet;
+import org.springframework.data.hadoop.batch.mapreduce.ToolTasklet;
+import org.springframework.data.hadoop.batch.pig.PigTasklet;
+import org.springframework.data.hadoop.batch.scripting.ScriptTasklet;
+import org.springframework.util.StringUtils;
+
 /**
  * Types of {@link org.springframework.batch.core.step.tasklet.Tasklet} implementations known by Spring XD.  These
  * include tasklets provided by Spring Batch and Spring for Apache Hadoop.
@@ -26,43 +38,43 @@ public enum TaskletType {
 	/**
 	 * {@link org.springframework.batch.core.step.item.ChunkOrientedTasklet}
 	 */
-	CHUNK_ORIENTED_TASKLET("org.springframework.batch.core.step.item.ChunkOrientedTasklet", "Chunk Oriented Step"),
+	CHUNK_ORIENTED_TASKLET(ChunkOrientedTasklet.class.getName(), "Chunk Oriented Step"),
 	/**
 	 * {@link org.springframework.batch.core.step.tasklet.SystemCommandTasklet}
 	 */
-	SYSTEM_COMMAND_TASKLET("org.springframework.batch.core.step.tasklet.SystemCommandTasklet", "System Command Step"),
+	SYSTEM_COMMAND_TASKLET(SystemCommandTasklet.class.getName(), "System Command Step"),
 	/**
 	 * {@link org.springframework.batch.core.step.tasklet.CallableTaskletAdapter}
 	 */
-	CALLABLE_TASKLET_ADAPTER("org.springframework.batch.core.step.tasklet.CallableTaskletAdapter", "Callable Tasklet Adapter Step"),
+	CALLABLE_TASKLET_ADAPTER(CallableTaskletAdapter.class.getName(), "Callable Tasklet Adapter Step"),
 	/**
 	 * {@link org.springframework.batch.core.step.tasklet.MethodInvokingTaskletAdapter}
 	 */
-	METHOD_INVOKING_TASKLET_ADAPTER("org.springframework.batch.core.step.tasklet.MethodInvokingTaskletAdapter", "Method Invoking Tasklet Adapter Step"),
+	METHOD_INVOKING_TASKLET_ADAPTER(MethodInvokingTaskletAdapter.class.getName(), "Method Invoking Tasklet Adapter Step"),
 	/**
 	 * {@link org.springframework.data.hadoop.batch.hive.HiveTasklet}
 	 */
-	HIVE_TASKLET("org.springframework.data.hadoop.batch.hive.HiveTasklet", "Hive Step"),
+	HIVE_TASKLET(HiveTasklet.class.getName(), "Hive Step"),
 	/**
 	 * {@link org.springframework.data.hadoop.batch.mapreduce.JarTasklet}
 	 */
-	JAR_TASKLET("org.springframework.data.hadoop.batch.mapreduce.JarTasklet", "JAR Step"),
+	JAR_TASKLET(JarTasklet.class.getName(), "JAR Step"),
 	/**
 	 * {@link org.springframework.data.hadoop.batch.mapreduce.JobTasklet}
 	 */
-	JOB_TASKLET("org.springframework.data.hadoop.batch.mapreduce.JobTasklet", "Map/Reduce Job Step"),
+	JOB_TASKLET(JobTasklet.class.getName(), "Map/Reduce Job Step"),
 	/**
 	 * {@link org.springframework.data.hadoop.batch.pig.PigTasklet}
 	 */
-	PIG_TASKLET("org.springframework.data.hadoop.batch.pig.PigTasklet", "Pig Step"),
+	PIG_TASKLET(PigTasklet.class.getName(), "Pig Step"),
 	/**
 	 * {@link org.springframework.data.hadoop.batch.scripting.ScriptTasklet}
 	 */
-	SCRIPT_TASKLET("org.springframework.data.hadoop.batch.scripting.ScriptTasklet", "Script Step"),
+	SCRIPT_TASKLET(ScriptTasklet.class.getName(), "Script Step"),
 	/**
 	 * {@link org.springframework.data.hadoop.batch.mapreduce.ToolTasklet}
 	 */
-	TOOL_TASKLET("org.springframework.data.hadoop.batch.mapreduce.ToolTasklet", "Tool Step"),
+	TOOL_TASKLET(ToolTasklet.class.getName(), "Tool Step"),
 	/**
 	 * Used when the type of tasklet is unknown to the system
 	 */
@@ -84,7 +96,7 @@ public enum TaskletType {
 	public static TaskletType fromClassName(String className) {
 		TaskletType type = UNKNOWN;
 
-		if(className != null) {
+		if(StringUtils.hasText(className)) {
 			String name = className.trim();
 
 			for (TaskletType curType : values()) {

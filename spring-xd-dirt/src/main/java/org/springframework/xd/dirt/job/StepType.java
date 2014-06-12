@@ -15,6 +15,12 @@
  */
 package org.springframework.xd.dirt.job;
 
+import org.springframework.batch.core.job.flow.FlowStep;
+import org.springframework.batch.core.partition.support.PartitionStep;
+import org.springframework.batch.core.step.job.JobStep;
+import org.springframework.batch.core.step.tasklet.TaskletStep;
+import org.springframework.util.StringUtils;
+
 /**
  * The types of Spring Batch {@link org.springframework.batch.core.Step} implementations that are known to the system.
  *
@@ -25,22 +31,22 @@ public enum StepType {
 	/**
 	 * {@link org.springframework.batch.core.step.tasklet.TaskletStep}
 	 */
-	TASKLET_STEP("org.springframework.batch.core.step.tasklet.TaskletStep", "Tasklet Step"),
+	TASKLET_STEP(TaskletStep.class.getName(), "Tasklet Step"),
 
 	/**
 	 * {@link org.springframework.batch.core.job.flow.FlowStep}
 	 */
-	FLOW_STEP("org.springframework.batch.core.job.flow.FlowStep", "Flow Step"),
+	FLOW_STEP(FlowStep.class.getName(), "Flow Step"),
 
 	/**
 	 * {@link org.springframework.batch.core.step.job.JobStep}
 	 */
-	JOB_STEP("org.springframework.batch.core.step.job.JobStep", "Job Step"),
+	JOB_STEP(JobStep.class.getName(), "Job Step"),
 
 	/**
 	 * {@link org.springframework.batch.core.partition.support.PartitionStep}
 	 */
-	PARTITION_STEP("org.springframework.batch.core.partition.support.PartitionStep", "Partition Step"),
+	PARTITION_STEP(PartitionStep.class.getName(), "Partition Step"),
 
 	/**
 	 * Used when the type of step is unknown to the system.
@@ -62,7 +68,7 @@ public enum StepType {
 	public static StepType fromClassName(String className) {
 		StepType type = UNKNOWN;
 
-		if(className != null) {
+		if(StringUtils.hasText(className)) {
 			String name = className.trim();
 
 			for (StepType curType : values()) {

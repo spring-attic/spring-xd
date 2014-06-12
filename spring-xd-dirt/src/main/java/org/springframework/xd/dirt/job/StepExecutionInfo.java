@@ -95,16 +95,19 @@ public class StepExecutionInfo {
 
 			if(type == TaskletType.UNKNOWN) {
 				this.stepType = taskletClassName;
-			} else {
+			}
+			else {
 				this.stepType = type.getDisplayName();
 			}
-		} else if(stepExecution.getExecutionContext().containsKey(Step.STEP_TYPE_KEY)) {
+		}
+		else if(stepExecution.getExecutionContext().containsKey(Step.STEP_TYPE_KEY)) {
 			String stepClassName = stepExecution.getExecutionContext().getString(Step.STEP_TYPE_KEY);
 			StepType type = StepType.fromClassName(stepClassName);
 
 			if(type == StepType.UNKNOWN) {
 				this.stepType = stepClassName;
-			} else {
+			}
+			else {
 				this.stepType = type.getDisplayName();
 			}
 		}

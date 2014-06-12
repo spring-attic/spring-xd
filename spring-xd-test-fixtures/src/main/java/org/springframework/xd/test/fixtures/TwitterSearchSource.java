@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  * 
  * @author Glenn Renfro
  */
-public class TwitterSearchSource extends AbstractModuleFixture {
+public class TwitterSearchSource extends AbstractModuleFixture<TwitterSearchSource> {
 
 	private String consumerKey;
 

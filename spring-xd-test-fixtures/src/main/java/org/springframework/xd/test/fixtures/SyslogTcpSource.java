@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class SyslogTcpSource extends AbstractModuleFixture {
+public class SyslogTcpSource extends AbstractModuleFixture<SyslogTcpSource> {
 
 	public final static int DEFAULT_PORT = 5140;
 

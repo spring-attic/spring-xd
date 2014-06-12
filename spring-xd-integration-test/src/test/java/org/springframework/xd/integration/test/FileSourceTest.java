@@ -38,11 +38,10 @@ public class FileSourceTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		String sourceDir = UUID.randomUUID().toString();
 		String fileName = UUID.randomUUID().toString();
-		stream(sources.file(sourceDir, fileName + ".out") + XD_DELIMITER
-				+ sinks.file());
+		stream(sources.file(sourceDir, fileName + ".out").label("filein") + XD_DELIMITER
+				+ sinks.file().label("fileout"));
 		stream("dataSender",
-				sources.http() + XD_DELIMITER
-						+ sinks.file(sourceDir, fileName).toDSL(), WAIT_TIME);
+				sources.http() + XD_DELIMITER + sinks.file(sourceDir, fileName), WAIT_TIME);
 		waitForXD();
 		sources.http().postData(data);
 		waitForXD();

@@ -31,7 +31,7 @@ import org.springframework.xd.test.generator.SimpleHttpGenerator;
  * @author Glenn Renfro
  * @author Mark Pollack
  */
-public class SimpleHttpSource extends AbstractModuleFixture {
+public class SimpleHttpSource extends AbstractModuleFixture<SimpleHttpSource> {
 
 	private static final int DEFAULT_HTTP_PORT = 9000;
 

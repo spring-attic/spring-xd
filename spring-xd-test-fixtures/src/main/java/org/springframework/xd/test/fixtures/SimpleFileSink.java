@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Glenn Renfro
  */
-public class SimpleFileSink extends AbstractModuleFixture {
+public class SimpleFileSink extends AbstractModuleFixture<SimpleFileSink> {
 
 	public final static String DEFAULT_MODE = "REPLACE";
 
@@ -77,14 +77,15 @@ public class SimpleFileSink extends AbstractModuleFixture {
 	 */
 	@Override
 	public String toDSL() {
-		String result = String.format("file --binary=%s --mode=%s ", binary, mode);
+		String dsl = getDslLabel();
+		dsl += String.format("file --binary=%s --mode=%s ", binary, mode);
 		if (StringUtils.hasText(fileName)) {
-			result += "--name='" + fileName + "' ";
+			dsl += "--name='" + fileName + "' ";
 		}
 		if (StringUtils.hasText(dir)) {
-			result += "--dir='" + dir + "' ";
+			dsl += "--dir='" + dir + "' ";
 		}
-		return result;
+		return dsl;
 	}
 
 	/**

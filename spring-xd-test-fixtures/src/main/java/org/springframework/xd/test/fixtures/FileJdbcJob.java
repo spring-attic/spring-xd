@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class FileJdbcJob extends AbstractModuleFixture {
+public class FileJdbcJob extends AbstractModuleFixture<FileJdbcJob> {
 
 	public final static String DEFAULT_DIRECTORY = "filejdbctest";
 

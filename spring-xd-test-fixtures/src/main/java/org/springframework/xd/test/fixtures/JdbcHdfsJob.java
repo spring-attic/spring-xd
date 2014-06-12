@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class JdbcHdfsJob extends AbstractModuleFixture {
+public class JdbcHdfsJob extends AbstractModuleFixture<JdbcHdfsJob> {
 
 	public final static String DEFAULT_DIRECTORY = "/xd/jdbchdfstest";
 

@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class LogSink extends AbstractModuleFixture {
+public class LogSink extends AbstractModuleFixture<LogSink> {
 
 	String moduleName;
 

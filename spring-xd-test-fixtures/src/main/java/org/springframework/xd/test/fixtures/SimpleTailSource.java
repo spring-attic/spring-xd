@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
  * @author Glenn Renfro
  * @author Mark Pollack
  */
-public class SimpleTailSource extends AbstractModuleFixture {
+public class SimpleTailSource extends AbstractModuleFixture<SimpleTailSource> {
 
 	private static final int DEFAULT_DELAY_IN_MILLIS = 5000;
 

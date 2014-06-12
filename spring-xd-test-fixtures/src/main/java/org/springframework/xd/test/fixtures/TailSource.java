@@ -25,7 +25,7 @@ import java.io.IOException;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class TailSource extends DisposableFileSupport {
+public class TailSource extends DisposableFileSupport<TailSource> {
 
 	@Override
 	public String toDSL() {

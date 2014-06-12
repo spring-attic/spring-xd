@@ -23,8 +23,9 @@ import org.springframework.shell.core.JLineShellComponent;
  * Base class for Metrics related sinks, makes sure named metric is deleted at end of test.
  * 
  * @author Eric Bottard
+ * @author Glenn Renfro
  */
-public class AbstractMetricSink extends AbstractModuleFixture implements
+public class AbstractMetricSink extends AbstractModuleFixture<AbstractMetricSink> implements
 		Disposable {
 
 	private final String name;

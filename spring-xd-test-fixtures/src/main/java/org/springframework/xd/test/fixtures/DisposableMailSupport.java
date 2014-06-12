@@ -35,7 +35,8 @@ import com.icegreen.greenmail.util.ServerSetup;
  * 
  * @author Eric Bottard
  */
-public abstract class DisposableMailSupport<T extends DisposableMailSupport<T>> extends AbstractModuleFixture implements
+public abstract class DisposableMailSupport<T extends DisposableMailSupport<T>> extends
+		AbstractModuleFixture<T> implements
 		Disposable {
 
 	protected static final String ADMIN_USER = "johndoe";

@@ -274,7 +274,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param data The data expected in the file or log sink
 	 * @param sinkInstance determines whether to look at the log or file for the result
 	 */
-	public void assertValid(String data, AbstractModuleFixture sinkInstance) {
+	public void assertValid(String data, AbstractModuleFixture<?> sinkInstance) {
 		Assert.hasText(data, "data can not be empty nor null");
 		Assert.notNull(sinkInstance, "sinkInstance must not be null");
 

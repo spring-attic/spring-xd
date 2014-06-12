@@ -33,6 +33,7 @@ public class SimpleFileSource extends AbstractModuleFixture {
 
 	private boolean reference;
 
+	private String label;
 
 	/**
 	 * Construct a new SimpleFileSource using the provided directory and file names.
@@ -64,16 +65,32 @@ public class SimpleFileSource extends AbstractModuleFixture {
 	 */
 	@Override
 	protected String toDSL() {
-		return String.format("file --dir=%s --pattern='%s' --ref=%s", dir, fileName, reference);
+		String result = "";
+		if (label != null) {
+			result = " " + label + ": ";
+		}
+		result += String.format("file --dir=%s --pattern='%s' --ref=%s", dir, fileName, reference);
+		return result;
 	}
 
 	/**
 	 * Determines if the file object or the content of the file should be sent to the output channel.
 	 * @param reference Set to true to output the File object itself. False if content should be sent.
-	 * @return
+	 * @return the current instance of the SimpleFileSource fixture.
 	 */
 	public SimpleFileSource reference(boolean reference) {
 		this.reference = reference;
+		return this;
+	}
+
+	/**
+	 * Sets the label for the file source.
+	 * @param label The name to be associated with the label.
+	 * @return the current instance of the SimpleFileSource fixture.
+	 */
+	public SimpleFileSource label(String label) {
+		Assert.hasText(label, "Label should not be null nor empty");
+		this.label = label;
 		return this;
 	}
 

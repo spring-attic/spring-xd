@@ -33,6 +33,8 @@ public class SimpleFileSink extends AbstractModuleFixture {
 
 	private String fileName;
 
+	private String label;
+
 	private boolean binary = true;
 
 	private String mode;
@@ -77,7 +79,11 @@ public class SimpleFileSink extends AbstractModuleFixture {
 	 */
 	@Override
 	public String toDSL() {
-		String result = String.format("file --binary=%s --mode=%s ", binary, mode);
+		String result = "";
+		if (label != null) {
+			result = " " + label + ": ";
+		}
+		result += String.format("file --binary=%s --mode=%s ", binary, mode);
 		if (StringUtils.hasText(fileName)) {
 			result += "--name='" + fileName + "' ";
 		}
@@ -128,5 +134,16 @@ public class SimpleFileSink extends AbstractModuleFixture {
 		return this;
 	}
 
+
+	/**
+	 * Sets the label for the file sink.
+	 * @param label The name to be associated with the label.
+	 * @return the current instance of the SimpleFileSink fixture.
+	 */
+	public SimpleFileSink label(String label) {
+		Assert.hasText(label, "Label should not be null nor empty");
+		this.label = label;
+		return this;
+	}
 
 }

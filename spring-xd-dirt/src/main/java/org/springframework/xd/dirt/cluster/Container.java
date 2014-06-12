@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.cluster;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -59,7 +58,7 @@ public class Container {
 	public Container(String name, Map<String, String> attributes) {
 		Assert.hasText(name);
 		this.name = name;
-		this.attributes = new ContainerAttributes(Collections.unmodifiableMap(new HashMap<String, String>(attributes)));
+		this.attributes = new ContainerAttributes(attributes);
 		String groupList = attributes.get("groups");
 		if (groupList == null) {
 			groups = Collections.emptySet();

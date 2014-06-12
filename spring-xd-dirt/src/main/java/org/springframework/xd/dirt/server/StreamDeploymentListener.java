@@ -298,7 +298,8 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 		 * @return true if the properties contain a partition key property
 		 */
 		private boolean hasPartitionKeyProperty(ModuleDeploymentProperties properties) {
-			return (properties.containsKey("producer.partitionKeyExpression") || properties.containsKey("producer.partitionKeyExtractorClass"));
+			return (properties.containsKey("producer.partitionKeyExpression") ||
+					properties.containsKey("producer.partitionKeyExtractorClass"));
 		}
 
 		/**

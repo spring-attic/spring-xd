@@ -30,12 +30,12 @@ define(['angular'], function (angular) {
             $log.info('Getting single job definiton for job named ' + jobname);
             return $http({
               method: 'GET',
-              url: $rootScope.xdAdminServerUrl + '/jobs/' + jobname
+              url: $rootScope.xdAdminServerUrl + '/jobs/definitions/' + jobname
             });
           },
           getAllJobDefinitions: function () {
             $log.info('Getting all job definitions.');
-            return $resource($rootScope.xdAdminServerUrl + '/jobs.json?deployments=true', {}, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/definitions.json', {}, {
               query: {
                 method: 'GET',
                 isArray: true
@@ -78,7 +78,7 @@ define(['angular'], function (angular) {
           },
           createDefinition: function (name, definition, deploy) {
             $log.info('Creating definition ' + definition);
-            return $resource($rootScope.xdAdminServerUrl + '/jobs', {}, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/definitions', {}, {
               createDefinition: {
                 method: 'POST',
                 params: {
@@ -102,19 +102,19 @@ define(['angular'], function (angular) {
         return {
           deploy: function (jobDefinition) {
             $log.info('Deploy Job ' + jobDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': true }, {
-              deploy: { method: 'PUT' }
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/deployments/', { name: jobDefinition.name}, {
+              deploy: { method: 'POST' }
             }).deploy();
           },
           undeploy: function (jobDefinition) {
             $log.info('Undeploy Job ' + jobDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': false }, {
-              undeploy: { method: 'PUT' }
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/deployments/' + jobDefinition.name, null, {
+              undeploy: { method: 'DELETE' }
             }).undeploy();
           },
           destroy: function (jobDefinition) {
             $log.info('Undeploy Job ' + jobDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, null, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/definitions/' + jobDefinition.name, null, {
               destroy: { method: 'DELETE' }
             }).destroy();
           }
@@ -220,7 +220,7 @@ define(['angular'], function (angular) {
           scheduleJob: function (jobScheduleRequest) {
 
             var streamDefinition = 'trigger  '+ jobScheduleRequest.triggerOption + ' > queue:job:' + jobScheduleRequest.jobName;
-            $resource($rootScope.xdAdminServerUrl + '/streams',{},
+            $resource($rootScope.xdAdminServerUrl + '/streams/definitions/',{},
                 { createSteam: { method: 'POST' , params: { 'name': jobScheduleRequest.schedulerName, 'definition': streamDefinition, 'deploy': 'true' } }
                 }).createSteam().$promise.then(
                 function () {

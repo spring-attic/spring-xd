@@ -51,26 +51,26 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		values.add("deploy", String.valueOf(deploy));
 		values.add("definition", definition);
 
-		JobDefinitionResource job = restTemplate.postForObject(resources.get("jobs"), values,
+		JobDefinitionResource job = restTemplate.postForObject(resources.get("jobs/definitions"), values,
 				JobDefinitionResource.class);
 		return job;
 	}
 
 	@Override
 	public void destroy(String name) {
-		String uriTemplate = resources.get("jobs").toString() + "/{name}";
+		String uriTemplate = resources.get("jobs/definitions").toString() + "/{name}";
 		restTemplate.delete(uriTemplate, Collections.singletonMap("name", name));
 	}
 
 	@Override
 	public void deploy(String name, String properties) {
-		String uriTemplate = resources.get("jobs").toString() + "/{name}";
+		String uriTemplate = resources.get("jobs/deployments").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("deploy", "true");
 		if (properties != null) {
 			values.add("properties", properties);
 		}
-		restTemplate.put(uriTemplate, values, name);
+		//TODO: Do we need JobDeploymentResource? 
+		restTemplate.postForObject(uriTemplate, values, Object.class, name);
 	}
 
 	@Override
@@ -109,15 +109,13 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public void undeploy(String name) {
-		String uriTemplate = resources.get("jobs").toString() + "/{name}";
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("deploy", "false");
-		restTemplate.put(uriTemplate, values, name);
+		String uriTemplate = resources.get("jobs/deployments").toString() + "/{name}";
+		restTemplate.delete(uriTemplate, name);
 	}
 
 	@Override
 	public JobDefinitionResource.Page list() {
-		String uriTemplate = resources.get("jobs").toString();
+		String uriTemplate = resources.get("jobs/definitions").toString();
 		// TODO handle pagination at the client side
 		uriTemplate = uriTemplate + "?size=10000&deployments=true";
 		return restTemplate.getForObject(uriTemplate, JobDefinitionResource.Page.class);
@@ -125,15 +123,12 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public void undeployAll() {
-		String uriTemplate = resources.get("jobs").toString() + DEPLOYMENTS_URI;
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("deploy", "false");
-		restTemplate.put(uriTemplate, values);
+		restTemplate.delete(resources.get("jobs/deployments"));
 	}
 
 	@Override
 	public void destroyAll() {
-		restTemplate.delete(resources.get("jobs"));
+		restTemplate.delete(resources.get("jobs/definitions"));
 	}
 
 	@Override

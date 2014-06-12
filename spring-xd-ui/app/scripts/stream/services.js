@@ -26,7 +26,7 @@ define(['angular'], function (angular) {
       .factory('StreamService', function ($resource, $rootScope, $log) {
         return {
           getDefinitions: function () {
-            return $resource($rootScope.xdAdminServerUrl + '/streams?deployments=true', {}, {
+            return $resource($rootScope.xdAdminServerUrl + '/streams/definitions.json', {}, {
               query: {
                 method: 'GET'
               }
@@ -34,19 +34,19 @@ define(['angular'], function (angular) {
           },
           deploy: function (streamDefinition) {
             $log.info('Deploy Stream ' + streamDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/streams/' + streamDefinition.name, { 'deploy': true }, {
-              deploy: { method: 'PUT' }
+            return $resource($rootScope.xdAdminServerUrl + '/streams/deployments' + streamDefinition.name, null, {
+              deploy: { method: 'POST' }
             }).deploy();
           },
           undeploy: function (streamDefinition) {
             $log.info('Undeploy Stream ' + streamDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/streams/' + streamDefinition.name, { 'deploy': false }, {
-              undeploy: { method: 'PUT' }
+            return $resource($rootScope.xdAdminServerUrl + '/streams/deployments/' + streamDefinition.name, null, {
+              undeploy: { method: 'DELETE' }
             }).undeploy();
           },
           destroy: function (streamDefinition) {
             $log.info('Undeploy Stream ' + streamDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/streams/' + streamDefinition.name, null, {
+            return $resource($rootScope.xdAdminServerUrl + '/streams/definitions/' + streamDefinition.name, null, {
               destroy: { method: 'DELETE' }
             }).destroy();
           }

@@ -37,6 +37,7 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
  * 
  * @author Eric Bottard
  * @author Gunnar Hillert
+ * @author David Turanski
  * 
  * @since 1.0
  */
@@ -55,13 +56,14 @@ public class StreamsController extends
 	 * List stream definitions.
 	 */
 	@ResponseBody
-	@RequestMapping(value = "", method = RequestMethod.GET)
+	@RequestMapping(value = "/definitions", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public PagedResources<StreamDefinitionResource> list(Pageable pageable, QueryOptions queryOptions,
+	public PagedResources<StreamDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<StreamDefinition> assembler) {
-		return listValues(pageable, queryOptions, assembler);
+		return listValues(pageable, assembler);
 	}
 
+	@Override
 	protected StreamDefinition createDefinition(String name, String definition) {
 		return new StreamDefinition(name, definition);
 	}

@@ -50,6 +50,7 @@ import org.springframework.xd.rest.client.domain.NamedResource;
  *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  */
 
 public abstract class XDController<D extends BaseDefinition, A extends ResourceAssemblerSupport<D, R>, R extends NamedResource> {
@@ -91,55 +92,56 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	}
 
 	/**
-	 * Request removal of an existing module.
+	 * Request removal of an existing resource definition (stream or job).
 	 *
-	 * @param name the name of an existing module (required)
+	 * @param name the name of an existing definition (required)
 	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/definitions/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void delete(@PathVariable("name") String name) {
 		deployer.delete(name);
 	}
 
 	/**
-	 * Request removal of all modules.
+	 * Request removal of all definitions.
 	 */
-	@RequestMapping(value = "", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/definitions", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteAll() {
 		deployer.deleteAll();
 	}
 
 	/**
-	 * Request un-deployment of an existing named module.
+	 * Request un-deployment of an existing resource.
 	 *
-	 * @param name the name of an existing module (required)
+	 * @param name the name of an existing resource (required)
 	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
+	@RequestMapping(value = "/deployments/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void undeploy(@PathVariable("name") String name) {
 		deployer.undeploy(name);
 	}
 
 	/**
-	 * Request un-deployment of all modules.
+	 * Request un-deployment of all resources.
 	 */
-	@RequestMapping(value = "_deployments", method = RequestMethod.PUT, params = "deploy=false")
+	@RequestMapping(value = "/deployments", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void undeployAll() {
 		deployer.undeployAll();
 	}
 
 	/**
-	 * Request deployment of an existing named module.
+	 * Request deployment of an existing definition resource. The definition must exist before deploying and is included 
+	 * in the path. A new deployment instance is created.
 	 *
-	 * @param name the name of an existing module (required)
-	 * @param properties the deployment properties for the module as a comma-delimited list of key=value pairs
+	 * @param name the name of an existing definition resource (job or stream) (required)
+	 * @param properties the deployment properties for the resource as a comma-delimited list of key=value pairs
 	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
-	@ResponseStatus(HttpStatus.OK)
+	@RequestMapping(value = "/deployments/{name}", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public void deploy(@PathVariable("name") String name, @RequestParam(required=false) String properties) {
+	public void deploy(@PathVariable("name") String name, @RequestParam(required = false) String properties) {
 		deployer.deploy(name, properties);
 	}
 
@@ -148,7 +150,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	 *
 	 * @param name the name of an existing resource (required)
 	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
+	@RequestMapping(value = "/definitions/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public ResourceSupport display(@PathVariable("name") String name) {
@@ -165,11 +167,11 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	// protected and not annotated with @RequestMapping due to the way
 	// PagedResourcesAssemblerArgumentResolver works
 	// subclasses should override and make public (or delegate)
-	protected PagedResources<R> listValues(Pageable pageable, QueryOptions options, PagedResourcesAssembler<D> assembler) {
+	protected PagedResources<R> listValues(Pageable pageable, PagedResourcesAssembler<D> assembler) {
 		Page<D> page = deployer.findAll(pageable);
 		PagedResources<R> result = assembler.toResource(page, resourceAssemblerSupport);
-		if (options.isDeployments() && page.getNumberOfElements() > 0) {
-			maybeEnhanceWithDeployments(page, result);
+		if (page.getNumberOfElements() > 0) {
+			enhanceWithDeployments(page, result);
 		}
 		return result;
 	}
@@ -178,7 +180,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	 * Queries the deployer about deployed instances and enhances the resources with deployment info. Does nothing if
 	 * the operation is not supported.
 	 */
-	private void maybeEnhanceWithDeployments(Page<D> page, PagedResources<R> result) {
+	private void enhanceWithDeployments(Page<D> page, PagedResources<R> result) {
 		if (deployer instanceof AbstractInstancePersistingDeployer) {
 			@SuppressWarnings("unchecked")
 			AbstractInstancePersistingDeployer<D, BaseInstance<D>> ipDeployer = (AbstractInstancePersistingDeployer<D, BaseInstance<D>>) deployer;
@@ -205,12 +207,12 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	}
 
 	/**
-	 * Create a new domain object.
+	 * Create a new resource definition.
 	 *
 	 * @param name The name of the entity to create (required)
 	 * @param definition The entity definition, expressed in the XD DSL (required)
 	 */
-	@RequestMapping(value = "", method = RequestMethod.POST)
+	@RequestMapping(value = "/definitions", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
 	public R save(@RequestParam("name") String name, @RequestParam("definition") String definition,

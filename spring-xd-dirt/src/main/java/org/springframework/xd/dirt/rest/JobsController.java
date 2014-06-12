@@ -42,6 +42,7 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  */
 @Controller
 @RequestMapping("/jobs")
@@ -59,7 +60,7 @@ public class JobsController extends
 	}
 
 	@Override
-	@RequestMapping(value = "", method = RequestMethod.POST)
+	@RequestMapping(value = "/definitions", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
 	public JobDefinitionResource save(@RequestParam("name") String name, @RequestParam("definition") String definition,
@@ -88,12 +89,12 @@ public class JobsController extends
 	/**
 	 * List job definitions.
 	 */
-	@RequestMapping(value = "", method = RequestMethod.GET)
+	@RequestMapping(value = "/definitions", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<JobDefinitionResource> list(Pageable pageable, QueryOptions queryOptions,
+	public PagedResources<JobDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<JobDefinition> assembler) {
-		return listValues(pageable, queryOptions, assembler);
+		return listValues(pageable, assembler);
 	}
 
 	@Override

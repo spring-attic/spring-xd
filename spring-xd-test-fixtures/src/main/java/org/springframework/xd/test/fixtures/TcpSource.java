@@ -24,8 +24,9 @@ import java.net.Socket;
  * A test fixture that allows testing of the 'tcp' source module.
  *
  * @author Eric Bottard
+ * @author Glenn Renfro
  */
-public class TcpSource extends AbstractModuleFixture {
+public class TcpSource extends AbstractModuleFixture<TcpSource> {
 
 	private static final int DEFAULT_TCP_PORT = 1234;
 

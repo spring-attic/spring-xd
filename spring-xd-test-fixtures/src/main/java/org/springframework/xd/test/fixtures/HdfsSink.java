@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class HdfsSink extends AbstractModuleFixture {
+public class HdfsSink extends AbstractModuleFixture<HdfsSink> {
 
 
 	public static final String DEFAULT_FILE_NAME = "ACCTEST";

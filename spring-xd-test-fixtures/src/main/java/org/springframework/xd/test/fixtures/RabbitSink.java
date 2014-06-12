@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class RabbitSink extends AbstractModuleFixture {
+public class RabbitSink extends AbstractModuleFixture<RabbitSink> {
 
 	public static final String DEFAULT_EXCHANGE = "RabbitSource";
 

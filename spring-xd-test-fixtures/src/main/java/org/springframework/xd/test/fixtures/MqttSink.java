@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class MqttSink extends AbstractModuleFixture {
+public class MqttSink extends AbstractModuleFixture<MqttSink> {
 
 	protected int port = 1883;
 

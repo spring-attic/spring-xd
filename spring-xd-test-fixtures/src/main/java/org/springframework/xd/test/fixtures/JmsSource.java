@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class JmsSource extends AbstractModuleFixture {
+public class JmsSource extends AbstractModuleFixture<JmsSource> {
 
 	public static final int DEFAULT_PORT = 61616;
 

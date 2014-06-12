@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class FilePollHdfsJob extends AbstractModuleFixture {
+public class FilePollHdfsJob extends AbstractModuleFixture<FilePollHdfsJob> {
 
 
 	public static final String DEFAULT_FILE_NAME = "filePollHdfsJob";

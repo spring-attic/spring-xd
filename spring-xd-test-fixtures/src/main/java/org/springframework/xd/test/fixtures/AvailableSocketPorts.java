@@ -61,7 +61,7 @@ public class AvailableSocketPorts {
 	 * 
 	 * @throws IllegalStateException if can not connect in the specified timeout.
 	 */
-	public static void ensureReady(AbstractModuleFixture fixture, String host, int port, int timeout) {
+	public static void ensureReady(AbstractModuleFixture<?> fixture, String host, int port, int timeout) {
 		long giveUpAt = System.currentTimeMillis() + timeout;
 		while (System.currentTimeMillis() < giveUpAt) {
 			try {

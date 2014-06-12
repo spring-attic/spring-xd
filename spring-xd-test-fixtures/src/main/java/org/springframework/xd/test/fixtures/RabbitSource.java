@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class RabbitSource extends AbstractModuleFixture {
+public class RabbitSource extends AbstractModuleFixture<RabbitSource> {
 
 	public static final String DEFAULT_QUEUE = "rabbit_source";
 

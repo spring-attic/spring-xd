@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
  * @author Glenn Renfro
  * @author Mark Pollack
  */
-public class SimpleFileSource extends AbstractModuleFixture {
+public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 
 	private final String dir;
 

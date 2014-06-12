@@ -32,7 +32,7 @@ import org.springframework.util.FileCopyUtils;
  * 
  * @author Eric Bottard
  */
-public class FileSink extends DisposableFileSupport {
+public class FileSink extends DisposableFileSupport<FileSink> {
 
 	/**
 	 * A matcher on the String contents of the sink, that delegates to another (String) matcher.

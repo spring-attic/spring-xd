@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Glenn Renfro
  */
-public class SimpleFileSink extends AbstractModuleFixture {
+public class SimpleFileSink extends AbstractModuleFixture<SimpleFileSink> {
 
 	public final static String DEFAULT_MODE = "REPLACE";
 

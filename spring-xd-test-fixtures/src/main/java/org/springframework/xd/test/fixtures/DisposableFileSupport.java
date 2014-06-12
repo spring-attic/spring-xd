@@ -24,7 +24,8 @@ import java.io.IOException;
  *
  * @author Eric Bottard
  */
-public abstract class DisposableFileSupport extends AbstractModuleFixture implements Disposable {
+public abstract class DisposableFileSupport<F extends DisposableFileSupport<F>> extends AbstractModuleFixture<F>
+		implements Disposable {
 
 	/**
 	 * How long to wait (max) for a file to appear, in ms.

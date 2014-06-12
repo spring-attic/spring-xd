@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class MqttSource extends AbstractModuleFixture {
+public class MqttSource extends AbstractModuleFixture<MqttSource> {
 
 	private static final int DEFAULT_MQTT_PORT = 1883;
 

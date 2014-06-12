@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class TwitterStreamSource extends AbstractModuleFixture {
+public class TwitterStreamSource extends AbstractModuleFixture<TwitterStreamSource> {
 
 
 	private final String consumerKey;

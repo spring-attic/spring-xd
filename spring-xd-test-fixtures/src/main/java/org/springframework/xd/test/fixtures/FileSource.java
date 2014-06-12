@@ -27,7 +27,7 @@ import java.io.IOException;
  * @author Eric Bottard
  * @author David Turanski
  */
-public class FileSource extends DisposableFileSupport {
+public class FileSource extends DisposableFileSupport<FileSource> {
 
 	public FileSource() {
 		super(makeDir());

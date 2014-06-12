@@ -158,7 +158,8 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 		if (definition == null) {
 			throw new NoSuchDefinitionException(name, "There is no definition named '%s'");
 		}
-		return resourceAssemblerSupport.toResource(definition);
+		R resource = resourceAssemblerSupport.toResource(definition);
+		return enhanceWithDeployment(definition, resource);
 	}
 
 	/**
@@ -226,6 +227,17 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 		return result;
 	}
 
+	private ResourceSupport enhanceWithDeployment(D definition, R resource) {
+		if (deployer instanceof AbstractInstancePersistingDeployer) {
+			@SuppressWarnings("unchecked")
+			AbstractInstancePersistingDeployer<D, BaseInstance<D>> ipDeployer = (AbstractInstancePersistingDeployer<D, BaseInstance<D>>) deployer;
+			BaseInstance<D> deployedInstance = ipDeployer.deploymentInfo(definition.getName());
+			((DeployableResource) resource).setDeployed(deployedInstance != null);
+		}
+		return resource;
+	}
+
 	protected abstract D createDefinition(String name, String definition);
+
 
 }

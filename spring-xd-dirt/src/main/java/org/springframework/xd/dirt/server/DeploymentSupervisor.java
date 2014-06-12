@@ -109,20 +109,6 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	private volatile ApplicationContext applicationContext;
 
 	/**
-	 * Cache of children under the containers path. This path is used to track containers in the cluster.
-	 * This atomic reference is updated by:
-	 * <ul>
-	 *     <li>the thread that handles leadership election</li>
-	 *     <li>the thread that raises Curator/ZooKeeper disconnect events</li>
-	 * </ul>
-	 * This atomic reference is read by public method {@link #getContainerIterator}.
-	 * <p />
-	 * Note that if this reference is not null, this indicates that the cache
-	 * has been started and has not been shut down via {@link PathChildrenCache#close}.
-	 */
-	private final AtomicReference<PathChildrenCache> containers = new AtomicReference<PathChildrenCache>();
-
-	/**
 	 * Container matcher for matching modules to containers.
 	 */
 	private final ContainerMatcher containerMatcher;
@@ -320,6 +306,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 
 			cleanupDeployments(client);
 
+			PathChildrenCache containers = null;
 			PathChildrenCache streamDeployments = null;
 			PathChildrenCache jobDeployments = null;
 			PathChildrenCacheListener streamDeploymentListener;
@@ -359,11 +346,9 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 						jobDeployments,
 						containerMatcher);
 
-				PathChildrenCache containersCache = instantiatePathChildrenCache(client, Paths.CONTAINERS);
-				containersCache.getListenable().addListener(containerListener);
-				containersCache.start();
-
-				containers.set(containersCache);
+				containers = instantiatePathChildrenCache(client, Paths.CONTAINERS);
+				containers.getListenable().addListener(containerListener);
+				containers.start();
 
 				Thread.sleep(Long.MAX_VALUE);
 			}
@@ -372,9 +357,8 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				Thread.currentThread().interrupt();
 			}
 			finally {
-				PathChildrenCache containersCache = containers.getAndSet(null);
-				if (containersCache != null) {
-					containersCache.close();
+				if (containers != null) {
+					containers.close();
 				}
 
 				if (streamDeployments != null) {

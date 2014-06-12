@@ -276,25 +276,43 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * For buses with an external broker, we can simply register a direct channel as the
-	 * router output channel.
+	 * Dynamically create a producer for the named channel.
 	 * @param name The name.
 	 * @param properties The properties.
 	 * @return The channel.
 	 */
 	@Override
-	public synchronized MessageChannel bindDynamicProducer(String name, Properties properties) {
-		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
+	public MessageChannel bindDynamicProducer(String name, Properties properties) {
+		return doBindDynamicProducer(name, name, properties);
+	}
+
+	/**
+	 * Create a producer for the named channel and bind it to the bus. Synchronized to
+	 * avoid creating multiple instances.
+	 * @param name The name.
+	 * @param channelName The name of the channel to be created, and registered as bean.
+	 * @param properties The properties.
+	 * @return The channel.
+	 */
+	protected synchronized MessageChannel doBindDynamicProducer(String name, String channelName, Properties properties) {
+		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(channelName);
 		if (channel == null) {
-			channel = this.directChannelProvider.createAndRegisterChannel(name);
-			bindProducer(name, channel, properties);
+			try {
+				channel = this.directChannelProvider.createAndRegisterChannel(channelName);
+				bindProducer(name, channel, properties);
+			}
+			catch (RuntimeException e) {
+				destroyCreatedChannel(channelName, channel);
+				throw new MessageBusException(
+						"Failed to bind dynamic channel '" + name + "' with properties " + properties, e);
+			}
 		}
 		return channel;
 	}
 
 	/**
-	 * For buses with an external broker, we can simply register a direct channel as the
-	 * router output channel. Note: even though it's pub/sub, we still use a
+	 * Dynamically create a producer for the named channel.
+	 * Note: even though it's pub/sub, we still use a
 	 * direct channel. It will be bridged to a pub/sub channel in the local
 	 * bus and bound to an appropriate element for other buses.
 	 * @param name The name.
@@ -302,13 +320,41 @@ public abstract class MessageBusSupport
 	 * @return The channel.
 	 */
 	@Override
-	public synchronized MessageChannel bindDynamicPubSubProducer(String name, Properties properties) {
-		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(name);
+	public MessageChannel bindDynamicPubSubProducer(String name, Properties properties) {
+		return doBindDynamicPubSubProducer(name, name, properties);
+	}
+
+	/**
+	 * Create a producer for the named channel and bind it to the bus. Synchronized to
+	 * avoid creating multiple instances.
+	 * @param name The name.
+	 * @param channelName The name of the channel to be created, and registered as bean.
+	 * @param properties The properties.
+	 * @return The channel.
+	 */
+	protected synchronized MessageChannel doBindDynamicPubSubProducer(String name, String channelName,
+			Properties properties) {
+		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(channelName);
 		if (channel == null) {
-			channel = this.directChannelProvider.createAndRegisterChannel(name);
-			bindPubSubProducer(name, channel, properties);
+			try {
+				channel = this.directChannelProvider.createAndRegisterChannel(channelName);
+				bindPubSubProducer(name, channel, properties);
+			}
+			catch (Exception e) {
+				destroyCreatedChannel(channelName, channel);
+				throw new MessageBusException(
+						"Failed to bind dynamic channel '" + name + "' with properties " + properties, e);
+			}
 		}
 		return channel;
+	}
+
+	protected void destroyCreatedChannel(String name, MessageChannel channel) {
+		this.createdChannels.remove(channel);
+		BeanFactory beanFactory = this.applicationContext.getBeanFactory();
+		if (beanFactory instanceof DefaultListableBeanFactory) {
+			((DefaultListableBeanFactory) beanFactory).destroySingleton(name);
+		}
 	}
 
 	@Override

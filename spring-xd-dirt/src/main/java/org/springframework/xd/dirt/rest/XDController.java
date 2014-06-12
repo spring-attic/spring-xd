@@ -139,7 +139,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public void deploy(@PathVariable("name") String name, @RequestParam(required=false) String properties) {
+	public void deploy(@PathVariable("name") String name, @RequestParam(required = false) String properties) {
 		deployer.deploy(name, properties);
 	}
 
@@ -156,7 +156,8 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 		if (definition == null) {
 			throw new NoSuchDefinitionException(name, "There is no definition named '%s'");
 		}
-		return resourceAssemblerSupport.toResource(definition);
+		R resource = resourceAssemblerSupport.toResource(definition);
+		return enhanceWithDeployment(definition, resource);
 	}
 
 	/**
@@ -202,6 +203,20 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 			}
 			Assert.state(!deployedInstances.hasNext(), "Not all instances were looked at");
 		}
+	}
+
+	/**
+	 * @param resource
+	 * @author Florent Biville
+	 */
+	private ResourceSupport enhanceWithDeployment(D definition, R resource) {
+		if (deployer instanceof AbstractInstancePersistingDeployer) {
+			@SuppressWarnings("unchecked")
+			AbstractInstancePersistingDeployer<D, BaseInstance<D>> ipDeployer = (AbstractInstancePersistingDeployer<D, BaseInstance<D>>) deployer;
+			BaseInstance<D> deployedInstance = ipDeployer.deploymentInfo(definition.getName());
+			((DeployableResource) resource).setDeployed(deployedInstance != null);
+		}
+		return resource;
 	}
 
 	/**

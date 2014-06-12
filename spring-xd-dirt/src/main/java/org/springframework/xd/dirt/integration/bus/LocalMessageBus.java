@@ -79,7 +79,7 @@ public class LocalMessageBus extends MessageBusSupport {
 	}
 
 	/**
-	 * For the local bus we bridge the router "output" channel to a queue channel; the queue
+	 * For the local bus we bridge the router "output" channel to a pub/sub channel; the pub/sub
 	 * channel gets the name and the source channel is named 'dynamic.output.to.' + name.
 	 * {@inheritDoc}
 	 */

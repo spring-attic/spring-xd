@@ -250,14 +250,18 @@ public abstract class AbstractMessageBusTests {
 	public void testBadDynamic() throws Exception {
 		Properties properties = new Properties();
 		properties.setProperty(BusProperties.PARTITION_KEY_EXPRESSION, "'foo'");
+		MessageBus messageBus = getMessageBus();
 		try {
-			MessageBus messageBus = getMessageBus();
 			messageBus.bindDynamicProducer("queue:foo", properties);
 			fail("Exception expected");
 		}
 		catch (MessageBusException mbe) {
 			assertEquals("Failed to bind dynamic channel 'queue:foo' with properties {partitionKeyExpression='foo'}",
 					mbe.getMessage());
+			if (messageBus instanceof AbstractTestMessageBus) {
+				messageBus = ((AbstractTestMessageBus) messageBus).getCoreMessageBus();
+			}
+			assertFalse(((MessageBusSupport) messageBus).getApplicationContext().containsBean("queue:foo"));
 		}
 	}
 

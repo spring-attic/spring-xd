@@ -50,7 +50,6 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.context.NamedComponent;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
@@ -125,8 +124,6 @@ public abstract class MessageBusSupport
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
 
 	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
-
-	private final Set<MessageChannel> createdChannels = Collections.synchronizedSet(new HashSet<MessageChannel>());
 
 	protected volatile EvaluationContext evaluationContext;
 
@@ -349,11 +346,12 @@ public abstract class MessageBusSupport
 		return channel;
 	}
 
-	protected void destroyCreatedChannel(String name, MessageChannel channel) {
-		this.createdChannels.remove(channel);
+	private void destroyCreatedChannel(String name, MessageChannel channel) {
 		BeanFactory beanFactory = this.applicationContext.getBeanFactory();
-		if (beanFactory instanceof DefaultListableBeanFactory) {
-			((DefaultListableBeanFactory) beanFactory).destroySingleton(name);
+		if (beanFactory.containsBean(name)) {
+			if (beanFactory instanceof DefaultListableBeanFactory) {
+				((DefaultListableBeanFactory) beanFactory).destroySingleton(name);
+			}
 		}
 	}
 
@@ -390,7 +388,7 @@ public abstract class MessageBusSupport
 				if (binding.getEndpoint().getComponentName().equals(name)) {
 					binding.stop();
 					iterator.remove();
-					destroyCreatedChannel(binding);
+					break;
 				}
 			}
 		}
@@ -407,23 +405,7 @@ public abstract class MessageBusSupport
 						binding.getEndpoint().getComponentName().equals(name)) {
 					binding.stop();
 					iterator.remove();
-					destroyCreatedChannel(binding);
 					return;
-				}
-			}
-		}
-	}
-
-	protected void destroyCreatedChannel(Binding binding) {
-		MessageChannel channel = binding.getChannel();
-		if (Binding.PRODUCER.equals(binding.getType()) && this.createdChannels.contains(channel)) {
-			this.createdChannels.remove(channel);
-			BeanFactory beanFactory = this.applicationContext.getBeanFactory();
-			if (beanFactory instanceof DefaultListableBeanFactory) {
-				String name = ((NamedComponent) channel).getComponentName();
-				((DefaultListableBeanFactory) beanFactory).destroySingleton(name);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Removed channel:" + name);
 				}
 			}
 		}
@@ -773,7 +755,6 @@ public abstract class MessageBusSupport
 			ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
 			beanFactory.registerSingleton(name, channel);
 			channel = (T) beanFactory.initializeBean(channel, name);
-			MessageBusSupport.this.createdChannels.add(channel);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Registered channel:" + name);
 			}

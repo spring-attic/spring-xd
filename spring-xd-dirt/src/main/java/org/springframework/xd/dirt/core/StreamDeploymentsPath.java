@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.core;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
@@ -31,6 +32,9 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * StreamDeploymentsPath path = new StreamDeploymentsPath().setStreamName("my-stream");
  * assertEquals("/deployments/streams/my-stream", path.build());
  * </pre>
+ * Note that when building a full deployment path a module label, module type, and
+ * container must all be set; if one of these is omitted an {@code IllegalStateException}
+ * will be thrown upon invocation of {@link #build}.
  *
  * @author Patrick Peralta
  */
@@ -52,24 +56,34 @@ public class StreamDeploymentsPath {
 	private static final int STREAM_NAME = 2;
 
 	/**
-	 * Index for module type in {@link #elements} array.
+	 * Index for dot delimited module deployment description in {@link #elements} array.
 	 */
-	private static final int MODULE_TYPE = 3;
+	private static final int DEPLOYMENT_DESC = 3;
 
 	/**
-	 * Index for module label in {@link #elements} array.
+	 * Index for module type in {@link #deploymentDesc} array.
 	 */
-	private static final int MODULE_LABEL = 4;
+	private static final int MODULE_TYPE = 0;
 
 	/**
-	 * Index for container name in {@link #elements} array.
+	 * Index for module label in {@link #deploymentDesc} array.
 	 */
-	private static final int CONTAINER = 5;
+	private static final int MODULE_LABEL = 1;
+
+	/**
+	 * Index for container name in {@link #deploymentDesc} array.
+	 */
+	private static final int CONTAINER = 2;
 
 	/**
 	 * Array of path elements.
 	 */
-	private final String[] elements = new String[6];
+	private final String[] elements = new String[4];
+
+	/**
+	 * Array of module deployment description elements.
+	 */
+	private final String[] deploymentDesc = new String[3];
 
 
 	/**
@@ -113,9 +127,14 @@ public class StreamDeploymentsPath {
 		}
 
 		System.arraycopy(pathElements, offset, elements, 0, pathElements.length - offset);
-
 		Assert.state(elements[DEPLOYMENTS].equals(Paths.DEPLOYMENTS));
-		Assert.state(elements[STREAMS].equals(Paths.STREAMS));
+
+		if (elements[DEPLOYMENT_DESC] != null) {
+			String[] deploymentElements = elements[DEPLOYMENT_DESC].split(" ")[0].split("\\.");
+			Assert.state(deploymentElements.length == 3);
+			System.arraycopy(deploymentElements, 0, deploymentDesc, 0, 3);
+		}
+
 	}
 
 	/**
@@ -145,7 +164,7 @@ public class StreamDeploymentsPath {
 	 * @return module type
 	 */
 	public String getModuleType() {
-		return elements[MODULE_TYPE];
+		return deploymentDesc[MODULE_TYPE];
 	}
 
 	/**
@@ -156,7 +175,7 @@ public class StreamDeploymentsPath {
 	 * @return this object
 	 */
 	public StreamDeploymentsPath setModuleType(String type) {
-		elements[MODULE_TYPE] = type;
+		deploymentDesc[MODULE_TYPE] = type;
 		return this;
 	}
 
@@ -166,7 +185,7 @@ public class StreamDeploymentsPath {
 	 * @return module label
 	 */
 	public String getModuleLabel() {
-		return elements[MODULE_LABEL];
+		return deploymentDesc[MODULE_LABEL];
 	}
 
 	/**
@@ -177,7 +196,7 @@ public class StreamDeploymentsPath {
 	 * @return this object
 	 */
 	public StreamDeploymentsPath setModuleLabel(String label) {
-		elements[MODULE_LABEL] = label;
+		deploymentDesc[MODULE_LABEL] = label;
 		return this;
 	}
 
@@ -187,7 +206,7 @@ public class StreamDeploymentsPath {
 	 * @return container name
 	 */
 	public String getContainer() {
-		return elements[CONTAINER];
+		return deploymentDesc[CONTAINER];
 	}
 
 	/**
@@ -198,7 +217,7 @@ public class StreamDeploymentsPath {
 	 * @return this object
 	 */
 	public StreamDeploymentsPath setContainer(String container) {
-		elements[CONTAINER] = container;
+		deploymentDesc[CONTAINER] = container;
 		return this;
 	}
 
@@ -206,10 +225,15 @@ public class StreamDeploymentsPath {
 	 * Build the path string using the field values.
 	 *
 	 * @return path string
-	 *
+	 * @throws java.lang.IllegalStateException if partial deployment info is present
+	 *         (for example, if module type/label is present but container is missing)
 	 * @see Paths#build
 	 */
-	public String build() {
+	public String build() throws IllegalStateException {
+		elements[DEPLOYMENT_DESC] = (hasDeploymentInfo())
+				? String.format("%s.%s.%s", deploymentDesc[MODULE_TYPE],
+						deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER])
+				: null;
 		return Paths.build(stripNullElements());
 	}
 
@@ -217,11 +241,45 @@ public class StreamDeploymentsPath {
 	 * Build the path string using the field values, including the namespace prefix.
 	 *
 	 * @return path string with namespace
-	 *
+	 * @throws java.lang.IllegalStateException if partial deployment info is present
+	 *         (for example, if module type/label is present but container is missing)
 	 * @see Paths#buildWithNamespace
 	 */
-	public String buildWithNamespace() {
+	public String buildWithNamespace() throws IllegalStateException {
+		elements[DEPLOYMENT_DESC] = (hasDeploymentInfo())
+				? String.format("%s.%s.%s", deploymentDesc[MODULE_TYPE],
+						deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER])
+				: null;
 		return Paths.buildWithNamespace(stripNullElements());
+	}
+
+	/**
+	 * Return true if this path contains module deployment info
+	 * (module type, module label, container). If false, this indicates
+	 * the path only contains the stream name.
+	 *
+	 * @return true if this path contains module deployment info
+	 * @throws java.lang.IllegalStateException if partial deployment info is present
+	 *         (for example, if module type/label is present but container is missing)
+	 */
+	private boolean hasDeploymentInfo() {
+		boolean hasValue = false;
+		for (String s : deploymentDesc) {
+			hasValue |= StringUtils.hasText(s);
+		}
+		if (!hasValue) {
+			return false;
+		}
+		if (StringUtils.isEmpty(deploymentDesc[MODULE_TYPE])) {
+			throw new IllegalStateException("Module type missing");
+		}
+		if (StringUtils.isEmpty(deploymentDesc[MODULE_LABEL])) {
+			throw new IllegalStateException("Module label missing");
+		}
+		if (StringUtils.isEmpty(deploymentDesc[CONTAINER])) {
+			throw new IllegalStateException("Container missing");
+		}
+		return true;
 	}
 
 	/**

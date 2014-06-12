@@ -50,7 +50,7 @@ public class ZookeeperTests {
 
 		for (int i = 0; i < 100; i++) {
 			client.create().creatingParentsIfNeeded().forPath(
-					new StreamDeploymentsPath().setStreamName("foo" + i).setModuleType("source").setModuleLabel("m" + i).build());
+					new StreamDeploymentsPath().setStreamName("foo" + i).build());
 		}
 		cache.close();
 	}

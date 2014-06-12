@@ -16,10 +16,7 @@
 
 package org.springframework.xd.dirt.test;
 
-import java.util.Collections;
-import java.util.List;
 
-import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
@@ -58,8 +55,9 @@ public class JobPathProvider implements DeploymentPathProvider {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<String> getModuleDeploymentPaths(String jobName) {
-		return Collections.singletonList(new JobDeploymentsPath().setJobName(jobName).build());
+	public int getDeploymentPathChildrenCount(String jobName) {
+		// jobs always have one module
+		return 1;
 	}
 
 }

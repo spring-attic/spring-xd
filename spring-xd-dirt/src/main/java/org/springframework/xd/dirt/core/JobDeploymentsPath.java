@@ -245,12 +245,9 @@ public class JobDeploymentsPath {
 		if (!hasValue) {
 			return false;
 		}
-		if (StringUtils.isEmpty(deploymentDesc[MODULE_LABEL])) {
-			throw new IllegalStateException("Module label missing");
-		}
-		if (StringUtils.isEmpty(deploymentDesc[CONTAINER])) {
-			throw new IllegalStateException("Container missing");
-		}
+		Assert.state(StringUtils.hasText(deploymentDesc[MODULE_LABEL]), "Module label missing");
+		Assert.state(StringUtils.hasText(deploymentDesc[CONTAINER]), "Container missing");
+
 		return true;
 	}
 

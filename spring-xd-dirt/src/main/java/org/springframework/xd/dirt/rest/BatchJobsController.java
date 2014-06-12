@@ -87,7 +87,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	 * @param jobName name of the batch job
 	 * @param startJobInstance start index for the job instance
 	 * @param pageSize page size for the list
-	 * @return collection of JobInstnaces by job name
+	 * @return collection of JobInstances by job name
 	 */
 	@RequestMapping(value = "/{jobName}/instances", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)

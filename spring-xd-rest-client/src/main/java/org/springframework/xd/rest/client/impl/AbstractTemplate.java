@@ -55,8 +55,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 /* default */class AbstractTemplate {
 
-	protected static final String DEPLOYMENTS_URI = "/_deployments";
-
 	/**
 	 * A template used for http interaction.
 	 */

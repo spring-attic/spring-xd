@@ -107,14 +107,14 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Test
 	public void testSuccessfulJobCreation() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 	}
 
 	@Test
 	public void testSuccessfulJobCreateAndDeploy() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job5").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job5").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		JobDefinition jobDefinition = jobDefinitionRepository.findOne("job5");
 		assertNotNull(jobDefinition);
@@ -127,97 +127,98 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		QueueChannel channel = new QueueChannel();
 		messageBus.bindConsumer("job:joblaunch", channel, null);
 		mockMvc.perform(
-				post("/jobs").param("name", "joblaunch").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "joblaunch").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
 				put("/jobs/{name}/launch", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
-						status().isOk());
+				status().isOk());
 		assertNotNull(channel.receive(3000));
 	}
 
 	@Test
 	public void testSuccessfulJobDeletion() throws Exception {
-		mockMvc.perform(delete("/jobs/{name}", "job1"));
+		mockMvc.perform(delete("/jobs/definitions/{name}", "job1"));
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(delete("/jobs/{name}", "job1")).andExpect(status().isOk());
+		mockMvc.perform(delete("/jobs/definitions/{name}", "job1")).andExpect(status().isOk());
 	}
 
 	@Test
 	public void testListAllJobs() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/jobs").param("name", "job2").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job2").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+		mockMvc.perform(get("/jobs/definitions").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(2))).andExpect(jsonPath("$.content[0].name").value("job1")).andExpect(
-						jsonPath("$.content[1].name").value("job2"));
+				jsonPath("$.content[1].name").value("job2"));
 	}
 
 	@Test
 	public void testJobCreationNoDefinition() throws Exception {
-		mockMvc.perform(post("/jobs").param("name", "myjob").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(post("/jobs/definitions").param("name", "myjob").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isBadRequest());
 	}
 
 	@Test
 	public void testJobUnDeployNoDef() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON).param("deploy", "false")).andExpect(status().isCreated());
-		mockMvc.perform(put("/jobs/{name}", "myjob").param("deploy", "false").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(delete("/jobs/deployments/{name}", "myjob").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isBadRequest());
 	}
 
 	@Test
 	public void testJobDeployNoDef() throws Exception {
-		mockMvc.perform(put("/jobs/{name}", "myjob").param("deploy", "true").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(post("/jobs/deployments").param("name", "myjob").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isNotFound());
 	}
 
 	@Test
 	public void testCreateOnAlreadyCreatedJob() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
 	}
 
 	@Test
 	public void testFailedJobDeletion() throws Exception {
-		mockMvc.perform(delete("/jobs/{name}", "job1")).andExpect(status().isNotFound());
+		mockMvc.perform(delete("/jobs/definitions/{name}", "job1")).andExpect(status().isNotFound());
 	}
 
 	@Test
 	public void testInvalidDefinitionCreate() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job adsfa").accept(MediaType.APPLICATION_JSON)).andExpect(
-						status().isBadRequest());
+				post("/jobs/definitions").param("name", "job1").param("definition", "job adsfa").accept(
+						MediaType.APPLICATION_JSON)).andExpect(
+				status().isBadRequest());
 
-		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+		mockMvc.perform(get("/jobs/definitions").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(0)));
 	}
 
 	@Test
 	public void testJobDestroyAll() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/jobs").param("name", "job2").param("definition", JOB_DEFINITION).accept(
+				post("/jobs/definitions").param("name", "job2").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		assertNotNull(jobDefinitionRepository.findOne("job1"));
 		assertNotNull(jobDefinitionRepository.findOne("job2"));
 
 		// Perform destroy all
-		mockMvc.perform(delete("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		mockMvc.perform(delete("/jobs/definitions").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 
 		assertNull(jobDefinitionRepository.findOne("job1"));
 		assertNull(jobDefinitionRepository.findOne("job2"));
@@ -227,7 +228,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	public void testJobThatAlreadyExistsInJobRepo() throws Exception {
 		when(jobLocator.getJobNames()).thenReturn(Arrays.asList(new String[] { "mydupejob" }));
 		mockMvc.perform(
-				post("/jobs").param("name", "mydupejob").param("definition", "job adsfa").accept(
+				post("/jobs/definitions").param("name", "mydupejob").param("definition", "job adsfa").accept(
 						MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andExpect(
 						jsonPath("$[0].message", Matchers.is("Batch Job with the name mydupejob already exists")));

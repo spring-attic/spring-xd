@@ -42,7 +42,7 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 		values.add("definition", defintion);
 		values.add("deploy", Boolean.toString(deploy));
 
-		StreamDefinitionResource stream = restTemplate.postForObject(resources.get("streams"), values,
+		StreamDefinitionResource stream = restTemplate.postForObject(resources.get("streams/definitions"), values,
 				StreamDefinitionResource.class);
 		return stream;
 	}
@@ -51,7 +51,7 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	public void destroy(String name) {
 		// TODO: discover link by some other means (search by exact name on
 		// /streams??)
-		String uriTemplate = resources.get("streams").toString() + "/{name}";
+		String uriTemplate = resources.get("streams/definitions").toString() + "/{name}";
 		restTemplate.delete(uriTemplate, Collections.singletonMap("name", name));
 	}
 
@@ -59,44 +59,39 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	public void deploy(String name, String properties) {
 		// TODO: discover link by some other means (search by exact name on
 		// /streams??)
-		String uriTemplate = resources.get("streams").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("deploy", "true");
+		values.add("name", name);
 		if (properties != null) {
 			values.add("properties", properties);
 		}
-		restTemplate.put(uriTemplate, values, name);
+		//TODO: Do we need StreamDeploymentResource? 
+		restTemplate.postForObject(resources.get("streams/deployments"), values, Object.class);
 	}
 
 	@Override
 	public void undeploy(String name) {
 		// TODO: discover link by some other means (search by exact name on
 		// /streams??)
-		String uriTemplate = resources.get("streams").toString() + "/{name}";
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("deploy", "false");
-		restTemplate.put(uriTemplate, values, name);
+		String uriTemplate = resources.get("streams/deployments").toString() + "/{name}";
+		restTemplate.delete(uriTemplate, name);
 
 	}
 
 	@Override
 	public StreamDefinitionResource.Page list() {
-		String uriTemplate = resources.get("streams").toString();
-		uriTemplate = uriTemplate + "?size=10000&deployments=true";
+		String uriTemplate = resources.get("streams/definitions").toString();
+		uriTemplate = uriTemplate + "?size=10000";
 		return restTemplate.getForObject(uriTemplate, StreamDefinitionResource.Page.class);
 	}
 
 	@Override
 	public void undeployAll() {
-		String uriTemplate = resources.get("streams").toString() + DEPLOYMENTS_URI;
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("deploy", "false");
-		restTemplate.put(uriTemplate, values);
+		restTemplate.delete(resources.get("streams/deployments"));
 	}
 
 	@Override
 	public void destroyAll() {
-		restTemplate.delete(resources.get("streams"));
+		restTemplate.delete(resources.get("streams/definitions"));
 	}
 
 }

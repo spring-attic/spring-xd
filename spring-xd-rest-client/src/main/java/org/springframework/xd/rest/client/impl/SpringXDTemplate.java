@@ -37,6 +37,7 @@ import org.springframework.xd.rest.client.domain.XDRuntime;
  * Implementation of the entry point to the API.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperations {
 
@@ -93,8 +94,12 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	public SpringXDTemplate(ClientHttpRequestFactory factory, URI baseURI) {
 		super(factory);
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
-		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
+
+		resources.put("streams/definitions", URI.create(xdRuntime.getLink("streams").getHref() + "/definitions"));
+		resources.put("streams/deployments", URI.create(xdRuntime.getLink("streams").getHref() + "/deployments"));
 		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
+		resources.put("jobs/definitions", URI.create(xdRuntime.getLink("jobs").getHref() + "/definitions"));
+		resources.put("jobs/deployments", URI.create(xdRuntime.getLink("jobs").getHref() + "/deployments"));
 		resources.put("modules", URI.create(xdRuntime.getLink("modules").getHref()));
 
 		resources.put("batch/jobs", URI.create(xdRuntime.getLink("batch/jobs").getHref()));

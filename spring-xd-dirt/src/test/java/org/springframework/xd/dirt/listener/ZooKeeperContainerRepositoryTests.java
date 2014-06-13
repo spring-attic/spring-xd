@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.listener;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 import java.util.UUID;
@@ -99,11 +100,35 @@ public class ZooKeeperContainerRepositoryTests {
 		entity = new Container(id2, containerAttributes);
 		savedContainer = containerRepository.save(entity);
 		assertNotNull(savedContainer);
+		assertSavedContainer(id2);
+	}
+
+	/**
+	 * Assert if the saved container exists in the {@link ContainerRepository}
+	 *
+	 * @param id the containerId
+	 */
+	private void assertSavedContainer(String id) {
+		long timeout = System.currentTimeMillis() + 15000;
+		boolean foundContainer = false;
+		while (!foundContainer && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(200);
+				if (containerRepository.findOne(id2) != null) {
+					foundContainer = true;
+				}
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
+		assertTrue("Container repository is not updated with the test containers", foundContainer);
 	}
 
 	@Test
 	public void findContainerAttributesById() {
 		Container foundContainer = containerRepository.findOne(id);
+		assertNotNull(foundContainer);
 		ContainerAttributes attributes = foundContainer.getAttributes();
 		assertNotNull(attributes);
 		assertEquals(id, attributes.getId());
@@ -116,6 +141,7 @@ public class ZooKeeperContainerRepositoryTests {
 	@Test
 	public void findContainerNoGroups() {
 		Container foundContainer = containerRepository.findOne(id2);
+		assertNotNull(foundContainer);
 		ContainerAttributes attributes = foundContainer.getAttributes();
 		assertNotNull(attributes);
 		assertEquals(id2, attributes.getId());

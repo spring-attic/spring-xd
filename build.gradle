@@ -1659,6 +1659,7 @@ task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstal
 configurations { dist }
 
 import org.ajoberstar.grgit.*
+import org.ajoberstar.grgit.auth.AuthConfig
 import org.apache.tools.ant.filters.TokenFilter
 
 task(pullDocs) {
@@ -1670,7 +1671,7 @@ task(pullDocs) {
 
 pullDocs << {
 
-	def uri = "git://github.com/spring-projects/spring-xd.wiki.git"
+	def uri = "https://github.com/spring-projects/spring-xd.wiki.git"
 
 	if (cloneDestination.exists()) {
 		cloneDestination.deleteDir()
@@ -1683,16 +1684,23 @@ pullDocs << {
 }
 
 
-task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-shell:compileTestJava", pullDocs]) {
+task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-dirt:build", ":spring-xd-shell:compileTestJava", pullDocs]) {
 	classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath
 	main = 'org.springframework.xd.shell.util.ModuleOptionsReferenceDoc'
 	args = [
-		"$rootDir/build/asciidoc-raw/guide/modules"
+		"${pullDocs.cloneDestination}/guide/Sources.asciidoc",
+		"${pullDocs.cloneDestination}/guide/Processors.asciidoc",
+		"${pullDocs.cloneDestination}/guide/Sinks.asciidoc",
+		"${pullDocs.cloneDestination}/guide/Batch-Jobs.asciidoc",
 	]
+}
 
-	doLast {
-		def docsRepo = Grgit.open(pullDocs.cloneDestination)
-	}
+task pushModuleOptionsDocs(dependsOn: moduleOptionsReferenceDoc) << {
+	def docsRepo = Grgit.open(pullDocs.cloneDestination)
+	def xdRepo = Grgit.open(file("$rootDir"))
+	docsRepo.add(patterns: ['.'])
+	docsRepo.commit(message: "Automated module options in synch with XD ${xdRepo.head().id}")
+	docsRepo.push()
 }
 
 task transformDocs(type: Copy, dependsOn: [pullDocs, moduleOptionsReferenceDoc]) {
@@ -1728,7 +1736,7 @@ task referenceDoc(type: JavaExec, dependsOn: [":spring-xd-shell:compileTestJava"
 
 import org.asciidoctor.gradle.*
 
-task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs] ) {
+task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs, referenceDoc, moduleOptionsReferenceDoc] ) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	baseDir = sourceDir

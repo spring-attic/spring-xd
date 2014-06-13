@@ -16,13 +16,18 @@
 
 package org.springframework.xd.test.fixtures;
 
+import org.springframework.util.Assert;
+
 
 /**
  * Base class for objects that can be incorporated in a stream definition by calling their {@link #toString()} method.
  * 
  * @author Eric Bottard
+ * @author Glenn Renfro
  */
-public abstract class AbstractModuleFixture {
+public abstract class AbstractModuleFixture<F extends AbstractModuleFixture<F>> {
+
+	protected String label;
 
 	@Override
 	public final String toString() {
@@ -34,5 +39,19 @@ public abstract class AbstractModuleFixture {
 	 * {@code file --dir=xxxx --name=yyyy}
 	 */
 	protected abstract String toDSL();
+
+
+	/**
+	 * Sets the label for the fixture.
+	 * @param label The name to be associated with the label.
+	 * @return the current instance of the module fixture.
+	 */
+	@SuppressWarnings("unchecked")
+	public F label(String label) {
+		Assert.hasText(label, "Label should not be null nor empty");
+		this.label = label;
+		return (F) this;
+	}
+
 
 }

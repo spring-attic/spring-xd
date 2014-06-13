@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Florent Biville
  * @author Glenn Renfro
  */
-public class JdbcSink extends AbstractModuleFixture implements Disposable {
+public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSink.class);
 

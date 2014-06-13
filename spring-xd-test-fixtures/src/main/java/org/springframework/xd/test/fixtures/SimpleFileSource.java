@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
  * @author Glenn Renfro
  * @author Mark Pollack
  */
-public class SimpleFileSource extends AbstractModuleFixture {
+public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 
 	private final String dir;
 
@@ -64,13 +64,18 @@ public class SimpleFileSource extends AbstractModuleFixture {
 	 */
 	@Override
 	protected String toDSL() {
-		return String.format("file --dir=%s --pattern='%s' --ref=%s", dir, fileName, reference);
+		String result = "";
+		if (label != null) {
+			result = " " + label + ": ";
+		}
+		result += String.format("file --dir=%s --pattern='%s' --ref=%s", dir, fileName, reference);
+		return result;
 	}
 
 	/**
 	 * Determines if the file object or the content of the file should be sent to the output channel.
 	 * @param reference Set to true to output the File object itself. False if content should be sent.
-	 * @return
+	 * @return the current instance of the SimpleFileSource fixture.
 	 */
 	public SimpleFileSource reference(boolean reference) {
 		this.reference = reference;

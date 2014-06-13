@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  *
  * @author Glenn Renfro
  */
-public class SyslogUdpSource extends AbstractModuleFixture {
+public class SyslogUdpSource extends AbstractModuleFixture<SyslogUdpSource> {
 
 	public final static int DEFAULT_PORT = 5140;
 

@@ -25,13 +25,14 @@ import org.springframework.util.StringUtils;
  *
  * @author Glenn Renfro
  */
-public class SimpleFileSink extends AbstractModuleFixture {
+public class SimpleFileSink extends AbstractModuleFixture<SimpleFileSink> {
 
 	public final static String DEFAULT_MODE = "REPLACE";
 
 	private String dir;
 
 	private String fileName;
+
 
 	private boolean binary = true;
 
@@ -77,7 +78,11 @@ public class SimpleFileSink extends AbstractModuleFixture {
 	 */
 	@Override
 	public String toDSL() {
-		String result = String.format("file --binary=%s --mode=%s ", binary, mode);
+		String result = "";
+		if (label != null) {
+			result = " " + label + ": ";
+		}
+		result += String.format("file --binary=%s --mode=%s ", binary, mode);
 		if (StringUtils.hasText(fileName)) {
 			result += "--name='" + fileName + "' ";
 		}

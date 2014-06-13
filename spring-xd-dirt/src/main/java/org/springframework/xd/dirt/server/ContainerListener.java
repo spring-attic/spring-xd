@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -330,15 +331,25 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private List<String> getContainersForStreamModule(CuratorFramework client, ModuleDescriptor descriptor)
 			throws Exception {
+		List<String> containers = new ArrayList<String>();
+		String moduleType = descriptor.getModuleDefinition().getType().toString();
+		String moduleLabel = descriptor.getModuleLabel();
+		String moduleDeploymentPath = Paths.build(Paths.STREAM_DEPLOYMENTS, descriptor.getGroup());
 		try {
-			return client.getChildren().forPath(new StreamDeploymentsPath()
-					.setStreamName(descriptor.getGroup())
-					.setModuleType(descriptor.getModuleDefinition().getType().toString())
-					.setModuleLabel(descriptor.getModuleLabel()).build());
+			List<String> moduleDeployments = client.getChildren().forPath(moduleDeploymentPath);
+			for (String moduleDeployment : moduleDeployments) {
+				StreamDeploymentsPath path = new StreamDeploymentsPath(
+						Paths.build(moduleDeploymentPath, moduleDeployment));
+				if (path.getModuleType().equals(moduleType)
+						&& path.getModuleLabel().equals(moduleLabel)) {
+					containers.add(path.getContainer());
+				}
+			}
 		}
 		catch (KeeperException.NoNodeException e) {
-			return Collections.emptyList();
+			// stream has not been (or is no longer) deployed
 		}
+		return containers;
 	}
 
 	/**

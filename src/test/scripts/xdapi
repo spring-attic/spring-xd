@@ -17,21 +17,21 @@ urlencode() {
 create_stream() {
   local udef=`urlencode "$2"`
   echo "Creating stream $1 with definition '$udef' ..."
-  xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'false'} "$XDURL/streams"
+  xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'false'} "$XDURL/streams/definitions"
   echo -e '\n'
 }
 
 undeploy_stream() {
-  xdc -X PUT -d deploy=false "$XDURL/streams/$1"
+  xdc -X DELETE "$XDURL/streams/deployments/$1"
 }
 
 deploy_stream() {
-  xdc -X PUT -d 'deploy=true' "$XDURL/streams/$1"
+  xdc -X POST -d "name=$1" "$XDURL/streams/deployments"
 }
 
 destroy_stream() {
   echo -e "Destroying stream $1 ..."
-  xdc -X DELETE "$XDURL/streams/$1"
+  xdc -X DELETE "$XDURL/streams/definitions/$1"
   echo -e '\n'
 }
 
@@ -44,12 +44,13 @@ destroy_metric() {
 create_job() {
   local udef=`urlencode "$2"`
   echo -e "Creating job $1 with definition '$udef' ..."
-  xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'false'} "$XDURL/jobs"
+  xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'false'} "$XDURL/jobs/definitions"
   echo -e '\n'
 }
 
 deploy_job() {
-  xdc -X PUT -d 'deploy=true' "$XDURL/jobs/$1"
+  echo "Deploying job $1 ..."
+  xdc -X POST -d "name=$1" "$XDURL/jobs/deployments"
 }
 
 launch_job() {
@@ -60,17 +61,17 @@ launch_job() {
 
 destroy_job() {
   echo -e "Destroying job $1 ..."
-  xdc -X DELETE "$XDURL/jobs/$1"
+  xdc -X DELETE "$XDURL/jobs/definitions/$1"
   echo -e '\n'
 }
 
 list_streams() {
-  xdc -s $XDURL/streams #| python -m json.tool
+  xdc -s $XDURL/streams/definitions #| python -m json.tool
   echo -e '\n'
 }
 
 list_jobs() {
-  xdc -s $XDURL/jobs #| python -m json.tool
+  xdc -s $XDURL/jobs/definitions #| python -m json.tool
   echo -e '\n'
 }
 

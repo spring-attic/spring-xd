@@ -60,7 +60,6 @@ public class RabbitTest extends AbstractIntegrationTest {
 		stream(rabbitSource + XD_DELIMITER + sinks.file());
 		waitForXD();
 		stream(DATA_SENDER_NAME, "trigger --payload='" + data + "'" + XD_DELIMITER + rabbitSink, WAIT_TIME);
-		waitForXD();
 		assertValid(data, sinks.file());
 
 	}
@@ -75,7 +74,6 @@ public class RabbitTest extends AbstractIntegrationTest {
 		stream(rabbitSource + XD_DELIMITER + sinks.file());
 		waitForXD();
 		rabbitSource.sendData(data);
-		waitForXD();
 		assertValid(data, sinks.file());
 	}
 

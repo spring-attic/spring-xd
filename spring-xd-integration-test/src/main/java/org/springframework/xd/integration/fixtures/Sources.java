@@ -26,6 +26,7 @@ import org.springframework.xd.test.fixtures.SimpleHttpSource;
 import org.springframework.xd.test.fixtures.SimpleTailSource;
 import org.springframework.xd.test.fixtures.SyslogTcpSource;
 import org.springframework.xd.test.fixtures.SyslogUdpSource;
+import org.springframework.xd.test.fixtures.Tap;
 import org.springframework.xd.test.fixtures.TcpSource;
 import org.springframework.xd.test.fixtures.TwitterSearchSource;
 import org.springframework.xd.test.fixtures.TwitterStreamSource;
@@ -188,4 +189,12 @@ public class Sources {
 		return SyslogUdpSource.withDefaults(host);
 	}
 
+	/**
+	 * Constructs a Tap fixture.
+	 * @param streamName The name of stream to tap
+	 * @return Tap fixture
+	 */
+	public Tap tap(String streamName) {
+		return new Tap(streamName);
+	}
 }

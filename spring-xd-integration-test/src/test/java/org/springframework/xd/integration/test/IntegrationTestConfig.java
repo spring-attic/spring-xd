@@ -22,6 +22,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.integration.fixtures.Jobs;
+import org.springframework.xd.integration.fixtures.Processors;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
@@ -65,6 +66,11 @@ public class IntegrationTestConfig {
 	@Bean
 	public Jobs jobs() {
 		return new Jobs(xdEnvironment());
+	}
+
+	@Bean
+	public Processors processors() {
+		return new Processors();
 	}
 
 	@Bean

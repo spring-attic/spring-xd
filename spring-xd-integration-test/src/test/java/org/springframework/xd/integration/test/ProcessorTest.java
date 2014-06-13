@@ -72,9 +72,8 @@ public class ProcessorTest extends AbstractIntegrationTest {
 				+ sinks.file());
 		waitForXD();
 		sources.http().postData(filterContent);
-		waitForXD(2000);
-		assertReceived(1);
 		assertValid(filterContent, sinks.file());
+		assertReceived(1);
 	}
 
 }

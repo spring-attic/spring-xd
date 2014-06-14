@@ -114,12 +114,13 @@ public class ZooKeeperContainerRepositoryTests {
 		while (!foundContainer && System.currentTimeMillis() < timeout) {
 			try {
 				Thread.sleep(200);
-				if (containerRepository.findOne(id2) != null) {
+				if (containerRepository.findOne(id) != null) {
 					foundContainer = true;
 				}
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
+				break;
 			}
 		}
 		assertTrue("Container repository is not updated with the test containers", foundContainer);

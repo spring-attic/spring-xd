@@ -132,15 +132,16 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	}
 
 	/**
-	 * Request deployment of an existing resource.
+	 * Request deployment of an existing definition resource. The definition must exist before deploying and is included 
+	 * in the path. A new deployment instance is created.
 	 *
-	 * @param name the name of an existing resource (required)
+	 * @param name the name of an existing definition resource (job or stream) (required)
 	 * @param properties the deployment properties for the resource as a comma-delimited list of key=value pairs
 	 */
-	@RequestMapping(value = "/deployments", method = RequestMethod.POST)
+	@RequestMapping(value = "/deployments/{name}", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public void deploy(@RequestParam("name") String name, @RequestParam(required = false) String properties) {
+	public void deploy(@PathVariable("name") String name, @RequestParam(required = false) String properties) {
 		deployer.deploy(name, properties);
 	}
 

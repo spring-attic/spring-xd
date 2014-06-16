@@ -64,13 +64,13 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public void deploy(String name, String properties) {
+		String uriTemplate = resources.get("jobs/deployments").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("name", name);
 		if (properties != null) {
 			values.add("properties", properties);
 		}
 		//TODO: Do we need JobDeploymentResource? 
-		restTemplate.postForObject(resources.get("jobs/deployments"), values, Object.class);
+		restTemplate.postForObject(uriTemplate, values, Object.class, name);
 	}
 
 	@Override

@@ -59,13 +59,13 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	public void deploy(String name, String properties) {
 		// TODO: discover link by some other means (search by exact name on
 		// /streams??)
+		String uriTemplate = resources.get("streams/deployments").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("name", name);
 		if (properties != null) {
 			values.add("properties", properties);
 		}
 		//TODO: Do we need StreamDeploymentResource? 
-		restTemplate.postForObject(resources.get("streams/deployments"), values, Object.class);
+		restTemplate.postForObject(uriTemplate, values, Object.class, name);
 	}
 
 	@Override

@@ -26,7 +26,7 @@ undeploy_stream() {
 }
 
 deploy_stream() {
-  xdc -X POST -d "name=$1" "$XDURL/streams/deployments"
+  xdc -X POST "$XDURL/streams/deployments/$1"
 }
 
 destroy_stream() {
@@ -50,7 +50,7 @@ create_job() {
 
 deploy_job() {
   echo "Deploying job $1 ..."
-  xdc -X POST -d "name=$1" "$XDURL/jobs/deployments"
+  xdc -X POST "$XDURL/jobs/deployments/$1"
 }
 
 launch_job() {

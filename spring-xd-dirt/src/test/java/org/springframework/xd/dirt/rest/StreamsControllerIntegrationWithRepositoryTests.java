@@ -106,7 +106,7 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 						"deploy", "false").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/streams/deployments").param("name", "mystream").accept(
+				post("/streams/deployments/mystream").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
 		mockMvc.perform(delete("/streams/deployments/mystream").accept(MediaType.APPLICATION_JSON)).andExpect(

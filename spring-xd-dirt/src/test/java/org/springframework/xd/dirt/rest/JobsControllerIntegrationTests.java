@@ -176,7 +176,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Test
 	public void testJobDeployNoDef() throws Exception {
-		mockMvc.perform(post("/jobs/deployments").param("name", "myjob").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(post("/jobs/deployments/myjob").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isNotFound());
 	}
 

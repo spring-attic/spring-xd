@@ -102,7 +102,7 @@ define(['angular'], function (angular) {
         return {
           deploy: function (jobDefinition) {
             $log.info('Deploy Job ' + jobDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/jobs/deployments/', { name: jobDefinition.name}, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/deployments/' + jobDefinition.name, null, {
               deploy: { method: 'POST' }
             }).deploy();
           },

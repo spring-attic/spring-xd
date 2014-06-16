@@ -108,6 +108,13 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 	}
 
 	/**
+	 * Query deployment information about the definition whose ID is provided.
+	 */
+	public BaseInstance<D> deploymentInfo(String id) {
+		return instanceRepository.findOne(id);
+	}
+
+	/**
 	 * Create an running instance out of the given definition;
 	 */
 	protected abstract I makeInstance(D definition);

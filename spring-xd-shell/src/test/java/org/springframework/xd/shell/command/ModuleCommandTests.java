@@ -20,8 +20,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.xd.module.core.CompositeModule.OPTION_SEPARATOR;
@@ -40,7 +38,6 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
-import org.springframework.xd.shell.util.UiUtils;
 import org.springframework.xd.test.fixtures.FileSink;
 
 /**
@@ -49,6 +46,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
@@ -165,33 +163,4 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 		return (Table) getShell().executeCommand("module list").getResult();
 	}
 
-	@Test
-	public void testDisplayConfigurationFile() throws InterruptedException {
-
-		final CommandResult commandResult = getShell().executeCommand(
-				String.format("module display source:file"));
-
-		assertTrue("The status of the command result should be successfuly", commandResult.isSuccess());
-		assertNotNull("The configurationFile should not be null.", commandResult.getResult());
-		assertNull("We should not get an exception returned.", commandResult.getException());
-
-		final String result = (String) commandResult.getResult();
-		assertTrue("The configuration file should start with the XML header.",
-				result.startsWith(
-						"Configuration file contents for module definition 'file' (source):\n\n"
-								+ UiUtils.HORIZONTAL_LINE
-								+ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
-
-	}
-
-	@Test
-	public void testDisplayNonExistingConfigurationFile() throws InterruptedException {
-		final CommandResult commandResult = getShell().executeCommand(
-				String.format("module display source:blubbadoesnotexist"));
-		assertFalse("The status of the command result should be successful", commandResult.isSuccess());
-		assertNotNull("We should get an exception returned.", commandResult.getException());
-		assertEquals("Could not find module with name 'blubbadoesnotexist' and type 'source'\n",
-				commandResult.getException().getMessage());
-
-	}
 }

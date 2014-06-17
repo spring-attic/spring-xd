@@ -34,7 +34,6 @@ import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
-import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Commands for working with modules. Allows retrieval of information about available modules, as well as creating new
@@ -43,14 +42,13 @@ import org.springframework.xd.shell.util.UiUtils;
  * @author Glenn Renfro
  * @author Eric Bottard
  * @author Florent Biville
+ * @author David Turanski
  */
 
 @Component
 public class ModuleCommands implements CommandMarker {
 
 	private final static String COMPOSE_MODULE = "module compose";
-
-	private final static String DISPLAY_MODULE = "module display";
 
 	private final static String LIST_MODULES = "module list";
 
@@ -124,25 +122,6 @@ public class ModuleCommands implements CommandMarker {
 		moduleOperations().deleteModule(module.name, module.type);
 		return String.format(("Successfully destroyed module '%s' with type %s"), module.name,
 				module.type);
-	}
-
-	@CliCommand(value = DISPLAY_MODULE, help = "Display the configuration file of a module")
-	public String display(
-			@CliOption(mandatory = true, key = { "name", "" }, help = "name of the module to display, in the form 'type:name'") QualifiedModuleName module
-			) {
-
-		final String configurationFileContents = moduleOperations().downloadConfigurationFile(
-				module.type, module.name);
-
-		final StringBuilder sb = new StringBuilder()
-				.append(String.format("Configuration file contents for module definition '%s' (%s):%n%n", module.name,
-						module.type))
-				.append(UiUtils.HORIZONTAL_LINE)
-				.append(configurationFileContents)
-				.append(UiUtils.HORIZONTAL_LINE);
-
-		return sb.toString();
-
 	}
 
 	@CliCommand(value = LIST_MODULES, help = "List all modules")

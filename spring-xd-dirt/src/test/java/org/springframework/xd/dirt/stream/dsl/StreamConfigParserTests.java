@@ -277,6 +277,12 @@ public class StreamConfigParserTests {
 		parse("tap:stream:mystream.foobar.1 > file");
 	}
 
+	@Test(expected = StreamDefinitionException.class)
+	public void tapOnNonExistentStreamModuleFails() throws Exception {
+		parse("mystream = http | file");
+		parse("tap:stream:mystream.foobar > log");
+	}
+
 	@Test
 	public void expressions_xd159() {
 		StreamNode ast = parse("foo | transform --expression=--payload | bar");

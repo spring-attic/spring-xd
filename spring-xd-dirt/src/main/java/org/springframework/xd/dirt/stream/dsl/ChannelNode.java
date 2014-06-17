@@ -163,6 +163,10 @@ public class ChannelNode extends AstNode {
 						indexingElements.clear();
 						indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);
 					}
+					else {
+						throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_MODULE_REFERENCE,
+								indexString);
+					}
 				}
 			}
 		}

@@ -42,7 +42,7 @@ public class HadoopFileSystemTestSupport extends AbstractExternalResourceTestSup
 	protected void obtainResource() throws Exception {
 		ConfigurationFactoryBean cfb = new ConfigurationFactoryBean();
 		Properties props = new Properties();
-		props.setProperty("fs.default.name", System.getProperty("spring.hadoop.fsUri"));
+		props.setProperty("fs.defaultFS", System.getProperty("spring.hadoop.fsUri"));
 		cfb.setProperties(props);
 		cfb.setRegisterUrlHandler(false);
 		cfb.afterPropertiesSet();

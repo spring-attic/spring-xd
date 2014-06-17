@@ -79,8 +79,8 @@ for %%a in (%CMD_LINE_ARGS%) do (
         set found=1
     ) else (
         if !found!==1 (
-            if not "%%a"=="hadoop12" if not "%%a"=="hadoop22" if not "%%a"=="cdh4" if not "%%a"=="cdh5" if not "%%a"=="hdp13" if not "%%a"=="hdp21" if not "%%a"=="phd1" if not "%%a"=="phd20" (
-                echo ERROR: %%a is not a valid Hadoop distro - valid distros are hadoop12, hadoop22, cdh4, cdh5, hdp13, hdp21, phd1 and phd20
+            if not "%%a"=="hadoop22" if not "%%a"=="cdh5" if not "%%a"=="hdp21" if not "%%a"=="phd1" if not "%%a"=="phd20" (
+                echo ERROR: %%a is not a valid Hadoop distro - valid distros are hadoop22, cdh5, hdp21, phd1 and phd20
                 goto fail
             )
             set HADOOP_DISTRO=%%a

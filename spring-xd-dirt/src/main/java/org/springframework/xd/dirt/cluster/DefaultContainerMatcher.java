@@ -142,7 +142,9 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 * @return the list of containers matching the criteria
 	 */
 	private List<Container> findAllContainersMatchingCriteria(Iterable<Container> containers, String criteria) {
-		logger.debug("Matching containers for criteria '{}'", criteria);
+		if (StringUtils.hasText(criteria)) {
+			logger.debug("Matching containers for criteria '{}'", criteria);
+		}
 
 		List<Container> candidates = new ArrayList<Container>();
 
@@ -154,7 +156,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 			}
 		}
 
-		if (candidates.isEmpty()) {
+		if (candidates.isEmpty() && StringUtils.hasText(criteria)) {
 			logger.warn("No currently available containers match criteria '{}'", criteria);
 		}
 		return candidates;

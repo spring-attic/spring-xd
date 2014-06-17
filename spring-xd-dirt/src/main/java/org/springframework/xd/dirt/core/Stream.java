@@ -122,14 +122,26 @@ public class Stream {
 		return "Stream{name='" + name + "'}";
 	}
 
-	public ModuleDescriptor getModuleDescriptor(String moduleLabel, String moduleType) {
+	/**
+	 * Return the module descriptor for the provided label and type.
+	 *
+	 * @param moduleLabel module label
+	 * @param moduleType  module type
+	 * @return module descriptor
+	 * @throws IllegalStateException if the requested module label and type
+	 *                               are not part of this stream
+	 */
+	public ModuleDescriptor getModuleDescriptor(String moduleLabel, String moduleType)
+			throws IllegalStateException {
 		for (ModuleDescriptor descriptor : descriptors) {
 			if (descriptor.getModuleLabel().equals(moduleLabel)
 					&& descriptor.getType().toString().equals(moduleType)) {
 				return descriptor;
 			}
 		}
-		throw new IllegalStateException(); // todo
+		throw new IllegalStateException(String.format(
+				"Could not find module with label '%s' of type '%s' in the list of modules for " +
+						"stream '%s': %s", moduleLabel, moduleType, getName(), getDescriptorsAsList()));
 	}
 
 

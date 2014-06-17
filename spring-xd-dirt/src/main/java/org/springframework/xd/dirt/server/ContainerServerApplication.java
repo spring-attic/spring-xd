@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -35,7 +34,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -71,7 +69,6 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  */
 @Configuration
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
-@Import(PropertyPlaceholderAutoConfiguration.class)
 public class ContainerServerApplication implements EnvironmentAware {
 
 	private static final Log logger = LogFactory.getLog(ContainerServerApplication.class);
@@ -84,21 +81,6 @@ public class ContainerServerApplication implements EnvironmentAware {
 
 	public static void main(String[] args) {
 		new ContainerServerApplication().run(args);
-	}
-
-	// TODO: Is this needed anymore?
-	public ConfigurableApplicationContext getPluginContext() {
-		if (this.containerContext != null) {
-			return (ConfigurableApplicationContext) this.containerContext.getParent();
-		}
-		else {
-			logger.error("The container has not been initialized yet.");
-			return null;
-		}
-	}
-
-	public ConfigurableApplicationContext getContainerContext() {
-		return this.containerContext;
 	}
 
 	public void dumpContextConfiguration() {

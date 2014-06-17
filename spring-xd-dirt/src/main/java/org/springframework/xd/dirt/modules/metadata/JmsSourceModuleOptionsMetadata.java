@@ -32,7 +32,7 @@ public class JmsSourceModuleOptionsMetadata {
 
 	private String provider = "activemq";
 
-	private String amqUrl = "tcp://localhost:61616";
+	private String jmsUrl = "tcp://localhost:61616";
 
 	private String destination = XD_STREAM_NAME;
 
@@ -49,8 +49,8 @@ public class JmsSourceModuleOptionsMetadata {
 		return provider;
 	}
 
-	public String getAmqUrl() {
-		return amqUrl;
+	public String getjmsUUrl() {
+		return jmsUrl;
 	}
 
 	@NotNull
@@ -83,9 +83,9 @@ public class JmsSourceModuleOptionsMetadata {
 		this.provider = provider;
 	}
 
-	@ModuleOption("the ActiveMQ broker URL")
-	public void setAmqUrl(String amqUrl) {
-		this.amqUrl = amqUrl;
+	@ModuleOption("the JMS MQ broker URL")
+	public void setJmsUrl(String jmsUrl) {
+		this.jmsUrl = jmsUrl;
 	}
 
 	@ModuleOption("the destination name from which messages will be received")

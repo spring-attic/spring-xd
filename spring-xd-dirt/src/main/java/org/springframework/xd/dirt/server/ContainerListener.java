@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
@@ -397,6 +399,10 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 		String containerDeployments = Paths.build(Paths.MODULE_DEPLOYMENTS, container);
 		List<String> deployments = client.getChildren().forPath(containerDeployments);
+
+		// We want to re-deploy modules in the correct order, per stream.
+		// This is done in a two-pass operation: gather, then re-deploy
+		Set<ToBeRedeployedModule> toBeRedeployedModules = new TreeSet<ToBeRedeployedModule>();
 		for (String deployment : deployments) {
 			ModuleDeploymentsPath moduleDeploymentsPath =
 					new ModuleDeploymentsPath(Paths.build(containerDeployments, deployment));
@@ -411,7 +417,6 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 			String unitName = moduleDeploymentsPath.getStreamName();
 			String moduleType = moduleDeploymentsPath.getModuleType();
-			String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 
 			if (ModuleType.job.toString().equals(moduleType)) {
 				Job job = deploymentLoader.loadJob(client, unitName, this.jobFactory);
@@ -426,9 +431,16 @@ public class ContainerListener implements PathChildrenCacheListener {
 					streamMap.put(unitName, stream);
 				}
 				if (stream != null) {
-					redeployStreamModule(client, stream, moduleType, moduleLabel, deploymentProperties);
+					toBeRedeployedModules.add(new ToBeRedeployedModule(stream, moduleDeploymentsPath,
+							deploymentProperties));
 				}
 			}
+		}
+
+		for (ToBeRedeployedModule m : toBeRedeployedModules) {
+			String moduleType = m.moduleDeploymentsPath.getModuleType();
+			String moduleLabel = m.moduleDeploymentsPath.getModuleLabel();
+			redeployStreamModule(client, m.stream, moduleType, moduleLabel, m.deploymentProperties);
 		}
 
 		// remove the deployments from the departed container
@@ -565,7 +577,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	/**
 	 * Converter from {@link ChildData} to deployment name string.
 	 */
-	public class DeploymentNameConverter implements Converter<ChildData, String> {
+	private static class DeploymentNameConverter implements Converter<ChildData, String> {
 
 		/**
 		 * {@inheritDoc}
@@ -575,5 +587,44 @@ public class ContainerListener implements PathChildrenCacheListener {
 			return Paths.stripPath(source.getPath());
 		}
 	}
+
+	/**
+	 * Holds information about a module that needs to be re-deployed. Natural order is per-stream, 
+	 * with consumers (bigger index) coming first.
+	 *
+	 * @author Eric Bottard
+	 */
+	private static class ToBeRedeployedModule implements Comparable<ToBeRedeployedModule> {
+
+		private Stream stream;
+
+		private ModuleDeploymentsPath moduleDeploymentsPath;
+
+		private ModuleDeploymentProperties deploymentProperties;
+
+		private ToBeRedeployedModule(Stream stream, ModuleDeploymentsPath moduleDeploymentsPath,
+				ModuleDeploymentProperties deploymentProperties) {
+			this.stream = stream;
+			this.moduleDeploymentsPath = moduleDeploymentsPath;
+			this.deploymentProperties = deploymentProperties;
+		}
+
+		@Override
+		public int compareTo(ToBeRedeployedModule o) {
+			int streamCompare = this.stream.getName().compareTo(o.stream.getName());
+			if (streamCompare != 0) {
+				return streamCompare;
+			}
+			else {
+				int thisIndex = stream.getModuleDescriptor(moduleDeploymentsPath.getModuleLabel(),
+						moduleDeploymentsPath.getModuleType()).getIndex();
+				int thatIndex = o.stream.getModuleDescriptor(o.moduleDeploymentsPath.getModuleLabel(),
+						o.moduleDeploymentsPath.getModuleType()).getIndex();
+				return thatIndex - thisIndex;
+			}
+		}
+
+	}
+
 
 }

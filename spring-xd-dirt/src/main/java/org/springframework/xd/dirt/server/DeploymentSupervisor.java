@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -348,7 +347,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 
 				containers = instantiatePathChildrenCache(client, Paths.CONTAINERS);
 				containers.getListenable().addListener(containerListener);
-				containers.start();
+				containers.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
 				Thread.sleep(Long.MAX_VALUE);
 			}

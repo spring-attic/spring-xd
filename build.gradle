@@ -121,7 +121,7 @@ ext {
 	springCloudVersion = '0.9.2'
 	springDataCommonsVersion = '1.8.0.RELEASE'
 	springDataGemfireVersion = '1.4.0.RELEASE'
-	springDataHadoopBase = '2.0.0.RC4'
+	springDataHadoopBase = '2.0.0.RELEASE'
 	springDataHadoopVersion = "${springDataHadoopBase}"
 	springDataMongoVersion = '1.5.0.RELEASE'
 	springDataRedisVersion = '1.2.1.RELEASE'

@@ -10,8 +10,7 @@
 	<context:component-scan base-package="org.springframework.xd.shell" />
 
 	<hadoop:configuration>
-		fs.default.name=
-		mapred.job.tracker=
+		fs.defaultFS=
 	</hadoop:configuration>
 
 </beans>

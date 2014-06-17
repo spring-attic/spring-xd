@@ -99,12 +99,6 @@ public class ConfigurationCommands implements ApplicationEventPublisherAware, Co
 		FileSystem.setDefaultUri(hadoopConfiguration, namenode);
 	}
 
-	@CliCommand(value = { PREFIX + "jt" }, help = "Sets the Hadoop job tracker")
-	public void setJt(
-			@CliOption(key = { "", "jobtracker" }, mandatory = true, help = "job tracker address - can be local|<jobtracker:port>") String jobtracker) {
-		hadoopConfiguration.set("mapred.job.tracker", jobtracker);
-	}
-
 	@CliCommand(value = { PREFIX + "info" }, help = "Returns basic info about the Hadoop configuration")
 	public String info() {
 		StringBuilder sb = new StringBuilder();
@@ -115,16 +109,9 @@ public class ConfigurationCommands implements ApplicationEventPublisherAware, Co
 		sb.append("]");
 
 		sb.append("[fs=");
-		String fs = hadoopConfiguration.get("fs.default.name");
+		String fs = hadoopConfiguration.get("fs.defaultFS");
 		if (fs != null && fs.length() > 0) {
 			sb.append(fs);
-		}
-		sb.append("]");
-
-		sb.append("[jt=");
-		String jt = hadoopConfiguration.get("mapred.job.tracker");
-		if (jt != null && jt.length() > 0) {
-			sb.append(jt);
 		}
 		sb.append("]");
 

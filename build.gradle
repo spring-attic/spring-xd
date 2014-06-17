@@ -139,11 +139,8 @@ ext {
 	zookeeperVersion = '3.4.6'
 
 	// Hadoop Versions
-	hadoop12Version = '1.2.1'
 	hadoop22Version = '2.2.0'
-	cdh4Version = '2.0.0-cdh4.6.0'
 	cdh5Version = '2.3.0-cdh5.0.0'
-	hdp13Version = '1.2.0'
 	hdp21Version = '2.4.0'
 	phd1Version = '2.0.5-alpha-gphd-2.1.0.0'
 	phd20Version = '2.2.0-gphd-3.0.1.0'
@@ -748,29 +745,6 @@ project('spring-xd-hadoop') {
 	}
 }
 
-project('spring-xd-hadoop:hadoop12') {
-	description = 'Hadoop 1.2.x dependencies'
-	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop12") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop12") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.apache.hadoop:hadoop-core:$hadoop12Version")
-		runtime ("org.apache.hadoop:hadoop-client:$hadoop12Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop12Version")
-		runtime ("org.apache.hadoop:hadoop-tools:$hadoop12Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'spring-data-hadoop-*'
-		include 'hadoop-*'
-		include 'jetty-util-*'
-	}
-}
-
 project('spring-xd-hadoop:hadoop22') {
 	description = 'Hadoop 2.2.x dependencies'
 	dependencies {
@@ -787,34 +761,6 @@ project('spring-xd-hadoop:hadoop22') {
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop22Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop22Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop22Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'spring-data-hadoop-*'
-		include 'hadoop-*'
-		include 'avro-*'
-		include 'protobuf-java-*'
-		include 'jetty-util-*'
-	}
-}
-
-project('spring-xd-hadoop:cdh4') {
-	description = 'Cloudera CDH 4 dependencies'
-	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-cdh4") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-cdh4") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.apache.hadoop:hadoop-common:$cdh4Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$cdh4Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$cdh4Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$cdh4Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$cdh4Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$cdh4Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$cdh4Version")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -851,29 +797,6 @@ project('spring-xd-hadoop:cdh5') {
 		include 'hadoop-*'
 		include 'avro-*'
 		include 'protobuf-java-*'
-		include 'jetty-util-*'
-	}
-}
-
-project('spring-xd-hadoop:hdp13') {
-	description = 'Hortonworks HDP 1.3 dependencies'
-	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop12") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop12") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.apache.hadoop:hadoop-core:$hdp13Version")
-		runtime ("org.apache.hadoop:hadoop-client:$hdp13Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hdp13Version")
-		runtime ("org.apache.hadoop:hadoop-tools:$hdp13Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'spring-data-hadoop-*'
-		include 'hadoop-*'
 		include 'jetty-util-*'
 	}
 }
@@ -1687,21 +1610,15 @@ task copyXDShellInstall(type: Copy, dependsOn: [
 }
 
 task copyHadoopLibs(dependsOn: [
-	":spring-xd-hadoop:hadoop12:copyToLib",
 	":spring-xd-hadoop:hadoop22:copyToLib",
-	":spring-xd-hadoop:cdh4:copyToLib",
 	":spring-xd-hadoop:cdh5:copyToLib",
-	":spring-xd-hadoop:hdp13:copyToLib",
 	":spring-xd-hadoop:hdp21:copyToLib",
 	":spring-xd-hadoop:phd1:copyToLib",
 	":spring-xd-hadoop:phd20:copyToLib"
 ]) << {
 	[
-		'hadoop12',
 		'hadoop22',
-		'cdh4',
 		'cdh5',
-		'hdp13',
 		'hdp21',
 		'phd1',
 		'phd20'

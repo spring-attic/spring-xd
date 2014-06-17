@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
  * Test fixture that creates a Transform.
  * @author Glenn Renfro
  */
-public class Transform extends AbstractModuleFixture {
+public class Transform extends AbstractModuleFixture<Transform> {
 
 	private String expression;
 
@@ -31,19 +31,13 @@ public class Transform extends AbstractModuleFixture {
 
 	private String properties;
 
-	private String label;
-
 	/**
 	 * Renders the default DSL for this fixture.
 	 */
 	@Override
 	protected String toDSL() {
 		StringBuilder dsl = new StringBuilder();
-		if (label != null) {
-			dsl.append(" ");
-			dsl.append(label);
-			dsl.append(": ");
-		}
+		dsl.append(getDslLabel());
 
 		dsl.append("transform");
 
@@ -74,7 +68,7 @@ public class Transform extends AbstractModuleFixture {
 	}
 
 	/**
-	 Sets the groovy script the user wants to transform the input.
+	 * Sets the groovy script the user wants to transform the input.
 	 * @param The file where the groovy script is located.
 	 * @return current instance of the transform fixture.
 	 */
@@ -92,17 +86,6 @@ public class Transform extends AbstractModuleFixture {
 	public Transform properties(String properties) {
 		Assert.hasText(properties, "properties can not be empty nor null");
 		this.properties = properties;
-		return this;
-	}
-
-	/**
-	 * Sets the label for this instance of transform
-	 * @param label The label to be used by this transform.
-	 * @return current instance of the transform fixture
-	 */
-	public Transform label(String label) {
-		Assert.hasText(label, "label can not be empty nor null");
-		this.label = label;
 		return this;
 	}
 

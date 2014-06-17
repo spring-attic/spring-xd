@@ -31,7 +31,7 @@ import com.mongodb.DBObject;
  *
  * @author Glenn Renfro
  */
-public class HdfsMongoDbJob extends AbstractModuleFixture {
+public class HdfsMongoDbJob extends AbstractModuleFixture<HdfsMongoDbJob> {
 
 	public final static String DEFAULT_DIRECTORY = "/xd/hdfsmongodbtest";
 
@@ -200,11 +200,11 @@ public class HdfsMongoDbJob extends AbstractModuleFixture {
 	}
 
 	/**
-	 * Returns a single object from the collection
-	 * @param collectionName The name of the collection to query
+	 * Returns a single object from the collection.
 	 * 
+	 * @param collectionName the name of the collection to query
 	 * @return A Map with the content of the result
-	 * @throws IllegalStateException if the number of objects in the collection is not 
+	 * @throws IllegalStateException if the number of objects in the collection is not one
 	 */
 	@SuppressWarnings("unchecked")
 	public Map<String, String> getSingleObject(String collectionName) {
@@ -213,7 +213,7 @@ public class HdfsMongoDbJob extends AbstractModuleFixture {
 			throw new IllegalStateException("Expected only one result but received " + cursor.count() + " entries");
 		}
 		DBObject dbObject = mongoTemplate.getCollection(collectionName).findOne();
-		Map result = null;
+		Map<String, String> result = null;
 		if (dbObject != null) {
 			result = dbObject.toMap();
 		}

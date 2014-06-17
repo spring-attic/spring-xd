@@ -31,7 +31,7 @@ import org.springframework.xd.test.fixtures.AvailableSocketPorts;
  * 
  * @author Eric Bottard
  */
-public class HttpSource extends AbstractModuleFixture {
+public class HttpSource extends AbstractModuleFixture<HttpSource> {
 
 	private int port;
 

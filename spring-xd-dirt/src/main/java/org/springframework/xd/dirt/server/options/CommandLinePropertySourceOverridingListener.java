@@ -29,6 +29,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.SimpleCommandLinePropertySource;
@@ -46,6 +47,8 @@ public class CommandLinePropertySourceOverridingListener<T extends CommonOptions
 
 	private T options;
 
+	private static ThreadLocal<Environment> environmentHolder = new ThreadLocal<Environment>();
+
 	public CommandLinePropertySourceOverridingListener(T options) {
 		super();
 		this.options = options;
@@ -60,8 +63,10 @@ public class CommandLinePropertySourceOverridingListener<T extends CommonOptions
 				event.getEnvironment().getPropertySources().addFirst(new SimpleCommandLinePropertySource());
 			}
 		}
-		CmdLineParser parser = new CmdLineParser(options);
+		CmdLineParser parser = null;
 		try {
+			environmentHolder.set(event.getEnvironment());
+			parser = new CmdLineParser(options);
 			parser.parseArgument(event.getArgs());
 			if (TRUE.equals(options.isShowHelp())) {
 				System.err.println("Usage:");
@@ -75,6 +80,9 @@ public class CommandLinePropertySourceOverridingListener<T extends CommonOptions
 			System.err.println("Usage:");
 			parser.printUsage(System.err);
 			System.exit(1);
+		}
+		finally {
+			environmentHolder.set(null);
 		}
 
 		final EnumerablePropertySource<T> ps = new BeanPropertiesPropertySource<T>(COMMAND_LINE_PROPERTY_SOURCE_NAME,
@@ -93,6 +101,10 @@ public class CommandLinePropertySourceOverridingListener<T extends CommonOptions
 		event.getEnvironment().getPropertySources().replace(COMMAND_LINE_PROPERTY_SOURCE_NAME,
 				new MapPropertySource(COMMAND_LINE_PROPERTY_SOURCE_NAME, map));
 
+	}
+
+	/*default*/static Environment getCurrentEnvironment() {
+		return environmentHolder.get();
 	}
 
 }

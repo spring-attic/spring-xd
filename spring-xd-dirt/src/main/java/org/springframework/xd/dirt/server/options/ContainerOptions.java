@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.server.options;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.HadoopDistroOptionHandler;
 
 /**
  * Holds configuration options that are valid for the Container node, when using distributed mode.
@@ -30,19 +31,21 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties
 public class ContainerOptions extends CommonDistributedOptions {
 
-	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
-	private HadoopDistro distro = DEFAULT_HADOOP_DISTRO;
+	/* This is also used in SingleNodeOptions. */
+	/*default*/static final String DEFAULT_HADOOP_DISTRO = "hadoop22";
+
+	@Option(name = "--hadoopDistro", handler = HadoopDistroOptionHandler.class,
+			usage = "The Hadoop distribution to be used for HDFS access")
+	private String distro = DEFAULT_HADOOP_DISTRO;
 
 	@Option(name = "--groups", usage = "The group memberships for this container as a comma delimited string")
 	private String groups;
 
-	public static final HadoopDistro DEFAULT_HADOOP_DISTRO = HadoopDistro.hadoop22;
-
-	public void setHADOOP_DISTRO(HadoopDistro distro) {
+	public void setHADOOP_DISTRO(String distro) {
 		this.distro = distro;
 	}
 
-	public HadoopDistro getHADOOP_DISTRO() {
+	public String getHADOOP_DISTRO() {
 		return this.distro;
 	}
 

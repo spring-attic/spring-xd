@@ -41,7 +41,7 @@ public class FtpHdfsJobOptionsMetadata {
 	private long partitionResultsTimeout = 300000;
 
 
-    public String getHost() {
+	public String getHost() {
 		return host;
 	}
 

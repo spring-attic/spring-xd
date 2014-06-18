@@ -19,7 +19,12 @@ package org.springframework.xd.jdbc;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME;
 
 import org.springframework.xd.jdbc.ResourcesIntoJdbcJobModuleOptionsMetadata.JobImportToJdbcMixin;
-import org.springframework.xd.module.options.mixins.*;
+import org.springframework.xd.module.options.mixins.BatchJobDeleteFilesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
+import org.springframework.xd.module.options.mixins.HadoopConfigurationMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 
 /**

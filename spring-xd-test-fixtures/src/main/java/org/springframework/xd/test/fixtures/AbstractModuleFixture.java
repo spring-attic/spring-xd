@@ -53,21 +53,4 @@ public abstract class AbstractModuleFixture<F extends AbstractModuleFixture<F>> 
 		return (F) this;
 	}
 
-	/**
-	 * Used to create the start of the DSL for the fixture.  It returns the label to use for 
-	 * the module if the label of the fixture has been set, otherwise returns an empty string.  
-	 * Labels are a name followed by a colon and come before the module definition.
-	 * {@code http | obfuscator: transform --expression=payload.replaceAll('password','*') | file}
-	 * 
-	 * @return Label or empty string to use when creating the DSL for the fixture.
-	 */
-	public String getDslLabel() {
-		String dsl = "";
-		if (label != null) {
-			dsl += label + ": ";
-		}
-		return dsl;
-	}
-
-
 }

@@ -17,6 +17,7 @@
 package org.springframework.xd.test.fixtures;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.test.fixtures.util.FixtureUtils;
 
 
 /**
@@ -37,7 +38,7 @@ public class Transform extends AbstractModuleFixture<Transform> {
 	@Override
 	protected String toDSL() {
 		StringBuilder dsl = new StringBuilder();
-		dsl.append(getDslLabel());
+		dsl.append(FixtureUtils.labelOrEmpty(label));
 
 		dsl.append("transform");
 

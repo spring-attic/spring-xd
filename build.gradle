@@ -1573,19 +1573,44 @@ task launch {
 	dependsOn 'spring-xd-dirt:run'
 }
 
+def dirtJars = []
+def loadDirtJars = {
+		if (dirtJars.size == 0) {
+			File dirtLib = new File("$rootDir/spring-xd-dirt/build/install/spring-xd-dirt/lib")
+			dirtLib.traverse { jar -> dirtJars << jar.name }
+		}
+		dirtJars
+}
+
 task copyRedisInstall(type: Copy, dependsOn: ":redis:bundleRedis") {
 	from "$rootDir/redis/build"
 	into "$buildDir/dist/spring-xd/redis"
 }
 
-task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:installApp") {
+task copyGemfireInstall(type: Copy, dependsOn: [
+	":spring-xd-gemfire-server:installApp",
+	"copyXDInstall"
+]) {
 	from "$rootDir/spring-xd-gemfire-server/build/install/spring-xd-gemfire-server"
 	into "$buildDir/dist/spring-xd/gemfire"
+	//exclude any jars already in xd/lib
+	exclude {jar ->
+		loadDirtJars()
+		dirtJars.contains(jar.name)
+	}
 }
 
-task copyBatchInstall(type: Copy, dependsOn: ":spring-xd-batch:installApp") {
+task copyBatchInstall(type: Copy, dependsOn: [
+":spring-xd-batch:installApp",
+"copyXDInstall"
+]) {
 	from "$rootDir/spring-xd-batch/build/install/spring-xd-batch"
 	into "$buildDir/dist/spring-xd/hsqldb"
+	//exclude any jars already in xd/lib
+	exclude {jar ->
+		loadDirtJars()
+		dirtJars.contains(jar.name)
+	}
 }
 
 task copyXDInstall(type: Copy, dependsOn: [
@@ -1601,6 +1626,7 @@ task copyXDInstall(type: Copy, dependsOn: [
 }
 
 task copyXDShellInstall(type: Copy, dependsOn: [
+	"copyXDInstall",
 	":spring-xd-shell:installApp"
 ]) {
 	from "$rootDir/spring-xd-shell/build/install/spring-xd-shell"
@@ -1608,6 +1634,11 @@ task copyXDShellInstall(type: Copy, dependsOn: [
 	exclude "**/lib/hadoop-*.jar"
 	exclude "**/lib/protobuf-java-*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
+	//exclude any jars already in xd/lib
+	exclude {jar ->
+		loadDirtJars()
+		dirtJars.contains(jar.name)
+	}
 }
 
 task copyHadoopLibs(dependsOn: [
@@ -1628,10 +1659,6 @@ task copyHadoopLibs(dependsOn: [
 			from "$rootDir/spring-xd-hadoop/$distro/build/lib"
 			into "$buildDir/dist/spring-xd/xd/lib/$distro"
 		}
-		copy {
-			from "$rootDir/spring-xd-hadoop/$distro/build/lib"
-			into "$buildDir/dist/spring-xd/shell/lib/$distro"
-		}
 	}
 }
 
@@ -1648,7 +1675,7 @@ task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-x
     exclude "**/lib/log4j-*.jar"
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyBatchInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall"]) {
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"

@@ -71,9 +71,15 @@ set CMD_LINE_ARGS=%$
 @rem Setup the command line
 
 set CLASSPATH=!CLASSPATH!;%APP_HOME%\lib\*
+@rem add xd/lib to CLASSPATH
+set XD_LIB=%APP_HOME%\..\xd\lib
+if exist "%XD_LIB%" (
+	setLocal EnableDelayedExpansion
+    set CLASSPATH=!CLASSPATH!;%XD_LIB%\*
+)
 
 @rem Execute gemfire-server
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dlog4j.configuration=file:///%APP_HOME%/config/gemfire-cacheserver-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.gemfire.CacheServer %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dlog4j.configuration=file:///"%APP_HOME%"/config/gemfire-cacheserver-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.gemfire.CacheServer %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

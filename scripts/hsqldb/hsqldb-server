@@ -65,12 +65,17 @@ cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 
-APP_HOME_LIB=$APP_HOME/lib
-if [ -d "$APP_HOME_LIB" ]; then
-    for i in "$APP_HOME_LIB"/*.jar; do
-        CLASSPATH="$CLASSPATH":"$i"
-    done
-fi
+addJarsToClassPath( ) {
+    if [ -d $1 ]; then
+        for jar in "$1"/*.jar; do
+            CLASSPATH="$CLASSPATH":"$jar"
+        done
+    fi
+}
+
+XD_LIB=$APP_HOME/../xd/lib
+addJarsToClassPath $XD_LIB
+addJarsToClassPath $APP_HOME/lib
 
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then

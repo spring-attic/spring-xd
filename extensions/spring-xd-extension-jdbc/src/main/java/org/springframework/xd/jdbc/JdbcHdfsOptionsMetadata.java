@@ -34,8 +34,10 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  * @author Thomas Risberg
+ * @author Glenn Renfro
  */
-@Mixin({ JdbcConnectionMixin.class, BatchJobRestartableOptionMixin.class, BatchJobFieldDelimiterOptionMixin.class, HadoopConfigurationMixin.class })
+@Mixin({ JdbcConnectionMixin.class, JdbcConnectionPoolMixin.class, BatchJobRestartableOptionMixin.class,
+	BatchJobFieldDelimiterOptionMixin.class, HadoopConfigurationMixin.class })
 public class JdbcHdfsOptionsMetadata {
 
 	private String tableName = "";

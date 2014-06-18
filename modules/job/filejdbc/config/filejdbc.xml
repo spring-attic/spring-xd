@@ -47,7 +47,32 @@
 		<property name="url" value="${url}"/>
 		<property name="username" value="${username}"/>
 		<property name="password" value="${password}"/>
-		<property name="initialSize" value="0" />
+		<property name="initialSize" value="${initialSize}" />
+		<property name="maxActive" value="${maxActive}" />
+		<property name="maxIdle" value="${maxIdle}" />
+		<property name="minIdle" value="${minIdle}"/>
+		<property name="maxWait" value="${maxWait}"/>
+		<property name="testOnBorrow" value="${testOnBorrow}"/>
+		<property name="testOnReturn" value="${testOnReturn}"/>
+		<property name="testWhileIdle" value="${testWhileIdle}"/>
+		<property name="validationQuery" value="${validationQuery:#{null}}"/>
+		<property name="timeBetweenEvictionRunsMillis" value="${timeBetweenEvictionRunsMillis}"/>
+		<property name="minEvictableIdleTimeMillis" value="${minEvictableIdleTimeMillis}"/>
+		<property name="removeAbandoned" value="${removeAbandoned}"/>
+		<property name="removeAbandonedTimeout" value="${removeAbandonedTimeout}"/>
+		<property name="logAbandoned" value="${logAbandoned}"/>
+		<property name="validationInterval" value="${validationInterval}"/>
+		<property name="jmxEnabled" value="${jmxEnabled}"/>
+		<property name="fairQueue" value="${fairQueue}"/>
+		<property name="abandonWhenPercentageFull" value="${abandonWhenPercentageFull}"/>
+		<property name="maxAge" value="${maxAge}"/>
+		<property name="useEquals" value="${useEquals}"/>
+		<property name="suspectTimeout" value="${suspectTimeout}"/>
+		<property name="alternateUsernameAllowed" value="${alternateUsernameAllowed}"/>
+		<property name="validatorClassName" value="${validatorClassName:#{null}}"/>
+		<property name="connectionProperties" value="${connectionProperties:#{null}}"/>
+ 		<property name="initSQL" value="${initSQL:#{null}}"/>
+ 		<property name="jdbcInterceptors" value="${jdbcInterceptors:#{null}}"/>
 	</bean>
 
 	<bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer">

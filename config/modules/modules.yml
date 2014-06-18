@@ -33,3 +33,32 @@
 #  vhost: /
 
 ---
+
+#Connection Pool Settings
+#spring:
+#  datasource:
+#    testOnBorrow: true
+#    validationInterval: 30000
+#    maxActive: 100
+#    maxIdle: 100
+#    minIdle: 10
+#    initialSize: 0
+#    maxWait: 30000
+#    testOnReturn: false
+#    testWhileIdle: false
+#    timeBetweenEvictionRunsMillis: 5000
+#    minEvictableIdleTimeMillis: 60000
+#    removeAbandoned: false
+#    removeAbandonedTimeout: 60
+#    logAbandoned: false
+#Tomcat JDBC Enhanced Attributes
+#    validationInterval: 30000
+#    jmxEnabled: true
+#    fairQueue: true
+#    abandonWhenPercentageFull: 0
+#    maxAge: 0
+#    useEquals: true
+#    suspectTimeout: 0
+#    alternateUsernameAllowed: false
+
+---

@@ -44,16 +44,11 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	private static Log logger = LogFactory.getLog(XdConfigLoggingInitializer.class);
 
-	protected Environment environment;
+	protected ConfigurableEnvironment environment;
 
 	private final boolean isContainer;
 
 	private static final String HADOOP_DISTRO_OPTION = "${HADOOP_DISTRO}";
-
-	private static final String ZK_CONNECT_OPTION = "${" + SharedServerContextConfiguration.ZK_CONNECT + "}";
-
-	private static final String EMBEDDED_ZK_CONNECT_OPTION = "${"
-			+ SharedServerContextConfiguration.EMBEDDED_ZK_CONNECT + "}";
 
 	public XdConfigLoggingInitializer(boolean isContainer) {
 		this.isContainer = isContainer;
@@ -61,18 +56,21 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	@Override
 	public void setEnvironment(Environment environment) {
-		this.environment = environment;
+		this.environment = (ConfigurableEnvironment) environment;
 	}
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		logger.info("XD Home: " + environment.resolvePlaceholders("${XD_HOME}"));
+		logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
 		if (isContainer) {
-			logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
 			logHadoopDistro();
 		}
 		logZkConnectString();
 		logger.info("Analytics: " + environment.resolvePlaceholders("${XD_ANALYTICS}"));
+		if ("true".equals(environment.getProperty("verbose"))) {
+			logAllProperties();
+		}
 	}
 
 	private void logHadoopDistro() {
@@ -82,21 +80,21 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	}
 
 	private void logZkConnectString() {
-		String zkConnectString = environment.resolvePlaceholders(ZK_CONNECT_OPTION);
-		String embeddedZkConnectString = environment.resolvePlaceholders(EMBEDDED_ZK_CONNECT_OPTION);
-		String connectString = (!StringUtils.hasText(zkConnectString) && StringUtils.hasText(embeddedZkConnectString)) ? embeddedZkConnectString
-				: zkConnectString;
-		logger.info("Zookeeper at: " + connectString);
-		if ("true".equals(environment.getProperty("verbose"))) {
-			logAllProperties();
+		PropertySource<?> zkPropertySource = environment.getPropertySources().get(
+				SharedServerContextConfiguration.ZK_PROPERTIES_SOURCE);
+		if (zkPropertySource != null) {
+			String zkConnectString = (String) zkPropertySource.getProperty(SharedServerContextConfiguration.ZK_CONNECT);
+			String embeddedZkConnectString = (String) zkPropertySource.getProperty(SharedServerContextConfiguration.EMBEDDED_ZK_CONNECT);
+			String connectString = (!StringUtils.hasText(zkConnectString) && StringUtils.hasText(embeddedZkConnectString)) ? embeddedZkConnectString
+					: zkConnectString;
+			logger.info("Zookeeper at: " + connectString);
 		}
 	}
 
 	private void logAllProperties() {
 		Set<String> propertyNames = new TreeSet<String>();
 
-		ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
-		for (PropertySource<?> ps : env.getPropertySources()) {
+		for (PropertySource<?> ps : this.environment.getPropertySources()) {
 			if (ps instanceof EnumerablePropertySource) {
 				EnumerablePropertySource<?> eps = (EnumerablePropertySource<?>) ps;
 				propertyNames.addAll(Arrays.asList(eps.getPropertyNames()));

@@ -60,6 +60,8 @@ public class SharedServerContextConfiguration {
 
 	public static final String EMBEDDED_ZK_CONNECT = "zk.embedded.client.connect";
 
+	public static final String ZK_PROPERTIES_SOURCE = "zk-properties";
+
 	@Configuration
 	@Profile(XdProfiles.SINGLENODE_PROFILE)
 	static class SingleNodeZooKeeperConfig extends ZookeeperConnectionConfig {
@@ -136,7 +138,8 @@ public class SharedServerContextConfiguration {
 			else {
 				zkProperties.put(ZK_CONNECT, zkClientConnect);
 			}
-			this.environment.getPropertySources().addFirst(new PropertiesPropertySource("zk-properties", zkProperties));
+			this.environment.getPropertySources().addFirst(
+					new PropertiesPropertySource(ZK_PROPERTIES_SOURCE, zkProperties));
 			ZooKeeperConnection zooKeeperConnection = new ZooKeeperConnection(zkClientConnect);
 
 			zooKeeperConnection.setAutoStartup(!zkConnectionConfigured);

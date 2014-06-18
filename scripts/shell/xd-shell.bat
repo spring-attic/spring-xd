@@ -92,11 +92,18 @@ for %%a in (%CMD_LINE_ARGS%) do (
 )
 set CMD_LINE_ARGS=!NEW_CMD_LINE_ARGS!
 set APP_HOME_LIB=%APP_HOME%\lib
+
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set CLASSPATH=%APP_HOME%\config
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
-    set HADOOP_LIB=%APP_HOME%\lib\!HADOOP_DISTRO!
+)
+
+@rem add xd/lib to CLASSPATH
+set XD_LIB=%APP_HOME%\..\xd\lib
+if exist "%XD_LIB%" (
+    set CLASSPATH=!CLASSPATH!;%XD_LIB%\*
+    set HADOOP_LIB=%XD_LIB%\!HADOOP_DISTRO!
     if exist "!HADOOP_LIB!" (
         set CLASSPATH=!CLASSPATH!;!HADOOP_LIB!\*
     )

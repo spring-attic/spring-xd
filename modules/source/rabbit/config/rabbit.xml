@@ -35,8 +35,9 @@
 
 	<int:channel id="output" />
 
-	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host}"
-		port="${port}" virtual-host="${vhost}"
+	<rabbit:connection-factory id="rabbitConnectionFactory"
+		addresses="${addresses}"
+		virtual-host="${vhost}"
 		username="${username}" password="${password}" />
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">

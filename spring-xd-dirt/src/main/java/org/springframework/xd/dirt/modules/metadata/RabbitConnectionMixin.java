@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Factors out options for the typical connection setup to RabbitMQ.
  * 
  * @author Eric Bottard
+ * @author Gary Russell
  */
 public class RabbitConnectionMixin {
 
@@ -37,6 +38,8 @@ public class RabbitConnectionMixin {
 	private String username = "guest";
 
 	private String password = "guest";
+
+	private String addresses;
 
 	@NotBlank
 	public String getUsername() {
@@ -76,6 +79,20 @@ public class RabbitConnectionMixin {
 	@ModuleOption("the port to connect to")
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	public String getAddresses() {
+		if (this.addresses == null) {
+			return this.host + ":" + this.port;
+		}
+		else {
+			return this.addresses;
+		}
+	}
+
+	@ModuleOption("the list of 'host:port' addresses; comma separated - overrides host, port")
+	public void setAddresses(String addresses) {
+		this.addresses = addresses;
 	}
 
 	public String getVhost() {

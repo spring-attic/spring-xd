@@ -91,6 +91,9 @@ public abstract class ResourcePatternScanningOptionHandler extends OptionHandler
 
 		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 		for (Resource r : resolver.getResources(glob)) {
+			if (!shouldConsider(r)) {
+				continue;
+			}
 			String path = r.getURL().toString();
 			Matcher matcher = capturing.matcher(path);
 			if (!matcher.matches()) {
@@ -100,6 +103,14 @@ public abstract class ResourcePatternScanningOptionHandler extends OptionHandler
 			possibleValues.add(matcher.group(1));
 		}
 
+	}
+
+	/**
+	 * Whether the matched Spring resource should even be considered for inclusion in the result set.
+	 * Default implementation just returns true. 
+	 */
+	protected boolean shouldConsider(Resource r) {
+		return true;
 	}
 
 	protected void exclude(String... excludes) {

@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.HadoopDistroOptionHandler;
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeAnalyticsOptionHandler;
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeDataTransportOptionHandler;
 
@@ -45,8 +46,9 @@ public class SingleNodeOptions extends CommonOptions {
 	@Option(name = "--httpPort", usage = "HTTP port for the REST API server", metaVar = "<httpPort>")
 	private Integer httpPort;
 
-	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
-	private HadoopDistro distro = ContainerOptions.DEFAULT_HADOOP_DISTRO;
+	@Option(name = "--hadoopDistro", handler = HadoopDistroOptionHandler.class,
+			usage = "The Hadoop distribution to be used for HDFS access")
+	private String distro = ContainerOptions.DEFAULT_HADOOP_DISTRO;
 
 	public Integer getPORT() {
 		return httpPort;
@@ -74,11 +76,11 @@ public class SingleNodeOptions extends CommonOptions {
 		this.transport = transport;
 	}
 
-	public void setHADOOP_DISTRO(HadoopDistro distro) {
+	public void setHADOOP_DISTRO(String distro) {
 		this.distro = distro;
 	}
 
-	public HadoopDistro getHADOOP_DISTRO() {
+	public String getHADOOP_DISTRO() {
 		return this.distro;
 	}
 }

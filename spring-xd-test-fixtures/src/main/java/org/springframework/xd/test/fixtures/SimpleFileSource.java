@@ -17,6 +17,7 @@
 package org.springframework.xd.test.fixtures;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.test.fixtures.util.FixtureUtils;
 
 
 /**
@@ -64,7 +65,7 @@ public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 	 */
 	@Override
 	protected String toDSL() {
-		String dsl = getDslLabel();
+		String dsl = FixtureUtils.labelOrEmpty(label);
 		dsl += String.format("file --dir=%s --pattern='%s' --ref=%s", dir, fileName, reference);
 		return dsl;
 	}

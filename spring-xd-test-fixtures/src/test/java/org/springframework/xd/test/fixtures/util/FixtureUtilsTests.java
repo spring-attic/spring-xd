@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.test.fixtures;
+package org.springframework.xd.test.fixtures.util;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 
 /**
- * Base class for named channel fixtures that can be incorporated in a stream definition by calling their {@link #toString()} method.
- * 
+ * Unit tests for FixtureUtils.
  * @author Glenn Renfro
  */
-public abstract class AbstractNamedChannel<F extends AbstractNamedChannel<F>> {
-
-	@Override
-	public final String toString() {
-		return toDSL();
-	}
+public class FixtureUtilsTests {
 
 	/**
-	 * Returns a representation of the named channel suitable for inclusion in a stream definition, <i>e.g.</i>
-	 * {@code tap:stream:streamname.label}
+	 * Test method for {@link org.springframework.xd.test.fixtures.util.FixtureUtils#labelOrEmpty(java.lang.String)}.
 	 */
-	protected abstract String toDSL();
+	@Test
+	public void testLabelOrEmpty() {
+		assertEquals("", FixtureUtils.labelOrEmpty(""));
+		assertEquals("", FixtureUtils.labelOrEmpty(null));
+		assertEquals("BAR:", FixtureUtils.labelOrEmpty("BAR"));
+
+	}
+
 }

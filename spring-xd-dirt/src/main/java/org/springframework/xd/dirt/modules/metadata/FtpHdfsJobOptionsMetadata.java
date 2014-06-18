@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import org.springframework.xd.module.options.mixins.HadoopConfigurationMixin;
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 
@@ -23,7 +25,9 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Describes the options for the ftphdfs job.
  *
  * @author Gary Russell
+ * @author Thomas Risberg
  */
+@Mixin({ HadoopConfigurationMixin.class })
 public class FtpHdfsJobOptionsMetadata {
 
 	private String host;
@@ -36,7 +40,8 @@ public class FtpHdfsJobOptionsMetadata {
 
 	private long partitionResultsTimeout = 300000;
 
-	public String getHost() {
+
+    public String getHost() {
 		return host;
 	}
 
@@ -71,7 +76,6 @@ public class FtpHdfsJobOptionsMetadata {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
 
 	public long getPartitionResultsTimeout() {
 		return partitionResultsTimeout;

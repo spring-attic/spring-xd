@@ -52,7 +52,7 @@
 	</bean>
 
 	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">
-		fs.defaultFS=${spring.hadoop.fsUri}
+		fs.defaultFS=${fsUri}
 	</hdp:configuration>
 	<hdp:resource-loader id="hadoopResourceLoader"/>
 

@@ -16,11 +16,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
-import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
-import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
-import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
-import org.springframework.xd.module.options.mixins.IntoMongoDbOptionMixin;
+import org.springframework.xd.module.options.mixins.*;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
@@ -29,9 +25,10 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Options for Hdfs to Mongodb export job module.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author Thomas Risberg
  */
 @Mixin({ BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class, BatchJobFieldNamesOptionMixin.class,
-	BatchJobFieldDelimiterOptionMixin.class, IntoMongoDbOptionMixin.Job.class })
+	BatchJobFieldDelimiterOptionMixin.class, IntoMongoDbOptionMixin.Job.class, HadoopConfigurationMixin.class })
 public class HdfsMongodbJobOptionsMetadata {
 
 	private String idField;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,7 @@ package org.springframework.xd.jdbc;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME;
 
 import org.springframework.xd.jdbc.ResourcesIntoJdbcJobModuleOptionsMetadata.JobImportToJdbcMixin;
-import org.springframework.xd.module.options.mixins.BatchJobDeleteFilesOptionMixin;
-import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
-import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
-import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
-import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
+import org.springframework.xd.module.options.mixins.*;
 import org.springframework.xd.module.options.spi.Mixin;
 
 /**
@@ -33,10 +29,11 @@ import org.springframework.xd.module.options.spi.Mixin;
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  * @author Michael Minella
+ * @author Thomas Risberg
  */
 @Mixin({ JdbcConnectionMixin.class, BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class,
 	BatchJobDeleteFilesOptionMixin.class, BatchJobFieldNamesOptionMixin.class, BatchJobFieldDelimiterOptionMixin.class,
-	JobImportToJdbcMixin.class })
+	JobImportToJdbcMixin.class, HadoopConfigurationMixin.class })
 public class ResourcesIntoJdbcJobModuleOptionsMetadata {
 
 	public static class JobImportToJdbcMixin extends AbstractImportToJdbcOptionsMetadata {

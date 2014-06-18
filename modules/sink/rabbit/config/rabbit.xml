@@ -23,9 +23,10 @@
 		connection-factory="rabbitConnectionFactory"
 		message-converter="messageConverter" />
 
-	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host}"
-		port="${port}" virtual-host="${vhost}"
-		username="${username}" password="${password}"/>
+	<rabbit:connection-factory id="rabbitConnectionFactory"
+		addresses="${addresses}"
+		virtual-host="${vhost}"
+		username="${username}" password="${password}" />
 
 	<bean id="messageConverter" class="${converterClass}" />
 

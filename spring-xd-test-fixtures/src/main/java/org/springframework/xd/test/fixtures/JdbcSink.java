@@ -46,6 +46,10 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 
 	private String columns;
 
+	private boolean testOnBorrow;
+
+	private String validationQuery;
+
 	private volatile DataSource dataSource;
 
 	/**
@@ -81,6 +85,13 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 		if (columns != null) {
 			dsl.append(" --columns=" + columns);
 		}
+		if (testOnBorrow) {
+			dsl.append(" --testOnBorrow=" + testOnBorrow);
+		}
+		if (validationQuery != null) {
+			dsl.append(" --validationQuery='" + validationQuery + "'");
+		}
+
 		return dsl.toString();
 	}
 
@@ -113,6 +124,7 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 		return this;
 	}
 
+
 	/**
 	 * allows a user to set the columns (comma delimited list) that the sink will write its results to.
 	 *
@@ -120,10 +132,33 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 	 * @return an instance to this jdbc sink.
 	 */
 	public JdbcSink columns(String columns) {
+		Assert.hasText(columns, "columns must not be empty nor null");
 		this.columns = columns;
 		return this;
 	}
 
+	/**
+	 * allows a user establish that a connection will be validated before being borrowed from the pool.
+	 *
+	 * @param testOnBorrow a boolean .
+	 * @return an instance to this jdbc sink.
+	 */
+	public JdbcSink testOnBorrow(boolean testOnBorrow) {
+		this.testOnBorrow = testOnBorrow;
+		return this;
+	}
+
+	/**
+	 * allows a user to set the validation query that will be used verify a connection before it is borrowed from the pool.
+	 *
+	 * @param validationQuery a sql query to be used to verify the db connection.
+	 * @return an instance to this jdbc sink.
+	 */
+	public JdbcSink validationQuery(String validationQuery) {
+		Assert.hasText(validationQuery, "validationQuery must not be empty nor null");
+		this.validationQuery = validationQuery;
+		return this;
+	}
 
 	/**
 	 * Determines if a connection to the designated database can be made.

@@ -35,6 +35,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  * 
  * @author Eric Bottard
  * @author Florent Biville
+ * @author Glenn Renfro
  */
 public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 
@@ -70,6 +71,24 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 		String query = String.format("SELECT payload FROM %s", streamName);
 		List<String> result = jdbcSink.getJdbcTemplate().queryForList(query, String.class);
 		assertThat(result, contains("Hi there!", "How are you?"));
+	}
+
+	@Test
+	public void testJdbcSinkTestOnBorrow() throws Exception {
+		JdbcSink jdbcSink = newJdbcSink().testOnBorrow(true).validationQuery(
+				"select 1 from INFORMATION_SCHEMA.SYSTEM_USERS");
+
+		HttpSource httpSource = newHttpSource();
+
+
+		String streamName = generateStreamName().replaceAll("-", "_");
+		stream().create(streamName, "%s | %s", httpSource, jdbcSink);
+		httpSource.ensureReady().postData("Hi there!");
+
+		String query = String.format("SELECT payload FROM %s", streamName);
+		assertEquals(
+				"Hi there!",
+				jdbcSink.getJdbcTemplate().queryForObject(query, String.class));
 	}
 
 	@Test

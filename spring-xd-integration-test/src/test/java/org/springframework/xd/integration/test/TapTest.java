@@ -56,7 +56,7 @@ public class TapTest extends AbstractIntegrationTest {
 		stream("dataSender",
 				sources.http() + XD_DELIMITER + processors.transform().expression("payload.toUpperCase()")
 						+ XD_DELIMITER + sinks.log(), WAIT_TIME);
-		stream(sources.tap("dataSender").moduleName("transform") + XD_TAP_DELIMITER
+		stream(sources.tap("dataSender").moduleToTap("transform") + XD_TAP_DELIMITER
 				+ sinks.file());
 
 		waitForXD();
@@ -76,7 +76,7 @@ public class TapTest extends AbstractIntegrationTest {
 						+ XD_DELIMITER + processors.transform().expression("payload.substring(3)").label("label2")
 						+ XD_DELIMITER
 						+ sinks.log(), WAIT_TIME);
-		stream(sources.tap("dataSender").moduleName("transform").label("label2") + XD_TAP_DELIMITER
+		stream(sources.tap("dataSender").moduleToTap("transform").label("label2") + XD_TAP_DELIMITER
 				+ sinks.file());
 
 		waitForXD();
@@ -94,7 +94,7 @@ public class TapTest extends AbstractIntegrationTest {
 				sources.http() + XD_DELIMITER + processors.transform().expression("payload.toUpperCase()").label("ds1")
 						+ XD_DELIMITER + processors.transform().expression("payload.substring(3)") + XD_DELIMITER
 						+ sinks.log(), WAIT_TIME);
-		stream(sources.tap("dataSender").moduleName("transform").label("ds1") + XD_TAP_DELIMITER
+		stream(sources.tap("dataSender").moduleToTap("transform").label("ds1") + XD_TAP_DELIMITER
 				+ sinks.file());
 
 		waitForXD();

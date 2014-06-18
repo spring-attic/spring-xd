@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
  * Test fixture that creates a tap.
  * @author Glenn Renfro
  */
-public class Tap extends AbstractModuleFixture {
+public class Tap extends AbstractNamedChannel {
 
 	private String streamName;
 
@@ -64,7 +64,6 @@ public class Tap extends AbstractModuleFixture {
 	 * @param label The label to be used by this tap.
 	 * @return current instance of the tap fixture
 	 */
-	@Override
 	public Tap label(String label) {
 		Assert.hasText(label, "label can not be empty nor null");
 		this.label = label;
@@ -76,7 +75,7 @@ public class Tap extends AbstractModuleFixture {
 	 * @param moduleName the module name to be used by this tap
 	 * @return current instance of the tap fixture
 	 */
-	public Tap moduleName(String moduleName) {
+	public Tap moduleToTap(String moduleName) {
 		Assert.hasText(moduleName, "moduleName can not be empty nor null");
 		this.moduleName = moduleName;
 		return this;

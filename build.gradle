@@ -770,6 +770,8 @@ project('spring-xd-hadoop:hadoop22') {
 		include 'avro-*'
 		include 'protobuf-java-*'
 		include 'jetty-util-*'
+		include 'jersey-core-*'
+		include 'jersey-server-*'
 	}
 }
 
@@ -798,6 +800,8 @@ project('spring-xd-hadoop:cdh5') {
 		include 'avro-*'
 		include 'protobuf-java-*'
 		include 'jetty-util-*'
+		include 'jersey-core-*'
+		include 'jersey-server-*'
 	}
 }
 
@@ -826,6 +830,8 @@ project('spring-xd-hadoop:hdp21') {
         include 'avro-*'
         include 'protobuf-java-*'
         include 'jetty-util-*'
+		include 'jersey-core-*'
+		include 'jersey-server-*'
     }
 }
 
@@ -855,6 +861,8 @@ project('spring-xd-hadoop:phd1') {
 		include 'avro-*'
 		include 'protobuf-java-*'
 		include 'jetty-util-*'
+		include 'jersey-core-*'
+		include 'jersey-server-*'
 	}
 }
 
@@ -884,6 +892,8 @@ project('spring-xd-hadoop:phd20') {
 		include 'avro-*'
 		include 'protobuf-java-*'
 		include 'jetty-util-*'
+		include 'jersey-core-*'
+		include 'jersey-server-*'
 	}
 }
 project('spring-xd-yarn:spring-xd-yarn-client') {

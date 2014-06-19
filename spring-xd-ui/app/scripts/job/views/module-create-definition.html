@@ -24,10 +24,23 @@
 			<legend>Parameters</legend>
 			<div class="form-group" ng-repeat="definitionParam in jobDefinition.parameters" ng-if="jobDefinition.parameters.length">
 				<label for="{{definitionParam.name}}" class="col-sm-2 control-label">{{definitionParam.name | capitalize}}</label>
-				<div class="col-sm-10">
+				<div class="col-sm-10" ng-if="definitionParam.type !== 'Password' && definitionParam.type !== 'boolean'">
 					<input type="text" id="{{definitionParam.name}}"
 						name="{{definitionParam.name}}" class="form-control" placeholder="" ng-model="definitionParam.value">
 					<p class="help-block">{{definitionParam.description | capitalize}}</p>
+				</div>
+				<div class="col-sm-10" ng-if="definitionParam.type === 'Password'">
+					<input type="password" id="{{definitionParam.name}}"
+						name="{{definitionParam.name}}" class="form-control" placeholder="" ng-model="definitionParam.value">
+					<p class="help-block">{{definitionParam.description | capitalize}}</p>
+				</div>
+				<div class="col-sm-10" ng-if="definitionParam.type === 'boolean'">
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="{{definitionParam.name}}"
+							name="{{definitionParam.name}}" ng-model="definitionParam.value">
+						{{definitionParam.description | capitalize}}
+					</label>
 				</div>
 			</div>
 			<div class="row" ng-if="!jobDefinition.parameters.length">No parameters available.</div>
@@ -35,7 +48,7 @@
 	</form>
 	<h2>Resulting Definition</h2>
 	<div class="row">
-		<div class="col-xs-12"><pre>{{calculatedDefinition}}</pre></div>
+		<div class="col-xs-12"><pre xd-format-stream='calculatedDefinition'></pre></div>
 	</div>
 	<div class="row">
 		<div class="col-md-6 text-right"><button id="back-button"   type="button" class="btn btn-default" ng-click="closeCreateDefinition()">Back</button></div>

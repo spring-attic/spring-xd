@@ -354,7 +354,7 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 	@Override
 	protected Object receive(String queue, boolean expectNull) throws Exception {
 		RedisTemplate<String, Object> template = createTemplate();
-		byte[] bytes = (byte[]) template.boundListOps("queue." + queue).rightPop();
+		byte[] bytes = (byte[]) template.boundListOps("queue." + queue).rightPop(50, TimeUnit.MILLISECONDS);
 		if (bytes == null) {
 			return null;
 		}

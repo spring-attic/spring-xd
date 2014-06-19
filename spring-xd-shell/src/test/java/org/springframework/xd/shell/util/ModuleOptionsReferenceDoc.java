@@ -53,7 +53,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
 
 /**
- * Quick and dirty class that generates asciidoc snippets for each module's options.
+ * A class that generates asciidoc snippets for each module's options.
  * 
  * <p>For each file passed as an argument, will replace parts of the file (inplace) in between {@code //^<type>.<name>} 
  * and {@code //$<type>.<name>} with a generated snippet documenting options. Those start and end fences are copied as-is,
@@ -75,7 +75,7 @@ public class ModuleOptionsReferenceDoc {
 	@Autowired
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
-	private void run(String path) throws IOException {
+	private void updateSingleFile(String path) throws IOException {
 		File originalFile = new File(path);
 		Assert.isTrue(originalFile.exists() && !originalFile.isDirectory(),
 				String.format("'%s' does not exist or points to a directory", originalFile.getAbsolutePath()));
@@ -151,8 +151,8 @@ public class ModuleOptionsReferenceDoc {
 		});
 
 		for (ModuleOption mo : options) {
-			String prettyDefault = prettyfyDefaultValue(mo);
-			String maybeEnumHint = maybeEnumHint(mo);
+			String prettyDefault = prettifyDefaultValue(mo);
+			String maybeEnumHint = generateEnumValues(mo);
 			out.format("%s:: %s *(%s, %s%s)*%n", mo.getName(), mo.getDescription(), mo.getType().getSimpleName(),
 					prettyDefault, maybeEnumHint);
 		}
@@ -161,7 +161,7 @@ public class ModuleOptionsReferenceDoc {
 	/**
 	 * When the type of an option is an enum, document all possible values
 	 */
-	private String maybeEnumHint(ModuleOption mo) {
+	private String generateEnumValues(ModuleOption mo) {
 		if (Enum.class.isAssignableFrom(mo.getType())) {
 			String values = StringUtils.arrayToCommaDelimitedString(mo.getType().getEnumConstants());
 			return String.format(", possible values: `%s`", values);
@@ -170,7 +170,7 @@ public class ModuleOptionsReferenceDoc {
 			return "";
 	}
 
-	private String prettyfyDefaultValue(ModuleOption mo) {
+	private String prettifyDefaultValue(ModuleOption mo) {
 		String result = mo.getDefaultValue() == null ? "no default" : String.format("default: `%s`",
 				mo.getDefaultValue());
 		result = result.replace(ModulePlaceholders.XD_STREAM_NAME, "<stream name>");
@@ -185,7 +185,7 @@ public class ModuleOptionsReferenceDoc {
 
 		ModuleOptionsReferenceDoc runner = applicationContext.getBean(ModuleOptionsReferenceDoc.class);
 		for (String path : paths) {
-			runner.run(path);
+			runner.updateSingleFile(path);
 		}
 		applicationContext.close();
 	}

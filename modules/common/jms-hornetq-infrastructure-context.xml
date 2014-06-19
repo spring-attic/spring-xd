@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:property-placeholder location="${xd.config.home}/jms-hornetq.properties" />
+
+	<bean id="connectionFactory" class="org.hornetq.api.jms.HornetQJMSClient" factory-method="createConnectionFactoryWithoutHA">
+		<constructor-arg value="#{T(org.hornetq.api.jms.JMSFactoryType).CF}" />
+		<constructor-arg>
+			<bean class="org.hornetq.api.core.TransportConfiguration">
+				<constructor-arg value="org.hornetq.core.remoting.impl.netty.NettyConnectorFactory" />
+				<constructor-arg>
+					<map>
+						<entry key="#{T(org.hornetq.core.remoting.impl.netty.TransportConstants).HOST_PROP_NAME}"
+							   value="${hornetq.host}" />
+						<entry key="#{T(org.hornetq.core.remoting.impl.netty.TransportConstants).PORT_PROP_NAME}"
+							   value="${hornetq.port}" />
+					</map>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>

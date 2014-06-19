@@ -1696,15 +1696,23 @@ task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-dirt:buil
 	]
 }
 
-task pushModuleOptionsDocs(dependsOn: moduleOptionsReferenceDoc) << {
+task shellReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-shell:compileTestJava", pullDocs]) {
+	classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath 
+	main = 'org.springframework.xd.shell.util.ReferenceDoc'
+	args = [
+		"$rootDir/build/asciidoc-raw/guide/ShellReference.asciidoc"
+	]
+}
+
+task pushGeneratedDocs(dependsOn: [moduleOptionsReferenceDoc, shellReferenceDoc]) << {
 	def docsRepo = Grgit.open(pullDocs.cloneDestination)
 	def xdRepo = Grgit.open(file("$rootDir"))
 	docsRepo.add(patterns: ['.'])
-	docsRepo.commit(message: "Automated module options in synch with XD ${xdRepo.head().id}")
+	docsRepo.commit(message: "Automated doc generation in synch with XD ${xdRepo.head().id}")
 	docsRepo.push()
 }
 
-task transformDocs(type: Copy, dependsOn: [pullDocs, moduleOptionsReferenceDoc]) {
+task transformDocs(type: Copy, dependsOn: [pullDocs, shellReferenceDoc, moduleOptionsReferenceDoc]) {
 	from(pullDocs.cloneDestination) {
 		include  "**/*.asciidoc"
 		filter { line ->
@@ -1725,19 +1733,11 @@ task transformDocs(type: Copy, dependsOn: [pullDocs, moduleOptionsReferenceDoc])
 	}
 }
 
-task referenceDoc(type: JavaExec, dependsOn: [":spring-xd-shell:compileTestJava", transformDocs]) {
-	classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath 
-	main = 'org.springframework.xd.shell.util.ReferenceDoc'
-	args = [
-		"$rootDir/build/asciidoc/guide/ShellReference.asciidoc"
-	]
-}
-
 
 
 import org.asciidoctor.gradle.*
 
-task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs, referenceDoc, moduleOptionsReferenceDoc] ) {
+task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs, shellReferenceDoc, moduleOptionsReferenceDoc] ) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	baseDir = sourceDir
@@ -1757,7 +1757,7 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs, refer
 	}
 }
 
-task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [transformDocs, referenceDoc, moduleOptionsReferenceDoc ]) {
+task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [transformDocs, shellReferenceDoc, moduleOptionsReferenceDoc ]) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	baseDir = sourceDir

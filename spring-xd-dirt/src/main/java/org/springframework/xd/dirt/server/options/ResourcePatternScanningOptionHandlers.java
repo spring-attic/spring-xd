@@ -91,7 +91,7 @@ public final class ResourcePatternScanningOptionHandlers {
 
 		public HadoopDistroOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
-			super(parser, option, setter, "file:./lib/*");
+			super(parser, option, setter, "file:${xd.home:.}/lib/*");
 		}
 
 		@Override

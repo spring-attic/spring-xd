@@ -171,6 +171,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 */
 	private void deployStream(CuratorFramework client, Stream stream) throws InterruptedException {
 		try {
+			// todo: instead of setting state to "deploying", assert that the state is already "deploying"
 			client.setData().forPath(
 					Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.STATUS),
 					ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(DeploymentUnitStatus.State.deploying).toMap()));

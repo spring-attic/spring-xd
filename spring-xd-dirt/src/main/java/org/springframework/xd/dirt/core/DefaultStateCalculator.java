@@ -100,6 +100,7 @@ public class DefaultStateCalculator implements DeploymentUnitStateCalculator {
 		for (Count count : moduleCount.values()) {
 			if (count.actual == 0) {
 				failed = true;
+				break;
 			}
 		}
 

@@ -1,0 +1,2 @@
+Place custom module definitions in the 'modules' folder inside a ZIP archive named 'custom-modules.zip'. Module definitions must follow the Spring XD module semantics.
+This 'custom-modules.zip' archive must be placed in the root directory of the unzipped 'spring-xd-yarn' distribution replacing the archive containing this README.

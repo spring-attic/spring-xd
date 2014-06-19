@@ -33,7 +33,7 @@ define(['angular'], function(angular) {
           var originalValue = scope.contextValue.value;
           var newHtml = originalValue;
           var matches;
-          
+
           if (originalValue.substring) {
             matches = originalValue.match(urlPattern);
           }
@@ -44,6 +44,27 @@ define(['angular'], function(angular) {
           }
           element.html(newHtml);
         }
+      };
+    }])
+    .directive('xdFormatStream', [function() {
+      var linkFunction = function(scope, element) {
+        scope.$watch('xdFormatStream', function(originalStreamDefinition){
+          if(originalStreamDefinition){
+            var result = originalStreamDefinition.replace(/(--[\s|\w]*password\w*\s*=[\s]*)([\w|.]*)/gi,
+              function(match, p1, p2) {
+                return p1 + p2.replace(/./g,'*');
+              }
+            );
+            element.html(result);
+          }
+        });
+      };
+      return {
+        restrict: 'A',
+        scope: {
+          xdFormatStream: '='
+        },
+        link: linkFunction,
       };
     }])
     .directive('integer', function() {

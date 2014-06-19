@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -34,11 +37,12 @@ import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
+import org.springframework.xd.dirt.stream.util.StreamUtils;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
  * Handles all Job related interactions.
- * 
+ *
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
@@ -48,7 +52,7 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 @RequestMapping("/jobs")
 @ExposesResourceFor(JobDefinitionResource.class)
 public class JobsController extends
-		XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResource> {
+XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResource> {
 
 	@Autowired
 	private DistributedJobLocator distributedJobLocator;
@@ -74,7 +78,7 @@ public class JobsController extends
 
 	/**
 	 * Send the request to launch Job. Job has to be deployed first.
-	 * 
+	 *
 	 * @param name the name of the job
 	 * @param jobParameters the job parameters in JSON string
 	 */
@@ -94,7 +98,22 @@ public class JobsController extends
 	@ResponseBody
 	public PagedResources<JobDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<JobDefinition> assembler) {
-		return listValues(pageable, assembler);
+
+		PagedResources<JobDefinitionResource> pagedResources = listValues(pageable, queryOptions);
+
+		final List<JobDefinitionResource> maskedContents = new ArrayList<JobDefinitionResource>(
+				pagedResources.getContent().size());
+
+		for (JobDefinitionResource jobDefinitionResource : pagedResources.getContent()) {
+			jobDefinitionResource.getDefinition();
+			JobDefinitionResource maskedJobDefinitionResource =
+					new JobDefinitionResource(jobDefinitionResource.getName(),
+							StreamUtils.maskPasswordsInStreamDefinition(jobDefinitionResource.getDefinition()));
+			maskedContents.add(maskedJobDefinitionResource);
+		}
+
+		return new PagedResources<JobDefinitionResource>(maskedContents, pagedResources.getMetadata(),
+				pagedResources.getLinks());
 	}
 
 	@Override

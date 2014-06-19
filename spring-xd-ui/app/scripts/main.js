@@ -28,6 +28,7 @@ require.config({
     ngResource: '../lib/angular-resource/angular-resource',
     uiRouter: '../lib/angular-ui-router/angular-ui-router',
     cgBusy: '../lib/angular-busy/angular-busy',
+    lodash: '../lib/lodash/lodash.compat',
     ngGrowl: '../lib/angular-growl/angular-growl',
     ngAnimate: '../lib/angular-animate/angular-animate',
     angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
@@ -35,7 +36,7 @@ require.config({
   },
   shim: {
     angular: {
-      deps: ['bootstrap'],
+      deps: ['bootstrap', 'lodash'],
       exports: 'angular'
     },
     bootstrap: {

@@ -20,21 +20,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
+import org.springframework.xd.module.options.types.Password;
 import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
 
 
 /**
  * Knows how to build {@link DetailedModuleDefinitionResource} out of a {@link ModuleDefinition}.
- * 
+ *
  * @author Eric Bottard
  */
 @Component
 public class DetailedModuleDefinitionResourceAssembler extends
-		ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
+ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
 
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
@@ -59,9 +60,22 @@ public class DetailedModuleDefinitionResourceAssembler extends
 			for (ModuleOption option : moduleOptionsMetadata) {
 				Object defaultValue = option.getDefaultValue();
 				Class<?> type = option.getType();
+
+				final String defaultValueAsString;
+
+				if (Password.class.equals(type) && defaultValue != null) {
+					defaultValueAsString = "******";
+				}
+				else if (defaultValue == null) {
+					defaultValueAsString = null;
+				}
+				else {
+					defaultValueAsString = defaultValue.toString();
+				}
+
 				result.addOption(new DetailedModuleDefinitionResource.Option(option.getName(),
 						type == null ? null : type.getSimpleName(), option.getDescription(),
-						defaultValue == null ? null : defaultValue.toString()));
+								defaultValueAsString));
 			}
 		}
 		return result;

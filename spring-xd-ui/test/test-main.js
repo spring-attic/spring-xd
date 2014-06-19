@@ -21,6 +21,7 @@ require.config({
     cgBusy: '/base/app/lib/angular-busy/angular-busy',
     ngGrowl: '/base/app/lib/angular-growl/angular-growl',
     ngAnimate: '/base/app/lib/angular-animate/angular-animate',
+    lodash: '/base/app/lib/lodash/lodash.compat'
   },
   baseUrl: '/base/app/scripts',
   shim: {
@@ -36,6 +37,7 @@ require.config({
     cgBusy: {
       deps: ['angular']
     },
+    lodash: {},
     'angularHighlightjs': {
       deps: ['angular', 'highlightjs']
     },

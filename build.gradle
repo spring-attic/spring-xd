@@ -1935,7 +1935,19 @@ task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
     }
 }
 
-task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip], overwrite: true) {
+task yarnModulesZip(type: Zip, overwrite: true) {
+	group = 'Application'
+    archiveName = "custom-modules.zip"
+	description = "Creates an empty custom-modules zip file."
+
+	destinationDir = new File("$buildDir/tmp")
+
+    from("$rootDir/spring-xd-yarn/site/modules") {
+		into "/modules"
+	}
+}
+
+task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip, yarnModulesZip], overwrite: true) {
 	group = 'Application'
 	classifier = 'yarn'
 	description = "Bundles the XD files needed for YARN deployments."
@@ -1966,6 +1978,7 @@ task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip], overwrite: true) 
 	}
     from("$buildDir/tmp") {
     	include "spring-xd-yarn-${project.version}.zip"
+    	include "custom-modules.zip"
     	into "${baseDir}"
     }
 }

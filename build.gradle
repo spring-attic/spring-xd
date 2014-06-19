@@ -1692,6 +1692,7 @@ task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-dirt:buil
 		"${pullDocs.cloneDestination}/guide/Processors.asciidoc",
 		"${pullDocs.cloneDestination}/guide/Sinks.asciidoc",
 		"${pullDocs.cloneDestination}/guide/Batch-Jobs.asciidoc",
+		"${pullDocs.cloneDestination}/guide/Analytics.asciidoc",
 	]
 }
 

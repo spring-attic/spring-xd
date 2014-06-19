@@ -26,19 +26,10 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleRegistry;
@@ -69,11 +60,16 @@ public class ModuleOptionsReferenceDoc {
 	 */
 	private static final Pattern FENCE_START_REGEX = Pattern.compile("^//\\^([^.]+)\\.([^.]+)$");
 
-	@Autowired
-	private ModuleRegistry moduleRegistry;
+	private ModuleRegistry moduleRegistry = new ResourceModuleRegistry("file:./modules");
 
-	@Autowired
-	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver = new DefaultModuleOptionsMetadataResolver();
+
+	public static void main(String... paths) throws IOException {
+		ModuleOptionsReferenceDoc runner = new ModuleOptionsReferenceDoc();
+		for (String path : paths) {
+			runner.updateSingleFile(path);
+		}
+	}
 
 	private void updateSingleFile(String path) throws IOException {
 		File originalFile = new File(path);
@@ -177,45 +173,5 @@ public class ModuleOptionsReferenceDoc {
 		result = result.replace(ModulePlaceholders.XD_JOB_NAME, "<job name>");
 		return result;
 	}
-
-	public static void main(String... paths) throws IOException {
-
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
-				ModuleOptionsReferenceDoc.Config.class);
-
-		ModuleOptionsReferenceDoc runner = applicationContext.getBean(ModuleOptionsReferenceDoc.class);
-		for (String path : paths) {
-			runner.updateSingleFile(path);
-		}
-		applicationContext.close();
-	}
-
-	@Configuration
-	public static class Config {
-
-		@Autowired
-		public void setEnvironment(Environment environment) {
-			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("xd.config.home", "file:./config");
-			((ConfigurableEnvironment) environment).getPropertySources().addFirst(new MapPropertySource("foo", map));
-		}
-
-		@Bean
-		public ModuleRegistry moduleRegistry() {
-			return new ResourceModuleRegistry("file:./modules");
-		}
-
-		@Bean
-		public ModuleOptionsMetadataResolver moduleOptionsMetadataResolver() {
-			return new DefaultModuleOptionsMetadataResolver();
-		}
-
-		@Bean
-		public ModuleOptionsReferenceDoc runner() {
-			return new ModuleOptionsReferenceDoc();
-		}
-
-	}
-
 
 }

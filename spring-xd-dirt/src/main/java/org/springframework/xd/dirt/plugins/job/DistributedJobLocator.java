@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,56 +35,56 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  */
 public class DistributedJobLocator implements ListableJobLocator {
 
-	private static final String GET_ALL_JOB_NAMES = "SELECT JOB_NAME FROM JOB_REGISTRY_NAMES";
+	private static final String GET_ALL_JOB_NAMES = "SELECT JOB_NAME FROM XD_JOB_REGISTRY";
 
-	private static final String GET_ALL_RESTARTABLE_JOBS = "SELECT JOB_NAME FROM JOB_REGISTRY_RESTARTABLES WHERE IS_RESTARTABLE='true'";
+	private static final String GET_ALL_RESTARTABLE_JOBS = "SELECT JOB_NAME FROM XD_JOB_REGISTRY WHERE IS_RESTARTABLE='true'";
 
-	private static final String JOB_INCREMENTABLE = "SELECT IS_INCREMENTABLE FROM JOB_REGISTRY_INCREMENTABLES WHERE JOB_NAME = ?";
+	private static final String JOB_INCREMENTABLE = "SELECT IS_INCREMENTABLE FROM XD_JOB_REGISTRY WHERE JOB_NAME = ?";
 
-	private static final String JOB_RESTARTABLE = "SELECT IS_RESTARTABLE FROM JOB_REGISTRY_RESTARTABLES WHERE JOB_NAME = ?";
+	private static final String JOB_RESTARTABLE = "SELECT IS_RESTARTABLE FROM XD_JOB_REGISTRY WHERE JOB_NAME = ?";
 
-	private static final String GET_STEP_NAMES = "SELECT STEP_NAME FROM JOB_REGISTRY_STEP_NAMES WHERE JOB_NAME = ?";
+	private static final String GET_STEP_NAMES = "SELECT STEP_NAME FROM XD_JOB_REGISTRY_STEP_NAMES WHERE JOB_NAME = ?";
 
-	private static final String ADD_JOB_NAME = "INSERT INTO JOB_REGISTRY_NAMES(JOB_NAME) VALUES(?)";
+	private static final String ADD_JOB_REGISTRY = "INSERT INTO XD_JOB_REGISTRY(IS_INCREMENTABLE, IS_RESTARTABLE, JOB_NAME) VALUES(?, ?, ?)";
 
-	private static final String ADD_JOB_INCREMENTABLE = "INSERT INTO JOB_REGISTRY_INCREMENTABLES(JOB_NAME, IS_INCREMENTABLE) VALUES(?, ?)";
+	private static final String ADD_STEP_NAME = "INSERT INTO XD_JOB_REGISTRY_STEP_NAMES(JOB_NAME, STEP_NAME) VALUES(?, ?)";
 
-	private static final String ADD_JOB_RESTARTABLE = "INSERT INTO JOB_REGISTRY_RESTARTABLES(JOB_NAME, IS_RESTARTABLE) VALUES(?, ?)";
+	private static final String UPDATE_JOB_REGISTRY = "UPDATE XD_JOB_REGISTRY SET IS_INCREMENTABLE = ?, IS_RESTARTABLE = ? WHERE JOB_NAME = ?";
 
-	private static final String ADD_STEP_NAME = "INSERT INTO JOB_REGISTRY_STEP_NAMES(JOB_NAME, STEP_NAME) VALUES(?, ?)";
+	private static final String DELETE_JOB_REGISTRY = "DELETE FROM XD_JOB_REGISTRY WHERE JOB_NAME = ?";
 
-	private static final String UPDATE_JOB_INCREMENTABLE = "UPDATE JOB_REGISTRY_INCREMENTABLES SET IS_INCREMENTABLE = ? WHERE JOB_NAME = ?";
+	private static final String DELETE_STEP_NAMES = "DELETE FROM XD_JOB_REGISTRY_STEP_NAMES WHERE JOB_NAME = ?";
 
-	private static final String UPDATE_JOB_RESTARTABLE = "UPDATE JOB_REGISTRY_RESTARTABLES SET IS_RESTARTABLE = ? WHERE JOB_NAME = ?";
+	private static final String DELETE_ALL_JOB_REGISTRY = "DELETE FROM XD_JOB_REGISTRY";
 
-	private static final String DELETE_JOB_NAME = "DELETE FROM JOB_REGISTRY_NAMES WHERE JOB_NAME = ?";
-
-	private static final String DELETE_JOB_INCREMENTABLE = "DELETE FROM JOB_REGISTRY_INCREMENTABLES WHERE JOB_NAME = ?";
-
-	private static final String DELETE_JOB_RESTARTABLE = "DELETE FROM JOB_REGISTRY_RESTARTABLES WHERE JOB_NAME = ?";
-
-	private static final String DELETE_STEP_NAMES = "DELETE FROM JOB_REGISTRY_STEP_NAMES WHERE JOB_NAME = ?";
-
-	private static final String DELETE_ALL_JOB_INCREMENTABLE = "DELETE FROM JOB_REGISTRY_INCREMENTABLES";
-
-	private static final String DELETE_ALL_JOB_RESTARTABLE = "DELETE FROM JOB_REGISTRY_RESTARTABLES";
-
-	private static final String DELETE_ALL_JOB_NAMES = "DELETE FROM JOB_REGISTRY_NAMES";
-
-	private static final String DELETE_ALL_STEP_NAMES = "DELETE FROM JOB_REGISTRY_STEP_NAMES";
+	private static final String DELETE_ALL_STEP_NAMES = "DELETE FROM XD_JOB_REGISTRY_STEP_NAMES";
 
 
 	private JdbcOperations jdbcTemplate;
 
+	/**
+	 * Get all the deployed job names.
+	 */
 	@Override
 	public Collection<String> getJobNames() {
 		return jdbcTemplate.queryForList(GET_ALL_JOB_NAMES, String.class);
 	}
 
+	/**
+	 * Get all the deployed job names that can be restarted.
+	 *
+	 * @return collection of job names.
+	 */
 	public Collection<String> getAllRestartableJobs() {
 		return jdbcTemplate.queryForList(GET_ALL_RESTARTABLE_JOBS, String.class);
 	}
 
+	/**
+	 * Get simple batch job representation for the given job name.
+	 *
+	 * @param name the job name
+	 * @return Job a simple batch job consisting of its step names.
+	 */
 	@Override
 	public Job getJob(final String name) throws NoSuchJobException {
 		if (!getJobNames().contains(name)) {
@@ -103,6 +103,12 @@ public class DistributedJobLocator implements ListableJobLocator {
 		return job;
 	}
 
+	/**
+	 * Get all the steps' names of a given job name.
+	 *
+	 * @param jobName
+	 * @return the list of step names.
+	 */
 	public List<String> getJobStepNames(String jobName) {
 		return jdbcTemplate.query(GET_STEP_NAMES, new SingleColumnRowMapper<String>(String.class), jobName);
 	}
@@ -128,62 +134,81 @@ public class DistributedJobLocator implements ListableJobLocator {
 		// {@link DistributedJobLocator}
 		// Since, it is the same job with the given name, we can skip the update into {@link DistributedJobLocator}
 		if (!jobNames.contains(name)) {
+			addJobName(name, incrementable, restartable);
+		}
+		else {
 			updateJobName(name, incrementable, restartable);
 		}
 	}
 
-	private void updateJobName(String name, boolean incrementable, boolean restartable) {
-		jdbcTemplate.update(ADD_JOB_NAME, name);
-		List<Boolean> incrementables = getIncrementable(name);
-		if (incrementables.isEmpty()) {
-			jdbcTemplate.update(ADD_JOB_INCREMENTABLE, name, incrementable);
-		} // valueList is always single row
-		else if (incrementables.get(0).booleanValue() != incrementable) {
-			jdbcTemplate.update(UPDATE_JOB_INCREMENTABLE, incrementable, name);
-		}
-		List<Boolean> restartables = getRestartable(name);
-		if (restartables.isEmpty()) {
-			jdbcTemplate.update(ADD_JOB_RESTARTABLE, name, restartable);
-		} // valueList is always single row
-		else if (restartables.get(0).booleanValue() != restartable) {
-			jdbcTemplate.update(UPDATE_JOB_RESTARTABLE, restartable, name);
-		}
+	/**
+	 * Add a new job entry into the XD_JOB_REGISTRY table.
+	 *
+	 * @param name the name of the job
+	 * @param incrementable flag to specify if the job parameter can be incremented
+	 * @param restartable flag to specify if the job can be restarted upon failure/stoppage.
+	 */
+	private void addJobName(String name, boolean incrementable, boolean restartable) {
+		jdbcTemplate.update(ADD_JOB_REGISTRY, incrementable, restartable, name);
 	}
 
+	/**
+	 * Update an existing job entry at the XD_JOB_REGISTRY table.
+	 *
+	 * @param name the name of the job
+	 * @param incrementable flag to specify if the job parameter can be incremented
+	 * @param restartable flag to specify if the job can be restarted upon failure/stoppage.
+	 */
+	private void updateJobName(String name, boolean incrementable, boolean restartable) {
+		jdbcTemplate.update(UPDATE_JOB_REGISTRY, incrementable, restartable, name);
+	}
+
+	/**
+	 * Add the collection of step names into XD_JOB_REGISTRY_STEP_NAMES for a given job.
+	 *
+	 * @param jobName the job name
+	 * @param stepNames the collection of step names associated with this job
+	 */
 	protected void addStepNames(String jobName, Collection<String> stepNames) {
 		for (String stepName : stepNames) {
 			jdbcTemplate.update(ADD_STEP_NAME, jobName, stepName);
 		}
 	}
 
-	protected void deleteJobName(String jobName) {
-		jdbcTemplate.update(DELETE_JOB_NAME, jobName);
-		jdbcTemplate.update(DELETE_JOB_INCREMENTABLE, jobName);
-		jdbcTemplate.update(DELETE_JOB_RESTARTABLE, jobName);
+	/**
+	 * Delete the job entry from the registry table.
+	 * This will delete job registry and the associated step names entries
+	 * for the given job name.
+	 *
+	 * @param jobName the job name.
+	 */
+	protected void deleteJobRegistry(String jobName) {
+		jdbcTemplate.update(DELETE_JOB_REGISTRY, jobName);
 		jdbcTemplate.update(DELETE_STEP_NAMES, jobName);
 	}
 
+	/**
+	 * Delete all the registry and step name entries.
+	 */
 	protected void deleteAll() {
-		jdbcTemplate.update(DELETE_ALL_JOB_NAMES);
-		jdbcTemplate.update(DELETE_ALL_JOB_INCREMENTABLE);
-		jdbcTemplate.update(DELETE_ALL_JOB_RESTARTABLE);
+		jdbcTemplate.update(DELETE_ALL_JOB_REGISTRY);
 		jdbcTemplate.update(DELETE_ALL_STEP_NAMES);
 	}
 
+	/**
+	 * @param jobName the job name
+	 * @return Boolean flag to specify if the job parameter can be incremented for the given job name.
+	 */
 	public Boolean isIncrementable(String jobName) {
 		return jdbcTemplate.queryForObject(JOB_INCREMENTABLE, Boolean.class, jobName);
 	}
 
-	private List<Boolean> getIncrementable(String jobName) {
-		return jdbcTemplate.query(JOB_INCREMENTABLE, new SingleColumnRowMapper<Boolean>(Boolean.class), jobName);
-	}
-
+	/**
+	 * @param jobName the job name
+	 * @return Boolean flag to specify if the job can be restarted.
+	 */
 	public Boolean isRestartable(String jobName) {
 		return jdbcTemplate.queryForObject(JOB_RESTARTABLE, Boolean.class, jobName);
-	}
-
-	private List<Boolean> getRestartable(String jobName) {
-		return jdbcTemplate.query(JOB_RESTARTABLE, new SingleColumnRowMapper<Boolean>(Boolean.class), jobName);
 	}
 
 	public JdbcOperations getJdbcTemplate() {

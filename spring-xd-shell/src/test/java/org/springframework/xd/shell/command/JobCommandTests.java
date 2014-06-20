@@ -415,8 +415,10 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 				"{\"param1\":\"fixedDelayKenny\",\"param2(date)\":\"2013/28/12\",\"param3(long)\":\"(123)\"}");
 		String id = getJobExecutionId(jobName);
 		String displayed = displayJobExecution(id);
-		assertTrue(displayed.matches("(?s).*param2 +Sat Dec 28 00:00:00 [A-Z]{3} 2013 +DATE.*"));
-		assertTrue(displayed.matches("(?s).*param3 +-123 +LONG.*"));
+		assertTrue("Date of job execution is not as expected. [" + displayed + "]",
+				displayed.matches("(?s).*param2 +Sat Dec 28 00:00:00 [A-Z]{3,4} 2013 +DATE.*"));
+		assertTrue("Long parameter of job execution is not as expected. [" + displayed + "]",
+				displayed.matches("(?s).*param3 +-123 +LONG.*"));
 	}
 
 	@Test

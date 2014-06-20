@@ -16,28 +16,35 @@
 
 package org.springframework.xd.module.options.types;
 
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+
+
 /**
- * This module option represents a password. As such it will allow other components
- * within Spring XD to identify an option as password, and thus the ability to
- * provide custom view options (E.g. a password input field instead of a simple text box).
+ * Contains some basic tests for the {@link Password} module option type.
  *
  * @author Gunnar Hillert
  * @since 1.0
  */
-public class Password {
+public class PasswordTests {
 
-	private final String password;
-
-	public Password(String password) {
-		this.password = password;
+	/**
+	 * Test method for {@link Password#getPassword()}.
+	 */
+	@Test
+	public void testGetPassword() {
+		final Password password = new Password("secret");
+		assertEquals("secret", password.getPassword());
 	}
 
-	public String getPassword() {
-		return password;
+	/**
+	 * Test method for {@link Password#toString()}.
+	 */
+	@Test
+	public void testToString() {
+		final Password password = new Password("secret");
+		assertEquals("secret", password.toString());
 	}
 
-	@Override
-	public String toString() {
-		return password;
-	}
 }

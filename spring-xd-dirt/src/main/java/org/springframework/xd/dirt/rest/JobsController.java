@@ -99,7 +99,7 @@ XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResourc
 	public PagedResources<JobDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<JobDefinition> assembler) {
 
-		PagedResources<JobDefinitionResource> pagedResources = listValues(pageable, queryOptions);
+		PagedResources<JobDefinitionResource> pagedResources = listValues(pageable, assembler);
 
 		final List<JobDefinitionResource> maskedContents = new ArrayList<JobDefinitionResource>(
 				pagedResources.getContent().size());
@@ -109,6 +109,7 @@ XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResourc
 			JobDefinitionResource maskedJobDefinitionResource =
 					new JobDefinitionResource(jobDefinitionResource.getName(),
 							StreamUtils.maskPasswordsInStreamDefinition(jobDefinitionResource.getDefinition()));
+			maskedJobDefinitionResource.setDeployed(jobDefinitionResource.isDeployed());
 			maskedContents.add(maskedJobDefinitionResource);
 		}
 

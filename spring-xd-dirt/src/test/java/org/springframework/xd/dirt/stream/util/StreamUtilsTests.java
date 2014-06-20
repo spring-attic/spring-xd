@@ -20,11 +20,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Parse streams and verify either the correct abstract syntax tree is produced or the current exception comes out.
+ * Tests the functionality of {@link StreamUtils#maskPasswordsInStreamDefinition(String)}
+ * ensuring that stream parameters named {@code password} or {@code passwd} are
+ * sufficiently masked.
  *
  * @author Gunnar Hillert
  */
-public class StreamConfigParserTests {
+public class StreamUtilsTests {
 
 	@Test
 	public void testWithNullInputText() {
@@ -66,6 +68,12 @@ public class StreamConfigParserTests {
 	public void testMaskStreamDefinitionWithOnePasswordParameter2() {
 		final String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("filejdbc --driverClassName=org.postgresql.Driver --password=12345678");
 		Assert.assertEquals("filejdbc --driverClassName=org.postgresql.Driver --password=********", maskedPassword);
+	}
+
+	@Test
+	public void testMaskStreamDefinitionWithOnePasswordParameter3() {
+		final String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("filejdbc --driverClassName=org.postgresql.Driver --passwd=12345678");
+		Assert.assertEquals("filejdbc --driverClassName=org.postgresql.Driver --passwd=********", maskedPassword);
 	}
 
 	@Test

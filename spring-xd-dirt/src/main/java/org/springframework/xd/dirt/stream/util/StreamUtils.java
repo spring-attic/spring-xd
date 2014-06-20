@@ -34,7 +34,7 @@ public class StreamUtils {
 	}
 
 	public static Pattern passwordParameterPattern = Pattern.compile(
-			"(?i)(--[\\s|\\w]*password\\w*\\s*=[\\s]*)([\\w|.]*)",
+			"(?i)(--[\\s|\\w]*(password|passwd)\\w*\\s*=[\\s]*)([\\w|.]*)",
 			Pattern.UNICODE_CHARACTER_CLASS);
 
 	/**
@@ -52,7 +52,7 @@ public class StreamUtils {
 		final StringBuffer output = new StringBuffer();
 		final Matcher matcher = passwordParameterPattern.matcher(streamDefinition);
 		while (matcher.find()) {
-			matcher.appendReplacement(output, matcher.group(1) + matcher.group(2).replaceAll(".", "*"));
+			matcher.appendReplacement(output, matcher.group(1) + matcher.group(3).replaceAll(".", "*"));
 		}
 		matcher.appendTail(output);
 		return output.toString();

@@ -19,7 +19,7 @@
  *
  * @author Gunnar Hillert
  */
-define(['angular'], function(angular) {
+define(['angular', 'xregexp'], function(angular) {
   'use strict';
   angular.module('xdAdmin.directives', [])
     .directive('xdParseUrls', [function() {
@@ -47,14 +47,14 @@ define(['angular'], function(angular) {
       };
     }])
     .directive('xdFormatStream', [function() {
+      var mainRegex = new XRegExp('(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)([\\p{N}|\\p{L}|\\p{Po}]*)', 'gi');
+      var subRegex = new XRegExp('\\P{C}', 'gi');
       var linkFunction = function(scope, element) {
         scope.$watch('xdFormatStream', function(originalStreamDefinition){
-          if(originalStreamDefinition){
-            var result = originalStreamDefinition.replace(/(--[\s|\w]*password\w*\s*=[\s]*)([\w|.]*)/gi,
-              function(match, p1, p2) {
-                return p1 + p2.replace(/./g,'*');
-              }
-            );
+          if(originalStreamDefinition) {
+            var result = XRegExp.replace(originalStreamDefinition, mainRegex, function(match, p1, p2, p3) {
+              return p1 + XRegExp.replace(p3, subRegex,'*');
+            });
             element.html(result);
           }
         });

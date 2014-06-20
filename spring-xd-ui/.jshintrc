@@ -22,6 +22,7 @@
     "angular": false,
     "requirejs": true,
     "define": true,
+    "XRegExp": true,
     "$": true,
     "_": true
   }

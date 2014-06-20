@@ -14,30 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module.options.types;
-
 /**
- * This module option represents a password. As such it will allow other components
- * within Spring XD to identify an option as password, and thus the ability to
- * provide custom view options (E.g. a password input field instead of a simple text box).
+ * Contains custom module option types.
  *
  * @author Gunnar Hillert
- * @since 1.0
+ * @since  1.0
  */
-public class Password {
 
-	private final String password;
-
-	public Password(String password) {
-		this.password = password;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	@Override
-	public String toString() {
-		return password;
-	}
-}
+package org.springframework.xd.module.options.types;

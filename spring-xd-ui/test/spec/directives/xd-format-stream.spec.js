@@ -22,8 +22,8 @@
 define([
   'angular',
   'angularMocks',
-  'app',
-  'lodash'
+  'lodash',
+  'xregexp'
 ], function(angular) {
   'use strict';
 
@@ -36,46 +36,60 @@ define([
     });
 
     beforeEach(inject(function($compile, $rootScope) {
-       $scope = $rootScope;
-       element = angular.element(
-        '<div id="myDiv" xd-format-stream="myVal"></div>'
-       );
-       $scope.myVal = "hello world";
-       $compile(element)($scope);
-       $scope.$digest();
+      $scope = $rootScope;
+      element = angular.element(
+       '<div id="myDiv" xd-format-stream="myVal"></div>'
+      );
+      $scope.myVal = 'hello world';
+      $compile(element)($scope);
+      $scope.$digest();
     }));
 
     it('Make sure the basic test fixture setup works', inject(function() {
       var elementValue = element.text();
       expect(elementValue).toEqual('hello world');
     }));
-
     it('Changing the scope variable "myVal" should result in a changed element contents', inject(function() {
-      $scope.myVal = "new foo bar";
+      $scope.myVal = 'new foo bar';
       $scope.$digest();
       var elementValue = element.text();
       expect(elementValue).toEqual('new foo bar');
     }));
-
     it('A basic stream definition parameter (parameter at end) called "password" should have its value masked', inject(function() {
-      $scope.myVal = "filejdbc --driverClassName=org.postgresql.Driver --password=12345678";
+      $scope.myVal = 'filejdbc --driverClassName=org.postgresql.Driver --password=12345678';
       $scope.$digest();
       var elementValue = element.text();
       expect(elementValue).toEqual('filejdbc --driverClassName=org.postgresql.Driver --password=********');
     }));
-
+    it('A basic stream definition parameter (parameter at end) called "password" should have its value (containing a ".") masked', inject(function() {
+      $scope.myVal = 'filejdbc --driverClassName=org.postgresql.Driver --password=ab.cd.efghi';
+      $scope.$digest();
+      var elementValue = element.text();
+      expect(elementValue).toEqual('filejdbc --driverClassName=org.postgresql.Driver --password=***********');
+    }));
     it('A basic stream definition parameter (parameter in middle of stream) called "password" should have its value masked', inject(function() {
-      $scope.myVal = "filejdbc --password=12345678 --driverClassName=org.postgresql.Driver";
+      $scope.myVal = 'filejdbc --password=12345678 --driverClassName=org.postgresql.Driver';
       $scope.$digest();
       var elementValue = element.text();
       expect(elementValue).toEqual('filejdbc --password=******** --driverClassName=org.postgresql.Driver');
     }));
-
     it('The password parameter can be upper-case, lower-case or mixed-case', inject(function() {
-      $scope.myVal = "mystream -- password=12 --PASSword=  1234 --PASSWORD=  1234";
+      $scope.myVal = 'mystream -- password=12 --PASSword=  1234 --PASSWORD=  1234';
       $scope.$digest();
       var elementValue = element.text();
       expect(elementValue).toEqual('mystream -- password=** --PASSword=  **** --PASSWORD=  ****');
+    }));
+    it('The password parameter value in Russian (UTF) should be masked also', inject(function() {
+      $scope.myVal = 'mystream --password=Берлин';
+      $scope.$digest();
+      var elementValue = element.text();
+      expect(elementValue).toEqual('mystream --password=******');
+    }));
+    it('A basic stream definition parameter (parameter at end) called "passwwd" should have its value masked', inject(function() {
+      $scope.myVal = 'filejdbc --driverClassName=org.postgresql.Driver --passwd=12345678';
+      $scope.$digest();
+      var elementValue = element.text();
+      expect(elementValue).toEqual('filejdbc --driverClassName=org.postgresql.Driver --passwd=********');
     }));
   });
 });

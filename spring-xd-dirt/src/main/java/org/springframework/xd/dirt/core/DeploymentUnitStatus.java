@@ -50,7 +50,7 @@ public class DeploymentUnitStatus {
 	 *
 	 * @see #toMap
 	 */
-	private static final String ERROR_DESCRIPTION = "errorDesc";
+	private static final String ERROR_DESCRIPTION = "errorDescription";
 
 	/**
 	 * State for this deployment unit.

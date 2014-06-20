@@ -28,10 +28,10 @@ import org.springframework.xd.module.ModuleDescriptor;
 
 /**
  * Status of a module deployment for a container. In addition
- * to the {@code get} methods, this class provides a {@link #toMap}
- * method that contains the state and error description which
- * can be written to ZooKeeper. The module deployment staus path
- * can be obtained via {@link #buildPath()}.
+ * to the {@code get...} methods, this class provides a {@link #toMap}
+ * method which returns a map that contains the state and error
+ * description which can be written to ZooKeeper. The module deployment
+ * status path can be obtained via {@link #buildPath()}.
  *
  * @author Patrick Peralta
  */
@@ -58,12 +58,6 @@ public class ModuleDeploymentStatus {
 		 * Module was successfully deployed.
 		 */
 		deployed,
-
-		/**
-		 * Module deployment request timed out; a response was never received
-		 * from the container.
-		 */
-		timedOut,
 
 		/**
 		 * An error occurred during module deployment (usually on the container side).
@@ -119,7 +113,8 @@ public class ModuleDeploymentStatus {
 			Map<String,String> map) {
 		this.container = container;
 		this.key = key;
-		Assert.state(map.containsKey(STATUS_KEY));
+		Assert.state(map.containsKey(STATUS_KEY),
+				String.format("missing key '%s' from map; contents: %s", STATUS_KEY, map));
 		this.state = State.valueOf(map.get(STATUS_KEY));
 		this.errorDescription = map.get(ERROR_DESCRIPTION_KEY);
 	}
@@ -200,7 +195,7 @@ public class ModuleDeploymentStatus {
 		return "ModuleDeploymentStatus{" +
 				"container='" + container + '\'' +
 				", key=" + key +
-				", status=" + state +
+				", state=" + state +
 				", errorDescription='" + errorDescription + '\'' +
 				'}';
 	}

@@ -231,7 +231,8 @@ public class StreamDeploymentsPath {
 	 * Build the path string using the field values.
 	 *
 	 * @return path string
-	 * @throws java.lang.IllegalStateException if there are missing fields	 * @see Paths#build
+	 * @throws java.lang.IllegalStateException if there are missing fields
+	 * @see Paths#build
 	 */
 	public String build() throws IllegalStateException {
 		validate();

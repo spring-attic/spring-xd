@@ -27,16 +27,17 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.DeploymentUnitStateCalculator;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.Job;
-import org.springframework.xd.dirt.core.DefaultStateCalculator;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
@@ -69,7 +70,7 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	private final ModuleDeploymentWriter moduleDeploymentWriter;
 
 	/**
-	 * Utility for loading streams and jobs (including deployment metadata).
+	 * Utility for loading jobs (including deployment metadata).
 	 */
 	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
 
@@ -79,7 +80,7 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	private final JobFactory jobFactory;
 
 	/**
-	 * State calculator for stream/job state.
+	 * State calculator for job state.
 	 */
 	private final DeploymentUnitStateCalculator stateCalculator;
 
@@ -98,7 +99,7 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 * @param containerRepository repository to obtain container data
 	 * @param jobFactory factory to construct {@link Job}
 	 * @param containerMatcher matches modules to containers
-	 * @param stateCalculator calculator for stream/job state
+	 * @param stateCalculator calculator for job state
 	 */
 	public JobDeploymentListener(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository, JobFactory jobFactory,
@@ -151,6 +152,21 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 */
 	private void deployJob(CuratorFramework client, final Job job) throws InterruptedException {
 		if (job != null) {
+			String statusPath = Paths.build(Paths.JOB_DEPLOYMENTS, job.getName(), Paths.STATUS);
+
+			DeploymentUnitStatus deployingStatus = null;
+			try {
+				deployingStatus = new DeploymentUnitStatus(ZooKeeperUtils.bytesToMap(
+						client.getData().forPath(statusPath)));
+			}
+			catch (Exception e) {
+				// an exception indicates that the status has not been set
+			}
+			Assert.state(deployingStatus != null
+							&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
+					String.format("Expected 'deploying' status for job '%s'; current status: %s",
+							job.getName(), deployingStatus));
+
 			ModuleDeploymentPropertiesProvider provider = new JobModuleDeploymentPropertiesProvider(job);
 			List<ModuleDescriptor> descriptors = new ArrayList<ModuleDescriptor>();
 			descriptors.add(job.getJobModuleDescriptor());
@@ -160,11 +176,10 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 						moduleDeploymentWriter.writeDeployment(descriptors.iterator(), provider);
 
 				DeploymentUnitStatus status = stateCalculator.calculate(job, provider, deploymentStatus);
-				logger.warn("Deployment state for job: {}", status);
 
-				client.setData().forPath(
-						Paths.build(Paths.JOB_DEPLOYMENTS, job.getName(), Paths.STATUS),
-						ZooKeeperUtils.mapToBytes(status.toMap()));
+				logger.info("Deployment status for job '{}': {}", job.getName(), status);
+
+				client.setData().forPath(statusPath, ZooKeeperUtils.mapToBytes(status.toMap()));
 			}
 			catch (NoContainerException e) {
 				logger.warn("No containers available for deployment of job {}", job.getName());
@@ -189,7 +204,7 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 */
 	public void recalculateJobStates(CuratorFramework client, PathChildrenCache jobDeployments) throws Exception {
 		for (Iterator<String> iterator = new ChildPathIterator<String>(deploymentNameConverter, jobDeployments);
-			 iterator.hasNext();) {
+				iterator.hasNext();) {
 			String jobName = iterator.next();
 			Job job = deploymentLoader.loadJob(client, jobName, jobFactory);
 			if (job != null) {
@@ -207,10 +222,12 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 				DeploymentUnitStatus status = stateCalculator.calculate(job,
 						new JobModuleDeploymentPropertiesProvider(job), statusList);
 
-				logger.info("Deployment state for job: {}", status);
+				logger.info("Deployment status for job '{}': {}", job.getName(), status);
 
 				String statusPath = Paths.build(Paths.JOB_DEPLOYMENTS, job.getName(), Paths.STATUS);
-				if (client.checkExists().forPath(statusPath) != null) {
+				Stat stat = client.checkExists().forPath(statusPath);
+				if (stat != null) {
+					logger.warn("Found unexpected path {}; stat: {}", statusPath, stat);
 					client.delete().forPath(statusPath);
 				}
 				client.create().withMode(CreateMode.EPHEMERAL).forPath(statusPath,

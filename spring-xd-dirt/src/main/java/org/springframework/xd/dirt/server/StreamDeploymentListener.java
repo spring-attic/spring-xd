@@ -33,6 +33,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +44,7 @@ import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.DeploymentUnitStateCalculator;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
-import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.core.DefaultStateCalculator;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
@@ -76,7 +75,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	private final ModuleDeploymentWriter moduleDeploymentWriter;
 
 	/**
-	 * Utility for loading streams and jobs (including deployment metadata).
+	 * Utility for loading streams (including deployment metadata).
 	 */
 	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
 
@@ -86,7 +85,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	private final StreamFactory streamFactory;
 
 	/**
-	 * State calculator for stream/job state.
+	 * State calculator for stream state.
 	 */
 	private final DeploymentUnitStateCalculator stateCalculator;
 
@@ -123,7 +122,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 * @param containerRepository repository to obtain container data
 	 * @param streamFactory factory to construct {@link Stream}
 	 * @param containerMatcher matches modules to containers
-	 * @param stateCalculator calculator for stream/job state
+	 * @param stateCalculator calculator for stream state
 	 */
 	public StreamDeploymentListener(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository,
@@ -170,12 +169,22 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 * @throws InterruptedException
 	 */
 	private void deployStream(CuratorFramework client, Stream stream) throws InterruptedException {
-		try {
-			// todo: instead of setting state to "deploying", assert that the state is already "deploying"
-			client.setData().forPath(
-					Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.STATUS),
-					ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(DeploymentUnitStatus.State.deploying).toMap()));
+		String statusPath = Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.STATUS);
 
+		DeploymentUnitStatus deployingStatus = null;
+		try {
+			deployingStatus = new DeploymentUnitStatus(ZooKeeperUtils.bytesToMap(
+					client.getData().forPath(statusPath)));
+		}
+		catch (Exception e) {
+			// an exception indicates that the status has not been set
+		}
+		Assert.state(deployingStatus != null
+						&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
+				String.format("Expected 'deploying' status for stream '%s'; current status: %s",
+						stream.getName(), deployingStatus));
+
+		try {
 			StreamModuleDeploymentPropertiesProvider provider =
 					new StreamModuleDeploymentPropertiesProvider(stream);
 			Collection<ModuleDeploymentStatus> deploymentStatus =
@@ -183,11 +192,9 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 							provider);
 
 			DeploymentUnitStatus status = stateCalculator.calculate(stream, provider, deploymentStatus);
-			logger.info("Deployment state for stream: {}", status);
+			logger.info("Deployment status for stream '{}': {}", stream.getName(), status);
 
-			client.setData().forPath(
-					Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.STATUS),
-					ZooKeeperUtils.mapToBytes(status.toMap()));
+			client.setData().forPath(statusPath, ZooKeeperUtils.mapToBytes(status.toMap()));
 		}
 		catch (NoContainerException e) {
 			logger.warn("No containers available for deployment of stream {}", stream.getName());
@@ -211,8 +218,8 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 */
 	public void recalculateStreamStates(CuratorFramework client, PathChildrenCache streamDeployments) throws Exception {
 		for (Iterator<String> iterator =
-					 new ChildPathIterator<String>(deploymentNameConverter, streamDeployments);
-			 iterator.hasNext(); ) {
+					new ChildPathIterator<String>(deploymentNameConverter, streamDeployments);
+							iterator.hasNext();) {
 			String streamName = iterator.next();
 			String definitionPath = Paths.build(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
 			Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
@@ -234,10 +241,12 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 				DeploymentUnitStatus status = stateCalculator.calculate(stream,
 						new StreamModuleDeploymentPropertiesProvider(stream), statusList);
 
-				logger.info("Deployment state for stream: {}", status);
+				logger.info("Deployment status for stream '{}': {}", stream.getName(), status);
 
 				String statusPath = Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.STATUS);
-				if (client.checkExists().forPath(statusPath) != null) {
+				Stat stat = client.checkExists().forPath(statusPath);
+				if (stat != null) {
+					logger.warn("Found unexpected path {}; stat: {}", statusPath, stat);
 					client.delete().forPath(statusPath);
 				}
 				client.create().withMode(CreateMode.EPHEMERAL).forPath(statusPath,

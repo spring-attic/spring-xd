@@ -179,7 +179,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 							DeploymentUnitStatus.State.undeploying).toMap()));
 		}
 		catch (Exception e) {
-			logger.warn("Exception while transitioning job state to " +
+			logger.warn("Exception while transitioning job '{}' state to {}", id,
 					DeploymentUnitStatus.State.undeploying, e);
 		}
 

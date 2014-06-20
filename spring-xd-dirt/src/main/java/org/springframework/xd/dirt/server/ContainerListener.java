@@ -239,22 +239,17 @@ public class ContainerListener implements PathChildrenCacheListener {
 								descriptor.getModuleDefinition().getName(), container);
 
 						ModuleDeploymentStatus deploymentStatus = null;
+						ModuleDeployment moduleDeployment = new ModuleDeployment(job,
+								descriptor, moduleDeploymentProperties);
 						try {
-							client.setData().forPath(
-									Paths.build(Paths.JOB_DEPLOYMENTS, job.getName(), Paths.STATUS),
-									ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(
-											DeploymentUnitStatus.State.deploying).toMap()));
-
-							deploymentStatus = moduleDeploymentWriter.writeDeployment(descriptor, container);
+							deploymentStatus = deployModule(client, moduleDeployment, container);
 						}
 						catch (NoContainerException e) {
 							logger.warn("Could not deploy job {} to container {}; " +
 									"this container may have just departed the cluster", job.getName(), container);
 						}
 						finally {
-							updateDeploymentUnitState(client,
-									new ModuleDeployment(job, descriptor, moduleDeploymentProperties),
-									deploymentStatus);
+							updateDeploymentUnitState(client, moduleDeployment, deploymentStatus);
 						}
 					}
 				}
@@ -310,13 +305,10 @@ public class ContainerListener implements PathChildrenCacheListener {
 									moduleDescriptor.getModuleDefinition().getName(), container);
 
 							ModuleDeploymentStatus deploymentStatus = null;
+							ModuleDeployment moduleDeployment =  new ModuleDeployment(
+									stream, moduleDescriptor, moduleDeploymentProperties);
 							try {
-								client.setData().forPath(
-										Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.STATUS),
-										ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(
-												DeploymentUnitStatus.State.deploying).toMap()));
-
-								deploymentStatus = moduleDeploymentWriter.writeDeployment(moduleDescriptor, container);
+								deploymentStatus = deployModule(client, moduleDeployment, container);
 							}
 							catch (NoContainerException e) {
 								logger.warn("Could not deploy module {} for stream {} to container {}; " +
@@ -325,9 +317,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 										stream.getName(), container);
 							}
 							finally {
-								updateDeploymentUnitState(client,
-										new ModuleDeployment(stream, moduleDescriptor, moduleDeploymentProperties),
-										deploymentStatus);
+								updateDeploymentUnitState(client, moduleDeployment, deploymentStatus);
 							}
 						}
 					}
@@ -393,21 +383,31 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param client curator client
 	 * @param descriptor module descriptor
 	 *
-	 * @return list of containers that have deployed this module; empty list is returned if no containers have deployed
-	 *         it
+	 * @return list of containers that have deployed this module; empty
+	 * list is returned if no containers have deployed it
 	 *
 	 * @throws Exception thrown by Curator
 	 */
 	private List<String> getContainersForJobModule(CuratorFramework client, ModuleDescriptor descriptor)
 			throws Exception {
+		List<String> containers = new ArrayList<String>();
+		String moduleType = descriptor.getModuleDefinition().getType().toString();
+		String moduleLabel = descriptor.getModuleLabel();
+		String moduleDeploymentPath = Paths.build(Paths.JOB_DEPLOYMENTS, descriptor.getGroup(), Paths.MODULES);
 		try {
-			return client.getChildren().forPath(new JobDeploymentsPath()
-					.setJobName(descriptor.getGroup())
-					.setModuleLabel(descriptor.getModuleLabel()).build());
+			List<String> moduleDeployments = client.getChildren().forPath(moduleDeploymentPath);
+			for (String moduleDeployment : moduleDeployments) {
+				JobDeploymentsPath path = new JobDeploymentsPath(
+						Paths.build(moduleDeploymentPath, moduleDeployment));
+				if (path.getModuleLabel().equals(moduleLabel)) {
+					containers.add(path.getContainer());
+				}
+			}
 		}
 		catch (KeeperException.NoNodeException e) {
-			return Collections.emptyList();
+			// job has not been (or is no longer) deployed
 		}
+		return containers;
 	}
 
 	/**
@@ -510,13 +510,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 		ModuleDeploymentStatus deploymentStatus = null;
 		if (mergedProperties.getCount() > 0) {
 			try {
-				client.setData().forPath(
-						Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.STATUS),
-								ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(
-										DeploymentUnitStatus.State.deploying).toMap()));
-
-				deploymentStatus = moduleDeploymentWriter.writeDeployment(
-						moduleDescriptor, mergedProperties,
+				deploymentStatus = deployModule(client, moduleDeployment,
 						instantiateContainerMatcher(client, moduleDescriptor));
 			}
 			catch (NoContainerException e) {
@@ -559,10 +553,10 @@ public class ContainerListener implements PathChildrenCacheListener {
 		mergedProperties.putAll(deploymentProperties);
 
 		ModuleDeploymentStatus deploymentStatus = null;
+		ModuleDeployment moduleDeployment = new ModuleDeployment(job, moduleDescriptor, deploymentProperties);
 		if (deploymentProperties.getCount() > 0) {
 			try {
-				deploymentStatus = moduleDeploymentWriter.writeDeployment(
-						moduleDescriptor, mergedProperties,
+				deploymentStatus = deployModule(client, moduleDeployment,
 						instantiateContainerMatcher(client, moduleDescriptor));
 			}
 			catch (NoContainerException e) {
@@ -616,6 +610,74 @@ public class ContainerListener implements PathChildrenCacheListener {
 		}
 		builder.append("; it does not need to be redeployed");
 		logger.info(builder.toString());
+	}
+
+	/**
+	 * Issue a module deployment request for the provided module using
+	 * the provided container matcher. This also transitions the deployment
+	 * unit state to {@link DeploymentUnitStatus.State#deploying}. Once
+	 * the deployment attempt completes, the status for the deployment unit
+	 * should be updated via {@link #updateDeploymentUnitState} using the
+	 * {@link ModuleDeploymentStatus} returned from this method.
+	 *
+	 * @param client             curator client
+	 * @param moduleDeployment   contains module redeployment details such as
+	 *                           stream, module descriptor, and deployment properties
+	 * @param containerMatcher   matches modules to containers
+	 * @return result of module deployment request
+	 * @throws Exception
+	 * @see #transitionToDeploying
+	 */
+	private ModuleDeploymentStatus deployModule(CuratorFramework client,
+			ModuleDeployment moduleDeployment, ContainerMatcher containerMatcher) throws Exception {
+		transitionToDeploying(client, moduleDeployment.deploymentUnit);
+
+		return moduleDeploymentWriter.writeDeployment(moduleDeployment.moduleDescriptor,
+				moduleDeployment.deploymentProperties, containerMatcher);
+	}
+
+	/**
+	 * Issue a module deployment request for the provided module to
+	 * the provided container. This also transitions the deployment
+	 * unit state to {@link DeploymentUnitStatus.State#deploying}. Once
+	 * the deployment attempt completes, the status for the deployment unit
+	 * should be updated via {@link #updateDeploymentUnitState} using the
+	 * {@link ModuleDeploymentStatus} returned from this method.
+	 *
+	 * @param client             curator client
+	 * @param moduleDeployment   contains module redeployment details such as
+	 *                           stream, module descriptor, and deployment properties
+	 * @param container          target container for module deployment
+	 * @return result of module deployment request
+	 * @throws Exception
+	 * @see #transitionToDeploying
+	 */
+	private ModuleDeploymentStatus deployModule(CuratorFramework client,
+			ModuleDeployment moduleDeployment, Container container) throws Exception {
+		transitionToDeploying(client, moduleDeployment.deploymentUnit);
+
+		return moduleDeploymentWriter.writeDeployment(moduleDeployment.moduleDescriptor, container);
+	}
+
+	/**
+	 * Transitions the deployment unit state to {@link DeploymentUnitStatus.State#deploying}.
+	 * This transition should occur before making a module deployment attempt.
+	 *
+	 * @param client         curator client
+	 * @param deploymentUnit deployment unit that contains a module to be deployed
+	 * @throws Exception
+	 * @see #deployModule
+	 * @see #updateDeploymentUnitState
+	 */
+	private void transitionToDeploying(CuratorFramework client, DeploymentUnit deploymentUnit) throws Exception {
+		String pathPrefix = (deploymentUnit instanceof Stream)
+				? Paths.STREAM_DEPLOYMENTS
+				: Paths.JOB_DEPLOYMENTS;
+
+		client.setData().forPath(
+				Paths.build(pathPrefix, deploymentUnit.getName(), Paths.STATUS),
+				ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(
+						DeploymentUnitStatus.State.deploying).toMap()));
 	}
 
 	/**

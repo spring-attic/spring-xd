@@ -189,7 +189,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 							DeploymentUnitStatus.State.undeploying).toMap()));
 		}
 		catch (Exception e) {
-			logger.warn("Exception while transitioning stream state to " +
+			logger.warn("Exception while transitioning stream {} state to {}", id,
 					DeploymentUnitStatus.State.undeploying, e);
 		}
 

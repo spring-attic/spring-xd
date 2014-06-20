@@ -26,8 +26,8 @@ import org.springframework.xd.dirt.server.ModuleDeploymentStatus;
  * The inputs used to calculate this state include:
  * <ul>
  *     <li>The stream/job itself, including all module information</li>
- *     <li>Deployment properties for the individual modules. This may
- *         include attributes such as module count</li>
+ *     <li>Deployment properties provider for the individual modules;
+ *         this may include attributes such as module count</li>
  *     <li>Collection of deployment statuses for each individual module</li>
  * </ul>
  *

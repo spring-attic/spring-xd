@@ -321,12 +321,12 @@ public class ModuleDeploymentWriter {
 		// remove the ZK path for any failed deployments
 		for (ModuleDeploymentStatus deploymentStatus : statuses) {
 			if (deploymentStatus.getState() != ModuleDeploymentStatus.State.deployed) {
-				logger.trace("Unsuccessful deployment: {}", deploymentStatus);
 				String path = new ModuleDeploymentsPath()
 						.setContainer(deploymentStatus.getContainer())
 						.setStreamName(deploymentStatus.getKey().getGroup())
 						.setModuleType(deploymentStatus.getKey().getType().toString())
 						.setModuleLabel(deploymentStatus.getKey().getLabel()).build();
+				logger.debug("Unsuccessful deployment: {}; removing path {}", deploymentStatus, path);
 				try {
 					client.delete().deletingChildrenIfNeeded().forPath(path);
 				}
@@ -573,10 +573,13 @@ public class ModuleDeploymentWriter {
 			for (ContainerModuleKey key : pending) {
 				results.put(key,
 						new ModuleDeploymentStatus(key.container, key.moduleDescriptorKey,
-								ModuleDeploymentStatus.State.timedOut, /*errorDescription*/null));
+								ModuleDeploymentStatus.State.failed,
+								String.format("Deployment of module '%s' to container '%s' timed out after %d ms",
+										key.moduleDescriptorKey, key.container, timeout)));
 			}
 			return results.values();
 		}
+
 	}
 
 }

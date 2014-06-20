@@ -21,11 +21,11 @@ import org.springframework.xd.store.DomainRepository;
 
 
 /**
- * A repoository for persisting {@link Job} instances.
+ * A repository for persisting {@link Job} instances.
  *
  * @author Eric Bottard
  */
 public interface JobRepository extends DomainRepository<Job, String>,
-		DeploymentStatusRepository<Stream, String> {
+		DeploymentStatusRepository<Job, String> {
 
 }

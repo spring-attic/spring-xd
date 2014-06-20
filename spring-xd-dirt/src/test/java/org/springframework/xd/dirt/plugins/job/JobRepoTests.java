@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,8 @@ import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
- * 
+ * Tests for Batch Job Repository.
+ *
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
@@ -102,9 +103,9 @@ public class JobRepoTests extends RandomConfigurationSupport {
 	public void checkThatRegistryTablesAreCreated() throws Exception {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(source);
 		int count = jdbcTemplate.queryForObject(
-				"select count(*) from INFORMATION_SCHEMA.system_tables  WHERE TABLE_NAME LIKE 'JOB_REGISTRY%'",
+				"select count(*) from INFORMATION_SCHEMA.system_tables  WHERE TABLE_NAME LIKE 'XD_JOB_REGISTRY%'",
 				Integer.class).intValue();
-		assertEquals("The number of batch tables returned from hsqldb did not match.", 4, count);
+		assertEquals("The number of batch tables returned from hsqldb did not match.", 2, count);
 	}
 
 	@Test
@@ -112,7 +113,7 @@ public class JobRepoTests extends RandomConfigurationSupport {
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(source);
 		jobLocator.addStepNames(SIMPLE_JOB_NAME, job.getStepNames());
 		int count = jdbcTemplate.queryForObject(
-				"select count(*) from JOB_REGISTRY_STEP_NAMES  WHERE JOB_NAME = ?", Integer.class, job.getName()).intValue();
+				"select count(*) from XD_JOB_REGISTRY_STEP_NAMES  WHERE JOB_NAME = ?", Integer.class, job.getName()).intValue();
 		assertEquals("The number of step names returned from hsqldb did not match.", 2, count);
 	}
 
@@ -126,6 +127,6 @@ public class JobRepoTests extends RandomConfigurationSupport {
 			// we can ignore this. Just want to create a fake job instance.
 		}
 		assertTrue(repo.isJobInstanceExists(SIMPLE_JOB_NAME, new JobParameters()));
-		jobLocator.deleteJobName(SIMPLE_JOB_NAME);
+		jobLocator.deleteJobRegistry(SIMPLE_JOB_NAME);
 	}
 }

@@ -37,7 +37,7 @@ require.config({
   },
   shim: {
     angular: {
-      deps: ['bootstrap', 'lodash', 'xregexp'],
+      deps: ['bootstrap', 'lodash'],
       exports: 'angular'
     },
     bootstrap: {

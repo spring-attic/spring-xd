@@ -1056,6 +1056,7 @@ project('spring-xd-module-spi') {
 		compile "javax.validation:validation-api:$validationApiVersion"
 		compile "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
 		compile "org.springframework:spring-web:$springVersion"
+		testCompile "junit:junit:$junitVersion"
 	}
 }
 
@@ -1282,7 +1283,7 @@ project('modules.sink.throughput-sampler') {
 
 project('modules.sink.mongodb') {
 	dependencies {
-		runtime ("org.springframework.integration:spring-integration-mongodb:$springIntegrationVersion") 
+		runtime ("org.springframework.integration:spring-integration-mongodb:$springIntegrationVersion")
 	}
 }
 
@@ -1439,7 +1440,7 @@ project('spring-xd-shell') {
 		compile	"org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
 		compile "commons-io:commons-io:$commonsIoVersion"
 		configurations.compile.exclude(group: "xerces")
-		
+
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
 		runtime	"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		runtime	"log4j:log4j:$log4jVersion"
@@ -1508,7 +1509,7 @@ project('spring-xd-test-fixtures') {
 		}
 		compile "org.springframework:spring-web:$springVersion"
 		compile ("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") { exclude group: 'org.slf4j' }
-		
+
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"

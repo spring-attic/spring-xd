@@ -79,7 +79,7 @@ public class RemoteFileToHadoopTests {
 
 	@BeforeClass
 	public static void init() {
-		System.setProperty("spring.hadoop.fsUri", "hdfs://localhost:8020");
+		System.setProperty("fsUri", "hdfs://localhost:8020");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

@@ -29,8 +29,6 @@ public class Tap extends AbstractModuleFixture {
 
 	private String label;
 
-	private String moduleName;
-
 	/**
 	 * Create a tap stream with the provided name.
 	 * 
@@ -52,10 +50,6 @@ public class Tap extends AbstractModuleFixture {
 			dsl.append(".");
 			dsl.append(label);
 		}
-		else if (moduleName != null) {
-			dsl.append(".");
-			dsl.append(moduleName);
-		}
 		return dsl.toString();
 	}
 
@@ -71,15 +65,5 @@ public class Tap extends AbstractModuleFixture {
 		return this;
 	}
 
-	/**
-	 * Sets the module name to be used by the tap
-	 * @param moduleName the module name to be used by this tap
-	 * @return current instance of the tap fixture
-	 */
-	public Tap moduleName(String moduleName) {
-		Assert.hasText(moduleName, "moduleName can not be empty nor null");
-		this.moduleName = moduleName;
-		return this;
-	}
 
 }

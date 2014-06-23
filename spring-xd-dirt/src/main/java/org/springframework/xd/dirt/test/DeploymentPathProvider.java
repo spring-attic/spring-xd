@@ -16,16 +16,18 @@
 
 package org.springframework.xd.dirt.test;
 
-import java.util.List;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+
 
 /**
  * For a given deployment name, provide the expected ZooKeeper
- * paths for definitions, deployments, and individual module
- * deployments.
+ * paths for definitions, deployments.
  *
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 public interface DeploymentPathProvider {
+
 	/**
 	 * Return the expected path for a definition with the provided name.
 	 *
@@ -35,22 +37,10 @@ public interface DeploymentPathProvider {
 	String getDefinitionPath(String name);
 
 	/**
-	 * Return the expected path for a deployment with the provided name.
+	 * Return the deployment status for the deployment name.
 	 *
-	 * @param name definition name
-	 * @return path of deployment
+	 * @param name deployment name
+	 * @return the deployment status
 	 */
-	String getDeploymentPath(String name);
-
-	/**
-	 * Return the number of children expected under the deployment path
-	 * for this deployment. When the expected number of children exist,
-	 * it is assumed that all modules were deployed.
-	 *
-	 * @param name definition name
-	 *
-	 * @return number of children expected under the deployment path
-	 *         for this deployment
-	 */
-	int getDeploymentPathChildrenCount(String name);
+	DeploymentUnitStatus getDeploymentStatus(String name);
 }

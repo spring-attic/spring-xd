@@ -16,19 +16,9 @@
 
 package org.springframework.xd.dirt.test;
 
-import java.util.Map;
-
-import org.apache.curator.framework.CuratorFramework;
-
-import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.zookeeper.Paths;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Provides path information for stream definitions, deployments, and stream module deployments.
@@ -36,39 +26,22 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author David Turanski
  * @author Mark Fisher
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 public class StreamPathProvider implements DeploymentPathProvider {
 
 	/**
-	 * ZooKeeper connection.
+	 * Stream repository
 	 */
-	private final ZooKeeperConnection zkConnection;
-
-	/**
-	 * Stream factory.
-	 */
-	private final StreamFactory streamFactory;
-
-	/**
-	 * Utility to convert JSON strings to maps.
-	 */
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+	private final StreamRepository streamRepository;
 
 	/**
 	 * Construct a StreamPathProvider.
 	 *
-	 * @param zkConnection ZooKeeper connection
-	 * @param streamDefinitionRepository repository for stream definitions
-	 * @param moduleDefinitionRepository repository for module definitions
-	 * @param moduleOptionsMetadataResolver resolver for module options metadata
+	 * @param streamRepository repository for deployed stream instances
 	 */
-	public StreamPathProvider(ZooKeeperConnection zkConnection,
-			StreamDefinitionRepository streamDefinitionRepository,
-			ModuleDefinitionRepository moduleDefinitionRepository,
-			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		this.zkConnection = zkConnection;
-		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
-				moduleOptionsMetadataResolver);
+	public StreamPathProvider(StreamRepository streamRepository) {
+		this.streamRepository = streamRepository;
 	}
 
 	/**
@@ -83,50 +56,8 @@ public class StreamPathProvider implements DeploymentPathProvider {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String getDeploymentPath(String streamName) {
-		return Paths.build(Paths.STREAM_DEPLOYMENTS, streamName, Paths.MODULES);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public int getDeploymentPathChildrenCount(String streamName) {
-		try {
-			Stream stream = streamFactory.createStream(streamName, getStreamProperties(streamName));
-			return stream.getModuleDescriptors().size();
-		}
-		catch (Exception e) {
-			String definition;
-			try {
-				byte[] data = zkConnection.getClient().getData().forPath(getDefinitionPath(streamName));
-				definition = new String(data);
-			}
-			catch (Exception ex) {
-				definition = "Could not load definition due to: " + ex.toString();
-			}
-			throw new IllegalStateException(String.format(
-					"Failed to determine module deployment paths for stream %s, definition: %s",
-					streamName, definition), e);
-		}
-	}
-
-	/**
-	 * Return the data for a stream from ZooKeeper.
-	 *
-	 * @param streamName stream name
-	 * @return properties for a stream
-	 */
-	private Map<String, String> getStreamProperties(String streamName) {
-		CuratorFramework client = zkConnection.getClient();
-
-		try {
-			byte[] data = client.getData().forPath(Paths.build(Paths.STREAMS, streamName));
-			return mapBytesUtility.toMap(data);
-		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
-		}
+	public DeploymentUnitStatus getDeploymentStatus(String streamName) {
+		return this.streamRepository.getDeploymentStatus(streamName);
 	}
 
 }

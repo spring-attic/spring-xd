@@ -194,10 +194,9 @@ public class DeploymentVerifier {
 
 		if (actualState != expectedState) {
 			throw new RuntimeTimeoutException(
-					String.format("Deployment of % timed out. Expected state %s but it is currently in %s", name,
+					String.format("Deployment of %s timed out. Expected state %s but it is currently in %s", name,
 							expectedState, actualState));
 		}
-
 	}
 
 	/**

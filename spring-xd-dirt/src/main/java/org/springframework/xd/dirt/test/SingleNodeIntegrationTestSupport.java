@@ -13,6 +13,7 @@
 
 package org.springframework.xd.dirt.test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,6 +49,8 @@ import org.springframework.xd.module.core.Module;
  * @author Ilayaperumal Gopinathan
  */
 public class SingleNodeIntegrationTestSupport {
+
+	private static final Map<String, String> EMPTY_PROPERTIES = Collections.emptyMap();
 
 	private StreamDefinitionRepository streamDefinitionRepository;
 
@@ -133,7 +136,7 @@ public class SingleNodeIntegrationTestSupport {
 		return waitForDeploy(definition);
 	}
 
-	public final boolean deployStream(StreamDefinition definition, String properties) {
+	public final boolean deployStream(StreamDefinition definition, Map<String, String> properties) {
 		return waitForDeploy(definition, properties);
 	}
 
@@ -222,10 +225,10 @@ public class SingleNodeIntegrationTestSupport {
 	}
 
 	private boolean waitForDeploy(StreamDefinition definition) {
-		return waitForDeploy(definition, null);
+		return waitForDeploy(definition, EMPTY_PROPERTIES);
 	}
 
-	private boolean waitForDeploy(StreamDefinition definition, String properties) {
+	private boolean waitForDeploy(StreamDefinition definition, Map<String, String> properties) {
 		streamDeployer.deploy(definition.getName(), properties);
 		try {
 			streamDeploymentVerifier.waitForDeploy(definition.getName());

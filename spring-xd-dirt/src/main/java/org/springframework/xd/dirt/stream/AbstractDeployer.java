@@ -17,7 +17,12 @@
 package org.springframework.xd.dirt.stream;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -32,6 +37,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ResourceDeployer;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -52,11 +58,17 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
 
+	/**
+	 * Pattern used for parsing a single deployment property key. Group 1 is the module name, Group 2 is the 
+	 * deployment property name.
+	 */
+	private static final Pattern DEPLOYMENT_PROPERTY_PATTERN = Pattern.compile("module\\.([^\\.]+)\\.([^=]+)");
+
 	private final PagingAndSortingRepository<D, String> repository;
 
 	private final ZooKeeperConnection zkConnection;
 
-	protected final XDParser streamParser;
+	protected final XDParser parser;
 
 	/**
 	 * Used in exception messages as well as indication to the parser.
@@ -71,7 +83,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		this.zkConnection = zkConnection;
 		this.repository = repository;
 		this.definitionKind = parsingContext;
-		this.streamParser = parser;
+		this.parser = parser;
 	}
 
 	@Override
@@ -80,7 +92,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (repository.findOne(definition.getName()) != null) {
 			throwDefinitionAlreadyExistsException(definition);
 		}
-		List<ModuleDescriptor> moduleDescriptors = streamParser.parse(definition.getName(),
+		List<ModuleDescriptor> moduleDescriptors = parser.parse(definition.getName(),
 				definition.getDefinition(), definitionKind);
 		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
 		if (!moduleDefinitions.isEmpty()) {
@@ -184,7 +196,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 * @return the definition object for the given name
 	 * @throws NoSuchDefinitionException if there is no definition by the given name
 	 */
-	protected D basicDeploy(String name, String properties) {
+	protected D basicDeploy(String name, Map<String, String> properties) {
 		Assert.hasText(name, "name cannot be blank or null");
 		logger.trace("Deploying {}", name);
 
@@ -192,10 +204,11 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
+		validateDeploymentProperties(definition, properties);
 		try {
 			String deploymentPath = getDeploymentPath(definition);
 			String statusPath = Paths.build(deploymentPath, Paths.STATUS);
-			byte[] propertyBytes = properties != null ? properties.getBytes("UTF-8") : null;
+			byte[] propertyBytes = DeploymentPropertiesUtility.formatDeploymentProperties(properties).getBytes("UTF-8");
 			byte[] statusBytes = ZooKeeperUtils.mapToBytes(
 					new DeploymentUnitStatus(DeploymentUnitStatus.State.deploying).toMap());
 
@@ -205,12 +218,32 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 					.commit();
 		}
 		catch (KeeperException.NodeExistsException e) {
-			throw new IllegalStateException(String.format("'%s' is already deployed", name));
+			throwAlreadyDeployedException(name);
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return definition;
+	}
+
+	/**
+	 * Validates that all deployment properties (of the form "module.<modulename>.<key>" do indeed
+	 * reference module names that belong to the stream/job definition).
+	 */
+	private void validateDeploymentProperties(D definition, Map<String, String> properties) {
+		List<ModuleDescriptor> modules = parser.parse(definition.getName(), definition.getDefinition(), definitionKind);
+		Set<String> moduleLabels = new HashSet<String>(modules.size());
+		for (ModuleDescriptor md : modules) {
+			moduleLabels.add(md.getModuleLabel());
+		}
+		for (Map.Entry<String, String> pair : properties.entrySet()) {
+			Matcher matcher = DEPLOYMENT_PROPERTY_PATTERN.matcher(pair.getKey());
+			Assert.isTrue(matcher.matches(),
+					String.format("'%s' does not match '%s'", pair.getKey(), DEPLOYMENT_PROPERTY_PATTERN));
+			String moduleName = matcher.group(1);
+			Assert.isTrue(moduleLabels.contains(moduleName),
+					String.format("'%s' refers to a module that is not in the list: %s", pair.getKey(), moduleLabels));
+		}
 	}
 
 	/**

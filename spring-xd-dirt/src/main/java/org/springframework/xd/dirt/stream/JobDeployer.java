@@ -88,7 +88,7 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 	}
 
 	private List<ModuleDescriptor> parse(String name, String definition) {
-		return streamParser.parse(name, definition, definitionKind);
+		return parser.parse(name, definition, definitionKind);
 	}
 
 	@Override

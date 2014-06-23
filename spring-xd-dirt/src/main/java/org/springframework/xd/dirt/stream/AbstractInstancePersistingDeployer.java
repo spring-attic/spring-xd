@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.stream;
 
+import java.util.Map;
+
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
@@ -68,9 +70,10 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 	}
 
 	@Override
-	public void deploy(String name, String properties) {
+	public void deploy(String name, Map<String, String> properties) {
 
 		Assert.hasText(name, "name cannot be blank or null");
+		Assert.notNull(properties, "properties cannot be null");
 
 		if (instanceRepository.exists(name)) {
 			throwAlreadyDeployedException(name);

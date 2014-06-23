@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.stream;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -32,6 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ResourceDeployer;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -184,7 +186,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 * @return the definition object for the given name
 	 * @throws NoSuchDefinitionException if there is no definition by the given name
 	 */
-	protected D basicDeploy(String name, String properties) {
+	protected D basicDeploy(String name, Map<String, String> properties) {
 		Assert.hasText(name, "name cannot be blank or null");
 		logger.trace("Deploying {}", name);
 
@@ -195,7 +197,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		try {
 			String deploymentPath = getDeploymentPath(definition);
 			String statusPath = Paths.build(deploymentPath, Paths.STATUS);
-			byte[] propertyBytes = properties != null ? properties.getBytes("UTF-8") : null;
+			byte[] propertyBytes = DeploymentPropertiesUtility.formatDeploymentProperties(properties).getBytes("UTF-8");
 			byte[] statusBytes = ZooKeeperUtils.mapToBytes(
 					new DeploymentUnitStatus(DeploymentUnitStatus.State.deploying).toMap());
 
@@ -205,7 +207,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 					.commit();
 		}
 		catch (KeeperException.NodeExistsException e) {
-			throw new IllegalStateException(String.format("'%s' is already deployed", name));
+			throwAlreadyDeployedException(name);
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);

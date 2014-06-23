@@ -18,7 +18,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -392,8 +394,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	protected void verifyDynamicProperties(MessageBus bus, String string) {
 	}
 
-	protected String onDemandProperties() {
-		return null;
+	protected Map<String, String> onDemandProperties() {
+		return Collections.emptyMap();
 	}
 
 	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {

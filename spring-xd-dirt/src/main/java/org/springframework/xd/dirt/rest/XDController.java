@@ -16,7 +16,9 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +40,7 @@ import org.springframework.xd.dirt.stream.AbstractDeployer;
 import org.springframework.xd.dirt.stream.AbstractInstancePersistingDeployer;
 import org.springframework.xd.dirt.stream.BaseInstance;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.rest.client.domain.DeployableResource;
 import org.springframework.xd.rest.client.domain.NamedResource;
 
@@ -142,7 +145,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
 	public void deploy(@PathVariable("name") String name, @RequestParam(required = false) String properties) {
-		deployer.deploy(name, properties);
+		deployer.deploy(name, DeploymentPropertiesUtility.parseDeploymentProperties(properties));
 	}
 
 	/**
@@ -221,7 +224,8 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 		final D moduleDefinition = createDefinition(name, definition);
 		final D savedModuleDefinition = deployer.save(moduleDefinition);
 		if (deploy) {
-			deployer.deploy(name, null);
+			Map<String, String> emptyMap = Collections.emptyMap();
+			deployer.deploy(name, emptyMap);
 		}
 		final R result = resourceAssemblerSupport.toResource(savedModuleDefinition);
 		return result;

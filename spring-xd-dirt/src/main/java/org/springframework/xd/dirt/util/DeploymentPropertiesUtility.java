@@ -88,6 +88,22 @@ public class DeploymentPropertiesUtility {
 	}
 
 	/**
+	 * Returns a String representation of deployment properties as a comma separated list of key=value pairs.
+	 * @param properties the properties to format
+	 * @return the properties formatted as a String
+	 */
+	public static String formatDeploymentProperties(Map<String, String> properties) {
+		StringBuilder sb = new StringBuilder(15 * properties.size());
+		for (Map.Entry<String, String> pair : properties.entrySet()) {
+			if (sb.length() > 0) {
+				sb.append(",");
+			}
+			sb.append(pair.getKey()).append("=").append(pair.getValue());
+		}
+		return sb.toString();
+	}
+
+	/**
 	 * Adds a String of format key=value to the provided Map as a key/value pair.
 	 *
 	 * @param pair the String representation

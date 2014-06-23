@@ -84,6 +84,7 @@ public class StreamPluginTests {
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
+				throw new IllegalStateException("interrupted while waiting for ZK connection");
 			}
 		}
 		plugin = new StreamPlugin(bus, zkConnection);

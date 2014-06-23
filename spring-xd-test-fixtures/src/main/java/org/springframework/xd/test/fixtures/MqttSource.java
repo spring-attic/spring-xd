@@ -85,7 +85,8 @@ public class MqttSource extends AbstractModuleFixture<MqttSource> {
 				Thread.sleep(1000);
 			}
 			catch (InterruptedException e) {
-				e.printStackTrace();
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e);
 			}
 			client.disconnect();
 			client.close();

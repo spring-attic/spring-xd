@@ -254,6 +254,8 @@ public abstract class AbstractTwitterInboundChannelAdapter extends MessageProduc
 			Thread.sleep(millis);
 		}
 		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException(e);
 		}
 	}
 

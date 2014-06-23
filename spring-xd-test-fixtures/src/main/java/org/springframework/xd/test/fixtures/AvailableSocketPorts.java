@@ -74,6 +74,7 @@ public class AvailableSocketPorts {
 				}
 				catch (InterruptedException e1) {
 					Thread.currentThread().interrupt();
+					throw new IllegalStateException(e1);
 				}
 			}
 		}

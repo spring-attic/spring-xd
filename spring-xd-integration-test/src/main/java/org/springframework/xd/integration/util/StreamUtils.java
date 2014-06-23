@@ -177,6 +177,7 @@ public class StreamUtils {
 				Thread.sleep(1000);
 			}
 			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				throw new IllegalStateException(e.getMessage(), e);
 			}
 			result = isStreamDeployed(streamName, adminServer);

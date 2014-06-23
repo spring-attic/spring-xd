@@ -200,6 +200,9 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 					Thread.sleep(100);
 				}
 				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					logger.warn("thread interrupted while awaiting shutdown", e);
+					break;
 				}
 			}
 			logger.info("HSQL Server Shutdown completed");

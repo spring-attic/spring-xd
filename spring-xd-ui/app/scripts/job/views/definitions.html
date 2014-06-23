@@ -19,7 +19,7 @@
     <tbody>
     <tr ng-repeat="item in jobDefinitions | filter:filterQuery | orderBy:'name'" ng-show="!item.inactive">
         <td>{{item.name}}</td>
-        <td>{{item.definition}}</td>
+        <td xd-format-stream='item.definition'></td>
         <td class="action-column">
             <button type="button" ng-click="undeployJob(item)"
                     ng-disabled="!item.deployed"

@@ -55,6 +55,14 @@ describe('Tests for creating a new Job Definition from a Module', function() {
       expect(formGroup.getAttribute('class')).toMatch('has-feedback');
       expect(formGroup.getAttribute('class')).toMatch('has-warning');
     });
+    it('The "Password" field should be of type "password"', function() {
+      var passwordField = $('#password');
+      expect(passwordField.getAttribute('type')).toMatch('password');
+    });
+    it('The "Restartable" field should be of type "checkbox"', function() {
+        var passwordField = $('#restartable');
+        expect(passwordField.getAttribute('type')).toMatch('checkbox');
+      });
     it('if the user clicks the "back" button, the module list page should be loaded', function() {
       var backButton = element(by.css('#back-button'));
       expect(backButton.isPresent()).toBe(true);

@@ -46,10 +46,14 @@ public class DateCommandTests extends AbstractShellIntegrationTest {
 		CommandResult cr = getShell().executeCommand("date");
 
 		assertTrue("Date command completed correctly", cr.isSuccess());
-		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, Locale.US);
+		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, Locale.getDefault());
 		Date result = df.parse(cr.getResult().toString());
 		Date now = new Date();
 		MatcherAssert.assertThat(now, DateMatchers.within(5, TimeUnit.SECONDS, result));
+	}
+
+	public static void main(String[] args) {
+		System.out.println(Locale.getDefault());
 	}
 
 }

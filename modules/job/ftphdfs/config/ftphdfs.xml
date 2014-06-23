@@ -7,7 +7,8 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-4.0.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
+		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
 	<import resource="classpath:/META-INF/spring-xd/batch/singlestep-partition-support.xml"/>
 
@@ -35,6 +36,10 @@
 		<constructor-arg ref="ls.gateway" />
 		<constructor-arg value="#{jobParameters['remoteDirectory']}"/>
 	</bean>
+
+	<step id="step1" xmlns="http://www.springframework.org/schema/batch">
+		<tasklet ref="tasklet"/>
+	</step>
 
 	<bean id="tasklet" class="org.springframework.batch.integration.x.RemoteFileToHadoopTasklet" scope="step">
 		<constructor-arg ref="remoteFileTemplate" />

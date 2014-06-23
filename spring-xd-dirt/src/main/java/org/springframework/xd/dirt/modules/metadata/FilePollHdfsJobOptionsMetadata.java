@@ -32,7 +32,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Ilayaperumal Gopinathan
  * @author Thomas Risberg
  */
-@Mixin({ BatchJobRestartableOptionMixin.class, BatchJobDeleteFilesOptionMixin.class,
+@Mixin({ BatchJobDeleteFilesOptionMixin.class,
 	BatchJobFieldNamesOptionMixin.class, HadoopConfigurationMixin.class })
 public class FilePollHdfsJobOptionsMetadata {
 

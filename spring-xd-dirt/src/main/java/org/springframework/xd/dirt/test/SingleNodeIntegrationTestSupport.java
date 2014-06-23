@@ -24,11 +24,11 @@ import org.springframework.xd.dirt.core.RuntimeTimeoutException;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
@@ -36,7 +36,6 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 
 /**
@@ -53,6 +52,8 @@ public class SingleNodeIntegrationTestSupport {
 	private StreamDefinitionRepository streamDefinitionRepository;
 
 	private StreamRepository streamRepository;
+
+	private JobRepository jobRepository;
 
 	private StreamDeployer streamDeployer;
 
@@ -83,15 +84,13 @@ public class SingleNodeIntegrationTestSupport {
 		Assert.notNull(application, "SingleNodeApplication must not be null");
 		streamDefinitionRepository = application.pluginContext().getBean(StreamDefinitionRepository.class);
 		streamRepository = application.pluginContext().getBean(StreamRepository.class);
+		jobRepository = application.pluginContext().getBean(JobRepository.class);
 		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
 		messageBus = application.pluginContext().getBean(MessageBusSupport.class);
 		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
 		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
-		streamDeploymentVerifier = new DeploymentVerifier(zooKeeperConnection,
-				new StreamPathProvider(zooKeeperConnection, streamDefinitionRepository,
-						application.containerContext().getBean(ModuleDefinitionRepository.class),
-						application.containerContext().getBean(ModuleOptionsMetadataResolver.class)));
-		jobDeploymentVerifier = new DeploymentVerifier(zooKeeperConnection, new JobPathProvider());
+		streamDeploymentVerifier = new DeploymentVerifier(zooKeeperConnection, new StreamPathProvider(streamRepository));
+		jobDeploymentVerifier = new DeploymentVerifier(zooKeeperConnection, new JobPathProvider(jobRepository));
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
 		DelegatingModuleRegistry cmr1 = application.pluginContext().getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);

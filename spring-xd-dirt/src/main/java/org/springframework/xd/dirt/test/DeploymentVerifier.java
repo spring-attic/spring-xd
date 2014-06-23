@@ -16,14 +16,10 @@
 
 package org.springframework.xd.dirt.test;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
-import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.RuntimeTimeoutException;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -38,6 +34,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
  * {@link DeploymentPathProvider} passed into the constructor.
  *
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 public class DeploymentVerifier {
 
@@ -173,23 +170,6 @@ public class DeploymentVerifier {
 	}
 
 	/**
-	 * Return the number of children for a given ZooKeeper path.
-	 * If the path does not exist, 0 is returned.
-	 *
-	 * @param path path for which to return the number of children for
-	 * @return number of children for the given path
-	 */
-	private int pathChildrenCount(String path) throws RuntimeTimeoutException {
-		try {
-			Stat stat = zkConnection.getClient().checkExists().forPath(path);
-			return stat == null ? 0 : stat.getNumChildren();
-		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
-		}
-	}
-
-	/**
 	 * Block the executing thread until the named deployment has been deployed.
 	 *
 	 * @param name deployment name
@@ -198,26 +178,24 @@ public class DeploymentVerifier {
 	 */
 	public void waitForDeploy(String name) throws RuntimeTimeoutException {
 		waitForCreate(name);
-
-		String path = provider.getDeploymentPath(name);
-		int childrenCount = 0;
-		int expectedCount = provider.getDeploymentPathChildrenCount(name);
 		long timeout = System.currentTimeMillis() + verifyTimeout;
+		DeploymentUnitStatus.State expectedState = DeploymentUnitStatus.State.deployed;
+		DeploymentUnitStatus.State actualState = provider.getDeploymentStatus(name).getState();
 
 		try {
-			while (childrenCount != expectedCount && System.currentTimeMillis() < timeout) {
+			while (!actualState.equals(expectedState) && System.currentTimeMillis() < timeout) {
 				Thread.sleep(100);
-				childrenCount = pathChildrenCount(path);
+				actualState = provider.getDeploymentStatus(name).getState();
 			}
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 
-		if (childrenCount != expectedCount) {
+		if (actualState != expectedState) {
 			throw new RuntimeTimeoutException(
-					String.format("Expected %d children under path '%s', found %d",
-							expectedCount, path, childrenCount));
+					String.format("Deployment of % timed out. Expected state %s but it is currently in %s", name,
+							expectedState, actualState));
 		}
 
 	}
@@ -230,22 +208,22 @@ public class DeploymentVerifier {
 	 *                                 allotted time
 	 */
 	public void waitForUndeploy(String name) throws RuntimeTimeoutException {
-		String path = provider.getDeploymentPath(name);
 		long timeout = System.currentTimeMillis() + verifyTimeout;
-		int children = pathChildrenCount(path);
+		DeploymentUnitStatus.State expectedState = DeploymentUnitStatus.State.undeployed;
+		DeploymentUnitStatus.State actualState = provider.getDeploymentStatus(name).getState();
 
 		try {
-			while (children > 0 && System.currentTimeMillis() < timeout) {
+			while (!actualState.equals(expectedState) && System.currentTimeMillis() < timeout) {
 				Thread.sleep(100);
-				children = pathChildrenCount(path);
+				actualState = provider.getDeploymentStatus(name).getState();
 			}
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-
-		if (children > 0) {
-			throw new RuntimeTimeoutException(String.format("Undeploy of %s timed out", name));
+		if (actualState != expectedState) {
+			throw new RuntimeTimeoutException(
+					String.format("Undeploy of %s timed out", name));
 		}
 	}
 

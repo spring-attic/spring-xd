@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
 import org.springframework.xd.module.options.mixins.HadoopConfigurationMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
@@ -28,7 +29,7 @@ import org.springframework.xd.module.options.types.Password;
  * @author Gary Russell
  * @author Thomas Risberg
  */
-@Mixin({ HadoopConfigurationMixin.class })
+@Mixin({BatchJobRestartableOptionMixin.class, HadoopConfigurationMixin.class })
 public class FtpHdfsJobOptionsMetadata {
 
 	private String host;

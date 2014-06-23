@@ -8,22 +8,27 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.batch.core.BatchStatus;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
 
 /**
- * Job listener which can be used to delete files once they have been successfully processed by XD.
+ * Step listener which can be used to delete files once they have been successfully processed by XD.
  * 
  * Can be used in one of two different ways:
- * 
- * 1. If the 'resources' property is set, it will try to delete each resource as a file. 2. Otherwise, it will try to
- * locate the 'absoluteFilePath' parameter in the job parameters and delete this file if it exists.
- * 
+ *
+ * <ol>
+ *     <li>If the 'resources' property is set, it will try to delete each resource as a file.</li>
+ *     <li>Otherwise, it will try to locate the 'absoluteFilePath' parameter in the job parameters
+ *     	   and delete this file if it exists.</li>
+ * </ol>
+ *
  * @author Luke Taylor
+ * @author Michael Minella
  */
-public class FileDeletionJobExecutionListener implements JobExecutionListener {
+public class FileDeletionStepExecutionListener implements StepExecutionListener {
 
 	private boolean deleteFiles;
 
@@ -32,26 +37,27 @@ public class FileDeletionJobExecutionListener implements JobExecutionListener {
 	private Log logger = LogFactory.getLog(getClass());
 
 	@Override
-	public void beforeJob(JobExecution jobExecution) {
+	public void beforeStep(StepExecution stepExecution) {
 	}
 
 	@Override
-	public void afterJob(JobExecution jobExecution) {
+	public ExitStatus afterStep(StepExecution stepExecution) {
 		if (!deleteFiles) {
-			return;
+			return stepExecution.getExitStatus();
 		}
 
-		if (jobExecution.getStatus().equals(BatchStatus.STOPPED) || jobExecution.getStatus().isUnsuccessful()) {
+		if (stepExecution.getStatus().equals(BatchStatus.STOPPED) || stepExecution.getStatus().isUnsuccessful()) {
 			logger.warn("Job is stopped, or failed to complete successfully. File deletion will be skipped");
-			return;
+			return stepExecution.getExitStatus();
 		}
 
 		if (resources != null) {
 			deleteResources();
 		}
 		else {
-			deleteFilePath(jobExecution.getJobParameters().getString(ExpandedJobParametersConverter.ABSOLUTE_FILE_PATH));
+			deleteFilePath(stepExecution.getJobExecution().getJobParameters().getString(ExpandedJobParametersConverter.ABSOLUTE_FILE_PATH));
 		}
+		return stepExecution.getExitStatus();
 	}
 
 	private void deleteResources() {

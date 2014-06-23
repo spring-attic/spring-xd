@@ -17,6 +17,7 @@
 package org.springframework.xd.test.fixtures;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -50,10 +51,10 @@ public class FileJdbcJob extends AbstractModuleFixture<FileJdbcJob> {
 	 * @param fileName The file from which data will be pulled.
 	 * @param tableName the table where the data will be written.
 	 * @param names a comma delimited list of column names that are contained in the source file.
+	 *
 	 */
 	public FileJdbcJob(String dir, String fileName, String tableName, String names) {
 		Assert.hasText(dir, "dir must not be null or empty");
-		Assert.hasText(fileName, "fileName must not be null or empty");
 		Assert.hasText(tableName, "tableName must not be null or empty");
 		Assert.hasText(names, "names must not be null nor empty");
 
@@ -72,10 +73,15 @@ public class FileJdbcJob extends AbstractModuleFixture<FileJdbcJob> {
 	 */
 	@Override
 	public String toDSL() {
-		return String.format(
-				"filejdbc --resources=file:%s/%s --names=%s --tableName=%s --initializeDatabase=true ", dir,
-				fileName, names, tableName);
+		if(StringUtils.hasText(fileName)) {
+			return String.format(
+					"filejdbc --resources=file:%s/%s --names=%s --tableName=%s --initializeDatabase=true ", dir,
+					fileName, names, tableName);
+		}
+		else {
+			return String.format(
+					"filejdbc --resources=file:%s --names=%s --tableName=%s --initializeDatabase=true ", dir,
+					names, tableName);
+		}
 	}
-
-
 }

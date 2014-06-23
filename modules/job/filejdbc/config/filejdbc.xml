@@ -1,28 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:batch="http://www.springframework.org/schema/batch"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<batch:job id="filejdbc" restartable="${restartable}">
-		<batch:step id="readResourcesStep">
-			<batch:tasklet>
-				<batch:chunk reader="multiResourceReader" writer="itemWriter" commit-interval="100"/>
-			</batch:tasklet>
-		</batch:step>
-		<batch:listeners>
-			<batch:listener ref="fileDeletionListener" />
-		</batch:listeners>
-	</batch:job>
+	<import resource="classpath:/META-INF/spring-xd/batch/singlestep-partition-support.xml"/>
 
-	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionJobExecutionListener">
+	<bean id="partitioner" class="org.springframework.batch.core.partition.support.MultiResourcePartitioner" scope="step">
+		<property name="resources" value="${resources}"/>
+	</bean>
+
+	<step id="step1" xmlns="http://www.springframework.org/schema/batch">
+		<tasklet>
+			<chunk reader="multiResourceReader" writer="itemWriter" commit-interval="100"/>
+		</tasklet>
+		<listeners>
+			<listener ref="fileDeletionListener"/>
+		</listeners>
+	</step>
+
+	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionStepExecutionListener">
 		<property name="resources" value="${resources}"/>
 		<property name="deleteFiles" value="${deleteFiles}"/>
 	</bean>
 
 	<bean id="multiResourceReader" class="org.springframework.batch.item.file.MultiResourceItemReader" scope="step">
-		<property name="resources" value="${resources}"/>
+		<property name="resources" value="#{stepExecutionContext['fileName']}"/>
 		<property name="delegate" ref="itemReader"/>
 	</bean>
 

@@ -81,19 +81,23 @@ for arg in "${args[@]}" ; do
     fi
     x=$((x+1))
 done
-APP_HOME_LIB=$APP_HOME/lib
-CLASSPATH="$APP_HOME/config"
-if [ -d "$APP_HOME_LIB" ]; then
-    for i in "$APP_HOME_LIB"/*.jar; do
-        CLASSPATH="$CLASSPATH":"$i"
-    done
-    HADOOP_LIB=$APP_HOME/lib/$HADOOP_DISTRO
-    if [ -d "$HADOOP_LIB" ]; then
-        for j in "$HADOOP_LIB"/*.jar; do
-            CLASSPATH="$CLASSPATH":"$j"
+
+addJarsToClassPath( ) {
+    if [ -d $1 ]; then
+        for jar in "$1"/*.jar; do
+            CLASSPATH="$CLASSPATH":"$jar"
         done
     fi
-fi
+}
+
+
+CLASSPATH="$APP_HOME/config"
+XD_LIB=$APP_HOME/../xd/lib
+APP_HOME_LIB=$APP_HOME/lib
+addJarsToClassPath $XD_LIB
+addJarsToClassPath $APP_HOME_LIB
+HADOOP_LIB=$XD_LIB/$HADOOP_DISTRO
+addJarsToClassPath $HADOOP_LIB
 
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then

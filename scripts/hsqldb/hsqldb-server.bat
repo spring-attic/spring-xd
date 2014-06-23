@@ -72,6 +72,12 @@ set CMD_LINE_ARGS=%$
 @echo off
 set APP_HOME_LIB=%APP_HOME%\lib
 set CLASSPATH=%APP_HOME_LIB%\*
+@rem add xd/lib to CLASSPATH
+set XD_LIB=%APP_HOME%\..\xd\lib
+if exist "%XD_LIB%" (
+    setLocal EnableDelayedExpansion
+    set CLASSPATH=!CLASSPATH!;%XD_LIB%\*
+)
 
 set SPRING_XD_OPTS=-Dxd.data.home=%APP_HOME%\..\xd\data
 

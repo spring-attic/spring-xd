@@ -22,7 +22,6 @@
 define([
   'angular',
   'angularMocks',
-  'lodash',
   'xregexp'
 ], function(angular) {
   'use strict';

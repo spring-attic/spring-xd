@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.modules.metadata;
 
 import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.Range;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 
@@ -26,12 +25,9 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * 
  * @author Eric Bottard
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public class RabbitConnectionMixin {
-
-	private String host = "localhost";
-
-	private int port = 5672;
 
 	private String vhost = "/";
 
@@ -39,7 +35,7 @@ public class RabbitConnectionMixin {
 
 	private String password = "guest";
 
-	private String addresses;
+	private String addresses = "localhost:5672";
 
 	@NotBlank
 	public String getUsername() {
@@ -61,36 +57,11 @@ public class RabbitConnectionMixin {
 		this.password = password;
 	}
 
-	@NotBlank
-	public String getHost() {
-		return host;
-	}
-
-	@ModuleOption("the host (or IP Address) to connect to")
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	@Range(min = 1, max = 65535)
-	public int getPort() {
-		return port;
-	}
-
-	@ModuleOption("the port to connect to")
-	public void setPort(int port) {
-		this.port = port;
-	}
-
 	public String getAddresses() {
-		if (this.addresses == null) {
-			return this.host + ":" + this.port;
-		}
-		else {
-			return this.addresses;
-		}
+		return this.addresses;
 	}
 
-	@ModuleOption("the list of 'host:port' addresses; comma separated - overrides host, port")
+	@ModuleOption("a comma separated list of 'host[:port]' addresses")
 	public void setAddresses(String addresses) {
 		this.addresses = addresses;
 	}

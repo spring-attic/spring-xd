@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream.util;
+package org.springframework.xd.dirt.rest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+import org.springframework.xd.dirt.rest.PasswordUtils;
+
 /**
- * Tests the functionality of {@link StreamUtils#maskPasswordsInStreamDefinition(String)}
+ * Tests the functionality of {@link PasswordUtils#maskPasswordsInDefinition(String)}
  * ensuring that stream parameters named {@code password} or {@code passwd} are
  * sufficiently masked.
  *
  * @author Gunnar Hillert
  */
-public class StreamUtilsTests {
+public class PasswordUtilsTests {
 
 	@Test
 	public void testWithNullInputText() {
 		try {
-			StreamUtils.maskPasswordsInStreamDefinition(null);
+			PasswordUtils.maskPasswordsInDefinition(null);
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("streamDefinition must be neither empty nor null.", e.getMessage());
@@ -45,7 +47,7 @@ public class StreamUtilsTests {
 	@Test
 	public void testWithEmptyInputText() {
 		try {
-			StreamUtils.maskPasswordsInStreamDefinition(" ");
+			PasswordUtils.maskPasswordsInDefinition(" ");
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("streamDefinition must be neither empty nor null.", e.getMessage());
@@ -56,55 +58,55 @@ public class StreamUtilsTests {
 
 	@Test
 	public void testProcessingOfNormalString() {
-		final String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("new foo bar");
+		final String maskedPassword = PasswordUtils.maskPasswordsInDefinition("new foo bar");
 		assertEquals("new foo bar", maskedPassword);
 	}
 
 	@Test
 	public void testMaskStreamDefinitionWithOnePasswordParameter1() {
-		String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("mystream --password=12345");
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("mystream --password=12345");
 		assertEquals("mystream --password=*****", maskedPassword);
 	}
 
 	@Test
 	public void testMaskStreamDefinitionWithOnePasswordParameter2() {
-		final String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("filejdbc --driverClassName=org.postgresql.Driver --password=12345678");
+		final String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --driverClassName=org.postgresql.Driver --password=12345678");
 		assertEquals("filejdbc --driverClassName=org.postgresql.Driver --password=********", maskedPassword);
 	}
 
 	@Test
 	public void testMaskStreamDefinitionWithOnePasswordParameter3() {
-		final String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("filejdbc --driverClassName=org.postgresql.Driver --passwd=12345678");
+		final String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --driverClassName=org.postgresql.Driver --passwd=12345678");
 		assertEquals("filejdbc --driverClassName=org.postgresql.Driver --passwd=********", maskedPassword);
 	}
 
 	@Test
 	public void testMaskStreamDefinitionWithOneUppercasePasswordParameter() {
-		String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("mystream --PASSWORD=12345");
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("mystream --PASSWORD=12345");
 		assertEquals("mystream --PASSWORD=*****", maskedPassword);
 	}
 
 	@Test
 	public void testMaskStreamDefinitionWithPasswordParameterInMiddle() {
-		String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("filejdbc --password=12345678 --driverClassName=org.postgresql.Driver");
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --password=12345678 --driverClassName=org.postgresql.Driver");
 		assertEquals("filejdbc --password=******** --driverClassName=org.postgresql.Driver", maskedPassword);
 	}
 
 	@Test
 	public void testMaskStreamDefinitionWithMultiplePasswordParametersAndMixedCase() {
-		String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("mystream -- password=12 --PASSword=  1234 --PASSWORD=  1234");
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("mystream -- password=12 --PASSword=  1234 --PASSWORD=  1234");
 		assertEquals("mystream -- password=** --PASSword=  **** --PASSWORD=  ****", maskedPassword);
 	}
 
 	@Test
 	public void testMaskStreamDefinitionWithUnicodePasswordParameter() {
-		String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("mystream --password=\u0411\u0435\u0440\u043b\u0438\u043d");
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("mystream --password=\u0411\u0435\u0440\u043b\u0438\u043d");
 		assertEquals("mystream --password=******", maskedPassword);
 	}
 
 	@Test
 	public void testMaskStreamDefinitionWithPasswordParameterContainingADot() {
-		String maskedPassword = StreamUtils.maskPasswordsInStreamDefinition("mystream -- password=   12.34.5");
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("mystream -- password=   12.34.5");
 		assertEquals("mystream -- password=   *******", maskedPassword);
 	}
 

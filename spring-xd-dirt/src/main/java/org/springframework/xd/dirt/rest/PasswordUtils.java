@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream.util;
+package org.springframework.xd.dirt.rest;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,10 +33,10 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
  * @author Gunnar Hillert
  * @since 1.0
  */
-public class StreamUtils {
+public class PasswordUtils {
 
 	/** Prevent instantiation. */
-	private StreamUtils() {
+	private PasswordUtils() {
 		throw new AssertionError();
 	}
 
@@ -45,19 +45,19 @@ public class StreamUtils {
 			Pattern.UNICODE_CHARACTER_CLASS);
 
 	/**
-	 * This method takes a Stream definition String as input parameter. The method
+	 * This method takes a definition String as input parameter. The method
 	 * will filter out any parameters labeled {@code --password} and will masked them
 	 * using the {@code *} character.
 	 *
-	 * @param streamDefinition Must not be empty
-	 * @return The stream definition string with masked passwords. Should never return null.
+	 * @param definition Must not be empty
+	 * @return The definition string with masked passwords. Should never return null.
 	 */
-	public static String maskPasswordsInStreamDefinition(String streamDefinition) {
+	public static String maskPasswordsInDefinition(String definition) {
 
-		Assert.hasText(streamDefinition, "streamDefinition must be neither empty nor null.");
+		Assert.hasText(definition, "definition must be neither empty nor null.");
 
 		final StringBuffer output = new StringBuffer();
-		final Matcher matcher = passwordParameterPattern.matcher(streamDefinition);
+		final Matcher matcher = passwordParameterPattern.matcher(definition);
 		while (matcher.find()) {
 			matcher.appendReplacement(output, matcher.group(1) + matcher.group(3).replaceAll(".", "*"));
 		}

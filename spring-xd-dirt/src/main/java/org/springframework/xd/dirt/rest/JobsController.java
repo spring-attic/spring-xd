@@ -37,7 +37,6 @@ import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
-import org.springframework.xd.dirt.stream.util.StreamUtils;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
@@ -108,7 +107,7 @@ XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResourc
 			jobDefinitionResource.getDefinition();
 			JobDefinitionResource maskedJobDefinitionResource =
 					new JobDefinitionResource(jobDefinitionResource.getName(),
-							StreamUtils.maskPasswordsInStreamDefinition(jobDefinitionResource.getDefinition()));
+							PasswordUtils.maskPasswordsInDefinition(jobDefinitionResource.getDefinition()));
 			maskedJobDefinitionResource.setDeployed(jobDefinitionResource.isDeployed());
 			maskedContents.add(maskedJobDefinitionResource);
 		}

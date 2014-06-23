@@ -20,9 +20,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.stream.JobDefinition;
+import org.springframework.xd.dirt.stream.StreamDefinition;
 
 
 /**
+ * Provides common utility methods for {@link JobDefinition}s and
+ * {@link StreamDefinition}s ({@link BaseDefinition}), e.g. the masking
+ * of passwords in definition parameters.
+ *
  * @author Gunnar Hillert
  * @since 1.0
  */

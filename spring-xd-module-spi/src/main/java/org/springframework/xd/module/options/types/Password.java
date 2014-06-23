@@ -17,7 +17,7 @@
 package org.springframework.xd.module.options.types;
 
 /**
- * This module option represents a password. As such it will allow other components
+ * This module option type represents a password. As such it will allow other components
  * within Spring XD to identify an option as password, and thus the ability to
  * provide custom view options (E.g. a password input field instead of a simple text box).
  *

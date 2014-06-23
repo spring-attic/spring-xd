@@ -18,7 +18,7 @@
 		</batch:listeners>
 	</batch:job>
 
-	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionJobExecutionListener">
+	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionStepExecutionListener">
 		<property name="deleteFiles" value="${deleteFiles}"/>
 	</bean>
 

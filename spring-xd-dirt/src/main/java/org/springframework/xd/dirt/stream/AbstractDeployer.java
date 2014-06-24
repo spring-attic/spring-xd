@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -55,6 +57,12 @@ import org.springframework.xd.module.ModuleDescriptor;
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
+
+	/**
+	 * Pattern used for parsing a single deployment property key. Group 1 is the module name, Group 2 is the 
+	 * deployment property name.
+	 */
+	private static final Pattern DEPLOYMENT_PROPERTY_PATTERN = Pattern.compile("module\\.([^\\.]+)\\.([^=]+)");
 
 	private final PagingAndSortingRepository<D, String> repository;
 
@@ -228,7 +236,14 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		for (ModuleDescriptor md : modules) {
 			moduleLabels.add(md.getModuleLabel());
 		}
-		DeploymentPropertiesUtility.validateDeploymentProperties(properties, moduleLabels);
+		for (Map.Entry<String, String> pair : properties.entrySet()) {
+			Matcher matcher = DEPLOYMENT_PROPERTY_PATTERN.matcher(pair.getKey());
+			Assert.isTrue(matcher.matches(),
+					String.format("'%s' does not match '%s'", pair.getKey(), DEPLOYMENT_PROPERTY_PATTERN));
+			String moduleName = matcher.group(1);
+			Assert.isTrue(moduleLabels.contains(moduleName),
+					String.format("'%s' refers to a module that is not in the list: %s", pair.getKey(), moduleLabels));
+		}
 	}
 
 	/**

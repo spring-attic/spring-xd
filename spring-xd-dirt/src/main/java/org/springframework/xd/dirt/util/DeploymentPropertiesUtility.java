@@ -18,11 +18,9 @@ package org.springframework.xd.dirt.util;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.Stream;
@@ -39,12 +37,6 @@ import org.springframework.xd.module.ModuleDescriptor;
  * @author Eric Bottard
  */
 public class DeploymentPropertiesUtility {
-
-	/**
-	 * Pattern used for parsing a single deployment property key. Group 1 is the module name, Group 2 is the 
-	 * deployment property name.
-	 */
-	private static final Pattern DEPLOYMENT_PROPERTY_PATTERN = Pattern.compile("module\\.([^\\.]+)\\.([^=]+)");
 
 	/**
 	 * Pattern used for parsing a String of comma-delimited key=value pairs.
@@ -127,23 +119,4 @@ public class DeploymentPropertiesUtility {
 		}
 	}
 
-	/**
-	 * Validates that the provided properties are valid:<ul>
-	 * <li>property names should be of the form {@code module.<modulename>.<key>}</li>
-	 * <li>the {@code <modulename>} should be an actual module name/label (that is, it belongs to the {@code moduleLables} set)</li>
-	 * </ul> 
-	 * @param properties a map to validate
-	 * @param moduleLabels a set of existing module labels
-	 */
-	public static void validateDeploymentProperties(Map<String, String> properties, Set<String> moduleLabels) {
-		for (Map.Entry<String, String> pair : properties.entrySet()) {
-			Matcher matcher = DEPLOYMENT_PROPERTY_PATTERN.matcher(pair.getKey());
-			Assert.isTrue(matcher.matches(),
-					String.format("'%s' does not match '%s'", pair.getKey(), DEPLOYMENT_PROPERTY_PATTERN));
-			String moduleName = matcher.group(1);
-			Assert.isTrue(moduleLabels.contains(moduleName),
-					String.format("'%s' refers to a module that is not in the list: %s", pair.getKey(), moduleLabels));
-		}
-
-	}
 }

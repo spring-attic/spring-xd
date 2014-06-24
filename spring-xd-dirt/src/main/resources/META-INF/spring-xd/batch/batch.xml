@@ -14,7 +14,6 @@
 
 	<beans profile="admin">
 		<import resource="classpath:/org/springframework/xd/batch/hsql-datasource.xml" />
-		<import resource="classpath:/org/springframework/xd/batch/cloud-datasource.xml" />
 
 		<bean class="org.springframework.xd.dirt.plugins.job.DistributedJobService">
 			<constructor-arg ref="jobInstanceDao" />

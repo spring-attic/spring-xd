@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.core;
+package org.springframework.xd.dirt.server;
 
 import java.util.Collection;
 
-import org.springframework.xd.dirt.server.ModuleDeploymentPropertiesProvider;
-import org.springframework.xd.dirt.server.ModuleDeploymentStatus;
+import org.springframework.xd.dirt.core.DeploymentUnit;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 
 /**
  * Calculates the overall status for a deployment unit (stream or job).

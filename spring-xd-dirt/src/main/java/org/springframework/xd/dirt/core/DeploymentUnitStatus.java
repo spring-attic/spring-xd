@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
  * The deployment status tracked by this class can be converted to a
  * {@link Map} which can be used to serialize this data into ZooKeeper.
  *
- * @see org.springframework.xd.dirt.core.DeploymentUnitStateCalculator
+ * @see org.springframework.xd.dirt.server.DeploymentUnitStateCalculator
  *
  * @author Patrick Peralta
  */

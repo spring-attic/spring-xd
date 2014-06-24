@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.core;
+package org.springframework.xd.dirt.server;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,12 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.server.ModuleDeploymentPropertiesProvider;
-import org.springframework.xd.dirt.server.ModuleDeploymentStatus;
+import org.springframework.xd.dirt.core.DeploymentUnit;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus.State;
 import org.springframework.xd.module.ModuleDescriptor;
 
 /**
- * Default {@link org.springframework.xd.dirt.core.DeploymentUnitStateCalculator}
+ * Default {@link org.springframework.xd.dirt.server.DeploymentUnitStateCalculator}
  * implementation for streams and jobs. This implementation uses the following
  * criteria:
  * <ul>

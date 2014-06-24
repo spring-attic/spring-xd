@@ -65,7 +65,7 @@ import org.springframework.xd.module.ModuleType;
  * attempt and its result.
  *
  * @author Patrick Peralta
- * @see org.springframework.xd.dirt.core.DeploymentUnitStateCalculator
+ * @see org.springframework.xd.dirt.server.DeploymentUnitStateCalculator
  */
 public class ModuleDeploymentWriter {
 

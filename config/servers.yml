@@ -77,6 +77,31 @@ xd:
 #    username: sa
 #    password:
 #    driverClassName: org.hsqldb.jdbc.JDBCDriver
+#ConnectionPoolSettings
+#    testOnBorrow: true
+#    validationQuery: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
+#    validationInterval: 30000
+#    maxActive: 100
+#    maxIdle: 100
+#    minIdle: 10
+#    initialSize: 0
+#    maxWait: 30000
+#    testOnReturn: false
+#    testWhileIdle: false
+#    timeBetweenEvictionRunsMillis: 5000
+#    minEvictableIdleTimeMillis: 60000
+#    removeAbandoned: false
+#    removeAbandonedTimeout: 60
+#    logAbandoned: false
+#Tomcat JDBC Enhanced Attributes
+#    validationInterval: 30000
+#    jmxEnabled: true
+#    fairQueue: true
+#    abandonWhenPercentageFull: 0
+#    maxAge: 0
+#    useEquals: true
+#    suspectTimeout: 0
+#    alternateUsernameAllowed: false
 
 #Config for use with MySQL - uncomment and edit with relevant values for your environment
 #spring:
@@ -85,6 +110,32 @@ xd:
 #    username: yourUsername
 #    password: yourPassword
 #    driverClassName: com.mysql.jdbc.Driver
+#ConnectionPoolSettings
+#    testOnBorrow: true
+#    validationQuery: select 1
+#    validationInterval: 30000
+#    maxActive: 100
+#    maxIdle: 100
+#    minIdle: 10
+#    initialSize: 0
+#    maxWait: 30000
+#    testOnReturn: false
+#    testWhileIdle: false
+#    timeBetweenEvictionRunsMillis: 5000
+#    minEvictableIdleTimeMillis: 60000
+#    removeAbandoned: false
+#    removeAbandonedTimeout: 60
+#    logAbandoned: false
+#Tomcat JDBC Enhanced Attributes
+#    validationInterval: 30000
+#    jmxEnabled: true
+#    fairQueue: true
+#    abandonWhenPercentageFull: 0
+#    maxAge: 0
+#    useEquals: true
+#    suspectTimeout: 0
+#    alternateUsernameAllowed: false
+
 
 
 #Config for use with Postgres - uncomment and edit with relevant values for your environment
@@ -94,6 +145,32 @@ xd:
 #    username: yourUsername
 #    password: yourPassword
 #    driverClassName: org.postgresql.Driver
+#ConnectionPoolSettings
+#    testOnBorrow: true
+#    validationQuery: select 1
+#    validationInterval: 30000
+#    maxActive: 100
+#    maxIdle: 100
+#    minIdle: 10
+#    initialSize: 0
+#    maxWait: 30000
+#    testOnReturn: false
+#    testWhileIdle: false
+#    timeBetweenEvictionRunsMillis: 5000
+#    minEvictableIdleTimeMillis: 60000
+#    removeAbandoned: false
+#    removeAbandonedTimeout: 60
+#    logAbandoned: false
+#Tomcat JDBC Enhanced Attributes
+#    validationInterval: 30000
+#    jmxEnabled: true
+#    fairQueue: true
+#    abandonWhenPercentageFull: 0
+#    maxAge: 0
+#    useEquals: true
+#    suspectTimeout: 0
+#    alternateUsernameAllowed: false
+
 
 ---
 # Config to enable/disable JMX/jolokia endpoints

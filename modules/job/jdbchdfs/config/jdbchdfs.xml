@@ -20,33 +20,32 @@
 		<property name="url" value="${url}"/>
 		<property name="username" value="${username}"/>
 		<property name="password" value="${password}"/>
-		<property name="initialSize" value="${initialSize}" />
-		<property name="maxActive" value="${maxActive}" />
-		<property name="maxIdle" value="${maxIdle}" />
-		<property name="minIdle" value="${minIdle}"/>
-		<property name="maxWait" value="${maxWait}"/>
-		<property name="testOnBorrow" value="${testOnBorrow}"/>
-		<property name="testOnReturn" value="${testOnReturn}"/>
-		<property name="testWhileIdle" value="${testWhileIdle}"/>
-		<property name="validationQuery" value="${validationQuery:#{null}}"/>
-		<property name="validatorClassName" value="${validatorClassName:#{null}}"/>
-		<property name="timeBetweenEvictionRunsMillis" value="${timeBetweenEvictionRunsMillis}"/>
-		<property name="minEvictableIdleTimeMillis" value="${minEvictableIdleTimeMillis}"/>
-		<property name="removeAbandoned" value="${removeAbandoned}"/>
-		<property name="removeAbandonedTimeout" value="${removeAbandonedTimeout}"/>
-		<property name="logAbandoned" value="${logAbandoned}"/>
-		<property name="connectionProperties" value="${connectionProperties:#{null}}"/>
-		<property name="initSQL" value="${initSQL:#{null}}"/>
-		<property name="jdbcInterceptors" value="${jdbcInterceptors:#{null}}"/>
-		<property name="validationInterval" value="${validationInterval}"/>
-		<property name="jmxEnabled" value="${jmxEnabled}"/>
-		<property name="fairQueue" value="${fairQueue}"/>
-		<property name="abandonWhenPercentageFull" value="${abandonWhenPercentageFull}"/>
-		<property name="maxAge" value="${maxAge}"/>
-		<property name="useEquals" value="${useEquals}"/>
-		<property name="suspectTimeout" value="${suspectTimeout}"/>
-		<property name="alternateUsernameAllowed" value="${alternateUsernameAllowed}"/>
-		
+		<property name="initialSize" value="${spring.datasource.initialSize}" />
+		<property name="maxActive" value="${spring.datasource.maxActive}" />
+		<property name="maxIdle" value="${spring.datasource.maxIdle}" />
+		<property name="minIdle" value="${spring.datasource.minIdle}"/>
+		<property name="maxWait" value="${spring.datasource.maxWait}"/>
+		<property name="testOnBorrow" value="${spring.datasource.testOnBorrow}"/>
+		<property name="testOnReturn" value="${spring.datasource.testOnReturn}"/>
+		<property name="testWhileIdle" value="${spring.datasource.testWhileIdle}"/>
+		<property name="validationQuery" value="${spring.datasource.validationQuery:#{null}}"/>
+		<property name="timeBetweenEvictionRunsMillis" value="${spring.datasource.timeBetweenEvictionRunsMillis}"/>
+		<property name="minEvictableIdleTimeMillis" value="${spring.datasource.minEvictableIdleTimeMillis}"/>
+		<property name="removeAbandoned" value="${spring.datasource.removeAbandoned}"/>
+		<property name="removeAbandonedTimeout" value="${spring.datasource.removeAbandonedTimeout}"/>
+		<property name="logAbandoned" value="${spring.datasource.logAbandoned}"/>
+		<property name="validationInterval" value="${spring.datasource.validationInterval}"/>
+		<property name="jmxEnabled" value="${spring.datasource.jmxEnabled}"/>
+		<property name="fairQueue" value="${spring.datasource.fairQueue}"/>
+		<property name="abandonWhenPercentageFull" value="${spring.datasource.abandonWhenPercentageFull}"/>
+		<property name="maxAge" value="${spring.datasource.maxAge}"/>
+		<property name="useEquals" value="${spring.datasource.useEquals}"/>
+		<property name="suspectTimeout" value="${spring.datasource.suspectTimeout}"/>
+		<property name="alternateUsernameAllowed" value="${spring.datasource.alternateUsernameAllowed}"/>
+		<property name="validatorClassName" value="${spring.datasource.validatorClassName:#{null}}"/>
+		<property name="connectionProperties" value="${spring.datasource.connectionProperties:#{null}}"/>
+ 		<property name="initSQL" value="${spring.datasource.initSQL:#{null}}"/>
+ 		<property name="jdbcInterceptors" value="${spring.datasource.jdbcInterceptors:#{null}}"/>
 	</bean>
 
 	<bean id="itemReader" class="org.springframework.xd.jdbc.NamedColumnJdbcItemReaderFactory">

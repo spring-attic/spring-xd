@@ -26,7 +26,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  * 
  * @author Eric Bottard
  */
-@Mixin({ JdbcConnectionMixin.class, JdbcConnectionPoolMixin.class, JdbcSinkImportToJdbcMixin.class })
+@Mixin({ JdbcConnectionMixin.class, JdbcSinkImportToJdbcMixin.class })
 public class JdbcSinkModuleOptionsMetadata {
 
 	private String columns = "payload";

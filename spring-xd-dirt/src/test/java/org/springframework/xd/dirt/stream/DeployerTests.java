@@ -93,8 +93,6 @@ public class DeployerTests {
 
 		Map<String, String> properties = Collections.singletonMap("module.logo.count", "3");
 		integrationSupport.deployStream(testStream, properties);
-
-
 	}
 
 	@Test
@@ -107,8 +105,6 @@ public class DeployerTests {
 
 		Map<String, String> properties = Collections.singletonMap("module.log.count", "3");
 		integrationSupport.deployStream(testStream, properties);
-
-
 	}
 
 

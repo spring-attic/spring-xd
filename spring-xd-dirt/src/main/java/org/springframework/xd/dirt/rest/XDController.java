@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.rest;
 
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -224,8 +223,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 		final D moduleDefinition = createDefinition(name, definition);
 		final D savedModuleDefinition = deployer.save(moduleDefinition);
 		if (deploy) {
-			Map<String, String> emptyMap = Collections.emptyMap();
-			deployer.deploy(name, emptyMap);
+			deployer.deploy(name, Collections.<String, String> emptyMap());
 		}
 		final R result = resourceAssemblerSupport.toResource(savedModuleDefinition);
 		return result;

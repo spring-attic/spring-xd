@@ -74,28 +74,9 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	public void testJdbcSinkTestOnBorrow() throws Exception {
-		JdbcSink jdbcSink = newJdbcSink().testOnBorrow(true).validationQuery(
-				"select 1 from INFORMATION_SCHEMA.SYSTEM_USERS");
-
-		HttpSource httpSource = newHttpSource();
-
-
-		String streamName = generateStreamName().replaceAll("-", "_");
-		stream().create(streamName, "%s | %s", httpSource, jdbcSink);
-		httpSource.ensureReady().postData("Hi there!");
-
-		String query = String.format("SELECT payload FROM %s", streamName);
-		assertEquals(
-				"Hi there!",
-				jdbcSink.getJdbcTemplate().queryForObject(query, String.class));
-	}
-
-	@Test
 	public void testJdbcSinkWithCustomTableName() throws Exception {
 		String tableName = "foobar";
 		JdbcSink jdbcSink = newJdbcSink().tableName(tableName);
-
 
 		HttpSource httpSource = newHttpSource();
 

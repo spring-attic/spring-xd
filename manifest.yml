@@ -17,7 +17,7 @@ applications:
   host: xd-admin-server
   env:
     LOADER_MAIN: org.springframework.xd.dirt.server.AdminServerApplication
-    SPRING_PROFILES_ACTIVE: cloud,mysql,rabbit
+    SPRING_PROFILES_ACTIVE: mysql,rabbit
     XD_HOME: .
   services:
     mysql:
@@ -36,7 +36,7 @@ applications:
   host: xd-node
   env:
     LOADER_MAIN: org.springframework.xd.dirt.server.ContainerServerApplication
-    SPRING_PROFILES_ACTIVE: cloud,mysql,rabbit
+    SPRING_PROFILES_ACTIVE: mysql,rabbit
     XD_HOME: .
   services:
     mysql:

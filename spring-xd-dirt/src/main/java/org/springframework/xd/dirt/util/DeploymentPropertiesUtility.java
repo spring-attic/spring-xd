@@ -56,11 +56,20 @@ public class DeploymentPropertiesUtility {
 	public static ModuleDeploymentProperties createModuleDeploymentProperties(
 			Map<String, String> deploymentProperties, ModuleDescriptor descriptor) {
 		ModuleDeploymentProperties moduleDeploymentProperties = new ModuleDeploymentProperties();
-		for (String key : deploymentProperties.keySet()) {
-			String prefix = String.format("module.%s.", descriptor.getModuleName());
-			if (key.startsWith(prefix)) {
-				moduleDeploymentProperties.put(key.substring(prefix.length()),
-						deploymentProperties.get(key));
+		// first add properties that should apply to all modules unless overridden
+		String wildcardPrefix = "module.*.";
+		for (Map.Entry<String, String> prop : deploymentProperties.entrySet()) {
+			String key = prop.getKey();
+			if (key.startsWith(wildcardPrefix)) {
+				moduleDeploymentProperties.put(key.substring(wildcardPrefix.length()), prop.getValue());
+			}
+		}
+		// now add properties that are designated for this module explicitly
+		String modulePrefix = String.format("module.%s.", descriptor.getModuleName());
+		for (Map.Entry<String, String> prop : deploymentProperties.entrySet()) {
+			String key = prop.getKey();
+			if (key.startsWith(modulePrefix)) {
+				moduleDeploymentProperties.put(key.substring(modulePrefix.length()), prop.getValue());
 			}
 		}
 		return moduleDeploymentProperties;

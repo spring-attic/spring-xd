@@ -45,6 +45,7 @@ import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
+import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
@@ -93,8 +94,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 * {@link org.apache.curator.framework.recipes.cache.ChildData} in
 	 * stream deployments to Stream name.
 	 */
-	private final ContainerListener.DeploymentNameConverter deploymentNameConverter
-			= new ContainerListener.DeploymentNameConverter();
+	private final ContainerListener.DeploymentNameConverter deploymentNameConverter = new ContainerListener.DeploymentNameConverter();
 
 	/**
 	 * Executor service dedicated to handling events raised from
@@ -179,7 +179,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 			// an exception indicates that the status has not been set
 		}
 		Assert.state(deployingStatus != null
-						&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
+				&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
 				String.format("Expected 'deploying' status for stream '%s'; current status: %s",
 						stream.getName(), deployingStatus));
 
@@ -217,8 +217,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 	 */
 	public void recalculateStreamStates(CuratorFramework client, PathChildrenCache streamDeployments) throws Exception {
 		for (Iterator<String> iterator =
-					new ChildPathIterator<String>(deploymentNameConverter, streamDeployments);
-							iterator.hasNext();) {
+				new ChildPathIterator<String>(deploymentNameConverter, streamDeployments); iterator.hasNext();) {
 			String streamName = iterator.next();
 			String definitionPath = Paths.build(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
 			Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
@@ -235,7 +234,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 									ModuleType.valueOf(streamDeploymentsPath.getModuleType()),
 									streamDeploymentsPath.getModuleLabel()),
 							ModuleDeploymentStatus.State.deployed, null
-					));
+							));
 				}
 				DeploymentUnitStatus status = stateCalculator.calculate(stream,
 						new StreamModuleDeploymentPropertiesProvider(stream), statusList);
@@ -345,6 +344,24 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 
 				}
 			}
+			else if (streamModules.size() > moduleIndex + 1) {
+				/*
+				 *  short-circuiting is allowed if all of the following are true:
+				 *  1. this module is not a partitioning producer
+				 *  2. this module is not the last one in a stream
+				 *  3. this module's count is 0
+				 *  4. the next module's count is 0
+				 *  5. both this module and the next module have the same criteria (both can be null)
+				 */
+				ModuleDeploymentProperties nextProperties = propertiesForDescriptor(streamModules.get(moduleIndex + 1));
+				if (properties.getCount() == 0 && nextProperties.getCount() == 0) {
+					String criteria = properties.getCriteria();
+					if ((criteria == null && nextProperties.getCriteria() == null)
+							|| (criteria != null && criteria.equals(nextProperties.getCriteria()))) {
+						properties.put("producer." + BusProperties.SHORT_CIRCUIT_ALLOWED, Boolean.toString(true));
+					}
+				}
+			}
 			mapDeploymentProperties.put(descriptor.createKey(), properties);
 			return properties;
 		}
@@ -357,8 +374,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 		 * @return true if the properties contain a partition key property
 		 */
 		private boolean hasPartitionKeyProperty(ModuleDeploymentProperties properties) {
-			return (properties.containsKey("producer.partitionKeyExpression") ||
-					properties.containsKey("producer.partitionKeyExtractorClass"));
+			return (properties.containsKey("producer.partitionKeyExpression") || properties.containsKey("producer.partitionKeyExtractorClass"));
 		}
 
 		/**

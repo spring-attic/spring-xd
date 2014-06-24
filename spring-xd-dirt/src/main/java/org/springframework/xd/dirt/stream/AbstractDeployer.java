@@ -241,7 +241,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			Assert.isTrue(matcher.matches(),
 					String.format("'%s' does not match '%s'", pair.getKey(), DEPLOYMENT_PROPERTY_PATTERN));
 			String moduleName = matcher.group(1);
-			Assert.isTrue(moduleLabels.contains(moduleName),
+			Assert.isTrue("*".equals(moduleName) || moduleLabels.contains(moduleName),
 					String.format("'%s' refers to a module that is not in the list: %s", pair.getKey(), moduleLabels));
 		}
 	}

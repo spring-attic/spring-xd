@@ -22,3 +22,4 @@ Therefore, when adding new test classes, each class **must** be added to the
 `@Suite.SuiteClasses` annotation in `org.springframework.xd.distributed.test.DistributedTestSuite`
 so that the tests are included in the build.
   
+Infrastructure for launching JVMs provided by the [Oracle Tools framework](https://java.net/projects/oracletools).

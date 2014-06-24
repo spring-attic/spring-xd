@@ -158,9 +158,18 @@ In this case you can add the -Dtest.single=  along with the test you want ot run
 ```
 ### Running on Local Host XD Clustered
 
-Following the Singlenode instructions above, you will only need to make one additional change (Assuming you are running the hsqldb-server).  Since we will be running an Admin and Container combination, the logs for which the Acceptance tests will be monitoring will be the container's.  So, the xd\_container\_log\_dir will have to be updated as shown below:
+Following the Singlenode instructions above, you will only need to make 3 additional changes (Assuming you are running the hsqldb-server).  
+1) Since we will be running an Admin and Container combination, the logs for which the Acceptance tests will be monitoring will be the container's.  So, the xd\_container\_log\_dir will have to be updated as shown below:
 ```
 xd_container_log_dir=${XD_HOME}/logs/container.log
+```
+2) Update the xd_jmx_port to 9395 in the application-singlenode.properties, for example:
+```
+xd_jmx_port=9395
+```
+3) Before starting the container set the following environment variable XD_MGMT_PORT to 9395, for example:
+```
+export XD_MGMT_PORT=9395
 ```
 
 ### Running on EC2

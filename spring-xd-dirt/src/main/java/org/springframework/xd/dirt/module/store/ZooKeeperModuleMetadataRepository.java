@@ -324,11 +324,11 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	}
 
 	private String path(String id) {
-		return Paths.build(Paths.MODULE_DEPLOYMENTS, id);
+		return Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, id);
 	}
 
 	private String metadataPath(String containerId, String moduleId) {
-		return Paths.build(Paths.MODULE_DEPLOYMENTS, containerId, moduleId, "metadata");
+		return Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, containerId, moduleId, "metadata");
 	}
 
 	@Override

@@ -316,6 +316,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			PathChildrenCache containers = null;
 			PathChildrenCache streamDeployments = null;
 			PathChildrenCache jobDeployments = null;
+			PathChildrenCache moduleDeploymentRequests = null;
 			StreamDeploymentListener streamDeploymentListener;
 			JobDeploymentListener jobDeploymentListener;
 			PathChildrenCacheListener containerListener;
@@ -327,7 +328,15 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleDefinitionRepository,
 						moduleOptionsMetadataResolver);
 
+				String requestedModulesPath = Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.REQUESTED);
+				Paths.ensurePath(client, requestedModulesPath);
+				String allocatedModulesPath = Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED);
+				Paths.ensurePath(client, allocatedModulesPath);
+				moduleDeploymentRequests = instantiatePathChildrenCache(client, requestedModulesPath);
+				moduleDeploymentRequests.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
+
 				streamDeploymentListener = new StreamDeploymentListener(zkConnection,
+						moduleDeploymentRequests,
 						containerRepository,
 						streamFactory,
 						containerMatcher,
@@ -343,6 +352,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				streamDeploymentListener.recalculateStreamStates(client, streamDeployments);
 
 				jobDeploymentListener = new JobDeploymentListener(zkConnection,
+						moduleDeploymentRequests,
 						containerRepository,
 						jobFactory,
 						containerMatcher,
@@ -359,6 +369,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 						jobFactory,
 						streamDeployments,
 						jobDeployments,
+						moduleDeploymentRequests,
 						containerMatcher,
 						stateCalculator);
 
@@ -384,6 +395,9 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				if (jobDeployments != null) {
 					jobDeployments.close();
 				}
+				if (moduleDeploymentRequests != null) {
+					moduleDeploymentRequests.close();
+				}
 			}
 		}
 
@@ -398,7 +412,8 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			Set<String> containerDeployments = new HashSet<String>();
 
 			try {
-				containerDeployments.addAll(client.getChildren().forPath(Paths.build(Paths.MODULE_DEPLOYMENTS)));
+				containerDeployments.addAll(client.getChildren().forPath(
+						Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED)));
 				containerDeployments.removeAll(client.getChildren().forPath(Paths.build(Paths.CONTAINERS)));
 			}
 			catch (KeeperException.NoNodeException e) {
@@ -408,7 +423,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			for (String oldContainer : containerDeployments) {
 				try {
 					client.delete().deletingChildrenIfNeeded().forPath(
-							Paths.build(Paths.MODULE_DEPLOYMENTS, oldContainer));
+							Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, oldContainer));
 				}
 				catch (KeeperException.NoNodeException e) {
 					// ignore

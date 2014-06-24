@@ -62,7 +62,6 @@ import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
@@ -124,7 +123,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * A {@link PathChildrenCacheListener} implementation that handles deployment requests (and deployment removals) for
 	 * this container.
 	 */
-	private final DeploymentListener deploymentListener = new DeploymentListener();
+	private final InContainerDeploymentListener deploymentListener = new InContainerDeploymentListener();
 
 	/**
 	 * Watcher for modules deployed to this container under the {@link Paths#STREAMS} location.
@@ -140,11 +139,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * Cache of children under the deployments path.
 	 */
 	private volatile PathChildrenCache deployments;
-
-	/**
-	 * Utility to convert maps to byte arrays.
-	 */
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	/**
 	 * Module options metadata resolver.
@@ -371,7 +365,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			// present in the containers path.
 			containerRepository.save(new Container(containerAttributes.getId(), containerAttributes));
 
-			String moduleDeploymentPath = Paths.build(Paths.MODULE_DEPLOYMENTS, containerAttributes.getId());
+			String moduleDeploymentPath = Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED,
+					containerAttributes.getId());
 			Paths.ensurePath(client, moduleDeploymentPath);
 			deployments = new PathChildrenCache(client, moduleDeploymentPath, true,
 					ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
@@ -433,36 +428,37 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		String unitName = moduleDeploymentsPath.getStreamName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
+		String moduleSequence = moduleDeploymentsPath.getModuleSequence();
 		ModuleDescriptor.Key key = new ModuleDescriptor.Key(unitName, ModuleType.valueOf(moduleType), moduleLabel);
 		String container = moduleDeploymentsPath.getContainer();
 		Module module = null;
 		ModuleDeploymentStatus status;
 
 		ModuleDeploymentProperties properties = new ModuleDeploymentProperties();
-		properties.putAll(mapBytesUtility.toMap(data.getData()));
+		properties.putAll(ZooKeeperUtils.bytesToMap(data.getData()));
 
 		try {
 			module = (ModuleType.job.toString().equals(moduleType))
-					? deployJob(client, unitName, moduleLabel, properties)
-					: deployStreamModule(client, unitName, moduleType, moduleLabel, properties);
+					? deployJob(client, unitName, moduleLabel, moduleSequence, properties)
+					: deployStreamModule(client, unitName, moduleType, moduleLabel, moduleSequence, properties);
 			if (module == null) {
-				status = new ModuleDeploymentStatus(container, key,
+				status = new ModuleDeploymentStatus(container, moduleSequence, key,
 						ModuleDeploymentStatus.State.failed, "Module deployment returned null");
 			}
 			else {
-				status = new ModuleDeploymentStatus(container, key,
+				status = new ModuleDeploymentStatus(container, moduleSequence, key,
 						ModuleDeploymentStatus.State.deployed, null);
 			}
 		}
 		catch (Exception e) {
-			status = new ModuleDeploymentStatus(container, key,
+			status = new ModuleDeploymentStatus(container, moduleSequence, key,
 					ModuleDeploymentStatus.State.failed, e.toString());
 			logger.error("Exception deploying module", e);
 		}
 
 		try {
 			writeModuleMetadata(module, path, client);
-			client.setData().forPath(status.buildPath(), mapBytesUtility.toByteArray(status.toMap()));
+			client.setData().forPath(status.buildPath(), ZooKeeperUtils.mapToBytes(status.toMap()));
 		}
 		catch (KeeperException.NoNodeException e) {
 			logger.warn("During deployment of module {} of type {} for {}, an undeployment request " +
@@ -487,7 +483,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			Map<String, String> mapMetadata = new HashMap<String, String>();
 			CollectionUtils.mergePropertiesIntoMap(module.getProperties(), mapMetadata);
 			client.create().withMode(CreateMode.EPHEMERAL).forPath(
-					Paths.build(path, "metadata"), mapBytesUtility.toByteArray(mapMetadata));
+					Paths.build(path, "metadata"), ZooKeeperUtils.mapToBytes(mapMetadata));
 		}
 	}
 
@@ -500,12 +496,13 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param properties  module deployment properties
 	 * @return Module deployed job module
 	 */
-	private Module deployJob(CuratorFramework client, String jobName, String jobLabel,
+	private Module deployJob(CuratorFramework client, String jobName, String jobLabel, String moduleSequence,
 			ModuleDeploymentProperties properties) throws Exception {
 		logger.info("Deploying job '{}'", jobName);
 
 		String jobDeploymentPath = new JobDeploymentsPath().setJobName(jobName)
 				.setModuleLabel(jobLabel)
+				.setModuleSequence(moduleSequence)
 				.setContainer(containerAttributes.getId()).build();
 
 		Module module = null;
@@ -535,21 +532,24 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Deploy the requested module for a stream.
 	 *
-	 * @param client      curator client
-	 * @param streamName  name of the stream for the module
-	 * @param moduleType  module type
-	 * @param moduleLabel module label
-	 * @param properties  module deployment properties
+	 * @param client         curator client
+	 * @param streamName     name of the stream for the module
+	 * @param moduleType     module type
+	 * @param moduleLabel    module label
+	 * @param moduleSequence module sequence
+	 * @param properties     module deployment properties
 	 * @return Module deployed stream module
 	 */
 	private Module deployStreamModule(CuratorFramework client, String streamName,
-			String moduleType, String moduleLabel, ModuleDeploymentProperties properties) throws Exception {
+			String moduleType, String moduleLabel, String moduleSequence, ModuleDeploymentProperties properties)
+			throws Exception {
 		logger.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
 
 		String streamDeploymentPath = new StreamDeploymentsPath().setStreamName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel)
-				.setContainer(containerAttributes.getId()).build();
+				.setModuleSequence(moduleSequence)
+				.setContainer(this.containerAttributes.getId()).build();
 
 		Module module = null;
 		Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
@@ -584,6 +584,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		String streamName = moduleDeploymentsPath.getStreamName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
+		String moduleSequence = moduleDeploymentsPath.getModuleSequence();
 
 		undeployModule(streamName, moduleType, moduleLabel);
 
@@ -597,7 +598,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			path = new StreamDeploymentsPath().setStreamName(streamName)
 					.setModuleType(moduleType)
 					.setModuleLabel(moduleLabel)
-					.setContainer(containerAttributes.getId()).build();
+					.setModuleSequence(moduleSequence)
+					.setContainer(this.containerAttributes.getId()).build();
 		}
 		if (client.checkExists().forPath(path) != null) {
 			logger.trace("Deleting path: {}", path);
@@ -689,6 +691,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				String streamName = streamDeploymentsPath.getStreamName();
 				String moduleType = streamDeploymentsPath.getModuleType();
 				String moduleLabel = streamDeploymentsPath.getModuleLabel();
+				String moduleSequence = streamDeploymentsPath.getModuleSequence();
 
 				undeployModule(streamName, moduleType, moduleLabel);
 
@@ -696,7 +699,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						.setContainer(containerAttributes.getId())
 						.setStreamName(streamName)
 						.setModuleType(moduleType)
-						.setModuleLabel(moduleLabel).build();
+						.setModuleLabel(moduleLabel)
+						.setModuleSequence(moduleSequence).build();
 
 				CuratorFramework client = zkConnection.getClient();
 				try {
@@ -743,6 +747,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				JobDeploymentsPath jobDeploymentsPath = new JobDeploymentsPath(event.getPath());
 				String jobName = jobDeploymentsPath.getJobName();
 				String moduleLabel = jobDeploymentsPath.getModuleLabel();
+				String moduleSequence = jobDeploymentsPath.getModuleSequence();
 
 				undeployModule(jobName, ModuleType.job.toString(), moduleLabel);
 
@@ -750,7 +755,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						.setContainer(containerAttributes.getId())
 						.setStreamName(jobName)
 						.setModuleType(ModuleType.job.toString())
-						.setModuleLabel(moduleLabel).build();
+						.setModuleLabel(moduleLabel)
+						.setModuleSequence(moduleSequence).build();
 
 				CuratorFramework client = zkConnection.getClient();
 				try {
@@ -785,7 +791,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Listener for deployment requests for this container under {@link Paths#DEPLOYMENTS}.
 	 */
-	class DeploymentListener implements PathChildrenCacheListener {
+	class InContainerDeploymentListener implements PathChildrenCacheListener {
 
 		/**
 		 * {@inheritDoc}

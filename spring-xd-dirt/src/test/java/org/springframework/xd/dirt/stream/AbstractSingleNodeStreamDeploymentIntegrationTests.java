@@ -172,7 +172,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
 		ContainerAttributes attributes = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
-		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attributes.getId()),
+		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, attributes.getId()),
 				deploymentsListener);
 	}
 

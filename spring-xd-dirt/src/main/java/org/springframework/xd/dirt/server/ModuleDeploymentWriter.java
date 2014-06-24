@@ -16,17 +16,13 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -37,14 +33,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.NoContainerException;
-import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
-import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 
 /**
  * Utility class to write module deployment requests under {@code /xd/deployments/modules}.
@@ -65,6 +61,8 @@ import org.springframework.xd.module.ModuleType;
  * attempt and its result.
  *
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
+ *
  * @see org.springframework.xd.dirt.server.DeploymentUnitStateCalculator
  */
 public class ModuleDeploymentWriter {
@@ -87,33 +85,6 @@ public class ModuleDeploymentWriter {
 	private final ZooKeeperConnection zkConnection;
 
 	/**
-	 * Utility to convert byte arrays to maps of strings.
-	 */
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
-
-	/**
-	 * Container matcher for matching modules to containers.
-	 */
-	private final ContainerMatcher containerMatcher;
-
-	/**
-	 * Implementation of {@link ModuleDeploymentPropertiesProvider}
-	 * that returns {@link ModuleDeploymentProperties#defaultInstance}.
-	 */
-	private static final ModuleDeploymentPropertiesProvider defaultProvider = new ModuleDeploymentPropertiesProvider() {
-
-		@Override
-		public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
-			return ModuleDeploymentProperties.defaultInstance;
-		}
-	};
-
-	/**
-	 * Repository from which to obtain containers in the cluster.
-	 */
-	private final ContainerRepository containerRepository;
-
-	/**
 	 * Amount of time to wait for a status to be written to all module
 	 * deployment request paths.
 	 */
@@ -125,183 +96,122 @@ public class ModuleDeploymentWriter {
 	 * value indicated by {@link #DEFAULT_TIMEOUT}.
 	 *
 	 * @param zkConnection         ZooKeeper connection
-	 * @param containerRepository  repository for containers in the cluster
 	 * @param containerMatcher     matcher for modules to containers
 	 */
-	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection,
-			ContainerRepository containerRepository, ContainerMatcher containerMatcher) {
-		this(zkConnection, containerRepository, containerMatcher, DEFAULT_TIMEOUT);
+	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection, ContainerMatcher containerMatcher) {
+		this(zkConnection, containerMatcher, DEFAULT_TIMEOUT);
 	}
 
 	/**
 	 * Construct a {@code ModuleDeploymentWriter}.
 	 *
 	 * @param zkConnection         ZooKeeper connection
-	 * @param containerRepository  repository for containers in the cluster
 	 * @param containerMatcher     matcher for modules to containers
 	 * @param timeout    amount of time to wait for module deployments
 	 */
-	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection,
-			ContainerRepository containerRepository, ContainerMatcher containerMatcher,
+	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection, ContainerMatcher containerMatcher,
 			long timeout) {
 		this.zkConnection = zkConnection;
-		this.containerRepository = containerRepository;
 		this.timeout = timeout;
-		this.containerMatcher = containerMatcher;
 	}
 
-	/**
-	 * Write a deployment request for the module to the container.
-	 *
-	 * @param descriptor  module descriptor for module to be deployed
-	 * @param container   target container for deployment
-	 * @return result of request
-	 * @throws InterruptedException if the executing thread is interrupted
-	 * @throws NoContainerException if there are no containers that match the criteria
-	 *                              for module deployment
-	 */
-	public ModuleDeploymentStatus writeDeployment(ModuleDescriptor descriptor, final Container container)
-			throws InterruptedException, NoContainerException {
-		ContainerMatcher matcher = new ContainerMatcher() {
-
-			@Override
-			public Collection<Container> match(ModuleDescriptor moduleDescriptor,
-					ModuleDeploymentProperties deploymentProperties,
-					Iterable<Container> containers) {
-				return Collections.singleton(container);
-			}
-		};
-
-		return writeDeployment(Collections.singletonList(descriptor).iterator(),
-				defaultProvider, matcher).iterator().next();
-	}
-
-	/**
-	 * Write module deployment requests for the modules returned by the {@code descriptors}
-	 * iterator. The target containers are indicated by {@link #containerMatcher} and
-	 * the {@link org.springframework.xd.module.ModuleDeploymentProperties} provided
-	 * by the {@link ModuleDeploymentPropertiesProvider}.
-	 *
-	 * @param descriptors  descriptors for modules to deploy
-	 * @param provider     callback to obtain the deployment properties for a module
-	 * @return result of request
-	 * @throws InterruptedException if the executing thread is interrupted
-	 * @throws NoContainerException if there are no containers that match the criteria
-	 *                              for module deployment
-	 */
-	public Collection<ModuleDeploymentStatus> writeDeployment(Iterator<ModuleDescriptor> descriptors,
-			ModuleDeploymentPropertiesProvider provider)
-			throws InterruptedException, NoContainerException {
-		return writeDeployment(descriptors, provider, containerMatcher);
-	}
 
 	/**
 	 * Write a module deployment request for the provided module descriptor
-	 * using the provided properties. Since one module descriptor and one
-	 * instance of {@link ModuleDeploymentProperties} are provided,  it is
-	 * assumed that the provided {@link ContainerMatcher} will only return
-	 * one container. This method should be used for module redeployment
-	 * when a container exits the cluster.
+	 * using the provided properties to the given matched container.
 	 *
 	 * @param moduleDescriptor      descriptor for module to deploy
 	 * @param deploymentProperties  deployment properties for module
-	 * @param containerMatcher      matcher for modules to containers
+	 * @param container     		the container to deploy
 	 * @return result of request
 	 * @throws InterruptedException if the executing thread is interrupted
 	 * @throws NoContainerException if there are no containers that match the criteria
 	 *                              for module deployment
 	 */
-	public ModuleDeploymentStatus writeDeployment(ModuleDescriptor moduleDescriptor,
-			final ModuleDeploymentProperties deploymentProperties,
-			ContainerMatcher containerMatcher) throws InterruptedException, NoContainerException {
-		Collection<ModuleDeploymentStatus> deploymentStatus = writeDeployment(Collections.singleton(moduleDescriptor).iterator(),
-				new ModuleDeploymentPropertiesProvider() {
-
-					@Override
-					public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
-						return deploymentProperties;
-					}
-				}, containerMatcher);
-
-		if (deploymentStatus.size() > 1) {
-			throw new IllegalStateException("Expected to deploy to one container; " +
-					"deployment results: " + deploymentStatus);
+	protected ModuleDeploymentStatus writeModuleDeployment(ModuleDescriptor moduleDescriptor,
+			RuntimeModuleDeploymentProperties deploymentProperties, Container container)
+			throws InterruptedException, NoContainerException {
+		ResultCollector collector = new ResultCollector();
+		writeModuleDeployment(moduleDescriptor, deploymentProperties, container, collector);
+		Collection<ModuleDeploymentStatus> statuses = processResults(collector);
+		if (statuses.isEmpty()) {
+			throw new NoContainerException();
 		}
+		return statuses.iterator().next();
+	}
 
-		return deploymentStatus.iterator().next();
+
+	/**
+	 * Write module deployment requests for the provided module descriptor
+	 * using the runtime deployment properties provided by the provider
+	 * to the given matched containers.
+	 *
+	 * @param moduleDescriptor      descriptor for module to deploy
+	 * @param provider  			runtime deployment properties provider for the module
+	 * @param containers     		the matched containers to deploy
+	 * @return result of request
+	 * @throws InterruptedException if the executing thread is interrupted
+	 * @throws NoContainerException if there are no containers that match the criteria
+	 *                              for module deployment
+	 */
+	protected Collection<ModuleDeploymentStatus> writeModuleDeployment(ModuleDescriptor moduleDescriptor,
+			RuntimeModuleDeploymentPropertiesProvider provider, Collection<Container> containers)
+			throws InterruptedException, NoContainerException {
+		ResultCollector collector = new ResultCollector();
+		for (Container container : containers) {
+			writeModuleDeployment(moduleDescriptor, provider.runtimeProperties(moduleDescriptor), container, collector);
+		}
+		Collection<ModuleDeploymentStatus> statuses = processResults(collector);
+		if (statuses.isEmpty()) {
+			throw new NoContainerException();
+		}
+		return statuses;
 	}
 
 	/**
-	 * Write module deployment requests for the modules returned by the {@code descriptors}
-	 * iterator. The target containers are indicated by the provided {@code containerMatcher}
-	 * and the {@link org.springframework.xd.module.ModuleDeploymentProperties} provided
-	 * by the {@link ModuleDeploymentPropertiesProvider}.
+	 * Writes the module deployment to the container.
 	 *
-	 * @param descriptors       descriptors for modules to deploy
-	 * @param provider          callback to obtain the deployment properties for a module
-	 * @param containerMatcher  matcher for modules to containers
-	 * @return result of request
-	 * @throws InterruptedException if the executing thread is interrupted
-	 * @throws NoContainerException if there are no containers that match the criteria
-	 *                              for module deployment
+	 * @param moduleDescriptor			descriptor for module to deploy
+	 * @param runtimeProperties			runtime deployment properties provider for the module
+	 * @param container					the container to deploy
+	 * @param collector					the result collector
+	 * @throws InterruptedException 	if the executing thread is interrupted
+	 * @throws NoContainerException 	if there are no containers that match the criteria
+	 *                              	for module deployment
 	 */
-	public Collection<ModuleDeploymentStatus> writeDeployment(Iterator<ModuleDescriptor> descriptors,
-			ModuleDeploymentPropertiesProvider provider, ContainerMatcher containerMatcher)
+	private void writeModuleDeployment(ModuleDescriptor moduleDescriptor,
+			RuntimeModuleDeploymentProperties runtimeProperties,
+			Container container, ResultCollector collector)
 			throws InterruptedException, NoContainerException {
-		Collection<ModuleDeploymentStatus> deploymentStatus = new ArrayList<ModuleDeploymentStatus>();
-		CuratorFramework client = zkConnection.getClient();
-		while (descriptors.hasNext()) {
-			ResultCollector collector = new ResultCollector();
-			ModuleDescriptor descriptor = descriptors.next();
-			ModuleDeploymentProperties deploymentProperties = provider.propertiesForDescriptor(descriptor);
-			for (Container container : containerMatcher.match(descriptor, deploymentProperties,
-					containerRepository.findAll())) {
-				String containerName = container.getName();
-				String deploymentPath = new ModuleDeploymentsPath()
-						.setContainer(containerName)
-						.setStreamName(descriptor.getGroup())
-						.setModuleType(descriptor.getType().toString())
-						.setModuleLabel(descriptor.getModuleLabel()).build();
-				String statusPath = Paths.build(deploymentPath, Paths.STATUS);
-				collector.addPending(containerName, descriptor.createKey());
-				try {
-					if (provider instanceof ContainerAwareModuleDeploymentPropertiesProvider) {
-						deploymentProperties.putAll(((ContainerAwareModuleDeploymentPropertiesProvider) provider)
-								.propertiesForDescriptor(descriptor, container));
-					}
+		String moduleSequence = runtimeProperties.getSequenceAsString();
+		String containerName = container.getName();
+		String deploymentPath = new ModuleDeploymentsPath()
+				.setContainer(containerName)
+				.setStreamName(moduleDescriptor.getGroup())
+				.setModuleType(moduleDescriptor.getType().toString())
+				.setModuleLabel(moduleDescriptor.getModuleLabel())
+				.setModuleSequence(moduleSequence).build();
+		String statusPath = Paths.build(deploymentPath, Paths.STATUS);
+		collector.addPending(containerName, moduleSequence, moduleDescriptor.createKey());
+		try {
+			ensureModuleDeploymentPath(deploymentPath, statusPath, moduleDescriptor,
+					runtimeProperties, container);
 
-					ensureModuleDeploymentPath(deploymentPath, statusPath, descriptor,
-							deploymentProperties, container);
-
-					// set the collector as a watch; it is possible that
-					// a. that the container has already updated this node (unlikely)
-					// b. the deployment was previously written; in this case read
-					//    the status written by the container
-					byte[] data = client.getData().usingWatcher(collector).forPath(statusPath);
-					if (data != null && data.length > 0) {
-						collector.addResult(createResult(deploymentPath, data));
-					}
-				}
-				catch (InterruptedException e) {
-					throw e;
-				}
-				catch (Exception e) {
-					collector.addResult(createResult(deploymentPath, e));
-				}
+			// set the collector as a watch; it is possible that
+			// a. that the container has already updated this node (unlikely)
+			// b. the deployment was previously written; in this case read
+			//    the status written by the container
+			byte[] data = zkConnection.getClient().getData().usingWatcher(collector).forPath(statusPath);
+			if (data != null && data.length > 0) {
+				collector.addResult(createResult(deploymentPath, data));
 			}
-			// for each individual module, block until all containers
-			// have responded to (or timed out) the module deployment request;
-			// the blocking has to occur for each individual module in
-			// order to ensure that modules for streams are deployed
-			// in the correct order
-			deploymentStatus.addAll(processResults(client, collector));
 		}
-
-		if (deploymentStatus.isEmpty()) {
-			throw new NoContainerException();
+		catch (InterruptedException e) {
+			throw e;
 		}
-
-		return deploymentStatus;
+		catch (Exception e) {
+			collector.addResult(createResult(deploymentPath, e));
+		}
 	}
 
 	/**
@@ -309,13 +219,11 @@ public class ModuleDeploymentWriter {
 	 * or until a timeout occurs. Additionally, remove any module deployment
 	 * paths for deployments that failed or timed out.
 	 *
-	 * @param client     Curator client
 	 * @param collector  ZooKeeper watch used to collect results
 	 * @return collection of results for module deployment requests
 	 * @throws InterruptedException
 	 */
-	private Collection<ModuleDeploymentStatus> processResults(CuratorFramework client,
-			ResultCollector collector) throws InterruptedException {
+	protected Collection<ModuleDeploymentStatus> processResults(ResultCollector collector) throws InterruptedException {
 		Collection<ModuleDeploymentStatus> statuses = collector.getResults();
 
 		// remove the ZK path for any failed deployments
@@ -325,10 +233,11 @@ public class ModuleDeploymentWriter {
 						.setContainer(deploymentStatus.getContainer())
 						.setStreamName(deploymentStatus.getKey().getGroup())
 						.setModuleType(deploymentStatus.getKey().getType().toString())
-						.setModuleLabel(deploymentStatus.getKey().getLabel()).build();
+						.setModuleLabel(deploymentStatus.getKey().getLabel())
+						.setModuleSequence(deploymentStatus.getModuleSequence()).build();
 				logger.debug("Unsuccessful deployment: {}; removing path {}", deploymentStatus, path);
 				try {
-					client.delete().deletingChildrenIfNeeded().forPath(path);
+					zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
 				}
 				catch (InterruptedException e) {
 					throw e;
@@ -364,7 +273,7 @@ public class ModuleDeploymentWriter {
 			throws Exception {
 		try {
 			zkConnection.getClient().inTransaction()
-					.create().forPath(deploymentPath, mapBytesUtility.toByteArray(properties)).and()
+					.create().forPath(deploymentPath, ZooKeeperUtils.mapToBytes(properties)).and()
 					.create().forPath(statusPath).and().commit();
 		}
 		catch (KeeperException.NodeExistsException e) {
@@ -380,7 +289,7 @@ public class ModuleDeploymentWriter {
 	 * @return result based on data
 	 */
 	private ModuleDeploymentStatus createResult(String pathString, byte[] data) {
-		return createResult(pathString, mapBytesUtility.toMap(data));
+		return createResult(pathString, ZooKeeperUtils.bytesToMap(data));
 	}
 
 	/**
@@ -396,7 +305,7 @@ public class ModuleDeploymentWriter {
 				path.getStreamName(),
 				ModuleType.valueOf(path.getModuleType()),
 				path.getModuleLabel());
-		return new ModuleDeploymentStatus(path.getContainer(), key, statusMap);
+		return new ModuleDeploymentStatus(path.getContainer(), path.getModuleSequence(), key, statusMap);
 	}
 
 	/**
@@ -413,7 +322,8 @@ public class ModuleDeploymentWriter {
 				ModuleType.valueOf(path.getModuleType()),
 				path.getModuleLabel());
 
-		return new ModuleDeploymentStatus(path.getContainer(), key, ModuleDeploymentStatus.State.failed, t.toString());
+		return new ModuleDeploymentStatus(path.getContainer(), path.getModuleSequence(), key,
+				ModuleDeploymentStatus.State.failed, t.toString());
 	}
 
 
@@ -428,6 +338,11 @@ public class ModuleDeploymentWriter {
 		private String container;
 
 		/**
+		 * Module sequence.
+		 */
+		private String moduleSequence;
+
+		/**
 		 * Module descriptor key.
 		 */
 		private ModuleDescriptor.Key moduleDescriptorKey;
@@ -436,10 +351,12 @@ public class ModuleDeploymentWriter {
 		 * Construct a {@code ContainerModuleKey}.
 		 *
 		 * @param container             container name
+		 * @param moduleSequence        module sequence number
 		 * @param moduleDescriptorKey   module descriptor key
 		 */
-		private ContainerModuleKey(String container, ModuleDescriptor.Key moduleDescriptorKey) {
+		private ContainerModuleKey(String container, String moduleSequence, ModuleDescriptor.Key moduleDescriptorKey) {
 			this.container = container;
+			this.moduleSequence = moduleSequence;
 			this.moduleDescriptorKey = moduleDescriptorKey;
 		}
 
@@ -458,6 +375,7 @@ public class ModuleDeploymentWriter {
 
 			ContainerModuleKey that = (ContainerModuleKey) o;
 			return this.container.equals(that.container) &&
+					this.moduleSequence.equals(that.moduleSequence) &&
 					this.moduleDescriptorKey.equals(that.moduleDescriptorKey);
 		}
 
@@ -467,6 +385,7 @@ public class ModuleDeploymentWriter {
 		@Override
 		public int hashCode() {
 			int result = container.hashCode();
+			result = 31 * result + moduleSequence.hashCode();
 			result = 31 * result + moduleDescriptorKey.hashCode();
 			return result;
 		}
@@ -478,6 +397,7 @@ public class ModuleDeploymentWriter {
 		public String toString() {
 			return "ContainerModuleKey{" +
 					"container='" + container + '\'' +
+					"moduleSequence'" + moduleSequence + '\'' +
 					", moduleDescriptorKey=" + moduleDescriptorKey +
 					'}';
 		}
@@ -525,11 +445,12 @@ public class ModuleDeploymentWriter {
 		 * Indicate that a reply is expected for a module deployment request
 		 * to the container for the module indicated by the module descriptor key.
 		 *
-		 * @param container  container name
-		 * @param key        module descriptor key
+		 * @param container       container name
+		 * @param moduleSequence  module sequence
+		 * @param key             module descriptor key
 		 */
-		public synchronized void addPending(String container, ModuleDescriptor.Key key) {
-			pending.add(new ContainerModuleKey(container, key));
+		public synchronized void addPending(String container, String moduleSequence, ModuleDescriptor.Key key) {
+			pending.add(new ContainerModuleKey(container, moduleSequence, key));
 		}
 
 		/**
@@ -539,6 +460,7 @@ public class ModuleDeploymentWriter {
 		 */
 		public synchronized void addResult(ModuleDeploymentStatus deploymentStatus) {
 			ContainerModuleKey key = new ContainerModuleKey(deploymentStatus.getContainer(),
+					deploymentStatus.getModuleSequence(),
 					deploymentStatus.getKey());
 			pending.remove(key);
 			results.put(key, deploymentStatus);
@@ -572,7 +494,7 @@ public class ModuleDeploymentWriter {
 			// was never updated
 			for (ContainerModuleKey key : pending) {
 				results.put(key,
-						new ModuleDeploymentStatus(key.container, key.moduleDescriptorKey,
+						new ModuleDeploymentStatus(key.container, key.moduleSequence, key.moduleDescriptorKey,
 								ModuleDeploymentStatus.State.failed,
 								String.format("Deployment of module '%s' to container '%s' timed out after %d ms",
 										key.moduleDescriptorKey, key.container, timeout)));

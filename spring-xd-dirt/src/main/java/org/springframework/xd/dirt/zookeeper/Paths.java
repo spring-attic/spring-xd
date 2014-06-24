@@ -77,6 +77,17 @@ public class Paths {
 	public static final String DEPLOYMENTS = "deployments";
 
 	/**
+	 * Name of the deployment modules node that are allocated to containers.
+	 * Allocated modules are written as children of this node.
+	 */
+	public static final String ALLOCATED = "allocated";
+
+	/**
+	 * Name of the module deployment requests node. Requested modules are written as children of this node.
+	 */
+	public static final String REQUESTED = "requested";
+
+	/**
 	 * Name of status node. The data for this node contains status information.
 	 */
 	public static final String STATUS = "status";

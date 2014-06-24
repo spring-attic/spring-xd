@@ -42,21 +42,24 @@ public class StreamDeploymentsPathTest {
 		String streamName = "my-stream";
 		String moduleType = ModuleType.source.toString();
 		String moduleLabel = "my-label";
+		String moduleSequence = "0";
 		String container = UUID.randomUUID().toString();
 		String path = Paths.buildWithNamespace(Paths.STREAM_DEPLOYMENTS, streamName, Paths.MODULES,
-				String.format("%s.%s.%s", moduleType, moduleLabel, container));
+				String.format("%s.%s.%s.%s", moduleType, moduleLabel, moduleSequence, container));
 
 		StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(path);
 
 		assertEquals(streamName, streamDeploymentsPath.getStreamName());
 		assertEquals(moduleType, streamDeploymentsPath.getModuleType());
 		assertEquals(moduleLabel, streamDeploymentsPath.getModuleLabel());
+		assertEquals(moduleSequence, streamDeploymentsPath.getModuleSequence());
 		assertEquals(container, streamDeploymentsPath.getContainer());
 
 		StreamDeploymentsPath streamDeploymentsPathEmptyCtor = new StreamDeploymentsPath()
 				.setStreamName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel)
+				.setModuleSequence(moduleSequence)
 				.setContainer(container);
 
 		assertEquals(path, streamDeploymentsPathEmptyCtor.buildWithNamespace());
@@ -66,7 +69,7 @@ public class StreamDeploymentsPathTest {
 	 * Assert that an {@link java.lang.IllegalStateException} is thrown
 	 * when attempting to build an incomplete {@link StreamDeploymentsPath}.
 	 */
-	@Test(expected=IllegalStateException.class)
+	@Test(expected = IllegalStateException.class)
 	public void testStreamNameOnly() {
 		String streamName = "my-stream";
 		StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath().setStreamName(streamName);

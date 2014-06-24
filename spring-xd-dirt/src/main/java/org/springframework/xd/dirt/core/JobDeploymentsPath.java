@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.core;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Builder object for paths under {@link Paths#JOB_DEPLOYMENTS}. {@code JobDeploymentsPath}
@@ -36,6 +37,7 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  *
  * @author Patrick Peralta
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
 public class JobDeploymentsPath {
 
@@ -65,14 +67,24 @@ public class JobDeploymentsPath {
 	private static final int DEPLOYMENT_DESC = 4;
 
 	/**
+	 * Index for module type in {@link #deploymentDesc} array.
+	 */
+	private static final int MODULE_TYPE = 0;
+
+	/**
 	 * Index for module label in {@link #deploymentDesc} array.
 	 */
-	private static final int MODULE_LABEL = 0;
+	private static final int MODULE_LABEL = 1;
+
+	/**
+	 * Index for module sequence in dot delimited deployment description.
+	 */
+	private static final int MODULE_SEQUENCE = 2;
 
 	/**
 	 * Index for container name in {@link #deploymentDesc} array.
 	 */
-	private static final int CONTAINER = 1;
+	private static final int CONTAINER = 3;
 
 	/**
 	 * Array of path elements.
@@ -82,7 +94,7 @@ public class JobDeploymentsPath {
 	/**
 	 * Array of module deployment description elements.
 	 */
-	private final String[] deploymentDesc = new String[2];
+	private final String[] deploymentDesc = new String[4];
 
 
 	/**
@@ -134,9 +146,18 @@ public class JobDeploymentsPath {
 
 		if (elements[DEPLOYMENT_DESC] != null) {
 			String[] deploymentElements = elements[DEPLOYMENT_DESC].split(" ")[0].split("\\.");
-			Assert.state(deploymentElements.length == 2);
-			System.arraycopy(deploymentElements, 0, deploymentDesc, 0, 2);
+			Assert.state(deploymentElements.length == deploymentDesc.length);
+			System.arraycopy(deploymentElements, 0, deploymentDesc, 0, deploymentDesc.length);
 		}
+	}
+
+	/**
+	 * Return the module that this path represents.
+	 *
+	 * @return module
+	 */
+	public String getModule() {
+		return String.format("%s.%s.%s", ModuleType.job.toString(), this.getModuleLabel(), this.getModuleSequence());
 	}
 
 	/**
@@ -161,6 +182,15 @@ public class JobDeploymentsPath {
 	}
 
 	/**
+	 * Return the module type.
+	 *
+	 * @return module type
+	 */
+	public String getModuleType() {
+		return deploymentDesc[MODULE_TYPE];
+	}
+
+	/**
 	 * Return the module label.
 	 *
 	 * @return module label
@@ -178,6 +208,27 @@ public class JobDeploymentsPath {
 	 */
 	public JobDeploymentsPath setModuleLabel(String label) {
 		deploymentDesc[MODULE_LABEL] = label;
+		return this;
+	}
+
+	/**
+	 * Return the module sequence.
+	 *
+	 * @return module sequence
+	 */
+	public String getModuleSequence() {
+		return deploymentDesc[MODULE_SEQUENCE];
+	}
+
+	/**
+	 * Set the module sequence.
+	 *
+	 * @param moduleSequence module sequence
+	 *
+	 * @return this object
+	 */
+	public JobDeploymentsPath setModuleSequence(String moduleSequence) {
+		deploymentDesc[MODULE_SEQUENCE] = moduleSequence;
 		return this;
 	}
 
@@ -211,7 +262,8 @@ public class JobDeploymentsPath {
 	 */
 	public String build() throws IllegalStateException {
 		validate();
-		elements[DEPLOYMENT_DESC] = String.format("%s.%s", deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER]);
+		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s", ModuleType.job.toString(),
+				deploymentDesc[MODULE_LABEL], deploymentDesc[MODULE_SEQUENCE], deploymentDesc[CONTAINER]);
 		return Paths.build(elements);
 	}
 
@@ -224,7 +276,8 @@ public class JobDeploymentsPath {
 	 */
 	public String buildWithNamespace() throws IllegalStateException {
 		validate();
-		elements[DEPLOYMENT_DESC] = String.format("%s.%s", deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER]);
+		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s", ModuleType.job.toString(),
+				deploymentDesc[MODULE_LABEL], deploymentDesc[MODULE_SEQUENCE], deploymentDesc[CONTAINER]);
 		return Paths.buildWithNamespace(elements);
 	}
 

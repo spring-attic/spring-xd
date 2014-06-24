@@ -25,8 +25,8 @@ import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
  * Utility for loading streams and jobs for the purpose of deployment.
@@ -45,12 +45,6 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 public class DeploymentLoader {
 
 	/**
-	 * Utility to convert maps to byte arrays.
-	 */
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
-
-
-	/**
 	 * Load the {@link org.springframework.xd.dirt.core.Job}
 	 * instance for a given job name<i>if the job is deployed</i>.
 	 *
@@ -61,11 +55,11 @@ public class DeploymentLoader {
 	 *         or is not deployed
 	 * @throws Exception
 	 */
-	public Job loadJob(CuratorFramework client, String jobName,
+	public static Job loadJob(CuratorFramework client, String jobName,
 			JobFactory jobFactory) throws Exception {
 		try {
 			byte[] definition = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
-			Map<String, String> definitionMap = mapBytesUtility.toMap(definition);
+			Map<String, String> definitionMap = ZooKeeperUtils.bytesToMap(definition);
 
 			byte[] deploymentPropertiesData = client.getData().forPath(
 					Paths.build(Paths.JOB_DEPLOYMENTS, jobName));
@@ -93,11 +87,11 @@ public class DeploymentLoader {
 	 *         not exist or is not deployed
 	 * @throws Exception if ZooKeeper access fails for any reason
 	 */
-	public Stream loadStream(CuratorFramework client, String streamName,
+	public static Stream loadStream(CuratorFramework client, String streamName,
 			StreamFactory streamFactory) throws Exception {
 		try {
 			byte[] definition = client.getData().forPath(Paths.build(Paths.STREAMS, streamName));
-			Map<String, String> definitionMap = mapBytesUtility.toMap(definition);
+			Map<String, String> definitionMap = ZooKeeperUtils.bytesToMap(definition);
 
 			byte[] deploymentPropertiesData = client.getData().forPath(
 					Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));

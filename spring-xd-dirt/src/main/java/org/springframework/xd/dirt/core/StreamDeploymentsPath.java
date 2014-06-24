@@ -35,6 +35,7 @@ import org.springframework.xd.dirt.zookeeper.Paths;
  * Note that all fields must be set prior to invoking {@link #build}.
  *
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 public class StreamDeploymentsPath {
 
@@ -74,9 +75,14 @@ public class StreamDeploymentsPath {
 	private static final int MODULE_LABEL = 1;
 
 	/**
+	 * Index for module sequence in dot delimited deployment description.
+	 */
+	private static final int MODULE_SEQUENCE = 2;
+
+	/**
 	 * Index for container name in {@link #deploymentDesc} array.
 	 */
-	private static final int CONTAINER = 2;
+	private static final int CONTAINER = 3;
 
 	/**
 	 * Array of path elements.
@@ -86,7 +92,7 @@ public class StreamDeploymentsPath {
 	/**
 	 * Array of module deployment description elements.
 	 */
-	private final String[] deploymentDesc = new String[3];
+	private final String[] deploymentDesc = new String[4];
 
 
 	/**
@@ -141,6 +147,20 @@ public class StreamDeploymentsPath {
 			System.arraycopy(deploymentElements, 0, deploymentDesc, 0, deploymentDescCount);
 		}
 
+	}
+
+	/**
+	 * Return the string representation of the module instance that has the following dot limited
+	 * values.
+	 * <ul>
+	 * <li>Module Type</li>
+	 * <li>Module Label</li>
+	 * <li>Module Sequence</li>
+	 * </ul>
+	 * @return the string representation of the stream module instance.
+	 */
+	public String getModuleInstanceAsString() {
+		return String.format("%s.%s.%s", this.getModuleType(), this.getModuleLabel(), this.getModuleSequenceAsString());
 	}
 
 	/**
@@ -207,6 +227,36 @@ public class StreamDeploymentsPath {
 	}
 
 	/**
+	 * Return the module sequence as string.
+	 *
+	 * @return module sequence
+	 */
+	public String getModuleSequenceAsString() {
+		return deploymentDesc[MODULE_SEQUENCE];
+	}
+
+	/**
+	 * Return the module sequence.
+	 *
+	 * @return module sequence
+	 */
+	public int getModuleSequence() {
+		return Integer.valueOf(deploymentDesc[MODULE_SEQUENCE]);
+	}
+
+	/**
+	 * Set the module sequence.
+	 *
+	 * @param moduleSequence module sequence
+	 *
+	 * @return this object
+	 */
+	public StreamDeploymentsPath setModuleSequence(String moduleSequence) {
+		deploymentDesc[MODULE_SEQUENCE] = moduleSequence;
+		return this;
+	}
+
+	/**
 	 * Return the container name.
 	 *
 	 * @return container name
@@ -236,8 +286,8 @@ public class StreamDeploymentsPath {
 	 */
 	public String build() throws IllegalStateException {
 		validate();
-		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s", deploymentDesc[MODULE_TYPE],
-						deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER]);
+		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s", deploymentDesc[MODULE_TYPE],
+				deploymentDesc[MODULE_LABEL], deploymentDesc[MODULE_SEQUENCE], deploymentDesc[CONTAINER]);
 		return Paths.build(elements);
 	}
 
@@ -249,8 +299,9 @@ public class StreamDeploymentsPath {
 	 */
 	public String buildWithNamespace() throws IllegalStateException {
 		validate();
-		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s",
-				deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL], deploymentDesc[CONTAINER]);
+		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s",
+				deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL], deploymentDesc[MODULE_SEQUENCE],
+				deploymentDesc[CONTAINER]);
 		return Paths.buildWithNamespace(elements);
 	}
 
@@ -263,6 +314,7 @@ public class StreamDeploymentsPath {
 		Assert.state(StringUtils.hasText(elements[STREAM_NAME]), "Stream name missing");
 		Assert.state(StringUtils.hasText(deploymentDesc[MODULE_TYPE]), "Module type missing");
 		Assert.state(StringUtils.hasText(deploymentDesc[MODULE_LABEL]), "Module label missing");
+		Assert.state(StringUtils.hasText(deploymentDesc[MODULE_SEQUENCE]), "Module sequence missing");
 		Assert.state(StringUtils.hasText(deploymentDesc[CONTAINER]), "Container missing");
 	}
 

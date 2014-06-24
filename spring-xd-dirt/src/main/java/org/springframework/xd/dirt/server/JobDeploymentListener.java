@@ -16,22 +16,23 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
@@ -39,7 +40,6 @@ import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.job.JobFactory;
-import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -47,6 +47,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 
 
 /**
@@ -56,7 +57,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class JobDeploymentListener implements PathChildrenCacheListener {
+public class JobDeploymentListener extends InitialDeploymentListener {
 
 	/**
 	 * Logger.
@@ -64,66 +65,25 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	private static final Logger logger = LoggerFactory.getLogger(JobDeploymentListener.class);
 
 	/**
-	 * Utility for writing module deployment requests to ZooKeeper.
-	 */
-	private final ModuleDeploymentWriter moduleDeploymentWriter;
-
-	/**
-	 * Utility for loading jobs (including deployment metadata).
-	 */
-	private final DeploymentLoader deploymentLoader = new DeploymentLoader();
-
-	/**
 	 * Job factory.
 	 */
 	private final JobFactory jobFactory;
 
 	/**
-	 * State calculator for job state.
-	 */
-	private final DeploymentUnitStateCalculator stateCalculator;
-
-	/**
-	 * {@link org.springframework.core.convert.converter.Converter} from
-	 * {@link org.apache.curator.framework.recipes.cache.ChildData} in
-	 * job deployments to job name.
-	 */
-	private final ContainerListener.DeploymentNameConverter deploymentNameConverter
-			= new ContainerListener.DeploymentNameConverter();
-
-	/**
 	 * Construct a JobDeploymentListener.
 	 *
 	 * @param zkConnection ZooKeeper connection
+	 * @param moduleDeploymentRequests the requested module deployments
 	 * @param containerRepository repository to obtain container data
 	 * @param jobFactory factory to construct {@link Job}
 	 * @param containerMatcher matches modules to containers
 	 * @param stateCalculator calculator for job state
 	 */
-	public JobDeploymentListener(ZooKeeperConnection zkConnection,
+	public JobDeploymentListener(ZooKeeperConnection zkConnection, PathChildrenCache moduleDeploymentRequests,
 			ContainerRepository containerRepository, JobFactory jobFactory,
 			ContainerMatcher containerMatcher, DeploymentUnitStateCalculator stateCalculator) {
-		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection,
-				containerRepository, containerMatcher);
+		super(zkConnection, moduleDeploymentRequests, containerRepository, containerMatcher, stateCalculator);
 		this.jobFactory = jobFactory;
-		this.stateCalculator = stateCalculator;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * Handle child events for the {@link Paths#JOBS} path.
-	 */
-	@Override
-	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-		ZooKeeperUtils.logCacheEvent(logger, event);
-		switch (event.getType()) {
-			case CHILD_ADDED:
-				onChildAdded(client, event.getData());
-				break;
-			default:
-				break;
-		}
 	}
 
 	/**
@@ -132,9 +92,10 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 * @param client curator client
 	 * @param data job deployment request data
 	 */
-	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
+	@Override
+	protected void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String jobName = Paths.stripPath(data.getPath());
-		Job job = deploymentLoader.loadJob(client, jobName, jobFactory);
+		Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
 		deployJob(client, job);
 	}
 
@@ -162,23 +123,47 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 				// an exception indicates that the status has not been set
 			}
 			Assert.state(deployingStatus != null
-							&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
+					&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
 					String.format("Expected 'deploying' status for job '%s'; current status: %s",
 							job.getName(), deployingStatus));
 
-			ModuleDeploymentPropertiesProvider provider = new JobModuleDeploymentPropertiesProvider(job);
+			ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> provider = new DefaultModuleDeploymentPropertiesProvider(
+					job);
 			List<ModuleDescriptor> descriptors = new ArrayList<ModuleDescriptor>();
 			descriptors.add(job.getJobModuleDescriptor());
 
 			try {
-				Collection<ModuleDeploymentStatus> deploymentStatus =
-						moduleDeploymentWriter.writeDeployment(descriptors.iterator(), provider);
+				Collection<ModuleDeploymentStatus> deploymentStatuses = new ArrayList<ModuleDeploymentStatus>();
+				for (ModuleDescriptor descriptor : job.getModuleDescriptors()) {
+					RuntimeModuleDeploymentProperties deploymentProperties = new RuntimeModuleDeploymentProperties();
+					deploymentProperties.putAll(provider.propertiesForDescriptor(descriptor));
+					Deque<Container> matchedContainers = new ArrayDeque<Container>(containerMatcher.match(descriptor,
+							deploymentProperties,
+							containerRepository.findAll()));
+					// Modules count == 0
+					if (deploymentProperties.getCount() == 0) {
+						deploymentProperties.setSequence(0);
+						createModuleDeploymentRequestsPath(client, descriptor, deploymentProperties);
+					}
+					// Modules count > 0
+					else {
+						for (int i = 1; i <= deploymentProperties.getCount(); i++) {
+							deploymentProperties.setSequence(i);
+							createModuleDeploymentRequestsPath(client, descriptor, deploymentProperties);
+						}
+					}
+					RuntimeModuleDeploymentPropertiesProvider deploymentRuntimeProvider =
+							new RuntimeModuleDeploymentPropertiesProvider(provider);
 
-				DeploymentUnitStatus status = stateCalculator.calculate(job, provider, deploymentStatus);
+					deploymentStatuses.addAll(moduleDeploymentWriter.writeDeployment(
+							descriptor, deploymentRuntimeProvider, matchedContainers));
 
-				logger.info("Deployment status for job '{}': {}", job.getName(), status);
+					DeploymentUnitStatus status = stateCalculator.calculate(job, provider, deploymentStatuses);
 
-				client.setData().forPath(statusPath, ZooKeeperUtils.mapToBytes(status.toMap()));
+					logger.info("Deployment status for job '{}': {}", job.getName(), status);
+
+					client.setData().forPath(statusPath, ZooKeeperUtils.mapToBytes(status.toMap()));
+				}
 			}
 			catch (NoContainerException e) {
 				logger.warn("No containers available for deployment of job {}", job.getName());
@@ -202,10 +187,10 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 	 * @throws Exception
 	 */
 	public void recalculateJobStates(CuratorFramework client, PathChildrenCache jobDeployments) throws Exception {
-		for (Iterator<String> iterator = new ChildPathIterator<String>(deploymentNameConverter, jobDeployments);
-				iterator.hasNext();) {
+		for (Iterator<String> iterator = new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter,
+				jobDeployments); iterator.hasNext();) {
 			String jobName = iterator.next();
-			Job job = deploymentLoader.loadJob(client, jobName, jobFactory);
+			Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
 			if (job != null) {
 				String jobModulesPath = Paths.build(Paths.JOB_DEPLOYMENTS, jobName, Paths.MODULES);
 				List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();
@@ -215,11 +200,12 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 							Paths.build(jobModulesPath, moduleDeployment));
 					statusList.add(new ModuleDeploymentStatus(
 							jobDeploymentsPath.getContainer(),
+							jobDeploymentsPath.getModuleSequence(),
 							new ModuleDescriptor.Key(jobName, ModuleType.job, jobDeploymentsPath.getModuleLabel()),
 							ModuleDeploymentStatus.State.deployed, null));
 				}
 				DeploymentUnitStatus status = stateCalculator.calculate(job,
-						new JobModuleDeploymentPropertiesProvider(job), statusList);
+						new DefaultModuleDeploymentPropertiesProvider(job), statusList);
 
 				logger.info("Deployment status for job '{}': {}", job.getName(), status);
 
@@ -233,26 +219,6 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 						ZooKeeperUtils.mapToBytes(status.toMap()));
 			}
 		}
-	}
-
-
-	/**
-	 * Module deployment properties provider for job modules.
-	 */
-	public static class JobModuleDeploymentPropertiesProvider implements ModuleDeploymentPropertiesProvider {
-
-		private final Job job;
-
-		public JobModuleDeploymentPropertiesProvider(Job job) {
-			this.job = job;
-		}
-
-		@Override
-		public ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor) {
-			return DeploymentPropertiesUtility.createModuleDeploymentProperties(
-					job.getDeploymentProperties(), descriptor);
-		}
-
 	}
 
 }

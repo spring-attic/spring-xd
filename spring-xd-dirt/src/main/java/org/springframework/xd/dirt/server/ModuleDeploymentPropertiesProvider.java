@@ -25,13 +25,13 @@ import org.springframework.xd.module.ModuleDescriptor;
  *
  * @author Patrick Peralta
  */
-public interface ModuleDeploymentPropertiesProvider {
+public interface ModuleDeploymentPropertiesProvider<P extends ModuleDeploymentProperties> {
 
 	/**
-	 * Return the deployment properties for the module descriptor.
+	 * Return the deployment properties of type {@link ModuleDeploymentProperties} for the module descriptor.
 	 *
 	 * @param descriptor module descriptor for module to be deployed
 	 * @return deployment properties for module
 	 */
-	ModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor descriptor);
+	P propertiesForDescriptor(ModuleDescriptor descriptor);
 }

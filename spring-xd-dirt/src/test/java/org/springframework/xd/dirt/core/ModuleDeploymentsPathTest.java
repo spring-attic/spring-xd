@@ -35,15 +35,17 @@ public class ModuleDeploymentsPathTest {
 		String streamName = "my-stream";
 		String moduleType = ModuleType.source.toString();
 		String moduleLabel = "my-label";
+		String moduleSequence = "1";
 		String container = UUID.randomUUID().toString();
-		String path = Paths.buildWithNamespace(Paths.MODULE_DEPLOYMENTS, container,
-				String.format("%s.%s.%s", streamName, moduleType, moduleLabel));
+		String path = Paths.buildWithNamespace(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, container,
+				String.format("%s.%s.%s.%s", streamName, moduleType, moduleLabel, moduleSequence));
 
 		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath()
 				.setContainer(container)
 				.setStreamName(streamName)
 				.setModuleType(moduleType)
-				.setModuleLabel(moduleLabel);
+				.setModuleLabel(moduleLabel)
+				.setModuleSequence(moduleSequence);
 
 		assertEquals(path, moduleDeploymentsPath.buildWithNamespace());
 
@@ -52,6 +54,7 @@ public class ModuleDeploymentsPathTest {
 		assertEquals(streamName, fromPath.getStreamName());
 		assertEquals(moduleType, fromPath.getModuleType());
 		assertEquals(moduleLabel, fromPath.getModuleLabel());
+		assertEquals(moduleSequence, fromPath.getModuleSequenceAsString());
 	}
 
 }

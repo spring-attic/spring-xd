@@ -16,31 +16,20 @@
 
 package org.springframework.xd.dirt.core;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
- * Builder object for paths under {@link Paths#DEPLOYMENTS} for module deployments. {@code ModuleDeploymentsPath}
- * can be used to take a full path and split it into its elements, for example:
- * <p>
- * <code>
- * ModuleDeploymentsPath deploymentsPath =
- *     new ModuleDeploymentsPath("/xd/deployments/modules/4dbd28e2-880d-4774/my-stream.source.http-0");
- * assertEquals("my-stream", deploymentsPath.getStreamName());
- * </code>
- * </p>
- * It can also be used to build a path, for example:
- * <p>
- * <code>
- * ModuleDeploymentsPath deploymentsPath = new ModuleDeploymentsPath().setStreamName("my-stream").setContainer(...)...;
- * assertEquals("/xd/deployments/modules/4dbd28e2-880d-4774/my-stream.source.http-0", deploymentsPath.build());
- * </code>
- * </p>
+ * Builder object for paths under {@link Paths#REQUESTED}. {@code ModuleDeploymentRequestsPath}
+ * represents all the requested modules upon deployment.
  *
- * @author Patrick Peralta
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleDeploymentsPath {
+public class ModuleDeploymentRequestsPath {
 
 	/**
 	 * Index for {@link Paths#DEPLOYMENTS} in {@link #elements} array.
@@ -53,24 +42,19 @@ public class ModuleDeploymentsPath {
 	private static final int MODULES = 1;
 
 	/**
-	 * Index for {@link Paths#ALLOCATED} node in {@link #elements} array.
+	 * Index for {@link Paths#REQUESTED} node in {@link #elements} array.
 	 */
-	private static final int ALLOCATED = 2;
-
-	/**
-	 * Index for container name in {@link #elements} array.
-	 */
-	private static final int CONTAINER = 3;
+	private static final int REQUESTED = 2;
 
 	/**
 	 * Index for dot delimited module deployment description in {@link #elements} array.
 	 */
-	private static final int DEPLOYMENT_DESC = 4;
+	private static final int DEPLOYMENT_DESC = 3;
 
 	/**
-	 * Index for stream name in dot delimited deployment description.
+	 * Index for deployment unit (stream/job) name in dot delimited deployment description.
 	 */
-	private static final int STREAM_NAME = 0;
+	private static final int DEPLOYMENT_UNIT_NAME = 0;
 
 	/**
 	 * Index for module type in dot delimited deployment description.
@@ -90,7 +74,7 @@ public class ModuleDeploymentsPath {
 	/**
 	 * Array of path elements.
 	 */
-	private final String[] elements = new String[5];
+	private final String[] elements = new String[4];
 
 	/**
 	 * Array of module deployment description elements.
@@ -98,23 +82,24 @@ public class ModuleDeploymentsPath {
 	private final String[] deploymentDesc = new String[4];
 
 	/**
-	 * Construct a {@code DeploymentsPath}. Use of this constructor means that a path will be created via
-	 * {@link #build()} or {@link #buildWithNamespace()}.
+	 * Construct a {@code ModuleDeploymentRequestsPath}.
+	 * Use of this constructor means that a path will be created via {@link #build()} or {@link #buildWithNamespace()}.
 	 */
-	public ModuleDeploymentsPath() {
+	public ModuleDeploymentRequestsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;
 		elements[MODULES] = Paths.MODULES;
-		elements[ALLOCATED] = Paths.ALLOCATED;
+		elements[REQUESTED] = Paths.REQUESTED;
 	}
 
 	/**
-	 * Construct a {@code DeploymentsPath}. Use of this constructor means that an existing path will be provided and
-	 * this object will be used to extract the individual elements of the path. Both full paths (including and excluding
-	 * the {@link Paths#XD_NAMESPACE XD namespace prefix}) are supported.
+	 * Construct a {@code ModuleDeploymentRequestsPath}.
+	 * Use of this constructor means that an existing path will be provided and
+	 * this object will be used to extract the individual elements of the path.
+	 * Both full paths (including and excluding the {@link Paths#XD_NAMESPACE XD namespace prefix}) are supported.
 	 *
 	 * @param path stream path
 	 */
-	public ModuleDeploymentsPath(String path) {
+	public ModuleDeploymentRequestsPath(String path) {
 		Assert.hasText(path);
 
 		String[] pathElements = path.split("\\/");
@@ -139,53 +124,49 @@ public class ModuleDeploymentsPath {
 
 		Assert.noNullElements(elements);
 		Assert.state(elements[DEPLOYMENTS].equals(Paths.DEPLOYMENTS));
+		Assert.state(elements[MODULES].equals(Paths.MODULES));
+		Assert.state(elements[REQUESTED].equals(Paths.REQUESTED));
 
-		String[] deploymentElements = elements[DEPLOYMENT_DESC].split(" ")[0].split("\\.");
-
-		Assert.state(deploymentElements.length == 4);
-
-		System.arraycopy(deploymentElements, 0, deploymentDesc, 0, deploymentDesc.length);
+		if (elements[DEPLOYMENT_DESC] != null) {
+			int deploymentDescCount = deploymentDesc.length;
+			String[] deploymentElements = elements[DEPLOYMENT_DESC].split(" ")[0].split("\\.");
+			Assert.state(deploymentElements.length == deploymentDescCount);
+			System.arraycopy(deploymentElements, 0, deploymentDesc, 0, deploymentDescCount);
+		}
 	}
 
 	/**
-	 * Return the container name.
-	 *
-	 * @return container name
+	 * Return the string representation of the module instance that has the following dot limited
+	 * values.
+	 * <ul>
+	 * <li>Module Type</li>
+	 * <li>Module Label</li>
+	 * <li>Module Sequence</li>
+	 * </ul>
+	 * @return the string representation of the module instance.
 	 */
-	public String getContainer() {
-		return elements[CONTAINER];
+	public String getModuleInstanceAsString() {
+		return String.format("%s.%s.%s", this.getModuleType(), this.getModuleLabel(), this.getModuleSequence());
 	}
 
 	/**
-	 * Set the container name.
+	 * Return the deployment unit name.
 	 *
-	 * @param container container name
+	 * @return the deployment unit (stream/job) name
+	 */
+	public String getDeploymentUnitName() {
+		return deploymentDesc[DEPLOYMENT_UNIT_NAME];
+	}
+
+	/**
+	 * Set the deployment unit name.
+	 *
+	 * @param deploymentUnitName  the deployment unit name
 	 *
 	 * @return this object
 	 */
-	public ModuleDeploymentsPath setContainer(String container) {
-		elements[CONTAINER] = container;
-		return this;
-	}
-
-	/**
-	 * Return the stream name.
-	 *
-	 * @return stream name
-	 */
-	public String getStreamName() {
-		return deploymentDesc[STREAM_NAME];
-	}
-
-	/**
-	 * Set the stream name.
-	 *
-	 * @param streamName stream name
-	 *
-	 * @return this object
-	 */
-	public ModuleDeploymentsPath setStreamName(String streamName) {
-		deploymentDesc[STREAM_NAME] = streamName;
+	public ModuleDeploymentRequestsPath setDeploymentUnitName(String deploymentUnitName) {
+		deploymentDesc[DEPLOYMENT_UNIT_NAME] = deploymentUnitName;
 		return this;
 	}
 
@@ -205,7 +186,7 @@ public class ModuleDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public ModuleDeploymentsPath setModuleType(String moduleType) {
+	public ModuleDeploymentRequestsPath setModuleType(String moduleType) {
 		deploymentDesc[MODULE_TYPE] = moduleType;
 		return this;
 	}
@@ -226,18 +207,9 @@ public class ModuleDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public ModuleDeploymentsPath setModuleLabel(String moduleLabel) {
+	public ModuleDeploymentRequestsPath setModuleLabel(String moduleLabel) {
 		deploymentDesc[MODULE_LABEL] = moduleLabel;
 		return this;
-	}
-
-	/**
-	 * Return the module sequence as string.
-	 *
-	 * @return module sequence
-	 */
-	public String getModuleSequenceAsString() {
-		return deploymentDesc[MODULE_SEQUENCE];
 	}
 
 	/**
@@ -245,8 +217,8 @@ public class ModuleDeploymentsPath {
 	 *
 	 * @return module sequence
 	 */
-	public int getModuleSequence() {
-		return Integer.valueOf(deploymentDesc[MODULE_SEQUENCE]);
+	public String getModuleSequence() {
+		return deploymentDesc[MODULE_SEQUENCE];
 	}
 
 	/**
@@ -256,7 +228,7 @@ public class ModuleDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public ModuleDeploymentsPath setModuleSequence(String moduleSequence) {
+	public ModuleDeploymentRequestsPath setModuleSequence(String moduleSequence) {
 		deploymentDesc[MODULE_SEQUENCE] = moduleSequence;
 		return this;
 	}
@@ -270,7 +242,7 @@ public class ModuleDeploymentsPath {
 	 */
 	public String build() {
 		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s",
-				deploymentDesc[STREAM_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
+				deploymentDesc[DEPLOYMENT_UNIT_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
 				deploymentDesc[MODULE_SEQUENCE]);
 		return Paths.build(elements);
 	}
@@ -284,7 +256,7 @@ public class ModuleDeploymentsPath {
 	 */
 	public String buildWithNamespace() {
 		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s",
-				deploymentDesc[STREAM_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
+				deploymentDesc[DEPLOYMENT_UNIT_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
 				deploymentDesc[MODULE_SEQUENCE]);
 		return Paths.buildWithNamespace(elements);
 	}
@@ -295,6 +267,24 @@ public class ModuleDeploymentsPath {
 	@Override
 	public String toString() {
 		return build();
+	}
+
+	/**
+	 * Return all the modules for a given deployment unit name.
+	 *
+	 * @param requestedModulesPaths the collection of module deployment requests' paths
+	 * @param unitName the deployment unit (stream/job) name
+	 * @return the modules that correspond to the given deployment unit.
+	 */
+	public static List<ModuleDeploymentRequestsPath> getModulesForDeploymentUnit(
+			Collection<ModuleDeploymentRequestsPath> requestedModulesPaths, String unitName) {
+		List<ModuleDeploymentRequestsPath> pathsToReturn = new ArrayList<ModuleDeploymentRequestsPath>();
+		for (ModuleDeploymentRequestsPath path : requestedModulesPaths) {
+			if (path.getDeploymentUnitName().equals(unitName)) {
+				pathsToReturn.add(path);
+			}
+		}
+		return pathsToReturn;
 	}
 
 }

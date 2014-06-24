@@ -71,6 +71,11 @@ public class ModuleDeploymentStatus {
 	private final String container;
 
 	/**
+	 * Sequence number of the module in the module deployment request.
+	 */
+	private final int moduleSequence;
+
+	/**
 	 * Module descriptor key for the module being deployed.
 	 */
 	private final ModuleDescriptor.Key key;
@@ -90,13 +95,15 @@ public class ModuleDeploymentStatus {
 	 * Construct a {@code ModuleDeploymentStatus}.
 	 *
 	 * @param container         target container name
+	 * @param moduleSequence    module sequence number
 	 * @param key               module descriptor key
 	 * @param state             deployment state
 	 * @param errorDescription  error description (may be null)
 	 */
-	public ModuleDeploymentStatus(String container, ModuleDescriptor.Key key,
+	public ModuleDeploymentStatus(String container, int moduleSequence, ModuleDescriptor.Key key,
 			State state, String errorDescription) {
 		this.container = container;
+		this.moduleSequence = moduleSequence;
 		this.key = key;
 		this.state = state;
 		this.errorDescription = errorDescription;
@@ -106,12 +113,14 @@ public class ModuleDeploymentStatus {
 	 * Construct a {@code ModuleDeploymentStatus}.
 	 *
 	 * @param container  target container name
+	 * @param moduleSequence    module sequence number
 	 * @param key        module descriptor key
 	 * @param map        map containing status and (possibly) an error description
 	 */
-	public ModuleDeploymentStatus(String container, ModuleDescriptor.Key key,
-			Map<String,String> map) {
+	public ModuleDeploymentStatus(String container, int moduleSequence, ModuleDescriptor.Key key,
+			Map<String, String> map) {
 		this.container = container;
+		this.moduleSequence = moduleSequence;
 		this.key = key;
 		Assert.state(map.containsKey(STATUS_KEY),
 				String.format("missing key '%s' from map; contents: %s", STATUS_KEY, map));
@@ -126,6 +135,24 @@ public class ModuleDeploymentStatus {
 	 */
 	public String getContainer() {
 		return container;
+	}
+
+	/**
+	 * @return module sequence number
+	 *
+	 * @see #moduleSequence
+	 */
+	public int getModuleSequence() {
+		return moduleSequence;
+	}
+
+	/**
+	 * @return module sequence number as string
+	 *
+	 * @see #moduleSequence
+	 */
+	public String getModuleSequenceAsString() {
+		return String.valueOf(moduleSequence);
 	}
 
 	/**
@@ -184,7 +211,8 @@ public class ModuleDeploymentStatus {
 				.setContainer(container)
 				.setStreamName(key.getGroup())
 				.setModuleType(key.getType().toString())
-				.setModuleLabel(key.getLabel()).build(), Paths.STATUS);
+				.setModuleLabel(key.getLabel())
+				.setModuleSequence(String.valueOf(moduleSequence)).build(), Paths.STATUS);
 	}
 
 	/**
@@ -194,6 +222,7 @@ public class ModuleDeploymentStatus {
 	public String toString() {
 		return "ModuleDeploymentStatus{" +
 				"container='" + container + '\'' +
+				", moduleSequence=" + moduleSequence +
 				", key=" + key +
 				", state=" + state +
 				", errorDescription='" + errorDescription + '\'' +

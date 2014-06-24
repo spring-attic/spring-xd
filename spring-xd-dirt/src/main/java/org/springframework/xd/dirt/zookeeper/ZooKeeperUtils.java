@@ -24,6 +24,7 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.slf4j.Logger;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 
 /**
@@ -31,6 +32,7 @@ import org.springframework.xd.dirt.util.MapBytesUtility;
  *
  * @author David Turanski
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 public abstract class ZooKeeperUtils {
 
@@ -39,6 +41,26 @@ public abstract class ZooKeeperUtils {
 	 */
 	private static final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
+	/**
+	 * {@link Converter} from {@link ChildData} to the leaf path name string.
+	 *
+	 * @see #streamDeployments
+	 */
+	public static final StripPathConverter stripPathConverter = new StripPathConverter();
+
+	/**
+	 * Converter from {@link ChildData} to leaf name string.
+	 */
+	public static class StripPathConverter implements Converter<ChildData, String> {
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public String convert(ChildData source) {
+			return Paths.stripPath(source.getPath());
+		}
+	}
 
 	/**
 	 * Convert a map of string key/value pairs to a JSON string in a byte array.

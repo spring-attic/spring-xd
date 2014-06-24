@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.DeploymentUnit;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 
 /**
@@ -56,7 +57,7 @@ public class DefaultStateCalculator implements DeploymentUnitStateCalculator {
 	 */
 	@Override
 	public DeploymentUnitStatus calculate(DeploymentUnit deploymentUnit,
-			ModuleDeploymentPropertiesProvider provider,
+			ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> provider,
 			Collection<ModuleDeploymentStatus> deploymentStatuses) {
 
 		Map<ModuleDescriptor.Key, Count> moduleCount = new HashMap<ModuleDescriptor.Key, Count>();

@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.EnsurePath;
 
+import org.springframework.xd.dirt.module.store.ModuleMetadata;
+
 /**
  * Common paths and path utilities for XD components.
  *
@@ -75,6 +77,22 @@ public class Paths {
 	 * Name of deployments node. Deployments are written as children of this node.
 	 */
 	public static final String DEPLOYMENTS = "deployments";
+
+	/**
+	 * Name of the deployment modules node that are allocated to containers.
+	 * Allocated modules are written as children of this node.
+	 */
+	public static final String ALLOCATED = "allocated";
+
+	/**
+	 * Name of metadata node. The data for this node contains {@link ModuleMetadata}.
+	 */
+	public static final String METADATA = "metadata";
+
+	/**
+	 * Name of the module deployment requests node. Requested modules are written as children of this node.
+	 */
+	public static final String REQUESTED = "requested";
 
 	/**
 	 * Name of status node. The data for this node contains status information.

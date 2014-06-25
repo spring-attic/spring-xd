@@ -26,7 +26,6 @@ define([], function () {
       $scope.$apply(function () {
         $scope.moduleName = $stateParams.moduleName;
         $scope.optionsPredicate = 'name';
-
         var singleModulePromise = jobModuleService.getSingleModule($stateParams.moduleName).$promise;
         utils.addBusyPromise(singleModulePromise);
 

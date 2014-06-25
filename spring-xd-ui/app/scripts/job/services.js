@@ -100,10 +100,19 @@ define(['angular'], function (angular) {
       })
       .factory('JobDefinitionService', function ($resource, $log, $rootScope) {
         return {
-          deploy: function (jobDefinition) {
+          deploy: function (jobDefinition, properties) {
             $log.info('Deploy Job ' + jobDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/jobs/deployments/' + jobDefinition.name, null, {
-              deploy: { method: 'POST' }
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/deployments/:jobDefinitionName',
+            {
+              jobDefinitionName: jobDefinition.name
+            },
+            {
+              deploy: {
+                method: 'POST',
+                params: {
+                  properties: properties
+                }
+              }
             }).deploy();
           },
           undeploy: function (jobDefinition) {
@@ -166,11 +175,6 @@ define(['angular'], function (angular) {
       .factory('JobLaunchService', function ($resource, growl, $rootScope) {
         return {
           convertToJsonAndSend: function (jobLaunchRequest) {
-
-            console.log('Converting to Json: ' + jobLaunchRequest.jobName);
-            console.log(jobLaunchRequest);
-            //console.log('Model Change: ' + JSON.stringify(jobLaunchRequest.toJSON()));
-
             var jsonData = {};
             jobLaunchRequest.jobParameters.forEach(function (jobParameter) {
 
@@ -191,7 +195,7 @@ define(['angular'], function (angular) {
                 jsonData['-' + key + dataTypeToUse] = value;
               }
             });
-            console.log(jsonData);
+
             var jsonDataAsString = JSON.stringify(jsonData);
 
             console.log(jsonDataAsString);

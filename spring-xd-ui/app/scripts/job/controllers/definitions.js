@@ -22,8 +22,8 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils',
-    function ($scope, jobDefinitions, jobDefinitionService, utils) {
+  return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils', '$state',
+    function ($scope, jobDefinitions, jobDefinitionService, utils, $state) {
 
       var definitionPromise = jobDefinitions.getAllJobDefinitions().$promise;
       utils.addBusyPromise(definitionPromise);
@@ -36,19 +36,8 @@ define([], function () {
           utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
         }
       );
-
       $scope.deployJob = function (jobDefinition) {
-        utils.$log.info('Deploying Job ' + jobDefinition.name);
-        utils.$log.info(jobDefinitionService);
-        jobDefinitionService.deploy(jobDefinition).$promise.then(
-              function () {
-                utils.growl.addSuccessMessage('Deployment Request Sent.');
-                jobDefinition.deployed = true;
-              },
-              function () {
-                utils.growl.addErrorMessage('Error Deploying Job.');
-              }
-            );
+        $state.go('home.jobs.deployjob', {definitionName: jobDefinition.name});
       };
       $scope.undeployJob = function (jobDefinition) {
         utils.$log.info('Undeploying Job ' + jobDefinition.name);

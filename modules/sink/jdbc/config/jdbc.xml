@@ -52,8 +52,4 @@
 		<property name="initialSize" value="0" />
 	</bean>
 
-	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}" />
-	</beans>
-
 </beans:beans>

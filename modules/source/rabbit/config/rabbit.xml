@@ -39,9 +39,4 @@
 		port="${port}" virtual-host="${vhost}"
 		username="${username}" password="${password}" />
 
-	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:rabbit-connection-factory id="rabbitConnectionFactory"
-			service-name="${xd.rabbit.service:rabbit}" />
-	</beans>
-
 </beans>

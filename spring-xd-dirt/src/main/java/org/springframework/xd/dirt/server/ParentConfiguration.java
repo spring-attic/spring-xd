@@ -16,9 +16,6 @@
 
 package org.springframework.xd.dirt.server;
 
-import javax.sql.DataSource;
-
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.actuate.health.VanillaHealthIndicator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -26,12 +23,8 @@ import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
-import org.springframework.cloud.Cloud;
-import org.springframework.cloud.CloudFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.Profile;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.xd.dirt.post.DelegatingHandlerMapping;
 import org.springframework.xd.dirt.util.ConfigLocations;
@@ -44,7 +37,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * @author Mark Fisher
  */
 @EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
-	JmxAutoConfiguration.class })
+		JmxAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "batch/batch.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {
@@ -61,30 +54,6 @@ public class ParentConfiguration {
 		return factoryBean;
 	}
 
-	@Configuration
-	@Profile("cloud")
-	protected static class CloudFoundryConfiguration {
-
-		@Bean
-		public DataSource dataSource() {
-			Cloud cloud = cloud();
-			return cloud.getServiceConnector("mysql", DataSource.class, null);
-		}
-
-		@Bean
-		@Profile("rabbit")
-		public ConnectionFactory rabbitConnectionFactory() {
-			Cloud cloud = cloud();
-			return cloud.getServiceConnector("rabbit", ConnectionFactory.class, null);
-		}
-
-		@Bean
-		protected Cloud cloud() {
-			CloudFactory cloudFactory = new CloudFactory();
-			Cloud cloud = cloudFactory.getCloud();
-			return cloud;
-		}
-	}
 
 	@Bean
 	@ConditionalOnExpression("${endpoints.health.enabled:true}")

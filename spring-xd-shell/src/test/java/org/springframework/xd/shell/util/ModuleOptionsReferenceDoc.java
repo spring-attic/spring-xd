@@ -89,6 +89,7 @@ public class ModuleOptionsReferenceDoc {
 		for (String line = reader.readLine(); line != null; line = reader.readLine(), ln++) {
 			Matcher startMatcher = FENCE_START_REGEX.matcher(line);
 			if (startMatcher.matches()) {
+				checkPreviousTagHasBeenClosed(originalFile, backup, out, type, name, openingLineNumber);
 				type = ModuleType.valueOf(startMatcher.group(1));
 				name = startMatcher.group(2);
 				openingLineNumber = ln;
@@ -105,6 +106,18 @@ public class ModuleOptionsReferenceDoc {
 				out.println(line);
 			}
 		}
+		checkPreviousTagHasBeenClosed(originalFile, backup, out, type, name, openingLineNumber);
+
+		out.close();
+		reader.close();
+
+		backup.delete();
+
+
+	}
+
+	private void checkPreviousTagHasBeenClosed(File originalFile, File backup, PrintStream out, ModuleType type,
+			String name, int openingLineNumber) {
 		if (type != null) {
 			out.close();
 			originalFile.delete();
@@ -113,13 +126,6 @@ public class ModuleOptionsReferenceDoc {
 					"In %s, found '//^%s.%s' @line %d with no matching '//$%2$s.%3$s'",
 					originalFile.getAbsolutePath(), type, name, openingLineNumber));
 		}
-
-		out.close();
-		reader.close();
-
-		backup.delete();
-
-
 	}
 
 	private void generateWarning(PrintStream out, String name, ModuleType type) {

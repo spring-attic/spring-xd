@@ -19,6 +19,7 @@ package org.springframework.xd.shell.command;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
@@ -340,5 +341,28 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		source.ensureReady().postData("whatever");
 		assertThat(sink, eventually(hasContentsThat(equalTo(streamName))));
+	}
+
+	@Test
+	public void testValidationOfOptionValues() {
+		String streamName;
+		streamName = generateStreamName();
+		//		//Backed by OptionsMetaData class
+		//		try {
+		//			stream().createDontDeploy(streamName, "gemfire --port=foo | log");
+		//			fail("should throw exception");
+		//		}
+		//		catch (Exception e) {
+		//
+		//		}
+		//		streamName = generateStreamName();
+		//Backed by properties file
+		try {
+			stream().createDontDeploy(streamName, "http --port=foo | log");
+			fail("should throw exception");
+		}
+		catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 	}
 }

@@ -32,6 +32,7 @@ import org.springframework.validation.MapBindingResult;
  * facilities such as derived options, profile activation or validation.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 
@@ -48,7 +49,6 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 
 	@Override
 	public ModuleOptions interpolate(final Map<String, String> raw) throws BindException {
-
 		MapBindingResult bindingResult = new MapBindingResult(new HashMap<String, String>(), "options");
 		for (String provided : raw.keySet()) {
 			if (!options.containsKey(provided)) {
@@ -60,8 +60,7 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 		if (bindingResult.hasErrors()) {
 			throw new BindException(bindingResult);
 		}
-
-		return new ModuleOptions() {
+		ModuleOptions moduleOptions = new ModuleOptions() {
 
 			@Override
 			public EnumerablePropertySource<?> asPropertySource() {
@@ -75,9 +74,13 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 						if (option != null) {
 							String provided = raw.get(name);
 							if (provided != null) {
+								validateByType(option, provided);
 								return provided;
 							}
 							else {
+								if (option.getDefaultValue() != null) {
+									validateByType(option, option.getDefaultValue().toString());
+								}
 								return option.getDefaultValue();
 							}
 						} // option is not in the allowed list
@@ -93,5 +96,48 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 				};
 			}
 		};
+
+		// Validate option values
+		for (String name : options.keySet()) {
+			moduleOptions.asPropertySource().getProperty(name);
+		}
+		return moduleOptions;
+	}
+
+	/**
+	 * @param option option metadata
+	 * @param value the value as String
+	 */
+	private void validateByType(ModuleOption option, String value) {
+		if (value == null || option == null || option.getType() == null) {
+			return;
+		}
+		try {
+			if (int.class.isAssignableFrom(option.getType()) || Integer.class.isAssignableFrom(option.getType())) {
+				Integer.parseInt(value);
+			}
+			else if (boolean.class.isAssignableFrom(option.getType())
+					|| Boolean.class.isAssignableFrom(option.getType())) {
+				Boolean.parseBoolean(value);
+			}
+			else if (float.class.isAssignableFrom(option.getType())
+					|| Float.class.isAssignableFrom(option.getType())) {
+				Float.parseFloat(value);
+			}
+			else if (double.class.isAssignableFrom(option.getType())
+					|| Double.class.isAssignableFrom(option.getType())) {
+				Double.parseDouble(value);
+			}
+			else if (short.class.isAssignableFrom(option.getType())
+					|| Short.class.isAssignableFrom(option.getType())) {
+				Short.parseShort(value);
+			}
+		}
+		catch (Exception e) {
+			//TODO: SpringXDException not available to this library
+			throw new RuntimeException(String.format(
+					"The value '%s' is the wrong type for option '%s'. The required type is %s.",
+					value, option.getName(), option.getType().getSimpleName()));
+		}
 	}
 }

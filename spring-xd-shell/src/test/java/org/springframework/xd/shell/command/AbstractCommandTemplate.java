@@ -16,15 +16,15 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertTrue;
-
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.util.Assert;
 
 /**
  * Common operations to execute in the shell.
  * 
  * @author Mark Pollack
+ * @author David TUranski
  */
 public abstract class AbstractCommandTemplate {
 
@@ -44,7 +44,7 @@ public abstract class AbstractCommandTemplate {
 		if (cr.getException() != null) {
 			cr.getException().printStackTrace();
 		}
-		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		Assert.isTrue(cr.isSuccess(), "Failure.  CommandResult = " + cr.toString());
 		return cr;
 	}
 

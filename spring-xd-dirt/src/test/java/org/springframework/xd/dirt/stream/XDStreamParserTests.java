@@ -16,11 +16,15 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.xd.dirt.stream.ParsingContext.job;
+import static org.springframework.xd.dirt.stream.ParsingContext.module;
 import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
 import java.util.Collections;
@@ -37,6 +41,7 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
+import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
@@ -215,6 +220,26 @@ public class XDStreamParserTests {
 		assertEquals(1, requests.size());
 		assertEquals("queue:foo", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
+	}
+
+	@Test
+	public void namedChannelsForbiddenInComposedModules() {
+		try {
+			parser.parse("test", "queue:foo > boot", module);
+		}
+		catch (StreamDefinitionException expected) {
+			assertThat(expected.getMessage(),
+					containsString("A named channel is not supported in this kind of definition"));
+			assertThat(expected.getPosition(), is(0));
+		}
+		try {
+			parser.parse("test", "bart | goo > queue:foo", module);
+		}
+		catch (StreamDefinitionException expected) {
+			assertThat(expected.getMessage(),
+					containsString("A named channel is not supported in this kind of definition"));
+			assertThat(expected.getPosition(), is(13));
+		}
 	}
 
 	@Bean

@@ -32,38 +32,38 @@ public enum ParsingContext {
 	/**
 	 * A full stream definition, which ought to start with a source (or channel) and end with a sink (or channel).
 	 */
-	stream(true, source, processor, sink),
+	stream(true, true, source, processor, sink),
 
 	/**
 	 * A composed module, which starts or ends on a processor.
 	 */
 	// Read these vertically: either [source, processor, processor] or [processor, processor, sink]
-	module(true, new ModuleType[] { source, processor },
+	module(true, false, new ModuleType[] { source, processor },
 			new ModuleType[] { processor /* ,processsor */},
 			new ModuleType[] { processor, sink }),
 
 	/**
 	 * A job definition.
 	 */
-	job(true, ModuleType.job, null, null),
+	job(true, false, ModuleType.job, null, null),
 
 	/**
 	 * For the purpose of DSL completion only, a (maybe unfinished) stream definition.
 	 */
-	partial_stream(false, new ModuleType[] { source },
+	partial_stream(false, true, new ModuleType[] { source },
 			new ModuleType[] { processor },
 			new ModuleType[] { processor, sink }),
 	/**
 	 * For the purpose of DSL completion only, a (maybe unfinished) composed module definition.
 	 */
-	partial_module(false, new ModuleType[] { source, processor },
+	partial_module(false, false, new ModuleType[] { source, processor },
 			new ModuleType[] { processor },
 			new ModuleType[] { processor, sink }),
 
 	/**
 	 * For the purpose of DSL completion only, a (maybe unfinished) job definition.
 	 */
-	partial_job(false, ModuleType.job, null, null);
+	partial_job(false, false, ModuleType.job, null, null);
 
 	/**
 	 * Represents the position of a module in an XD DSL declaration.
@@ -114,15 +114,22 @@ public enum ParsingContext {
 		return bindAndValidate;
 	}
 
-	private ParsingContext(boolean bindAndValidate, ModuleType atStart, ModuleType atMiddle, ModuleType atEnd) {
-		this(bindAndValidate,
+	public boolean supportsNamedChannels() {
+		return supportsNamedChannels;
+	}
+
+	private ParsingContext(boolean bindAndValidate, boolean supportsNamedChannels, ModuleType atStart,
+			ModuleType atMiddle, ModuleType atEnd) {
+		this(bindAndValidate, supportsNamedChannels,
 				new ModuleType[] { atStart },
 				new ModuleType[] { atMiddle },
 				new ModuleType[] { atEnd });
 	}
 
-	private ParsingContext(boolean bindAndValidate, ModuleType[] atStart, ModuleType[] atMiddle, ModuleType[] atEnd) {
+	private ParsingContext(boolean bindAndValidate, boolean supportsNamedChannels, ModuleType[] atStart,
+			ModuleType[] atMiddle, ModuleType[] atEnd) {
 		this.bindAndValidate = bindAndValidate;
+		this.supportsNamedChannels = supportsNamedChannels;
 		allowed[0] = atStart;
 		allowed[1] = atMiddle;
 		allowed[2] = atEnd;
@@ -138,6 +145,8 @@ public enum ParsingContext {
 	 * want to fail with a validation exception.
 	 */
 	private final boolean bindAndValidate;
+
+	private final boolean supportsNamedChannels;
 
 
 }

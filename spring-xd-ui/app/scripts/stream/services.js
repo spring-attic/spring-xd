@@ -34,7 +34,7 @@ define(['angular'], function (angular) {
           },
           deploy: function (streamDefinition) {
             $log.info('Deploy Stream ' + streamDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/streams/deployments' + streamDefinition.name, null, {
+            return $resource($rootScope.xdAdminServerUrl + '/streams/deployments/' + streamDefinition.name, null, {
               deploy: { method: 'POST' }
             }).deploy();
           },

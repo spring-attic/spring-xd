@@ -120,6 +120,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 				Stat deployStat = client.checkExists().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, id));
 				if (deployStat != null) {
 					stream.setStartedAt(new Date(deployStat.getCtime()));
+					stream.setStatus(getDeploymentStatus(id));
 					return stream;
 				}
 			}

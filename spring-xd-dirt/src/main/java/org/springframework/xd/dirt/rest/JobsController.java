@@ -108,7 +108,7 @@ public class JobsController extends
 			JobDefinitionResource maskedJobDefinitionResource =
 					new JobDefinitionResource(jobDefinitionResource.getName(),
 							PasswordUtils.maskPasswordsInDefinition(jobDefinitionResource.getDefinition()));
-			maskedJobDefinitionResource.setDeployed(jobDefinitionResource.isDeployed());
+			maskedJobDefinitionResource.setStatus(jobDefinitionResource.getStatus());
 			maskedContents.add(maskedJobDefinitionResource);
 		}
 

@@ -203,7 +203,7 @@ public class StreamUtils {
 		while (resourceIter.hasNext()) {
 			StreamDefinitionResource resource = resourceIter.next();
 			if (streamName.equals(resource.getName())) {
-				if (resource.isDeployed()) {
+				if ("deployed".equals(resource.getStatus())) {
 					result = true;
 					break;
 				}

@@ -115,6 +115,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 				Stat deployStat = client.checkExists().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));
 				if (deployStat != null) {
 					job.setStartedAt(new Date(deployStat.getCtime()));
+					job.setStatus(getDeploymentStatus(id));
 					return job;
 				}
 			}

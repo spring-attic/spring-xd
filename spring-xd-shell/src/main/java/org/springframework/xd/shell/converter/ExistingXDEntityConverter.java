@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ public class ExistingXDEntityConverter implements Converter<String> {
 			@Override
 			boolean matches(NamedResource resource) {
 				DeployableResource deployable = (DeployableResource) resource;
-				return Boolean.TRUE.equals(deployable.isDeployed());
+				return deployed.toString().equals(deployable.getStatus());
 			}
 
 			@Override
@@ -134,7 +134,7 @@ public class ExistingXDEntityConverter implements Converter<String> {
 			@Override
 			boolean matches(NamedResource resource) {
 				DeployableResource deployable = (DeployableResource) resource;
-				return Boolean.FALSE.equals(deployable.isDeployed());
+				return undeployed.toString().equals(deployable.getStatus());
 			}
 
 			@Override
@@ -158,12 +158,10 @@ public class ExistingXDEntityConverter implements Converter<String> {
 			String heading(NamedResource resource, String kind) {
 				if (resource instanceof DeployableResource) {
 					DeployableResource deployable = (DeployableResource) resource;
-					if (Boolean.TRUE.equals(deployable.isDeployed())) {
-						return String.format("Deployed %s", kind);
-					}
-					if (Boolean.FALSE.equals(deployable.isDeployed())) {
+					if (undeployed.toString().equals(deployable.getStatus())) {
 						return String.format("Undeployed %s", kind);
 					}
+					return String.format("Deployed %s", kind);
 				}
 				return null;
 			}

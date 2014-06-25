@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package org.springframework.xd.rest.client.domain;
 
-
 /**
- * Abstract base class for resources that represent deployable things.
+ * Abstract base class for resources that represent deployable units.
  * 
  * @author Eric Bottard
+ * @author Mark Fisher
  */
 public abstract class DeployableResource extends NamedResource {
 
@@ -35,17 +35,17 @@ public abstract class DeployableResource extends NamedResource {
 	}
 
 	// @XmlAttribute
-	private Boolean deployed;
+	private String status;
 
 	/**
-	 * Return deployment status of the underlying thing, or {@code null} if unknown.
+	 * Return status of the underlying deployment unit, or {@code null} if unknown.
 	 */
-	public Boolean isDeployed() {
-		return deployed;
+	public String getStatus() {
+		return status;
 	}
 
-	public void setDeployed(Boolean deployed) {
-		this.deployed = deployed;
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 }

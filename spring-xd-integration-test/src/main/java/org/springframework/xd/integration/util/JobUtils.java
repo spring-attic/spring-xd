@@ -127,7 +127,7 @@ public class JobUtils {
 		while (resourceIter.hasNext()) {
 			JobDefinitionResource resource = resourceIter.next();
 			if (jobName.equals(resource.getName())) {
-				if (resource.isDeployed()) {
+				if ("deployed".equals(resource.getStatus())) {
 					result = true;
 					break;
 				}

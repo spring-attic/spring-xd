@@ -45,6 +45,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
@@ -246,7 +247,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		mockMvc.perform(get("/jobs/definitions/job1")
 				.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.deployed", equalTo(false)));
+				.andExpect(jsonPath("$.status", equalTo(DeploymentUnitStatus.State.undeployed.toString())));
 
 	}
 
@@ -260,7 +261,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		mockMvc.perform(get("/jobs/definitions/job1")
 				.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.deployed", equalTo(true)));
+				.andExpect(jsonPath("$.status", equalTo(DeploymentUnitStatus.State.deploying.toString())));
 
 	}
 }

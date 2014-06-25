@@ -113,21 +113,16 @@ public class JobCommands implements CommandMarker {
 	public Table listJobs() {
 
 		final PagedResources<JobDefinitionResource> jobs = jobOperations().list();
-		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Job Name")).
-				addHeader(2, new TableHeader("Job Definition")).
-				addHeader(3, new TableHeader("Status"));
+		final Table table = new Table()
+				.addHeader(1, new TableHeader("Job Name"))
+				.addHeader(2, new TableHeader("Job Definition"))
+				.addHeader(3, new TableHeader("Status"));
 
 		for (JobDefinitionResource jobDefinitionResource : jobs) {
-			final TableRow row = new TableRow();
-			row.addValue(1, jobDefinitionResource.getName()).addValue(2, jobDefinitionResource.getDefinition());
-			if (Boolean.TRUE.equals(jobDefinitionResource.isDeployed())) {
-				row.addValue(3, "deployed");
-			}
-			else {
-				row.addValue(3, "undeployed");
-			}
-			table.getRows().add(row);
+			table.newRow()
+					.addValue(1, jobDefinitionResource.getName())
+					.addValue(2, jobDefinitionResource.getDefinition())
+					.addValue(3, jobDefinitionResource.getStatus());
 		}
 		return table;
 	}

@@ -28,7 +28,6 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
-import org.springframework.xd.shell.util.TableRow;
 
 @Component
 public class StreamCommands implements CommandMarker {
@@ -122,23 +121,18 @@ public class StreamCommands implements CommandMarker {
 
 		final PagedResources<StreamDefinitionResource> streams = streamOperations().list();
 
-		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Stream Name")).addHeader(2, new TableHeader("Stream Definition")).addHeader(
-				3, new TableHeader("Status"));
+		final Table table = new Table()
+				.addHeader(1, new TableHeader("Stream Name"))
+				.addHeader(2, new TableHeader("Stream Definition"))
+				.addHeader(3, new TableHeader("Status"));
 
 		for (StreamDefinitionResource stream : streams) {
-			final TableRow row = table.newRow();
-			row.addValue(1, stream.getName()).addValue(2, stream.getDefinition());
-			if (Boolean.TRUE.equals(stream.isDeployed())) {
-				row.addValue(3, "deployed");
-			}
-			else {
-				row.addValue(3, "undeployed");
-			}
+			table.newRow()
+					.addValue(1, stream.getName())
+					.addValue(2, stream.getDefinition())
+					.addValue(3, stream.getStatus());
 		}
-
 		return table;
-
 	}
 
 	private StreamOperations streamOperations() {

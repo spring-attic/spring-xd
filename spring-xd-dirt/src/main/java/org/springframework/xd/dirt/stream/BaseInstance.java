@@ -20,6 +20,7 @@ import java.util.Date;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 
 /**
  * A runtime representation of a Definition.
@@ -40,6 +41,11 @@ public class BaseInstance<D extends BaseDefinition> {
 	 * When was this instance started.
 	 */
 	private Date startedAt = new Date();
+
+	/**
+	 * Status for this deployment unit.
+	 */
+	private DeploymentUnitStatus status;
 
 	/**
 	 * Create a new instance out of the given definition.
@@ -64,7 +70,7 @@ public class BaseInstance<D extends BaseDefinition> {
 	}
 
 	/**
-	 * Returns the date when this instance was started.
+	 * Set the date when this instance was started.
 	 * 
 	 * @param startedAt Must not be null
 	 */
@@ -72,4 +78,21 @@ public class BaseInstance<D extends BaseDefinition> {
 		Assert.notNull(startedAt, "The passed in date must not be null.");
 		this.startedAt = startedAt;
 	}
+
+	/**
+	 * @return the {@link DeploymentUnitStatus} for this instance.
+	 */
+	public DeploymentUnitStatus getStatus() {
+		return status;
+	}
+
+	/**
+	 * Set the {@link DeploymentUnitStatus} for this instance.
+	 * 
+	 * @param status the status for this instance
+	 */
+	public void setStatus(DeploymentUnitStatus status) {
+		this.status = status;
+	}
+
 }

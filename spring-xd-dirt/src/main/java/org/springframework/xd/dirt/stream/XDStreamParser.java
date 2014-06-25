@@ -17,6 +17,8 @@
 package org.springframework.xd.dirt.stream;
 
 
+import static org.springframework.xd.dirt.stream.dsl.XDDSLMessages.NAMED_CHANNELS_UNSUPPORTED_HERE;
+
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
@@ -37,6 +39,7 @@ import org.springframework.xd.dirt.stream.dsl.ModuleNode;
 import org.springframework.xd.dirt.stream.dsl.SinkChannelNode;
 import org.springframework.xd.dirt.stream.dsl.SourceChannelNode;
 import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
+import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.dirt.stream.dsl.StreamNode;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -136,12 +139,24 @@ public class XDStreamParser implements XDParser {
 
 		SourceChannelNode sourceChannel = stream.getSourceChannelNode();
 		if (sourceChannel != null) {
-			builders.getLast().setSourceChannelName(sourceChannel.getChannelName());
+			if (parsingContext.supportsNamedChannels()) {
+				builders.getLast().setSourceChannelName(sourceChannel.getChannelName());
+			}
+			else {
+				throw new StreamDefinitionException(config, sourceChannel.getStartPos(),
+						NAMED_CHANNELS_UNSUPPORTED_HERE);
+			}
 		}
 
 		SinkChannelNode sinkChannel = stream.getSinkChannelNode();
 		if (sinkChannel != null) {
-			builders.getFirst().setSinkChannelName(sinkChannel.getChannelName());
+			if (parsingContext.supportsNamedChannels()) {
+				builders.getFirst().setSinkChannelName(sinkChannel.getChannelName());
+			}
+			else {
+				throw new StreamDefinitionException(config, sinkChannel.getChannelNode().getStartPos(),
+						NAMED_CHANNELS_UNSUPPORTED_HERE);
+			}
 		}
 
 		// Now that we know about source and sink channel names,

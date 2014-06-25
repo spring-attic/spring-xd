@@ -111,6 +111,14 @@ define(['./app'], function (xdAdmin) {
       templateUrl : jobTemplatesPath + '/definitions.html',
       controller: 'JobDefinitionsController'
     })
+    .state('home.jobs.deployjob', {
+      url : 'jobs/definitions/{definitionName}/deploy',
+      templateUrl : jobTemplatesPath + '/definition-deploy.html',
+      controller: 'DefinitionDeployController',
+      data:{
+        authenticate: true
+      }
+    })
     .state('home.jobs.tabs.deployments', {
       url : '/deployments',
       templateUrl : jobTemplatesPath + '/deployments.html',

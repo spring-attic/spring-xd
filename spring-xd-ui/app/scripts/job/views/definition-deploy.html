@@ -1,0 +1,33 @@
+<h1 ng-show="definitionName">Deploy Definition {{definitionName}}</h1>
+
+	<form name="deployDefinitionForm" class="form-horizontal" role="form">
+		<div class="form-group" ng-class="deployDefinitionForm.moduleCriteria.$invalid ? 'has-warning has-feedback' : ''">
+			<label for="moduleCriteria" class="col-sm-2 control-label">Module Criteria</label>
+			<div class="col-sm-10">
+				<input type="text" id="moduleCriteria" name="moduleCriteria" autofocus
+							 class="form-control" placeholder="Enter a Module Criteria" ng-model="definitionDeployRequest.moduleCriteria">
+				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.moduleCriteria.$invalid"></span>
+				<p class="help-block">This must be a valid SpEL expression.</p>
+			</div>
+		</div>
+		<div class="form-group" ng-class="deployDefinitionForm.containerCount.$invalid ? 'has-warning has-feedback' : ''">
+			<label for="containerCount" class="col-sm-2 control-label">Container Count</label>
+			<div class="col-sm-10">
+				<input type="number" id="containerCount" name="containerCount" min="0"
+							 class="form-control" placeholder="Enter the number of container instances" ng-model="definitionDeployRequest.containerCount">
+				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.containerCount.$invalid"></span>
+				<p class="help-block">Specifies the number of container instances
+				this module should be deployed to. A value of <strong>0</strong>
+				indicates that this Job Definition should be deployed to all
+				containers that match the provided target expression. If no
+				target expression is provided and the count value is <strong>0</strong>,
+				this definition will be deployed to all containers.</p>
+			</div>
+		</div>
+		<pre>{{definitionDeployRequest}}</pre>
+	</form>
+	<div class="row">
+		<div class="col-md-6 text-right"><button id="back-button"   type="button" class="btn btn-default" ng-click="cancelDefinitionDeploy()">Back</button></div>
+		<div class="col-md-6 text-left"><button  id="submit-button" type="button" class="btn btn-default"
+		ng-click="deployDefinition(definitionDeployRequest)" ng-disabled="deployDefinitionForm.$invalid">Deploy</button></div>
+	</div>

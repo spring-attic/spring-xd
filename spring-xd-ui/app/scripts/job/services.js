@@ -100,10 +100,19 @@ define(['angular'], function (angular) {
       })
       .factory('JobDefinitionService', function ($resource, $log, $rootScope) {
         return {
-          deploy: function (jobDefinition) {
+          deploy: function (jobDefinition, properties) {
             $log.info('Deploy Job ' + jobDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/jobs/deployments/' + jobDefinition.name, null, {
-              deploy: { method: 'POST' }
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/deployments/:jobDefinitionName',
+            {
+              jobDefinitionName: jobDefinition.name
+            },
+            {
+              deploy: {
+                method: 'POST',
+                params: {
+                  properties: properties
+                }
+              }
             }).deploy();
           },
           undeploy: function (jobDefinition) {

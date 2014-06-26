@@ -95,7 +95,6 @@ ext {
     // Also in IO
     nettyVersion = '3.6.6.Final' // N.B. Reactor depends on Netty 4
 	springBatchVersion = '3.0.1.BUILD-SNAPSHOT'
-	springBootVersion = '1.1.3.BUILD-SNAPSHOT'
 
 	// Hadoop Versions
     springDataHadoopBase = '2.0.0.RELEASE'

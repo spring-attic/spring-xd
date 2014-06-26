@@ -62,12 +62,6 @@ class SingleNodeServerProcess {
 allprojects {
 	group = 'org.springframework.xd'
 
-    if (project.name!='redis') {
-      apply plugin:'spring-boot'
-    }
-    bootRepackage { 
-      enabled = false
-    }
 	repositories {
 		mavenCentral()
 		//maven { url 'http://repo.spring.io/libs-snapshot' }
@@ -121,6 +115,11 @@ configure(javaProjects) { subproject ->
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
 	apply plugin: 'javadocHotfix'
+	apply plugin: 'spring-boot'
+
+    bootRepackage { 
+      enabled = false
+    }
 
 	compileJava {
 		sourceCompatibility=1.6
@@ -266,14 +265,18 @@ configure(moduleProjects) { moduleProject ->
 	// require it to emit e.g. a .classpath file. Those projects don't actually
 	// contain java code, so reset everything (prevents creation of
 	// the 'build' directory, etc)
-	apply plugin: 'java'
+	apply plugin: 'spring-boot'
+
+    bootRepackage { 
+      enabled = false
+    }
+
 	task build(overwrite: true) {}
 	task clean(overwrite: true) {}
 	compileJava {
 		sourceCompatibility=1.6
 		targetCompatibility=1.6
 	}
-
 
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
@@ -836,7 +839,6 @@ project('spring-xd-hadoop:phd20') {
 }
 project('spring-xd-yarn:spring-xd-yarn-client') {
     description = 'Spring XD YARN Client App'
-    apply plugin: 'spring-boot'
 
     dependencies {
         compile "org.springframework:spring-aop"
@@ -872,7 +874,6 @@ project('spring-xd-yarn:spring-xd-yarn-client') {
 
 project('spring-xd-yarn:spring-xd-yarn-appmaster') {
     description = 'Spring XD YARN AppMaster'
-    apply plugin: 'spring-boot'
 
     dependencies {
         compile "org.springframework:spring-aop"

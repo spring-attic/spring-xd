@@ -36,8 +36,8 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 		AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	@Test
-	public void shortCircuitingEnabledWithExplicitModuleCounts() throws InterruptedException {
-		String streamName = "shortCircuitingEnabledWithExplicitModuleCounts";
+	public void directBindingEnabledWithExplicitModuleCounts() throws InterruptedException {
+		String streamName = "directBindingEnabledWithExplicitModuleCounts";
 		StreamDefinition sd = new StreamDefinition(streamName, "http | log");
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -53,8 +53,8 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 	}
 
 	@Test
-	public void shortCircuitingEnabledWithWildcardModuleCount() throws InterruptedException {
-		String streamName = "shortCircuitingEnabledWithWildcardModuleCount";
+	public void directBindingEnabledWithWildcardModuleCount() throws InterruptedException {
+		String streamName = "directBindingEnabledWithWildcardModuleCount";
 		StreamDefinition sd = new StreamDefinition(streamName, "http | log");
 		integrationSupport.streamDefinitionRepository().save(sd);
 		integrationSupport.deployStream(sd, Collections.singletonMap("module.*.count", "0"));
@@ -67,8 +67,8 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 	}
 
 	@Test
-	public void shortCircuitingEnabledWithCriteria() throws InterruptedException {
-		String streamName = "shortCircuitingEnabledWithCriteria";
+	public void directBindingEnabledWithCriteria() throws InterruptedException {
+		String streamName = "directBindingEnabledWithCriteria";
 		StreamDefinition sd = new StreamDefinition(streamName, "http | log");
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -86,8 +86,8 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 	}
 
 	@Test
-	public void shortCircuitingNotEnabledWithMismatchedCounts() throws InterruptedException {
-		String streamName = "shortCircuitingNotEnabledWithMismatchedCounts";
+	public void directBindingNotEnabledWithMismatchedCounts() throws InterruptedException {
+		String streamName = "directBindingNotEnabledWithMismatchedCounts";
 		StreamDefinition sd = new StreamDefinition(streamName, "http | log");
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -103,8 +103,8 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 	}
 
 	@Test
-	public void shortCircuitingNotEnabledWithOverriddenCount() throws InterruptedException {
-		String streamName = "shortCircuitingNotEnabledWithOverriddenCount";
+	public void directBindingNotEnabledWithOverriddenCount() throws InterruptedException {
+		String streamName = "directBindingNotEnabledWithOverriddenCount";
 		StreamDefinition sd = new StreamDefinition(streamName, "http | log");
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -120,8 +120,8 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 	}
 
 	@Test
-	public void shortCircuitingNotEnabledWithMismatchedCriteria() throws InterruptedException {
-		String streamName = "shortCircuitingNotEnabledWithMismatchedCriteria";
+	public void directBindingNotEnabledWithMismatchedCriteria() throws InterruptedException {
+		String streamName = "directBindingNotEnabledWithMismatchedCriteria";
 		StreamDefinition sd = new StreamDefinition(streamName, "http | log");
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -139,8 +139,8 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 	}
 
 	@Test
-	public void shortCircuitingEnabledForPartOfStream() throws InterruptedException {
-		String streamName = "shortCircuitingEnabledForPartOfStream";
+	public void directBindingEnabledForPartOfStream() throws InterruptedException {
+		String streamName = "directBindingEnabledForPartOfStream";
 		StreamDefinition sd = new StreamDefinition(streamName, "http | filter | log");
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();

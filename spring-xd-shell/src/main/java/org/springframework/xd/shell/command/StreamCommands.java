@@ -77,7 +77,7 @@ public class StreamCommands implements CommandMarker {
 	@CliCommand(value = DESTROY_STREAM_ALL, help = "Destroy all existing streams")
 	public String destroyAllStreams(
 			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force) {
-		// Be sure to short-circuit promt if force is true
+		// Be sure to short-circuit prompt if force is true
 		if (force || "y".equalsIgnoreCase(userInput.prompt("Really destroy all streams?", "n", "y", "n"))) {
 			streamOperations().destroyAll();
 			return "Destroyed all streams";

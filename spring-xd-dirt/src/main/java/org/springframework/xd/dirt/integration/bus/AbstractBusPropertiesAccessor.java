@@ -270,13 +270,13 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 		return getProperty(PARTITION_INDEX, -1);
 	}
 
-	// Short Circuit
+	// Direct Binding
 
 	/**
-	 * If true, the bus can attempt a short circuit.
+	 * If true, the bus can attempt a direct binding.
 	 */
-	public boolean isShortCircuitAllowed() {
-		return getProperty(SHORT_CIRCUIT_ALLOWED, false);
+	public boolean isDirectBindingAllowed() {
+		return getProperty(DIRECT_BINDING_ALLOWED, false);
 	}
 
 	// Utility methods

@@ -347,18 +347,27 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 			else if (streamModules.size() > moduleIndex + 1) {
 				/*
 				 *  A direct binding is allowed if all of the following are true:
-				 *  1. this module is not a partitioning producer
-				 *  2. this module is not the last one in a stream
-				 *  3. this module's count is 0
-				 *  4. the next module's count is 0
+				 *  1. the user did not explicitly disallow direct binding
+				 *  2. this module is not a partitioning producer
+				 *  3. this module is not the last one in a stream
+				 *  4. both this module and the next module have a count of 0
 				 *  5. both this module and the next module have the same criteria (both can be null)
 				 */
-				ModuleDeploymentProperties nextProperties = propertiesForDescriptor(streamModules.get(moduleIndex + 1));
-				if (properties.getCount() == 0 && nextProperties.getCount() == 0) {
-					String criteria = properties.getCriteria();
-					if ((criteria == null && nextProperties.getCriteria() == null)
-							|| (criteria != null && criteria.equals(nextProperties.getCriteria()))) {
-						properties.put("producer." + BusProperties.DIRECT_BINDING_ALLOWED, Boolean.toString(true));
+				String directBindingKey = "producer." + BusProperties.DIRECT_BINDING_ALLOWED;
+				String directBindingValue = properties.get(directBindingKey);
+				if (directBindingValue != null && !"false".equalsIgnoreCase(properties.get(directBindingKey))) {
+					logger.warn(
+							"Only 'false' is allowed as an explicit value for the {} property,  but the value was: '{}'",
+							directBindingKey, directBindingValue);
+				}
+				if (!"false".equalsIgnoreCase(properties.get(directBindingKey))) {
+					ModuleDeploymentProperties nextProperties = propertiesForDescriptor(streamModules.get(moduleIndex + 1));
+					if (properties.getCount() == 0 && nextProperties.getCount() == 0) {
+						String criteria = properties.getCriteria();
+						if ((criteria == null && nextProperties.getCriteria() == null)
+								|| (criteria != null && criteria.equals(nextProperties.getCriteria()))) {
+							properties.put(directBindingKey, Boolean.toString(true));
+						}
 					}
 				}
 			}

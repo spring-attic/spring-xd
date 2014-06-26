@@ -28,7 +28,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.core.env.PropertySource;
+import org.springframework.validation.BindException;
 
 
 /**
@@ -73,5 +75,21 @@ public class SimpleModuleOptionsMetadataTests {
 		assertThat(ps.getProperty("bang"), nullValue());
 		assertThat((String) ps.getProperty("fizz"), equalTo("there"));
 
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testValidation() throws BindException {
+		moduleOptions.add(new ModuleOption("port", "description").withType(int.class));
+		Map<String, String> userValues = new HashMap<String, String>();
+		userValues.put("port", "foo");
+		moduleOptions.interpolate(userValues);
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testValidationOfBoolean() throws BindException {
+		moduleOptions.add(new ModuleOption("flag", "description").withType(boolean.class));
+		Map<String, String> userValues = new HashMap<String, String>();
+		userValues.put("flag", "foo");
+		moduleOptions.interpolate(userValues);
 	}
 }

@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.MapBindingResult;
@@ -98,8 +99,9 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 		};
 
 		// Validate option values
+		PropertySource<?> ps = moduleOptions.asPropertySource();
 		for (String name : options.keySet()) {
-			moduleOptions.asPropertySource().getProperty(name);
+			ps.getProperty(name);
 		}
 		return moduleOptions;
 	}
@@ -109,35 +111,42 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 	 * @param value the value as String
 	 */
 	private void validateByType(ModuleOption option, String value) {
-		if (value == null || option == null || option.getType() == null) {
+		if (value == null || option.getType() == null) {
 			return;
 		}
-		try {
-			if (int.class.isAssignableFrom(option.getType()) || Integer.class.isAssignableFrom(option.getType())) {
-				Integer.parseInt(value);
-			}
-			else if (boolean.class.isAssignableFrom(option.getType())
-					|| Boolean.class.isAssignableFrom(option.getType())) {
-				Boolean.parseBoolean(value);
-			}
-			else if (float.class.isAssignableFrom(option.getType())
-					|| Float.class.isAssignableFrom(option.getType())) {
-				Float.parseFloat(value);
-			}
-			else if (double.class.isAssignableFrom(option.getType())
-					|| Double.class.isAssignableFrom(option.getType())) {
-				Double.parseDouble(value);
-			}
-			else if (short.class.isAssignableFrom(option.getType())
-					|| Short.class.isAssignableFrom(option.getType())) {
-				Short.parseShort(value);
+		// Boolean conversion accepts any string, so need to check explicit values
+		if (boolean.class.isAssignableFrom(option.getType())
+				|| Boolean.class.isAssignableFrom(option.getType())) {
+			if (!(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false") || value.equals("1") || value.equals("0"))) {
+				throw new RuntimeException(String.format(
+						"The value '%s' is the wrong type for option '%s'. The required type is %s.",
+						value, option.getName(), option.getType().getSimpleName()));
 			}
 		}
-		catch (Exception e) {
-			//TODO: SpringXDException not available to this library
-			throw new RuntimeException(String.format(
-					"The value '%s' is the wrong type for option '%s'. The required type is %s.",
-					value, option.getName(), option.getType().getSimpleName()));
+		else {
+			try {
+				if (int.class.isAssignableFrom(option.getType()) || Integer.class.isAssignableFrom(option.getType())) {
+					Integer.parseInt(value);
+				}
+				else if (float.class.isAssignableFrom(option.getType())
+						|| Float.class.isAssignableFrom(option.getType())) {
+					Float.parseFloat(value);
+				}
+				else if (double.class.isAssignableFrom(option.getType())
+						|| Double.class.isAssignableFrom(option.getType())) {
+					Double.parseDouble(value);
+				}
+				else if (short.class.isAssignableFrom(option.getType())
+						|| Short.class.isAssignableFrom(option.getType())) {
+					Short.parseShort(value);
+				}
+			}
+			catch (NumberFormatException e) {
+				//TODO: SpringXDException not available to this library
+				throw new RuntimeException(String.format(
+						"The value '%s' is the wrong type for option '%s'. The required type is %s.",
+						value, option.getName(), option.getType().getSimpleName()));
+			}
 		}
 	}
 }

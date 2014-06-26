@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import org.springframework.xd.module.options.mixins.MappedRequestHeadersMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
@@ -27,7 +28,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  * @author Eric Bottard
  * @author Gary Russell
  */
-@Mixin(RabbitConnectionMixin.class)
+@Mixin({ RabbitConnectionMixin.class, MappedRequestHeadersMixin.Amqp.class })
 public class RabbitSinkOptionsMetadata {
 
 	private String exchange = "";

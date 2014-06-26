@@ -15,7 +15,8 @@
 		default-delivery-mode="${deliveryMode}"
 		amqp-template="rabbitTemplate"
 		exchange-name="${exchange}"
-		routing-key-expression="${routingKey}" />
+		routing-key-expression="${routingKey}" 
+		mapped-request-headers="${mappedRequestHeaders}"/>
 
 	<rabbit:template id="rabbitTemplate"
 		connection-factory="rabbitConnectionFactory"

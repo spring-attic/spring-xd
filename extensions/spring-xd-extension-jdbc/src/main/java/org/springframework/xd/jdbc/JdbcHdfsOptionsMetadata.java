@@ -36,7 +36,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Thomas Risberg
  * @author Glenn Renfro
  */
-@Mixin({ JdbcConnectionMixin.class, BatchJobRestartableOptionMixin.class,
+@Mixin({ JdbcConnectionMixin.class, JdbcConnectionPoolMixin.class, BatchJobRestartableOptionMixin.class,
 	BatchJobFieldDelimiterOptionMixin.class, HadoopConfigurationMixin.class })
 public class JdbcHdfsOptionsMetadata {
 

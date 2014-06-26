@@ -45,7 +45,6 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 		props.put("module.log.count", "0");
 		integrationSupport.deployStream(sd, props);
 		List<Binding> bindings = getMessageBusBindingsForStream(streamName);
-		System.out.println(bindings);
 		assertEquals(2, bindings.size());
 		Binding consumerBinding = bindings.get(0);
 		Binding producerBinding = bindings.get(1);
@@ -150,7 +149,6 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 		props.put("module.log.count", "1");
 		integrationSupport.deployStream(sd, props);
 		List<Binding> bindings = getMessageBusBindingsForStream(streamName);
-		System.out.println(bindings);
 		assertEquals(4, bindings.size());
 		Binding logConsumerBinding = bindings.get(0);
 		Binding filterConsumerBinding = bindings.get(1);

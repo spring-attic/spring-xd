@@ -43,17 +43,17 @@ public abstract class BrokerBusTests extends
 		AbstractMessageBusTests {
 
 	@Test
-	public void testShortCircuit() throws Exception {
+	public void testDirectBinding() throws Exception {
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();
-		properties.setProperty(BusProperties.SHORT_CIRCUIT_ALLOWED, "true");
+		properties.setProperty(BusProperties.DIRECT_BINDING_ALLOWED, "true");
 
 		DirectChannel moduleInputChannel = new DirectChannel();
-		moduleInputChannel.setBeanName("short.input");
+		moduleInputChannel.setBeanName("direct.input");
 		DirectChannel moduleOutputChannel = new DirectChannel();
-		moduleOutputChannel.setBeanName("short.output");
-		bus.bindConsumer("short.0", moduleInputChannel, null);
-		bus.bindProducer("short.0", moduleOutputChannel, properties);
+		moduleOutputChannel.setBeanName("direct.output");
+		bus.bindConsumer("direct.0", moduleInputChannel, null);
+		bus.bindProducer("direct.0", moduleOutputChannel, properties);
 
 		final AtomicReference<Thread> caller = new AtomicReference<Thread>();
 		final AtomicInteger count = new AtomicInteger();
@@ -72,33 +72,33 @@ public abstract class BrokerBusTests extends
 		assertNotNull(caller.get());
 		assertSame(Thread.currentThread(), caller.get());
 		assertEquals(2, count.get());
-		assertNull(receive("short.0", true));
+		assertNull(receive("direct.0", true));
 
-		// Remove short circuit and bind producer to bus
-		bus.unbindConsumers("short.0");
+		// Remove direct binding and bind producer to the bus
+		bus.unbindConsumers("direct.0");
 		busUnbindLatency();
 
 		count.set(0);
 		moduleOutputChannel.send(new GenericMessage<String>("bar"));
 		moduleOutputChannel.send(new GenericMessage<String>("baz"));
-		Object bar = receive("short.0", false);
+		Object bar = receive("direct.0", false);
 		assertEquals("bar", bar);
-		Object baz = receive("short.0", false);
+		Object baz = receive("direct.0", false);
 		assertEquals("baz", baz);
 		assertEquals(0, count.get());
 
-		// Unbind producer from bus and short-circuit again
+		// Unbind producer from bus and bind directly again
 		caller.set(null);
-		bus.bindConsumer("short.0", moduleInputChannel, null);
+		bus.bindConsumer("direct.0", moduleInputChannel, null);
 		moduleOutputChannel.send(new GenericMessage<String>("foo"));
 		moduleOutputChannel.send(new GenericMessage<String>("foo"));
 		assertNotNull(caller.get());
 		assertSame(Thread.currentThread(), caller.get());
 		assertEquals(2, count.get());
-		assertNull(receive("short.0", true));
+		assertNull(receive("direct.0", true));
 
-		bus.unbindProducers("short.0");
-		bus.unbindConsumers("short.0");
+		bus.unbindProducers("direct.0");
+		bus.unbindConsumers("direct.0");
 	}
 
 	protected void busUnbindLatency() throws InterruptedException {

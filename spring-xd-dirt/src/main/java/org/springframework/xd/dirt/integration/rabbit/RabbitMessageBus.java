@@ -162,7 +162,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new SetBuilder()
 			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
 			.addAll(SUPPORTED_BASIC_PRODUCER_PROPERTIES)
-			.add(BusProperties.SHORT_CIRCUIT_ALLOWED)
+			.add(BusProperties.DIRECT_BINDING_ALLOWED)
 			.build();
 
 	/**
@@ -291,7 +291,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		Queue queue = new Queue(queueName);
 		this.rabbitAdmin.declareQueue(queue);
 		doRegisterConsumer(name, moduleInputChannel, queue, accessor, false);
-		shortCircuitExistingProducerIfPossible(name, moduleInputChannel);
+		bindExistingProducerDirectlyIfPossible(name, moduleInputChannel);
 	}
 
 	@Override
@@ -381,7 +381,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		else {
 			validateProducerProperties(name, properties, SUPPORTED_PRODUCER_PROPERTIES);
 		}
-		if (!shortCircuitNewProducerIfPossible(name, (SubscribableChannel) moduleOutputChannel, accessor)) {
+		if (!bindNewProducerDirectlyIfPossible(name, (SubscribableChannel) moduleOutputChannel, accessor)) {
 			if (logger.isInfoEnabled()) {
 				logger.info("declaring queue for outbound: " + name);
 			}

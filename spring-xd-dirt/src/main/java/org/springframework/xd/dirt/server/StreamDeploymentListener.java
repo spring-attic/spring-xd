@@ -346,7 +346,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 			}
 			else if (streamModules.size() > moduleIndex + 1) {
 				/*
-				 *  short-circuiting is allowed if all of the following are true:
+				 *  A direct binding is allowed if all of the following are true:
 				 *  1. this module is not a partitioning producer
 				 *  2. this module is not the last one in a stream
 				 *  3. this module's count is 0
@@ -358,7 +358,7 @@ public class StreamDeploymentListener implements PathChildrenCacheListener {
 					String criteria = properties.getCriteria();
 					if ((criteria == null && nextProperties.getCriteria() == null)
 							|| (criteria != null && criteria.equals(nextProperties.getCriteria()))) {
-						properties.put("producer." + BusProperties.SHORT_CIRCUIT_ALLOWED, Boolean.toString(true));
+						properties.put("producer." + BusProperties.DIRECT_BINDING_ALLOWED, Boolean.toString(true));
 					}
 				}
 			}

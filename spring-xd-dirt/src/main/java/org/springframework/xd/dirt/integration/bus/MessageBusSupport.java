@@ -95,7 +95,7 @@ public abstract class MessageBusSupport
 
 	private final ContentTypeResolver contentTypeResolver = new StringConvertingContentTypeResolver();
 
-	private final ThreadLocal<Boolean> revertingShortCircuit = new ThreadLocal<Boolean>();
+	private final ThreadLocal<Boolean> revertingDirectBinding = new ThreadLocal<Boolean>();
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
 
@@ -429,7 +429,7 @@ public abstract class MessageBusSupport
 			 * Revert the direct binding before stopping the consumer; the module
 			 * outputChannel will temporarily have 2 subscribers.
 			 */
-			revertShortCircuitedBindingIfNecessary(binding);
+			revertDirectBindingIfNecessary(binding);
 		}
 		binding.stop();
 		this.bindings.remove(binding);
@@ -721,24 +721,24 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Attempt to short-circuit the bus if the consumer is local. Named channel producers are
-	 * not short-circuited.
+	 * Attempt to create a direct binding (avoiding the bus) if the consumer is local.
+	 * Named channel producers are not bound directly.
 	 * @param name The name.
 	 * @param moduleOutputChannel The channel to bind.
 	 * @param properties The producer properties.
 	 * @return true if the producer is bound.
 	 */
-	protected boolean shortCircuitNewProducerIfPossible(String name, SubscribableChannel moduleOutputChannel,
+	protected boolean bindNewProducerDirectlyIfPossible(String name, SubscribableChannel moduleOutputChannel,
 			AbstractBusPropertiesAccessor properties) {
-		if (!properties.isShortCircuitAllowed()) {
+		if (!properties.isDirectBindingAllowed()) {
 			return false;
 		}
 		else if (isNamedChannel(name)) {
 			return false;
 		}
-		else if (this.revertingShortCircuit.get() != null) {
-			// we're in the process of unbinding a short circuit
-			this.revertingShortCircuit.remove();
+		else if (this.revertingDirectBinding.get() != null) {
+			// we're in the process of unbinding a direct binding
+			this.revertingDirectBinding.remove();
 			return false;
 		}
 		else {
@@ -755,13 +755,13 @@ public abstract class MessageBusSupport
 				return false;
 			}
 			else {
-				shortCircuitProducer(name, moduleOutputChannel, consumerBinding.getChannel(), properties);
+				bindProducerDirectly(name, moduleOutputChannel, consumerBinding.getChannel(), properties);
 				return true;
 			}
 		}
 	}
 
-	private void shortCircuitProducer(String name, SubscribableChannel producerChannel,
+	private void bindProducerDirectly(String name, SubscribableChannel producerChannel,
 			MessageChannel consumerChannel, AbstractBusPropertiesAccessor properties) {
 		DirectHandler handler = new DirectHandler(consumerChannel);
 		EventDrivenConsumer consumer = new EventDrivenConsumer(producerChannel, handler);
@@ -772,17 +772,17 @@ public abstract class MessageBusSupport
 		addBinding(binding);
 		binding.start();
 		if (logger.isInfoEnabled()) {
-			logger.info("Producer short-circuited: " + binding);
+			logger.info("Producer bound directly: " + binding);
 		}
 	}
 
 	/**
-	 * Attempt to short-circuit the bus if there is already a local producer. PubSub producers are
-	 * not short-circuited. Bind the short circuit, then unbind the bus producer.
+	 * Attempt to bind a producer directly (avoiding the bus) if there is already a local producer.
+	 * PubSub producers cannot be bound directly. Create the direct binding, then unbind the existing bus producer.
 	 * @param name The name.
 	 * @param consumerChannel The channel to bind the producer to.
 	 */
-	protected void shortCircuitExistingProducerIfPossible(String name, MessageChannel consumerChannel) {
+	protected void bindExistingProducerDirectlyIfPossible(String name, MessageChannel consumerChannel) {
 		if (!isNamedChannel(name)) {
 			Binding producerBinding = null;
 			synchronized (this.bindings) {
@@ -794,8 +794,8 @@ public abstract class MessageBusSupport
 				}
 				if (producerBinding != null && producerBinding.getChannel() instanceof SubscribableChannel) {
 					AbstractBusPropertiesAccessor properties = producerBinding.getPropertiesAccessor();
-					if (properties.isShortCircuitAllowed()) {
-						shortCircuitProducer(name, (SubscribableChannel) producerBinding.getChannel(), consumerChannel,
+					if (properties.isDirectBindingAllowed()) {
+						bindProducerDirectly(name, (SubscribableChannel) producerBinding.getChannel(), consumerChannel,
 								properties);
 						producerBinding.stop();
 						this.bindings.remove(producerBinding);
@@ -805,7 +805,7 @@ public abstract class MessageBusSupport
 		}
 	}
 
-	private void revertShortCircuitedBindingIfNecessary(Binding binding) {
+	private void revertDirectBindingIfNecessary(Binding binding) {
 		try {
 			synchronized (this.bindings) { // Not necessary, called while synchronized, but just in case...
 				Binding directBinding = null;
@@ -813,7 +813,7 @@ public abstract class MessageBusSupport
 				while (iterator.hasNext()) {
 					Binding producer = iterator.next();
 					if (Binding.DIRECT.equals(producer.getType()) && binding.getName().equals(producer.getName())) {
-						this.revertingShortCircuit.set(Boolean.TRUE);
+						this.revertingDirectBinding.set(Boolean.TRUE);
 						bindProducer(producer.getName(), producer.getChannel(),
 								producer.getPropertiesAccessor().getProperties());
 						directBinding = producer;
@@ -824,13 +824,13 @@ public abstract class MessageBusSupport
 					directBinding.stop();
 					this.bindings.remove(directBinding);
 					if (logger.isInfoEnabled()) {
-						logger.info("Short-circuited binding reverted: " + directBinding);
+						logger.info("direct binding reverted: " + directBinding);
 					}
 				}
 			}
 		}
 		catch (Exception e) {
-			logger.error("Could not revert short-circuited binding: " + binding, e);
+			logger.error("Could not revert direct binding: " + binding, e);
 		}
 	}
 

@@ -78,7 +78,7 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 
 	@Before
 	public void setup() {
-		createTemplate().boundListOps("queue.short.0").trim(1, 0);
+		createTemplate().boundListOps("queue.direct.0").trim(1, 0);
 	}
 
 	@Test

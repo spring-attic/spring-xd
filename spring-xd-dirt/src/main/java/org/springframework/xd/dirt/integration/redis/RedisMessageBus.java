@@ -122,7 +122,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	 */
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new SetBuilder()
 			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
-			.add(BusProperties.SHORT_CIRCUIT_ALLOWED)
+			.add(BusProperties.DIRECT_BINDING_ALLOWED)
 			.build();
 
 	/**
@@ -171,7 +171,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		MessageProducerSupport adapter = createInboundAdapter(accessor, queueName);
 		doRegisterConsumer(name, name + (partitionIndex >= 0 ? "-" + partitionIndex : ""), moduleInputChannel, adapter,
 				accessor);
-		shortCircuitExistingProducerIfPossible(name, moduleInputChannel);
+		bindExistingProducerDirectlyIfPossible(name, moduleInputChannel);
 	}
 
 	private MessageProducerSupport createInboundAdapter(RedisPropertiesAccessor accessor, String queueName) {
@@ -292,7 +292,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			validateProducerProperties(name, properties, SUPPORTED_PRODUCER_PROPERTIES);
 		}
 		RedisPropertiesAccessor accessor = new RedisPropertiesAccessor(properties);
-		if (!shortCircuitNewProducerIfPossible(name, (SubscribableChannel) moduleOutputChannel, accessor)) {
+		if (!bindNewProducerDirectlyIfPossible(name, (SubscribableChannel) moduleOutputChannel, accessor)) {
 			String partitionKeyExtractorClass = accessor.getPartitionKeyExtractorClass();
 			Expression partitionKeyExpression = accessor.getPartitionKeyExpression();
 			RedisQueueOutboundChannelAdapter queue;

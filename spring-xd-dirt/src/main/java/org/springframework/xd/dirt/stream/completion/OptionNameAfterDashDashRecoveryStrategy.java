@@ -91,7 +91,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 			}
 		}
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
-			if (!alreadyPresentOptions.contains(option.getName())) {
+			if (!option.isHidden() && !alreadyPresentOptions.contains(option.getName())) {
 				proposals.add(String.format("%s --%s=", safe, option.getName()));
 			}
 		}

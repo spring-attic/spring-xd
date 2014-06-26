@@ -75,7 +75,7 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 
 		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
-			if (!alreadyPresentOptions.contains(option.getName())) {
+			if (!option.isHidden() && !alreadyPresentOptions.contains(option.getName())) {
 				proposals.add(String.format("%s%s--%s=", text, text.endsWith(" ") ? "" : " ", option.getName()));
 			}
 		}

@@ -454,6 +454,7 @@ project('spring-xd-dirt') {
 
 	bootRepackage  {
 		withJarTask = tasks['execJar']
+        classifier = 'exec'
         enabled = true
 	}
 

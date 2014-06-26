@@ -534,6 +534,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 				adapter.setBeanName("inbound." + queueName + "." + i);
 				this.consumers.add(adapter);
 			}
+			this.setBeanFactory(RedisMessageBus.this.getBeanFactory());
 		}
 
 		@Override

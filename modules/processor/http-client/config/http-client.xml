@@ -12,7 +12,9 @@
 	<int-http:outbound-gateway id='http-client'
 		request-channel='input' url-expression="${url}" http-method="${httpMethod}"
 		expected-response-type='java.lang.String' charset='${charset}'
-		reply-timeout='${replyTimeout}' reply-channel='output'>
+		reply-timeout='${replyTimeout}' reply-channel='output'
+		mapped-request-headers="${mappedRequestHeaders}"
+		mapped-response-headers="${mappedResponseHeaders}">
 	</int-http:outbound-gateway>
 
 	<channel id="output" />

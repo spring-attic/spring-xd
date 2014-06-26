@@ -14,7 +14,8 @@
 		auto-startup="false"
 		channel="output"
 		listener-container="listenerContainer"
-		message-converter="messageConverter" />
+		message-converter="messageConverter" 
+		mapped-request-headers="${mappedRequestHeaders}"/>
 
 	<bean id="listenerContainer" class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
 		<property name="connectionFactory" ref="rabbitConnectionFactory" />

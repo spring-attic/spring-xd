@@ -21,6 +21,9 @@ import static org.springframework.xd.http.HttpClientProcessorOptionsMetadata.Htt
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import org.springframework.xd.module.options.mixins.MappedRequestHeadersMixin;
+import org.springframework.xd.module.options.mixins.MappedResponseHeadersMixin;
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 
@@ -29,6 +32,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * 
  * @author Eric Bottard
  */
+@Mixin({ MappedRequestHeadersMixin.Http.class, MappedResponseHeadersMixin.Http.class })
 public class HttpClientProcessorOptionsMetadata {
 
 	private String url;

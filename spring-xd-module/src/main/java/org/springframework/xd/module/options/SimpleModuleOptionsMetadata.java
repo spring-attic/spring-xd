@@ -40,6 +40,9 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 	private Map<String, ModuleOption> options = new LinkedHashMap<String, ModuleOption>();
 
 	public void add(ModuleOption option) {
+		if (option.getDefaultValue() != null) {
+			validateByType(option, option.getDefaultValue().toString());
+		}
 		options.put(option.getName(), option);
 	}
 
@@ -79,9 +82,6 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 								return provided;
 							}
 							else {
-								if (option.getDefaultValue() != null) {
-									validateByType(option, option.getDefaultValue().toString());
-								}
 								return option.getDefaultValue();
 							}
 						} // option is not in the allowed list

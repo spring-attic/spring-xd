@@ -70,7 +70,7 @@ public class RabbitConnectionMixin {
 		return vhost;
 	}
 
-	@ModuleOption("the RabbitMQ virtual host to use")
+	@ModuleOption(value = "the RabbitMQ virtual host to use", hidden = true)
 	public void setVhost(String vhost) {
 		this.vhost = vhost;
 	}

@@ -98,7 +98,7 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 			// Don't use pd.getPropertyType(), as it considers the getter first
 			// which may be different from the setter type, which is what we semantically want here
 			Class<?> type = BeanUtils.getWriteMethodParameter(pd).getParameterType();
-			ModuleOption option = new ModuleOption(name, description).withType(type);
+			ModuleOption option = new ModuleOption(name, description).withType(type).hidden(annotation.hidden());
 			if (beanWrapper.isReadableProperty(name)) {
 				option.withDefaultValue(beanWrapper.getPropertyValue(name));
 			}

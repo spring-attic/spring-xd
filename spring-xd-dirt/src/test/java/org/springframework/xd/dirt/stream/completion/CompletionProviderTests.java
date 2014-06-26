@@ -301,6 +301,18 @@ public class CompletionProviderTests {
 		assertThat(completions, not(hasItem(startsWith("queue:foo > syslog"))));
 	}
 
+	@Test
+	public void testHiddenOptionNames() {
+		List<String> completions = completionProvider.complete(stream, "http | rabbit ");
+		assertThat(completions, not(hasItem(startsWith("http | rabbit --vhost"))));
+
+		completions = completionProvider.complete(stream, "http | rabbit --");
+		assertThat(completions, not(hasItem(startsWith("http | rabbit --vhost"))));
+
+		completions = completionProvider.complete(stream, "http | rabbit --v");
+		assertThat(completions, hasItem(startsWith("http | rabbit --vhost")));
+	}
+
 	private List<String> namesOfModulesWithType(ModuleType type) {
 		Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
 		List<String> result = new ArrayList<String>();

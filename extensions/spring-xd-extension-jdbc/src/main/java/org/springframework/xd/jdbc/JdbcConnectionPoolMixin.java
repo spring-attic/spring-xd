@@ -81,132 +81,132 @@ public class JdbcConnectionPoolMixin {
 	protected boolean alternateUsernameAllowed = false;
 
 
-	@ModuleOption("maximum number of active connections that can be allocated from this pool at the same time")
+	@ModuleOption(value = "maximum number of active connections that can be allocated from this pool at the same time", hidden = true)
 	public void setMaxActive(int maxActive) {
 		this.maxActive = maxActive;
 	}
 
-	@ModuleOption("maximum number of connections that should be kept in the pool at all times")
+	@ModuleOption(value = "maximum number of connections that should be kept in the pool at all times", hidden = true)
 	public void setMaxIdle(int maxIdle) {
 		this.maxIdle = maxIdle;
 	}
 
-	@ModuleOption("minimum number of established connections that should be kept in the pool at all times")
+	@ModuleOption(value = "minimum number of established connections that should be kept in the pool at all times", hidden = true)
 	public void setMinIdle(int minIdle) {
 		this.minIdle = minIdle;
 	}
 
-	@ModuleOption("initial number of connections that are created when the pool is started")
+	@ModuleOption(value = "initial number of connections that are created when the pool is started", hidden = true)
 	public void setInitialSize(int initialSize) {
 		this.initialSize = initialSize;
 	}
 
-	@ModuleOption("maximum number of milliseconds that the pool will wait for a connection")
+	@ModuleOption(value = "maximum number of milliseconds that the pool will wait for a connection", hidden = true)
 	public void setMaxWait(int maxWait) {
 		this.maxWait = maxWait;
 	}
 
-	@ModuleOption("indication of whether objects will be validated before being borrowed from the pool")
+	@ModuleOption(value = "indication of whether objects will be validated before being borrowed from the pool", hidden = true)
 	public void setTestOnBorrow(boolean testOnBorrow) {
 		this.testOnBorrow = testOnBorrow;
 	}
 
-	@ModuleOption("indication of whether objects will be validated before being returned to the pool")
+	@ModuleOption(value = "indication of whether objects will be validated before being returned to the pool", hidden = true)
 	public void setTestOnReturn(boolean testOnReturn) {
 		this.testOnReturn = testOnReturn;
 	}
 
-	@ModuleOption("indication of whether objects will be validated by the idle object evictor")
+	@ModuleOption(value = "indication of whether objects will be validated by the idle object evictor", hidden = true)
 	public void setTestWhileIdle(boolean testWhileIdle) {
 		this.testWhileIdle = testWhileIdle;
 	}
 
-	@ModuleOption("sql query that will be used to validate connections from this pool")
+	@ModuleOption(value = "sql query that will be used to validate connections from this pool", hidden = true)
 	public void setValidationQuery(String validationQuery) {
 		this.validationQuery = validationQuery;
 	}
 
-	@ModuleOption("name of a class which implements the org.apache.tomcat.jdbc.pool.Validator")
+	@ModuleOption(value = "name of a class which implements the org.apache.tomcat.jdbc.pool.Validator", hidden = true)
 	public void setValidatorClassName(String validatorClassName) {
 		this.validatorClassName = validatorClassName;
 	}
 
-	@ModuleOption("number of milliseconds to sleep between runs of the idle connection validation/cleaner thread")
+	@ModuleOption(value = "number of milliseconds to sleep between runs of the idle connection validation/cleaner thread", hidden = true)
 	public void setTimeBetweenEvictionRunsMillis(int timeBetweenEvictionRunsMillis) {
 		this.timeBetweenEvictionRunsMillis = timeBetweenEvictionRunsMillis;
 	}
 
-	@ModuleOption("minimum amount of time an object may sit idle in the pool before it is eligible for eviction")
+	@ModuleOption(value = "minimum amount of time an object may sit idle in the pool before it is eligible for eviction", hidden = true)
 	public void setMinEvictableIdleTimeMillis(int minEvictableIdleTimeMillis) {
 		this.minEvictableIdleTimeMillis = minEvictableIdleTimeMillis;
 	}
 
-	@ModuleOption("flag to remove abandoned connections if they exceed the removeAbandonedTimout")
+	@ModuleOption(value = "flag to remove abandoned connections if they exceed the removeAbandonedTimout", hidden = true)
 	public void setRemoveAbandoned(boolean removeAbandoned) {
 		this.removeAbandoned = removeAbandoned;
 	}
 
-	@ModuleOption("timeout in seconds before an abandoned connection can be removed")
+	@ModuleOption(value = "timeout in seconds before an abandoned connection can be removed", hidden = true)
 	public void setRemoveAbandonedTimeout(int removeAbandonedTimeout) {
 		this.removeAbandonedTimeout = removeAbandonedTimeout;
 	}
 
-	@ModuleOption("flag to log stack traces for application code which abandoned a Connection")
+	@ModuleOption(value = "flag to log stack traces for application code which abandoned a Connection", hidden = true)
 	public void setLogAbandoned(boolean logAbandoned) {
 		this.logAbandoned = logAbandoned;
 	}
 
-	@ModuleOption("connection properties that will be sent to our JDBC driver when establishing new connections")
+	@ModuleOption(value = "connection properties that will be sent to our JDBC driver when establishing new connections", hidden = true)
 	public void setConnectionProperties(String connectionProperties) {
 		this.connectionProperties = connectionProperties;
 	}
 
-	@ModuleOption("custom query to be run when a connection is first created")
+	@ModuleOption(value = "custom query to be run when a connection is first created", hidden = true)
 	public void setInitSQL(String initSQL) {
 		this.initSQL = initSQL;
 	}
 
-	@ModuleOption("semicolon separated list of classnames extending org.apache.tomcat.jdbc.pool.JdbcInterceptor")
+	@ModuleOption(value = "semicolon separated list of classnames extending org.apache.tomcat.jdbc.pool.JdbcInterceptor", hidden = true)
 	public void setJdbcInterceptors(String jdbcInterceptors) {
 		this.jdbcInterceptors = jdbcInterceptors;
 	}
 
-	@ModuleOption("avoid excess validation, only run validation at most at this frequency - time in milliseconds")
+	@ModuleOption(value = "avoid excess validation, only run validation at most at this frequency - time in milliseconds", hidden = true)
 	public void setValidationInterval(long validationInterval) {
 		this.validationInterval = validationInterval;
 	}
 
-	@ModuleOption("register the pool with JMX or not")
+	@ModuleOption(value = "register the pool with JMX or not", hidden = true)
 	public void setJmxEnabled(boolean jmxEnabled) {
 		this.jmxEnabled = jmxEnabled;
 	}
 
-	@ModuleOption("set to true if you wish that calls to getConnection should be treated fairly in a true FIFO fashion")
+	@ModuleOption(value = "set to true if you wish that calls to getConnection should be treated fairly in a true FIFO fashion", hidden = true)
 	public void setFairQueue(boolean fairQueue) {
 		this.fairQueue = fairQueue;
 	}
 
-	@ModuleOption("connections that have timed out wont get closed and reported up unless the number of connections in use are above the percentage")
+	@ModuleOption(value = "connections that have timed out wont get closed and reported up unless the number of connections in use are above the percentage", hidden = true)
 	public void setAbandonWhenPercentageFull(int abandonWhenPercentageFull) {
 		this.abandonWhenPercentageFull = abandonWhenPercentageFull;
 	}
 
-	@ModuleOption("time in milliseconds to keep this connection")
+	@ModuleOption(value = "time in milliseconds to keep this connection", hidden = true)
 	public void setMaxAge(int maxAge) {
 		this.maxAge = maxAge;
 	}
 
-	@ModuleOption("true if you wish the ProxyConnection class to use String.equals")
+	@ModuleOption(value = "true if you wish the ProxyConnection class to use String.equals", hidden = true)
 	public void setUseEquals(boolean useEquals) {
 		this.useEquals = useEquals;
 	}
 
-	@ModuleOption("this simply logs the warning after timeout, connection remains")
+	@ModuleOption(value = "this simply logs the warning after timeout, connection remains", hidden = true)
 	public void setSuspectTimeout(int suspectTimeout) {
 		this.suspectTimeout = suspectTimeout;
 	}
 
-	@ModuleOption("uses an alternate user name if connection fails")
+	@ModuleOption(value = "uses an alternate user name if connection fails", hidden = true)
 	public void setAlternateUsernameAllowed(boolean alternateUsernameAllowed) {
 		this.alternateUsernameAllowed = alternateUsernameAllowed;
 	}

@@ -175,11 +175,6 @@ define(['angular'], function (angular) {
       .factory('JobLaunchService', function ($resource, growl, $rootScope) {
         return {
           convertToJsonAndSend: function (jobLaunchRequest) {
-
-            console.log('Converting to Json: ' + jobLaunchRequest.jobName);
-            console.log(jobLaunchRequest);
-            //console.log('Model Change: ' + JSON.stringify(jobLaunchRequest.toJSON()));
-
             var jsonData = {};
             jobLaunchRequest.jobParameters.forEach(function (jobParameter) {
 
@@ -200,7 +195,7 @@ define(['angular'], function (angular) {
                 jsonData['-' + key + dataTypeToUse] = value;
               }
             });
-            console.log(jsonData);
+
             var jsonDataAsString = JSON.stringify(jsonData);
 
             console.log(jsonDataAsString);

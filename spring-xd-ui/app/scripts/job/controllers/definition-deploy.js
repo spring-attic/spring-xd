@@ -24,8 +24,6 @@ define([], function () {
   return ['$scope', 'XDUtils', '$state', '$stateParams', 'JobDefinitions', 'JobDefinitionService',
     function ($scope, utils, $state, $stateParams, jobDefinitions, jobDefinitionService) {
       $scope.$apply(function () {
-        console.log($stateParams);
-        console.log('ass');
         $scope.definitionName = $stateParams.definitionName;
         var singleJobDefinitionPromise = jobDefinitions.getSingleJobDefinition($scope.definitionName);
         utils.$log.info(singleJobDefinitionPromise);
@@ -33,10 +31,13 @@ define([], function () {
         singleJobDefinitionPromise.then(
           function (result) {
             utils.$log.info(result);
+            var jobDefinition = result.data;
+            var moduleName = utils.getModuleNameFromJobDefinition(jobDefinition.definition);
             $scope.definitionDeployRequest = {
-              jobDefinition: result.data,
+              jobDefinition: jobDefinition,
+              moduleName: moduleName,
               moduleCriteria: '',
-              containerCount: 0
+              containerCount: ''
             };
           },function (error) {
             utils.growl.addErrorMessage('Error fetching job definition. ' + error.data[0].message);
@@ -53,11 +54,14 @@ define([], function () {
         var properties = [];
 
         if (definitionDeployRequest.moduleCriteria) {
-          properties.push('criteria=' + definitionDeployRequest.moduleCriteria);
+          properties.push('module.' + definitionDeployRequest.moduleName +
+          '.criteria=' + definitionDeployRequest.moduleCriteria);
         }
         if (definitionDeployRequest.containerCount) {
-          properties.push('count=' + definitionDeployRequest.containerCount);
+          properties.push('module.' + definitionDeployRequest.moduleName +
+          '.count=' + definitionDeployRequest.containerCount);
         }
+        utils.$log.info('Module Deployment Properties:' + properties);
 
         jobDefinitionService.deploy(definitionDeployRequest.jobDefinition, properties).$promise.then(
             function () {

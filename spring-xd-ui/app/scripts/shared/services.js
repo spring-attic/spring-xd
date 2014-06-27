@@ -19,11 +19,14 @@
  *
  * @author Ilayaperumal Gopinathan
  */
-define(['angular'], function (angular) {
+define(['angular', 'xregexp'], function (angular) {
   'use strict';
 
   return angular.module('xdShared.services', [])
       .factory('XDUtils', function ($log, growl, $timeout, $q, $rootScope) {
+
+        var moduleNameRegex = new XRegExp('[\\p{N}|\\p{L}|\\p{Po}]*(?=[\\s]*--)', 'i');
+
         return {
           $log: $log,
           growl: growl,
@@ -32,6 +35,12 @@ define(['angular'], function (angular) {
           $rootScope: $rootScope,
           addBusyPromise: function (promise) {
             $rootScope.cgbusy = promise;
+          },
+          getModuleNameFromJobDefinition: function(jobDefinition) {
+            $log.info('Processing job definition: ' + jobDefinition);
+            var module = XRegExp.exec(jobDefinition, moduleNameRegex);
+            $log.info('Found Module Name: ' + module);
+            return module[0];
           }
         };
       });

@@ -81,6 +81,7 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 		if (columns != null) {
 			dsl.append(" --columns=" + columns);
 		}
+
 		return dsl.toString();
 	}
 
@@ -113,6 +114,7 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 		return this;
 	}
 
+
 	/**
 	 * allows a user to set the columns (comma delimited list) that the sink will write its results to.
 	 *
@@ -120,10 +122,10 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 	 * @return an instance to this jdbc sink.
 	 */
 	public JdbcSink columns(String columns) {
+		Assert.hasText(columns, "columns must not be empty nor null");
 		this.columns = columns;
 		return this;
 	}
-
 
 	/**
 	 * Determines if a connection to the designated database can be made.

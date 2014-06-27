@@ -35,6 +35,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  * 
  * @author Eric Bottard
  * @author Florent Biville
+ * @author Glenn Renfro
  */
 public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 
@@ -76,7 +77,6 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 	public void testJdbcSinkWithCustomTableName() throws Exception {
 		String tableName = "foobar";
 		JdbcSink jdbcSink = newJdbcSink().tableName(tableName);
-
 
 		HttpSource httpSource = newHttpSource();
 

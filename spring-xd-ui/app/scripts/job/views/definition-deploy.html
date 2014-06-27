@@ -1,5 +1,11 @@
 <h1 ng-show="definitionName">Deploy Definition {{definitionName}}</h1>
 
+	<p ng-show="definitionDeployRequest.moduleName" class="index-page--subtitle"> On this screen you can also specify the
+		following optional Module Deployment Properties for module <strong>'{{definitionDeployRequest.moduleName}}'</strong>. These
+		properties will ultimately form the Deployment Manifest. For more information
+		please see the <a href="https://github.com/spring-projects/spring-xd/wiki/XD-Distributed-Runtime#deployment-manifest"
+		target="_blank">Technical Documentation</a>.
+	</p>
 	<form name="deployDefinitionForm" class="form-horizontal" role="form">
 		<div class="form-group" ng-class="deployDefinitionForm.moduleCriteria.$invalid ? 'has-warning has-feedback' : ''">
 			<label for="moduleCriteria" class="col-sm-2 control-label">Module Criteria</label>
@@ -24,7 +30,6 @@
 				this definition will be deployed to all containers.</p>
 			</div>
 		</div>
-		<pre>{{definitionDeployRequest}}</pre>
 	</form>
 	<div class="row">
 		<div class="col-md-6 text-right"><button id="back-button"   type="button" class="btn btn-default" ng-click="cancelDefinitionDeploy()">Back</button></div>

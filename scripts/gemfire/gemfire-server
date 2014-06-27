@@ -74,8 +74,8 @@ addJarsToClassPath( ) {
 }
 
 XD_LIB=$APP_HOME/../xd/lib
-CLASSPATH=addJarsToClassPath $XD_LIB
-CLASSPATH=addJarsToClassPath $APP_HOME/lib
+addJarsToClassPath $XD_LIB
+addJarsToClassPath $APP_HOME/lib
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then

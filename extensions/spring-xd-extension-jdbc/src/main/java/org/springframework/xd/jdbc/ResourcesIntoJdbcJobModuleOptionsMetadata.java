@@ -27,7 +27,7 @@ import org.springframework.xd.module.options.mixins.HadoopConfigurationMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 
 /**
- * Typical class for metadata about jobs that slurp delimited resources into jdbc. Can be used as is or extended if
+ * Typical class for metadata about jobs that slurp delimited resources into jdbc. Can be used as is or mixed-in if
  * needed.
  * 
  * @author Eric Bottard

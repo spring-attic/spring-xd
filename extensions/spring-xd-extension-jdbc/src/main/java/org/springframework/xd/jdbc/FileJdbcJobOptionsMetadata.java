@@ -29,7 +29,7 @@ import org.springframework.xd.module.options.spi.Mixin;
  * Note: Similar to ResourcesIntoJdbcJobModuleOptionsMetadata but adds deletion support, as the source is
  * file based.
  */
-@Mixin(BatchJobDeleteFilesOptionMixin.class)
-public class FileJdbcJobOptionsMetadata extends ResourcesIntoJdbcJobModuleOptionsMetadata {
+@Mixin({ BatchJobDeleteFilesOptionMixin.class, ResourcesIntoJdbcJobModuleOptionsMetadata.class })
+public class FileJdbcJobOptionsMetadata {
 
 }

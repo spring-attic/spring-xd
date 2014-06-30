@@ -62,6 +62,7 @@ import org.springframework.xd.test.fixtures.SimpleFileSink;
  * Base Class for Spring XD Integration classes
  *
  * @author Glenn Renfro
+ * @author David Turanski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = IntegrationTestConfig.class)
@@ -355,6 +356,18 @@ public abstract class AbstractIntegrationTest {
 			}
 		}
 	}
+
+        /*
+	 * Launches a job on the XD instance
+	 *
+	 * @param jobName The name of the job to be launched
+	 * @param jobParameters the job parameters
+	 */
+	public void jobLaunch(String jobName, String jobParameters) {
+		JobUtils.launch(adminServer, jobName, jobParameters);
+		waitForXD();
+	}
+
 
 	/**
 	 * Gets the URL of the container for the sink being tested.

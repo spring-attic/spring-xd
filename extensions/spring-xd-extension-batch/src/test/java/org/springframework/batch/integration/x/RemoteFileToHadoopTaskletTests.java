@@ -28,7 +28,6 @@ import java.io.File;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -55,13 +54,8 @@ public class RemoteFileToHadoopTaskletTests {
 	@Rule
 	public final HadoopFileSystemTestSupport hadoopFileSystemTestSupport = new HadoopFileSystemTestSupport();
 
-	@BeforeClass
-	public static void init() {
-		System.setProperty("spring.hadoop.fsUri", "hdfs://localhost:8020");
-	}
-
 	@Test
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testWrite() throws Exception {
 		File file = new File(tmpDir, "foo.txt");
 		file.delete();

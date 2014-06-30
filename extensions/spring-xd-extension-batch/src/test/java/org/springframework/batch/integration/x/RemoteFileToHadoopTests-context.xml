@@ -13,13 +13,14 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<import resource="file:../modules/job/ftphdfs/config/ftphdfs.xml" />
-
 	<context:property-placeholder properties-ref="props"/>
 
 	<util:properties id="props">
 		<prop key="restartable">false</prop>
+		<prop key="xd.config.home">file:../../config</prop>
 	</util:properties>
+
+	<import resource="file:../../modules/job/ftphdfs/config/ftphdfs.xml" />
 
 	<bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
 		<property name="jobRepository" ref="jobRepository" />
@@ -46,17 +47,5 @@
 	<bean id="sessionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory" />
 	</bean>
-
-	<!-- Override the RemoteFileToHadoopTasklet to write to java.io.tmpdir, and the hadoop beans -->
-
-	<bean id="tasklet" class="org.springframework.batch.integration.x.RemoteFileToTmpTests$RemoteFileToTmpDirTasklet">
-		<constructor-arg ref="remoteFileTemplate" />
-	</bean>
-
-	<bean id="hadoopFs" class="java.lang.Object" />
-
-	<bean id="hadoopConfiguration" class="java.lang.Object" />
-
-	<bean id="hadoopResourceLoader" class="java.lang.Object" />
 
 </beans>

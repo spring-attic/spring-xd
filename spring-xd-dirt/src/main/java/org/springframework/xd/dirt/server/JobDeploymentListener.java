@@ -207,7 +207,7 @@ public class JobDeploymentListener implements PathChildrenCacheListener {
 			String jobName = iterator.next();
 			Job job = deploymentLoader.loadJob(client, jobName, jobFactory);
 			if (job != null) {
-				String jobModulesPath = Paths.build(Paths.JOB_DEPLOYMENTS, jobName);
+				String jobModulesPath = Paths.build(Paths.JOB_DEPLOYMENTS, jobName, Paths.MODULES);
 				List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();
 				List<String> moduleDeployments = client.getChildren().forPath(jobModulesPath);
 				for (String moduleDeployment : moduleDeployments) {

@@ -200,6 +200,11 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 		}
 	}
 
+	/**
+	 * Create {@link PojoModuleOptionsMetadata} out of the {@code pojoClass} and add them to the list.
+	 * Also, recursively invoke itself with all classes mixed in {@code pojoClass} (that is, 
+	 * if {@code pojoClass} bears the {@link Mixin} annotation.
+	 */
 	private void createPojoOptionsMetadata(ClassLoader classLoaderToUse, String pojoClass,
 			List<ModuleOptionsMetadata> mixins) {
 		try {

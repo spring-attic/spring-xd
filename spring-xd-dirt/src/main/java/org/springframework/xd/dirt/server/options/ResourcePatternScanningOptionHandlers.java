@@ -22,6 +22,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.OptionDef;
 import org.kohsuke.args4j.spi.Setter;
 
+import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
@@ -81,6 +82,28 @@ public final class ResourcePatternScanningOptionHandlers {
 			super(parser, option, setter, CONFIGURATION_ROOT + "analytics/*-analytics.xml");
 			exclude("memory");
 		}
+	}
+
+	/**
+	 * Computes values for --hadoopDistro out of names of subdirectories of the {@code lib/} dir.
+	 */
+	public static class HadoopDistroOptionHandler extends ResourcePatternScanningOptionHandler {
+
+		public HadoopDistroOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
+				throws IOException {
+			super(parser, option, setter, "file:${xd.home:.}/lib/*");
+		}
+
+		@Override
+		protected boolean shouldConsider(Resource r) {
+			try {
+				return r.getFile().isDirectory();
+			}
+			catch (IOException e) {
+				return false;
+			}
+		}
+
 	}
 
 }

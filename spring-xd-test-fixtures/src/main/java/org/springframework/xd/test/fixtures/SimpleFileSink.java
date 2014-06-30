@@ -18,6 +18,7 @@ package org.springframework.xd.test.fixtures;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.test.fixtures.util.FixtureUtils;
 
 
 /**
@@ -77,7 +78,7 @@ public class SimpleFileSink extends AbstractModuleFixture<SimpleFileSink> {
 	 */
 	@Override
 	public String toDSL() {
-		String dsl = getDslLabel();
+		String dsl = FixtureUtils.labelOrEmpty(label);
 		dsl += String.format("file --binary=%s --mode=%s ", binary, mode);
 		if (StringUtils.hasText(fileName)) {
 			dsl += "--name='" + fileName + "' ";

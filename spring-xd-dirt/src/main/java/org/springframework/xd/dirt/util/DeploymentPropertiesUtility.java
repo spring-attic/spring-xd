@@ -34,13 +34,15 @@ import org.springframework.xd.module.ModuleDescriptor;
  * @author Patrick Peralta
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
+ * @author Eric Bottard
  */
 public class DeploymentPropertiesUtility {
 
 	/**
 	 * Pattern used for parsing a String of comma-delimited key=value pairs.
 	 */
-	private static final Pattern DEPLOYMENT_PROPERTY_PATTERN = Pattern.compile(",\\s*module\\.[^\\.]+\\.[^=]+=");
+	private static final Pattern DEPLOYMENT_PROPERTIES_PATTERN = Pattern.compile(",\\s*module\\.[^\\.]+\\.[^=]+=");
+
 
 	/**
 	 * Based on the deployment properties for a {@link Stream}/{@link Job}, create an instance of
@@ -54,11 +56,20 @@ public class DeploymentPropertiesUtility {
 	public static ModuleDeploymentProperties createModuleDeploymentProperties(
 			Map<String, String> deploymentProperties, ModuleDescriptor descriptor) {
 		ModuleDeploymentProperties moduleDeploymentProperties = new ModuleDeploymentProperties();
-		for (String key : deploymentProperties.keySet()) {
-			String prefix = String.format("module.%s.", descriptor.getModuleName());
-			if (key.startsWith(prefix)) {
-				moduleDeploymentProperties.put(key.substring(prefix.length()),
-						deploymentProperties.get(key));
+		// first add properties that should apply to all modules unless overridden
+		String wildcardPrefix = "module.*.";
+		for (Map.Entry<String, String> prop : deploymentProperties.entrySet()) {
+			String key = prop.getKey();
+			if (key.startsWith(wildcardPrefix)) {
+				moduleDeploymentProperties.put(key.substring(wildcardPrefix.length()), prop.getValue());
+			}
+		}
+		// now add properties that are designated for this module explicitly
+		String modulePrefix = String.format("module.%s.", descriptor.getModuleName());
+		for (Map.Entry<String, String> prop : deploymentProperties.entrySet()) {
+			String key = prop.getKey();
+			if (key.startsWith(modulePrefix)) {
+				moduleDeploymentProperties.put(key.substring(modulePrefix.length()), prop.getValue());
 			}
 		}
 		return moduleDeploymentProperties;
@@ -76,7 +87,7 @@ public class DeploymentPropertiesUtility {
 	public static Map<String, String> parseDeploymentProperties(String s) {
 		Map<String, String> deploymentProperties = new HashMap<String, String>();
 		if (!StringUtils.isEmpty(s)) {
-			Matcher matcher = DEPLOYMENT_PROPERTY_PATTERN.matcher(s);
+			Matcher matcher = DEPLOYMENT_PROPERTIES_PATTERN.matcher(s);
 			int start = 0;
 			while (matcher.find()) {
 				addKeyValuePairAsProperty(s.substring(start, matcher.start()), deploymentProperties);
@@ -85,6 +96,22 @@ public class DeploymentPropertiesUtility {
 			addKeyValuePairAsProperty(s.substring(start), deploymentProperties);
 		}
 		return deploymentProperties;
+	}
+
+	/**
+	 * Returns a String representation of deployment properties as a comma separated list of key=value pairs.
+	 * @param properties the properties to format
+	 * @return the properties formatted as a String
+	 */
+	public static String formatDeploymentProperties(Map<String, String> properties) {
+		StringBuilder sb = new StringBuilder(15 * properties.size());
+		for (Map.Entry<String, String> pair : properties.entrySet()) {
+			if (sb.length() > 0) {
+				sb.append(",");
+			}
+			sb.append(pair.getKey()).append("=").append(pair.getValue());
+		}
+		return sb.toString();
 	}
 
 	/**

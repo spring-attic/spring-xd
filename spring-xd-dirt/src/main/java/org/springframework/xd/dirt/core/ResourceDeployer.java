@@ -13,6 +13,8 @@
 
 package org.springframework.xd.dirt.core;
 
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.xd.dirt.stream.StreamDefinition;
@@ -32,9 +34,9 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	 * Deploy a resource (job or stream).
 	 *
 	 * @param name name of the resource
-	 * @param properties deployment properties to use (may be null)
+	 * @param properties deployment properties to use (may not be null)
 	 */
-	void deploy(String name, String properties);
+	void deploy(String name, Map<String, String> properties);
 
 	/**
 	 * @return Iterable all definitions

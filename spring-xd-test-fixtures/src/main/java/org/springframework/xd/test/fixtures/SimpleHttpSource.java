@@ -97,6 +97,7 @@ public class SimpleHttpSource extends AbstractModuleFixture<SimpleHttpSource> {
 				}
 				catch (InterruptedException e1) {
 					Thread.currentThread().interrupt();
+					throw new IllegalStateException(e1);
 				}
 			}
 		}

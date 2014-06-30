@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.modules.metadata;
 import org.springframework.xd.module.options.mixins.HadoopConfigurationMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.types.Password;
 
 
 /**
@@ -36,7 +37,7 @@ public class FtpHdfsJobOptionsMetadata {
 
 	private String username;
 
-	private String password;
+	private Password password;
 
 	private long partitionResultsTimeout = 300000;
 
@@ -68,12 +69,12 @@ public class FtpHdfsJobOptionsMetadata {
 		this.username = username;
 	}
 
-	public String getPassword() {
+	public Password getPassword() {
 		return password;
 	}
 
 	@ModuleOption("the password for the FTP connection")
-	public void setPassword(String password) {
+	public void setPassword(Password password) {
 		this.password = password;
 	}
 
@@ -81,7 +82,7 @@ public class FtpHdfsJobOptionsMetadata {
 		return partitionResultsTimeout;
 	}
 
-	@ModuleOption("time (ms) that the partition handler will wait for results, default 5 mins")
+	@ModuleOption("time (ms) that the partition handler will wait for results")
 	public void setPartitionResultsTimeout(long partitionResultsTimeout) {
 		this.partitionResultsTimeout = partitionResultsTimeout;
 	}

@@ -30,6 +30,4 @@ public class XdProfiles {
 
 	public static final String SINGLENODE_PROFILE = "singlenode";
 
-	public static final String CLOUD_PROFILE = "cloud";
-
 }

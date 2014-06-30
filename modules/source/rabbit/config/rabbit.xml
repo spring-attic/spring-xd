@@ -4,10 +4,8 @@
 	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
-	xmlns:cloud="http://www.springframework.org/schema/cloud"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/cloud http://www.springframework.org/schema/cloud/spring-cloud.xsd
 		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
@@ -35,13 +33,9 @@
 
 	<int:channel id="output" />
 
-	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host}"
-		port="${port}" virtual-host="${vhost}"
+	<rabbit:connection-factory id="rabbitConnectionFactory"
+		addresses="${addresses}"
+		virtual-host="${vhost}"
 		username="${username}" password="${password}" />
-
-	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:rabbit-connection-factory id="rabbitConnectionFactory"
-			service-name="${xd.rabbit.service:rabbit}" />
-	</beans>
 
 </beans>

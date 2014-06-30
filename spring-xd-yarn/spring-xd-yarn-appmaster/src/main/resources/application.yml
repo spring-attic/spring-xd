@@ -12,6 +12,7 @@ spring:
                     - "spring-xd-yarn*.zip"
                     - "servers.yml"
                     - "modules.yml"
+                    - "custom-modules.zip"
 ---
 spring:
     profiles: admin
@@ -30,6 +31,7 @@ spring:
                 containerAppClasspath:
                     - "./${spring.xd.yarn.app.zip}/config"
                     - "./${spring.xd.yarn.app.zip}/lib/*"
+                    - "./custom-modules.zip"
 ---
 spring:
     profiles: container
@@ -49,3 +51,5 @@ spring:
                     - "./${spring.xd.yarn.app.zip}/config"
                     - "./${spring.xd.yarn.app.zip}/lib/*"
                     - "./${spring.xd.yarn.app.zip}/modules/processor/scripts"
+                    - "./custom-modules.zip/modules/processor/scripts"
+                    - "./custom-modules.zip"

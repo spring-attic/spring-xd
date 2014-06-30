@@ -65,7 +65,7 @@ public class TwitterSearchOptionsMetadata {
 		return resultType;
 	}
 
-	@ModuleOption("result type: recent, popular, or mixed (default is mixed)")
+	@ModuleOption("result type: recent, popular, or mixed")
 	public void setResultType(ResultType resultType) {
 		this.resultType = resultType;
 	}
@@ -75,7 +75,7 @@ public class TwitterSearchOptionsMetadata {
 		return includeEntities;
 	}
 
-	@ModuleOption("include entities (default is true)")
+	@ModuleOption("whether to include entities such as urls, media and hashtags")
 	public void setIncludeEntities(boolean includeEntities) {
 		this.includeEntities = includeEntities;
 	}

@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -44,6 +45,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
@@ -59,6 +61,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @author Florent Biville
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -232,5 +235,33 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 						MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andExpect(
 						jsonPath("$[0].message", Matchers.is("Batch Job with the name mydupejob already exists")));
+	}
+
+	@Test
+	public void testCreatedUndeployedJobIsExposedAsUndeployed() throws Exception {
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).param("deploy",
+						"false")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+
+		mockMvc.perform(get("/jobs/definitions/job1")
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status", equalTo(DeploymentUnitStatus.State.undeployed.toString())));
+
+	}
+
+	@Test
+	public void testCreatedAndDeployedJobIsExposedAsDeployed() throws Exception {
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).param("deploy",
+						"true")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+
+		mockMvc.perform(get("/jobs/definitions/job1")
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status", equalTo(DeploymentUnitStatus.State.deploying.toString())));
+
 	}
 }

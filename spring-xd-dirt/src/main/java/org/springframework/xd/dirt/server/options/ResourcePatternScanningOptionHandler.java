@@ -85,12 +85,16 @@ public abstract class ResourcePatternScanningOptionHandler extends OptionHandler
 	}
 
 	private void init(String glob, String... excludes) throws IOException {
-		int protocolColon = glob.indexOf(':');
-		String withoutProtocol = protocolColon != -1 ? glob.substring(protocolColon + 1) : glob;
+		String resolved = CommandLinePropertySourceOverridingListener.getCurrentEnvironment().resolvePlaceholders(glob);
+		int protocolColon = resolved.indexOf(':');
+		String withoutProtocol = protocolColon != -1 ? resolved.substring(protocolColon + 1) : resolved;
 		Pattern capturing = Pattern.compile(".*" + withoutProtocol.replace("*", "([^/]*)") + ".*");
 
 		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-		for (Resource r : resolver.getResources(glob)) {
+		for (Resource r : resolver.getResources(resolved)) {
+			if (!shouldConsider(r)) {
+				continue;
+			}
 			String path = r.getURL().toString();
 			Matcher matcher = capturing.matcher(path);
 			if (!matcher.matches()) {
@@ -100,6 +104,14 @@ public abstract class ResourcePatternScanningOptionHandler extends OptionHandler
 			possibleValues.add(matcher.group(1));
 		}
 
+	}
+
+	/**
+	 * Whether the matched Spring resource should even be considered for inclusion in the result set.
+	 * Default implementation just returns true. 
+	 */
+	protected boolean shouldConsider(Resource r) {
+		return true;
 	}
 
 	protected void exclude(String... excludes) {

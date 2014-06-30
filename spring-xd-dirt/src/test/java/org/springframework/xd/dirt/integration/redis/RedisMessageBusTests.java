@@ -25,11 +25,13 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -56,6 +58,8 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 	@Rule
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
+	private RedisTemplate<String, Object> redisTemplate;
+
 	@Override
 	protected MessageBus getMessageBus() {
 		if (testMessageBus == null) {
@@ -70,6 +74,11 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 		TimeUnit.SECONDS.sleep(2); //TODO remove timing issue
 
 		super.testSendAndReceivePubSub();
+	}
+
+	@Before
+	public void setup() {
+		createTemplate().boundListOps("queue.direct.0").trim(1, 0);
 	}
 
 	@Test
@@ -313,14 +322,23 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 		props.put("backOffMultiplier", "1.0");
 		bus.bindConsumer("retry.0", new DirectChannel(), props); // no subscriber
 		channel.send(new GenericMessage<String>("foo"));
+		RedisTemplate<String, Object> template = createTemplate();
+		Object rightPop = template.boundListOps("ERRORS:retry.0").rightPop(5, TimeUnit.SECONDS);
+		assertNotNull(rightPop);
+		assertThat(new String((byte[]) rightPop), containsString("foo"));
+	}
+
+	private RedisTemplate<String, Object> createTemplate() {
+		if (this.redisTemplate != null) {
+			return this.redisTemplate;
+		}
 		RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
 		template.setConnectionFactory(this.redisAvailableRule.getResource());
 		template.setKeySerializer(new StringRedisSerializer());
 		template.setEnableDefaultSerializer(false);
 		template.afterPropertiesSet();
-		Object rightPop = template.boundListOps("ERRORS:retry.0").rightPop(5, TimeUnit.SECONDS);
-		assertNotNull(rightPop);
-		assertThat(new String((byte[]) rightPop), containsString("foo"));
+		this.redisTemplate = template;
+		return template;
 	}
 
 	@Override
@@ -331,6 +349,29 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 	@Override
 	protected String getPubSubEndpointRouting(AbstractEndpoint endpoint) {
 		return TestUtils.getPropertyValue(endpoint, "handler.delegate.topicExpression", Expression.class).getExpressionString();
+	}
+
+	@Override
+	protected Object receive(String queue, boolean expectNull) throws Exception {
+		RedisTemplate<String, Object> template = createTemplate();
+		byte[] bytes = (byte[]) template.boundListOps("queue." + queue).rightPop(50, TimeUnit.MILLISECONDS);
+		if (bytes == null) {
+			return null;
+		}
+		ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+		int headerCount = byteBuffer.get();
+		for (int i = 0; i < headerCount; i++) {
+			int len = byteBuffer.get();
+			byteBuffer.position(byteBuffer.position() + len);
+			len = byteBuffer.get();
+			byteBuffer.position(byteBuffer.position() + len);
+		}
+		return new String(bytes, byteBuffer.position(), byteBuffer.remaining(), "UTF-8");
+	}
+
+	@Override
+	protected void busUnbindLatency() throws InterruptedException {
+		Thread.sleep(3000); // needed for Redis see INT-3442
 	}
 
 }

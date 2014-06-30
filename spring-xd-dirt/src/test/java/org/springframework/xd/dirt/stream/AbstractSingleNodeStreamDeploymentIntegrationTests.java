@@ -18,7 +18,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -48,6 +51,7 @@ import org.springframework.xd.dirt.config.TestMessageBusInjection;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
@@ -204,9 +208,24 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	 * @return number of bindings to the message bus
 	 */
 	private int getMessageBusBindingCount() {
+		return getMessageBusBindings().size();
+	}
+
+	List<Binding> getMessageBusBindingsForStream(String streamName) {
+		List<Binding> bindings = new ArrayList<Binding>();
+		for (Binding binding : getMessageBusBindings()) {
+			if (binding.getName().startsWith(streamName + ".")) {
+				bindings.add(binding);
+			}
+		}
+		return bindings;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<Binding> getMessageBusBindings() {
 		MessageBus bus = testMessageBus != null ? testMessageBus.getMessageBus() : integrationSupport.messageBus();
 		DirectFieldAccessor accessor = new DirectFieldAccessor(bus);
-		return ((List<?>) accessor.getPropertyValue("bindings")).size();
+		return ((List<Binding>) accessor.getPropertyValue("bindings"));
 	}
 
 	@Test
@@ -392,8 +411,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	protected void verifyDynamicProperties(MessageBus bus, String string) {
 	}
 
-	protected String onDemandProperties() {
-		return null;
+	protected Map<String, String> onDemandProperties() {
+		return Collections.emptyMap();
 	}
 
 	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {

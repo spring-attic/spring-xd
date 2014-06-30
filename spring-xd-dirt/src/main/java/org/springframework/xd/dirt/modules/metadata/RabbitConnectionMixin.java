@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.modules.metadata;
 
 import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.Range;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 
@@ -25,18 +24,18 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Factors out options for the typical connection setup to RabbitMQ.
  * 
  * @author Eric Bottard
+ * @author Gary Russell
+ * @author Glenn Renfro
  */
 public class RabbitConnectionMixin {
-
-	private String host = "localhost";
-
-	private int port = 5672;
 
 	private String vhost = "/";
 
 	private String username = "guest";
 
 	private String password = "guest";
+
+	private String addresses = "localhost:5672";
 
 	@NotBlank
 	public String getUsername() {
@@ -58,31 +57,20 @@ public class RabbitConnectionMixin {
 		this.password = password;
 	}
 
-	@NotBlank
-	public String getHost() {
-		return host;
+	public String getAddresses() {
+		return this.addresses;
 	}
 
-	@ModuleOption("the host (or IP Address) to connect to")
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	@Range(min = 1, max = 65535)
-	public int getPort() {
-		return port;
-	}
-
-	@ModuleOption("the port to connect to")
-	public void setPort(int port) {
-		this.port = port;
+	@ModuleOption("a comma separated list of 'host[:port]' addresses")
+	public void setAddresses(String addresses) {
+		this.addresses = addresses;
 	}
 
 	public String getVhost() {
 		return vhost;
 	}
 
-	@ModuleOption("the RabbitMQ virtual host to use")
+	@ModuleOption(value = "the RabbitMQ virtual host to use", hidden = true)
 	public void setVhost(String vhost) {
 		this.vhost = vhost;
 	}

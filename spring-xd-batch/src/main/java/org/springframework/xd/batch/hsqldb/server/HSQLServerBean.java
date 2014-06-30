@@ -189,20 +189,24 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 			server.signalCloseAllServerConnections();
 			server.stop();
 			server.shutdown();
-			// Wait until the server shuts down or break after 5 seconds.
-			long start = System.currentTimeMillis();
-			long end = start + 5 * 1000;
-			while (server.getState() != ServerConstants.SERVER_STATE_SHUTDOWN) {
+			// Wait until the server shuts down or timeout after 5 seconds.
+			int attempts = 0;
+			while (server.getState() != ServerConstants.SERVER_STATE_SHUTDOWN
+					&& attempts++ < 50) {
 				try {
-					if (System.currentTimeMillis() > end) {
-						break;
-					}
 					Thread.sleep(100);
 				}
 				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					break;
 				}
 			}
-			logger.info("HSQL Server Shutdown completed");
+			if (server.getState() == ServerConstants.SERVER_STATE_SHUTDOWN) {
+				logger.info("HSQL Server Shutdown completed.");
+			}
+			else {
+				logger.warn("HSQL Server Shutdown timed out or was interrupted. Server State: " + server.getState());
+			}
 			server = null;
 		}
 	}

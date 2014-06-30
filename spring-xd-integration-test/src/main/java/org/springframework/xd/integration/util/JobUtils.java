@@ -101,6 +101,7 @@ public class JobUtils {
 				Thread.sleep(1000);
 			}
 			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				throw new IllegalStateException(e.getMessage(), e);
 			}
 			result = isJobDeployed(jobName, adminServer);
@@ -126,7 +127,7 @@ public class JobUtils {
 		while (resourceIter.hasNext()) {
 			JobDefinitionResource resource = resourceIter.next();
 			if (jobName.equals(resource.getName())) {
-				if (resource.isDeployed()) {
+				if ("deployed".equals(resource.getStatus())) {
 					result = true;
 					break;
 				}

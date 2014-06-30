@@ -122,6 +122,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	 */
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new SetBuilder()
 			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
+			.add(BusProperties.DIRECT_BINDING_ALLOWED)
 			.build();
 
 	/**
@@ -170,6 +171,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		MessageProducerSupport adapter = createInboundAdapter(accessor, queueName);
 		doRegisterConsumer(name, name + (partitionIndex >= 0 ? "-" + partitionIndex : ""), moduleInputChannel, adapter,
 				accessor);
+		bindExistingProducerDirectlyIfPossible(name, moduleInputChannel);
 	}
 
 	private MessageProducerSupport createInboundAdapter(RedisPropertiesAccessor accessor, String queueName) {
@@ -212,7 +214,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		adapter.setOutputChannel(bridgeInputChannel);
 		adapter.setBeanName("inbound." + bindingName);
 		adapter.afterPropertiesSet();
-		Binding consumerBinding = Binding.forConsumer(adapter, moduleInputChannel);
+		Binding consumerBinding = Binding.forConsumer(bindingName, adapter, moduleInputChannel, properties);
 		addBinding(consumerBinding);
 		ReceivingHandler convertingBridge = new ReceivingHandler();
 		convertingBridge.setOutputChannel(moduleInputChannel);
@@ -290,21 +292,23 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			validateProducerProperties(name, properties, SUPPORTED_PRODUCER_PROPERTIES);
 		}
 		RedisPropertiesAccessor accessor = new RedisPropertiesAccessor(properties);
-		String partitionKeyExtractorClass = accessor.getPartitionKeyExtractorClass();
-		Expression partitionKeyExpression = accessor.getPartitionKeyExpression();
-		RedisQueueOutboundChannelAdapter queue;
-		String queueName = "queue." + name;
-		if (partitionKeyExpression == null && !StringUtils.hasText(partitionKeyExtractorClass)) {
-			queue = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
+		if (!bindNewProducerDirectlyIfPossible(name, (SubscribableChannel) moduleOutputChannel, accessor)) {
+			String partitionKeyExtractorClass = accessor.getPartitionKeyExtractorClass();
+			Expression partitionKeyExpression = accessor.getPartitionKeyExpression();
+			RedisQueueOutboundChannelAdapter queue;
+			String queueName = "queue." + name;
+			if (partitionKeyExpression == null && !StringUtils.hasText(partitionKeyExtractorClass)) {
+				queue = new RedisQueueOutboundChannelAdapter(queueName, this.connectionFactory);
+			}
+			else {
+				queue = new RedisQueueOutboundChannelAdapter(
+						parser.parseExpression(buildPartitionRoutingExpression(queueName)), this.connectionFactory);
+			}
+			queue.setIntegrationEvaluationContext(this.evaluationContext);
+			queue.setBeanFactory(this.getBeanFactory());
+			queue.afterPropertiesSet();
+			doRegisterProducer(name, moduleOutputChannel, queue, accessor);
 		}
-		else {
-			queue = new RedisQueueOutboundChannelAdapter(
-					parser.parseExpression(buildPartitionRoutingExpression(queueName)), this.connectionFactory);
-		}
-		queue.setIntegrationEvaluationContext(this.evaluationContext);
-		queue.setBeanFactory(this.getBeanFactory());
-		queue.afterPropertiesSet();
-		doRegisterProducer(name, moduleOutputChannel, queue, accessor);
 	}
 
 	@Override
@@ -331,7 +335,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		consumer.setBeanFactory(this.getBeanFactory());
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
-		Binding producerBinding = Binding.forProducer(moduleOutputChannel, consumer);
+		Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer, properties);
 		addBinding(producerBinding);
 		producerBinding.start();
 	}

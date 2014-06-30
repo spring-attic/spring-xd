@@ -16,7 +16,9 @@ package org.springframework.xd.dirt.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -42,7 +44,7 @@ import org.springframework.xd.test.rabbit.RabbitTestSupport;
  * @author Gary Russell
  */
 public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
-		AbstractSingleNodeStreamDeploymentIntegrationTests {
+		AbstractDistributedTransportSingleNodeStreamDeploymentIntegrationTests {
 
 	@ClassRule
 	public static RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
@@ -86,8 +88,8 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 	}
 
 	@Override
-	protected String onDemandProperties() {
-		return "module.router.producer.deliveryMode=NON_PERSISTENT";
+	protected Map<String, String> onDemandProperties() {
+		return Collections.singletonMap("module.router.producer.deliveryMode", "NON_PERSISTENT");
 	}
 
 	@Override

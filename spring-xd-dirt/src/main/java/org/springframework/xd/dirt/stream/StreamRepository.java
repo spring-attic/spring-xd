@@ -16,14 +16,16 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.springframework.xd.dirt.core.DeploymentStatusRepository;
 import org.springframework.xd.store.DomainRepository;
 
 
 /**
  * A repository for persisting {@link Stream}s.
- * 
+ *
  * @author Eric Bottard
  */
-public interface StreamRepository extends DomainRepository<Stream, String> {
+public interface StreamRepository extends DomainRepository<Stream, String>,
+		DeploymentStatusRepository<Stream, String> {
 
 }

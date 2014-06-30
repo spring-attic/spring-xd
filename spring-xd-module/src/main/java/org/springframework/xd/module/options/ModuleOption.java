@@ -30,6 +30,8 @@ public class ModuleOption {
 
 	private Object defaultValue;
 
+	private boolean hidden = false;
+
 	private Class<?> type;
 
 
@@ -46,6 +48,16 @@ public class ModuleOption {
 	public ModuleOption withDefaultValue(Object defaultValue) {
 		this.defaultValue = defaultValue;
 		return this;
+	}
+
+	public ModuleOption hidden(boolean hidden) {
+		this.hidden = hidden;
+		return this;
+	}
+
+
+	public boolean isHidden() {
+		return hidden;
 	}
 
 	public String getName() {

@@ -45,4 +45,10 @@ public @interface ModuleOption {
 	 */
 	String defaultValue() default NO_DEFAULT;
 
+	/**
+	 * Whether this option is considered "expert" or "infrastructure" and should typically not be presented to user.
+	 */
+	boolean hidden() default false;
+
+
 }

@@ -188,6 +188,7 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 				zkServerThread = null;
 			}
 			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				logger.warn("Interrupted while waiting for embedded ZooKeeper to exit");
 				// abandoning zk thread
 				zkServerThread = null;

@@ -39,6 +39,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamDefinition;
@@ -119,6 +120,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 				Stat deployStat = client.checkExists().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, id));
 				if (deployStat != null) {
 					stream.setStartedAt(new Date(deployStat.getCtime()));
+					stream.setStatus(getDeploymentStatus(id));
 					return stream;
 				}
 			}
@@ -177,8 +179,20 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 		logger.info("Undeploying stream {}", id);
 
 		String streamDeploymentPath = Paths.build(Paths.STREAM_DEPLOYMENTS, id);
+		String streamModuleDeploymentPath = Paths.build(streamDeploymentPath, Paths.MODULES);
 		CuratorFramework client = zkConnection.getClient();
 		Deque<String> paths = new ArrayDeque<String>();
+
+		try {
+			client.setData().forPath(
+					Paths.build(Paths.STREAM_DEPLOYMENTS, id, Paths.STATUS),
+					ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(
+							DeploymentUnitStatus.State.undeploying).toMap()));
+		}
+		catch (Exception e) {
+			logger.warn("Exception while transitioning stream {} state to {}", id,
+					DeploymentUnitStatus.State.undeploying, e);
+		}
 
 		// Place all module deployments into a tree keyed by the
 		// ZK transaction id. The ZK transaction id maintains
@@ -187,9 +201,9 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 		// which they were deployed.
 		Map<Long, String> txMap = new TreeMap<Long, String>();
 		try {
-			List<String> deployments = client.getChildren().forPath(streamDeploymentPath);
+			List<String> deployments = client.getChildren().forPath(streamModuleDeploymentPath);
 			for (String deployment : deployments) {
-				String path = new StreamDeploymentsPath(Paths.build(streamDeploymentPath, deployment)).build();
+				String path = new StreamDeploymentsPath(Paths.build(streamModuleDeploymentPath, deployment)).build();
 				Stat stat = client.checkExists().forPath(path);
 				Assert.notNull(stat);
 				txMap.put(stat.getCzxid(), path);
@@ -216,18 +230,18 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 		}
 
 		try {
-			client.delete().forPath(streamDeploymentPath);
+			client.delete().deletingChildrenIfNeeded().forPath(streamDeploymentPath);
 		}
 		catch (KeeperException.NotEmptyException e) {
 			List<String> children = new ArrayList<String>();
 			try {
-				children.addAll(client.getChildren().forPath(streamDeploymentPath));
+				children.addAll(client.getChildren().forPath(streamModuleDeploymentPath));
 			}
 			catch (Exception ex) {
 				children.add("Could not load list of children due to " + ex);
 			}
 			throw new IllegalStateException(String.format(
-					"The following children were not deleted from %s: %s", streamDeploymentPath, children), e);
+					"The following children were not deleted from %s: %s", streamModuleDeploymentPath, children), e);
 		}
 		catch (Exception e) {
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
@@ -280,6 +294,24 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			results.add(stream);
 		}
 		return results;
+	}
+
+	@Override
+	public DeploymentUnitStatus getDeploymentStatus(String id) {
+		String path = Paths.build(Paths.STREAM_DEPLOYMENTS, id, Paths.STATUS);
+		byte[] statusBytes = null;
+
+		try {
+			statusBytes = zkConnection.getClient().getData().forPath(path);
+		}
+		catch (Exception e) {
+			// missing node means this stream has not been deployed
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
+		}
+
+		return (statusBytes == null)
+				? new DeploymentUnitStatus(DeploymentUnitStatus.State.undeployed)
+				: new DeploymentUnitStatus(ZooKeeperUtils.bytesToMap(statusBytes));
 	}
 
 }

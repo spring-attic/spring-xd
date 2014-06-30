@@ -20,8 +20,8 @@ import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-
 import org.apache.hadoop.fs.Path;
+
 import org.springframework.data.hadoop.configuration.ConfigurationFactoryBean;
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
 
@@ -42,7 +42,7 @@ public class HadoopFileSystemTestSupport extends AbstractExternalResourceTestSup
 	protected void obtainResource() throws Exception {
 		ConfigurationFactoryBean cfb = new ConfigurationFactoryBean();
 		Properties props = new Properties();
-		props.setProperty("fs.defaultFS", System.getProperty("spring.hadoop.fsUri"));
+		props.setProperty("fs.defaultFS", System.getProperty("fsUri"));
 		cfb.setProperties(props);
 		cfb.setRegisterUrlHandler(false);
 		cfb.afterPropertiesSet();

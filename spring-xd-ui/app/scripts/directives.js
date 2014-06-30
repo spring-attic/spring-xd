@@ -19,7 +19,7 @@
  *
  * @author Gunnar Hillert
  */
-define(['angular'], function(angular) {
+define(['angular', 'xregexp'], function(angular) {
   'use strict';
   angular.module('xdAdmin.directives', [])
     .directive('xdParseUrls', [function() {
@@ -33,7 +33,7 @@ define(['angular'], function(angular) {
           var originalValue = scope.contextValue.value;
           var newHtml = originalValue;
           var matches;
-          
+
           if (originalValue.substring) {
             matches = originalValue.match(urlPattern);
           }
@@ -44,6 +44,27 @@ define(['angular'], function(angular) {
           }
           element.html(newHtml);
         }
+      };
+    }])
+    .directive('xdFormatStream', [function() {
+      var mainRegex = new XRegExp('(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)([\\p{N}|\\p{L}|\\p{Po}]*)', 'gi');
+      var subRegex = new XRegExp('\\P{C}', 'gi');
+      var linkFunction = function(scope, element) {
+        scope.$watch('xdFormatStream', function(originalStreamDefinition){
+          if(originalStreamDefinition) {
+            var result = XRegExp.replace(originalStreamDefinition, mainRegex, function(match, p1, p2, p3) {
+              return p1 + XRegExp.replace(p3, subRegex,'*');
+            });
+            element.html(result);
+          }
+        });
+      };
+      return {
+        restrict: 'A',
+        scope: {
+          xdFormatStream: '='
+        },
+        link: linkFunction,
       };
     }])
     .directive('integer', function() {

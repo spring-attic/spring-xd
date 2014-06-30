@@ -16,14 +16,16 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.springframework.xd.dirt.core.DeploymentStatusRepository;
 import org.springframework.xd.store.DomainRepository;
 
 
 /**
- * A repoository for persisting {@link Job} instances.
- * 
+ * A repository for persisting {@link Job} instances.
+ *
  * @author Eric Bottard
  */
-public interface JobRepository extends DomainRepository<Job, String> {
+public interface JobRepository extends DomainRepository<Job, String>,
+		DeploymentStatusRepository<Job, String> {
 
 }

@@ -43,7 +43,7 @@ define([], function () {
                   $scope.jobDefinition.parameters.push({
                     name: option.name,
                     value: option.defaultValue ? option.defaultValue : '',
-                    type: 'string',
+                    type: option.type,
                     description: option.description
                   });
                 }

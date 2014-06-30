@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,18 +29,17 @@ import org.springframework.util.Assert;
  *
  * @author Jennifer Hickey
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class Binding implements Lifecycle {
 
-	/**
-	 *
-	 */
 	public static final String PRODUCER = "producer";
 
-	/**
-	 *
-	 */
 	public static final String CONSUMER = "consumer";
+
+	public static final String DIRECT = "direct";
+
+	private final String name;
 
 	private final MessageChannel channel;
 
@@ -48,20 +47,36 @@ public class Binding implements Lifecycle {
 
 	private final String type;
 
-	private Binding(MessageChannel channel, AbstractEndpoint endpoint, String type) {
+	private final AbstractBusPropertiesAccessor properties;
+
+	private Binding(String name, MessageChannel channel, AbstractEndpoint endpoint, String type,
+			AbstractBusPropertiesAccessor properties) {
 		Assert.notNull(channel, "channel must not be null");
 		Assert.notNull(endpoint, "endpoint must not be null");
+		this.name = name;
 		this.channel = channel;
 		this.endpoint = endpoint;
 		this.type = type;
+		this.properties = properties;
 	}
 
-	public static Binding forConsumer(AbstractEndpoint adapterFromBus, MessageChannel moduleInputChannel) {
-		return new Binding(moduleInputChannel, adapterFromBus, CONSUMER);
+	public static Binding forConsumer(String name, AbstractEndpoint adapterFromBus, MessageChannel moduleInputChannel,
+			AbstractBusPropertiesAccessor properties) {
+		return new Binding(name, moduleInputChannel, adapterFromBus, CONSUMER, properties);
 	}
 
-	public static Binding forProducer(MessageChannel moduleOutputChannel, AbstractEndpoint adapterToBus) {
-		return new Binding(moduleOutputChannel, adapterToBus, PRODUCER);
+	public static Binding forProducer(String name, MessageChannel moduleOutputChannel, AbstractEndpoint adapterToBus,
+			AbstractBusPropertiesAccessor properties) {
+		return new Binding(name, moduleOutputChannel, adapterToBus, PRODUCER, properties);
+	}
+
+	public static Binding forDirectProducer(String name, MessageChannel moduleOutputChannel,
+			AbstractEndpoint adapter, AbstractBusPropertiesAccessor properties) {
+		return new Binding(name, moduleOutputChannel, adapter, DIRECT, properties);
+	}
+
+	public String getName() {
+		return name;
 	}
 
 	public MessageChannel getChannel() {
@@ -72,8 +87,12 @@ public class Binding implements Lifecycle {
 		return endpoint;
 	}
 
-	protected String getType() {
+	public String getType() {
 		return type;
+	}
+
+	public AbstractBusPropertiesAccessor getPropertiesAccessor() {
+		return properties;
 	}
 
 	@Override
@@ -93,7 +112,8 @@ public class Binding implements Lifecycle {
 
 	@Override
 	public String toString() {
-		return type + "Binding[channel=" + channel + ", endpoint=" + endpoint.getComponentName() + "]";
+		return type + " Binding [name=" + name + ", channel=" + channel + ", endpoint=" + endpoint.getComponentName()
+				+ "]";
 	}
 
 }

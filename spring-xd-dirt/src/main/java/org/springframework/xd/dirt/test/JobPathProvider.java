@@ -17,22 +17,32 @@
 package org.springframework.xd.dirt.test;
 
 
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
- * Provides path information for job definitions, deployments, and
- * job module deployments.
+ * Provides path information for job definitions, deployments.
  *
  * @author David Turanski
  * @author Mark Fisher
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 public class JobPathProvider implements DeploymentPathProvider {
 
 	/**
-	 * Construct a JobPathProvider.
+	 * Job instance repository
 	 */
-	public JobPathProvider() {
+	private final JobRepository jobRepository;
+
+	/**
+	 * Construct a JobPathProvider.
+	 *
+	 * @param jobRepository the job instance repository
+	 */
+	public JobPathProvider(JobRepository jobRepository) {
+		this.jobRepository = jobRepository;
 	}
 
 	/**
@@ -47,17 +57,7 @@ public class JobPathProvider implements DeploymentPathProvider {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String getDeploymentPath(String jobName) {
-		return Paths.build(Paths.JOB_DEPLOYMENTS, jobName);
+	public DeploymentUnitStatus getDeploymentStatus(String jobName) {
+		return this.jobRepository.getDeploymentStatus(jobName);
 	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public int getDeploymentPathChildrenCount(String jobName) {
-		// jobs always have one module
-		return 1;
-	}
-
 }

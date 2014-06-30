@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -38,7 +41,7 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
  * Handles all Job related interactions.
- * 
+ *
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
@@ -74,7 +77,7 @@ public class JobsController extends
 
 	/**
 	 * Send the request to launch Job. Job has to be deployed first.
-	 * 
+	 *
 	 * @param name the name of the job
 	 * @param jobParameters the job parameters in JSON string
 	 */
@@ -94,7 +97,23 @@ public class JobsController extends
 	@ResponseBody
 	public PagedResources<JobDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<JobDefinition> assembler) {
-		return listValues(pageable, assembler);
+
+		PagedResources<JobDefinitionResource> pagedResources = listValues(pageable, assembler);
+
+		final List<JobDefinitionResource> maskedContents = new ArrayList<JobDefinitionResource>(
+				pagedResources.getContent().size());
+
+		for (JobDefinitionResource jobDefinitionResource : pagedResources.getContent()) {
+			jobDefinitionResource.getDefinition();
+			JobDefinitionResource maskedJobDefinitionResource =
+					new JobDefinitionResource(jobDefinitionResource.getName(),
+							PasswordUtils.maskPasswordsInDefinition(jobDefinitionResource.getDefinition()));
+			maskedJobDefinitionResource.setStatus(jobDefinitionResource.getStatus());
+			maskedContents.add(maskedJobDefinitionResource);
+		}
+
+		return new PagedResources<JobDefinitionResource>(maskedContents, pagedResources.getMetadata(),
+				pagedResources.getLinks());
 	}
 
 	@Override

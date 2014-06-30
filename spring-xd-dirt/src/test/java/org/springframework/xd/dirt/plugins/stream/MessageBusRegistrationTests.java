@@ -88,6 +88,7 @@ public class MessageBusRegistrationTests {
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
+				throw new IllegalStateException("interrupted while waiting for ZK connection");
 			}
 		}
 		streamPlugin = new StreamPlugin(bus, zkConnection);

@@ -22,7 +22,7 @@ import org.springframework.hateoas.PagedResources;
 
 /**
  * Represents a Job Definition.
- * 
+ *
  * @author Glenn Renfro
  * @since 1.0
  */
@@ -53,7 +53,7 @@ public class JobDefinitionResource extends DeployableResource {
 
 	/**
 	 * Dedicated subclass to workaround type erasure.
-	 * 
+	 *
 	 * @author Eric Bottard
 	 */
 	public static class Page extends PagedResources<JobDefinitionResource> {

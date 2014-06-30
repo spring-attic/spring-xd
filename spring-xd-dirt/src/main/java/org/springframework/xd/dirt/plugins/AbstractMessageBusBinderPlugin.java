@@ -348,7 +348,12 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		@Override
 		public void onDisconnect(CuratorFramework client) {
 			taps.getListenable().removeListener(tapListener);
-			taps.clear();
+			try {
+				taps.close();
+			}
+			catch (Exception e) {
+				throw ZooKeeperUtils.wrapThrowable(e);
+			}
 		}
 
 		@Override

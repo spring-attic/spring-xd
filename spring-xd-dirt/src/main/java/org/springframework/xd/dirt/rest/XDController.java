@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.Collections;
 import java.util.Iterator;
 
 import org.springframework.data.domain.Page;
@@ -33,11 +34,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.stream.AbstractDeployer;
 import org.springframework.xd.dirt.stream.AbstractInstancePersistingDeployer;
 import org.springframework.xd.dirt.stream.BaseInstance;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
+import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.rest.client.domain.DeployableResource;
 import org.springframework.xd.rest.client.domain.NamedResource;
 
@@ -142,7 +145,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
 	public void deploy(@PathVariable("name") String name, @RequestParam(required = false) String properties) {
-		deployer.deploy(name, properties);
+		deployer.deploy(name, DeploymentPropertiesUtility.parseDeploymentProperties(properties));
 	}
 
 	/**
@@ -158,7 +161,8 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 		if (definition == null) {
 			throw new NoSuchDefinitionException(name, "There is no definition named '%s'");
 		}
-		return resourceAssemblerSupport.toResource(definition);
+		R resource = resourceAssemblerSupport.toResource(definition);
+		return enhanceWithDeployment(definition, resource);
 	}
 
 	/**
@@ -187,19 +191,17 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 			D first = page.getContent().get(0);
 			D last = page.getContent().get(page.getNumberOfElements() - 1);
 			Iterator<BaseInstance<D>> deployedInstances = ipDeployer.deploymentInfo(first.getName(), last.getName()).iterator();
-			String instanceName = deployedInstances.hasNext() ? deployedInstances.next().getDefinition().getName()
-					: null;
-			// There are >= more definitions than there are instances, and they're both
-			// sorted
+			BaseInstance<D> instance = deployedInstances.hasNext() ? deployedInstances.next() : null;
+
+			// There are >= more definitions than there are instances, and they're both sorted
 			for (R definitionResource : result) {
-				// The following may check equality against null
+				String instanceName = (instance != null) ? instance.getDefinition().getName() : null;
 				if (definitionResource.getName().equals(instanceName)) {
-					((DeployableResource) definitionResource).setDeployed(true);
-					instanceName = deployedInstances.hasNext() ? deployedInstances.next().getDefinition().getName()
-							: null;
+					((DeployableResource) definitionResource).setStatus(instance.getStatus().getState().toString());
+					instance = deployedInstances.hasNext() ? deployedInstances.next() : null;
 				}
 				else {
-					((DeployableResource) definitionResource).setDeployed(false);
+					((DeployableResource) definitionResource).setStatus(DeploymentUnitStatus.State.undeployed.toString());
 				}
 			}
 			Assert.state(!deployedInstances.hasNext(), "Not all instances were looked at");
@@ -220,12 +222,25 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 		final D moduleDefinition = createDefinition(name, definition);
 		final D savedModuleDefinition = deployer.save(moduleDefinition);
 		if (deploy) {
-			deployer.deploy(name, null);
+			deployer.deploy(name, Collections.<String, String> emptyMap());
 		}
 		final R result = resourceAssemblerSupport.toResource(savedModuleDefinition);
 		return result;
 	}
 
+	private ResourceSupport enhanceWithDeployment(D definition, R resource) {
+		if (deployer instanceof AbstractInstancePersistingDeployer) {
+			@SuppressWarnings("unchecked")
+			AbstractInstancePersistingDeployer<D, BaseInstance<D>> ipDeployer = (AbstractInstancePersistingDeployer<D, BaseInstance<D>>) deployer;
+			BaseInstance<D> deployedInstance = ipDeployer.deploymentInfo(definition.getName());
+			String status = (deployedInstance != null) ? deployedInstance.getStatus().getState().toString()
+					: DeploymentUnitStatus.State.undeployed.toString();
+			((DeployableResource) resource).setStatus(status);
+		}
+		return resource;
+	}
+
 	protected abstract D createDefinition(String name, String definition);
+
 
 }

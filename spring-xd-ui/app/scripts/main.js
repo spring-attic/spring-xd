@@ -31,7 +31,8 @@ require.config({
     ngGrowl: '../lib/angular-growl/angular-growl',
     ngAnimate: '../lib/angular-animate/angular-animate',
     angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
-    highlightjs: '../lib/highlightjs/highlight.pack'
+    highlightjs: '../lib/highlightjs/highlight.pack',
+    xregexp: '../lib/xregexp/xregexp-all'
   },
   shim: {
     angular: {
@@ -55,6 +56,9 @@ require.config({
     },
     'ngGrowl': {
       deps: ['angular', 'ngAnimate']
+    },
+    'xregexp': {
+      deps: []
     },
     'angularHighlightjs': {
       deps: ['angular', 'highlightjs']

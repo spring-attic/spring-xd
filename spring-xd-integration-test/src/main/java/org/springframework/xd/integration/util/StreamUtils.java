@@ -177,6 +177,7 @@ public class StreamUtils {
 				Thread.sleep(1000);
 			}
 			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				throw new IllegalStateException(e.getMessage(), e);
 			}
 			result = isStreamDeployed(streamName, adminServer);
@@ -202,7 +203,7 @@ public class StreamUtils {
 		while (resourceIter.hasNext()) {
 			StreamDefinitionResource resource = resourceIter.next();
 			if (streamName.equals(resource.getName())) {
-				if (resource.isDeployed()) {
+				if ("deployed".equals(resource.getStatus())) {
 					result = true;
 					break;
 				}

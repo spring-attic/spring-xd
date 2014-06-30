@@ -30,7 +30,8 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSingleNodeStreamDeploymentIntegrationTests {
+public class RedisSingleNodeStreamDeploymentIntegrationTests extends
+		AbstractDistributedTransportSingleNodeStreamDeploymentIntegrationTests {
 
 	@ClassRule
 	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();

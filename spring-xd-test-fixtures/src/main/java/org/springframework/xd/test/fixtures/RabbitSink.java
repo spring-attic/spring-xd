@@ -16,7 +16,11 @@
 
 package org.springframework.xd.test.fixtures;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -28,37 +32,31 @@ public class RabbitSink extends AbstractModuleFixture<RabbitSink> {
 
 	public static final String DEFAULT_EXCHANGE = "RabbitSource";
 
-	public static final String DEFAULT_HOST = "localhost";
-
 	public static final String DEFAULT_ROUTING_KEY = "rabbitfixture.rabbit_sink";
 
-	public static final int DEFAULT_PORT = 5672;
+	public static final String DEFAULT_ADDRESSES = "localhost:5672";
 
 	private String exchange;
 
-	private String host;
-
 	private String routingKey;
 
-	private int port;
-
+	private String addresses;
 
 	/**
 	 * Initialize and instance of the RabbitSink
 	 *
 	 * @param exchange The exchange the sink associate
-	 * @param host The host address where the broker is deployed
+	 * @param addresses Comma delimited list of addresses where the brokers are deployed
 	 * @param routingKey The key that will route the messages to the queue
 	 */
-	public RabbitSink(String exchange, String host, int port, String routingKey) {
+	public RabbitSink(String exchange, String addresses, String routingKey) {
 		Assert.hasText(exchange, "exchange must not be empty nor null");
 		Assert.hasText(routingKey, "routingKey must not be empty nor null");
-		Assert.hasText(host, "host must not be empty nor null");
+		Assert.hasText(addresses, "addresses must not be empty nor null");
 
-		this.host = host;
 		this.routingKey = routingKey;
 		this.exchange = exchange;
-		this.port = port;
+		this.addresses = addresses;
 	}
 
 	/**
@@ -66,10 +64,8 @@ public class RabbitSink extends AbstractModuleFixture<RabbitSink> {
 	 */
 	@Override
 	protected String toDSL() {
-		return String.format("rabbit --host=%s  --exchange=%s --routingKey='\"%s\"' --port=%s ",
-				host,
-				exchange, routingKey,
-				port);
+		return String.format("rabbit --addresses=%s  --exchange=%s --routingKey='\"%s\"' ",
+				addresses, exchange, routingKey);
 	}
 
 	/**
@@ -78,40 +74,38 @@ public class RabbitSink extends AbstractModuleFixture<RabbitSink> {
 	 * @return An instance of the Rabbit Key Fixture
 	 */
 	public static RabbitSink withDefaults() {
-		return new RabbitSink(DEFAULT_EXCHANGE, DEFAULT_HOST, DEFAULT_PORT, DEFAULT_ROUTING_KEY);
+		return new RabbitSink(DEFAULT_EXCHANGE, DEFAULT_ADDRESSES, DEFAULT_ROUTING_KEY);
 	}
 
 	/**
-	 * Ensure that the Rabbit broker socket is available by polling it for up to 2 seconds
+	 * Ensure that the each Rabbit broker socket is available by polling it for up to 2 seconds
 	 * 
 	 * @return RabbitSink to use in fluent API chaining
 	 * @throws IllegalStateException if can not connect in 2 seconds.
 	 */
 	public RabbitSink ensureReady() {
-		AvailableSocketPorts.ensureReady(this, host, port, 2000);
+		String[] addressArray = StringUtils.commaDelimitedListToStringArray(addresses);
+		try {
+			for (String address : addressArray) {
+				URI uri = new URI(address);
+				AvailableSocketPorts.ensureReady(this, uri.getHost(), uri.getPort(), 2000);
+			}
+		}
+		catch (URISyntaxException uriSyntaxException) {
+			throw new IllegalStateException(uriSyntaxException.getMessage(), uriSyntaxException);
+		}
 		return this;
 	}
 
 
 	/**
-	 * Sets the host for the fixture
+	 * Sets the addresses for the fixture
 	 *
-	 * @param host The host where the rabbit broker is deployed
+	 * @param addresses The addresses where the rabbit brokers are deployed
 	 * @return current instance of fixture
 	 */
-	public RabbitSink host(String host) {
-		this.host = host;
-		return this;
-	}
-
-	/**
-	 * Sets the port for which data will be sent to the rabbit broker
-	 *
-	 * @param port The port that the rabbit broker is monitoring
-	 * @return current instance of fixture
-	 */
-	public RabbitSink port(int port) {
-		this.port = port;
+	public RabbitSink addresses(String addresses) {
+		this.addresses = addresses;
 		return this;
 	}
 

@@ -45,6 +45,14 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 	}
 
 	/**
+	 * Return the underlying properties object.
+	 * @return The properties.
+	 */
+	public Properties getProperties() {
+		return properties;
+	}
+
+	/**
 	 * Return the property for the key, or null if it doesn't exist.
 	 * @param key The property.
 	 * @return The key.
@@ -260,6 +268,15 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 	 */
 	public int getPartitionIndex() {
 		return getProperty(PARTITION_INDEX, -1);
+	}
+
+	// Direct Binding
+
+	/**
+	 * If true, the bus can attempt a direct binding.
+	 */
+	public boolean isDirectBindingAllowed() {
+		return getProperty(DIRECT_BINDING_ALLOWED, false);
 	}
 
 	// Utility methods

@@ -58,7 +58,8 @@ public class RabbitSource extends AbstractModuleFixture<RabbitSource> {
 	 */
 	@Override
 	protected String toDSL() {
-		return String.format("rabbit --host=%s  --queues=%s ", connectionFactory.getHost(), queue);
+		return String.format("rabbit --addresses=%s:%s  --queues=%s ", connectionFactory.getHost(),
+				connectionFactory.getPort(), queue);
 	}
 
 	/**

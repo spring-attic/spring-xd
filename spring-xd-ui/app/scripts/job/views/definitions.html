@@ -67,29 +67,32 @@
 </div>
 
 <div class="status-help-content hide">
-  <ul class="list-unstyled">
-    <li><strong>deploying</strong> Deployment has been initiated</li>
-    <li><strong>deployed</strong> Fully deployed based on each of the stream's modules' count properties</li>
-    <li><strong>incomplete</strong> At least 1 of each module, but 1 or more of them not at requested capacity</li>
-    <li><strong>failed</strong> 1 or more of the modules does not have even a single instance deployed</li>
-    <li><strong>undeployed</strong> Intentionally undeployed, or created but not yet deployed</li>
-  </ul>
+  <table class="table-hover table-condensed">
+    <tbody>
+      <tr><td><strong>deploying</strong></td><td>Deployment has been initiated</td></tr>
+      <tr><td><strong>deployed</strong></td><td>Fully deployed based on each of the stream's modules' count properties</td></tr>
+      <tr><td><strong>incomplete</strong></td><td>At least 1 of each module, but 1 or more of them not at requested capacity</td></tr>
+      <tr><td><strong>failed</strong></td><td>1 or more of the modules does not have even a single instance deployed</td></tr>
+      <tr><td><strong>undeployed</strong></td><td>Intentionally undeployed, or created but not yet deployed</td></tr>
+    </tbody>
+  </table>
 </div>
 
 <script>
-$('.status-help').popover({
-  trigger: 'click',
-  html: true,
-  container: 'body',
-  placement: 'bottom',
-  title: 'Available statuses',
-  content: function () {
-    return $('.status-help-content').html();
-  }
-})
+
+$(function() {
+  $('.status-help').popover({
+    trigger: 'click',
+    html: true,
+    container: 'body',
+    placement: 'bottom',
+    title: 'Available Deployment Statuses',
+    content: function () {
+      return $('.status-help-content').html();
+    }
+  }).on("show.bs.popover", function(){
+    $(this).data("bs.popover").tip().css("max-width", $(this).closest("table").width() + "px");
+  });
+});
+
 </script>
-<style>
-.popover {
-  max-width: 750px;
-}
-</style>

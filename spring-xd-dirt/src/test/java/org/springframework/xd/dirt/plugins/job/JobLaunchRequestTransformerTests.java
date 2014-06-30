@@ -39,6 +39,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
@@ -147,8 +148,8 @@ public class JobLaunchRequestTransformerTests {
 		assertTrue(
 				String.format("Property '%s' did not end with '%s'.",
 						ExpandedJobParametersConverter.ABSOLUTE_FILE_PATH, "MyPayloadFile.txt"),
-				jobParameters.getString(ExpandedJobParametersConverter.ABSOLUTE_FILE_PATH).endsWith(
-						"MyPayloadFile.txt"));
+						jobParameters.getString(ExpandedJobParametersConverter.ABSOLUTE_FILE_PATH).endsWith(
+								"MyPayloadFile.txt"));
 		assertNotNull(jobLaunchRequest.getJobParameters().getString("random"));
 
 	}
@@ -214,7 +215,7 @@ public class JobLaunchRequestTransformerTests {
 	public void createTypedJobParameters() throws Exception {
 
 		final Message<String> message = MessageBuilder.withPayload(
-				"{\"param1(long)\":\"1234\", \"mydate(date)\":\"1978/05/01\"}").build();
+				"{\"param1(long)\":\"1234\", \"mydate(date)\":\"1978-05-01\"}").build();
 
 		transformer.setMakeParametersUnique(false);
 		final JobLaunchRequest jobLaunchRequest = transformer.toJobLaunchRequest(message);

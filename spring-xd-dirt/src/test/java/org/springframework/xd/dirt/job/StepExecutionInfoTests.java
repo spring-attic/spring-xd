@@ -13,9 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.job;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+
 import org.junit.Test;
+
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
@@ -23,22 +32,21 @@ import org.springframework.batch.core.partition.support.PartitionStep;
 import org.springframework.batch.core.step.tasklet.TaskletStep;
 import org.springframework.batch.item.ExecutionContext;
 
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 /**
  * @author Michael Minella
+ * @author Gunnar Hillert
  */
 public class StepExecutionInfoTests {
 
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
+	{
+		dateFormat.setTimeZone(TimeZone.getTimeZone("America/Chicago"));
+	}
+
 	@Test
 	public void testBasicConstructor() {
+
 		StepExecutionInfo info = new StepExecutionInfo("job1", 5l, "step1", TimeZone.getTimeZone("America/Chicago"));
 
 		verify(info, "step1", null, "-", "NONE", 5l, "job1", "-", "NONE", StepType.UNKNOWN.getDisplayName());
@@ -58,6 +66,7 @@ public class StepExecutionInfoTests {
 
 	@Test
 	public void testUnknownTaskletType() {
+
 		JobExecution jobExecution = new JobExecution(5l);
 		StepExecution stepExecution = new StepExecution("step1", jobExecution, 3l);
 		ExecutionContext executionContext = new ExecutionContext();
@@ -66,7 +75,9 @@ public class StepExecutionInfoTests {
 
 		StepExecutionInfo info = new StepExecutionInfo(stepExecution, TimeZone.getTimeZone("America/Chicago"));
 
-		verify(info, "step1", 3l, "00:00:00", stepExecution.getExitStatus().getExitCode(), 5l, "?", dateFormat.format(stepExecution.getStartTime()), stepExecution.getStatus().toString(), this.getClass().getName());
+		verify(info, "step1", 3l, "00:00:00", stepExecution.getExitStatus().getExitCode(), 5l, "?",
+				dateFormat.format(stepExecution.getStartTime()), stepExecution.getStatus().toString(),
+				this.getClass().getName());
 	}
 
 	@Test
@@ -79,7 +90,9 @@ public class StepExecutionInfoTests {
 
 		StepExecutionInfo info = new StepExecutionInfo(stepExecution, TimeZone.getTimeZone("America/Chicago"));
 
-		verify(info, "step1", 3l, "00:00:00", stepExecution.getExitStatus().getExitCode(), 5l, "?", dateFormat.format(stepExecution.getStartTime()), stepExecution.getStatus().toString(), TaskletType.CHUNK_ORIENTED_TASKLET.getDisplayName());
+		verify(info, "step1", 3l, "00:00:00", stepExecution.getExitStatus().getExitCode(), 5l, "?",
+				dateFormat.format(stepExecution.getStartTime()), stepExecution.getStatus().toString(),
+				TaskletType.CHUNK_ORIENTED_TASKLET.getDisplayName());
 	}
 
 	@Test
@@ -92,7 +105,9 @@ public class StepExecutionInfoTests {
 
 		StepExecutionInfo info = new StepExecutionInfo(stepExecution, TimeZone.getTimeZone("America/Chicago"));
 
-		verify(info, "step1", 3l, "00:00:00", stepExecution.getExitStatus().getExitCode(), 5l, "?", dateFormat.format(stepExecution.getStartTime()), stepExecution.getStatus().toString(), StepType.PARTITION_STEP.getDisplayName());
+		verify(info, "step1", 3l, "00:00:00", stepExecution.getExitStatus().getExitCode(), 5l, "?",
+				dateFormat.format(stepExecution.getStartTime()), stepExecution.getStatus().toString(),
+				StepType.PARTITION_STEP.getDisplayName());
 	}
 
 	@Test
@@ -105,10 +120,13 @@ public class StepExecutionInfoTests {
 
 		StepExecutionInfo info = new StepExecutionInfo(stepExecution, TimeZone.getTimeZone("America/Chicago"));
 
-		verify(info, "step1", 3l, "00:00:00", stepExecution.getExitStatus().getExitCode(), 5l, "?", dateFormat.format(stepExecution.getStartTime()), stepExecution.getStatus().toString(), this.getClass().getName());
+		verify(info, "step1", 3l, "00:00:00", stepExecution.getExitStatus().getExitCode(), 5l, "?",
+				dateFormat.format(stepExecution.getStartTime()), stepExecution.getStatus().toString(),
+				this.getClass().getName());
 	}
 
-	private void verify(StepExecutionInfo info, String stepName, Long stepId, String duration, String exitCode, long jobExecutionId, String jobName, String startDate, String stepStatus, String stepType) {
+	private void verify(StepExecutionInfo info, String stepName, Long stepId, String duration, String exitCode,
+			long jobExecutionId, String jobName, String startDate, String stepStatus, String stepType) {
 
 		assertEquals(stepName, info.getName());
 		assertEquals(stepId, info.getId());

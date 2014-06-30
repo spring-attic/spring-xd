@@ -65,9 +65,21 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
+	public static final String DEFAULT_XD_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+
+	private DateFormat defaultXdDateFormat = new SimpleDateFormat(DEFAULT_XD_DATE_FORMAT_PATTERN);
+
 	/**
-	 * Will set the {@link DateFormat} on the underlying {@link DefaultJobParametersConverter}. If not set explicitly
-	 * the {@link DateFormat} will default to "yyyy/MM/dd".
+	 * Default Constructor, initializing {@link DefaultJobParametersConverter#setDateFormat(DateFormat)}
+	 * with {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
+	 */
+	public ExpandedJobParametersConverter() {
+		this.setDateFormat(defaultXdDateFormat);
+	}
+
+	/**
+	 * Will set the {@link DateFormat} on the underlying {@link DefaultJobParametersConverter}. If not set explicitly,
+	 * the {@link DateFormat} will default to {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
 	 *
 	 * @param dateFormat Must not be null
 	 */
@@ -78,7 +90,8 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 	}
 
 	/**
-	 * Allows for setting the {@link DateFormat} using a {@link String}.
+	 * Allows for setting the {@link DateFormat} using a {@link String}. If not
+	 * set, the default {@link DateFormat} used will be {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
 	 *
 	 * @param dateFormatAsString Will be ignored if null or empty.
 	 */

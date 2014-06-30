@@ -106,10 +106,10 @@ public class JobParametersBeanTests {
 	}
 
 	@Test
-	public void createTypedJobParameters() throws Exception {
+	public void createTypedJobParametersWithDefaultDateFormat() throws Exception {
 
 		final JobParametersBean jobParametersBean = new JobParametersBean(
-				"{\"param1(long)\":\"1234\", \"mydate(date)\":\"1978/05/01\"}");
+				"{\"param1(long)\":\"1234\", \"mydate(date)\":\"1978-05-01\"}");
 
 		assertNull(jobParametersBean.getJobParameters());
 
@@ -131,6 +131,31 @@ public class JobParametersBeanTests {
 
 	@Test
 	public void createTypedJobParametersWithCustomDateFormat() throws Exception {
+
+		final JobParametersBean jobParametersBean = new JobParametersBean(
+				"{\"param1(long)\":\"1234\", \"mydate(date)\":\"1978/05/01\"}");
+
+		assertNull(jobParametersBean.getJobParameters());
+
+		jobParametersBean.setMakeParametersUnique(false);
+		jobParametersBean.setDateFormatAsString("yyyy/MM/dd");
+		jobParametersBean.afterPropertiesSet();
+
+		final JobParameters jobParameters = jobParametersBean.getJobParameters();
+		assertNotNull(jobParameters);
+
+		assertTrue(jobParameters.getParameters().size() == 2);
+
+		assertEquals("1234", jobParameters.getString("param1"));
+		assertEquals(Long.valueOf(1234), jobParameters.getLong("param1"));
+
+		final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+		assertEquals(dateFormat.parse("1978/05/01"), jobParameters.getDate("mydate"));
+
+	}
+
+	@Test
+	public void createTypedJobParametersWithCustomDateFormat2() throws Exception {
 
 		final JobParametersBean jobParametersBean = new JobParametersBean(
 				"{\"param1\":\"We should all use ISO dates\", \"mydate(date)\":\"2013-08-15T14:50Z\"}");

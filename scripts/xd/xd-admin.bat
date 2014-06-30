@@ -71,24 +71,10 @@ set CMD_LINE_ARGS=%$
 
 @echo off
 set APP_HOME_LIB=%APP_HOME%\lib
-set HADOOP_DISTRO=hadoop22
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
-    set found=0
-    for %%a in (%CMD_LINE_ARGS%) do (
-        if !found!==1 set HADOOP_DISTRO=%%a
-        if "%%a"=="--hadoopDistro" (
-            set found=1
-        ) else (
-            set found=0
-        )
-    )
     set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config;%APP_HOME%
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
-    set HADOOP_LIB=%APP_HOME%\lib\!HADOOP_DISTRO!
-    if exist "!HADOOP_LIB!" (
-        set CLASSPATH=!CLASSPATH!;!HADOOP_LIB!\*
-    )
 )
 
 @rem Set XD_HOME to APP_HOME if XD_HOME is not defined yet

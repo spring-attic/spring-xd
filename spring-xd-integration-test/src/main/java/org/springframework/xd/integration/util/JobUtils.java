@@ -30,6 +30,7 @@ import org.springframework.xd.rest.client.impl.SpringXDTemplate;
  * Utilities for managing jobs.
  *
  * @author Glenn Renfro
+ * @author David Turanski
  */
 public class JobUtils {
 
@@ -80,9 +81,20 @@ public class JobUtils {
 	 * @param jobName The name of the job to launch
 	 */
 	public static void launch(final URL adminServer, final String jobName) {
+		launch(adminServer, jobName, "");// should this be empty or null?
+	}
+
+	/**
+	 * Launches the specified job
+	 *
+	 * @param adminServer The admin server that the command will be executed against.
+	 * @param jobName The name of the job to launch
+	 * @param jobParameters the jobParameters
+	 */
+	public static void launch(final URL adminServer, final String jobName, String jobParameters) {
 		Assert.notNull(adminServer, "The admin server must be specified.");
 		Assert.hasText(jobName, "The jobName must not be empty nor null");
-		createSpringXDTemplate(adminServer).jobOperations().launchJob(jobName, "");// should this be empty or null?
+		createSpringXDTemplate(adminServer).jobOperations().launchJob(jobName, jobParameters);
 	}
 
 	/**

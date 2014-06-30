@@ -20,6 +20,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.FileJdbcJob;
 import org.springframework.xd.test.fixtures.FilePollHdfsJob;
+import org.springframework.xd.test.fixtures.FtpHdfsJob;
 import org.springframework.xd.test.fixtures.HdfsJdbcJob;
 import org.springframework.xd.test.fixtures.HdfsMongoDbJob;
 import org.springframework.xd.test.fixtures.JdbcHdfsJob;
@@ -29,6 +30,7 @@ import org.springframework.xd.test.fixtures.JdbcHdfsJob;
  * A factory that provides fully instantiated job fixtures using default values.
  *
  * @author Glenn Renfro
+ * @author David Turanski
  */
 public class Jobs {
 
@@ -97,5 +99,14 @@ public class Jobs {
 		HdfsMongoDbJob hdfsMongoDbJob = HdfsMongoDbJob.withDefaults(environment.getMongoDbFactory());
 		hdfsMongoDbJob.isReady();
 		return hdfsMongoDbJob;
+	}
+
+	/**
+	 * 
+	 * @return a FtpHdfsJob instance
+	 */
+	public FtpHdfsJob ftpHdfsJob() {
+		FtpHdfsJob ftpHdfsJob = FtpHdfsJob.withDefaults();
+		return ftpHdfsJob;
 	}
 }

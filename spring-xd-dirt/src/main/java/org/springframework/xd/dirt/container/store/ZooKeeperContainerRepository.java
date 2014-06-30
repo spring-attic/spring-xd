@@ -30,6 +30,10 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -54,7 +58,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
  * @author Ilayaperumal Gopinathan
  * @author Patrick Peralta
  */
-public class ZooKeeperContainerRepository implements ContainerRepository {
+public class ZooKeeperContainerRepository implements ContainerRepository, ApplicationListener<ApplicationEvent> {
 
 	/**
 	 * ZooKeeper connection.
@@ -66,6 +70,9 @@ public class ZooKeeperContainerRepository implements ContainerRepository {
 	 */
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
+	/**
+	 * Paging support for this repository.
+	 */
 	private final PagingUtility<Container> pagingUtility = new PagingUtility<Container>();
 
 	/**
@@ -89,6 +96,35 @@ public class ZooKeeperContainerRepository implements ContainerRepository {
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (event instanceof ContextStoppedEvent || event instanceof ContextClosedEvent) {
+			closeCache();
+		}
+	}
+
+	/**
+	 * Close the {@link PathChildrenCache container cache} and null out
+	 * the {@link #cacheRef atmoic reference}.
+	 */
+	private void closeCache() {
+		PathChildrenCache cache = cacheRef.get();
+		if (cache != null) {
+			try {
+				cache.close();
+			}
+			catch (Exception e) {
+				// ignore exception on close
+			}
+			finally {
+				cacheRef.compareAndSet(cache, null);
+			}
+		}
+	}
+
+	/**
 	 * Return a {@link PathChildrenCache} for containers, creating and
 	 * initializing a new instance if necessary.
 	 *
@@ -109,18 +145,7 @@ public class ZooKeeperContainerRepository implements ContainerRepository {
 							// shut down the cache if ZooKeeper connection goes away
 							if (event.getType() == PathChildrenCacheEvent.Type.CONNECTION_SUSPENDED ||
 									event.getType() == PathChildrenCacheEvent.Type.CONNECTION_LOST) {
-								PathChildrenCache cache = cacheRef.get();
-								if (cache != null) {
-									try {
-										cache.close();
-									}
-									catch (Exception e) {
-										// ignore exception on close
-									}
-									finally {
-										cacheRef.compareAndSet(cache, null);
-									}
-								}
+								closeCache();
 							}
 						}
 					});

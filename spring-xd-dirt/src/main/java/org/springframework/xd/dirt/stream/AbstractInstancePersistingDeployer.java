@@ -18,6 +18,9 @@ package org.springframework.xd.dirt.stream;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
@@ -36,6 +39,8 @@ import org.springframework.xd.store.DomainRepository;
  */
 public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinition, I extends BaseInstance<D>> extends
 		AbstractDeployer<D> {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractInstancePersistingDeployer.class);
 
 	protected DomainRepository<I, String> instanceRepository;
 
@@ -57,13 +62,17 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 	@Override
 	public void undeploy(String name) {
 		Assert.hasText(name, "name cannot be blank or null");
+		logger.trace("Undeploying {}", name);
+
+		D definition = getDefinitionRepository().findOne(name);
+		if (definition == null) {
+			throwNoSuchDefinitionException(name);
+		}
 
 		final I instance = instanceRepository.findOne(name);
 		if (instance == null) {
 			throwNotDeployedException(name);
 		}
-
-		basicUndeploy(name);
 
 		instanceRepository.delete(instance);
 

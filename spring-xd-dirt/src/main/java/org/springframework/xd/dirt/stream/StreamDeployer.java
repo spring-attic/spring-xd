@@ -87,16 +87,6 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 
 	/**
 	 * {@inheritDoc}
-	 */
-	@Override
-	protected void basicUndeploy(String name) {
-		// this empty method is here to prevent AbstractDeployer.basicUndeploy
-		// from being invoked because all of the undeploy logic is in the
-		// stream instance repository delete() method;
-	}
-
-	/**
-	 * {@inheritDoc}
 	 * <p/>
 	 * Before deleting the stream, perform an undeploy. This causes a graceful shutdown of the
 	 * modules in the stream before it is deleted from the repository.
@@ -112,15 +102,15 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 		// ModuleDependencyRepository so that the dependencies are also stored in ZooKeeper.
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		try {
-			for (ModuleDescriptor request :
-					parser.parse(definition.getName(), definition.getDefinition(), ParsingContext.stream)) {
+			for (ModuleDescriptor request : parser.parse(definition.getName(), definition.getDefinition(),
+					ParsingContext.stream)) {
 				moduleDefinitions.add(new ModuleDefinition(request.getModuleName(), request.getType()));
 			}
 		}
 		catch (StreamDefinitionException e) {
 			// we can ignore an exception for a tap whose stream no longer exists
 			if (!(XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE.equals(e.getMessageCode())
-					&& definition.getDefinition().trim().startsWith("tap:"))) {
+			&& definition.getDefinition().trim().startsWith("tap:"))) {
 				throw e;
 			}
 		}

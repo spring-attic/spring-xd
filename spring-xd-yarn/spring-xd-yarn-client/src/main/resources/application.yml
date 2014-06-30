@@ -29,6 +29,7 @@ spring:
                     -Dspring.xd.yarn.app.zip: "${spring.xd.yarn.app.zip}"
                     -Dspring.config.location: "./servers.yml"
                     --spring.yarn.appmaster.containerCount: "${xd.adminServers:1}"
+					--spring.yarn.appmaster.resource.memory: "${xd.adminMemory:512}"
 ---
 spring:
     profiles: container
@@ -42,3 +43,4 @@ spring:
                     -Dspring.yarn.applicationDir: "${spring.yarn.applicationDir}"
                     -Dspring.config.location: "./servers.yml"
                     --spring.yarn.appmaster.containerCount: "${xd.containers:1}"
+					--spring.yarn.appmaster.resource.memory: "${xd.containerMemory:512}"

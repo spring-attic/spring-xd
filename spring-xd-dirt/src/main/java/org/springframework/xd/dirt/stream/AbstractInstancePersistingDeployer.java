@@ -63,8 +63,6 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 			throwNotDeployedException(name);
 		}
 
-		basicUndeploy(name);
-
 		instanceRepository.delete(instance);
 
 	}

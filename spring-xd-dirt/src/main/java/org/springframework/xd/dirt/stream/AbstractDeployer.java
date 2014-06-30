@@ -246,29 +246,6 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 	}
 
-	/**
-	 * Provides basic un-deployment behavior, whereby state of deployed definitions is not dealt with.
-	 */
-	protected void basicUndeploy(String name) {
-		Assert.hasText(name, "name cannot be blank or null");
-		logger.trace("Undeploying {}", name);
-
-		D definition = getDefinitionRepository().findOne(name);
-		if (definition == null) {
-			throwNoSuchDefinitionException(name);
-		}
-
-		try {
-			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(getDeploymentPath(definition));
-		}
-		catch (KeeperException.NoNodeException e) {
-			// ignore; this has already been undeployed
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	protected abstract D createDefinition(String name, String definition);
 
 	/**

@@ -40,7 +40,7 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 /**
  * A {@link ModuleOptionsMetadataResolver} that will dynamically add the module options (such as {@code makeUnique})
  * supported by job modules.
- * 
+ *
  * @see JobPlugin
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
@@ -64,7 +64,7 @@ public class JobPluginMetadataResolver implements ModuleOptionsMetadataResolver 
 
 		private String numberFormat = "";
 
-		private String dateFormat = "";
+		private String dateFormat = ExpandedJobParametersConverter.DEFAULT_XD_DATE_FORMAT_PATTERN;
 
 		private String listeners = "";
 

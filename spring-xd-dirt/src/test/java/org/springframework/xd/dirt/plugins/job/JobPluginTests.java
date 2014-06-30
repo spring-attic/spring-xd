@@ -99,7 +99,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	@Configuration
 	@ImportResource({ "classpath:/META-INF/spring-xd/batch/batch.xml",
-		"classpath:/META-INF/spring-xd/transports/local-bus.xml" })
+	"classpath:/META-INF/spring-xd/transports/local-bus.xml" })
 	@EnableAutoConfiguration
 	public static class SharedConfiguration {
 
@@ -109,8 +109,8 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void setUp() throws Exception {
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class, HsqlDatasourceConfiguration.class,
 				HsqlServerApplication.class)
-				.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE)
-				.web(false).run();
+		.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE)
+		.web(false).run();
 		messageBus = sharedContext.getBean(LocalMessageBus.class);
 		jobPlugin = new JobPlugin(messageBus);
 		jobPartitionerPlugin = new JobPartitionerPlugin(messageBus);
@@ -120,10 +120,10 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	@Test
 	public void streamNameAdded() {
 		ModuleDescriptor descriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(new ModuleDefinition("testJob", ModuleType.job))
-				.setGroup("foo")
-				.setIndex(0)
-				.build();
+		.setModuleDefinition(new ModuleDefinition("testJob", ModuleType.job))
+		.setGroup("foo")
+		.setIndex(0)
+		.build();
 		Module module = new SimpleModule(descriptor, new ModuleDeploymentProperties());
 		assertEquals(0, module.getProperties().size());
 		jobPlugin.preProcessModule(module);
@@ -141,7 +141,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		Map<String, String> emptyMap = Collections.emptyMap();
 		EnumerablePropertySource<?> ps = metadata.interpolate(emptyMap).asPropertySource();
 		assertEquals(true, ps.getProperty("makeUnique"));
-		assertEquals("", ps.getProperty("dateFormat"));
+		assertEquals("yyyy-MM-dd", ps.getProperty("dateFormat"));
 		assertEquals("", ps.getProperty("numberFormat"));
 	}
 
@@ -220,11 +220,11 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void testThatInputOutputChannelsAreBound() {
 
 		final Module module = new SimpleModule(new ModuleDescriptor.Builder()
-				.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
-				.setGroup("myjob")
-				.setIndex(0)
-				.build(),
-				new ModuleDeploymentProperties());
+		.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
+		.setGroup("myjob")
+		.setIndex(0)
+		.build(),
+		new ModuleDeploymentProperties());
 
 		final TestMessageBus messageBus = new TestMessageBus();
 		final JobPlugin plugin = new JobPlugin(messageBus);
@@ -249,11 +249,11 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void testThatJobEventsChannelsAreBound() {
 
 		final Module module = new SimpleModule(new ModuleDescriptor.Builder()
-				.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
-				.setGroup("myjob")
-				.setIndex(0)
-				.build(),
-				new ModuleDeploymentProperties());
+		.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
+		.setGroup("myjob")
+		.setIndex(0)
+		.build(),
+		new ModuleDeploymentProperties());
 
 		final TestMessageBus messageBus = new TestMessageBus();
 		final JobEventsListenerPlugin eventsListenerPlugin = new JobEventsListenerPlugin(messageBus);

@@ -204,7 +204,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		final CommandResult cr = deployJob(jobName);
 		checkForSuccess(cr);
 		checkDeployedJobMessage(cr, jobName);
-		triggerJobWithParams(jobName, "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}");
+		triggerJobWithParams(jobName, "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990-10-03\"}");
 
 		boolean done = jobParametersHolder.isDone();
 
@@ -261,7 +261,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testLaunchJobWithParameters() throws InterruptedException, ParseException {
 		logger.info("Launch batch job with typed parameters");
-		String myJobParams = "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}";
+		String myJobParams = "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990-10-03\"}";
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 		String jobName = generateJobName();

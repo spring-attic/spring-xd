@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Gunnar Hillert
@@ -177,6 +178,8 @@ public class ExpandedJobParametersConverterTests {
 
 		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
 		jobParametersConverter.setMakeParametersUnique(false);
+		jobParametersConverter.setDateFormatAsString("yyyy/MM/dd");
+
 		final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
 		final Date date = simpleDateFormat.parse("2014/02/18");
@@ -249,5 +252,19 @@ public class ExpandedJobParametersConverterTests {
 		final String jobParametersAsJsonWithoutIsRestart = jobParametersConverter.getJobParametersAsString(
 				jobParametersWithoutRestart, false);
 		assertEquals(jsonWithoutIsRestart, jobParametersAsJsonWithoutIsRestart);
+	}
+
+	@Test
+	public void verifyDefaultDateFormat() throws Exception {
+
+		final SimpleDateFormat expectedDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
+
+		final SimpleDateFormat actualDateFormat = TestUtils.getPropertyValue(jobParametersConverter, "dateFormat",
+				SimpleDateFormat.class);
+
+		assertEquals(expectedDateFormat.toPattern(), actualDateFormat.toPattern());
+
 	}
 }

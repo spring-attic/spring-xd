@@ -13,6 +13,7 @@
     <tr>
         <th>Name</th>
         <th>Definition</th>
+        <th>Status <a class="status-help"><span class="glyphicon glyphicon-question-sign"></span></a></th>
         <th colspan="3" class="text-center">Actions</th>
     </tr>
     </thead>
@@ -20,16 +21,17 @@
     <tr ng-repeat="item in streamDefinitions | filter:filterQuery | orderBy:'name'" ng-show="!item.inactive">
         <td>{{item.name}}</td>
         <td>{{item.definition}}</td>
+        <td>{{item.status}}</td>
         <td class="action-column">
             <button type="button" ng-click="undeployStream(item)"
-                    ng-disabled="!item.deployed"
+                    ng-disabled="item.status === 'deploying' || item.status === 'incomplete' || item.status === 'undeployed' || item.status === 'failed'"
                     class="btn btn-default"
                     ><span class="glyphicon glyphicon-stop"></span> Undeploy
             </button>
         </td>
         <td class="action-column">
             <button type="button" ng-click="deployStream(item)"
-                    ng-disabled="item.deployed"
+                    ng-disabled="item.status === 'deploying' || item.status === 'deployed'"
                     class="btn btn-default"
                     ><span class="glyphicon glyphicon-play"></span> Deploy
             </button>
@@ -62,3 +64,34 @@
         </div>
     </div>
 </div>
+
+<div class="status-help-content hide">
+  <table class="table-hover table-condensed">
+    <tbody>
+      <tr><td><strong>deploying</strong></td><td>Deployment has been initiated</td></tr>
+      <tr><td><strong>deployed</strong></td><td>Fully deployed based on each of the stream's modules' count properties</td></tr>
+      <tr><td><strong>incomplete</strong></td><td>At least 1 of each module, but 1 or more of them not at requested capacity</td></tr>
+      <tr><td><strong>failed</strong></td><td>1 or more of the modules does not have even a single instance deployed</td></tr>
+      <tr><td><strong>undeployed</strong></td><td>Intentionally undeployed, or created but not yet deployed</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script type="text/javascript">
+
+$(function() {
+  $('.status-help').popover({
+    trigger: 'click',
+    html: true,
+    container: 'body',
+    placement: 'bottom',
+    title: 'Available Deployment Statuses',
+    content: function () {
+      return $('.status-help-content').html();
+    }
+  }).on("show.bs.popover", function(){
+    $(this).data("bs.popover").tip().css("max-width", $(this).closest("table").width() + "px");
+  });
+});
+
+</script>

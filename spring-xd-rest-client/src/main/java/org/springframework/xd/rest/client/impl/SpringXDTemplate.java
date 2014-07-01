@@ -18,6 +18,7 @@ package org.springframework.xd.rest.client.impl;
 
 import java.net.URI;
 
+import org.springframework.hateoas.UriTemplate;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
@@ -95,29 +96,29 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		super(factory);
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 
-		resources.put("streams/definitions", URI.create(xdRuntime.getLink("streams").getHref() + "/definitions"));
-		resources.put("streams/deployments", URI.create(xdRuntime.getLink("streams").getHref() + "/deployments"));
-		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
-		resources.put("jobs/definitions", URI.create(xdRuntime.getLink("jobs").getHref() + "/definitions"));
-		resources.put("jobs/deployments", URI.create(xdRuntime.getLink("jobs").getHref() + "/deployments"));
-		resources.put("modules", URI.create(xdRuntime.getLink("modules").getHref()));
+		resources.put("streams/definitions", new UriTemplate(xdRuntime.getLink("streams").getHref() + "/definitions"));
+		resources.put("streams/deployments", new UriTemplate(xdRuntime.getLink("streams").getHref() + "/deployments"));
+		resources.put("jobs", new UriTemplate(xdRuntime.getLink("jobs").getHref()));
+		resources.put("jobs/definitions", new UriTemplate(xdRuntime.getLink("jobs").getHref() + "/definitions"));
+		resources.put("jobs/deployments", new UriTemplate(xdRuntime.getLink("jobs").getHref() + "/deployments"));
+		resources.put("modules", new UriTemplate(xdRuntime.getLink("modules").getHref()));
 
-		resources.put("batch/jobs", URI.create(xdRuntime.getLink("batch/jobs").getHref()));
-		resources.put("batch/executions", URI.create(xdRuntime.getLink("batch/executions").getHref()));
-		resources.put("batch/instances", URI.create(xdRuntime.getLink("batch/instances").getHref()));
+		resources.put("batch/jobs", new UriTemplate(xdRuntime.getLink("batch/jobs").getHref()));
+		resources.put("batch/executions", new UriTemplate(xdRuntime.getLink("batch/executions").getHref()));
+		resources.put("batch/instances", new UriTemplate(xdRuntime.getLink("batch/instances").getHref()));
 
-		resources.put("runtime/containers", URI.create(xdRuntime.getLink("runtime/containers").getHref()));
-		resources.put("runtime/modules", URI.create(xdRuntime.getLink("runtime/modules").getHref()));
+		resources.put("runtime/containers", new UriTemplate(xdRuntime.getLink("runtime/containers").getHref()));
+		resources.put("runtime/modules", new UriTemplate(xdRuntime.getLink("runtime/modules").getHref()));
 
-		resources.put("completions/stream", URI.create(xdRuntime.getLink("completions/stream").getHref()));
-		resources.put("completions/job", URI.create(xdRuntime.getLink("completions/job").getHref()));
-		resources.put("completions/module", URI.create(xdRuntime.getLink("completions/module").getHref()));
+		resources.put("completions/stream", new UriTemplate(xdRuntime.getLink("completions/stream").getHref()));
+		resources.put("completions/job", new UriTemplate(xdRuntime.getLink("completions/job").getHref()));
+		resources.put("completions/module", new UriTemplate(xdRuntime.getLink("completions/module").getHref()));
 
-		resources.put("counters", URI.create(xdRuntime.getLink("counters").getHref()));
-		resources.put("field-value-counters", URI.create(xdRuntime.getLink("field-value-counters").getHref()));
-		resources.put("aggregate-counters", URI.create(xdRuntime.getLink("aggregate-counters").getHref()));
-		resources.put("gauges", URI.create(xdRuntime.getLink("gauges").getHref()));
-		resources.put("rich-gauges", URI.create(xdRuntime.getLink("rich-gauges").getHref()));
+		resources.put("counters", new UriTemplate(xdRuntime.getLink("counters").getHref()));
+		resources.put("field-value-counters", new UriTemplate(xdRuntime.getLink("field-value-counters").getHref()));
+		resources.put("aggregate-counters", new UriTemplate(xdRuntime.getLink("aggregate-counters").getHref()));
+		resources.put("gauges", new UriTemplate(xdRuntime.getLink("gauges").getHref()));
+		resources.put("rich-gauges", new UriTemplate(xdRuntime.getLink("rich-gauges").getHref()));
 
 
 		streamOperations = new StreamTemplate(this);

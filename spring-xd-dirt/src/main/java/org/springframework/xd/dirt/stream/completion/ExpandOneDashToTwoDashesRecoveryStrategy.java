@@ -49,10 +49,10 @@ public class ExpandOneDashToTwoDashesRecoveryStrategy extends
 	}
 
 	@Override
-	public void addProposals(String dsl, StreamDefinitionException exception, CompletionKind kind,
+	public void addProposals(String dsl, StreamDefinitionException exception, CompletionKind kind, int lod,
 			List<String> proposals) {
 		// Pretend there was an additional dash and invoke recursively
-		List<String> completions = completionProvider.complete(kind, dsl + "-");
+		List<String> completions = completionProvider.complete(kind, dsl + "-", lod);
 		proposals.addAll(completions);
 	}
 

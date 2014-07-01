@@ -59,7 +59,7 @@ public class ModulesAfterPipeRecoveryStrategy extends
 
 	@Override
 	public void addProposals(String start, CheckpointedStreamDefinitionException exception, CompletionKind kind,
-			List<String> proposals) {
+			int lod, List<String> proposals) {
 
 		addAllModulesOfType(start.endsWith(" ") ? start : start + " ", processor, proposals);
 		addAllModulesOfType(start.endsWith(" ") ? start : start + " ", sink, proposals);

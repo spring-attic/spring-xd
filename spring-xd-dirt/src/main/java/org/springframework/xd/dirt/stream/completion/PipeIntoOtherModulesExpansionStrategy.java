@@ -63,7 +63,7 @@ public class PipeIntoOtherModulesExpansionStrategy implements CompletionExpansio
 	}
 
 	@Override
-	public void addProposals(String start, List<ModuleDescriptor> parseResult, CompletionKind kind,
+	public void addProposals(String start, List<ModuleDescriptor> parseResult, CompletionKind kind, int lod,
 			List<String> proposals) {
 		// List is in reverse order
 		ModuleDescriptor lastModule = parseResult.get(0);

@@ -71,7 +71,7 @@ public class CompletionProviderTests {
 	@Test
 	// <TAB> => file,http,etc
 	public void testEmptyStartShouldProposeSourceModules() {
-		List<String> completions = completionProvider.complete(stream, "");
+		List<String> completions = completionProvider.complete(stream, "", 1);
 
 		assertThat(new HashSet<>(completions), equalTo(new HashSet<>(namesOfModulesWithType(ModuleType.source))));
 	}
@@ -79,17 +79,17 @@ public class CompletionProviderTests {
 	@Test
 	// fi<TAB> => file
 	public void testUnfinishedModuleNameShouldReturnCompletions() {
-		List<String> completions = completionProvider.complete(stream, "fi");
+		List<String> completions = completionProvider.complete(stream, "fi", 1);
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file")));
 
-		completions = completionProvider.complete(stream, "file | tr");
+		completions = completionProvider.complete(stream, "file | tr", 1);
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | transform")));
 	}
 
 	@Test
 	// file | filter<TAB> => file | filter | foo, etc
 	public void testValidSubStreamDefinitionShouldReturnPipe() {
-		List<String> completions = completionProvider.complete(stream, "file | filter");
+		List<String> completions = completionProvider.complete(stream, "file | filter", 1);
 
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter |")));
 	}
@@ -97,7 +97,7 @@ public class CompletionProviderTests {
 	@Test
 	// file | filter<TAB> => file | filter --foo=, etc
 	public void testValidSubStreamDefinitionShouldReturnModuleOptions() {
-		List<String> completions = completionProvider.complete(stream, "file | filter");
+		List<String> completions = completionProvider.complete(stream, "file | filter", 1);
 
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --script=")));
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --expression=")));
@@ -106,7 +106,7 @@ public class CompletionProviderTests {
 	@Test
 	// file | filter -<TAB> => file | filter --foo,etc
 	public void testOneDashShouldReturnTwoDashes() {
-		List<String> completions = completionProvider.complete(stream, "file | filter -");
+		List<String> completions = completionProvider.complete(stream, "file | filter -", 1);
 
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --script=")));
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --expression=")));
@@ -116,7 +116,7 @@ public class CompletionProviderTests {
 	@Test
 	// file | filter --<TAB> => file | filter --foo,etc
 	public void testTwoDashesShouldReturnOptions() {
-		List<String> completions = completionProvider.complete(stream, "file | filter --");
+		List<String> completions = completionProvider.complete(stream, "file | filter --", 1);
 
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --script=")));
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --expression=")));
@@ -126,7 +126,7 @@ public class CompletionProviderTests {
 	@Test
 	// file |<TAB> => file | foo,etc
 	public void testDanglingPipeShouldReturnExtraModulesOnlyOneModule() {
-		List<String> completions = completionProvider.complete(stream, "file |");
+		List<String> completions = completionProvider.complete(stream, "file |", 1);
 
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter")));
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | script")));
@@ -137,7 +137,7 @@ public class CompletionProviderTests {
 	// Adding a specified test for this because of the way the parser guesses module type
 	// may currently interfere if there is only one module (thinks it's a job)
 	public void testDanglingPipeShouldReturnExtraModulesMoreThanOneModule() {
-		List<String> completions = completionProvider.complete(stream, "file | filter |");
+		List<String> completions = completionProvider.complete(stream, "file | filter |", 1);
 
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter | filter")));
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter | script")));
@@ -146,7 +146,7 @@ public class CompletionProviderTests {
 	@Test
 	// file --p<TAB> => file --preventDuplicates=, file --pattern=
 	public void testUnfinishedOptionNameShouldComplete() {
-		List<String> completions = completionProvider.complete(stream, "file | filter | jdbc --url=foo --ini");
+		List<String> completions = completionProvider.complete(stream, "file | filter | jdbc --url=foo --ini", 1);
 
 		assertThat(new HashSet<>(completions),
 				hasItem(startsWith("file | filter | jdbc --url=foo --initializerScript")));
@@ -155,7 +155,7 @@ public class CompletionProviderTests {
 		assertThat(new HashSet<>(completions),
 				not(hasItem(startsWith("file | filter | jdbc --url=foo --driverClassName"))));
 
-		completions = completionProvider.complete(stream, "file | filter --ex");
+		completions = completionProvider.complete(stream, "file | filter --ex", 1);
 		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file | filter |"))));
 	}
 
@@ -163,7 +163,7 @@ public class CompletionProviderTests {
 	// file | counter --name=foo --inputType=bar<TAB> => we're done
 	public void testSinkWithAllOptionsSetCantGoFurther() {
 		List<String> completions = completionProvider.complete(stream,
-				"file | counter --name=foo --inputType=text/plain");
+				"file | counter --name=foo --inputType=text/plain", 1);
 
 		assertThat(completions, hasSize(0));
 	}
@@ -172,7 +172,7 @@ public class CompletionProviderTests {
 	// file | counter --name=<TAB> => nothing
 	public void testInGenericOptionValueCantProposeAnything() {
 		List<String> completions = completionProvider.complete(stream,
-				"file | counter --name=");
+				"file | counter --name=", 1);
 
 		assertThat(completions, hasSize(0));
 	}
@@ -182,7 +182,7 @@ public class CompletionProviderTests {
 	// file | file --binary=<TAB> => we know it's a closed set of values
 	public void testInOptionValueBooleanNoStartAtAll() {
 		List<String> completions = completionProvider.complete(stream,
-				"file | file --binary=");
+				"file | file --binary=", 1);
 		assertThat(completions, hasItem(startsWith("file | file --binary=true")));
 		assertThat(completions, hasItem(startsWith("file | file --binary=false")));
 	}
@@ -192,7 +192,7 @@ public class CompletionProviderTests {
 	// file | file --binary=t<TAB> => we know it's a closed set, and 'true' matches
 	public void testInOptionValueBooleanValidStart() {
 		List<String> completions = completionProvider.complete(stream,
-				"file | file --binary=t");
+				"file | file --binary=t", 1);
 		assertThat(completions, hasItem(startsWith("file | file --binary=true")));
 	}
 
@@ -201,7 +201,7 @@ public class CompletionProviderTests {
 	// file | file --binary=foo<TAB> => we know it's wrong, so return nothing
 	public void testInOptionValueBooleanInvalidStart() {
 		List<String> completions = completionProvider.complete(stream,
-				"file | file --binary=foo");
+				"file | file --binary=foo", 1);
 		assertThat(completions, hasSize(0));
 	}
 
@@ -210,7 +210,7 @@ public class CompletionProviderTests {
 	// file | hdfs --codec=<TAB> // same logic as testInOptionValueBoolean
 	public void testInOptionValueEnumNoStartAtAll() {
 		List<String> completions = completionProvider.complete(stream,
-				"file | hdfs --codec=");
+				"file | hdfs --codec=", 1);
 		assertThat(completions, hasItem(startsWith("hdfs --codec=SNAPPY")));
 		assertThat(completions, hasItem(startsWith("hdfs --codec=BZIP2")));
 	}
@@ -220,7 +220,7 @@ public class CompletionProviderTests {
 	// file | hdfs --codec=S<TAB> => SNAPPY // same logic as testInOptionValueBoolean
 	public void testInOptionValueEnumValidStart() {
 		List<String> completions = completionProvider.complete(stream,
-				"hdfs --codec=S");
+				"hdfs --codec=S", 1);
 		assertThat(completions, hasItem(startsWith("hdfs --codec=SNAPPY")));
 	}
 
@@ -229,45 +229,45 @@ public class CompletionProviderTests {
 	// file | hdfs --codec=FOOBAR<TAB> // same logic as testInOptionValueBoolean
 	public void testInOptionValueEnumInvalidStart() {
 		List<String> completions = completionProvider.complete(stream,
-				"hdfs --codec=FOOBAR");
+				"hdfs --codec=FOOBAR", 1);
 		assertThat(completions, hasSize(0));
 	}
 
 	@Test
 	public void testJobNameCompletions() {
-		List<String> completions = completionProvider.complete(job, "");
+		List<String> completions = completionProvider.complete(job, "", 1);
 		assertThat(completions, hasItem(startsWith("hdfs")));
 		assertThat(completions, not(hasItem(startsWith("gemfire-cq"))));
 
-		completions = completionProvider.complete(job, "hdf");
+		completions = completionProvider.complete(job, "hdf", 1);
 		assertThat(completions, hasItem(startsWith("hdfs")));
 
 	}
 
 	@Test
 	public void testJobOptionsCompletions() {
-		List<String> completions = completionProvider.complete(job, "filejdbc --");
+		List<String> completions = completionProvider.complete(job, "filejdbc --", 1);
 		assertThat(completions, hasItem(startsWith("filejdbc --resources")));
 
 	}
 
 	@Test
 	public void testComposedModuleCompletions() {
-		List<String> completions = completionProvider.complete(module, "");
+		List<String> completions = completionProvider.complete(module, "", 1);
 		assertThat(completions, hasItem(startsWith("http")));
 		assertThat(completions, hasItem(startsWith("transform")));
 		assertThat(completions, not(hasItem(startsWith("splunk"))));
 
-		completions = completionProvider.complete(module, "t");
+		completions = completionProvider.complete(module, "t", 1);
 		assertThat(completions, hasItem(startsWith("tcp")));
 		assertThat(completions, hasItem(startsWith("transform")));
 
-		completions = completionProvider.complete(module, "tcp | s");
+		completions = completionProvider.complete(module, "tcp | s", 1);
 		assertThat(completions, hasItem(startsWith("tcp | splitter")));
 		assertThat(completions, hasItem(startsWith("tcp | splunk")));
 		assertThat(completions, not(hasItem(startsWith("tcp | syslog-tcp"))));
 
-		completions = completionProvider.complete(module, "transform | s");
+		completions = completionProvider.complete(module, "transform | s", 1);
 		assertThat(completions, hasItem(startsWith("transform | splitter")));
 		assertThat(completions, hasItem(startsWith("transform | splunk")));
 		assertThat(completions, not(hasItem(startsWith("transform | syslog-tcp"))));
@@ -276,7 +276,7 @@ public class CompletionProviderTests {
 	@Test
 	// queue:foo > <TAB>  ==> add module names
 	public void testXD1706() {
-		List<String> completions = completionProvider.complete(stream, "queue:foo > ");
+		List<String> completions = completionProvider.complete(stream, "queue:foo > ", 1);
 		assertThat(completions, hasItem(startsWith("queue:foo > http-client")));
 		assertThat(completions, hasItem(startsWith("queue:foo > splunk")));
 		assertThat(completions, not(hasItem(startsWith("queue:foo > twittersearch"))));
@@ -285,7 +285,7 @@ public class CompletionProviderTests {
 	@Test
 	// tap:stream:foo > <TAB>  ==> add module names
 	public void testXD1706Variant() {
-		List<String> completions = completionProvider.complete(stream, "tap:stream:foo > ");
+		List<String> completions = completionProvider.complete(stream, "tap:stream:foo > ", 1);
 		assertThat(completions, hasItem(startsWith("tap:stream:foo > http-client")));
 		assertThat(completions, hasItem(startsWith("tap:stream:foo > splunk")));
 		assertThat(completions, not(hasItem(startsWith("tap:stream:foo > twittersearch"))));
@@ -293,7 +293,7 @@ public class CompletionProviderTests {
 
 	@Test
 	public void testCompleteAlreadyStartedNameAfterChannel() {
-		List<String> completions = completionProvider.complete(stream, "queue:foo > s");
+		List<String> completions = completionProvider.complete(stream, "queue:foo > s", 1);
 		// XD-1830: Currently does not support adding processors due do the way
 		// module type guessing works
 		//assertThat(completions, hasItem(startsWith("queue:foo > splitter")));
@@ -303,14 +303,12 @@ public class CompletionProviderTests {
 
 	@Test
 	public void testHiddenOptionNames() {
-		List<String> completions = completionProvider.complete(stream, "http | rabbit ");
-		assertThat(completions, not(hasItem(startsWith("http | rabbit --vhost"))));
+		List<String> completions = completionProvider.complete(stream, "http | jdbc ", 1);
+		assertThat(completions, not(hasItem(startsWith("http | jdbc --maxIdle"))));
 
-		completions = completionProvider.complete(stream, "http | rabbit --");
-		assertThat(completions, not(hasItem(startsWith("http | rabbit --vhost"))));
+		completions = completionProvider.complete(stream, "http | jdbc ", 2);
+		assertThat(completions, hasItem(startsWith("http | jdbc --maxIdle")));
 
-		completions = completionProvider.complete(stream, "http | rabbit --v");
-		assertThat(completions, hasItem(startsWith("http | rabbit --vhost")));
 	}
 
 	private List<String> namesOfModulesWithType(ModuleType type) {

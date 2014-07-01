@@ -5,7 +5,7 @@ spring:
     yarn:
         client:
             resource:
-                memory: 512M
+                memory: ${xd.adminMemory:512M}
             files:
                 - "file:${spring.xd.yarn.app.path}/${spring.xd.yarn.app.zip}"
                 - "file:${spring.xd.yarn.am.path}/${spring.xd.yarn.am.jar}"

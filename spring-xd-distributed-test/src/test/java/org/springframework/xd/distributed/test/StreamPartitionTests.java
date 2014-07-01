@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,12 +38,6 @@ import org.springframework.xd.rest.client.impl.SpringXDTemplate;
  * @author Mark Fisher
  */
 public class StreamPartitionTests extends AbstractDistributedTests {
-
-	/**
-	 * Logger.
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(StreamPartitionTests.class);
-
 
 	/**
 	 * Enum for the various transport options used for partition testing.

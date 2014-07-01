@@ -25,9 +25,6 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 
 
@@ -37,12 +34,6 @@ import org.springframework.xd.rest.client.impl.SpringXDTemplate;
  * @author Patrick Peralta
  */
 public class StreamDeploymentTests extends AbstractDistributedTests {
-
-	/**
-	 * Logger.
-	 */
-	private static final Logger logger = LoggerFactory.getLogger(StreamDeploymentTests.class);
-
 
 	/**
 	 * Start three containers and deploy a simple two module stream.

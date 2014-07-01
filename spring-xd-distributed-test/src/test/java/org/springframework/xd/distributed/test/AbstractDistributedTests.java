@@ -63,7 +63,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	/**
 	 * Logger.
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(AbstractDistributedTests.class);
+	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	/**
 	 * Distributed test support infrastructure.

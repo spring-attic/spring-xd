@@ -38,7 +38,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.integration.util.jmxresult.JMXChannelResult;
@@ -90,40 +89,6 @@ public class XdEc2Validation {
 		boolean result = verifyAdminConnection(adminServer);
 		assertTrue("XD Admin Server is not available at "
 				+ adminServer.toString(), result);
-	}
-
-	/**
-	 * Assert that at least one server the user specified is available.
-	 *
-	 * @param containers the location of xd-containers
-	 * @param jmxPort the JMX port to connect to the container
-	 */
-	public void verifyAtLeastOneContainerAvailable(final List<URL> containers,
-			int jmxPort) {
-		boolean result = false;
-		Assert.notNull(containers, "the container list passed in should not be null");
-		final Iterator<URL> containerIter = containers.iterator();
-		while (containerIter.hasNext()) {
-			final URL container = containerIter.next();
-			try {
-				verifyContainerConnection(StreamUtils.replacePort(container,
-						jmxPort));
-				result = true;
-			}
-			catch (ResourceAccessException rae) {
-				LOGGER.error("XD Container is not available at "
-						+ StreamUtils.replacePort(container, jmxPort));
-			}
-			catch (HttpClientErrorException hcee) {
-				LOGGER.debug(hcee.getMessage());
-				result = true;
-			}
-			catch (IOException ioe) {
-				LOGGER.warn("XD Container is not available at "
-						+ StreamUtils.replacePort(container, jmxPort));
-			}
-		}
-		assertTrue("No XD Containers are available", result);
 	}
 
 	/**

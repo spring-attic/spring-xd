@@ -45,6 +45,13 @@ public class SimpleHttpSource extends AbstractModuleFixture<SimpleHttpSource> {
 
 	/**
 	 * Construct a new SimpleHttpSource, given a host. The port will default to 9000.
+	 */
+	public SimpleHttpSource() {
+		this(DEFAULT_HTTP_HOST, DEFAULT_HTTP_PORT);
+	}
+
+	/**
+	 * Construct a new SimpleHttpSource, given a host. The port will default to 9000.
 	 *
 	 * @param host the host to connect to
 	 */

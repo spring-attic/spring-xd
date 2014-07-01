@@ -30,17 +30,11 @@ public class TcpSource extends AbstractModuleFixture<TcpSource> {
 
 	private static final int DEFAULT_TCP_PORT = 1234;
 
+	private static final String DEFAULT_TCP_HOST = "localhost";
+
 	protected final int port;
 
 	private String host;
-
-	/**
-	 * Construct a new TcpSource with the loopback address for host and using a port selected by @link
-	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
-	 */
-	public TcpSource() {
-		this(null);
-	}
 
 	/**
 	 * Construct a new TcpSource with the provided host and using a port selected by @link
@@ -63,6 +57,15 @@ public class TcpSource extends AbstractModuleFixture<TcpSource> {
 		this.host = host;
 		this.port = port;
 	}
+
+	/**
+	 * Construct a new TcpSource using the default host of localhost  and  port of 1234
+	 * @return TcpSource to use
+	 */
+	public static TcpSource withDefaults() {
+		return new TcpSource(DEFAULT_TCP_HOST, DEFAULT_TCP_PORT);
+	}
+
 
 	/**
 	 * Construct a new TcpSource using the provided host and the default port of 1234

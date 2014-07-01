@@ -55,18 +55,6 @@ public class ConfigUtil {
 
 	public static final String SINGLENODE_TOKEN = "singleNode";
 
-	private XdEnvironment xdEnvironment;
-
-	/**
-	 * Initializes the ConfigUtil with the XDEnvironment.
-	 *
-	 * @param xdEnvironment
-	 */
-	public ConfigUtil(XdEnvironment xdEnvironment) {
-		Assert.notNull(xdEnvironment, "XdEnvironment can not be null");
-		this.xdEnvironment = xdEnvironment;
-	}
-
 	/**
 	 * This method retrieves the information from the artifact and returns it as Properties.
 	 *
@@ -115,10 +103,6 @@ public class ConfigUtil {
 						props.setProperty(XdEnvironment.XD_HTTP_PORT,
 								tokens[HTTP_PORT_OFFSET]);
 						props.setProperty(XdEnvironment.XD_JMX_PORT, tokens[JMX_PORT_OFFSET]);
-
-						containerHosts = XdEnvironment.HTTP_PREFIX
-								+ tokens[HOST_OFFSET].trim() + ":" + tokens[XD_PORT_OFFSET];
-						props.put(XdEnvironment.XD_CONTAINERS, containerHosts);
 					}
 				}
 				reader.close();
@@ -126,10 +110,6 @@ public class ConfigUtil {
 		}
 		catch (IOException ioe) {
 			// Ignore file open error. Default to System variables.
-		}
-
-		if (containerHosts != null) {
-			props.put(XdEnvironment.XD_CONTAINERS, containerHosts);
 		}
 
 		return props;

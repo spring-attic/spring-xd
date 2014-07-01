@@ -63,6 +63,17 @@ public class Sinks {
 	}
 
 	/**
+	 * Construct a new TcpSink with the target host and the default port.
+	 *
+	 * @param host the host the where the tcp sink will connect to
+	 * @return an instance of TcpSink
+	 */
+	public TcpSink tcp(String host) {
+		return TcpSink.withDefaults(host);
+	}
+
+
+	/**
 	 * Construct a new TcpSink with the default target host taken from the environment and the provided port.
 	 *
 	 * @param port the port to connect to

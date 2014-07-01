@@ -55,42 +55,60 @@ public class Sources {
 		this.xdEnvironment = xdEnvironment;
 	}
 
+
 	/**
-	 * Create an instance of the http source with the default target host and default port (9000).
-	 *
+	 * Create an instance of the http source with the default target host (localhost) and default port (9000).
 	 * @return an instance of HttpSource
 	 */
 	public SimpleHttpSource http() {
-		return new SimpleHttpSource(xdEnvironment.getDefaultTargetHost());
+		return new SimpleHttpSource();
+	}
+
+	/**
+	 * Create an instance of the http source with the default target host and default port (9000).
+	 * @param host the host ip where http data will be posted.
+	 * @return an instance of HttpSource
+	 */
+	public SimpleHttpSource http(String host) {
+		return new SimpleHttpSource(host);
 	}
 
 	/**
 	 * Create an instance of the http source with the default target host and provided port
-	 *
+	 * @param host the host ip where http data will be posted.
 	 * @param port the port to connect to
 	 * @return an instance of HttpSource
 	 */
-	public SimpleHttpSource http(int port) {
-		return new SimpleHttpSource(xdEnvironment.getDefaultTargetHost(), port);
+	public SimpleHttpSource http(String host, int port) {
+		return new SimpleHttpSource(host, port);
+	}
+
+
+	/**
+	 * Construct a new TcpSource with the default target host localhost and port (1234)
+	 * @return an instance of TcpSource
+	 */
+	public TcpSource tcp() {
+		return TcpSource.withDefaults();
 	}
 
 	/**
 	 * Construct a new TcpSource with the default target host taken from the environment and default port (1234)
-	 *
+	 * @param host the host ip where tcp data will be posted.
 	 * @return an instance of TcpSource
 	 */
-	public TcpSource tcp() {
-		return TcpSource.withDefaultPort(xdEnvironment.getDefaultTargetHost());
+	public TcpSource tcp(String host) {
+		return TcpSource.withDefaultPort(host);
 	}
 
 	/**
 	 * Construct a new TcpSource with the default target host taken from the environment and the provided port.
-	 *
+	 * @param host the host ip where tcp data will be posted.
 	 * @param port the port to connect to
 	 * @return an instance of TcpSource
 	 */
-	public TcpSource tcp(int port) {
-		return new TcpSource(xdEnvironment.getDefaultTargetHost(), port);
+	public TcpSource tcp(String host, int port) {
+		return new TcpSource(host, port);
 	}
 
 	/**
@@ -178,6 +196,14 @@ public class Sources {
 		return SyslogTcpSource.withDefaults(host);
 	}
 
+	/**
+	 * Constructs a SyslogTcpSource that receives syslog events via tcp.
+	 *
+	 * @return an instance of SyslogTcpSource.
+	 */
+	public SyslogTcpSource syslogTcpSource() {
+		return SyslogTcpSource.withDefaults();
+	}
 
 	/**
 	 * Constructs a SyslogUdpSource that receives syslog events via udp.
@@ -188,6 +214,16 @@ public class Sources {
 	public SyslogUdpSource syslogUdpSource(String host) {
 		return SyslogUdpSource.withDefaults(host);
 	}
+
+	/**
+	 * Constructs a SyslogUdpSource that receives syslog events via udp.
+	 *
+	 * @return an instance of SyslogUdpSource.
+	 */
+	public SyslogUdpSource syslogUdpSource() {
+		return SyslogUdpSource.withDefaults();
+	}
+
 
 	/**
 	 * Constructs a Tap fixture.

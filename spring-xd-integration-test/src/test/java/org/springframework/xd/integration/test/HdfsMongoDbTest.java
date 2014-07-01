@@ -60,8 +60,7 @@ public class HdfsMongoDbTest extends AbstractIntegrationTest {
 		stream("dataSender", sources.http() + XD_DELIMITER + sinks.hdfs()
 				.directoryName(HdfsMongoDbJob.DEFAULT_DIRECTORY).fileName(HdfsMongoDbJob.DEFAULT_FILE_NAME).toDSL(),
 				WAIT_TIME);
-		waitForXD();
-		sources.http().postData(data);
+		sources.http(getContainerHostForSource("dataSender")).postData(data);
 		job(job.toDSL());
 		waitForXD();
 		//Undeploy the dataSender stream to force XD to close the file.

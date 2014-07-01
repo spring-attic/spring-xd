@@ -28,7 +28,6 @@ import org.junit.Test;
  */
 public class TcpTest extends AbstractIntegrationTest {
 
-
 	/**
 	 * Verifies that the TCP Source that terminates with a CRLF returns the correct data.
 	 *
@@ -37,10 +36,9 @@ public class TcpTest extends AbstractIntegrationTest {
 	public void testTCPSourceCRLF() {
 		String data = UUID.randomUUID().toString();
 		stream(sources.tcp() + XD_DELIMITER + sinks.file());
-		waitForXD();
-		sources.tcp().sendBytes((data + "\r\n").getBytes());
-		assertReceived(1);
+		sources.tcp(getContainerHostForSource()).sendBytes((data + "\r\n").getBytes());
 		assertValid(data, sinks.file());
+		assertReceived(1);
 	}
 
 	/**
@@ -51,9 +49,9 @@ public class TcpTest extends AbstractIntegrationTest {
 	public void testTCPSink() {
 		String data = UUID.randomUUID().toString();
 		stream(sources.tcp() + XD_DELIMITER + sinks.file());
-		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMITER + sinks.tcp(), WAIT_TIME);
-
-		assertReceived(1);
+		stream("dataSender",
+				"trigger --payload='" + data + "'" + XD_DELIMITER + sinks.tcp(getContainerHostForSource()), WAIT_TIME);
 		assertValid(data, sinks.file());
+		assertReceived(1);
 	}
 }

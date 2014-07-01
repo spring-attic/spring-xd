@@ -20,9 +20,6 @@ import java.util.UUID;
 
 import org.junit.Test;
 
-import org.springframework.xd.test.fixtures.SyslogTcpSource;
-import org.springframework.xd.test.fixtures.SyslogUdpSource;
-
 
 /**
  * Runs a basic suite of Syslog TCP and UDP tests on an XD Cluster instance.
@@ -39,11 +36,9 @@ public class SyslogTest extends AbstractIntegrationTest {
 	@Test
 	public void testSyslogTcp() {
 		String data = UUID.randomUUID().toString();
-		SyslogTcpSource syslogTcp = sources.syslogTcpSource(getContainerForStream().getHost());
-		stream(syslogTcp + XD_DELIMITER
+		stream(sources.syslogTcpSource() + XD_DELIMITER
 				+ "file");
-		waitForXD();
-		syslogTcp.sendBytes((data + "\r\n").getBytes());
+		sources.syslogTcpSource(getContainerHostForSource()).sendBytes((data + "\r\n").getBytes());
 		assertReceived(1);
 		assertFileContains(data);
 	}
@@ -55,11 +50,9 @@ public class SyslogTest extends AbstractIntegrationTest {
 	@Test
 	public void testSyslogUdp() {
 		String data = UUID.randomUUID().toString();
-		SyslogUdpSource syslogUdp = sources.syslogUdpSource(getContainerForStream().getHost());
-		stream(syslogUdp + XD_DELIMITER
+		stream(sources.syslogUdpSource() + XD_DELIMITER
 				+ "file");
-		waitForXD();
-		syslogUdp.sendBytes((data + "\r\n").getBytes());
+		sources.syslogUdpSource(getContainerHostForSource()).sendBytes((data + "\r\n").getBytes());
 		assertReceived(1);
 		this.assertFileContains(data);
 	}

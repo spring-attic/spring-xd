@@ -16,7 +16,6 @@
 
 package org.springframework.xd.rest.client.impl;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +29,7 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.hateoas.UriTemplate;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -63,7 +63,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 	/**
 	 * Holds discovered URLs of the API.
 	 */
-	protected Map<String, URI> resources = new HashMap<String, URI>();
+	protected Map<String, UriTemplate> resources = new HashMap<String, UriTemplate>();
 
 	/**
 	 * Copy constructor.

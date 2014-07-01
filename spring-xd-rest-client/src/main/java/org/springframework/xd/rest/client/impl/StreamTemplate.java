@@ -42,7 +42,8 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 		values.add("definition", defintion);
 		values.add("deploy", Boolean.toString(deploy));
 
-		StreamDefinitionResource stream = restTemplate.postForObject(resources.get("streams/definitions"), values,
+		StreamDefinitionResource stream = restTemplate.postForObject(resources.get("streams/definitions").expand(),
+				values,
 				StreamDefinitionResource.class);
 		return stream;
 	}
@@ -86,12 +87,12 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 
 	@Override
 	public void undeployAll() {
-		restTemplate.delete(resources.get("streams/deployments"));
+		restTemplate.delete(resources.get("streams/deployments").expand());
 	}
 
 	@Override
 	public void destroyAll() {
-		restTemplate.delete(resources.get("streams/definitions"));
+		restTemplate.delete(resources.get("streams/definitions").expand());
 	}
 
 }

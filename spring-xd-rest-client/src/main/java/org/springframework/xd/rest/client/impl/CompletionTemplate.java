@@ -16,9 +16,11 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.hateoas.UriTemplate;
 import org.springframework.xd.rest.client.CompletionOperations;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
@@ -35,8 +37,9 @@ public class CompletionTemplate extends AbstractTemplate implements CompletionOp
 	}
 
 	@Override
-	public List<String> completions(CompletionKind kind, String start) {
-		String url = resources.get(String.format("completions/%s", kind)).toString() + "{start}";
-		return Arrays.asList(restTemplate.getForObject(url, String[].class, start));
+	public List<String> completions(CompletionKind kind, String start, int lod) {
+		UriTemplate template = resources.get(String.format("completions/%s", kind));
+		URI expanded = template.expand(start, lod);
+		return Arrays.asList(restTemplate.getForObject(expanded, String[].class));
 	}
 }

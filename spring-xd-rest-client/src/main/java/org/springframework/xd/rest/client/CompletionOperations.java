@@ -27,6 +27,12 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
  */
 public interface CompletionOperations {
 
-	List<String> completions(CompletionKind kind, String start);
+	/**
+	 * Return the list of completions that are compatible with the given DSL prefix.
+	 * 
+	 * @param levelOfDetail 1 based integer allowing progressive disclosure of more and more
+	 * complex completions 
+	 */
+	List<String> completions(CompletionKind kind, String prefix, int levelOfDetail);
 
 }

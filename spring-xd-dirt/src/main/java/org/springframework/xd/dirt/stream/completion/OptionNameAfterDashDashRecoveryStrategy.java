@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
+import static org.springframework.xd.dirt.stream.completion.CompletionProvider.shouldShowOption;
 import static org.springframework.xd.dirt.stream.completion.CompletionProvider.toParsingContext;
 
 import java.util.HashSet;
@@ -69,7 +70,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 	}
 
 	@Override
-	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind,
+	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind, int detailLevel,
 			List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<ModuleDescriptor> parsed = parser.parse("__dummy", safe, toParsingContext(kind));
@@ -91,7 +92,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 			}
 		}
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
-			if (!option.isHidden() && !alreadyPresentOptions.contains(option.getName())) {
+			if (shouldShowOption(option, detailLevel) && !alreadyPresentOptions.contains(option.getName())) {
 				proposals.add(String.format("%s --%s=", safe, option.getName()));
 			}
 		}

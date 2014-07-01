@@ -51,7 +51,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		values.add("deploy", String.valueOf(deploy));
 		values.add("definition", definition);
 
-		JobDefinitionResource job = restTemplate.postForObject(resources.get("jobs/definitions"), values,
+		JobDefinitionResource job = restTemplate.postForObject(resources.get("jobs/definitions").expand(), values,
 				JobDefinitionResource.class);
 		return job;
 	}
@@ -123,12 +123,12 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public void undeployAll() {
-		restTemplate.delete(resources.get("jobs/deployments"));
+		restTemplate.delete(resources.get("jobs/deployments").expand());
 	}
 
 	@Override
 	public void destroyAll() {
-		restTemplate.delete(resources.get("jobs/definitions"));
+		restTemplate.delete(resources.get("jobs/definitions").expand());
 	}
 
 	@Override

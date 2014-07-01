@@ -42,7 +42,7 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("name", name);
 		values.add("definition", definition);
-		return restTemplate.postForObject(resources.get("modules"), values, ModuleDefinitionResource.class);
+		return restTemplate.postForObject(resources.get("modules").expand(), values, ModuleDefinitionResource.class);
 	}
 
 	@Override

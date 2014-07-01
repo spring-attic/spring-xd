@@ -44,8 +44,17 @@ public class CompletionsController {
 		this.completionProvider = completionProvider;
 	}
 
+	/**
+	 * Return a list of possible completions given a prefix string that the user has started typing.
+	 * 
+	 *  @param kind the kind of definition that is being authored
+	 *  @param start the amount of text written so far
+	 *  @param lod the level of detail the user wants in completions (<i>e.g.</i> higher numbers may mean show 'hidden' options)
+	 */
 	@RequestMapping(value = "/{kind}")
-	public List<String> completions(@PathVariable("kind") CompletionKind kind, @RequestParam("start") String start) {
-		return completionProvider.complete(kind, start);
+	public List<String> completions(@PathVariable("kind") CompletionKind kind,
+			@RequestParam("start") String start,
+			@RequestParam(value = "detailLevel", defaultValue = "1") int detailLevel) {
+		return completionProvider.complete(kind, start, detailLevel);
 	}
 }

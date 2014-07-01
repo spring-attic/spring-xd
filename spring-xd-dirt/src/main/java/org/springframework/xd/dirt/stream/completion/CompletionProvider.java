@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.module.ModuleDescriptor;
+import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
@@ -37,15 +38,25 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 @Lazy
 public class CompletionProvider {
 
+	/**
+	 * The number of times (inclusive) the user must invoke completion for {@link ModuleOption#hidden(boolean) hidden}
+	 * options to show up 
+	 */
+	private final static int HIDDEN_OPTION_THRESHOLD = 2;
+
 	private final XDParser parser;
 
 	private final List<CompletionRecoveryStrategy<Exception>> completionRecoveryStrategies;
 
 	private final List<CompletionExpansionStrategy> completionExpansionStrategies;
 
+	public static boolean shouldShowOption(ModuleOption option, int detailLevel) {
+		return !option.isHidden() || detailLevel >= HIDDEN_OPTION_THRESHOLD;
+	}
+
 
 	/**
-	 * Construct a new CompletionProvider given a list of recovery strategies and module option expansion strategies.
+	 * Construct a new CompletionProvider given a list of recovery strategies and expansion strategies.
 	 * 
 	 * @param parser the parser used to parse the text the partial module definition.
 	 * @param completionRecoveryStrategies list of strategies to apply when an exception was thrown during parsing.
@@ -71,7 +82,7 @@ public class CompletionProvider {
 	 * expand what she has typed, or it fails (most likely because this is not well formed), in which case we try to
 	 * recover from the parsing failure and still add proposals.
 	 */
-	public List<String> complete(CompletionKind kind, String start) {
+	public List<String> complete(CompletionKind kind, String start, int detailLevel) {
 		List<String> results = new ArrayList<String>();
 
 		String name = "__dummy";
@@ -82,7 +93,7 @@ public class CompletionProvider {
 		catch (Exception recoverable) {
 			for (CompletionRecoveryStrategy<Exception> strategy : completionRecoveryStrategies) {
 				if (strategy.shouldTrigger(start, recoverable, kind)) {
-					strategy.addProposals(start, recoverable, kind, results);
+					strategy.addProposals(start, recoverable, kind, detailLevel, results);
 				}
 			}
 
@@ -91,7 +102,7 @@ public class CompletionProvider {
 
 		for (CompletionExpansionStrategy strategy : completionExpansionStrategies) {
 			if (strategy.shouldTrigger(start, parsed, kind)) {
-				strategy.addProposals(start, parsed, kind, results);
+				strategy.addProposals(start, parsed, kind, detailLevel, results);
 			}
 		}
 		return results;

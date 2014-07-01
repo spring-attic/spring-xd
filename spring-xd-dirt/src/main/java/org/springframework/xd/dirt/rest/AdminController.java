@@ -19,6 +19,10 @@ package org.springframework.xd.dirt.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityLinks;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.TemplateVariable;
+import org.springframework.hateoas.TemplateVariable.VariableType;
+import org.springframework.hateoas.TemplateVariables;
+import org.springframework.hateoas.UriTemplate;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,10 +72,19 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("batch/executions"));
 		xdRuntime.add(entityLinks.linkFor(JobInstanceInfoResource.class).withRel("batch/instances"));
 
+
+		// Maybe https://github.com/spring-projects/spring-hateoas/issues/169 will help eventually
+		TemplateVariable start = new TemplateVariable("start", VariableType.REQUEST_PARAM);
+		TemplateVariable lod = new TemplateVariable("detailLevel", VariableType.REQUEST_PARAM_CONTINUED);
+		TemplateVariables vars = new TemplateVariables(start, lod);
 		for (CompletionKind k : CompletionKind.values()) {
-			Object mi = ControllerLinkBuilder.methodOn(CompletionsController.class).completions(k, "");
+			Object mi = ControllerLinkBuilder.methodOn(CompletionsController.class).completions(k, "", 42);
 			Link link = ControllerLinkBuilder.linkTo(mi).withRel(String.format("completions/%s", k));
-			xdRuntime.add(link);
+			String href = link.getHref().substring(0, link.getHref().lastIndexOf('?'));
+			UriTemplate template = new UriTemplate(href, vars);
+			Link copy = new Link(template, link.getRel());
+
+			xdRuntime.add(copy);
 		}
 
 

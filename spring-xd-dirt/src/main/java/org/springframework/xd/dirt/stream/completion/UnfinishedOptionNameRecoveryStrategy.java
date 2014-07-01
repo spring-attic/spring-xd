@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
+import static org.springframework.xd.dirt.stream.completion.CompletionProvider.shouldShowOption;
 import static org.springframework.xd.dirt.stream.completion.CompletionProvider.toParsingContext;
 
 import java.util.HashSet;
@@ -69,7 +70,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 	}
 
 	@Override
-	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind,
+	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind, int detailLevel,
 			List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<Token> tokens = exception.getTokens();
@@ -100,11 +101,13 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 
 		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
-			if (!alreadyPresentOptions.contains(option.getName()) && option.getName().startsWith(prefix.toString())) {
+			if (shouldShowOption(option, detailLevel) && !alreadyPresentOptions.contains(option.getName())
+					&& option.getName().startsWith(prefix.toString())) {
 				proposals.add(String.format("%s --%s=", safe, option.getName()));
 			}
 		}
 
 	}
+
 
 }

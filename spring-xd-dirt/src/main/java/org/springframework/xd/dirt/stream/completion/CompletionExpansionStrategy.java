@@ -37,7 +37,7 @@ public interface CompletionExpansionStrategy {
 	/**
 	 * Perform code completion by adding proposals to the {@code proposals} list.
 	 */
-	void addProposals(String text, List<ModuleDescriptor> parseResult, CompletionKind kind,
+	void addProposals(String text, List<ModuleDescriptor> parseResult, CompletionKind kind, int detailLevel,
 			List<String> proposals);
 
 }

@@ -17,6 +17,8 @@
 package org.springframework.xd.shell.converter;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.Completion;
@@ -35,6 +37,9 @@ import org.springframework.xd.shell.XDShell;
  */
 @Component
 public class CompletionConverter implements Converter<String> {
+
+	private static final Pattern NUMBER_OF_INVOCATIONS_CAPTURE = Pattern.compile(String.format(".*%s(\\d+).*",
+			TAB_COMPLETION_COUNT_PREFIX));
 
 	@Autowired
 	private XDShell xdShell;
@@ -63,8 +68,8 @@ public class CompletionConverter implements Converter<String> {
 
 		CompletionKind kind = determineKind(optionContext);
 		try {
-			List<String> candidates = completionOperations().completions(kind,
-					start);
+			int successiveInvocations = determinceNumberOfInvocations(optionContext);
+			List<String> candidates = completionOperations().completions(kind, start, successiveInvocations);
 			for (String candidate : candidates) {
 				completions.add(new Completion(candidate));
 			}
@@ -73,6 +78,20 @@ public class CompletionConverter implements Converter<String> {
 		// Protect from exception in non-command code
 		catch (Exception e) {
 			return false;
+		}
+	}
+
+	/**
+	 * Reads the {@link Converter#NB_INVOCATIONS_OPTION_CONTEXT_PREFIX} information and determines how many
+	 * times the user has pressed the TAB key. 
+	 */
+	private int determinceNumberOfInvocations(String optionContext) {
+		Matcher matcher = NUMBER_OF_INVOCATIONS_CAPTURE.matcher(optionContext);
+		if (matcher.matches()) {
+			return Integer.parseInt(matcher.group(1));
+		}
+		else {
+			return 1;
 		}
 	}
 
@@ -89,6 +108,5 @@ public class CompletionConverter implements Converter<String> {
 		}
 		throw new IllegalStateException("Could not determine kind: " + optionContext);
 	}
-
 
 }

@@ -20,7 +20,7 @@ spring:
         appName: xd-admin
         appmaster:
             resource:
-                memory: 512M
+                memory: ${xd.containerMemory:512M}
             launchcontext:
                 runnerClass: org.springframework.xd.dirt.server.AdminServerApplication
                 arguments:

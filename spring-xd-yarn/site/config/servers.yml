@@ -1,7 +1,9 @@
 # XD on YARN deployment configuration
 xd:
     adminServers: 1
+	adminMemory: 512M
     containers: 3
+	containerMemory: 512M
     container:
         groups: yarn
 

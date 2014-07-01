@@ -7,21 +7,21 @@
 		target="_blank">Technical Documentation</a>.
 	</p>
 	<form name="deployDefinitionForm" class="form-horizontal" role="form">
-		<div class="form-group" ng-class="deployDefinitionForm.moduleCriteria.$invalid ? 'has-warning has-feedback' : ''">
-			<label for="moduleCriteria" class="col-sm-3 control-label">Container Match Criteria</label>
+		<div class="form-group" ng-class="deployDefinitionForm.containerMatchCriteria.$invalid ? 'has-warning has-feedback' : ''">
+			<label for="containerMatchCriteria" class="col-sm-3 control-label">Container Match Criteria</label>
 			<div class="col-sm-9">
-				<input type="text" id="moduleCriteria" name="moduleCriteria" autofocus
-							 class="form-control" placeholder="Enter a Container Match Criteria" ng-model="definitionDeployRequest.moduleCriteria">
-				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.moduleCriteria.$invalid"></span>
+				<input type="text" id="containerMatchCriteria" name="containerMatchCriteria" autofocus
+							 class="form-control" placeholder="Enter a Container Match Criteria" ng-model="definitionDeployRequest.containerMatchCriteria">
+				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.containerMatchCriteria.$invalid"></span>
 				<p class="help-block">This must be a valid SpEL expression.</p>
 			</div>
 		</div>
-		<div class="form-group" ng-class="deployDefinitionForm.containerCount.$invalid ? 'has-warning has-feedback' : ''">
-			<label for="containerCount" class="col-sm-3 control-label">Job Module Count</label>
+		<div class="form-group" ng-class="deployDefinitionForm.jobModuleCount.$invalid ? 'has-warning has-feedback' : ''">
+			<label for="jobModuleCount" class="col-sm-3 control-label">Job Module Count</label>
 			<div class="col-sm-9">
-				<input type="number" id="containerCount" name="containerCount" min="0"
-							 class="form-control" placeholder="Enter the number of container instances" ng-model="definitionDeployRequest.containerCount">
-				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.containerCount.$invalid"></span>
+				<input type="number" id="jobModuleCount" name="jobModuleCount" min="0"
+							 class="form-control" placeholder="Enter the number of container instances" ng-model="definitionDeployRequest.jobModuleCount">
+				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.jobModuleCount.$invalid"></span>
 				<p class="help-block">Specifies the number of container instances
 				this module should be deployed to. A value of <strong>0</strong>
 				indicates that this Job Definition should be deployed to all

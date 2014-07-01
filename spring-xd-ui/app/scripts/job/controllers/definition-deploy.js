@@ -36,8 +36,8 @@ define([], function () {
             $scope.definitionDeployRequest = {
               jobDefinition: jobDefinition,
               moduleName: moduleName,
-              moduleCriteria: '',
-              containerCount: ''
+              containerMatchCriteria: '',
+              jobModuleCount: ''
             };
           },function (error) {
             utils.growl.addErrorMessage('Error fetching job definition. ' + error.data[0].message);
@@ -53,13 +53,13 @@ define([], function () {
         utils.$log.info(jobDefinitionService);
         var properties = [];
 
-        if (definitionDeployRequest.moduleCriteria) {
+        if (definitionDeployRequest.containerMatchCriteria) {
           properties.push('module.' + definitionDeployRequest.moduleName +
-          '.criteria=' + definitionDeployRequest.moduleCriteria);
+          '.criteria=' + definitionDeployRequest.containerMatchCriteria);
         }
-        if (definitionDeployRequest.containerCount) {
+        if (definitionDeployRequest.jobModuleCount) {
           properties.push('module.' + definitionDeployRequest.moduleName +
-          '.count=' + definitionDeployRequest.containerCount);
+          '.count=' + definitionDeployRequest.jobModuleCount);
         }
         utils.$log.info('Module Deployment Properties:' + properties);
 

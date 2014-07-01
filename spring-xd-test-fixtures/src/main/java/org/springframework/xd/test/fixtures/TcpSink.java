@@ -44,6 +44,8 @@ public class TcpSink extends AbstractModuleFixture<TcpSink> implements Disposabl
 
 	private Thread listenerThread;
 
+	private String host;
+
 	/**
 	 * Construct a TcpSink with a port selected by @link
 	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
@@ -55,10 +57,29 @@ public class TcpSink extends AbstractModuleFixture<TcpSink> implements Disposabl
 	/**
 	 * Create a TcpSink with the provided port
 	 * 
+	 * @param host used to configure the sink
+	 */
+	public TcpSink(String host, int port) {
+		this.host = host;
+		this.port = port;
+	}
+
+	/**
+	 * Create a TcpSink with the provided port
+	 * 
 	 * @param port used to configure the sink
 	 */
 	public TcpSink(int port) {
 		this.port = port;
+	}
+
+	/**
+	 * Construct a TcpSink with the specified host and a default port of 1234
+	 * @param host the host where tcp data will be sent
+	 * @return TcpSink
+	 */
+	public static TcpSink withDefaults(String host) {
+		return new TcpSink(host, DEFAULT_TCP_PORT);
 	}
 
 	/**
@@ -124,7 +145,11 @@ public class TcpSink extends AbstractModuleFixture<TcpSink> implements Disposabl
 
 	@Override
 	protected String toDSL() {
-		return String.format("tcp --port=%d", port);
+		String result = String.format("tcp --port=%d ", port);
+		if (host != null) {
+			result = result + "--host=" + host;
+		}
+		return result;
 	}
 
 }

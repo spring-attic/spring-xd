@@ -17,7 +17,6 @@
 package org.springframework.xd.integration.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
@@ -63,19 +62,17 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
 		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY,
-											String.format("/%spartition*", DEFAULT_FILE_NAME),
-											FileJdbcJob.DEFAULT_TABLE_NAME,
-											FileJdbcJob.DEFAULT_NAMES);
+				String.format("/%spartition*", DEFAULT_FILE_NAME),
+				FileJdbcJob.DEFAULT_TABLE_NAME,
+				FileJdbcJob.DEFAULT_NAMES);
 
-		for(int i = 0; i < 5; i++) {
+		for (int i = 0; i < 5; i++) {
 			// Create a stream that writes to a file. This file will be used by the job.
-			stream("dataSender" + i, sources.http(9000 + i) + XD_DELIMITER
-										 + sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME + "partition" + i).toDSL(), WAIT_TIME);
-			waitForXD();
-			sources.http(9000 + i).postData(data);
-			waitForXD();
+			stream("dataSender" + i, sources.http("foobar", 9000 + i) + XD_DELIMITER
+					+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME + "partition" + i).toDSL(), WAIT_TIME);
+			sources.http(getContainerHostForSource("dataSender" + i), 9000 + i).postData(data);
 		}
-
+		waitForXD();
 		job(job.toDSL());
 		waitForXD();
 		jobLaunch();
@@ -100,15 +97,13 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 	public void testFileJdbcJob() {
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
-		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME, FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
+		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
+				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
 
 		// Create a stream that writes to a file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMITER
-										 + sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL(), WAIT_TIME);
-		waitForXD();
-		sources.http().postData(data);
-		waitForXD();
-
+				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL(), WAIT_TIME);
+		sources.http(getContainerHostForSource("dataSender")).postData(data);
 		job(job.toDSL());
 		waitForXD();
 		jobLaunch();

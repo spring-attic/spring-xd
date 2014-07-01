@@ -36,18 +36,14 @@ public class FileSourceTest extends AbstractIntegrationTest {
 	@Test
 	public void testFileSource() {
 		String data = UUID.randomUUID().toString();
-		String sourceDir = UUID.randomUUID().toString();
-		String fileName = UUID.randomUUID().toString();
-		stream(sources.file(sourceDir, fileName + ".out").label("filein") + XD_DELIMITER
+		String sourceDir = "/tmp/xd/" + UUID.randomUUID().toString();
+		String fileName = UUID.randomUUID().toString() + ".out";
+		stream(sources.file(sourceDir, fileName).label("filein") + XD_DELIMITER
 				+ sinks.file().label("fileout"));
-		stream("dataSender",
-				sources.http() + XD_DELIMITER + sinks.file(sourceDir, fileName), WAIT_TIME);
-		waitForXD();
-		sources.http().postData(data);
+		setupSourceDataFiles(sourceDir, fileName, data);
 		waitForXD();
 		assertValid(data, sinks.file());
 	}
-
 
 	/**
 	 * Evaluates whether the tail source (poller) will retrieve the results when the specified file is updated.
@@ -56,18 +52,14 @@ public class FileSourceTest extends AbstractIntegrationTest {
 	@Test
 	public void testTailSource() {
 		String data = UUID.randomUUID().toString();
-		String sourceDir = UUID.randomUUID().toString();
-		String fileName = UUID.randomUUID().toString();
+		String sourceDir = "/tmp/xd";
+		String fileName = UUID.randomUUID().toString() + ".out";
 
-		stream(sources.tail(1000, sourceDir + "/" + fileName + ".out") + XD_DELIMITER
+		final String APPEND_TEXT = ".append";
+		stream(sources.tail(100, sourceDir + "/" + fileName) + XD_DELIMITER
 				+ sinks.file());
-		waitForXD();
-		stream("dataSender", sources.http() + XD_DELIMITER
-				+ sinks.file(sourceDir, fileName).binary(false).toDSL(), WAIT_TIME);
-		waitForXD();
-		sources.http().postData(data);
-		waitForXD();
-		assertValid(data, sinks.file());
+		setupSourceDataFiles(sourceDir, fileName, data);
+		appendDataToSourceTestFile(sourceDir, fileName, APPEND_TEXT);
+		assertValid(data + APPEND_TEXT, sinks.file());
 	}
-
 }

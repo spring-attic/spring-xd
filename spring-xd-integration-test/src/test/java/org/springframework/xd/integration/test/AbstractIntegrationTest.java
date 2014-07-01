@@ -18,9 +18,20 @@ package org.springframework.xd.integration.test;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
+import org.jclouds.ec2.domain.RunningInstance;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -31,6 +42,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.integration.fixtures.Jobs;
 import org.springframework.xd.integration.fixtures.Processors;
 import org.springframework.xd.integration.fixtures.Sinks;
@@ -41,6 +53,7 @@ import org.springframework.xd.integration.util.JobUtils;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
+import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 import org.springframework.xd.test.fixtures.AbstractModuleFixture;
 import org.springframework.xd.test.fixtures.LogSink;
 import org.springframework.xd.test.fixtures.SimpleFileSink;
@@ -57,6 +70,8 @@ public abstract class AbstractIntegrationTest {
 	private final static String STREAM_NAME = "ec2Test3";
 
 	protected final static String JOB_NAME = "ec2Job3";
+
+	protected final static String DEFAULT_XD_PORT = "9393";
 
 	protected final static String XD_DELIMITER = " | ";
 
@@ -79,6 +94,15 @@ public abstract class AbstractIntegrationTest {
 	@Value("${xd_run_on_ec2}")
 	protected boolean isOnEc2;
 
+	@Value("${aws_access_key:}")
+	protected String awsAccessKey;
+
+	@Value("${aws_secret_key:}")
+	protected String awsSecretKey;
+
+	@Value("${aws_region:}")
+	protected String awsRegion;
+
 	@Autowired
 	protected Sources sources;
 
@@ -99,6 +123,11 @@ public abstract class AbstractIntegrationTest {
 
 	private boolean initialized = false;
 
+	/**
+	 * Maps the containerID to the container dns.
+	 */
+	private Map<String, String> containers;
+
 
 	/**
 	 * Initializes the environment before the test. Also asserts that the admin server is up and at least one container is
@@ -109,10 +138,45 @@ public abstract class AbstractIntegrationTest {
 		if (!initialized) {
 			adminServer = xdEnvironment.getAdminServerUrl();
 			validation.verifyXDAdminReady(adminServer);
-			validation.verifyAtLeastOneContainerAvailable(xdEnvironment.getContainerUrls(),
-					xdEnvironment.getJmxPort());
+			containers = getAvailableContainers(adminServer);
+			assertTrue("There must be at least one container", containers.size() > 0);
 			initialized = true;
 		}
+	}
+
+	/**
+	 * Retrieves the containers that are recognized by the adminServer.  
+	 * If the test is on EC2 the IPs of the containers will be set to the external IPs versus the default internal IPs.
+	 * @param adminServer The adminserver to interrogate.
+	 * @return A Map of container servers , that is keyed on the containerID assigned by the admin server.
+	 */
+	private Map<String, String> getAvailableContainers(URL adminServer) {
+		Map<String, String> result = null;
+		result = StreamUtils.getAvailableContainers(adminServer);
+		//if ec2 replace local aws DNS with external DNS
+		if (isOnEc2) {
+			Map<String, String> privateIpMap = getPrivateIpToPublicIP(StreamUtils.getEC2RunningInstances(
+					awsAccessKey, awsSecretKey, awsRegion));
+			Iterator<String> keysIter = result.keySet().iterator();
+			while (keysIter.hasNext()) {
+				String key = keysIter.next();
+				String privateIP = result.get(key) + ".ec2.internal";
+				if (privateIpMap.containsKey(privateIP)) {
+					result.put(key, privateIpMap.get(privateIP));
+				}
+			}
+		}
+		return result;
+	}
+
+	private Map<String, String> getPrivateIpToPublicIP(List<RunningInstance> riList) {
+		Map<String, String> privateIPMap = new HashMap<String, String>();
+		Iterator<RunningInstance> runningInstanceIter = riList.iterator();
+		while (runningInstanceIter.hasNext()) {
+			RunningInstance ri = runningInstanceIter.next();
+			privateIPMap.put(ri.getPrivateDnsName(), ri.getDnsName());
+		}
+		return privateIPMap;
 	}
 
 	/**
@@ -176,17 +240,6 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Gets the URL of the container for the stream being tested.
-	 *
-	 * @return The URL that contains the stream.
-	 */
-	public URL getContainerForStream() {
-		Assert.hasText(STREAM_NAME, "stream name can not be empty nor null");
-		// Assuming one container for now.
-		return xdEnvironment.getContainerUrls().get(0);
-	}
-
-	/**
 	 * Creates a job on the XD cluster defined by the test's
 	 * Artifact or Environment variables Uses JOB_NAME as default job name.
 	 *
@@ -231,17 +284,180 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 	}
 
+	/**
+	 * Creates a file in a source directory for file source base tests.
+	 * @param sourceDir The directory to place the file
+	 * @param fileName The name of the file where the data will be written
+	 * @param data The data to be written to the file
+	 */
+	public void setupSourceDataFiles(String sourceDir, String fileName, String data) {
+		setupDataFiles(getContainerHostForSource(), sourceDir, fileName, data);
+	}
 
 	/**
-	 * Gets the URL of the container where the stream was deployed
-	 *
-	 * @param streamName Used to find the container that contains the stream.
-	 * @return The URL that contains the stream.
+	 * Creates a file in a directory for file based tests.
+	 * @param host The host machine that the data will be written 
+	 * @param sourceDir The directory to place the file
+	 * @param fileName The name of the file where the data will be written
+	 * @param data The data to be written to the file
 	 */
-	public URL getContainerForStream(String streamName) {
-		Assert.hasText(streamName, "stream name can not be empty nor null");
+	public void setupDataFiles(String host, String sourceDir, String fileName, String data) {
+		Assert.hasText(host, "host must not be empty nor null");
+		Assert.hasText(fileName, "fileName must not be empty nor null");
+		Assert.notNull(sourceDir, "sourceDir must not be null");
+		Assert.notNull(data, "data must not be null");
+
+		if (xdEnvironment.isOnEc2()) {
+			StreamUtils.createDataFileOnRemote(xdEnvironment, host, sourceDir, fileName, data);
+		}
+		else {
+			try {
+				File file = new File(sourceDir + "/" + fileName);
+				file.deleteOnExit();
+				file.createNewFile();
+				FileCopyUtils.copy(data.getBytes(), file);
+			}
+			catch (IOException ioe) {
+				throw new IllegalStateException(ioe.getMessage(), ioe);
+			}
+		}
+	}
+
+	/**
+	 * Appends data to the specified file wherever the source module for the stream is deployed.
+	 * @param sourceDir The location of the file
+	 * @param fileName The name of the file to be appended 
+	 * @param dataToAppend The data to be appended to the file
+	 */
+	public void appendDataToSourceTestFile(String sourceDir, String fileName, String dataToAppend) {
+		Assert.hasText(fileName, "fileName must not be empty nor null");
+		Assert.notNull(sourceDir, "sourceDir must not be null");
+		Assert.notNull(dataToAppend, "dataToAppend must not be null");
+
+		if (xdEnvironment.isOnEc2()) {
+			StreamUtils.appendToRemoteFile(xdEnvironment, getContainerHostForSource(), sourceDir, fileName,
+					dataToAppend);
+		}
+		else {
+			PrintWriter out = null;
+			try {
+				out = new PrintWriter(new BufferedWriter(new FileWriter(sourceDir + "/" + fileName, true)));
+				out.println(dataToAppend);
+				out.close();
+			}
+			catch (IOException ioe) {
+				throw new IllegalStateException(ioe.getMessage(), ioe);
+			}
+			finally {
+				if (out != null) {
+					out.close();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Gets the URL of the container for the sink being tested.
+	 *
+	 * @return The URL that contains the sink.
+	 */
+	public URL getContainerUrlForSink() {
+		Assert.hasText(STREAM_NAME, "stream name can not be empty nor null");
 		// Assuming one container for now.
-		return xdEnvironment.getContainerUrls().get(0);
+		return getContainerUrlForSink(STREAM_NAME);
+	}
+
+	/**
+	 * Gets the URL of the container where the sink was deployed using default XD Port.
+	 *
+	 * @param streamName Used to find the container that contains the sink.
+	 * @return The URL that contains the sink.
+	 */
+	public URL getContainerUrlForSink(String streamName) {
+		return getContainerHostForURL(streamName, ModuleType.sink);
+	}
+
+	/**
+	 * Gets the URL of the container where the processor was deployed
+	 * @return The URL that contains the sink.
+	 */
+
+	public URL getContainerUrlForProcessor() {
+		return getContainerUrlForProcessor(STREAM_NAME);
+	}
+
+
+	/**
+	 * Gets the URL of the container where the processor was deployed
+	 *
+	 * @param streamName Used to find the container that contains the processor.
+	 * @return The URL that contains the processor.
+	 */
+	public URL getContainerUrlForProcessor(String streamName) {
+
+		return getContainerHostForURL(streamName, ModuleType.processor);
+	}
+
+	/**
+	 * Gets the host of the container where the source was deployed
+	 * @return The host that contains the source.
+	 */
+	public String getContainerHostForSource() {
+		return getContainerHostForSource(STREAM_NAME);
+	}
+
+	/**
+	 * Gets the host of the container where the source was deployed
+	 *
+	 * @param streamName Used to find the container that contains the source.
+	 * @return The host that contains the source.
+	 */
+	public String getContainerHostForSource(String streamName) {
+		return getContainerHostForModulePrefix(streamName, ModuleType.source);
+	}
+
+	/**
+	 * Gets the host of the container where the job was deployed
+	 *
+	 * @param jobName Used to find the container that contains the job.
+	 * @return The host that contains the job.
+	 */
+	public String getContainerHostForJob() {
+		return getContainerHostForJob(JOB_NAME);
+	}
+
+	/**
+	 * Gets the host of the container where the job was deployed
+	 *
+	 * @param jobName Used to find the container that contains the job.
+	 * @return The host that contains the job.
+	 */
+	public String getContainerHostForJob(String jobName) {
+		return getContainerHostForModulePrefix(jobName, ModuleType.job);
+	}
+
+	/**
+	 * Gets the URL of the container where the module
+	 *
+	 * @param streamName Used construct the module id prefix.
+	 * @return The URL that contains the module.
+	 */
+	public String getContainerHostForModulePrefix(String streamName, ModuleType moduleType) {
+		Assert.hasText(streamName, "stream name can not be empty nor null");
+		String moduleIdPrefix = streamName + "." + moduleType + ".";
+		Iterator<ModuleMetadataResource> resourceIter = StreamUtils.getRuntimeModules(adminServer).iterator();
+		ArrayList<String> containerIds = new ArrayList<String>();
+		while (resourceIter.hasNext()) {
+			ModuleMetadataResource resource = resourceIter.next();
+			if (resource.getModuleId().startsWith(moduleIdPrefix)) {
+				containerIds.add(resource.getContainerId());
+			}
+		}
+		Assert.isTrue(
+				containerIds.size() == 1,
+				"Test require that module to be deployed to only one container. It was deployed to "
+						+ containerIds.size() + " containers");
+		return containers.get(containerIds.get(0));
 	}
 
 	/**
@@ -252,24 +468,23 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
-				getContainerForStream(STREAM_NAME), xdEnvironment.getJmxPort()),
+				getContainerUrlForSink(STREAM_NAME), xdEnvironment.getJmxPort()),
 				STREAM_NAME, msgCountExpected);
 	}
 
 	/**
 	 * Asserts that all channels of the module channel combination, processed the correct number of messages
-	 *
+	 * @param containerUrl the container that is hosting the module
 	 * @param moduleName the name of the module jmx element to interrogate.
 	 * @param channelName the name of the channel jmx element to interrogate
 	 * @param msgCountExpected The number of messages this module and channel should have sent.
 	 */
-	public void assertReceived(String moduleName, String channelName, int msgCountExpected) {
+	public void assertReceived(URL containerUrl, String moduleName, String channelName, int msgCountExpected) {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
-				getContainerForStream(STREAM_NAME), xdEnvironment.getJmxPort()),
+				containerUrl, xdEnvironment.getJmxPort()),
 				STREAM_NAME, moduleName, channelName, msgCountExpected);
-
 	}
 
 	/**
@@ -281,12 +496,11 @@ public abstract class AbstractIntegrationTest {
 	public void assertValid(String data, AbstractModuleFixture<?> sinkInstance) {
 		Assert.hasText(data, "data can not be empty nor null");
 		Assert.notNull(sinkInstance, "sinkInstance must not be null");
-
 		if (sinkInstance.getClass().equals(SimpleFileSink.class)) {
-			assertValidFile(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
+			assertValidFile(data, getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
 		}
 		if (sinkInstance.getClass().equals(LogSink.class)) {
-			assertLogEntry(data, getContainerForStream(STREAM_NAME));
+			assertLogEntry(data, getContainerUrlForSink(STREAM_NAME));
 		}
 
 	}
@@ -298,7 +512,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param data The data expected in the file
 	 */
 	public void assertFileContains(String data) {
-		assertFileContains(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
+		assertFileContains(data, getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
 	}
 
 	/**
@@ -308,7 +522,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param data The data expected in the file
 	 */
 	public void assertFileContainsIgnoreCase(String data) {
-		assertFileContainsIgnoreCase(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
+		assertFileContainsIgnoreCase(data, getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
 	}
 
 	/**
@@ -480,11 +694,33 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
+	 * Finds the container URL where the module is deployed with the stream name & module type 
+	 * @param streamName The name of the stream that the module is deployed
+	 * @param moduleType The type of module that we are seeking
+	 * @return the container url.
+	 */
+	private URL getContainerHostForURL(String streamName, ModuleType moduleType) {
+		URL result = null;
+		try {
+			result = new URL("http://"
+					+ getContainerHostForModulePrefix(streamName, moduleType) + ":" + DEFAULT_XD_PORT);
+		}
+		catch (MalformedURLException e) {
+			throw new IllegalStateException(e.getMessage(), e);
+		}
+		return result;
+	}
+
+	/**
 	 * Get the {@see XdEnvironment}
 	 * @return the XdEnvironment
 	 */
 	public XdEnvironment getEnvironment() {
 		return xdEnvironment;
+	}
+
+	public enum ModuleType {
+		sink, source, processor, job
 	}
 
 }

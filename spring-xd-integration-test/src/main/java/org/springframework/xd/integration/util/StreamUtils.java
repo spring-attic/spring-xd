@@ -23,10 +23,20 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.jclouds.ContextBuilder;
+import org.jclouds.aws.ec2.AWSEC2Api;
+import org.jclouds.aws.ec2.domain.AWSRunningInstance;
 import org.jclouds.domain.Credentials;
 import org.jclouds.domain.LoginCredentials;
+import org.jclouds.ec2.domain.Reservation;
+import org.jclouds.ec2.domain.RunningInstance;
 import org.jclouds.http.handlers.BackoffLimitedRetryHandler;
 import org.jclouds.sshj.SshjSshClient;
 
@@ -34,9 +44,12 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.xd.rest.client.domain.ContainerResource;
+import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 
+import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
 
 /**
@@ -145,6 +158,88 @@ public class StreamUtils {
 	}
 
 	/**
+	 * Creates a file on a remote EC2 machine with the payload as its contents.
+	 *
+	 * @param xdEnvironment The environment configuration for this test
+	 * @param host The remote machine's ip.
+	 * @param dir The directory to write the file
+	 * @param fileName The fully qualified file name of the file to be created.
+	 * @param payload the data to write to the file
+	 */
+	public static void createDataFileOnRemote(XdEnvironment xdEnvironment, String host, String dir, String fileName,
+			String payload)
+	{
+		Assert.notNull(xdEnvironment, "The Acceptance Test, require a valid xdEnvironment.");
+		Assert.hasText(host, "The remote machine's URL must be specified.");
+		Assert.notNull(dir, "dir should not be null");
+		Assert.hasText(fileName, "The remote file name must be specified.");
+
+		final LoginCredentials credential = LoginCredentials
+				.fromCredentials(new Credentials("ubuntu", xdEnvironment.getPrivateKey()));
+		final HostAndPort socket = HostAndPort.fromParts(host, 22);
+		final SshjSshClient client = new SshjSshClient(
+				new BackoffLimitedRetryHandler(), socket, credential, 5000);
+		client.exec("mkdir " + dir);
+		client.put(dir + "/" + fileName, payload);
+	}
+
+	/**
+	 * Appends the payload to an existing file on a remote EC2 Instance.
+	 *
+	 * @param xdEnvironment The environment configuration for this test
+	 * @param host The remote machine's ip.
+	 * @param dir The directory to write the file
+	 * @param fileName The fully qualified file name of the file to be created.
+	 * @param payload the data to append to the file
+	 */
+	public static void appendToRemoteFile(XdEnvironment xdEnvironment, String host, String dir, String fileName,
+			String payload)
+	{
+		Assert.notNull(xdEnvironment, "The Acceptance Test, require a valid xdEnvironment.");
+		Assert.hasText(host, "The remote machine's URL must be specified.");
+		Assert.notNull(dir, "dir should not be null");
+		Assert.hasText(fileName, "The remote file name must be specified.");
+
+		final LoginCredentials credential = LoginCredentials
+				.fromCredentials(new Credentials("ubuntu", xdEnvironment.getPrivateKey()));
+		final HostAndPort socket = HostAndPort.fromParts(host, 22);
+		final SshjSshClient client = new SshjSshClient(
+				new BackoffLimitedRetryHandler(), socket, credential, 5000);
+		client.exec("echo '" + payload + "' >> " + dir + "/" + fileName);
+	}
+
+	/**
+	 * Returns a list of active instances from the specified ec2 region.
+	 * @param awsAccessKey the unique id of the ec2 user.
+	 * @param awsSecretKey the password of ec2 user.
+	 * @param awsRegion The aws region to inspect for acceptance test instances.
+	 * @return a list of active instances in the account and region specified.
+	 */
+	public static List<RunningInstance> getEC2RunningInstances(String awsAccessKey, String awsSecretKey,
+			String awsRegion) {
+		Assert.hasText(awsAccessKey, "awsAccessKey must not be empty nor null");
+		Assert.hasText(awsSecretKey, "awsSecretKey must not be empty nor null");
+		Assert.hasText(awsRegion, "awsRegion must not be empty nor null");
+
+		AWSEC2Api client = ContextBuilder.newBuilder("aws-ec2")
+				.credentials(awsAccessKey, awsSecretKey)
+				.buildApi(AWSEC2Api.class);
+		Set<? extends Reservation<? extends AWSRunningInstance>> reservations = client
+				.getInstanceApi().get().describeInstancesInRegion(awsRegion);
+		int instanceCount = reservations.size();
+		ArrayList<RunningInstance> result = new ArrayList<RunningInstance>();
+		for (int awsRunningInstanceCount = 0; awsRunningInstanceCount < instanceCount; awsRunningInstanceCount++) {
+			Reservation<? extends AWSRunningInstance> instances = Iterables
+					.get(reservations, awsRunningInstanceCount);
+			int groupCount = instances.size();
+			for (int runningInstanceCount = 0; runningInstanceCount < groupCount; runningInstanceCount++) {
+				result.add(Iterables.get(instances, runningInstanceCount));
+			}
+		}
+		return result;
+	}
+
+	/**
 	 * Substitutes the port associated with the URL with another port.
 	 *
 	 * @param url The URL that needs a port replaced.
@@ -159,6 +254,33 @@ public class StreamUtils {
 		catch (MalformedURLException malformedUrlException) {
 			throw new IllegalStateException(malformedUrlException.getMessage(), malformedUrlException);
 		}
+	}
+
+	/**
+	 * Creates a map of container Id's and the associated host.
+	 * @param adminServer The admin server to be queried.
+	 * @return Map where the key is the container id and the value is the host ip.
+	 */
+	public static Map<String, String> getAvailableContainers(URL adminServer) {
+		Assert.notNull(adminServer, "adminServer must not be null");
+		HashMap<String, String> results = new HashMap<String, String>();
+		Iterator<ContainerResource> iter = createSpringXDTemplate(adminServer).runtimeOperations().listRuntimeContainers().iterator();
+		while (iter.hasNext()) {
+			ContainerResource container = iter.next();
+			results.put(container.getAttribute("id"), container.getAttribute("host"));
+		}
+		return results;
+	}
+
+	/**
+	 * Return a list of container id's where the module is deployed
+	 * @param adminServer The admin server that will be queried.
+	 * @param moduleIdPrefix The admin server will uses this module id prefix to find the containers where the module prefix is deployed.
+	 * @return A list of containers where the module is deployed.
+	 */
+	public static PagedResources<ModuleMetadataResource> getRuntimeModules(URL adminServer) {
+		Assert.notNull(adminServer, "adminServer must not be null");
+		return createSpringXDTemplate(adminServer).runtimeOperations().listRuntimeModules();
 	}
 
 	/**

@@ -53,8 +53,7 @@ public class HttpTest extends AbstractIntegrationTest {
 	private void genericTest(AbstractModuleFixture<?> sink) {
 		String data = UUID.randomUUID().toString();
 		stream(sources.http() + XD_DELIMITER + sink);
-		waitForXD();
-		sources.http().postData(data);
+		sources.http(getContainerHostForSource()).postData(data);
 		assertValid(data, sink);
 		assertReceived(1);
 

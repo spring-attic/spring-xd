@@ -32,7 +32,7 @@ public class TwitterSearchTest extends AbstractIntegrationTest {
 	@Test
 	public void twitterSearchTest() throws Exception {
 
-		final String data = "#springio";
+		final String data = "#katyperry";
 		TwitterSearchSource twitterSearchSource = sources.twitterSearch(data);
 		stream(twitterSearchSource + XD_DELIMITER + " file");
 		this.waitForXD();

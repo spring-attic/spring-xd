@@ -41,8 +41,7 @@ public class TapTest extends AbstractIntegrationTest {
 		stream(sources.tap("dataSender") + XD_TAP_DELIMITER
 				+ sinks.file());
 
-		waitForXD();
-		sources.http().postData(data);
+		sources.http(getContainerHostForSource("dataSender")).postData(data);
 		assertValid(data, sinks.file());
 	}
 
@@ -62,8 +61,7 @@ public class TapTest extends AbstractIntegrationTest {
 		stream(sources.tap("dataSender").label("label2") + XD_TAP_DELIMITER
 				+ sinks.file());
 
-		waitForXD();
-		sources.http().postData(data);
+		sources.http(getContainerHostForSource("dataSender")).postData(data);
 		assertValid(data.toUpperCase().substring(3), sinks.file());
 	}
 
@@ -74,14 +72,14 @@ public class TapTest extends AbstractIntegrationTest {
 	public void testStreamLabel() {
 		String data = UUID.randomUUID().toString();
 		stream("dataSender",
-				sources.http() + XD_DELIMITER + processors.transform().expression("payload.toUpperCase()").label("ds1")
+				sources.http() + XD_DELIMITER
+						+ processors.transform().expression("payload.toUpperCase()").label("ds1")
 						+ XD_DELIMITER + processors.transform().expression("payload.substring(3)") + XD_DELIMITER
 						+ sinks.log(), WAIT_TIME);
 		stream(sources.tap("dataSender").label("ds1") + XD_TAP_DELIMITER
 				+ sinks.file());
 
-		waitForXD();
-		sources.http().postData(data);
+		sources.http(getContainerHostForSource("dataSender")).postData(data);
 		assertValid(data.toUpperCase(), sinks.file());
 	}
 

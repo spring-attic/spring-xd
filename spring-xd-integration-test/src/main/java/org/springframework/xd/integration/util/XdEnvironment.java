@@ -20,11 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.sql.Driver;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -39,7 +35,6 @@ import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 import com.mongodb.MongoClient;
 
@@ -60,8 +55,6 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	// Environment Keys
 	public static final String XD_ADMIN_HOST = "xd_admin_host";
 
-	public static final String XD_CONTAINERS = "xd_containers";
-
 	public static final String XD_HTTP_PORT = "xd_http_port";
 
 	public static final String XD_JMX_PORT = "xd_jmx_port";
@@ -76,11 +69,6 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	private String adminHost;
 
 	private URL adminServerUrl;
-
-	@Value("${xd_containers:}")
-	private String containers;
-
-	private List<URL> containerUrls;
 
 	@Value("${xd_jmx_port}")
 	private int jmxPort;
@@ -171,13 +159,11 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		if (isOnEc2()) {
 			artifactProperties = ConfigUtil.getPropertiesFromArtifact();
 			adminServerUrl = new URL(artifactProperties.getProperty(XD_ADMIN_HOST));
-			containerUrls = getContainerUrls(artifactProperties.getProperty(XD_CONTAINERS));
 			jmxPort = Integer.parseInt(artifactProperties.getProperty(XD_JMX_PORT));
 			httpPort = Integer.parseInt(artifactProperties.getProperty(XD_HTTP_PORT));
 		}
 		else {
 			adminServerUrl = new URL(adminHost);
-			containerUrls = getContainerUrls(containers);
 		}
 
 		if (jdbcUrl == null) {
@@ -220,10 +206,6 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	public URL getAdminServerUrl() {
 		return adminServerUrl;
-	}
-
-	public List<URL> getContainerUrls() {
-		return containerUrls;
 	}
 
 	public int getJmxPort() {
@@ -278,15 +260,6 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	 */
 	public String getRabbitMQHost() {
 		return getAdminServerUrl().getHost();
-	}
-
-	/**
-	 * The default target for http,tcp sources to send data to
-	 *
-	 * @return the first host in the collection of xd-container nodes.
-	 */
-	public String getDefaultTargetHost() {
-		return getContainerUrls().get(0).getHost();
 	}
 
 	/**
@@ -366,30 +339,5 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	public String getMongoPort() {
 		return mongoPort;
 	}
-
-
-	/**
-	 * Parses the string of container URLs provied by the ec2 property file.
-	 *
-	 * @param A comma delimited list of container URLs
-	 * @return a List of container URLs
-	 */
-	private static List<URL> getContainerUrls(String containerList) {
-		final List<URL> containers = new ArrayList<URL>();
-		final Set<String> containerHosts = StringUtils.commaDelimitedListToSet(containerList);
-		final Iterator<String> iter = containerHosts.iterator();
-		while (iter.hasNext()) {
-			final String containerHost = iter.next();
-			try {
-				containers.add(new URL(containerHost));
-			}
-			catch (MalformedURLException ex) {
-				LOGGER.error("Container Host IP is invalid ==>" + containerHost);
-			}
-
-		}
-		return containers;
-	}
-
 
 }

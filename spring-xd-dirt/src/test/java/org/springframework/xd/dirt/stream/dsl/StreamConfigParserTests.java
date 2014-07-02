@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -33,7 +36,9 @@ import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import org.springframework.core.io.Resource;
 import org.springframework.data.repository.CrudRepository;
@@ -62,6 +67,9 @@ public class StreamConfigParserTests {
 	private EmbeddedZooKeeper zk = new EmbeddedZooKeeper();
 
 	private ZooKeeperConnection zooKeeperConnection;
+
+	@Rule
+	public ExpectedException thrown = ExpectedException.none();
 
 	@Before
 	public void setUp() {
@@ -267,19 +275,28 @@ public class StreamConfigParserTests {
 		assertEquals("[(tap:stream:mystream.foobar.1:0>26)>(ModuleNode:file:29>33)]", sn.stringify(true));
 	}
 
-	@Test(expected = StreamDefinitionException.class)
+	@Test
 	public void tapOnNonExistentStreamFails() throws Exception {
+		thrown.expect(StreamDefinitionException.class);
+		thrown.expect(hasProperty("position", is(equalTo("tap:stream:".length()))));
+
 		parse("tap:stream:mystream.foobar > file");
 	}
 
-	@Test(expected = StreamDefinitionException.class)
+	@Test
 	public void tapOnNonExistentStreamFails2() throws Exception {
+		thrown.expect(StreamDefinitionException.class);
+		thrown.expect(hasProperty("position", is(equalTo("tap:stream:".length()))));
+
 		parse("tap:stream:mystream.foobar.1 > file");
 	}
 
-	@Test(expected = StreamDefinitionException.class)
+	@Test
 	public void tapOnNonExistentStreamModuleFails() throws Exception {
 		parse("mystream = http | file");
+
+		thrown.expect(StreamDefinitionException.class);
+		thrown.expect(hasProperty("position", is(equalTo("tap:stream:mystream.".length()))));
 		parse("tap:stream:mystream.foobar > log");
 	}
 

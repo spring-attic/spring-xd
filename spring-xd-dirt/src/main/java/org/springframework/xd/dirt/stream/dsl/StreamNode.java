@@ -120,9 +120,9 @@ public class StreamNode extends AstNode {
 		return null;
 	}
 
-	public void resolve(StreamLookupEnvironment env) {
+	public void resolve(StreamLookupEnvironment env, String expressionString) {
 		if (sourceChannelNode != null) {
-			sourceChannelNode.resolve(env);
+			sourceChannelNode.resolve(env, expressionString);
 		}
 	}
 

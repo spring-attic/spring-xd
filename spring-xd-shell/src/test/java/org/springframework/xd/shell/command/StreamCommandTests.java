@@ -74,7 +74,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 				"stream create --name " + streamName + " --definition \"" + getTapName(streamName) + " > counter\"");
 		assertTrue("Failure. CommandResult = " + cr.toString(), !cr.isSuccess());
 		assertTrue("Failure. CommandResult = " + cr.toString(),
-				cr.getException().getMessage().contains("XD116E:unrecognized stream reference '" + streamName + "'"));
+				cr.getException().getMessage().contains("unrecognized stream reference '" + streamName + "'"));
 	}
 
 	@Test

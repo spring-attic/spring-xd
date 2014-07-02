@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
+import static org.springframework.xd.dirt.stream.dsl.XDDSLMessages.UNRECOGNIZED_MODULE_REFERENCE;
+import static org.springframework.xd.dirt.stream.dsl.XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -135,12 +138,13 @@ public class ChannelNode extends AstNode {
 		return new ChannelNode(this.channelType, startpos, endpos, nameComponents, indexingElements);
 	}
 
-	public void resolve(StreamLookupEnvironment env) {
+	public void resolve(StreamLookupEnvironment env, String expressionString) {
 		if (channelType == ChannelType.TAP_STREAM) {
 			String streamName = nameComponents.get(1);
 			StreamNode sn = env.lookupStream(streamName);
 			if (sn == null) {
-				throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE, streamName);
+				int offset = this.startpos + channelType.getStringRepresentation().length();
+				throw new StreamDefinitionException(expressionString, offset, UNRECOGNIZED_STREAM_REFERENCE, streamName);
 			}
 
 			if (indexingElements.isEmpty()) {
@@ -164,8 +168,9 @@ public class ChannelNode extends AstNode {
 						indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);
 					}
 					else {
-						throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_MODULE_REFERENCE,
-								indexString);
+						int offset = this.startpos + getLengthOfPrefixPlusNameComponents() + 1;
+						throw new StreamDefinitionException(expressionString, offset,
+								UNRECOGNIZED_MODULE_REFERENCE, indexString);
 					}
 				}
 			}

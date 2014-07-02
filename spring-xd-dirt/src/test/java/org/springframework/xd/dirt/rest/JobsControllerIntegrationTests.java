@@ -174,7 +174,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON).param("deploy", "false")).andExpect(status().isCreated());
 		mockMvc.perform(delete("/jobs/deployments/{name}", "myjob").accept(MediaType.APPLICATION_JSON)).andExpect(
-				status().isBadRequest());
+				status().isNotFound());
 	}
 
 	@Test

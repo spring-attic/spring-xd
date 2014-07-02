@@ -16,7 +16,6 @@
 
 package org.springframework.xd.tcp;
 
-import org.springframework.xd.module.options.mixins.ExponentialBackoffRetryOptionsMetadataMixin;
 import org.springframework.xd.module.options.mixins.FromStringCharsetMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 
@@ -27,8 +26,7 @@ import org.springframework.xd.module.options.spi.Mixin;
  * @author Eric Bottard
  */
 @Mixin({ ClientTcpConnectionFactoryOptionsMetadataMixin.class,
-	FromStringCharsetMixin.class,
-	ExponentialBackoffRetryOptionsMetadataMixin.class })
+	FromStringCharsetMixin.class })
 public class TcpSinkOptionsMetadata {
 
 }

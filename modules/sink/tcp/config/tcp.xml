@@ -25,32 +25,8 @@
 		so-timeout="${socketTimeout}"
 		serializer="${encoder}"/>
 
-	<!--
-		TCP Outbound adapter with retries - default is 5 attempts with exponential backoff starting at
-		2 seconds with a 2x multiplier.
-	 -->
 	<int-ip:tcp-outbound-channel-adapter id="adapter" channel="input"
-			connection-factory="connectionFactory">
-		<int-ip:request-handler-advice-chain>
-			<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice">
-				<property name="retryTemplate">
-					<bean class="org.springframework.retry.support.RetryTemplate">
-						<property name="retryPolicy">
-							<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
-								<property name="maxAttempts" value="${retryMaxAttempts}"/>
-							</bean>
-						</property>
-						<property name="backOffPolicy">
-							<bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
-								<property name="initialInterval" value="${retryInitialInterval}"/>
-								<property name="multiplier" value="${retryMultiplier}"/>
-							</bean>
-						</property>
-					</bean>
-				</property>
-			</bean>
-		</int-ip:request-handler-advice-chain>
-	</int-ip:tcp-outbound-channel-adapter>
+			connection-factory="connectionFactory" />
 
 	<bean id="mapper" class="org.springframework.integration.ip.tcp.connection.TcpMessageMapper">
 		<property name="charset" value="${charset}"/>

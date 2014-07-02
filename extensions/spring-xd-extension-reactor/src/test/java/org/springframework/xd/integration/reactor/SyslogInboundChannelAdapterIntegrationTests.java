@@ -18,7 +18,6 @@ package org.springframework.xd.integration.reactor;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
@@ -36,7 +35,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -122,7 +120,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		syslogWriter2.start();
 		syslogWriter3.start();
 		syslogWriter4.start();
-		assertTrue("Latch did not time out", latch.await(60, TimeUnit.SECONDS));
+		assertTrue("Latch did not time out", latch.await(120, TimeUnit.SECONDS));
 		stop();
 	}
 
@@ -130,7 +128,8 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 	@EnableReactor
 	static class TestConfiguration {
 
-		static @Bean public PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
+		static @Bean
+		public PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
 			return new PropertyPlaceholderConfigurer();
 		}
 
@@ -180,6 +179,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 	static class SyslogWriter extends Thread {
 
 		final int runs;
+
 		final String transport;
 
 		SyslogWriter() {
@@ -198,7 +198,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 				InetSocketAddress connectAddr = new InetSocketAddress("127.0.0.1", 5140);
 
 				ByteChannel out;
-				if("tcp".equals(transport)) {
+				if ("tcp".equals(transport)) {
 					SocketChannel channel = SocketChannel.open();
 					channel.connect(connectAddr);
 					out = channel;
@@ -211,11 +211,11 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 
 				ByteBuffer buff = ByteBuffer.wrap(
 						("<34>Oct 11 22:14:15 mymachine su: 'su root' failed for lonvick on /dev/pts/8\n").getBytes()
-				);
+						);
 				for (int i = 0; i < runs; i++) {
 					out.write(buff);
 					buff.flip();
-					if("udp".equals(transport)) {
+					if ("udp".equals(transport)) {
 						Thread.sleep(5);
 					}
 				}

@@ -49,6 +49,29 @@ def customizePom(pom, gradleProject) {
 				developerConnection = linkScmDevConnection
 			}
 
+			repositories {
+			        repository {
+					id = 'spring-snapshots'
+ 					name = 'Spring Snapshots'
+					url = 'http://repo.spring.io/snapshot'
+					snapshots {
+					        enabled = 'true'
+					}
+				}
+			}
+
+			dependencyManagement {
+				dependencies {
+					dependency {
+						groupId = 'io.spring.platform'
+						artifactId = 'platform-bom'
+						version = platformVersion
+						scope = 'import'
+						type = 'pom'
+					}
+				}
+			}
+
 			developers {
 				developer {
 					id = 'markfisher'

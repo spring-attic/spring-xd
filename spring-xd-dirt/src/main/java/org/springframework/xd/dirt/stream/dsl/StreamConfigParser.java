@@ -107,7 +107,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			throw new StreamDefinitionException(this.expressionString, peekToken().startpos, XDDSLMessages.MORE_INPUT,
 					toString(nextToken()));
 		}
-		ast.resolve(this);
+		ast.resolve(this, this.expressionString);
 		return ast;
 	}
 

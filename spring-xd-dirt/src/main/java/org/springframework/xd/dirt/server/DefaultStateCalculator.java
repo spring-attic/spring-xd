@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.DeploymentUnit;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
-import org.springframework.xd.dirt.core.DeploymentUnitStatus.State;
 import org.springframework.xd.module.ModuleDescriptor;
 
 /**
@@ -75,8 +74,10 @@ public class DefaultStateCalculator implements DeploymentUnitStateCalculator {
 			if (deploymentStatus.getState() == ModuleDeploymentStatus.State.deployed) {
 				ModuleDescriptor.Key key = deploymentStatus.getKey();
 				Count count = moduleCount.get(key);
-				if (++count.actual == count.expected) {
+				if (count != null && (count.expected == 0 || ++count.actual == count.expected)) {
 					moduleCount.remove(key);
+					//TODO: If the count is zero, we could possibly remove any other deployment
+					// statuses for the given module descriptor
 				}
 			}
 			else if (StringUtils.hasText(deploymentStatus.getErrorDescription())) {

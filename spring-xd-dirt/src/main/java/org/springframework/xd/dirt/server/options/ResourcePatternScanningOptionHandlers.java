@@ -23,6 +23,7 @@ import org.kohsuke.args4j.OptionDef;
 import org.kohsuke.args4j.spi.Setter;
 
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
@@ -100,6 +101,11 @@ public final class ResourcePatternScanningOptionHandlers {
 		 * have provided a trailing slash, etc. 
 		 */
 		private static String resolveXDHome() {
+			Assert.state(
+					CommandLinePropertySourceOverridingListener.getCurrentEnvironment() != null,
+					"Expected to be called in the control flow of "
+							+ CommandLinePropertySourceOverridingListener.class.getSimpleName()
+							+ ".onApplicationEvent()");
 			String resolved = CommandLinePropertySourceOverridingListener.getCurrentEnvironment()
 					.resolvePlaceholders("${xd.home:.}/lib/*");
 			resolved = StringUtils.cleanPath(resolved).replace("//", "/");

@@ -32,6 +32,7 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -139,7 +140,7 @@ public class BatchJobInstancesControllerIntegrationTests extends AbstractControl
 	@Test
 	public void testGetJobInstanceByInstanceId() throws Exception {
 		mockMvc.perform(
-				get("/batch/instances/0").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				get("/jobs/instances/0").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.instanceId").value(0))
 				.andExpect(jsonPath("$.jobName").value("job1"))
 				.andExpect(jsonPath("$.jobExecutions", Matchers.hasSize(1)))
@@ -151,14 +152,14 @@ public class BatchJobInstancesControllerIntegrationTests extends AbstractControl
 	@Test
 	public void testGetJobInstanceByInvalidInstanceId() throws Exception {
 		mockMvc.perform(
-				get("/batch/instances/100").accept(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound())
+				get("/jobs/instances/100").accept(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound())
 				.andExpect(jsonPath("$[0].message", Matchers.is("Batch Job instance with the id 100 doesn't exist")));
 	}
 
 	@Test
 	public void testGetJobInstanceExecutionsByInvalidJobName() throws Exception {
 		mockMvc.perform(
-				get("/batch/instances/101").accept(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound())
+				get("/jobs/instances/101").accept(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound())
 				.andExpect(jsonPath("$[0].message", Matchers.is("Batch Job with the name job2 doesn't exist")));
 	}
 }

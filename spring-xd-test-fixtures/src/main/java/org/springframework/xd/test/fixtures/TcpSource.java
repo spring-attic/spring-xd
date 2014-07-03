@@ -37,6 +37,15 @@ public class TcpSource extends AbstractModuleFixture<TcpSource> {
 	private String host;
 
 	/**
+	 * Construct a new TcpSource with the loopback address for host and using a port selected by @link
+	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
+	 */
+	public TcpSource() {
+		this(null);
+	}
+
+
+	/**
 	 * Construct a new TcpSource with the provided host and using a port selected by @link
 	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
 	 *

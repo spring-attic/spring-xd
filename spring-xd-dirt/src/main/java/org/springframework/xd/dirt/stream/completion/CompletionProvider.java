@@ -50,8 +50,8 @@ public class CompletionProvider {
 
 	private final List<CompletionExpansionStrategy> completionExpansionStrategies;
 
-	public static boolean shouldShowOption(ModuleOption option, int lod) {
-		return !option.isHidden() || lod >= HIDDEN_OPTION_THRESHOLD;
+	public static boolean shouldShowOption(ModuleOption option, int detailLevel) {
+		return !option.isHidden() || detailLevel >= HIDDEN_OPTION_THRESHOLD;
 	}
 
 
@@ -82,11 +82,7 @@ public class CompletionProvider {
 	 * expand what she has typed, or it fails (most likely because this is not well formed), in which case we try to
 	 * recover from the parsing failure and still add proposals.
 	 */
-<<<<<<< Updated upstream
-	public List<String> complete(CompletionKind kind, String start, int lod) {
-=======
 	public List<String> complete(CompletionKind kind, String start, int detailLevel) {
->>>>>>> Stashed changes
 		List<String> results = new ArrayList<String>();
 
 		String name = "__dummy";
@@ -97,11 +93,7 @@ public class CompletionProvider {
 		catch (Exception recoverable) {
 			for (CompletionRecoveryStrategy<Exception> strategy : completionRecoveryStrategies) {
 				if (strategy.shouldTrigger(start, recoverable, kind)) {
-<<<<<<< Updated upstream
-					strategy.addProposals(start, recoverable, kind, lod, results);
-=======
 					strategy.addProposals(start, recoverable, kind, detailLevel, results);
->>>>>>> Stashed changes
 				}
 			}
 
@@ -110,11 +102,7 @@ public class CompletionProvider {
 
 		for (CompletionExpansionStrategy strategy : completionExpansionStrategies) {
 			if (strategy.shouldTrigger(start, parsed, kind)) {
-<<<<<<< Updated upstream
-				strategy.addProposals(start, parsed, kind, lod, results);
-=======
 				strategy.addProposals(start, parsed, kind, detailLevel, results);
->>>>>>> Stashed changes
 			}
 		}
 		return results;

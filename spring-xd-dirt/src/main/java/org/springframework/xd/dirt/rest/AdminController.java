@@ -75,7 +75,7 @@ public class AdminController {
 
 		// Maybe https://github.com/spring-projects/spring-hateoas/issues/169 will help eventually
 		TemplateVariable start = new TemplateVariable("start", VariableType.REQUEST_PARAM);
-		TemplateVariable lod = new TemplateVariable("lod", VariableType.REQUEST_PARAM_CONTINUED);
+		TemplateVariable lod = new TemplateVariable("detailLevel", VariableType.REQUEST_PARAM_CONTINUED);
 		TemplateVariables vars = new TemplateVariables(start, lod);
 		for (CompletionKind k : CompletionKind.values()) {
 			Object mi = ControllerLinkBuilder.methodOn(CompletionsController.class).completions(k, "", 42);

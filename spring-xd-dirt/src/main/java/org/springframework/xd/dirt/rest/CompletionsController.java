@@ -54,7 +54,7 @@ public class CompletionsController {
 	@RequestMapping(value = "/{kind}")
 	public List<String> completions(@PathVariable("kind") CompletionKind kind,
 			@RequestParam("start") String start,
-			@RequestParam(value = "lod", defaultValue = "1") int lod) {
-		return completionProvider.complete(kind, start, lod);
+			@RequestParam(value = "detailLevel", defaultValue = "1") int detailLevel) {
+		return completionProvider.complete(kind, start, detailLevel);
 	}
 }

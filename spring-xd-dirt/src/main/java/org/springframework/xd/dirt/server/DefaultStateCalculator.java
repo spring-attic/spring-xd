@@ -76,6 +76,8 @@ public class DefaultStateCalculator implements DeploymentUnitStateCalculator {
 				Count count = moduleCount.get(key);
 				if (count != null && (count.expected == 0 || ++count.actual == count.expected)) {
 					moduleCount.remove(key);
+					//TODO: If the count is zero, we could possibly remove any other deployment
+					// statuses for the given module descriptor
 				}
 			}
 			else if (StringUtils.hasText(deploymentStatus.getErrorDescription())) {

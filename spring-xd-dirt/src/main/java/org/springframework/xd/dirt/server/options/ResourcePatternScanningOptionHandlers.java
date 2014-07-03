@@ -23,6 +23,7 @@ import org.kohsuke.args4j.OptionDef;
 import org.kohsuke.args4j.spi.Setter;
 
 import org.springframework.core.io.Resource;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
@@ -91,7 +92,18 @@ public final class ResourcePatternScanningOptionHandlers {
 
 		public HadoopDistroOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
-			super(parser, option, setter, "file:${xd.home:.}/lib/*");
+			super(parser, option, setter, resolveXDHome());
+		}
+
+		/**
+		 * Attempt to resolve the xd.home placeholder and take care of corner cases where the user may
+		 * have provided a trailing slash, etc. 
+		 */
+		private static String resolveXDHome() {
+			String resolved = CommandLinePropertySourceOverridingListener.getCurrentEnvironment()
+					.resolvePlaceholders("${xd.home:.}/lib/*");
+			resolved = StringUtils.cleanPath(resolved).replace("//", "/");
+			return "file://" + resolved;
 		}
 
 		@Override

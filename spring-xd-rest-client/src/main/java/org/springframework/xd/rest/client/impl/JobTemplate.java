@@ -83,7 +83,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public void stopAllJobExecutions() {
-		String uriTemplate = resources.get("batch/executions").toString();
+		String uriTemplate = resources.get("jobs/executions").toString();
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("stop", "true");
 		restTemplate.put(uriTemplate, values);
@@ -91,7 +91,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public void stopJobExecution(long executionId) {
-		String uriTemplate = resources.get("batch/executions").toString() + "/{executionId}";
+		String uriTemplate = resources.get("jobs/executions").toString() + "/{executionId}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("executionId", executionId);
 		uriTemplate = uriTemplate + "?stop=true";
@@ -100,7 +100,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public void restartJobExecution(long executionId) {
-		String uriTemplate = resources.get("batch/executions").toString() + "/{executionId}";
+		String uriTemplate = resources.get("jobs/executions").toString() + "/{executionId}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("executionId", executionId);
 		uriTemplate = uriTemplate + "?restart=true";
@@ -138,7 +138,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public List<JobExecutionInfoResource> listJobExecutions() {
-		String uriTemplate = resources.get("batch/executions").toString();
+		String uriTemplate = resources.get("jobs/executions").toString();
 		// TODO handle pagination at the client side
 		uriTemplate = uriTemplate + "?size=10000";
 		JobExecutionInfoResource[] jobExecutionInfoResources = restTemplate.getForObject(uriTemplate,
@@ -148,13 +148,13 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public JobExecutionInfoResource displayJobExecution(long jobExecutionId) {
-		String uriTemplate = resources.get("batch/executions").toString() + "/{jobExecutionId}";
+		String uriTemplate = resources.get("jobs/executions").toString() + "/{jobExecutionId}";
 		return restTemplate.getForObject(uriTemplate, JobExecutionInfoResource.class, jobExecutionId);
 	}
 
 	@Override
 	public List<StepExecutionInfoResource> listStepExecutions(long jobExecutionId) {
-		String uriTemplate = resources.get("batch/executions").toString() + "/{jobExecutionId}/steps";
+		String uriTemplate = resources.get("jobs/executions").toString() + "/{jobExecutionId}/steps";
 		StepExecutionInfoResource[] stepExecutionInfoResources = restTemplate.getForObject(uriTemplate,
 				StepExecutionInfoResource[].class, jobExecutionId);
 		return Arrays.asList(stepExecutionInfoResources);
@@ -162,7 +162,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public StepExecutionProgressInfoResource stepExecutionProgress(long jobExecutionId, long stepExecutionId) {
-		String uriTemplate = resources.get("batch/executions").toString()
+		String uriTemplate = resources.get("jobs/executions").toString()
 				+ "/{jobExecutionId}/steps/{stepExecutionId}/progress";
 		StepExecutionProgressInfoResource progressInfoResource = restTemplate.getForObject(uriTemplate,
 				StepExecutionProgressInfoResource.class, jobExecutionId, stepExecutionId);
@@ -171,7 +171,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public StepExecutionInfoResource displayStepExecution(long jobExecutionId, long stepExecutionId) {
-		String uriTemplate = resources.get("batch/executions").toString()
+		String uriTemplate = resources.get("jobs/executions").toString()
 				+ "/{jobExecutionId}/steps/{stepExecutionId}";
 		final StepExecutionInfoResource stepExecutionInfoResource = restTemplate.getForObject(uriTemplate,
 				StepExecutionInfoResource.class, jobExecutionId, stepExecutionId);
@@ -180,7 +180,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 	@Override
 	public JobInstanceInfoResource displayJobInstance(long instanceId) {
-		String uriTemplate = resources.get("batch/instances").toString() + "/{instanceId}";
+		String uriTemplate = resources.get("jobs/instances").toString() + "/{instanceId}";
 		return restTemplate.getForObject(uriTemplate, JobInstanceInfoResource.class, instanceId);
 	}
 }

@@ -69,8 +69,8 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(ContainerAttributesResource.class).withRel("runtime/containers"));
 
 		xdRuntime.add(entityLinks.linkFor(DetailedJobInfoResource.class).withRel("batch/jobs"));
-		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("batch/executions"));
-		xdRuntime.add(entityLinks.linkFor(JobInstanceInfoResource.class).withRel("batch/instances"));
+		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("jobs/executions"));
+		xdRuntime.add(entityLinks.linkFor(JobInstanceInfoResource.class).withRel("jobs/instances"));
 
 
 		// Maybe https://github.com/spring-projects/spring-hateoas/issues/169 will help eventually

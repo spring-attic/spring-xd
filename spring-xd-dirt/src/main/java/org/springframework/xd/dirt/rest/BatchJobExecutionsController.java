@@ -55,7 +55,7 @@ import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
  *
  */
 @RestController
-@RequestMapping("/batch/executions")
+@RequestMapping("/jobs/executions")
 @ExposesResourceFor(JobExecutionInfoResource.class)
 public class BatchJobExecutionsController extends AbstractBatchJobsController {
 

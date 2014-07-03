@@ -110,21 +110,21 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 	@Test
 	public void testGetBatchStepExecutions() throws Exception {
 		mockMvc.perform(
-				get("/batch/executions/2/steps").accept(MediaType.APPLICATION_JSON))
+				get("/jobs/executions/2/steps").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$", Matchers.hasSize(3)))
 				.andExpect(jsonPath("$[*].stepExecution.id", contains(1, 2, 3)))
 				.andExpect(jsonPath("$[*].jobExecutionId", contains(2, 2, 2)))
 				.andExpect(jsonPath("$[*].stepExecution.stepName", contains("step1", "step2", "step3")))
 				.andExpect(jsonPath("$[*].links[*].href", contains(
-						"http://localhost/batch/executions/2/steps/1",
-						"http://localhost/batch/executions/2/steps/2",
-						"http://localhost/batch/executions/2/steps/3")));
+						"http://localhost/jobs/executions/2/steps/1",
+						"http://localhost/jobs/executions/2/steps/2",
+						"http://localhost/jobs/executions/2/steps/3")));
 	}
 
 	@Test
 	public void testGetBatchStepExecutionsNotExists() throws Exception {
-		mockMvc.perform(get("/batch/executions/{executionId}/steps", "5555")).andExpect(status().isNotFound()).andExpect(
+		mockMvc.perform(get("/jobs/executions/{executionId}/steps", "5555")).andExpect(status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
 						Matchers.is("Could not find jobExecution with id 5555")));
 
@@ -133,11 +133,11 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 	@Test
 	public void testGetSingleBatchStepExecution() throws Exception {
 		String s = mockMvc.perform(
-				get("/batch/executions/2/steps/1").accept(MediaType.APPLICATION_JSON)).andReturn().getResponse().getContentAsString();
+				get("/jobs/executions/2/steps/1").accept(MediaType.APPLICATION_JSON)).andReturn().getResponse().getContentAsString();
 		System.out.println(s);
 
 		mockMvc.perform(
-				get("/batch/executions/2/steps/1").accept(MediaType.APPLICATION_JSON))
+				get("/jobs/executions/2/steps/1").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("stepExecution.id", Matchers.is(1)))
 				.andExpect(jsonPath("jobExecutionId", Matchers.is(2)))
@@ -155,7 +155,7 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 
 	@Test
 	public void testGetSingleBatchStepExecutionForNonExistingJobExecution() throws Exception {
-		mockMvc.perform(get("/batch/executions/{jobExecutionId}/steps/{stepExecutionId}", "5555", "1")).andExpect(
+		mockMvc.perform(get("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}", "5555", "1")).andExpect(
 				status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
 						Matchers.is("Could not find jobExecution with id 5555")));
@@ -163,7 +163,7 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 
 	@Test
 	public void testGetSingleBatchStepExecutionThatDoesNotExist() throws Exception {
-		mockMvc.perform(get("/batch/executions/{jobExecutionId}/steps/{stepExecutionId}", "2", "5555")).andExpect(
+		mockMvc.perform(get("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}", "2", "5555")).andExpect(
 				status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
 						Matchers.is("Could not find step execution with id 5555")));
@@ -172,7 +172,7 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 	@Test
 	public void testGetBatchStepExecutionProgress() throws Exception {
 		mockMvc.perform(
-				get("/batch/executions/2/steps/1/progress").accept(MediaType.APPLICATION_JSON))
+				get("/jobs/executions/2/steps/1/progress").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[*].stepExecution.id", Matchers.is(1)))
 				.andExpect(jsonPath("$[*].percentageComplete", Matchers.is(0.5)));
@@ -180,7 +180,7 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 
 	@Test
 	public void testGetProgressForJobExecutionNotExists() throws Exception {
-		mockMvc.perform(get("/batch/executions/{jobExecutionId}/steps/{stepExecutionId}/progress", "5555", "1")).andExpect(
+		mockMvc.perform(get("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}/progress", "5555", "1")).andExpect(
 				status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
 						Matchers.is("Could not find jobExecution with id 5555")));
@@ -188,7 +188,7 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 
 	@Test
 	public void testGetProgressForStepExecutionNotExists() throws Exception {
-		mockMvc.perform(get("/batch/executions/{jobExecutionId}/steps/{stepExecutionId}/progress", "2", "5555")).andExpect(
+		mockMvc.perform(get("/jobs/executions/{jobExecutionId}/steps/{stepExecutionId}/progress", "2", "5555")).andExpect(
 				status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
 						Matchers.is("Could not find step execution with id 5555")));

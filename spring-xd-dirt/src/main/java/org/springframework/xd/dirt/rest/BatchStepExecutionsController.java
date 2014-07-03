@@ -44,7 +44,7 @@ import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResour
  * @author Ilayaperumal Gopinathan
  */
 @RestController
-@RequestMapping("/batch/executions/{jobExecutionId}/steps")
+@RequestMapping("/jobs/executions/{jobExecutionId}/steps")
 @ExposesResourceFor(StepExecutionInfoResource.class)
 public class BatchStepExecutionsController extends AbstractBatchJobsController {
 

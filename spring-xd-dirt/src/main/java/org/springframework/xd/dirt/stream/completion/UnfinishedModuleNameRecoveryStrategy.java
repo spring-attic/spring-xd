@@ -56,7 +56,7 @@ public class UnfinishedModuleNameRecoveryStrategy extends
 	}
 
 	@Override
-	public void addProposals(String dsl, NoSuchModuleException exception, CompletionKind kind, int lod,
+	public void addProposals(String dsl, NoSuchModuleException exception, CompletionKind kind, int detailLevel,
 			List<String> proposals) {
 		String modulePrefix = exception.getName();
 		int index = dsl.lastIndexOf(modulePrefix);

@@ -66,7 +66,7 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 	}
 
 	@Override
-	public void addProposals(String text, List<ModuleDescriptor> parseResult, CompletionKind kind, int lod,
+	public void addProposals(String text, List<ModuleDescriptor> parseResult, CompletionKind kind, int detailLevel,
 			List<String> proposals) {
 		// List is in reverse order
 		ModuleDescriptor lastModule = parseResult.get(0);
@@ -77,7 +77,7 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 
 		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
-			if (shouldShowOption(option, lod) && !alreadyPresentOptions.contains(option.getName())) {
+			if (shouldShowOption(option, detailLevel) && !alreadyPresentOptions.contains(option.getName())) {
 				proposals.add(String.format("%s%s--%s=", text, text.endsWith(" ") ? "" : " ", option.getName()));
 			}
 		}

@@ -65,7 +65,7 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 
 	@Override
 	@SuppressWarnings("fallthrough")
-	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind, int lod,
+	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind, int detailLevel,
 			List<String> proposals) {
 		if ("".equals(dsl)) {
 			switch (kind) {

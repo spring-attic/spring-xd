@@ -70,7 +70,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 	}
 
 	@Override
-	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind, int lod,
+	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind, int detailLevel,
 			List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<ModuleDescriptor> parsed = parser.parse("__dummy", safe, toParsingContext(kind));
@@ -92,7 +92,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 			}
 		}
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
-			if (shouldShowOption(option, lod) && !alreadyPresentOptions.contains(option.getName())) {
+			if (shouldShowOption(option, detailLevel) && !alreadyPresentOptions.contains(option.getName())) {
 				proposals.add(String.format("%s --%s=", safe, option.getName()));
 			}
 		}

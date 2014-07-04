@@ -141,6 +141,7 @@ ext {
 
 	// Hadoop Versions
 	hadoop22Version = '2.2.0'
+	hadoop24Version = '2.4.1'
 	cdh5Version = '2.3.0-cdh5.0.0'
 	hdp21Version = '2.4.0'
 	phd1Version = '2.0.5-alpha-gphd-2.1.0.0'
@@ -776,6 +777,36 @@ project('spring-xd-hadoop:hadoop22') {
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop22Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop22Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop22Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
+		include 'avro-*'
+		include 'protobuf-java-*'
+		include 'jetty-util-*'
+		include 'jersey-core-*'
+		include 'jersey-server-*'
+	}
+}
+
+project('spring-xd-hadoop:hadoop24') {
+	description = 'Hadoop 2.4.x dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop24") {
+			exclude group: 'org.apache.hadoop'
+		}
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop24") {
+			exclude group: 'org.apache.hadoop'
+		}
+		runtime ("org.apache.hadoop:hadoop-common:$hadoop24Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop24Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop24Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop24Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop24Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop24Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop24Version")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -1694,12 +1725,14 @@ task copyXDShellInstall(type: Copy, dependsOn: [
 
 task copyHadoopLibs(dependsOn: [
 	":spring-xd-hadoop:hadoop22:copyToLib",
+	":spring-xd-hadoop:hadoop24:copyToLib",
 	":spring-xd-hadoop:cdh5:copyToLib",
 	":spring-xd-hadoop:hdp21:copyToLib",
 	":spring-xd-hadoop:phd1:copyToLib",
 	":spring-xd-hadoop:phd20:copyToLib"
 ]) << {
 	[
+		'hadoop24',
 		'hadoop22',
 		'cdh5',
 		'hdp21',

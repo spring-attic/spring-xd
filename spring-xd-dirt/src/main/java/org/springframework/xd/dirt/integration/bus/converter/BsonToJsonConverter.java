@@ -30,15 +30,6 @@ import org.springframework.util.MimeTypeUtils;
  */
 public class BsonToJsonConverter extends AbstractFromMessageConverter {
 
-	//	public final static String APPLICATION_BSON_VALUE = "application/bson";
-	//
-	//	private final static List<MimeType> targetMimeTypes = new ArrayList<MimeType>();
-	//
-	//	private static final MimeType bson = MimeType.valueOf(APPLICATION_BSON_VALUE);
-	//	static {
-	//		targetMimeTypes.add(MessageConverterUtils.JSON);
-	//	}
-
 	public BsonToJsonConverter() {
 		super(MimeTypeUtils.APPLICATION_JSON);
 	}

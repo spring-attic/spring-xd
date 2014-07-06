@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.BSONObject;
+import org.bson.BasicBSONEncoder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,7 +48,7 @@ import org.springframework.xd.tuple.TupleBuilder;
 
 /**
  * Tests for converting from a Message.
- * 
+ *
  * @author David Turanski
  */
 public class FromMessageConverterTests {
@@ -58,6 +60,7 @@ public class FromMessageConverterTests {
 	@Before
 	public void setUp() {
 		// Order matters
+		converters.add(new BsonToJsonConverter());
 		converters.add(new StringToByteArrayMessageConverter());
 		converters.add(new JavaToSerializedMessageConverter());
 		converters.add(new SerializedToJavaMessageConverter());
@@ -68,6 +71,21 @@ public class FromMessageConverterTests {
 		converters.add(new ByteArrayToStringMessageConverter());
 		converters.add(new PojoToStringMessageConverter());
 		converterFactory = new CompositeMessageConverterFactory(converters);
+	}
+
+	@Test
+	public void testBsonToJson() {
+		String json = "{ \"sepalLength\": 6.4}";
+		BSONObject bson = (BSONObject) com.mongodb.util.JSON.parse(json);
+		BasicBSONEncoder encoder = new BasicBSONEncoder();
+		//bson data
+		byte[] bson_byte = encoder.encode(bson);
+		Message<?> msg = MessageBuilder.withPayload(bson_byte).build();
+		CompositeMessageConverter converter = converterFactory.newInstance(MimeTypeUtils.APPLICATION_JSON);
+		Message<String> result = (Message<String>) converter.fromMessage(msg, String.class);
+		assertTrue(result.getPayload(), result.getPayload().contains("\"sepalLength\" : 6.4"));
+		assertEquals(MimeTypeUtils.APPLICATION_JSON,
+				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test

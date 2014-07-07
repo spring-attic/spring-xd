@@ -96,7 +96,12 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		Assert.notNull(deploymentProperties, "'deploymentProperties' cannot be null.");
 		Assert.notNull(containers, "'containers' cannot be null.");
 		logger.debug("Matching containers for module {}", moduleDescriptor);
-		List<Container> candidates = findAllContainersMatchingCriteria(containers, deploymentProperties.getCriteria());
+		String criteria = deploymentProperties.getCriteria();
+		List<Container> candidates = findAllContainersMatchingCriteria(containers, criteria);
+		if (candidates.isEmpty() && StringUtils.hasText(criteria)) {
+			logger.warn("No currently available containers match deployment criteria '{}' for module '{}'.", criteria,
+					moduleDescriptor.getModuleName());
+		}
 		return distributeForRequestedCount(candidates, deploymentProperties.getCount());
 	}
 
@@ -154,10 +159,6 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 				logger.trace("\tAdded container {}", container);
 				candidates.add(container);
 			}
-		}
-
-		if (candidates.isEmpty() && StringUtils.hasText(criteria)) {
-			logger.warn("No currently available containers match criteria '{}'", criteria);
 		}
 		return candidates;
 	}

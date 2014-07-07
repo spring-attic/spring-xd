@@ -109,7 +109,7 @@ public final class ResourcePatternScanningOptionHandlers {
 			String resolved = CommandLinePropertySourceOverridingListener.getCurrentEnvironment()
 					.resolvePlaceholders("${xd.home:.}/lib/*");
 			resolved = StringUtils.cleanPath(resolved).replace("//", "/");
-			return "file:" + (resolved.startsWith("/") ? resolved : "/" + resolved);
+			return "file:" + resolved;
 		}
 
 		@Override

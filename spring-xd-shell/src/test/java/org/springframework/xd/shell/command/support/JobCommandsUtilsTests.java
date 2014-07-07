@@ -16,8 +16,14 @@
 
 package org.springframework.xd.shell.command.support;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Date;
+import java.util.TimeZone;
+
 import org.joda.time.DateTime;
 import org.junit.Test;
+
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -25,10 +31,6 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.xd.dirt.job.StepType;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 import org.springframework.xd.shell.util.Table;
-
-import java.util.Date;
-
-import static org.junit.Assert.assertEquals;
 
 
 /**
@@ -52,9 +54,10 @@ public class JobCommandsUtilsTests {
 		stepExecution.setLastUpdated(lastUpdated);
 		stepExecution.setStatus(BatchStatus.COMPLETED);
 		stepExecution.setExitStatus(ExitStatus.COMPLETED.addExitDescription("We are done."));
-		final StepExecutionInfoResource stepExecutionInfoResource = new StepExecutionInfoResource(444L, stepExecution, StepType.TASKLET_STEP.getDisplayName());
+		final StepExecutionInfoResource stepExecutionInfoResource = new StepExecutionInfoResource(444L, stepExecution,
+				StepType.TASKLET_STEP.getDisplayName());
 
-		final Table table = JobCommandsUtils.prepareStepExecutionTable(stepExecutionInfoResource);
+		final Table table = JobCommandsUtils.prepareStepExecutionTable(stepExecutionInfoResource, TimeZone.getDefault());
 
 		assertEquals("Step Execution Id", table.getRows().get(0).getValue(1));
 		assertEquals("333", table.getRows().get(0).getValue(2));
@@ -66,10 +69,10 @@ public class JobCommandsUtilsTests {
 		assertEquals("coolStep", table.getRows().get(2).getValue(2));
 
 		assertEquals("Start Time", table.getRows().get(3).getValue(1));
-		assertEquals("2014-05-01 19:00:00,000", table.getRows().get(3).getValue(2));
+		assertEquals("2014-05-01 15:00:00,000", table.getRows().get(3).getValue(2));
 
 		assertEquals("End Time", table.getRows().get(4).getValue(1));
-		assertEquals("2014-05-01 19:01:00,000", table.getRows().get(4).getValue(2));
+		assertEquals("2014-05-01 15:01:00,000", table.getRows().get(4).getValue(2));
 
 		assertEquals("Duration", table.getRows().get(5).getValue(1));
 		assertEquals("60000 ms", table.getRows().get(5).getValue(2));
@@ -78,7 +81,7 @@ public class JobCommandsUtilsTests {
 		assertEquals("COMPLETED", table.getRows().get(6).getValue(2));
 
 		assertEquals("Last Updated", table.getRows().get(7).getValue(1));
-		assertEquals("2014-05-05 05:00:00,000", table.getRows().get(7).getValue(2));
+		assertEquals("2014-05-05 01:00:00,000", table.getRows().get(7).getValue(2));
 
 		assertEquals("Read Count", table.getRows().get(8).getValue(1));
 		assertEquals("0", table.getRows().get(8).getValue(2));
@@ -110,7 +113,7 @@ public class JobCommandsUtilsTests {
 
 		final StepExecutionInfoResource stepExecutionInfoResource = new StepExecutionInfoResource();
 
-		final Table table = JobCommandsUtils.prepareStepExecutionTable(stepExecutionInfoResource);
+		final Table table = JobCommandsUtils.prepareStepExecutionTable(stepExecutionInfoResource, TimeZone.getDefault());
 
 		assertEquals("Step Execution Id", table.getRows().get(0).getValue(1));
 		assertEquals("N/A", table.getRows().get(0).getValue(2));
@@ -176,9 +179,10 @@ public class JobCommandsUtilsTests {
 		stepExecution.setLastUpdated(lastUpdated);
 		stepExecution.setStatus(BatchStatus.COMPLETED);
 		stepExecution.setExitStatus(ExitStatus.COMPLETED);
-		final StepExecutionInfoResource stepExecutionInfoResource = new StepExecutionInfoResource(444L, stepExecution, StepType.TASKLET_STEP.getDisplayName());
+		final StepExecutionInfoResource stepExecutionInfoResource = new StepExecutionInfoResource(444L, stepExecution,
+				StepType.TASKLET_STEP.getDisplayName());
 
-		final Table table = JobCommandsUtils.prepareStepExecutionTable(stepExecutionInfoResource);
+		final Table table = JobCommandsUtils.prepareStepExecutionTable(stepExecutionInfoResource, TimeZone.getDefault());
 
 		assertEquals("Exit Description", table.getRows().get(17).getValue(1));
 		assertEquals("N/A", table.getRows().get(17).getValue(2));

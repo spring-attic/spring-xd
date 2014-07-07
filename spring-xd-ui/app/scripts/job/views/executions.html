@@ -19,7 +19,7 @@
 			<td>{{item.name}}&nbsp;<span xd-deployment-status="item"></span></td>
             <td class="text-center">{{item.jobExecution.jobInstance.id}}</td>
             <td class="text-center">{{item.jobExecution.id}}</td>
-			<td>{{item.startDate}} {{item.startTime}}</td>
+			<td xd-date-time="{{item.jobExecution.startTime}}"></td>
 			<td class="text-center">{{item.stepExecutionCount}}</td>
 			<td ng-class="{'text-success': item.jobExecution.status === 'COMPLETED', 'text-danger': item.jobExecution.status === 'FAILED'}">{{item.jobExecution.status}}</td>
             <td class="action-column"><button ng-disabled="!item.restartable" type="button" class="btn btn-default" ng-click="restartJob(item)" title="Restart Job Execution">

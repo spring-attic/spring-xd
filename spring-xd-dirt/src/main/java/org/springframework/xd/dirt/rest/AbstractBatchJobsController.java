@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobRepository;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 
 /**
@@ -42,7 +43,7 @@ public abstract class AbstractBatchJobsController {
 	@Autowired
 	protected JobDefinitionRepository xdJobDefinitionRepository;
 
-	protected TimeZone timeZone = TimeZone.getDefault();
+	protected TimeZone timeZone = TimeUtils.getDefaultTimeZone();
 
 	protected final DetailedJobInfoResourceAssembler jobInfoResourceAssembler = new DetailedJobInfoResourceAssembler();
 

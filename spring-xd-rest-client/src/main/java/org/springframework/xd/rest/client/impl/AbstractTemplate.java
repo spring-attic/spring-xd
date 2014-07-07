@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,17 +43,20 @@ import org.springframework.xd.rest.client.impl.support.JobParameterJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.JobParametersJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.StepExecutionHistoryJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.StepExecutionJacksonMixIn;
+import org.springframework.xd.rest.client.util.ISO8601DateFormatWithMilliSeconds;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * Base class for sub-parts of the API, allows sharing configured objects like the {@link RestTemplate}.
- * 
+ *
  * @author Eric Bottard
- * 
+ * @author Gunnar Hillert
+ *
  */
-/* default */class AbstractTemplate {
+class AbstractTemplate {
 
 	/**
 	 * A template used for http interaction.
@@ -84,6 +87,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 			if (httpMessageConverter instanceof MappingJackson2HttpMessageConverter) {
 				final MappingJackson2HttpMessageConverter converter = (MappingJackson2HttpMessageConverter) httpMessageConverter;
 				final ObjectMapper objectMapper = converter.getObjectMapper();
+				objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+				objectMapper.setDateFormat(new ISO8601DateFormatWithMilliSeconds());
 
 				objectMapper.addMixInAnnotations(JobExecution.class, JobExecutionJacksonMixIn.class);
 				objectMapper.addMixInAnnotations(JobParameters.class, JobParametersJacksonMixIn.class);

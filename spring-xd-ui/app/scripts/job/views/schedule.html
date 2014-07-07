@@ -7,8 +7,8 @@
         <div class="form-group">
             <div class="col-xs-5">
                 <label>Scheduler (Stream) Name</label>
-                <input class="form-control" type="text" ng-model="jobScheduleRequest.schedulerName"><span
-                    class="label label-warning" ng-show="!jobScheduleRequest.schedulerName">Required</span>
+                <input class="form-control" type="text" required ng-model="jobScheduleRequest.schedulerName"><span
+                   class="label label-warning" ng-show="!jobScheduleRequest.schedulerName">Required</span>
             </div>
         </div>
 
@@ -28,8 +28,11 @@
         <div class="form-group">
             <label class="radio">
                 <div class="col-xs-5">
-                    <input type="radio" ng-model="jobScheduleRequest.triggerType" value="date"> Date
-                    <input class="form-control" type="datetime-local" ng-model="jobScheduleRequest.date"
+                    <input type="radio" ng-model="jobScheduleRequest.triggerType"
+                           value="date"> Date
+                    <input class="form-control" type="datetime-local"
+                           ng-required='jobScheduleRequest.triggerType === "date"'
+                           ng-model="jobScheduleRequest.date"
                            ng-show="isDate()" placeholder="MM/dd/yy HH:mm:ss">
                 </div>
             </label>
@@ -40,16 +43,16 @@
                     <input type="radio" ng-model="jobScheduleRequest.triggerType" value="cron"> Cron
                     <input class="form-control" type="text" ng-model="jobScheduleRequest.cron"
                            ng-show="isCron()" placeholder="Cron Expression">
+                    <p class="help-block" ng-show="isCron()">Cron Expressions are interpreted using the Server Timezone.</p>
                 </div>
-                `
             </label>
         </div>
     </form>
 </div>
+
 <div class="modal-footer">
     <button type="button" class="btn btn-default" ng-click="cancelJobSchedule()">Close</button>
-    <button type="button" class="btn btn-primary schedule-job"
-            ng-disabled="!jobScheduleRequest.schedulerName || jobScheduler.fixedDelay.$error.min"
-            ng-click="scheduleJob(jobScheduleRequest)">Schedule
+    <button type="button" class="btn btn-primary schedule-job" ng-click="scheduleJob(jobScheduleRequest)"
+            ng-disabled="jobScheduler.$invalid">Schedule
         Job <span class="glyphicon glyphicon-play"></span></button>
 </div>

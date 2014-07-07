@@ -1,6 +1,6 @@
 <h1 ng-show="moduleDetails.name">Create Definition for Job Module {{moduleDetails.name}}</h1>
 
-	<form name="createDefinitionForm" class="form-horizontal" role="form" ng-submit="submitJobDefinition()">
+	<form name="createDefinitionForm" class="form-horizontal" role="form" ng-submit="submitJobDefinition()" novalidate>
 		<fieldset id="commonDefinitionParameters">
 			<div class="form-group" id="definition-name-form-group" ng-class="createDefinitionForm.definitionName.$invalid ? 'has-warning has-feedback' : ''">
 				<label for="definitionName" class="col-sm-2 control-label">Definition Name</label>

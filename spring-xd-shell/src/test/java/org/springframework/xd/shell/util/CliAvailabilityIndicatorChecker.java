@@ -40,8 +40,9 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
-import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.command.ConfigCommands;
 import org.springframework.xd.shell.command.HttpCommands;
+import org.springframework.xd.shell.command.JobCommands;
 import org.springframework.xd.shell.hadoop.ConfigurationCommands;
 import org.springframework.xd.shell.hadoop.FsShellCommands;
 
@@ -52,8 +53,9 @@ import org.springframework.xd.shell.hadoop.FsShellCommands;
  */
 public class CliAvailabilityIndicatorChecker {
 
-	private static final List<Class<? extends CommandMarker>> EXCLUDES = Arrays.asList(XDShell.class,
-			HttpCommands.class, FsShellCommands.class, ConfigurationCommands.class);
+	private static final List<Class<? extends CommandMarker>> EXCLUDES = Arrays.asList(
+			HttpCommands.class, FsShellCommands.class, ConfigurationCommands.class, ConfigCommands.class,
+			JobCommands.class);
 
 	/**
 	 * A filter that matches the method(s) that bear some annotation.
@@ -73,7 +75,7 @@ public class CliAvailabilityIndicatorChecker {
 	}
 
 	/**
-	 * A method collector that will retrieve the (String[]) value of the {@code value()} attribute of some annotation 
+	 * A method collector that will retrieve the (String[]) value of the {@code value()} attribute of some annotation
 	 * that methods are known to bear.
 	 */
 	private final class AnnotationValueMethodCollector<A extends Annotation> implements MethodCallback {
@@ -123,7 +125,7 @@ public class CliAvailabilityIndicatorChecker {
 			ReflectionUtils.doWithMethods(plugin.getClass(),
 					new AnnotationValueMethodCollector<CliAvailabilityIndicator>(CliAvailabilityIndicator.class,
 							namesUsedInAvailabilityIndicator),
-					availabilityMethodfilter);
+							availabilityMethodfilter);
 
 			TreeSet<String> copy = new TreeSet<String>(commandNames);
 			copy.removeAll(namesUsedInAvailabilityIndicator);

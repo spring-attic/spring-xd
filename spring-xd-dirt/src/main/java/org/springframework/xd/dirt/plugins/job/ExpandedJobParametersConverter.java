@@ -38,6 +38,7 @@ import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,21 +66,17 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	public static final String DEFAULT_XD_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
-
-	private DateFormat defaultXdDateFormat = new SimpleDateFormat(DEFAULT_XD_DATE_FORMAT_PATTERN);
-
 	/**
 	 * Default Constructor, initializing {@link DefaultJobParametersConverter#setDateFormat(DateFormat)}
-	 * with {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
+	 * with {@link TimeUtils#getDefaultDateFormat()}.
 	 */
 	public ExpandedJobParametersConverter() {
-		this.setDateFormat(defaultXdDateFormat);
+		this.setDateFormat(TimeUtils.getDefaultDateFormat());
 	}
 
 	/**
 	 * Will set the {@link DateFormat} on the underlying {@link DefaultJobParametersConverter}. If not set explicitly,
-	 * the {@link DateFormat} will default to {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
+	 * the {@link DateFormat} will default to {@link TimeUtils#getDefaultDateFormat()}.
 	 *
 	 * @param dateFormat Must not be null
 	 */
@@ -91,7 +88,7 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 
 	/**
 	 * Allows for setting the {@link DateFormat} using a {@link String}. If not
-	 * set, the default {@link DateFormat} used will be {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
+	 * set, the default {@link DateFormat} used will be {@link TimeUtils#getDefaultDateFormat()}.
 	 *
 	 * @param dateFormatAsString Will be ignored if null or empty.
 	 */

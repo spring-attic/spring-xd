@@ -19,7 +19,7 @@
  *
  * @author Gunnar Hillert
  */
-define(['angular', 'xregexp'], function(angular) {
+define(['angular', 'xregexp', 'moment'], function(angular) {
   'use strict';
   angular.module('xdAdmin.directives', [])
     .directive('xdParseUrls', [function() {
@@ -67,6 +67,76 @@ define(['angular', 'xregexp'], function(angular) {
         link: linkFunction,
       };
     }])
+    .directive('xdDuration', [function() {
+
+      var linkFunction = function(scope, el) {
+        var startDateTime;
+        var endDateTime;
+        var element;
+
+        function updateDuration() {
+          if (startDateTime && endDateTime) {
+            var duration = moment.duration(endDateTime - startDateTime);
+            element.html(duration.asMilliseconds() + ' ms');
+            console.log(duration);
+          }
+        }
+        element = el;
+        scope.$watch('start', function(value){
+          if (value) {
+            startDateTime = moment(value);
+            updateDuration();
+          }
+        });
+        scope.$watch('end', function(value){
+          if (value) {
+            endDateTime = moment(value);
+            updateDuration();
+          }
+        });
+
+      };
+      return {
+        restrict: 'A',
+        scope: {
+          xdDuration: '=',
+          start: '=',
+          end: '='
+        },
+        link: linkFunction,
+      };
+    }])
+    .directive('xdDateTime', [function() {
+      var dateTimeFormat = 'YYYY-MM-DD HH:mm:ss,SSS';
+
+      var linkFunction = function(scope, element, attributes) {
+
+        function formatDateTime(dateTimeValue) {
+          if (dateTimeValue) {
+            var startDateTime = moment(dateTimeValue);
+            element.html('<span title="UTC Timezone offset: ' + moment().zone() +' minutes">' + startDateTime.format(dateTimeFormat) + '</span>');
+          }
+          else {
+            element.html('N/A');
+          }
+        }
+
+        formatDateTime(attributes.xdDateTime);
+
+        attributes.$observe('xdDateTime', function(value){
+          if (value) {
+            formatDateTime(value);
+          }
+        });
+      };
+      return {
+        restrict: 'A',
+        scope: {
+          xdDateTime: '@'
+        },
+        link: linkFunction,
+      };
+    }])
     .directive('integer', function() {
       var INTEGER_REGEXP = /^\-?\d+$/;
       return {
@@ -108,7 +178,6 @@ define(['angular', 'xregexp'], function(angular) {
               scope.labelClass = 'warning';
               scope.label = 'Undeployed';
             }
-            console.log(resource);
           }
         });
       };

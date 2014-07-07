@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command.support;
 
+import java.util.TimeZone;
+
 import org.springframework.batch.core.StepExecution;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
@@ -26,7 +28,7 @@ import org.springframework.xd.shell.util.TableHeader;
 
 /**
  * Provides helper methods for the {@link JobCommands} class, e.g. rendering of textual output.
- * 
+ *
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -39,10 +41,11 @@ public final class JobCommandsUtils {
 		throw new AssertionError();
 	}
 
-	public static Table prepareStepExecutionTable(final StepExecutionInfoResource stepExecutionInfoResource) {
+	public static Table prepareStepExecutionTable(final StepExecutionInfoResource stepExecutionInfoResource,
+			final TimeZone timeZone) {
 		final Table stepExecutionTable = new Table();
 		stepExecutionTable.addHeader(1, new TableHeader("Property"))
-				.addHeader(2, new TableHeader("Value"));
+		.addHeader(2, new TableHeader("Value"));
 
 		String stepId = CommonUtils.NOT_AVAILABLE;
 		String jobExecutionIdFromData = CommonUtils.NOT_AVAILABLE;
@@ -77,10 +80,10 @@ public final class JobCommandsUtils {
 				stepName = stepExecution.getStepName();
 			}
 			if (stepExecution.getStartTime() != null) {
-				startTimeAsString = CommonUtils.getUtcTime(stepExecution.getStartTime());
+				startTimeAsString = CommonUtils.getLocalTime(stepExecution.getStartTime(), timeZone);
 			}
 			if (stepExecution.getEndTime() != null) {
-				endTimeAsString = CommonUtils.getUtcTime(stepExecution.getEndTime());
+				endTimeAsString = CommonUtils.getLocalTime(stepExecution.getEndTime(), timeZone);
 			}
 			if (stepExecution.getStartTime() != null && stepExecution.getEndTime() != null) {
 				durationAsString = String.format("%s ms",
@@ -88,7 +91,7 @@ public final class JobCommandsUtils {
 			}
 
 			if (stepExecution.getLastUpdated() != null) {
-				lastUpdatedTimeAsString = CommonUtils.getUtcTime(stepExecution.getLastUpdated());
+				lastUpdatedTimeAsString = CommonUtils.getLocalTime(stepExecution.getLastUpdated(), timeZone);
 			}
 			if (stepExecution.getExitStatus() != null) {
 				exitStatus = stepExecution.getExitStatus().getExitCode();
@@ -114,24 +117,24 @@ public final class JobCommandsUtils {
 		}
 
 		stepExecutionTable
-				.addRow("Step Execution Id", stepId)
-				.addRow("Job Execution Id", jobExecutionIdFromData)
-				.addRow("Step Name", stepName)
-				.addRow("Start Time", startTimeAsString)
-				.addRow("End Time", endTimeAsString)
-				.addRow("Duration", durationAsString)
-				.addRow("Status", batchStatus)
-				.addRow("Last Updated", lastUpdatedTimeAsString)
-				.addRow("Read Count", readCount)
-				.addRow("Write Count", writeCount)
-				.addRow("Filter Count", filterCount)
-				.addRow("Read Skip Count", readSkipCount)
-				.addRow("Write Skip Count", writeSkipCount)
-				.addRow("Process Skip Count", processSkipCount)
-				.addRow("Commit Count", commitCount)
-				.addRow("Rollback Count", rollbackCount)
-				.addRow("Exit Status", exitStatus)
-				.addRow("Exit Description", exitDescription);
+		.addRow("Step Execution Id", stepId)
+		.addRow("Job Execution Id", jobExecutionIdFromData)
+		.addRow("Step Name", stepName)
+		.addRow("Start Time", startTimeAsString)
+		.addRow("End Time", endTimeAsString)
+		.addRow("Duration", durationAsString)
+		.addRow("Status", batchStatus)
+		.addRow("Last Updated", lastUpdatedTimeAsString)
+		.addRow("Read Count", readCount)
+		.addRow("Write Count", writeCount)
+		.addRow("Filter Count", filterCount)
+		.addRow("Read Skip Count", readSkipCount)
+		.addRow("Write Skip Count", writeSkipCount)
+		.addRow("Process Skip Count", processSkipCount)
+		.addRow("Commit Count", commitCount)
+		.addRow("Rollback Count", rollbackCount)
+		.addRow("Exit Status", exitStatus)
+		.addRow("Exit Description", exitDescription);
 
 		return stepExecutionTable;
 	}

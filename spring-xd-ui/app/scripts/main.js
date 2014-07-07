@@ -32,7 +32,8 @@ require.config({
     ngAnimate: '../lib/angular-animate/angular-animate',
     angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
     highlightjs: '../lib/highlightjs/highlight.pack',
-    xregexp: '../lib/xregexp/xregexp-all'
+    xregexp: '../lib/xregexp/xregexp-all',
+    moment: '../lib/moment/moment',
   },
   shim: {
     angular: {

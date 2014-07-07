@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
-import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.command.AggregateCounterCommands;
+import org.springframework.xd.shell.command.ConfigCommands;
 import org.springframework.xd.shell.command.CounterCommands;
 import org.springframework.xd.shell.command.FieldValueCounterCommands;
 import org.springframework.xd.shell.command.GaugeCommands;
@@ -59,9 +59,10 @@ import org.springframework.xd.shell.hadoop.FsShellCommands;
 /**
  * A quick and dirty tool to collect command help() text and generate an asciidoc page. Also enforces some constraints
  * on commands. Can be run as a unit test to enforce constraints only.
- * 
+ *
  * @author Eric Bottard
- * 
+ * @author Gunnar Hillert
+ *
  */
 public class ReferenceDoc {
 
@@ -98,7 +99,7 @@ public class ReferenceDoc {
 		/*
 		 * Set titles for commands. Please note that insertion order matters!
 		 */
-		titles.put(XDShell.class, "Base Commands");
+		titles.put(ConfigCommands.class, "Configuration Commands");
 		// ===== Runtime Containers/Modules ======
 		titles.put(RuntimeCommands.class, "Runtime Commands");
 

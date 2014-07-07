@@ -36,8 +36,8 @@ describe('Stream Tests', function() {
     it('the active tab should be labelled "Definitions"', function() {
       expect(element(by.css('#xd-content ul li.active a')).getText()).toEqual('Definitions');
     });
-    it('there should be a table with 3 columns', function() {
-      expect(element.all(by.css('#xd-content table thead th')).count()).toEqual(3);
+    it('there should be a table with 4 columns', function() {
+      expect(element.all(by.css('#xd-content table thead th')).count()).toEqual(4);
     });
     it('the first column is labelled "Name"', function() {
       expect(element(by.css('#xd-content table thead th:nth-child(1)')).getText()).toEqual('Name');
@@ -45,8 +45,11 @@ describe('Stream Tests', function() {
     it('the second column is labelled "Definition"', function() {
       expect(element(by.css('#xd-content table thead th:nth-child(2)')).getText()).toEqual('Definition');
     });
-    it('the third column is labelled "Actions"', function() {
-      expect(element(by.css('#xd-content table thead th:nth-child(3)')).getText()).toEqual('Actions');
+    it('the third column is labelled "Status"', function() {
+      expect(element(by.css('#xd-content table thead th:nth-child(3)')).getText()).toEqual('Status');
+    });
+    it('the forth column is labelled "Actions"', function() {
+      expect(element(by.css('#xd-content table thead th:nth-child(4)')).getText()).toEqual('Actions');
     });
     it('the "Definitions" Tab should have a "Quick Filter" search input field', function() {
       expect(element(by.css('#filterTable')).isPresent()).toBe(true);

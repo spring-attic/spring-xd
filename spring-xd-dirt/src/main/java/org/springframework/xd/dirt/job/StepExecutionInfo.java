@@ -16,18 +16,19 @@
 
 package org.springframework.xd.dirt.job;
 
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.step.tasklet.TaskletStep;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 /**
  * Represents Batch step execution info.
- * 
+ *
  * @author Dave Syer
  * @author Gunnar Hillert
  * @author Michael Minella
@@ -35,11 +36,11 @@ import java.util.TimeZone;
  */
 public class StepExecutionInfo {
 
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private DateFormat dateFormat = TimeUtils.getDefaultDateFormat();
 
-	private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+	private DateFormat timeFormat = TimeUtils.getDefaultTimeFormat();
 
-	private SimpleDateFormat durationFormat = new SimpleDateFormat("HH:mm:ss");
+	private DateFormat durationFormat = TimeUtils.getDefaultDurationFormat();
 
 	private Long id;
 
@@ -78,7 +79,7 @@ public class StepExecutionInfo {
 				.getJobInstance().getJobName();
 		this.jobExecutionId = stepExecution.getJobExecutionId();
 		// Duration is always in GMT
-		durationFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		durationFormat.setTimeZone(TimeUtils.getDefaultTimeZone());
 		timeFormat.setTimeZone(timeZone);
 		dateFormat.setTimeZone(timeZone);
 		if (stepExecution.getStartTime() != null) {

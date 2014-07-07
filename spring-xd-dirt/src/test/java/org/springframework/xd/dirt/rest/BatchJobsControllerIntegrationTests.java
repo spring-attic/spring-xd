@@ -53,10 +53,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 /**
  * Tests REST compliance of {@link BatchJobsController} endpoints.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
  */
@@ -76,7 +77,7 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 
 	private JobExecution execution;
 
-	private TimeZone timeZone = TimeZone.getDefault();
+	private TimeZone timeZone = TimeUtils.getDefaultTimeZone();
 
 	@Before
 	public void before() throws Exception {

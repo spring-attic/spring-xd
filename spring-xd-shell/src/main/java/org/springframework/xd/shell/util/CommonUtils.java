@@ -19,20 +19,21 @@ package org.springframework.xd.shell.util;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 /**
  * Contains common non-ui related helper methods for rendering text to the console.
- * 
+ *
  * @author Gunnar Hillert
  * @author Stephan Oudmaijer
- * 
+ *
  * @since 1.0
  */
 public final class CommonUtils {
@@ -50,7 +51,7 @@ public final class CommonUtils {
 
 	/**
 	 * Right-pad a String with a configurable padding character.
-	 * 
+	 *
 	 * @param inputString The String to pad. A {@code null} String will be treated like an empty String.
 	 * @param size Pad String by the number of characters.
 	 * @param paddingChar The character to pad the String with.
@@ -76,7 +77,7 @@ public final class CommonUtils {
 
 	/**
 	 * Right-pad the provided String with empty spaces.
-	 * 
+	 *
 	 * @param string The String to pad
 	 * @param size Pad String by the number of characters.
 	 * @return The padded String. If the provided String is null, an empty String is returned.
@@ -87,7 +88,7 @@ public final class CommonUtils {
 
 	/**
 	 * Convert a List of Strings to a comma delimited String.
-	 * 
+	 *
 	 * @param list
 	 * @return Returns the List as a comma delimited String. Returns an empty String for a Null or empty list.
 	 */
@@ -119,7 +120,7 @@ public final class CommonUtils {
 
 	/**
 	 * Simple method to replace characters in a String with asterisks to mask the password.
-	 * 
+	 *
 	 * @param password The password to mask
 	 */
 	public static String maskPassword(String password) {
@@ -134,18 +135,40 @@ public final class CommonUtils {
 	}
 
 	/**
-	 * Return a date/time/UTC formatted String for the provided {@link Date}. Uses {@link SimpleDateFormat} with format
-	 * {@code yyyy-MM-dd HH:mm:ss,SSS}
-	 * 
-	 * @param date Must not be null
+	 * Return a date/time formatted String for the provided {@link Date} and {@link TimeZone}.
+	 * Uses the {@link DateFormat} provided by {@link TimeUtils#getDefaultDateTimeFormat()}
+	 *
+	 * If the date is {@code null} {@link CommonUtils#NOT_AVAILABLE} is returned.
+	 *
+	 * @param date Can be null
+	 * @param timeZone Must not be null
 	 * @return Formatted date/time
 	 */
-	public static String getUtcTime(Date date) {
-		Assert.notNull(date, "The provided date must not be null.");
+	public static String getLocalTime(Date date, TimeZone timeZone) {
+		if (date == null) {
+			return CommonUtils.NOT_AVAILABLE;
+		}
 
-		final TimeZone timeZone = TimeZone.getTimeZone("UTC");
-		final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+		Assert.notNull(timeZone, "The provided timeZone must not be null.");
+
+		final DateFormat dateFormat = TimeUtils.getDefaultDateTimeFormat();
 		dateFormat.setTimeZone(timeZone);
 		return dateFormat.format(date);
+	}
+
+	/**
+	 * Returns the timezone name as well as the UTC offset.
+	 *
+	 * @param timeZone Must not be null
+	 * @return String detailing the timezone name and offset.
+	 */
+	public static String getTimeZoneNameWithOffset(TimeZone timeZone) {
+		Assert.notNull(timeZone, "The provided timeZone must not be null.");
+
+		long hours = TimeUnit.MILLISECONDS.toHours(timeZone.getRawOffset());
+		long minutes = TimeUnit.MILLISECONDS.toMinutes(timeZone.getRawOffset()) - TimeUnit.HOURS.toMinutes(hours);
+
+		return String.format("%s (UTC %d:%02d)", timeZone.getDisplayName(), hours, minutes);
+
 	}
 }

@@ -138,6 +138,7 @@ ext {
 	uuidVersion = '3.2'
 	validationApiVersion = '1.0.0.GA'
 	zookeeperVersion = '3.4.6'
+    mongoJavaDriverVersion = '2.12.1'
 
 	// Hadoop Versions
 	hadoop22Version = '2.2.0'
@@ -415,6 +416,7 @@ project('spring-xd-dirt') {
 
 		// See XD-903 for breakdown
 		// ************* Common to both Server and Container
+        compile "org.mongodb:mongo-java-driver:$mongoJavaDriverVersion"
 		compile "org.springframework:spring-aop:$springVersion"
 		compile project(":spring-xd-analytics")
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"

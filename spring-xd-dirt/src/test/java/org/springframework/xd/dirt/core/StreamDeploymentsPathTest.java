@@ -52,7 +52,7 @@ public class StreamDeploymentsPathTest {
 		assertEquals(streamName, streamDeploymentsPath.getStreamName());
 		assertEquals(moduleType, streamDeploymentsPath.getModuleType());
 		assertEquals(moduleLabel, streamDeploymentsPath.getModuleLabel());
-		assertEquals(moduleSequence, streamDeploymentsPath.getModuleSequence());
+		assertEquals(moduleSequence, streamDeploymentsPath.getModuleSequenceAsString());
 		assertEquals(container, streamDeploymentsPath.getContainer());
 
 		StreamDeploymentsPath streamDeploymentsPathEmptyCtor = new StreamDeploymentsPath()

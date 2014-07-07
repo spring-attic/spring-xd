@@ -152,11 +152,16 @@ public class JobDeploymentsPath {
 	}
 
 	/**
-	 * Return the module that this path represents.
-	 *
-	 * @return module
+	 * Return the string representation of the module instance that has the following dot limited
+	 * values.
+	 * <ul>
+	 * <li>Module Type</li>
+	 * <li>Module Label</li>
+	 * <li>Module Sequence</li>
+	 * </ul>
+	 * @return the string representation of the job module instance.
 	 */
-	public String getModule() {
+	public String getModuleInstanceAsString() {
 		return String.format("%s.%s.%s", ModuleType.job.toString(), this.getModuleLabel(), this.getModuleSequence());
 	}
 
@@ -212,12 +217,21 @@ public class JobDeploymentsPath {
 	}
 
 	/**
+	 * Return the module sequence as string.
+	 *
+	 * @return module sequence
+	 */
+	public String getModuleSequenceAsString() {
+		return deploymentDesc[MODULE_SEQUENCE];
+	}
+
+	/**
 	 * Return the module sequence.
 	 *
 	 * @return module sequence
 	 */
-	public String getModuleSequence() {
-		return deploymentDesc[MODULE_SEQUENCE];
+	public int getModuleSequence() {
+		return Integer.valueOf(deploymentDesc[MODULE_SEQUENCE]);
 	}
 
 	/**

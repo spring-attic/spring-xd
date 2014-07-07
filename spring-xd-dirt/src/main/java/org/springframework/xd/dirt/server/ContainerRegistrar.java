@@ -70,6 +70,7 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.SimpleModule;
@@ -428,19 +429,19 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		String unitName = moduleDeploymentsPath.getStreamName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
-		String moduleSequence = moduleDeploymentsPath.getModuleSequence();
+		int moduleSequence = moduleDeploymentsPath.getModuleSequence();
 		ModuleDescriptor.Key key = new ModuleDescriptor.Key(unitName, ModuleType.valueOf(moduleType), moduleLabel);
 		String container = moduleDeploymentsPath.getContainer();
 		Module module = null;
 		ModuleDeploymentStatus status;
 
-		ModuleDeploymentProperties properties = new ModuleDeploymentProperties();
+		RuntimeModuleDeploymentProperties properties = new RuntimeModuleDeploymentProperties();
 		properties.putAll(ZooKeeperUtils.bytesToMap(data.getData()));
 
 		try {
 			module = (ModuleType.job.toString().equals(moduleType))
-					? deployJob(client, unitName, moduleLabel, moduleSequence, properties)
-					: deployStreamModule(client, unitName, moduleType, moduleLabel, moduleSequence, properties);
+					? deployJobModule(client, unitName, moduleLabel, properties)
+					: deployStreamModule(client, unitName, moduleType, moduleLabel, properties);
 			if (module == null) {
 				status = new ModuleDeploymentStatus(container, moduleSequence, key,
 						ModuleDeploymentStatus.State.failed, "Module deployment returned null");
@@ -496,13 +497,13 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param properties  module deployment properties
 	 * @return Module deployed job module
 	 */
-	private Module deployJob(CuratorFramework client, String jobName, String jobLabel, String moduleSequence,
-			ModuleDeploymentProperties properties) throws Exception {
+	private Module deployJobModule(CuratorFramework client, String jobName, String jobLabel,
+			RuntimeModuleDeploymentProperties properties) throws Exception {
 		logger.info("Deploying job '{}'", jobName);
 
 		String jobDeploymentPath = new JobDeploymentsPath().setJobName(jobName)
 				.setModuleLabel(jobLabel)
-				.setModuleSequence(moduleSequence)
+				.setModuleSequence(properties.getSequenceAsString())
 				.setContainer(containerAttributes.getId()).build();
 
 		Module module = null;
@@ -541,14 +542,14 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @return Module deployed stream module
 	 */
 	private Module deployStreamModule(CuratorFramework client, String streamName,
-			String moduleType, String moduleLabel, String moduleSequence, ModuleDeploymentProperties properties)
+			String moduleType, String moduleLabel, RuntimeModuleDeploymentProperties properties)
 			throws Exception {
 		logger.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
 
 		String streamDeploymentPath = new StreamDeploymentsPath().setStreamName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel)
-				.setModuleSequence(moduleSequence)
+				.setModuleSequence(properties.getSequenceAsString())
 				.setContainer(this.containerAttributes.getId()).build();
 
 		Module module = null;
@@ -584,7 +585,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		String streamName = moduleDeploymentsPath.getStreamName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
-		String moduleSequence = moduleDeploymentsPath.getModuleSequence();
+		String moduleSequence = moduleDeploymentsPath.getModuleSequenceAsString();
 
 		undeployModule(streamName, moduleType, moduleLabel);
 
@@ -691,7 +692,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				String streamName = streamDeploymentsPath.getStreamName();
 				String moduleType = streamDeploymentsPath.getModuleType();
 				String moduleLabel = streamDeploymentsPath.getModuleLabel();
-				String moduleSequence = streamDeploymentsPath.getModuleSequence();
+				String moduleSequence = streamDeploymentsPath.getModuleSequenceAsString();
 
 				undeployModule(streamName, moduleType, moduleLabel);
 
@@ -747,7 +748,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				JobDeploymentsPath jobDeploymentsPath = new JobDeploymentsPath(event.getPath());
 				String jobName = jobDeploymentsPath.getJobName();
 				String moduleLabel = jobDeploymentsPath.getModuleLabel();
-				String moduleSequence = jobDeploymentsPath.getModuleSequence();
+				String moduleSequence = jobDeploymentsPath.getModuleSequenceAsString();
 
 				undeployModule(jobName, ModuleType.job.toString(), moduleLabel);
 

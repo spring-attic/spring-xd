@@ -54,7 +54,7 @@ public class ModuleDeploymentsPathTest {
 		assertEquals(streamName, fromPath.getStreamName());
 		assertEquals(moduleType, fromPath.getModuleType());
 		assertEquals(moduleLabel, fromPath.getModuleLabel());
-		assertEquals(moduleSequence, fromPath.getModuleSequence());
+		assertEquals(moduleSequence, fromPath.getModuleSequenceAsString());
 	}
 
 }

@@ -183,14 +183,14 @@ public class ModuleDeploymentWriter {
 			RuntimeModuleDeploymentProperties runtimeProperties,
 			Container container, ResultCollector collector)
 			throws InterruptedException, NoContainerException {
-		String moduleSequence = runtimeProperties.getSequenceAsString();
+		int moduleSequence = runtimeProperties.getSequence();
 		String containerName = container.getName();
 		String deploymentPath = new ModuleDeploymentsPath()
 				.setContainer(containerName)
 				.setStreamName(moduleDescriptor.getGroup())
 				.setModuleType(moduleDescriptor.getType().toString())
 				.setModuleLabel(moduleDescriptor.getModuleLabel())
-				.setModuleSequence(moduleSequence).build();
+				.setModuleSequence(String.valueOf(moduleSequence)).build();
 		String statusPath = Paths.build(deploymentPath, Paths.STATUS);
 		collector.addPending(containerName, moduleSequence, moduleDescriptor.createKey());
 		try {
@@ -234,7 +234,7 @@ public class ModuleDeploymentWriter {
 						.setStreamName(deploymentStatus.getKey().getGroup())
 						.setModuleType(deploymentStatus.getKey().getType().toString())
 						.setModuleLabel(deploymentStatus.getKey().getLabel())
-						.setModuleSequence(deploymentStatus.getModuleSequence()).build();
+						.setModuleSequence(deploymentStatus.getModuleSequenceAsString()).build();
 				logger.debug("Unsuccessful deployment: {}; removing path {}", deploymentStatus, path);
 				try {
 					zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
@@ -305,7 +305,8 @@ public class ModuleDeploymentWriter {
 				path.getStreamName(),
 				ModuleType.valueOf(path.getModuleType()),
 				path.getModuleLabel());
-		return new ModuleDeploymentStatus(path.getContainer(), path.getModuleSequence(), key, statusMap);
+		return new ModuleDeploymentStatus(path.getContainer(), path.getModuleSequence(), key,
+				statusMap);
 	}
 
 	/**
@@ -338,9 +339,9 @@ public class ModuleDeploymentWriter {
 		private String container;
 
 		/**
-		 * Module sequence.
+		 * Module sequence number.
 		 */
-		private String moduleSequence;
+		private int moduleSequence;
 
 		/**
 		 * Module descriptor key.
@@ -354,7 +355,7 @@ public class ModuleDeploymentWriter {
 		 * @param moduleSequence        module sequence number
 		 * @param moduleDescriptorKey   module descriptor key
 		 */
-		private ContainerModuleKey(String container, String moduleSequence, ModuleDescriptor.Key moduleDescriptorKey) {
+		private ContainerModuleKey(String container, int moduleSequence, ModuleDescriptor.Key moduleDescriptorKey) {
 			this.container = container;
 			this.moduleSequence = moduleSequence;
 			this.moduleDescriptorKey = moduleDescriptorKey;
@@ -375,7 +376,7 @@ public class ModuleDeploymentWriter {
 
 			ContainerModuleKey that = (ContainerModuleKey) o;
 			return this.container.equals(that.container) &&
-					this.moduleSequence.equals(that.moduleSequence) &&
+					(this.moduleSequence == that.moduleSequence) &&
 					this.moduleDescriptorKey.equals(that.moduleDescriptorKey);
 		}
 
@@ -385,7 +386,7 @@ public class ModuleDeploymentWriter {
 		@Override
 		public int hashCode() {
 			int result = container.hashCode();
-			result = 31 * result + moduleSequence.hashCode();
+			result = 31 * result + moduleSequence;
 			result = 31 * result + moduleDescriptorKey.hashCode();
 			return result;
 		}
@@ -449,7 +450,7 @@ public class ModuleDeploymentWriter {
 		 * @param moduleSequence  module sequence
 		 * @param key             module descriptor key
 		 */
-		public synchronized void addPending(String container, String moduleSequence, ModuleDescriptor.Key key) {
+		public synchronized void addPending(String container, int moduleSequence, ModuleDescriptor.Key key) {
 			pending.add(new ContainerModuleKey(container, moduleSequence, key));
 		}
 
@@ -494,7 +495,8 @@ public class ModuleDeploymentWriter {
 			// was never updated
 			for (ContainerModuleKey key : pending) {
 				results.put(key,
-						new ModuleDeploymentStatus(key.container, key.moduleSequence, key.moduleDescriptorKey,
+						new ModuleDeploymentStatus(key.container, Integer.valueOf(key.moduleSequence),
+								key.moduleDescriptorKey,
 								ModuleDeploymentStatus.State.failed,
 								String.format("Deployment of module '%s' to container '%s' timed out after %d ms",
 										key.moduleDescriptorKey, key.container, timeout)));

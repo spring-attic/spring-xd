@@ -136,11 +136,16 @@ public class ModuleDeploymentRequestsPath {
 	}
 
 	/**
-	 * Return the module that this path represents.
-	 *
-	 * @return module
+	 * Return the string representation of the module instance that has the following dot limited
+	 * values.
+	 * <ul>
+	 * <li>Module Type</li>
+	 * <li>Module Label</li>
+	 * <li>Module Sequence</li>
+	 * </ul>
+	 * @return the string representation of the module instance.
 	 */
-	public String getModule() {
+	public String getModuleInstanceAsString() {
 		return String.format("%s.%s.%s", this.getModuleType(), this.getModuleLabel(), this.getModuleSequence());
 	}
 

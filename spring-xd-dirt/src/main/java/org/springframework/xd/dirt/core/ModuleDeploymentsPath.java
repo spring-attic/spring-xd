@@ -232,12 +232,21 @@ public class ModuleDeploymentsPath {
 	}
 
 	/**
+	 * Return the module sequence as string.
+	 *
+	 * @return module sequence
+	 */
+	public String getModuleSequenceAsString() {
+		return deploymentDesc[MODULE_SEQUENCE];
+	}
+
+	/**
 	 * Return the module sequence.
 	 *
 	 * @return module sequence
 	 */
-	public String getModuleSequence() {
-		return deploymentDesc[MODULE_SEQUENCE];
+	public int getModuleSequence() {
+		return Integer.valueOf(deploymentDesc[MODULE_SEQUENCE]);
 	}
 
 	/**

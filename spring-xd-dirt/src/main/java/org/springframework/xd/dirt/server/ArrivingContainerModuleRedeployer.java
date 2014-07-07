@@ -133,12 +133,12 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 				for (String deployedModule : client.getChildren().forPath(Paths.build(data.getPath(), Paths.MODULES))) {
 					deployedModules.add(Paths.stripPath(new StreamDeploymentsPath(Paths.build(data.getPath(),
 							Paths.MODULES,
-							deployedModule)).getModule()));
+							deployedModule)).getModuleInstanceAsString()));
 				}
 				Set<ModuleDescriptor> deployedDescriptors = new HashSet<ModuleDescriptor>();
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(path.getModuleLabel());
-					if ((path.getModuleSequence().equals("0") || !deployedModules.contains(path.getModule()))
+					if ((path.getModuleSequence().equals("0") || !deployedModules.contains(path.getModuleInstanceAsString()))
 							&& !deployedDescriptors.contains(moduleDescriptor)) {
 						deployedDescriptors.add(moduleDescriptor);
 						RuntimeModuleDeploymentProperties moduleDeploymentProperties = new RuntimeModuleDeploymentProperties();
@@ -176,12 +176,12 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 				for (String deployedModule : client.getChildren().forPath(Paths.build(data.getPath(), Paths.MODULES))) {
 					deployedModules.add(Paths.stripPath(new JobDeploymentsPath(Paths.build(data.getPath(),
 							Paths.MODULES,
-							deployedModule)).getModule()));
+							deployedModule)).getModuleInstanceAsString()));
 				}
 				Set<ModuleDescriptor> deployedDescriptors = new HashSet<ModuleDescriptor>();
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
-					if ((path.getModuleSequence().equals("0") || !deployedModules.contains(path.getModule()))
+					if ((path.getModuleSequence().equals("0") || !deployedModules.contains(path.getModuleInstanceAsString()))
 							&& !deployedDescriptors.contains(moduleDescriptor)) {
 						deployedDescriptors.add(moduleDescriptor);
 						RuntimeModuleDeploymentProperties moduleDeploymentProperties = new RuntimeModuleDeploymentProperties();

@@ -393,7 +393,7 @@ public abstract class ModuleRedeployer {
 			String deploymentUnitName;
 			ModuleType type;
 			String label;
-			String moduleSequence;
+			int moduleSequence;
 			String container;
 
 			if (deploymentUnit instanceof Stream) {

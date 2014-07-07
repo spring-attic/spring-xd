@@ -483,7 +483,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			Map<String, String> mapMetadata = new HashMap<String, String>();
 			CollectionUtils.mergePropertiesIntoMap(module.getProperties(), mapMetadata);
 			client.create().withMode(CreateMode.EPHEMERAL).forPath(
-					Paths.build(path, "metadata"), ZooKeeperUtils.mapToBytes(mapMetadata));
+					Paths.build(path, Paths.METADATA), ZooKeeperUtils.mapToBytes(mapMetadata));
 		}
 	}
 

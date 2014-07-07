@@ -35,6 +35,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.PojoModuleOptionsMetadata;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 
 /**
@@ -64,7 +65,7 @@ public class JobPluginMetadataResolver implements ModuleOptionsMetadataResolver 
 
 		private String numberFormat = "";
 
-		private String dateFormat = ExpandedJobParametersConverter.DEFAULT_XD_DATE_FORMAT_PATTERN;
+		private String dateFormat = TimeUtils.DEFAULT_XD_DATE_FORMAT_PATTERN;
 
 		private String listeners = "";
 

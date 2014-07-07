@@ -91,7 +91,7 @@
       <td class="text-center">{{stepExecution.writeCount}}</td>
       <td class="text-center">{{stepExecution.commitCount}}</td>
       <td class="text-center">{{stepExecution.rollbackCount}}</td>
-      <td>{{stepExecution.endTime-stepExecution.startTime}} ms</td>
+      <td xd-duration start='stepExecution.startTime' end='stepExecution.endTime'></td>
       <td ng-class="{'text-success': stepExecution.exitStatus.exitCode === 'COMPLETED', 'text-danger': stepExecution.exitStatus.exitCode === 'FAILED'}"><a href="" data-toggle="modal" data-target="#step-execution-id-{{stepExecution.id}}"
              ng-click="viewJobExecutionDetails(item)" title="Exit Status Details"
                 >{{stepExecution.exitStatus.exitCode}}</a></td>

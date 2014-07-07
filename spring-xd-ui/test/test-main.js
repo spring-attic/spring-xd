@@ -21,7 +21,8 @@ require.config({
     cgBusy: '/base/app/lib/angular-busy/angular-busy',
     ngGrowl: '/base/app/lib/angular-growl/angular-growl',
     ngAnimate: '/base/app/lib/angular-animate/angular-animate',
-    xregexp: '/base/app/lib/xregexp/xregexp-all'
+    xregexp: '/base/app/lib/xregexp/xregexp-all',
+    moment: '/base/app/lib/moment/moment'
   },
   baseUrl: '/base/app/scripts',
   shim: {

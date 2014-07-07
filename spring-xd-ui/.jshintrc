@@ -23,6 +23,7 @@
     "requirejs": true,
     "define": true,
     "XRegExp": true,
+    "moment": true,
     "$": true,
     "_": true
   }

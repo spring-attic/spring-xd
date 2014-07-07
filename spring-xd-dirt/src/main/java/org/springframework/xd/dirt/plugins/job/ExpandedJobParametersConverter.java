@@ -38,6 +38,7 @@ import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,16 +66,12 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	public static final String DEFAULT_XD_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
-
-	private DateFormat defaultXdDateFormat = new SimpleDateFormat(DEFAULT_XD_DATE_FORMAT_PATTERN);
-
 	/**
 	 * Default Constructor, initializing {@link DefaultJobParametersConverter#setDateFormat(DateFormat)}
 	 * with {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
 	 */
 	public ExpandedJobParametersConverter() {
-		this.setDateFormat(defaultXdDateFormat);
+		this.setDateFormat(TimeUtils.getDefaultDateFormat());
 	}
 
 	/**

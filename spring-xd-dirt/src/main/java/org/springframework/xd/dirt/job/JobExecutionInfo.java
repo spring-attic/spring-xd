@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.job;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -27,22 +27,24 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 
 /**
  * Represents Batch job execution info.
- * 
+ *
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  * @since 1.0
  */
 public class JobExecutionInfo {
 
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private DateFormat dateFormat = TimeUtils.getDefaultDateFormat();
 
-	private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+	private DateFormat timeFormat = TimeUtils.getDefaultTimeFormat();
 
-	private SimpleDateFormat durationFormat = new SimpleDateFormat("HH:mm:ss");
+	private DateFormat durationFormat = TimeUtils.getDefaultDurationFormat();
 
 	private Long executionId;
 
@@ -97,7 +99,7 @@ public class JobExecutionInfo {
 		}
 
 		// Duration is always in GMT
-		durationFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		durationFormat.setTimeZone(TimeUtils.getDefaultTimeZone());
 		// The others can be localized
 		timeFormat.setTimeZone(timeZone);
 		dateFormat.setTimeZone(timeZone);

@@ -26,13 +26,14 @@ import java.util.TimeZone;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 /**
  * Contains common non-ui related helper methods for rendering text to the console.
- * 
+ *
  * @author Gunnar Hillert
  * @author Stephan Oudmaijer
- * 
+ *
  * @since 1.0
  */
 public final class CommonUtils {
@@ -50,7 +51,7 @@ public final class CommonUtils {
 
 	/**
 	 * Right-pad a String with a configurable padding character.
-	 * 
+	 *
 	 * @param inputString The String to pad. A {@code null} String will be treated like an empty String.
 	 * @param size Pad String by the number of characters.
 	 * @param paddingChar The character to pad the String with.
@@ -76,7 +77,7 @@ public final class CommonUtils {
 
 	/**
 	 * Right-pad the provided String with empty spaces.
-	 * 
+	 *
 	 * @param string The String to pad
 	 * @param size Pad String by the number of characters.
 	 * @return The padded String. If the provided String is null, an empty String is returned.
@@ -87,7 +88,7 @@ public final class CommonUtils {
 
 	/**
 	 * Convert a List of Strings to a comma delimited String.
-	 * 
+	 *
 	 * @param list
 	 * @return Returns the List as a comma delimited String. Returns an empty String for a Null or empty list.
 	 */
@@ -119,7 +120,7 @@ public final class CommonUtils {
 
 	/**
 	 * Simple method to replace characters in a String with asterisks to mask the password.
-	 * 
+	 *
 	 * @param password The password to mask
 	 */
 	public static String maskPassword(String password) {
@@ -136,15 +137,31 @@ public final class CommonUtils {
 	/**
 	 * Return a date/time/UTC formatted String for the provided {@link Date}. Uses {@link SimpleDateFormat} with format
 	 * {@code yyyy-MM-dd HH:mm:ss,SSS}
-	 * 
+	 *
 	 * @param date Must not be null
 	 * @return Formatted date/time
 	 */
 	public static String getUtcTime(Date date) {
 		Assert.notNull(date, "The provided date must not be null.");
 
-		final TimeZone timeZone = TimeZone.getTimeZone("UTC");
-		final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+		final TimeZone timeZone = TimeUtils.getDefaultTimeZone();
+		final DateFormat dateFormat = TimeUtils.getDefaultDateTimeFormat();
+		dateFormat.setTimeZone(timeZone);
+		return dateFormat.format(date);
+	}
+
+	/**
+	 * Return a date/time formatted String for the provided {@link Date}. The JVM
+	 * {@link TimeZone} is used. Uses {@link SimpleDateFormat} with format
+	 * {@code yyyy-MM-dd HH:mm:ss,SSS}
+	 *
+	 * @param date Must not be null
+	 * @return Formatted date/time
+	 */
+	public static String getLocalTime(Date date) {
+		Assert.notNull(date, "The provided date must not be null.");
+		final TimeZone timeZone = TimeUtils.getJvmTimeZone();
+		final DateFormat dateFormat = TimeUtils.getDefaultDateTimeFormat();
 		dateFormat.setTimeZone(timeZone);
 		return dateFormat.format(date);
 	}

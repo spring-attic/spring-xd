@@ -17,10 +17,10 @@
 package org.springframework.xd.rest.client.impl.support;
 
 import java.io.IOException;
-import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
 
 import org.springframework.batch.core.JobParameter;
 
@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Jackson Deserializer for {@link JobParameter} de-serialization.
- * 
+ *
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -56,7 +56,7 @@ public class JobParameterJacksonDeserializer extends JsonDeserializer<JobParamet
 
 		if (!type.isEmpty() && !type.equalsIgnoreCase("STRING")) {
 			if ("DATE".equalsIgnoreCase(type)) {
-				jobParameter = new JobParameter(new Date(Long.valueOf(value)), identifying);
+				jobParameter = new JobParameter(DateTime.parse(value).toDate(), identifying);
 			}
 			else if ("DOUBLE".equalsIgnoreCase(type)) {
 				jobParameter = new JobParameter(Double.valueOf(value), identifying);

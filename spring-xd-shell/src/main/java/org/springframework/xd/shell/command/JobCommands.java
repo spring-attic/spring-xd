@@ -34,6 +34,7 @@ import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
+import org.springframework.xd.rest.client.util.TimeUtils;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.command.support.JobCommandsUtils;
 import org.springframework.xd.shell.util.CommonUtils;
@@ -247,17 +248,18 @@ public class JobCommands implements CommandMarker {
 		details.append("Job Execution Details:\n");
 		details.append(UiUtils.HORIZONTAL_LINE);
 
-		final String utcCreateTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getCreateTime());
-		final String utcStartTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getStartTime());
+		final String utcCreateTime = CommonUtils.getLocalTime(jobExecutionInfoResource.getJobExecution().getCreateTime());
+		final String utcStartTime = CommonUtils.getLocalTime(jobExecutionInfoResource.getJobExecution().getStartTime());
 		final Date endTimeDate = jobExecutionInfoResource.getJobExecution().getEndTime();
-		final String utcEndTime = (endTimeDate == null) ? "" : CommonUtils.getUtcTime(endTimeDate);
+		final String utcEndTime = (endTimeDate == null) ? "" : CommonUtils.getLocalTime(endTimeDate);
 
+		final String localTimeZoneId = TimeUtils.getJvmTimeZone().getID();
 		jobExecutionTable.addRow("Job Execution ID", String.valueOf(jobExecutionInfoResource.getExecutionId()))
 				.addRow("Job Name", jobExecutionInfoResource.getName())
 				.addRow("Start Time", startTimeAsString)
-				.addRow("Create Time (UTC)", utcCreateTime)
-				.addRow("Start Time (UTC)", utcStartTime)
-				.addRow("End Time (UTC)", utcEndTime)
+				.addRow(String.format("Create Time (%s)", localTimeZoneId), utcCreateTime)
+				.addRow(String.format("Start Time (%s)", localTimeZoneId), utcStartTime)
+				.addRow(String.format("End Time (%s)", localTimeZoneId), utcEndTime)
 				.addRow("Running", String.valueOf(jobExecutionInfoResource.getJobExecution().isRunning()))
 				.addRow("Stopping", String.valueOf(jobExecutionInfoResource.getJobExecution().isStopping()))
 				.addRow("Step Execution Count", String.valueOf(jobExecutionInfoResource.getStepExecutionCount()))

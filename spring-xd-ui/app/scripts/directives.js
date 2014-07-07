@@ -19,7 +19,7 @@
  *
  * @author Gunnar Hillert
  */
-define(['angular', 'xregexp'], function(angular) {
+define(['angular', 'xregexp', 'moment'], function(angular) {
   'use strict';
   angular.module('xdAdmin.directives', [])
     .directive('xdParseUrls', [function() {
@@ -63,6 +63,49 @@ define(['angular', 'xregexp'], function(angular) {
         restrict: 'A',
         scope: {
           xdFormatStream: '='
+        },
+        link: linkFunction,
+      };
+    }])
+    .directive('xdDuration', [function() {
+      var startDateTime;
+      var endDateTime;
+      var element;
+
+      function updateDuration() {
+        if (startDateTime && endDateTime) {
+          console.log(startDateTime);
+          console.log(endDateTime);
+
+          var duration = moment.duration(endDateTime - startDateTime);
+          element.html(duration.asMilliseconds() + ' ms');
+          console.log(duration);
+        }
+      }
+
+      var linkFunction = function(scope, el) {
+
+        element = el;
+        scope.$watch('start', function(value){
+          if (value) {
+            startDateTime = moment(value);
+            updateDuration();
+          }
+        });
+        scope.$watch('end', function(value){
+          if (value) {
+            endDateTime = moment(value);
+            updateDuration();
+          }
+        });
+
+      };
+      return {
+        restrict: 'A',
+        scope: {
+          xdDuration: '=',
+          start: '=',
+          end: '='
         },
         link: linkFunction,
       };

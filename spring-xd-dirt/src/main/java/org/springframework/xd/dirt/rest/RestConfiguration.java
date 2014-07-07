@@ -37,7 +37,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.xd.dirt.plugins.job.support.ExecutionContextJacksonMixIn;
 import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
+import org.springframework.xd.rest.client.util.ISO8601DateFormatWithMilliSeconds;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * Takes care of infrastructure setup for the web/rest layer.
@@ -72,10 +76,12 @@ public class RestConfiguration {
 				for (HttpMessageConverter<?> httpMessageConverter : converters) {
 					if (httpMessageConverter instanceof MappingJackson2HttpMessageConverter) {
 						final MappingJackson2HttpMessageConverter converter = (MappingJackson2HttpMessageConverter) httpMessageConverter;
-						converter.getObjectMapper().addMixInAnnotations(StepExecution.class,
-								StepExecutionJacksonMixIn.class);
-						converter.getObjectMapper().addMixInAnnotations(ExecutionContext.class,
-								ExecutionContextJacksonMixIn.class);
+
+						final ObjectMapper objectMapper = converter.getObjectMapper();
+						objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+						objectMapper.setDateFormat(new ISO8601DateFormatWithMilliSeconds());
+						objectMapper.addMixInAnnotations(StepExecution.class, StepExecutionJacksonMixIn.class);
+						objectMapper.addMixInAnnotations(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
 					}
 				}
 
@@ -101,5 +107,4 @@ public class RestConfiguration {
 			}
 		};
 	}
-
 }

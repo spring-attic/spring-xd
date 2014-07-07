@@ -16,7 +16,7 @@
 
 package org.springframework.xd.rest.client.domain;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -30,24 +30,25 @@ import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.hateoas.ResourceSupport;
+import org.springframework.xd.rest.client.util.TimeUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**
  * Represents job execution info resource.
- * 
+ *
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
  */
 @XmlRootElement
 public class JobExecutionInfoResource extends ResourceSupport {
 
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private DateFormat dateFormat = TimeUtils.getDefaultDateFormat();
 
-	private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+	private DateFormat timeFormat = TimeUtils.getDefaultTimeFormat();
 
-	private SimpleDateFormat durationFormat = new SimpleDateFormat("HH:mm:ss");
+	private DateFormat durationFormat = TimeUtils.getDefaultDurationFormat();
 
 	private Long executionId;
 
@@ -85,7 +86,7 @@ public class JobExecutionInfoResource extends ResourceSupport {
 	private final TimeZone timeZone;
 
 	public JobExecutionInfoResource() {
-		this.timeZone = TimeZone.getDefault();
+		this.timeZone = TimeUtils.getDefaultTimeZone();
 	}
 
 	public JobExecutionInfoResource(JobExecution jobExecution, TimeZone timeZone) {
@@ -111,7 +112,7 @@ public class JobExecutionInfoResource extends ResourceSupport {
 		}
 
 		// Duration is always in GMT
-		durationFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		durationFormat.setTimeZone(TimeUtils.getDefaultTimeZone());
 		// The others can be localized
 		timeFormat.setTimeZone(timeZone);
 		dateFormat.setTimeZone(timeZone);

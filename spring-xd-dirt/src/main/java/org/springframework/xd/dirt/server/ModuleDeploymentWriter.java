@@ -128,11 +128,11 @@ public class ModuleDeploymentWriter {
 	 * @throws NoContainerException if there are no containers that match the criteria
 	 *                              for module deployment
 	 */
-	protected ModuleDeploymentStatus writeModuleDeployment(ModuleDescriptor moduleDescriptor,
+	protected ModuleDeploymentStatus writeDeployment(ModuleDescriptor moduleDescriptor,
 			RuntimeModuleDeploymentProperties deploymentProperties, Container container)
 			throws InterruptedException, NoContainerException {
 		ResultCollector collector = new ResultCollector();
-		writeModuleDeployment(moduleDescriptor, deploymentProperties, container, collector);
+		writeDeployment(moduleDescriptor, deploymentProperties, container, collector);
 		Collection<ModuleDeploymentStatus> statuses = processResults(collector);
 		if (statuses.isEmpty()) {
 			throw new NoContainerException();
@@ -154,12 +154,12 @@ public class ModuleDeploymentWriter {
 	 * @throws NoContainerException if there are no containers that match the criteria
 	 *                              for module deployment
 	 */
-	protected Collection<ModuleDeploymentStatus> writeModuleDeployment(ModuleDescriptor moduleDescriptor,
+	protected Collection<ModuleDeploymentStatus> writeDeployment(ModuleDescriptor moduleDescriptor,
 			RuntimeModuleDeploymentPropertiesProvider provider, Collection<Container> containers)
 			throws InterruptedException, NoContainerException {
 		ResultCollector collector = new ResultCollector();
 		for (Container container : containers) {
-			writeModuleDeployment(moduleDescriptor, provider.runtimeProperties(moduleDescriptor), container, collector);
+			writeDeployment(moduleDescriptor, provider.runtimeProperties(moduleDescriptor), container, collector);
 		}
 		Collection<ModuleDeploymentStatus> statuses = processResults(collector);
 		if (statuses.isEmpty()) {
@@ -179,7 +179,7 @@ public class ModuleDeploymentWriter {
 	 * @throws NoContainerException 	if there are no containers that match the criteria
 	 *                              	for module deployment
 	 */
-	private void writeModuleDeployment(ModuleDescriptor moduleDescriptor,
+	private void writeDeployment(ModuleDescriptor moduleDescriptor,
 			RuntimeModuleDeploymentProperties runtimeProperties,
 			Container container, ResultCollector collector)
 			throws InterruptedException, NoContainerException {

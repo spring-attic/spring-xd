@@ -45,12 +45,12 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public abstract class PrimaryDeploymentListener implements PathChildrenCacheListener {
+public abstract class InitialDeploymentListener implements PathChildrenCacheListener {
 
 	/**
 	 * Logger.
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(PrimaryDeploymentListener.class);
+	private static final Logger logger = LoggerFactory.getLogger(InitialDeploymentListener.class);
 
 	/**
 	 * Cache of children under the module deployment requests path.
@@ -82,7 +82,7 @@ public abstract class PrimaryDeploymentListener implements PathChildrenCacheList
 	 * {@link org.apache.curator.framework.recipes.cache.PathChildrenCache}.
 	 *
 	 * @see #childEvent
-	 * @see PrimaryDeploymentListener.EventHandler
+	 * @see InitialDeploymentListener.EventHandler
 	 */
 	private final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
 
@@ -103,7 +103,7 @@ public abstract class PrimaryDeploymentListener implements PathChildrenCacheList
 	 * @param containerMatcher matches modules to containers
 	 * @param stateCalculator calculator for stream state
 	 */
-	public PrimaryDeploymentListener(ZooKeeperConnection zkConnection,
+	public InitialDeploymentListener(ZooKeeperConnection zkConnection,
 			PathChildrenCache moduleDeploymentRequests,
 			ContainerRepository containerRepository,
 			ContainerMatcher containerMatcher, DeploymentUnitStateCalculator stateCalculator) {

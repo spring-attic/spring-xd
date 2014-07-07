@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.server;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 
@@ -37,6 +38,9 @@ public class DefaultRuntimeModuleDeploymentPropertiesProvider implements Runtime
 	 */
 	private final Map<ModuleDescriptor.Key, Integer> mapModuleCount = new HashMap<ModuleDescriptor.Key, Integer>();
 
+	/**
+	 * The {@link ModuleDeploymentProperties} provider for a {@link ModuleDescriptor}
+	 */
 	protected final ModuleDeploymentPropertiesProvider deploymentPropertiesProvider;
 
 	/**

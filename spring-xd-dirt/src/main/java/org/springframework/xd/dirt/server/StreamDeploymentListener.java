@@ -53,7 +53,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class StreamDeploymentListener extends PrimaryDeploymentListener {
+public class StreamDeploymentListener extends InitialDeploymentListener {
 
 	/**
 	 * Logger.
@@ -93,7 +93,7 @@ public class StreamDeploymentListener extends PrimaryDeploymentListener {
 	@Override
 	protected void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
-		Stream stream = ZooKeeperUtils.loadStream(client, streamName, streamFactory);
+		Stream stream = DeploymentUtils.loadStream(client, streamName, streamFactory);
 		if (stream != null) {
 			logger.info("Deploying stream {}", stream);
 			deployStream(client, stream);
@@ -137,8 +137,8 @@ public class StreamDeploymentListener extends PrimaryDeploymentListener {
 				// write out all of the required modules for this stream (including runtime properties);
 				// this does not actually perform a deployment...this data is used in case there are not
 				// enough containers to deploy the stream
-				StreamPartitionPropertiesProvider partitionPropertiesProvider =
-						new StreamPartitionPropertiesProvider(stream, deploymentPropertiesProvider);
+				StreamRuntimePropertiesProvider partitionPropertiesProvider =
+						new StreamRuntimePropertiesProvider(stream, deploymentPropertiesProvider);
 				int moduleCount = deploymentProperties.getCount();
 				if (moduleCount == 0) {
 					createModuleDeploymentRequestsPath(client, descriptor,
@@ -158,10 +158,10 @@ public class StreamDeploymentListener extends PrimaryDeploymentListener {
 				// write out the deployment requests targeted to the containers obtained above;
 				// a new instance of StreamPartitionPropertiesProvider is created since this
 				// object is responsible for generating unique sequence ids for modules
-				StreamPartitionPropertiesProvider deploymentRuntimeProvider =
-						new StreamPartitionPropertiesProvider(stream, deploymentPropertiesProvider);
+				StreamRuntimePropertiesProvider deploymentRuntimeProvider =
+						new StreamRuntimePropertiesProvider(stream, deploymentPropertiesProvider);
 
-				deploymentStatuses.addAll(moduleDeploymentWriter.writeModuleDeployment(
+				deploymentStatuses.addAll(moduleDeploymentWriter.writeDeployment(
 						descriptor, deploymentRuntimeProvider, containers));
 			}
 
@@ -194,10 +194,10 @@ public class StreamDeploymentListener extends PrimaryDeploymentListener {
 	 */
 	public void recalculateStreamStates(CuratorFramework client, PathChildrenCache streamDeployments) throws Exception {
 		for (Iterator<String> iterator =
-				new ChildPathIterator<String>(ZooKeeperUtils.deploymentNameConverter, streamDeployments); iterator.hasNext();) {
+				new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter, streamDeployments); iterator.hasNext();) {
 			String streamName = iterator.next();
 			String definitionPath = Paths.build(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
-			Stream stream = ZooKeeperUtils.loadStream(client, streamName, streamFactory);
+			Stream stream = DeploymentUtils.loadStream(client, streamName, streamFactory);
 			if (stream != null) {
 				String streamModulesPath = Paths.build(definitionPath, Paths.MODULES);
 				List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();

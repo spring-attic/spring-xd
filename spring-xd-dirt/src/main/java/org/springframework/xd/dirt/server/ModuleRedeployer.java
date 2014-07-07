@@ -316,7 +316,7 @@ public abstract class ModuleRedeployer {
 		if (matchedContainers.isEmpty()) {
 			throw new NoContainerException();
 		}
-		return moduleDeploymentWriter.writeModuleDeployment(moduleDeployment.moduleDescriptor,
+		return moduleDeploymentWriter.writeDeployment(moduleDeployment.moduleDescriptor,
 				moduleDeployment.runtimeDeploymentProperties, matchedContainers.iterator().next());
 	}
 
@@ -339,7 +339,7 @@ public abstract class ModuleRedeployer {
 	private ModuleDeploymentStatus deployModule(CuratorFramework client,
 			ModuleDeployment moduleDeployment, final Container container) throws Exception {
 		transitionToDeploying(client, moduleDeployment.deploymentUnit);
-		return moduleDeploymentWriter.writeModuleDeployment(moduleDeployment.moduleDescriptor,
+		return moduleDeploymentWriter.writeDeployment(moduleDeployment.moduleDescriptor,
 				moduleDeployment.runtimeDeploymentProperties, container);
 	}
 

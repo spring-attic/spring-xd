@@ -56,7 +56,7 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class JobDeploymentListener extends PrimaryDeploymentListener {
+public class JobDeploymentListener extends InitialDeploymentListener {
 
 	/**
 	 * Logger.
@@ -94,7 +94,7 @@ public class JobDeploymentListener extends PrimaryDeploymentListener {
 	@Override
 	protected void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String jobName = Paths.stripPath(data.getPath());
-		Job job = ZooKeeperUtils.loadJob(client, jobName, jobFactory);
+		Job job = DeploymentUtils.loadJob(client, jobName, jobFactory);
 		deployJob(client, job);
 	}
 
@@ -153,7 +153,7 @@ public class JobDeploymentListener extends PrimaryDeploymentListener {
 					DefaultRuntimeModuleDeploymentPropertiesProvider deploymentRuntimeProvider =
 							new DefaultRuntimeModuleDeploymentPropertiesProvider(provider);
 
-					deploymentStatuses.addAll(moduleDeploymentWriter.writeModuleDeployment(
+					deploymentStatuses.addAll(moduleDeploymentWriter.writeDeployment(
 							descriptor, deploymentRuntimeProvider, matchedContainers));
 
 					DeploymentUnitStatus status = stateCalculator.calculate(job, provider, deploymentStatuses);
@@ -185,10 +185,10 @@ public class JobDeploymentListener extends PrimaryDeploymentListener {
 	 * @throws Exception
 	 */
 	public void recalculateJobStates(CuratorFramework client, PathChildrenCache jobDeployments) throws Exception {
-		for (Iterator<String> iterator = new ChildPathIterator<String>(ZooKeeperUtils.deploymentNameConverter,
+		for (Iterator<String> iterator = new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter,
 				jobDeployments); iterator.hasNext();) {
 			String jobName = iterator.next();
-			Job job = ZooKeeperUtils.loadJob(client, jobName, jobFactory);
+			Job job = DeploymentUtils.loadJob(client, jobName, jobFactory);
 			if (job != null) {
 				String jobModulesPath = Paths.build(Paths.JOB_DEPLOYMENTS, jobName, Paths.MODULES);
 				List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();

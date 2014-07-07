@@ -37,12 +37,12 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class StreamPartitionPropertiesProvider extends DefaultRuntimeModuleDeploymentPropertiesProvider {
+public class StreamRuntimePropertiesProvider extends DefaultRuntimeModuleDeploymentPropertiesProvider {
 
 	/**
 	 * Logger.
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(StreamPartitionPropertiesProvider.class);
+	private static final Logger logger = LoggerFactory.getLogger(StreamRuntimePropertiesProvider.class);
 
 	/**
 	 * The stream to create properties for.
@@ -55,7 +55,7 @@ public class StreamPartitionPropertiesProvider extends DefaultRuntimeModuleDeplo
 	 *
 	 * @param stream stream to create partition properties for
 	 */
-	public StreamPartitionPropertiesProvider(Stream stream, ModuleDeploymentPropertiesProvider propertiesProvider) {
+	public StreamRuntimePropertiesProvider(Stream stream, ModuleDeploymentPropertiesProvider propertiesProvider) {
 		super(propertiesProvider);
 		this.stream = stream;
 	}

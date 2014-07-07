@@ -123,7 +123,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * A {@link PathChildrenCacheListener} implementation that handles deployment requests (and deployment removals) for
 	 * this container.
 	 */
-	private final InContainerDeploymentListener deploymentListener = new InContainerDeploymentListener();
+	private final DeploymentListener deploymentListener = new DeploymentListener();
 
 	/**
 	 * Watcher for modules deployed to this container under the {@link Paths#STREAMS} location.
@@ -791,7 +791,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Listener for deployment requests for this container under {@link Paths#DEPLOYMENTS}.
 	 */
-	class InContainerDeploymentListener implements PathChildrenCacheListener {
+	class DeploymentListener implements PathChildrenCacheListener {
 
 		/**
 		 * {@inheritDoc}

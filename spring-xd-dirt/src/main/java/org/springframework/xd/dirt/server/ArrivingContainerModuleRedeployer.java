@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -125,8 +123,8 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 		List<ModuleDeploymentRequestsPath> requestedModulesPaths = getAllModuleDeploymentRequests();
 		// iterate the cache of stream deployments
 		for (ChildData data : streamDeployments.getCurrentData()) {
-			String streamName = ZooKeeperUtils.deploymentNameConverter.convert(data);
-			final Stream stream = ZooKeeperUtils.loadStream(client, streamName, streamFactory);
+			String streamName = ZooKeeperUtils.stripPathConverter.convert(data);
+			final Stream stream = DeploymentUtils.loadStream(client, streamName, streamFactory);
 			// if stream is null this means the stream was destroyed or undeployed
 			if (stream != null) {
 				List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
@@ -137,7 +135,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 							Paths.MODULES,
 							deployedModule)).getModule()));
 				}
-				Collection<ModuleDescriptor> deployedDescriptors = new ArrayList<ModuleDescriptor>();
+				Set<ModuleDescriptor> deployedDescriptors = new HashSet<ModuleDescriptor>();
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(path.getModuleLabel());
 					if ((path.getModuleSequence().equals("0") || !deployedModules.contains(path.getModule()))
@@ -166,10 +164,10 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 		List<ModuleDeploymentRequestsPath> requestedModulesPaths = getAllModuleDeploymentRequests();
 		// check for "orphaned" jobs that can be deployed to this new container
 		for (ChildData data : jobDeployments.getCurrentData()) {
-			String jobName = ZooKeeperUtils.deploymentNameConverter.convert(data);
+			String jobName = ZooKeeperUtils.stripPathConverter.convert(data);
 
 			// if job is null this means the job was destroyed or undeployed
-			Job job = ZooKeeperUtils.loadJob(client, jobName, this.jobFactory);
+			Job job = DeploymentUtils.loadJob(client, jobName, this.jobFactory);
 			if (job != null) {
 				List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
 						requestedModulesPaths,
@@ -180,7 +178,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 							Paths.MODULES,
 							deployedModule)).getModule()));
 				}
-				Collection<ModuleDescriptor> deployedDescriptors = new ArrayList<ModuleDescriptor>();
+				Set<ModuleDescriptor> deployedDescriptors = new HashSet<ModuleDescriptor>();
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
 					if ((path.getModuleSequence().equals("0") || !deployedModules.contains(path.getModule()))

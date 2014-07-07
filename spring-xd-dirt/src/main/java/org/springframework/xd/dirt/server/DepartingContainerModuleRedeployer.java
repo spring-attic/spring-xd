@@ -80,7 +80,6 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 				stateCalculator);
 	}
 
-
 	/**
 	 * Handle the departure of a container. This will scan the list of modules
 	 * deployed to the departing container and redeploy them if required.
@@ -122,7 +121,7 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			String moduleType = moduleDeploymentsPath.getModuleType();
 
 			if (ModuleType.job.toString().equals(moduleType)) {
-				Job job = ZooKeeperUtils.loadJob(client, unitName, this.jobFactory);
+				Job job = DeploymentUtils.loadJob(client, unitName, this.jobFactory);
 				if (job != null) {
 					redeployJobModule(client, job, deploymentProperties);
 				}
@@ -130,7 +129,7 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			else {
 				Stream stream = streamMap.get(unitName);
 				if (stream == null) {
-					stream = ZooKeeperUtils.loadStream(client, unitName, this.streamFactory);
+					stream = DeploymentUtils.loadStream(client, unitName, this.streamFactory);
 					streamMap.put(unitName, stream);
 				}
 				if (stream != null) {
@@ -214,7 +213,7 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 						instantiateContainerMatcher(client, moduleDescriptor));
 			}
 			catch (NoContainerException e) {
-				logger.warn("No containers available for redeployment of {} for stream {}",
+				logger.warn("No containers available for redeployment of {} for job {}",
 						moduleDescriptor.getModuleLabel(),
 						job.getName());
 			}

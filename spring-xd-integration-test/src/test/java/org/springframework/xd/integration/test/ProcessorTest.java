@@ -50,14 +50,13 @@ public class ProcessorTest extends AbstractIntegrationTest {
 		String filterContent = "BAD";
 		stream(sources.http() + XD_DELIMITER + " filter --expression=payload=='good' " + XD_DELIMITER
 				+ sinks.file());
+		sources.http(getContainerHostForSource()).postData(filterContent);
 		waitForXD();
-		sources.http().postData(filterContent);
-		waitForXD(2000);
-		assertReceived(FILTER_MODULE_NAME, INPUT_CHANNEL_NAME, 1);
-		assertReceived(FILTER_MODULE_NAME, OUTPUT_CHANNEL_NAME, 0);
-		assertReceived(FILTER_MODULE_NAME, TO_SPEL_CHANNEL_NAME, 1);
-		assertReceived(FILTER_MODULE_NAME, TO_SCRIPT_CHANNEL_NAME, 0);
-		assertReceived(HTTP_MODULE_NAME, OUTPUT_CHANNEL_NAME, 1);
+		assertReceived(getContainerUrlForProcessor(), FILTER_MODULE_NAME, INPUT_CHANNEL_NAME, 1);
+		assertReceived(getContainerUrlForProcessor(), FILTER_MODULE_NAME, OUTPUT_CHANNEL_NAME, 0);
+		assertReceived(getContainerUrlForProcessor(), FILTER_MODULE_NAME, TO_SPEL_CHANNEL_NAME, 1);
+		assertReceived(getContainerUrlForProcessor(), FILTER_MODULE_NAME, TO_SCRIPT_CHANNEL_NAME, 0);
+		assertReceived(getContainerUrlForSink(), HTTP_MODULE_NAME, OUTPUT_CHANNEL_NAME, 1);
 
 	}
 
@@ -70,8 +69,7 @@ public class ProcessorTest extends AbstractIntegrationTest {
 		String filterContent = "good";
 		stream(sources.http() + XD_DELIMITER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMITER
 				+ sinks.file());
-		waitForXD();
-		sources.http().postData(filterContent);
+		sources.http(getContainerHostForSource()).postData(filterContent);
 		assertValid(filterContent, sinks.file());
 		assertReceived(1);
 	}

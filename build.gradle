@@ -1577,6 +1577,7 @@ project('spring-xd-integration-test') {
 		compile project(":spring-xd-test")
 		compile project(":spring-xd-rest-client")
 		compile "org.apache.jclouds.provider:aws-sts:$jcloudsVersion"
+		compile "org.apache.jclouds.provider:aws-ec2:$jcloudsVersion"
 		compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile ("org.apache.hadoop:hadoop-common:$hadoop22Version")

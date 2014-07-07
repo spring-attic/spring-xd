@@ -28,9 +28,6 @@ import org.junit.Test;
  */
 public class JmsTest extends AbstractIntegrationTest {
 
-
-	private static final String CONFIG_FILE = "jms-activemq";
-
 	/**
 	 * Verifies that the JMS retrieves the expected data.
 	 *

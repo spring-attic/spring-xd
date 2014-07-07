@@ -75,7 +75,7 @@ public class IntegrationTestConfig {
 
 	@Bean
 	public ConfigUtil configUtil() throws IOException {
-		return new ConfigUtil(xdEnvironment());
+		return new ConfigUtil();
 	}
 
 	@Bean

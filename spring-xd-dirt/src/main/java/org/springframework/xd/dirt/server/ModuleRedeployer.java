@@ -49,6 +49,7 @@ import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
+import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
@@ -467,7 +468,8 @@ public abstract class ModuleRedeployer {
 		Assert.state(deploymentUnit instanceof Stream || deploymentUnit instanceof Job);
 		boolean isStream = (deploymentUnit instanceof Stream);
 
-		ModuleDeploymentPropertiesProvider provider = new DefaultModuleDeploymentPropertiesProvider(deploymentUnit);
+		ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> provider = new DefaultModuleDeploymentPropertiesProvider(
+				deploymentUnit);
 
 		DeploymentUnitStatus status = stateCalculator.calculate(deploymentUnit, provider, aggregateStatuses);
 

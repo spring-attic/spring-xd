@@ -159,7 +159,7 @@ public class ModuleDeploymentWriter {
 			throws InterruptedException, NoContainerException {
 		ResultCollector collector = new ResultCollector();
 		for (Container container : containers) {
-			writeDeployment(moduleDescriptor, provider.runtimeProperties(moduleDescriptor), container, collector);
+			writeDeployment(moduleDescriptor, provider.propertiesForDescriptor(moduleDescriptor), container, collector);
 		}
 		Collection<ModuleDeploymentStatus> statuses = processResults(collector);
 		if (statuses.isEmpty()) {

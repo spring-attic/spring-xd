@@ -31,7 +31,8 @@ import org.springframework.xd.module.ModuleDescriptor;
  *
  * @author Ilayaperumal Gopinathan
  */
-public class DefaultModuleDeploymentPropertiesProvider implements ModuleDeploymentPropertiesProvider {
+public class DefaultModuleDeploymentPropertiesProvider implements
+		ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> {
 
 	/**
 	 * Cache of module deployment properties.

@@ -507,7 +507,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				.setContainer(containerAttributes.getId()).build();
 
 		Module module = null;
-		Job job = deploymentLoader.loadJob(client, jobName, jobFactory);
+		Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
 		if (job != null) {
 			ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
 			module = deployModule(moduleDescriptor, properties);
@@ -553,7 +553,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				.setContainer(this.containerAttributes.getId()).build();
 
 		Module module = null;
-		Stream stream = deploymentLoader.loadStream(client, streamName, streamFactory);
+		Stream stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
 		if (stream != null) {
 			ModuleDescriptor descriptor = stream.getModuleDescriptor(moduleLabel);
 			module = deployModule(descriptor, properties);

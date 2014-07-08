@@ -37,7 +37,7 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class StreamRuntimePropertiesProvider extends DefaultRuntimeModuleDeploymentPropertiesProvider {
+public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentPropertiesProvider {
 
 	/**
 	 * Logger.
@@ -55,7 +55,8 @@ public class StreamRuntimePropertiesProvider extends DefaultRuntimeModuleDeploym
 	 *
 	 * @param stream stream to create partition properties for
 	 */
-	public StreamRuntimePropertiesProvider(Stream stream, ModuleDeploymentPropertiesProvider propertiesProvider) {
+	public StreamRuntimePropertiesProvider(Stream stream,
+			ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> propertiesProvider) {
 		super(propertiesProvider);
 		this.stream = stream;
 	}
@@ -64,9 +65,9 @@ public class StreamRuntimePropertiesProvider extends DefaultRuntimeModuleDeploym
 	 * {@inheritDoc}
 	 */
 	@Override
-	public RuntimeModuleDeploymentProperties runtimeProperties(ModuleDescriptor moduleDescriptor) {
+	public RuntimeModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor moduleDescriptor) {
 		List<ModuleDescriptor> streamModules = stream.getModuleDescriptors();
-		RuntimeModuleDeploymentProperties properties = super.runtimeProperties(moduleDescriptor);
+		RuntimeModuleDeploymentProperties properties = super.propertiesForDescriptor(moduleDescriptor);
 		int moduleSequence = properties.getSequence();
 		int moduleIndex = moduleDescriptor.getIndex();
 		if (moduleIndex > 0) {

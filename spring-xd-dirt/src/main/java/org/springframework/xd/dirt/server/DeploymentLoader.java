@@ -55,7 +55,7 @@ public class DeploymentLoader {
 	 *         or is not deployed
 	 * @throws Exception
 	 */
-	public Job loadJob(CuratorFramework client, String jobName,
+	public static Job loadJob(CuratorFramework client, String jobName,
 			JobFactory jobFactory) throws Exception {
 		try {
 			byte[] definition = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
@@ -87,7 +87,7 @@ public class DeploymentLoader {
 	 *         not exist or is not deployed
 	 * @throws Exception if ZooKeeper access fails for any reason
 	 */
-	public Stream loadStream(CuratorFramework client, String streamName,
+	public static Stream loadStream(CuratorFramework client, String streamName,
 			StreamFactory streamFactory) throws Exception {
 		try {
 			byte[] definition = client.getData().forPath(Paths.build(Paths.STREAMS, streamName));

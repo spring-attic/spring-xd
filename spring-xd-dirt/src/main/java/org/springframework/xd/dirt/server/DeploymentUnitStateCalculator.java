@@ -20,6 +20,7 @@ import java.util.Collection;
 
 import org.springframework.xd.dirt.core.DeploymentUnit;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.module.ModuleDeploymentProperties;
 
 /**
  * Calculates the overall status for a deployment unit (stream or job).
@@ -47,6 +48,6 @@ public interface DeploymentUnitStateCalculator {
 	 * @return the status for the stream/job
 	 */
 	DeploymentUnitStatus calculate(DeploymentUnit deploymentUnit,
-			ModuleDeploymentPropertiesProvider provider,
+			ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> provider,
 			Collection<ModuleDeploymentStatus> deploymentStatuses);
 }

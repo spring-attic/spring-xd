@@ -16,22 +16,63 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 
+
 /**
- * Interface to obtain runtime {@link org.springframework.xd.module.RuntimeModuleDeploymentProperties}
- * for a {@link org.springframework.xd.module.ModuleDescriptor}.
+ * Default implementation of {@link ModuleDeploymentPropertiesProvider<RuntimeModuleDeploymentProperties>}.
  *
  * @author Ilayaperumal Gopinathan
  */
-public interface RuntimeModuleDeploymentPropertiesProvider {
+public class RuntimeModuleDeploymentPropertiesProvider implements
+		ModuleDeploymentPropertiesProvider<RuntimeModuleDeploymentProperties> {
 
 	/**
-	 * Return the runtime deployment properties for the module descriptor.
-	 *
-	 * @param descriptor module descriptor for the module to be deployed
-	 * @return deployment properties for the module
+	 * Map to keep track of how many instances of a module this provider
+	 * has generated properties for. This is used to generate a unique
+	 * id for each module deployment per container for stream partitioning.
 	 */
-	RuntimeModuleDeploymentProperties runtimeProperties(ModuleDescriptor descriptor);
+	private final Map<ModuleDescriptor.Key, Integer> mapModuleCount = new HashMap<ModuleDescriptor.Key, Integer>();
+
+	/**
+	 * The {@link ModuleDeploymentProperties} provider for a {@link ModuleDescriptor}
+	 */
+	protected final ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> deploymentPropertiesProvider;
+
+	/**
+	 * Construct a {@code DefaultRuntimeModuleDeploymentPropertiesProvider}.
+	 *
+	 * @param propertiesProvider the module deployment properties provider
+	 */
+	public RuntimeModuleDeploymentPropertiesProvider(
+			ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> propertiesProvider) {
+		this.deploymentPropertiesProvider = propertiesProvider;
+	}
+
+	/**
+	 * Return the runtime deployment properties for the given module descriptor.
+	 * Currently, this implementation assigns the module sequence for the given descriptor and add it to
+	 * the runtime deployment properties.
+	 */
+	@Override
+	public RuntimeModuleDeploymentProperties propertiesForDescriptor(ModuleDescriptor moduleDescriptor) {
+		RuntimeModuleDeploymentProperties properties = new RuntimeModuleDeploymentProperties();
+
+		properties.putAll(deploymentPropertiesProvider.propertiesForDescriptor(moduleDescriptor));
+
+		ModuleDescriptor.Key moduleKey = moduleDescriptor.createKey();
+		Integer index = mapModuleCount.get(moduleKey);
+		if (index == null) {
+			index = 0;
+		}
+		mapModuleCount.put(moduleKey, index + 1);
+		// sequence number only applies if count > 0
+		properties.setSequence((properties.getCount() == 0) ? 0 : mapModuleCount.get(moduleKey));
+		return properties;
+	}
 }

@@ -44,6 +44,7 @@ import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
+import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
@@ -94,7 +95,7 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 	@Override
 	protected void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String jobName = Paths.stripPath(data.getPath());
-		Job job = DeploymentUtils.loadJob(client, jobName, jobFactory);
+		Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
 		deployJob(client, job);
 	}
 
@@ -126,7 +127,8 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 					String.format("Expected 'deploying' status for job '%s'; current status: %s",
 							job.getName(), deployingStatus));
 
-			ModuleDeploymentPropertiesProvider provider = new DefaultModuleDeploymentPropertiesProvider(job);
+			ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> provider = new DefaultModuleDeploymentPropertiesProvider(
+					job);
 			List<ModuleDescriptor> descriptors = new ArrayList<ModuleDescriptor>();
 			descriptors.add(job.getJobModuleDescriptor());
 
@@ -150,8 +152,8 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 							createModuleDeploymentRequestsPath(client, descriptor, deploymentProperties);
 						}
 					}
-					DefaultRuntimeModuleDeploymentPropertiesProvider deploymentRuntimeProvider =
-							new DefaultRuntimeModuleDeploymentPropertiesProvider(provider);
+					RuntimeModuleDeploymentPropertiesProvider deploymentRuntimeProvider =
+							new RuntimeModuleDeploymentPropertiesProvider(provider);
 
 					deploymentStatuses.addAll(moduleDeploymentWriter.writeDeployment(
 							descriptor, deploymentRuntimeProvider, matchedContainers));
@@ -188,7 +190,7 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 		for (Iterator<String> iterator = new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter,
 				jobDeployments); iterator.hasNext();) {
 			String jobName = iterator.next();
-			Job job = DeploymentUtils.loadJob(client, jobName, jobFactory);
+			Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
 			if (job != null) {
 				String jobModulesPath = Paths.build(Paths.JOB_DEPLOYMENTS, jobName, Paths.MODULES);
 				List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();

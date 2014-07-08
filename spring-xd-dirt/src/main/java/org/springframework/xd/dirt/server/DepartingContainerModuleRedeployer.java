@@ -121,7 +121,7 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			String moduleType = moduleDeploymentsPath.getModuleType();
 
 			if (ModuleType.job.toString().equals(moduleType)) {
-				Job job = DeploymentUtils.loadJob(client, unitName, this.jobFactory);
+				Job job = DeploymentLoader.loadJob(client, unitName, this.jobFactory);
 				if (job != null) {
 					redeployJobModule(client, job, deploymentProperties);
 				}
@@ -129,7 +129,7 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			else {
 				Stream stream = streamMap.get(unitName);
 				if (stream == null) {
-					stream = DeploymentUtils.loadStream(client, unitName, this.streamFactory);
+					stream = DeploymentLoader.loadStream(client, unitName, this.streamFactory);
 					streamMap.put(unitName, stream);
 				}
 				if (stream != null) {

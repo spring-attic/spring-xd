@@ -124,7 +124,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 		// iterate the cache of stream deployments
 		for (ChildData data : streamDeployments.getCurrentData()) {
 			String streamName = ZooKeeperUtils.stripPathConverter.convert(data);
-			final Stream stream = DeploymentUtils.loadStream(client, streamName, streamFactory);
+			final Stream stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
 			// if stream is null this means the stream was destroyed or undeployed
 			if (stream != null) {
 				List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
@@ -167,7 +167,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 			String jobName = ZooKeeperUtils.stripPathConverter.convert(data);
 
 			// if job is null this means the job was destroyed or undeployed
-			Job job = DeploymentUtils.loadJob(client, jobName, this.jobFactory);
+			Job job = DeploymentLoader.loadJob(client, jobName, this.jobFactory);
 			if (job != null) {
 				List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
 						requestedModulesPaths,

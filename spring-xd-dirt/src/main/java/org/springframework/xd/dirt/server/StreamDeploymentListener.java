@@ -93,7 +93,7 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 	@Override
 	protected void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
-		Stream stream = DeploymentUtils.loadStream(client, streamName, streamFactory);
+		Stream stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
 		if (stream != null) {
 			logger.info("Deploying stream {}", stream);
 			deployStream(client, stream);
@@ -142,12 +142,12 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 				int moduleCount = deploymentProperties.getCount();
 				if (moduleCount == 0) {
 					createModuleDeploymentRequestsPath(client, descriptor,
-							partitionPropertiesProvider.runtimeProperties(descriptor));
+							partitionPropertiesProvider.propertiesForDescriptor(descriptor));
 				}
 				else {
 					for (int i = 0; i < moduleCount; i++) {
 						createModuleDeploymentRequestsPath(client, descriptor,
-								partitionPropertiesProvider.runtimeProperties(descriptor));
+								partitionPropertiesProvider.propertiesForDescriptor(descriptor));
 					}
 				}
 
@@ -197,7 +197,7 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 				new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter, streamDeployments); iterator.hasNext();) {
 			String streamName = iterator.next();
 			String definitionPath = Paths.build(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
-			Stream stream = DeploymentUtils.loadStream(client, streamName, streamFactory);
+			Stream stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
 			if (stream != null) {
 				String streamModulesPath = Paths.build(definitionPath, Paths.MODULES);
 				List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();

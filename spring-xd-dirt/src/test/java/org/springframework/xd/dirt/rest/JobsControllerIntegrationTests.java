@@ -133,7 +133,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 				post("/jobs/definitions").param("name", "joblaunch").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				put("/jobs/{name}/launch", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
+				put("/jobs/executions").param("jobname", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk());
 		assertNotNull(channel.receive(3000));
 	}

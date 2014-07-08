@@ -111,6 +111,33 @@ ext {
 	singleNodeServerProcess = new SingleNodeServerProcess()
 }
 
+def forceDependencyVersions(project) {
+	project.configurations.all { configuration ->
+		if ('versionManagement' != configuration.name) {
+			def forcedGroups = [ 'org.springframework', 'org.springframework.amqp', 'org.slf4j', 'org.codehaus.groovy']
+			def forcedNames = ['spring-data-redis']
+
+			def versions = [:]
+
+			project.configurations.versionManagement.files.each {
+				it.withReader { reader ->
+					def properties = new Properties()
+					properties.load(reader)
+					versions << properties
+				}
+			}
+
+			resolutionStrategy {
+				eachDependency { details ->
+					if (forcedGroups.contains(details.requested.group) || forcedNames.contains(details.requested.name)) {
+						details.useVersion versions["$details.requested.group:$details.requested.name"]
+					}
+				}
+			}
+		}
+	}
+}
+
 configure(javaProjects) { subproject ->
 
 	apply plugin: 'groovy'
@@ -195,6 +222,8 @@ configure(javaProjects) { subproject ->
 		testCompile "org.springframework.boot:spring-boot-starter-test"
 		testCompile "org.codehaus.groovy:groovy-all"
 	}
+
+	forceDependencyVersions(subproject)
 
 	// enable all compiler warnings; individual projects may customize further
 	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:all"]

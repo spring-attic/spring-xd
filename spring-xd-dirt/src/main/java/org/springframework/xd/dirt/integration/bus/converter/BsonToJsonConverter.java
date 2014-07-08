@@ -16,11 +16,19 @@
 
 package org.springframework.xd.dirt.integration.bus.converter;
 
-import org.bson.BSONObject;
-import org.bson.BasicBSONDecoder;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringWriter;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeTypeUtils;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+
+import de.undercouch.bson4jackson.BsonFactory;
 
 
 /**
@@ -46,10 +54,34 @@ public class BsonToJsonConverter extends AbstractFromMessageConverter {
 
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
-		byte[] source = (byte[]) message.getPayload();
-		BasicBSONDecoder decoder = new BasicBSONDecoder();
-		BSONObject bsonObject = decoder.readObject(source);
-		String json_string = bsonObject.toString();
-		return buildConvertedMessage(json_string, message.getHeaders(), MimeTypeUtils.APPLICATION_JSON);
+		BsonFactory factory = new BsonFactory();
+		ByteArrayInputStream bais = new ByteArrayInputStream((byte[]) message.getPayload());
+		JsonParser parser;
+		StringWriter writer = new StringWriter();
+		try {
+			parser = factory.createJsonParser(bais);
+			parser.nextToken();
+			JsonFactory jfactory = new JsonFactory();
+
+			JsonGenerator jGenerator = jfactory.createGenerator(writer);
+			jGenerator.writeStartObject();
+			while (parser.nextToken() != JsonToken.END_OBJECT) {
+				String fieldname = parser.getCurrentName();
+				parser.nextToken();
+				try {
+					float f = Float.parseFloat(parser.getText());
+					jGenerator.writeNumberField(fieldname, f);
+				}
+				catch (NumberFormatException e) {
+					jGenerator.writeStringField(fieldname, parser.getText());
+				}
+			}
+			jGenerator.writeEndObject();
+			jGenerator.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		return buildConvertedMessage(writer.toString(), message.getHeaders(), MimeTypeUtils.APPLICATION_JSON);
 	}
 }

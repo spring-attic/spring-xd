@@ -29,8 +29,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.BSONEncoder;
 import org.bson.BSONObject;
 import org.bson.BasicBSONEncoder;
+import org.bson.BasicBSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,7 +46,6 @@ import org.springframework.util.MimeTypeUtils;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
-
 
 /**
  * Tests for converting from a Message.
@@ -75,15 +76,16 @@ public class FromMessageConverterTests {
 
 	@Test
 	public void testBsonToJson() {
-		String json = "{ \"sepalLength\": 6.4}";
-		BSONObject bson = (BSONObject) com.mongodb.util.JSON.parse(json);
-		BasicBSONEncoder encoder = new BasicBSONEncoder();
-		//bson data
-		byte[] bson_byte = encoder.encode(bson);
+		BSONObject o = new BasicBSONObject();
+		o.put("Double", 5.0);
+		o.put("abcd", "efgh");
+		BSONEncoder enc = new BasicBSONEncoder();
+		byte[] bson_byte = enc.encode(o);
 		Message<?> msg = MessageBuilder.withPayload(bson_byte).build();
 		CompositeMessageConverter converter = converterFactory.newInstance(MimeTypeUtils.APPLICATION_JSON);
 		Message<String> result = (Message<String>) converter.fromMessage(msg, String.class);
-		assertTrue(result.getPayload(), result.getPayload().contains("\"sepalLength\" : 6.4"));
+		assertTrue(result.getPayload(), result.getPayload().contains("\"Double\":5.0"));
+		assertTrue(result.getPayload(), result.getPayload().contains("\"abcd\":\"efgh\""));
 		assertEquals(MimeTypeUtils.APPLICATION_JSON,
 				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}

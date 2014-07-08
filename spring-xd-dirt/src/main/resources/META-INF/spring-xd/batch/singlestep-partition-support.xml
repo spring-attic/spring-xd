@@ -51,7 +51,7 @@
 
 	<int:aggregator ref="partitionHandler" send-timeout="10000" input-channel="stepExecutionReplies.input" />
 
-	<job id="job" restartable="${restartable:false}" xmlns="http://www.springframework.org/schema/batch">
+	<job id="job" restartable="${restartable}" xmlns="http://www.springframework.org/schema/batch">
 		<step id="step1-master">
 			<partition handler="partitionHandler" partitioner="partitioner" />
 		</step>

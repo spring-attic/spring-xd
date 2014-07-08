@@ -17,7 +17,9 @@
 
 	<context:property-placeholder properties-ref="props"/>
 
-	<util:properties id="props" />
+	<util:properties id="props">
+		<prop key="restartable">false</prop>
+	</util:properties>
 
 	<bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
 		<property name="jobRepository" ref="jobRepository" />

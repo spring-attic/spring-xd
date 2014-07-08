@@ -303,6 +303,20 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 			assertTrue("Unable to deploy Job descriptor to server directory", out.isFile());
 		}
 		out.deleteOnExit();
+
+		// Copy the companion .properties file if it exists
+		out = new File(outFile.replaceAll("\\.xml$", ".properties"));
+		in = new File(inFile.replaceAll("\\.xml$", ".properties"));
+		if (in.exists()) {
+			try {
+				FileCopyUtils.copy(in, out);
+			}
+			catch (IOException ioe) {
+				assertTrue("Unable to deploy Job descriptor to server directory", out.isFile());
+			}
+			out.deleteOnExit();
+		}
+
 	}
 
 	protected Table listJobExecutions() {

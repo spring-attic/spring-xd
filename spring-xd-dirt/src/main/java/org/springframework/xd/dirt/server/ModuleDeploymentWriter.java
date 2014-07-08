@@ -155,7 +155,8 @@ public class ModuleDeploymentWriter {
 	 *                              for module deployment
 	 */
 	protected Collection<ModuleDeploymentStatus> writeDeployment(ModuleDescriptor moduleDescriptor,
-			RuntimeModuleDeploymentPropertiesProvider provider, Collection<Container> containers)
+			ModuleDeploymentPropertiesProvider<RuntimeModuleDeploymentProperties> provider,
+			Collection<Container> containers)
 			throws InterruptedException, NoContainerException {
 		ResultCollector collector = new ResultCollector();
 		for (Container container : containers) {

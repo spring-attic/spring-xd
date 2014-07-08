@@ -32,7 +32,7 @@ import de.undercouch.bson4jackson.BsonFactory;
 
 
 /**
- * A {@link MessageConverter} to convert from a JSON (byte[] or String) to a BSON.
+ * A {@link MessageConverter} to convert from a BSON (byte[] or String) to a JSON.
  *
  * @author liujiong
  */

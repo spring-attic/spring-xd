@@ -138,7 +138,7 @@ ext {
 	uuidVersion = '3.2'
 	validationApiVersion = '1.0.0.GA'
 	zookeeperVersion = '3.4.6'
-    bson4jackson = '2.4.0'
+	bson4jackson = '2.4.0'
 	bson = '2.12.0'
 
 	// Hadoop Versions

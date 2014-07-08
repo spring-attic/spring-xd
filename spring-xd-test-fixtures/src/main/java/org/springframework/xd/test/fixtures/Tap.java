@@ -23,13 +23,13 @@ import org.springframework.util.Assert;
  * Test fixture that creates a tap.
  * @author Glenn Renfro
  */
-public class Tap extends AbstractModuleFixture {
+public class Tap extends AbstractModuleFixture<Tap> {
 
 	private String streamName;
 
 	/**
 	 * Create a tap stream with the provided name.
-	 * 
+	 *
 	 * @param streamName name of the tap stream.
 	 */
 	public Tap(String streamName) {

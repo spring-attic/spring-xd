@@ -39,7 +39,7 @@ import org.springframework.xd.analytics.metrics.core.MetricUtils;
 /**
  * Redis implementation of {@link AggregateCounterRepository}. Subclasses and intercepts calls to
  * {@link RedisCounterRepository} to also track counts in various redis hashes.
- * 
+ *
  * @author Eric Bottard
  * @author Luke Taylor
  */
@@ -223,11 +223,13 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 		return convertToArray(getEntries(akg.getYearKey()), year.monthOfYear().getMaximumValue(), true); // Months in this year
 	}
 
+	@SuppressWarnings("deprecation")
 	private long[] getDayCountsForMonth(String name, DateTime month) {
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, month.toDateMidnight());
 		return convertToArray(getEntries(akg.getMonthKey()), month.dayOfMonth().getMaximumValue(), true); // Days in this month
 	}
 
+	@SuppressWarnings("deprecation")
 	private long[] getHourCountsForDay(String name, DateTime day) {
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, day.toDateMidnight());
 		return convertToArray(getEntries(akg.getDayKey()), 24, false);

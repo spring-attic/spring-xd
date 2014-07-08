@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import java.util.Collection;
-
 import org.springframework.batch.admin.service.SearchableJobExecutionDao;
 import org.springframework.batch.admin.service.SearchableJobInstanceDao;
 import org.springframework.batch.admin.service.SearchableStepExecutionDao;
@@ -46,18 +44,12 @@ public class DistributedJobService extends SimpleJobService {
 
 	private DistributedJobLocator distributedJobLocator;
 
-	private SearchableJobExecutionDao jobExecutionDao;
-
-	private SearchableStepExecutionDao stepExecutionDao;
-
 	public DistributedJobService(SearchableJobInstanceDao jobInstanceDao, SearchableJobExecutionDao jobExecutionDao,
 			SearchableStepExecutionDao stepExecutionDao, JobRepository jobRepository, JobLauncher jobLauncher,
 			DistributedJobLocator batchJobLocator, ExecutionContextDao executionContextDao) {
 		super(jobInstanceDao, jobExecutionDao, stepExecutionDao, jobRepository, jobLauncher, batchJobLocator,
 				executionContextDao);
 		this.distributedJobLocator = batchJobLocator;
-		this.jobExecutionDao = jobExecutionDao;
-		this.stepExecutionDao = stepExecutionDao;
 	}
 
 	@Override
@@ -89,16 +81,6 @@ public class DistributedJobService extends SimpleJobService {
 		// if the batch job is not launchable (the job is not deployed) then return false
 		// as the persistent job locator wouldn't have entries for the job.
 		return (isLaunchable(jobName) ? distributedJobLocator.isIncrementable(jobName) : false);
-	}
-
-	@Override
-	public Collection<JobExecution> listJobExecutions(int start, int count) {
-		Collection<JobExecution> jobExecutions = jobExecutionDao.getJobExecutions(start, count);
-		// Associate step executions for each of the job executions in the list.
-		for (JobExecution jobExecution : jobExecutions) {
-			stepExecutionDao.addStepExecutions(jobExecution);
-		}
-		return jobExecutions;
 	}
 
 	public Job getJob(String jobName) throws NoSuchJobException {

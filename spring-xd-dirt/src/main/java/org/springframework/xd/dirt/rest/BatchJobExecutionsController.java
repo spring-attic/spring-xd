@@ -18,7 +18,9 @@ package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
@@ -79,9 +81,9 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 
 		Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
 		JobExecutionInfoResource jobExecutionInfoResource;
-		Collection<String> restartableJobs = jobLocator.getAllRestartableJobs();
-		Collection<String> deployedJobs = jobLocator.getJobNames();
-		Collection<String> jobDefinitionNames = getJobDefinitionNames();
+		Set<String> restartableJobs = new HashSet<String>(jobLocator.getAllRestartableJobs());
+		Set<String> deployedJobs = new HashSet<String>(jobLocator.getJobNames());
+		Set<String> jobDefinitionNames = new HashSet<String>(getJobDefinitionNames());
 		for (JobExecution jobExecution : jobService.listJobExecutions(startJobExecution, pageSize)) {
 			jobExecutionInfoResource = jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution,
 					timeZone));

@@ -138,23 +138,23 @@ define(['angular'], function (angular) {
         return {
           getArray: function () {
             $log.info('Get Job Executions ');
-            return $resource($rootScope.xdAdminServerUrl + '/batch/executions', {}, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/executions', {}, {
               getArray: {method: 'GET', isArray: true}
             }).getArray();
           },
           getSingleJobExecution: function (jobExecutionId) {
             $log.info('Getting details for Job Execution with Id ' + jobExecutionId);
-            return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecutionId + '.json').get();
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/executions/' + jobExecutionId + '.json').get();
           },
           restart: function (jobExecution) {
             $log.info('Restart Job Execution' + jobExecution.executionId);
-            return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecution.executionId, { 'restart': true }, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/executions/' + jobExecution.executionId, { 'restart': true }, {
               restart: { method: 'PUT' }
             }).restart();
           },
           stop: function (jobExecution) {
               $log.info('Stop Job Execution' + jobExecution.executionId);
-              return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecution.executionId, { 'stop': true }, {
+              return $resource($rootScope.xdAdminServerUrl + '/jobs/executions/' + jobExecution.executionId, { 'stop': true }, {
                 stop: { method: 'PUT' }
               }).stop();
             }
@@ -164,11 +164,11 @@ define(['angular'], function (angular) {
         return {
           getSingleStepExecution: function (jobExecutionId, stepExecutionId) {
             $log.info('Getting details for Step Execution with Id ' + stepExecutionId + '(Job Execution Id ' + jobExecutionId + ')');
-            return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecutionId +  '/steps/' + stepExecutionId + '.json').get();
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/executions/' + jobExecutionId +  '/steps/' + stepExecutionId + '.json').get();
           },
           getStepExecutionProgress: function (jobExecutionId, stepExecutionId) {
             $log.info('Getting progress details for Step Execution with Id ' + stepExecutionId + '(Job Execution Id ' + jobExecutionId + ')');
-            return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecutionId +  '/steps/' + stepExecutionId + '/progress.json').get();
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/executions/' + jobExecutionId +  '/steps/' + stepExecutionId + '/progress.json').get();
           }
         };
       })

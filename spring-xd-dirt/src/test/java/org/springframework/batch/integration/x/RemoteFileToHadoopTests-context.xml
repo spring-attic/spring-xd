@@ -17,6 +17,7 @@
 
 	<util:properties id="props">
 		<prop key="xd.config.home">file:../config</prop>
+		<prop key="restartable">false</prop>
 	</util:properties>
 
 	<import resource="file:../modules/job/ftphdfs/config/ftphdfs.xml" />

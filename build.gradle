@@ -86,7 +86,7 @@ ext {
 	httpClientVersion = '4.2.5'
 	jcloudsVersion = '1.7.0'
 	oracleToolsVersion = '1.2.2'
-	platformVersion = '1.0.1.BUILD-SNAPSHOT'
+	platformVersion = '1.0.1.RELEASE'
 	postgresqlVersion = '9.2-1002-jdbc4'
 	splunkVersion = '1.2.0'
 	springBatchAdminMgrVersion = '1.3.0.M1'
@@ -97,10 +97,9 @@ ext {
 
 	// Also in IO
 	nettyVersion = '3.6.6.Final' // N.B. Reactor depends on Netty 4
-	springBatchVersion = '3.0.1.BUILD-SNAPSHOT'
 
 	// Hadoop Versions
-	springDataHadoopBase = '2.0.0.RELEASE'
+	springDataHadoopBase = '2.0.1.RELEASE'
 	hadoop22Version = '2.2.0'
 	hadoop24Version = '2.4.1'
 	cdh5Version = '2.3.0-cdh5.0.0'
@@ -109,6 +108,33 @@ ext {
 	phd20Version = '2.2.0-gphd-3.0.1.0'
 
 	singleNodeServerProcess = new SingleNodeServerProcess()
+}
+
+def forceDependencyVersions(project) {
+	project.configurations.all { configuration ->
+		if ('versionManagement' != configuration.name) {
+			def forcedGroups = [ 'org.springframework', 'org.springframework.amqp', 'org.slf4j', 'org.codehaus.groovy']
+			def forcedNames = ['spring-data-redis']
+
+			def versions = [:]
+
+			project.configurations.versionManagement.files.each {
+				it.withReader { reader ->
+					def properties = new Properties()
+					properties.load(reader)
+					versions << properties
+				}
+			}
+
+			resolutionStrategy {
+				eachDependency { details ->
+					if (forcedGroups.contains(details.requested.group) || forcedNames.contains(details.requested.name)) {
+						details.useVersion versions["$details.requested.group:$details.requested.name"]
+					}
+				}
+			}
+		}
+	}
 }
 
 configure(javaProjects) { subproject ->
@@ -195,6 +221,8 @@ configure(javaProjects) { subproject ->
 		testCompile "org.springframework.boot:spring-boot-starter-test"
 		testCompile "org.codehaus.groovy:groovy-all"
 	}
+
+	forceDependencyVersions(subproject)
 
 	// enable all compiler warnings; individual projects may customize further
 	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:all"]
@@ -283,6 +311,12 @@ configure(moduleProjects) { moduleProject ->
 
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
+
+	dependencies {
+		versionManagement "io.spring.platform:platform-versions:$platformVersion@properties"
+	}
+
+	forceDependencyVersions(moduleProject)
 
 	eclipse {
 		project { natures += 'org.springframework.ide.eclipse.core.springnature' }
@@ -384,14 +418,14 @@ project('spring-xd-dirt') {
 		compile "commons-lang:commons-lang:2.4"
 		compile "args4j:args4j:$args4jVersion"
 
-		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.springframework.batch:spring-batch-core"
 		compile "org.apache.tomcat:tomcat-jdbc"
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
 			exclude group: 'org.freemarker'
 			exclude group: 'hsqldb'
 			exclude module: 'spring-batch-integration'
 		}
-		compile ("org.springframework.batch:spring-batch-integration:$springBatchVersion") {
+		compile ("org.springframework.batch:spring-batch-integration") {
 			exclude group: 'org.springframework.integration'
 			exclude group: 'org.springframework'
 		}
@@ -605,7 +639,7 @@ project('spring-xd-extension-mongodb') {
 	description = 'Spring XD Mongodb'
 	dependencies {
 		compile project(':spring-xd-tuple')
-		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.springframework.batch:spring-batch-core"
 		compile ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
 	}
 }
@@ -616,7 +650,7 @@ project('spring-xd-extension-jdbc') {
 		compile project(':spring-xd-tuple')
 		compile "org.springframework:spring-jdbc"
 		compile "org.springframework:spring-tx"
-		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
+		compile "org.springframework.batch:spring-batch-infrastructure"
 		compile "org.springframework.integration:spring-integration-core"
 		runtime "org.springframework.integration:spring-integration-jdbc"
 		runtime "com.fasterxml.jackson.core:jackson-databind"
@@ -670,7 +704,7 @@ project('spring-xd-hadoop') {
 		compile "org.springframework:spring-jdbc"
 		compile "org.springframework:spring-tx"
 		compile "org.springframework.integration:spring-integration-core"
-		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.springframework.batch:spring-batch-core"
 		compile ("org.springframework.data:spring-data-hadoop") {
 			exclude group: 'org.springframework.batch'
 			exclude group: 'javax.servlet'
@@ -880,7 +914,7 @@ project('spring-xd-yarn:spring-xd-yarn-client') {
         compile "org.springframework:spring-context-support"
         compile "org.springframework:spring-jdbc"
         compile "org.springframework:spring-tx"
-        compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+        compile "org.springframework.batch:spring-batch-core"
         compile ("org.springframework.data:spring-yarn-boot") {
             exclude group: 'javax.servlet'
             exclude group: 'javax.servlet.jsp'
@@ -915,7 +949,7 @@ project('spring-xd-yarn:spring-xd-yarn-appmaster') {
         compile "org.springframework:spring-context-support"
         compile "org.springframework:spring-jdbc"
         compile "org.springframework:spring-tx"
-        compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+        compile "org.springframework.batch:spring-batch-core"
         compile ("org.springframework.data:spring-yarn-boot") {
             exclude group: 'javax.servlet'
             exclude group: 'javax.servlet.jsp'
@@ -1038,7 +1072,7 @@ project('spring-xd-tuple') {
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "org.springframework:spring-context"
 		compile "org.springframework.integration:spring-integration-core"
-		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
+		compile "org.springframework.batch:spring-batch-infrastructure"
 		compile "org.springframework:spring-jdbc"
 		compile "com.eaio.uuid:uuid:$uuidVersion"
 	}
@@ -1067,7 +1101,7 @@ project('spring-xd-rest-domain') {
 			exclude group: 'org.slf4j'
 			exclude group: 'org.freemarker'
 		}
-		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.springframework.batch:spring-batch-core"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "org.codehaus.jackson:jackson-core-asl"
 	}
@@ -1445,7 +1479,7 @@ project('spring-xd-batch') {
 		compile "org.springframework.boot:spring-boot-autoconfigure"
 		compile "org.springframework.boot:spring-boot-actuator"
 		compile "org.springframework:spring-jdbc"
-		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.springframework.batch:spring-batch-core"
 	}
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation

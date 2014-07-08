@@ -1535,6 +1535,7 @@ project('spring-xd-integration-test') {
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile ("org.apache.hadoop:hadoop-common:$hadoop22Version")
 		compile ("org.apache.hadoop:hadoop-client:$hadoop22Version")
+		compile "com.google.guava:guava:15.0"
 		compile ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
 		testCompile "mysql:mysql-connector-java"
 		testCompile "commons-collections:commons-collections"

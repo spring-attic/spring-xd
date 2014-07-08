@@ -26,7 +26,6 @@ import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -73,20 +72,6 @@ public class JobsController extends
 			throw new BatchJobAlreadyExistsException(name);
 		}
 		return super.save(name, definition, deploy);
-	}
-
-	/**
-	 * Send the request to launch Job. Job has to be deployed first.
-	 *
-	 * @param name the name of the job
-	 * @param jobParameters the job parameters in JSON string
-	 */
-	@RequestMapping(value = "/{name}/launch", method = RequestMethod.PUT)
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public void launchJob(@PathVariable("name") String name, @RequestParam(required = false) String jobParameters) {
-		final JobDeployer jobDeployer = (JobDeployer) getDeployer();
-		jobDeployer.launch(name, jobParameters);
 	}
 
 	/**

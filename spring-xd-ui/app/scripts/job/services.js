@@ -204,7 +204,7 @@ define(['angular'], function (angular) {
           },
           launch: function (jobName, jsonDataAsString) {
             console.log('Do actual Launch...');
-            $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobName + '/launch', { 'jobParameters': jsonDataAsString }, {
+            $resource($rootScope.xdAdminServerUrl + '/jobs/executions', { 'jobname': jobName, 'jobParameters': jsonDataAsString }, {
               launch: { method: 'PUT' }
             }).launch().$promise.then(
                 function () {

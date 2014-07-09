@@ -199,8 +199,9 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 	@Test
 	public void testGetJobExecutionsByName() throws Exception {
 		mockMvc.perform(
-				get("/batch/jobs/job2/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				get("/jobs/executions").param("jobname", "job2")
+						.param("startJobExecution", "0").param("pageSize", "20").accept(
+								MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(jsonPath("$", Matchers.hasSize(1)))
 				.andExpect(jsonPath("$[0].executionId").value(3))
 				.andExpect(jsonPath("$[0].jobId").value(2))

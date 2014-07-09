@@ -108,6 +108,32 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 	}
 
 	/**
+	 * Return a paged collection of job executions for a given job.
+	 *
+	 * @param jobName name of the job
+	 * @param startJobExecution start index for the job execution list
+	 * @param pageSize page size for the list
+	 * @return collection of JobExecutionInfo
+	 */
+	@RequestMapping(value = "", method = RequestMethod.GET, params = "jobname")
+	@ResponseStatus(HttpStatus.OK)
+	public Collection<JobExecutionInfoResource> executionsForJob(@RequestParam("jobname") String jobName,
+			@RequestParam(defaultValue = "0") int startJobExecution,
+			@RequestParam(defaultValue = "20") int pageSize) {
+
+		Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
+		try {
+			for (JobExecution jobExecution : jobService.listJobExecutionsForJob(jobName, startJobExecution, pageSize)) {
+				result.add(jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone)));
+			}
+		}
+		catch (NoSuchJobException e) {
+			throw new NoSuchBatchJobException(jobName);
+		}
+		return result;
+	}
+
+	/**
 	 * Get all existing job definition names.
 	 *
 	 * @return the collection of job definition names

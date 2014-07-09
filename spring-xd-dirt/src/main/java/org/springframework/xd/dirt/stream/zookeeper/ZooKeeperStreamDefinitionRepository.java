@@ -38,7 +38,6 @@ import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepositoryUtils;
-import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -56,8 +55,6 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 	private final ZooKeeperConnection zkConnection;
 
 	private final ModuleDependencyRepository moduleDependencyRepository;
-
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	private final PagingUtility<StreamDefinition> pagingUtility = new PagingUtility<StreamDefinition>();
 
@@ -106,7 +103,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 			CuratorFramework client = zkConnection.getClient();
 			String path = Paths.build(Paths.STREAMS, entity.getName());
-			byte[] binary = mapBytesUtility.toByteArray(map);
+			byte[] binary = ZooKeeperUtils.mapToBytes(map);
 
 			BackgroundPathAndBytesable<?> op = client.checkExists().forPath(path) == null
 					? client.create() : client.setData();
@@ -132,7 +129,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			if (bytes == null) {
 				return null;
 			}
-			Map<String, String> map = this.mapBytesUtility.toMap(bytes);
+			Map<String, String> map = ZooKeeperUtils.bytesToMap(bytes);
 			return new StreamDefinition(id, map.get("definition"));
 		}
 		catch (Exception e) {

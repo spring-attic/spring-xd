@@ -44,7 +44,6 @@ import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamRepository;
-import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -62,8 +61,6 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 	private static final Logger logger = LoggerFactory.getLogger(ZooKeeperStreamRepository.class);
 
 	private final ZooKeeperConnection zkConnection;
-
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	private final PagingUtility<Stream> pagingUtility = new PagingUtility<Stream>();
 
@@ -114,7 +111,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 			Stat definitionStat = client.checkExists().forPath(path);
 			if (definitionStat != null) {
 				byte[] data = client.getData().forPath(path);
-				Map<String, String> map = mapBytesUtility.toMap(data);
+				Map<String, String> map = ZooKeeperUtils.bytesToMap(data);
 				Stream stream = new Stream(new StreamDefinition(id, map.get("definition")));
 
 				Stat deployStat = client.checkExists().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, id));

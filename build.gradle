@@ -923,6 +923,7 @@ project('spring-xd-hadoop:phd20') {
 		include 'jersey-server-*'
 	}
 }
+
 project('spring-xd-yarn:spring-xd-yarn-client') {
     description = 'Spring XD YARN Client App'
 
@@ -956,6 +957,11 @@ project('spring-xd-yarn:spring-xd-yarn-client') {
     jar {
     	setExcludes([])
 	}
+
+	bootRepackage  {
+        enabled = true
+	}
+
 }
 
 project('spring-xd-yarn:spring-xd-yarn-appmaster') {
@@ -989,6 +995,10 @@ project('spring-xd-yarn:spring-xd-yarn-appmaster') {
 
     jar {
     	setExcludes([])
+	}
+
+	bootRepackage  {
+        enabled = true
 	}
 }
 

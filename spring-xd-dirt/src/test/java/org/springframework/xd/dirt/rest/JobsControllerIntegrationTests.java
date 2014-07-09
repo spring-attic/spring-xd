@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,12 +40,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
-import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.stream.JobDefinition;
@@ -78,9 +75,6 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Autowired
 	private JobRepository xdJobRepository;
-
-	@Autowired
-	private MessageBus messageBus;
 
 	@Autowired
 	private DistributedJobLocator jobLocator;
@@ -123,19 +117,6 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		assertNotNull(jobDefinition);
 		assertEquals("job5", jobDefinition.getName());
 		assertNotNull(xdJobRepository.findOne(jobDefinition.getName()));
-	}
-
-	@Test
-	public void testSuccessfulJobLaunch() throws Exception {
-		QueueChannel channel = new QueueChannel();
-		messageBus.bindConsumer("job:joblaunch", channel, null);
-		mockMvc.perform(
-				post("/jobs/definitions").param("name", "joblaunch").param("definition", JOB_DEFINITION).accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
-		mockMvc.perform(
-				put("/jobs/executions").param("jobname", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
-				status().isOk());
-		assertNotNull(channel.receive(3000));
 	}
 
 	@Test

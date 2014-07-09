@@ -139,8 +139,8 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 	 * @param name the name of the job
 	 * @param jobParameters the job parameters in JSON string
 	 */
-	@RequestMapping(value = "", method = RequestMethod.PUT, params = "jobname")
-	@ResponseStatus(HttpStatus.OK)
+	@RequestMapping(value = "", method = RequestMethod.POST, params = "jobname")
+	@ResponseStatus(HttpStatus.CREATED)
 	public void launchJob(@RequestParam("jobname") String name, @RequestParam(required = false) String jobParameters) {
 		jobDeployer.launch(name, jobParameters);
 	}

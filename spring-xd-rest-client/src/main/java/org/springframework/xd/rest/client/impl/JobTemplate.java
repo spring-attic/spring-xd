@@ -79,7 +79,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("jobParameters", jobParameters);
 		values.add("jobname", name);
-		restTemplate.put(uriTemplate, values, Collections.singletonMap("name", name));
+		restTemplate.postForObject(uriTemplate, values, Object.class);
 	}
 
 	@Override

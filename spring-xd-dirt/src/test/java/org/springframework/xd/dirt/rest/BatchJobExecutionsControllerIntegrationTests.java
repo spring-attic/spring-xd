@@ -17,8 +17,10 @@
 package org.springframework.xd.dirt.rest;
 
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,12 +49,19 @@ import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.DescriptiveResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Tests REST compliance of {@link BatchJobExecutionsController} endpoints.
@@ -65,15 +74,30 @@ import org.springframework.xd.dirt.plugins.job.DistributedJobService;
 @ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
 public class BatchJobExecutionsControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
+	private static final String JOB_DEFINITION = "job --cron='*/10 * * * * *'";
+
 	@Autowired
 	private DistributedJobService jobService;
 
 	@Autowired
 	private DistributedJobLocator jobLocator;
 
+	@Autowired
+	private ModuleRegistry moduleRegistry;
+
+	@Autowired
+	private MessageBus messageBus;
+
 	@SuppressWarnings("unchecked")
 	@Before
 	public void before() throws Exception {
+		Resource resource = new DescriptiveResource("dummy");
+		ModuleDefinition moduleJobDefinition = new ModuleDefinition("job",
+				ModuleType.job, resource);
+		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
+		moduleDefinitions.add(moduleJobDefinition);
+		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);
+		when(moduleRegistry.findDefinition("job", ModuleType.job)).thenReturn(moduleJobDefinition);
 		SimpleJob job1 = new SimpleJob("job1");
 		SimpleJob job2 = new SimpleJob("job2");
 		job2.setRestartable(false);
@@ -211,6 +235,19 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		mockMvc.perform(get("/jobs/executions/99999").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("$[0].message", Matchers.is("Could not find jobExecution with id 99999")));
+	}
+
+	@Test
+	public void testSuccessfulJobLaunch() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		messageBus.bindConsumer("job:joblaunch", channel, null);
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "joblaunch").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		mockMvc.perform(
+				post("/jobs/executions").param("jobname", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isCreated());
+		assertNotNull(channel.receive(3000));
 	}
 
 	@Test

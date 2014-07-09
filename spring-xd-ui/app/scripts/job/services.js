@@ -205,7 +205,7 @@ define(['angular'], function (angular) {
           launch: function (jobName, jsonDataAsString) {
             console.log('Do actual Launch...');
             $resource($rootScope.xdAdminServerUrl + '/jobs/executions', { 'jobname': jobName, 'jobParameters': jsonDataAsString }, {
-              launch: { method: 'PUT' }
+              launch: { method: 'POST' }
             }).launch().$promise.then(
                 function () {
                   growl.addSuccessMessage('Job ' + jobName + ' launched.');

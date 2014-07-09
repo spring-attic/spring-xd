@@ -406,6 +406,8 @@ project('spring-xd-dirt') {
 		compile "org.springframework.integration:spring-integration-http"
 		// TODO: Investigate why spring-integration-http's optional dependency xerces becomes transitive dependency
 		configurations.compile.exclude(group: "xerces")
+		// Remove transitive dependency on commons-logging-api
+		configurations.compile.exclude(group: 'commons-logging', module: 'commons-logging-api')
 		compile "org.springframework.integration:spring-integration-jmx"
 		compile "org.springframework.integration:spring-integration-redis"
 		compile "org.jolokia:jolokia-core"
@@ -736,6 +738,9 @@ project('spring-xd-hadoop') {
 			exclude group: 'hsqldb'
 			exclude group: 'jline'
 		}
+		// Exclude transitive dependency
+		configurations.compile.exclude(group: "commons-beanutils", module: "commons-beanutils-core")
+
 		compile ("org.springframework.data:spring-data-hadoop-store") { exclude group: 'org.apache.hadoop' }
 		testRuntime "org.xerial.snappy:snappy-java"
 	}

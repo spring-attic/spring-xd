@@ -99,6 +99,7 @@ ext {
 
 	// Also in IO
 	nettyVersion = '3.6.6.Final' // N.B. Reactor depends on Netty 4
+	oldGuavaVersion = '15.0'  // This is only used by spring-xd-integration-test, IO uses version 17.0
 
 	// Hadoop Versions
 	springDataHadoopBase = '2.0.1.RELEASE'
@@ -1547,6 +1548,18 @@ project('spring-xd-integration-test') {
 		}
 		exclude('org/springframework/xd/integration/test/FtpHdfsTest.class')
 	}
+
+	configurations.all {
+		resolutionStrategy {
+			eachDependency { DependencyResolveDetails details ->
+				//Force version of Guava
+				if (details.requested.group == 'com.google.guava') {
+					details.useVersion "$oldGuavaVersion"
+				}
+			}
+		}
+	}
+
 	dependencies {
 		compile project(":spring-xd-test-fixtures")
 		compile project(":spring-xd-test")

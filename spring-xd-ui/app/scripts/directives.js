@@ -96,6 +96,31 @@ define(['angular', 'xregexp'], function(angular) {
         }
       };
     })
+    .directive('xdDeploymentStatus', function() {
+      var linkFunction = function(scope) {
+        scope.$watch('xdDeploymentStatus', function(resource){
+          if (resource) {
+            if (resource.deleted) {
+              scope.labelClass = 'danger';
+              scope.label = 'Deleted';
+            }
+            else if (!resource.deleted && !resource.deployed) {
+              scope.labelClass = 'warning';
+              scope.label = 'Undeployed';
+            }
+            console.log(resource);
+          }
+        });
+      };
+      return {
+        restrict: 'A',
+        scope: {
+          xdDeploymentStatus: '='
+        },
+        link: linkFunction,
+        templateUrl: 'scripts/directives/xdDeploymentStatus.html'
+      };
+    })
     .directive('notTheSameAs', function() {
       return {
         restrict: 'A',

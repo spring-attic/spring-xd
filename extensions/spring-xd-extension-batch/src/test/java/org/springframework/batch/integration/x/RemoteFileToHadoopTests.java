@@ -79,7 +79,9 @@ public class RemoteFileToHadoopTests {
 
 	@BeforeClass
 	public static void init() {
-		System.setProperty("fsUri", "hdfs://localhost:8020");
+		if (System.getProperty("fsUri") == null) {
+			System.setProperty("fsUri", "hdfs://localhost:8020");
+		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

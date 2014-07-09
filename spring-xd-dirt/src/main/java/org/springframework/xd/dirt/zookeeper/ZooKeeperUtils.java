@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.zookeeper;
 
 
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.Map;
 
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -25,7 +26,11 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.slf4j.Logger;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.xd.dirt.util.MapBytesUtility;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * Utility methods for ZooKeeper.
@@ -153,4 +158,76 @@ public abstract class ZooKeeperUtils {
 			logger.trace("Data for path {}: {}", path, content);
 		}
 	}
+
+
+	/**
+	 * Utility to convert {@link Map string key/value pairs} to/from byte arrays containing JSON strings. By default the
+	 * JSON library encodes to UTF-8.
+	 * 
+	 * @author Patrick Peralta
+	 */
+	private static class MapBytesUtility {
+
+		/**
+		 * Serializer from map to JSON string in a byte array.
+		 */
+		private final ObjectWriter writer;
+
+		/**
+		 * Deserializer from JSON string in a byte array to a map.
+		 */
+		private final ObjectReader reader;
+
+		/**
+		 * Construct a MapBytesUtility.
+		 */
+		private MapBytesUtility() {
+			ObjectMapper mapper = new ObjectMapper();
+			writer = mapper.writer();
+			reader = mapper.reader(Map.class);
+		}
+
+		/**
+		 * Convert a map of string key/value pairs to a JSON string in a byte array.
+		 * 
+		 * @param map map to convert
+		 * 
+		 * @return byte array
+		 */
+		private byte[] toByteArray(Map<String, String> map) {
+			try {
+				return writer.writeValueAsBytes(map);
+			}
+			catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		/**
+		 * Convert a byte array containing a JSON string to a map of key/value pairs.
+		 * 
+		 * @param bytes byte array containing the key/value pair strings
+		 * 
+		 * @return a new map instance containing the key/value pairs
+		 */
+		private Map<String, String> toMap(byte[] bytes) {
+			if (bytes == null || bytes.length == 0) {
+				return Collections.emptyMap();
+			}
+			try {
+				return reader.readValue(bytes);
+			}
+			catch (Exception e) {
+				String contents;
+				try {
+					contents = new String(bytes, "UTF-8");
+				}
+				catch (UnsupportedEncodingException uue) {
+					contents = "Could not read content due to " + uue;
+				}
+				throw new RuntimeException("Error parsing JSON string: " + contents, e);
+			}
+		}
+	}
+
 }

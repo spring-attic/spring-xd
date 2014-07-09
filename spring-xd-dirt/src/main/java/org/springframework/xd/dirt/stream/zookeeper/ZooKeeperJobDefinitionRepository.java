@@ -38,7 +38,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
-import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -57,8 +56,6 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 	private final Logger logger = LoggerFactory.getLogger(ZooKeeperJobDefinitionRepository.class);
 
 	private final ZooKeeperConnection zkConnection;
-
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	private final PagingUtility<JobDefinition> pagingUtility = new PagingUtility<JobDefinition>();
 
@@ -108,7 +105,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 
 			CuratorFramework client = zkConnection.getClient();
 			String path = Paths.build(Paths.JOBS, entity.getName());
-			byte[] binary = mapBytesUtility.toByteArray(map);
+			byte[] binary = ZooKeeperUtils.mapToBytes(map);
 
 			BackgroundPathAndBytesable<?> op = client.checkExists().forPath(path) == null
 					? client.create() : client.setData();
@@ -133,7 +130,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			if (bytes == null) {
 				return null;
 			}
-			Map<String, String> map = this.mapBytesUtility.toMap(bytes);
+			Map<String, String> map = ZooKeeperUtils.bytesToMap(bytes);
 			return new JobDefinition(id, map.get("definition"));
 		}
 		catch (Exception e) {

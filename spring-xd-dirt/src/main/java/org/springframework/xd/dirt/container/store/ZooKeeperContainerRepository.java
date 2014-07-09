@@ -39,7 +39,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -64,11 +63,6 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 	 * ZooKeeper connection.
 	 */
 	private final ZooKeeperConnection zkConnection;
-
-	/**
-	 * Utility to convert maps to byte arrays.
-	 */
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	/**
 	 * Paging support for this repository.
@@ -140,6 +134,7 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 					PathChildrenCache cache = new PathChildrenCache(client, Paths.CONTAINERS,
 							true, ThreadUtils.newThreadFactory("ContainerCache"));
 					cache.getListenable().addListener(new PathChildrenCacheListener() {
+
 						@Override
 						public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) {
 							// shut down the cache if ZooKeeper connection goes away
@@ -220,7 +215,7 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 
 		try {
 			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
-					.forPath(path, mapBytesUtility.toByteArray(entity.getAttributes()));
+					.forPath(path, ZooKeeperUtils.mapToBytes(entity.getAttributes()));
 			return entity;
 		}
 		catch (Exception e) {
@@ -254,7 +249,7 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 			data = childData.getData();
 		}
 		if (data != null) {
-			container = new Container(id, mapBytesUtility.toMap(data));
+			container = new Container(id, ZooKeeperUtils.bytesToMap(data));
 		}
 
 		return container;

@@ -34,7 +34,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -49,8 +48,6 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 public class ZooKeeperModuleMetadataRepository implements ModuleMetadataRepository {
 
 	private final ZooKeeperConnection zkConnection;
-
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	private final PagingUtility<ModuleMetadata> pagingUtility = new PagingUtility<ModuleMetadata>();
 
@@ -104,7 +101,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		try {
 			byte[] data = zkConnection.getClient().getData().forPath(metadataPath);
 			if (data != null) {
-				Map<String, String> metadataMap = mapBytesUtility.toMap(data);
+				Map<String, String> metadataMap = ZooKeeperUtils.bytesToMap(data);
 				String moduleId = getModuleId(metadataPath);
 				String containerId = getContainerId(metadataPath);
 				metadata = new ModuleMetadata(moduleId, containerId, getResolvedModuleOptions(metadataMap),
@@ -129,7 +126,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		try {
 			// Get the deployment properties from module deployment path
 			String moduleDeploymentsPath = metadataPath.substring(0, metadataPath.lastIndexOf("/"));
-			deploymentProperties = mapBytesUtility.toMap(zkConnection.getClient().getData().forPath(
+			deploymentProperties = ZooKeeperUtils.bytesToMap(zkConnection.getClient().getData().forPath(
 					moduleDeploymentsPath));
 		}
 		catch (Exception e) {

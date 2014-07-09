@@ -38,7 +38,6 @@ import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobRepository;
-import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -57,8 +56,6 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 	private static final Logger logger = LoggerFactory.getLogger(ZooKeeperJobRepository.class);
 
 	private final ZooKeeperConnection zkConnection;
-
-	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	private final PagingUtility<Job> pagingUtility = new PagingUtility<Job>();
 
@@ -109,7 +106,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 			Stat definitionStat = client.checkExists().forPath(path);
 			if (definitionStat != null) {
 				byte[] data = zkConnection.getClient().getData().forPath(path);
-				Map<String, String> map = mapBytesUtility.toMap(data);
+				Map<String, String> map = ZooKeeperUtils.bytesToMap(data);
 				Job job = new Job(new JobDefinition(id, map.get("definition")));
 
 				Stat deployStat = client.checkExists().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));

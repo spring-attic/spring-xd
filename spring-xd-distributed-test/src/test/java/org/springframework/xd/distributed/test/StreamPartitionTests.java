@@ -94,7 +94,7 @@ public class StreamPartitionTests extends AbstractDistributedTests {
 
 		template.streamOperations().createStream(streamName, "http | splitter --expression=payload.split(' ') | " +
 				"file --dir=" + file.getParent() + " --name=${xd.container.id}", false);
-		verifySingleStreamCreation(streamName);
+		verifyStreamCreated(streamName);
 
 		template.streamOperations().deploy(streamName,
 				"module.splitter.producer.partitionKeyExpression=payload,module.file.count=2");

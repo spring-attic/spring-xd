@@ -56,17 +56,17 @@ public class StreamDeploymentTests extends AbstractDistributedTests {
 		String streamName = testName.getMethodName() + "-ticktock";
 
 		template.streamOperations().createStream(streamName, "time|log", false);
-		verifySingleStreamCreation(streamName);
+		verifyStreamCreated(streamName);
 
 		template.streamOperations().deploy(streamName, null);
+		verifyStreamDeployed(streamName);
 
-		// verify modules
-		ModuleRuntimeContainers moduleContainers = retrieveModuleRuntimeContainers();
+		ModuleRuntimeContainers moduleContainers = retrieveModuleRuntimeContainers(streamName);
 
 		// kill the source
 		long pidToKill = 0;
 		for (Map.Entry<Long, String> entry : mapPidUuid.entrySet()) {
-			if (moduleContainers.getSourceContainer().equals(entry.getValue())) {
+			if (moduleContainers.getSourceContainers().contains(entry.getValue())) {
 				pidToKill = entry.getKey();
 				break;
 			}
@@ -75,11 +75,16 @@ public class StreamDeploymentTests extends AbstractDistributedTests {
 		logger.info("Killing container with pid {}", pidToKill);
 		shutdownContainer(pidToKill);
 
+		verifyStreamDeployed(streamName);
+
 		// ensure the module is picked up by another server
-		ModuleRuntimeContainers redeployedModuleContainers = retrieveModuleRuntimeContainers();
-		logger.debug("old source container:{}, new source container: {}",
-				moduleContainers.getSourceContainer(), redeployedModuleContainers.getSourceContainer());
-		assertNotEquals(moduleContainers.getSourceContainer(), redeployedModuleContainers.getSourceContainer());
+		ModuleRuntimeContainers redeployedModuleContainers = retrieveModuleRuntimeContainers(streamName);
+		logger.debug("old source containers:{}, new source containers: {}",
+				moduleContainers.getSourceContainers(),
+				redeployedModuleContainers.getSourceContainers());
+
+		assertNotEquals(moduleContainers.getSourceContainers(),
+				redeployedModuleContainers.getSourceContainers());
 
 	}
 
@@ -103,9 +108,10 @@ public class StreamDeploymentTests extends AbstractDistributedTests {
 
 		String streamName = testName.getMethodName() + "-ticktock";
 		template.streamOperations().createStream(streamName, "time|log", true);
+		verifyStreamDeployed(streamName);
 
 		// verify modules
-		retrieveModuleRuntimeContainers();
+		retrieveModuleRuntimeContainers(streamName);
 
 		// kill all the containers
 		shutdownContainers();
@@ -117,9 +123,11 @@ public class StreamDeploymentTests extends AbstractDistributedTests {
 		assertEquals(1, mapPidUuid.size());
 		String containerUuid = mapPidUuid.values().iterator().next();
 
-		ModuleRuntimeContainers moduleContainers = retrieveModuleRuntimeContainers();
-		assertEquals(containerUuid, moduleContainers.getSourceContainer());
-		assertEquals(containerUuid, moduleContainers.getSinkContainer());
+		verifyStreamDeployed(streamName);
+
+		ModuleRuntimeContainers moduleContainers = retrieveModuleRuntimeContainers(streamName);
+		assertTrue(moduleContainers.getSourceContainers().contains(containerUuid));
+		assertTrue(moduleContainers.getSinkContainers().contains(containerUuid));
 	}
 
 }

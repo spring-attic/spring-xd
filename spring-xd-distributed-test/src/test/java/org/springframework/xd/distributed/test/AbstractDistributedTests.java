@@ -18,7 +18,8 @@ package org.springframework.xd.distributed.test;
 
 import static org.junit.Assert.*;
 
-import java.util.Iterator;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 
@@ -33,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.distributed.util.DefaultDistributedTestSupport;
 import org.springframework.xd.distributed.util.DistributedTestSupport;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
@@ -193,62 +194,103 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	}
 
 	/**
-	 * Block the executing thread until the Admin server reports exactly
-	 * two runtime modules (a source and sink).
+	 * Return a mapping of runtime modules to containers for a
+	 * given stream name. Note that this method assumes that the
+	 * stream has been deployed. To ensure that the stream has been
+	 * deployed, invoke {@link #verifyStreamDeployed} prior to invoking
+	 * this method.
 	 *
 	 * @return mapping of modules to the containers they are deployed to
-	 * @throws InterruptedException
+	 * @see #verifyStreamDeployed
 	 */
-	protected ModuleRuntimeContainers retrieveModuleRuntimeContainers()
-			throws InterruptedException {
-
+	protected ModuleRuntimeContainers retrieveModuleRuntimeContainers(String streamName) {
 		ModuleRuntimeContainers containers = new ModuleRuntimeContainers();
-		long expiry = System.currentTimeMillis() + 30000;
-		int moduleCount = 0;
-
-		while (!containers.isComplete() && System.currentTimeMillis() < expiry) {
-			Thread.sleep(500);
-			moduleCount = 0;
-			for (ModuleMetadataResource module : distributedTestSupport.ensureTemplate()
-					.runtimeOperations().listRuntimeModules()) {
-				String moduleId = module.getModuleId();
+		for (ModuleMetadataResource module : distributedTestSupport.ensureTemplate()
+				.runtimeOperations().listRuntimeModules()) {
+			String moduleId = module.getModuleId();
+			if (moduleId.contains(streamName)) {
 				if (moduleId.contains("source")) {
-					containers.setSourceContainer(module.getContainerId());
+					containers.addSourceContainer(module.getContainerId());
 				}
 				else if (moduleId.contains("sink")) {
-					containers.setSinkContainer(module.getContainerId());
+					containers.addSinkContainer(module.getContainerId());
 				}
-				else {
-					throw new IllegalStateException(String.format(
-							"Module '%s' is neither a source or sink", moduleId));
-				}
-				moduleCount++;
 			}
 		}
-		assertTrue(containers.isComplete());
-		assertEquals(2, moduleCount);
 
+		assertTrue(containers.toString(), containers.isComplete());
 		return containers;
 	}
 
 	/**
-	 * Assert that:
-	 * <ul>
-	 *     <li>The given stream has been created</li>
-	 *     <li>It is the only stream in the system</li>
-	 * </ul>
+	 * Assert that the given stream has been created.
+	 *
 	 * @param streamName  name of stream to verify
 	 */
-	protected void verifySingleStreamCreation(String streamName) {
+	protected void verifyStreamCreated(String streamName) {
 		PagedResources<StreamDefinitionResource> list = distributedTestSupport.ensureTemplate()
 				.streamOperations().list();
 
-		Iterator<StreamDefinitionResource> iterator = list.iterator();
-		assertTrue(iterator.hasNext());
+		for (StreamDefinitionResource stream : list) {
+			if (stream.getName().equals(streamName)) {
+				return;
+			}
+		}
 
-		StreamDefinitionResource stream = iterator.next();
-		assertEquals(streamName, stream.getName());
-		assertFalse(iterator.hasNext());
+		fail(String.format("Stream %s was not found", streamName));
+	}
+
+	/**
+	 * Block the executing thread until either the stream state is
+	 * {@link DeploymentUnitStatus.State#deployed} or 30 seconds
+	 * have elapsed.
+	 *
+	 * @param streamName name of stream to verify
+	 * @throws InterruptedException
+	 */
+	protected void verifyStreamDeployed(String streamName) throws InterruptedException {
+		verifyStreamState(streamName, DeploymentUnitStatus.State.deployed);
+	}
+
+	/**
+	 * Block the executing thread until either the stream state
+	 * matches the indicated state or 30 seconds have elapsed.
+	 *
+	 * @param streamName name of stream to verify
+	 * @param expected   the expected state of the stream
+	 * @throws InterruptedException
+	 */
+	protected void verifyStreamState(String streamName, DeploymentUnitStatus.State expected)
+			throws InterruptedException {
+		long expiry = System.currentTimeMillis() + 30000;
+		DeploymentUnitStatus.State state = null;
+
+		while (state != expected && System.currentTimeMillis() < expiry) {
+			Thread.sleep(500);
+			state = getStreamState(streamName);
+		}
+
+		logger.debug("Stream '{}' state: {}", streamName, state);
+		assertEquals("Failed assertion for stream " + streamName, expected, state);
+	}
+
+	/**
+	 * Return the state of the given stream.
+	 *
+	 * @param streamName name of stream for which to obtain state
+	 * @return the state of the stream
+	 */
+	protected DeploymentUnitStatus.State getStreamState(String streamName) {
+		PagedResources<StreamDefinitionResource> list = distributedTestSupport.ensureTemplate()
+				.streamOperations().list();
+
+		for (StreamDefinitionResource stream : list) {
+			if (stream.getName().equals(streamName)) {
+				return DeploymentUnitStatus.State.valueOf(stream.getStatus());
+			}
+		}
+
+		throw new IllegalStateException(String.format("Stream %s not deployed", streamName));
 	}
 
 
@@ -258,37 +300,61 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 */
 	protected static class ModuleRuntimeContainers {
 
-		private String sourceContainer;
+		/**
+		 * IDs of containers that have deployed a source module.
+		 */
+		private final Collection<String> sourceContainers = new HashSet<String>();
 
-		private String sinkContainer;
+		/**
+		 * IDs of containers that have deployed a sink module.
+		 */
+		private final Collection<String> sinkContainers = new HashSet<String>();
 
-		public String getSourceContainer() {
-			return sourceContainer;
+		/**
+		 * @see #sourceContainers
+		 */
+		public Collection<String> getSourceContainers() {
+			return sourceContainers;
 		}
 
-		public void setSourceContainer(String sourceContainer) {
-			this.sourceContainer = sourceContainer;
+		/**
+		 * @see #sourceContainers
+		 */
+		public void addSourceContainer(String sourceContainer) {
+			this.sourceContainers.add(sourceContainer);
 		}
 
-		public String getSinkContainer() {
-			return sinkContainer;
+		/**
+		 * @see #sinkContainers
+		 */
+		public Collection<String> getSinkContainers() {
+			return sinkContainers;
 		}
 
-		public void setSinkContainer(String sinkContainer) {
-			this.sinkContainer = sinkContainer;
+		/**
+		 * @see #sinkContainers
+		 */
+		public void addSinkContainer(String sinkContainer) {
+			this.sinkContainers.add(sinkContainer);
 		}
 
 		/**
 		 * Return true if a source and sink container have been
 		 * populated.
 		 *
-		 * @return true if source and sink containers are non-null
+		 * @return true if source and sink containers have been populated
 		 */
 		public boolean isComplete() {
-			return StringUtils.hasText(sourceContainer) && StringUtils.hasText(sinkContainer);
+			return (!sourceContainers.isEmpty() && !sinkContainers.isEmpty());
 		}
 
+		@Override
+		public String toString() {
+			return "ModuleRuntimeContainers{" +
+					"sourceContainers=" + sourceContainers +
+					", sinkContainers=" + sinkContainers +
+					'}';
+		}
 	}
-
 
 }

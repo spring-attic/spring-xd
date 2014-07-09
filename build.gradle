@@ -87,7 +87,6 @@ ext {
 	hamcrestDateVersion = '0.9.3'
 	httpClientVersion = '4.2.5'
 	jcloudsVersion = '1.7.0'
-	jolokiaVersion = '1.1.5'
 	oracleToolsVersion = '1.2.2'
 	platformVersion = '1.0.1.RELEASE'
 	postgresqlVersion = '9.2-1002-jdbc4'
@@ -409,7 +408,7 @@ project('spring-xd-dirt') {
 		configurations.compile.exclude(group: "xerces")
 		compile "org.springframework.integration:spring-integration-jmx"
 		compile "org.springframework.integration:spring-integration-redis"
-		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
+		compile "org.jolokia:jolokia-core"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "log4j:log4j"
 		compile "com.esotericsoftware.kryo:kryo"

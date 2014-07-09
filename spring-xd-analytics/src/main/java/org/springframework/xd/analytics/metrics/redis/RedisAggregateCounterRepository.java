@@ -223,15 +223,13 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 		return convertToArray(getEntries(akg.getYearKey()), year.monthOfYear().getMaximumValue(), true); // Months in this year
 	}
 
-	@SuppressWarnings("deprecation")
 	private long[] getDayCountsForMonth(String name, DateTime month) {
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, month.toDateMidnight());
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, month.withTimeAtStartOfDay());
 		return convertToArray(getEntries(akg.getMonthKey()), month.dayOfMonth().getMaximumValue(), true); // Days in this month
 	}
 
-	@SuppressWarnings("deprecation")
 	private long[] getHourCountsForDay(String name, DateTime day) {
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, day.toDateMidnight());
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, day.withTimeAtStartOfDay());
 		return convertToArray(getEntries(akg.getDayKey()), 24, false);
 	}
 

@@ -21,43 +21,44 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'StreamService', 'XDUtils',
-    function ($scope, streamService, utils) {
+  return ['$scope', 'StreamService', 'XDUtils', '$timeout',
+    function ($scope, streamService, utils, $timeout) {
 
-      utils.addBusyPromise(streamService.getDefinitions().get(function (data) {
-        utils.$log.info(data);
-        $scope.streamDefinitions = data.content;
-      }, function (error) {
-        utils.$log.error('Error fetching data. Is the XD server running?');
-        utils.$log.error(error);
-        utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
-      }));
-
+      (function loadStreamDefinitions() {
+        streamService.getDefinitions().get(
+            function (result) {
+              utils.$log.info(result);
+              $scope.streamDefinitions = result.content;
+              var getStreamDefinitions = $timeout(loadStreamDefinitions, 5000);
+              $scope.$on('$destroy', function(){
+                $timeout.cancel(getStreamDefinitions);
+              });
+            }
+        );
+      })();
       $scope.deployStream = function (streamDefinition) {
         utils.$log.info('Deploying Stream ' + streamDefinition.name);
         utils.$log.info(streamService);
         streamService.deploy(streamDefinition).$promise.then(
-              function () {
-                utils.growl.addSuccessMessage('Deployment Request Sent.');
-                streamDefinition.deployed = true;
-              },
-              function () {
-                utils.growl.addErrorMessage('Error Deploying Stream.');
-              }
-            );
+            function () {
+              utils.growl.addSuccessMessage('Deployment Request Sent.');
+            },
+            function () {
+              utils.growl.addErrorMessage('Error Deploying Stream.');
+            }
+        );
       };
       $scope.undeployStream = function (streamDefinition) {
         utils.$log.info('Undeploying Stream ' + streamDefinition.name);
         utils.$log.info(streamService);
         streamService.undeploy(streamDefinition).$promise.then(
-              function () {
-                utils.growl.addSuccessMessage('Undeployment Request Sent.');
-                streamDefinition.deployed = false;
-              },
-              function () {
-                utils.growl.addErrorMessage('Error Undeploying Stream.');
-              }
-            );
+            function () {
+              utils.growl.addSuccessMessage('Undeployment Request Sent.');
+            },
+            function () {
+              utils.growl.addErrorMessage('Error Undeploying Stream.');
+            }
+        );
       };
       $scope.clickModal = function (streamDefinition) {
         $scope.destroyItem = streamDefinition;

@@ -22,20 +22,21 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils', '$state',
-    function ($scope, jobDefinitions, jobDefinitionService, utils, $state) {
+  return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils', '$state', '$timeout',
+    function ($scope, jobDefinitions, jobDefinitionService, utils, $state, $timeout) {
 
-      var definitionPromise = jobDefinitions.getAllJobDefinitions().$promise;
-      utils.addBusyPromise(definitionPromise);
-
-      definitionPromise.then(
-        function (result) {
-          utils.$log.info(result);
-          $scope.jobDefinitions = result.content;
-        }, function () {
-          utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
-        }
-      );
+      (function loadJobDefinitions() {
+        jobDefinitions.getAllJobDefinitions().$promise.then(
+            function (result) {
+              utils.$log.info(result);
+              $scope.jobDefinitions = result.content;
+              var getJobDefinitions = $timeout(loadJobDefinitions, 5000);
+              $scope.$on('$destroy', function(){
+                $timeout.cancel(getJobDefinitions);
+              });
+            }
+        );
+      })();
       $scope.deployJob = function (jobDefinition) {
         $state.go('home.jobs.deployjob', {definitionName: jobDefinition.name});
       };
@@ -43,14 +44,14 @@ define([], function () {
         utils.$log.info('Undeploying Job ' + jobDefinition.name);
         utils.$log.info(jobDefinitionService);
         jobDefinitionService.undeploy(jobDefinition).$promise.then(
-              function () {
-                utils.growl.addSuccessMessage('Undeployment Request Sent.');
-                jobDefinition.deployed = false;
-              },
-              function () {
-                utils.growl.addErrorMessage('Error Undeploying Job.');
-              }
-            );
+            function (data) {
+              console.log(data);
+              utils.growl.addSuccessMessage('Undeployment Request Sent.');
+            },
+            function () {
+              utils.growl.addErrorMessage('Error Undeploying Job.');
+            }
+        );
       };
       $scope.clickModal = function (streamDefinition) {
         $scope.destroyItem = streamDefinition;

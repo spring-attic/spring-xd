@@ -32,7 +32,7 @@ define([], function () {
 
         singleJobExecutionPromise.then(
           function (result) {
-            utils.$log.error(result);
+            utils.$log.info(result);
             $scope.jobExecutionDetails = result;
           }, function (error) {
             if (error.status === 404) {

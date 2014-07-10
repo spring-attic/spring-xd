@@ -1,4 +1,20 @@
-<h1 ng-show="jobExecutionDetails">Job Execution Details - Execution ID: {{jobExecutionDetails.executionId}}</h1>
+<div class="row hidden-xs" ng-show="jobExecutionDetails">
+  <div class="col-sm-12">
+    <h1>Job Execution Details - Execution ID: {{jobExecutionDetails.executionId}}</h1>
+  </div>
+</div>
+<div class="visible-xs" ng-show="jobExecutionDetails">
+  <div class="row">
+    <div class="col-xs-12">
+      <h1>Job Execution Details</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-xs-12">
+      <h1>Execution ID: {{jobExecutionDetails.executionId}}</h1>
+    </div>
+  </div>
+</div>
 
 <h4 ng-show="jobExecutionDetailsNotFound">The Job Execution Details for Execution ID {{executionId}} could not be found.</h4>
 

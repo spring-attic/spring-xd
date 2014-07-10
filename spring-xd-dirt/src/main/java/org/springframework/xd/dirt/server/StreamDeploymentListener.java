@@ -151,18 +151,24 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 					}
 				}
 
-				// find the containers that can deploy these modules
-				Collection<Container> containers = containerMatcher.match(descriptor, deploymentProperties,
-						containerRepository.findAll());
+				try {
+					// find the containers that can deploy these modules
+					Collection<Container> containers = containerMatcher.match(descriptor, deploymentProperties,
+							containerRepository.findAll());
 
-				// write out the deployment requests targeted to the containers obtained above;
-				// a new instance of StreamPartitionPropertiesProvider is created since this
-				// object is responsible for generating unique sequence ids for modules
-				StreamRuntimePropertiesProvider deploymentRuntimeProvider =
-						new StreamRuntimePropertiesProvider(stream, deploymentPropertiesProvider);
+					// write out the deployment requests targeted to the containers obtained above;
+					// a new instance of StreamPartitionPropertiesProvider is created since this
+					// object is responsible for generating unique sequence ids for modules
+					StreamRuntimePropertiesProvider deploymentRuntimeProvider =
+							new StreamRuntimePropertiesProvider(stream, deploymentPropertiesProvider);
 
-				deploymentStatuses.addAll(moduleDeploymentWriter.writeDeployment(
-						descriptor, deploymentRuntimeProvider, containers));
+					deploymentStatuses.addAll(moduleDeploymentWriter.writeDeployment(
+							descriptor, deploymentRuntimeProvider, containers));
+				}
+				catch (NoContainerException e) {
+					logger.warn("No containers available for deployment of module '{}' for stream '{}'",
+							descriptor.getModuleLabel(), stream.getName());
+				}
 			}
 
 			DeploymentUnitStatus status = stateCalculator.calculate(stream, deploymentPropertiesProvider,
@@ -170,9 +176,6 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 			logger.info("Deployment status for stream '{}': {}", stream.getName(), status);
 
 			client.setData().forPath(statusPath, ZooKeeperUtils.mapToBytes(status.toMap()));
-		}
-		catch (NoContainerException e) {
-			logger.warn("No containers available for deployment of stream {}", stream.getName());
 		}
 		catch (InterruptedException e) {
 			throw e;

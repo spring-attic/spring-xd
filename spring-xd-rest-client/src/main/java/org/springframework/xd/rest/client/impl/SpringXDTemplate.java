@@ -103,7 +103,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		resources.put("jobs/deployments", new UriTemplate(xdRuntime.getLink("jobs").getHref() + "/deployments"));
 		resources.put("modules", new UriTemplate(xdRuntime.getLink("modules").getHref()));
 
-		resources.put("batch/jobs", new UriTemplate(xdRuntime.getLink("batch/jobs").getHref()));
+		resources.put("jobs/configurations", new UriTemplate(xdRuntime.getLink("jobs/configurations").getHref()));
 		resources.put("jobs/executions", new UriTemplate(xdRuntime.getLink("jobs/executions").getHref()));
 		resources.put("jobs/instances", new UriTemplate(xdRuntime.getLink("jobs/instances").getHref()));
 

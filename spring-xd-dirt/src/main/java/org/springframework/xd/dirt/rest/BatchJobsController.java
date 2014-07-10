@@ -49,7 +49,7 @@ import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
  * 
  */
 @RestController
-@RequestMapping("/batch/jobs")
+@RequestMapping("/jobs/configurations")
 @ExposesResourceFor(DetailedJobInfoResource.class)
 public class BatchJobsController extends AbstractBatchJobsController {
 

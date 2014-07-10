@@ -146,7 +146,8 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 	public void testGetBatchJobs() throws Exception {
 		JobExecutionInfo info = new JobExecutionInfo(execution, timeZone);
 		mockMvc.perform(
-				get("/batch/jobs").param("startJob", "0").param("pageSize", "20").accept(MediaType.APPLICATION_JSON)).andExpect(
+				get("/jobs/configurations").param("startJob", "0").param("pageSize", "20").accept(
+						MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(jsonPath("$", Matchers.hasSize(2))).andExpect(
 				jsonPath("$[*].executionCount", contains(2, 1))).andExpect(
 				jsonPath("$[*].launchable", contains(false, true))).andExpect(
@@ -178,7 +179,7 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 	@Test
 	public void testGetJobInstanceByJobName() throws Exception {
 		mockMvc.perform(
-				get("/batch/jobs/job1/instances").param("startJobInstance", "0").param("pageSize", "20").accept(
+				get("/jobs/configurations/job1/instances").param("startJobInstance", "0").param("pageSize", "20").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(jsonPath("$", Matchers.hasSize(2)))
 				.andExpect(jsonPath("$[*].instanceId", contains(0, 3)))
@@ -188,35 +189,11 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 	@Test
 	public void testGetJobInfoByJobName() throws Exception {
 		mockMvc.perform(
-				get("/batch/jobs/job1").param("startJobInstance", "0").param("pageSize", "20").accept(
+				get("/jobs/configurations/job1").param("startJobInstance", "0").param("pageSize", "20").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.executionCount").value(2)).andExpect(jsonPath("$.launchable").value(false)).andExpect(
 				jsonPath("$.incrementable").value(false)).andExpect(jsonPath("$.deployed").value(false)).andExpect(
 				jsonPath("$.jobInstanceId", nullValue()));
 
-	}
-
-	@Test
-	public void testGetJobExecutionsByName() throws Exception {
-		mockMvc.perform(
-				get("/jobs/executions").param("jobname", "job2")
-						.param("startJobExecution", "0").param("pageSize", "20").accept(
-								MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(1)))
-				.andExpect(jsonPath("$[0].executionId").value(3))
-				.andExpect(jsonPath("$[0].jobId").value(2))
-				.andExpect(jsonPath("$[0].jobExecution[*].id").value(3))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.value").value("test"))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.type").value("STRING"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.identifying").value(
-						true))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.value").value(123))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.type").value("LONG"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.identifying").value(
-						false));
 	}
 }

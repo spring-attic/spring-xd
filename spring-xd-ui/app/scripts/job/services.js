@@ -130,7 +130,7 @@ define(['angular'], function (angular) {
         };
       })
       .factory('JobDeployments', function ($resource, $rootScope) {
-        return $resource($rootScope.xdAdminServerUrl + '/batch/jobs.json', {}, {
+        return $resource($rootScope.xdAdminServerUrl + '/jobs/configurations.json', {}, {
           getArray: {method: 'GET', isArray: true}
         });
       })

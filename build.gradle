@@ -98,7 +98,7 @@ ext {
 	zookeeperVersion = '3.4.6'
 
 	// Also in IO
-	nettyVersion = '3.6.6.Final' // N.B. Reactor depends on Netty 4
+	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4
 	oldGuavaVersion = '15.0'  // This is only used by spring-xd-integration-test, IO uses version 17.0
 
 	// Hadoop Versions

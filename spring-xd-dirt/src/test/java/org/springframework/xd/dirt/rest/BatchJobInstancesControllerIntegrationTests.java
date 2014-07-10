@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.hamcrest.Matchers.contains;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -147,6 +148,16 @@ public class BatchJobInstancesControllerIntegrationTests extends AbstractControl
 				.andExpect(jsonPath("$.jobExecutions[0].jobExecution.id").value(3))
 				.andExpect(jsonPath("$.jobExecutions[0].jobExecution.stepExecutions", Matchers.hasSize(1)))
 				.andExpect(jsonPath("$.jobExecutions[0].jobExecution.stepExecutions[0].stepName").value("s1"));
+	}
+
+	@Test
+	public void testGetJobInstanceByJobName() throws Exception {
+		mockMvc.perform(
+				get("/jobs/instances").param("jobname", "job1").param("startJobInstance", "0").param("pageSize", "20").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(2)))
+				.andExpect(jsonPath("$[*].instanceId", contains(0, 3)))
+				.andExpect(jsonPath("$[*].jobName", contains("job1", "job1")));
 	}
 
 	@Test

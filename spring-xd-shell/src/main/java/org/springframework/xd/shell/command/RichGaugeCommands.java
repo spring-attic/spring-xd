@@ -54,7 +54,7 @@ public class RichGaugeCommands extends AbstractMetricsCommands implements Comman
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ LIST_RICH_GAUGES, DELETE_RICH_GAUGE })
+	@CliAvailabilityIndicator({ LIST_RICH_GAUGES, DELETE_RICH_GAUGE, DISPLAY_RICH_GAUGE })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}

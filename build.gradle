@@ -116,8 +116,6 @@ ext {
 def forceDependencyVersions(project) {
 	project.configurations.all { configuration ->
 		if ('versionManagement' != configuration.name) {
-			def forcedGroups = [ 'org.springframework', 'org.springframework.amqp', 'org.slf4j', 'org.codehaus.groovy']
-			def forcedNames = ['spring-data-redis']
 
 			def versions = [:]
 
@@ -131,8 +129,9 @@ def forceDependencyVersions(project) {
 
 			resolutionStrategy {
 				eachDependency { details ->
-					if (forcedGroups.contains(details.requested.group) || forcedNames.contains(details.requested.name)) {
-						details.useVersion versions["$details.requested.group:$details.requested.name"]
+					def version = versions["$details.requested.group:$details.requested.name"]
+					if (version) {
+						details.useVersion version
 					}
 				}
 			}

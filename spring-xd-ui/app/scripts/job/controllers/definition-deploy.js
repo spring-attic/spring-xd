@@ -66,7 +66,6 @@ define([], function () {
         jobDefinitionService.deploy(definitionDeployRequest.jobDefinition, properties).$promise.then(
             function () {
               utils.growl.addSuccessMessage('Deployment Request Sent.');
-              definitionDeployRequest.jobDefinition.deployed = true;
               $state.go('home.jobs.tabs.definitions');
             },
             function (error) {

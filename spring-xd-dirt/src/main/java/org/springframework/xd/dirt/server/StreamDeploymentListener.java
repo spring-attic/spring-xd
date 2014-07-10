@@ -128,8 +128,8 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 
 		try {
 			Collection<ModuleDeploymentStatus> deploymentStatuses = new ArrayList<ModuleDeploymentStatus>();
-			DefaultModuleDeploymentPropertiesProvider deploymentPropertiesProvider = new DefaultModuleDeploymentPropertiesProvider(
-					stream);
+			DefaultModuleDeploymentPropertiesProvider deploymentPropertiesProvider =
+					new DefaultModuleDeploymentPropertiesProvider(stream);
 			for (Iterator<ModuleDescriptor> descriptors = stream.getDeploymentOrderIterator(); descriptors.hasNext();) {
 				ModuleDescriptor descriptor = descriptors.next();
 				ModuleDeploymentProperties deploymentProperties = deploymentPropertiesProvider.propertiesForDescriptor(descriptor);

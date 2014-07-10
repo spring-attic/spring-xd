@@ -71,7 +71,7 @@ public class ModuleCommands implements CommandMarker {
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ COMPOSE_MODULE, LIST_MODULES, MODULE_INFO })
+	@CliAvailabilityIndicator({ COMPOSE_MODULE, LIST_MODULES, MODULE_INFO, DELETE_MODULE })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}

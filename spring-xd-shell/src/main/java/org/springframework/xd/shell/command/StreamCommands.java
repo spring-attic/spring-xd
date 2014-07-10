@@ -52,7 +52,8 @@ public class StreamCommands implements CommandMarker {
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ CREATE_STREAM, LIST_STREAM, DEPLOY_STREAM, UNDEPLOY_STREAM, DESTROY_STREAM })
+	@CliAvailabilityIndicator({ CREATE_STREAM, LIST_STREAM, DEPLOY_STREAM, UNDEPLOY_STREAM, DESTROY_STREAM,
+		DESTROY_STREAM_ALL, UNDEPLOY_STREAM_ALL })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}

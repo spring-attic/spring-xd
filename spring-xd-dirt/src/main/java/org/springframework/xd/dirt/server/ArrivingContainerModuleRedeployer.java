@@ -23,6 +23,7 @@ import java.util.Set;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,14 +128,24 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 			final Stream stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
 			// if stream is null this means the stream was destroyed or undeployed
 			if (stream != null) {
-				List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
-						requestedModulesPaths, streamName);
+				List<ModuleDeploymentRequestsPath> requestedModules =
+						ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
+								requestedModulesPaths, streamName);
 				Set<String> deployedModules = new HashSet<String>();
-				for (String deployedModule : client.getChildren().forPath(Paths.build(data.getPath(), Paths.MODULES))) {
-					deployedModules.add(Paths.stripPath(new StreamDeploymentsPath(Paths.build(data.getPath(),
-							Paths.MODULES,
-							deployedModule)).getModuleInstanceAsString()));
+
+				try {
+					for (String deployedModule :
+							client.getChildren().forPath(Paths.build(data.getPath(), Paths.MODULES))) {
+						deployedModules.add(Paths.stripPath(new StreamDeploymentsPath(Paths.build(data.getPath(),
+								Paths.MODULES,
+								deployedModule)).getModuleInstanceAsString()));
+					}
 				}
+				catch (KeeperException.NoNodeException e) {
+					// the stream does not have any modules deployed; this can be
+					// ignored as it will result in an empty deployedModules set
+				}
+
 				Set<ModuleDescriptor> deployedDescriptors = new HashSet<ModuleDescriptor>();
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(path.getModuleLabel());

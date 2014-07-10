@@ -154,7 +154,7 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 
 	/**
 	 * Create {@link ModuleDeploymentRequestsPath} for the given {@link ModuleDescriptor} and
-	 * the {@link RuntimeDeploymentProperties}.
+	 * the {@link RuntimeModuleDeploymentProperties}.
 	 *
 	 * @param client the curator client
 	 * @param descriptor the module descriptor

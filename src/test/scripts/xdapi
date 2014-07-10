@@ -55,7 +55,7 @@ deploy_job() {
 
 launch_job() {
   echo "Launching job $1 ..."
-  xdc -X PUT "$XDURL/jobs/$1/launch"
+  xdc -X POST "$XDURL/jobs/executions" -d "jobname=$1"
   echo -e '\n'
 }
 

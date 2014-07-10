@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
@@ -33,11 +32,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.xd.dirt.job.DetailedJobInfo;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
-import org.springframework.xd.dirt.job.JobInstanceInfo;
 import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.rest.client.domain.DetailedJobInfoResource;
-import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
 
 
 /**
@@ -78,39 +75,6 @@ public class BatchJobsController extends AbstractBatchJobsController {
 			jobs.add(getJobInfo(name, deployed));
 		}
 		return jobs;
-	}
-
-	/**
-	 * Return a paged collection of job instances for a given job.
-	 * 
-	 * @param jobName name of the batch job
-	 * @param startJobInstance start index for the job instance
-	 * @param pageSize page size for the list
-	 * @return collection of JobInstances by job name
-	 */
-	@RequestMapping(value = "/{jobName}/instances", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	public Collection<JobInstanceInfoResource> instancesForJob(@PathVariable String jobName,
-			@RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
-
-		try {
-			Collection<JobInstance> jobInstances = jobService.listJobInstances(jobName, startJobInstance, pageSize);
-			List<JobInstanceInfoResource> result = new ArrayList<JobInstanceInfoResource>();
-			for (JobInstance jobInstance : jobInstances) {
-				List<JobExecution> jobExecutions = (List<JobExecution>) jobService.getJobExecutionsForJobInstance(
-						jobName, jobInstance.getId());
-				List<JobExecutionInfo> jobExecutionInfos = new ArrayList<JobExecutionInfo>();
-				for (JobExecution jobExecution : jobExecutions) {
-					jobExecutionInfos.add(new JobExecutionInfo(jobExecution, timeZone));
-				}
-				result.add(jobInstanceInfoResourceAssembler.toResource(new JobInstanceInfo(jobInstance,
-						jobExecutionInfos)));
-			}
-			return result;
-		}
-		catch (NoSuchJobException e) {
-			throw new NoSuchBatchJobException(jobName);
-		}
 	}
 
 	/**

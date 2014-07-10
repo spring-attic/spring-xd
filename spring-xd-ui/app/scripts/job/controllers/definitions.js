@@ -22,15 +22,15 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils', '$state', '$timeout',
-    function ($scope, jobDefinitions, jobDefinitionService, utils, $state, $timeout) {
+  return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils', '$state', '$timeout', '$rootScope',
+    function ($scope, jobDefinitions, jobDefinitionService, utils, $state, $timeout, $rootScope) {
 
       (function loadJobDefinitions() {
         jobDefinitions.getAllJobDefinitions().$promise.then(
             function (result) {
               utils.$log.info(result);
               $scope.jobDefinitions = result.content;
-              var getJobDefinitions = $timeout(loadJobDefinitions, 5000);
+              var getJobDefinitions = $timeout(loadJobDefinitions, $rootScope.pageRefreshTime);
               $scope.$on('$destroy', function(){
                 $timeout.cancel(getJobDefinitions);
               });

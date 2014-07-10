@@ -187,6 +187,7 @@ define(['./app'], function (xdAdmin) {
     $rootScope.xdAdminServerUrl = window.location.protocol + '//' + window.location.host;
     $rootScope.authenticationEnabled = false;
     $rootScope.user = userService;
+    $rootScope.pageRefreshTime = 5000;
 
     $rootScope.$on('$stateChangeStart', function(event, toState) {
         $log.info('Need to authenticate? ' + toState.data.authenticate);

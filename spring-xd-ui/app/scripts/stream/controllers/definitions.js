@@ -21,15 +21,15 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'StreamService', 'XDUtils', '$timeout',
-    function ($scope, streamService, utils, $timeout) {
+  return ['$scope', 'StreamService', 'XDUtils', '$timeout', '$rootScope',
+    function ($scope, streamService, utils, $timeout, $rootScope) {
 
       (function loadStreamDefinitions() {
         streamService.getDefinitions().get(
             function (result) {
               utils.$log.info(result);
               $scope.streamDefinitions = result.content;
-              var getStreamDefinitions = $timeout(loadStreamDefinitions, 5000);
+              var getStreamDefinitions = $timeout(loadStreamDefinitions, $rootScope.pageRefreshTime);
               $scope.$on('$destroy', function(){
                 $timeout.cancel(getStreamDefinitions);
               });

@@ -34,11 +34,9 @@ public class JmsSinkModuleOptionsMetadata {
 
 	private boolean explicitQosEnabled = false;
 
-	private String destination = XD_STREAM_NAME;
-
 	private boolean pubSub = false;
 
-	private String destinationExpression = null;
+	private String destinationExpression = "'" + XD_STREAM_NAME + "'";
 
 	private boolean sessionTransacted = false;
 
@@ -116,12 +114,6 @@ public class JmsSinkModuleOptionsMetadata {
 		return provider;
 	}
 
-	@NotNull
-	public String getDestination() {
-		return destination;
-	}
-
-
 	public boolean isPubSub() {
 		return pubSub;
 	}
@@ -130,12 +122,6 @@ public class JmsSinkModuleOptionsMetadata {
 	@ModuleOption("the JMS provider")
 	public void setProvider(String provider) {
 		this.provider = provider;
-	}
-
-	@ModuleOption("the destination name from which messages will be received")
-	public void setDestination(String destination) {
-		setExplicitQosEnabled();
-		this.destination = destination;
 	}
 
 	@ModuleOption("when true, indicates that the destination is a topic")

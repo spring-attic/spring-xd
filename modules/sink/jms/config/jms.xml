@@ -6,13 +6,14 @@
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<import resource="../../../common/jms-${provider}-infrastructure-context.xml"/>
+	
+	<int:channel id="input"/>
 
 	<int-jms:outbound-channel-adapter id="jmsSink"
-		destination-name="${destination}"
+		destination-expression="destinationExpression"
 		session-transacted="${sessionTransacted}"
 		delivery-persistent ="${deliveryPersistent}"
 		pub-sub-domain="${pubSub}"
@@ -21,7 +22,5 @@
 		channel="input"
 		explicit-qos-enabled="${explicitQosEnabled}"
 		connection-factory="connectionFactory"/>
-
-	<int:channel id="input"/>
 
 </beans>

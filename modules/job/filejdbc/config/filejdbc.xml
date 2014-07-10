@@ -45,7 +45,7 @@
 		</property>
 	</bean>
 
-	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+	<bean id="moduleDataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
 		<property name="driverClassName" value="${driverClassName}"/>
 		<property name="url" value="${url}"/>
 		<property name="username" value="${username}"/>
@@ -80,7 +80,7 @@
 
 	<bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
 		<property name="databasePopulator" ref="databasePopulator"/>
-		<property name="dataSource" ref="dataSource"/>
+		<property name="dataSource" ref="moduleDataSource"/>
 		<property name="enabled" value="${initializeDatabase}"/>
 	</bean>
 
@@ -92,7 +92,7 @@
 	</bean>
 
 	<bean id="itemWriter" class="org.springframework.xd.jdbc.NamedColumnJdbcBatchItemWriter">
-		<property name="dataSource" ref="dataSource"/>
+		<property name="dataSource" ref="moduleDataSource"/>
 		<property name="tableName" value="${tableName}" />
 		<property name="columnNames" value="${names}" />
 		<property name="itemSqlParameterSourceProvider">

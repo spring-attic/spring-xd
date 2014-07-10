@@ -287,6 +287,21 @@ public class JobCommands implements CommandMarker {
 			details.append(jobParameterTable);
 		}
 
+		final String jobDefinitionStatus;
+		if (jobExecutionInfoResource.isDeleted()) {
+			jobDefinitionStatus = "Deleted";
+		}
+		else if (!jobExecutionInfoResource.isDeleted() && !jobExecutionInfoResource.isDeployed()) {
+			jobDefinitionStatus = "Undeployed";
+		}
+		else {
+			jobDefinitionStatus = "Deployed";
+		}
+
+		details.append(UiUtils.HORIZONTAL_LINE);
+		details.append("Underlying Job Definition Status: " + jobDefinitionStatus + "\n");
+		details.append(UiUtils.HORIZONTAL_LINE);
+
 		return details.toString();
 	}
 

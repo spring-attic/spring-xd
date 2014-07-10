@@ -4,3 +4,6 @@ services:
   - redis-server
 env:
   - TERM=dumb
+script:
+  - ./gradlew clean build --info
+

@@ -22,46 +22,48 @@
     <div ng-cloak class="splash" >
       <div class="container">Loading...</div>
     </div>
-
-    <nav class="navbar navbar-default" role="navigation" ng-cloak>
-      <div class="container">
-        <div class="navbar-header">
-          <a class="navbar-brand" ui-sref="home.jobs.tabs.definitions"><span></span></a>
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-        </div>
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-          <p ng-if="authenticationEnabled && user.isAuthenticated" class="navbar-text navbar-right">Signed in as
-            <strong>{{user.username}}</strong>
-          </p>
-          <p ng-if="authenticationEnabled && !user.isAuthenticated" class="navbar-text navbar-right">Not logged in</p>
-          <ul class="nav navbar-nav navbar-right">
-              <li ng-class="{ active: $state.includes('home.streams') }">
-                  <a ui-sref="home.streams.tabs.definitions">Streams</a>
+    <div id="wrap">
+      <nav class="navbar navbar-default" role="navigation" ng-cloak>
+        <div class="container">
+          <div class="navbar-header">
+            <a class="navbar-brand" ui-sref="home.jobs.tabs.definitions"><span></span></a>
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+          </div>
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <p ng-if="authenticationEnabled && user.isAuthenticated" class="navbar-text navbar-right">Signed in as
+              <strong>{{user.username}}</strong>
+            </p>
+            <p ng-if="authenticationEnabled && !user.isAuthenticated" class="navbar-text navbar-right">Not logged in</p>
+            <ul class="nav navbar-nav navbar-right">
+                <li ng-class="{ active: $state.includes('home.streams') }">
+                    <a ui-sref="home.streams.tabs.definitions">Streams</a>
+                </li>
+              <li ng-class="{ active: $state.includes('home.jobs') }">
+                <a ui-sref="home.jobs.tabs.definitions">Jobs</a>
               </li>
-            <li ng-class="{ active: $state.includes('home.jobs') }">
-              <a ui-sref="home.jobs.tabs.definitions">Jobs</a>
-            </li>
-            <li ng-class="{ active: $state.includes('home.about') }">
-              <a ui-sref="home.about">About</a>
-            </li>
-            <li ng-if="authenticationEnabled"
-              class="dropdown"><a data-target="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li ng-if="user.isAuthenticated"><a ui-sref="logout">Logout</a></li>
-                <li ng-if="!user.isAuthenticated"><a ui-sref="login">Login</a></li>
-              </ul>
-            </li>
-          </ul>
+              <li ng-class="{ active: $state.includes('home.about') }">
+                <a ui-sref="home.about">About</a>
+              </li>
+              <li ng-if="authenticationEnabled"
+                class="dropdown"><a data-target="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li ng-if="user.isAuthenticated"><a ui-sref="logout">Logout</a></li>
+                  <li ng-if="!user.isAuthenticated"><a ui-sref="login">Login</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
-    </nav>
-    <div growl></div>
-    <div ui-view ng-cloak cg-busy="{promise:cgbusy,delay:0,minDuration:500}"></div>
+      </nav>
+      <div growl></div>
+      <div ui-view ng-cloak cg-busy="{promise:cgbusy,delay:0,minDuration:500}"></div>
+      <div id="push"></div>
+    </div>
     <div id="footer" ng-cloak>
       <div class="container">
         <p class="text-muted">Code licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Open Source</a>

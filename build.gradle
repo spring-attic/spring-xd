@@ -16,6 +16,7 @@ buildscript {
 		classpath 'org.ajoberstar:gradle-git:0.8.0'
 		classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
 		classpath 'com.moowork.gradle:gradle-grunt-plugin:0.4'
+		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.10.0'
 	}
 }
 
@@ -155,10 +156,23 @@ configure(javaProjects) { subproject ->
 	apply plugin: 'propdeps-maven'
 	apply plugin: 'propdeps-idea'
 	apply plugin: 'propdeps-eclipse'
+	apply plugin: 'license'
 
-    bootRepackage {
-      enabled = false
-    }
+	license {
+		header rootProject.file('src/etc/header.txt')
+		skipExistingHeaders true
+		ext.year = Calendar.getInstance().get(Calendar.YEAR)
+		mapping {
+			java='SLASHSTAR_STYLE'
+		}
+		includes(['**/*.java'])
+		excludes(['**/package-info.java'])
+	}
+
+
+	bootRepackage {
+		enabled = false
+	}
 
 	compileJava {
 		sourceCompatibility=1.6

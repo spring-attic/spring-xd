@@ -25,6 +25,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -204,19 +205,25 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 			if (stream != null) {
 				String streamModulesPath = Paths.build(definitionPath, Paths.MODULES);
 				List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();
-				List<String> moduleDeployments = client.getChildren().forPath(streamModulesPath);
-				for (String moduleDeployment : moduleDeployments) {
-					StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(
-							Paths.build(streamModulesPath, moduleDeployment));
-					statusList.add(new ModuleDeploymentStatus(
-							streamDeploymentsPath.getContainer(),
-							streamDeploymentsPath.getModuleSequence(),
-							new ModuleDescriptor.Key(streamName,
-									ModuleType.valueOf(streamDeploymentsPath.getModuleType()),
-									streamDeploymentsPath.getModuleLabel()),
-							ModuleDeploymentStatus.State.deployed, null
-							));
+				try {
+					List<String> moduleDeployments = client.getChildren().forPath(streamModulesPath);
+					for (String moduleDeployment : moduleDeployments) {
+						StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(
+								Paths.build(streamModulesPath, moduleDeployment));
+						statusList.add(new ModuleDeploymentStatus(
+								streamDeploymentsPath.getContainer(),
+								streamDeploymentsPath.getModuleSequence(),
+								new ModuleDescriptor.Key(streamName,
+										ModuleType.valueOf(streamDeploymentsPath.getModuleType()),
+										streamDeploymentsPath.getModuleLabel()),
+								ModuleDeploymentStatus.State.deployed, null));
+					}
 				}
+				catch (KeeperException.NoNodeException e) {
+					// indicates there are no modules deployed for this stream;
+					// ignore as this will result in an empty statusList
+				}
+
 				DeploymentUnitStatus status = stateCalculator.calculate(stream,
 						new DefaultModuleDeploymentPropertiesProvider(stream), statusList);
 

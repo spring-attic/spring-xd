@@ -155,12 +155,12 @@ public class SimpleModule extends AbstractModule {
 
 	@Override
 	public <T> T getComponent(Class<T> requiredType) {
-		return this.context.getBean(requiredType);
+		return (this.context.isActive()) ? this.context.getBean(requiredType) : null;
 	}
 
 	@Override
 	public <T> T getComponent(String componentName, Class<T> requiredType) {
-		if (this.context.containsBean(componentName)) {
+		if (this.context.isActive() && this.context.containsBean(componentName)) {
 			return context.getBean(componentName, requiredType);
 		}
 		return null;

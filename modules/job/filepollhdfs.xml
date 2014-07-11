@@ -11,11 +11,11 @@
 		<batch:step id="fileHdfsStep">
 			<batch:tasklet>
 				<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="100"/>
+				<batch:listeners>
+					<batch:listener ref="fileDeletionListener" />
+				</batch:listeners>
 			</batch:tasklet>
 		</batch:step>
-		<batch:listeners>
-			<batch:listener ref="fileDeletionListener" />
-		</batch:listeners>
 	</batch:job>
 
 	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionStepExecutionListener">

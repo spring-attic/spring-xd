@@ -102,7 +102,7 @@ sed 's/\,/	/g' $TEST_DIR/delete_after_use.csv > $TEST_DIR/delete_after_use_tabs.
 
 create_job csvjdbcjob0 "filejdbc $JDBC_PARAMS --names=col1,col2,col3 --resources=file://$TEST_DIR/delete_after_use_tabs.csv --initializeDatabase=true --deleteFiles=true --delimiter='	'" 'true'
 launch_job csvjdbcjob0
-sleep 5
+sleep 10
 rows=`sqlite3 $DB_FILE 'select count(*) from csvjdbcjob0'`
 destroy_job csvjdbcjob0
 echo "Checking row count in database table matches import from file..."

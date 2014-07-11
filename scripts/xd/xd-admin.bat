@@ -85,8 +85,9 @@ if not defined XD_HOME (
 @rem Check for an explicitly set XD_CONFIG_* and XD_MODULE_CONFIG_*
 if not defined XD_CONFIG_LOCATION (
     set XD_CONFIG_LOCATION=file:%XD_HOME%/config/
+) else (
+	set XD_CONFIG_LOCATION=file:%XD_CONFIG_LOCATION%/
 )
-set XD_CONFIG_LOCATION=%XD_CONFIG_LOCATION%/
 
 if not defined XD_CONFIG_NAME (
     set XD_CONFIG_NAME=servers

@@ -184,8 +184,9 @@ fi
 # Check for explicity set XD_CONFIG_* and XD_MODULE_CONFIG_*
 if [ x"$XD_CONFIG_LOCATION" = x ] ; then
     export XD_CONFIG_LOCATION=file:$XD_HOME/config/
+else
+    export XD_CONFIG_LOCATION=file:$XD_CONFIG_LOCATION/
 fi
-export XD_CONFIG_LOCATION=$XD_CONFIG_LOCATION/
 if [ x"$XD_CONFIG_NAME" = x ] ; then
     export XD_CONFIG_NAME=servers
 fi

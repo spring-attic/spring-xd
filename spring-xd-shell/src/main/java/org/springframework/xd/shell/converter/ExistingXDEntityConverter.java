@@ -18,11 +18,14 @@ package org.springframework.xd.shell.converter;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.Completion;
 import org.springframework.shell.core.Converter;
 import org.springframework.shell.core.MethodTarget;
+import org.springframework.shell.core.SimpleParser;
+import org.springframework.shell.support.logging.HandlerUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.SpringXDOperations;
@@ -38,6 +41,8 @@ import org.springframework.xd.shell.XDShell;
  */
 @Component
 public class ExistingXDEntityConverter implements Converter<String> {
+
+	private static final Logger LOGGER = HandlerUtils.getLogger(SimpleParser.class);
 
 	@Autowired
 	private XDShell xdShell;
@@ -94,6 +99,7 @@ public class ExistingXDEntityConverter implements Converter<String> {
 			}
 		}
 		catch (Exception e) {
+			LOGGER.warning(String.format("Completion unavailable (%s)", e.getMessage()));
 			return false;
 		}
 		Assert.isTrue(kindSupported, "Unsupported kind: " + kind);

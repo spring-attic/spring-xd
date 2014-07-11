@@ -18,12 +18,16 @@ package org.springframework.xd.shell.converter;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.Completion;
 import org.springframework.shell.core.Converter;
 import org.springframework.shell.core.MethodTarget;
+import org.springframework.shell.core.SimpleParser;
+import org.springframework.shell.support.logging.HandlerUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.domain.DeployableResource;
 import org.springframework.xd.rest.client.domain.NamedResource;
@@ -37,6 +41,8 @@ import org.springframework.xd.shell.XDShell;
  */
 @Component
 public class ExistingXDEntityConverter implements Converter<String> {
+
+	private static final Logger LOGGER = HandlerUtils.getLogger(SimpleParser.class);
 
 	@Autowired
 	private XDShell xdShell;
@@ -65,30 +71,38 @@ public class ExistingXDEntityConverter implements Converter<String> {
 		SpringXDOperations springXDOperations = xdShell.getSpringXDOperations();
 		DeployedCriteria criteria = DeployedCriteria.parse(optionContext);
 
-		if ("stream".equals(kind)) {
-			populate(completions, springXDOperations.streamOperations().list(), criteria, "Streams");
+		boolean kindSupported = true;
+		try {
+			if ("stream".equals(kind)) {
+				populate(completions, springXDOperations.streamOperations().list(), criteria, "Streams");
+			}
+			else if ("job".equals(kind)) {
+				populate(completions, springXDOperations.jobOperations().list(), criteria, "Jobs");
+			}
+			else if ("counter".equals(kind)) {
+				populate(completions, springXDOperations.counterOperations().list(), criteria, "Counters");
+			}
+			else if ("fvc".equals(kind)) {
+				populate(completions, springXDOperations.fvcOperations().list(), criteria, "Field Value Counters");
+			}
+			else if ("gauge".equals(kind)) {
+				populate(completions, springXDOperations.gaugeOperations().list(), criteria, "Gauges");
+			}
+			else if ("rich-gauge".equals(kind)) {
+				populate(completions, springXDOperations.richGaugeOperations().list(), criteria, "Rich Gauges");
+			}
+			else if ("aggregate-counter".equals(kind)) {
+				populate(completions, springXDOperations.aggrCounterOperations().list(), criteria, "Aggregate Counters");
+			}
+			else {
+				kindSupported = false;
+			}
 		}
-		else if ("job".equals(kind)) {
-			populate(completions, springXDOperations.jobOperations().list(), criteria, "Jobs");
+		catch (Exception e) {
+			LOGGER.warning(String.format("Completion unavailable (%s)", e.getMessage()));
+			return false;
 		}
-		else if ("counter".equals(kind)) {
-			populate(completions, springXDOperations.counterOperations().list(), criteria, "Counters");
-		}
-		else if ("fvc".equals(kind)) {
-			populate(completions, springXDOperations.fvcOperations().list(), criteria, "Field Value Counters");
-		}
-		else if ("gauge".equals(kind)) {
-			populate(completions, springXDOperations.gaugeOperations().list(), criteria, "Gauges");
-		}
-		else if ("rich-gauge".equals(kind)) {
-			populate(completions, springXDOperations.richGaugeOperations().list(), criteria, "Rich Gauges");
-		}
-		else if ("aggregate-counter".equals(kind)) {
-			populate(completions, springXDOperations.aggrCounterOperations().list(), criteria, "Aggregate Counters");
-		}
-		else {
-			throw new IllegalArgumentException("Unsupported kind: " + kind);
-		}
+		Assert.isTrue(kindSupported, "Unsupported kind: " + kind);
 		return true;
 	}
 
@@ -102,7 +116,7 @@ public class ExistingXDEntityConverter implements Converter<String> {
 	}
 
 	/**
-	 * Additional criteria that may be passed in the option context allow restriction on deployed, undeployed or all
+	 * Additional criteria that may be passed in the option context to allow restriction on deployed, undeployed or all
 	 * entities.
 	 * 
 	 * @author Eric Bottard

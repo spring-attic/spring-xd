@@ -52,7 +52,13 @@ public class CompletionConverter implements Converter<String> {
 
 	@Override
 	public boolean supports(Class<?> type, String optionContext) {
-		return type == String.class && optionContext.contains(COMPLETION_CONTEXT_PREFIX);
+		String[] options = optionContext.split(" ");
+		for (String option : options) {
+			if (option.startsWith(COMPLETION_CONTEXT_PREFIX)) {
+				return type == String.class;
+			}
+		}
+		return false;
 	}
 
 	@Override

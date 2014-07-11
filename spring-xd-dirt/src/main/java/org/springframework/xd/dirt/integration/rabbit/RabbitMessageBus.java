@@ -425,6 +425,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		validateProducerProperties(name, properties, SUPPORTED_PUBSUB_PRODUCER_PROPERTIES);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String exchangeName = accessor.getPrefix(this.defaultPrefix) + "topic." + name;
+		this.rabbitAdmin.declareExchange(new FanoutExchange(exchangeName));
 		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
 		fanout.setExchangeName(exchangeName);
 		configureOutboundHandler(fanout, accessor);

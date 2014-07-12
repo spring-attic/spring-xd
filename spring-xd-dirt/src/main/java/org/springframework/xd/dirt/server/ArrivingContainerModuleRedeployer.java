@@ -24,6 +24,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,9 +104,34 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	 */
 	@Override
 	protected void deployModules(CuratorFramework client, Container container) throws Exception {
-		logger.info("Container arrived: {}", container.getName());
-		deployUnallocatedStreamModules(client, container);
-		deployUnallocatedJobModules(client, container);
+		String containerName = container.getName();
+		logger.info("Container arrived: {}", containerName);
+		if (hasDeployments(client, containerName)) {
+			// The only reason when the arriving container would already have module deployments is
+			// when a new deployment supervisor takes the leadership and the container in this context
+			// already exist with the deployments. Since this container has already been matched
+			// against the stream/job deployments, there is no need to perform the deployment of
+			// unallocated modules here.
+			logger.info(String.format("Arriving container '%s' already has module deployments", containerName));
+		}
+		else {
+			deployUnallocatedStreamModules(client, container);
+			deployUnallocatedJobModules(client, container);
+		}
+	}
+
+	/**
+	 * Check if the container has deployed any modules.
+	 *
+	 * @param client curator client
+	 * @param containerName the container name
+	 * @return boolean true if the container has deployments.
+	 * @throws Exception
+	 */
+	private boolean hasDeployments(CuratorFramework client, String containerName) throws Exception {
+		Stat stat = client.checkExists().forPath(
+				Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, containerName));
+		return (stat != null && stat.getNumChildren() > 0);
 	}
 
 	/**
@@ -134,8 +160,8 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 				Set<String> deployedModules = new HashSet<String>();
 
 				try {
-					for (String deployedModule :
-							client.getChildren().forPath(Paths.build(data.getPath(), Paths.MODULES))) {
+					for (String deployedModule : client.getChildren().forPath(
+							Paths.build(data.getPath(), Paths.MODULES))) {
 						deployedModules.add(Paths.stripPath(new StreamDeploymentsPath(Paths.build(data.getPath(),
 								Paths.MODULES,
 								deployedModule)).getModuleInstanceAsString()));

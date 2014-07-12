@@ -156,14 +156,21 @@ public abstract class AbstractIntegrationTest {
 		result = StreamUtils.getAvailableContainers(adminServer);
 		//if ec2 replace local aws DNS with external DNS
 		if (isOnEc2) {
-			Map<String, String> privateIpMap = getPrivateIpToPublicIP(StreamUtils.getEC2RunningInstances(
+			Map<String, String> metadataIpMap = getPrivateIpToPublicIP(StreamUtils.getEC2RunningInstances(
 					awsAccessKey, awsSecretKey, awsRegion));
 			Iterator<String> keysIter = result.keySet().iterator();
 			while (keysIter.hasNext()) {
 				String key = keysIter.next();
-				String privateIP = result.get(key) + ".ec2.internal";
-				if (privateIpMap.containsKey(privateIP)) {
-					result.put(key, privateIpMap.get(privateIP));
+				String privateIP = result.get(key);
+				Iterator<String> metadataIter = metadataIpMap.keySet().iterator();
+				while (metadataIter.hasNext()) {
+					String metadataPrivateIP = metadataIter.next();
+					//AWS metadata suffixes its data with .ec2.internal or .compute-1.internal.  So we are finding
+					//the metadata private ip that contains the internal id returned by the admin server. 
+					if (metadataPrivateIP != null && metadataPrivateIP.contains(privateIP)) {
+						result.put(key, metadataIpMap.get(metadataPrivateIP));
+						break;
+					}
 				}
 			}
 		}
@@ -357,12 +364,12 @@ public abstract class AbstractIntegrationTest {
 		}
 	}
 
-        /*
-	 * Launches a job on the XD instance
-	 *
-	 * @param jobName The name of the job to be launched
-	 * @param jobParameters the job parameters
-	 */
+	/*
+	* Launches a job on the XD instance
+	*
+	* @param jobName The name of the job to be launched
+	* @param jobParameters the job parameters
+	*/
 	public void jobLaunch(String jobName, String jobParameters) {
 		JobUtils.launch(adminServer, jobName, jobParameters);
 		waitForXD();

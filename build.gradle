@@ -1708,7 +1708,6 @@ task copyXDInstall(type: Copy, dependsOn: [
 	exclude "**/lib/hadoop-*.jar"
 	exclude "**/lib/protobuf-java-*.jar"
 	exclude "**/commons-logging*.jar"
-	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
 task copyXDShellInstall(type: Copy, dependsOn: [
@@ -1758,7 +1757,6 @@ task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-x
 	exclude "**/config/servers.yml"
 	exclude "**/config/modules"
 	exclude "**/lib/hadoop-*.jar"
-	exclude "**/lib/spring-data-hadoop-*.jar"
     exclude "**/lib/slf4j-log4j12-*.jar"
     exclude "**/lib/log4j-*.jar"
 }

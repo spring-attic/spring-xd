@@ -68,23 +68,19 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
       };
     }])
     .directive('xdDuration', [function() {
-      var startDateTime;
-      var endDateTime;
-      var element;
-
-      function updateDuration() {
-        if (startDateTime && endDateTime) {
-          console.log(startDateTime);
-          console.log(endDateTime);
-
-          var duration = moment.duration(endDateTime - startDateTime);
-          element.html(duration.asMilliseconds() + ' ms');
-          console.log(duration);
-        }
-      }
 
       var linkFunction = function(scope, el) {
+        var startDateTime;
+        var endDateTime;
+        var element;
 
+        function updateDuration() {
+          if (startDateTime && endDateTime) {
+            var duration = moment.duration(endDateTime - startDateTime);
+            element.html(duration.asMilliseconds() + ' ms');
+            console.log(duration);
+          }
+        }
         element = el;
         scope.$watch('start', function(value){
           if (value) {
@@ -106,6 +102,37 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
           xdDuration: '=',
           start: '=',
           end: '='
+        },
+        link: linkFunction,
+      };
+    }])
+    .directive('xdDateTime', [function() {
+      var dateTimeFormat = 'YYYY-MM-DD HH:mm:ss,SSS';
+
+      var linkFunction = function(scope, element, attributes) {
+
+        function formatDateTime(dateTimeValue) {
+          if (dateTimeValue) {
+            var startDateTime = moment(dateTimeValue);
+            element.html('<span title="UTC Timezone offset: ' + moment().zone() +' minutes">' + startDateTime.format(dateTimeFormat) + '</span>');
+          }
+          else {
+            element.html('N/A');
+          }
+        }
+
+        formatDateTime(attributes.xdDateTime);
+
+        attributes.$observe('xdDateTime', function(value){
+          if (value) {
+            formatDateTime(value);
+          }
+        });
+      };
+      return {
+        restrict: 'A',
+        scope: {
+          xdDateTime: '@'
         },
         link: linkFunction,
       };
@@ -151,7 +178,6 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
               scope.labelClass = 'warning';
               scope.label = 'Undeployed';
             }
-            console.log(resource);
           }
         });
       };

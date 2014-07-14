@@ -43,16 +43,16 @@
       <td>{{jobExecutionDetails.jobParametersString}}</td>
     <tr>
     <tr>
-      <td>Start Date</td>
-      <td>{{jobExecutionDetails.startDate}}</td>
-    <tr>
-    <tr>
       <td>Start Time</td>
-      <td>{{jobExecutionDetails.startTime}} ({{jobExecutionDetails.timeZone}})</td>
+      <td xd-date-time="{{jobExecutionDetails.jobExecution.startTime}}"></td>
+    <tr>
+    <tr>
+      <td>End Time</td>
+      <td xd-date-time="{{jobExecutionDetails.jobExecution.endTime}}"></td>
     <tr>
     <tr>
       <td>Duration</td>
-      <td>{{jobExecutionDetails.duration}}</td>
+      <td xd-duration start='jobExecutionDetails.jobExecution.startTime' end='jobExecutionDetails.jobExecution.endTime'></td>
     <tr>
     <tr>
       <td>Status</td>

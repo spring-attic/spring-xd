@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +24,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,6 @@ import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentRequestsPath;
-import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.job.JobFactory;
@@ -106,41 +104,41 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	 */
 	@Override
 	protected void deployModules(CuratorFramework client, Container container) throws Exception {
-		logger.info("Container arrived: {}", container.getName());
-
-		if (getModuleDeployments(client, container.getName()).isEmpty()) {
-			deployUnallocatedStreamModules(client, container);
-			deployUnallocatedJobModules(client, container);
-		}
-		else {
+		String containerName = container.getName();
+		logger.info("Container arrived: {}", containerName);
+		if (hasDeployments(client, containerName)) {
 			// The only reason when the arriving container would already have module deployments is
 			// when a new deployment supervisor takes the leadership and the container in this context
 			// already exist with the deployments. Since this container has already been matched
 			// against the stream/job deployments, there is no need to perform the deployment of
 			// unallocated modules here.
-			logger.info("Arriving container already has module deployments");
+			logger.info(String.format("Arriving container '%s' already has module deployments", containerName));
+		}
+		else {
+			deployUnallocatedStreamModules(client, container);
+			deployUnallocatedJobModules(client, container);
 		}
 	}
 
 	/**
-	 * Get all the allocated module deployments under the given container's {@link ModuleDeploymentsPath}.
+	 * Check if the container has deployed any modules.
 	 *
 	 * @param client curator client
 	 * @param containerName the container name
-	 * @return the collection of module deployments on the given container.
+	 * @return boolean true if the container has deployments.
 	 * @throws Exception
 	 */
-	private Collection<String> getModuleDeployments(CuratorFramework client, String containerName) throws Exception {
-		Collection<String> deployments = new ArrayList<String>();
+	private boolean hasDeployments(CuratorFramework client, String containerName) throws Exception {
 		try {
-			String containerDeployments = Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, containerName);
-			deployments = client.getChildren().forPath(containerDeployments);
+			Stat stat = client.checkExists().forPath(
+					Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, containerName));
+			return (stat != null && stat.getNumChildren() > 0);
 		}
 		catch (KeeperException.NoNodeException e) {
 			// the container has not deployed any modules yet.
 			// hence, this can be ignored.
 		}
-		return deployments;
+		return false;
 	}
 
 	/**

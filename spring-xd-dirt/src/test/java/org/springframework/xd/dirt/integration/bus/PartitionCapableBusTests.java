@@ -30,9 +30,11 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.amqp.utils.test.TestUtils;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 
@@ -105,7 +107,13 @@ abstract public class PartitionCapableBusTests extends BrokerBusTests {
 		input2.setBeanName("test.input2S");
 		bus.bindConsumer("part.0", input2, properties);
 
-		output.send(new GenericMessage<Integer>(2));
+		Message<Integer> message2 = MessageBuilder.withPayload(2)
+				.setHeader(IntegrationMessageHeaderAccessor.CORRELATION_ID, "foo")
+				.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER, 42)
+				.setHeader(IntegrationMessageHeaderAccessor.SEQUENCE_SIZE, 43)
+				.setHeader("xdReplyChannel", "bar")
+				.build();
+		output.send(message2);
 		output.send(new GenericMessage<Integer>(1));
 		output.send(new GenericMessage<Integer>(0));
 
@@ -118,6 +126,11 @@ abstract public class PartitionCapableBusTests extends BrokerBusTests {
 		Message<?> receive2 = input2.receive(1000);
 		assertNotNull(receive2);
 		assertEquals(2, receive2.getPayload());
+		IntegrationMessageHeaderAccessor accessor = new IntegrationMessageHeaderAccessor(receive2);
+		assertEquals("foo", accessor.getCorrelationId());
+		assertEquals(Integer.valueOf(42), accessor.getSequenceNumber());
+		assertEquals(Integer.valueOf(43), accessor.getSequenceSize());
+		assertEquals("bar", accessor.getHeader("xdReplyChannel"));
 
 		bus.unbindConsumers("part.0");
 		bus.unbindProducers("part.0");

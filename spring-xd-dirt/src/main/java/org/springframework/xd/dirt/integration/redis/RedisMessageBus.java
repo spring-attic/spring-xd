@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.integration.redis;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.MediaType;
+import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -71,9 +73,26 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 	private static final String ERROR_HEADER = "errorKey";
 
+	private static final String XD_REPLY_CHANNEL = "xdReplyChannel";
+
 	private static final String REPLY_TO = "replyTo";
 
+	/**
+	 * The headers that will be propagated, by default.
+	 */
+	private static final String[] STANDARD_HEADERS = new String[] {
+		IntegrationMessageHeaderAccessor.CORRELATION_ID,
+		IntegrationMessageHeaderAccessor.SEQUENCE_SIZE,
+		IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
+		XD_REPLY_CHANNEL,
+		MessageHeaders.CONTENT_TYPE,
+		ORIGINAL_CONTENT_TYPE_HEADER,
+		REPLY_TO
+	};
+
 	private static final SpelExpressionParser parser = new SpelExpressionParser();
+
+	private final String[] headersToMap;
 
 	/**
 	 * Retry only.
@@ -141,12 +160,26 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	private final RedisQueueOutboundChannelAdapter errorAdapter;
 
 	public RedisMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
+		this(connectionFactory, codec, new String[0]);
+	}
+
+	public RedisMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec,
+			String... headersToMap) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		Assert.notNull(codec, "codec must not be null");
 		this.connectionFactory = connectionFactory;
 		setCodec(codec);
 		this.errorAdapter = new RedisQueueOutboundChannelAdapter(
 				parser.parseExpression("headers['" + ERROR_HEADER + "']"), connectionFactory);
+		if (headersToMap != null || headersToMap.length > 0) {
+			String[] combinedHeadersToMap =
+					Arrays.copyOfRange(STANDARD_HEADERS, 0, STANDARD_HEADERS.length + headersToMap.length);
+			System.arraycopy(headersToMap, 0, combinedHeadersToMap, STANDARD_HEADERS.length, headersToMap.length);
+			this.headersToMap = combinedHeadersToMap;
+		}
+		else {
+			this.headersToMap = STANDARD_HEADERS;
+		}
 	}
 
 	@Override
@@ -422,7 +455,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 						.build();
 			}
 			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
-					MessageHeaders.CONTENT_TYPE, ORIGINAL_CONTENT_TYPE_HEADER, REPLY_TO);
+					RedisMessageBus.this.headersToMap);
 			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
 			delegate.handleMessage(messageToSend);
 		}
@@ -492,7 +525,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			byte[] bytes = message.getPayload();
 			ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
 			int headerCount = byteBuffer.get();
-			Map<String, String> headers = new HashMap<String, String>();
+			Map<String, Object> headers = new HashMap<String, Object>();
 			for (int i = 0; i < headerCount; i++) {
 				int len = byteBuffer.get();
 				String headerName = new String(bytes, byteBuffer.position(), len, "UTF-8");
@@ -500,7 +533,13 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 				len = byteBuffer.get();
 				String headerValue = new String(bytes, byteBuffer.position(), len, "UTF-8");
 				byteBuffer.position(byteBuffer.position() + len);
-				headers.put(headerName, headerValue);
+				if (IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(headerName)
+						|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(headerName)) {
+					headers.put(headerName, Integer.parseInt(headerValue));
+				}
+				else {
+					headers.put(headerName, headerValue);
+				}
 			}
 			byte[] newPayload = new byte[byteBuffer.remaining()];
 			byteBuffer.get(newPayload);

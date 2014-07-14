@@ -41,6 +41,7 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
 import org.springframework.http.MediaType;
 import org.springframework.integration.amqp.AmqpHeaders;
@@ -335,6 +336,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		listenerContainer.setPrefetchCount(properties.getPrefetchCount(this.defaultPrefetchCount));
 		listenerContainer.setTxSize(properties.getTxSize(this.defaultTxSize));
+		listenerContainer.setTaskExecutor(new SimpleAsyncTaskExecutor(queue.getName() + "-"));
 		listenerContainer.setQueues(queue);
 		int maxAttempts = properties.getMaxAttempts(this.defaultMaxAttempts);
 		if (maxAttempts > 1) {

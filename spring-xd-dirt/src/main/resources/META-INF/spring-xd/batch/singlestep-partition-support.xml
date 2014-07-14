@@ -35,21 +35,33 @@
 
 	<!-- Master -->
 
-	<int:channel id="stepExecutionRequests.output" />
-
-	<int:channel id="stepExecutionReplies.input" />
-
 	<bean id="partitionHandler" class="org.springframework.batch.integration.partition.MessageChannelPartitionHandler">
 		<property name="messagingOperations">
 			<bean class="org.springframework.integration.core.MessagingTemplate">
-				<property name="defaultChannel" ref="stepExecutionRequests.output" />
+				<property name="defaultChannel" ref="setHeaderReplyChannelChannel" />
 				<property name="receiveTimeout" value="${partitionResultsTimeout:3600000}" />
 			</bean>
 		</property>
 		<property name="stepName" value="step1" />
 	</bean>
 
-	<int:aggregator ref="partitionHandler" send-timeout="10000" input-channel="stepExecutionReplies.input" />
+	<int:header-enricher input-channel="setHeaderReplyChannelChannel" output-channel="stepExecutionRequests.output">
+		<int:header name="xdReplyChannel" expression="@replyChannelRegistry.channelToChannelName(headers.replyChannel)" />
+	</int:header-enricher>
+
+	<int:channel id="stepExecutionRequests.output" />
+
+			<!-- Message Bus  -->
+
+	<int:channel id="stepExecutionReplies.input" />
+
+	<int:header-enricher input-channel="stepExecutionReplies.input" output-channel="resultAggregationChannel">
+		<int:reply-channel expression="@replyChannelRegistry.channelNameToChannel(headers.xdReplyChannel)" />
+	</int:header-enricher>
+
+	<int:channel id="resultAggregationChannel" />
+
+	<int:aggregator ref="partitionHandler" send-timeout="10000" input-channel="resultAggregationChannel" />
 
 	<job id="job" restartable="${restartable}" xmlns="http://www.springframework.org/schema/batch">
 		<step id="step1-master">
@@ -77,6 +89,10 @@
 		<property name="serializer">
 			<bean class="org.springframework.batch.core.repository.dao.XStreamExecutionContextStringSerializer" />
 		</property>
+	</bean>
+
+	<bean id="replyChannelRegistry" class="org.springframework.integration.channel.DefaultHeaderChannelRegistry">
+		<constructor-arg value="${partitionResultsTimeout:3600000}" />
 	</bean>
 
 </beans>

@@ -23,9 +23,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -36,6 +39,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.amqp.utils.test.TestUtils;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.expression.Expression;
@@ -326,6 +330,15 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 		Object rightPop = template.boundListOps("ERRORS:retry.0").rightPop(5, TimeUnit.SECONDS);
 		assertNotNull(rightPop);
 		assertThat(new String((byte[]) rightPop), containsString("foo"));
+	}
+
+	@Test
+	public void testMoreHeaders() {
+		RedisMessageBus bus = new RedisMessageBus(mock(RedisConnectionFactory.class), getCodec(), "foo", "bar");
+		Collection<String> headers = Arrays.asList(TestUtils.getPropertyValue(bus, "headersToMap", String[].class));
+		assertEquals(9, headers.size());
+		assertTrue(headers.contains("foo"));
+		assertTrue(headers.contains("bar"));
 	}
 
 	private RedisTemplate<String, Object> createTemplate() {

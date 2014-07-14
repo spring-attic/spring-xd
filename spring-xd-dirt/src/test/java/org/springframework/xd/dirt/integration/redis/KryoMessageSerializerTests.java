@@ -30,7 +30,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 
 /**
- * 
+ *
  * @author David Turanski
  */
 public class KryoMessageSerializerTests {
@@ -90,6 +90,12 @@ public class KryoMessageSerializerTests {
 			return i == foo.i && (s == null && foo.s == null || s.equals(foo.s));
 		}
 
+		@Override
+		public int hashCode() {
+			int result = i;
+			result = 31 * result + (s != null ? s.hashCode() : 0);
+			return result;
+		}
 	}
 
 }

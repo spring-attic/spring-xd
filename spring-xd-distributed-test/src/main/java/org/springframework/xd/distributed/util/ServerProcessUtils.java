@@ -28,9 +28,9 @@ import java.util.Set;
 
 import org.apache.curator.test.TestingServer;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,7 +218,7 @@ public class ServerProcessUtils {
 		Exception exception = null;
 		int httpStatus = 0;
 		long expiry = System.currentTimeMillis() + 30000;
-		HttpClient httpclient = new DefaultHttpClient();
+		CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 
 		try {
 			do {
@@ -226,7 +226,7 @@ public class ServerProcessUtils {
 					Thread.sleep(100);
 
 					HttpGet httpGet = new HttpGet(url);
-					httpStatus = httpclient.execute(httpGet).getStatusLine().getStatusCode();
+					httpStatus = httpClient.execute(httpGet).getStatusLine().getStatusCode();
 					if (httpStatus == HttpStatus.SC_OK) {
 						connected = true;
 					}
@@ -238,7 +238,12 @@ public class ServerProcessUtils {
 			while ((!connected) && System.currentTimeMillis() < expiry);
 		}
 		finally {
-			httpclient.getConnectionManager().shutdown();
+			try {
+				httpClient.close();
+			}
+			catch (IOException e) {
+				// ignore exception on close
+			}
 		}
 
 		if (!connected) {

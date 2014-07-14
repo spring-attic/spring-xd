@@ -176,6 +176,7 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 				"source --outputType=application/json | sink --inputType=java.util.Map");
 		MessageTest test = new MessageTest() {
 
+			@SuppressWarnings("rawtypes")
 			@Override
 			public void test(Message<?> message) throws MessagingException {
 				Map map = (Map) message.getPayload();

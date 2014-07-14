@@ -97,6 +97,13 @@ public class KryoCodecTests {
 			SomeClassWithNoDefaultConstructors that = (SomeClassWithNoDefaultConstructors) other;
 			return (this.val1.equals(that.val1) && val2 == that.val2);
 		}
+
+		@Override
+		public int hashCode() {
+			int result = val1.hashCode();
+			result = 31 * result + val2;
+			return result;
+		}
 	}
 
 	@Test

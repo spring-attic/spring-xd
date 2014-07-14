@@ -58,13 +58,13 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 	@Test
 	public void testPayloadConversionNotNeededExplicitType() throws Exception {
 		LocalMessageBus bus = (LocalMessageBus) getMessageBus();
-		verifyPayloadConversion(new Foo(), bus);
+		verifyPayloadConversion(new TestPayload(), bus);
 	}
 
 	@Test
 	public void testNoPayloadConversionByDefault() throws Exception {
 		LocalMessageBus bus = (LocalMessageBus) getMessageBus();
-		verifyPayloadConversion(new Foo(), bus);
+		verifyPayloadConversion(new TestPayload(), bus);
 	}
 
 
@@ -85,14 +85,14 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 			}
 		});
 
-		Message<Foo> msg = MessageBuilder.withPayload(new Foo())
+		Message<TestPayload> msg = MessageBuilder.withPayload(new TestPayload())
 				.setHeader(MessageHeaders.CONTENT_TYPE, MediaType.ALL_VALUE).build();
 
 		input.send(msg);
 		assertTrue(msgSent.get());
 	}
 
-	static class Foo {
+	static class TestPayload {
 
 		@Override
 		public String toString() {
@@ -101,10 +101,13 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 
 		@Override
 		public boolean equals(Object other) {
-			if (!(other instanceof Foo)) {
-				return false;
-			}
-			return this.toString().equals(other.toString());
+			return (other instanceof TestPayload && this.toString().equals(other.toString()));
 		}
+
+		@Override
+		public int hashCode() {
+			return this.toString().hashCode();
+		}
+
 	}
 }

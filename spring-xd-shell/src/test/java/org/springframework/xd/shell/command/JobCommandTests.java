@@ -491,7 +491,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 				break;
 			}
 		}
-		assertTrue(executionStatus.equals("STOPPING") || executionStatus.equals("STOPPED"));
+		assertTrue("Expected an executionStatus with Status 'STOPPING' or 'STOPPED' but got " + executionStatus,
+				executionStatus.equals("STOPPING") || executionStatus.equals("STOPPED"));
 	}
 
 	public void testStepExecutionProgress() {

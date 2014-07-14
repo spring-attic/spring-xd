@@ -19,10 +19,10 @@ package org.springframework.xd.shell.util;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -135,34 +135,40 @@ public final class CommonUtils {
 	}
 
 	/**
-	 * Return a date/time/UTC formatted String for the provided {@link Date}. Uses {@link SimpleDateFormat} with format
-	 * {@code yyyy-MM-dd HH:mm:ss,SSS}
+	 * Return a date/time formatted String for the provided {@link Date} and {@link TimeZone}.
+	 * Uses the {@link DateFormat} provided by {@link TimeUtils#getDefaultDateTimeFormat()}
 	 *
-	 * @param date Must not be null
+	 * If the date is {@code null} {@link CommonUtils#NOT_AVAILABLE} is returned.
+	 *
+	 * @param date Can be null
+	 * @param timeZone Must not be null
 	 * @return Formatted date/time
 	 */
-	public static String getUtcTime(Date date) {
-		Assert.notNull(date, "The provided date must not be null.");
+	public static String getLocalTime(Date date, TimeZone timeZone) {
+		if (date == null) {
+			return CommonUtils.NOT_AVAILABLE;
+		}
 
-		final TimeZone timeZone = TimeUtils.getDefaultTimeZone();
+		Assert.notNull(timeZone, "The provided timeZone must not be null.");
+
 		final DateFormat dateFormat = TimeUtils.getDefaultDateTimeFormat();
 		dateFormat.setTimeZone(timeZone);
 		return dateFormat.format(date);
 	}
 
 	/**
-	 * Return a date/time formatted String for the provided {@link Date}. The JVM
-	 * {@link TimeZone} is used. Uses {@link SimpleDateFormat} with format
-	 * {@code yyyy-MM-dd HH:mm:ss,SSS}
+	 * Returns the timezone name as well as the UTC offset.
 	 *
-	 * @param date Must not be null
-	 * @return Formatted date/time
+	 * @param timeZone Must not be null
+	 * @return String detailing the timezone name and offset.
 	 */
-	public static String getLocalTime(Date date) {
-		Assert.notNull(date, "The provided date must not be null.");
-		final TimeZone timeZone = TimeUtils.getJvmTimeZone();
-		final DateFormat dateFormat = TimeUtils.getDefaultDateTimeFormat();
-		dateFormat.setTimeZone(timeZone);
-		return dateFormat.format(date);
+	public static String getTimeZoneNameWithOffset(TimeZone timeZone) {
+		Assert.notNull(timeZone, "The provided timeZone must not be null.");
+
+		long hours = TimeUnit.MILLISECONDS.toHours(timeZone.getRawOffset());
+		long minutes = TimeUnit.MILLISECONDS.toMinutes(timeZone.getRawOffset()) - TimeUnit.HOURS.toMinutes(hours);
+
+		return String.format("%s (UTC %d:%02d)", timeZone.getDisplayName(), hours, minutes);
+
 	}
 }

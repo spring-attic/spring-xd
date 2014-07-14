@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Provides the Spring XD specific {@link BannerProvider}.
- * 
+ *
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -37,7 +37,7 @@ import org.springframework.xd.shell.util.UiUtils;
 public class XDShellBannerProvider implements BannerProvider {
 
 	@Autowired
-	private XDShell xdShell;
+	private Configuration configuration;
 
 	private static final String WELCOME = "Welcome to the Spring XD shell. For assistance hit TAB or type \"help\".";
 
@@ -49,7 +49,7 @@ public class XDShellBannerProvider implements BannerProvider {
 	@Override
 	public String getBanner() {
 
-		final Target target = this.xdShell.getTarget();
+		final Target target = this.configuration.getTarget();
 
 		StringBuilder banner = new StringBuilder();
 		banner.append(FileUtils.readBanner(XDShellBannerProvider.class, "/banner.txt"));

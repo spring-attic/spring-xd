@@ -251,6 +251,11 @@ configure(javaProjects) { subproject ->
 		maxParallelForks = project.hasProperty('maxParallelForks') ? project.maxParallelForks as int : 1
 		forkEvery = 10
 		ignoreFailures = project.hasProperty('ignoreTestFailures') ? getProperty('ignoreTestFailures') : false
+		if (project.hasProperty('testLoggingStarted')) {
+		  testLogging {
+		    events 'started'
+		  }
+                }
 	}
 
 	javadoc {

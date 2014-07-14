@@ -5,5 +5,5 @@ services:
 env:
   - TERM=dumb
 script:
-  - ./gradlew clean build --info
+  - ./gradlew clean build -PtestLoggingStarted=true
 

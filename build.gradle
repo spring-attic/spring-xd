@@ -114,24 +114,27 @@ ext {
 }
 
 def forceDependencyVersions(project) {
-	project.configurations.all { configuration ->
-		if ('versionManagement' != configuration.name) {
+	def hadoopInstalls=['cdh5','hadoop22','hadoop24','hdp21','phd1','phd20']
+	if (!hadoopInstalls.contains(project.name)) {
+		project.configurations.all { configuration ->
+			if ('versionManagement' != configuration.name) {
 
-			def versions = [:]
+				def versions = [:]
 
-			project.configurations.versionManagement.files.each {
-				it.withReader { reader ->
-					def properties = new Properties()
-					properties.load(reader)
-					versions << properties
+				project.configurations.versionManagement.files.each {
+					it.withReader { reader ->
+						def properties = new Properties()
+						properties.load(reader)
+						versions << properties
+					}
 				}
-			}
 
-			resolutionStrategy {
-				eachDependency { details ->
-					def version = versions["$details.requested.group:$details.requested.name"]
-					if (version) {
-						details.useVersion version
+				resolutionStrategy {
+					eachDependency { details ->
+						def version = versions["$details.requested.group:$details.requested.name"]
+						if (version) {
+							details.useVersion version
+						}
 					}
 				}
 			}

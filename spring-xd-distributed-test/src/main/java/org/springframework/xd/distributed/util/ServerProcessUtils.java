@@ -26,14 +26,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import com.oracle.tools.runtime.PropertiesBuilder;
-import com.oracle.tools.runtime.console.SystemApplicationConsole;
-import com.oracle.tools.runtime.java.JavaApplication;
-import com.oracle.tools.runtime.java.NativeJavaApplicationBuilder;
-import com.oracle.tools.runtime.java.SimpleJavaApplication;
-import com.oracle.tools.runtime.java.SimpleJavaApplicationSchema;
-
-import org.apache.curator.test.InstanceSpec;
 import org.apache.curator.test.TestingServer;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -49,6 +41,13 @@ import org.springframework.xd.dirt.server.AdminServerApplication;
 import org.springframework.xd.dirt.server.ContainerServerApplication;
 import org.springframework.xd.rest.client.domain.ContainerResource;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+
+import com.oracle.tools.runtime.PropertiesBuilder;
+import com.oracle.tools.runtime.console.SystemApplicationConsole;
+import com.oracle.tools.runtime.java.JavaApplication;
+import com.oracle.tools.runtime.java.NativeJavaApplicationBuilder;
+import com.oracle.tools.runtime.java.SimpleJavaApplication;
+import com.oracle.tools.runtime.java.SimpleJavaApplicationSchema;
 
 /**
  * Collection of utilities for starting external processes required
@@ -74,15 +73,7 @@ public class ServerProcessUtils {
 	 * @throws Exception
 	 */
 	public static TestingServer startZooKeeper(int port) throws Exception {
-		return new TestingServer(new InstanceSpec(
-				null,  // dataDirectory
-				port,  // port
-				-1,    // electionPort
-				-1,    // quorumPort
-				true,  // deleteDataDirectoryOnClose
-				-1,    // serverId
-				500,   // tickTime
-				-1));  // maxClientCnxns
+		return new TestingServer(port);
 	}
 
 	/**

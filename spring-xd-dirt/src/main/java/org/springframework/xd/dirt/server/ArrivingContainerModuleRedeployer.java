@@ -24,7 +24,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +33,7 @@ import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentRequestsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.job.JobFactory;
@@ -106,32 +106,51 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	protected void deployModules(CuratorFramework client, Container container) throws Exception {
 		String containerName = container.getName();
 		logger.info("Container arrived: {}", containerName);
-		if (hasDeployments(client, containerName)) {
-			// The only reason when the arriving container would already have module deployments is
-			// when a new deployment supervisor takes the leadership and the container in this context
-			// already exist with the deployments. Since this container has already been matched
-			// against the stream/job deployments, there is no need to perform the deployment of
-			// unallocated modules here.
-			logger.info(String.format("Arriving container '%s' already has module deployments", containerName));
-		}
-		else {
-			deployUnallocatedStreamModules(client, container);
-			deployUnallocatedJobModules(client, container);
-		}
+		deployUnallocatedStreamModules(client, container);
+		deployUnallocatedJobModules(client, container);
 	}
 
 	/**
-	 * Check if the container has deployed any modules.
+	 * Get the set of all allocated {@link ModuleDeploymentsPath}s for the given container.
 	 *
-	 * @param client curator client
+	 * @param client the curator client
 	 * @param containerName the container name
-	 * @return boolean true if the container has deployments.
+	 * @return the set of all the allocated module deployments for this container.
 	 * @throws Exception
 	 */
-	private boolean hasDeployments(CuratorFramework client, String containerName) throws Exception {
-		Stat stat = client.checkExists().forPath(
-				Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, containerName));
-		return (stat != null && stat.getNumChildren() > 0);
+	private Set<ModuleDeploymentsPath> getAllocatedModulesPaths(CuratorFramework client, String containerName)
+			throws Exception {
+		Set<ModuleDeploymentsPath> deployments = new HashSet<ModuleDeploymentsPath>();
+		String containerDeploymentPath = Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, containerName);
+		try {
+			List<String> containerDeployments = client.getChildren().forPath(containerDeploymentPath);
+			for (String deployment : containerDeployments) {
+				deployments.add(new ModuleDeploymentsPath(Paths.build(containerDeploymentPath, deployment)));
+			}
+		}
+		catch (KeeperException.NoNodeException e) {
+			// ignore the NoNodeException here as this means the container doesn't have any deployments.
+		}
+		return deployments;
+	}
+
+	/**
+	 * Check if the container has any pre-existing deployment of the same module label for the given deployment
+	 * unit name.
+	 *
+	 * @param allocatedModulesPaths the set of allocated {@link ModuleDeploymentPath}s
+	 * @param unitName the deployment unit (stream/job) name
+	 * @param moduleLabel the module label for the module
+	 * @return true if the container has at least one deployment of the same module type for the given stream.
+	 */
+	private boolean hasSameModuleLabelDeployment(Set<ModuleDeploymentsPath> allocatedModulesPaths, String unitName,
+			String moduleLabel) {
+		for (ModuleDeploymentsPath path : allocatedModulesPaths) {
+			if (path.getDeploymentUnitName().equals(unitName) && path.getModuleLabel().equals(moduleLabel)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -148,6 +167,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	 */
 	private void deployUnallocatedStreamModules(CuratorFramework client, Container container) throws Exception {
 		List<ModuleDeploymentRequestsPath> requestedModulesPaths = getAllModuleDeploymentRequests();
+		Set<ModuleDeploymentsPath> allocatedModulesPath = getAllocatedModulesPaths(client, container.getName());
 		// iterate the cache of stream deployments
 		for (ChildData data : streamDeployments.getCurrentData()) {
 			String streamName = ZooKeeperUtils.stripPathConverter.convert(data);
@@ -175,14 +195,21 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 				Set<ModuleDescriptor> deployedDescriptors = new HashSet<ModuleDescriptor>();
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(path.getModuleLabel());
-					if ((path.getModuleSequence().equals("0") || !deployedModules.contains(path.getModuleInstanceAsString()))
-							&& !deployedDescriptors.contains(moduleDescriptor)) {
-						deployedDescriptors.add(moduleDescriptor);
-						RuntimeModuleDeploymentProperties moduleDeploymentProperties = new RuntimeModuleDeploymentProperties();
-						moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(moduleDeploymentRequests.getCurrentData(
-								path.build()).getData()));
-						deployModule(container, new ModuleDeployment(stream, moduleDescriptor,
-								moduleDeploymentProperties));
+					// Make sure the container doesn't have pre-existing deployment of
+					// the module with same label for the given stream.
+					if (!hasSameModuleLabelDeployment(allocatedModulesPath, streamName,
+							moduleDescriptor.getModuleLabel())) {
+						if ((path.getModuleSequence().equals("0") ||
+								!deployedModules.contains(path.getModuleInstanceAsString())) &&
+								!deployedDescriptors.contains(moduleDescriptor)) {
+							deployedDescriptors.add(moduleDescriptor);
+							RuntimeModuleDeploymentProperties moduleDeploymentProperties =
+									new RuntimeModuleDeploymentProperties();
+							moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(
+									moduleDeploymentRequests.getCurrentData(path.build()).getData()));
+							deployModule(container, new ModuleDeployment(stream, moduleDescriptor,
+									moduleDeploymentProperties));
+						}
 					}
 				}
 			}
@@ -199,6 +226,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	 */
 	private void deployUnallocatedJobModules(CuratorFramework client, Container container) throws Exception {
 		List<ModuleDeploymentRequestsPath> requestedModulesPaths = getAllModuleDeploymentRequests();
+		Set<ModuleDeploymentsPath> allocatedModulesPath = getAllocatedModulesPaths(client, container.getName());
 		// check for "orphaned" jobs that can be deployed to this new container
 		for (ChildData data : jobDeployments.getCurrentData()) {
 			String jobName = ZooKeeperUtils.stripPathConverter.convert(data);
@@ -207,8 +235,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 			Job job = DeploymentLoader.loadJob(client, jobName, this.jobFactory);
 			if (job != null) {
 				List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
-						requestedModulesPaths,
-						jobName);
+						requestedModulesPaths, jobName);
 				Set<String> deployedModules = new HashSet<String>();
 				for (String deployedModule : client.getChildren().forPath(Paths.build(data.getPath(), Paths.MODULES))) {
 					deployedModules.add(Paths.stripPath(new JobDeploymentsPath(Paths.build(data.getPath(),
@@ -218,13 +245,21 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 				Set<ModuleDescriptor> deployedDescriptors = new HashSet<ModuleDescriptor>();
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
-					if ((path.getModuleSequence().equals("0") || !deployedModules.contains(path.getModuleInstanceAsString()))
-							&& !deployedDescriptors.contains(moduleDescriptor)) {
-						deployedDescriptors.add(moduleDescriptor);
-						RuntimeModuleDeploymentProperties moduleDeploymentProperties = new RuntimeModuleDeploymentProperties();
-						moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(moduleDeploymentRequests.getCurrentData(
-								path.build()).getData()));
-						deployModule(container, new ModuleDeployment(job, moduleDescriptor, moduleDeploymentProperties));
+					// Make sure the container doesn't have pre-existing deployment of
+					// the module with same label for the given job.
+					if (!hasSameModuleLabelDeployment(allocatedModulesPath, jobName,
+							moduleDescriptor.getModuleLabel())) {
+						if ((path.getModuleSequence().equals("0") ||
+								!deployedModules.contains(path.getModuleInstanceAsString()))
+								&& !deployedDescriptors.contains(moduleDescriptor)) {
+							deployedDescriptors.add(moduleDescriptor);
+							RuntimeModuleDeploymentProperties moduleDeploymentProperties =
+									new RuntimeModuleDeploymentProperties();
+							moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(
+									moduleDeploymentRequests.getCurrentData(path.build()).getData()));
+							deployModule(container, new ModuleDeployment(job, moduleDescriptor,
+									moduleDeploymentProperties));
+						}
 					}
 				}
 			}

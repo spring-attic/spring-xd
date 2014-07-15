@@ -188,7 +188,7 @@ public class ModuleDeploymentWriter {
 		String containerName = container.getName();
 		String deploymentPath = new ModuleDeploymentsPath()
 				.setContainer(containerName)
-				.setStreamName(moduleDescriptor.getGroup())
+				.setDeploymentUnitName(moduleDescriptor.getGroup())
 				.setModuleType(moduleDescriptor.getType().toString())
 				.setModuleLabel(moduleDescriptor.getModuleLabel())
 				.setModuleSequence(String.valueOf(moduleSequence)).build();
@@ -232,7 +232,7 @@ public class ModuleDeploymentWriter {
 			if (deploymentStatus.getState() != ModuleDeploymentStatus.State.deployed) {
 				String path = new ModuleDeploymentsPath()
 						.setContainer(deploymentStatus.getContainer())
-						.setStreamName(deploymentStatus.getKey().getGroup())
+						.setDeploymentUnitName(deploymentStatus.getKey().getGroup())
 						.setModuleType(deploymentStatus.getKey().getType().toString())
 						.setModuleLabel(deploymentStatus.getKey().getLabel())
 						.setModuleSequence(deploymentStatus.getModuleSequenceAsString()).build();
@@ -303,7 +303,7 @@ public class ModuleDeploymentWriter {
 	private ModuleDeploymentStatus createResult(String pathString, Map<String, String> statusMap) {
 		ModuleDeploymentsPath path = new ModuleDeploymentsPath(pathString);
 		ModuleDescriptor.Key key = new ModuleDescriptor.Key(
-				path.getStreamName(),
+				path.getDeploymentUnitName(),
 				ModuleType.valueOf(path.getModuleType()),
 				path.getModuleLabel());
 		return new ModuleDeploymentStatus(path.getContainer(), path.getModuleSequence(), key,
@@ -320,7 +320,7 @@ public class ModuleDeploymentWriter {
 	private ModuleDeploymentStatus createResult(String pathString, Throwable t) {
 		ModuleDeploymentsPath path = new ModuleDeploymentsPath(pathString);
 		ModuleDescriptor.Key key = new ModuleDescriptor.Key(
-				path.getStreamName(),
+				path.getDeploymentUnitName(),
 				ModuleType.valueOf(path.getModuleType()),
 				path.getModuleLabel());
 

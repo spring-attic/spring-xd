@@ -42,7 +42,7 @@ public class ModuleDeploymentsPathTest {
 
 		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath()
 				.setContainer(container)
-				.setStreamName(streamName)
+				.setDeploymentUnitName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel)
 				.setModuleSequence(moduleSequence);
@@ -51,7 +51,7 @@ public class ModuleDeploymentsPathTest {
 
 		ModuleDeploymentsPath fromPath = new ModuleDeploymentsPath(path);
 		assertEquals(container, fromPath.getContainer());
-		assertEquals(streamName, fromPath.getStreamName());
+		assertEquals(streamName, fromPath.getDeploymentUnitName());
 		assertEquals(moduleType, fromPath.getModuleType());
 		assertEquals(moduleLabel, fromPath.getModuleLabel());
 		assertEquals(moduleSequence, fromPath.getModuleSequenceAsString());

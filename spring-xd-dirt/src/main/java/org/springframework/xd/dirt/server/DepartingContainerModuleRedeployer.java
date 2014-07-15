@@ -117,7 +117,7 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			deploymentProperties.putAll(ZooKeeperUtils.bytesToMap(client.getData().forPath(
 					moduleDeploymentsPath.build())));
 
-			String unitName = moduleDeploymentsPath.getStreamName();
+			String unitName = moduleDeploymentsPath.getDeploymentUnitName();
 			String moduleType = moduleDeploymentsPath.getModuleType();
 
 			if (ModuleType.job.toString().equals(moduleType)) {

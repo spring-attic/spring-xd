@@ -426,7 +426,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String path = data.getPath();
 		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(path);
-		String unitName = moduleDeploymentsPath.getStreamName();
+		String unitName = moduleDeploymentsPath.getDeploymentUnitName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 		int moduleSequence = moduleDeploymentsPath.getModuleSequence();
@@ -582,7 +582,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 */
 	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
 		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(data.getPath());
-		String streamName = moduleDeploymentsPath.getStreamName();
+		String streamName = moduleDeploymentsPath.getDeploymentUnitName();
 		String moduleType = moduleDeploymentsPath.getModuleType();
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 		String moduleSequence = moduleDeploymentsPath.getModuleSequenceAsString();
@@ -698,7 +698,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 				String deploymentPath = new ModuleDeploymentsPath()
 						.setContainer(containerAttributes.getId())
-						.setStreamName(streamName)
+						.setDeploymentUnitName(streamName)
 						.setModuleType(moduleType)
 						.setModuleLabel(moduleLabel)
 						.setModuleSequence(moduleSequence).build();
@@ -754,7 +754,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 				String deploymentPath = new ModuleDeploymentsPath()
 						.setContainer(containerAttributes.getId())
-						.setStreamName(jobName)
+						.setDeploymentUnitName(jobName)
 						.setModuleType(ModuleType.job.toString())
 						.setModuleLabel(moduleLabel)
 						.setModuleSequence(moduleSequence).build();

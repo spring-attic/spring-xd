@@ -19,10 +19,10 @@
  *
  * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define(['moment'], function () {
   'use strict';
   return ['$scope', 'JobScheduleService', 'XDUtils', '$state', '$stateParams', '$filter',
-    function ($scope, jobScheduleService, utils, $state, $stateParams, $filter) {
+    function ($scope, jobScheduleService, utils, $state, $stateParams) {
       $scope.$apply(function () {
         $scope.jobScheduleRequest = {
           jobName: $stateParams.jobName,
@@ -34,8 +34,8 @@ define([], function () {
             $scope.jobScheduleRequest.triggerOption = '--fixedDelay=' + $scope.jobScheduleRequest.fixedDelay;
           }
           else if (jobScheduleRequest.triggerType === 'date') {
-            var date = $filter('date')($scope.jobScheduleRequest.date, 'MM/dd/yy HH:mm:ss');
-            $scope.jobScheduleRequest.triggerOption = '--date=' + '\'' + date + '\'';
+            console.log('Using UTC date: ' + $scope.jobScheduleRequest.utcDate);
+            $scope.jobScheduleRequest.triggerOption = '--date=' + '\'' + $scope.jobScheduleRequest.utcDate + '\'';
           }
           else if (jobScheduleRequest.triggerType === 'cron') {
             $scope.jobScheduleRequest.triggerOption = '--cron=' + '\'' + $scope.jobScheduleRequest.cron + '\'';
@@ -56,6 +56,13 @@ define([], function () {
         $scope.isCron = function () {
           return ($scope.jobScheduleRequest.triggerType === 'cron');
         };
+        $scope.$watch('jobScheduleRequest.date', function() {
+          if ($scope.jobScheduleRequest.date) {
+            var dateMoment = moment($scope.jobScheduleRequest.date);
+            dateMoment.utc();
+            $scope.jobScheduleRequest.utcDate = dateMoment.format('MM/DD/YY HH:mm:ss');
+          }
+        }, true);
       });
     }];
 });

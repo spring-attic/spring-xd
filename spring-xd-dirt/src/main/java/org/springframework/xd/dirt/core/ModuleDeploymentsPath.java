@@ -184,8 +184,8 @@ public class ModuleDeploymentsPath {
 	 *
 	 * @return this object
 	 */
-	public ModuleDeploymentsPath setDeploymentUnitName(String streamName) {
-		deploymentDesc[DEPLOYMENT_UNIT_NAME] = streamName;
+	public ModuleDeploymentsPath setDeploymentUnitName(String deploymentUnitName) {
+		deploymentDesc[DEPLOYMENT_UNIT_NAME] = deploymentUnitName;
 		return this;
 	}
 

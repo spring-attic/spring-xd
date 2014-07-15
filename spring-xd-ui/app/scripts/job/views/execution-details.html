@@ -1,3 +1,4 @@
+<button type="button" class="btn btn-default pull-right" ng-click="closeJobExecutionDetails()">Back</button>
 <div class="row hidden-xs" ng-show="jobExecutionDetails">
   <div class="col-sm-12">
     <h1>Job Execution Details - Execution ID: {{jobExecutionDetails.executionId}}</h1>
@@ -98,8 +99,6 @@
     </tr>
   </tbody>
 </table>
-
-<button type="button" class="btn btn-default" ng-click="closeJobExecutionDetails()">Back</button>
 
 <div class="modal fade" id="step-execution-id-{{stepExecution.id}}" ng-repeat="stepExecution in jobExecutionDetails.jobExecution.stepExecutions"
      tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

@@ -30,6 +30,8 @@
 #  username: guest
 #  password: guest
 #  vhost: /
+#  useSSL: false
+#  sslProperties:
 
 ---
 

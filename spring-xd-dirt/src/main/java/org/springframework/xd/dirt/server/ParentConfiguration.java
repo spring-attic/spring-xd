@@ -16,9 +16,12 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.actuate.health.VanillaHealthIndicator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
@@ -26,6 +29,7 @@ import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfigurat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
+import org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryFactoryBean;
 import org.springframework.xd.dirt.post.DelegatingHandlerMapping;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
@@ -54,6 +58,32 @@ public class ParentConfiguration {
 		return factoryBean;
 	}
 
+	@Bean
+	// TODO: Move to spring boot
+	public ConnectionFactory rabbitConnectionFactory(RabbitProperties config,
+			com.rabbitmq.client.ConnectionFactory rabbitConnectionFactory) throws Exception {
+		CachingConnectionFactory factory = new CachingConnectionFactory(rabbitConnectionFactory);
+		factory.setAddresses(config.getAddresses());
+		if (config.getHost() != null) {
+			factory.setHost(config.getHost());
+			factory.setPort(config.getPort());
+		}
+		if (config.getUsername() != null) {
+			factory.setUsername(config.getUsername());
+		}
+		if (config.getPassword() != null) {
+			factory.setPassword(config.getPassword());
+		}
+		if (config.getVirtualHost() != null) {
+			factory.setVirtualHost(config.getVirtualHost());
+		}
+		return factory;
+	}
+
+	@Bean
+	public RabbitConnectionFactoryFactoryBean rabbitFactory() {
+		return new RabbitConnectionFactoryFactoryBean();
+	}
 
 	@Bean
 	@ConditionalOnExpression("${endpoints.health.enabled:true}")

@@ -35,8 +35,14 @@
 	<int:channel id="output" />
 
 	<rabbit:connection-factory id="rabbitConnectionFactory"
+		connection-factory="connectionFactory"
 		addresses="${addresses}"
 		virtual-host="${vhost}"
 		username="${username}" password="${password}" />
+
+	<bean id="connectionFactory" class="org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryFactoryBean">
+		<property name="useSSL" value="${useSSL}" />
+		<property name="rabbitSSLProperties" value="${sslProperties}"/>
+	</bean>
 
 </beans>

@@ -154,6 +154,9 @@ xd:
 #   username: guest
 #   password: guest
 #   virtual_host: /
+#   useSSL: false
+#   sslProperties:
+
 
 ---
 # Hadoop properties

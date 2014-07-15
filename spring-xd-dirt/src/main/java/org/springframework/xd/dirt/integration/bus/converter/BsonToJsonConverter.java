@@ -18,15 +18,12 @@ package org.springframework.xd.dirt.integration.bus.converter;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringWriter;
+import java.util.Map;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeTypeUtils;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.undercouch.bson4jackson.BsonFactory;
 
@@ -54,34 +51,18 @@ public class BsonToJsonConverter extends AbstractFromMessageConverter {
 
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
-		BsonFactory factory = new BsonFactory();
 		ByteArrayInputStream bais = new ByteArrayInputStream((byte[]) message.getPayload());
-		JsonParser parser;
-		StringWriter writer = new StringWriter();
+		String mapAsJson = null;
+		ObjectMapper mapper = new ObjectMapper(new BsonFactory());
+		Map readValue;
 		try {
-			parser = factory.createJsonParser(bais);
-			parser.nextToken();
-			JsonFactory jfactory = new JsonFactory();
-
-			JsonGenerator jGenerator = jfactory.createGenerator(writer);
-			jGenerator.writeStartObject();
-			while (parser.nextToken() != JsonToken.END_OBJECT) {
-				String fieldname = parser.getCurrentName();
-				parser.nextToken();
-				try {
-					float f = Float.parseFloat(parser.getText());
-					jGenerator.writeNumberField(fieldname, f);
-				}
-				catch (NumberFormatException e) {
-					jGenerator.writeStringField(fieldname, parser.getText());
-				}
-			}
-			jGenerator.writeEndObject();
-			jGenerator.close();
+			readValue = mapper.readValue(bais, Map.class);
+			mapAsJson = new ObjectMapper().writeValueAsString(readValue);
 		}
 		catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
+			return null;
 		}
-		return buildConvertedMessage(writer.toString(), message.getHeaders(), MimeTypeUtils.APPLICATION_JSON);
+		return buildConvertedMessage(mapAsJson, message.getHeaders(), MimeTypeUtils.APPLICATION_JSON);
 	}
 }

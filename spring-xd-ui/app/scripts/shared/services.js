@@ -39,8 +39,15 @@ define(['angular', 'xregexp'], function (angular) {
           getModuleNameFromJobDefinition: function(jobDefinition) {
             $log.info('Processing job definition: ' + jobDefinition);
             var module = XRegExp.exec(jobDefinition, moduleNameRegex);
-            $log.info('Found Module Name: ' + module);
-            return module[0];
+            var moduleName;
+            if (module) {
+              moduleName = module[0];
+            }
+            else {
+              moduleName = jobDefinition;
+            }
+            $log.info('Found Module Name: ' + moduleName);
+            return moduleName;
           }
         };
       });

@@ -25,11 +25,15 @@ define([
       angular.mock.module('xdAdmin');
     });
 
-    it('should contain a JobDefinitions service', inject(function(XDUtils) {
+    it('The module name should be retrieved from a definition with parameters.', inject(function(XDUtils) {
       expect(XDUtils.getModuleNameFromJobDefinition).toBeDefined();
       expect(XDUtils.getModuleNameFromJobDefinition('myMod --param=1234')).toEqual('myMod');
     }));
 
+    it('The module name should be retrieved from a definition without parameters.', inject(function(XDUtils) {
+      expect(XDUtils.getModuleNameFromJobDefinition).toBeDefined();
+      expect(XDUtils.getModuleNameFromJobDefinition('myMod2')).toEqual('myMod2');
+    }));
   });
 });
 

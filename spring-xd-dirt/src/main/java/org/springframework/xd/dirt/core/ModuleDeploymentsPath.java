@@ -68,9 +68,9 @@ public class ModuleDeploymentsPath {
 	private static final int DEPLOYMENT_DESC = 4;
 
 	/**
-	 * Index for stream name in dot delimited deployment description.
+	 * Index for deployment unit(Stream/Job) name in dot delimited deployment description.
 	 */
-	private static final int STREAM_NAME = 0;
+	private static final int DEPLOYMENT_UNIT_NAME = 0;
 
 	/**
 	 * Index for module type in dot delimited deployment description.
@@ -169,23 +169,23 @@ public class ModuleDeploymentsPath {
 	}
 
 	/**
-	 * Return the stream name.
+	 * Return the deployment unit (Stream/Job) name.
 	 *
-	 * @return stream name
+	 * @return deployment unit name
 	 */
-	public String getStreamName() {
-		return deploymentDesc[STREAM_NAME];
+	public String getDeploymentUnitName() {
+		return deploymentDesc[DEPLOYMENT_UNIT_NAME];
 	}
 
 	/**
-	 * Set the stream name.
+	 * Set the deployment unit name.
 	 *
-	 * @param streamName stream name
+	 * @param deploymentUnitName deployment unit name
 	 *
 	 * @return this object
 	 */
-	public ModuleDeploymentsPath setStreamName(String streamName) {
-		deploymentDesc[STREAM_NAME] = streamName;
+	public ModuleDeploymentsPath setDeploymentUnitName(String streamName) {
+		deploymentDesc[DEPLOYMENT_UNIT_NAME] = streamName;
 		return this;
 	}
 
@@ -270,7 +270,7 @@ public class ModuleDeploymentsPath {
 	 */
 	public String build() {
 		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s",
-				deploymentDesc[STREAM_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
+				deploymentDesc[DEPLOYMENT_UNIT_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
 				deploymentDesc[MODULE_SEQUENCE]);
 		return Paths.build(elements);
 	}
@@ -284,7 +284,7 @@ public class ModuleDeploymentsPath {
 	 */
 	public String buildWithNamespace() {
 		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s",
-				deploymentDesc[STREAM_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
+				deploymentDesc[DEPLOYMENT_UNIT_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
 				deploymentDesc[MODULE_SEQUENCE]);
 		return Paths.buildWithNamespace(elements);
 	}

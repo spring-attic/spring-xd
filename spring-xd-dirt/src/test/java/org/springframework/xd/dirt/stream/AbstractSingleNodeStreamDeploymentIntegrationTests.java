@@ -586,13 +586,13 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			ZooKeeperUtils.logCacheEvent(logger, event);
 			ModuleDeploymentsPath path = new ModuleDeploymentsPath(event.getData().getPath());
 			if (event.getType().equals(Type.CHILD_ADDED)) {
-				deployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
-				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(path.getStreamName());
+				deployQueues.putIfAbsent(path.getDeploymentUnitName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(path.getDeploymentUnitName());
 				queue.put(event);
 			}
 			else if (event.getType().equals(Type.CHILD_REMOVED)) {
-				undeployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
-				LinkedBlockingQueue<PathChildrenCacheEvent> queue = undeployQueues.get(path.getStreamName());
+				undeployQueues.putIfAbsent(path.getDeploymentUnitName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = undeployQueues.get(path.getDeploymentUnitName());
 				queue.put(event);
 			}
 		}

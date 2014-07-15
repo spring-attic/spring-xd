@@ -209,7 +209,7 @@ public class ModuleDeploymentStatus {
 	public String buildPath() {
 		return Paths.build(new ModuleDeploymentsPath()
 				.setContainer(container)
-				.setStreamName(key.getGroup())
+				.setDeploymentUnitName(key.getGroup())
 				.setModuleType(key.getType().toString())
 				.setModuleLabel(key.getLabel())
 				.setModuleSequence(String.valueOf(moduleSequence)).build(), Paths.STATUS);

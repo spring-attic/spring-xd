@@ -38,6 +38,10 @@ public class RabbitConnectionMixin {
 
 	private String addresses = "${spring.rabbitmq.addresses}";
 
+	private String useSSL = "${spring.rabbitmq.useSSL}";
+
+	private String sslProperties = "${spring.rabbitmq.sslProperties}";
+
 	@NotBlank
 	public String getUsername() {
 		return username;
@@ -74,6 +78,24 @@ public class RabbitConnectionMixin {
 	@ModuleOption(value = "the RabbitMQ virtual host to use", hidden = true)
 	public void setVhost(String vhost) {
 		this.vhost = vhost;
+	}
+
+	public String getUseSSL() {
+		return useSSL;
+	}
+
+	@ModuleOption(value = "true if SSL should be used for the connection", hidden = true)
+	public void setUseSSL(String useSSL) {
+		this.useSSL = useSSL;
+	}
+
+	public String getSslProperties() {
+		return sslProperties;
+	}
+
+	@ModuleOption(value = "protected properties file for SSL", hidden = true)
+	public void setSslProperties(String sslProperties) {
+		this.sslProperties = sslProperties;
 	}
 
 }

@@ -23,10 +23,16 @@
 		message-converter="messageConverter" />
 
 	<rabbit:connection-factory id="rabbitConnectionFactory"
+		connection-factory="connectionFactory"
 		addresses="${addresses}"
 		virtual-host="${vhost}"
 		username="${username}" password="${password}" />
 
 	<bean id="messageConverter" class="${converterClass}" />
+
+	<bean id="connectionFactory" class="org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryBean">
+		<property name="useSSL" value="${useSSL}" />
+		<property name="rabbitSSLProperties" value="${sslProperties}"/>
+	</bean>
 
 </beans>

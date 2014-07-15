@@ -26,8 +26,7 @@
 
 # Shared RabbitMQ module properties
 #rabbit:
-#  host: localhost
-#  port: 5672
+#  addresses: localhost:5672
 #  username: guest
 #  password: guest
 #  vhost: /

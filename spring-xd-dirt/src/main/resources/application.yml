@@ -151,11 +151,10 @@ embeddedHsql: true
 ---
 
 # Redis properties
-# (vcap.services.* binds to a service called 'redis' in Pivotal CF)
 spring:
   redis:
-   port: ${vcap.services.redis.credentials.port:6379}
-   host: ${vcap.services.redis.credentials.hostname:localhost}
+   port: 6379
+   host: localhost
    pool.maxIdle: 8
    pool.minIdle: 0
    pool.maxActive: 8
@@ -163,14 +162,12 @@ spring:
 
 ---
 # RabbitMQ properties
-# (vcap.services.* binds to a service called 'rabbitmq' in Pivotal CF)
 spring:
   rabbitmq:
-   host: ${vcap.services.rabbitmq.credentials.hostname:localhost}
-   port: ${vcap.services.rabbitmq.credentials.port:5672}
-   username: ${vcap.services.rabbitmq.credentials.username:guest}
-   password: ${vcap.services.rabbitmq.credentials.password:guest}
-   virtual_host: ${vcap.services.rabbitmq.credentials.vhost:/}
+   addreses: localhost:5672
+   username: guest
+   password: guest
+   virtual_host: /
 
 ---
 # Hadoop properties

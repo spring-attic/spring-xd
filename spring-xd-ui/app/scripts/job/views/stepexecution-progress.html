@@ -3,8 +3,9 @@
     <h1>Step Execution Progress for Step '{{stepExecutionProgress.stepExecution.stepName}}'</h1>
   </div>
   <div class="col-md-2">
-    <button type="button" class="btn btn-default pull-right"
-          ng-click="refreshStepExecutionProgress()">
+      <button type="button" class="btn btn-default pull-right" ng-click="closeStepExecutionProgress()">Back</button>
+      <button type="button" class="btn btn-default pull-right"
+              ng-click="refreshStepExecutionProgress()">
           <span class="glyphicon glyphicon-refresh"></span></button>
   </div>
 </div>
@@ -115,4 +116,3 @@
     </tr>
   </tbody>
 </table>
-<button type="button" class="btn btn-default" ng-click="closeStepExecutionProgress()">Back</button>

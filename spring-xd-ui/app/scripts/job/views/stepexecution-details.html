@@ -1,3 +1,5 @@
+<button type="button" class="btn btn-default pull-right" ng-click="closeStepExecutionDetails(stepExecutionDetails)">Back</button>
+
 <h1 ng-show="stepExecutionDetails">Step Execution Details - Step Execution ID: {{stepExecutionDetails.stepExecution.id}}</h1>
 
 <h4 ng-show="stepExecutionDetailsNotFound">The Step Execution Details for Step Execution ID {{stepExecutionId}} could not be found.</h4>
@@ -116,5 +118,3 @@
     </tr>
   </tbody>
 </table>
-
-<button type="button" class="btn btn-default" ng-click="closeStepExecutionDetails(stepExecutionDetails)">Back</button>

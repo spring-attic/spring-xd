@@ -26,16 +26,17 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Eric Bottard
  * @author Gary Russell
  * @author Glenn Renfro
+ * @author Gary Russell
  */
 public class RabbitConnectionMixin {
 
-	private String vhost = "/";
+	private String vhost = "${spring.rabbitmq.virtual_host}";
 
-	private String username = "guest";
+	private String username = "${spring.rabbitmq.username}";
 
-	private String password = "guest";
+	private String password = "${spring.rabbitmq.password}";
 
-	private String addresses = "localhost:5672";
+	private String addresses = "${spring.rabbitmq.addresses}";
 
 	@NotBlank
 	public String getUsername() {

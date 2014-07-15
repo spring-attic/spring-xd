@@ -22,9 +22,11 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URI;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -69,6 +71,8 @@ public abstract class AbstractTwitterInboundChannelAdapter extends MessageProduc
 	private final AtomicInteger httpErrorBackOff = new AtomicInteger(5000);
 
 	private final AtomicInteger rateLimitBackOff = new AtomicInteger(60000);
+
+	private final CountDownLatch countDownLatch = new CountDownLatch(3);
 
 	protected AbstractTwitterInboundChannelAdapter(TwitterTemplate twitter) {
 		this.twitter = twitter;
@@ -142,6 +146,10 @@ public abstract class AbstractTwitterInboundChannelAdapter extends MessageProduc
 			this.task = null;
 		}
 		this.running.set(false);
+		try {
+			countDownLatch.await(3, TimeUnit.SECONDS);
+		} catch (InterruptedException ignore) {}
+		return;
 	}
 
 
@@ -255,6 +263,11 @@ public abstract class AbstractTwitterInboundChannelAdapter extends MessageProduc
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			if (!this.running.get()) {
+				// no longer running
+				countDownLatch.countDown();
+				return;
+			}
 			throw new IllegalStateException(e);
 		}
 	}

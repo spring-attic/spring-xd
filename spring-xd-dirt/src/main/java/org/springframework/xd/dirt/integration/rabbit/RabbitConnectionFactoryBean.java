@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import com.rabbitmq.client.ConnectionFactory;
 
@@ -37,7 +39,7 @@ import com.rabbitmq.client.ConnectionFactory;
  *
  * @author Gary Russell
  */
-public class RabbitConnectionFactoryFactoryBean extends AbstractFactoryBean<ConnectionFactory> {
+public class RabbitConnectionFactoryBean extends AbstractFactoryBean<ConnectionFactory> {
 
 	@Value("${spring.rabbitmq.useSSL}")
 	private boolean useSSL;
@@ -76,9 +78,13 @@ public class RabbitConnectionFactoryFactoryBean extends AbstractFactoryBean<Conn
 			secrets.load(this.rabbitSSLProperties.getInputStream());
 			PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 			String keyStoreName = secrets.getProperty("keyStore");
+			Assert.state(StringUtils.hasText(keyStoreName), "keyStoreName property required");
 			String trustStoreName = secrets.getProperty("trustStore");
+			Assert.state(StringUtils.hasText(trustStoreName), "trustStoreName property required");
 			String keyStorePassword = secrets.getProperty("keyStore.passPhrase");
+			Assert.state(StringUtils.hasText(keyStorePassword), "keyStore.passPhrase property required");
 			String trustStorePassword = secrets.getProperty("trustStore.passPhrase");
+			Assert.state(StringUtils.hasText(trustStorePassword), "trustStore.passPhrase property required");
 			Resource keyStore = resolver.getResource(keyStoreName);
 			Resource trustStore = resolver.getResource(trustStoreName);
 			char[] keyPassphrase = keyStorePassword.toCharArray();

@@ -30,7 +30,7 @@
 
 	<bean id="messageConverter" class="${converterClass}" />
 
-	<bean id="connectionFactory" class="org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryFactoryBean">
+	<bean id="connectionFactory" class="org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryBean">
 		<property name="useSSL" value="${useSSL}" />
 		<property name="rabbitSSLProperties" value="${sslProperties}"/>
 	</bean>

@@ -29,7 +29,7 @@ import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfigurat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
-import org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryFactoryBean;
+import org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryBean;
 import org.springframework.xd.dirt.post.DelegatingHandlerMapping;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
@@ -81,8 +81,8 @@ public class ParentConfiguration {
 	}
 
 	@Bean
-	public RabbitConnectionFactoryFactoryBean rabbitFactory() {
-		return new RabbitConnectionFactoryFactoryBean();
+	public RabbitConnectionFactoryBean rabbitFactory() {
+		return new RabbitConnectionFactoryBean();
 	}
 
 	@Bean

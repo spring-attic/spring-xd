@@ -461,6 +461,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			writeModuleMetadata(module, path, client);
 			client.setData().forPath(status.buildPath(), ZooKeeperUtils.mapToBytes(status.toMap()));
 		}
+		catch (KeeperException.NodeExistsException ne) {
+			// This is likely to happen when the container disconnects and reconnects but the admin leader
+			// was not available to handle the container leaving event.
+			logger.info("The module metadata path for the module {} of type {} for {} already exists.", moduleLabel,
+					moduleType, unitName);
+		}
 		catch (KeeperException.NoNodeException e) {
 			logger.warn("During deployment of module {} of type {} for {}, an undeployment request " +
 					"was detected; this module will be undeployed.", moduleLabel, moduleType, unitName);
@@ -521,7 +527,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				client.getData().usingWatcher(jobModuleWatcher).forPath(jobDeploymentPath);
 			}
 			catch (KeeperException.NodeExistsException e) {
-				// todo: review, this should not happen
+				// This could possibly happen when the container disconnects and reconnects but
+				// admin leader was not available to process container removed event.
 				logger.info("Module for job {} already deployed", jobName);
 			}
 		}
@@ -567,7 +574,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				client.getData().usingWatcher(streamModuleWatcher).forPath(streamDeploymentPath);
 			}
 			catch (KeeperException.NodeExistsException e) {
-				// todo: review, this should not happen
+				// This could possibly happen when the container disconnects and reconnects but
+				// admin leader was not available to process container removed event.
 				logger.info("Module {} for stream {} already deployed", moduleLabel, streamName);
 			}
 		}

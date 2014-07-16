@@ -35,24 +35,25 @@ import com.rabbitmq.client.ConnectionFactory;
 
 /**
  * Factory bean to create a RabbitMQ ConnectionFactory, optionally enabling
- * SSL. TODO: Move this to Spring AMQP.
+ * SSL.
  *
  * @author Gary Russell
  */
+// TODO: Move this to Spring AMQP.
 public class RabbitConnectionFactoryBean extends AbstractFactoryBean<ConnectionFactory> {
 
 	@Value("${spring.rabbitmq.useSSL}")
 	private boolean useSSL;
 
 	@Value("${spring.rabbitmq.sslProperties}")
-	private Resource rabbitSSLProperties;
+	private Resource sslPropertiesLocation;
 
 	public void setUseSSL(boolean useSSL) {
 		this.useSSL = useSSL;
 	}
 
-	public void setRabbitSSLProperties(Resource rabbitSSLProperties) {
-		this.rabbitSSLProperties = rabbitSSLProperties;
+	public void setSslPropertiesLocation(Resource sslPropertiesLocation) {
+		this.sslPropertiesLocation = sslPropertiesLocation;
 	}
 
 	@Override
@@ -70,20 +71,20 @@ public class RabbitConnectionFactoryBean extends AbstractFactoryBean<ConnectionF
 	}
 
 	private void setUpSSL(ConnectionFactory rabbitConnectionFactory) throws Exception {
-		if (this.rabbitSSLProperties == null) {
+		if (this.sslPropertiesLocation == null) {
 			rabbitConnectionFactory.useSslProtocol();
 		}
 		else {
-			Properties secrets = new Properties();
-			secrets.load(this.rabbitSSLProperties.getInputStream());
+			Properties sslProperties = new Properties();
+			sslProperties.load(this.sslPropertiesLocation.getInputStream());
 			PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-			String keyStoreName = secrets.getProperty("keyStore");
+			String keyStoreName = sslProperties.getProperty("keyStore");
 			Assert.state(StringUtils.hasText(keyStoreName), "keyStore property required");
-			String trustStoreName = secrets.getProperty("trustStore");
+			String trustStoreName = sslProperties.getProperty("trustStore");
 			Assert.state(StringUtils.hasText(trustStoreName), "trustStore property required");
-			String keyStorePassword = secrets.getProperty("keyStore.passPhrase");
+			String keyStorePassword = sslProperties.getProperty("keyStore.passPhrase");
 			Assert.state(StringUtils.hasText(keyStorePassword), "keyStore.passPhrase property required");
-			String trustStorePassword = secrets.getProperty("trustStore.passPhrase");
+			String trustStorePassword = sslProperties.getProperty("trustStore.passPhrase");
 			Assert.state(StringUtils.hasText(trustStorePassword), "trustStore.passPhrase property required");
 			Resource keyStore = resolver.getResource(keyStoreName);
 			Resource trustStore = resolver.getResource(trustStoreName);

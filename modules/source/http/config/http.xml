@@ -9,8 +9,10 @@
 
 	<beans:bean class="org.springframework.integration.x.http.NettyHttpInboundChannelAdapter">
 		<beans:constructor-arg value="${port}"/>
+		<beans:constructor-arg value="${https}"/>
 		<beans:property name="autoStartup" value="false"/>
 		<beans:property name="outputChannel" ref="output"/>
+		<beans:property name="sslPropertiesLocation" value="${sslPropertiesLocation}"/>
 	</beans:bean>
 
 	<channel id="output"/>

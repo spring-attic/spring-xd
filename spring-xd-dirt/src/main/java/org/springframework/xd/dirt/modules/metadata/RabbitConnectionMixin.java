@@ -40,7 +40,7 @@ public class RabbitConnectionMixin {
 
 	private String useSSL = "${spring.rabbitmq.useSSL}";
 
-	private String sslProperties = "${spring.rabbitmq.sslProperties}";
+	private String sslPropertiesLocation = "${spring.rabbitmq.sslProperties}";
 
 	@NotBlank
 	public String getUsername() {
@@ -89,13 +89,13 @@ public class RabbitConnectionMixin {
 		this.useSSL = useSSL;
 	}
 
-	public String getSslProperties() {
-		return sslProperties;
+	public String getSslPropertiesLocation() {
+		return sslPropertiesLocation;
 	}
 
-	@ModuleOption(value = "protected properties file for SSL", hidden = true)
-	public void setSslProperties(String sslProperties) {
-		this.sslProperties = sslProperties;
+	@ModuleOption(value = "resource containing SSL properties", hidden = true)
+	public void setSslPropertiesLocation(String sslPropertiesLocation) {
+		this.sslPropertiesLocation = sslPropertiesLocation;
 	}
 
 }

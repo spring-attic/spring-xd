@@ -69,8 +69,8 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 
 	@CliCommand(value = { "admin config server" }, help = "Configure the XD admin server to use")
 	public String target(@CliOption(mandatory = false, key = { "", "uri" },
-	help = "the location of the XD Admin REST endpoint",
-	unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
+			help = "the location of the XD Admin REST endpoint",
+			unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
 
 		try {
 			configuration.setTarget(new Target(targetUriString));
@@ -102,7 +102,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 
 		statusValues.put("Target", target.getTargetUriAsString());
 		statusValues.put("Result", target.getTargetResultMessage() != null ? target.getTargetResultMessage() : "");
-		statusValues.put("Timezone used", CommonUtils.getTimeZoneNameWithOffset(this.configuration.getLocalTimeZone()));
+		statusValues.put("Timezone used", CommonUtils.getTimeZoneNameWithOffset(this.configuration.getClientTimeZone()));
 
 		final StringBuilder sb = new StringBuilder(UiUtils.renderParameterInfoDataAsTable(statusValues, false, 66));
 
@@ -137,11 +137,13 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 	 */
 	@CliCommand(value = "admin config timezone set", help = "Set a timezone")
 	public String setTimeZone(
-			@CliOption(mandatory = true, key = { "", "timeZone" }, help = "the id of the timeZone. "
-					+ "You can obtain a list of timezones using 'admin config timezone list'") String timeZoneId) {
-		final TimeZone localTimeZone = TimeZone.getTimeZone(timeZoneId);
-		this.configuration.setLocalTimeZone(localTimeZone);
-		return "TimeZone set to " + localTimeZone.getDisplayName();
+			@CliOption(mandatory = true, key = { "", "timeZone" }, help = "the id of the timezone. "
+					+ "You can obtain a list of timezone ids using 'admin config timezone list'. "
+					+ "If an invalid timezone id is provided, then 'Greenwich Mean Time' "
+					+ "is being used.") String timeZoneId) {
+		final TimeZone newCientTimeZone = TimeZone.getTimeZone(timeZoneId);
+		this.configuration.setClientTimeZone(newCientTimeZone);
+		return "TimeZone set to " + newCientTimeZone.getDisplayName();
 	}
 
 	/**

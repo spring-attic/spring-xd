@@ -224,7 +224,7 @@ public class JobCommands implements CommandMarker {
 				stepExecutionId);
 
 		final Table stepExecutionTable = JobCommandsUtils.prepareStepExecutionTable(stepExecutionInfoResource,
-				this.configuration.getLocalTimeZone());
+				this.configuration.getClientTimeZone());
 
 		return stepExecutionTable;
 	}

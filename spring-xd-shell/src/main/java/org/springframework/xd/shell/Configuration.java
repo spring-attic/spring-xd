@@ -22,6 +22,7 @@ import java.util.TimeZone;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.util.TimeUtils;
+import org.springframework.xd.shell.command.ConfigCommands;
 import org.springframework.xd.shell.util.CommonUtils;
 
 /**
@@ -37,19 +38,19 @@ public class Configuration {
 
 	private Target target;
 
-	private TimeZone localTimeZone;
+	private TimeZone clientTimeZone;
 
 	/**
 	 * Constructor initializing the default timezone using {@link TimeUtils#getJvmTimeZone()}
 	 */
 	public Configuration() {
-		localTimeZone = TimeUtils.getJvmTimeZone();
+		clientTimeZone = TimeUtils.getJvmTimeZone();
 	}
 
 	/**
 	 * Return the {@link Target} which encapsulates not only the Target URI but also success/error messages + status.
 	 *
-	 * @return Should not never be null.
+	 * @return Should never be null. Initialized by {@link ConfigCommands#afterPropertiesSet()}.
 	 */
 	public Target getTarget() {
 		return target;
@@ -68,28 +69,28 @@ public class Configuration {
 	/**
 	 * @return the local {@link TimeZone}.
 	 */
-	public TimeZone getLocalTimeZone() {
-		return localTimeZone;
+	public TimeZone getClientTimeZone() {
+		return clientTimeZone;
 	}
 
 	/**
 	 * If not set, the used {@link TimeZone} will default to {@link TimeUtils#getJvmTimeZone()}.
-	 * @param localTimeZone Must not be null
+	 * @param clientTimeZone Must not be null
 	 */
-	public void setLocalTimeZone(TimeZone localTimeZone) {
-		Assert.notNull(localTimeZone, "The provided timeZone must not be null.");
-		this.localTimeZone = localTimeZone;
+	public void setClientTimeZone(TimeZone clientTimeZone) {
+		Assert.notNull(clientTimeZone, "The provided timeZone must not be null.");
+		this.clientTimeZone = clientTimeZone;
 	}
 
 	/**
-	 * Returns a String formatted Date/Time using the configured {@link Configuration#localTimeZone}.
+	 * Returns a String formatted Date/Time using the configured {@link Configuration#clientTimeZone}.
 	 *
 	 * @param date Must not be null
 	 * @return Should never return null.
 	 */
 	public String getLocalTime(Date date) {
 		Assert.notNull(date, "The provided date must not be null.");
-		return CommonUtils.getLocalTime(date, this.localTimeZone);
+		return CommonUtils.getLocalTime(date, this.clientTimeZone);
 	}
 
 }

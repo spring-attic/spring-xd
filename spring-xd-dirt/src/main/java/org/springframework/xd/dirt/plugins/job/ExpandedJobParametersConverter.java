@@ -68,7 +68,7 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 
 	/**
 	 * Default Constructor, initializing {@link DefaultJobParametersConverter#setDateFormat(DateFormat)}
-	 * with {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
+	 * with {@link TimeUtils#getDefaultDateFormat()}.
 	 */
 	public ExpandedJobParametersConverter() {
 		this.setDateFormat(TimeUtils.getDefaultDateFormat());
@@ -76,7 +76,7 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 
 	/**
 	 * Will set the {@link DateFormat} on the underlying {@link DefaultJobParametersConverter}. If not set explicitly,
-	 * the {@link DateFormat} will default to {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
+	 * the {@link DateFormat} will default to {@link TimeUtils#getDefaultDateFormat()}.
 	 *
 	 * @param dateFormat Must not be null
 	 */
@@ -88,7 +88,7 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 
 	/**
 	 * Allows for setting the {@link DateFormat} using a {@link String}. If not
-	 * set, the default {@link DateFormat} used will be {@link ExpandedJobParametersConverter#DEFAULT_XD_DATE_FORMAT_PATTERN}.
+	 * set, the default {@link DateFormat} used will be {@link TimeUtils#getDefaultDateFormat()}.
 	 *
 	 * @param dateFormatAsString Will be ignored if null or empty.
 	 */

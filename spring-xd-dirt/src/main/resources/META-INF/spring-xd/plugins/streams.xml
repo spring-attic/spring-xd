@@ -26,6 +26,7 @@
 			<bean class="org.springframework.xd.dirt.integration.bus.converter.BsonToJsonConverter"/>
 			<bean class="org.springframework.xd.dirt.integration.bus.converter.BsonToTupleConverter"/>
 			<bean class="org.springframework.xd.dirt.integration.bus.converter.JsonToBsonConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.TupleToBsonMessageConverter"/>
 	</util:list>
 
 	<!-- Users can override this to add converters.-->

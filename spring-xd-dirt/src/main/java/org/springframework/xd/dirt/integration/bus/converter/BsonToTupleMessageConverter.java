@@ -16,56 +16,59 @@
 
 package org.springframework.xd.dirt.integration.bus.converter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeType;
+import org.springframework.xd.tuple.Tuple;
+import org.springframework.xd.tuple.TupleBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import de.undercouch.bson4jackson.BsonFactory;
 
 
 /**
- * A {@link MessageConverter} to convert from a JSON to a BSON.
+ * A {@link MessageConverter} to convert from a BSON (byte[]) to a Tuple.
  *
  * @author liujiong
  */
-public class JsonToBsonConverter extends AbstractFromMessageConverter {
+public class BsonToTupleMessageConverter extends AbstractFromMessageConverter {
 
 	private final static List<MimeType> targetMimeTypes = new ArrayList<MimeType>();
 	static {
-		targetMimeTypes.add(MessageConverterUtils.X_XD_BSON);
+		targetMimeTypes.add(MessageConverterUtils.X_XD_TUPLE);
 	}
 
-	public JsonToBsonConverter() {
+	public BsonToTupleMessageConverter() {
 		super(targetMimeTypes);
 	}
 
 	@Override
-	protected Class<?>[] supportedPayloadTypes() {
-		return new Class<?>[] { String.class };
+	protected Class<?>[] supportedTargetTypes() {
+		return null;
 	}
 
 	@Override
-	protected Class<?>[] supportedTargetTypes() {
+	protected Class<?>[] supportedPayloadTypes() {
 		return new Class<?>[] { byte[].class };
 	}
 
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectMapper mapper = new ObjectMapper(new BsonFactory());
+		BsonToJsonMessageConverter converter = new BsonToJsonMessageConverter();
+		Message<?> result = (Message<?>) converter.fromMessage(message, targetClass);
+		ObjectMapper mapper = new ObjectMapper();
+		String writeValueAsString = null;
 		try {
-			mapper.writeValue(baos, message.getPayload());
+			writeValueAsString = mapper.writeValueAsString(result.getPayload());
 		}
-		catch (IOException e) {
+		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
 			return null;
 		}
-		return buildConvertedMessage(baos.toByteArray(), message.getHeaders(), MessageConverterUtils.X_XD_BSON);
+		Tuple t = TupleBuilder.fromString(writeValueAsString);
+		return buildConvertedMessage(t, message.getHeaders(), MessageConverterUtils.javaObjectMimeType(t.getClass()));
+
 	}
 }

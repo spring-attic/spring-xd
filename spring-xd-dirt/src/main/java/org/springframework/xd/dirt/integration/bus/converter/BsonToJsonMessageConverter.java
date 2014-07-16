@@ -32,9 +32,9 @@ import de.undercouch.bson4jackson.BsonFactory;
  *
  * @author liujiong
  */
-public class BsonToJsonConverter extends AbstractFromMessageConverter {
+public class BsonToJsonMessageConverter extends AbstractFromMessageConverter {
 
-	public BsonToJsonConverter() {
+	public BsonToJsonMessageConverter() {
 		super(MimeTypeUtils.APPLICATION_JSON);
 	}
 

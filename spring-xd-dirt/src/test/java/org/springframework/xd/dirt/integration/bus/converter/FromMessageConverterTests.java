@@ -61,9 +61,10 @@ public class FromMessageConverterTests {
 	@Before
 	public void setUp() {
 		// Order matters
-		converters.add(new JsonToBsonConverter());
-		converters.add(new BsonToJsonConverter());
-		//		converters.add(new BsonToTupleConverter());
+		converters.add(new TupleToBsonMessageConverter());
+		converters.add(new BsonToTupleMessageConverter());
+		converters.add(new JsonToBsonMessageConverter());
+		converters.add(new BsonToJsonMessageConverter());
 		converters.add(new StringToByteArrayMessageConverter());
 		converters.add(new JavaToSerializedMessageConverter());
 		converters.add(new SerializedToJavaMessageConverter());
@@ -74,6 +75,36 @@ public class FromMessageConverterTests {
 		converters.add(new ByteArrayToStringMessageConverter());
 		converters.add(new PojoToStringMessageConverter());
 		converterFactory = new CompositeMessageConverterFactory(converters);
+	}
+
+	@Test
+	public void testTupleToBson() {
+		Tuple t = TupleBuilder.fromString("{\"foo\":\"bar\"}");
+		Message<?> msg = MessageBuilder.withPayload(t).build();
+		CompositeMessageConverter converter = converterFactory.newInstance(MimeType.valueOf("application/bson"));
+		Message<byte[]> result = (Message<byte[]>) converter.fromMessage(msg, byte[].class);
+
+		msg = MessageBuilder.withPayload(result.getPayload()).build();
+		converter = converterFactory.newInstance(MimeTypeUtils.APPLICATION_JSON);
+		Message<Foo> convertedJson = (Message<Foo>) converter.fromMessage(msg, Foo.class);
+		Foo foo = convertedJson.getPayload();
+		assertEquals("bar", foo.getFoo());
+		assertEquals(MimeType.valueOf("application/bson"),
+				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void testBsonToTuple() {
+		BSONObject o = new BasicBSONObject();
+		o.put("foo", "bar");
+		BSONEncoder enc = new BasicBSONEncoder();
+		byte[] bson_byte = enc.encode(o);
+		Message<?> msg = MessageBuilder.withPayload(bson_byte).build();
+		CompositeMessageConverter converter = converterFactory.newInstance(MimeType.valueOf("application/x-xd-tuple"));
+		Message<Tuple> result = (Message<Tuple>) converter.fromMessage(msg, Foo.class);
+		assertEquals("bar", result.getPayload().getString("foo"));
+		assertEquals(MessageConverterUtils.javaObjectMimeType(DefaultTuple.class),
+				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test

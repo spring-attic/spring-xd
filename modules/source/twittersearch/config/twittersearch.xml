@@ -16,6 +16,7 @@
 		<property name="geocode" value="${geocode}" />
 		<property name="resultType" value="${resultType}"/>
 		<property name="includeEntities" value="${includeEntities}"/>
+		<property name="phase" value="#{T(java.lang.Integer).MAX_VALUE}"/>
 	</bean>
 
 	<bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">

@@ -458,18 +458,13 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 
 		try {
-			writeModuleMetadata(module, path, client);
+			writeModuleMetadata(module, path, client, moduleSequence);
 			client.setData().forPath(status.buildPath(), ZooKeeperUtils.mapToBytes(status.toMap()));
 		}
-		catch (KeeperException.NodeExistsException ne) {
-			// This is likely to happen when the container disconnects and reconnects but the admin leader
-			// was not available to handle the container leaving event.
-			logger.info("The module metadata path for the module {} of type {} for {} already exists.", moduleLabel,
-					moduleType, unitName);
-		}
 		catch (KeeperException.NoNodeException e) {
-			logger.warn("During deployment of module {} of type {} for {}, an undeployment request " +
-					"was detected; this module will be undeployed.", moduleLabel, moduleType, unitName);
+			logger.warn("During deployment of module {} of type {} for {} with sequence number {}," +
+					"an undeployment request was detected; this module will be undeployed.", moduleLabel,
+					moduleType, unitName, moduleSequence);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Path " + path + " was removed", e);
 			}
@@ -483,14 +478,26 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param module     module for which to write properties; may be null
 	 * @param path       path to write properties to
 	 * @param client     curator client
+	 * @param int		 module sequence number
 	 * @throws Exception
 	 */
-	private void writeModuleMetadata(Module module, String path, CuratorFramework client) throws Exception {
+	private void writeModuleMetadata(Module module, String path, CuratorFramework client, int moduleSequence)
+			throws Exception {
 		if (module != null) {
 			Map<String, String> mapMetadata = new HashMap<String, String>();
 			CollectionUtils.mergePropertiesIntoMap(module.getProperties(), mapMetadata);
-			client.create().withMode(CreateMode.EPHEMERAL).forPath(
-					Paths.build(path, Paths.METADATA), ZooKeeperUtils.mapToBytes(mapMetadata));
+			try {
+				client.create().withMode(CreateMode.EPHEMERAL).forPath(
+						Paths.build(path, Paths.METADATA), ZooKeeperUtils.mapToBytes(mapMetadata));
+			}
+			catch (KeeperException.NodeExistsException ne) {
+				// This is likely to happen when the container disconnects and reconnects but the admin leader
+				// was not available to handle the container leaving event.
+				ModuleDescriptor descriptor = module.getDescriptor();
+				logger.info("The module metadata path for the module {} of type {} for {}" +
+						"with sequence number {} already exists.", descriptor.getModuleLabel(),
+						descriptor.getType().toString(), descriptor.getGroup(), moduleSequence);
+			}
 		}
 	}
 

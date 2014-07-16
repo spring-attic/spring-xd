@@ -69,8 +69,8 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 
 	@CliCommand(value = { "admin config server" }, help = "Configure the XD admin server to use")
 	public String target(@CliOption(mandatory = false, key = { "", "uri" },
-			help = "the location of the XD Admin REST endpoint",
-			unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
+	help = "the location of the XD Admin REST endpoint",
+	unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
 
 		try {
 			configuration.setTarget(new Target(targetUriString));
@@ -135,7 +135,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 	/**
 	 * Allows for setting the {@link TimeZone} via a Spring XD Shell command.
 	 */
-	@CliCommand(value = "admin config timezone set", help = "Set a timezone")
+	@CliCommand(value = "admin config timezone set", help = "Set the timezone of the Spring XD Shell. The change is not persisted.")
 	public String setTimeZone(
 			@CliOption(mandatory = true, key = { "", "timeZone" }, help = "the id of the timezone. "
 					+ "You can obtain a list of timezone ids using 'admin config timezone list'. "

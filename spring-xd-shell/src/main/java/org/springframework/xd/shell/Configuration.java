@@ -85,11 +85,10 @@ public class Configuration {
 	/**
 	 * Returns a String formatted Date/Time using the configured {@link Configuration#clientTimeZone}.
 	 *
-	 * @param date Must not be null
+	 * @param date Can be null
 	 * @return Should never return null.
 	 */
 	public String getLocalTime(Date date) {
-		Assert.notNull(date, "The provided date must not be null.");
 		return CommonUtils.getLocalTime(date, this.clientTimeZone);
 	}
 

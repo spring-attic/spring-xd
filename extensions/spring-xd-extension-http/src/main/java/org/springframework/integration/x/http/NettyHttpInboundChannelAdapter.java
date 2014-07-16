@@ -25,11 +25,17 @@ import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -54,12 +60,16 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import org.jboss.netty.handler.ssl.SslHandler;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.MediaType;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -86,6 +96,8 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	private final int port;
 
+	private final boolean ssl;
+
 	private volatile ServerBootstrap bootstrap;
 
 	private volatile ExecutionHandler executionHandler;
@@ -93,8 +105,18 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	private volatile Executor executor = new OrderedMemoryAwareThreadPoolExecutor(DEFAULT_CORE_POOL_SIZE,
 			DEFAULT_MAX_CHANNEL_MEMORY_SIZE, DEFAULT_MAX_TOTAL_MEMORY_SIZE);
 
+	/**
+	 * Properties file containing keyStore=[resource], keyStore.passPhrase=[passPhrase]
+	 */
+	private volatile Resource secrets;
+
 	public NettyHttpInboundChannelAdapter(int port) {
+		this(port, false);
+	}
+
+	public NettyHttpInboundChannelAdapter(int port, boolean ssl) {
 		this.port = port;
+		this.ssl = ssl;
 	}
 
 	/**
@@ -107,6 +129,14 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	public void setExecutor(Executor executor) {
 		Assert.notNull(executor, "A non-null executor is required");
 		this.executor = executor;
+	}
+
+	/**
+	 * @param secrets A properties file containing a resource with key 'keyStore' and
+	 * a pass phrase with key 'keyStore.passPhrase'.
+	 */
+	public void setSecrets(Resource secrets) {
+		this.secrets = secrets;
 	}
 
 	@Override
@@ -126,11 +156,40 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 		}
 	}
 
+	private void configureSSL(ChannelPipeline pipeline) {
+		try {
+			Assert.state(this.secrets != null, "KeyStore and pass phrase properties file required");
+			Properties secrets = new Properties();
+			secrets.load(this.secrets.getInputStream());
+			PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+			String keyStoreName = secrets.getProperty("keyStore");
+			Assert.state(StringUtils.hasText(keyStoreName), "keyStore property cannot be null");
+			String keyStorePassPhrase = secrets.getProperty("keyStore.passPhrase");
+			Assert.state(StringUtils.hasText(keyStorePassPhrase), "keyStore.passPhrase property cannot be null");
+			Resource keyStore = resolver.getResource(keyStoreName);
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			KeyStore ks = KeyStore.getInstance("PKCS12");
+			ks.load(keyStore.getInputStream(), "secret".toCharArray());
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+			kmf.init(ks, keyStorePassPhrase.toCharArray());
+			sslContext.init(kmf.getKeyManagers(), null, null);
+			SSLEngine engine = sslContext.createSSLEngine();
+			engine.setUseClientMode(false);
+			pipeline.addLast("ssl", new SslHandler(engine));
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Unable to create SSLContext", e);
+		}
+	}
+
 	private class PipelineFactory implements ChannelPipelineFactory {
 
 		@Override
 		public ChannelPipeline getPipeline() throws Exception {
 			ChannelPipeline pipeline = new DefaultChannelPipeline();
+			if (NettyHttpInboundChannelAdapter.this.ssl) {
+				configureSSL(pipeline);
+			}
 			pipeline.addLast("decoder", new HttpRequestDecoder());
 			pipeline.addLast("aggregator", new HttpChunkAggregator(1024 * 1024));
 			pipeline.addLast("encoder", new HttpResponseEncoder());
@@ -139,6 +198,7 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 			pipeline.addLast("handler", new Handler());
 			return pipeline;
 		}
+
 	}
 
 	private class Handler extends SimpleChannelUpstreamHandler {

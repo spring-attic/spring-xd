@@ -458,12 +458,13 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 
 		try {
-			writeModuleMetadata(module, path, client);
+			writeModuleMetadata(client, module, path);
 			client.setData().forPath(status.buildPath(), ZooKeeperUtils.mapToBytes(status.toMap()));
 		}
 		catch (KeeperException.NoNodeException e) {
-			logger.warn("During deployment of module {} of type {} for {}, an undeployment request " +
-					"was detected; this module will be undeployed.", moduleLabel, moduleType, unitName);
+			logger.warn("During deployment of module {} of type {} for {} with sequence number {}," +
+					"an undeployment request was detected; this module will be undeployed.", moduleLabel,
+					moduleType, unitName, moduleSequence);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Path " + path + " was removed", e);
 			}
@@ -474,17 +475,28 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * If the provided module is not null, write its properties to the provided
 	 * ZooKeeper path. If the module is null, no action is taken.
 	 *
+	 * @param client     curator client
 	 * @param module     module for which to write properties; may be null
 	 * @param path       path to write properties to
-	 * @param client     curator client
 	 * @throws Exception
 	 */
-	private void writeModuleMetadata(Module module, String path, CuratorFramework client) throws Exception {
+	private void writeModuleMetadata(CuratorFramework client, Module module, String path)
+			throws Exception {
 		if (module != null) {
 			Map<String, String> mapMetadata = new HashMap<String, String>();
 			CollectionUtils.mergePropertiesIntoMap(module.getProperties(), mapMetadata);
-			client.create().withMode(CreateMode.EPHEMERAL).forPath(
-					Paths.build(path, Paths.METADATA), ZooKeeperUtils.mapToBytes(mapMetadata));
+			try {
+				client.create().withMode(CreateMode.EPHEMERAL).forPath(
+						Paths.build(path, Paths.METADATA), ZooKeeperUtils.mapToBytes(mapMetadata));
+			}
+			catch (KeeperException.NodeExistsException ne) {
+				// This is likely to happen when the container disconnects and reconnects but the admin leader
+				// was not available to handle the container leaving event.
+				ModuleDescriptor descriptor = module.getDescriptor();
+				logger.info("The module metadata path for the module {} of type {} for {}" +
+						"already exists.", descriptor.getModuleLabel(),
+						descriptor.getType().toString(), descriptor.getGroup());
+			}
 		}
 	}
 
@@ -521,7 +533,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				client.getData().usingWatcher(jobModuleWatcher).forPath(jobDeploymentPath);
 			}
 			catch (KeeperException.NodeExistsException e) {
-				// todo: review, this should not happen
+				// This could possibly happen when the container disconnects and reconnects but
+				// admin leader was not available to process container removed event.
 				logger.info("Module for job {} already deployed", jobName);
 			}
 		}
@@ -567,7 +580,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				client.getData().usingWatcher(streamModuleWatcher).forPath(streamDeploymentPath);
 			}
 			catch (KeeperException.NodeExistsException e) {
-				// todo: review, this should not happen
+				// This could possibly happen when the container disconnects and reconnects but
+				// admin leader was not available to process container removed event.
 				logger.info("Module {} for stream {} already deployed", moduleLabel, streamName);
 			}
 		}

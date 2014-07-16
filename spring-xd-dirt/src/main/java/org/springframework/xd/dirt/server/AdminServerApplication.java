@@ -78,10 +78,12 @@ public class AdminServerApplication {
 
 		try {
 			this.context = new SpringApplicationBuilder(AdminOptions.class, ParentConfiguration.class)
+					.logStartupInfo(false)
 					.profiles(XdProfiles.ADMIN_PROFILE)
 					.listeners(commandLineListener)
 					.initializers(new AdminPortAvailablityInitializer())
 					.child(SharedServerContextConfiguration.class, AdminOptions.class)
+					.logStartupInfo(false)
 					.listeners(commandLineListener)
 					.child(AdminServerApplication.class)
 					.listeners(commandLineListener)

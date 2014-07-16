@@ -50,23 +50,28 @@ public class SingleNodeApplication {
 
 		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
 				ParentConfiguration.class)
-		.listeners(bootstrapContext.commandLineListener())
-		.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
-		.initializers(new HsqldbServerProfileActivator())
-		.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
-		.listeners(bootstrapContext.commandLineListener())
-		.child(SingleNodeOptions.class, AdminServerApplication.class)
-		.listeners(bootstrapContext.commandLineListener());
+				.logStartupInfo(false)
+				.listeners(bootstrapContext.commandLineListener())
+				.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
+				.initializers(new HsqldbServerProfileActivator())
+				.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
+				.logStartupInfo(false)
+				.listeners(bootstrapContext.commandLineListener())
+				.child(SingleNodeOptions.class, AdminServerApplication.class)
+				.main(AdminServerApplication.class)
+				.listeners(bootstrapContext.commandLineListener());
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
 				.sibling(SingleNodeOptions.class, ContainerServerApplication.class)
+				.logStartupInfo(false)
 				.profiles(XdProfiles.CONTAINER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
 				.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
 						bootstrapContext.pluginContextInitializers()))
-						.child(ContainerConfiguration.class)
-						.listeners(bootstrapContext.commandLineListener())
-						.web(false);
+				.child(ContainerConfiguration.class)
+				.main(ContainerServerApplication.class)
+				.listeners(bootstrapContext.commandLineListener())
+				.web(false);
 		container.run(args);
 
 		adminContext = admin.context();
@@ -110,7 +115,7 @@ public class SingleNodeApplication {
 	 * is hsql and embedded hsqldb is opted.
 	 */
 	class HsqldbServerProfileActivator implements
-	ApplicationContextInitializer<ConfigurableApplicationContext> {
+			ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		private static final String SPRING_DATASOURCE_URL_OPTION = "${spring.datasource.url}";
 

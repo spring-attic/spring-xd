@@ -16,7 +16,7 @@
 				<input type="text" id="containerMatchCriteria" name="containerMatchCriteria" autofocus
 							 class="form-control" placeholder="Enter a Container Match Criteria" ng-model="definitionDeployRequest.containerMatchCriteria">
 				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.containerMatchCriteria.$invalid"></span>
-				<p class="help-block">This must be a valid SpEL expression.</p>
+				<p class="help-block">If no criteria, leave it as blank. Optional, if set must be a valid SpEL expression.</p>
 			</div>
 		</div>
 		<div class="form-group" ng-class="deployDefinitionForm.jobModuleCount.$invalid ? 'has-warning has-feedback' : ''">
@@ -25,12 +25,13 @@
 				<input type="number" id="jobModuleCount" name="jobModuleCount" min="0"
 							 class="form-control" placeholder="Enter the number of container instances" ng-model="definitionDeployRequest.jobModuleCount">
 				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.jobModuleCount.$invalid"></span>
-				<p class="help-block">Specifies the number of container instances
+				<p class="help-block">Default is <strong>1</strong>. Specifies the number of container instances
 				this module should be deployed to. A value of <strong>0</strong>
 				indicates that this Job Definition should be deployed to all
 				containers that match the provided target expression. If no
 				target expression is provided and the count value is <strong>0</strong>,
-				this definition will be deployed to all containers.</p>
+				this definition will be deployed to all containers.When a container joins the cluster,
+                that one will be matched as well.</p>
 			</div>
 		</div>
 	</form>

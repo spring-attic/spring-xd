@@ -34,6 +34,7 @@
                            ng-required='jobScheduleRequest.triggerType === "date"'
                            ng-model="jobScheduleRequest.date"
                            ng-show="isDate()" placeholder="MM/dd/yy HH:mm:ss">
+                    <p class="help-block" ng-show="isDate()">Date is interpreted using the Server Timezone.</p>
                 </div>
             </label>
         </div>

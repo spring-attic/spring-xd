@@ -135,12 +135,12 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 	/**
 	 * Allows for setting the {@link TimeZone} via a Spring XD Shell command.
 	 */
-	@CliCommand(value = "admin config timezone set", help = "Set the timezone of the Spring XD Shell. The change is not persisted.")
+	@CliCommand(value = "admin config timezone set", help = "Set the timezone of the Spring XD Shell (Not persisted)")
 	public String setTimeZone(
-			@CliOption(mandatory = true, key = { "", "timeZone" }, help = "the id of the timezone. "
-					+ "You can obtain a list of timezone ids using 'admin config timezone list'. "
+			@CliOption(mandatory = true, key = { "", "timeZone" }, help = "the id of the timezone, "
+					+ "You can obtain a list of timezone ids using 'admin config timezone list', "
 					+ "If an invalid timezone id is provided, then 'Greenwich Mean Time' "
-					+ "is being used.") String timeZoneId) {
+					+ "is being used") String timeZoneId) {
 		final TimeZone newCientTimeZone = TimeZone.getTimeZone(timeZoneId);
 		this.configuration.setClientTimeZone(newCientTimeZone);
 		return "TimeZone set to " + newCientTimeZone.getDisplayName();

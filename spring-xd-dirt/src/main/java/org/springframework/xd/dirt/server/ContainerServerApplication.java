@@ -94,11 +94,14 @@ public class ContainerServerApplication implements EnvironmentAware {
 			ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new ContainerOptions());
 
 			this.containerContext = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
+					.logStartupInfo(false)
 					.profiles(XdProfiles.CONTAINER_PROFILE)
 					.listeners(bootstrapContext.commandLineListener())
 					.child(SharedServerContextConfiguration.class, ContainerOptions.class)
+					.logStartupInfo(false)
 					.listeners(bootstrapContext.commandLineListener())
 					.child(ContainerServerApplication.class)
+					.logStartupInfo(false)
 					.listeners(
 							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
 									bootstrapContext.pluginContextInitializers()))

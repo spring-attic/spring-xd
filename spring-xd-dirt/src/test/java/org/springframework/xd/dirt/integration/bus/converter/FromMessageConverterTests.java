@@ -61,7 +61,9 @@ public class FromMessageConverterTests {
 	@Before
 	public void setUp() {
 		// Order matters
+		converters.add(new JsonToBsonConverter());
 		converters.add(new BsonToJsonConverter());
+		//		converters.add(new BsonToTupleConverter());
 		converters.add(new StringToByteArrayMessageConverter());
 		converters.add(new JavaToSerializedMessageConverter());
 		converters.add(new SerializedToJavaMessageConverter());
@@ -75,17 +77,33 @@ public class FromMessageConverterTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
+	public void testJsonStringToBson() {
+		String json = "{\"foo\":\"bar\"}";
+		Message<?> msg = MessageBuilder.withPayload(json).build();
+		CompositeMessageConverter converter = converterFactory.newInstance(MimeType.valueOf("application/bson"));
+		Message<byte[]> result = (Message<byte[]>) converter.fromMessage(msg, byte[].class);
+
+		msg = MessageBuilder.withPayload(result.getPayload()).build();
+		converter = converterFactory.newInstance(MimeTypeUtils.APPLICATION_JSON);
+		Message<Foo> convertedJson = (Message<Foo>) converter.fromMessage(msg, Foo.class);
+		Foo foo = convertedJson.getPayload();
+		assertEquals("bar", foo.getFoo());
+		assertEquals(MimeType.valueOf("application/bson"),
+				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
 	public void testBsonToJson() {
 		BSONObject o = new BasicBSONObject();
-		o.put("Double", 5.0);
-		o.put("abcd", "efgh");
+		o.put("foo", "bar");
 		BSONEncoder enc = new BasicBSONEncoder();
 		byte[] bson_byte = enc.encode(o);
 		Message<?> msg = MessageBuilder.withPayload(bson_byte).build();
 		CompositeMessageConverter converter = converterFactory.newInstance(MimeTypeUtils.APPLICATION_JSON);
-		Message<String> result = (Message<String>) converter.fromMessage(msg, String.class);
-		assertTrue(result.getPayload(), result.getPayload().contains("\"Double\":5.0"));
-		assertTrue(result.getPayload(), result.getPayload().contains("\"abcd\":\"efgh\""));
+		Message<Foo> result = (Message<Foo>) converter.fromMessage(msg, Foo.class);
+		Foo foo = result.getPayload();
+		assertEquals("bar", foo.getFoo());
 		assertEquals(MimeTypeUtils.APPLICATION_JSON,
 				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}

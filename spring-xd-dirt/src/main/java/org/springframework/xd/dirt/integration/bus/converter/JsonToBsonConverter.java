@@ -16,11 +16,13 @@
 
 package org.springframework.xd.dirt.integration.bus.converter;
 
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.messaging.Message;
-import org.springframework.util.MimeTypeUtils;
+import org.springframework.util.MimeType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -28,38 +30,42 @@ import de.undercouch.bson4jackson.BsonFactory;
 
 
 /**
- * A {@link MessageConverter} to convert from a BSON (byte[]) to a JSON.
+ * A {@link MessageConverter} to convert from a JSON to a BSON.
  *
  * @author liujiong
  */
-public class BsonToJsonConverter extends AbstractFromMessageConverter {
+public class JsonToBsonConverter extends AbstractFromMessageConverter {
 
-	public BsonToJsonConverter() {
-		super(MimeTypeUtils.APPLICATION_JSON);
+	private final static List<MimeType> targetMimeTypes = new ArrayList<MimeType>();
+	static {
+		targetMimeTypes.add(MessageConverterUtils.X_XD_BSON);
 	}
 
-	@Override
-	protected Class<?>[] supportedTargetTypes() {
-		return null;
+	public JsonToBsonConverter() {
+		super(targetMimeTypes);
 	}
 
 	@Override
 	protected Class<?>[] supportedPayloadTypes() {
+		return new Class<?>[] { String.class };
+	}
+
+	@Override
+	protected Class<?>[] supportedTargetTypes() {
 		return new Class<?>[] { byte[].class };
 	}
 
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
-		ByteArrayInputStream bais = new ByteArrayInputStream((byte[]) message.getPayload());
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectMapper mapper = new ObjectMapper(new BsonFactory());
-		Object readValue = null;
 		try {
-			readValue = mapper.readValue(bais, targetClass);
+			mapper.writeValue(baos, message.getPayload());
 		}
 		catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			return null;
 		}
-		return buildConvertedMessage(readValue, message.getHeaders(), MimeTypeUtils.APPLICATION_JSON);
+		return buildConvertedMessage(baos.toByteArray(), message.getHeaders(), MessageConverterUtils.X_XD_BSON);
 	}
 }

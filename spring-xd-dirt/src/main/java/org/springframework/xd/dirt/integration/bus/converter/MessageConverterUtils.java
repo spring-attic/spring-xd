@@ -27,7 +27,7 @@ import org.springframework.xd.tuple.DefaultTuple;
 
 /**
  * Message conversion utility methods
- * 
+ *
  * @author David Turanski
  */
 public class MessageConverterUtils {
@@ -53,8 +53,13 @@ public class MessageConverterUtils {
 	public static final MimeType X_JAVA_SERIALIZED_OBJECT = MimeType.valueOf("application/x-java-serialized-object");
 
 	/**
+	 * An XD MimeType for specifying a Bson
+	 */
+	public static final MimeType X_XD_BSON = MimeType.valueOf("application/bson");
+
+	/**
 	 * Map the contentType to a target class
-	 * 
+	 *
 	 * @param contentType the content type
 	 * @param classLoader the class loader used to resolve the class
 	 * @return
@@ -96,7 +101,7 @@ public class MessageConverterUtils {
 
 	/**
 	 * Build the conventional {@link MimeType} for a java object
-	 * 
+	 *
 	 * @param clazz the java type
 	 * @return the MIME type
 	 */

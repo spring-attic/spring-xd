@@ -139,6 +139,7 @@ ext {
 	validationApiVersion = '1.0.0.GA'
 	zookeeperVersion = '3.4.6'
 	bson4jackson = '2.4.0'
+	bson = '2.12.0'
 
 	// Hadoop Versions
 	hadoop22Version = '2.2.0'
@@ -416,6 +417,7 @@ project('spring-xd-dirt') {
 		// See XD-903 for breakdown
 		// ************* Common to both Server and Container
 		compile "de.undercouch:bson4jackson:$bson4jackson"
+		testCompile "org.mongodb:bson:$bson"
 		compile "org.springframework:spring-aop:$springVersion"
 		compile project(":spring-xd-analytics")
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"

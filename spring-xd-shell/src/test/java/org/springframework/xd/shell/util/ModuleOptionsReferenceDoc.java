@@ -45,12 +45,12 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
 /**
  * A class that generates asciidoc snippets for each module's options.
- * 
- * <p>For each file passed as an argument, will replace parts of the file (inplace) in between {@code //^<type>.<name>} 
+ *
+ * <p>For each file passed as an argument, will replace parts of the file (inplace) in between {@code //^<type>.<name>}
  * and {@code //$<type>.<name>} with a generated snippet documenting options. Those start and end fences are copied as-is,
  * so that a subsequent run regenerates uptodate doco.
  * </p>
- * 
+ *
  * @author Eric Bottard
  */
 public class ModuleOptionsReferenceDoc {
@@ -138,6 +138,12 @@ public class ModuleOptionsReferenceDoc {
 			throws IOException {
 		ModuleDefinition def = moduleRegistry.findDefinition(name, type);
 		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(def);
+
+		if (!moduleOptionsMetadata.iterator().hasNext()) {
+			out.format("The **%s** %s has no particular option (in addition to options shared by all modules)%n%n",
+					def.getName(), def.getType());
+			return;
+		}
 
 		out.format("The **%s** %s has the following options:%n%n", def.getName(), def.getType());
 		List<ModuleOption> options = new ArrayList<ModuleOption>();

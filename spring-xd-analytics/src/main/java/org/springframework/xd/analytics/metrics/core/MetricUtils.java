@@ -20,7 +20,7 @@ import java.util.List;
 
 /**
  * Utility class, primarily to avoid exposing mutable objects beyond the core package.
- * 
+ *
  * For internal use only.
  */
 public final class MetricUtils {
@@ -61,8 +61,11 @@ public final class MetricUtils {
 	}
 
 	public static long sum(long[] array) {
+		if (array == null) {
+			return 0L;
+		}
 		long sum = 0;
-		for (int i=0; i < array.length; i++) {
+		for (int i = 0; i < array.length; i++) {
 			sum += array[i];
 		}
 		return sum;

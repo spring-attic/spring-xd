@@ -94,7 +94,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			return result;
 		}
 		else {
-			LOG.severe("You must set namenode URL before running fs commands. Refer `hadoop config fs`");
+			LOG.severe("You must set namenode URL before running fs commands. Use `hadoop config fs` to configure namenode URL.");
 			throw new IllegalStateException("You must set fs URL before running fs commands");
 		}
 	}

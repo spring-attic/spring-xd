@@ -30,7 +30,7 @@ import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.hateoas.ResourceSupport;
-import org.springframework.xd.rest.client.util.TimeUtils;
+import org.springframework.xd.rest.client.domain.util.TimeUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

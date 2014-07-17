@@ -53,7 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
-import org.springframework.xd.rest.client.util.TimeUtils;
+import org.springframework.xd.rest.client.domain.util.TimeUtils;
 
 /**
  * Tests REST compliance of {@link BatchJobsController} endpoints.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client.util;
+package org.springframework.xd.rest.client.domain.util;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

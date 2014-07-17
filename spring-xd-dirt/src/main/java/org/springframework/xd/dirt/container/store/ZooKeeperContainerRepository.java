@@ -17,6 +17,8 @@
 package org.springframework.xd.dirt.container.store;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -269,10 +271,20 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 	@Override
 	public List<Container> findAll() {
 		List<Container> results = new ArrayList<Container>();
-		List<ChildData> children = ensureCache().getCurrentData();
+		List<ChildData> children = new ArrayList<ChildData>(ensureCache().getCurrentData());
+
+		// sort containers by node creation date (cluster join time)
+		Collections.sort(children, new Comparator<ChildData>() {
+			@Override
+			public int compare(ChildData c1, ChildData c2) {
+				return Long.compare(c1.getStat().getCtime(), c2.getStat().getCtime());
+			}
+		});
+
 		for (ChildData childData : children) {
 			results.add(findOne(Paths.stripPath(childData.getPath())));
 		}
+
 		return results;
 	}
 

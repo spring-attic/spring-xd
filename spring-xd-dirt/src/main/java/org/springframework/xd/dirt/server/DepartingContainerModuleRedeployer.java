@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
-import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
@@ -40,7 +39,6 @@ import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
-import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 
@@ -84,12 +82,12 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 	 * Handle the departure of a container. This will scan the list of modules
 	 * deployed to the departing container and redeploy them if required.
 	 *
-	 * @param client curator client
 	 * @param container the container that departed
 	 */
 	@Override
-	protected void deployModules(CuratorFramework client, Container container) throws Exception {
+	protected void deployModules(Container container) throws Exception {
 		logger.info("Container departed: {}", container);
+		CuratorFramework client = getClient();
 		if (client.getState() == CuratorFrameworkState.STOPPED) {
 			return;
 		}
@@ -123,7 +121,8 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			if (ModuleType.job.toString().equals(moduleType)) {
 				Job job = DeploymentLoader.loadJob(client, unitName, this.jobFactory);
 				if (job != null) {
-					redeployJobModule(client, job, deploymentProperties);
+					redeployModule(new ModuleDeployment(job, job.getJobModuleDescriptor(),
+							deploymentProperties), false);
 				}
 			}
 			else {
@@ -141,90 +140,12 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 		}
 
 		for (ModuleDeployment moduleDeployment : streamModuleDeployments) {
-			redeployStreamModule(client, moduleDeployment);
+			redeployModule(moduleDeployment, false);
 		}
 
 		// remove the deployments from the departed container
 		client.delete().deletingChildrenIfNeeded().forPath(
 				Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, container.getName()));
 	}
-
-	/**
-	 * Redeploy a module for a stream to a container. This redeployment will occur
-	 * if:
-	 * <ul>
-	 * 		<li>the module needs to be redeployed per the deployment properties</li>
-	 * 		<li>the stream has not been destroyed</li>
-	 * 		<li>the stream has not been undeployed</li>
-	 * 		<li>there is a container that can deploy the stream module</li>
-	 * </ul>
-	 *
-	 * @param moduleDeployment contains module redeployment details such as
-	 *                         stream, module descriptor, and deployment properties
-	 * @throws InterruptedException
-	 */
-	private void redeployStreamModule(CuratorFramework client, ModuleDeployment moduleDeployment)
-			throws Exception {
-		Stream stream = (Stream) moduleDeployment.deploymentUnit;
-		ModuleDescriptor moduleDescriptor = moduleDeployment.moduleDescriptor;
-		RuntimeModuleDeploymentProperties deploymentProperties = moduleDeployment.runtimeDeploymentProperties;
-
-		ModuleDeploymentStatus deploymentStatus = null;
-		if (deploymentProperties.getCount() > 0) {
-			try {
-				deploymentStatus = deployModule(client, moduleDeployment,
-						instantiateContainerMatcher(client, moduleDescriptor));
-			}
-			catch (NoContainerException e) {
-				logger.warn("No containers available for redeployment of {} for stream {}",
-						moduleDescriptor.getModuleLabel(),
-						stream.getName());
-			}
-			finally {
-				updateDeploymentUnitState(client, moduleDeployment, deploymentStatus);
-			}
-		}
-		else {
-			logUnwantedRedeployment(deploymentProperties.getCriteria(), moduleDescriptor.getModuleLabel());
-		}
-	}
-
-	/**
-	 * Redeploy a module for a job to a container. This redeployment will occur if:
-	 * <ul>
-	 * 		<li>the job has not been destroyed</li>
-	 * 		<li>the job has not been undeployed</li>
-	 * 		<li>there is a container that can deploy the job</li>
-	 * </ul>
-	 *
-	 * @param client               curator client
-	 * @param job                  job instance to redeploy
-	 * @param deploymentProperties deployment properties for job module
-	 * @throws Exception
-	 */
-	private void redeployJobModule(CuratorFramework client, final Job job,
-			RuntimeModuleDeploymentProperties deploymentProperties) throws Exception {
-		ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
-		ModuleDeploymentStatus deploymentStatus = null;
-		ModuleDeployment moduleDeployment = new ModuleDeployment(job, moduleDescriptor, deploymentProperties);
-		if (deploymentProperties.getCount() > 0) {
-			try {
-				deploymentStatus = deployModule(client, moduleDeployment,
-						instantiateContainerMatcher(client, moduleDescriptor));
-			}
-			catch (NoContainerException e) {
-				logger.warn("No containers available for redeployment of {} for job {}",
-						moduleDescriptor.getModuleLabel(),
-						job.getName());
-			}
-			finally {
-				updateDeploymentUnitState(client, moduleDeployment, deploymentStatus);
-			}
-		}
-		else {
-			logUnwantedRedeployment(deploymentProperties.getCriteria(), moduleDescriptor.getModuleLabel());
-		}
-	}
-
 
 }

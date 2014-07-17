@@ -102,6 +102,7 @@ ext {
 	// Also in IO
 	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4
 	oldGuavaVersion = '15.0'  // This is only used by spring-xd-integration-test, IO uses version 17.0
+	guavaVersion = '16.0.1'
 
 	// Hadoop Versions
 	springDataHadoopBase = '2.0.1.RELEASE'
@@ -1468,7 +1469,7 @@ project('spring-xd-test') {
 			exclude group: 'org.springframework.batch'
 			exclude group: 'jline'
 		}
-		compile "com.google.guava:guava"
+		compile "com.google.guava:guava:$guavaVersion"
 		compile "org.springframework.data:spring-data-redis"
 		compile "org.springframework:spring-context"
 		compile "org.springframework:spring-context-support"
@@ -1501,7 +1502,7 @@ project('spring-xd-shell') {
 			exclude group: 'org.mortbay.jetty'
 			exclude group: 'hsqldb'
 		}
-		compile "com.google.guava:guava"
+		compile "com.google.guava:guava:$guavaVersion"
 		compile	"org.codehaus.jackson:jackson-mapper-asl"
 		compile "commons-io:commons-io"
 		configurations.compile.exclude(group: "xerces")

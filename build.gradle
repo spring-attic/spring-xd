@@ -133,9 +133,11 @@ def forceDependencyVersions(project) {
 
 				resolutionStrategy {
 					eachDependency { details ->
-						def version = versions["$details.requested.group:$details.requested.name"]
-						if (version) {
-							details.useVersion version
+						if (details.requested.group != 'com.google.guava') {
+							def version = versions["$details.requested.group:$details.requested.name"]
+							if (version) {
+								details.useVersion version
+							}
 						}
 					}
 				}

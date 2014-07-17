@@ -21,7 +21,7 @@ import java.util.Collections;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.StreamOperations;
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
+import org.springframework.xd.rest.domain.StreamDefinitionResource;
 
 /**
  * Implementation of the Stream-related part of the API.

@@ -24,7 +24,7 @@ import java.util.Set;
 import org.junit.Test;
 
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.rest.client.domain.RESTModuleType;
+import org.springframework.xd.rest.domain.RESTModuleType;
 
 
 /**

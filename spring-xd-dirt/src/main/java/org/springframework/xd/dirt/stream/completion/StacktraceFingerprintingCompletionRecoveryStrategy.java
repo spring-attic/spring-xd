@@ -24,7 +24,7 @@ import java.util.Set;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDParser;
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * A recovery strategy that will trigger if the parser failure is similar to that of some sample unfinished stream

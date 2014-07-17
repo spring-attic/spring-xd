@@ -26,7 +26,7 @@ import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOption;
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Provides code completion on a (maybe ill-formed) stream definition.

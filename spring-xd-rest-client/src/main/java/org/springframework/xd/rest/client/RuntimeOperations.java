@@ -17,8 +17,8 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.ContainerResource;
-import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
 /**
  * Interface defining operations available against runtime container/modules.

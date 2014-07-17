@@ -30,8 +30,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
-import org.springframework.xd.rest.client.domain.metrics.CounterResource;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.CounterResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Exposes representations of {@link Counter}s.

@@ -27,7 +27,7 @@ import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 
 /**

@@ -16,11 +16,12 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
+import static org.springframework.xd.rest.domain.CompletionKind.module;
+import static org.springframework.xd.rest.domain.CompletionKind.stream;
+
 import static org.springframework.xd.module.ModuleType.processor;
 import static org.springframework.xd.module.ModuleType.sink;
 import static org.springframework.xd.module.ModuleType.source;
-import static org.springframework.xd.rest.client.domain.CompletionKind.module;
-import static org.springframework.xd.rest.client.domain.CompletionKind.stream;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Continues a well-formed stream definition by adding a pipe symbol and another module, provided that the stream

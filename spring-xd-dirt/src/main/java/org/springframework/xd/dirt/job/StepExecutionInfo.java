@@ -24,7 +24,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.step.tasklet.TaskletStep;
-import org.springframework.xd.rest.client.util.TimeUtils;
+import org.springframework.xd.rest.domain.util.TimeUtils;
 
 /**
  * Represents Batch step execution info.

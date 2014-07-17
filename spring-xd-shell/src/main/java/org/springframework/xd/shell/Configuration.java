@@ -21,7 +21,7 @@ import java.util.TimeZone;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.xd.rest.client.util.TimeUtils;
+import org.springframework.xd.rest.domain.util.TimeUtils;
 import org.springframework.xd.shell.command.ConfigCommands;
 import org.springframework.xd.shell.util.CommonUtils;
 

@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.dirt.job.JobInstanceInfo;
-import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
+import org.springframework.xd.rest.domain.JobInstanceInfoResource;
 
 
 /**

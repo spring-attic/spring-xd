@@ -18,8 +18,8 @@ package org.springframework.xd.rest.client.impl;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
-import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.FieldValueCounterResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Implementation of the Field Value Counter part of the metrics API.

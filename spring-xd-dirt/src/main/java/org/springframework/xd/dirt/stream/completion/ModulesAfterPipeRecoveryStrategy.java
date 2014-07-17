@@ -30,7 +30,7 @@ import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Provides completions for the case where the user has entered a pipe symbol and a module reference is expected next.

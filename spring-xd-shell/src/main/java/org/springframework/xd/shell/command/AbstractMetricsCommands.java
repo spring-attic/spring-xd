@@ -17,7 +17,7 @@
 package org.springframework.xd.shell.command;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 

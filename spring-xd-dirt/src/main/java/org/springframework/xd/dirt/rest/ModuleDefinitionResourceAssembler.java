@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
+import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 
 /**
  * Knows how to build a REST resource out of our domain model {@link ModuleDefinition}.

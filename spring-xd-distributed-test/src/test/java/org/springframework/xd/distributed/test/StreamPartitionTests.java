@@ -30,8 +30,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
 /**
  * @author Patrick Peralta

@@ -24,8 +24,8 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
-import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Implementation of the Aggregate Counter part of the metrics API.

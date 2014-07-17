@@ -18,8 +18,8 @@ package org.springframework.xd.rest.client.impl;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.RichGaugeOperations;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
-import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
 
 /**
  * Implementation of the RichGauge part of the metrics API.

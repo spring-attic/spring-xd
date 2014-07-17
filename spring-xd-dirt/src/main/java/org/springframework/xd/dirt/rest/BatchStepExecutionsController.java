@@ -33,8 +33,8 @@ import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.dirt.job.NoSuchStepExecutionException;
 import org.springframework.xd.dirt.job.StepExecutionInfo;
 import org.springframework.xd.dirt.job.StepExecutionProgressInfo;
-import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
-import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
+import org.springframework.xd.rest.domain.StepExecutionInfoResource;
+import org.springframework.xd.rest.domain.StepExecutionProgressInfoResource;
 
 /**
  * Controller for returning Batch {@link StepExecution}s.

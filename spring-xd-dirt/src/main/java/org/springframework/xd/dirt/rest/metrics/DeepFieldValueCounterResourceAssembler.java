@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
-import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
+import org.springframework.xd.rest.domain.metrics.FieldValueCounterResource;
 
 /**
  * Knows how to create rich representations of {@link FieldValueCounter}.

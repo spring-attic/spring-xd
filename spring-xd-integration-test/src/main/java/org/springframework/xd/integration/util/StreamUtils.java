@@ -44,10 +44,10 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.xd.rest.client.domain.ContainerResource;
-import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.StreamDefinitionResource;
 
 import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;

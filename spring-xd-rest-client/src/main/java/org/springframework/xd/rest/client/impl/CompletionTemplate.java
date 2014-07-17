@@ -22,7 +22,7 @@ import java.util.List;
 
 import org.springframework.hateoas.UriTemplate;
 import org.springframework.xd.rest.client.CompletionOperations;
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Implements the {@link CompletionOperations} part of the API.

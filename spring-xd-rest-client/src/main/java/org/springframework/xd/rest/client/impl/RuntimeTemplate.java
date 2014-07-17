@@ -22,8 +22,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.RuntimeOperations;
-import org.springframework.xd.rest.client.domain.ContainerResource;
-import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
 /**
  * Implementation of the runtime containers/modules related part of the API.

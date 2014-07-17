@@ -36,7 +36,7 @@ import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
-import org.springframework.xd.rest.client.domain.JobDefinitionResource;
+import org.springframework.xd.rest.domain.JobDefinitionResource;
 
 /**
  * Handles all Job related interactions.

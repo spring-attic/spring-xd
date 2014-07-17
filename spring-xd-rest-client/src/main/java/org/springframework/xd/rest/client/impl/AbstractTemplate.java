@@ -43,8 +43,8 @@ import org.springframework.xd.rest.client.impl.support.JobParameterJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.JobParametersJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.StepExecutionHistoryJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.StepExecutionJacksonMixIn;
-import org.springframework.xd.rest.client.util.ISO8601DateFormatWithMilliSeconds;
-import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
+import org.springframework.xd.rest.domain.support.RestTemplateMessageConverterUtil;
+import org.springframework.xd.rest.domain.util.ISO8601DateFormatWithMilliSeconds;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

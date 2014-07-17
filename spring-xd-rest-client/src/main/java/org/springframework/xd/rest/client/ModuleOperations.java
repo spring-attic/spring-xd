@@ -17,9 +17,9 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
-import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
-import org.springframework.xd.rest.client.domain.RESTModuleType;
+import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
+import org.springframework.xd.rest.domain.ModuleDefinitionResource;
+import org.springframework.xd.rest.domain.RESTModuleType;
 
 /**
  * Interface defining operations available against Module.

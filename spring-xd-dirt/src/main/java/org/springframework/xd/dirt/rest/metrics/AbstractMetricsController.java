@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.analytics.metrics.core.Metric;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Base class for controllers that expose metrics related resources. Subclasses are meant to provide the root

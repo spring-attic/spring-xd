@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.analytics.metrics.core.Counter;
-import org.springframework.xd.rest.client.domain.metrics.CounterResource;
+import org.springframework.xd.rest.domain.metrics.CounterResource;
 
 /**
  * Knows how to assemble {@link CounterResource}s out of {@link Counter}s.

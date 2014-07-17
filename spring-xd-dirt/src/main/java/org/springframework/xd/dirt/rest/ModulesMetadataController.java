@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.module.ModuleNotDeployedException;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
-import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
 
 /**

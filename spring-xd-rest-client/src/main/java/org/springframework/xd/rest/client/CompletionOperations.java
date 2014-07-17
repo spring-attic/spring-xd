@@ -18,7 +18,7 @@ package org.springframework.xd.rest.client;
 
 import java.util.List;
 
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Provides access to the dsl completion facility.

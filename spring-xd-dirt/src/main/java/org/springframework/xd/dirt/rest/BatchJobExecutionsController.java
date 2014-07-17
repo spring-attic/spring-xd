@@ -46,7 +46,7 @@ import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDeployer;
-import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 
 /**
  * Controller for batch job executions.

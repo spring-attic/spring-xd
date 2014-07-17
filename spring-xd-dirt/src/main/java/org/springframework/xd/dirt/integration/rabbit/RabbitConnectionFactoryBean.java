@@ -78,9 +78,9 @@ public class RabbitConnectionFactoryBean extends AbstractFactoryBean<ConnectionF
 			secrets.load(this.rabbitSSLProperties.getInputStream());
 			PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 			String keyStoreName = secrets.getProperty("keyStore");
-			Assert.state(StringUtils.hasText(keyStoreName), "keyStoreName property required");
+			Assert.state(StringUtils.hasText(keyStoreName), "keyStore property required");
 			String trustStoreName = secrets.getProperty("trustStore");
-			Assert.state(StringUtils.hasText(trustStoreName), "trustStoreName property required");
+			Assert.state(StringUtils.hasText(trustStoreName), "trustStore property required");
 			String keyStorePassword = secrets.getProperty("keyStore.passPhrase");
 			Assert.state(StringUtils.hasText(keyStorePassword), "keyStore.passPhrase property required");
 			String trustStorePassword = secrets.getProperty("trustStore.passPhrase");

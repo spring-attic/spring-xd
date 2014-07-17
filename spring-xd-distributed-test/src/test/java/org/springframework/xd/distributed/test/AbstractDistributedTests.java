@@ -217,8 +217,8 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 				}
 			}
 		}
-
-		assertTrue(containers.toString(), containers.isComplete());
+		assertTrue(String.format("A source and/or sink module is missing from %s", containers),
+				containers.isComplete());
 		return containers;
 	}
 

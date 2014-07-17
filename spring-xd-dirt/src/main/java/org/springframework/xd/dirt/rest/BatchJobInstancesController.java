@@ -36,7 +36,7 @@ import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.JobInstanceInfo;
 import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.job.NoSuchBatchJobInstanceException;
-import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
+import org.springframework.xd.rest.domain.JobInstanceInfoResource;
 
 /**
  * Controller for batch job instances.

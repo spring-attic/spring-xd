@@ -29,7 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
-import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
+
+import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;

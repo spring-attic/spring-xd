@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.dirt.stream.StreamDefinition;
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
+import org.springframework.xd.rest.domain.StreamDefinitionResource;
 
 /**
  * Knows how to build a REST resource out of our domain model {@link StreamDefinition}.

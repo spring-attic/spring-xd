@@ -29,7 +29,7 @@ import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.xd.dirt.job.StepType;
-import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
+import org.springframework.xd.rest.domain.StepExecutionInfoResource;
 import org.springframework.xd.shell.util.Table;
 
 

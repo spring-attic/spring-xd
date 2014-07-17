@@ -23,11 +23,11 @@ import java.util.List;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.JobOperations;
-import org.springframework.xd.rest.client.domain.JobDefinitionResource;
-import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
-import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
-import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
-import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
+import org.springframework.xd.rest.domain.JobDefinitionResource;
+import org.springframework.xd.rest.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.domain.JobInstanceInfoResource;
+import org.springframework.xd.rest.domain.StepExecutionInfoResource;
+import org.springframework.xd.rest.domain.StepExecutionProgressInfoResource;
 
 /**
  * Implementation of the Job-related part of the API.

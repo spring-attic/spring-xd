@@ -37,8 +37,8 @@ import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.Counter;
-import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Exposes representations of {@link AggregateCount}s.

@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.rest.client.domain.util.TimeUtils;
+import org.springframework.xd.rest.domain.util.TimeUtils;
 
 /**
  * Contains common non-ui related helper methods for rendering text to the console.

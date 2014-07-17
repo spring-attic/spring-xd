@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobRepository;
-import org.springframework.xd.rest.client.domain.util.TimeUtils;
+import org.springframework.xd.rest.domain.util.TimeUtils;
 
 
 /**

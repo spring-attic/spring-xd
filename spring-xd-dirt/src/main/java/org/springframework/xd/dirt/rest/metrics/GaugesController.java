@@ -29,8 +29,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
-import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.GaugeResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Exposes representations of {@link Gauge}s.

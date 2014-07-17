@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.rest.metrics;
 import org.springframework.hateoas.ResourceAssembler;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.analytics.metrics.core.Metric;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Base class for a {@link ResourceAssembler} that builds shallow resources for metrics (exposing only their names, and

@@ -30,8 +30,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
-import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.FieldValueCounterResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Controller that exposes {@link FieldValueCounter} related representations.

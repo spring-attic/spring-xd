@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
-import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
 
 /**

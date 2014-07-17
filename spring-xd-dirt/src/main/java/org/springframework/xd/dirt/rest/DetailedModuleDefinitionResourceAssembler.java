@@ -25,7 +25,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.options.types.Password;
-import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
+import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
 
 
 /**

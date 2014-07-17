@@ -32,7 +32,7 @@ import org.springframework.xd.rest.client.RichGaugeOperations;
 import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
-import org.springframework.xd.rest.client.domain.XDRuntime;
+import org.springframework.xd.rest.domain.XDRuntime;
 
 /**
  * Implementation of the entry point to the API.

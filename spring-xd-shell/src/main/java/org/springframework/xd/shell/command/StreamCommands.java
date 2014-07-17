@@ -24,7 +24,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.StreamOperations;
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
+import org.springframework.xd.rest.domain.StreamDefinitionResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;

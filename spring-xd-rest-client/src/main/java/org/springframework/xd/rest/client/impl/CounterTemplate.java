@@ -18,8 +18,8 @@ package org.springframework.xd.rest.client.impl;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.CounterOperations;
-import org.springframework.xd.rest.client.domain.metrics.CounterResource;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.CounterResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Implements the {@link CounterOperations} part of the API.

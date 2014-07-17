@@ -19,9 +19,9 @@ package org.springframework.xd.rest.client.impl;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.ModuleOperations;
-import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
-import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
-import org.springframework.xd.rest.client.domain.RESTModuleType;
+import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
+import org.springframework.xd.rest.domain.ModuleDefinitionResource;
+import org.springframework.xd.rest.domain.RESTModuleType;
 
 /**
  * Implementation of the Module-related part of the API.

@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.analytics.metrics.core.Gauge;
-import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
+import org.springframework.xd.rest.domain.metrics.GaugeResource;
 
 /**
  * Knows how to assemble {@link GaugeResource}s out of {@link Gauge}s.

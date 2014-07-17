@@ -30,8 +30,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
-import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
 
 /**
  * Exposes representations of {@link org.springframework.xd.analytics.metrics.core.Gauge}s.

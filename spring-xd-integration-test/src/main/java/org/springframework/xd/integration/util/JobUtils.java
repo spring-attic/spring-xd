@@ -22,8 +22,8 @@ import java.util.Iterator;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
-import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+import org.springframework.xd.rest.domain.JobDefinitionResource;
 
 
 /**

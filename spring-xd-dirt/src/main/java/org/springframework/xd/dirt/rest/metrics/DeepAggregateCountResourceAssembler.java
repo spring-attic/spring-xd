@@ -22,7 +22,7 @@ import org.joda.time.DateTime;
 import org.joda.time.ReadablePeriod;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
-import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
+import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
 
 /**
  * Knows how to construct {@link AggregateCountsResource} out of {@link AggregateCount}.

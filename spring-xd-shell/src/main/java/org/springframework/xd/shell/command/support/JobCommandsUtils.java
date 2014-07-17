@@ -20,7 +20,7 @@ import java.util.TimeZone;
 
 import org.springframework.batch.core.StepExecution;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
+import org.springframework.xd.rest.domain.StepExecutionInfoResource;
 import org.springframework.xd.shell.command.JobCommands;
 import org.springframework.xd.shell.util.CommonUtils;
 import org.springframework.xd.shell.util.Table;

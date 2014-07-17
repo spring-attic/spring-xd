@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.stream.completion;
 import java.util.List;
 
 import org.springframework.xd.module.ModuleDescriptor;
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Used to enhance a well formed stream definition by adding yet more text to it (<i>e.g.</i> adding more options to a

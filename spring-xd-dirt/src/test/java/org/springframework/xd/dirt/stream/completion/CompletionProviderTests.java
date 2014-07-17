@@ -16,15 +16,16 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
+import static org.springframework.xd.rest.domain.CompletionKind.job;
+import static org.springframework.xd.rest.domain.CompletionKind.module;
+import static org.springframework.xd.rest.domain.CompletionKind.stream;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
-import static org.springframework.xd.rest.client.domain.CompletionKind.job;
-import static org.springframework.xd.rest.client.domain.CompletionKind.module;
-import static org.springframework.xd.rest.client.domain.CompletionKind.stream;
 
 import java.util.ArrayList;
 import java.util.HashSet;

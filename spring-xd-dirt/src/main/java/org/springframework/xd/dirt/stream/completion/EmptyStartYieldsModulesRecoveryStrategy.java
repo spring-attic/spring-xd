@@ -34,7 +34,7 @@ import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionExcept
 import org.springframework.xd.dirt.stream.dsl.TokenKind;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Proposes module names when the user has either<ul>

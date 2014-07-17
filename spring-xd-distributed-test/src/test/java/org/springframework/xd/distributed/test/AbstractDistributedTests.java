@@ -36,9 +36,9 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.distributed.util.DefaultDistributedTestSupport;
 import org.springframework.xd.distributed.util.DistributedTestSupport;
-import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+import org.springframework.xd.rest.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.StreamDefinitionResource;
 
 /**
  * Base class for distributed tests. Implementations of this class

@@ -39,8 +39,8 @@ import org.springframework.util.Assert;
 import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.server.AdminServerApplication;
 import org.springframework.xd.dirt.server.ContainerServerApplication;
-import org.springframework.xd.rest.client.domain.ContainerResource;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+import org.springframework.xd.rest.domain.ContainerResource;
 
 import com.oracle.tools.runtime.PropertiesBuilder;
 import com.oracle.tools.runtime.console.SystemApplicationConsole;

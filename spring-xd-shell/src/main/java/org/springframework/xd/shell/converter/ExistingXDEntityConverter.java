@@ -29,8 +29,8 @@ import org.springframework.shell.support.logging.HandlerUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.SpringXDOperations;
-import org.springframework.xd.rest.client.domain.DeployableResource;
-import org.springframework.xd.rest.client.domain.NamedResource;
+import org.springframework.xd.rest.domain.DeployableResource;
+import org.springframework.xd.rest.domain.NamedResource;
 import org.springframework.xd.shell.XDShell;
 
 

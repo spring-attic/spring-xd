@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.rest.client.domain.ContainerResource;
+import org.springframework.xd.rest.domain.ContainerResource;
 
 /**
  * Knows how to assemble {@link ContainerResource}s out of {@link Container} instances.

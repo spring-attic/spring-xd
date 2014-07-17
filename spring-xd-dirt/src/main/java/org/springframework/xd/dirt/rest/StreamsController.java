@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
+import org.springframework.xd.rest.domain.StreamDefinitionResource;
 
 /**
  * Handles all Stream related interaction.

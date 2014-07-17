@@ -37,8 +37,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.xd.dirt.plugins.job.support.ExecutionContextJacksonMixIn;
 import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
-import org.springframework.xd.rest.client.util.ISO8601DateFormatWithMilliSeconds;
-import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
+import org.springframework.xd.rest.domain.support.RestTemplateMessageConverterUtil;
+import org.springframework.xd.rest.domain.util.ISO8601DateFormatWithMilliSeconds;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

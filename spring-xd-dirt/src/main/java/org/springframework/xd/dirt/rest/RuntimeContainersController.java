@@ -31,8 +31,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
-import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
-import org.springframework.xd.rest.client.domain.ContainerResource;
+import org.springframework.xd.rest.domain.ContainerAttributesResource;
+import org.springframework.xd.rest.domain.ContainerResource;
 
 /**
  * Handles interaction with the runtime containers/and its modules.

@@ -17,7 +17,7 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
+import org.springframework.xd.rest.domain.StreamDefinitionResource;
 
 /**
  * Interface defining operations available against streams.

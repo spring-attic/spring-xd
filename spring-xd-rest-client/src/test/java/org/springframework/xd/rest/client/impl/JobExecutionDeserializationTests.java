@@ -31,7 +31,6 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.client.impl.support.ExecutionContextJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.ExitStatusJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.JobExecutionJacksonMixIn;
@@ -40,6 +39,7 @@ import org.springframework.xd.rest.client.impl.support.JobParameterJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.JobParametersJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.StepExecutionHistoryJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.StepExecutionJacksonMixIn;
+import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

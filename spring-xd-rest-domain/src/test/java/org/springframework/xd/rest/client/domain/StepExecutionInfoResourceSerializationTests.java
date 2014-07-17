@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
+import org.springframework.xd.rest.domain.StepExecutionInfoResource;
 
 import java.io.IOException;
 import java.util.ArrayList;

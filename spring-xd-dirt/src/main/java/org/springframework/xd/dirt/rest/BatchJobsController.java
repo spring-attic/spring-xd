@@ -34,7 +34,7 @@ import org.springframework.xd.dirt.job.DetailedJobInfo;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.stream.Job;
-import org.springframework.xd.rest.client.domain.DetailedJobInfoResource;
+import org.springframework.xd.rest.domain.DetailedJobInfoResource;
 
 
 /**

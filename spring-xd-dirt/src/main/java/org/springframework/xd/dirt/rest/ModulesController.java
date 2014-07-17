@@ -42,8 +42,8 @@ import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
-import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
+import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
+import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 
 /**
  * Handles all Module related interactions.

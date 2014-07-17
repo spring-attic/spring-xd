@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
-import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
+import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
 
 /**
  * Knows how to assemble {@link RichGaugeResource}s out of {@link RichGauge}s.

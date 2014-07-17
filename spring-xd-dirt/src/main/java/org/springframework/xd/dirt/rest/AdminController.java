@@ -27,21 +27,21 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.xd.rest.client.domain.CompletionKind;
-import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
-import org.springframework.xd.rest.client.domain.DetailedJobInfoResource;
-import org.springframework.xd.rest.client.domain.JobDefinitionResource;
-import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
-import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
-import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
-import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
-import org.springframework.xd.rest.client.domain.XDRuntime;
-import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
-import org.springframework.xd.rest.client.domain.metrics.CounterResource;
-import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
-import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
-import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
+import org.springframework.xd.rest.domain.CompletionKind;
+import org.springframework.xd.rest.domain.ContainerAttributesResource;
+import org.springframework.xd.rest.domain.DetailedJobInfoResource;
+import org.springframework.xd.rest.domain.JobDefinitionResource;
+import org.springframework.xd.rest.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.domain.JobInstanceInfoResource;
+import org.springframework.xd.rest.domain.ModuleDefinitionResource;
+import org.springframework.xd.rest.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.StreamDefinitionResource;
+import org.springframework.xd.rest.domain.XDRuntime;
+import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
+import org.springframework.xd.rest.domain.metrics.CounterResource;
+import org.springframework.xd.rest.domain.metrics.FieldValueCounterResource;
+import org.springframework.xd.rest.domain.metrics.GaugeResource;
+import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
 
 /**
  * @author Eric Bottard

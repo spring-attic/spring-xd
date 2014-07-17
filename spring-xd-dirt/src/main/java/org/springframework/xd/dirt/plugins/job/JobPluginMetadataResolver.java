@@ -35,7 +35,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.PojoModuleOptionsMetadata;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
-import org.springframework.xd.rest.client.domain.util.TimeUtils;
+import org.springframework.xd.rest.domain.util.TimeUtils;
 
 
 /**

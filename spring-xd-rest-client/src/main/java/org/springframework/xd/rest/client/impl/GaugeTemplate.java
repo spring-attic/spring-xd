@@ -18,8 +18,8 @@ package org.springframework.xd.rest.client.impl;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.GaugeOperations;
-import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.domain.metrics.GaugeResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Implementation of the Gauge part of the metrics API.

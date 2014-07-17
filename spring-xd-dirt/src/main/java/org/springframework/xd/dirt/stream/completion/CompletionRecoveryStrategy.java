@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.stream.completion;
 
 import java.util.List;
 
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Used to provide completions on ill-formed stream definitions, after an initial (failed) parse.

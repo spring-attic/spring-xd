@@ -41,8 +41,8 @@ import org.springframework.xd.dirt.stream.AbstractInstancePersistingDeployer;
 import org.springframework.xd.dirt.stream.BaseInstance;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
-import org.springframework.xd.rest.client.domain.DeployableResource;
-import org.springframework.xd.rest.client.domain.NamedResource;
+import org.springframework.xd.rest.domain.DeployableResource;
+import org.springframework.xd.rest.domain.NamedResource;
 
 /**
  * Base Class for XD Controllers.

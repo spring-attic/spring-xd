@@ -26,7 +26,7 @@ import org.springframework.shell.core.Converter;
 import org.springframework.shell.core.MethodTarget;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.CompletionOperations;
-import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.domain.CompletionKind;
 import org.springframework.xd.shell.XDShell;
 
 

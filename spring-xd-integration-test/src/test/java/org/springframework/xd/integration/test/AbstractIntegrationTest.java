@@ -53,7 +53,7 @@ import org.springframework.xd.integration.util.JobUtils;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
-import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.test.fixtures.AbstractModuleFixture;
 import org.springframework.xd.test.fixtures.LogSink;
 import org.springframework.xd.test.fixtures.SimpleFileSink;

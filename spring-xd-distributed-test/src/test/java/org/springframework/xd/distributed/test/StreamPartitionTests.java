@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
@@ -93,9 +94,11 @@ public class StreamPartitionTests extends AbstractDistributedTests {
 		String streamName = testName.getMethodName() + "-woodchuck";
 		File file = File.createTempFile("temp", ".txt");
 		file.deleteOnExit();
-
-		template.streamOperations().createStream(streamName, "http | splitter --expression=payload.split(' ') | " +
-				"file --dir=" + file.getParent() + " --name=${xd.container.id}", false);
+		int httpPort = SocketUtils.findAvailableServerSocket();
+		template.streamOperations().createStream(
+				streamName,
+				String.format("http --port=%s | splitter --expression=payload.split(' ') | " +
+						"file --dir=%s --name=${xd.container.id}", httpPort, file.getParent()), false);
 		verifyStreamCreated(streamName);
 
 		template.streamOperations().deploy(streamName,
@@ -121,7 +124,8 @@ public class StreamPartitionTests extends AbstractDistributedTests {
 		while (postAttempts++ < 50) {
 			Thread.sleep(100);
 			try {
-				ResponseEntity<?> entity = restTemplate.postForEntity("http://localhost:9000", text, String.class);
+				ResponseEntity<?> entity = restTemplate.postForEntity("http://localhost:" + httpPort, text,
+						String.class);
 				assertEquals(HttpStatus.OK, entity.getStatusCode());
 				break;
 			}

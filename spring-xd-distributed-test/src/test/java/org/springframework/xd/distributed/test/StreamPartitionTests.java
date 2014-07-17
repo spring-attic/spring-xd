@@ -42,7 +42,9 @@ public class StreamPartitionTests extends AbstractDistributedTests {
 	/**
 	 * Enum for the various transport options used for partition testing.
 	 */
-	private enum Transport { rabbit, redis }
+	private enum Transport {
+		rabbit, redis
+	}
 
 
 	/**
@@ -102,7 +104,7 @@ public class StreamPartitionTests extends AbstractDistributedTests {
 		// verify modules
 		Map<String, Properties> modules = new HashMap<String, Properties>();
 		int attempts = 0;
-		while (attempts++ < 10) {
+		while (attempts++ < 60) {
 			Thread.sleep(500);
 			for (ModuleMetadataResource module : template.runtimeOperations().listRuntimeModules()) {
 				modules.put(module.getContainerId() + ":" + module.getModuleId(), module.getDeploymentProperties());
@@ -111,6 +113,7 @@ public class StreamPartitionTests extends AbstractDistributedTests {
 				break;
 			}
 		}
+		assertEquals("timed out waiting for stream modules to deploy", 4, modules.size());
 
 		RestTemplate restTemplate = new RestTemplate();
 		String text = "how much wood would a woodchuck chuck if a woodchuck could chuck wood";

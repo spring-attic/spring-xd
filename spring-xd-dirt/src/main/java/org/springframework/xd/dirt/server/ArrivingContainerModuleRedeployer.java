@@ -109,7 +109,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 		// wait to see if any more containers show up; this
 		// will mitigate "overloading" of the container that
 		// just arrived
-		Thread.sleep(1000);
+		Thread.sleep(3000);
 		deployUnallocatedStreamModules();
 		deployUnallocatedJobModules();
 	}

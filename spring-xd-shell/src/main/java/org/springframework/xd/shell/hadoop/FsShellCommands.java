@@ -94,7 +94,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			return result;
 		}
 		else {
-			LOG.severe("You must set fs URL before running fs commands");
+			LOG.severe("You must set namenode URL before running fs commands. Refer `hadoop config fs`");
 			throw new IllegalStateException("You must set fs URL before running fs commands");
 		}
 	}
@@ -104,7 +104,12 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			@CliOption(key = { "", "dir" }, mandatory = false, unspecifiedDefaultValue = ".", help = "directory to be listed") final String path,
 			@CliOption(key = { RECURSIVE }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = RECURSION_HELP) final boolean recursive) {
 		if (recursive) {
-			runCommand("-lsr", path);
+			List<String> argv = new ArrayList<String>();
+			argv.add("-ls");
+			argv.add("-R");
+			String[] fileNames = path.split(" ");
+			argv.addAll(Arrays.asList(fileNames));
+			run(argv.toArray(new String[0]));
 		}
 		else {
 			runCommand("-ls", path);
@@ -319,7 +324,6 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 		run(argv.toArray(new String[0]));
 	}
 
-	@SuppressWarnings("deprecation")
 	@CliCommand(value = PREFIX + "rm", help = "Remove files in the HDFS")
 	public void rm(
 			@CliOption(key = { "", PATH }, mandatory = false, unspecifiedDefaultValue = ".", help = "path to be deleted") final String path,
@@ -330,8 +334,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			FileSystem fs = file.getFileSystem(getHadoopConfiguration());
 			for (Path p : FileUtil.stat2Paths(fs.globStatus(file), file)) {
 				FileStatus status = fs.getFileStatus(p);
-				// have to use the deprecated isDir() method here to remain compatible with Hadoop 1.x
-				if (status.isDir() && !recursive) {
+				if (status.isDirectory() && !recursive) {
 					LOG.severe("To remove directory, please use 'fs rm </path/to/dir> --recursive' instead");
 					return;
 				}

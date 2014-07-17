@@ -29,7 +29,7 @@ public class HttpSourceOptionsMetadata {
 
 	private boolean https;
 
-	private String secrets = "classpath:httpSSL.properties";
+	private String sslPropertiesLocation = "classpath:httpSSL.properties";
 
 
 	public int getPort() {
@@ -50,13 +50,13 @@ public class HttpSourceOptionsMetadata {
 		this.https = https;
 	}
 
-	public String getSecrets() {
-		return secrets;
+	public String getSslPropertiesLocation() {
+		return sslPropertiesLocation;
 	}
 
-	@ModuleOption("location (resource) of properties containing the keyStore and pass phrase")
-	public void setSecrets(String secrets) {
-		this.secrets = secrets;
+	@ModuleOption("location (resource) of properties containing the location of the pkcs12 keyStore and pass phrase")
+	public void setSslPropertiesLocation(String sslProperties) {
+		this.sslPropertiesLocation = sslProperties;
 	}
 
 }

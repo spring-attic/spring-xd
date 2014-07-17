@@ -12,7 +12,7 @@
 		<beans:constructor-arg value="${https}"/>
 		<beans:property name="autoStartup" value="false"/>
 		<beans:property name="outputChannel" ref="output"/>
-		<beans:property name="secrets" value="${secrets}"/>
+		<beans:property name="sslPropertiesLocation" value="${sslPropertiesLocation}"/>
 	</beans:bean>
 
 	<channel id="output"/>

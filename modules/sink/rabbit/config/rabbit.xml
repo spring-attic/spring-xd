@@ -32,7 +32,7 @@
 
 	<bean id="connectionFactory" class="org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryBean">
 		<property name="useSSL" value="${useSSL}" />
-		<property name="rabbitSSLProperties" value="${sslProperties}"/>
+		<property name="sslPropertiesLocation" value="${sslPropertiesLocation}"/>
 	</bean>
 
 </beans>

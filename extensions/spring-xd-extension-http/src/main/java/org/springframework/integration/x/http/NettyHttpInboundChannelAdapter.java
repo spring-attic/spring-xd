@@ -108,7 +108,7 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	/**
 	 * Properties file containing keyStore=[resource], keyStore.passPhrase=[passPhrase]
 	 */
-	private volatile Resource secrets;
+	private volatile Resource sslPropertiesLocation;
 
 	public NettyHttpInboundChannelAdapter(int port) {
 		this(port, false);
@@ -132,11 +132,11 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	/**
-	 * @param secrets A properties file containing a resource with key 'keyStore' and
+	 * @param sslPropertiesLocation A properties resource containing a resource with key 'keyStore' and
 	 * a pass phrase with key 'keyStore.passPhrase'.
 	 */
-	public void setSecrets(Resource secrets) {
-		this.secrets = secrets;
+	public void setSslPropertiesLocation(Resource sslPropertiesLocation) {
+		this.sslPropertiesLocation = sslPropertiesLocation;
 	}
 
 	@Override
@@ -158,13 +158,13 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	private void configureSSL(ChannelPipeline pipeline) {
 		try {
-			Assert.state(this.secrets != null, "KeyStore and pass phrase properties file required");
-			Properties secrets = new Properties();
-			secrets.load(this.secrets.getInputStream());
+			Assert.state(this.sslPropertiesLocation != null, "KeyStore and pass phrase properties file required");
+			Properties sslProperties = new Properties();
+			sslProperties.load(this.sslPropertiesLocation.getInputStream());
 			PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-			String keyStoreName = secrets.getProperty("keyStore");
+			String keyStoreName = sslProperties.getProperty("keyStore");
 			Assert.state(StringUtils.hasText(keyStoreName), "keyStore property cannot be null");
-			String keyStorePassPhrase = secrets.getProperty("keyStore.passPhrase");
+			String keyStorePassPhrase = sslProperties.getProperty("keyStore.passPhrase");
 			Assert.state(StringUtils.hasText(keyStorePassPhrase), "keyStore.passPhrase property cannot be null");
 			Resource keyStore = resolver.getResource(keyStoreName);
 			SSLContext sslContext = SSLContext.getInstance("TLS");

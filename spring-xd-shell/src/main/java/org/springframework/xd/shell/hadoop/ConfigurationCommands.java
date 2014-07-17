@@ -95,7 +95,7 @@ public class ConfigurationCommands implements ApplicationEventPublisherAware, Co
 
 	@CliCommand(value = { PREFIX + "fs" }, help = "Sets the Hadoop namenode")
 	public void setFs(
-			@CliOption(key = { "", "namenode" }, mandatory = true, help = "namenode address - can be local|<namenode:port>") String namenode) {
+			@CliOption(key = { "", "namenode" }, mandatory = true, help = "namenode URL - can be file:///|<namenode>:<port>") String namenode) {
 		FileSystem.setDefaultUri(hadoopConfiguration, namenode);
 	}
 

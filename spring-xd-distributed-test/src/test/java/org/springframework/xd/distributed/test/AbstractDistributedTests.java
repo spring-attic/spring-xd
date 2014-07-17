@@ -16,8 +16,9 @@
 
 package org.springframework.xd.distributed.test;
 
-import static org.junit.Assert.*;
-import static org.springframework.xd.module.ModuleType.source;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,8 +27,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import com.oracle.tools.runtime.java.JavaApplication;
-import com.oracle.tools.runtime.java.SimpleJavaApplication;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -44,6 +43,9 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
+
+import com.oracle.tools.runtime.java.JavaApplication;
+import com.oracle.tools.runtime.java.SimpleJavaApplication;
 
 /**
  * Base class for distributed tests. Implementations of this class
@@ -144,6 +146,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void startup() {
 		distributedTestSupport.startup();
 	}
@@ -151,6 +154,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public SpringXDTemplate ensureTemplate() {
 		return distributedTestSupport.ensureTemplate();
 	}
@@ -158,6 +162,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public JavaApplication<SimpleJavaApplication> startContainer(Properties properties) {
 		return distributedTestSupport.startContainer(properties);
 	}
@@ -165,6 +170,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public JavaApplication<SimpleJavaApplication> startContainer() {
 		return distributedTestSupport.startContainer();
 	}
@@ -172,6 +178,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public Map<Long, String> waitForContainers() throws InterruptedException {
 		return distributedTestSupport.waitForContainers();
 	}
@@ -179,6 +186,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void shutdownContainer(long pid) {
 		distributedTestSupport.shutdownContainer(pid);
 	}
@@ -186,6 +194,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void shutdownContainers() {
 		distributedTestSupport.shutdownContainers();
 	}
@@ -193,6 +202,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void shutdownAll() {
 		distributedTestSupport.shutdownAll();
 	}

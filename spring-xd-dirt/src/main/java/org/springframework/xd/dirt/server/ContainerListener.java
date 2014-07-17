@@ -96,12 +96,12 @@ public class ContainerListener implements PathChildrenCacheListener {
 		ZooKeeperUtils.logCacheEvent(logger, event);
 		switch (event.getType()) {
 			case CHILD_ADDED:
-				this.arrivingContainerModuleRedeployer.deployModules(client, getContainer(event.getData()));
+				this.arrivingContainerModuleRedeployer.deployModules(getContainer(event.getData()));
 				break;
 			case CHILD_UPDATED:
 				break;
 			case CHILD_REMOVED:
-				this.departingContainerModuleRedeployer.deployModules(client, getContainer(event.getData()));
+				this.departingContainerModuleRedeployer.deployModules(getContainer(event.getData()));
 				break;
 			case CONNECTION_SUSPENDED:
 				break;

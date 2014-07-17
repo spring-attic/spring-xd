@@ -137,31 +137,23 @@ public abstract class ModuleRedeployer {
 	/**
 	 * Deploy unallocated/orphaned modules.
 	 *
-	 * @param client the curator client
 	 * @param container the container to deploy
 	 * @throws Exception
 	 */
-	protected abstract void deployModules(CuratorFramework client, Container container) throws Exception;
+	protected abstract void deployModules(Container container) throws Exception;
 
 	/**
-	 * Return true if the {@link org.springframework.xd.dirt.cluster.Container}
-	 * is allowed to deploy the module specified in {@link ModuleDeployment}
-	 * based on the matching criteria from the deployment properties.
+	 * Return the Curator framework client.
 	 *
-	 * @param container target container
-	 * @param descriptor module descriptor
-	 * @param properties deployment properties
-	 * @return true if the container is allowed to deploy the module
+	 * @return Curator client
 	 */
-	protected boolean isCandidateForDeployment(final Container container, ModuleDeployment moduleDeployment) {
-		return !CollectionUtils.isEmpty(containerMatcher.match(moduleDeployment.moduleDescriptor,
-				moduleDeployment.runtimeDeploymentProperties, Collections.singletonList(container)));
+	protected CuratorFramework getClient() {
+		return zkConnection.getClient();
 	}
 
 	/**
 	 * Determine which containers, if any, have deployed a module for a stream.
 	 *
-	 * @param client curator client
 	 * @param descriptor module descriptor
 	 *
 	 * @return list of containers that have deployed this module; empty
@@ -169,14 +161,14 @@ public abstract class ModuleRedeployer {
 	 *
 	 * @throws Exception thrown by Curator
 	 */
-	private List<String> getContainersForStreamModule(CuratorFramework client, ModuleDescriptor descriptor)
+	private List<String> getContainersForStreamModule(ModuleDescriptor descriptor)
 			throws Exception {
 		List<String> containers = new ArrayList<String>();
 		String moduleType = descriptor.getModuleDefinition().getType().toString();
 		String moduleLabel = descriptor.getModuleLabel();
 		String moduleDeploymentPath = Paths.build(Paths.STREAM_DEPLOYMENTS, descriptor.getGroup(), Paths.MODULES);
 		try {
-			List<String> moduleDeployments = client.getChildren().forPath(moduleDeploymentPath);
+			List<String> moduleDeployments = getClient().getChildren().forPath(moduleDeploymentPath);
 			for (String moduleDeployment : moduleDeployments) {
 				StreamDeploymentsPath path = new StreamDeploymentsPath(
 						Paths.build(moduleDeploymentPath, moduleDeployment));
@@ -195,7 +187,6 @@ public abstract class ModuleRedeployer {
 	/**
 	 * Determine which containers, if any, have deployed job module of the given job.
 	 *
-	 * @param client curator client
 	 * @param descriptor module descriptor
 	 *
 	 * @return list of containers that have deployed this module; empty
@@ -203,14 +194,14 @@ public abstract class ModuleRedeployer {
 	 *
 	 * @throws Exception thrown by Curator
 	 */
-	protected List<String> getContainersForJobModule(CuratorFramework client, ModuleDescriptor descriptor)
+	private List<String> getContainersForJobModule(ModuleDescriptor descriptor)
 			throws Exception {
 		List<String> containers = new ArrayList<String>();
 		//String moduleType = descriptor.getModuleDefinition().getType().toString();
 		String moduleLabel = descriptor.getModuleLabel();
 		String moduleDeploymentPath = Paths.build(Paths.JOB_DEPLOYMENTS, descriptor.getGroup(), Paths.MODULES);
 		try {
-			List<String> moduleDeployments = client.getChildren().forPath(moduleDeploymentPath);
+			List<String> moduleDeployments = getClient().getChildren().forPath(moduleDeploymentPath);
 			for (String moduleDeployment : moduleDeployments) {
 				JobDeploymentsPath path = new JobDeploymentsPath(
 						Paths.build(moduleDeploymentPath, moduleDeployment));
@@ -229,7 +220,6 @@ public abstract class ModuleRedeployer {
 	 * Return a {@link org.springframework.xd.dirt.cluster.ContainerMatcher} that
 	 * will <b>exclude</b> containers that are already hosting the module.
 	 *
-	 * @param client            curator client
 	 * @param moduleDescriptor  containers that have deployed this module
 	 *                          will be excluded from the results returned
 	 *                          by the {@code ContainerMatcher}.
@@ -237,11 +227,10 @@ public abstract class ModuleRedeployer {
 	 *         the module
 	 * @throws Exception
 	 */
-	protected ContainerMatcher instantiateContainerMatcher(CuratorFramework client,
-			ModuleDescriptor moduleDescriptor) throws Exception {
+	protected ContainerMatcher instantiateContainerMatcher(ModuleDescriptor moduleDescriptor) throws Exception {
 		Collection<String> containers = (moduleDescriptor.getType() == ModuleType.job)
-				? getContainersForJobModule(client, moduleDescriptor)
-				: getContainersForStreamModule(client, moduleDescriptor);
+				? getContainersForJobModule(moduleDescriptor)
+				: getContainersForStreamModule(moduleDescriptor);
 
 		return new RedeploymentContainerMatcher(containerMatcher, containers);
 	}
@@ -263,33 +252,39 @@ public abstract class ModuleRedeployer {
 	}
 
 	/**
-	 * Deploy the module specified in {@link ModuleDeployment} to the given {@link Container}.
+	 * Redeploy a module to a container. This redeployment will occur if:
+	 * <ul>
+	 * 		<li>the module needs to be redeployed per the deployment properties</li>
+	 * 		<li>the stream has not been destroyed</li>
+	 * 		<li>the stream has not been undeployed</li>
+	 * 		<li>there is a container that can deploy the stream module</li>
+	 * </ul>
 	 *
-	 * @param container the container to deploy
-	 * @param moduleDeployment the module represented in module deployment
-	 * @throws Exception
+	 * @param moduleDeployment contains module redeployment details such as
+	 *                         stream, module descriptor, and deployment properties
+	 * @throws InterruptedException
 	 */
-	protected void deployModule(Container container, ModuleDeployment moduleDeployment)
-			throws Exception {
-		if (isCandidateForDeployment(container, moduleDeployment)) {
-			String moduleName = moduleDeployment.moduleDescriptor.getModuleDefinition().getName();
-			//either the module has a count of 0 (therefore it should be deployed everywhere)
-			// or the number of containers that have deployed the module is less than the
-			// amount specified by the module descriptor
-			logger.info("Deploying module {} to {}", moduleName, container);
+	protected void redeployModule(ModuleDeployment moduleDeployment) throws Exception {
+		DeploymentUnit deploymentUnit = moduleDeployment.deploymentUnit;
+		ModuleDescriptor moduleDescriptor = moduleDeployment.moduleDescriptor;
+		RuntimeModuleDeploymentProperties deploymentProperties = moduleDeployment.runtimeDeploymentProperties;
 
-			ModuleDeploymentStatus deploymentStatus = null;
+		ModuleDeploymentStatus deploymentStatus = null;
+		if (deploymentProperties.getCount() > 0) {
 			try {
-				deploymentStatus = deployModule(zkConnection.getClient(), moduleDeployment, container);
+				deploymentStatus = deployModule(moduleDeployment, instantiateContainerMatcher(moduleDescriptor));
 			}
 			catch (NoContainerException e) {
-				logger.warn("Could not deploy module {} for stream {} to container {}; "
-						+ "this container may have just departed the cluster", moduleName,
-						moduleDeployment.deploymentUnit.getName(), container);
+				logger.warn("No containers available for redeployment of {} for stream {}",
+						moduleDescriptor.getModuleLabel(),
+						deploymentUnit.getName());
 			}
 			finally {
-				updateDeploymentUnitState(zkConnection.getClient(), moduleDeployment, deploymentStatus);
+				updateDeploymentUnitState(moduleDeployment, deploymentStatus);
 			}
+		}
+		else {
+			logUnwantedRedeployment(deploymentProperties.getCriteria(), moduleDescriptor.getModuleLabel());
 		}
 	}
 
@@ -301,7 +296,6 @@ public abstract class ModuleRedeployer {
 	 * should be updated via {@link #updateDeploymentUnitState} using the
 	 * {@link ModuleDeploymentStatus} returned from this method.
 	 *
-	 * @param client             curator client
 	 * @param moduleDeployment   contains module redeployment details such as
 	 *                           stream, module descriptor, and deployment properties
 	 * @param containerMatcher   matches modules to containers
@@ -309,9 +303,9 @@ public abstract class ModuleRedeployer {
 	 * @throws Exception
 	 * @see #transitionToDeploying
 	 */
-	protected ModuleDeploymentStatus deployModule(CuratorFramework client,
-			ModuleDeployment moduleDeployment, ContainerMatcher containerMatcher) throws Exception {
-		transitionToDeploying(client, moduleDeployment.deploymentUnit);
+	private ModuleDeploymentStatus deployModule(ModuleDeployment moduleDeployment,
+			ContainerMatcher containerMatcher) throws Exception {
+		transitionToDeploying(moduleDeployment.deploymentUnit);
 		Collection<Container> matchedContainers = containerMatcher.match(moduleDeployment.moduleDescriptor,
 				moduleDeployment.runtimeDeploymentProperties, containerRepository.findAll());
 		if (matchedContainers.isEmpty()) {
@@ -322,44 +316,19 @@ public abstract class ModuleRedeployer {
 	}
 
 	/**
-	 * Issue a module deployment request for the provided module to
-	 * the provided container. This also transitions the deployment
-	 * unit state to {@link DeploymentUnitStatus.State#deploying}. Once
-	 * the deployment attempt completes, the status for the deployment unit
-	 * should be updated via {@link #updateDeploymentUnitState} using the
-	 * {@link ModuleDeploymentStatus} returned from this method.
-	 *
-	 * @param client             curator client
-	 * @param moduleDeployment   contains module redeployment details such as
-	 *                           stream, module descriptor, and deployment properties
-	 * @param container          target container for module deployment
-	 * @return result of module deployment request
-	 * @throws Exception
-	 * @see #transitionToDeploying
-	 */
-	private ModuleDeploymentStatus deployModule(CuratorFramework client,
-			ModuleDeployment moduleDeployment, final Container container) throws Exception {
-		transitionToDeploying(client, moduleDeployment.deploymentUnit);
-		return moduleDeploymentWriter.writeDeployment(moduleDeployment.moduleDescriptor,
-				moduleDeployment.runtimeDeploymentProperties, container);
-	}
-
-	/**
 	 * Transitions the deployment unit state to {@link DeploymentUnitStatus.State#deploying}.
 	 * This transition should occur before making a module deployment attempt.
 	 *
-	 * @param client         curator client
 	 * @param deploymentUnit deployment unit that contains a module to be deployed
 	 * @throws Exception
-	 * @see #deployModule
 	 * @see #updateDeploymentUnitState
 	 */
-	private void transitionToDeploying(CuratorFramework client, DeploymentUnit deploymentUnit) throws Exception {
+	private void transitionToDeploying(DeploymentUnit deploymentUnit) throws Exception {
 		String pathPrefix = (deploymentUnit instanceof Stream)
 				? Paths.STREAM_DEPLOYMENTS
 				: Paths.JOB_DEPLOYMENTS;
 
-		client.setData().forPath(
+		getClient().setData().forPath(
 				Paths.build(pathPrefix, deploymentUnit.getName(), Paths.STATUS),
 				ZooKeeperUtils.mapToBytes(new DeploymentUnitStatus(
 						DeploymentUnitStatus.State.deploying).toMap()));
@@ -373,22 +342,20 @@ public abstract class ModuleRedeployer {
 	 * <p />
 	 * This collection is used (and modified) in {@link #updateDeploymentUnitState}.
 	 *
-	 * @param client          curator client
 	 * @param deploymentUnit  deployment unit for which to return the individual
 	 *                        module statuses
 	 * @return mutable collection of status objects
 	 * @throws Exception
 	 * @see #updateDeploymentUnitState
 	 */
-	private Collection<ModuleDeploymentStatus> aggregateState(CuratorFramework client,
-			DeploymentUnit deploymentUnit) throws Exception {
+	private Collection<ModuleDeploymentStatus> aggregateState(DeploymentUnit deploymentUnit) throws Exception {
 		Assert.state(deploymentUnit instanceof Stream || deploymentUnit instanceof Job);
 		String pathPrefix = (deploymentUnit instanceof Stream)
 				? Paths.STREAM_DEPLOYMENTS
 				: Paths.JOB_DEPLOYMENTS;
 
 		String path = Paths.build(pathPrefix, deploymentUnit.getName(), Paths.MODULES);
-		List<String> modules = client.getChildren().forPath(path);
+		List<String> modules = getClient().getChildren().forPath(path);
 		Collection<ModuleDeploymentStatus> results = new ArrayList<ModuleDeploymentStatus>();
 		for (String module : modules) {
 			String deploymentUnitName;
@@ -428,7 +395,6 @@ public abstract class ModuleRedeployer {
 	 * Update the ZooKeeper ephemeral node that indicates the status for the
 	 * provided deployment unit.
 	 *
-	 * @param client            curator client
 	 * @param moduleDeployment  module that a redeploy was attempted for
 	 * @param deploymentStatus  deployment status for the module; may be null
 	 *                          if a module deployment was not attempted
@@ -436,12 +402,12 @@ public abstract class ModuleRedeployer {
 	 *                          available for deployment)
 	 * @throws Exception
 	 */
-	protected void updateDeploymentUnitState(CuratorFramework client, ModuleDeployment moduleDeployment,
+	protected void updateDeploymentUnitState(ModuleDeployment moduleDeployment,
 			ModuleDeploymentStatus deploymentStatus) throws Exception {
 		final DeploymentUnit deploymentUnit = moduleDeployment.deploymentUnit;
 		final ModuleDescriptor moduleDescriptor = moduleDeployment.moduleDescriptor;
 
-		Collection<ModuleDeploymentStatus> aggregateStatuses = aggregateState(client, deploymentUnit);
+		Collection<ModuleDeploymentStatus> aggregateStatuses = aggregateState(deploymentUnit);
 
 		// If the module deployment was successful, it will be present in this
 		// list; remove it to avoid duplication since the deployment status
@@ -476,7 +442,7 @@ public abstract class ModuleRedeployer {
 		logger.info("Deployment state for {} '{}': {}",
 				isStream ? "stream" : "job", deploymentUnit.getName(), status);
 
-		client.setData().forPath(
+		getClient().setData().forPath(
 				Paths.build(isStream ? Paths.STREAM_DEPLOYMENTS : Paths.JOB_DEPLOYMENTS,
 						deploymentUnit.getName(), Paths.STATUS),
 				ZooKeeperUtils.mapToBytes(status.toMap()));

@@ -36,6 +36,7 @@ import org.springframework.xd.distributed.util.DistributedTestSupport;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+	ContainerRedeploymentTests.class,
 	StreamDeploymentTests.class,
 	StreamPartitionTests.class,
 	StreamStateTests.class

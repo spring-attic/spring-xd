@@ -17,11 +17,14 @@
 package org.springframework.xd.distributed.test;
 
 import static org.junit.Assert.*;
+import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import com.oracle.tools.runtime.java.JavaApplication;
 import com.oracle.tools.runtime.java.SimpleJavaApplication;
@@ -37,6 +40,7 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.distributed.util.DefaultDistributedTestSupport;
 import org.springframework.xd.distributed.util.DistributedTestSupport;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
@@ -207,16 +211,26 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 		ModuleRuntimeContainers containers = new ModuleRuntimeContainers();
 		for (ModuleMetadataResource module : distributedTestSupport.ensureTemplate()
 				.runtimeOperations().listRuntimeModules()) {
-			String moduleId = module.getModuleId();
-			if (moduleId.contains(streamName)) {
-				if (moduleId.contains("source")) {
-					containers.addSourceContainer(module.getContainerId());
-				}
-				else if (moduleId.contains("sink")) {
-					containers.addSinkContainer(module.getContainerId());
+			String[] fields = module.getModuleId().split("\\.");
+			assertTrue("Module id format unknown: " + module.getModuleId(), fields.length >= 3);
+			String moduleStreamName = fields[0];
+			ModuleType moduleType = ModuleType.valueOf(fields[1]);
+			String moduleLabel = fields[2];
+
+			if (moduleStreamName.equals(streamName)) {
+				switch (moduleType) {
+					case source:
+						containers.addSourceContainer(module.getContainerId());
+						break;
+					case sink:
+						containers.addSinkContainer(module.getContainerId());
+						break;
+					case processor:
+						containers.addProcessorContainer(module.getContainerId(), moduleLabel);
 				}
 			}
 		}
+
 		assertTrue(String.format("A source and/or sink module is missing from %s", containers),
 				containers.isComplete());
 		return containers;
@@ -311,6 +325,12 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 		private final Collection<String> sinkContainers = new HashSet<String>();
 
 		/**
+		 * Map of container IDs to a set of processor module labels that
+		 * have been deployed by the container.
+		 */
+		private final Map<String, Set<String>> processorContainers = new HashMap<String, Set<String>>();
+
+		/**
 		 * @see #sourceContainers
 		 */
 		public Collection<String> getSourceContainers() {
@@ -322,6 +342,25 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 		 */
 		public void addSourceContainer(String sourceContainer) {
 			this.sourceContainers.add(sourceContainer);
+		}
+
+		/**
+		 * @see #processorContainers
+		 */
+		public Map<String, Set<String>> getProcessorContainers() {
+			return processorContainers;
+		}
+
+		/**
+		 * @see #processorContainers
+		 */
+		public void addProcessorContainer(String container, String moduleDescription) {
+			Set<String> labels = processorContainers.get(container);
+			if (labels == null) {
+				labels = new HashSet<String>();
+				processorContainers.put(container, labels);
+			}
+			labels.add(moduleDescription);
 		}
 
 		/**
@@ -353,6 +392,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 			return "ModuleRuntimeContainers{" +
 					"sourceContainers=" + sourceContainers +
 					", sinkContainers=" + sinkContainers +
+					", processorContainers=" + processorContainers +
 					'}';
 		}
 	}

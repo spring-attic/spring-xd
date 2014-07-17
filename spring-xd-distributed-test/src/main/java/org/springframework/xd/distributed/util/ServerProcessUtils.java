@@ -277,6 +277,12 @@ public class ServerProcessUtils {
 	private static JavaApplication<SimpleJavaApplication> launch(Class<?> clz,
 			boolean remoteDebug, Properties systemProperties, List<String> args) throws IOException {
 		String classpath = System.getProperty("java.class.path");
+
+		logger.info("Launching {}", clz);
+		logger.info("	args: {}", args);
+		logger.info("	properties: {}", systemProperties);
+		logger.info("	classpath: {}", classpath);
+
 		SimpleJavaApplicationSchema schema = new SimpleJavaApplicationSchema(clz.getName(), classpath);
 		if (args != null) {
 			for (String arg : args) {

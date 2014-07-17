@@ -105,11 +105,6 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 		String containerName = container.getName();
 		logger.info("Container arrived: {}", containerName);
 
-		// before attempting to deploy unallocated modules,
-		// wait to see if any more containers show up; this
-		// will mitigate "overloading" of the container that
-		// just arrived
-		Thread.sleep(3000);
 		deployUnallocatedStreamModules();
 		deployUnallocatedJobModules();
 	}
@@ -127,6 +122,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	private void deployUnallocatedStreamModules() throws Exception {
 		List<ModuleDeploymentRequestsPath> requestedModulesPaths = getAllModuleDeploymentRequests();
 		CuratorFramework client = getClient();
+		boolean delay = true;
 		// iterate the cache of stream deployments
 		for (ChildData data : streamDeployments.getCurrentData()) {
 			String streamName = ZooKeeperUtils.stripPathConverter.convert(data);
@@ -151,17 +147,23 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 					// ignored as it will result in an empty deployedModules set
 				}
 
-				Set<ModuleDescriptor> recentlyDeployed = new HashSet<ModuleDescriptor>();
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(path.getModuleLabel());
-					if (shouldDeploy(moduleDescriptor, path, previouslyDeployed, recentlyDeployed)) {
+					if (shouldDeploy(moduleDescriptor, path, previouslyDeployed)) {
+						if (delay) {
+							// before attempting to deploy unallocated modules,
+							// wait to see if any more containers show up; this
+							// will mitigate "overloading" of the container that
+							// just arrived
+							Thread.sleep(3000);
+							delay = false;
+						}
 						RuntimeModuleDeploymentProperties moduleDeploymentProperties =
 								new RuntimeModuleDeploymentProperties();
 						moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(
 								moduleDeploymentRequests.getCurrentData(path.build()).getData()));
 						redeployModule(new ModuleDeployment(stream, moduleDescriptor,
-								moduleDeploymentProperties));
-						recentlyDeployed.add(moduleDescriptor);
+								moduleDeploymentProperties), true);
 					}
 				}
 			}
@@ -177,6 +179,7 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	private void deployUnallocatedJobModules() throws Exception {
 		List<ModuleDeploymentRequestsPath> requestedModulesPaths = getAllModuleDeploymentRequests();
 		CuratorFramework client = getClient();
+		boolean delay = true;
 		// check for "orphaned" jobs that can be deployed to this new container
 		for (ChildData data : jobDeployments.getCurrentData()) {
 			String jobName = ZooKeeperUtils.stripPathConverter.convert(data);
@@ -192,17 +195,23 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 							Paths.MODULES,
 							deployedModule)).getModuleInstanceAsString()));
 				}
-				Set<ModuleDescriptor> recentlyDeployed = new HashSet<ModuleDescriptor>();
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
-					if (shouldDeploy(moduleDescriptor, path, previouslyDeployed, recentlyDeployed)) {
+					if (shouldDeploy(moduleDescriptor, path, previouslyDeployed)) {
+						if (delay) {
+							// before attempting to deploy unallocated modules,
+							// wait to see if any more containers show up; this
+							// will mitigate "overloading" of the container that
+							// just arrived
+							Thread.sleep(3000);
+							delay = false;
+						}
 						RuntimeModuleDeploymentProperties moduleDeploymentProperties =
 								new RuntimeModuleDeploymentProperties();
 						moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(
 								moduleDeploymentRequests.getCurrentData(path.build()).getData()));
 						redeployModule(new ModuleDeployment(job, moduleDescriptor,
-								moduleDeploymentProperties));
-						recentlyDeployed.add(moduleDescriptor);
+								moduleDeploymentProperties), true);
 					}
 				}
 			}
@@ -224,15 +233,13 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	 *                            allocated to a container, the string
 	 *                            format is specified by
 	 *                            {@link ModuleDeploymentRequestsPath#getModuleInstanceAsString()}
-	 * @param recentlyDeployed    module descriptors that were recently deployed
 	 * @return true if this module descriptor should be deployed
 	 */
 	private boolean shouldDeploy(ModuleDescriptor moduleDescriptor,
 			ModuleDeploymentRequestsPath path,
-			Set<String> previouslyDeployed,
-			Set<ModuleDescriptor> recentlyDeployed) {
-		return (path.getModuleSequence().equals("0") || !previouslyDeployed.contains(path.getModuleInstanceAsString()))
-				&& !recentlyDeployed.contains(moduleDescriptor);
+			Set<String> previouslyDeployed) {
+		return (path.getModuleSequence().equals("0")
+				|| !previouslyDeployed.contains(path.getModuleInstanceAsString()));
 	}
 
 }

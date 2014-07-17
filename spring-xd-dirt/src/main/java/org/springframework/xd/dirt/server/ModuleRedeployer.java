@@ -262,15 +262,20 @@ public abstract class ModuleRedeployer {
 	 *
 	 * @param moduleDeployment contains module redeployment details such as
 	 *                         stream, module descriptor, and deployment properties
+	 * @param arriving         if true, this module redeployment is being triggered
+	 *                         by an arriving container; if false this is being
+	 *                         triggered by a departing container
 	 * @throws InterruptedException
 	 */
-	protected void redeployModule(ModuleDeployment moduleDeployment) throws Exception {
+	protected void redeployModule(ModuleDeployment moduleDeployment, boolean arriving) throws Exception {
 		DeploymentUnit deploymentUnit = moduleDeployment.deploymentUnit;
 		ModuleDescriptor moduleDescriptor = moduleDeployment.moduleDescriptor;
 		RuntimeModuleDeploymentProperties deploymentProperties = moduleDeployment.runtimeDeploymentProperties;
-
 		ModuleDeploymentStatus deploymentStatus = null;
-		if (deploymentProperties.getCount() > 0) {
+
+		// in the case of a departing container, the module should
+		// only be redeployed if count > 0
+		if (arriving || deploymentProperties.getCount() > 0) {
 			try {
 				deploymentStatus = deployModule(moduleDeployment, instantiateContainerMatcher(moduleDescriptor));
 			}

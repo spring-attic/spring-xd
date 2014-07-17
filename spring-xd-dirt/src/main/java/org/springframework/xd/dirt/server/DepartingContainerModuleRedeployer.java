@@ -121,7 +121,8 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			if (ModuleType.job.toString().equals(moduleType)) {
 				Job job = DeploymentLoader.loadJob(client, unitName, this.jobFactory);
 				if (job != null) {
-					redeployModule(new ModuleDeployment(job, job.getJobModuleDescriptor(), deploymentProperties));
+					redeployModule(new ModuleDeployment(job, job.getJobModuleDescriptor(),
+							deploymentProperties), false);
 				}
 			}
 			else {
@@ -139,7 +140,7 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 		}
 
 		for (ModuleDeployment moduleDeployment : streamModuleDeployments) {
-			redeployModule(moduleDeployment);
+			redeployModule(moduleDeployment, false);
 		}
 
 		// remove the deployments from the departed container

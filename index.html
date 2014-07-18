@@ -42,21 +42,27 @@ Spring XD is a unified, distributed, and extensible system for data ingestion, r
 ## Introduction
 Spring XD is a unified, distributed, and extensible system for data ingestion, real time analytics, batch processing, and data export. The project's goal is to simplify the development of big data applications.
 
-Big data applications share many characteristics with Enterprise Integration and Batch applications. Spring has provided proven solutions for building integration and batch applications for more than 6 years now via the Spring Integration and Spring Batch projects. Spring XD builds upon this foundation and provides a lightweight runtime environment that is easily configured and assembled via a simple DSL.
+Big data applications share many characteristics with Enterprise Integration and Batch applications. Spring has provided proven solutions for building integration and batch applications for more than 7 years now via the Spring Integration and Spring Batch projects. Spring XD builds upon this foundation and provides a scalable, fault-tolerant runtime environment that is easily configured and assembled via a simple DSL.
 
 The Spring ecosystem of projects provides an excellent foundation for building big data applications. The Spring XD project aims to build upon this foundation and provide a one stop shop solution for these use-cases. This is in contrast to many other offerings that are more siloed and fragmented. One of our first features is to create an out-of-the-box server that provide a consistent configuration model and runtime that spans the four use-case categories listed above.
 
-You don't need to code anything up to get going, no build scripts, no IDE, no maven coordinates. You can use a high level configuration DSL (not XML!) that will allow you to hit your head against the keyboard and get started quickly. However, if you choose to extend the platform (and we hope you will), Spring provides the foundation for extensibility.
+You don't need to code anything up to get going, no build scripts, no IDE, no maven coordinates. You can use a high level configuration DSL that will allow you to hit your head against the keyboard and get started quickly. However, if you choose to extend the platform (and we hope you will), Spring provides the foundation for extensibility.
 
 For the curious, XD is an abbreviation for eXtreme Data.
 
 
 ## Features
 
-* High throughput distributed data ingestion from a variety of input sources into big data store such as HDFS or Splunk
-* Real-time analytics at ingestion time, e.g. gathering metrics and counting values.
-* Workflow management via batch jobs. The jobs combine interactions with standard enterprise systems (e.g. RDBMS) as well as Hadoop operations (e.g. MapReduce, HDFS, Pig, Hive or Cascading).
-* High throughput data export, e.g. from HDFS to a RDBMS or NoSQL database.
+* Unified runtime platform - Stream Processing and Batch Jobs
+** Off-Hadoop Batch Jobs
+** Hadoop Batch workflow orchestration
+** NoSQL Analytics
+** Scoring of Machine Learning algorithms
+* Runtime that provides critical non-functional requirements
+** Scalable, distributed, Fault-Tolerant
+** Portable.  On prem DIY cluster, YARN, EC2.
+** Easy to use
+** Easy to extend and integrate other technologies
 
 <span id="quick-start"></span>
 ## Quick Start
@@ -67,11 +73,11 @@ For the curious, XD is an abbreviation for eXtreme Data.
 
 ### Manual Installation
 
-* Download [spring-xd-1.0.0.M7.zip](http://repo.spring.io/simple/libs-milestone-local/org/springframework/xd/spring-xd/1.0.0.M7/spring-xd-1.0.0.M7-dist.zip)
-* Unzip the distribution. This will yield the installation directory spring-xd-1.0.0.M7. All the commands below are executed from this directory, so change into it before proceeding
+* Download [spring-xd-1.0.0.RC1.zip](http://repo.spring.io/simple/libs-milestone-local/org/springframework/xd/spring-xd/1.0.0.RC1/spring-xd-1.0.0.RC1-dist.zip)
+* Unzip the distribution. This will yield the installation directory spring-xd-1.0.0.RC1. All the commands below are executed from this directory, so change into it before proceeding
 
 ```
-$ cd spring-xd-1.0.0.M7
+$ cd spring-xd-1.0.0.RC1
 ```
 
 * Set the environment variable **XD_HOME** to the installation directory `<root-install-dir>\spring-xd\xd`
@@ -114,9 +120,7 @@ $ xd-singlenode
 * [Zero to Stream Processing in 7 minutes]({{site.main_site_url}}/blog/2014/05/19/demo-zero-to-stream-processing-in-7-minutes-with-spring-xd/)
 * [Spring XD for Real Time Analytics](http://blog.gopivotal.com/pivotal/products/spring-xd-for-real-time-analytics/)
 * [Adding New Modules to Spring XD Part 1](http://glenn-renfro-dev.blogspot.com/2013/09/adding-new-modules-to-spring-xd-part-1.html)
-* [Spring XD 1.0 Milestone 2 Released]({{site.main_site_url}}/blog/2013/08/14/spring-xd-1-0-milestone-2-released/)
 * [Introducing Spring XD]({{site.main_site_url}}/blog/2013/04/23/introducing-spring-xd)
-* [Spring One Wrap-up](https://blog.codecentric.de/en/2013/09/spring-one-wrap-up-spring-batch-spring-hadoop-and-spring-xd/)
 
 
 ### Videos

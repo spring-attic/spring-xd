@@ -29,6 +29,7 @@ import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.repository.dao.StepExecutionDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
@@ -67,6 +68,9 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 	@Autowired
 	private DistributedJobLocator jobLocator;
 
+	@Autowired
+	private StepExecutionDao stepExecutionDao;
+
 	/**
 	 * List all job executions in a given range.
 	 *
@@ -86,6 +90,7 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 		final Set<String> jobDefinitionNames = new HashSet<String>(getJobDefinitionNames());
 
 		for (JobExecution jobExecution : jobService.listJobExecutions(startJobExecution, pageSize)) {
+			stepExecutionDao.addStepExecutions(jobExecution);
 			final JobExecutionInfoResource jobExecutionInfoResource = getJobExecutionInfoResource(jobExecution,
 					restartableJobs, deployedJobs, jobDefinitionNames);
 			result.add(jobExecutionInfoResource);

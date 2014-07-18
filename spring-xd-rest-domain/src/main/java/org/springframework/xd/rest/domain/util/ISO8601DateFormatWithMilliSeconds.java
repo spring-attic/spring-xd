@@ -27,8 +27,8 @@ import com.fasterxml.jackson.databind.util.ISO8601Utils;
  * Improved version of the {@link ISO8601DateFormat} that also serializes milliseconds.
  *
  * @author Gunnar Hillert
- * @since 1.0
  */
+@SuppressWarnings("serial")
 public class ISO8601DateFormatWithMilliSeconds extends ISO8601DateFormat {
 
 	@Override

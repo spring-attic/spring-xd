@@ -81,6 +81,8 @@ public class SimpleModule extends AbstractModule {
 
 	private ModuleOptions moduleOptions;
 
+	private final ClassLoader classLoader;
+
 	public SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties) {
 		this(descriptor, deploymentProperties, null, defaultModuleOptions());
 	}
@@ -91,6 +93,9 @@ public class SimpleModule extends AbstractModule {
 		super(descriptor, deploymentProperties);
 		this.moduleOptions = moduleOptions;
 		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class).web(false);
+
+		this.classLoader = classLoader;
+
 		if (classLoader != null) {
 			application.resourceLoader(new PathMatchingResourcePatternResolver(classLoader));
 		}
@@ -188,7 +193,23 @@ public class SimpleModule extends AbstractModule {
 			application.listeners(this.listeners.toArray(new ApplicationListener<?>[this.listeners.size()]));
 		}
 		this.application.listeners(new ModuleParentContextCloserApplicationListener(getDescriptor().getIndex()));
-		this.context = this.application.run();
+
+		if (this.classLoader != null) {
+
+			final ClassLoader defaultClassLoader = Thread.currentThread().getContextClassLoader();
+
+			try {
+				Thread.currentThread().setContextClassLoader(this.classLoader);
+				this.context = this.application.run();
+			}
+			finally {
+				Thread.currentThread().setContextClassLoader(defaultClassLoader);
+			}
+		}
+		else {
+			this.context = this.application.run();
+		}
+
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized module: " + this.toString());
 		}

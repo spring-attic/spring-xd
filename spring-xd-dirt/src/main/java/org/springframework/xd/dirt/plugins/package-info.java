@@ -1,6 +1,5 @@
 /**
- * Base Package for Spring XD plugins
+ * Base Package for Spring XD plugins.
  */
 
 package org.springframework.xd.dirt.plugins;
-

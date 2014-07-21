@@ -3,4 +3,3 @@
  */
 
 package org.springframework.xd.integration.hadoop.config;
-

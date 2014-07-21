@@ -28,6 +28,7 @@ import org.springframework.xd.dirt.module.DependencyException;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.rest.DetailedModuleDefinitionResourceAssembler;
 import org.springframework.xd.dirt.rest.ModulesController;
+import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 

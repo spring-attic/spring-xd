@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.stream.StreamDefinition;
 
 /**
  * Base class for testing non-local transports, such as RabbitMQ and Redis.

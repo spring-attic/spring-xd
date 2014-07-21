@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.util.XDRuntimeException;
 
 /**
  * Exception which is raised when a resource definition with the same name already exists.

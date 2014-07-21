@@ -1,5 +1,5 @@
 /**
- * Contains utilities for rendering textual contents (E.g. text tables), to the
+ * Contains utilities for rendering textual contents (example: text tables), to the
  * console.
  */
 

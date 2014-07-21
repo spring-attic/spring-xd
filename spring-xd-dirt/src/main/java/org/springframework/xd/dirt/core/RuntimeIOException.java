@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.core;
 
 import java.io.IOException;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.util.XDRuntimeException;
 
 
 /**

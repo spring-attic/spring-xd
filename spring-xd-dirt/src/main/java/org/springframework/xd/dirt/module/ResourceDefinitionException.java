@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.module;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.util.XDRuntimeException;
 
 /**
  * Thrown when a problem is detected with the (DSL) definition of an XD resource.

@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.integration.bus.converter;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.util.XDRuntimeException;
 
 
 /**

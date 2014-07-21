@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.zookeeper;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.util.XDRuntimeException;
 
 
 /**

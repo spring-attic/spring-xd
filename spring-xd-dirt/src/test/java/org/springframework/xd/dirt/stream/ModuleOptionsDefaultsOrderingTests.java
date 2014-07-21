@@ -29,6 +29,7 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
+import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;

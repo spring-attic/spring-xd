@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryBean;
-import org.springframework.xd.dirt.post.DelegatingHandlerMapping;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
@@ -45,11 +44,6 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 @ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "batch/batch.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {
-
-	@Bean
-	public DelegatingHandlerMapping delegatingHandlerMapping() {
-		return new DelegatingHandlerMapping();
-	}
 
 	@Bean
 	public MBeanServerFactoryBean mbeanServer() {

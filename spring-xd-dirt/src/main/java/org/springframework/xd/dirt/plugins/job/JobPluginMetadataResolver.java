@@ -138,7 +138,7 @@ public class JobPluginMetadataResolver implements ModuleOptionsMetadataResolver 
 			return true;
 		}
 
-		@ModuleOption("comma separated list of listeners from [job,step,chunk,item and skip] or disable (all listeners are enabled by default)")
+		@ModuleOption("listeners from [job,step,chunk,item,skip] as csv or 'disable' (default enables all)")
 		public void setListeners(String listeners) {
 			this.listeners = listeners;
 		}

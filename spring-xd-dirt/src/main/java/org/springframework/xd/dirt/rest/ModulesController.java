@@ -47,7 +47,7 @@ import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 
 /**
  * Handles all Module related interactions.
- * 
+ *
  * @author Glenn Renfro
  * @author Mark Fisher
  * @author Gunnar Hillert
@@ -109,7 +109,7 @@ public class ModulesController {
 
 	/**
 	 * Create a new composite Module.
-	 * 
+	 *
 	 * @param name The name of the module to create (required)
 	 * @param definition The module definition, expressed in the XD DSL (required)
 	 */
@@ -134,7 +134,7 @@ public class ModulesController {
 
 	/**
 	 * Retrieve the configuration file for the provided module information.
-	 * 
+	 *
 	 * @param name the name of an existing resource (required)
 	 * @param type the type of the module (required)
 	 */

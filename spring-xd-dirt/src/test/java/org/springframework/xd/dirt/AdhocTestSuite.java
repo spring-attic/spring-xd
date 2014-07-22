@@ -31,7 +31,6 @@ import org.springframework.xd.extensions.ExtensionsTests;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ ExtensionsTests.class, BatchJobsControllerIntegrationTests.class, TypeConvertingStreamTests.class })
-// @Ignore
 public class AdhocTestSuite {
 
 }

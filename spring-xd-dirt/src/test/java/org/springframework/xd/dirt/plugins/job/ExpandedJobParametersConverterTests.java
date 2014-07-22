@@ -26,7 +26,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.batch.core.JobParameter;
@@ -143,11 +142,7 @@ public class ExpandedJobParametersConverterTests {
 
 	}
 
-	/**
-	 * TODO See https://jira.springsource.org/browse/BATCH-2179
-	 */
 	@Test
-	@Ignore
 	public void convertNonIdentifyingJobParametersToJson() throws Exception {
 
 		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();

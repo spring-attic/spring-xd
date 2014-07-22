@@ -26,7 +26,6 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
@@ -163,23 +162,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		assertThat(String.format("Assert failed for streams %s, %s, %s", streamName0, streamName1, streamName2),
 				sink, eventually(hasContentsThat(equalTo("BLAHBLAH"))));
-	}
-
-
-	@Test
-	@Ignore("This is currently a bug in StreamFactory. Need to revisit once Parser refactored to return StreamDefinition.")
-	public void testComposedStreamThatIsItselfDeployable() throws IOException {
-		FileSink sink = newFileSink();
-		HttpSource httpSource = newHttpSource();
-		String streamName = generateStreamName();
-		stream().createDontDeploy(streamName,
-				"%s | filter --expression=payload.contains('${word:foo}') | %s", httpSource, sink);
-		stream().create(generateStreamName(), streamName);
-		httpSource.postData("foobar");
-		httpSource.postData("hello");
-		httpSource.postData("custardfoo");
-		httpSource.postData("whisk");
-		assertThat(sink, eventually(hasContentsThat(equalTo("foobar\ncustardfoo\n"))));
 	}
 
 	@Test

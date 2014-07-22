@@ -16,22 +16,20 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.rest.domain.CompletionKind.job;
-import static org.springframework.xd.rest.domain.CompletionKind.module;
-import static org.springframework.xd.rest.domain.CompletionKind.stream;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
+import static org.springframework.xd.rest.domain.CompletionKind.job;
+import static org.springframework.xd.rest.domain.CompletionKind.module;
+import static org.springframework.xd.rest.domain.CompletionKind.stream;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -175,62 +173,6 @@ public class CompletionProviderTests {
 		List<String> completions = completionProvider.complete(stream,
 				"file | counter --name=", 1);
 
-		assertThat(completions, hasSize(0));
-	}
-
-	@Test
-	@Ignore("XD-1284")
-	// file | file --binary=<TAB> => we know it's a closed set of values
-	public void testInOptionValueBooleanNoStartAtAll() {
-		List<String> completions = completionProvider.complete(stream,
-				"file | file --binary=", 1);
-		assertThat(completions, hasItem(startsWith("file | file --binary=true")));
-		assertThat(completions, hasItem(startsWith("file | file --binary=false")));
-	}
-
-	@Test
-	@Ignore("XD-1284")
-	// file | file --binary=t<TAB> => we know it's a closed set, and 'true' matches
-	public void testInOptionValueBooleanValidStart() {
-		List<String> completions = completionProvider.complete(stream,
-				"file | file --binary=t", 1);
-		assertThat(completions, hasItem(startsWith("file | file --binary=true")));
-	}
-
-	@Test
-	@Ignore("XD-1284")
-	// file | file --binary=foo<TAB> => we know it's wrong, so return nothing
-	public void testInOptionValueBooleanInvalidStart() {
-		List<String> completions = completionProvider.complete(stream,
-				"file | file --binary=foo", 1);
-		assertThat(completions, hasSize(0));
-	}
-
-	@Test
-	@Ignore("XD-1284")
-	// file | hdfs --codec=<TAB> // same logic as testInOptionValueBoolean
-	public void testInOptionValueEnumNoStartAtAll() {
-		List<String> completions = completionProvider.complete(stream,
-				"file | hdfs --codec=", 1);
-		assertThat(completions, hasItem(startsWith("hdfs --codec=SNAPPY")));
-		assertThat(completions, hasItem(startsWith("hdfs --codec=BZIP2")));
-	}
-
-	@Test
-	@Ignore("XD-1284")
-	// file | hdfs --codec=S<TAB> => SNAPPY // same logic as testInOptionValueBoolean
-	public void testInOptionValueEnumValidStart() {
-		List<String> completions = completionProvider.complete(stream,
-				"hdfs --codec=S", 1);
-		assertThat(completions, hasItem(startsWith("hdfs --codec=SNAPPY")));
-	}
-
-	@Test
-	@Ignore("XD-1284")
-	// file | hdfs --codec=FOOBAR<TAB> // same logic as testInOptionValueBoolean
-	public void testInOptionValueEnumInvalidStart() {
-		List<String> completions = completionProvider.complete(stream,
-				"hdfs --codec=FOOBAR", 1);
 		assertThat(completions, hasSize(0));
 	}
 

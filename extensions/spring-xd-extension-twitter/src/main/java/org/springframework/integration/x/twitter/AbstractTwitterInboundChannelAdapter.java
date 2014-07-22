@@ -21,10 +21,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URI;
-import java.util.Date;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,7 +36,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -50,12 +48,13 @@ import org.springframework.web.client.RestTemplate;
 /**
  *
  * @author David Turanski
+ * @author Gary Russell
  */
 public abstract class AbstractTwitterInboundChannelAdapter extends MessageProducerSupport {
 
 	private final TwitterTemplate twitter;
 
-	private ScheduledFuture<?> task;
+	private final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
 
 	private String language = "";
 
@@ -123,25 +122,22 @@ public abstract class AbstractTwitterInboundChannelAdapter extends MessageProduc
 				return;
 			}
 			this.running.set(true);
-			StreamReadingTask task = new StreamReadingTask();
-			TaskScheduler scheduler = getTaskScheduler();
-			if (scheduler != null) {
-				this.task = scheduler.schedule(task, new Date());
-			}
-			else {
-				Executor executor = Executors.newSingleThreadExecutor();
-				executor.execute(task);
-			}
+			this.taskExecutor.execute(new StreamReadingTask());
 		}
 	}
 
 	@Override
 	protected void doStop() {
-		if (this.task != null) {
-			this.task.cancel(true);
-			this.task = null;
-		}
 		this.running.set(false);
+		this.taskExecutor.shutdownNow();
+		try {
+			if (!this.taskExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+				logger.error("Reader task failed to stop");
+			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 

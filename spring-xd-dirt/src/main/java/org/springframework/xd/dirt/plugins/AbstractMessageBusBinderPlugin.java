@@ -156,6 +156,17 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		return new Properties[] { consumerProperties, producerProperties };
 	}
 
+	@Override
+	public void beforeShutdown(Module module) {
+		unbindConsumer(module);
+	}
+
+	@Override
+	public void removeModule(Module module) {
+		super.removeModule(module);
+		unbindProducers(module);
+	}
+
 	protected abstract String getInputChannelName(Module module);
 
 	protected abstract String getOutputChannelName(Module module);
@@ -210,20 +221,35 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	}
 
 	/**
-	 * Unbind input/output channel of the module's message consumer/producers from {@link MessageBus}'s message
-	 * source/target entities.
+	 * Unbind the input channel of the module from the {@link MessageBus}
+	 * (stop sending new messages to the module so it can be stopped).
 	 *
-	 * @param module the module whose consumer and producers to unbind from the {@link MessageBus}.
+	 * @param module the module for which the consumer is to be unbound from the {@link MessageBus}.
 	 */
-	protected final void unbindConsumerAndProducers(Module module) {
+	protected void unbindConsumer(Module module) {
 		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
 		if (inputChannel != null) {
 			messageBus.unbindConsumer(getInputChannelName(module), inputChannel);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Unbound consumer for " + module.toString());
+			}
 		}
+	}
+
+	/**
+	 * Unbind the output channel of the module (and tap if present) from the {@link MessageBus}
+	 * (after it has been stopped).
+	 *
+	 * @param module the module for which producers are to be unbound from the {@link MessageBus}.
+	 */
+	protected void unbindProducers(Module module) {
 		MessageChannel outputChannel = module.getComponent(MODULE_OUTPUT_CHANNEL, MessageChannel.class);
 		if (outputChannel != null) {
 			messageBus.unbindProducer(getOutputChannelName(module), outputChannel);
 			unbindTapChannel(buildTapChannelName(module));
+			if (logger.isDebugEnabled()) {
+				logger.debug("Unbound producer(s) for " + module.toString());
+			}
 		}
 	}
 

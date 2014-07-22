@@ -74,11 +74,6 @@ public class StreamPlugin extends AbstractStreamPlugin {
 	}
 
 	@Override
-	public void beforeShutdown(Module module) {
-		unbindConsumerAndProducers(module);
-	}
-
-	@Override
 	public int getOrder() {
 		return HIGHEST_PRECEDENCE;
 	}

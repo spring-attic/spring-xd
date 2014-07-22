@@ -66,11 +66,6 @@ public class JobPlugin extends AbstractJobPlugin {
 	}
 
 	@Override
-	public void removeModule(Module module) {
-		unbindConsumerAndProducers(module);
-	}
-
-	@Override
 	public int getOrder() {
 		return HIGHEST_PRECEDENCE;
 	}

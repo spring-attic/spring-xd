@@ -22,20 +22,15 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
@@ -44,22 +39,10 @@ import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.dirt.container.store.ContainerRepository;
-import org.springframework.xd.dirt.job.JobFactory;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
-import org.springframework.xd.dirt.stream.JobDefinitionRepository;
-import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.BannerUtils;
-import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.RuntimeUtils;
-import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 import org.springframework.xd.dirt.util.XdProfiles;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionConfigurer;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * The boot application class for a Container server.
@@ -172,78 +155,5 @@ public class ContainerServerApplication implements EnvironmentAware {
 			ContainerAttributes containerAttributes = applicationContext.getParent().getBean(ContainerAttributes.class);
 			applicationContext.setId(containerAttributes.getId());
 		}
-	}
-}
-
-
-/**
- * Container Application Context
- *
- * @author David Turanski
- * @author Ilayaperumal Gopinathan
- */
-@Configuration
-@ImportResource({ "classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml", })
-@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
-class ContainerConfiguration {
-
-	@Autowired
-	private ContainerAttributes containerAttributes;
-
-	@Autowired
-	private ContainerRepository containerRepository;
-
-	@Autowired
-	private StreamDefinitionRepository streamDefinitionRepository;
-
-	@Autowired
-	private JobDefinitionRepository jobDefinitionRepository;
-
-	@Autowired
-	private ModuleDefinitionRepository moduleDefinitionRepository;
-
-	@Autowired
-	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
-
-	@Autowired
-	private ModuleDeployer moduleDeployer;
-
-	@Autowired
-	private ZooKeeperConnection zooKeeperConnection;
-
-	/*
-	 * An optional bean to configure the ZooKeeperConnection. XD by default does not provide this bean but it may be
-	 * added via an extension. This is also effected by the boolean property value ${zk.client.connection.configured}
-	 * which if set, defers the start of the ZooKeeper connection until now.
-	 */
-	@Autowired(required = false)
-	ZooKeeperConnectionConfigurer zooKeeperConnectionConfigurer;
-
-	@Bean
-	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
-		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(true);
-		delegate.setEnvironment(context.getEnvironment());
-		return new SourceFilteringListener(context, delegate);
-	}
-
-	@Bean
-	public ContainerRegistrar containerRegistrar() {
-		if (zooKeeperConnectionConfigurer != null) {
-			zooKeeperConnectionConfigurer.configureZooKeeperConnection(zooKeeperConnection);
-			zooKeeperConnection.start();
-		}
-
-		StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
-				moduleOptionsMetadataResolver);
-
-		JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleDefinitionRepository,
-				moduleOptionsMetadataResolver);
-
-		return new ContainerRegistrar(zooKeeperConnection, containerAttributes,
-				containerRepository,
-				streamFactory,
-				jobFactory,
-				moduleOptionsMetadataResolver,
-				moduleDeployer);
 	}
 }

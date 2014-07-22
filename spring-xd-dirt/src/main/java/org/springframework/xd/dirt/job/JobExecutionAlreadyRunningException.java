@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.job;
 
-import org.springframework.xd.dirt.util.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Exception that is raised when {@link JobExecution} is already running.

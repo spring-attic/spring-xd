@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.core;
 
 import java.util.concurrent.TimeoutException;
 
-import org.springframework.xd.dirt.util.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Exception thrown when a blocking operation times out. This

@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.module;
 
-import org.springframework.xd.dirt.util.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Exception thrown when a module doesn't exist in the container.

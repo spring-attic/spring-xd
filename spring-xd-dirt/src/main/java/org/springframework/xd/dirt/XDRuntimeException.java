@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.util;
+package org.springframework.xd.dirt;
 
 /**
  * Base class for all XD-related exceptions.

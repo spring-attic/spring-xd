@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
-import org.springframework.xd.dirt.util.XDRuntimeException;
+import org.springframework.xd.dirt.XDRuntimeException;
 
 
 /**

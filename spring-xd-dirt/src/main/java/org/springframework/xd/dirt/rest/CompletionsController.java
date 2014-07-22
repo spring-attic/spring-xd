@@ -29,7 +29,7 @@ import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Exposes completion for stream-like definitions as a REST endpoint.
- * 
+ *
  * @author Eric Bottard
  */
 @RestController
@@ -46,10 +46,10 @@ public class CompletionsController {
 
 	/**
 	 * Return a list of possible completions given a prefix string that the user has started typing.
-	 * 
+	 *
 	 *  @param kind the kind of definition that is being authored
 	 *  @param start the amount of text written so far
-	 *  @param lod the level of detail the user wants in completions (<i>e.g.</i> higher numbers may mean show 'hidden' options)
+	 *  @param detailLevel the level of detail the user wants in completions (<i>e.g.</i> higher numbers may mean show 'hidden' options)
 	 */
 	@RequestMapping(value = "/{kind}")
 	public List<String> completions(@PathVariable("kind") CompletionKind kind,

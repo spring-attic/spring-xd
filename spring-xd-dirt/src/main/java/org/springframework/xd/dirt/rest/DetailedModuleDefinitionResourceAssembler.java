@@ -35,7 +35,7 @@ import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
  */
 @Component
 public class DetailedModuleDefinitionResourceAssembler extends
-		ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
+ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
 
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
@@ -75,7 +75,7 @@ public class DetailedModuleDefinitionResourceAssembler extends
 
 				result.addOption(new DetailedModuleDefinitionResource.Option(option.getName(),
 						type == null ? null : type.getSimpleName(), option.getDescription(),
-						defaultValueAsString));
+								defaultValueAsString, option.isHidden()));
 			}
 		}
 		return result;

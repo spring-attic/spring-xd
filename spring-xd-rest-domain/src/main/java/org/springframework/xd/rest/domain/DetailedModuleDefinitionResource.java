@@ -26,7 +26,7 @@ import org.springframework.hateoas.PagedResources;
 
 /**
  * Extends {@link ModuleDefinitionResource} with information about module options.
- * 
+ *
  * @author Eric Bottard
  */
 @XmlRootElement
@@ -62,6 +62,8 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 
 		private String defaultValue;
 
+		private boolean hidden;
+
 		/**
 		 * Default constructor for serialization frameworks.
 		 */
@@ -70,11 +72,12 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 
 		}
 
-		public Option(String name, String type, String description, String defaultValue) {
+		public Option(String name, String type, String description, String defaultValue, boolean hidden) {
 			this.name = name;
 			this.type = type;
 			this.description = description;
 			this.defaultValue = defaultValue;
+			this.hidden = hidden;
 		}
 
 
@@ -97,6 +100,10 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 			return defaultValue;
 		}
 
+		public boolean isHidden() {
+			return hidden;
+		}
+
 
 	}
 
@@ -107,7 +114,7 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 
 	/**
 	 * Dedicated subclass to workaround type erasure.
-	 * 
+	 *
 	 * @author Eric Bottard
 	 */
 	public static class Page extends PagedResources<DetailedModuleDefinitionResource> {

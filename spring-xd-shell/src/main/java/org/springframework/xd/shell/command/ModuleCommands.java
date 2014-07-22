@@ -27,9 +27,9 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
+import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource.Option;
 import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.domain.RESTModuleType;
-import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource.Option;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
@@ -78,7 +78,8 @@ public class ModuleCommands implements CommandMarker {
 
 	@CliCommand(value = MODULE_INFO, help = "Get information about a module")
 	public String moduleInfo(
-			@CliOption(mandatory = true, key = { "name", "" }, help = "name of the module to query, in the form 'type:name'") QualifiedModuleName module
+			@CliOption(mandatory = true, key = { "name", "" }, help = "name of the module to query, in the form 'type:name'") QualifiedModuleName module,
+			@CliOption(key = "hidden", help = "whether to show 'hidden' options", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") boolean showHidden
 			) {
 		DetailedModuleDefinitionResource info = moduleOperations().info(module.name, module.type);
 		List<Option> options = info.getOptions();
@@ -91,8 +92,11 @@ public class ModuleCommands implements CommandMarker {
 		else {
 			Table table = new Table().addHeader(1, new TableHeader("Option Name")).addHeader(2,
 					new TableHeader("Description")).addHeader(
-					3, new TableHeader("Default")).addHeader(4, new TableHeader("Type"));
+							3, new TableHeader("Default")).addHeader(4, new TableHeader("Type"));
 			for (DetailedModuleDefinitionResource.Option o : options) {
+				if (!showHidden && o.isHidden()) {
+					continue;
+				}
 				final TableRow row = new TableRow();
 				row.addValue(1, o.getName())
 						.addValue(2, o.getDescription())

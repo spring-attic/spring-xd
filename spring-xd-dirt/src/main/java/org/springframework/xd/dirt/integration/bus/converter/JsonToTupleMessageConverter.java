@@ -27,13 +27,15 @@ import org.springframework.xd.tuple.TupleBuilder;
 
 
 /**
- * A {@link MessageConverter} to convert from a JSON (byte[] or String) to a {@link Tuple}.
- * 
+ * A {@link org.springframework.messaging.converter.MessageConverter}
+ * to convert from a JSON (byte[] or String) to a {@link Tuple}.
+ *
  * @author David Turanski
  */
 public class JsonToTupleMessageConverter extends AbstractFromMessageConverter {
 
 	private final static List<MimeType> targetMimeTypes = new ArrayList<MimeType>();
+
 	static {
 		targetMimeTypes.add(MessageConverterUtils.X_XD_TUPLE);
 		targetMimeTypes.add(MessageConverterUtils.X_JAVA_OBJECT);

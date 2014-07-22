@@ -155,7 +155,11 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Set the flag that indicates whether this connection
+     * should be started automatically.
+     *
+     * @param autoStartup if true, indicates this connection should
+     *                    be started automatically
 	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;

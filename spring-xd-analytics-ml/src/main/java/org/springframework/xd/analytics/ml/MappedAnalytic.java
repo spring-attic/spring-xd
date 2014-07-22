@@ -21,7 +21,7 @@ import org.springframework.util.Assert;
  * An {@link org.springframework.xd.analytics.ml.Analytic} that supports the mapping of {@code input} and {@code output}
  * to and from internal representations by applying the given {@link org.springframework.xd.analytics.ml.InputMapper}
  * and {@link org.springframework.xd.analytics.ml.OutputMapper} respectively.
- * 
+ *
  * @author Thomas Darimont
  * @param <I> the input type
  * @param <O> the output type
@@ -37,7 +37,7 @@ public abstract class MappedAnalytic<I, O, MI, MO, A extends MappedAnalytic<I, O
 
 	/**
 	 * Creates a new {@link MappedAnalytic}.
-	 * 
+	 *
 	 * @param inputMapper must not be {@literal null}.
 	 * @param outputMapper must not be {@literal null}.
 	 */
@@ -54,9 +54,6 @@ public abstract class MappedAnalytic<I, O, MI, MO, A extends MappedAnalytic<I, O
 	 * Evaluates the encoded {@code Analytic} against the given {@code input}. The {@code inputMapper} is used to map
 	 * the given {@code input} to an appropriate input for the internal evaluation of the {@code Analytic}. The
 	 * resulting output of internal evaluation is mapped via the {@code outputMapper} to an appropriate result.
-	 * 
-	 * @param input must not be {@literal null}
-	 * @return
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
@@ -75,8 +72,8 @@ public abstract class MappedAnalytic<I, O, MI, MO, A extends MappedAnalytic<I, O
 
 	/**
 	 * Performs the actual evaluation with the mapped {@code input} values.
-	 * 
-	 * @param modelInput must not be {@iteral null}
+	 *
+	 * @param modelInput must not be {@literal null}
 	 * @return the unmapped actual output of the internal evaluation.
 	 */
 	protected abstract MO evaluateInternal(MI modelInput);

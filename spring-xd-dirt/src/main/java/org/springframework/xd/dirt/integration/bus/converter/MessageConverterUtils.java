@@ -26,38 +26,38 @@ import org.springframework.xd.tuple.DefaultTuple;
 
 
 /**
- * Message conversion utility methods
- * 
+ * Message conversion utility methods.
+ *
  * @author David Turanski
  */
 public class MessageConverterUtils {
 
 	/**
-	 * An XD MimeType specifying a {@link Tuple}
+	 * An XD MimeType specifying a {@link org.springframework.xd.tuple.Tuple}.
 	 */
 	public static final MimeType X_XD_TUPLE = MimeType.valueOf("application/x-xd-tuple");
 
 	/**
-	 * An XD MimeType for specifying a String
+	 * An XD MimeType for specifying a String.
 	 */
 	public static final MimeType X_XD_STRING = MimeType.valueOf("application/x-xd-string");
 
 	/**
-	 * A general MimeType for Java Types
+	 * A general MimeType for Java Types.
 	 */
 	public static final MimeType X_JAVA_OBJECT = MimeType.valueOf("application/x-java-object");
 
 	/**
-	 * A general MimeType for a Java serialized byte array
+	 * A general MimeType for a Java serialized byte array.
 	 */
 	public static final MimeType X_JAVA_SERIALIZED_OBJECT = MimeType.valueOf("application/x-java-serialized-object");
 
 	/**
-	 * Map the contentType to a target class
-	 * 
+	 * Map the contentType to a target class.
+	 *
 	 * @param contentType the content type
 	 * @param classLoader the class loader used to resolve the class
-	 * @return
+	 * @return the class for the content type
 	 */
 	public static Class<?> getJavaTypeForContentType(MimeType contentType, ClassLoader classLoader) {
 		if (X_JAVA_OBJECT.includes(contentType)) {
@@ -96,7 +96,7 @@ public class MessageConverterUtils {
 
 	/**
 	 * Build the conventional {@link MimeType} for a java object
-	 * 
+	 *
 	 * @param clazz the java type
 	 * @return the MIME type
 	 */

@@ -25,7 +25,8 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 
 
 /**
- * Default implementation of {@link ModuleDeploymentPropertiesProvider<RuntimeModuleDeploymentProperties>}.
+ * Default implementation of {@link ModuleDeploymentPropertiesProvider}
+ * for type {@link RuntimeModuleDeploymentProperties}.
  *
  * @author Ilayaperumal Gopinathan
  */

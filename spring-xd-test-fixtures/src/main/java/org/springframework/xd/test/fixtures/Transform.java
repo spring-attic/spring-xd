@@ -70,7 +70,7 @@ public class Transform extends AbstractModuleFixture<Transform> {
 
 	/**
 	 * Sets the groovy script the user wants to transform the input.
-	 * @param The file where the groovy script is located.
+	 * @param script the file where the groovy script is located.
 	 * @return current instance of the transform fixture.
 	 */
 	public Transform moduleName(String script) {
@@ -81,7 +81,7 @@ public class Transform extends AbstractModuleFixture<Transform> {
 
 	/**
 	 * Sets the properties to be used by the transform.
-	 * @param The location of the properties file 
+	 * @param properties the location of the properties file
 	 * @return current instance of the transform fixture.
 	 */
 	public Transform properties(String properties) {

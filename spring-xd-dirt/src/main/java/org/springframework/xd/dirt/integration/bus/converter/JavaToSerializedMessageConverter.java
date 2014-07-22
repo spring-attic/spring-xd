@@ -25,8 +25,9 @@ import org.springframework.messaging.Message;
 
 
 /**
- * A {@link MessageConverter} to convert from a POJO to byte[] with Java.io serialization if any.
- * 
+ * A {@link org.springframework.messaging.converter.MessageConverter}
+ * to convert from a POJO to byte[] with Java.io serialization if any.
+ *
  * @author David Turanski
  */
 public class JavaToSerializedMessageConverter extends AbstractFromMessageConverter {

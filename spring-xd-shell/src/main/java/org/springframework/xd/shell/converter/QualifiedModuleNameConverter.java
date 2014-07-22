@@ -32,12 +32,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.domain.RESTModuleType;
 import org.springframework.xd.shell.XDShell;
-import org.springframework.xd.shell.command.ModuleCommands;
 import org.springframework.xd.shell.command.ModuleCommands.QualifiedModuleName;
 
 
 /**
- * Knows how to build and query {@link ModuleCommands.QualifiedModuleName}s.
+ * Knows how to build and query {@link org.springframework.xd.shell.command.ModuleCommands.QualifiedModuleName}s.
  *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan

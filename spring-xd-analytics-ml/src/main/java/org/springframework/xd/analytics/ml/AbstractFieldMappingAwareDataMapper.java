@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
 /**
  * @author Thomas Darimont
  */
-public abstract class AbstractFieldMappingAwareDataMapper implements Mapper{
+public abstract class AbstractFieldMappingAwareDataMapper implements Mapper {
 
 	public static final String DEFAULT_FIELD_NAME_MAPPING_SPLIT_TOKEN = ":";
 
@@ -52,8 +52,8 @@ public abstract class AbstractFieldMappingAwareDataMapper implements Mapper{
 	/**
 	 * Transforms the list of field name mapping pairs to a {@link java.util.Map} from a name to a new name.
 	 *
-	 * @param fieldNameMappingPairs
-	 * @return
+	 * @param fieldNameMappingPairs list of field name mapping pairs
+	 * @return map of field names to values
 	 */
 	protected Map<String,String> extractFieldNameMappingFrom(List<String> fieldNameMappingPairs){
 

@@ -25,8 +25,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 
 /**
- * An {@link MessageConverter} to convert a Java object to a JSON String
- * 
+ * A {@link org.springframework.messaging.converter.MessageConverter}
+ * to convert a Java object to a JSON String
+ *
  * @author David Turanski
  */
 public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {

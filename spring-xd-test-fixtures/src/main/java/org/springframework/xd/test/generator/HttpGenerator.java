@@ -21,23 +21,23 @@ import java.io.File;
 
 /**
  * Generate a single http request from a string or file payload.
- * 
+ *
  * Implementation would be expect to set the URL to post to in their constructor
- * 
+ *
  * @author Mark Pollack
  */
 public interface HttpGenerator {
 
 	/**
 	 * Generate a http POST request using the String as the body of the request.
-	 * 
-	 * @param payload String to send in the http body.
+	 *
+	 * @param message String to send in the http body.
 	 */
 	void postData(String message);
 
 	/**
 	 * Generate a http request from the contents of a file
-	 * 
+	 *
 	 * @param file the File that contains the data to post
 	 * @throws GeneratorException If there was an error related to file handling.
 	 */

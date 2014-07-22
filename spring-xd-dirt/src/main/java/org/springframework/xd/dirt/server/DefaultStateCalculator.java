@@ -35,12 +35,14 @@ import org.springframework.xd.module.ModuleDescriptor;
  * criteria:
  * <ul>
  *     <li>If all expected modules are deployed, the state is considered
- *         {@link DeploymentUnitStatus.State#deployed deployed}.</li>
+ *         {@link org.springframework.xd.dirt.core.DeploymentUnitStatus.State#deployed deployed}.</li>
  *     <li>If one or more of the modules do not have the number of expected
  *         instances but there is at least one instance of each module,
- *         the state is considered {@link DeploymentUnitStatus.State#incomplete incomplete}.</li>
+ *         the state is considered
+ *         {@link org.springframework.xd.dirt.core.DeploymentUnitStatus.State#incomplete incomplete}.</li>
  *     <li>If one or more of the modules do not have any instances deployed,
- *         the state is considered {@link DeploymentUnitStatus.State#failed failed}.</li>
+ *         the state is considered
+ *         {@link org.springframework.xd.dirt.core.DeploymentUnitStatus.State#failed failed}.</li>
  * </ul>
  *
  * @author Patrick Peralta

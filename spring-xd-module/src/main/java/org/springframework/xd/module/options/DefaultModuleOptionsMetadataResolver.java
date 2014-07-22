@@ -37,22 +37,21 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
 /**
  * The default implementation of {@link ModuleOptionsMetadataResolver} that deals with simple modules and reads the
  * companion {@code .properties} file sitting next to the module definition.
- * 
+ *
  * <p>
  * The following strategies will be applied in turn:
  * <ul>
  * <li>look for a file named {@code <modulename>.properties} next to the module xml definition file</li>
  * <li>if that file exists
  * <ul>
- * <li>look for an {@value DefaultModuleOptionsMetadataResolver#OPTIONS_CLASS} property. If found, use a
- * {@link PojoModuleOptionsMetadata} backed by that POJO classname</li>
+ * <li>look for an {@value #OPTIONS_CLASS} property. If found, use a
+ * {@link PojoModuleOptionsMetadata} backed by that POJO class name</li>
  * <li>use a {@link SimpleModuleOptionsMetadata} backed by keys of the form {@code options.<name>.description}.
- * Additionaly, one can provide {@code options.<name>.default} and {@code options.<name>.type} properties.</li>
+ * Additionally, one can provide {@code options.<name>.default} and {@code options.<name>.type} properties.</li>
  * </ul>
  * <li>return an instance of {@link PassthruModuleOptionsMetadata}.
  * <ul>
- * 
- * 
+ *
  * @author Eric Bottard
  */
 public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver {
@@ -64,7 +63,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 * Name of the property containing a POJO fully qualified classname, which will be used to create a
 	 * {@link PojoModuleOptionsMetadata}.
 	 */
-	private static final String OPTIONS_CLASS = "options_class";
+	public static final String OPTIONS_CLASS = "options_class";
 
 	private static final Map<String, Class<?>> SHORT_CLASSNAMES = new HashMap<String, Class<?>>();
 
@@ -202,7 +201,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 	/**
 	 * Create {@link PojoModuleOptionsMetadata} out of the {@code pojoClass} and add them to the list.
-	 * Also, recursively invoke itself with all classes mixed in {@code pojoClass} (that is, 
+	 * Also, recursively invoke itself with all classes mixed in {@code pojoClass} (that is,
 	 * if {@code pojoClass} bears the {@link Mixin} annotation.
 	 */
 	private void createPojoOptionsMetadata(ClassLoader classLoaderToUse, String pojoClass,
@@ -226,7 +225,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	/**
 	 * Will parse the module xml definition file, looking for "${foo}" placeholders and advertise a {@link ModuleOption}
 	 * for each of those.
-	 * 
+	 *
 	 * Note that this may end up in false positives and does not convey much information.
 	 */
 	private ModuleOptionsMetadata inferModuleOptionsMetadata(ModuleDefinition definition, ClassLoader classLoaderToUse) {

@@ -21,7 +21,7 @@ import org.springframework.util.Assert;
 
 /**
  * A test fixture that allows testing of the 'TwitterSearch' source module.
- * 
+ *
  * @author Glenn Renfro
  */
 public class TwitterSearchSource extends AbstractModuleFixture<TwitterSearchSource> {
@@ -35,7 +35,7 @@ public class TwitterSearchSource extends AbstractModuleFixture<TwitterSearchSour
 
 	/**
 	 * Initializes a TwitterSearchSource fixture.
-	 * 
+	 *
 	 * @param consumerKey The users twitter consumer key
 	 * @param consumerSecret The users twitter comsumer secret key
 	 * @param query The query the twitter source will execute.
@@ -52,11 +52,10 @@ public class TwitterSearchSource extends AbstractModuleFixture<TwitterSearchSour
 
 	/**
 	 * Initializes a TwitterSearchSource fixture with a fixed delay of 30000 and an output type of application/json.
-	 * 
+	 *
 	 * @param consumerKey The users twitter consumer key
 	 * @param consumerSecret The users twitter comsumer secret key
 	 * @param query The query the twitter source will execute.
-	 * @param fixedDelay
 	 */
 	public static TwitterSearchSource withDefaults(String consumerKey, String consumerSecret, String query) {
 		Assert.hasText(consumerKey, "consumerKey must not be empty nor null");

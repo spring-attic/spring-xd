@@ -25,11 +25,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 /**
- * Mixin for Jackson that will ignore the Resource, Classpath, Composed and ModuleOptionMetadata properties of a
- * ModuleDefinition.
- * 
- * @see ModuleDefinition.
- * 
+ * Mixin for Jackson that will ignore the Resource, Classpath, Composed and
+ * ModuleOptionMetadata properties of a ModuleDefinition.
+ *
+ * @see org.springframework.xd.module.ModuleDefinition
+ *
  * @author Mark Pollack
  */
 public interface ModuleDefinitionMixin {

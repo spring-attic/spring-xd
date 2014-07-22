@@ -38,10 +38,10 @@ import org.springframework.xd.dirt.integration.bus.StringConvertingContentTypeRe
 
 /**
  * Base class for converters applied via Spring Integration 4.x data type channels.
- * 
- * Extend this class to implement {@link MessageConverter}s used with Spring XD Message conversion. Only fromMessage()
- * is supported.
- * 
+ *
+ * Extend this class to implement {@link org.springframework.messaging.converter.MessageConverter MessageConverters}
+ * used with Spring XD Message conversion. Only {@link #fromMessage} is supported.
+ *
  * @author David Turanski
  */
 public abstract class AbstractFromMessageConverter extends AbstractMessageConverter {
@@ -52,7 +52,7 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 
 	/**
 	 * Creates a converter that ignores content-type message headers
-	 * 
+	 *
 	 * @param targetMimeType the required target type (outputType or inputType for XD)
 	 */
 	protected AbstractFromMessageConverter(MimeType targetMimeType) {
@@ -65,7 +65,7 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 
 	/**
 	 * Creates a converter that handles one or more content-type message headers
-	 * 
+	 *
 	 * @param supportedSourceMimeTypes list of {@link MimeType} that may present in content-type header
 	 * @param targetMimeType the required target type (outputType or inputType for XD)
 	 */
@@ -79,10 +79,10 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 
 	/**
 	 * Creates a converter that handles one or more content-type message headers and one or more target MIME types
-	 * 
+	 *
 	 * @param supportedSourceMimeTypes a list of supported content types
 	 * @param targetMimeTypes a list of supported target types (outputType or inputType for XD)
-	 * @param {@link ContentTypeResolver} to use
+	 * @param contentTypeResolver the {@link ContentTypeResolver} to use
 	 */
 	protected AbstractFromMessageConverter(Collection<MimeType> supportedSourceMimeTypes,
 			Collection<MimeType> targetMimeTypes,
@@ -95,7 +95,7 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 
 	/**
 	 * Creates a converter that requires a specific content-type message header
-	 * 
+	 *
 	 * @param supportedSourceMimeType {@link MimeType} that must be present in content-type header
 	 * @param targetMimeType the required target type (outputType or inputType for XD)
 	 */
@@ -106,7 +106,7 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 
 	/**
 	 * Creates a converter that requires a specific content-type message header and supports multiple target MIME types.
-	 * 
+	 *
 	 * @param supportedSourceMimeType {@link MimeType} that must be present in content-type header
 	 * @param targetMimeTypes a list of supported target types (outputType or inputType for XD)
 	 */
@@ -117,14 +117,14 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 
 	/**
 	 * Subclasses implement this to specify supported target types
-	 * 
+	 *
 	 * @return an array of supported classes or null if any target type is supported
 	 */
 	protected abstract Class<?>[] supportedTargetTypes();
 
 	/**
 	 * Subclasses implement this to specify supported payload types
-	 * 
+	 *
 	 * @return an array of supported classes or null if any target type is supported
 	 */
 	protected abstract Class<?>[] supportedPayloadTypes();
@@ -191,11 +191,11 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 
 	/**
 	 * Convenience method to construct a converted message
-	 * 
+	 *
 	 * @param payload the converted payload
 	 * @param headers the existing message headers
 	 * @param contentType the value of the content-type header
-	 * @return
+	 * @return the converted message
 	 */
 	protected final Message<?> buildConvertedMessage(Object payload, MessageHeaders headers, MimeType contentType) {
 		return MessageBuilder.withPayload(payload).copyHeaders(headers)

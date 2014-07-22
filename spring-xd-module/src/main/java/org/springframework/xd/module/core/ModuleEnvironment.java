@@ -36,15 +36,15 @@ import org.springframework.core.env.PropertySource;
 /**
  * A dedicated {@link Environment} for a module, which restricts the values exposed to the
  * {@link PropertySourcesPlaceholderConfigurer} living in the module context.
- * 
+ *
  * <p>
  * In particular, this prevents scenarios where <i>e.g.</i> the module would have ${username} in its definition, where
  * <i>username</i> is a valid module option name for which there is no current value (PS returns {@code null} but there
  * exists say, an environment variable of the same name. In such a case, the module would pick up that value by mistake.
  * </p>
- * 
- * @see https://jira.spring.io/browse/XD-1459
- * 
+ *
+ * See https://jira.spring.io/browse/XD-1459.
+ *
  * @author Eric Bottard
  */
 public class ModuleEnvironment extends AbstractEnvironment {

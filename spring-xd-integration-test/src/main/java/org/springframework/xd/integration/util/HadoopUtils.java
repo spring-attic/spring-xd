@@ -65,8 +65,8 @@ public class HadoopUtils {
 	/**
 	 * Retrieves a list of entries in the hdfs at the path specified.
 	 *
-	 * @param path The path
-	 * @return
+	 * @param path the path
+	 * @return collection of entries for the requested path
 	 */
 	public Collection<FileStatus> listDir(String path) {
 		Assert.hasText(path, "path can not be empty nor null");
@@ -135,7 +135,7 @@ public class HadoopUtils {
 
 	/**
 	 * Retrieves the file status for the file path specified.
-	 * @param filePath path/file name of the file to interrogate 
+	 * @param filePath path/file name of the file to interrogate
 	 * @return the FileStatus for the file.
 	 */
 	public FileStatus getFileStatus(String filePath) {

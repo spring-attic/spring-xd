@@ -79,8 +79,8 @@ public class DefaultTupleTests {
 
 	@Test
 	public void accessNonExistentEntry() {
-		// thrown.expect(IllegalArgumentException.class);
-		// thrown.expectMessage("Cannot access field [does-not-exist] from [foo]");
+		thrown.expect(IllegalArgumentException.class);
+		thrown.expectMessage("Field name [does-not-exist] does not exist");
 		Tuple tuple = TupleBuilder.tuple().of("foo", "bar");
 		Object v = tuple.getValue("does-not-exist");
 		assertThat(v, nullValue());

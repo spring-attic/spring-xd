@@ -16,8 +16,6 @@
 
 package org.springframework.xd.tuple;
 
-import com.eaio.uuid.UUIDGen;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,6 +35,8 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+
+import com.eaio.uuid.UUIDGen;
 
 /**
  * Default implementation of Tuple interface
@@ -158,7 +158,10 @@ public class DefaultTuple implements Tuple {
 	@Override
 	public Object getValue(String name) {
 		int index = indexOf(name);
-		return (index == -1) ? null : getValue(index);
+		if (index == -1) {
+			throw new IllegalArgumentException("Field name [" + name + "] does not exist");
+		}
+		return getValue(index);
 	}
 
 	/*
@@ -639,7 +642,7 @@ public class DefaultTuple implements Tuple {
 	/**
 	 * Find the index in the names collection for the given name.
 	 * 
-	 * @throws IllegalArgumentException if a the given name is not defined.
+	 * Returns -1 if not found.
 	 */
 	protected int indexOf(String name) {
 		return names.indexOf(name);

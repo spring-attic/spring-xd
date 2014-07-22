@@ -1,7 +1,5 @@
 /**
- * Provides classes that supports spring batch admin
- * for DIRT job.
+ * Provides classes that support spring batch admin for DIRT jobs.
  */
 
 package org.springframework.xd.dirt.job;
-

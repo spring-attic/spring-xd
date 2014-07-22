@@ -95,7 +95,6 @@ ext {
 	springBatchAdminMgrVersion = '1.3.0.RC1'
 	springIntegrationSplunkVersion = '1.1.0.M2'
 	springShellVersion = '1.1.0.RC4'
-	tomcatVersion = '7.0.54'
 	uuidVersion = '3.2'
 	zookeeperVersion = '3.4.6'
 
@@ -464,6 +463,7 @@ project('spring-xd-dirt') {
 		}
 		compile "org.hibernate:hibernate-validator"
 
+		runtime "org.slf4j:jul-to-slf4j"
 		runtime "org.slf4j:jcl-over-slf4j"
 		runtime "org.slf4j:slf4j-log4j12"
 		runtime "org.yaml:snakeyaml"
@@ -476,10 +476,7 @@ project('spring-xd-dirt') {
 		compile project(':spring-xd-rest-domain')
 		compile "org.springframework:spring-webmvc"
 		compile "org.springframework.data:spring-data-commons"
-		compile ("org.apache.tomcat.embed:tomcat-embed-core") {
-			exclude module: 'tomcat-embed-logging-juli'
-		}
-		runtime "org.apache.tomcat.embed:tomcat-embed-logging-log4j:$tomcatVersion"
+		compile "org.apache.tomcat.embed:tomcat-embed-core"
 
 		// ************* Dirt-Container only (per se)
 		compile project(":spring-xd-module")

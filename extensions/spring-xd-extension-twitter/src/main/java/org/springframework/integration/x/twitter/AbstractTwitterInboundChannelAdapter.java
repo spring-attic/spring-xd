@@ -21,8 +21,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URI;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,6 +34,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -52,9 +51,11 @@ import org.springframework.web.client.RestTemplate;
  */
 public abstract class AbstractTwitterInboundChannelAdapter extends MessageProducerSupport {
 
+	private final static AtomicInteger instance = new AtomicInteger();
+
 	private final TwitterTemplate twitter;
 
-	private final ExecutorService taskExecutor = Executors.newSingleThreadExecutor();
+	private final ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
 
 	private String language = "";
 
@@ -115,6 +116,12 @@ public abstract class AbstractTwitterInboundChannelAdapter extends MessageProduc
 	}
 
 	@Override
+	protected void onInit() {
+		this.taskExecutor.setThreadNamePrefix("twitterSource-" + instance.incrementAndGet() + "-");
+		this.taskExecutor.initialize();
+	}
+
+	@Override
 	protected void doStart() {
 		synchronized (this.monitor) {
 			if (this.running.get()) {
@@ -129,9 +136,9 @@ public abstract class AbstractTwitterInboundChannelAdapter extends MessageProduc
 	@Override
 	protected void doStop() {
 		this.running.set(false);
-		this.taskExecutor.shutdownNow();
+		this.taskExecutor.getThreadPoolExecutor().shutdownNow();
 		try {
-			if (!this.taskExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+			if (!this.taskExecutor.getThreadPoolExecutor().awaitTermination(10, TimeUnit.SECONDS)) {
 				logger.error("Reader task failed to stop");
 			}
 		}

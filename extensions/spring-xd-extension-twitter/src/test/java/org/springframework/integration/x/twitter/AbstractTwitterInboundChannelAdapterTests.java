@@ -57,10 +57,12 @@ public class AbstractTwitterInboundChannelAdapterTests {
 			}
 
 		};
+		adapter.afterPropertiesSet();
 		adapter.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 		adapter.stop();
-		ExecutorService taskExecutor = TestUtils.getPropertyValue(adapter, "taskExecutor", ExecutorService.class);
+		ExecutorService taskExecutor = TestUtils.getPropertyValue(adapter, "taskExecutor.threadPoolExecutor",
+				ExecutorService.class);
 		assertTrue(taskExecutor.isShutdown());
 	}
 

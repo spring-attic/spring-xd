@@ -154,7 +154,7 @@ public abstract class AbstractShellIntegrationTest {
 	}
 
 	private String generateUniqueName() {
-		return generateUniqueName(name.getMethodName());
+		return generateUniqueName(name.getMethodName().replace('[', '-').replaceAll("]", ""));
 	}
 
 	protected String generateStreamName(String name) {

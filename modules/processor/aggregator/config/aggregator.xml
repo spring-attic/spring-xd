@@ -78,9 +78,9 @@
 		</beans:bean>
 
 		<beans:bean id="redisConnectionFactory" lazy-init="true"
-			class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
-			<beans:constructor-arg index="0" value="${hostname}" />
-			<beans:constructor-arg index="1" value="${port}" />
+			class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+			<beans:property name="hostName" value="${hostname}" />
+			<beans:property name="port" value="${port}" />
 			<beans:property name="password" value="${password}" />
 		</beans:bean>
 	</beans:beans>

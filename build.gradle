@@ -671,6 +671,7 @@ project('spring-xd-extension-twitter') {
 		compile "org.springframework.social:spring-social-twitter"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "org.codehaus.groovy:groovy-all"
+		testCompile "org.springframework.integration:spring-integration-test"
 	}
 }
 

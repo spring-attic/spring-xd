@@ -102,6 +102,10 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 	}
 
 	@Override
+	public void beforeShutdown(Module module) {
+	}
+
+	@Override
 	public void removeModule(Module module) {
 		if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
 			this.unbindPartitionedJob(module);

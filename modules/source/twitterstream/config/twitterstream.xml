@@ -21,6 +21,7 @@
 		<property name="track" value="${track}" />
 		<property name="follow" value="${follow}"/>
 		<property name="locations" value="${locations}"/>
+		<property name="phase" value="#{T(java.lang.Integer).MAX_VALUE / 2}"/>
 	</bean>
 
 	<int:channel id="output"/>

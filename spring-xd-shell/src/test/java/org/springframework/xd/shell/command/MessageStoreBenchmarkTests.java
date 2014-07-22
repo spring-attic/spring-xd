@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -37,16 +36,27 @@ import org.springframework.xd.test.fixtures.CounterSink;
 
 
 /**
- * 
+ * Tests each Message Store type within the context of a simple aggregation use-case.
+ * For proper benchmarking, override the values of {@link #EXECUTIONS_PER_STORE_TYPE},
+ * {@link #MESSAGE_GROUPS_PER_EXECUTION}, and/or {@link #MESSAGES_PER_GROUP}.
+ * The current values are minimal to avoid adding overhead to the test suite.
+ *
  * @author Eric Bottard
+ * @author Mark Fisher
  */
 @RunWith(Parameterized.class)
 public class MessageStoreBenchmarkTests extends AbstractStreamIntegrationTest {
 
+	private static final int EXECUTIONS_PER_STORE_TYPE = 1;
+
+	private static final int MESSAGE_GROUPS_PER_EXECUTION = 3;
+
+	private static final int MESSAGES_PER_GROUP = 4;
+
 	@Parameters(name = "{0}-{1}")
 	public static Iterable<Object[]> roots() {
 		List<Object[]> result = new ArrayList<Object[]>();
-		int runs = 5;
+		int runs = EXECUTIONS_PER_STORE_TYPE;
 
 		for (int i = 1; i <= runs; i++) {
 			Random random = new Random();
@@ -55,7 +65,7 @@ public class MessageStoreBenchmarkTests extends AbstractStreamIntegrationTest {
 				"jdbc",
 				i,
 				String.format(
-						" --driverClassName=org.hsqldb.jdbc.JDBCDriver --url=jdbc:hsqldb:file:/tmp/%s --initdb=hsqldb",
+						" --driverClassName=org.hsqldb.jdbc.JDBCDriver --url=jdbc:hsqldb:file:/tmp/%s --initializeDatabase=true --dbkind=hsqldb --username=sa --password=''",
 						dbname) });
 			result.add(new Object[] { "memory", i, "" });
 			result.add(new Object[] { "redis", i, "" });
@@ -63,40 +73,41 @@ public class MessageStoreBenchmarkTests extends AbstractStreamIntegrationTest {
 		return result;
 	}
 
-	private String streamDynamicPart;
 
-	private String storeName;
+	private final String storeName;
 
-	public MessageStoreBenchmarkTests(String storeName, int run, String streamDynamicPart) {
+	private final int executionCount;
+
+	private final String streamDynamicPart;
+
+	public MessageStoreBenchmarkTests(String storeName, int executionCount, String streamDynamicPart) {
 		this.storeName = storeName;
+		this.executionCount = executionCount;
 		this.streamDynamicPart = streamDynamicPart;
 	}
 
 	@Test
-	@Ignore
 	public void benchmark() throws Exception {
 		HttpSource source = newHttpSource();
 		CounterSink sink = metrics().newCounterSink();
 		stream().create(
 				generateStreamName(),
-				"%s | aggregator --store=%s --count=3 --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') --timeout=500000%s | %s ",
-				source, storeName,
+				"%s | aggregator --store=%s --count=%d --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') --timeout=500000%s | %s ",
+				source, storeName, MESSAGES_PER_GROUP,
 				streamDynamicPart, sink);
 
 		source.ensureReady();
 
 		StopWatch stopWatch = new StopWatch(storeName);
-		stopWatch.start();
-		final int howMany = 1000;
-		for (int i = 0; i < 3 * howMany; i++) {
+		stopWatch.start(storeName + "-" + executionCount);
+		for (int i = 0; i < MESSAGES_PER_GROUP * MESSAGE_GROUPS_PER_EXECUTION; i++) {
 			source.postData("boo");
 		}
 
-		assertThat(sink, eventually(hasValue(NumberFormat.getInstance().format(howMany))));
+		assertThat(sink, eventually(hasValue(NumberFormat.getInstance().format(MESSAGE_GROUPS_PER_EXECUTION))));
 
 		stopWatch.stop();
 		System.out.println(stopWatch.prettyPrint());
-
 	}
 
 }

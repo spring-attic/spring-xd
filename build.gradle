@@ -1739,6 +1739,7 @@ task copyXDInstall(type: Copy, dependsOn: [
 	exclude "**/lib/protobuf-java-*.jar"
 	exclude "**/commons-logging*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
+	exclude "**/lib/mysql-connector-java-*.jar"
 }
 
 task copyXDShellInstall(type: Copy, dependsOn: [

@@ -22,8 +22,9 @@ import org.springframework.xd.tuple.Tuple;
 
 
 /**
- * An {@link MessageConverter} to convert a {@link Tuple} to a JSON String
- * 
+ * A {@link org.springframework.messaging.converter.MessageConverter}
+ * to convert a {@link Tuple} to a JSON String
+ *
  * @author David Turanski
  */
 public class TupleToJsonMessageConverter extends AbstractFromMessageConverter {

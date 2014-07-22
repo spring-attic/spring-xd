@@ -18,8 +18,8 @@ package org.springframework.xd.dirt.zookeeper;
 
 
 /**
- * A strategy interface for configuring {@link ZooKeeperConnectionKeeper} at start up.
- * 
+ * A strategy interface for configuring {@link ZooKeeperConnection} at start up.
+ *
  * @author David Turanski
  */
 public interface ZooKeeperConnectionConfigurer {

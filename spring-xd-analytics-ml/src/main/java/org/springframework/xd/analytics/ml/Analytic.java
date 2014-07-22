@@ -18,7 +18,7 @@ package org.springframework.xd.analytics.ml;
 
 /**
  * Base interface for the definition of analytical logic.
- * 
+ *
  * @author Thomas Darimont
  * @param <I> the input type
  * @param <O> the output type
@@ -27,9 +27,9 @@ public interface Analytic<I, O> {
 
 	/**
 	 * Evaluates the encoded {@code Analytic} against the given {@code input}.
-	 * 
+	 *
 	 * @param input must not be {@literal null}
-	 * @return
+	 * @return the evaluation result
 	 */
 	O evaluate(I input);
 }

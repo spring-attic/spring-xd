@@ -185,7 +185,7 @@ public class JobExecutionInfoResource extends ResourceSupport {
 	/**
 	 * Check if the job definition is deleted/destroyed.
 	 *
-	 * @returnn the boolean value to specify if the job is deleted.
+	 * @return the boolean value to specify if the job is deleted.
 	 */
 	public boolean isDeleted() {
 		return deleted;

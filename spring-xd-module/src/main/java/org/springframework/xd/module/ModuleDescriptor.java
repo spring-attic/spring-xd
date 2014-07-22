@@ -326,7 +326,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param moduleName name of module
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.module.ModuleDescriptor#moduleName
+		 * @see ModuleDescriptor#getModuleName
 		 */
 		public Builder setModuleName(String moduleName) {
 			this.moduleName = moduleName;
@@ -404,7 +404,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		 * @param type module type
 		 * @return this builder object
 		 *
-		 * @see org.springframework.xd.module.ModuleDescriptor#type
+		 * @see ModuleDescriptor#getType()
 		 */
 		public Builder setType(ModuleType type) {
 			this.type = type;

@@ -275,7 +275,6 @@ public class StreamUtils {
 	/**
 	 * Return a list of container id's where the module is deployed
 	 * @param adminServer The admin server that will be queried.
-	 * @param moduleIdPrefix The admin server will uses this module id prefix to find the containers where the module prefix is deployed.
 	 * @return A list of containers where the module is deployed.
 	 */
 	public static PagedResources<ModuleMetadataResource> getRuntimeModules(URL adminServer) {

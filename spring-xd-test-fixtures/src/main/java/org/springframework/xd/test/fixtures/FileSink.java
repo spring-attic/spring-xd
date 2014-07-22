@@ -29,17 +29,18 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * Support class to capture output of a sink in a File.
- * 
+ *
  * @author Eric Bottard
  */
 public class FileSink extends DisposableFileSupport<FileSink> {
 
 	/**
 	 * A matcher on the String contents of the sink, that delegates to another (String) matcher.
-	 * 
+	 *
 	 * <p>
-	 * Instances are to be constructed using {@link XDMatchers#hasContentsThat(Matcher)}
-	 * 
+	 * Instances are to be constructed using
+	 * {@code org.springframework.xd.shell.command.fixtures.XDMatchers#hasContentsThat}.
+	 *
 	 * @author Eric Bottard
 	 */
 	public static final class FileSinkContentsMatcher extends DiagnosingMatcher<FileSink> {
@@ -97,7 +98,7 @@ public class FileSink extends DisposableFileSupport<FileSink> {
 
 	/**
 	 * Wait at most {@code timeout} ms for the file to appear and return its contents.
-	 * 
+	 *
 	 */
 	// This MUST remain private. Use XDMatchers.hasContentsThat() to assert
 	private String getContents(int timeout) throws IOException {

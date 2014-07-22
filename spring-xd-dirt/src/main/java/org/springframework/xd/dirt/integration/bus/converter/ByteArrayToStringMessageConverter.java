@@ -29,9 +29,10 @@ import org.springframework.xd.dirt.integration.bus.StringConvertingContentTypeRe
 
 
 /**
- * A {@link MessageConverter} to convert from byte[] to String applying the Charset provided in the content-type header
- * if any.
- * 
+ * A {@link org.springframework.messaging.converter.MessageConverter}
+ * to convert from byte[] to String applying the Charset provided in
+ * the content-type header if any.
+ *
  * @author David Turanski
  */
 public class ByteArrayToStringMessageConverter extends AbstractFromMessageConverter {

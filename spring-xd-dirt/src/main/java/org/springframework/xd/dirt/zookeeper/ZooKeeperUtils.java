@@ -48,8 +48,6 @@ public abstract class ZooKeeperUtils {
 
 	/**
 	 * {@link Converter} from {@link ChildData} to the leaf path name string.
-	 *
-	 * @see #streamDeployments
 	 */
 	public static final StripPathConverter stripPathConverter = new StripPathConverter();
 
@@ -163,7 +161,7 @@ public abstract class ZooKeeperUtils {
 	/**
 	 * Utility to convert {@link Map string key/value pairs} to/from byte arrays containing JSON strings. By default the
 	 * JSON library encodes to UTF-8.
-	 * 
+	 *
 	 * @author Patrick Peralta
 	 */
 	private static class MapBytesUtility {
@@ -189,9 +187,9 @@ public abstract class ZooKeeperUtils {
 
 		/**
 		 * Convert a map of string key/value pairs to a JSON string in a byte array.
-		 * 
+		 *
 		 * @param map map to convert
-		 * 
+		 *
 		 * @return byte array
 		 */
 		private byte[] toByteArray(Map<String, String> map) {
@@ -205,9 +203,9 @@ public abstract class ZooKeeperUtils {
 
 		/**
 		 * Convert a byte array containing a JSON string to a map of key/value pairs.
-		 * 
+		 *
 		 * @param bytes byte array containing the key/value pair strings
-		 * 
+		 *
 		 * @return a new map instance containing the key/value pairs
 		 */
 		private Map<String, String> toMap(byte[] bytes) {

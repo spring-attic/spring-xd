@@ -69,8 +69,9 @@ public class ModuleDeploymentProperties implements Map<String, String> {
 	}
 
 	/**
-	 * Specify the number of container instances this module should be deployed to. A value of 0 indicates that this module should
-	 * be deployed to all containers in the {@link #group}. If {@code group} is null and the value is 0, this module
+	 * Specify the number of container instances this module should be deployed to.
+	 * A value of 0 indicates that this module should be deployed to all containers
+	 * in the {@code group}. If {@code group} is null and the value is 0, this module
 	 * should be deployed to all containers.
 	 */
 	public ModuleDeploymentProperties setCount(int count) {

@@ -29,11 +29,10 @@ import org.springframework.util.MimeType;
 
 /**
  * A factory for creating an instance of {@link CompositeMessageConverter} for a given target MIME type
- * 
+ *
  * @author David Turanski
  */
 public class CompositeMessageConverterFactory {
-
 
 	private final List<AbstractFromMessageConverter> converters;
 
@@ -46,10 +45,10 @@ public class CompositeMessageConverterFactory {
 	}
 
 	/**
-	 * Creation method
-	 * 
+	 * Creation method.
+	 *
 	 * @param targetMimeType the target MIME type (outputType or inputType in XD)
-	 * @return
+	 * @return a converter for the target MIME type
 	 */
 	public CompositeMessageConverter newInstance(MimeType targetMimeType) {
 		List<MessageConverter> targetMimeTypeConverters = new ArrayList<MessageConverter>();

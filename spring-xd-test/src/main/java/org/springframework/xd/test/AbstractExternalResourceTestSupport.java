@@ -33,13 +33,13 @@ import org.springframework.util.Assert;
  * Abstract base class for JUnit {@link Rule}s that detect the presence of some external resource. If the resource is
  * indeed present, it will be available during the test lifecycle through {@link #getResource()}. If it is not, tests
  * will either fail or be skipped, depending on the value of system property {@value #XD_EXTERNAL_SERVERS_REQUIRED}.
- * 
+ *
  * @author Eric Bottard
  * @author Gary Russell
  */
 public abstract class AbstractExternalResourceTestSupport<R> implements TestRule {
 
-	private static final String XD_EXTERNAL_SERVERS_REQUIRED = "XD_EXTERNAL_SERVERS_REQUIRED";
+	public static final String XD_EXTERNAL_SERVERS_REQUIRED = "XD_EXTERNAL_SERVERS_REQUIRED";
 
 	protected R resource;
 
@@ -120,7 +120,7 @@ public abstract class AbstractExternalResourceTestSupport<R> implements TestRule
 
 	/**
 	 * Perform cleanup of the {@link #resource} field, which is guaranteed to be non null.
-	 * 
+	 *
 	 * @throws Exception any exception thrown by this method will be logged and swallowed
 	 */
 	protected abstract void cleanupResource() throws Exception;

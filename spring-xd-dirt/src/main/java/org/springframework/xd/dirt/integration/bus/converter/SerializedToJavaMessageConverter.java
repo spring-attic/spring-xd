@@ -24,9 +24,9 @@ import org.springframework.messaging.Message;
 
 
 /**
- * An {@link MessageConverter} to convert to deSerialize a serialized an {@Serializable} Java object
- * using Java.io serialization
- * 
+ * A {@link org.springframework.messaging.converter.MessageConverter}
+ * to deserialize {@link java.io.Serializable} Java objects.
+ *
  * @author David Turanski
  */
 public class SerializedToJavaMessageConverter extends AbstractFromMessageConverter {

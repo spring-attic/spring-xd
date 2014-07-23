@@ -454,6 +454,7 @@ project('spring-xd-dirt') {
 		compile "args4j:args4j:$args4jVersion"
 
 		compile "org.springframework.batch:spring-batch-core"
+		compile ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
 		compile "org.apache.tomcat:tomcat-jdbc"
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
 			exclude group: 'org.freemarker'

@@ -38,14 +38,14 @@
 		</property>
 	</bean>
 
-	<bean id="itemWriter" class="org.springframework.xd.mongodb.MongoItemWriter">
-		<constructor-arg>
+	<bean id="itemWriter" class="org.springframework.batch.item.data.MongoItemWriter">
+		<property name="template">
 			<bean class="org.springframework.data.mongodb.core.MongoTemplate">
 				<constructor-arg ref="mongoDbFactory" />
 				<constructor-arg ref="mappingConverter"/>
 			</bean>
-		</constructor-arg>
-		<property name="collectionName" value="${collectionName}" />
+		</property>
+		<property name="collection" value="${collectionName}" />
 	</bean>
 
 	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">

@@ -157,6 +157,10 @@ public class ReferenceDoc {
 
 	@Test
 	public void doIt() {
+
+		out.println("Below is a reference list of all Spring XD specific commands you can use in the link:Shell#interactive-shell[XD Shell].\n");
+
+
 		GenericApplicationContext ctx = new GenericApplicationContext();
 		ctx.getBeanFactory().registerSingleton("commandLine", new CommandLine(null, 100, null, false));
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ctx);

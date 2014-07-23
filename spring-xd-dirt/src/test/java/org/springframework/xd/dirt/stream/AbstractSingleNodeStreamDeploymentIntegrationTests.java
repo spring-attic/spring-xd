@@ -43,10 +43,10 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.SocketUtils;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
@@ -221,6 +221,15 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		return bindings;
 	}
 
+	/**
+	 * Get the stream 'http | log' with random available http port selected.
+	 *
+	 * @return the stream
+	 */
+	protected String getHttpLogStream() {
+		return String.format("http --port=%s | log", SocketUtils.findAvailableServerSocket());
+	}
+
 	@SuppressWarnings("unchecked")
 	private List<Binding> getMessageBusBindings() {
 		MessageBus bus = testMessageBus != null ? testMessageBus.getMessageBus() : integrationSupport.messageBus();
@@ -326,7 +335,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		for (i = 0; i < iterations; i++) {
 			String streamName = "test" + i;
 			StreamDefinition definition = new StreamDefinition(streamName,
-					"http --port=" + SocketUtils.findAvailableTcpPort()
+					"http --port=" + SocketUtils.findAvailableServerSocket()
 							+ "| transform --expression=payload | filter --expression=true | log");
 			integrationSupport.streamDeployer().save(definition);
 			assertTrue(String.format("stream %s (%s) not deployed", streamName, definition),
@@ -352,7 +361,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	@Test
 	public void moduleChannelsRegisteredWithMessageBus() throws InterruptedException {
-		StreamDefinition sd = new StreamDefinition("busTest", "http | log");
+		StreamDefinition sd = new StreamDefinition("busTest", getHttpLogStream());
 		int originalBindings = getMessageBusBindingCount();
 		assertTrue("Timeout waiting for stream deployment", integrationSupport.createAndDeployStream(sd));
 		int newBindings = getMessageBusBindingCount() - originalBindings;
@@ -586,12 +595,14 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			ZooKeeperUtils.logCacheEvent(logger, event);
 			ModuleDeploymentsPath path = new ModuleDeploymentsPath(event.getData().getPath());
 			if (event.getType().equals(Type.CHILD_ADDED)) {
-				deployQueues.putIfAbsent(path.getDeploymentUnitName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				deployQueues.putIfAbsent(path.getDeploymentUnitName(),
+						new LinkedBlockingQueue<PathChildrenCacheEvent>());
 				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(path.getDeploymentUnitName());
 				queue.put(event);
 			}
 			else if (event.getType().equals(Type.CHILD_REMOVED)) {
-				undeployQueues.putIfAbsent(path.getDeploymentUnitName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				undeployQueues.putIfAbsent(path.getDeploymentUnitName(),
+						new LinkedBlockingQueue<PathChildrenCacheEvent>());
 				LinkedBlockingQueue<PathChildrenCacheEvent> queue = undeployQueues.get(path.getDeploymentUnitName());
 				queue.put(event);
 			}

@@ -267,7 +267,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		String tapChannelName = determineTapChannel(descriptor);
 		if (tapChannelName != null) {
 			try {
-				zkConnection.getClient().create().creatingParentsIfNeeded().forPath(
+				zkConnection.getClient().create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(
 						Paths.build(Paths.TAPS, tapChannelName, containerAttributes.getId(),
 								descriptor.getGroup()));
 			}
@@ -308,7 +308,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				}
 			}
 			catch (Exception e) {
-				throw ZooKeeperUtils.wrapThrowable(e);
+				if (client.getState() == CuratorFrameworkState.STARTED) {
+					throw ZooKeeperUtils.wrapThrowable(e);
+				}
+				else {
+					logger.debug("Ignoring exception for tap un-registration due to closed ZooKeeper connection", e);
+				}
 			}
 		}
 	}

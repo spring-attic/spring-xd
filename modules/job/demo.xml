@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:batch="http://www.springframework.org/schema/batch"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<bean id="tasklet1" class="org.springframework.xd.dirt.job.DemoTasklet" />
+
+	<batch:job id="demoJob">
+		<batch:step id="step1">
+			<batch:tasklet ref="tasklet1" />
+		</batch:step>
+	</batch:job>
+
+	<!-- For job module with multiple steps, comment the above batch job configuration
+		and uncomment the below batch job configuration -->
+
+	<!-- <batch:job id="multiStepDemo">
+		<batch:step id="step1" next="step2">
+			<batch:tasklet ref="tasklet1" />
+		</batch:step>
+		<batch:step id="step2">
+			<batch:tasklet ref="tasklet1" />
+		</batch:step>
+	</batch:job> -->
+
+</beans>
+

@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Locale;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.core.convert.ConversionFailedException;
@@ -242,7 +241,6 @@ public class DefaultTupleTestForBatch {
 	}
 
 	@Test
-	@Ignore("Difference in behavior due to returning Wrapper types that may be null.")
 	public void testReadBlankInt() {
 
 		// Trying to parse a blank field as an integer, but without a default
@@ -251,7 +249,7 @@ public class DefaultTupleTestForBatch {
 			tuple.getInt(13);
 			fail();
 		}
-		catch (NumberFormatException ex) {
+		catch (ConversionFailedException ex) {
 			// expected
 		}
 
@@ -259,7 +257,7 @@ public class DefaultTupleTestForBatch {
 			tuple.getInt("BlankInput");
 			fail();
 		}
-		catch (NumberFormatException ex) {
+		catch (ConversionFailedException ex) {
 			// expected
 		}
 
@@ -278,13 +276,31 @@ public class DefaultTupleTestForBatch {
 	}
 
 	@Test
-	@Ignore("Ignored until determine how to handle null value with wrapper types as well as default values")
 	public void testReadIntWithNullValue() {
+		assertThat(5, equalTo(tuple.getInt(10, 5)));
+		assertThat(5, equalTo(tuple.getInt("Null", 5)));
 	}
 
 	@Test
-	@Ignore("Ignored until determine how to handle null value with wrapper types as well as default values")
 	public void testReadIntWithDefaultAndNotNull() {
+		assertThat(354224, equalTo(tuple.getInt(5, 5)));
+		assertThat(354224, equalTo(tuple.getInt("Integer", 5)));
+	}
+
+	@Test
+	public void testReadLongWithNullValue() {
+		long defaultValue = 5;
+		int indexOfNull = 10;
+		int indexNotNull = 6;
+		String nameNull = "Null";
+		String nameNotNull = "Long";
+		long longValueAtIndex = 543;
+
+		assertThat(defaultValue, equalTo(tuple.getLong(indexOfNull, defaultValue)));
+		assertThat(longValueAtIndex, equalTo(tuple.getLong(indexNotNull, defaultValue)));
+
+		assertThat(defaultValue, equalTo(tuple.getLong(nameNull, defaultValue)));
+		assertThat(longValueAtIndex, equalTo(tuple.getLong(nameNotNull, defaultValue)));
 	}
 
 	@Test
@@ -323,8 +339,10 @@ public class DefaultTupleTestForBatch {
 	}
 
 	@Test
-	@Ignore("Ignored until determine how to handle default values")
 	public void testReadDateWithDefault() {
+		Date date = null;
+		assertEquals(date, tuple.getDateWithPattern(13, "dd-MM-yyyy", date));
+		assertEquals(date, tuple.getDateWithPattern("BlankInput", "dd-MM-yyyy", date));
 	}
 
 	@Test

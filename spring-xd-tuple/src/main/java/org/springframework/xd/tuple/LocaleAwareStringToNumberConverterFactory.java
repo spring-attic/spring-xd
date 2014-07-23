@@ -50,6 +50,7 @@ public class LocaleAwareStringToNumberConverterFactory implements ConverterFacto
 		this.numberFormat = numberFormat;
 	}
 
+	@Override
 	public <T extends Number> Converter<String, T> getConverter(Class<T> targetType) {
 		return new StringToNumber<T>(targetType, numberFormat);
 	}
@@ -65,10 +66,8 @@ public class LocaleAwareStringToNumberConverterFactory implements ConverterFacto
 			this.numberFormat = numberFormat;
 		}
 
+		@Override
 		public T convert(String source) {
-			if (source.length() == 0) {
-				return null;
-			}
 			return NumberUtils.parseNumber(source, this.targetType, numberFormat);
 		}
 	}

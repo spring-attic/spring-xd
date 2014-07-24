@@ -28,3 +28,4 @@ spring-xd-ui/xd-ui.sublime-workspace
 .tern-port
 .tern-port
 /logs
+!scripts/zookeeper/bin

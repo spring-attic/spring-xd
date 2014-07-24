@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+# @author Liujiong
+# @author Gunnar Hillert
+# @since 1.0
+
+##############################################################################
+##
+##  install-zookeeper script
+##
+##############################################################################
+
+# Attempt to set APP_HOME
+# Resolve links: $0 may be a link
+PRG="$0"ZOOKEEPER
+# Need this for relative symlinks.
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        PRG="$link"
+    else
+        PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+SAVED="`pwd`"
+cd "`dirname \"$PRG\"`/.." >&-
+APP_HOME="`pwd -P`"
+cd "$SAVED" >&-
+
+ZOOKEEPER_VERSION=zookeeper-@zookeeperVersion@
+ZOOKEEPER_ZIP_NAME="$ZOOKEEPER_VERSION.tar.gz"
+ZOOKEEPER_HOME=$APP_HOME
+ZOOKEEPER_ZIP_FOLDER="$ZOOKEEPER_HOME/dist"
+ZOOKEEPER_ZIP_PATH="$ZOOKEEPER_HOME/dist/$ZOOKEEPER_ZIP_NAME"
+ZOOKEEPER_BIN="$ZOOKEEPER_HOME/bin"
+
+if [[ ! -d $ZOOKEEPER_ZIP_FOLDER ]]; then
+  mkdir -p $ZOOKEEPER_ZIP_FOLDER
+fi
+
+if [[ ! -f $ZOOKEEPER_ZIP_PATH ]]; then
+  wget -P $ZOOKEEPER_ZIP_FOLDER http://www.us.apache.org/dist/zookeeper/$ZOOKEEPER_VERSION/$ZOOKEEPER_ZIP_NAME
+fi
+cd $ZOOKEEPER_HOME && tar xzf $ZOOKEEPER_ZIP_PATH
+if [[ ! -d $ZOOKEEPER_VERSION ]]; then
+  echo "Corrupted ZooKeeper zip. $ZOOKEEPER_VERSION not found."
+  exit
+fi
+rsync -a $ZOOKEEPER_VERSION/* .
+rm -rf $ZOOKEEPER_VERSION
+cd $ZOOKEEPER_HOME
+
+echo "Installation script completed."
+echo "Generated sample ZooKeeper configuration file 'zoo.cfg' under 'conf', please review and customize."
+echo "To start the ZooKeeper server, please run: $ZOOKEEPER_BIN/zkServer.sh start"
+
+

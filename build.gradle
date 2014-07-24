@@ -36,7 +36,7 @@ ext {
 		project(':redis'),
 		project(':spring-xd-ui')
 	]
-	moduleProjects  = subprojects.findAll { project -> project.path.startsWith(':modules.')}
+	moduleProjects  = subprojects.findAll { project -> project.path.startsWith(':modules')}
 	javaProjects    = subprojects - (moduleProjects + nonJavaProjects)
 	coverageProjects = [
 		'spring-xd-dirt',
@@ -540,7 +540,9 @@ project('spring-xd-dirt') {
 	}
 
 	task moduleFiles {
-		def modules = file("$rootDir/modules")
+		def modules = fileTree("$rootDir/modules")
+		modules.exclude 'lib'
+		modules.exclude 'build'
 		outputs.dir modules
 	}
 

@@ -122,6 +122,6 @@ if [[ $platformunsupported == "false" ]]; then
   echo "installation script completed."
   echo "Selecting a non-default memory allocator when building ZOOKEEPER is done by setting 
 the MALLOC environment variable. Please refer to $ZOOKEEPER_HOME/README.txt"
-  echo "To start zookeeper server, please run: $ZOOKEEPER_BIN/zkServer.sh start"
+  echo "To start zookeeper server, generate zoo.cfg under conf, then run: $ZOOKEEPER_BIN/zkServer.sh start"
 fi
 

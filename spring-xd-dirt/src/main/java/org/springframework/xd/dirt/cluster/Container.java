@@ -23,7 +23,6 @@ import java.util.Set;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.container.ContainerAttributes;
 
 /**
  * Domain object for an XD container. This object is typically constructed

@@ -38,7 +38,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
-import org.springframework.xd.dirt.container.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.RuntimeUtils;

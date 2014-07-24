@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.container;
+package org.springframework.xd.dirt.cluster;
 
 import java.util.Arrays;
 import java.util.Collection;

@@ -34,6 +34,24 @@ define([
       expect(XDUtils.getModuleNameFromJobDefinition).toBeDefined();
       expect(XDUtils.getModuleNameFromJobDefinition('myMod2')).toEqual('myMod2');
     }));
+    it('Getting a module name from an undefined definition should casuse an error.', inject(function(XDUtils) {
+      expect(XDUtils.getModuleNameFromJobDefinition).toBeDefined();
+      expect(function() {
+        XDUtils.getModuleNameFromJobDefinition();
+      }).toThrow(new Error('jobDefinition must be defined.'));
+    }));
+    it('Getting a module name from an undefined definition should casuse an error 2.', inject(function(XDUtils) {
+      expect(XDUtils.getModuleNameFromJobDefinition).toBeDefined();
+      expect(function() {
+        XDUtils.getModuleNameFromJobDefinition(undefined);
+      }).toThrow(new Error('jobDefinition must be defined.'));
+    }));
+    it('Getting a module name from a null definition should casuse an error.', inject(function(XDUtils) {
+      expect(XDUtils.getModuleNameFromJobDefinition).toBeDefined();
+      expect(function() {
+        XDUtils.getModuleNameFromJobDefinition(null);
+      }).toThrow(new Error('jobDefinition must be defined.'));
+    }));
   });
 });
 

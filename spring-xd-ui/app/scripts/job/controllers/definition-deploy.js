@@ -32,6 +32,10 @@ define([], function () {
           function (result) {
             utils.$log.info(result);
             var jobDefinition = result.data;
+            if (!jobDefinition) {
+              utils.growl.addErrorMessage('No valid job definition returned for definition name ' + $scope.definitionName, jobDefinition);
+              return;
+            }
             var moduleName = utils.getModuleNameFromJobDefinition(jobDefinition.definition);
             $scope.definitionDeployRequest = {
               jobDefinition: jobDefinition,

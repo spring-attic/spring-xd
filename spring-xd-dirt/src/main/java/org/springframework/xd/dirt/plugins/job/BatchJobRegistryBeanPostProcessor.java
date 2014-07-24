@@ -32,7 +32,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
 import org.springframework.xd.dirt.plugins.job.support.listener.XDJobListenerConstants;
 
 
@@ -101,7 +100,7 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 				postProcessJob(bean, beanName);
 			}
 			else {
-				throw new BatchJobAlreadyExistsException(groupName);
+				throw new BatchJobAlreadyExistsInRegistryException(groupName);
 			}
 		}
 		return bean;

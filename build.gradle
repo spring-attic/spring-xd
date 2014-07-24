@@ -765,6 +765,7 @@ project('spring-xd-hadoop') {
 			exclude group: 'junit'
 			exclude group: 'hsqldb'
 			exclude group: 'jline'
+			exclude group: 'com.sun.jersey.jersey-test-framework'
 		}
 		// Exclude transitive dependency
 		configurations.compile.exclude(group: "commons-beanutils", module: "commons-beanutils-core")

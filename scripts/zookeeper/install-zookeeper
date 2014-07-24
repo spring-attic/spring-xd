@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+
+# @author Liujiong
+# @since 1.0
+
+##############################################################################
+##
+##  install-zookeeper script based on the platform
+##
+##############################################################################
+
+# Attempt to set APP_HOME
+# Resolve links: $0 may be a link
+PRG="$0"ZOOKEEPER
+# Need this for relative symlinks.
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        PRG="$link"
+    else
+        PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+SAVED="`pwd`"
+cd "`dirname \"$PRG\"`/.." >&-
+APP_HOME="`pwd -P`"
+cd "$SAVED" >&-
+
+ZOOKEEPER_VERSION=zookeeper-3.4.6
+ZOOKEEPER_ZIP_NAME="$ZOOKEEPER_VERSION.tar.gz"
+ZOOKEEPER_HOME=$APP_HOME
+ZOOKEEPER_ZIP_FOLDER="$ZOOKEEPER_HOME/dist"
+ZOOKEEPER_ZIP_PATH="$ZOOKEEPER_HOME/dist/$ZOOKEEPER_ZIP_NAME"
+ZOOKEEPER_BIN="$ZOOKEEPER_HOME/bin"
+
+if [[ ! -d $ZOOKEEPER_ZIP_FOLDER ]]; then
+  mkdir -p $ZOOKEEPER_ZIP_FOLDER
+fi
+
+if [[ ! -f $ZOOKEEPER_ZIP_PATH ]]; then
+  wget -P $ZOOKEEPER_ZIP_FOLDER wget http://apache.mirrors.pair.com/zookeeper/stable/$ZOOKEEPER_ZIP_NAME
+fi
+
+# find out platform info
+unameinfo=$(uname -a)
+platforminfo=""
+platformunsupported="false"
+
+if [[ $unameinfo == Darwin* ]]; then
+  platforminfo="mac64"
+  echo "$platforminfo platform detected."
+  if [[ $platformunsupported == "false" ]]; then
+    cd $ZOOKEEPER_HOME && tar xzf $ZOOKEEPER_ZIP_PATH
+    if [[ ! -d $ZOOKEEPER_VERSION ]]; then
+      echo "Corrupted zookeeper zip. $ZOOKEEPER_VERSION not found."
+      exit
+    fi
+    rsync -a $ZOOKEEPER_VERSION/* . 
+    rm -rf $ZOOKEEPER_VERSION
+    cd $ZOOKEEPER_HOME
+  fi
+elif [[ $unameinfo == Linux*_64* ]]; then
+  if [[ -f /etc/redhat-release ]]; then
+    platforminfo="rh64"
+    echo "$platforminfo platform detected."
+    elif [[ -f /etc/centos-release ]]; then
+      platforminfo="cent64"
+      echo "$platforminfo platform detected."
+    elif [[ -f /etc/debian_version ]]; then
+      platforminfo="ubuntu64"
+      echo "$platforminfo platform detected."
+    elif [[ -f /etc/slackware-version ]]; then
+      platforminfo="slackware64"
+      echo "$platforminfo platform detected."
+    else
+      echo "Unsupported Linux 64 bit platform."
+      platformunsupported="true"
+    fi
+    if [[ $platformunsupported == "false" ]]; then
+      cd $ZOOKEEPER_HOME && tar xzf $ZOOKEEPER_ZIP_PATH
+      if [[ ! -d $ZOOKEEPER_VERSION ]]; then
+        echo "Corrupted zookeeper zip. $ZOOKEEPER_VERSION not found."
+        exit
+      fi
+      rsync -a $ZOOKEEPER_VERSION/* . 
+      rm -rf $ZOOKEEPER_VERSION
+      cd $ZOOKEEPER_VERSION
+    fi
+elif [[ $unameinfo == Linux* ]]; then
+  if [[ -f /etc/redhat-release ]]; then
+    platforminfo="rh32"
+    echo "$platforminfo platform detected."
+  elif [[ -f /etc/centos-release ]]; then
+    platforminfo="cent32"
+    echo "$platforminfo platform detected."
+  elif [[ -f /etc/debian_version ]]; then
+    platforminfo="ubuntu32"
+    echo "$platforminfo platform detected."
+  elif [[ -f /etc/slackware-version ]]; then
+    platforminfo="slackware32"
+    echo "$platforminfo platform detected."
+  else
+    echo "Unsupported Linux 32 bit platform."
+    platformunsupported="true"
+  fi
+  if [[ $platformunsupported == "false" ]]; then
+    cd $ZOOKEEPER_HOME && tar xzf $ZOOKEEPER_ZIP_PATH
+    if [[ ! -d $ZOOKEEPER_VERSION ]]; then
+      echo "Corrupted zookeeper zip. $ZOOKEEPER_VERSION not found."
+      exit
+    fi
+    rsync -a $ZOOKEEPER_VERSION/* . 
+    rm -rf $ZOOKEEPER_VERSION
+    cd $ZOOKEEPER_VERSION
+  fi
+else
+  echo "Unsupported platform. Curently only Apple OS X and Linux systems (RedHat, CentOS, Ubuntu, Slackware) are supported."
+  platformunsupported="true"
+fi
+if [[ $platformunsupported == "false" ]]; then
+  echo "installation script completed."
+  echo "Selecting a non-default memory allocator when building ZOOKEEPER is done by setting 
+the MALLOC environment variable. Please refer to $ZOOKEEPER_HOME/README.txt"
+  echo "To start zookeeper server, please run: $ZOOKEEPER_BIN/zkServer.sh start"
+fi
+

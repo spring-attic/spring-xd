@@ -38,7 +38,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.container.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.ContainerAttributes;
 
 /**
  * Tests REST compliance of containers endpoint.

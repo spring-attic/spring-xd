@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.plugins;
 import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.xd.dirt.container.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
 

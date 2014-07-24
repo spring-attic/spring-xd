@@ -37,7 +37,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.container.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.container.store.ZooKeeperContainerRepository;
 import org.springframework.xd.dirt.listener.ZooKeeperContainerRepositoryTests.ZooKeeperContainerRepositoryTestsConfig;

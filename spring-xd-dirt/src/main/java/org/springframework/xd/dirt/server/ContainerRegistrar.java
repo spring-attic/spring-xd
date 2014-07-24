@@ -52,7 +52,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.container.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;

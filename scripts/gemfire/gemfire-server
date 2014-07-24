@@ -172,4 +172,4 @@ function splitJvmOpts() {
 eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $SPRING_GEMFIRE_SERVER_OPTS
 
 
-exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.springframework.xd.gemfire.CacheServer "$@"
+exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.springframework.xd.gemfire.server.CacheServer "$@"

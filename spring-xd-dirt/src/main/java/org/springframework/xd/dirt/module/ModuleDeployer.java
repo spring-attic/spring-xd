@@ -20,20 +20,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.OrderComparator;
-import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
@@ -46,7 +42,7 @@ import org.springframework.xd.module.core.Plugin;
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleDeployer implements ApplicationContextAware, BeanClassLoaderAware, InitializingBean, DisposableBean {
+public class ModuleDeployer implements ApplicationContextAware, InitializingBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -57,15 +53,6 @@ public class ModuleDeployer implements ApplicationContextAware, BeanClassLoaderA
 	private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
 
 	private volatile List<Plugin> plugins;
-
-	private final ModuleDefinitionRepository moduleDefinitionRepository;
-
-	private ClassLoader parentClassLoader;
-
-	public ModuleDeployer(ModuleDefinitionRepository moduleDefinitionRepository) {
-		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository must not be null");
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
-	}
 
 	public Map<String, Map<Integer, Module>> getDeployedModules() {
 		return deployedModules;
@@ -81,22 +68,6 @@ public class ModuleDeployer implements ApplicationContextAware, BeanClassLoaderA
 	public void afterPropertiesSet() {
 		this.plugins = new ArrayList<Plugin>(this.context.getParent().getBeansOfType(Plugin.class).values());
 		OrderComparator.sort(this.plugins);
-	}
-
-	@Override
-	public void destroy() throws Exception {
-		// todo: this isn't doing anything (other than logging) anymore
-		// we should either do something or no longer implement DisposableBean
-		for (Entry<String, Map<Integer, Module>> entry : this.deployedModules.entrySet()) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Destroying group:" + entry.getKey());
-			}
-		}
-	}
-
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.parentClassLoader = classLoader;
 	}
 
 	// todo: when refactoring to ZK-based deployment, keep this method but remove the private one

@@ -24,7 +24,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
@@ -34,7 +33,6 @@ import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
-import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionConfigurer;
@@ -47,7 +45,6 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Ilayaperumal Gopinathan
  */
 @Configuration
-@ImportResource({ "classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml", })
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
 class ContainerConfiguration {
 
@@ -88,6 +85,11 @@ class ContainerConfiguration {
 		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(true);
 		delegate.setEnvironment(context.getEnvironment());
 		return new SourceFilteringListener(context, delegate);
+	}
+
+	@Bean(name = "moduleDeployer")
+	public ModuleDeployer moduleDeployer() {
+		return new ModuleDeployer();
 	}
 
 	@Bean

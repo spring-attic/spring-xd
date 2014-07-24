@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,6 +34,7 @@ import java.util.Set;
 import org.jclouds.ContextBuilder;
 import org.jclouds.aws.ec2.AWSEC2Api;
 import org.jclouds.aws.ec2.domain.AWSRunningInstance;
+import org.jclouds.compute.domain.ExecResponse;
 import org.jclouds.domain.Credentials;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ec2.domain.Reservation;
@@ -43,6 +45,7 @@ import org.jclouds.sshj.SshjSshClient;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.ContainerResource;
@@ -141,12 +144,7 @@ public class StreamUtils {
 			String fileLocation = tmpFile.getAbsolutePath() + file.getName();
 			fileOutputStream = new FileOutputStream(fileLocation);
 
-			final LoginCredentials credential = LoginCredentials
-					.fromCredentials(new Credentials("ubuntu", xdEnvironment.getPrivateKey()));
-			final HostAndPort socket = HostAndPort.fromParts(url.getHost(), 22);
-			final SshjSshClient client = new SshjSshClient(
-					new BackoffLimitedRetryHandler(), socket, credential, 5000);
-
+			final SshjSshClient client = getSSHClient(url, xdEnvironment);
 			inputStream = client.get(fileName).openStream();
 
 			FileCopyUtils.copy(inputStream, fileOutputStream);
@@ -174,11 +172,7 @@ public class StreamUtils {
 		Assert.notNull(dir, "dir should not be null");
 		Assert.hasText(fileName, "The remote file name must be specified.");
 
-		final LoginCredentials credential = LoginCredentials
-				.fromCredentials(new Credentials("ubuntu", xdEnvironment.getPrivateKey()));
-		final HostAndPort socket = HostAndPort.fromParts(host, 22);
-		final SshjSshClient client = new SshjSshClient(
-				new BackoffLimitedRetryHandler(), socket, credential, 5000);
+		final SshjSshClient client = getSSHClient(host, xdEnvironment);
 		client.exec("mkdir " + dir);
 		client.put(dir + "/" + fileName, payload);
 	}
@@ -200,11 +194,7 @@ public class StreamUtils {
 		Assert.notNull(dir, "dir should not be null");
 		Assert.hasText(fileName, "The remote file name must be specified.");
 
-		final LoginCredentials credential = LoginCredentials
-				.fromCredentials(new Credentials("ubuntu", xdEnvironment.getPrivateKey()));
-		final HostAndPort socket = HostAndPort.fromParts(host, 22);
-		final SshjSshClient client = new SshjSshClient(
-				new BackoffLimitedRetryHandler(), socket, credential, 5000);
+		final SshjSshClient client = getSSHClient(host, xdEnvironment);
 		client.exec("echo '" + payload + "' >> " + dir + "/" + fileName);
 	}
 
@@ -337,12 +327,76 @@ public class StreamUtils {
 		return result;
 	}
 
+	/**
+	 * Retrieves the container pids on the local machine.  
+	 * @param xdEnvironment used to extract the jps command that will reveal the pids.
+	 * @return An Integer array that contains the pids.
+	 */
+	public static Integer[] getLocalContainerPids(XdEnvironment xdEnvironment) {
+		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
+		Integer[] result = null;
+		try {
+			Process p = Runtime.getRuntime().exec(xdEnvironment.getJpsCommand());
+			p.waitFor();
+			String pidInfo = org.springframework.util.StreamUtils.copyToString(p.getInputStream(),
+					Charset.forName("UTF-8"));
+			result = extractPidsFromJPS(pidInfo);
+		}
+		catch (IOException e) {
+			throw new IllegalStateException(e.getMessage(), e);
+		}
+		catch (InterruptedException e) {
+			throw new IllegalStateException(e.getMessage(), e);
+		}
+		return result;
+	}
+
+	/**
+	 * Retrieves the container pids for a remote machine.  	 
+	 * @param url The URL where the containers are deployed.
+	 * @param xdEnvironment The xdEnvironment that contains SSH credentials.
+	 * @return An Integer array that contains the pids.
+	 */
+	public static Integer[] getContainerPidsFromURL(URL url, XdEnvironment xdEnvironment) {
+		Assert.notNull(url, "url can not be null");
+		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
+		SshjSshClient client = getSSHClient(url, xdEnvironment);
+		ExecResponse response = client.exec(xdEnvironment.getJpsCommand());
+		return extractPidsFromJPS(response.getOutput());
+	}
+
+	private static Integer[] extractPidsFromJPS(String jpsResult) {
+		String[] pidList = StringUtils.tokenizeToStringArray(jpsResult, "\n");
+		ArrayList<Integer> pids = new ArrayList<Integer>();
+		for (String pidData : pidList) {
+			if (pidData.contains("ContainerServerApplication")) {
+				pids.add(Integer.valueOf(StringUtils.tokenizeToStringArray(pidData, " ")[0]));
+			}
+		}
+		return pids.toArray(new Integer[pids.size()]);
+	}
+
+
 	private static File createTmpDir() throws IOException {
 		File tmpFile = new File(System.getProperty("user.dir") + "/" + TMP_DIR);
 		if (!tmpFile.exists()) {
 			tmpFile.createNewFile();
 		}
 		return tmpFile;
+	}
+
+
+	private static SshjSshClient getSSHClient(URL url, XdEnvironment xdEnvironment) {
+		return getSSHClient(url.getHost(), xdEnvironment);
+	}
+
+	private static SshjSshClient getSSHClient(String host, XdEnvironment xdEnvironment) {
+		final LoginCredentials credential = LoginCredentials
+				.fromCredentials(new Credentials("ubuntu", xdEnvironment.getPrivateKey()));
+		final HostAndPort socket = HostAndPort.fromParts(host, 22);
+		final SshjSshClient client = new SshjSshClient(
+				new BackoffLimitedRetryHandler(), socket, credential, 5000);
+		return client;
 	}
 
 	/**

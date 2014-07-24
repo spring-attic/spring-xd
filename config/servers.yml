@@ -60,7 +60,7 @@ xd:
 #hsql:
 #  server:
 #    host: localhost
-#    port: 9102
+#    port: 9101
 #    dbname: xdjob
 #Change database username and password
 #spring:

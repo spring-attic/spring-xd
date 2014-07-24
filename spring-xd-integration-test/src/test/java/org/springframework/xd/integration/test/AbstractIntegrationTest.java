@@ -316,7 +316,7 @@ public abstract class AbstractIntegrationTest {
 		Assert.notNull(data, "data must not be null");
 
 		if (xdEnvironment.isOnEc2()) {
-			StreamUtils.createDataFileOnRemote(xdEnvironment, host, sourceDir, fileName, data);
+			StreamUtils.createDataFileOnRemote(xdEnvironment.getPrivateKey(), host, sourceDir, fileName, data);
 		}
 		else {
 			try {
@@ -343,7 +343,8 @@ public abstract class AbstractIntegrationTest {
 		Assert.notNull(dataToAppend, "dataToAppend must not be null");
 
 		if (xdEnvironment.isOnEc2()) {
-			StreamUtils.appendToRemoteFile(xdEnvironment, getContainerHostForSource(), sourceDir, fileName,
+			StreamUtils.appendToRemoteFile(xdEnvironment.getPrivateKey(), getContainerHostForSource(), sourceDir,
+					fileName,
 					dataToAppend);
 		}
 		else {
@@ -696,7 +697,7 @@ public abstract class AbstractIntegrationTest {
 	private void assertLogEntry(String data, URL url)
 	{
 		waitForXD();
-		validation.verifyContentContains(url, xdEnvironment.getContainerLogLocation(), data);
+		validation.verifyLogContains(url, data);
 	}
 
 	protected void waitForXD() {
@@ -730,6 +731,7 @@ public abstract class AbstractIntegrationTest {
 		}
 		return result;
 	}
+
 
 	/**
 	 * Get the {@see XdEnvironment}

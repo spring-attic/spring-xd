@@ -34,10 +34,12 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.integration.util.jmxresult.JMXChannelResult;
@@ -65,6 +67,14 @@ public class XdEc2Validation {
 
 	private XdEnvironment xdEnvironment;
 
+	@Value("${xd_container_log_dir}")
+	private String containerLogLocation;
+
+	@Value("${xd_run_on_ec2:true}")
+	private boolean isOnEc2;
+
+	@Value("${xd_test_jps_command:jps}")
+	private String jpsCommand;
 
 	/**
 	 * Construct a new instance of XdEc2Validation
@@ -157,8 +167,8 @@ public class XdEc2Validation {
 		Assert.hasText(fileName, "fileName can not be empty nor null");
 		Assert.hasText(data, "data can not be empty nor null");
 		String resultFileName = fileName;
-		if (xdEnvironment.isOnEc2()) {
-			resultFileName = StreamUtils.transferResultsToLocal(xdEnvironment, url, fileName);
+		if (isOnEc2) {
+			resultFileName = StreamUtils.transferResultsToLocal(xdEnvironment.getPrivateKey(), url, fileName);
 		}
 		File file = new File(resultFileName);
 		try {
@@ -179,9 +189,17 @@ public class XdEc2Validation {
 	}
 
 	/**
+	 * Verifies that the data is contained in the container log.
+	 * @param url The server where the container is deployed.
+	 * @param data the value that will be searched for, within the log file.
+	 */
+	public void verifyLogContains(URL url, String data) {
+		verifyContentContains(url, getContainerWithPid(url), data);
+	}
+
+	/**
 	 * Verifies that the data user gave us is contained in the result.
-	 *
-	 * @param url The server that the stream is deployed.
+	 * @param url The server where the container is deployed.
 	 * @param fileName The file that contains the data to check.
 	 * @param data The data used to evaluate the results of the stream.
 	 */
@@ -241,8 +259,8 @@ public class XdEc2Validation {
 		File file = new File(resultFileName);
 		try {
 
-			if (xdEnvironment.isOnEc2()) {
-				resultFileName = StreamUtils.transferResultsToLocal(xdEnvironment, url, fileName);
+			if (isOnEc2) {
+				resultFileName = StreamUtils.transferResultsToLocal(xdEnvironment.getPrivateKey(), url, fileName);
 				file = new File(resultFileName);
 			}
 
@@ -273,11 +291,6 @@ public class XdEc2Validation {
 			String moduleName, String channelName) {
 		String result = url.toString() + "/management/jolokia/read/xd." + streamName
 				+ ":module=" + moduleName + ",component=MessageChannel,name=" + channelName;
-		return result;
-	}
-
-	private String buildJMXList(URL url) {
-		String result = url.toString() + "/management/jolokia/list";
 		return result;
 	}
 
@@ -373,10 +386,25 @@ public class XdEc2Validation {
 		return result;
 	}
 
-	private void verifyContainerConnection(final URL host) throws IOException {
-		String request = buildJMXList(host);
-		StreamUtils.httpGet(new URL(request));
-
+	private String getContainerWithPid(URL url) {
+		String result = containerLogLocation;
+		if (result.contains("[PID]")) {
+			Integer[] pids = null;
+			if (isOnEc2) {
+				pids = StreamUtils.getContainerPidsFromURL(url, xdEnvironment.getPrivateKey(),
+						jpsCommand);
+			}
+			else {
+				pids = StreamUtils.getLocalContainerPids(jpsCommand);
+			}
+			//Supports one container per server or virtual instance.
+			if (pids.length > 0) {
+				String pid = pids[0].toString();
+				result = StringUtils.replace(containerLogLocation, "[PID]", pid);
+			}
+		}
+		return result;
 	}
+
 
 }

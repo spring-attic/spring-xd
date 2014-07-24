@@ -145,7 +145,6 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	@Value("${dfs.datanode.http.port:50075}")
 	private String dataNodePort;
 
-
 	private Properties artifactProperties;
 
 	/**

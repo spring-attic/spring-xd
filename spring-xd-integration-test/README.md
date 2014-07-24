@@ -261,5 +261,11 @@ An example command line would look like this if running on an acceptance test on
 
 ### MQTT
 
-1. Verify that your MQTT plugin is installed on your rabbit instance.  If not, install it based on rabbit's instructions.
+1. Verify that your MQTT plugin is enabled on your rabbit instance.  If not, enable it based on rabbit's instructions.
 2. The JmxTest will look for the Rabbit MQTT instance on the host declared by the xd\_admin\_host declared in the application-<your profile>.properties file that you are using. 
+
+### Log test
+
+Container logs are written in the format container-${PID}.log by default.  To support the ability to test the log module for both singlenode and clustered environments, the xd_container_log_dir property
+will accept a log file like ```${XD_HOME}/xd/logs/singlenode.log``` or place the PID in the log name like ```${XD_HOME}/xd/logs/container-[PID].log```.  Where [PID] will be replaced
+with the container's PID.  For example: ```${XD_HOME}/xd/logs/container-1234.log```.

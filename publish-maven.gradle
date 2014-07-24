@@ -6,6 +6,12 @@ ext.providedDeps = []
 ext.optional = { optionalDeps << it }
 ext.provided = { providedDeps << it }
 
+// exclude hadoop install sub projects
+def hadoopInstalls=['cdh5','hadoop22','hadoop24','hdp21','phd1','phd20']
+if (hadoopInstalls.contains(project.name)) {
+	install.enabled = false
+}
+
 install {
 	repositories.mavenInstaller {
 		customizePom(pom, project)

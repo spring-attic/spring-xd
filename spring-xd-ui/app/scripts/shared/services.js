@@ -37,6 +37,9 @@ define(['angular', 'xregexp'], function (angular) {
             $rootScope.cgbusy = promise;
           },
           getModuleNameFromJobDefinition: function(jobDefinition) {
+            if (!jobDefinition) {
+              throw new Error('jobDefinition must be defined.');
+            }
             $log.info('Processing job definition: ' + jobDefinition);
             var module = XRegExp.exec(jobDefinition, moduleNameRegex);
             var moduleName;

@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.gemfire;
+package org.springframework.xd.gemfire.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -27,8 +27,9 @@ import com.gemstone.gemfire.management.CacheServerMXBean;
 import com.gemstone.gemfire.management.ManagementService;
 
 /**
- * @author David Turanski
+ * A simple driver class to run a Gemfire cache server.
  *
+ * @author David Turanski
  */
 public class CacheServer {
 

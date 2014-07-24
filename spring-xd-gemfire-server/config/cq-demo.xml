@@ -8,7 +8,7 @@
 	<gfe:cache />
 	<gfe:replicated-region id="Stocks">
 		<gfe:cache-listener>
-			<bean class="org.springframework.xd.gemfire.LoggingCacheListener">
+			<bean class="org.springframework.xd.gemfire.server.LoggingCacheListener">
 				<constructor-arg name="level" value="INFO" />
 			</bean>
 		</gfe:cache-listener>

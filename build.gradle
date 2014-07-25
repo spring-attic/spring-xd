@@ -349,6 +349,9 @@ configure(moduleProjects) { moduleProject ->
 
 	forceDependencyVersions(moduleProject)
 
+	// Disable artifact publishing
+	moduleProject.tasks.findByPath("artifactoryPublish")?.enabled = false
+
 	eclipse {
 		project { natures += 'org.springframework.ide.eclipse.core.springnature' }
 	}

@@ -11,10 +11,8 @@ def hadoopInstalls=['cdh5','hadoop22','hadoop24','hdp21','phd1','phd20']
 if (hadoopInstalls.contains(project.name)) {
 	// Disable installing hadoop distro artifacts
 	install.enabled = false
-	if (project.plugins.hasPlugin('artifactory-publish')) {
-		// Disable publishing hadoop distro artifacts
-		artifactoryPublish.enabled = false
-	}
+	// Disable publishing hadoop distro artifacts
+	project.tasks.findByPath("artifactoryPublish")?.enabled = false
 }
 
 install {

@@ -79,5 +79,11 @@ define([], function () {
             }
         );
       };
+
+      $scope.$on('$destroy', function() {
+        // Remove deployment status tooltip
+        angular.element('.popover').hide();
+      });
+
     }];
 });

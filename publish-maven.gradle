@@ -58,17 +58,6 @@ def customizePom(pom, gradleProject) {
 				developerConnection = linkScmDevConnection
 			}
 
-			repositories {
-			        repository {
-					id = 'spring-snapshots'
- 					name = 'Spring Snapshots'
-					url = 'http://repo.spring.io/snapshot'
-					snapshots {
-					        enabled = 'true'
-					}
-				}
-			}
-
 			dependencyManagement {
 				dependencies {
 					dependency {
@@ -101,6 +90,75 @@ def customizePom(pom, gradleProject) {
 					id = 'ghillert'
 					name = 'Gunnar Hillert'
 					email = 'ghillert@gopivotal.com'
+				}
+				developer {
+					id = 'pperalta'
+					name = 'Patrick Peralta'
+					email = 'pperalta@gopivotal.com'
+				}
+				developer {
+					id = 'dturanski'
+					name = 'David Turanski'
+					email = 'dturanski@gopivotal.com'
+				}
+				developer {
+                                        id = 'ebottard'
+                                        name = 'Eric Bottard'
+                                        email = 'ebottard@gopivotal.com'
+                                }
+				developer {
+                                        id = 'grenfro'
+                                        name = 'Glenn Renfro'
+                                        email = 'grenfro@gopivotal.com'
+                                }
+				developer {
+                                        id = 'igopinathan'
+                                        name = 'Ilayaperumal Gopinathan'
+                                        email = 'igopinathan@gopivotal.com'
+                                }
+				developer {
+                                        id = 'trisberg'
+                                        name = 'Thomas Risberg'
+                                        email = 'trisberg@gopivotal.com'
+                                }
+				developer {
+					id = 'jhickey'
+					name = 'Jennifer Hickey'
+				}
+				developer {
+					id = 'mminella'
+					name = 'Michael Minella'
+					email = 'mminella@gopivotal.com'
+				}
+				developer {
+					id = 'ltaylor'
+					name = 'Luke Taylor'
+					email = 'ltaylor@gopivotal.com'
+				}
+				developer {
+					id = 'aclement'
+					name = 'Andy Clement'
+					email = 'aclement@gopivotal.com'
+				}
+				developer {
+					id = 'dsyer'
+					name = 'Dave Syer'
+					email = 'dsyer@gopivotal.com'
+				}
+				developer {
+					id = 'jvalkealahti'
+					name = 'Janne Valkealahti'
+					email = 'jvalkealahti@gopivotal.com'
+				}
+				developer {
+					id = 'jbrisbin'
+					name = 'Jon Brisbin'
+					email = 'jbrisbin@gopivotal.com'
+				}
+				developer {
+					id = 'tdarimont'
+					name = 'Thomas Darimont'
+					email = 'tdarimont@gopivotal.com'
 				}
 			}
 		}

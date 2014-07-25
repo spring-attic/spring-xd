@@ -22,7 +22,7 @@
  */
 define(['./app'], function (xdAdmin) {
   'use strict';
-  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider, growlProvider) {
+  xdAdmin.config(['$stateProvider', '$urlRouterProvider', '$httpProvider', 'hljsServiceProvider', 'growlProvider', function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider, growlProvider) {
     $httpProvider.defaults.useXDomain = true;
     $httpProvider.interceptors.push('httpErrorInterceptor');
     $urlRouterProvider.otherwise('/jobs/definitions');
@@ -180,8 +180,9 @@ define(['./app'], function (xdAdmin) {
         authenticate: true
       }
     });
-  });
-  xdAdmin.run(function ($rootScope, $state, $stateParams, userService, $log) {
+  }]);
+
+  xdAdmin.run(['$rootScope', '$state', '$stateParams', 'userService', '$log', function ($rootScope, $state, $stateParams, userService, $log) {
     $rootScope.$state = $state;
     $rootScope.$stateParams = $stateParams;
     $rootScope.xdAdminServerUrl = window.location.protocol + '//' + window.location.host;
@@ -197,6 +198,6 @@ define(['./app'], function (xdAdmin) {
           event.preventDefault();
         }
       });
-  });
+  }]);
   return xdAdmin;
 });

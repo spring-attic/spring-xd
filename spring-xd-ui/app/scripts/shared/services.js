@@ -23,7 +23,7 @@ define(['angular', 'xregexp'], function (angular) {
   'use strict';
 
   return angular.module('xdShared.services', [])
-      .factory('XDUtils', function ($log, growl, $timeout, $q, $rootScope) {
+      .factory('XDUtils', ['$log', 'growl', '$timeout', '$q', '$rootScope', function ($log, growl, $timeout, $q, $rootScope) {
 
         var moduleNameRegex = new XRegExp('[\\p{N}|\\p{L}|\\p{Po}]*(?=[\\s]*--)', 'i');
 
@@ -53,5 +53,5 @@ define(['angular', 'xregexp'], function (angular) {
             return moduleName;
           }
         };
-      });
+      }]);
 });

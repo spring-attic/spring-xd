@@ -23,7 +23,7 @@ define(['angular'], function (angular) {
   'use strict';
 
   return angular.module('xdShared.interceptors', [])
-  .factory('httpErrorInterceptor', function(XDUtils){
+  .factory('httpErrorInterceptor', ['XDUtils', function(XDUtils){
     return {
       responseError: function(rejection) {
         if (rejection.status === 0) {
@@ -33,5 +33,5 @@ define(['angular'], function (angular) {
         return XDUtils.$q.reject(rejection);
       }
     };
-  });
+  }]);
 });

@@ -23,7 +23,7 @@ define(['angular'], function (angular) {
   'use strict';
 
   return angular.module('xdStreamsAdmin.services', [])
-      .factory('StreamService', function ($resource, $rootScope, $log) {
+      .factory('StreamService', ['$resource', '$rootScope', '$log', function ($resource, $rootScope, $log) {
         return {
           getDefinitions: function () {
             return $resource($rootScope.xdAdminServerUrl + '/streams/definitions.json', {}, {
@@ -51,5 +51,5 @@ define(['angular'], function (angular) {
             }).destroy();
           }
         };
-      });
+      }]);
 });

@@ -43,7 +43,6 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.xd.integration.fixtures.Jobs;
 import org.springframework.xd.integration.fixtures.Processors;
 import org.springframework.xd.integration.fixtures.Sinks;
@@ -317,7 +316,7 @@ public abstract class AbstractIntegrationTest {
 		Assert.notNull(data, "data must not be null");
 
 		if (xdEnvironment.isOnEc2()) {
-			StreamUtils.createDataFileOnRemote(xdEnvironment, host, sourceDir, fileName, data);
+			StreamUtils.createDataFileOnRemote(xdEnvironment.getPrivateKey(), host, sourceDir, fileName, data);
 		}
 		else {
 			try {
@@ -344,7 +343,8 @@ public abstract class AbstractIntegrationTest {
 		Assert.notNull(dataToAppend, "dataToAppend must not be null");
 
 		if (xdEnvironment.isOnEc2()) {
-			StreamUtils.appendToRemoteFile(xdEnvironment, getContainerHostForSource(), sourceDir, fileName,
+			StreamUtils.appendToRemoteFile(xdEnvironment.getPrivateKey(), getContainerHostForSource(), sourceDir,
+					fileName,
 					dataToAppend);
 		}
 		else {
@@ -697,8 +697,7 @@ public abstract class AbstractIntegrationTest {
 	private void assertLogEntry(String data, URL url)
 	{
 		waitForXD();
-		validation.verifyContentContains(url, adornContainerWithPid(url, xdEnvironment.getContainerLogLocation()),
-				data);
+		validation.verifyLogContains(url, data);
 	}
 
 	protected void waitForXD() {
@@ -729,25 +728,6 @@ public abstract class AbstractIntegrationTest {
 		}
 		catch (MalformedURLException e) {
 			throw new IllegalStateException(e.getMessage(), e);
-		}
-		return result;
-	}
-
-	private String adornContainerWithPid(URL url, String containerLogTemplate) {
-		String result = containerLogTemplate;
-		if (result.contains("[PID]")) {
-			Integer[] pids = null;
-			if (isOnEc2) {
-				pids = StreamUtils.getContainerPidsFromURL(url, xdEnvironment);
-			}
-			else {
-				pids = StreamUtils.getLocalContainerPids(xdEnvironment);
-			}
-			//Supports one container per server or virtual instance.
-			if (pids.length > 0) {
-				String pid = pids[0].toString();
-				result = StringUtils.replace(containerLogTemplate, "[PID]", pid);
-			}
 		}
 		return result;
 	}

@@ -124,14 +124,14 @@ public class StreamUtils {
 	/**
 	 * Copies the specified file from a remote machine to local machine.
 	 *
-	 * @param xdEnvironment The environment configuration for this test
+	 * @param privateKey the ssh private key to the remote machine
 	 * @param url The remote machine's url.
 	 * @param fileName The fully qualified file name of the file to be transferred.
 	 * @return The location to the fully qualified file name where the remote file was copied.
 	 */
-	public static String transferResultsToLocal(final XdEnvironment xdEnvironment, final URL url, final String fileName)
+	public static String transferResultsToLocal(final String privateKey, final URL url, final String fileName)
 	{
-		Assert.notNull(xdEnvironment, "The Acceptance Test, require a valid xdEnvironment.");
+		Assert.hasText(privateKey, "The Acceptance Test, can not be empty nor null.");
 		Assert.notNull(url, "The remote machine's URL must be specified.");
 		Assert.hasText(fileName, "The remote file name must be specified.");
 
@@ -144,7 +144,7 @@ public class StreamUtils {
 			String fileLocation = tmpFile.getAbsolutePath() + file.getName();
 			fileOutputStream = new FileOutputStream(fileLocation);
 
-			final SshjSshClient client = getSSHClient(url, xdEnvironment);
+			final SshjSshClient client = getSSHClient(url, privateKey);
 			inputStream = client.get(fileName).openStream();
 
 			FileCopyUtils.copy(inputStream, fileOutputStream);
@@ -158,21 +158,21 @@ public class StreamUtils {
 	/**
 	 * Creates a file on a remote EC2 machine with the payload as its contents.
 	 *
-	 * @param xdEnvironment The environment configuration for this test
+	 * @param privateKey The ssh private key for the remote container
 	 * @param host The remote machine's ip.
 	 * @param dir The directory to write the file
 	 * @param fileName The fully qualified file name of the file to be created.
 	 * @param payload the data to write to the file
 	 */
-	public static void createDataFileOnRemote(XdEnvironment xdEnvironment, String host, String dir, String fileName,
+	public static void createDataFileOnRemote(String privateKey, String host, String dir, String fileName,
 			String payload)
 	{
-		Assert.notNull(xdEnvironment, "The Acceptance Test, require a valid xdEnvironment.");
+		Assert.hasText(privateKey, "privateKey must not be empty nor null.");
 		Assert.hasText(host, "The remote machine's URL must be specified.");
 		Assert.notNull(dir, "dir should not be null");
 		Assert.hasText(fileName, "The remote file name must be specified.");
 
-		final SshjSshClient client = getSSHClient(host, xdEnvironment);
+		final SshjSshClient client = getSSHClient(host, privateKey);
 		client.exec("mkdir " + dir);
 		client.put(dir + "/" + fileName, payload);
 	}
@@ -180,21 +180,21 @@ public class StreamUtils {
 	/**
 	 * Appends the payload to an existing file on a remote EC2 Instance.
 	 *
-	 * @param xdEnvironment The environment configuration for this test
+	 * @param privateKey The ssh private key for the remote container
 	 * @param host The remote machine's ip.
 	 * @param dir The directory to write the file
 	 * @param fileName The fully qualified file name of the file to be created.
 	 * @param payload the data to append to the file
 	 */
-	public static void appendToRemoteFile(XdEnvironment xdEnvironment, String host, String dir, String fileName,
+	public static void appendToRemoteFile(String privateKey, String host, String dir, String fileName,
 			String payload)
 	{
-		Assert.notNull(xdEnvironment, "The Acceptance Test, require a valid xdEnvironment.");
+		Assert.hasText(privateKey, "privateKey must not be empty nor null.");
 		Assert.hasText(host, "The remote machine's URL must be specified.");
 		Assert.notNull(dir, "dir should not be null");
 		Assert.hasText(fileName, "The remote file name must be specified.");
 
-		final SshjSshClient client = getSSHClient(host, xdEnvironment);
+		final SshjSshClient client = getSSHClient(host, privateKey);
 		client.exec("echo '" + payload + "' >> " + dir + "/" + fileName);
 	}
 
@@ -329,14 +329,14 @@ public class StreamUtils {
 
 	/**
 	 * Retrieves the container pids on the local machine.  
-	 * @param xdEnvironment used to extract the jps command that will reveal the pids.
+	 * @param jpsCommand  jps command that will reveal the pids.
 	 * @return An Integer array that contains the pids.
 	 */
-	public static Integer[] getLocalContainerPids(XdEnvironment xdEnvironment) {
-		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
+	public static Integer[] getLocalContainerPids(String jpsCommand) {
+		Assert.hasText(jpsCommand, "jpsCommand can not be empty nor null");
 		Integer[] result = null;
 		try {
-			Process p = Runtime.getRuntime().exec(xdEnvironment.getJpsCommand());
+			Process p = Runtime.getRuntime().exec(jpsCommand);
 			p.waitFor();
 			String pidInfo = org.springframework.util.StreamUtils.copyToString(p.getInputStream(),
 					Charset.forName("UTF-8"));
@@ -354,14 +354,15 @@ public class StreamUtils {
 	/**
 	 * Retrieves the container pids for a remote machine.  	 
 	 * @param url The URL where the containers are deployed.
-	 * @param xdEnvironment The xdEnvironment that contains SSH credentials.
+	 * @param String privateKey ssh private key credentional
+	 * @param jpsCommand The command to retrieve java processes on container machine.
 	 * @return An Integer array that contains the pids.
 	 */
-	public static Integer[] getContainerPidsFromURL(URL url, XdEnvironment xdEnvironment) {
+	public static Integer[] getContainerPidsFromURL(URL url, String privateKey, String jpsCommand) {
 		Assert.notNull(url, "url can not be null");
-		Assert.notNull(xdEnvironment, "xdEnvironment can not be null");
-		SshjSshClient client = getSSHClient(url, xdEnvironment);
-		ExecResponse response = client.exec(xdEnvironment.getJpsCommand());
+		Assert.hasText(privateKey, "privateKey can not be empty nor null");
+		SshjSshClient client = getSSHClient(url, privateKey);
+		ExecResponse response = client.exec(jpsCommand);
 		return extractPidsFromJPS(response.getOutput());
 	}
 
@@ -386,13 +387,13 @@ public class StreamUtils {
 	}
 
 
-	private static SshjSshClient getSSHClient(URL url, XdEnvironment xdEnvironment) {
-		return getSSHClient(url.getHost(), xdEnvironment);
+	private static SshjSshClient getSSHClient(URL url, String privateKey) {
+		return getSSHClient(url.getHost(), privateKey);
 	}
 
-	private static SshjSshClient getSSHClient(String host, XdEnvironment xdEnvironment) {
+	private static SshjSshClient getSSHClient(String host, String privateKey) {
 		final LoginCredentials credential = LoginCredentials
-				.fromCredentials(new Credentials("ubuntu", xdEnvironment.getPrivateKey()));
+				.fromCredentials(new Credentials("ubuntu", privateKey));
 		final HostAndPort socket = HostAndPort.fromParts(host, 22);
 		final SshjSshClient client = new SshjSshClient(
 				new BackoffLimitedRetryHandler(), socket, credential, 5000);

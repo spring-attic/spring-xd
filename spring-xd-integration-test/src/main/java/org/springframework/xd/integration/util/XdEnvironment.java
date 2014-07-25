@@ -145,9 +145,6 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	@Value("${dfs.datanode.http.port:50075}")
 	private String dataNodePort;
 
-	@Value("${xd_test_jps_command:jps}")
-	private String jpsCommand;
-
 	private Properties artifactProperties;
 
 	/**
@@ -340,14 +337,6 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	 */
 	public String getMongoPort() {
 		return mongoPort;
-	}
-
-	/**
-	 * Returns the command that will enumerate java processes.
-	 * @return command that will execute jps.
-	 */
-	public String getJpsCommand() {
-		return jpsCommand;
 	}
 
 }

@@ -233,20 +233,19 @@ module.exports = function (grunt) {
         ]
       }
     },
-    // Allow the use of non-minsafe AngularJS files. Automatically makes it
-    // minsafe compatible so Uglify does not destroy the ng references
-//    ngmin: {
-//      dist: {
-//        files: [
-//          {
-//            expand: true,
-//            cwd: '.tmp/concat/js',
-//            src: '*.js',
-//            dest: '.tmp/concat/js'
-//          }
-//        ]
-//      }
-//    },
+    // Optimizes the whole project with RequireJS r.js optimizer
+    requirejs: {
+      compile: {
+        options: {
+          baseUrl: '<%= xd.app %>/scripts',
+          mainConfigFile: '<%= xd.app %>/scripts/main.js',
+          dir: '<%= xd.dist %>/scripts',
+          modules: [{name: 'app'}],
+          preserveLicenseComments: false
+        }
+      }
+    },
+
     // Copies remaining files to places other tasks can use
     copy: {
       dist: {
@@ -261,7 +260,6 @@ module.exports = function (grunt) {
               '*.html',
               'views/{,*/}*.html',
               'lib/**/*',
-              'scripts/**/*',
               'fonts/*',
               'images/*'
             ]
@@ -346,6 +344,8 @@ module.exports = function (grunt) {
     'clean:dist',
     // Run JSHint on all js files
     'jshint',
+    // Run RequireJS optimizer
+    'requirejs',
     // Install bower components into {xd.app}/lib
     'bower:install',
     // Compile LESS files into CSS

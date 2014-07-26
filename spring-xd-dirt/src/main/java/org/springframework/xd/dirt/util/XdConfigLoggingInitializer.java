@@ -30,6 +30,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
 
@@ -50,6 +51,8 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	private static final String HADOOP_DISTRO_OPTION = "${HADOOP_DISTRO}";
 
+	private static final String ADMIN_PORT = "${server.port}";
+
 	public XdConfigLoggingInitializer(boolean isContainer) {
 		this.isContainer = isContainer;
 	}
@@ -59,12 +62,18 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 		this.environment = (ConfigurableEnvironment) environment;
 	}
 
+	/**
+	 * Log config info upon admin or container server context refresh.
+	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		logger.info("XD Home: " + environment.resolvePlaceholders("${XD_HOME}"));
 		logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
 		if (isContainer) {
 			logHadoopDistro();
+		}
+		else {
+			logAdminUI();
 		}
 		logZkConnectString();
 		logger.info("Analytics: " + environment.resolvePlaceholders("${XD_ANALYTICS}"));
@@ -77,6 +86,17 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 		String hadoopDistro = environment.resolvePlaceholders(HADOOP_DISTRO_OPTION);
 		logger.info("Hadoop Distro: " + hadoopDistro);
 		logger.info("Hadoop version detected from classpath: " + org.apache.hadoop.util.VersionInfo.getVersion());
+	}
+
+	/**
+	 * Log admin web UI URL
+	 */
+	private void logAdminUI() {
+		String httpPort = environment.resolvePlaceholders(ADMIN_PORT);
+		Assert.notNull(httpPort, "Admin server port is not set.");
+		logger.info("Admin web UI: "
+				+ String.format("http://%s:%s/%s", RuntimeUtils.getHost(), httpPort,
+						ConfigLocations.XD_ADMIN_UI_BASE_PATH));
 	}
 
 	private void logZkConnectString() {

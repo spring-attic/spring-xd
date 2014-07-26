@@ -38,6 +38,8 @@ public class ConfigLocations {
 	 */
 	public static final String XD_BATCH_CONFIG_ROOT = XD_CONFIG_ROOT + "batch/";
 
+	public static final String XD_ADMIN_UI_BASE_PATH = "admin-ui";
+
 	/**
 	 * Prevent instantiation.
 	 */

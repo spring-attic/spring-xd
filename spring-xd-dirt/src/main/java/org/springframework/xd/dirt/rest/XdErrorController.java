@@ -27,6 +27,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
  * {@link ErrorController} that causes 404 errors to be redirected to the Admin-UI 404 page.
@@ -50,7 +51,7 @@ public class XdErrorController extends BasicErrorController {
 		// TODO: better to toss this class completely and use an error page for 404
 		switch (status) {
 			case 404:
-				return new ModelAndView(new RedirectView("/admin-ui/404.html"));
+				return new ModelAndView(new RedirectView("/" + ConfigLocations.XD_ADMIN_UI_BASE_PATH + "/404.html"));
 		}
 		return super.errorHtml(request);
 	}

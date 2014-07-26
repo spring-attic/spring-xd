@@ -37,6 +37,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.xd.dirt.plugins.job.support.ExecutionContextJacksonMixIn;
 import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
+import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.rest.domain.support.RestTemplateMessageConverterUtil;
 import org.springframework.xd.rest.domain.util.ISO8601DateFormatWithMilliSeconds;
 
@@ -96,14 +97,16 @@ public class RestConfiguration {
 			// add a static resource handler for the UI
 			@Override
 			public void addResourceHandlers(ResourceHandlerRegistry registry) {
-				registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations(
+				registry.addResourceHandler("/" + ConfigLocations.XD_ADMIN_UI_BASE_PATH + "/**",
+						"/" + ConfigLocations.XD_ADMIN_UI_BASE_PATH + "/").addResourceLocations(
 						resourceRoot);
 			}
 
 			@Override
 			public void addViewControllers(ViewControllerRegistry registry) {
-				registry.addViewController("admin-ui").setViewName("redirect:/admin-ui/");
-				registry.addViewController("admin-ui/").setViewName("index.html");
+				registry.addViewController(ConfigLocations.XD_ADMIN_UI_BASE_PATH).setViewName(
+						"redirect:/" + ConfigLocations.XD_ADMIN_UI_BASE_PATH + "/");
+				registry.addViewController(ConfigLocations.XD_ADMIN_UI_BASE_PATH + "/").setViewName("index.html");
 			}
 		};
 	}

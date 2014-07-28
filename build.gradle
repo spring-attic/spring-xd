@@ -104,7 +104,7 @@ ext {
 	guavaVersion = '16.0.1'
 
 	// Hadoop Versions
-	springDataHadoopBase = '2.0.1.RELEASE'
+	springDataHadoopBase = '2.0.2.RELEASE'
 	hadoop22Version = '2.2.0'
 	hadoop24Version = '2.4.1'
 	cdh5Version = '2.3.0-cdh5.0.0'
@@ -136,7 +136,13 @@ def forceDependencyVersions(project) {
 						if (details.requested.group != 'com.google.guava') {
 							def version = versions["$details.requested.group:$details.requested.name"]
 							if (version) {
-								details.useVersion version
+								if (details.requested.group == 'org.springframework.data' && 
+										(details.requested.name.startsWith('spring-data-hadoop') || 
+										 details.requested.name.startsWith('spring-yarn') ) ) {
+									details.useVersion springDataHadoopBase
+								} else {
+									details.useVersion version
+								}
 							}
 						}
 					}
@@ -758,7 +764,7 @@ project('spring-xd-hadoop') {
 		compile "org.springframework:spring-tx"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "org.springframework.batch:spring-batch-core"
-		compile ("org.springframework.data:spring-data-hadoop") {
+		compile ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
 			exclude group: 'org.springframework.batch'
 			exclude group: 'javax.servlet'
 			exclude group: 'javax.servlet.jsp'
@@ -784,10 +790,10 @@ project('spring-xd-hadoop') {
 project('spring-xd-hadoop:hadoop22') {
 	description = 'Hadoop 2.2.x dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-common:$hadoop22Version")

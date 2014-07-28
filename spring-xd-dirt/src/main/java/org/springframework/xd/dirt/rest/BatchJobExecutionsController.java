@@ -78,7 +78,7 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 	 * @param pageSize how many executions to return
 	 * @return Collection of JobExecutionInfoResource
 	 */
-	@RequestMapping(value = { "" }, method = RequestMethod.GET)
+	@RequestMapping(value = { "" }, method = RequestMethod.GET, produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public Collection<JobExecutionInfoResource> list(@RequestParam(defaultValue = "0") int startJobExecution,
 			@RequestParam(defaultValue = "20") int pageSize) {
@@ -107,7 +107,7 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 	 * @param pageSize page size for the list
 	 * @return collection of JobExecutionInfo
 	 */
-	@RequestMapping(value = "", method = RequestMethod.GET, params = "jobname")
+	@RequestMapping(value = "", method = RequestMethod.GET, params = "jobname", produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public Collection<JobExecutionInfoResource> executionsForJob(@RequestParam("jobname") String jobName,
 			@RequestParam(defaultValue = "0") int startJobExecution,

@@ -117,7 +117,6 @@ spring:
 #    driverClassName: org.hsqldb.jdbc.JDBCDriver
 #    validationQuery: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
 
-
 #Config for use with MySQL - uncomment and edit with relevant values for your environment
 #spring:
 #  datasource:
@@ -136,6 +135,7 @@ spring:
 #    driverClassName: org.postgresql.Driver
 #    validationQuery: select 1
 
+---
 #ConnectionPoolSettings
 #spring:
 #  datasource:

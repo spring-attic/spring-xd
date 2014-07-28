@@ -2035,7 +2035,7 @@ task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
 
 task yarnModulesZip(type: Zip, overwrite: true) {
 	group = 'Application'
-		archiveName = "custom-modules.zip"
+	archiveName = "custom-modules.zip"
 	description = "Creates an empty custom-modules zip file."
 
 	destinationDir = new File("$buildDir/tmp")
@@ -2045,7 +2045,20 @@ task yarnModulesZip(type: Zip, overwrite: true) {
 	}
 }
 
-task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip, yarnModulesZip], overwrite: true) {
+task yarnConfigZip(type: Zip, overwrite: true) {
+	group = 'Application'
+	archiveName = "modules-config.zip"
+	description = "Creates the modules config zip file."
+
+	destinationDir = new File("$buildDir/tmp")
+
+	from("$rootDir/spring-xd-dirt/build/install/spring-xd-dirt/config/modules") {
+		into "/"
+	}
+}
+
+
+task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip, yarnModulesZip, yarnConfigZip], overwrite: true) {
 	group = 'Application'
 	classifier = 'yarn'
 	description = "Bundles the XD files needed for YARN deployments."
@@ -2064,6 +2077,15 @@ task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip, yarnModulesZip], o
 	from("$rootDir/spring-xd-yarn/site/config") {
 		include '*.properties'
 		include '*.yml'
+		include '*.txt'
+		into "${baseDir}/config"
+	}
+	from("$buildDir/dist/spring-xd/xd/config/modules") {
+		include "modules.yml"
+		into "${baseDir}/config"
+	}
+	from("$buildDir/tmp") {
+		include "modules-config.zip"
 		into "${baseDir}/config"
 	}
 	from("$rootDir/spring-xd-yarn/spring-xd-yarn-client/build/libs") {

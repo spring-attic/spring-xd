@@ -10,7 +10,7 @@ spring:
                 - "file:${spring.xd.yarn.app.path}/${spring.xd.yarn.app.zip}"
                 - "file:${spring.xd.yarn.am.path}/${spring.xd.yarn.am.jar}"
                 - "file:${spring.xd.yarn.config.path}/servers.yml"
-                - "file:${spring.xd.yarn.config.path}/modules.yml"
+                - "file:${spring.xd.yarn.config.path}/modules-config.zip"
                 - "file:${spring.xd.yarn.app.path}/custom-modules.zip"
             launchcontext:
                 archiveFile: "${spring.xd.yarn.am.jar}"

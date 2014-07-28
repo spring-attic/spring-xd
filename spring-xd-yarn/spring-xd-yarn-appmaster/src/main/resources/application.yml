@@ -11,7 +11,7 @@ spring:
                 patterns:
                     - "spring-xd-yarn*.zip"
                     - "servers.yml"
-                    - "modules.yml"
+                    - "modules-config.zip"
                     - "custom-modules.zip"
 ---
 spring:
@@ -27,7 +27,7 @@ spring:
                     -Dspring.application.name: "admin"
                     -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                     -Dspring.config.location: "./servers.yml"
-                    -Dxd.module.config.location: "file:./"
+                    -Dxd.module.config.location: "file:./modules-config.zip/"
                 containerAppClasspath:
                     - "./${spring.xd.yarn.app.zip}/config"
                     - "./${spring.xd.yarn.app.zip}/lib/*"
@@ -46,7 +46,7 @@ spring:
                     -Dspring.application.name: "container"
                     -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                     -Dspring.config.location: "./servers.yml"
-                    -Dxd.module.config.location: "file:./"
+                    -Dxd.module.config.location: "file:./modules-config.zip/"
                 containerAppClasspath:
                     - "./${spring.xd.yarn.app.zip}/config"
                     - "./${spring.xd.yarn.app.zip}/lib/*"

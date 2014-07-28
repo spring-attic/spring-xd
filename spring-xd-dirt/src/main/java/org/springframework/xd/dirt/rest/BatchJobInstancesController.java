@@ -54,7 +54,7 @@ public class BatchJobInstancesController extends AbstractBatchJobsController {
 	 * @param instanceId job instance id
 	 * @return job instance info
 	 */
-	@RequestMapping(value = "/{instanceId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{instanceId}", method = RequestMethod.GET, produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public JobInstanceInfoResource getJobInstance(@PathVariable long instanceId) {
 		try {
@@ -87,7 +87,7 @@ public class BatchJobInstancesController extends AbstractBatchJobsController {
 	 * @param pageSize page size for the list
 	 * @return collection of JobInstances by job name
 	 */
-	@RequestMapping(value = "", method = RequestMethod.GET, params = "jobname")
+	@RequestMapping(value = "", method = RequestMethod.GET, params = "jobname", produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public Collection<JobInstanceInfoResource> instancesForJob(@RequestParam("jobname") String jobName,
 			@RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {

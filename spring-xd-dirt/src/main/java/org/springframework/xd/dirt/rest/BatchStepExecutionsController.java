@@ -55,7 +55,7 @@ public class BatchStepExecutionsController extends AbstractBatchJobsController {
 	 * @return Collection of {@link StepExecutionInfoResource} for the given jobExecutionId
 	 * @throws NoSuchJobExecutionException Thrown if the respective {@link JobExecution} does not exist
 	 */
-	@RequestMapping(value = { "" }, method = RequestMethod.GET)
+	@RequestMapping(value = { "" }, method = RequestMethod.GET, produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public Collection<StepExecutionInfoResource> list(@PathVariable("jobExecutionId") long jobExecutionId) {
 

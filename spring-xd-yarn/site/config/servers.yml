@@ -107,15 +107,7 @@ spring:
 ---
 #Configuration for database used for JDBC and Batch Repository
 #
-#Config for use with HSQLDB
-#
-#Change the database host, port and name
-#hsql:
-#  server:
-#    host: localhost
-#    port: 9101
-#    dbname: xdjob
-#Change database username and password
+#Config for use with HSQLDB - uncomment and edit with relevant values for your environment
 #spring:
 #  datasource:
 #    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}

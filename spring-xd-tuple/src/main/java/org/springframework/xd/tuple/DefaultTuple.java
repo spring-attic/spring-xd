@@ -33,10 +33,10 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.format.support.FormattingConversionService;
+import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-
-import com.eaio.uuid.UUIDGen;
+import org.springframework.util.IdGenerator;
 
 /**
  * Default implementation of Tuple interface
@@ -62,6 +62,10 @@ public class DefaultTuple implements Tuple {
 
 	private transient Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
 
+	private static volatile IdGenerator idGenerator = null;
+
+	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
+
 	private UUID id;
 
 	private Long timestamp;
@@ -81,7 +85,7 @@ public class DefaultTuple implements Tuple {
 		this.names = new ArrayList<String>(names);
 		this.values = new ArrayList<Object>(values); // shallow copy
 		this.formattingConversionService = formattingConversionService;
-		this.id = new UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode());
+		this.id = getIdGenerator().generateId();
 		this.timestamp = Long.valueOf(System.currentTimeMillis());
 	}
 
@@ -655,6 +659,10 @@ public class DefaultTuple implements Tuple {
 	protected void setTupleToStringConverter(Converter<Tuple, String> tupleToStringConverter) {
 		Assert.notNull(tupleToStringConverter, "tupleToStringConverter cannot be null");
 		this.tupleToStringConverter = tupleToStringConverter;
+	}
+
+	protected static IdGenerator getIdGenerator() {
+		return (idGenerator != null ? idGenerator : defaultIdGenerator);
 	}
 
 	@Override

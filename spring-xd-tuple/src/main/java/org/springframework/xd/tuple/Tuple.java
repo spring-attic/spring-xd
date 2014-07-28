@@ -562,14 +562,20 @@ public interface Tuple {
 	 * Get the unique Id of this tuple, not included in comparisons for equality.
 	 * 
 	 * @return unique Id
+	 * @deprecated Use the UUID header in {@link org.springframework.messaging.MessageHeaders} by  
+	 * using a Tuple as the payload type for a {@link org.springframework.messaging.Message}
 	 */
+	@Deprecated
 	UUID getId();
 
 	/**
 	 * Get the creation timestamp of this tuple, not included in comparisons for equality
 	 * 
 	 * @return creation timestamp
+	 * @deprecated Use the timestamp header in {@link org.springframework.messaging.MessageHeaders} by 
+	 * using a Tuple as the payload type for a {@link org.springframework.messaging.Message}
 	 */
+	@Deprecated
 	Long getTimestamp();
 
 

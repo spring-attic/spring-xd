@@ -92,7 +92,7 @@ ext {
 	platformVersion = '1.0.1.RELEASE'
 	postgresqlVersion = '9.2-1002-jdbc4'
 	splunkVersion = '1.3.0'
-	springBatchAdminMgrVersion = '1.3.0.RC1'
+	springBatchAdminMgrVersion = '1.3.0.RELEASE'
 	springIntegrationSplunkVersion = '1.1.0.RELEASE'
 	springShellVersion = '1.1.0.RELEASE'
 	uuidVersion = '3.2'

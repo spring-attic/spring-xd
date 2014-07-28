@@ -2078,6 +2078,10 @@ task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip, yarnModulesZip], o
 		include '*.yml'
 		into "${baseDir}/config"
 	}
+    from("$buildDir/dist/spring-xd/xd/config/modules") {
+		into "${baseDir}/config"
+		include "modules.yml"
+    }
 	from("$rootDir/spring-xd-yarn/spring-xd-yarn-client/build/libs") {
 		include "spring-xd-yarn-client-${project.version}.jar"
 		into "${baseDir}/lib"

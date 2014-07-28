@@ -1553,11 +1553,11 @@ project('spring-xd-batch') {
 	}
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
-        startScripts.setEnabled(false)
+	startScripts.setEnabled(false)
 
-        task scriptFiles {
-                def scripts = file("$rootDir/scripts/hsqldb")
-                outputs.dir scripts
+	task scriptFiles {
+		def scripts = file("$rootDir/scripts/hsqldb")
+		outputs.dir scripts
 	}
 	applicationDistribution.from(scriptFiles) { into "bin" }
 }
@@ -1726,7 +1726,6 @@ task copyBatchInstall(type: Copy, dependsOn: [
 ]) {
 	from "$rootDir/spring-xd-batch/build/install/spring-xd-batch"
 	into "$buildDir/dist/spring-xd/hsqldb"
-
 	//exclude any jars already in xd/lib
 	exclude {jar ->
 		loadDirtJars()
@@ -1734,9 +1733,13 @@ task copyBatchInstall(type: Copy, dependsOn: [
 	}	
 }
 
-task copyZookeeper(type: Copy) {
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task copyZookeeperInstall(type: Copy) {
 	from "$rootDir/scripts/zookeeper"
-	into "$buildDir/dist/spring-xd/zookeeper/bin"
+	into "$buildDir/dist/spring-xd/zookeeper"
+	filter(ReplaceTokens, tokens: [zookeeperVersion: rootProject.ext.zookeeperVersion])
+
 }
 
 task copyXDInstall(type: Copy, dependsOn: [
@@ -1804,7 +1807,7 @@ task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-x
     exclude "**/lib/log4j-*.jar"
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall", "copyZookeeper"]) {
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall", "copyZookeeperInstall"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"

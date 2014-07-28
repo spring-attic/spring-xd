@@ -1,4 +1,8 @@
 # XD on YARN deployment configuration
+#
+# You can set properties here to override the defaults.
+#
+
 xd:
     adminServers: 1
     adminMemory: 512M
@@ -10,24 +14,6 @@ xd:
 spring:
     yarn:
         applicationDir: /xd/app/
-
-# Port that admin-ui is listening on
-#server:
-#    port: 9393
-
----
-
-# Hadoop configuration
-#spring:
-#    hadoop:
-#        fsUri: hdfs://localhost:8020
-#        resourceManagerHost: localhost
-
----
-
-# XD data transport (default is redis)
-#xd:
-#    transport: rabbit
 
 ---
 
@@ -61,11 +47,130 @@ spring:
 #        siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
 ---
-# Zookeeper properties
+# Hadoop properties
+#spring:
+#  hadoop:
+#   fsUri: hdfs://localhost:8020
+
+---
+#Zookeeper properties
 # client connect string: host1:port1,host2:port2,...,hostN:portN
 #zk:
 #  client:
 #     connect: localhost:2181
+
+---
+
+#XD data transport (default is redis for distributed, local for single node)
+#xd:
+#  transport: rabbit
+
+#  messagebus:
+#    rabbit:
+#      default:
+#        ackMode:                   AUTO
+            # Valid: AUTO (container acks), NONE (broker acks), MANUAL (consumer acks).
+            # Upper case only.
+            # Note: MANUAL requires specialized code in the consuming module and is unlikely to be
+            # used in an XD application. For more information, see
+            # http://docs.spring.io/spring-integration/reference/html/amqp.html#amqp-inbound-ack
+#        backOffInitialInterval:    1000
+#        backOffMaxInterval:        10000
+#        backOffMultiplier:         2.0
+#        concurrency:               1
+#        deliveryMode:              PERSISTENT
+#        maxAttempts:               3
+#        maxConcurrency:            1
+#        prefix:                    xdbus.
+            # prefix for queue/exchange names so policies (ha, dle etc.) can be applied
+#        prefetch:                  1
+#        replyHeaderPatterns:       STANDARD_REPLY_HEADERS,*
+#        requestHeaderPatterns:     STANDARD_REQUEST_HEADERS,*
+#        requeue:                   true
+#        transacted:                false
+#        txSize:                    1
+
+#    redis:
+#      default:
+#        backOffInitialInterval:    1000
+#        backOffMaxInterval:        10000
+#        backOffMultiplier:         2.0
+#        concurrency:               1
+#        maxAttempts:               3
+
+#Disable batch database initialization
+#spring:
+#  batch:
+#    initializer:
+#       enabled: false
+
+---
+#Configuration for database used for JDBC and Batch Repository
+#
+#Config for use with HSQLDB - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+#    username: sa
+#    password:
+#    driverClassName: org.hsqldb.jdbc.JDBCDriver
+#    validationQuery: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
+
+
+#Config for use with MySQL - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:mysql://yourDBhost:3306/yourDB
+#    username: yourUsername
+#    password: yourPassword
+#    driverClassName: com.mysql.jdbc.Driver
+#    validationQuery: select 1
+
+#Config for use with Postgres - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:postgresql://yourDBhost:5432/yourDB
+#    username: yourUsername
+#    password: yourPassword
+#    driverClassName: org.postgresql.Driver
+#    validationQuery: select 1
+
+#ConnectionPoolSettings
+#spring:
+#  datasource:
+#    testOnBorrow: true
+#    validationInterval: 30000
+#    maxActive: 100
+#    maxIdle: 100
+#    minIdle: 10
+#    initialSize: 0
+#    maxWait: 30000
+#    testOnReturn: false
+#    testWhileIdle: false
+#    timeBetweenEvictionRunsMillis: 5000
+#    minEvictableIdleTimeMillis: 60000
+#    removeAbandoned: false
+#    removeAbandonedTimeout: 60
+#    logAbandoned: false
+#Tomcat JDBC Enhanced Attributes
+#    validationInterval: 30000
+#    jmxEnabled: true
+#    fairQueue: true
+#    abandonWhenPercentageFull: 0
+#    maxAge: 0
+#    useEquals: true
+#    suspectTimeout: 0
+#    alternateUsernameAllowed: false
+
+---
+# Config to enable/disable JMX/jolokia endpoints
+#XD_JMX_ENABLED: true
+#endpoints:
+#  jolokia:
+#    enabled: ${XD_JMX_ENABLED:true}
+#  jmx:
+#    enabled: ${XD_JMX_ENABLED:true}
+#    uniqueNames: true
 
 ---
 # Redis properties
@@ -74,50 +179,28 @@ spring:
 #   port: 6379
 #   host: localhost
 
+#Port that admin-ui is listening on
+#server:
+#  port: 9393
+
 ---
 # RabbitMQ properties
 #spring:
 #  rabbitmq:
-#   host: localhost
-#   port: 5672
+#   addresses: localhost:5672
 #   username: guest
 #   password: guest
 #   virtual_host: /
+#   useSSL: false
+#   sslProperties:
 
 ---
-#Disable batch database initialization
-#spring:
-#  batch:
-#    initializer:
-#       enabled: false
-
+# User Extensions: Where XD scans the classpath to discover extended container configuration to add beans to the Plugins context.
+# Each property may be a comma delimited string. 'basepackages' refers to package names used for
+# annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing XML or Groovy configuration. 
+# XD prepends classpath:* if no prefix included and appends **/*.* to each location
+#xd:
+#  extensions:
+#      basepackages: com.acme.xd.extensions
+#      locations: META-INF/spring-xd/ext
 ---
-# Database settings
-#
-# Config for use with HSQLDB
-#spring:
-#  datasource:
-#    url: jdbc:hsqldb:hsql://localhost:9101/xdjob
-#    username: sa
-#    password:
-#    driverClassName: org.hsqldb.jdbc.JDBCDriver
-
-# Config for use with MySQL - uncomment and edit with relevant values for your environment
-#spring:
-#  datasource:
-#    url: jdbc:mysql://localhost:3306/xdjob
-#    username: yourUsername
-#    password: yourPassword
-#    driverClassName: com.mysql.jdbc.Driver
-#  profiles:
-#    active: default,mysql
-
-# Config for use with Postgres - uncomment and edit with relevant values for your environment
-#spring:
-#  datasource:
-#    url: jdbc:postgresql://localhost:5432/xdjob
-#    username: yourUsername
-#    password: yourPassword
-#    driverClassName: org.postgresql.Driver
-#  profiles:
-#    active: default,postgresql

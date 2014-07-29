@@ -16,9 +16,10 @@
 
 package org.springframework.integration.x.twitter;
 
-import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,10 @@ import org.springframework.social.support.URIBuilder;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Message producer which reads form Twitter's public search endpoints.
@@ -129,12 +134,29 @@ public class TwitterSearchChannelAdapter extends AbstractTwitterInboundChannelAd
 	 */
 	@Override
 	protected void doSendLine(String line) {
+		ObjectMapper mapper = new ObjectMapper();
 		JsonSlurper jsonSlurper = new JsonSlurper();
 		@SuppressWarnings("unchecked")
 		Map<String, List<Map<String, ?>>> map = (Map<String, List<Map<String, ?>>>) jsonSlurper.parseText(line);
 		List<Map<String, ?>> statuses = map.get("statuses");
 		for (Map<String, ?> tweet : statuses) {
-			sendMessage(MessageBuilder.withPayload(JsonOutput.toJson(tweet)).build());
+			StringWriter sw = new StringWriter();
+			try {
+				mapper.writeValue(sw, tweet);
+				sendMessage(MessageBuilder.withPayload(sw.toString()).build());
+			}
+			catch (JsonGenerationException ex) {
+				logger.error("Failed to read convert tweet to json: " + ex.getMessage());
+				break;
+			}
+			catch (JsonMappingException ex) {
+				logger.error("Failed to read convert tweet to json: " + ex.getMessage());
+				break;
+			}
+			catch (IOException ex) {
+				logger.error("Failed to read convert tweet to json: " + ex.getMessage());
+				break;
+			}
 		}
 		if (!CollectionUtils.isEmpty(statuses)) {
 			this.sinceId = ((Long) (statuses.get(statuses.size() - 1).get("id")));
@@ -144,4 +166,6 @@ public class TwitterSearchChannelAdapter extends AbstractTwitterInboundChannelAd
 			wait(10000);
 		}
 	}
+
+
 }

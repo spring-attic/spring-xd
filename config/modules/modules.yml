@@ -25,6 +25,14 @@
 ---
 
 # Shared RabbitMQ module properties
+#
+# The default values for rabbit modules are taken from spring.rabbbit.address and related 
+# variables defined in server.yml
+#
+# If you uncomment this section, you should also uncomment related lines in 
+#   - XD_HOME/xd/config/modules/source/rabbit/rabbit.properites
+#   - XD_HOME/xd/config/modules/sink/rabbit/rabbit.properites
+#
 #rabbit:
 #  addresses: localhost:5672
 #  username: guest

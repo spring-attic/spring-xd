@@ -14,15 +14,21 @@
 ---
 
 # Shared RabbitMQ module properties
-# Shared RabbitMQ module properties that can be applied to rabbit source and sink
-# modules can be specified as below. These are default values unless explicit values are
-# set for module config keys in the respective rabbit (source/sink) modules.
+#
+# The default values for rabbit modules are taken from spring.rabbbit.address and related 
+# variables defined in server.yml
+#
+# If you uncomment this section, you should also uncomment related lines in 
+#   - XD_HOME/xd/config/modules/source/rabbit/rabbit.properites
+#   - XD_HOME/xd/config/modules/sink/rabbit/rabbit.properites
+#
 #rabbit:
-#  host: localhost
-#  port: 5672
+#  addresses: localhost:5672
 #  username: guest
 #  password: guest
 #  vhost: /
+#  useSSL: false
+#  sslProperties:
 
 ---
 

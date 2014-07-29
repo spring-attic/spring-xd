@@ -275,9 +275,10 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 
 		// sort containers by node creation date (cluster join time)
 		Collections.sort(children, new Comparator<ChildData>() {
+
 			@Override
 			public int compare(ChildData c1, ChildData c2) {
-				return Long.compare(c1.getStat().getCtime(), c2.getStat().getCtime());
+				return Long.valueOf(c1.getStat().getCtime()).compareTo(Long.valueOf(c2.getStat().getCtime()));
 			}
 		});
 

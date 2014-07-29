@@ -53,6 +53,14 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	private static final String ADMIN_PORT = "${server.port}";
 
+	private static final String XD_CONFIG_LOCATION = "${xd.config.home}";
+
+	private static final String XD_CONFIG_NAME = "${spring.config.name:servers}";
+
+	private static final String XD_MODULE_CONFIG_LOCATION = "${xd.module.config.location:${xd.config.home}/modules/}";
+
+	private static final String XD_MODULE_CONFIG_NAME = "${xd.module.config.name:modules}";
+
 	public XdConfigLoggingInitializer(boolean isContainer) {
 		this.isContainer = isContainer;
 	}
@@ -69,6 +77,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		logger.info("XD Home: " + environment.resolvePlaceholders("${XD_HOME}"));
 		logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
+		logConfigLocations();
 		if (isContainer) {
 			logHadoopDistro();
 		}
@@ -86,6 +95,16 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 		String hadoopDistro = environment.resolvePlaceholders(HADOOP_DISTRO_OPTION);
 		logger.info("Hadoop Distro: " + hadoopDistro);
 		logger.info("Hadoop version detected from classpath: " + org.apache.hadoop.util.VersionInfo.getVersion());
+	}
+
+	/**
+	 * Log server/module config locations and names.
+	 */
+	private void logConfigLocations() {
+		logger.info("XD config location: " + environment.resolvePlaceholders(XD_CONFIG_LOCATION));
+		logger.info("XD config name: " + environment.resolvePlaceholders(XD_CONFIG_NAME));
+		logger.info("Modules' config location: " + environment.resolvePlaceholders(XD_MODULE_CONFIG_LOCATION));
+		logger.info("Modules' config name: " + environment.resolvePlaceholders(XD_MODULE_CONFIG_NAME));
 	}
 
 	/**

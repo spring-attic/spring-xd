@@ -26,8 +26,8 @@
 
 # Shared RabbitMQ module properties
 #
-# The default values for rabbit modules are taken from spring.rabbbit.address and related 
-# variables defined in server.yml
+# The default values for rabbit modules are taken from spring.rabbitmq.addresses and related 
+# variables defined in servers.yml
 #
 # If you uncomment this section, you should also uncomment related lines in 
 #   - XD_HOME/xd/config/modules/source/rabbit/rabbit.properites

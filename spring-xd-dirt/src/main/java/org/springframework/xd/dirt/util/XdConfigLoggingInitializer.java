@@ -102,7 +102,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	 */
 	private void logConfigLocations() {
 		logger.info("XD config location: " + environment.resolvePlaceholders(XD_CONFIG_LOCATION));
-		logger.info("XD config name: " + environment.resolvePlaceholders(XD_CONFIG_NAME));
+		logger.info("XD config names: " + environment.resolvePlaceholders(XD_CONFIG_NAME));
 		logger.info("XD module config location: " + environment.resolvePlaceholders(XD_MODULE_CONFIG_LOCATION));
 		logger.info("XD module config name: " + environment.resolvePlaceholders(XD_MODULE_CONFIG_NAME));
 	}

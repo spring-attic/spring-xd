@@ -58,7 +58,10 @@ public class ChildPathIterator<T> implements Iterator<T> {
 
 		this.converter = converter;
 		List<ChildData> list = cache.getCurrentData();
-		this.iterator = list == null ? Collections.<ChildData> emptyIterator() : list.iterator();
+		if (list == null) {
+			list = Collections.<ChildData> emptyList();
+		}
+		this.iterator = list.iterator();
 	}
 
 	/**

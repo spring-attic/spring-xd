@@ -41,8 +41,8 @@ public class PasswordUtils {
 	}
 
 	public static Pattern passwordParameterPattern = Pattern.compile(
-			"(?i)(--[\\s|\\w]*(password|passwd)\\w*\\s*=[\\s]*)([\\w|.]*)",
-			Pattern.UNICODE_CHARACTER_CLASS);
+			"(?i)(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)([\\p{N}|\\p{L}|\\p{Po}]*)",
+			Pattern.UNICODE_CASE);
 
 	/**
 	 * This method takes a definition String as input parameter. The method

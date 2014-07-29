@@ -262,7 +262,7 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 	@Override
 	public int compareTo(ModuleDescriptor o) {
 		Assert.notNull(o, "ModuleDescriptor must not be null");
-		return Integer.compare(index, o.index);
+		return (index < o.index) ? -1 : ((index == o.index) ? 0 : 1);
 	}
 
 

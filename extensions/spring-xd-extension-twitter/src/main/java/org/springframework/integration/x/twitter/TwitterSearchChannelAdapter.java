@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Message producer which reads form Twitter's public search endpoints.
  * Reads from <a href="https://api.twitter.com/1.1/search/tweets.json"/>
- * The available parameters map directly to those defined for the 
+ * The available parameters map directly to those defined for the
  * <a href="https://dev.twitter.com/docs/api/1.1/get/search/tweets">public search</a> API.
  *
  * @author Mark Fisher
@@ -146,15 +146,15 @@ public class TwitterSearchChannelAdapter extends AbstractTwitterInboundChannelAd
 				sendMessage(MessageBuilder.withPayload(sw.toString()).build());
 			}
 			catch (JsonGenerationException ex) {
-				logger.error("Failed to read convert tweet to json: " + ex.getMessage());
+				logger.error("Failed to convert tweet to json: " + ex.getMessage());
 				break;
 			}
 			catch (JsonMappingException ex) {
-				logger.error("Failed to read convert tweet to json: " + ex.getMessage());
+				logger.error("Failed to convert tweet to json: " + ex.getMessage());
 				break;
 			}
 			catch (IOException ex) {
-				logger.error("Failed to read convert tweet to json: " + ex.getMessage());
+				logger.error("Failed to convert tweet to json: " + ex.getMessage());
 				break;
 			}
 		}

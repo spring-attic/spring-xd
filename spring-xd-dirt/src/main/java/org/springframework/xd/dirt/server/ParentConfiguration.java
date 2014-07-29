@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.server;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.boot.actuate.autoconfigure.HealthIndicatorAutoConfiguration;
 import org.springframework.boot.actuate.health.VanillaHealthIndicator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
@@ -40,7 +41,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * @author Mark Fisher
  */
 @EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
-	JmxAutoConfiguration.class })
+	JmxAutoConfiguration.class, HealthIndicatorAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "batch/batch.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {

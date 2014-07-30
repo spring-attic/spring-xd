@@ -33,7 +33,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  *
  * @author Glenn Renfro
  */
-public class HdfsJdbcTest extends AbstractIntegrationTest {
+public class HdfsJdbcTest extends AbstractJobTest {
 
 	private final static String DEFAULT_FILE_NAME = "hdfsjdbctest";
 

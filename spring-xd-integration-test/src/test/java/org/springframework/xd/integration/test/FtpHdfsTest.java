@@ -54,7 +54,7 @@ import org.springframework.integration.test.util.SocketUtils;
  * 
  * @author dturanski
  */
-public class FtpHdfsTest extends AbstractIntegrationTest {
+public class FtpHdfsTest extends AbstractJobTest {
 
 	public static final String FTP_ROOT_DIR = System.getProperty("java.io.tmpdir") + File.separator + "ftproot";
 

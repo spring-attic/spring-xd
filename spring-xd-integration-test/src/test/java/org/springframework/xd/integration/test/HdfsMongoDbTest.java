@@ -34,7 +34,7 @@ import org.springframework.xd.test.fixtures.HdfsMongoDbJob;
  *
  * @author Glenn Renfro
  */
-public class HdfsMongoDbTest extends AbstractIntegrationTest {
+public class HdfsMongoDbTest extends AbstractJobTest {
 
 	private HdfsMongoDbJob job;
 

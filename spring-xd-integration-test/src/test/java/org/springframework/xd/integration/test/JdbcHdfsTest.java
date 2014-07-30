@@ -38,7 +38,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  *
  * @author Glenn Renfro
  */
-public class JdbcHdfsTest extends AbstractIntegrationTest {
+public class JdbcHdfsTest extends AbstractJobTest {
 
 	private final static String DEFAULT_TABLE_NAME = "jdbchdfstest";
 

@@ -30,7 +30,7 @@ import org.springframework.xd.test.fixtures.SimpleFileSource;
  *
  * @author Glenn Renfro
  */
-public class FilePollHdfsTest extends AbstractIntegrationTest {
+public class FilePollHdfsTest extends AbstractJobTest {
 
 
 	public final static String DEFAULT_NAMES = "data";

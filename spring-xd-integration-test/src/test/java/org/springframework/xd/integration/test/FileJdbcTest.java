@@ -34,7 +34,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  *
  * @author Glenn Renfro
  */
-public class FileJdbcTest extends AbstractIntegrationTest {
+public class FileJdbcTest extends AbstractJobTest {
 
 	private final static String DEFAULT_FILE_NAME = "filejdbctest";
 
@@ -76,9 +76,9 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 		job(job.toDSL());
 		waitForXD();
 		jobLaunch();
-		waitForXD();
 
 		String query = String.format("SELECT data FROM %s", tableName);
+		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 5);
 
 		List<String> results = jdbcSink.getJdbcTemplate().queryForList(query, String.class);
 
@@ -107,9 +107,9 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 		job(job.toDSL());
 		waitForXD();
 		jobLaunch();
-		waitForXD();
-
 		String query = String.format("SELECT data FROM %s", tableName);
+
+		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 1);
 
 		List<String> results = jdbcSink.getJdbcTemplate().queryForList(query, String.class);
 
@@ -129,4 +129,5 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 			jdbcSink.dropTable(tableName);
 		}
 	}
+
 }

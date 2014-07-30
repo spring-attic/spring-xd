@@ -16,6 +16,7 @@
 
 package org.springframework.xd.integration.util;
 
+<<<<<<< HEAD
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -27,6 +28,8 @@ import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
 import org.springframework.xd.rest.domain.JobExecutionInfoResource;
+=======
+>>>>>>> XD-788 Job Command Integration Tests
 
 
 /**
@@ -38,6 +41,7 @@ import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 public class JobUtils {
 
 
+<<<<<<< HEAD
 	/**
 	 * Creates the job definition and deploys it to the cluster being tested.
 	 *
@@ -191,4 +195,6 @@ public class JobUtils {
 		}
 	}
 
+=======
+>>>>>>> XD-788 Job Command Integration Tests
 }

@@ -34,7 +34,7 @@ import org.springframework.xd.test.fixtures.HdfsMongoDbJob;
  *
  * @author Glenn Renfro
  */
-public class HdfsMongoDbTest extends AbstractIntegrationTest {
+public class HdfsMongoDbTest extends AbstractJobTest {
 
 	private HdfsMongoDbJob job;
 
@@ -58,8 +58,7 @@ public class HdfsMongoDbTest extends AbstractIntegrationTest {
 		job.fileName(HdfsMongoDbJob.DEFAULT_FILE_NAME + "-0.txt");
 		// Create a stream that writes to a hdfs file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMITER + sinks.hdfs()
-				.directoryName(HdfsMongoDbJob.DEFAULT_DIRECTORY).fileName(HdfsMongoDbJob.DEFAULT_FILE_NAME).toDSL(),
-				WAIT_TIME);
+				.directoryName(HdfsMongoDbJob.DEFAULT_DIRECTORY).fileName(HdfsMongoDbJob.DEFAULT_FILE_NAME).toDSL());
 		sources.http(getContainerHostForSource("dataSender")).postData(data);
 		job(job.toDSL());
 		waitForXD();

@@ -39,7 +39,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Glenn Renfro
  */
-public class SimpleJobTest extends AbstractIntegrationTest {
+public class SimpleJobTest extends AbstractJobTest {
 
 
 	private final static String JOB_NAME = "myjob";
@@ -62,9 +62,9 @@ public class SimpleJobTest extends AbstractIntegrationTest {
 	@Test
 	public void testSimpleJob() {
 		String jobName = "sj" + UUID.randomUUID().toString();
-		job(jobName, JOB_NAME, WAIT_TIME);
-		assertTrue(JOB_NAME + " did not deploy", waitForJobDeployment(jobName, WAIT_TIME));
+		job(jobName, JOB_NAME, true);
 		jobLaunch(jobName);
+		waitForXD();
 		assertEquals(BatchStatus.COMPLETED, getJobExecutionStatus(jobName));
 	}
 

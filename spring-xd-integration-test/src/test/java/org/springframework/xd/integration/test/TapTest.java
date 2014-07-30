@@ -37,7 +37,7 @@ public class TapTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		stream("dataSender",
 				sources.http() + XD_DELIMITER
-						+ sinks.log(), WAIT_TIME);
+						+ sinks.log());
 		stream(sources.tap("dataSender") + XD_TAP_DELIMITER
 				+ sinks.file());
 
@@ -57,7 +57,7 @@ public class TapTest extends AbstractIntegrationTest {
 						+ processors.transform().expression("payload.toUpperCase()").label("label1")
 						+ XD_DELIMITER + processors.transform().expression("payload.substring(3)").label("label2")
 						+ XD_DELIMITER
-						+ sinks.log(), WAIT_TIME);
+						+ sinks.log());
 		stream(sources.tap("dataSender").label("label2") + XD_TAP_DELIMITER
 				+ sinks.file());
 
@@ -75,7 +75,7 @@ public class TapTest extends AbstractIntegrationTest {
 				sources.http() + XD_DELIMITER
 						+ processors.transform().expression("payload.toUpperCase()").label("ds1")
 						+ XD_DELIMITER + processors.transform().expression("payload.substring(3)") + XD_DELIMITER
-						+ sinks.log(), WAIT_TIME);
+						+ sinks.log());
 		stream(sources.tap("dataSender").label("ds1") + XD_TAP_DELIMITER
 				+ sinks.file());
 

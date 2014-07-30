@@ -54,7 +54,7 @@ import org.springframework.integration.test.util.SocketUtils;
  * 
  * @author dturanski
  */
-public class FtpHdfsTest extends AbstractIntegrationTest {
+public class FtpHdfsTest extends AbstractJobTest {
 
 	public static final String FTP_ROOT_DIR = System.getProperty("java.io.tmpdir") + File.separator + "ftproot";
 
@@ -106,10 +106,10 @@ public class FtpHdfsTest extends AbstractIntegrationTest {
 		}
 		waitForXD();
 		String jobName = "ftpHdfs" + JOB_NAME;
-		job(jobName, jobs.ftpHdfsJob().toDSL(), WAIT_TIME);
+		job(jobName, jobs.ftpHdfsJob().toDSL(), true);
 		waitForXD();
 		String jobParams = "{\"remoteDirectory\":\"/\",\"hdfsDirectory\":\"/ftp\"}";
-		jobLaunch(jobName, jobParams);
+		launchJob(jobName, jobParams);
 		waitForXD();
 
 		for (int i = 0; i < 3; i++) {
@@ -130,10 +130,6 @@ public class FtpHdfsTest extends AbstractIntegrationTest {
 
 		BaseUser testUser;
 
-		/**
-		 * @param adminName
-		 * @param passwordEncryptor
-		 */
 		public TestUserManager() {
 			super("admin", new ClearTextPasswordEncryptor());
 			testUser = new BaseUser();

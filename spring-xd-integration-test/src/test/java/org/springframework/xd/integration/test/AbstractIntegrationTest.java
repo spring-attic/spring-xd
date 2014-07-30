@@ -43,16 +43,16 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.xd.integration.fixtures.Jobs;
 import org.springframework.xd.integration.fixtures.Processors;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
 import org.springframework.xd.integration.util.HadoopUtils;
-import org.springframework.xd.integration.util.JobUtils;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
@@ -63,7 +63,7 @@ import org.springframework.xd.test.fixtures.LogSink;
 import org.springframework.xd.test.fixtures.SimpleFileSink;
 
 /**
- * Base Class for Spring XD Integration classes
+ * Base Class for Spring XD Integration test classes
  *
  * @author Glenn Renfro
  * @author David Turanski
@@ -73,8 +73,6 @@ import org.springframework.xd.test.fixtures.SimpleFileSink;
 public abstract class AbstractIntegrationTest {
 
 	private final static String STREAM_NAME = "ec2Test3";
-
-	protected final static String JOB_NAME = "ec2Job3";
 
 	protected final static String DEFAULT_XD_PORT = "9393";
 
@@ -113,9 +111,6 @@ public abstract class AbstractIntegrationTest {
 
 	@Autowired
 	protected Sinks sinks;
-
-	@Autowired
-	protected Jobs jobs;
 
 	@Autowired
 	protected Processors processors;
@@ -210,7 +205,6 @@ public abstract class AbstractIntegrationTest {
 	public void setup() {
 		initializer();
 		StreamUtils.destroyAllStreams(adminServer);
-		JobUtils.destroyAllJobs(adminServer);
 		waitForXD();
 	}
 
@@ -220,7 +214,6 @@ public abstract class AbstractIntegrationTest {
 	@After
 	public void tearDown() {
 		StreamUtils.destroyAllStreams(adminServer);
-		JobUtils.destroyAllJobs(adminServer);
 		waitForXD();
 	}
 
@@ -232,7 +225,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param stream the stream definition
 	 */
 	public void stream(String stream) {
-		stream(STREAM_NAME, stream, WAIT_TIME);
+		stream(STREAM_NAME, stream);
 	}
 
 	/**
@@ -240,61 +233,16 @@ public abstract class AbstractIntegrationTest {
 	 *
 	 * @param streamName the name of the stream
 	 * @param stream the stream definition
-	 * @param waitTime the time to wait for a stream to be deployed
 	 */
-	public void stream(String streamName, String stream, int waitTime) {
+	public void stream(String streamName, String stream) {
 		Assert.hasText(streamName, "stream name can not be empty nor null");
 		Assert.hasText(stream, "stream needs to be populated with a definition and can not be null");
 		StreamUtils.stream(streamName, stream, adminServer);
 		waitForXD();
 		assertTrue("The stream did not deploy. ",
-				waitForStreamDeployment(streamName, waitTime));
+				waitForStreamDeployment(streamName, WAIT_TIME));
 	}
 
-	/**
-	 * Creates a job on the XD cluster defined by the test's
-	 * Artifact or Environment variables Uses JOB_NAME as default job name.
-	 *
-	 * @param job the job definition
-	 */
-	public void job(String job) {
-		Assert.hasText(job, "job needs to be poopulated with a definition and can not be null");
-		job(JOB_NAME, job, WAIT_TIME);
-	}
-
-	/**
-	 * Creates a job on the XD cluster defined by the test's Artifact or Environment variables
-	 *
-	 * @param jobName the name of the job
-	 * @param job the job definition
-	 * @param waitTime the time to wait for a job to be deployed
-	 */
-	public void job(String jobName, String job, int waitTime) {
-		Assert.hasText(jobName, "job name can not be empty nor null");
-		Assert.hasText(job, "job needs to be populated with a definition and can not be null");
-		JobUtils.job(jobName, job, adminServer);
-		waitForXD();
-		assertTrue("The job did not deploy. ",
-				waitForJobDeployment(jobName, waitTime));
-
-	}
-
-	/**
-	 * Launches a job with the test's JOB_NAME on the XD instance.
-	 */
-	public void jobLaunch() {
-		jobLaunch(JOB_NAME);
-	}
-
-	/**
-	 * Launches a job on the XD instance
-	 *
-	 * @param jobName The name of the job to be launched
-	 */
-	public void jobLaunch(String jobName) {
-		JobUtils.launch(adminServer, jobName);
-		waitForXD();
-	}
 
 	/**
 	 * Creates a file in a source directory for file source base tests.
@@ -414,19 +362,6 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Retrieves the first job execution from a list of job executions for the job name.
-	 *
-	 * @param jobName a unique job name.
-	 * @return the status from the job execution.
-	 */
-	protected BatchStatus getJobExecutionStatus(String jobName) {
-		List<JobExecutionInfoResource> results = JobUtils.getJobExecInfoByName(jobName, adminServer);
-		Assert.isTrue(results.size() > 0, "No Job execution available for the job.");
-		return results.get(0).getJobExecution().getStatus();
-	}
-
-
-	/**
 	 * Creates the directory structure so that a job's module components can be installed properly.  This method extracts the root file name from the xmlFileName
 	 * and uses this as the base name for the job module's directory.
 	 *
@@ -520,18 +455,6 @@ public abstract class AbstractIntegrationTest {
 		}
 	}
 
-	/*
-	* Launches a job on the XD instance
-	*
-	* @param jobName The name of the job to be launched
-	* @param jobParameters the job parameters
-	*/
-	public void jobLaunch(String jobName, String jobParameters) {
-		JobUtils.launch(adminServer, jobName, jobParameters);
-		waitForXD();
-	}
-
-
 	/**
 	 * Gets the URL of the container for the sink being tested.
 	 *
@@ -592,25 +515,6 @@ public abstract class AbstractIntegrationTest {
 	 */
 	public String getContainerHostForSource(String streamName) {
 		return getContainerHostForModulePrefix(streamName, ModuleType.source);
-	}
-
-	/**
-	 * Gets the host of the container where the job was deployed
-	 *
-	 * @return The host that contains the job.
-	 */
-	public String getContainerHostForJob() {
-		return getContainerHostForJob(JOB_NAME);
-	}
-
-	/**
-	 * Gets the host of the container where the job was deployed
-	 *
-	 * @param jobName Used to find the container that contains the job.
-	 * @return The host that contains the job.
-	 */
-	public String getContainerHostForJob(String jobName) {
-		return getContainerHostForModulePrefix(jobName, ModuleType.job);
 	}
 
 	/**
@@ -740,30 +644,6 @@ public abstract class AbstractIntegrationTest {
 		return StreamUtils.waitForStreamDeployment(streamName, adminServer, waitTime);
 	}
 
-
-	/**
-	 * Wait the "waitTime" for a job to be deployed.
-	 *
-	 * @param waitTime the time in millis to wait.
-	 * @return true if deployed else false.
-	 */
-	public boolean waitForJobDeployment(int waitTime) {
-		return waitForJobDeployment(JOB_NAME, waitTime);
-	}
-
-	/**
-	 * Wait the "waitTime" for a job to be deployed.
-	 *
-	 * @param jobName the name of stream to be evaluated.
-	 * @param waitTime the time in millis to wait.
-	 * @return true if deployed else false.
-	 */
-	public boolean waitForJobDeployment(String jobName, int waitTime) {
-		Assert.hasText(jobName, "jobName must not be empty nor null");
-		return JobUtils.waitForJobDeployment(jobName, adminServer, waitTime);
-	}
-
-
 	/**
 	 * Verifies that the content of file on HDFS is the same as the data.
 	 *
@@ -773,6 +653,36 @@ public abstract class AbstractIntegrationTest {
 	public void assertValidHdfs(String data, String path) {
 		validation.verifyHdfsTestContent(data, path);
 	}
+
+
+	/** Wait for the number of rows returned from the query  == size param or until WAIT_TIME is reached.
+	 * @param query the test query to execute
+	 * @param jdbcTemplate The jdbc template that has connectivity to the DB
+	 * @param size The number of rows to reach before exiting the method.
+	 */
+	public void waitForTablePopulation(String query, JdbcTemplate jdbcTemplate, int size) {
+		boolean ready = false;
+		long timeout = System.currentTimeMillis() + WAIT_TIME;
+		while (!ready && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			try {
+				List<String> results = jdbcTemplate.queryForList(query, String.class);
+				if (results.size() == size) {
+					ready = true;
+				}
+			}
+			catch (DataAccessException dae) {
+				ready = false;
+			}
+		}
+	}
+
 
 	/**
 	 * Asserts that the data stored by the file sink is what was expected.

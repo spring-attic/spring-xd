@@ -38,7 +38,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  *
  * @author Glenn Renfro
  */
-public class JdbcHdfsTest extends AbstractIntegrationTest {
+public class JdbcHdfsTest extends AbstractJobTest {
 
 	private final static String DEFAULT_TABLE_NAME = "jdbchdfstest";
 
@@ -73,7 +73,7 @@ public class JdbcHdfsTest extends AbstractIntegrationTest {
 		JdbcHdfsJob job = jobs.jdbcHdfsJob();
 		// Use a trigger to send data to JDBC
 		stream("dataSender", sources.http() + XD_DELIMITER
-				+ jdbcSink, WAIT_TIME);
+				+ jdbcSink);
 		sources.http(getContainerHostForSource("dataSender")).postData(data);
 
 		job(job.toDSL());

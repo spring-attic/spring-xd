@@ -58,7 +58,7 @@ public class RabbitTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		RabbitSink rabbitSink = sinks.rabbit(RabbitSource.DEFAULT_QUEUE).addresses(adminServer.getHost() + ":5672");
 		stream(rabbitSource + XD_DELIMITER + sinks.file());
-		stream(DATA_SENDER_NAME, "trigger --payload='" + data + "'" + XD_DELIMITER + rabbitSink, WAIT_TIME);
+		stream(DATA_SENDER_NAME, "trigger --payload='" + data + "'" + XD_DELIMITER + rabbitSink);
 		assertValid(data, sinks.file());
 
 	}

@@ -34,7 +34,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  *
  * @author Glenn Renfro
  */
-public class FileJdbcTest extends AbstractIntegrationTest {
+public class FileJdbcTest extends AbstractJobTest {
 
 	private final static String DEFAULT_FILE_NAME = "filejdbctest";
 
@@ -69,16 +69,16 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 		for (int i = 0; i < 5; i++) {
 			// Create a stream that writes to a file. This file will be used by the job.
 			stream("dataSender" + i, sources.http("foobar", 9000 + i) + XD_DELIMITER
-					+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME + "partition" + i).toDSL(), WAIT_TIME);
+					+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME + "partition" + i).toDSL());
 			sources.http(getContainerHostForSource("dataSender" + i), 9000 + i).postData(data);
 		}
 		waitForXD();
 		job(job.toDSL());
 		waitForXD();
 		jobLaunch();
-		waitForXD();
 
 		String query = String.format("SELECT data FROM %s", tableName);
+		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 5);
 
 		List<String> results = jdbcSink.getJdbcTemplate().queryForList(query, String.class);
 
@@ -102,14 +102,14 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 
 		// Create a stream that writes to a file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMITER
-				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL(), WAIT_TIME);
+				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL());
 		sources.http(getContainerHostForSource("dataSender")).postData(data);
 		job(job.toDSL());
 		waitForXD();
 		jobLaunch();
-		waitForXD();
-
 		String query = String.format("SELECT data FROM %s", tableName);
+
+		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 1);
 
 		List<String> results = jdbcSink.getJdbcTemplate().queryForList(query, String.class);
 
@@ -129,4 +129,5 @@ public class FileJdbcTest extends AbstractIntegrationTest {
 			jdbcSink.dropTable(tableName);
 		}
 	}
+
 }

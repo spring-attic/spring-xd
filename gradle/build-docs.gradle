@@ -8,16 +8,23 @@ buildscript {
 	}
 	dependencies {
 		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.8'
-		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.0'
+		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.3'
 		classpath 'org.ajoberstar:gradle-git:0.8.0'
 	}
 	
 }
 
+ext {
+	// Drives the Asciidoctor version used
+	asciidoctorjVersion =  '1.5.0.preview.7'
+}
+
+
 import org.ajoberstar.grgit.*
 import org.ajoberstar.grgit.auth.AuthConfig
 import org.apache.tools.ant.filters.TokenFilter
 import org.asciidoctor.gradle.*
+
 
 task(pullDocs) {
 	if (project.gradle.startParameter.offline) {
@@ -87,9 +94,10 @@ task transformDocs(type: Copy, dependsOn: [pullDocs, shellReferenceDoc, moduleOp
 	}
 }
 
-
+apply plugin: org.asciidoctor.gradle.AsciidoctorPlugin
 
 task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs, shellReferenceDoc, moduleOptionsReferenceDoc] ) {
+	classpath = project.configurations.asciidoctor
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	baseDir = sourceDir
@@ -110,6 +118,7 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs, shell
 }
 
 task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [transformDocs, shellReferenceDoc, moduleOptionsReferenceDoc ]) {
+	classpath = project.configurations.asciidoctor
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	baseDir = sourceDir

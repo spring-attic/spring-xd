@@ -141,11 +141,11 @@ public class ModuleOptionsReferenceDoc {
 
 		if (!moduleOptionsMetadata.iterator().hasNext()) {
 			out.format("The **%s** %s has no particular option (in addition to options shared by all modules)%n%n",
-					def.getName(), def.getType());
+					pt(def.getName()), pt(def.getType()));
 			return;
 		}
 
-		out.format("The **%s** %s has the following options:%n%n", def.getName(), def.getType());
+		out.format("The **%s** %s has the following options:%n%n", pt(def.getName()), pt(def.getType()));
 		List<ModuleOption> options = new ArrayList<ModuleOption>();
 		for (ModuleOption mo : moduleOptionsMetadata) {
 			options.add(mo);
@@ -161,7 +161,8 @@ public class ModuleOptionsReferenceDoc {
 		for (ModuleOption mo : options) {
 			String prettyDefault = prettifyDefaultValue(mo);
 			String maybeEnumHint = generateEnumValues(mo);
-			out.format("%s:: %s *(%s, %s%s)*%n", mo.getName(), mo.getDescription(), mo.getType().getSimpleName(),
+			out.format("%s:: %s *(%s, %s%s)*%n", pt(mo.getName()), pt(mo.getDescription()),
+					pt(mo.getType().getSimpleName()),
 					prettyDefault, maybeEnumHint);
 		}
 	}
@@ -185,5 +186,14 @@ public class ModuleOptionsReferenceDoc {
 		result = result.replace(ModulePlaceholders.XD_JOB_NAME, "<job name>");
 		return result;
 	}
+
+	/**
+	 * Return an asciidoc passthrough version of some text, in case the original text contains characters
+	 * that would be (mis)interpreted by asciidoc.
+	 */
+	private String pt(Object original) {
+		return "$$" + original + "$$";
+	}
+
 
 }

@@ -1880,6 +1880,10 @@ task transformDocs(type: Copy, dependsOn: [pullDocs, shellReferenceDoc, moduleOp
 import org.asciidoctor.gradle.*
 apply plugin: 'org.asciidoctor.gradle.asciidoctor'
 
+asciidoctorj {
+    version = asciidoctorjVersion
+}
+
 task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs, shellReferenceDoc, moduleOptionsReferenceDoc] ) {
 	classpath = project.configurations.asciidoctor
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")

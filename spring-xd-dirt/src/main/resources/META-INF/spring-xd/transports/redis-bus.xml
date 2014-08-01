@@ -10,6 +10,7 @@
 	<bean id="messageBus" class="org.springframework.xd.dirt.integration.redis.RedisMessageBus">
 		<constructor-arg ref="redisConnectionFactory" />
 		<constructor-arg ref="codec"/>
+		<constructor-arg value="${xd.messagebus.redis.headers:}" />
 		<property name="defaultBackOffInitialInterval" value="${xd.messagebus.redis.default.backOffInitialInterval}" />
 		<property name="defaultBackOffMaxInterval" value="${xd.messagebus.redis.default.backOffMaxInterval}" />
 		<property name="defaultBackOffMultiplier" value="${xd.messagebus.redis.default.backOffMultiplier}" />

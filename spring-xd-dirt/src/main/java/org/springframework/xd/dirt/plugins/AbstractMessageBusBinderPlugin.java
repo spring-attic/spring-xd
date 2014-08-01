@@ -82,7 +82,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 
 	/**
 	 * Map of channels that can be tapped. The keys are the tap channel names (e.g. tap:stream:ticktock.time.0),
-	 * and the values are the output channels from modules where the actual WireTap interceptors would be added. 
+	 * and the values are the output channels from modules where the actual WireTap interceptors would be added.
 	 */
 	private final Map<String, MessageChannel> tappableChannels = new HashMap<String, MessageChannel>();
 
@@ -331,7 +331,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	 * Generates the name of a tap channel given a ZooKeeper tap path.
 	 *
 	 * @param path the ZooKeeper path under {@link Paths#TAPS}.
-	 * 
+	 *
 	 * @return the tap channel name
 	 */
 	private String buildTapChannelNameFromPath(String path) {
@@ -383,8 +383,16 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		}
 
 		@Override
+		public void onSuspend(CuratorFramework client) {
+		}
+
+		@Override
 		public void onConnect(CuratorFramework client) {
 			startTapListener(client);
+		}
+
+		@Override
+		public void onResume(CuratorFramework client) {
 		}
 	}
 

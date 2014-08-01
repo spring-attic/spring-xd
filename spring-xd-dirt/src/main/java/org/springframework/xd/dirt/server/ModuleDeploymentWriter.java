@@ -280,6 +280,11 @@ public class ModuleDeploymentWriter {
 		catch (KeeperException.NodeExistsException e) {
 			logger.info("Module {} is already deployed to container {}", descriptor, container);
 		}
+		catch (KeeperException.NoNodeException e) {
+			logger.error(String.format("Error creating the following deployment paths: %s, %s",
+					deploymentPath, statusPath), e);
+			throw e;
+		}
 	}
 
 	/**
@@ -325,7 +330,7 @@ public class ModuleDeploymentWriter {
 				path.getModuleLabel());
 
 		return new ModuleDeploymentStatus(path.getContainer(), path.getModuleSequence(), key,
-				ModuleDeploymentStatus.State.failed, t.toString());
+				ModuleDeploymentStatus.State.failed, ZooKeeperUtils.getStackTrace(t));
 	}
 
 

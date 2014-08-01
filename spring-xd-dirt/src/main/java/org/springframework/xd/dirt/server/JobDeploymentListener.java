@@ -212,7 +212,7 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 				String statusPath = Paths.build(Paths.JOB_DEPLOYMENTS, job.getName(), Paths.STATUS);
 				Stat stat = client.checkExists().forPath(statusPath);
 				if (stat != null) {
-					logger.warn("Found unexpected path {}; stat: {}", statusPath, stat);
+					logger.trace("Found old status path {}; stat: {}", statusPath, stat);
 					client.delete().forPath(statusPath);
 				}
 				client.create().withMode(CreateMode.EPHEMERAL).forPath(statusPath,

@@ -17,6 +17,8 @@
 package org.springframework.xd.dirt.zookeeper;
 
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.Map;
@@ -137,8 +139,14 @@ public abstract class ZooKeeperUtils {
 	 */
 	public static void logCacheEvent(Logger logger, PathChildrenCacheEvent event) {
 		ChildData data = event.getData();
-		String path = (data == null) ? "null" : data.getPath();
-		logger.info("Path cache event: {}, type: {}", path, event.getType());
+		StringBuilder builder = new StringBuilder();
+		builder.append("Path cache event: ");
+		if (data != null && data.getPath() != null) {
+			builder.append("path=").append(data.getPath()).append(", ");
+		}
+		builder.append("type=").append(event.getType());
+
+		logger.info(builder.toString());
 		if (data != null && logger.isTraceEnabled()) {
 			String content;
 			byte[] bytes = data.getData();
@@ -153,8 +161,22 @@ public abstract class ZooKeeperUtils {
 					content = "Could not convert content to UTF-8: " + e.toString();
 				}
 			}
-			logger.trace("Data for path {}: {}", path, content);
+			logger.trace("Data for path {}: {}", data.getPath(), content);
 		}
+	}
+
+	/**
+	 * Return the full stack trace for a Throwable.
+	 *
+	 * @param t throwable for which to obtain the full stack trace
+	 * @return string containing the full stack trace
+	 */
+	public static String getStackTrace(Throwable t) {
+		StringWriter stringWriter = new StringWriter();
+		PrintWriter printWriter = new PrintWriter(stringWriter);
+		t.printStackTrace(printWriter);
+
+		return stringWriter.toString();
 	}
 
 

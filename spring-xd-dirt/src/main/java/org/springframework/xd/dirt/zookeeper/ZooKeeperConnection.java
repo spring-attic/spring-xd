@@ -255,21 +255,33 @@ public class ZooKeeperConnection implements SmartLifecycle {
 			currentState = newState;
 			switch (newState) {
 				case CONNECTED:
-				case RECONNECTED:
 					logger.info(">>> Curator connected event: " + newState);
 					for (ZooKeeperConnectionListener listener : listeners) {
 						listener.onConnect(client);
 					}
 					break;
+				case RECONNECTED:
+					logger.info(">>> Curator reconnected event: " + newState);
+					for (ZooKeeperConnectionListener listener : listeners) {
+						listener.onResume(client);
+					}
+					break;
 				case LOST:
-				case SUSPENDED:
 					logger.info(">>> Curator disconnected event: " + newState);
 					for (ZooKeeperConnectionListener listener : listeners) {
 						listener.onDisconnect(client);
 					}
 					break;
+				case SUSPENDED:
+					logger.info(">>> Curator suspended event: " + newState);
+					for (ZooKeeperConnectionListener listener : listeners) {
+						listener.onSuspend(client);
+					}
+					break;
 				case READ_ONLY:
 					// todo: ?
+					logger.info(">>> Curator read-only event: " + newState);
+					break;
 			}
 		}
 	}

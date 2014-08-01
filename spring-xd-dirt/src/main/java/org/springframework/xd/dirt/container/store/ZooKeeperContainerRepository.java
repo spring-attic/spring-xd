@@ -199,23 +199,6 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 		String path = Paths.build(Paths.CONTAINERS, entity.getName());
 
 		try {
-			if (client.checkExists().forPath(path) != null) {
-				// if this container disconnected from ZooKeeper
-				// and reconnects, the ephemeral node may not
-				// have been cleaned up yet...this can happen
-				// in cases where the machine running both the
-				// container and ZooKeeper goes to sleep
-				client.delete().forPath(path);
-			}
-		}
-		catch (Exception e) {
-			// trapping the case where the ephemeral node exists
-			// but is removed by ZK before this container gets
-			// the chance to remove it
-			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
-		}
-
-		try {
 			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
 					.forPath(path, ZooKeeperUtils.mapToBytes(entity.getAttributes()));
 			return entity;

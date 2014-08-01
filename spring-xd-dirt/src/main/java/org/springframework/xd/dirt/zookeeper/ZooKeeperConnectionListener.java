@@ -21,27 +21,41 @@ import org.apache.curator.framework.state.ConnectionStateListener;
 
 /**
  * Listener for ZooKeeper connection and disconnection events.
- * 
+ *
  * @author Mark Fisher
  */
 public interface ZooKeeperConnectionListener {
 
 	/**
 	 * Called when the Curator {@link ConnectionStateListener} receives a
-	 * {@link org.apache.curator.framework.state.ConnectionState#CONNECTED} or
-	 * {@link org.apache.curator.framework.state.ConnectionState#RECONNECTED} event.
-	 * 
+	 * {@link org.apache.curator.framework.state.ConnectionState#CONNECTED} event.
+	 *
 	 * @param client the {@link CuratorFramework} instance
 	 */
 	void onConnect(CuratorFramework client);
 
 	/**
 	 * Called when the Curator {@link ConnectionStateListener} receives a
-	 * {@link org.apache.curator.framework.state.ConnectionState#SUSPENDED} or
+	 * {@link org.apache.curator.framework.state.ConnectionState#RECONNECTED} event.
+	 *
+	 * @param client the {@link CuratorFramework} instance
+	 */
+	void onResume(CuratorFramework client);
+
+	/**
+	 * Called when the Curator {@link ConnectionStateListener} receives a
 	 * {@link org.apache.curator.framework.state.ConnectionState#LOST} event.
-	 * 
+	 *
 	 * @param client the {@link CuratorFramework} instance
 	 */
 	void onDisconnect(CuratorFramework client);
+
+	/**
+	 * Called when the Curator {@link ConnectionStateListener} receives a
+	 * {@link org.apache.curator.framework.state.ConnectionState#SUSPENDED} event.
+	 *
+	 * @param client the {@link CuratorFramework} instance
+	 */
+	void onSuspend(CuratorFramework client);
 
 }

@@ -31,6 +31,7 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.utils.ThreadUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -39,6 +40,7 @@ import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.NotEmptyException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -348,7 +350,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			if (zkConnection.isConnected()) {
 				registerWithZooKeeper(zkConnection.getClient());
 			}
-			zkConnection.addListener(new ContainerAttributesRegisteringZooKeeperConnectionListener());
+			zkConnection.addListener(new ContainerConnectionListener());
 		}
 	}
 
@@ -365,38 +367,131 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 */
 	private void registerWithZooKeeper(CuratorFramework client) {
 		try {
-			// Save the container attributes before creating the container
-			// deploy path. This is done because the admin leader/supervisor
-			// will delete deployment paths for containers that aren't
-			// present in the containers path.
-			containerRepository.save(new Container(containerAttributes.getId(), containerAttributes));
+			String containerId = containerAttributes.getId();
+			String containerPath = Paths.build(Paths.CONTAINERS, containerId);
+			Stat containerPathStat = client.checkExists().forPath(containerPath);
 
-			String moduleDeploymentPath = Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED,
-					containerAttributes.getId());
-			Paths.ensurePath(client, moduleDeploymentPath);
+			// If the ephemeral node for this container exists, there are two
+			// possibilities:
+			//   1. The ZooKeeper session for this container was temporarily
+			//      suspended and has now resumed. This is usually the case
+			//      when a RECONNECTED event is raised after a SUSPENDED
+			//      event.
+			//   2. A new ZooKeeper session has been created and the existing
+			//      ephemeral node has not been cleaned up yet because the
+			//      previous session has not expired yet. This may happen
+			//      when a RECONNECTED event follows a SUSPENDED event
+			//      if Curator decides to recreate the ZooKeeper connection
+			//      in the background. This may also happen when ContainerRegistar
+			//      forces a new ZooKeeper connection when a RECONNECTED event
+			//      follows a LOST event; see ContainerConnectionListener.onResume.
+			if (containerPathStat != null) {
+				long prevSession = containerPathStat.getEphemeralOwner();
+				long currSession = client.getZookeeperClient().getZooKeeper().getSessionId();
+				if (prevSession == currSession) {
+					// the current session still exists on the server; skip the
+					// rest of the registration process
+					logger.info(String.format("Existing registration for container %s with session 0x%x detected",
+							containerId, currSession));
+					return;
+				}
+
+				logger.info(String.format("Previous registration for container %s with " +
+						"session %x detected; current session: 0x%x",
+						containerId, prevSession, currSession));
+
+				// Before proceeding, wait for the server to remove the ephemeral
+				// node from the previous session
+				int i = 1;
+				long startTime = System.currentTimeMillis();
+				while (client.checkExists().forPath(containerPath) != null) {
+					logger.info("Waiting for container registration cleanup (elapsed time {} seconds)...",
+							((System.currentTimeMillis() - startTime) / 1000));
+					Thread.sleep(exponentialDelay(i++, 60) * 1000);
+				}
+			}
+
+			String moduleDeploymentPath = Paths.build(Paths.MODULE_DEPLOYMENTS,
+					Paths.ALLOCATED, containerId);
+
+			// if the module deployment path exists, it means this container
+			// was previously connected to ZooKeeper and the admin supervisor
+			// has yet to complete processing of this container's exit event;
+			// therefore the container startup process will block until the
+			// admin has cleaned up the module deployment path (see XD-2004)
+			int i = 1;
+			long startTime = System.currentTimeMillis();
+			while (client.checkExists().forPath(moduleDeploymentPath) != null) {
+				logger.info("Waiting for supervisor to clean up prior deployments (elapsed time {} seconds)...",
+						((System.currentTimeMillis() - startTime) / 1000));
+				Thread.sleep(exponentialDelay(i++, 60) * 1000);
+			}
+
+			// create the module deployment path before the ephemeral node
+			// (which is created via containerRepository) - the latter
+			// makes the container "available" for module deployment
+			client.create().creatingParentsIfNeeded().forPath(moduleDeploymentPath);
+
+			containerRepository.save(new Container(containerId, containerAttributes));
+
+			// if this container is rejoining, clear out the old cache and recreate
+			if (deployments != null) {
+				try {
+					deployments.close();
+				}
+				catch (Exception e) {
+					// this exception can be ignored; logging at trace level
+					logger.trace("Exception while closing deployments cache", e);
+				}
+			}
+
 			deployments = new PathChildrenCache(client, moduleDeploymentPath, true,
 					ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
 			deployments.getListenable().addListener(deploymentListener);
 			deployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
-			logger.info("Started container {}", containerAttributes);
+			logger.info("Container {} joined cluster", containerAttributes);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 	}
 
+	/**
+	 * Calculate an exponential delay per the algorithm described
+	 * in http://en.wikipedia.org/wiki/Exponential_backoff.
+	 *
+	 * @param attempts number of failed attempts
+	 * @param max      the maximum amount of time to wait
+	 *
+	 * @return the amount of time to wait
+	 */
+	private long exponentialDelay(int attempts, long max) {
+		long delay = ((long) Math.pow(2, attempts) - 1) / 2;
+		return Math.min(delay, max);
+	}
 
 	/**
 	 * The listener that triggers registration of the container attributes in a ZooKeeper node.
 	 */
-	private class ContainerAttributesRegisteringZooKeeperConnectionListener implements ZooKeeperConnectionListener {
+	private class ContainerConnectionListener implements ZooKeeperConnectionListener {
+
+		/**
+		 * The last known connection state. This will be {@code null} prior to the
+		 * initial ZooKeeper connection.
+		 */
+		private ConnectionState lastKnownState;
 
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
 		public void onConnect(CuratorFramework client) {
+			lastKnownState = ConnectionState.CONNECTED;
 			registerWithZooKeeper(client);
 		}
 
@@ -404,21 +499,59 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		 * {@inheritDoc}
 		 */
 		@Override
+		public void onResume(CuratorFramework client) {
+			if (lastKnownState == ConnectionState.LOST) {
+				// force a shutdown and restart of the client;
+				// this will create a new ZooKeeper session id
+				// and cause expiration of the previous session
+				// after which ZooKeeper will clean up the previous
+				// ephemeral nodes for this container
+				logger.info("ZooKeeper connection lost; restarting connection");
+				zkConnection.stop();
+				zkConnection.start();
+			}
+			else if (lastKnownState == ConnectionState.SUSPENDED) {
+				logger.info("ZooKeeper connection resumed");
+				registerWithZooKeeper(client);
+			}
+
+			lastKnownState = ConnectionState.RECONNECTED;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
 		public void onDisconnect(CuratorFramework client) {
+			logger.warn("ZooKeeper connection terminated: {}", containerAttributes.getId());
+			lastKnownState = ConnectionState.LOST;
 			try {
-				logger.warn(">>> disconnected container: {}", containerAttributes.getId());
 				deployments.getListenable().removeListener(deploymentListener);
 				deployments.close();
-
-				for (Iterator<ModuleDescriptor.Key> iterator = mapDeployedModules.keySet().iterator(); iterator.hasNext();) {
-					ModuleDescriptor.Key key = iterator.next();
-					undeployModule(key.getGroup(), key.getType().name(), key.getLabel());
-					iterator.remove();
-				}
 			}
 			catch (Exception e) {
-				throw ZooKeeperUtils.wrapThrowable(e);
+				logger.debug("Exception closing deployments cache", e);
 			}
+
+			for (Iterator<ModuleDescriptor.Key> iterator = mapDeployedModules.keySet().iterator(); iterator.hasNext();) {
+				ModuleDescriptor.Key key = iterator.next();
+				try {
+					undeployModule(key.getGroup(), key.getType().name(), key.getLabel());
+				}
+				catch (Exception e) {
+					logger.warn("Exception while undeploying " + key, e);
+				}
+				iterator.remove();
+			}
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void onSuspend(CuratorFramework client) {
+			lastKnownState = ConnectionState.SUSPENDED;
+			logger.info("ZooKeeper connection suspended: {}", containerAttributes.getId());
 		}
 	}
 
@@ -458,7 +591,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 		catch (Exception e) {
 			status = new ModuleDeploymentStatus(container, moduleSequence, key,
-					ModuleDeploymentStatus.State.failed, e.toString());
+					ModuleDeploymentStatus.State.failed, ZooKeeperUtils.getStackTrace(e));
 			logger.error("Exception deploying module", e);
 		}
 
@@ -555,7 +688,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param streamName     name of the stream for the module
 	 * @param moduleType     module type
 	 * @param moduleLabel    module label
-	 * @param moduleSequence module sequence
 	 * @param properties     module deployment properties
 	 * @return Module deployed stream module
 	 */
@@ -705,6 +837,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		 */
 		@Override
 		public void process(WatchedEvent event) throws Exception {
+			CuratorFramework client = zkConnection.getClient();
+
 			if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
 				StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(event.getPath());
 
@@ -722,7 +856,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						.setModuleLabel(moduleLabel)
 						.setModuleSequence(moduleSequence).build();
 
-				CuratorFramework client = zkConnection.getClient();
 				try {
 					if (client.checkExists().forPath(deploymentPath) != null) {
 						logger.trace("Deleting path: {}", deploymentPath);
@@ -746,7 +879,19 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						Watcher.Event.KeeperState.ConnectedReadOnly).contains(event.getState())) {
 					// this watcher is only interested in deletes for the purposes of undeploying modules;
 					// if any other change occurs the watch needs to be reestablished
-					zkConnection.getClient().getData().usingWatcher(this).forPath(event.getPath());
+					try {
+						client.getData().usingWatcher(this).forPath(event.getPath());
+					}
+					catch (Exception e) {
+						logger.error("Exception setting up watch for path '{}': {}; ZooKeeper state: {}",
+								event.getPath(), e, zkConnection.getClient().getZookeeperClient().getZooKeeper().getState());
+						if (logger.isDebugEnabled()) {
+							logger.debug("Full stack trace", e);
+						}
+						if (client.getState() == CuratorFrameworkState.STARTED) {
+							throw ZooKeeperUtils.wrapThrowable(e);
+						}
+					}
 				}
 			}
 		}
@@ -763,6 +908,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		 */
 		@Override
 		public void process(WatchedEvent event) throws Exception {
+			CuratorFramework client = zkConnection.getClient();
+
 			if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
 				JobDeploymentsPath jobDeploymentsPath = new JobDeploymentsPath(event.getPath());
 				String jobName = jobDeploymentsPath.getJobName();
@@ -778,7 +925,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						.setModuleLabel(moduleLabel)
 						.setModuleSequence(moduleSequence).build();
 
-				CuratorFramework client = zkConnection.getClient();
 				try {
 					if (client.checkExists().forPath(deploymentPath) != null) {
 						logger.trace("Deleting path: {}", deploymentPath);
@@ -802,7 +948,19 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						Watcher.Event.KeeperState.ConnectedReadOnly).contains(event.getState())) {
 					// this watcher is only interested in deletes for the purposes of undeploying modules;
 					// if any other change occurs the watch needs to be reestablished
-					zkConnection.getClient().getData().usingWatcher(this).forPath(event.getPath());
+					try {
+						client.getData().usingWatcher(this).forPath(event.getPath());
+					}
+					catch (Exception e) {
+						logger.error("Exception setting up watch for path '{}': {}; ZooKeeper state: {}",
+								event.getPath(), e, zkConnection.getClient().getZookeeperClient().getZooKeeper().getState());
+						if (logger.isDebugEnabled()) {
+							logger.debug("Full stack trace", e);
+						}
+						if (client.getState() == CuratorFrameworkState.STARTED) {
+							throw ZooKeeperUtils.wrapThrowable(e);
+						}
+					}
 				}
 			}
 		}

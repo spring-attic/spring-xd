@@ -171,7 +171,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		setCodec(codec);
 		this.errorAdapter = new RedisQueueOutboundChannelAdapter(
 				parser.parseExpression("headers['" + ERROR_HEADER + "']"), connectionFactory);
-		if (headersToMap != null || headersToMap.length > 0) {
+		if (headersToMap != null && headersToMap.length > 0) {
 			String[] combinedHeadersToMap =
 					Arrays.copyOfRange(STANDARD_HEADERS, 0, STANDARD_HEADERS.length + headersToMap.length);
 			System.arraycopy(headersToMap, 0, combinedHeadersToMap, STANDARD_HEADERS.length, headersToMap.length);

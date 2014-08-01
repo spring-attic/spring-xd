@@ -86,7 +86,6 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 	 */
 	@Override
 	protected void deployModules(Container container) throws Exception {
-		logger.info("Container departed: {}", container);
 		CuratorFramework client = getClient();
 		if (client.getState() == CuratorFrameworkState.STOPPED) {
 			return;

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 
@@ -53,8 +54,9 @@ public class ContainerRedeploymentTests extends AbstractDistributedTests {
 		String streamName = testName.getMethodName() + "-upper-case";
 
 		SpringXDTemplate template = ensureTemplate();
+		int httpPort = SocketUtils.findAvailableServerSocket();
 		template.streamOperations().createStream(streamName,
-				"http --port=9003 | transform --expression='payload.toUpperCase()' | log",
+				String.format("http --port=%d | transform --expression='payload.toUpperCase()' | log", httpPort),
 				false);
 		verifyStreamCreated(streamName);
 

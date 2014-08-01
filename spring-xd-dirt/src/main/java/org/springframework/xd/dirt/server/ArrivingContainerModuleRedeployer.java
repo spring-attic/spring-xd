@@ -102,9 +102,6 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	 */
 	@Override
 	protected void deployModules(Container container) throws Exception {
-		String containerName = container.getName();
-		logger.info("Container arrived: {}", containerName);
-
 		deployUnallocatedStreamModules();
 		deployUnallocatedJobModules();
 	}

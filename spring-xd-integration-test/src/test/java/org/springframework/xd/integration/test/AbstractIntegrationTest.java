@@ -270,7 +270,8 @@ public abstract class AbstractIntegrationTest {
 		Assert.notNull(data, "data must not be null");
 
 		if (xdEnvironment.isOnEc2()) {
-			StreamUtils.createDataFileOnRemote(xdEnvironment.getPrivateKey(), host, sourceDir, fileName, data);
+			StreamUtils.createDataFileOnRemote(xdEnvironment.getPrivateKey(), host, sourceDir, fileName, data,
+					WAIT_TIME);
 		}
 		else {
 			try {
@@ -736,7 +737,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param path the path to the resource .
 	 * @return false if the path was not present. True if it was present.
 	 */
-	public boolean waitForPath(int waitTime, String path) {
+	private boolean waitForPath(int waitTime, String path) {
 		long timeout = System.currentTimeMillis() + waitTime;
 		File file = new File(path);
 		boolean exists = file.exists();

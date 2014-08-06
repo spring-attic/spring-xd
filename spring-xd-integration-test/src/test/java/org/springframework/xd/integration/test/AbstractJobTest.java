@@ -174,6 +174,58 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 				&& jobDefinition.equals(resource.getDefinition());
 	}
 
+    /**
+     * Wait until the job is complete. If multiple job executions have been executed using this jobName,
+     * the method will only check the first job execution it retrieves from the datastore.  Hint: use a unique jobName,
+     * to guarantee that you will get zero or one jobExecution.
+     * @param jobName The name of the job to evaluate.
+     */
+    protected boolean waitForJobToComplete(String jobName) {
+        Assert.hasText(jobName, "The job name must be specified.");
+
+        boolean isJobComplete = isJobComplete(jobName);
+        long timeout = System.currentTimeMillis() + WAIT_TIME;
+        while (!isJobComplete && System.currentTimeMillis() < timeout) {
+            try {
+                Thread.sleep(1000);
+            }
+            catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException(e.getMessage(), e);
+            }
+            isJobComplete = isJobComplete(jobName);
+        }
+        return isJobComplete;
+    }
+
+    /**
+     * Checks to see if the execution for the job is complete.
+     * Since a single jobName can have multiple jobExecutions, this method evaluates the first job execution
+     *  in the job execution list.
+     * @param jobName The name of the job to be evaluated.
+     * @return true if the job is deployed else false
+     */
+    private boolean isJobComplete(String jobName) {
+        boolean result = false;
+        List<JobExecutionInfoResource> resources = getJobExecInfoByName(jobName);
+        Iterator<JobExecutionInfoResource> resourceIter = resources.iterator();
+        while (resourceIter.hasNext()) {
+            JobExecutionInfoResource resource = resourceIter.next();
+
+            if (jobName.equals(resource.getName())) {
+                if (BatchStatus.COMPLETED.equals(resource.getJobExecution().getStatus())) {
+                    result = true;
+                    break;
+                }
+                else {
+                    result = false;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
 	/**
 	 * Creates the job definition and deploys it to the cluster being tested.
 	 *

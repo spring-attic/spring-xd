@@ -327,8 +327,9 @@ project('spring-xd-dirt') {
 		compile "org.springframework.data:spring-data-redis"
 		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.integration:spring-integration-event"
-		compile "org.springframework.integration:spring-integration-groovy"
-		compile "org.springframework.integration:spring-integration-http"
+        //TODO: Apparently only needed for script, transform, router modules
+		runtime "org.springframework.integration:spring-integration-groovy"
+		//compile "org.springframework.integration:spring-integration-http"
 		// TODO: Investigate why spring-integration-http's optional dependency xerces becomes transitive dependency
 		configurations.compile.exclude(group: "xerces")
 		// Remove transitive dependency on commons-logging-api
@@ -351,7 +352,8 @@ project('spring-xd-dirt') {
 		compile "args4j:args4j:$args4jVersion"
 
 		compile "org.springframework.batch:spring-batch-core"
-		compile ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
+        //Required for a classloading issue. See https://github.com/spring-projects/spring-xd/pull/1116
+		runtime ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
 		compile "org.apache.tomcat:tomcat-jdbc"
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
 			exclude group: 'org.freemarker'
@@ -376,7 +378,7 @@ project('spring-xd-dirt') {
 		// ************* Dirt-Server only
 		compile project(':spring-xd-rest-domain')
 		compile "org.springframework:spring-webmvc"
-		compile "org.springframework.data:spring-data-commons"
+		runtime "org.springframework.data:spring-data-commons"
 		compile "org.apache.tomcat.embed:tomcat-embed-core"
 
 		// ************* Dirt-Container only (per se)
@@ -384,7 +386,7 @@ project('spring-xd-dirt') {
 		compile "com.jayway.jsonpath:json-path"
 
 		// ************* Container: Modules (should move on their own: XD-915)
-		compile project(":spring-xd-hadoop")
+		optional project(":spring-xd-hadoop")
 
 		// ************* Container: Imposed by some Module (can't move)
 		compile "com.sun.mail:javax.mail"

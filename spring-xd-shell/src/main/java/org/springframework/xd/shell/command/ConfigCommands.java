@@ -47,6 +47,7 @@ import org.springframework.xd.shell.util.UiUtils;
  * commands will set properties on the {@link Configuration} object.
  *
  * @author Gunnar Hillert
+ * @author Rodrigo Meneses
  * @since 1.0
  *
  */

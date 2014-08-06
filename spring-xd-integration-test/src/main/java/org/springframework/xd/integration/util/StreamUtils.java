@@ -163,18 +163,32 @@ public class StreamUtils {
 	 * @param dir The directory to write the file
 	 * @param fileName The fully qualified file name of the file to be created.
 	 * @param payload the data to write to the file
+	 * @param retryTime the time in millis to retry to push data file to remote system.
 	 */
-	public static void createDataFileOnRemote(String privateKey, String host, String dir, String fileName,
-			String payload)
+	public static boolean createDataFileOnRemote(String privateKey, String host, String dir, String fileName,
+			String payload, int retryTime)
 	{
 		Assert.hasText(privateKey, "privateKey must not be empty nor null.");
 		Assert.hasText(host, "The remote machine's URL must be specified.");
 		Assert.notNull(dir, "dir should not be null");
 		Assert.hasText(fileName, "The remote file name must be specified.");
-
-		final SshjSshClient client = getSSHClient(host, privateKey);
-		client.exec("mkdir " + dir);
-		client.put(dir + "/" + fileName, payload);
+		boolean isFileCopied = false;
+		long timeout = System.currentTimeMillis() + retryTime;
+		while (!isFileCopied && System.currentTimeMillis() < timeout) {
+			SshjSshClient client = getSSHClient(host, privateKey);
+			client.exec("mkdir " + dir);
+			client.put(dir + "/" + fileName, payload);
+			ExecResponse response = client.exec("ls -al " + dir + "/" + fileName);
+			if (response.getExitStatus() > 0) {
+				continue; //file was not created
+			}
+			response = client.exec("cat " + dir + "/" + fileName);
+			if (response.getExitStatus() > 0 || !payload.equals(response.getOutput())) {
+				continue;//data stored on machine is different than was expected.
+			}
+			isFileCopied = true;
+		}
+		return isFileCopied;
 	}
 
 	/**

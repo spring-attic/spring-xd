@@ -1,0 +1,259 @@
+/*
+ * Tasks related to building the Spring XD distribution
+*/
+def dirtJars = []
+def loadDirtJars = {
+	if (dirtJars.size == 0) {
+		File dirtLib = new File("$rootDir/spring-xd-dirt/build/install/spring-xd-dirt/lib")
+		dirtLib.traverse { jar -> dirtJars << jar.name }
+	}
+	dirtJars
+}
+
+task copyRedisInstall(type: Copy, dependsOn: ":redis:bundleRedis") {
+	from "$rootDir/redis/build"
+	into "$buildDir/dist/spring-xd/redis"
+}
+
+task copyGemfireInstall(type: Copy, dependsOn: [":spring-xd-gemfire-server:installApp", "copyXDInstall"]) {
+	from "$rootDir/spring-xd-gemfire-server/build/install/spring-xd-gemfire-server"
+	into "$buildDir/dist/spring-xd/gemfire"
+	//exclude any jars already in xd/lib
+	exclude {jar ->
+		loadDirtJars()
+		dirtJars.contains(jar.name)
+	}
+}
+
+task copyBatchInstall(type: Copy, dependsOn: [":spring-xd-batch:installApp", "copyXDInstall"]) {
+	from "$rootDir/spring-xd-batch/build/install/spring-xd-batch"
+	into "$buildDir/dist/spring-xd/hsqldb"
+	//exclude any jars already in xd/lib
+	exclude {jar ->
+		loadDirtJars()
+		dirtJars.contains(jar.name)
+	}
+}
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task copyZookeeperInstall(type: Copy) {
+	from "$rootDir/scripts/zookeeper"
+	into "$buildDir/dist/spring-xd/zookeeper"
+	filter(ReplaceTokens, tokens: [zookeeperVersion: rootProject.ext.zookeeperVersion])
+}
+
+task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
+	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
+	into "$buildDir/dist/spring-xd/xd"
+	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/protobuf-java-*.jar"
+	exclude "**/commons-logging*.jar"
+	exclude "**/lib/spring-data-hadoop-*.jar"
+	exclude "**/lib/mysql-connector-java-*.jar"
+}
+
+task copyXDShellInstall(type: Copy, dependsOn: ["copyXDInstall", ":spring-xd-shell:installApp"]) {
+	from "$rootDir/spring-xd-shell/build/install/spring-xd-shell"
+	into "$buildDir/dist/spring-xd/shell"
+	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/protobuf-java-*.jar"
+	exclude "**/lib/spring-data-hadoop-*.jar"
+	//exclude any jars already in xd/lib
+	exclude {jar ->
+		loadDirtJars()
+		dirtJars.contains(jar.name)
+	}
+}
+
+task copyHadoopLibs(dependsOn: [
+	":spring-xd-hadoop:hadoop22:copyToLib",
+	":spring-xd-hadoop:hadoop24:copyToLib",
+	":spring-xd-hadoop:cdh5:copyToLib",
+	":spring-xd-hadoop:hdp21:copyToLib",
+	":spring-xd-hadoop:phd1:copyToLib",
+	":spring-xd-hadoop:phd20:copyToLib"
+]) << {
+	[
+		'hadoop24',
+		'hadoop22',
+		'cdh5',
+		'hdp21',
+		'phd1',
+		'phd20'
+	].each { distro ->
+		copy {
+			from "$rootDir/spring-xd-hadoop/$distro/build/lib"
+			into "$buildDir/dist/spring-xd/xd/lib/$distro"
+		}
+	}
+}
+
+task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp", ":spring-xd-yarn:spring-xd-yarn-client:build", ":spring-xd-yarn:spring-xd-yarn-appmaster:build"]) {
+		group = 'Application'
+	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
+	into "$buildDir/dist/spring-xd-yarn/xd-yarn"
+	exclude "**/bin/*"
+	exclude "**/config/servers.yml"
+	exclude "**/config/modules"
+	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/spring-data-hadoop-*.jar"
+		exclude "**/lib/slf4j-log4j12-*.jar"
+		exclude "**/lib/log4j-*.jar"
+}
+
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall", "copyZookeeperInstall"]) {
+	group = 'Application'
+	description = "Copy all the required installs to build/dist directory"
+	from "$rootDir/scripts/README"
+	from "$rootDir/scripts/LICENSE"
+	into "$buildDir/dist/spring-xd"
+}
+
+configurations { dist }
+
+task docsZip(type: Zip) {
+	group = 'Distribution'
+	classifier = 'docs'
+	description = "Builds -${classifier} archive containing api and reference docs."
+
+	from (api) { into 'api' }
+
+	from (reference) {
+		exclude 'htmlsingle'
+		exclude 'html'
+		into 'reference'
+	}
+
+	from ("$buildDir/html") { into "reference/html" }
+}
+
+task distZip(type: Zip, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
+	group = 'Application'
+	classifier = 'dist'
+	description = "Bundles the XD project and associated installs with libs and OS specific scripts as a zip file."
+
+	ext.baseDir = "${project.name}-${project.version}";
+
+	from("$buildDir/dist/spring-xd") { into "${baseDir}" }
+
+	from ("$buildDir/html") { into "${baseDir}/docs" }
+}
+
+task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
+	group = 'Application'
+	classifier = ''
+	description = "Bundles the XD project and associated installs with libs and OS specific scripts as a tar file."
+
+	ext.baseDir = "${project.name}-${project.version}";
+
+	from("$buildDir/dist/spring-xd") { into "${baseDir}" }
+
+	from ("$buildDir/html") { into "${baseDir}/docs" }
+}
+
+task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
+	group = 'Application'
+	appendix = 'yarn'
+	description = "Bundles the XD project, modules and libs prepared for YARN deployment as a zip file."
+
+	destinationDir = new File("$buildDir/tmp")
+
+	from("$buildDir/dist/spring-xd-yarn/xd-yarn/lib") {
+		into "/lib"
+	}
+	from("$buildDir/dist/spring-xd/xd/lib/hadoop22") {
+		include "spring-data-hadoop-*.jar"
+		into "/lib"
+	}
+	from("$buildDir/dist/spring-xd-yarn/xd-yarn/config") {
+		into "/config"
+	}
+	from("$buildDir/dist/spring-xd-yarn/xd-yarn/modules") {
+		into "/modules"
+	}
+	from("$buildDir/dist/spring-xd-yarn/xd-yarn/spring-xd-ui") {
+		into "/spring-xd-ui"
+	}
+}
+
+task yarnModulesZip(type: Zip, overwrite: true) {
+	group = 'Application'
+	archiveName = "custom-modules.zip"
+	description = "Creates an empty custom-modules zip file."
+
+	destinationDir = new File("$buildDir/tmp")
+
+	from("$rootDir/spring-xd-yarn/site/modules") {
+		into "/modules"
+	}
+}
+
+task yarnConfigZip(type: Zip, overwrite: true) {
+	group = 'Application'
+	archiveName = "modules-config.zip"
+	description = "Creates the modules config zip file."
+
+	destinationDir = new File("$buildDir/tmp")
+
+	from("$rootDir/spring-xd-dirt/build/install/spring-xd-dirt/config/modules") {
+		into "/"
+	}
+}
+
+
+task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip, yarnModulesZip, yarnConfigZip], overwrite: true) {
+	group = 'Application'
+	classifier = 'yarn'
+	description = "Bundles the XD files needed for YARN deployments."
+
+	ext.baseDir = "${project.name}-${project.version}-yarn";
+
+	from("$rootDir/scripts/README") {
+		into "${baseDir}"
+	}
+	from("$rootDir/scripts/LICENSE") {
+		into "${baseDir}"
+	}
+	from("$rootDir/spring-xd-yarn/site/scripts") {
+		into "${baseDir}/bin"
+	}
+	from("$rootDir/spring-xd-yarn/site/config") {
+		include '*.properties'
+		include '*.yml'
+		include '*.txt'
+		into "${baseDir}/config"
+	}
+	from("$buildDir/dist/spring-xd/xd/config/modules") {
+		include "modules.yml"
+		into "${baseDir}/config"
+	}
+	from("$buildDir/tmp") {
+		include "modules-config.zip"
+		into "${baseDir}/config"
+	}
+	from("$rootDir/spring-xd-yarn/spring-xd-yarn-client/build/libs") {
+		include "spring-xd-yarn-client-${project.version}.jar"
+		into "${baseDir}/lib"
+	}
+	from("$rootDir/spring-xd-yarn/spring-xd-yarn-appmaster/build/libs") {
+		include "spring-xd-yarn-appmaster-${project.version}.jar"
+		into "${baseDir}/lib"
+	}
+	from("$buildDir/tmp") {
+		include "spring-xd-yarn-${project.version}.zip"
+		include "custom-modules.zip"
+		into "${baseDir}"
+	}
+}
+
+artifacts {
+	archives distZip
+	archives distYarnZip
+	archives docsZip
+}
+
+task dist(dependsOn: assemble) {
+	group = 'Distribution'
+	description = 'Builds XD binary and reference docs distribution archives.'
+}

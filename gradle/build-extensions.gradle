@@ -1,0 +1,135 @@
+/*
+ * Spring XD Extension projects, supporting module definitions.
+*/
+
+project('spring-xd-extension-mail') {
+    description = 'Spring XD Mail'
+    dependencies {
+        compile "org.springframework.integration:spring-integration-mail"
+        compile project(":spring-xd-module-spi")
+    }
+}
+
+project('spring-xd-extension-http') {
+    description = 'Spring XD HTTP'
+    dependencies {
+        compile "org.springframework.integration:spring-integration-core"
+        compile "io.netty:netty:${nettyVersion}"
+        compile "org.springframework:spring-web"
+        compile project(":spring-xd-module-spi")
+        testCompile project(":spring-xd-test")
+    }
+}
+
+project('spring-xd-extension-gemfire') {
+    description = 'Spring XD Gemfire'
+    dependencies {
+        compile "org.springframework.integration:spring-integration-gemfire"
+        compile project(':spring-xd-module-spi')
+        compile "javax.validation:validation-api"
+    }
+}
+
+project('spring-xd-extension-batch') {
+    description = 'Spring XD batch support'
+    dependencies {
+        compile "org.springframework.integration:spring-integration-file"
+        runtime "org.springframework.integration:spring-integration-ftp"
+        provided "org.springframework.batch:spring-batch-core"
+        provided "org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}"
+        testCompile project(':spring-xd-test')
+        testCompile project(':spring-xd-dirt')
+    }
+}
+
+project('spring-xd-extension-tcp') {
+    description = 'Spring XD TCP'
+    dependencies {
+        compile "org.springframework.integration:spring-integration-ip"
+        compile project(':spring-xd-module-spi')
+        compile "javax.validation:validation-api"
+    }
+}
+
+project('spring-xd-extension-twitter') {
+    description = 'Spring XD Twitter'
+    dependencies {
+        compile project(':spring-xd-module-spi')
+        compile "javax.validation:validation-api"
+        runtime "com.fasterxml.jackson.core:jackson-databind"
+        compile "org.springframework.social:spring-social-twitter"
+        compile "org.springframework.integration:spring-integration-core"
+        compile "org.codehaus.groovy:groovy-all"
+        testCompile "org.springframework.integration:spring-integration-test"
+    }
+}
+
+project('spring-xd-extension-splunk') {
+    description = 'Spring XD Splunk'
+    dependencies {
+        compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
+        compile "org.springframework.integration:spring-integration-core"
+        runtime "com.splunk:splunk:$splunkVersion"
+        compile project(':spring-xd-module-spi')
+    }
+}
+
+project('spring-xd-extension-mongodb') {
+    description = 'Spring XD Mongodb'
+    dependencies {
+        compile project(':spring-xd-tuple')
+        compile "org.springframework.batch:spring-batch-core"
+        compile ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
+    }
+}
+
+project('spring-xd-extension-jdbc') {
+    description = 'Spring XD JDBC'
+    dependencies {
+        compile project(':spring-xd-tuple')
+        compile "org.springframework:spring-jdbc"
+        compile "org.springframework:spring-tx"
+        compile "org.springframework.batch:spring-batch-infrastructure"
+        compile "org.springframework.integration:spring-integration-core"
+        runtime "org.springframework.integration:spring-integration-jdbc"
+        runtime "com.fasterxml.jackson.core:jackson-databind"
+        compile "org.hsqldb:hsqldb"
+        runtime "mysql:mysql-connector-java"
+        runtime "org.postgresql:postgresql:$postgresqlVersion"
+        compile project(':spring-xd-module-spi')
+        compile "javax.validation:validation-api"
+    }
+}
+
+project('spring-xd-extension-reactor') {
+    description = 'Spring XD Reactor'
+    dependencies {
+        compile project(':spring-xd-module-spi'),
+                "org.projectreactor.spring:reactor-spring-messaging",
+                "org.springframework.integration:spring-integration-core",
+                "javax.validation:validation-api"
+
+        testCompile project(":spring-xd-test"),
+                project(':spring-xd-module'),
+                "com.jayway.jsonpath:json-path"
+        "com.esotericsoftware.kryo:kryo"
+        testRuntime "org.slf4j:jcl-over-slf4j",
+                "org.slf4j:slf4j-log4j12",
+                "log4j:log4j"
+    }
+}
+
+project('spring-xd-extension-throughput') {
+    description = 'Spring XD Throughput testing'
+    dependencies {
+        compile project(':spring-xd-module-spi'),
+                "org.slf4j:slf4j-api",
+                "org.springframework.integration:spring-integration-core"
+
+        testCompile project(":spring-xd-test"),
+                project(':spring-xd-module')
+        testRuntime "org.slf4j:jcl-over-slf4j",
+                "org.slf4j:slf4j-log4j12",
+                "log4j:log4j"
+    }
+}

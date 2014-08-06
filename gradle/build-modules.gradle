@@ -1,0 +1,294 @@
+/*
+ * Tasks related to building the Spring XD modules
+*/
+
+apply from: 'gradle/build-common.gradle'
+
+configure(moduleProjects) { moduleProject ->
+
+    // We only apply the java plugin b/c the eclipse/idea plugins
+    // require it to emit e.g. a .classpath file. Those projects don't actually
+    // contain java code, so reset everything (prevents creation of
+    // the 'build' directory, etc)
+    apply plugin: 'spring-boot'
+
+    bootRepackage {
+        enabled = false
+    }
+
+    task build(overwrite: true) {}
+    task clean(overwrite: true) {}
+    compileJava {
+        sourceCompatibility=1.6
+        targetCompatibility=1.6
+    }
+
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+
+    dependencies {
+        versionManagement "io.spring.platform:platform-versions:$platformVersion@properties"
+    }
+
+    forceDependencyVersions(moduleProject)
+
+    // Disable artifact publishing
+    moduleProject.tasks.findByPath("artifactoryPublish")?.enabled = false
+
+    eclipse {
+        project { natures += 'org.springframework.ide.eclipse.core.springnature' }
+    }
+
+    task copyLibs(type: Copy) {
+        def containerDeps = project(':spring-xd-dirt').configurations.runtime
+
+        inputs.property('deps', moduleProject.configurations.runtime.minus(containerDeps))
+        outputs.dir project.file('lib/')
+
+        from moduleProject.configurations.runtime.minus(containerDeps)
+        into project.file('lib/')
+        exclude 'jackson-*'
+    }
+
+    [
+            'test',
+            'build',
+            'eclipse',
+            'idea'
+    ].each {t -> tasks[t].dependsOn copyLibs}
+
+    task cleanLibs(type: Delete)  { delete copyLibs.outputs }
+
+    [
+            'clean',
+            'cleanEclipse',
+            'cleanIdea'
+    ].each {t -> tasks[t].dependsOn cleanLibs}
+
+    project(':spring-xd-dirt').tasks['build'].dependsOn(moduleProject.tasks['build'])
+}
+
+apply from: 'gradle/build-extensions.gradle'
+
+task moduleFiles {
+    def modules = fileTree("$rootDir/modules")
+    modules.exclude 'lib'
+    modules.exclude 'build'
+    outputs.dir modules
+}
+
+// Module definition projects (for projects w/ classpath)
+
+project('modules') {
+    description = 'Spring XD Modules'
+    dependencies { compile project(':spring-xd-dirt') }
+    task build(overwrite: true) {}
+}
+
+// ================ M O D U L E S : S O U R C E S ======================
+
+project('modules.source.mail') {
+    dependencies {
+        runtime project(":spring-xd-extension-mail")
+    }
+}
+
+project('modules.source.file') {
+    dependencies { runtime	"org.springframework.integration:spring-integration-file" }
+}
+
+project('modules.source.tail') {
+    dependencies { runtime	"org.springframework.integration:spring-integration-file" }
+}
+
+project('modules.source.http') {
+    dependencies { runtime	project(":spring-xd-extension-http") }
+}
+
+project('modules.source.tcp') {
+    dependencies { runtime project(":spring-xd-extension-tcp") }
+}
+
+project('modules.source.tcp-client') {
+    dependencies { runtime project(":spring-xd-extension-tcp") }
+}
+
+project('modules.source.mqtt') {
+    dependencies { runtime "org.springframework.integration:spring-integration-mqtt" }
+}
+
+project('modules.source.syslog-tcp') {
+    dependencies { runtime "org.springframework.integration:spring-integration-syslog" }
+}
+
+project('modules.source.syslog-udp') {
+    dependencies { runtime "org.springframework.integration:spring-integration-syslog" }
+}
+
+project('modules.source.reactor-ip') {
+    dependencies {
+        runtime(project(":spring-xd-extension-reactor")) {
+            exclude module: 'slf4j-api'
+            exclude module: 'spring-integration-core'
+        }
+    }
+}
+
+project('modules.source.reactor-syslog') {
+    dependencies {
+        runtime(project(":spring-xd-extension-reactor")) {
+            exclude module: 'slf4j-api'
+            exclude module: 'spring-integration-core'
+        }
+    }
+}
+
+project('modules.source.jms') {
+    dependencies {
+        runtime "org.springframework.integration:spring-integration-jms"
+        runtime "org.apache.activemq:activemq-client"
+    }
+}
+
+project('modules.source.gemfire') {
+    dependencies {
+        runtime (project(":spring-xd-extension-gemfire")) {
+            exclude group: 'org.slf4j'
+            exclude group: 'commons-logging'
+        }
+    }
+}
+
+project('modules.source.gemfire-cq') {
+    dependencies {
+        runtime (project(":spring-xd-extension-gemfire")) {
+            exclude group: 'org.slf4j'
+            exclude group: 'commons-logging'
+        }
+    }
+}
+
+project('modules.source.twitterstream') {
+    dependencies {
+        runtime(project(":spring-xd-extension-twitter")) { exclude group: 'org.codehaus.jackson' }
+    }
+}
+
+project('modules.source.twittersearch') {
+    dependencies {
+        runtime(project(":spring-xd-extension-twitter")) { exclude group: 'org.codehaus.jackson' }
+    }
+}
+
+// ================ M O D U L E S : P R O C E S S O R S ================
+
+
+project('modules.processor.http-client') {
+    dependencies {
+        runtime(project(":spring-xd-extension-http"))
+        runtime	"org.springframework.integration:spring-integration-http"
+    }
+}
+
+project('modules.processor.aggregator') {
+    dependencies {
+        // Adding redis for the message store, as it may become optional in DIRT itself
+        runtime	("org.springframework.integration:spring-integration-redis") { exclude group: 'org.slf4j' }
+        runtime	("org.springframework.integration:spring-integration-jdbc")
+    }
+}
+
+// ================ M O D U L E S : S I N K S ==========================
+
+project('modules.sink.tcp') {
+    dependencies { runtime project(":spring-xd-extension-tcp") }
+}
+
+project('modules.sink.mqtt') {
+    dependencies { runtime "org.springframework.integration:spring-integration-mqtt" }
+}
+
+
+project('modules.sink.file') {
+    dependencies { runtime	"org.springframework.integration:spring-integration-file" }
+}
+
+project('modules.sink.jdbc') {
+    dependencies { runtime project(":spring-xd-extension-jdbc") }
+}
+
+project('modules.sink.mail') {
+    dependencies {
+        runtime project(":spring-xd-extension-mail")
+    }
+}
+
+project('modules.sink.gemfire-json-server') {
+    dependencies {
+        runtime (project(":spring-xd-extension-gemfire")) {
+            exclude group: 'org.slf4j'
+            exclude group: 'commons-logging'
+        }
+    }
+}
+
+project('modules.sink.gemfire-server') {
+    dependencies {
+        runtime (project(":spring-xd-extension-gemfire")) {
+            exclude group: 'org.slf4j'
+            exclude group: 'commons-logging'
+        }
+    }
+}
+
+project('modules.sink.splunk') {
+    dependencies {
+        runtime(project(":spring-xd-extension-splunk")) { exclude module: 'spring-integration-core' }
+    }
+}
+
+project('modules.sink.throughput-sampler') {
+    dependencies {
+        runtime(project(":spring-xd-extension-throughput")) { exclude module: 'spring-integration-core' }
+    }
+}
+
+project('modules.sink.mongodb') {
+    dependencies {
+        runtime ("org.springframework.integration:spring-integration-mongodb")
+    }
+}
+
+
+
+// ================ M O D U L E S : J O B S ============================
+
+project('modules.job.filejdbc') {
+    dependencies {
+        runtime(project(":spring-xd-extension-jdbc"))
+    }
+}
+
+project('modules.job.hdfsmongodb') {
+    dependencies {
+        runtime(project(":spring-xd-extension-mongodb"))
+    }
+}
+
+project('modules.job.hdfsjdbc') {
+    dependencies {
+        runtime(project(":spring-xd-extension-jdbc"))
+    }
+}
+
+project('modules.job.jdbchdfs') {
+    dependencies {
+        runtime(project(":spring-xd-extension-jdbc"))
+    }
+}
+
+project('modules.job.ftphdfs') {
+    dependencies {
+        runtime project(":spring-xd-extension-batch")
+    }
+}

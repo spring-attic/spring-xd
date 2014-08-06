@@ -326,14 +326,14 @@ public class XdEc2Validation {
 	}
 
 	/**
-	 * Asserts that the expected number of messages were processed by the modules in the stream and that no errors
+	 * Asserts that the expected minimum number of messages were processed by the modules in the stream and that no errors
 	 * occurred.
 	 *
 	 * @param modules The list of modules in the stream
 	 * @param msgCountExpected The expected count
 	 */
 	private void verifySendCounts(List<Module> modules, int msgCountExpected) {
-		verifySendCounts(modules, msgCountExpected, false);
+		verifySendCounts(modules, msgCountExpected, true);
 	}
 
 	/**

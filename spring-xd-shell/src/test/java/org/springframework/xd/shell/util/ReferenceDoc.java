@@ -157,7 +157,10 @@ public class ReferenceDoc {
 
 	@Test
 	public void doIt() {
-
+		out.println("[[shell-command-reference]]");
+		out.println("ifndef::env-github[]");
+		out.println("== XD Shell Command Reference");
+		out.println("endif::[]");
 		out.println("Below is a reference list of all Spring XD specific commands you can use in the link:Shell#interactive-shell[XD Shell].\n");
 
 

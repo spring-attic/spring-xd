@@ -87,6 +87,13 @@ task transformDocs(type: Copy, dependsOn: [pullDocs, shellReferenceDoc, moduleOp
 	}
 }
 
+task checkDocsLinks(type: JavaExec, dependsOn: [":documentation-toolchain:compileJava", pullDocs, shellReferenceDoc, moduleOptionsReferenceDoc]) {
+	classpath = project(':documentation-toolchain').sourceSets.main.runtimeClasspath
+	main = 'org.springframework.xd.documentation.AsciidocLinkChecker'
+	args = [
+		"file:${pullDocs.cloneDestination}/guide/*.asciidoc"
+	]
+}
 
 
 task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs, shellReferenceDoc, moduleOptionsReferenceDoc] ) {

@@ -53,6 +53,8 @@ import org.springframework.xd.shell.util.UiUtils;
 @Component
 public class ConfigCommands implements CommandMarker, InitializingBean {
 
+	private static String ADMIN_URI_ARG = "adminUri";
+
 	private static final Log logger = LogFactory.getLog(XDShell.class);
 
 	@Autowired
@@ -69,8 +71,8 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 
 	@CliCommand(value = { "admin config server" }, help = "Configure the XD admin server to use")
 	public String target(@CliOption(mandatory = false, key = { "", "uri" },
-	help = "the location of the XD Admin REST endpoint",
-	unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
+			help = "the location of the XD Admin REST endpoint",
+			unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
 
 		try {
 			configuration.setTarget(new Target(targetUriString));
@@ -164,6 +166,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 		int port = Target.DEFAULT_PORT;
 		String host = Target.DEFAULT_HOST;
 
+		//TODO: this piece of code will never be executed -- commandLine cannot have "--host" or "--port" parameters since SimpleShellCommandLineOptions class prevents it
 		if (commandLine.getArgs() != null) {
 			String[] args = commandLine.getArgs();
 			int i = 0;
@@ -179,6 +182,21 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 					i--;
 					break;
 				}
+			}
+		}
+
+		//try to get the URI from the JVM argument
+		String uri = System.getProperty(ADMIN_URI_ARG);
+		if (uri != null) {
+			try {
+				uri = uri.replace("http://", "");
+				uri = uri.replace("https://", "");
+				String[] tokens = uri.split(":");
+				host = tokens[0];
+				port = Integer.valueOf(tokens[1]).intValue();
+			}
+			catch (Exception e) {
+				logger.error("Error while parsing admin uri argument: " + uri, e);
 			}
 		}
 		return new URI(Target.DEFAULT_SCHEME, null, host, port, null, null, null);

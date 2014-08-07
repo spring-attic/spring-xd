@@ -22,6 +22,10 @@
 describe('Stream Tests', function() {
 
   beforeEach(function() {
+    browser.ignoreSynchronization = true;
+  });
+  afterEach(function() {
+    browser.ignoreSynchronization = false;
   });
 
   describe('When I navigate to "/#/streams"', function() {

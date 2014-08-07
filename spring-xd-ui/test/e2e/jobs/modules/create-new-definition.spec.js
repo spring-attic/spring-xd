@@ -21,7 +21,11 @@
  */
 describe('Tests for creating a new Job Definition from a Module', function() {
 
-  beforeEach(function() {
+   beforeEach(function() {
+     browser.ignoreSynchronization = true;
+   });
+   afterEach(function() {
+     browser.ignoreSynchronization = false;
   });
 
   describe('When I navigate to the Module Create Definition URL for the "filejdbc" module - "#/jobs/modules/filejdbc/create-definition"', function() {

@@ -22,6 +22,10 @@
 describe('Tests for the Module Details Page', function() {
 
   beforeEach(function() {
+    browser.ignoreSynchronization = true;
+  });
+  afterEach(function() {
+    browser.ignoreSynchronization = false;
   });
 
   describe('When I navigate to the Module Details URL for the "filejdbc" module - "#/jobs/modules/filejdbc"', function() {

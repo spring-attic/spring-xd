@@ -24,7 +24,7 @@ define(['angular'], function (angular) {
   'use strict';
 
   return angular.module('xdJobsAdmin.services', [])
-      .factory('JobDefinitions', function ($resource, $rootScope, $log, $http) {
+      .factory('JobDefinitions', ['$resource', '$rootScope', '$log', '$http', function ($resource, $rootScope, $log, $http) {
         return {
           getSingleJobDefinition: function (jobname) {
             $log.info('Getting single job definiton for job named ' + jobname);
@@ -43,15 +43,15 @@ define(['angular'], function (angular) {
             }).get();
           }
         };
-      })
-      .factory('JobModules', function ($resource, $rootScope) {
+      }])
+      .factory('JobModules', ['$resource', '$rootScope', function ($resource, $rootScope) {
         return $resource($rootScope.xdAdminServerUrl + '/modules.json?type=job', {}, {
           query: {
             method: 'GET',
             isArray: true
           }
         }).query();
-      })
+      }])
       .factory('ModuleMetaData', function ($resource, $log, $rootScope) {
         return {
           getModuleMetaDataForJob: function (jobName) {
@@ -66,7 +66,7 @@ define(['angular'], function (angular) {
             }
         };
       })
-      .factory('JobModuleService', function ($resource, $http, $log, $rootScope) {
+      .factory('JobModuleService', ['$resource', '$http', '$log', '$rootScope', function ($resource, $http, $log, $rootScope) {
         return {
           getAllModules: function () {
             $log.info('Getting all job modules.');
@@ -97,8 +97,8 @@ define(['angular'], function (angular) {
             });
           }
         };
-      })
-      .factory('JobDefinitionService', function ($resource, $log, $rootScope) {
+      }])
+      .factory('JobDefinitionService', ['$resource', '$log', '$rootScope', function ($resource, $log, $rootScope) {
         return {
           deploy: function (jobDefinition, properties) {
             $log.info('Deploy Job ' + jobDefinition.name);
@@ -128,12 +128,12 @@ define(['angular'], function (angular) {
             }).destroy();
           }
         };
-      })
-      .factory('JobDeployments', function ($resource, $rootScope) {
+      }])
+      .factory('JobDeployments', ['$resource', '$rootScope', function ($resource, $rootScope) {
         return $resource($rootScope.xdAdminServerUrl + '/jobs/configurations.json', {}, {
           getArray: {method: 'GET', isArray: true}
         });
-      })
+      }])
       .factory('JobExecutions', function ($resource, $rootScope, $log) {
         return {
           getArray: function () {
@@ -160,7 +160,7 @@ define(['angular'], function (angular) {
             }
         };
       })
-      .factory('StepExecutions', function ($resource, $rootScope, $log) {
+      .factory('StepExecutions', ['$resource', '$rootScope', '$log', function ($resource, $rootScope, $log) {
         return {
           getSingleStepExecution: function (jobExecutionId, stepExecutionId) {
             $log.info('Getting details for Step Execution with Id ' + stepExecutionId + '(Job Execution Id ' + jobExecutionId + ')');
@@ -171,8 +171,8 @@ define(['angular'], function (angular) {
             return $resource($rootScope.xdAdminServerUrl + '/jobs/executions/' + jobExecutionId +  '/steps/' + stepExecutionId + '/progress.json').get();
           }
         };
-      })
-      .factory('JobLaunchService', function ($resource, growl, $rootScope) {
+      }])
+      .factory('JobLaunchService', ['$resource', 'growl', '$rootScope', function ($resource, growl, $rootScope) {
         return {
           convertToJsonAndSend: function (jobLaunchRequest) {
             var jsonData = {};
@@ -218,8 +218,8 @@ define(['angular'], function (angular) {
             );
           }
         };
-      })
-      .factory('JobScheduleService', function ($rootScope, $resource, growl) {
+      }])
+      .factory('JobScheduleService', ['$rootScope', '$resource', 'growl', function ($rootScope, $resource, growl) {
         return {
           scheduleJob: function (jobScheduleRequest) {
 
@@ -239,5 +239,5 @@ define(['angular'], function (angular) {
           }
 
         };
-      });
+      }]);
 });

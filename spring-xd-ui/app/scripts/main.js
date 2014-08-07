@@ -77,7 +77,7 @@ define([
 
   require(['domReady!'], function (document) {
     console.log('Start angular application.');
-    angular.bootstrap(document, ['xdAdmin']);
+    angular.bootstrap(document, ['xdAdmin'], {'strictDi': true});
   });
   require(['jquery', 'bootstrap'], function () {
     console.log('Loaded Twitter Bootstrap.');

@@ -23,6 +23,10 @@ describe('Tests', function() {
 
   beforeEach(function() {
     browser.get('/');
+    browser.ignoreSynchronization = true;
+  });
+  afterEach(function() {
+    browser.ignoreSynchronization = false;
   });
 
   describe('When I navigate to the root URL "/"', function() {
@@ -88,6 +92,7 @@ describe('Tests', function() {
   describe('When I navigate to "/jobs/definitions"', function() {
     it('there should be 4 tabs of which one is active', function() {
       browser.get('#/jobs/definitions');
+      browser.sleep(1000);
       expect(element.all(by.css('#xd-jobs ul li')).count()).toEqual(4);
       expect(element.all(by.css('#xd-jobs ul li.active')).count()).toEqual(1);
     });

@@ -117,7 +117,23 @@ End-to-End tests are executed using [Protractor][]. By default we use [ChromeDri
 
 Please be also aware of the following [grunt-protractor-runner](https://github.com/teerapap/grunt-protractor-runner) plugin issue: https://github.com/teerapap/grunt-protractor-runner/issues/45
 
-When running E2E tests, you may need to execute first: `./node_modules/protractor/bin/webdriver-manager update`.
+For example, you may encounter an issue such as the following:
+
+````
+Starting Protractor...
+.
+-------------------------------------------------------------------
+
+/usr/local/share/npm/lib/node_modules/protractor/lib/driverProviders/local.js:42
+        throw new Error('Could not find chromedriver at ' +
+              ^
+Error: Could not find chromedriver at /usr/local/share/npm/lib/node_modules/protractor/selenium/chromedriver.exe
+    at LocalDriverProvider.addDefaultBinaryLocs_ (/usr/local/share/npm/lib/node_modules/protractor/lib/driverProviders/local.js:42:15)
+...
+````
+
+Therefore, when running E2E tests, you may need to execute first: `./node_modules/protractor/bin/webdriver-manager update`.
+Please pay also special attention whether you're using a **local** or global **global** protractor instance.
 
 In order to improve the situation we may consider adding a special Grunt task for that as illustrated here: http://gitelephant.cypresslab.net/angular-js/commit/2ed4ad55022f6e5519617a3797649fe1e68f3734
 

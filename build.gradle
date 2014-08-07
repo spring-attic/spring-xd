@@ -386,7 +386,7 @@ project('spring-xd-dirt') {
 		compile "com.jayway.jsonpath:json-path"
 
 		// ************* Container: Modules (should move on their own: XD-915)
-		optional project(":spring-xd-hadoop")
+		compile project(":spring-xd-hadoop")
 
 		// ************* Container: Imposed by some Module (can't move)
 		compile "com.sun.mail:javax.mail"

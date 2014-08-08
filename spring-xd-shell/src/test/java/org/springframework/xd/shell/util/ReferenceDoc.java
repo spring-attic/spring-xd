@@ -208,9 +208,9 @@ public class ReferenceDoc {
 
 			for (CliCommand command : commands.keySet()) {
 				// === stream create
-				out.printf("==== %s%n", check(command.value()[0], COMMAND_FORMAT));
+				out.printf("==== %s%n", pt(check(command.value()[0], COMMAND_FORMAT)));
 				// Create a new stream definition.
-				out.printf("%s.%n%n", check(command.help(), COMMAND_HELP));
+				out.printf("%s.%n%n", pt(check(command.help(), COMMAND_HELP)));
 				// stream create [--name]=<name> [--definition=<definition>]
 				out.printf("    %s", command.value()[0]);
 				for (CliOption option : commands.get(command)) {
@@ -239,7 +239,7 @@ public class ReferenceDoc {
 
 				// *definition*:: the stream definition
 				for (CliOption option : commands.get(command)) {
-					out.printf("*%s*:: %s.", paramName(option), check(option.help(), OPTION_HELP));
+					out.printf("*%s*:: %s.", pt(paramName(option)), pt(check(option.help(), OPTION_HELP)));
 					if (!option.mandatory()) {
 						// There can be non-mandatory, w/o default options (e.g. mutually exclusive, with 1 required,
 						// options)
@@ -289,6 +289,14 @@ public class ReferenceDoc {
 			throw new IllegalArgumentException("'" + candidate + "' should match " + regex);
 		}
 		return candidate;
+	}
+
+	/**
+	 * Return an asciidoc passthrough version of some text, in case the original text contains characters
+	 * that would be (mis)interpreted by asciidoc.
+	 */
+	private String pt(String original) {
+		return "$$" + original + "$$";
 	}
 
 	private String paramName(CliOption option) {

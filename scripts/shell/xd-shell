@@ -64,16 +64,10 @@ SAVED="`pwd`"
 cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
-ADMIN_URI=""
 HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop22}"
 x=0
 args=("$@")
 for arg in "${args[@]}" ; do
-    if [ "$arg" = "--adminUri" ] ; then
-	ADMIN_URI="${args[x+1]}"
-        unset args[x+1]
-	unset args[x]
-    fi
     if [ "$arg" = "--hadoopDistro" ] ; then
         if [ "${args[x+1]}" = "hadoop22" ] || [ "${args[x+1]}" = "hadoop24" ] || [ "${args[x+1]}" = "cdh5" ] || [ "${args[x+1]}" = "hdp21" ] || [ "${args[x+1]}" = "phd1" ] || [ "${args[x+1]}" = "phd20" ] ; then
           HADOOP_DISTRO="${args[x+1]}"
@@ -196,9 +190,5 @@ function splitJvmOpts() {
     JVM_OPTS=("$@")
 }
 eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $SPRING_XD_SHELL_OPTS
-if [ "$ADMIN_URI" != "" ] ; then
-exec "$JAVACMD" "${JVM_OPTS[@]}" "-DadminUri=$ADMIN_URI" -classpath "$CLASSPATH" org.springframework.shell.Bootstrap "${args[@]}"
-else
 exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.springframework.shell.Bootstrap "${args[@]}"
-fi
 

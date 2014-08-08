@@ -167,7 +167,6 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 		int port = Target.DEFAULT_PORT;
 		String host = Target.DEFAULT_HOST;
 
-		//TODO: this piece of code will never be executed -- commandLine cannot have "--host" or "--port" parameters since SimpleShellCommandLineOptions class prevents it
 		if (commandLine.getArgs() != null) {
 			String[] args = commandLine.getArgs();
 			int i = 0;
@@ -186,20 +185,6 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 			}
 		}
 
-		//try to get the URI from the JVM argument
-		String uri = System.getProperty(ADMIN_URI_ARG);
-		if (uri != null) {
-			try {
-				uri = uri.replace("http://", "");
-				uri = uri.replace("https://", "");
-				String[] tokens = uri.split(":");
-				host = tokens[0];
-				port = Integer.valueOf(tokens[1]).intValue();
-			}
-			catch (Exception e) {
-				logger.error("Error while parsing admin uri argument: " + uri, e);
-			}
-		}
 		return new URI(Target.DEFAULT_SCHEME, null, host, port, null, null, null);
 	}
 }

@@ -9,6 +9,11 @@
 
 	<context:component-scan base-package="org.springframework.xd.shell" />
 
+	<bean id="extraArguments" class="java.lang.String">
+		<constructor-arg value="--host,--port"/>
+	</bean>
+	
+	
 	<hadoop:configuration>
 		fs.defaultFS=
 	</hadoop:configuration>

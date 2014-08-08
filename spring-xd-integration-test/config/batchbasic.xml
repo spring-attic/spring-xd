@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:batch="http://www.springframework.org/schema/batch" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- Set up our reader and its properties -->
+    <bean id="itemReader" class="org.springframework.batch.item.file.FlatFileItemReader">
+        <property name="resource" value="file:/tmp/sample.txt" />
+        <property name="lineMapper" ref="lineMapper" />
+    </bean>
+
+    <bean id="lineMapper" class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+        <property name="lineTokenizer" ref="lineTokenizer" />
+        <property name="fieldSetMapper" ref="fieldSetMapper" />
+    </bean>
+
+    <bean id="lineTokenizer" class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+        <constructor-arg value="," />
+    </bean>
+
+    <bean id="fieldSetMapper" class="org.springframework.batch.item.file.mapping.PassThroughFieldSetMapper" />
+
+    <bean id="lineAggregator" class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
+        <property name="delimiter" value=" "/>
+    </bean>
+
+    <!-- Set up our writer, and it's properties -->
+    <bean id="itemWriter" class="org.springframework.batch.item.file.FlatFileItemWriter">
+        <property name="resource" value="file:/tmp/sample1out.txt" />
+        <property name="lineAggregator" ref="lineAggregator" />
+    </bean>
+    <batch:job id="job">
+        <batch:step id="step1">
+            <batch:tasklet>
+                <batch:chunk reader="itemReader" writer="itemWriter"
+                             commit-interval="1" />
+            </batch:tasklet>
+        </batch:step>
+    </batch:job>
+</beans>

@@ -16,24 +16,12 @@
 
 package org.springframework.xd.integration.util;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.util.Iterator;
-import java.util.List;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -46,10 +34,18 @@ import org.springframework.xd.integration.util.jmxresult.JMXChannelResult;
 import org.springframework.xd.integration.util.jmxresult.JMXResult;
 import org.springframework.xd.integration.util.jmxresult.Module;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.util.Iterator;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.junit.Assert.*;
 
 /**
  * Validates that all instances of the cluster is up and running. Also verifies that streams are running and available.
@@ -326,14 +322,14 @@ public class XdEc2Validation {
 	}
 
 	/**
-	 * Asserts that the expected number of messages were processed by the modules in the stream and that no errors
+	 * Asserts that the expected minimum number of messages were processed by the modules in the stream and that no errors
 	 * occurred.
 	 *
 	 * @param modules The list of modules in the stream
 	 * @param msgCountExpected The expected count
 	 */
 	private void verifySendCounts(List<Module> modules, int msgCountExpected) {
-		verifySendCounts(modules, msgCountExpected, false);
+		verifySendCounts(modules, msgCountExpected, true);
 	}
 
 	/**

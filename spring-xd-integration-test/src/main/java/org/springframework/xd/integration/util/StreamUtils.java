@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -40,6 +41,7 @@ import org.jclouds.domain.LoginCredentials;
 import org.jclouds.ec2.domain.Reservation;
 import org.jclouds.ec2.domain.RunningInstance;
 import org.jclouds.http.handlers.BackoffLimitedRetryHandler;
+import org.jclouds.io.payloads.ByteSourcePayload;
 import org.jclouds.sshj.SshjSshClient;
 
 import org.springframework.hateoas.PagedResources;
@@ -53,6 +55,7 @@ import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
 
 import com.google.common.collect.Iterables;
+import com.google.common.io.ByteSource;
 import com.google.common.net.HostAndPort;
 
 /**
@@ -175,6 +178,74 @@ public class StreamUtils {
 		final SshjSshClient client = getSSHClient(host, privateKey);
 		client.exec("mkdir " + dir);
 		client.put(dir + "/" + fileName, payload);
+	}
+
+	/**
+	 * Copy a file from test machine to remote machine.
+	 *
+	 * @param privateKey The ssh private key for the remote container
+	 * @param host The remote machine's ip.
+	 * @param uri to the location where the file will be copied to remote machine.
+	 * @param file The file to migrate to remote machine. 
+	 */
+	public static void copyFileToRemote(String privateKey, String host, URI uri,
+			File file, long waitTime)
+	{
+		Assert.hasText(privateKey, "privateKey must not be empty nor null.");
+		Assert.hasText(host, "The remote machine's URL must be specified.");
+		Assert.notNull(uri, "uri should not be null");
+		Assert.notNull(file, "file must not be null");
+		boolean isFileCopied = false;
+		long timeout = System.currentTimeMillis() + waitTime;
+		while (!isFileCopied && System.currentTimeMillis() < timeout) {
+			final SshjSshClient client = getSSHClient(host, privateKey);
+			Assert.isTrue(file.exists(), "File to be copied to remote machine does not exist");
+			ByteSource byteSource = com.google.common.io.Files.asByteSource(file);
+			ByteSourcePayload payload = new ByteSourcePayload(byteSource);
+			long byteSourceSize = -1;
+			try {
+				byteSourceSize = byteSource.size();
+				payload.getContentMetadata().setContentLength(byteSourceSize);
+			}
+			catch (IOException ioe) {
+				throw new IllegalStateException("Unable to retrieve size for file to be copied to remote machine.", ioe);
+			}
+			client.put(uri.getPath(), payload);
+			if (client.exec("ls -al " + uri.getPath()).getExitStatus() == 0) {
+				ExecResponse statResponse = client.exec("stat --format=%s " + uri.getPath());
+				long copySize = Long.valueOf(statResponse.getOutput().trim());
+				if (copySize == byteSourceSize) {
+					isFileCopied = true;
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * Creates a directory on a remote machine.  It a failure occurs it will retry until waitTime is exhausted.
+	 * @param path the directory that will be created
+	 * @param host the IP where the directory will be created
+	 * @param privateKey Private key to be used for signing onto remote machine.
+	 * @param waitTime The max time to try creating the directory
+	 * @return true if the directory was successfully created else false.  
+	 */
+	public static boolean createRemoteDirectory(String path, String host, String privateKey, int waitTime) {
+		boolean isDirectoryCreated = false;
+		Assert.hasText(path, "path must not be empty nor null");
+		Assert.hasText(host, "host must not be empty nor null");
+		Assert.hasText(privateKey, "privateKey must not be empty nor null");
+		long timeout = System.currentTimeMillis() + waitTime;
+		while (!isDirectoryCreated && System.currentTimeMillis() < timeout) {
+			SshjSshClient client = getSSHClient(host, privateKey);
+			client.exec("mkdir " + path);
+			ExecResponse response = client.exec("ls -al " + path);
+			if (response.getExitStatus() > 0) {
+				continue; //directory was not created
+			}
+			isDirectoryCreated = true;
+		}
+		return isDirectoryCreated;
 	}
 
 	/**

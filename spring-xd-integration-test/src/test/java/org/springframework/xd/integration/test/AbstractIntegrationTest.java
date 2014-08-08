@@ -24,6 +24,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +39,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -53,6 +56,7 @@ import org.springframework.xd.integration.util.JobUtils;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
+import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.test.fixtures.AbstractModuleFixture;
 import org.springframework.xd.test.fixtures.LogSink;
@@ -133,7 +137,6 @@ public abstract class AbstractIntegrationTest {
 	/**
 	 * Initializes the environment before the test. Also asserts that the admin server is up and at least one container is
 	 * available.
-	 *
 	 */
 	public void initializer() {
 		if (!initialized) {
@@ -146,8 +149,9 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Retrieves the containers that are recognized by the adminServer.  
+	 * Retrieves the containers that are recognized by the adminServer.
 	 * If the test is on EC2 the IPs of the containers will be set to the external IPs versus the default internal IPs.
+	 *
 	 * @param adminServer The adminserver to interrogate.
 	 * @return A Map of container servers , that is keyed on the containerID assigned by the admin server.
 	 */
@@ -166,7 +170,7 @@ public abstract class AbstractIntegrationTest {
 				while (metadataIter.hasNext()) {
 					String metadataPrivateIP = metadataIter.next();
 					//AWS metadata suffixes its data with .ec2.internal or .compute-1.internal.  So we are finding
-					//the metadata private ip that contains the internal id returned by the admin server. 
+					//the metadata private ip that contains the internal id returned by the admin server.
 					if (metadataPrivateIP != null && metadataPrivateIP.contains(privateIP)) {
 						result.put(key, metadataIpMap.get(metadataPrivateIP));
 						break;
@@ -294,6 +298,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Creates a file in a source directory for file source base tests.
+	 *
 	 * @param sourceDir The directory to place the file
 	 * @param fileName The name of the file where the data will be written
 	 * @param data The data to be written to the file
@@ -304,7 +309,8 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Creates a file in a directory for file based tests.
-	 * @param host The host machine that the data will be written 
+	 *
+	 * @param host The host machine that the data will be written
 	 * @param sourceDir The directory to place the file
 	 * @param fileName The name of the file where the data will be written
 	 * @param data The data to be written to the file
@@ -332,9 +338,158 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
+	 * Copies the files required for a job module to the admin server and its containers.
+	 *
+	 * @param moduleJobName The module's job name.
+	 * @param jarFiles a list of jar File Objects to be copied to a job's lib directory
+	 * @param configFiles a list of configuration files that need to be copied to the jobs config directory.
+	 */
+
+	protected void copyJobToCluster(String moduleJobName, List<File> jarFiles, List<File> configFiles) {
+		Assert.hasText(moduleJobName, "moduleJobName must not be empty nor null");
+		copyJobToHost(moduleJobName, jarFiles, configFiles, adminServer.getHost());
+		Map<String, String> containerMap = getAvailableContainers(adminServer);
+		for (String containerHost : containerMap.values()) {
+			copyJobToHost(moduleJobName, jarFiles, configFiles, containerHost);
+		}
+	}
+
+	/**
+	 * Copies the files required for a job module to the host.
+	 *
+	 * @param moduleJobName The module's job name.
+	 * @param jarFiles a list of jar File Objects to be copied to a job's lib directory
+	 * @param configFiles a list of configuration files that need to be copied to the jobs config directory.
+	 * @param host the IP where the files should be copied.  If isEc2 flag is false this param is ignored.
+	 */
+	private void copyJobToHost(String moduleJobName, List<File> jarFiles, List<File> configFiles, String host) {
+		Iterator<File> iter = jarFiles.iterator();
+		while (iter.hasNext()) {
+			File jarFile = iter.next();
+			Assert.isTrue(jarFile.exists(), jarFile.getAbsoluteFile() + " must exist");
+		}
+		iter = configFiles.iterator();
+		while (iter.hasNext()) {
+			File configFile = iter.next();
+			Assert.isTrue(configFile.exists(), configFile.getAbsoluteFile() + " must exist");
+		}
+
+		URI jobDir = getBaseJobDirUri(moduleJobName);
+		createJobDirectoryStructure(jobDir, host);
+		try {
+			URI baseUri = new URI(jobDir.getPath()
+					+ "/lib/");
+			copyFilesToTarget(baseUri, jarFiles, host);
+			baseUri = new URI(jobDir.getPath()
+					+ "/config/");
+			copyFilesToTarget(baseUri, configFiles, host);
+		}
+		catch (URISyntaxException e) {
+			throw new IllegalStateException("Path to file is not properly formatted", e);
+		}
+	}
+
+	private void copyFilesToTarget(URI baseUri, List<File> files, String host) {
+		for (File file : files) {
+			URI targetUri;
+			try {
+				targetUri = new URI(baseUri.getRawPath() + "/" + file.getName());
+			}
+			catch (URISyntaxException e1) {
+				throw new IllegalStateException(baseUri.getRawPath() + "/" + file.getName() + " is not a valid URI", e1);
+			}
+			if (xdEnvironment.isOnEc2()) {
+				StreamUtils.copyFileToRemote(xdEnvironment.getPrivateKey(), host, targetUri,
+						file, WAIT_TIME);
+			}
+			else {
+				try {
+					FileCopyUtils.copy(file, new File(targetUri.getPath()));
+				}
+				catch (IOException e) {
+					throw new IllegalStateException("copying job files to XD failed", e);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Retrieves the first job execution from a list of job executions for the job name.
+	 *
+	 * @param jobName a unique job name.
+	 * @return the status from the job execution.
+	 */
+	protected BatchStatus getJobExecutionStatus(String jobName) {
+		List<JobExecutionInfoResource> results = JobUtils.getJobExecInfoByName(jobName, adminServer);
+		Assert.isTrue(results.size() > 0, "No Job execution available for the job.");
+		return results.get(0).getJobExecution().getStatus();
+	}
+
+
+	/**
+	 * Creates the directory structure so that a job's module components can be installed properly.  This method extracts the root file name from the xmlFileName
+	 * and uses this as the base name for the job module's directory.
+	 *
+	 * @param baseDir the base directory where a job module should be installed.
+	 */
+	private void createJobDirectoryStructure(URI baseDir, String host) {
+		if (xdEnvironment.isOnEc2()) {
+			Assert.isTrue(
+					StreamUtils.createRemoteDirectory(baseDir.getPath(), host, xdEnvironment.getPrivateKey(), WAIT_TIME),
+					"unable to create job module base directory for "+baseDir.getPath());
+			Assert.isTrue(
+					StreamUtils.createRemoteDirectory(baseDir.getPath() + "/config", host,
+							xdEnvironment.getPrivateKey(),
+							WAIT_TIME),
+					"unable to create job module base directory for "+ baseDir.getPath() + "/config");
+			Assert.isTrue(
+					StreamUtils.createRemoteDirectory(baseDir.getPath() + "/lib", host, xdEnvironment.getPrivateKey(),
+							WAIT_TIME),
+					"unable to create job module base directory for "+ baseDir.getPath() + "/lib");
+		}
+		else {
+			String path = baseDir.getPath();
+			File file = new File(path);
+			if (!file.exists()) {
+				Assert.isTrue(file.mkdir(), "unable to create" + path);
+			}
+			path = baseDir.getPath() + "/lib";
+			file = new File(path);
+			if (!file.exists()) {
+				Assert.isTrue(file.mkdir(), "unable to create" + path);
+			}
+			path = baseDir.getPath() + "/config";
+			file = new File(path);
+			if (!file.exists()) {
+				Assert.isTrue(file.mkdir(), "unable to create" + path);
+			}
+
+		}
+
+	}
+
+	/**
+	 * Constructs the job module directory name. .
+	 *
+	 * @param jobName The name of the xml configuration file.
+	 * @return a URI path to the Job directory.
+	 */
+	private URI getBaseJobDirUri(String jobName) {
+		URI result;
+		try {
+			result = new URI("file://" + xdEnvironment.getBaseDir() + "/modules/job/" + jobName + "/");
+		}
+		catch (URISyntaxException e) {
+			throw new IllegalStateException("base job directory is not properly formatted", e);
+		}
+		return result;
+	}
+
+	/**
 	 * Appends data to the specified file wherever the source module for the stream is deployed.
+	 *
 	 * @param sourceDir The location of the file
-	 * @param fileName The name of the file to be appended 
+	 * @param fileName The name of the file to be appended
 	 * @param dataToAppend The data to be appended to the file
 	 */
 	public void appendDataToSourceTestFile(String sourceDir, String fileName, String dataToAppend) {
@@ -400,6 +555,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Gets the URL of the container where the processor was deployed
+	 *
 	 * @return The URL that contains the sink.
 	 */
 
@@ -421,6 +577,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Gets the host of the container where the source was deployed
+	 *
 	 * @return The host that contains the source.
 	 */
 	public String getContainerHostForSource() {
@@ -440,7 +597,6 @@ public abstract class AbstractIntegrationTest {
 	/**
 	 * Gets the host of the container where the job was deployed
 	 *
-	 * @param jobName Used to find the container that contains the job.
 	 * @return The host that contains the job.
 	 */
 	public String getContainerHostForJob() {
@@ -483,18 +639,18 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Asserts that the expected number of messages were received by all modules in a stream.
-	 *
 	 */
 	public void assertReceived(int msgCountExpected) {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
-				getContainerUrlForSink(STREAM_NAME), xdEnvironment.getJmxPort()),
+						getContainerUrlForSink(STREAM_NAME), xdEnvironment.getJmxPort()),
 				STREAM_NAME, msgCountExpected);
 	}
 
 	/**
 	 * Asserts that all channels of the module channel combination, processed the correct number of messages
+	 *
 	 * @param containerUrl the container that is hosting the module
 	 * @param moduleName the name of the module jmx element to interrogate.
 	 * @param channelName the name of the channel jmx element to interrogate
@@ -504,7 +660,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
-				containerUrl, xdEnvironment.getJmxPort()),
+						containerUrl, xdEnvironment.getJmxPort()),
 				STREAM_NAME, moduleName, channelName, msgCountExpected);
 	}
 
@@ -555,6 +711,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Undeploys the stream specified by the streamName
+	 *
 	 * @param streamName the name of the stream to undeploy.
 	 */
 	public void undeployStream(String streamName) {
@@ -609,22 +766,22 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Verifies that the content of file on HDFS is the same as the data.
+	 *
 	 * @param data The data expected in the file.
-	 * @param path The path/filename of the file on hdfs.  
+	 * @param path The path/filename of the file on hdfs.
 	 */
 	public void assertValidHdfs(String data, String path) {
 		validation.verifyHdfsTestContent(data, path);
 	}
 
 	/**
-	 * Asserts that the data stored by the file sink is what was expected.  
+	 * Asserts that the data stored by the file sink is what was expected.
 	 *
 	 * @param data The data expected in the file
 	 * @param url The URL of the server that we will ssh into to get the data
 	 * @param streamName the name of the stream, used to form the filename we are retrieving from the remote server
 	 */
-	private void assertFileContains(String data, URL url, String streamName)
-	{
+	private void assertFileContains(String data, URL url, String streamName) {
 		Assert.hasText(data, "data can not be empty nor null");
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
@@ -640,8 +797,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param url The URL of the server that we will ssh, to get the data
 	 * @param streamName the name of the file we are retrieving from the remote server
 	 */
-	private void assertFileContainsIgnoreCase(String data, URL url, String streamName)
-	{
+	private void assertFileContainsIgnoreCase(String data, URL url, String streamName) {
 		Assert.hasText(data, "data can not be empty nor null");
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
@@ -656,8 +812,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param url The URL of the server that we will ssh, to get the data
 	 * @param streamName the name of the file we are retrieving from the remote server
 	 */
-	private void assertValidFile(String data, URL url, String streamName)
-	{
+	private void assertValidFile(String data, URL url, String streamName) {
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
 		waitForPath(pauseTime * 2000, fileName);
@@ -694,8 +849,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param data The data to check if it is in the log file
 	 * @param url The URL of the server we will ssh, to get the data.
 	 */
-	private void assertLogEntry(String data, URL url)
-	{
+	private void assertLogEntry(String data, URL url) {
 		waitForXD();
 		validation.verifyLogContains(url, data);
 	}
@@ -715,7 +869,8 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Finds the container URL where the module is deployed with the stream name & module type 
+	 * Finds the container URL where the module is deployed with the stream name & module type
+	 *
 	 * @param streamName The name of the stream that the module is deployed
 	 * @param moduleType The type of module that we are seeking
 	 * @return the container url.
@@ -735,6 +890,7 @@ public abstract class AbstractIntegrationTest {
 
 	/**
 	 * Get the {@see XdEnvironment}
+	 *
 	 * @return the XdEnvironment
 	 */
 	public XdEnvironment getEnvironment() {

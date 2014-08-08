@@ -18,12 +18,15 @@ package org.springframework.xd.integration.util;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
+import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 
 
 /**
@@ -43,7 +46,7 @@ public class JobUtils {
 	 * @param adminServer The admin server that this job will be deployed against.
 	 */
 	public static void job(final String jobName, final String jobDefinition,
-			final URL adminServer) {
+						   final URL adminServer) {
 		Assert.hasText(jobName, "The job name must be specified.");
 		Assert.hasText(jobDefinition, "a job definition must be supplied.");
 		Assert.notNull(adminServer, "The admin server must be specified.");
@@ -67,8 +70,7 @@ public class JobUtils {
 	 * @param adminServer The admin server that the command will be executed against.
 	 * @param jobName The name of the job to undeploy
 	 */
-	public static void undeployJob(final URL adminServer, final String jobName)
-	{
+	public static void undeployJob(final URL adminServer, final String jobName) {
 		Assert.notNull(adminServer, "The admin server must be specified.");
 		Assert.hasText(jobName, "The jobName must not be empty nor null");
 		createSpringXDTemplate(adminServer).jobOperations().undeploy(jobName);
@@ -147,6 +149,28 @@ public class JobUtils {
 					result = false;
 					break;
 				}
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Retrieve a list of JobExecutionInfoResources that have the name contained in the jobName parameter
+	 *
+	 * @param jobName The name of the job to search.
+	 * @param adminServer The URL of the adminServer that will be interrogated to retrieve job info.
+	 * @return a list of JobExecutionInfoResources
+	 */
+	public static List<JobExecutionInfoResource> getJobExecInfoByName(String jobName, URL adminServer) {
+		Assert.hasText(jobName, "jobName must not empty nor null");
+		Assert.notNull(adminServer, "adminServer must not be null");
+		List<JobExecutionInfoResource> jobExecutions = createSpringXDTemplate(adminServer).jobOperations().listJobExecutions();
+		Iterator<JobExecutionInfoResource> iter = jobExecutions.iterator();
+		List<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
+		while (iter.hasNext()) {
+			JobExecutionInfoResource resource = iter.next();
+			if (resource.getName().equals(jobName)) {
+				result.add(resource);
 			}
 		}
 		return result;

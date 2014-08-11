@@ -21,7 +21,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.RuntimeTimeoutException;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus.State;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
@@ -29,6 +29,7 @@ import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -38,12 +39,13 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.core.Module;
 
-
 /**
  * A helper class that provides methods used for testing streams with {@link SingleNodeApplication}. It exposes
  * components and methods used for stream creation, deployment, and destruction and provides access to the
  * {@link MessageBus}. Additionally, it supports registration of modules contained in a local resource location
  * (default: "file:./config").
+ *
+ * Note that all operations block until the expected state is verified or the operation times out.
  *
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
@@ -52,25 +54,27 @@ public class SingleNodeIntegrationTestSupport {
 
 	private static final Map<String, String> EMPTY_PROPERTIES = Collections.emptyMap();
 
-	private StreamDefinitionRepository streamDefinitionRepository;
+	private final JobDefinitionRepository jobDefinitionRepository;
 
-	private StreamRepository streamRepository;
+	private final StreamDefinitionRepository streamDefinitionRepository;
 
-	private JobRepository jobRepository;
+	private final StreamRepository streamRepository;
 
-	private StreamDeployer streamDeployer;
+	private final JobRepository jobRepository;
 
-	private MessageBusSupport messageBus;
+	private final StreamDeployer streamDeployer;
+
+	private final MessageBusSupport messageBus;
 
 	private final ModuleDeployer moduleDeployer;
 
-	private ZooKeeperConnection zooKeeperConnection;
+	private final ZooKeeperConnection zooKeeperConnection;
+
+	private final ResourceStateVerifier streamResourceStateVerifier;
+
+	private final ResourceStateVerifier jobResourceStateVerifier;
 
 	private final Map<String, PathChildrenCache> mapChildren = new HashMap<String, PathChildrenCache>();
-
-	private DeploymentVerifier streamDeploymentVerifier;
-
-	private DeploymentVerifier jobDeploymentVerifier;
 
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
 		this(application, "file:./config");
@@ -86,14 +90,15 @@ public class SingleNodeIntegrationTestSupport {
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application, String moduleResourceLocation) {
 		Assert.notNull(application, "SingleNodeApplication must not be null");
 		streamDefinitionRepository = application.pluginContext().getBean(StreamDefinitionRepository.class);
+		jobDefinitionRepository = application.pluginContext().getBean(JobDefinitionRepository.class);
 		streamRepository = application.pluginContext().getBean(StreamRepository.class);
 		jobRepository = application.pluginContext().getBean(JobRepository.class);
+		streamResourceStateVerifier = new ResourceStateVerifier(streamRepository, streamDefinitionRepository);
+		jobResourceStateVerifier = new ResourceStateVerifier(jobRepository, jobDefinitionRepository);
 		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
 		messageBus = application.pluginContext().getBean(MessageBusSupport.class);
 		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
 		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
-		streamDeploymentVerifier = new DeploymentVerifier(zooKeeperConnection, new StreamPathProvider(streamRepository));
-		jobDeploymentVerifier = new DeploymentVerifier(zooKeeperConnection, new JobPathProvider(jobRepository));
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
 		DelegatingModuleRegistry cmr1 = application.pluginContext().getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);
@@ -103,17 +108,13 @@ public class SingleNodeIntegrationTestSupport {
 		}
 	}
 
+	/**
+	 * Get all currently deployed modules.
+	 * @return a map keyed by stream name. Each entry is a map of the modules by module index(stream left to right order).
+	 */
 	public final Map<String, Map<Integer, Module>> getDeployedModules() {
 		Assert.notNull(moduleDeployer, "ModuleDeployer is required to get deployed modules.");
 		return moduleDeployer.getDeployedModules();
-	}
-
-	public final DeploymentVerifier streamDeploymentVerifier() {
-		return streamDeploymentVerifier;
-	}
-
-	public final DeploymentVerifier jobDeploymentVerifier() {
-		return jobDeploymentVerifier;
 	}
 
 	public final StreamDeployer streamDeployer() {
@@ -124,6 +125,22 @@ public class SingleNodeIntegrationTestSupport {
 		return streamRepository;
 	}
 
+	public final ResourceStateVerifier streamStateVerifier() {
+		return streamResourceStateVerifier;
+	}
+
+	public final ResourceStateVerifier jobStateVerifier() {
+		return jobResourceStateVerifier;
+	}
+
+	public final JobRepository jobRepository() {
+		return jobRepository;
+	}
+
+	public final JobDefinitionRepository jobDefinitionRepository() {
+		return jobDefinitionRepository;
+	}
+
 	public final StreamDefinitionRepository streamDefinitionRepository() {
 		return streamDefinitionRepository;
 	}
@@ -132,38 +149,91 @@ public class SingleNodeIntegrationTestSupport {
 		return this.messageBus;
 	}
 
+	/**
+	 * Deploy a stream.
+	 * @param definition the stream definition
+	 * @return true if the operation succeeded
+	 */
 	public final boolean deployStream(StreamDefinition definition) {
 		return waitForDeploy(definition);
 	}
 
+	/**
+	 * Deploy a stream with properties.
+	 * @param definition  the stream definition
+	 * @param properties the deployment properties
+	 * @return true if the operation succeeded
+	 */
 	public final boolean deployStream(StreamDefinition definition, Map<String, String> properties) {
 		return waitForDeploy(definition, properties);
 	}
 
+	/**
+	 * Deploy a stream with properties and allow return on incomplete deployment
+	 * @param definition the stream definition
+	 * @param properties the deployment properties
+	 * @param allowIncomplete allow incomplete as well as deployed state
+	 * @return true if operation succeeded
+	 */
+	public final boolean deployStream(StreamDefinition definition, Map<String, String> properties,
+			boolean allowIncomplete) {
+		return waitForDeploy(definition, properties, allowIncomplete);
+	}
+
+	/**
+	 * Create and deploy a stream.
+	 * @param definition the stream definition
+	 * @return true if the operation succeeded.
+	 */
 	public final boolean createAndDeployStream(StreamDefinition definition) {
 		streamDeployer.save(definition);
 		return waitForDeploy(definition);
 	}
 
+	/**
+	 * Undeploy a stream.
+	 * @param definition the stream definition
+	 * @return true if the operation succeeded
+	 */
 	public final boolean undeployStream(StreamDefinition definition) {
 		return waitForUndeploy(definition);
 	}
 
+	/**
+	 * Undeploy and destroy a stream.
+	 * @param definition the stream definition
+	 * @return true if the operation succeeded
+	 */
 	public final boolean undeployAndDestroyStream(StreamDefinition definition) {
 		boolean result = waitForUndeploy(definition);
 		streamDeployer.delete(definition.getName());
 		return result;
 	}
 
+	/**
+	 * Delete a stream.
+	 * @param name  the stream name
+	 */
 	public final void deleteStream(String name) {
 		streamDeployer.delete(name);
 	}
 
+	/**
+	 * Get a deployed module instance.
+	 * @param streamName the stream name
+	 * @param moduleName the module name
+	 * @param index the index of the module in the stream, ordered left to right starting with 0.
+	 * @return the module
+	 */
 	public final Module getModule(String streamName, String moduleName, int index) {
 		Map<Integer, Module> modules = getDeployedModules().get(streamName);
 		return (modules != null) ? modules.get(index) : null;
 	}
 
+	/**
+	 *
+	 * @return  the zookeeperConnection
+	 */
 	public ZooKeeperConnection zooKeeperConnection() {
 		return this.zooKeeperConnection;
 	}
@@ -215,13 +285,8 @@ public class SingleNodeIntegrationTestSupport {
 
 	private boolean waitForUndeploy(StreamDefinition definition) {
 		streamDeployer.undeploy(definition.getName());
-		try {
-			streamDeploymentVerifier.waitForUndeploy(definition.getName());
-			return true;
-		}
-		catch (RuntimeTimeoutException e) {
-			return false;
-		}
+		State state = streamResourceStateVerifier.waitForUndeploy(definition.getName());
+		return state.equals(State.undeployed);
 	}
 
 	private boolean waitForDeploy(StreamDefinition definition) {
@@ -230,13 +295,20 @@ public class SingleNodeIntegrationTestSupport {
 
 	private boolean waitForDeploy(StreamDefinition definition, Map<String, String> properties) {
 		streamDeployer.deploy(definition.getName(), properties);
-		try {
-			streamDeploymentVerifier.waitForDeploy(definition.getName());
+		State state = streamStateVerifier().waitForDeploy(definition.getName());
+		if (state.equals(State.deployed)) {
 			return true;
 		}
-		catch (RuntimeTimeoutException e) {
-			return false;
-		}
+		return false;
+
 	}
 
+	private boolean waitForDeploy(StreamDefinition definition, Map<String, String> properties, boolean allowIncomplete) {
+		streamDeployer.deploy(definition.getName(), properties);
+		State state = streamResourceStateVerifier.waitForDeploy(definition.getName(), allowIncomplete);
+		if (allowIncomplete) {
+		  return state.equals(State.deployed) || state.equals(State.incomplete);
+		}
+		return state.equals(State.deployed);
+	}
 }

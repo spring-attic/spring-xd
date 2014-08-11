@@ -16,8 +16,7 @@
 
 package org.springframework.xd.shell;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,20 +43,19 @@ import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.dirt.test.DeploymentVerifier;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
- * 
+ *
  * JUnit's BeforeClass and AfterClass annotations are used to start and stop the XDAdminServer in local mode with the
  * default store configured to use in-memory storage.
- * 
+ *
  * Note: This isn't ideal as it takes significant time to startup the embedded XDContainer/tomcat and we should do this
  * once across all tests.
- * 
+ *
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author David Turanski
@@ -92,11 +90,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	private Set<File> toBeDeleted = new HashSet<File>();
 
-	protected static DeploymentVerifier streamDeploymentVerifier;
-
-	protected static DeploymentVerifier jobDeploymentVerifier;
-
-	private static SingleNodeIntegrationTestSupport integrationTestSupport;
+	protected static SingleNodeIntegrationTestSupport integrationTestSupport;
 
 	private Random random = new Random();
 
@@ -112,10 +106,6 @@ public abstract class AbstractShellIntegrationTest {
 		if (application == null) {
 			application = new SingleNodeApplication().run("--transport", "local", "--analytics", "redis");
 			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
-
-			streamDeploymentVerifier = integrationTestSupport.streamDeploymentVerifier();
-			jobDeploymentVerifier = integrationTestSupport.jobDeploymentVerifier();
-
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();
 		}
@@ -208,7 +198,7 @@ public abstract class AbstractShellIntegrationTest {
 	/**
 	 * Copies over module files (including jars if this is a directory-style module) from src/test/resources to where it
 	 * will be picked up and makes sure it will disappear at test end.
-	 * 
+	 *
 	 * @param type the type of module, e.g. "source"
 	 * @param name the module name, with extension (e.g. time2.xml or time2 if a directory)
 	 * @throws IOException
@@ -238,3 +228,4 @@ public abstract class AbstractShellIntegrationTest {
 	}
 
 }
+

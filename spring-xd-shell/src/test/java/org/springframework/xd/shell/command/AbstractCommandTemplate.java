@@ -19,10 +19,11 @@ package org.springframework.xd.shell.command;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.test.ResourceStateVerifier;
 
 /**
  * Common operations to execute in the shell.
- * 
+ *
  * @author Mark Pollack
  * @author David TUranski
  */
@@ -32,8 +33,11 @@ public abstract class AbstractCommandTemplate {
 
 	private JLineShellComponent shell;
 
-	public AbstractCommandTemplate(JLineShellComponent shell) {
+	protected final ResourceStateVerifier stateVerifier;
+
+	public AbstractCommandTemplate(JLineShellComponent shell, ResourceStateVerifier stateVerifier) {
 		this.shell = shell;
+		this.stateVerifier = stateVerifier;
 	}
 
 	/**

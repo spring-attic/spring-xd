@@ -41,7 +41,7 @@ import org.springframework.xd.test.fixtures.TcpSource;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by the test.
- * 
+ *
  * @author Andy Clement
  * @author Mark Pollack
  * @author Eric Bottard
@@ -57,7 +57,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	private ComposedTemplate composedTemplate;
 
 	public AbstractStreamIntegrationTest() {
-		streamOps = new StreamCommandTemplate(getShell(), streamDeploymentVerifier);
+		streamOps = new StreamCommandTemplate(getShell(), integrationTestSupport);
 		metrics = new MetricsTemplate(getShell());
 		composedTemplate = new ComposedTemplate(getShell());
 		disposables.add(metrics);

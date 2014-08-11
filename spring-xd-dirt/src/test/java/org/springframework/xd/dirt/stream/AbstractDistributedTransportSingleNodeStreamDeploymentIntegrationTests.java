@@ -16,18 +16,16 @@
 
 package org.springframework.xd.dirt.stream;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.xd.dirt.integration.bus.Binding;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
-
-import org.springframework.integration.test.util.SocketUtils;
-import org.springframework.xd.dirt.integration.bus.Binding;
-import org.springframework.xd.dirt.stream.StreamDefinition;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Base class for testing non-local transports, such as RabbitMQ and Redis.
@@ -95,7 +93,7 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 		Map<String, String> props = new HashMap<String, String>();
 		props.put("module.http.count", "0");
 		props.put("module.log.count", "3");
-		integrationSupport.deployStream(sd, props);
+		integrationSupport.deployStream(sd, props,/*allowIncomplete*/ true);
 		List<Binding> bindings = getMessageBusBindingsForStream(streamName);
 		assertEquals(2, bindings.size());
 		Binding consumerBinding = bindings.get(0);
@@ -112,7 +110,7 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 		Map<String, String> props = new HashMap<String, String>();
 		props.put("module.*.count", "0");
 		props.put("module.log.count", "3");
-		integrationSupport.deployStream(sd, props);
+		integrationSupport.deployStream(sd, props,/*allowIncomplete*/ true);
 		List<Binding> bindings = getMessageBusBindingsForStream(streamName);
 		assertEquals(2, bindings.size());
 		Binding consumerBinding = bindings.get(0);

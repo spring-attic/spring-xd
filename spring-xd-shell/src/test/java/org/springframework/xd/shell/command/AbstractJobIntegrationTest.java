@@ -16,9 +16,7 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +36,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.xd.dirt.test.ResourceStateVerifier;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
@@ -49,6 +48,7 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @author David Turanski
  */
 public abstract class AbstractJobIntegrationTest extends AbstractShellIntegrationTest {
 
@@ -84,8 +84,11 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	private final ConcurrentMap<String, PollableChannel> jobTapChannels = new ConcurrentHashMap<String, PollableChannel>();
 
+	private ResourceStateVerifier jobStateVerifier;
+
 	@Before
 	public void before() {
+		this.jobStateVerifier = integrationTestSupport.jobStateVerifier();
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + TEST_TASKLET, MODULE_TARGET_DIR + TEST_TASKLET);
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARAMETERS_TASKLET, MODULE_TARGET_DIR
 				+ JOB_WITH_PARAMETERS_TASKLET);
@@ -122,13 +125,13 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		for (String jobName : jobNames) {
 			CommandResult cr = executeCommand("job destroy --name " + jobName);
 			assertTrue("Failure to destroy job " + jobName + ".  CommandResult = " + cr.toString(), cr.isSuccess());
-			jobDeploymentVerifier.waitForDestroy(jobName);
+			jobStateVerifier.waitForDestroy(jobName);
 		}
 	}
 
 	protected CommandResult jobDestroy(String jobName) {
 		CommandResult result = getShell().executeCommand("job destroy --name " + jobName);
-		jobDeploymentVerifier.waitForDestroy(jobName);
+		jobStateVerifier.waitForDestroy(jobName);
 		return result;
 	}
 
@@ -137,7 +140,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 			CommandResult cr = executeCommand("stream destroy --name " + streamName);
 			assertTrue("Failure to destroy stream " + streamName + ".  CommandResult = " + cr.toString(),
 					cr.isSuccess());
-			streamDeploymentVerifier.waitForDestroy(streamName);
+			jobStateVerifier.waitForDestroy(streamName);
 		}
 	}
 
@@ -162,10 +165,10 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		jobs.add(jobName);
 		if (deploy) {
 			bindJobTap(jobName);
-			jobDeploymentVerifier.waitForDeploy(jobName);
+			jobStateVerifier.waitForDeploy(jobName);
 		}
 		else {
-			jobDeploymentVerifier.waitForCreate(jobName);
+			jobStateVerifier.waitForCreate(jobName);
 		}
 	}
 
@@ -187,7 +190,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	protected CommandResult deployJob(String jobName) {
 		CommandResult result = getShell().executeCommand("job deploy " + jobName);
 		bindJobTap(jobName);
-		jobDeploymentVerifier.waitForDeploy(jobName);
+		jobStateVerifier.waitForDeploy(jobName);
 		return result;
 	}
 
@@ -197,7 +200,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	protected CommandResult undeployJob(String jobName) {
 		CommandResult result = getShell().executeCommand("job undeploy " + jobName);
 		unbindJobTap(jobName);
-		jobDeploymentVerifier.waitForUndeploy(jobName);
+		jobStateVerifier.waitForUndeploy(jobName);
 		return result;
 	}
 

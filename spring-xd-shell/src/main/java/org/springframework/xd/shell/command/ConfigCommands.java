@@ -54,8 +54,6 @@ import org.springframework.xd.shell.util.UiUtils;
 @Component
 public class ConfigCommands implements CommandMarker, InitializingBean {
 
-	private static String ADMIN_URI_ARG = "adminUri";
-
 	private static final Log logger = LogFactory.getLog(XDShell.class);
 
 	@Autowired

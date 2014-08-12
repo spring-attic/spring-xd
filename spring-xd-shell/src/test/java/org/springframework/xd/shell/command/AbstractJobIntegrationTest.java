@@ -78,6 +78,10 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	public static final String JOB_WITH_PARTITIONS_DESCRIPTOR = "jobWithPartitions";
 
+	public static final String NESTED_JOB_DESCRIPTOR = "nestedJob";
+
+	private static final String NESTED_JOB_TASKLET = "nestedJob.xml";
+
 	private List<String> jobs = new ArrayList<String>();
 
 	private List<String> streams = new ArrayList<String>();
@@ -96,6 +100,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 				+ JOB_WITH_STEP_EXECUTIONS_TASKLET);
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARTITIONS_TASKLET, MODULE_TARGET_DIR
 				+ JOB_WITH_PARTITIONS_TASKLET);
+		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + NESTED_JOB_TASKLET, MODULE_TARGET_DIR
+				+ NESTED_JOB_TASKLET);
 	}
 
 	@After
@@ -285,7 +291,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				"stream create --name " + streamName + " --definition \"trigger --fixedDelay=" + fixedDelay
-						+ " > " + getJobLaunchQueue(jobName) + "\" --deploy true");
+				+ " > " + getJobLaunchQueue(jobName) + "\" --deploy true");
 		streams.add(streamName);
 		waitForJobCompletion(jobName);
 		checkForSuccess(cr);

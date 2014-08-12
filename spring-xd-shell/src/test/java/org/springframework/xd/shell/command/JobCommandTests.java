@@ -538,4 +538,13 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertNotEquals(duration, "N/A");
 	}
 
+	@Test
+	public void testNestedJob() {
+		logger.info("Launch nested job");
+		String jobName = generateJobName();
+		executeJobCreate(jobName, NESTED_JOB_DESCRIPTOR);
+		checkForJobInList(jobName, NESTED_JOB_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+	}
+
 }

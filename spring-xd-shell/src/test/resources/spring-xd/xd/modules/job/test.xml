@@ -40,7 +40,7 @@ http://www.springframework.org/schema/tx/spring-tx.xsd">
 		<property name="resource" value="file:./src/test/resources/client1.txt" />
 		<property name="lineAggregator" ref="lineAggregator" />
 	</bean>
-	<batch:job id="job">
+	<batch:job id="rootjob">
 		<batch:step id="step1">
 			<batch:tasklet>
 				<batch:chunk reader="itemReader" writer="itemWriter"

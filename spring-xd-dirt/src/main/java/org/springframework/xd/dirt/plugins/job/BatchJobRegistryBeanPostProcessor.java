@@ -37,11 +37,13 @@ import org.springframework.xd.dirt.plugins.job.support.listener.XDJobListenerCon
 
 /**
  * JobRegistryBeanPostProcessor that processes batch job from the job module.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProcessor implements BeanFactoryAware,
-		XDJobListenerConstants {
+XDJobListenerConstants {
+
+	public static final String ROOTJOB = "rootjob";
 
 	private JobRegistry jobRegistry;
 
@@ -96,10 +98,10 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 			}
 		}
 		else if (bean instanceof FlowJob) {
-			if (!jobRegistry.getJobNames().contains(groupName)) {
+			if (!jobRegistry.getJobNames().contains(groupName) && beanName.equals(ROOTJOB)) {
 				postProcessJob(bean, beanName);
 			}
-			else {
+			else if (jobRegistry.getJobNames().contains(groupName)) {
 				throw new BatchJobAlreadyExistsInRegistryException(groupName);
 			}
 		}
@@ -113,8 +115,9 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 		// Since, the Spring batch doesn't have persistent JobRegistry, the {@link DistributedJobLocator}
 		// acts as the store to have jobName , job parameter incrementer and restartable flag to be
 		// used by {@link DistributedJobService}
-		jobLocator.addJob(groupName, (job.getJobParametersIncrementer() != null) ? true : false, job.isRestartable());
-		jobLocator.addStepNames(groupName, job.getStepNames());
+		jobLocator.addJob(this.groupName, (job.getJobParametersIncrementer() != null) ? true : false,
+				job.isRestartable());
+		jobLocator.addStepNames(this.groupName, job.getStepNames());
 		super.postProcessAfterInitialization(bean, beanName);
 	}
 

@@ -36,6 +36,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
@@ -46,7 +47,7 @@ import org.springframework.xd.tuple.TupleBuilder;
 
 /**
  * Tests for converting from a Message.
- * 
+ *
  * @author David Turanski
  */
 public class FromMessageConverterTests {
@@ -68,6 +69,43 @@ public class FromMessageConverterTests {
 		converters.add(new ByteArrayToStringMessageConverter());
 		converters.add(new PojoToStringMessageConverter());
 		converterFactory = new CompositeMessageConverterFactory(converters);
+	}
+
+	@Test
+	public void testPojoToJsonPrettyPrint() {
+		String json = "{\n  \"foo\" : \"bar\"\n}";
+		CompositeMessageConverter converter = converterFactory.newInstance(MimeTypeUtils.APPLICATION_JSON);
+		for (MessageConverter messageConverter : converter.getConverters()) {
+			if (messageConverter instanceof PojoToJsonMessageConverter) {
+				((PojoToJsonMessageConverter) messageConverter).setPrettyPrint(true);
+			}
+			else if (messageConverter instanceof TupleToJsonMessageConverter) {
+				((TupleToJsonMessageConverter) messageConverter).setPrettyPrint(true);
+			}
+		}
+		Message<?> msg = (Message<?>) converter.fromMessage(new GenericMessage<Foo>(new Foo()), String.class);
+		assertEquals(json, msg.getPayload());
+		assertEquals(MimeTypeUtils.APPLICATION_JSON, msg.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void testTupleToJsonPrettyPrint() {
+		Tuple t = TupleBuilder.fromString("{\"foo\":\"bar\"}");
+		Message<?> msg = MessageBuilder.withPayload(t).build();
+		CompositeMessageConverter converter = converterFactory.newInstance(MimeTypeUtils.APPLICATION_JSON);
+		for (MessageConverter messageConverter : converter.getConverters()) {
+			if (messageConverter instanceof PojoToJsonMessageConverter) {
+				((PojoToJsonMessageConverter) messageConverter).setPrettyPrint(true);
+			}
+			else if (messageConverter instanceof TupleToJsonMessageConverter) {
+				((TupleToJsonMessageConverter) messageConverter).setPrettyPrint(true);
+			}
+		}
+		Message<String> result = (Message<String>) converter.fromMessage(msg, String.class);
+		assertTrue(result.getPayload(), result.getPayload().contains("{\n"));
+		assertTrue(result.getPayload(), result.getPayload().contains("\"foo\" : \"bar\""));
+		assertEquals(MimeTypeUtils.APPLICATION_JSON,
+				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test

@@ -16,9 +16,15 @@
 
 package org.springframework.xd.dirt.integration.bus.converter;
 
+import java.io.IOException;
+
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.xd.tuple.Tuple;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 
 /**
@@ -29,6 +35,11 @@ import org.springframework.xd.tuple.Tuple;
  */
 public class TupleToJsonMessageConverter extends AbstractFromMessageConverter {
 
+	private volatile boolean isPrettyPrint = false;
+
+	public void setPrettyPrint(boolean isPrettyPrint) {
+		this.isPrettyPrint = isPrettyPrint;
+	}
 
 	public TupleToJsonMessageConverter() {
 		super(MimeTypeUtils.APPLICATION_JSON);
@@ -47,7 +58,26 @@ public class TupleToJsonMessageConverter extends AbstractFromMessageConverter {
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
 		Tuple t = (Tuple) message.getPayload();
-		String json = t.toString();
+		String json = null;
+		if (isPrettyPrint == false) {
+			json = t.toString();
+		}
+		else {
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+			try {
+				Object tmp = mapper.readValue(t.toString(), Object.class);
+				json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tmp);
+			}
+			catch (JsonProcessingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		return buildConvertedMessage(json, message.getHeaders(), MimeTypeUtils.APPLICATION_JSON);
 	}
 

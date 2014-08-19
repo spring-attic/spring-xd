@@ -98,7 +98,7 @@ public class ResourceStateVerifier {
 				waitTime += STATE_CHANGE_WAIT_TIME;
 			}
 			catch (InterruptedException e) {
-				Thread.interrupted();
+				Thread.currentThread().interrupt();
 			}
 		}
 		return exists;
@@ -118,15 +118,15 @@ public class ResourceStateVerifier {
 				waitTime += STATE_CHANGE_WAIT_TIME;
 			}
 			catch (InterruptedException e) {
-				Thread.interrupted();
+				Thread.currentThread().interrupt();
 			}
 		}
 		return exists;
 
 	}
 
-	/*
-	wait for the State to change to one or more expected target states.
+	/**
+	 * Wait for the State to change to one or more expected target states.
 	 */
 	State waitForDeployState(String resourceName, State... targetStates) {
 		DeploymentUnitStatus.State currentState = deploymentStatusRepository.getDeploymentStatus(resourceName).getState();
@@ -139,7 +139,7 @@ public class ResourceStateVerifier {
 				waitTime += STATE_CHANGE_WAIT_TIME;
 			}
 			catch (InterruptedException e) {
-				Thread.interrupted();
+				Thread.currentThread().interrupt();
 			}
 		}
 		return currentState;

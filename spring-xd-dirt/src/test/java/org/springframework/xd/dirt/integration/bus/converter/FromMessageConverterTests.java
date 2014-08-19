@@ -93,6 +93,7 @@ public class FromMessageConverterTests {
 				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
+
 	@Test
 	public void testPojoToJsonString() {
 		String json = "{\"foo\":\"bar\"}";

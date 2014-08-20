@@ -10,7 +10,7 @@
 		http://www.springframework.org/schema/batch
 		http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<batch:job id="rootjob">
+	<batch:job id="job">
 		<batch:step id="springBatchWithParametersStep">
 			<batch:tasklet ref="springBatchWithParametersTasklet" />
 		</batch:step>

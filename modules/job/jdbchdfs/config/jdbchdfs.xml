@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<batch:job id="rootjob" restartable="${restartable}">
+	<batch:job id="job" restartable="${restartable}">
 		<batch:step id="fileHdfsStep">
 			<batch:tasklet>
 				<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="100"/>

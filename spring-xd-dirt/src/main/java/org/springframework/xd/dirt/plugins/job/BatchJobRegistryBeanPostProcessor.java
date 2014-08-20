@@ -43,7 +43,7 @@ import org.springframework.xd.dirt.plugins.job.support.listener.XDJobListenerCon
 public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProcessor implements BeanFactoryAware,
 XDJobListenerConstants {
 
-	public static final String ROOTJOB = "rootjob";
+	public static final String JOB = "job";
 
 	private JobRegistry jobRegistry;
 
@@ -98,7 +98,7 @@ XDJobListenerConstants {
 			}
 		}
 		else if (bean instanceof FlowJob) {
-			if (!jobRegistry.getJobNames().contains(groupName) && beanName.equals(ROOTJOB)) {
+			if (!jobRegistry.getJobNames().contains(groupName) && beanName.equals(JOB)) {
 				postProcessJob(bean, beanName);
 			}
 			else if (jobRegistry.getJobNames().contains(groupName)) {

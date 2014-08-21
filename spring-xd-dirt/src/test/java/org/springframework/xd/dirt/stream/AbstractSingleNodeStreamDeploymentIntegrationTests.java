@@ -13,20 +13,6 @@
 
 package org.springframework.xd.dirt.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
@@ -38,7 +24,6 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -49,6 +34,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.Binding;
@@ -56,7 +42,6 @@ import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
-import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -64,6 +49,17 @@ import org.springframework.xd.dirt.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 /**
  * Base class for testing stream deployments across different transport types.
@@ -343,9 +339,13 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 					integrationSupport.deployStream(definition));
 			assertEquals(1, integrationSupport.streamRepository().count());
 			assertTrue(integrationSupport.streamRepository().exists("test" + i));
+			assertEquals(DeploymentUnitStatus.State.deployed,integrationSupport.streamRepository()
+					.getDeploymentStatus( "test" +i ).getState());
 			assertTrue("stream not undeployed", integrationSupport.undeployStream(definition));
 			assertEquals(0, integrationSupport.streamRepository().count());
 			assertFalse(integrationSupport.streamRepository().exists("test" + i));
+			assertEquals(DeploymentUnitStatus.State.undeployed,integrationSupport.streamRepository()
+					.getDeploymentStatus( "test" +i ).getState());
 			// Deploys in reverse order
 			assertModuleRequest(streamName, "log", false);
 			assertModuleRequest(streamName, "filter", false);
@@ -505,9 +505,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(bus).createNamedChannelSource("queue:source");
 		NamedChannelSink streamSink = new SingleNodeNamedChannelSinkFactory(bus).createNamedChannelSink("queue:sink");
 		NamedChannelSink tapSink = new SingleNodeNamedChannelSinkFactory(bus).createNamedChannelSink("queue:tap");
-
-		// Wait for things to set up before sending
-		integrationSupport.streamDeploymentVerifier().waitForDeploy(tapDefinition.getName());
 
 		source.send(new GenericMessage<String>("Dracarys!"));
 

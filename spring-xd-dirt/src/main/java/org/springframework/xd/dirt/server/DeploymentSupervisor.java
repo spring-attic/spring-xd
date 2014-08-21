@@ -275,7 +275,16 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		 */
 		@Override
 		public void onConnect(CuratorFramework client) {
-			logger.info("Admin {} CONNECTED", getId());
+			logger.info("Admin {} connection established", getId());
+			requestLeadership(client);
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void onResume(CuratorFramework client) {
+			logger.info("Admin {} connection resumed", getId());
 			requestLeadership(client);
 		}
 
@@ -284,6 +293,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		 */
 		@Override
 		public void onDisconnect(CuratorFramework client) {
+			logger.info("Admin {} connection terminated", getId());
 			try {
 				destroy();
 			}
@@ -291,6 +301,21 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				logger.warn("exception occurred while closing leader selector", e);
 			}
 		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void onSuspend(CuratorFramework client) {
+			logger.info("Admin {} connection suspended", getId());
+			try {
+				destroy();
+			}
+			catch (Exception e) {
+				logger.warn("exception occurred while closing leader selector", e);
+			}
+		}
+
 	}
 
 	/**

@@ -94,14 +94,19 @@ public class ContainerListener implements PathChildrenCacheListener {
 	@Override
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 		ZooKeeperUtils.logCacheEvent(logger, event);
+		Container container;
 		switch (event.getType()) {
 			case CHILD_ADDED:
-				this.arrivingContainerModuleRedeployer.deployModules(getContainer(event.getData()));
+				container = getContainer(event.getData());
+				logger.info("Container arrived: {}", container);
+				this.arrivingContainerModuleRedeployer.deployModules(container);
 				break;
 			case CHILD_UPDATED:
 				break;
 			case CHILD_REMOVED:
-				this.departingContainerModuleRedeployer.deployModules(getContainer(event.getData()));
+				container = getContainer(event.getData());
+				logger.info("Container departed: {}", container);
+				this.departingContainerModuleRedeployer.deployModules(container);
 				break;
 			case CONNECTION_SUSPENDED:
 				break;

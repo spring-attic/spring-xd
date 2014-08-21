@@ -48,7 +48,21 @@ public class RepositoryConnectionListener implements ZooKeeperConnectionListener
 	 * {@inheritDoc}
 	 */
 	@Override
+	public void onResume(CuratorFramework client) {
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public void onDisconnect(CuratorFramework client) {
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void onSuspend(CuratorFramework client) {
 	}
 
 	/**

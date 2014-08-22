@@ -302,15 +302,7 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 	 */
 	@Override
 	public void delete(String id) {
-		CuratorFramework client = zkConnection.getClient();
-		String path = Paths.build(Paths.CONTAINERS, id);
-
-		try {
-			client.delete().forPath(path);
-		}
-		catch (Exception e) {
-			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
-		}
+		// Container metadata is "deleted" when a Container departs
 	}
 
 	/**
@@ -318,7 +310,7 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 	 */
 	@Override
 	public void delete(Container entity) {
-		delete(entity.getName());
+		// Container metadata is "deleted" when a Container departs
 	}
 
 	/**
@@ -326,9 +318,7 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 	 */
 	@Override
 	public void delete(Iterable<? extends Container> entities) {
-		for (Container container : entities) {
-			delete(container);
-		}
+		// Container metadata is "deleted" when a Container departs
 	}
 
 	/**

@@ -26,7 +26,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  *
  * @author Ilayaperumal Gopinathan
  */
-@Mixin(KafkaMixin.class)
+@Mixin(KafkaOptionMixin.class)
 public class KafkaSourceModuleOptionsMetadata {
 
 	private String topic = ModulePlaceholders.XD_STREAM_NAME;
@@ -35,7 +35,7 @@ public class KafkaSourceModuleOptionsMetadata {
 
 	private String groupId = ModulePlaceholders.XD_STREAM_NAME;
 
-	@ModuleOption("kafka topic name, default: stream name")
+	@ModuleOption("kafka topic name")
 	public void setTopic(String topic) {
 		this.topic = topic;
 	}
@@ -44,7 +44,7 @@ public class KafkaSourceModuleOptionsMetadata {
 		return this.topic;
 	}
 
-	@ModuleOption("number of streams in the topic, default: 1")
+	@ModuleOption("number of streams in the topic")
 	public void setStreams(int streams) {
 		this.streams = streams;
 	}
@@ -53,7 +53,7 @@ public class KafkaSourceModuleOptionsMetadata {
 		return this.streams;
 	}
 
-	@ModuleOption("kafka consumer configuration group id, default: stream name")
+	@ModuleOption("kafka consumer configuration group id")
 	public void setGroupId(String groupId) {
 		this.groupId = groupId;
 	}

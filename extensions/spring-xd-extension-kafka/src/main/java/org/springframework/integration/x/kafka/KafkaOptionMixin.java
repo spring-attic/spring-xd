@@ -24,7 +24,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  *
  * @author Ilayaperumal Gopinathan
  */
-public class KafkaMixin {
+public class KafkaOptionMixin {
 
 	private String zkconnect = "localhost:2181";
 

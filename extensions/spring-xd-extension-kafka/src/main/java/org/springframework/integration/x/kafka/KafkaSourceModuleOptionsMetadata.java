@@ -35,6 +35,8 @@ public class KafkaSourceModuleOptionsMetadata {
 
 	private String groupId = ModulePlaceholders.XD_STREAM_NAME;
 
+	private String encoding = "UTF8";
+
 	@ModuleOption("kafka topic name")
 	public void setTopic(String topic) {
 		this.topic = topic;
@@ -60,5 +62,14 @@ public class KafkaSourceModuleOptionsMetadata {
 
 	public String getGroupId() {
 		return this.groupId;
+	}
+
+	@ModuleOption("string encoder to translate bytes into string")
+	public void setEncoding(String encoding) {
+		this.encoding = encoding;
+	}
+
+	public String getEncoding() {
+		return this.encoding;
 	}
 }

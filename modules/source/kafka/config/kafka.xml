@@ -3,8 +3,10 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
 	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd">
 
 	<int:channel id="output"/>
@@ -19,18 +21,11 @@
 		<int:poller fixed-delay="100" time-unit="MILLISECONDS" max-messages-per-poll="-1"/>
 	</int-kafka:inbound-channel-adapter>
 
-	<bean id="consumerProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-		<property name="properties">
-			<props>
-				<prop key="auto.offset.reset">smallest</prop>
-				<prop key="socket.receive.buffer.bytes">10485760</prop>
-				<prop key="fetch.message.max.bytes">5242880</prop>
-				<prop key="auto.commit.interval.ms">1000</prop>
-			</props>
-		</property>
-	</bean>
+	<util:properties id="consumerProperties" location="${xd.config.home}/kafka-consumer.properties"/>
 
-	<bean id="stringDecoder" class="org.springframework.integration.x.kafka.StringDecoder"/>
+	<bean id="stringDecoder" class="org.springframework.integration.x.kafka.StringDecoder">
+		<property name="encoding" value="${encoding}"/>
+	</bean>
 
 	<int-kafka:consumer-context id="consumerContext" zookeeper-connect="zookeeperConnect" consumer-properties="consumerProperties">
 		<int-kafka:consumer-configurations>

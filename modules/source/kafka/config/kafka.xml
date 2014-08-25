@@ -16,7 +16,7 @@
 
 	<int-kafka:inbound-channel-adapter kafka-consumer-context-ref="consumerContext"
 			channel="output">
-		<int:poller fixed-delay="1" time-unit="MILLISECONDS"/>
+		<int:poller fixed-delay="100" time-unit="MILLISECONDS" max-messages-per-poll="-1"/>
 	</int-kafka:inbound-channel-adapter>
 
 	<bean id="consumerProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">

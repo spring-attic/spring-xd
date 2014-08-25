@@ -26,7 +26,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class KafkaOptionMixin {
 
-	private String zkconnect = "localhost:2181";
+	private String zkconnect = "localhost:2181/kafka";
 
 	@ModuleOption("zookeeper connect string")
 	public void setZkconnect(String zkconnect) {

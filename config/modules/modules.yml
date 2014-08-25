@@ -71,3 +71,9 @@
 #    alternateUsernameAllowed: false
 
 ---
+
+#Kafka module properties
+#kafka:
+#  zkconnect: localhost:2181/kafkatest
+
+---

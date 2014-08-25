@@ -24,6 +24,7 @@ import kafka.utils.VerifiableProperties;
 
 /**
  * String Decoder for Kafka message key/value decoding.
+ * The Default decoder returns the same byte array it takes in.
  *
  * @author Soby Chacko
  */

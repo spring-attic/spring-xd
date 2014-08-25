@@ -49,6 +49,9 @@ module.exports = function (grunt) {
         }
       },
       run: {
+        options: {
+          configFile: "test/protractor.conf.js"
+        }
       }
     },
     // The actual grunt server settings

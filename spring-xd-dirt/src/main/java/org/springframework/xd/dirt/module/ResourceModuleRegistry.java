@@ -50,9 +50,12 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 
 	private final String root;
 
+	private final boolean active;
+
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
 	public ResourceModuleRegistry(String root) {
+		this.active = (StringUtils.hasText(root)) ? true : false;
 		this.root = StringUtils.trimTrailingCharacter(root, '/');
 	}
 
@@ -170,6 +173,11 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 	protected String inferModuleName(Resource resource) {
 		return resource.getFilename().substring(0,
 				resource.getFilename().lastIndexOf('.'));
+	}
+
+	@Override
+	public boolean isActive() {
+		return this.active;
 	}
 
 }

@@ -21,6 +21,9 @@
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
 					<constructor-arg value="classpath:/modules/" />
 				</bean>
+				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+					<constructor-arg value="${xd.customModule.home:}" />
+				</bean>
 			</list>
 		</constructor-arg>
 	</bean>

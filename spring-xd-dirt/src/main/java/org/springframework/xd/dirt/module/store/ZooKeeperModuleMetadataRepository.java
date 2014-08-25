@@ -229,13 +229,24 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	@Override
 	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId) {
 		Assert.hasLength(containerId, "containerId is required");
+		return pagingUtility.getPagedData(pageable, findAllByContainerId(containerId));
+	}
+
+	/**
+	 * Find all the modules that are deployed into this container.
+	 *
+	 * @param containerId the containerId
+	 * @return {@link ModuleMetadata} of the modules deployed into this container.
+	 */
+	public List<ModuleMetadata> findAllByContainerId(String containerId) {
+		Assert.hasLength(containerId, "containerId is required");
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
 			List<String> deployedModules = getDeployedModules(containerId);
 			for (String moduleId : deployedModules) {
 				results.add(findOne(containerId, moduleId));
 			}
-			return pagingUtility.getPagedData(pageable, results);
+			return results;
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);

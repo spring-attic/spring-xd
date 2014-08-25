@@ -38,6 +38,7 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.container.store.RuntimeContainerRepository;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
 import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest.LegacyMvcConfiguration;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
@@ -99,6 +100,9 @@ public class AbstractControllerIntegrationTest {
 	// Analytics repositories
 	@Autowired
 	protected CounterRepository counterRepository;
+
+	@Autowired
+	protected RuntimeContainerRepository runtimeContainerRepository;
 
 	@Autowired
 	protected FieldValueCounterRepository fieldValueCounterRepository;

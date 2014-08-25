@@ -16,6 +16,7 @@
 
 package org.springframework.xd.rest.domain;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -30,22 +31,38 @@ import org.springframework.util.Assert;
  * @author Ilayaperumal Gopinathan
  */
 @XmlRootElement
-public class ContainerResource extends ResourceSupport {
+public class RuntimeContainerResource extends ResourceSupport {
+
+	private String containerId;
+
+	private String groups;
+
+	private int deploymentSize;
+
+	private List<ModuleMetadataResource> deployedModules;
 
 	private Map<String, String> attributes;
 
 	@SuppressWarnings("unused")
-	private ContainerResource() {
+	private RuntimeContainerResource() {
 	}
 
 	/**
-	 * Construct ContainerResource using the container attributes.
+	 * Construct ContainerResource using the container attributes and
+	 * deployed modules.
 	 *
 	 * @param attributes the container attributes
+	 * @param deploymentSize number of deployed modules
+	 * @param deployedModules the list of deployed modules
 	 */
-	public ContainerResource(Map<String, String> attributes) {
+	public RuntimeContainerResource(Map<String, String> attributes, int deploymentSize,
+			List<ModuleMetadataResource> deployedModules) {
 		Assert.notNull(attributes);
+		this.containerId = attributes.get("id");
+		this.groups = attributes.get("groups");
 		this.attributes = attributes;
+		this.deploymentSize = deploymentSize;
+		this.deployedModules = deployedModules;
 	}
 
 	/**
@@ -67,6 +84,42 @@ public class ContainerResource extends ResourceSupport {
 		return this.attributes.get(name);
 	}
 
+	/**
+	 * Get container id.
+	 *
+	 * @return the container id.
+	 */
+	public String getContainerId() {
+		return this.containerId;
+	}
+
+	/**
+	 * Get container group(s).
+	 *
+	 * @return the container groups that the container belongs to.
+	 */
+	public String getGroups() {
+		return this.groups;
+	}
+
+	/**
+	 * Get the number of modules deployed into the container.
+	 *
+	 * @return the count of deployed modules.
+	 */
+	public int getDeploymentSize() {
+		return this.deploymentSize;
+	}
+
+	/**
+	 * Get the list of deployed modules.
+	 *
+	 * @return the deployed modules.
+	 */
+	public List<ModuleMetadataResource> getDeployedModules() {
+		return this.deployedModules;
+	}
+
 	@Override
 	public String toString() {
 		return attributes.toString();
@@ -78,7 +131,7 @@ public class ContainerResource extends ResourceSupport {
 	 *
 	 * @author Eric Bottard
 	 */
-	public static class Page extends PagedResources<ContainerResource> {
+	public static class Page extends PagedResources<RuntimeContainerResource> {
 
 	}
 

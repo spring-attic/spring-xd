@@ -18,12 +18,15 @@ package org.springframework.xd.integration.util;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
+import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 
 
 /**
@@ -147,6 +150,24 @@ public class JobUtils {
 					result = false;
 					break;
 				}
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Retrieve a list of JobExecutionInfoResources with the jobName.
+	 * @param jobName The search name
+	 * @return a list of JobExecutionInfoResources
+	 */
+	public static List<JobExecutionInfoResource> getJobExecInfoByName(String jobName, URL adminServer) {
+		List<JobExecutionInfoResource> jobExecutions = createSpringXDTemplate(adminServer).jobOperations().listJobExecutions();
+		Iterator<JobExecutionInfoResource> iter = jobExecutions.iterator();
+		List<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
+		while (iter.hasNext()) {
+			JobExecutionInfoResource resource = iter.next();
+			if (resource.getName().equals(jobName)) {
+				result.add(resource);
 			}
 		}
 		return result;

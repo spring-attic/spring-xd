@@ -54,17 +54,18 @@ public class FilePollHdfsTest extends AbstractIntegrationTest {
 	@Test
 	public void testFilePollHdfsJob() {
 		String data = UUID.randomUUID().toString();
+		String jobName = "tfphj" + UUID.randomUUID().toString();
 		String sourceFileName = UUID.randomUUID().toString() + ".out";
 		String sourceDir = "/tmp/xd/" + FilePollHdfsJob.DEFAULT_FILE_NAME;
 
 		SimpleFileSource fileSource = sources.file(sourceDir, sourceFileName).reference(true);
-		job(jobs.filePollHdfsJob(DEFAULT_NAMES).toDSL());
-		stream(fileSource + XD_TAP_DELIMITER + " queue:job:" + JOB_NAME);
+		job(jobName, jobs.filePollHdfsJob(DEFAULT_NAMES).toDSL(), WAIT_TIME);
+		stream(fileSource + XD_TAP_DELIMITER + " queue:job:" + jobName);
 		//Since the job may be on a different container you will have to copy the file to the job's container.
-		setupDataFiles(getContainerHostForJob(), sourceDir, sourceFileName, data);
+		setupDataFiles(getContainerHostForJob(jobName), sourceDir, sourceFileName, data);
 		//Copy file to source container instance.
 		setupSourceDataFiles(sourceDir, sourceFileName, data);
-		waitForXD();
+		waitForJobToComplete(jobName);
 		assertValidHdfs(data, FilePollHdfsJob.DEFAULT_DIRECTORY + "/" + FilePollHdfsJob.DEFAULT_FILE_NAME + "-0.csv");
 	}
 

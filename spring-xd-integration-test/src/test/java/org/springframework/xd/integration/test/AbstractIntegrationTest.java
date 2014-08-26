@@ -37,6 +37,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -53,6 +54,7 @@ import org.springframework.xd.integration.util.JobUtils;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
+import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.test.fixtures.AbstractModuleFixture;
 import org.springframework.xd.test.fixtures.LogSink;
@@ -316,7 +318,8 @@ public abstract class AbstractIntegrationTest {
 		Assert.notNull(data, "data must not be null");
 
 		if (xdEnvironment.isOnEc2()) {
-			StreamUtils.createDataFileOnRemote(xdEnvironment.getPrivateKey(), host, sourceDir, fileName, data);
+			StreamUtils.createDataFileOnRemote(xdEnvironment.getPrivateKey(), host, sourceDir, fileName, data,
+					WAIT_TIME);
 		}
 		else {
 			try {
@@ -671,7 +674,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param path the path to the resource .
 	 * @return false if the path was not present. True if it was present.
 	 */
-	public boolean waitForPath(int waitTime, String path) {
+	private boolean waitForPath(int waitTime, String path) {
 		long timeout = System.currentTimeMillis() + waitTime;
 		File file = new File(path);
 		boolean exists = file.exists();
@@ -686,6 +689,59 @@ public abstract class AbstractIntegrationTest {
 			exists = file.exists();
 		}
 		return exists;
+	}
+
+	/**
+	 * Wait until the job is complete. If multiple job executions have been executed using this jobName,
+	 * the method will only check the first job execution it retrieves from the datastore.  Hint: use a unique jobName,
+	 * to guarantee that you will get zero or one jobExecution.
+	 * @param jobName The name of the job to evaluate.
+	 */
+	protected boolean waitForJobToComplete(String jobName) {
+		Assert.hasText(jobName, "The job name must be specified.");
+
+		boolean isJobComplete = isJobComplete(jobName);
+		long timeout = System.currentTimeMillis() + WAIT_TIME;
+		while (!isJobComplete && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			isJobComplete = isJobComplete(jobName);
+		}
+		return isJobComplete;
+	}
+
+	/**
+	 * Checks to see if the execution for the job is complete.
+	 * Since a single jobName can have multiple jobExecutions, this method evaluates the first job execution
+	 *  in the job execution list.
+	 * @param jobName The name of the job to be evaluated.
+	 * @param adminServer The admin server URL that will be queried.
+	 * @return true if the job is deployed else false
+	 */
+	private boolean isJobComplete(String jobName) {
+		boolean result = false;
+		List<JobExecutionInfoResource> resources = JobUtils.getJobExecInfoByName(jobName, adminServer);
+		Iterator<JobExecutionInfoResource> resourceIter = resources.iterator();
+		while (resourceIter.hasNext()) {
+			JobExecutionInfoResource resource = resourceIter.next();
+
+			if (jobName.equals(resource.getName())) {
+				if (BatchStatus.COMPLETED.equals(resource.getJobExecution().getStatus())) {
+					result = true;
+					break;
+				}
+				else {
+					result = false;
+					break;
+				}
+			}
+		}
+		return result;
 	}
 
 	/**

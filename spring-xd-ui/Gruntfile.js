@@ -50,7 +50,7 @@ module.exports = function (grunt) {
       },
       run: {
         options: {
-          configFile: "test/protractor.conf.js"
+          configFile: 'test/protractor.conf.js'
         }
       }
     },

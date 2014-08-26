@@ -44,13 +44,15 @@ This will trigger the following [Grunt][] tasks to be executed:
 
 ### E2E Testing
 
-In order to also execute the End-to-End (E2E) tests, execute the build using:
+In order to also execute the End-to-End (E2E) tests, please execute the UI build using:
 
-	$ grunt test:e2e
+	$ grunt serve
+	
+In one console window and in another window execute:
 
-or (equivalent)
+	$ grunt protractor:run
 
-	$ grunt teste2e
+Please ensure that a Spring XD server instance is running at `http://localhost:9393/`.
 
 ### Running the Project for Development
 

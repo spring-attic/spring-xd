@@ -46,11 +46,11 @@ import org.springframework.xd.rest.domain.ModuleMetadataResource;
  * @author Gunnar Hillert
  */
 @Controller
-@RequestMapping("/runtime/modules")
+@RequestMapping("/cluster/modules")
 @ExposesResourceFor(ModuleMetadataResource.class)
 public class ModulesMetadataController {
 
-	private ModuleMetadataRepository moduleMetadataRepository;
+	private final ModuleMetadataRepository moduleMetadataRepository;
 
 	private ResourceAssemblerSupport<ModuleMetadata, ModuleMetadataResource> moduleMetadataResourceAssembler;
 
@@ -149,9 +149,7 @@ public class ModulesMetadataController {
 		final List<ModuleMetadata> moduleMetadataListToReturn = new ArrayList<ModuleMetadata>();
 
 		for (ModuleMetadata moduleMetadata : moduleMetadataIterable) {
-			final String jobnameFragment[] = moduleMetadata.getId().split("\\.job\\.");
-
-			if (jobnameFragment.length > 0 && jobName.equals(jobnameFragment[0])) {
+			if (jobName.equals(moduleMetadata.getUnitName())) {
 				moduleMetadataListToReturn.add(moduleMetadata);
 			}
 		}

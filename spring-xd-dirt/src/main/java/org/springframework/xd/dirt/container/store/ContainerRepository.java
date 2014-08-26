@@ -16,7 +16,10 @@
 
 package org.springframework.xd.dirt.container.store;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.xd.dirt.cluster.Container;
+import org.springframework.xd.dirt.cluster.DetailedContainer;
 import org.springframework.xd.store.DomainRepository;
 
 /**
@@ -32,5 +35,11 @@ public interface ContainerRepository extends DomainRepository<Container, String>
 	 * @param container the container entity
 	 */
 	public void update(Container container);
+
+	/**
+	 * @param pageable pagination info
+	 * @return paged list of all the {@RuntimeContainer}s in the XD cluster.
+	 */
+	public Page<DetailedContainer> findAllRuntimeContainers(Pageable pageable);
 
 }

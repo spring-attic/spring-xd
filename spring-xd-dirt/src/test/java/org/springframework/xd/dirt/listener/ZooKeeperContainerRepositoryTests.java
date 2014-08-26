@@ -43,6 +43,9 @@ import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.container.store.ZooKeeperContainerRepository;
 import org.springframework.xd.dirt.listener.ZooKeeperContainerRepositoryTests.ZooKeeperContainerRepositoryTestsConfig;
+import org.springframework.xd.dirt.module.store.ZooKeeperModuleMetadataRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperAccessException;
@@ -211,8 +214,14 @@ public class ZooKeeperContainerRepositoryTests {
 		}
 
 		@Bean
-		public ContainerRepository containerAttributesRepository() {
-			return new ZooKeeperContainerRepository(zooKeeperConnection());
+		public ZooKeeperModuleMetadataRepository zooKeeperModuleMetadataRepo() {
+			return new ZooKeeperModuleMetadataRepository(zooKeeperConnection(), new ZooKeeperStreamRepository(
+					zooKeeperConnection()), new ZooKeeperJobRepository(zooKeeperConnection()));
+		}
+
+		@Bean
+		public ContainerRepository containerRepository() {
+			return new ZooKeeperContainerRepository(zooKeeperConnection(), zooKeeperModuleMetadataRepo());
 		}
 	}
 

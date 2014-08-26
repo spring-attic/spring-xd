@@ -42,8 +42,10 @@ import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
 import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest.LegacyMvcConfiguration;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
+import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
+import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperAccessException;
 
 /**
@@ -96,6 +98,13 @@ public class AbstractControllerIntegrationTest {
 	@Autowired
 	protected ModuleMetadataRepository moduleMetadataRepository;
 
+	// Instance repositories
+	@Autowired
+	protected StreamRepository streamRepository;
+
+	@Autowired
+	protected JobRepository jobRepository;
+
 	// Analytics repositories
 	@Autowired
 	protected CounterRepository counterRepository;
@@ -122,6 +131,8 @@ public class AbstractControllerIntegrationTest {
 
 		resetOrDelete(streamDefinitionRepository);
 		resetOrDelete(jobDefinitionRepository);
+		resetOrDelete(streamRepository);
+		resetOrDelete(jobRepository);
 		resetOrDelete(counterRepository);
 		resetOrDelete(fieldValueCounterRepository);
 		resetOrDelete(gaugeRepository);

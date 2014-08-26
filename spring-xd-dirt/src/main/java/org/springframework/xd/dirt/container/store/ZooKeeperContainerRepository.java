@@ -41,7 +41,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
+import org.springframework.xd.dirt.cluster.DetailedContainer;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
+import org.springframework.xd.dirt.module.store.ModuleMetadata;
+import org.springframework.xd.dirt.module.store.ZooKeeperModuleMetadataRepository;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -67,10 +70,17 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 	 */
 	private final ZooKeeperConnection zkConnection;
 
+	private final ZooKeeperModuleMetadataRepository zkModuleMetadataRepository;
+
 	/**
 	 * Paging support for this repository.
 	 */
 	private final PagingUtility<Container> pagingUtility = new PagingUtility<Container>();
+
+	/**
+	 * Paging support for detailed containers.
+	 */
+	private final PagingUtility<DetailedContainer> detailedContainersUtil = new PagingUtility<DetailedContainer>();
 
 	/**
 	 * Atomic reference to the {@link PathChildrenCache} for containers
@@ -86,10 +96,13 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 	 * Construct a {@code ZooKeeperContainerRepository}.
 	 *
 	 * @param zkConnection the ZooKeeper connection
+	 * @param moduleMetadataRepository the module metadata repository
 	 */
 	@Autowired
-	public ZooKeeperContainerRepository(ZooKeeperConnection zkConnection) {
+	public ZooKeeperContainerRepository(ZooKeeperConnection zkConnection,
+			ZooKeeperModuleMetadataRepository moduleMetadataRepository) {
 		this.zkConnection = zkConnection;
+		this.zkModuleMetadataRepository = moduleMetadataRepository;
 	}
 
 	/**
@@ -308,6 +321,27 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 			}
 		}
 		return results;
+	}
+
+	/**
+	 * Find all the {@DetailedContainer}s in the XD cluster.
+	 *
+	 * @param pageable the pagination info
+	 * @return the paged list of {@DetailedContainer}s
+	 */
+	@Override
+	public Page<DetailedContainer> findAllRuntimeContainers(Pageable pageable) {
+		List<DetailedContainer> results = new ArrayList<DetailedContainer>();
+		List<Container> containers = this.findAll();
+
+		for (Container container : containers) {
+			DetailedContainer runtimeContainer = new DetailedContainer(container);
+			List<ModuleMetadata> deployedModules = zkModuleMetadataRepository.findAllByContainerId(container.getName());
+			runtimeContainer.setDeployedModules(deployedModules);
+			runtimeContainer.setDeploymentSize(deployedModules.size());
+			results.add(runtimeContainer);
+		}
+		return detailedContainersUtil.getPagedData(pageable, results);
 	}
 
 	/**

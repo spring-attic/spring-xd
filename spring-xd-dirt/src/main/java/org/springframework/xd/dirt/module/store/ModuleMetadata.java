@@ -27,15 +27,28 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
 	private final String id;
 
+	private final String name;
+
+	private final String unitName;
+
+	private final String moduleType;
+
 	private final String containerId;
 
 	private final Properties moduleOptions;
 
 	private final Properties deploymentProperties;
 
+	private String deploymentStatus;
 
-	public ModuleMetadata(String id, String containerId, Properties moduleOptions, Properties deploymentProperties) {
+
+	public ModuleMetadata(String id, String name, String unitName, String moduleType, String containerId,
+			Properties moduleOptions,
+			Properties deploymentProperties) {
 		this.id = id;
+		this.name = name;
+		this.unitName = unitName;
+		this.moduleType = moduleType;
 		this.containerId = containerId;
 		this.moduleOptions = moduleOptions;
 		this.deploymentProperties = deploymentProperties;
@@ -43,6 +56,18 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
 	public String getId() {
 		return id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getUnitName() {
+		return this.unitName;
+	}
+
+	public String getModuleType() {
+		return this.moduleType;
 	}
 
 	public String getContainerId() {
@@ -55,6 +80,14 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
 	public Properties getDeploymentProperties() {
 		return deploymentProperties;
+	}
+
+	public String getDeploymentStatus() {
+		return deploymentStatus;
+	}
+
+	public void setDeploymentStatus(String deploymentStatus) {
+		this.deploymentStatus = deploymentStatus;
 	}
 
 	/**

@@ -23,7 +23,7 @@ define(['angular'], function (angular) {
   'use strict';
 
   return angular.module('xdStreamsAdmin.services', [])
-      .factory('StreamService', function ($resource, $rootScope, $log) {
+      .factory('StreamService', function ($resource, $rootScope, $log, $http) {
         return {
           getDefinitions: function () {
             return $resource($rootScope.xdAdminServerUrl + '/streams/definitions.json', {}, {
@@ -32,10 +32,22 @@ define(['angular'], function (angular) {
               }
             });
           },
-          deploy: function (streamDefinition) {
+          getSingleStreamDefinition: function (streamName) {
+            $log.info('Getting single stream definition for job named ' + streamName);
+            return $http({
+              method: 'GET',
+              url: $rootScope.xdAdminServerUrl + '/streams/definitions/' + streamName
+            });
+          },
+          deploy: function (streamDefinition, properties) {
             $log.info('Deploy Stream ' + streamDefinition.name);
             return $resource($rootScope.xdAdminServerUrl + '/streams/deployments/' + streamDefinition.name, null, {
-              deploy: { method: 'POST' }
+              deploy: {
+                method: 'POST',
+                params: {
+                  properties: properties
+                }
+              }
             }).deploy();
           },
           undeploy: function (streamDefinition) {

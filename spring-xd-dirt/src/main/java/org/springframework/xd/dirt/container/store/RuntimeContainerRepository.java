@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
+package org.springframework.xd.dirt.container.store;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.xd.dirt.cluster.RuntimeContainer;
+
+
 /**
- * Definition of xdAdmin app module.
+ * The repository for {@link RuntimeContainer}s.
  *
  * @author Ilayaperumal Gopinathan
  */
-define([
-  'angular',
-  './job/app',
-  './stream/app',
-  './container/app',
-  './auth/app'
-], function (angular) {
-  'use strict';
-  return angular.module('xdAdmin', [
-    'xdJobsAdmin',
-    'xdStreamsAdmin',
-    'xdContainerAdmin',
-    'xdAuth'
-  ]);
-});
+public interface RuntimeContainerRepository {
+
+	/**
+	 * @param pageable pagination info
+	 * @return paged list of all the {@RuntimeContainer}s in the XD cluster.
+	 */
+	public Page<RuntimeContainer> findAllRuntimeContainers(Pageable pageable);
+
+}

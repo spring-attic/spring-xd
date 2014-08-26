@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -36,9 +35,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerShutdownException;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
+import org.springframework.xd.dirt.cluster.RuntimeContainer;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
-import org.springframework.xd.rest.domain.ContainerAttributesResource;
-import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.dirt.container.store.RuntimeContainerRepository;
+import org.springframework.xd.rest.domain.RuntimeContainerResource;
 
 /**
  * Handles interaction with the runtime containers/and its modules.
@@ -48,12 +48,17 @@ import org.springframework.xd.rest.domain.ContainerResource;
  */
 @Controller
 @RequestMapping("/runtime/containers")
-@ExposesResourceFor(ContainerAttributesResource.class)
+@ExposesResourceFor(RuntimeContainerResource.class)
 public class RuntimeContainersController {
 
+	@Autowired
+	private RuntimeContainerRepository runtimeContainerRepository;
+
+	@Autowired
 	private ContainerRepository containerRepository;
 
-	private ResourceAssemblerSupport<Container, ContainerResource> containerResourceAssemblerSupport;
+	private ResourceAssemblerSupport<RuntimeContainer, RuntimeContainerResource> resourceAssembler =
+			new RuntimeContainerResourceAssembler();
 
 	@Value("${management.contextPath:/management}")
 	private String managementContextPath;
@@ -62,11 +67,9 @@ public class RuntimeContainersController {
 
 	private final static String SHUTDOWN_ENDPOINT = "/shutdown";
 
-
 	@Autowired
 	public RuntimeContainersController(ContainerRepository containerRepository) {
 		this.containerRepository = containerRepository;
-		containerResourceAssemblerSupport = new ContainerResourceAssembler();
 	}
 
 	/**
@@ -75,12 +78,10 @@ public class RuntimeContainersController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<ContainerResource> list(Pageable pageable,
-			PagedResourcesAssembler<Container> assembler) {
-		Page<Container> page = this.containerRepository.findAll(pageable);
-		PagedResources<ContainerResource> result = assembler.toResource(page,
-				containerResourceAssemblerSupport);
-		return result;
+	public PagedResources<RuntimeContainerResource> list(Pageable pageable,
+			PagedResourcesAssembler<RuntimeContainer> assembler) {
+		return assembler.toResource(runtimeContainerRepository.findAllRuntimeContainers(pageable),
+				resourceAssembler);
 	}
 
 	/**
@@ -98,7 +99,9 @@ public class RuntimeContainersController {
 			RestTemplate restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory());
 			try {
 				restTemplate.postForObject(CONTAINER_HOST_URI_PROTOCOL + containerHost + ":"
-						+ containerManagementPort + managementContextPath + SHUTDOWN_ENDPOINT, Object.class, Object.class);
+						+ containerManagementPort + managementContextPath + SHUTDOWN_ENDPOINT, Object.class,
+						Object.class);
+
 			}
 			catch (RestClientException e) {
 				throw new ContainerShutdownException(e.getMessage());

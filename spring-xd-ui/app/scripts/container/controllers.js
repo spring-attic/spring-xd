@@ -15,22 +15,18 @@
  */
 
 /**
- * Definition of xdAdmin app module.
+ * Definition of xd container controllers.
  *
  * @author Ilayaperumal Gopinathan
  */
-define([
-  'angular',
-  './job/app',
-  './stream/app',
-  './container/app',
-  './auth/app'
-], function (angular) {
+define(['angular'], function (angular) {
   'use strict';
-  return angular.module('xdAdmin', [
-    'xdJobsAdmin',
-    'xdStreamsAdmin',
-    'xdContainerAdmin',
-    'xdAuth'
-  ]);
+
+  return angular.module('xdContainerAdmin.controllers', ['xdContainerAdmin.services'])
+      .controller('RuntimeContainersController',
+          ['$scope', '$injector', function ($scope, $injector) {
+            require(['container/controllers/runtime-containers'], function (runtimeContainersController) {
+              $injector.invoke(runtimeContainersController, this, {'$scope': $scope});
+            });
+          }]);
 });

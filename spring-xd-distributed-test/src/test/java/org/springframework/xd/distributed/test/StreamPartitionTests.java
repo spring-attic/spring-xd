@@ -110,7 +110,8 @@ public class StreamPartitionTests extends AbstractDistributedTests {
 		while (attempts++ < 60) {
 			Thread.sleep(500);
 			for (ModuleMetadataResource module : template.runtimeOperations().listRuntimeModules()) {
-				modules.put(module.getContainerId() + ":" + module.getModuleId(), module.getDeploymentProperties());
+				modules.put(module.getContainerId() + ":" + module.getModuleType() + ":" + module.getName(),
+						module.getDeploymentProperties());
 			}
 			if (modules.size() == 4) {
 				break;

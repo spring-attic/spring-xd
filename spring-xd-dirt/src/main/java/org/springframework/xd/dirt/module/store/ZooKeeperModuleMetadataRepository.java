@@ -53,6 +53,12 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 
 	private static final String XD_MODULE_PROPERTIES_PREFIX = "xd.";
 
+	private static final String XD_MODULE_NAME_KEY = "xd.module.name";
+
+	private static final String XD_MODULE_TYPE_KEY = "xd.module.type";
+
+	private static final String XD_MODULE_INDEX_KEY = "xd.module.index";
+
 	@Autowired
 	public ZooKeeperModuleMetadataRepository(ZooKeeperConnection zkConnection) {
 		this.zkConnection = zkConnection;
@@ -102,9 +108,13 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			byte[] data = zkConnection.getClient().getData().forPath(metadataPath);
 			if (data != null) {
 				Map<String, String> metadataMap = ZooKeeperUtils.bytesToMap(data);
-				String moduleId = getModuleId(metadataPath);
-				String containerId = getContainerId(metadataPath);
-				metadata = new ModuleMetadata(moduleId, containerId, getResolvedModuleOptions(metadataMap),
+				String metadataId = getModuleMetadataId(metadataPath);
+				String moduleId = metadataMap.get(XD_MODULE_NAME_KEY) + "." + metadataMap.get(XD_MODULE_INDEX_KEY);
+				metadata = new ModuleMetadata(moduleId,
+						metadataId.substring(0, metadataId.indexOf(".")),
+						metadataMap.get(XD_MODULE_TYPE_KEY),
+						getContainerId(metadataPath),
+						getResolvedModuleOptions(metadataMap),
 						getDeploymentProperties(metadataPath));
 			}
 		}
@@ -162,7 +172,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		return MapUtils.toProperties(optionsMap);
 	}
 
-	private String getModuleId(String metadataPath) {
+	private String getModuleMetadataId(String metadataPath) {
 		String modulePath = metadataPath.substring(0, metadataPath.lastIndexOf("/"));
 		return Paths.stripPath(modulePath);
 	}

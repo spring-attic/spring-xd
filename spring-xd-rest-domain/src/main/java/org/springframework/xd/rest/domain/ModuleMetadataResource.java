@@ -32,7 +32,11 @@ import org.springframework.hateoas.ResourceSupport;
 @XmlRootElement
 public class ModuleMetadataResource extends ResourceSupport {
 
-	private String moduleId;
+	private String name;
+
+	private String unitName;
+
+	private String moduleType;
 
 	private String containerId;
 
@@ -40,20 +44,33 @@ public class ModuleMetadataResource extends ResourceSupport {
 
 	private Properties deploymentProperties;
 
+	private String deploymentStatus;
+
 	@SuppressWarnings("unused")
 	private ModuleMetadataResource() {
 	}
 
-	public ModuleMetadataResource(String moduleId, String containerId, Properties moduleProperties,
+	public ModuleMetadataResource(String name, String unitName, String moduleType, String containerId,
+			Properties moduleProperties,
 			Properties deploymentProperties) {
-		this.moduleId = moduleId;
+		this.name = name;
+		this.unitName = unitName;
+		this.moduleType = moduleType;
 		this.containerId = containerId;
 		this.moduleOptions = moduleProperties;
 		this.deploymentProperties = deploymentProperties;
 	}
 
-	public String getModuleId() {
-		return moduleId;
+	public String getName() {
+		return name;
+	}
+
+	public String getUnitName() {
+		return this.unitName;
+	}
+
+	public String getModuleType() {
+		return this.moduleType;
 	}
 
 	public String getContainerId() {
@@ -68,9 +85,17 @@ public class ModuleMetadataResource extends ResourceSupport {
 		return deploymentProperties;
 	}
 
+	public void setDeploymentStatus(String deploymentStatus) {
+		this.deploymentStatus = deploymentStatus;
+	}
+
+	public String getDeploymentStatus() {
+		return deploymentStatus;
+	}
+
 	@Override
 	public String toString() {
-		return this.moduleId;
+		return this.name;
 	}
 
 	/**

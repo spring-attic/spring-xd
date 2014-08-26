@@ -35,13 +35,13 @@ public class ModuleMetadataResourceAssembler extends
 
 	@Override
 	public ModuleMetadataResource toResource(ModuleMetadata entity) {
-		return createResourceWithId(entity.getId(), entity);
+		return createResourceWithId(entity.getName(), entity);
 	}
 
 	@Override
 	protected ModuleMetadataResource instantiateResource(ModuleMetadata entity) {
-		return new ModuleMetadataResource(entity.getId(), entity.getContainerId(), entity.getModuleOptions(),
-				entity.getDeploymentProperties());
+		return new ModuleMetadataResource(entity.getName(), entity.getUnitName(), entity.getModuleType(),
+				entity.getContainerId(), entity.getModuleOptions(), entity.getDeploymentProperties());
 	}
 
 }

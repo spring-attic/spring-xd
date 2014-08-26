@@ -25,7 +25,11 @@ import java.util.Properties;
  */
 public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
-	private final String id;
+	private final String name;
+
+	private final String unitName;
+
+	private final String moduleType;
 
 	private final String containerId;
 
@@ -34,15 +38,27 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 	private final Properties deploymentProperties;
 
 
-	public ModuleMetadata(String id, String containerId, Properties moduleOptions, Properties deploymentProperties) {
-		this.id = id;
+	public ModuleMetadata(String name, String unitName, String moduleType, String containerId,
+			Properties moduleOptions,
+			Properties deploymentProperties) {
+		this.name = name;
+		this.unitName = unitName;
+		this.moduleType = moduleType;
 		this.containerId = containerId;
 		this.moduleOptions = moduleOptions;
 		this.deploymentProperties = deploymentProperties;
 	}
 
-	public String getId() {
-		return id;
+	public String getName() {
+		return name;
+	}
+
+	public String getUnitName() {
+		return this.unitName;
+	}
+
+	public String getModuleType() {
+		return this.moduleType;
 	}
 
 	public String getContainerId() {
@@ -62,6 +78,6 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 	 */
 	@Override
 	public int compareTo(ModuleMetadata other) {
-		return this.getId().compareTo(other.getId());
+		return this.getName().compareTo(other.getName());
 	}
 }

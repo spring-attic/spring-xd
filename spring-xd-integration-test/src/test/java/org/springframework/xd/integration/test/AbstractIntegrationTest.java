@@ -470,7 +470,7 @@ public abstract class AbstractIntegrationTest {
 		ArrayList<String> containerIds = new ArrayList<String>();
 		while (resourceIter.hasNext()) {
 			ModuleMetadataResource resource = resourceIter.next();
-			if (resource.getModuleId().startsWith(moduleIdPrefix)) {
+			if (resource.getName().startsWith(moduleIdPrefix)) {
 				containerIds.add(resource.getContainerId());
 			}
 		}

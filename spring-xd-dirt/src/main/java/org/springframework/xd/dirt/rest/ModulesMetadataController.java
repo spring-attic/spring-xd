@@ -17,7 +17,9 @@
 package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -36,6 +38,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.module.ModuleNotDeployedException;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
+import org.springframework.xd.dirt.stream.JobRepository;
+import org.springframework.xd.dirt.stream.StreamRepository;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
 
@@ -50,13 +55,20 @@ import org.springframework.xd.rest.domain.ModuleMetadataResource;
 @ExposesResourceFor(ModuleMetadataResource.class)
 public class ModulesMetadataController {
 
-	private ModuleMetadataRepository moduleMetadataRepository;
+	private final ModuleMetadataRepository moduleMetadataRepository;
+
+	private final StreamRepository streamRepository;
+
+	private final JobRepository jobRepository;
 
 	private ResourceAssemblerSupport<ModuleMetadata, ModuleMetadataResource> moduleMetadataResourceAssembler;
 
 	@Autowired
-	public ModulesMetadataController(ModuleMetadataRepository moduleMetadataRepository) {
+	public ModulesMetadataController(ModuleMetadataRepository moduleMetadataRepository,
+			StreamRepository streamRepository, JobRepository jobRepository) {
 		this.moduleMetadataRepository = moduleMetadataRepository;
+		this.streamRepository = streamRepository;
+		this.jobRepository = jobRepository;
 		moduleMetadataResourceAssembler = new ModuleMetadataResourceAssembler();
 	}
 
@@ -73,7 +85,7 @@ public class ModulesMetadataController {
 	public PagedResources<ModuleMetadataResource> list(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler) {
 		Page<ModuleMetadata> page = this.moduleMetadataRepository.findAll(pageable);
-		return assembler.toResource(page, moduleMetadataResourceAssembler);
+		return updateDeploymentStatus(assembler.toResource(page, moduleMetadataResourceAssembler));
 	}
 
 	/**
@@ -90,8 +102,9 @@ public class ModulesMetadataController {
 	public PagedResources<ModuleMetadataResource> listByContainer(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler,
 			@RequestParam("containerId") String containerId) {
-		return assembler.toResource(this.moduleMetadataRepository.findAllByContainerId(pageable, containerId),
-				moduleMetadataResourceAssembler);
+		return updateDeploymentStatus(assembler.toResource(
+				this.moduleMetadataRepository.findAllByContainerId(pageable, containerId),
+				moduleMetadataResourceAssembler));
 	}
 
 	/**
@@ -108,8 +121,9 @@ public class ModulesMetadataController {
 	public PagedResources<ModuleMetadataResource> listByModule(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler,
 			@RequestParam("moduleId") String moduleId) {
-		return assembler.toResource(this.moduleMetadataRepository.findAllByModuleId(pageable, moduleId),
-				moduleMetadataResourceAssembler);
+		return updateDeploymentStatus(assembler.toResource(
+				this.moduleMetadataRepository.findAllByModuleId(pageable, moduleId),
+				moduleMetadataResourceAssembler));
 	}
 
 	/**
@@ -149,13 +163,41 @@ public class ModulesMetadataController {
 		final List<ModuleMetadata> moduleMetadataListToReturn = new ArrayList<ModuleMetadata>();
 
 		for (ModuleMetadata moduleMetadata : moduleMetadataIterable) {
-			final String jobnameFragment[] = moduleMetadata.getId().split("\\.job\\.");
-
-			if (jobnameFragment.length > 0 && jobName.equals(jobnameFragment[0])) {
+			if (jobName.equals(moduleMetadata.getUnitName())) {
 				moduleMetadataListToReturn.add(moduleMetadata);
 			}
 		}
 
 		return moduleMetadataResourceAssembler.toResources(moduleMetadataListToReturn);
+	}
+
+	/**
+	 * Update the deployment status for {@link ModuleMetadata} resources.
+	 *
+	 * @param resources {@ModuleMetadata} resources
+	 * @return {@ModuleMetadata} resources with updated deployment status.
+	 */
+	private PagedResources<ModuleMetadataResource> updateDeploymentStatus(
+			PagedResources<ModuleMetadataResource> resources) {
+		Map<String, String> statusMap = new HashMap<String, String>();
+		for (ModuleMetadataResource resource : resources.getContent()) {
+			String deploymentStatus;
+			String unitName = resource.getUnitName();
+			if (statusMap.get(unitName) == null) {
+				if (resource.getModuleType().equals(ModuleType.job.name())) {
+					deploymentStatus = jobRepository.findOne(resource.getUnitName()).getStatus().getState().toString();
+					statusMap.put(unitName, deploymentStatus);
+				}
+				else {
+					deploymentStatus = streamRepository.findOne(resource.getUnitName()).getStatus().getState().toString();
+					statusMap.put(unitName, deploymentStatus);
+				}
+			}
+			else {
+				deploymentStatus = statusMap.get(resource.getUnitName());
+			}
+			resource.setDeploymentStatus(deploymentStatus);
+		}
+		return resources;
 	}
 }

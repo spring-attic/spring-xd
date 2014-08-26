@@ -22,6 +22,7 @@ import org.springframework.hateoas.UriTemplate;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
+import org.springframework.xd.rest.client.ClusterOperations;
 import org.springframework.xd.rest.client.CompletionOperations;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
@@ -29,7 +30,6 @@ import org.springframework.xd.rest.client.GaugeOperations;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.RichGaugeOperations;
-import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.domain.XDRuntime;
@@ -60,7 +60,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	/**
 	 * Holds the Module-related part of the API.
 	 */
-	private RuntimeOperations runtimeOperations;
+	private ClusterOperations runtimeOperations;
 
 	/**
 	 * Holds the Counter-related part of the API.
@@ -107,8 +107,8 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		resources.put("jobs/executions", new UriTemplate(xdRuntime.getLink("jobs/executions").getHref()));
 		resources.put("jobs/instances", new UriTemplate(xdRuntime.getLink("jobs/instances").getHref()));
 
-		resources.put("runtime/containers", new UriTemplate(xdRuntime.getLink("runtime/containers").getHref()));
-		resources.put("runtime/modules", new UriTemplate(xdRuntime.getLink("runtime/modules").getHref()));
+		resources.put("cluster/containers", new UriTemplate(xdRuntime.getLink("cluster/containers").getHref()));
+		resources.put("cluster/modules", new UriTemplate(xdRuntime.getLink("cluster/modules").getHref()));
 
 		resources.put("completions/stream", new UriTemplate(xdRuntime.getLink("completions/stream").getHref()));
 		resources.put("completions/job", new UriTemplate(xdRuntime.getLink("completions/job").getHref()));
@@ -129,7 +129,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		gaugeOperations = new GaugeTemplate(this);
 		richGaugeOperations = new RichGaugeTemplate(this);
 		moduleOperations = new ModuleTemplate(this);
-		runtimeOperations = new RuntimeTemplate(this);
+		runtimeOperations = new ClusterTemplate(this);
 		completionOperations = new CompletionTemplate(this);
 	}
 
@@ -153,7 +153,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	}
 
 	@Override
-	public RuntimeOperations runtimeOperations() {
+	public ClusterOperations runtimeOperations() {
 		return runtimeOperations;
 	}
 

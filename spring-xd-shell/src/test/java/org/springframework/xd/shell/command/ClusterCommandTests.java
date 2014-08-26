@@ -43,14 +43,14 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Ilayaperumal Gopinathan
  * @author Patrick Peralta
  */
-public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
+public class ClusterCommandTests extends AbstractStreamIntegrationTest {
 
-	private static final Log logger = LogFactory.getLog(RuntimeCommandTests.class);
+	private static final Log logger = LogFactory.getLog(ClusterCommandTests.class);
 
 	@Test
 	public void testListContainers() {
-		logger.info("List runtime containers");
-		CommandResult cmdResult = executeCommand("runtime containers");
+		logger.info("List cluster containers");
+		CommandResult cmdResult = executeCommand("cluster containers");
 		Table table = (Table) cmdResult.getResult();
 		for (TableRow row : table.getRows()) {
 			// Verify host name & ip address are not empty
@@ -62,7 +62,7 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testListRuntimeModules() {
-		logger.info("List runtime modules");
+		logger.info("List cluster modules");
 		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 
@@ -71,17 +71,17 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testListRuntimeModulesByModuleId() {
-		logger.info("List runtime modules");
+		logger.info("List cluster modules");
 		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
-		CommandResult cmdResult = executeCommand("runtime modules --moduleId " + streamName + ".sink.log.1");
+		CommandResult cmdResult = executeCommand("cluster modules --moduleId " + streamName + ".sink.log.1");
 		Table table = (Table) cmdResult.getResult();
 		assertEquals(1, table.getRows().size());
 	}
 
 	@Test
 	public void testListRuntimeModulesAfterUndeploy() {
-		logger.info("List runtime modules after undeploy");
+		logger.info("List cluster modules after undeploy");
 		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 		stream().undeploy(streamName);
@@ -91,7 +91,7 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testListRuntimeModulesByContainerId() {
-		logger.info("Test listing of runtime modules by containerId");
+		logger.info("Test listing of cluster modules by containerId");
 		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 
@@ -101,14 +101,14 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 
 		// Get containerId for a runtime module
 		String containerId = runtimeModules.get(0).getValue(2);
-		CommandResult cmdResult = executeCommand("runtime modules --containerId " + containerId);
+		CommandResult cmdResult = executeCommand("cluster modules --containerId " + containerId);
 		Table table = (Table) cmdResult.getResult();
 		List<TableRow> fooStreamModules = new ArrayList<TableRow>();
 		for (TableRow row : table.getRows()) {
 			// Verify all the rows have the same containerId
 			assertTrue(row.getValue(2).equals(containerId));
 			// match by group name
-			if (row.getValue(2).equals(runtimeModules.get(0).getValue(2))) {
+			if (row.getValue(1).equals(runtimeModules.get(0).getValue(1))) {
 				fooStreamModules.add(row);
 			}
 		}
@@ -118,23 +118,23 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testListRuntimeModulesByInvalidContainerId() {
-		logger.info("Test listing of runtime modules by invalid containerId");
+		logger.info("Test listing of cluster modules by invalid containerId");
 		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
-		CommandResult cmdResult = executeCommand("runtime modules --containerId 10000");
+		CommandResult cmdResult = executeCommand("cluster modules --containerId 10000");
 		Table table = (Table) cmdResult.getResult();
 		assertEquals(0, table.getRows().size());
 	}
 
 	/**
-	 * Return a list of runtime modules for the stream name.
+	 * Return a list of cluster modules for the stream name.
 	 *
-	 * @param streamName name of stream for which to obtain runtime modules
+	 * @param streamName name of stream for which to obtain cluster modules
 	 * @return list of table rows containing runtime module information
 	 *         for the requested stream
 	 */
 	private List<TableRow> getRuntimeModulesForStream(String streamName) {
-		CommandResult cmdResult = executeCommand("runtime modules");
+		CommandResult cmdResult = executeCommand("cluster modules");
 		Table table = (Table) cmdResult.getResult();
 		List<TableRow> modules = new ArrayList<TableRow>();
 		for (TableRow row : table.getRows()) {

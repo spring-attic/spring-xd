@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
 import org.springframework.xd.dirt.cluster.ContainerShutdownException;
+import org.springframework.xd.dirt.cluster.ModuleMessageRateNotFoundException;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
 import org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException;
@@ -280,6 +281,14 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchContainerException(NoSuchContainerException e) {
+		String logref = logDebug(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onModuleMessageRateNotFoundException(ModuleMessageRateNotFoundException e) {
 		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}

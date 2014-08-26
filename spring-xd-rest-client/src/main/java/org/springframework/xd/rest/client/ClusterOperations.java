@@ -17,7 +17,7 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.domain.DetailedContainerResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
 /**
@@ -25,16 +25,16 @@ import org.springframework.xd.rest.domain.ModuleMetadataResource;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public interface RuntimeOperations {
+public interface ClusterOperations {
 
-	public PagedResources<ContainerResource> listRuntimeContainers();
+	public PagedResources<DetailedContainerResource> listContainers();
 
-	public PagedResources<ModuleMetadataResource> listRuntimeModules();
+	public PagedResources<ModuleMetadataResource> listDeployedModules();
 
-	public PagedResources<ModuleMetadataResource> listRuntimeModulesByContainer(String containerId);
+	public PagedResources<ModuleMetadataResource> listDeployedModulesByContainer(String containerId);
 
-	public PagedResources<ModuleMetadataResource> listRuntimeModulesByModuleId(String moduleId);
+	public PagedResources<ModuleMetadataResource> listDeployedModulesByModuleId(String moduleId);
 
-	public ModuleMetadataResource listRuntimeModule(String containerId, String moduleId);
+	public ModuleMetadataResource listDeployedModule(String containerId, String moduleId);
 
 }

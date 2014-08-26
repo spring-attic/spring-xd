@@ -21,8 +21,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.xd.rest.client.RuntimeOperations;
-import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.client.ClusterOperations;
+import org.springframework.xd.rest.domain.DetailedContainerResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
 /**
@@ -30,31 +30,31 @@ import org.springframework.xd.rest.domain.ModuleMetadataResource;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperations {
+public class ClusterTemplate extends AbstractTemplate implements ClusterOperations {
 
-	RuntimeTemplate(AbstractTemplate source) {
+	ClusterTemplate(AbstractTemplate source) {
 		super(source);
 	}
 
 	@Override
-	public ContainerResource.Page listRuntimeContainers() {
-		String uriTemplate = resources.get("runtime/containers").toString();
+	public DetailedContainerResource.Page listContainers() {
+		String uriTemplate = resources.get("cluster/containers").toString();
 		uriTemplate = uriTemplate + "?size=10000";
-		return restTemplate.getForObject(uriTemplate, ContainerResource.Page.class);
+		return restTemplate.getForObject(uriTemplate, DetailedContainerResource.Page.class);
 	}
 
 	@Override
-	public ModuleMetadataResource.Page listRuntimeModules() {
-		String uriTemplate = resources.get("runtime/modules").toString();
+	public ModuleMetadataResource.Page listDeployedModules() {
+		String uriTemplate = resources.get("cluster/modules").toString();
 		uriTemplate = uriTemplate + "?size=10000";
 		return restTemplate.getForObject(uriTemplate, ModuleMetadataResource.Page.class);
 	}
 
 	@Override
-	public ModuleMetadataResource listRuntimeModule(String containerId, String moduleId) {
+	public ModuleMetadataResource listDeployedModule(String containerId, String moduleId) {
 		Assert.isTrue(StringUtils.hasText(containerId));
 		Assert.isTrue(StringUtils.hasText(moduleId));
-		String url = resources.get("runtime/modules").toString();
+		String url = resources.get("cluster/modules").toString();
 		MultiValueMap<String, String> values = new LinkedMultiValueMap<String, String>();
 		values.add("containerId", containerId);
 		values.add("moduleId", moduleId);
@@ -63,17 +63,17 @@ public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperatio
 	}
 
 	@Override
-	public ModuleMetadataResource.Page listRuntimeModulesByContainer(String containerId) {
+	public ModuleMetadataResource.Page listDeployedModulesByContainer(String containerId) {
 		Assert.isTrue(StringUtils.hasText(containerId));
-		String url = resources.get("runtime/modules").toString();
+		String url = resources.get("cluster/modules").toString();
 		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("containerId", containerId).build().toUriString();
 		return restTemplate.getForObject(uriString, ModuleMetadataResource.Page.class);
 	}
 
 	@Override
-	public ModuleMetadataResource.Page listRuntimeModulesByModuleId(String moduleId) {
+	public ModuleMetadataResource.Page listDeployedModulesByModuleId(String moduleId) {
 		Assert.isTrue(StringUtils.hasText(moduleId));
-		String url = resources.get("runtime/modules").toString();
+		String url = resources.get("cluster/modules").toString();
 		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("moduleId", moduleId).build().toUriString();
 		return restTemplate.getForObject(uriString, ModuleMetadataResource.Page.class);
 	}

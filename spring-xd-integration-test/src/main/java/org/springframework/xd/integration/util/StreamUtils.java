@@ -48,7 +48,7 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
-import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.domain.DetailedContainerResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
 
@@ -254,9 +254,9 @@ public class StreamUtils {
 	public static Map<String, String> getAvailableContainers(URL adminServer) {
 		Assert.notNull(adminServer, "adminServer must not be null");
 		HashMap<String, String> results = new HashMap<String, String>();
-		Iterator<ContainerResource> iter = createSpringXDTemplate(adminServer).runtimeOperations().listRuntimeContainers().iterator();
+		Iterator<DetailedContainerResource> iter = createSpringXDTemplate(adminServer).runtimeOperations().listContainers().iterator();
 		while (iter.hasNext()) {
-			ContainerResource container = iter.next();
+			DetailedContainerResource container = iter.next();
 			results.put(container.getAttribute("id"), container.getAttribute("host"));
 		}
 		return results;
@@ -269,7 +269,7 @@ public class StreamUtils {
 	 */
 	public static PagedResources<ModuleMetadataResource> getRuntimeModules(URL adminServer) {
 		Assert.notNull(adminServer, "adminServer must not be null");
-		return createSpringXDTemplate(adminServer).runtimeOperations().listRuntimeModules();
+		return createSpringXDTemplate(adminServer).runtimeOperations().listDeployedModules();
 	}
 
 	/**

@@ -49,7 +49,7 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 
 	public final static String IP_ADDRESS_KEY = "ip";
 
-	public final static String MGMT_PORT_KEY = "management-port";
+	public final static String MGMT_PORT_KEY = "managementPort";
 
 	private final List<String> commonAttributeKeys = Arrays.asList(CONTAINER_ID_KEY, PROCESS_ID_KEY,
 			HOST_KEY, IP_ADDRESS_KEY, GROUPS_KEY);

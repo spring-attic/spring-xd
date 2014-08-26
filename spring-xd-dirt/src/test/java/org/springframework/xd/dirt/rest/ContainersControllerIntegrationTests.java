@@ -40,6 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.DetailedContainer;
 
 /**
  * Tests REST compliance of containers endpoint.
@@ -51,7 +52,7 @@ import org.springframework.xd.dirt.cluster.ContainerAttributes;
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
-public class RuntimeContainersControllerIntegrationTests extends AbstractControllerIntegrationTest {
+public class ContainersControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Before
 	public void before() {
@@ -59,19 +60,19 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 		ContainerAttributes attributes1 = new ContainerAttributes("1").setPid(1234).setHost("host1").setIp("127.0.0.1");
 		ContainerAttributes attributes2 = new ContainerAttributes("2").setPid(2345).setHost("host2").setIp(
 				"192.168.2.1");
-		List<Container> containers = new ArrayList<Container>();
+		List<DetailedContainer> containers = new ArrayList<DetailedContainer>();
 		Container container1 = new Container(attributes1.getId(), attributes1);
 		Container container2 = new Container(attributes2.getId(), attributes2);
-		containers.add(container1);
-		containers.add(container2);
-		Page<Container> pagedEntity = new PageImpl<Container>(containers);
-		when(containerRepository.findAll(pageable)).thenReturn(pagedEntity);
+		containers.add(new DetailedContainer(container1));
+		containers.add(new DetailedContainer(container2));
+		Page<DetailedContainer> pagedEntity = new PageImpl<DetailedContainer>(containers);
+		when(containerRepository.findAllRuntimeContainers(pageable)).thenReturn(pagedEntity);
 		when(containerRepository.findOne("1")).thenReturn(container1);
 	}
 
 	@Test
 	public void testListContainers() throws Exception {
-		mockMvc.perform(get("/runtime/containers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+		mockMvc.perform(get("/cluster/containers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(2))).andExpect(
 				jsonPath("$.content[*].attributes.id", contains("1", "2"))).andExpect(
 				jsonPath("$.content[*].attributes.pid", contains("1234", "2345"))).andExpect(
@@ -82,7 +83,7 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 	@Test
 	public void testShutdownNonExistingContainer() throws Exception {
 		String containerId = "random";
-		mockMvc.perform(delete("/runtime/containers").param("containerId", containerId)).andExpect(
+		mockMvc.perform(delete("/cluster/containers").param("containerId", containerId)).andExpect(
 				status().isNotFound()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Container could not be found with id " + containerId)));
 	}

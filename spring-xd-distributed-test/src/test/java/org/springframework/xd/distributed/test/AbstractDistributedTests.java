@@ -220,12 +220,11 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	protected ModuleRuntimeContainers retrieveModuleRuntimeContainers(String streamName) {
 		ModuleRuntimeContainers containers = new ModuleRuntimeContainers();
 		for (ModuleMetadataResource module : distributedTestSupport.ensureTemplate()
-				.runtimeOperations().listRuntimeModules()) {
-			String[] fields = module.getModuleId().split("\\.");
-			assertTrue("Module id format unknown: " + module.getModuleId(), fields.length >= 3);
-			String moduleStreamName = fields[0];
-			ModuleType moduleType = ModuleType.valueOf(fields[1]);
-			String moduleLabel = fields[2];
+				.runtimeOperations().listDeployedModules()) {
+			String moduleStreamName = module.getUnitName();
+			ModuleType moduleType = ModuleType.valueOf(module.getModuleType());
+			String[] fields = module.getName().split("\\.");
+			String moduleLabel = fields[0];
 
 			if (moduleStreamName.equals(streamName)) {
 				switch (moduleType) {

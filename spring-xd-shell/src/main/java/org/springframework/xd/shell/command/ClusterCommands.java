@@ -28,8 +28,8 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.rest.client.RuntimeOperations;
-import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.client.ClusterOperations;
+import org.springframework.xd.rest.domain.DetailedContainerResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
@@ -37,16 +37,16 @@ import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
 
 /**
- * Commands to interact with runtime containers/modules.
+ * Commands to interact with cluster for containers/modules.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @Component
-public class RuntimeCommands implements CommandMarker {
+public class ClusterCommands implements CommandMarker {
 
-	private static final String LIST_CONTAINERS = "runtime containers";
+	private static final String LIST_CONTAINERS = "cluster containers";
 
-	private static final String LIST_MODULES = "runtime modules";
+	private static final String LIST_MODULES = "cluster modules";
 
 	@Autowired
 	private XDShell xdShell;
@@ -58,7 +58,7 @@ public class RuntimeCommands implements CommandMarker {
 
 	@CliCommand(value = LIST_CONTAINERS, help = "List runtime containers")
 	public Table listContainers() {
-		final PagedResources<ContainerResource> containers = runtimeOperations().listRuntimeContainers();
+		final PagedResources<DetailedContainerResource> containers = runtimeOperations().listContainers();
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Container Id"))
 				.addHeader(2, new TableHeader("Host"))
@@ -66,7 +66,7 @@ public class RuntimeCommands implements CommandMarker {
 				.addHeader(4, new TableHeader("PID"))
 				.addHeader(5, new TableHeader("Groups"))
 				.addHeader(6, new TableHeader("Custom Attributes"));
-		for (ContainerResource container : containers) {
+		for (DetailedContainerResource container : containers) {
 			Map<String, String> copy = new HashMap<String, String>(container.getAttributes());
 			final TableRow row = table.newRow();
 			row.addValue(1, copy.remove("id"))
@@ -86,29 +86,31 @@ public class RuntimeCommands implements CommandMarker {
 			@CliOption(mandatory = false, key = { "moduleId" }, help = "to filter by module id") String moduleId) {
 		Iterable<ModuleMetadataResource> runtimeModules;
 		if (StringUtils.hasText(containerId) && StringUtils.hasText(moduleId)) {
-			runtimeModules = Collections.singletonList(runtimeOperations().listRuntimeModule(containerId, moduleId));
+			runtimeModules = Collections.singletonList(runtimeOperations().listDeployedModule(containerId, moduleId));
 		}
 		else if (StringUtils.hasText(containerId)) {
-			runtimeModules = runtimeOperations().listRuntimeModulesByContainer(containerId);
+			runtimeModules = runtimeOperations().listDeployedModulesByContainer(containerId);
 		}
 		else if (StringUtils.hasText(moduleId)) {
-			runtimeModules = runtimeOperations().listRuntimeModulesByModuleId(moduleId);
+			runtimeModules = runtimeOperations().listDeployedModulesByModuleId(moduleId);
 		}
 		else {
-			runtimeModules = runtimeOperations().listRuntimeModules();
+			runtimeModules = runtimeOperations().listDeployedModules();
 		}
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Module")).addHeader(2, new TableHeader("Container Id")).addHeader(
-				3, new TableHeader("Options")).addHeader(4, new TableHeader("Deployment Properties"));
+		table.addHeader(1, new TableHeader("Module Id")).addHeader(2,
+				new TableHeader("Container Id")).addHeader(3, new TableHeader("Options")).addHeader(4,
+				new TableHeader("Deployment Properties")).addHeader(5, new TableHeader("Unit status"));
 		for (ModuleMetadataResource module : runtimeModules) {
 			final TableRow row = table.newRow();
-			row.addValue(1, module.getModuleId()).addValue(2, module.getContainerId()).addValue(3,
-					module.getModuleOptions().toString()).addValue(4, module.getDeploymentProperties().toString());
+			row.addValue(1, String.format("%s.%s.%s", module.getUnitName(), module.getModuleType(), module.getName()))
+					.addValue(2, module.getContainerId()).addValue(3, module.getModuleOptions().toString()).addValue(4,
+							module.getDeploymentProperties().toString()).addValue(5, module.getDeploymentStatus());
 		}
 		return table;
 	}
 
-	private RuntimeOperations runtimeOperations() {
+	private ClusterOperations runtimeOperations() {
 		return xdShell.getSpringXDOperations().runtimeOperations();
 	}
 

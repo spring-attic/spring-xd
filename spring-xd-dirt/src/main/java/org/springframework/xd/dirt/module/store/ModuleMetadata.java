@@ -18,6 +18,9 @@ package org.springframework.xd.dirt.module.store;
 
 import java.util.Properties;
 
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.module.ModuleType;
+
 /**
  * Represents runtime module model info.
  * 
@@ -27,15 +30,28 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
 	private final String id;
 
+	private final String name;
+
+	private final String unitName;
+
+	private final ModuleType moduleType;
+
 	private final String containerId;
 
 	private final Properties moduleOptions;
 
 	private final Properties deploymentProperties;
 
+	private DeploymentUnitStatus.State deploymentStatus;
 
-	public ModuleMetadata(String id, String containerId, Properties moduleOptions, Properties deploymentProperties) {
+
+	public ModuleMetadata(String id, String name, String unitName, ModuleType moduleType, String containerId,
+			Properties moduleOptions,
+			Properties deploymentProperties) {
 		this.id = id;
+		this.name = name;
+		this.unitName = unitName;
+		this.moduleType = moduleType;
 		this.containerId = containerId;
 		this.moduleOptions = moduleOptions;
 		this.deploymentProperties = deploymentProperties;
@@ -43,6 +59,18 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
 	public String getId() {
 		return id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getUnitName() {
+		return this.unitName;
+	}
+
+	public ModuleType getModuleType() {
+		return this.moduleType;
 	}
 
 	public String getContainerId() {
@@ -55,6 +83,14 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
 	public Properties getDeploymentProperties() {
 		return deploymentProperties;
+	}
+
+	public DeploymentUnitStatus.State getDeploymentStatus() {
+		return deploymentStatus;
+	}
+
+	public void setDeploymentStatus(DeploymentUnitStatus.State deploymentStatus) {
+		this.deploymentStatus = deploymentStatus;
 	}
 
 	/**

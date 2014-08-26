@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.module.store;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,10 +35,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.dirt.stream.Job;
+import org.springframework.xd.dirt.stream.JobRepository;
+import org.springframework.xd.dirt.stream.Stream;
+import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * ZooKeeper backed repository for runtime info about deployed modules.
@@ -49,13 +56,24 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 
 	private final ZooKeeperConnection zkConnection;
 
+	private final StreamRepository streamRepository;
+
+	private final JobRepository jobRepository;
+
 	private final PagingUtility<ModuleMetadata> pagingUtility = new PagingUtility<ModuleMetadata>();
 
 	private static final String XD_MODULE_PROPERTIES_PREFIX = "xd.";
 
+	private static final String XD_MODULE_NAME_KEY = "xd.module.name";
+
+	private static final String XD_MODULE_TYPE_KEY = "xd.module.type";
+
 	@Autowired
-	public ZooKeeperModuleMetadataRepository(ZooKeeperConnection zkConnection) {
+	public ZooKeeperModuleMetadataRepository(ZooKeeperConnection zkConnection, StreamRepository streamRepository,
+			JobRepository jobRepository) {
 		this.zkConnection = zkConnection;
+		this.streamRepository = streamRepository;
+		this.jobRepository = jobRepository;
 	}
 
 	@Override
@@ -66,7 +84,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 
 	@Override
 	public Page<ModuleMetadata> findAll(Pageable pageable) {
-		return pagingUtility.getPagedData(pageable, findAll());
+		return updateDeploymentStatus(pagingUtility.getPagedData(pageable, findAll()));
 	}
 
 	@Override
@@ -89,8 +107,8 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 */
 	@Override
 	public ModuleMetadata findOne(String containerId, String moduleId) {
-		Assert.hasLength(containerId, "containerId is required");
-		Assert.hasLength(moduleId, "moduleId is required");
+		Assert.hasText(containerId, "containerId is required");
+		Assert.hasText(moduleId, "moduleId is required");
 		ModuleMetadata md = findOne(metadataPath(containerId, moduleId));
 		return md;
 	}
@@ -102,9 +120,14 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			byte[] data = zkConnection.getClient().getData().forPath(metadataPath);
 			if (data != null) {
 				Map<String, String> metadataMap = ZooKeeperUtils.bytesToMap(data);
-				String moduleId = getModuleId(metadataPath);
-				String containerId = getContainerId(metadataPath);
-				metadata = new ModuleMetadata(moduleId, containerId, getResolvedModuleOptions(metadataMap),
+				String metadataId = getModuleMetadataId(metadataPath);
+				String moduleIndex = metadataId.substring(metadataId.lastIndexOf(".") + 1);
+				String moduleName = metadataMap.get(XD_MODULE_NAME_KEY) + "." + moduleIndex;
+				metadata = new ModuleMetadata(metadataId, moduleName,
+						metadataId.substring(0, metadataId.indexOf(".")),
+						ModuleType.valueOf(metadataMap.get(XD_MODULE_TYPE_KEY)),
+						getContainerId(metadataPath),
+						getResolvedModuleOptions(metadataMap),
 						getDeploymentProperties(metadataPath));
 			}
 		}
@@ -162,7 +185,48 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		return MapUtils.toProperties(optionsMap);
 	}
 
-	private String getModuleId(String metadataPath) {
+	/**
+	 * Update the deployment status for {@link ModuleMetadata} entities.
+	 *
+	 * @param entities {@ModuleMetadata} entities
+	 * @return {@ModuleMetadata} entities with updated deployment status.
+	 */
+	private Page<ModuleMetadata> updateDeploymentStatus(Page<ModuleMetadata> entities) {
+		updateDeploymentStatus(entities.getContent());
+		return entities;
+	}
+
+	/**
+	 * Update deployment status for the collection of {@link ModuleMetadata}.
+	 *
+	 * @param entities the collection of {@link ModuleMetadata}
+	 * @return the {@link ModuleMetadata} collection with updated deployment status
+	 */
+	private Collection<ModuleMetadata> updateDeploymentStatus(Collection<ModuleMetadata> entities) {
+		Map<String, DeploymentUnitStatus.State> statusMap = new HashMap<String, DeploymentUnitStatus.State>();
+		for (ModuleMetadata entity : entities) {
+			DeploymentUnitStatus.State deploymentStatus;
+			String unitName = entity.getUnitName();
+			if (statusMap.get(unitName) == null) {
+				if (entity.getModuleType().equals(ModuleType.job.name())) {
+					Job job = jobRepository.findOne(unitName);
+					deploymentStatus = (job != null) ? job.getStatus().getState() : null;
+					statusMap.put(unitName, deploymentStatus);
+				}
+				else {
+					Stream stream = streamRepository.findOne(unitName);
+					deploymentStatus = (stream != null) ? stream.getStatus().getState() : null;
+					statusMap.put(unitName, deploymentStatus);
+				}
+			}
+			if (statusMap.get(unitName) != null) {
+				entity.setDeploymentStatus(statusMap.get(unitName));
+			}
+		}
+		return entities;
+	}
+
+	private String getModuleMetadataId(String metadataPath) {
 		String modulePath = metadataPath.substring(0, metadataPath.lastIndexOf("/"));
 		return Paths.stripPath(modulePath);
 	}
@@ -228,14 +292,26 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 */
 	@Override
 	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId) {
-		Assert.hasLength(containerId, "containerId is required");
+		Assert.hasText(containerId, "containerId is required");
+		return pagingUtility.getPagedData(pageable, findAllByContainerId(containerId));
+	}
+
+	/**
+	 * Find all the modules that are deployed into this container.
+	 *
+	 * @param containerId the containerId
+	 * @return {@link ModuleMetadata} of the modules deployed into this container.
+	 */
+	public List<ModuleMetadata> findAllByContainerId(String containerId) {
+		Assert.hasText(containerId, "containerId is required");
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
 			List<String> deployedModules = getDeployedModules(containerId);
 			for (String moduleId : deployedModules) {
 				results.add(findOne(containerId, moduleId));
 			}
-			return pagingUtility.getPagedData(pageable, results);
+			return (List<ModuleMetadata>) updateDeploymentStatus(results);
+
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
@@ -251,7 +327,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 */
 	@Override
 	public Page<ModuleMetadata> findAllByModuleId(Pageable pageable, String moduleId) {
-		Assert.hasLength(moduleId, "moduleId is required");
+		Assert.hasText(moduleId, "moduleId is required");
 		try {
 			List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 			for (String containerId : getAvailableContainerIds()) {
@@ -260,7 +336,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 					results.add(metadata);
 				}
 			}
-			return pagingUtility.getPagedData(pageable, results);
+			return updateDeploymentStatus(pagingUtility.getPagedData(pageable, results));
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);

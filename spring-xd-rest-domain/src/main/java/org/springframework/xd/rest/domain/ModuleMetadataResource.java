@@ -34,26 +34,51 @@ public class ModuleMetadataResource extends ResourceSupport {
 
 	private String moduleId;
 
+	private String name;
+
+	private String unitName;
+
+	private String moduleType;
+
 	private String containerId;
 
 	private Properties moduleOptions;
 
 	private Properties deploymentProperties;
 
+	private String deploymentStatus;
+
 	@SuppressWarnings("unused")
 	private ModuleMetadataResource() {
 	}
 
-	public ModuleMetadataResource(String moduleId, String containerId, Properties moduleProperties,
-			Properties deploymentProperties) {
+	public ModuleMetadataResource(String moduleId, String name, String unitName, String moduleType,
+			String containerId,
+			Properties moduleProperties, Properties deploymentProperties, String deploymentStatus) {
 		this.moduleId = moduleId;
+		this.name = name;
+		this.unitName = unitName;
+		this.moduleType = moduleType;
 		this.containerId = containerId;
 		this.moduleOptions = moduleProperties;
 		this.deploymentProperties = deploymentProperties;
+		this.deploymentStatus = deploymentStatus;
 	}
 
 	public String getModuleId() {
 		return moduleId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getUnitName() {
+		return this.unitName;
+	}
+
+	public String getModuleType() {
+		return this.moduleType;
 	}
 
 	public String getContainerId() {
@@ -66,6 +91,10 @@ public class ModuleMetadataResource extends ResourceSupport {
 
 	public Properties getDeploymentProperties() {
 		return deploymentProperties;
+	}
+
+	public String getDeploymentStatus() {
+		return deploymentStatus;
 	}
 
 	@Override

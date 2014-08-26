@@ -21,8 +21,8 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'StreamService', 'XDUtils', '$timeout', '$rootScope',
-    function ($scope, streamService, utils, $timeout, $rootScope) {
+  return ['$scope', 'StreamService', 'XDUtils', '$timeout', '$rootScope', '$state',
+    function ($scope, streamService, utils, $timeout, $rootScope, $state) {
 
       (function loadStreamDefinitions() {
         streamService.getDefinitions().get(
@@ -37,16 +37,7 @@ define([], function () {
         );
       })();
       $scope.deployStream = function (streamDefinition) {
-        utils.$log.info('Deploying Stream ' + streamDefinition.name);
-        utils.$log.info(streamService);
-        streamService.deploy(streamDefinition).$promise.then(
-            function () {
-              utils.growl.addSuccessMessage('Deployment Request Sent.');
-            },
-            function () {
-              utils.growl.addErrorMessage('Error Deploying Stream.');
-            }
-        );
+        $state.go('home.streams.deployStream', {definitionName: streamDefinition.name});
       };
       $scope.undeployStream = function (streamDefinition) {
         utils.$log.info('Undeploying Stream ' + streamDefinition.name);

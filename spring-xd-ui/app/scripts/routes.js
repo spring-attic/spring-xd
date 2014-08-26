@@ -36,7 +36,8 @@ define(['./app'], function (xdAdmin) {
     var jobTemplatesPath = 'scripts/job/views',
         streamTemplatesPath = 'scripts/stream/views',
         authTemplatesPath = 'scripts/auth/views',
-        sharedTemplatesPath = 'scripts/shared/views';
+        sharedTemplatesPath = 'scripts/shared/views',
+        containerTemplatesPath = 'scripts/container/views';
 
     $stateProvider.state('home', {
       url : '/',
@@ -51,6 +52,13 @@ define(['./app'], function (xdAdmin) {
       }
     })
     .state('home.streams', {
+      abstract:true,
+      template: '<ui-view/>',
+      data:{
+        authenticate: true
+      }
+    })
+    .state('home.containers', {
       abstract:true,
       template: '<ui-view/>',
       data:{
@@ -101,6 +109,14 @@ define(['./app'], function (xdAdmin) {
       templateUrl : streamTemplatesPath + '/definitions.html',
       controller: 'StreamsDefinitionsController'
     })
+    .state('home.streams.deployStream', {
+      url : 'streams/definitions/{definitionName}/deploy',
+      templateUrl : streamTemplatesPath + '/definition-deploy.html',
+      controller: 'DefinitionDeployController',
+      data:{
+        authenticate: true
+      }
+     })
     .state('home.jobs.tabs.modules', {
       url : '/modules',
       templateUrl : jobTemplatesPath + '/modules.html',
@@ -177,6 +193,15 @@ define(['./app'], function (xdAdmin) {
       controller: 'ModuleCreateDefinitionController',
       data:{
         title: 'Module Create Definition',
+        authenticate: true
+      }
+    })
+    .state('home.containers.tabs', {
+      url : 'containers/runtime',
+      templateUrl: containerTemplatesPath + '/runtime-containers.html',
+      controller: 'RuntimeContainersController',
+      data:{
+        title: 'Runtime Containers',
         authenticate: true
       }
     });

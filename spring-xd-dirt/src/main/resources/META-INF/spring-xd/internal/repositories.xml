@@ -8,9 +8,13 @@
 	<bean id="streamDefinitionRepository" class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository"/>
 	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository"/>
 	<bean id="containerRepository" class="org.springframework.xd.dirt.container.store.ZooKeeperContainerRepository"/>
-	<bean id="moduleMetadataRepository" class="org.springframework.xd.dirt.module.store.ZooKeeperModuleMetadataRepository" />
+	<bean id="moduleMetadataRepository" class="org.springframework.xd.dirt.module.store.ZooKeeperModuleMetadataRepository"/>
 	<bean id="moduleDependencyRepository" class="org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository"/>
 	<bean id="moduleDefinitionRepository" class="org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository"/>
+	<bean id="runtimeContainerRepository" class="org.springframework.xd.dirt.container.store.ZooKeeperRuntimeContainerRepository">
+		<constructor-arg ref="containerRepository" type="org.springframework.xd.dirt.container.store.ZooKeeperContainerRepository"/>
+		<constructor-arg ref="moduleMetadataRepository" type="org.springframework.xd.dirt.module.store.ZooKeeperModuleMetadataRepository"/>
+	</bean>
 	
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
 		<constructor-arg>

@@ -100,15 +100,15 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 		List<TableRow> runtimeModules = getRuntimeModulesForStream(streamName);
 
 		// Get containerId for a runtime module
-		String containerId = runtimeModules.get(0).getValue(2);
+		String containerId = runtimeModules.get(0).getValue(4);
 		CommandResult cmdResult = executeCommand("runtime modules --containerId " + containerId);
 		Table table = (Table) cmdResult.getResult();
 		List<TableRow> fooStreamModules = new ArrayList<TableRow>();
 		for (TableRow row : table.getRows()) {
 			// Verify all the rows have the same containerId
-			assertTrue(row.getValue(2).equals(containerId));
+			assertTrue(row.getValue(4).equals(containerId));
 			// match by group name
-			if (row.getValue(2).equals(runtimeModules.get(0).getValue(2))) {
+			if (row.getValue(3).equals(runtimeModules.get(0).getValue(3))) {
 				fooStreamModules.add(row);
 			}
 		}
@@ -138,7 +138,7 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 		Table table = (Table) cmdResult.getResult();
 		List<TableRow> modules = new ArrayList<TableRow>();
 		for (TableRow row : table.getRows()) {
-			if (row.getValue(1).contains(streamName)) {
+			if (row.getValue(1).equals(streamName)) {
 				modules.add(row);
 			}
 		}

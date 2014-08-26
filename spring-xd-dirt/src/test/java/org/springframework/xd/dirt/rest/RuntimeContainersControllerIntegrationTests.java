@@ -39,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.RuntimeContainer;
 
 /**
  * Tests REST compliance of containers endpoint.
@@ -58,13 +59,13 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 		ContainerAttributes attributes1 = new ContainerAttributes("1").setPid(1234).setHost("host1").setIp("127.0.0.1");
 		ContainerAttributes attributes2 = new ContainerAttributes("2").setPid(2345).setHost("host2").setIp(
 				"192.168.2.1");
-		List<Container> containers = new ArrayList<Container>();
+		List<RuntimeContainer> containers = new ArrayList<RuntimeContainer>();
 		Container container1 = new Container(attributes1.getId(), attributes1);
 		Container container2 = new Container(attributes2.getId(), attributes2);
-		containers.add(container1);
-		containers.add(container2);
-		Page<Container> pagedEntity = new PageImpl<Container>(containers);
-		when(containerRepository.findAll(pageable)).thenReturn(pagedEntity);
+		containers.add(new RuntimeContainer(container1));
+		containers.add(new RuntimeContainer(container2));
+		Page<RuntimeContainer> pagedEntity = new PageImpl<RuntimeContainer>(containers);
+		when(runtimeContainerRepository.findAllRuntimeContainers(pageable)).thenReturn(pagedEntity);
 	}
 
 	@Test

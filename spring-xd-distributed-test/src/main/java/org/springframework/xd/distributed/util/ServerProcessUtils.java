@@ -40,7 +40,7 @@ import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.server.AdminServerApplication;
 import org.springframework.xd.dirt.server.ContainerServerApplication;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
-import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.domain.RuntimeContainerResource;
 
 import com.oracle.tools.runtime.PropertiesBuilder;
 import com.oracle.tools.runtime.console.SystemApplicationConsole;
@@ -169,9 +169,9 @@ public class ServerProcessUtils {
 		while (mapPidUuid.size() != pidCount && System.currentTimeMillis() < expiry) {
 			Thread.sleep(500);
 			mapPidUuid.clear();
-			PagedResources<ContainerResource> containers =
+			PagedResources<RuntimeContainerResource> containers =
 					template.runtimeOperations().listRuntimeContainers();
-			for (ContainerResource container : containers) {
+			for (RuntimeContainerResource container : containers) {
 				logger.trace("Container: {}", container);
 				long pid = Long.parseLong(container.getAttribute("pid"));
 				mapPidUuid.put(pid, container.getAttribute("id"));

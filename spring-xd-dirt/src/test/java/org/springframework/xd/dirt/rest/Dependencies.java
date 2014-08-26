@@ -43,6 +43,7 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.container.store.RuntimeContainerRepository;
 import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
@@ -145,6 +146,11 @@ public class Dependencies {
 	@Bean
 	public JobDefinitionRepository jobDefinitionRepository() {
 		return new ZooKeeperJobDefinitionRepository(zooKeeperConnection());
+	}
+
+	@Bean
+	public RuntimeContainerRepository runtimeContainerRepository() {
+		return mock(RuntimeContainerRepository.class);
 	}
 
 	@Bean

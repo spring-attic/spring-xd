@@ -22,7 +22,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.RuntimeOperations;
-import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.domain.RuntimeContainerResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
 /**
@@ -37,10 +37,10 @@ public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperatio
 	}
 
 	@Override
-	public ContainerResource.Page listRuntimeContainers() {
+	public RuntimeContainerResource.Page listRuntimeContainers() {
 		String uriTemplate = resources.get("runtime/containers").toString();
 		uriTemplate = uriTemplate + "?size=10000";
-		return restTemplate.getForObject(uriTemplate, ContainerResource.Page.class);
+		return restTemplate.getForObject(uriTemplate, RuntimeContainerResource.Page.class);
 	}
 
 	@Override

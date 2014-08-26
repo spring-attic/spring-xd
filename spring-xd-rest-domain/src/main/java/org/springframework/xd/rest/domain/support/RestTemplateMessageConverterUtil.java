@@ -32,13 +32,12 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.xd.rest.domain.ContainerAttributesResource;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
 import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.RuntimeContainerResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.domain.XDRuntime;
-import org.springframework.xd.rest.domain.StreamDefinitionResource.Page;
 import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.domain.metrics.CounterResource;
 import org.springframework.xd.rest.domain.metrics.FieldValueCounterResource;
@@ -77,7 +76,7 @@ public class RestTemplateMessageConverterUtil {
 					RestTemplateMessageConverterUtil.class.getClassLoader());
 
 	private static final Class<?>[] ourClasses = { PagedResources.class, StreamDefinitionResource.class,
-		JobDefinitionResource.class, ModuleDefinitionResource.class, ContainerAttributesResource.class,
+		JobDefinitionResource.class, ModuleDefinitionResource.class, RuntimeContainerResource.class,
 		ModuleMetadataResource.class,
 		MetricResource.class, GaugeResource.class,
 		AggregateCountsResource.class, CounterResource.class, XDRuntime.class, FieldValueCounterResource.class,

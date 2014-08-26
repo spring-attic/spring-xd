@@ -29,7 +29,7 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.rest.client.RuntimeOperations;
-import org.springframework.xd.rest.domain.ContainerResource;
+import org.springframework.xd.rest.domain.RuntimeContainerResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
@@ -58,7 +58,7 @@ public class RuntimeCommands implements CommandMarker {
 
 	@CliCommand(value = LIST_CONTAINERS, help = "List runtime containers")
 	public Table listContainers() {
-		final PagedResources<ContainerResource> containers = runtimeOperations().listRuntimeContainers();
+		final PagedResources<RuntimeContainerResource> containers = runtimeOperations().listRuntimeContainers();
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Container Id"))
 				.addHeader(2, new TableHeader("Host"))
@@ -66,7 +66,7 @@ public class RuntimeCommands implements CommandMarker {
 				.addHeader(4, new TableHeader("PID"))
 				.addHeader(5, new TableHeader("Groups"))
 				.addHeader(6, new TableHeader("Custom Attributes"));
-		for (ContainerResource container : containers) {
+		for (RuntimeContainerResource container : containers) {
 			Map<String, String> copy = new HashMap<String, String>(container.getAttributes());
 			final TableRow row = table.newRow();
 			row.addValue(1, copy.remove("id"))

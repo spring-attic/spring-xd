@@ -27,7 +27,7 @@ define(['angular'], function (angular) {
       .factory('JobDefinitions', function ($resource, $rootScope, $log, $http) {
         return {
           getSingleJobDefinition: function (jobname) {
-            $log.info('Getting single job definiton for job named ' + jobname);
+            $log.info('Getting single job definition for job named ' + jobname);
             return $http({
               method: 'GET',
               url: $rootScope.xdAdminServerUrl + '/jobs/definitions/' + jobname

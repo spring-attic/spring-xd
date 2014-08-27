@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.container.store;
+package org.springframework.xd.dirt.cluster;
 
-import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.store.DomainRepository;
 
 /**
- * Repository for persisting {@link Container} entities.
- * 
+ * Exception thrown when the container in search could not be found.
+ *
  * @author Ilayaperumal Gopinathan
  */
-public interface ContainerRepository extends DomainRepository<Container, String> {
+@SuppressWarnings("serial")
+public class NoSuchContainerException extends Exception {
 
 	/**
-	 * Update the container attributes.
-	 *
-	 * @param container the container entity
+	 * Construct a {@code ContainerNotExistsException}.
 	 */
-	public void update(Container container);
+	public NoSuchContainerException() {
+	}
 
+	/**
+	 * Construct a {@code ContainerNotExistsException} with a description.
+	 *
+	 * @param message description for exception
+	 */
+	public NoSuchContainerException(String message) {
+		super(message);
+	}
 }

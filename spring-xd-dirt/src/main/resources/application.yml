@@ -97,7 +97,10 @@ server:
   port: ${PORT:0}
 management:
   port: ${XD_MGMT_PORT:${PORT:}}
-  contextPath: /management
+endpoints:
+  shutdown:
+    enabled: true
+
 ---
 
 spring:

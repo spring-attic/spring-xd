@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.cluster.ContainerShutdownException;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
@@ -95,11 +94,11 @@ public class RuntimeContainersController {
 		Container container = this.containerRepository.findOne(containerId);
 		if (container != null) {
 			String containerHost = container.getAttributes().getIp();
-			String containerPort = container.getAttributes().get(ContainerAttributes.PORT_KEY);
+			String containerManagementPort = container.getAttributes().getManagementPort();
 			RestTemplate restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory());
 			try {
 				restTemplate.postForObject(CONTAINER_HOST_URI_PROTOCOL + containerHost + ":"
-						+ containerPort + managementContextPath + SHUTDOWN_ENDPOINT, Object.class, Object.class);
+						+ containerManagementPort + managementContextPath + SHUTDOWN_ENDPOINT, Object.class, Object.class);
 			}
 			catch (RestClientException e) {
 				throw new ContainerShutdownException(e.getMessage());

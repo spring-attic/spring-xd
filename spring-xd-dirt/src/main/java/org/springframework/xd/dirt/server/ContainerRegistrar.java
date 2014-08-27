@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -185,6 +186,14 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 	 * Utility for loading streams and jobs (including deployment metadata).
 	 */
 	protected final DeploymentLoader deploymentLoader = new DeploymentLoader();
+
+	private final static String MGMT_CONTEXT_NAMESPACE = "management";
+
+	/**
+	 * Container server management port
+	 */
+	@Value("${XD_MGMT_PORT:${PORT:}}")
+	private int managementPort;
 
 	/**
 	 * Create an instance that will register the provided {@link ContainerAttributes} whenever the underlying
@@ -357,11 +366,14 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 			}
 		}
 		else if (event instanceof EmbeddedServletContainerInitializedEvent) {
-			if (zkConnection.isConnected()) {
-				this.containerAttributes.put(ContainerAttributes.PORT_KEY,
-						String.valueOf(((EmbeddedServletContainerInitializedEvent) event).getEmbeddedServletContainer()
-								.getPort()));
-				containerRepository.update(new Container(containerAttributes.getId(), containerAttributes));
+			String namespace = ((EmbeddedServletContainerInitializedEvent) event).getApplicationContext().getNamespace();
+			// Make sure management port is updated from the ManagementServer context.
+			if (namespace != null && namespace.equals(MGMT_CONTEXT_NAMESPACE)) {
+				managementPort = ((EmbeddedServletContainerInitializedEvent) event).getEmbeddedServletContainer().getPort();
+				this.containerAttributes.setManagementPort(String.valueOf(managementPort));
+				if (zkConnection.isConnected()) {
+					containerRepository.update(new Container(containerAttributes.getId(), containerAttributes));
+				}
 			}
 		}
 	}
@@ -474,6 +486,16 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 	}
 
 	/**
+	 * Update container server management port if it is missing
+	 * from the container attributes.
+	 */
+	private void updateManagementPort() {
+		if (containerAttributes.getManagementPort() == null && managementPort > 0) {
+			this.containerAttributes.setManagementPort(String.valueOf(managementPort));
+		}
+	}
+
+	/**
 	 * Calculate an exponential delay per the algorithm described
 	 * in http://en.wikipedia.org/wiki/Exponential_backoff.
 	 *
@@ -504,6 +526,7 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 		@Override
 		public void onConnect(CuratorFramework client) {
 			lastKnownState = ConnectionState.CONNECTED;
+			updateManagementPort();
 			registerWithZooKeeper(client);
 		}
 
@@ -524,6 +547,7 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 			}
 			else if (lastKnownState == ConnectionState.SUSPENDED) {
 				logger.info("ZooKeeper connection resumed");
+				updateManagementPort();
 				registerWithZooKeeper(client);
 			}
 

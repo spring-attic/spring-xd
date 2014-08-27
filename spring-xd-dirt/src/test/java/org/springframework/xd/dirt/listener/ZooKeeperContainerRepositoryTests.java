@@ -27,7 +27,9 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,7 @@ import org.springframework.xd.dirt.container.store.ZooKeeperContainerRepository;
 import org.springframework.xd.dirt.listener.ZooKeeperContainerRepositoryTests.ZooKeeperContainerRepositoryTestsConfig;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperAccessException;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
@@ -75,6 +78,10 @@ public class ZooKeeperContainerRepositoryTests {
 
 	private final Set<String> groups = StringUtils.commaDelimitedListToSet("g1,g2,g3");
 
+	@Rule
+	public ExpectedException exception = ExpectedException.none();
+
+
 	@Before
 	public void setUp() throws Exception {
 		try {
@@ -100,7 +107,7 @@ public class ZooKeeperContainerRepositoryTests {
 		entity = new Container(id2, containerAttributes);
 		savedContainer = containerRepository.save(entity);
 		assertNotNull(savedContainer);
-		assertSavedContainer(id2);
+		assertSavedContainer(id2, containerAttributes);
 	}
 
 	/**
@@ -108,13 +115,14 @@ public class ZooKeeperContainerRepositoryTests {
 	 *
 	 * @param id the containerId
 	 */
-	private void assertSavedContainer(String id) {
+	private void assertSavedContainer(String id, ContainerAttributes containerAttributes) {
 		long timeout = System.currentTimeMillis() + 15000;
 		boolean foundContainer = false;
 		while (!foundContainer && System.currentTimeMillis() < timeout) {
 			try {
 				Thread.sleep(200);
-				if (containerRepository.findOne(id) != null) {
+				Container container = containerRepository.findOne(id);
+				if (container != null && compareContainerAttributes(container.getAttributes(), containerAttributes)) {
 					foundContainer = true;
 				}
 			}
@@ -124,6 +132,19 @@ public class ZooKeeperContainerRepositoryTests {
 			}
 		}
 		assertTrue("Container repository is not updated with the test containers", foundContainer);
+	}
+
+	/**
+	 * Check if the container attributes equal.
+	 *
+	 * @param attr1 container attributes
+	 * @param attr2 container attributes
+	 * @return true if the container attributes match
+	 */
+	private boolean compareContainerAttributes(ContainerAttributes attr1, ContainerAttributes attr2) {
+		return (attr1.getId().equals(attr2.getId()) &&
+				attr1.getHost().equals(attr2.getHost()) &&
+				attr1.getIp().equals(attr2.getIp()) && (attr1.getPid() == attr2.getPid()));
 	}
 
 	@Test
@@ -137,6 +158,29 @@ public class ZooKeeperContainerRepositoryTests {
 		assertEquals(host, attributes.getHost());
 		assertEquals(ip, attributes.getIp());
 		assertEquals(groups, attributes.getGroups());
+	}
+
+	@Test
+	public void updateContainerAttributes() {
+		Container foundContainer = containerRepository.findOne(id);
+		assertNotNull(foundContainer);
+		ContainerAttributes containerAttributes = new ContainerAttributes(id).setPid(12345).setHost("randomHost").setIp(
+				"randomIP");
+		containerAttributes.put("groups", "test1,test2");
+		Container entity = new Container(id, containerAttributes);
+		containerRepository.update(entity);
+		assertSavedContainer(id, containerAttributes);
+	}
+
+	@Test
+	public void updateNonExistingContainer() {
+		exception.expect(ZooKeeperAccessException.class);
+		exception.expectMessage("Could not find container with id " + id + 10);
+		ContainerAttributes containerAttributes = new ContainerAttributes(id + 10).setPid(12345).setHost("randomHost").setIp(
+				"randomIP");
+		containerAttributes.put("groups", "test1,test2");
+		Container entity = new Container(id + 10, containerAttributes);
+		containerRepository.update(entity);
 	}
 
 	@Test

@@ -29,6 +29,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.utils.ThreadUtils;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
@@ -40,6 +41,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
+import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -216,11 +218,14 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 		String path = Paths.build(Paths.CONTAINERS, entity.getName());
 
 		try {
-			client.checkExists().forPath(path);
+			Stat stat = client.checkExists().forPath(path);
+			if (stat == null) {
+				throw new NoSuchContainerException("Could not find container with id " + entity.getName());
+			}
 			client.setData().forPath(path, ZooKeeperUtils.mapToBytes(entity.getAttributes()));
 		}
 		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
+			throw ZooKeeperUtils.wrapThrowable(e, e.getMessage());
 		}
 	}
 

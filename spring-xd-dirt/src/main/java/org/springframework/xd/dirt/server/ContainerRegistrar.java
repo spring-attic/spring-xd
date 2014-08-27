@@ -357,10 +357,12 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 			}
 		}
 		else if (event instanceof EmbeddedServletContainerInitializedEvent) {
-			this.containerAttributes.put(ContainerAttributes.PORT_KEY,
-					String.valueOf(((EmbeddedServletContainerInitializedEvent) event).getEmbeddedServletContainer()
-							.getPort()));
-			containerRepository.update(new Container(containerAttributes.getId(), containerAttributes));
+			if (zkConnection.isConnected()) {
+				this.containerAttributes.put(ContainerAttributes.PORT_KEY,
+						String.valueOf(((EmbeddedServletContainerInitializedEvent) event).getEmbeddedServletContainer()
+								.getPort()));
+				containerRepository.update(new Container(containerAttributes.getId(), containerAttributes));
+			}
 		}
 	}
 

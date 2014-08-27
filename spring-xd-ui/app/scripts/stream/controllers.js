@@ -28,5 +28,11 @@ define(['angular'], function (angular) {
             require(['stream/controllers/definitions'], function (streamDefinitionsController) {
               $injector.invoke(streamDefinitionsController, this, {'$scope': $scope});
             });
+          }])
+      .controller('DefinitionDeployController',
+          ['$scope', '$injector', function ($scope, $injector) {
+            require(['stream/controllers/definition-deploy'], function (streamDefinitionDeployController) {
+              $injector.invoke(streamDefinitionDeployController, this, {'$scope': $scope});
+            });
           }]);
 });

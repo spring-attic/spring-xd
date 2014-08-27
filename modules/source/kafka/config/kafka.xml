@@ -17,7 +17,7 @@
 			zk-sync-time="2000"/>
 
 	<int-kafka:inbound-channel-adapter kafka-consumer-context-ref="consumerContext"
-			channel="output">
+			channel="kafkaOutput">
 		<int:poller fixed-delay="100" time-unit="MILLISECONDS" max-messages-per-poll="-1"/>
 	</int-kafka:inbound-channel-adapter>
 
@@ -26,6 +26,12 @@
 	<bean id="stringDecoder" class="org.springframework.integration.x.kafka.StringDecoder">
 		<property name="encoding" value="${encoding}"/>
 	</bean>
+
+	<int:chain input-channel="kafkaOutput" output-channel="output">
+		<int:transformer ref="kafkaMessageTransformer"/>
+	</int:chain>
+
+	<bean id="kafkaMessageTransformer" class="org.springframework.integration.x.kafka.KafkaMessageTransformer"/>
 
 	<int-kafka:consumer-context id="consumerContext" zookeeper-connect="zookeeperConnect" consumer-properties="consumerProperties">
 		<int-kafka:consumer-configurations>

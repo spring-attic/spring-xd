@@ -29,7 +29,6 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.utils.ThreadUtils;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
@@ -202,6 +201,23 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
 					.forPath(path, ZooKeeperUtils.mapToBytes(entity.getAttributes()));
 			return entity;
+		}
+		catch (Exception e) {
+			throw ZooKeeperUtils.wrapThrowable(e);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void update(Container entity) {
+		CuratorFramework client = zkConnection.getClient();
+		String path = Paths.build(Paths.CONTAINERS, entity.getName());
+
+		try {
+			client.checkExists().forPath(path);
+			client.setData().forPath(path, ZooKeeperUtils.mapToBytes(entity.getAttributes()));
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);

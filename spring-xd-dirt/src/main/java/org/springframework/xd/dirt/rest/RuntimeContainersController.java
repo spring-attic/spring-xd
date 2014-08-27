@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -24,12 +25,16 @@ import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.dirt.cluster.Container;
+import org.springframework.xd.dirt.cluster.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.rest.domain.ContainerAttributesResource;
 import org.springframework.xd.rest.domain.ContainerResource;
@@ -48,6 +53,14 @@ public class RuntimeContainersController {
 	private ContainerRepository containerRepository;
 
 	private ResourceAssemblerSupport<Container, ContainerResource> containerResourceAssemblerSupport;
+
+	@Value("${management.contextPath:/management}")
+	private String managementContextPath;
+
+	private final static String CONTAINER_HOST_URI_PROTOCOL = "http://";
+
+	private final static String SHUTDOWN_ENDPOINT = "/shutdown";
+
 
 	@Autowired
 	public RuntimeContainersController(ContainerRepository containerRepository) {
@@ -69,4 +82,24 @@ public class RuntimeContainersController {
 		return result;
 	}
 
+	/**
+	 * Shutdown container by the given containerId.
+	 *
+	 * @throws NoSuchContainerException
+	 */
+	@RequestMapping(value = "", method = RequestMethod.DELETE, params = "containerId")
+	@ResponseStatus(HttpStatus.OK)
+	public void shutdownContainer(String containerId) throws NoSuchContainerException {
+		Container container = this.containerRepository.findOne(containerId);
+		if (container != null) {
+			String containerHost = container.getAttributes().getIp();
+			String containerPort = container.getAttributes().get(ContainerAttributes.PORT_KEY);
+			RestTemplate restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory());
+			restTemplate.postForObject(CONTAINER_HOST_URI_PROTOCOL + containerHost + ":" + containerPort
+					+ managementContextPath + SHUTDOWN_ENDPOINT, Object.class, Object.class);
+		}
+		else {
+			throw new NoSuchContainerException("Container could not be found with id " + containerId);
+		}
+	}
 }

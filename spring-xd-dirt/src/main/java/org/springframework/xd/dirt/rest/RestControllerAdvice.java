@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
+import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
 import org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException;
 import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
@@ -262,6 +263,14 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onJobParametersInvalidException(JobParametersInvalidException e) {
+		String logref = logDebug(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onNoSuchContainerException(NoSuchContainerException e) {
 		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}

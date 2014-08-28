@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.module.store;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -188,8 +189,13 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 * @return {@ModuleMetadata} entities with updated deployment status.
 	 */
 	private Page<ModuleMetadata> updateDeploymentStatus(Page<ModuleMetadata> entities) {
+		updateDeploymentStatus(entities.getContent());
+		return entities;
+	}
+
+	private Collection<ModuleMetadata> updateDeploymentStatus(Collection<ModuleMetadata> entities) {
 		Map<String, String> statusMap = new HashMap<String, String>();
-		for (ModuleMetadata entity : entities.getContent()) {
+		for (ModuleMetadata entity : entities) {
 			String deploymentStatus;
 			String unitName = entity.getUnitName();
 			if (statusMap.get(unitName) == null) {
@@ -277,13 +283,24 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	@Override
 	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId) {
 		Assert.hasLength(containerId, "containerId is required");
+		return pagingUtility.getPagedData(pageable, findAllByContainerId(containerId));
+	}
+
+	/**
+	 * Find all the modules that are deployed into this container.
+	 *
+	 * @param containerId the containerId
+	 * @return {@link ModuleMetadata} of the modules deployed into this container.
+	 */
+	public List<ModuleMetadata> findAllByContainerId(String containerId) {
+		Assert.hasLength(containerId, "containerId is required");
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
 			List<String> deployedModules = getDeployedModules(containerId);
 			for (String moduleId : deployedModules) {
 				results.add(findOne(containerId, moduleId));
 			}
-			return updateDeploymentStatus(pagingUtility.getPagedData(pageable, results));
+			return (List<ModuleMetadata>) updateDeploymentStatus(results);
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);

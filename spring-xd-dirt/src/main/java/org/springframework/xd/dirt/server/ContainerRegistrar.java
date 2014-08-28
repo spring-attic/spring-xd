@@ -183,17 +183,10 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 	private volatile ClassLoader parentClassLoader;
 
 	/**
-	 * Utility for loading streams and jobs (including deployment metadata).
+	 * Namespace for management context in the container's application context.
 	 */
-	protected final DeploymentLoader deploymentLoader = new DeploymentLoader();
-
 	private final static String MGMT_CONTEXT_NAMESPACE = "management";
 
-	/**
-	 * Container server management port
-	 */
-	@Value("${XD_MGMT_PORT:${PORT:}}")
-	private int managementPort;
 
 	/**
 	 * Create an instance that will register the provided {@link ContainerAttributes} whenever the underlying
@@ -368,11 +361,23 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 		else if (event instanceof EmbeddedServletContainerInitializedEvent) {
 			String namespace = ((EmbeddedServletContainerInitializedEvent) event).getApplicationContext().getNamespace();
 			// Make sure management port is updated from the ManagementServer context.
-			if (namespace != null && namespace.equals(MGMT_CONTEXT_NAMESPACE)) {
-				managementPort = ((EmbeddedServletContainerInitializedEvent) event).getEmbeddedServletContainer().getPort();
-				this.containerAttributes.setManagementPort(String.valueOf(managementPort));
-				if (zkConnection.isConnected()) {
-					containerRepository.update(new Container(containerAttributes.getId(), containerAttributes));
+			if (MGMT_CONTEXT_NAMESPACE.equals(namespace)) {
+				int managementPort = ((EmbeddedServletContainerInitializedEvent) event).getEmbeddedServletContainer().getPort();
+				synchronized (containerAttributes) {
+					// if the container has already been registered, update
+					// the attributes in the container node; the read and
+					// write operation (check if exists, attribute update)
+					// must be atomic since it is possible for another thread
+					// executing registerWithZooKeeper to read the attributes
+					// before this thread sets the management port and therefore
+					// create the node before this thread checks for its existence
+
+					containerAttributes.setManagementPort(String.valueOf(managementPort));
+					String containerId = containerAttributes.getId();
+
+					if (zkConnection.isConnected() && containerRepository.exists(containerId)) {
+						containerRepository.update(new Container(containerId, containerAttributes));
+					}
 				}
 			}
 		}
@@ -456,7 +461,13 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 			// makes the container "available" for module deployment
 			client.create().creatingParentsIfNeeded().forPath(moduleDeploymentPath);
 
-			containerRepository.save(new Container(containerId, containerAttributes));
+			synchronized (containerAttributes) {
+				// reading the container attributes and writing them to
+				// the container node must be an atomic operation; see
+				// the handling of EmbeddedServletContainerInitializedEvent
+				// in onApplicationEvent
+				containerRepository.save(new Container(containerId, containerAttributes));
+			}
 
 			// if this container is rejoining, clear out the old cache and recreate
 			if (deployments != null) {
@@ -482,16 +493,6 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
-		}
-	}
-
-	/**
-	 * Update container server management port if it is missing
-	 * from the container attributes.
-	 */
-	private void updateManagementPort() {
-		if (containerAttributes.getManagementPort() == null && managementPort > 0) {
-			this.containerAttributes.setManagementPort(String.valueOf(managementPort));
 		}
 	}
 
@@ -526,7 +527,6 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 		@Override
 		public void onConnect(CuratorFramework client) {
 			lastKnownState = ConnectionState.CONNECTED;
-			updateManagementPort();
 			registerWithZooKeeper(client);
 		}
 
@@ -547,7 +547,6 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 			}
 			else if (lastKnownState == ConnectionState.SUSPENDED) {
 				logger.info("ZooKeeper connection resumed");
-				updateManagementPort();
 				registerWithZooKeeper(client);
 			}
 

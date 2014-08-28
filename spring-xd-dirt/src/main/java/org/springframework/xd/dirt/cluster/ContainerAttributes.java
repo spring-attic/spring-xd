@@ -25,13 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Metadata for a Container instance.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
@@ -50,14 +51,13 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 
 	public final static String MGMT_PORT_KEY = "management-port";
 
-	private final List<String> commonAttributeKeys = Arrays.asList(new String[] { CONTAINER_ID_KEY, PROCESS_ID_KEY,
-		HOST_KEY,
-		IP_ADDRESS_KEY, GROUPS_KEY });
+	private final List<String> commonAttributeKeys = Arrays.asList(CONTAINER_ID_KEY, PROCESS_ID_KEY,
+			HOST_KEY, IP_ADDRESS_KEY, GROUPS_KEY);
 
 	/**
 	 * The underlying map.
 	 */
-	private final Map<String, String> map = new HashMap<String, String>();
+	private final Map<String, String> map = new ConcurrentHashMap<String, String>();
 
 	/**
 	 * Default constructor generates a random id.
@@ -68,7 +68,7 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 
 	/**
 	 * Constructor to be called when the id is already known.
-	 * 
+	 *
 	 * @param id the container's id
 	 */
 	public ContainerAttributes(String id) {
@@ -79,7 +79,7 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 	/**
 	 * Constructor to be called when the attributes are already known. If an id is not present in the map, one will be
 	 * generated.
-	 * 
+	 *
 	 * @param attributes the container's attributes
 	 */
 	public ContainerAttributes(Map<? extends String, ? extends String> attributes) {
@@ -141,7 +141,7 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 	 * Retrieve the custom attributes for this container. This will not include the values for common keys:
 	 * {@value #CONTAINER_ID_KEY}, {@value #PROCESS_ID_KEY}, {@value #HOST_KEY}, {@value #IP_ADDRESS_KEY} and
 	 * {@value #GROUPS_KEY}
-	 * 
+	 *
 	 * @return the map of custom attributes
 	 */
 	public Map<String, String> getCustomAttributes() {

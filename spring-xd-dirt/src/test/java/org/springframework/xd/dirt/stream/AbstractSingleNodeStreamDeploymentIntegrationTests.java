@@ -491,7 +491,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	protected void assertModuleRequest(String streamName, String moduleName, boolean remove) {
 		PathChildrenCacheEvent event = remove ? deploymentsListener.nextUndeployEvent(streamName)
 				: deploymentsListener.nextDeployEvent(streamName);
-		assertNotNull("deploymentsListener returned a null event", event);
+		assertNotNull(String.format("deploymentsListener returned a null event for stream %s, module %s",
+				streamName, moduleName), event);
 		assertTrue(moduleName + " not found in " + event.getData().getPath() + " (remove = " + remove + ")",
 				event.getData().getPath().contains(moduleName));
 	}

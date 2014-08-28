@@ -46,8 +46,11 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.Assert;
@@ -94,8 +97,8 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  * @author Ilayaperumal Gopinathan
  */
 // todo: Rename ContainerServer or ModuleDeployer since it's driven by callbacks and not really a "server".
-public class ContainerRegistrar implements ApplicationListener<ContextRefreshedEvent>, ApplicationContextAware,
-		BeanClassLoaderAware {
+public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>,
+		ApplicationContextAware, BeanClassLoaderAware {
 
 	/**
 	 * Logger.
@@ -183,6 +186,14 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * Utility for loading streams and jobs (including deployment metadata).
 	 */
 	protected final DeploymentLoader deploymentLoader = new DeploymentLoader();
+
+	private final static String MGMT_CONTEXT_NAMESPACE = "management";
+
+	/**
+	 * Container server management port
+	 */
+	@Value("${XD_MGMT_PORT:${PORT:}}")
+	private int managementPort;
 
 	/**
 	 * Create an instance that will register the provided {@link ContainerAttributes} whenever the underlying
@@ -345,12 +356,25 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (this.context.equals(event.getApplicationContext())) {
-			if (zkConnection.isConnected()) {
-				registerWithZooKeeper(zkConnection.getClient());
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (event instanceof ContextRefreshedEvent) {
+			if (this.context.equals(((ContextRefreshedEvent) event).getApplicationContext())) {
+				if (zkConnection.isConnected()) {
+					registerWithZooKeeper(zkConnection.getClient());
+				}
+				zkConnection.addListener(new ContainerConnectionListener());
 			}
-			zkConnection.addListener(new ContainerConnectionListener());
+		}
+		else if (event instanceof EmbeddedServletContainerInitializedEvent) {
+			String namespace = ((EmbeddedServletContainerInitializedEvent) event).getApplicationContext().getNamespace();
+			// Make sure management port is updated from the ManagementServer context.
+			if (namespace != null && namespace.equals(MGMT_CONTEXT_NAMESPACE)) {
+				managementPort = ((EmbeddedServletContainerInitializedEvent) event).getEmbeddedServletContainer().getPort();
+				this.containerAttributes.setManagementPort(String.valueOf(managementPort));
+				if (zkConnection.isConnected()) {
+					containerRepository.update(new Container(containerAttributes.getId(), containerAttributes));
+				}
+			}
 		}
 	}
 
@@ -462,6 +486,16 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	}
 
 	/**
+	 * Update container server management port if it is missing
+	 * from the container attributes.
+	 */
+	private void updateManagementPort() {
+		if (containerAttributes.getManagementPort() == null && managementPort > 0) {
+			this.containerAttributes.setManagementPort(String.valueOf(managementPort));
+		}
+	}
+
+	/**
 	 * Calculate an exponential delay per the algorithm described
 	 * in http://en.wikipedia.org/wiki/Exponential_backoff.
 	 *
@@ -492,6 +526,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		@Override
 		public void onConnect(CuratorFramework client) {
 			lastKnownState = ConnectionState.CONNECTED;
+			updateManagementPort();
 			registerWithZooKeeper(client);
 		}
 
@@ -512,6 +547,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			}
 			else if (lastKnownState == ConnectionState.SUSPENDED) {
 				logger.info("ZooKeeper connection resumed");
+				updateManagementPort();
 				registerWithZooKeeper(client);
 			}
 
@@ -884,7 +920,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 					}
 					catch (Exception e) {
 						logger.error("Exception setting up watch for path '{}': {}; ZooKeeper state: {}",
-								event.getPath(), e, zkConnection.getClient().getZookeeperClient().getZooKeeper().getState());
+								event.getPath(), e,
+								zkConnection.getClient().getZookeeperClient().getZooKeeper().getState());
 						if (logger.isDebugEnabled()) {
 							logger.debug("Full stack trace", e);
 						}
@@ -953,7 +990,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 					}
 					catch (Exception e) {
 						logger.error("Exception setting up watch for path '{}': {}; ZooKeeper state: {}",
-								event.getPath(), e, zkConnection.getClient().getZookeeperClient().getZooKeeper().getState());
+								event.getPath(), e,
+								zkConnection.getClient().getZookeeperClient().getZooKeeper().getState());
 						if (logger.isDebugEnabled()) {
 							logger.debug("Full stack trace", e);
 						}

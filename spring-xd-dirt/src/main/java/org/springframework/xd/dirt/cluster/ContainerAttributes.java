@@ -48,6 +48,8 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 
 	public final static String IP_ADDRESS_KEY = "ip";
 
+	public final static String MGMT_PORT_KEY = "management-port";
+
 	private final List<String> commonAttributeKeys = Arrays.asList(new String[] { CONTAINER_ID_KEY, PROCESS_ID_KEY,
 		HOST_KEY,
 		IP_ADDRESS_KEY, GROUPS_KEY });
@@ -100,6 +102,10 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 		return this.get(IP_ADDRESS_KEY);
 	}
 
+	public String getManagementPort() {
+		return this.get(MGMT_PORT_KEY);
+	}
+
 	public int getPid() {
 		return Integer.parseInt(this.get(PROCESS_ID_KEY));
 	}
@@ -123,6 +129,11 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 
 	public ContainerAttributes setIp(String ip) {
 		this.put(IP_ADDRESS_KEY, ip);
+		return this;
+	}
+
+	public ContainerAttributes setManagementPort(String mgmtPort) {
+		this.put(MGMT_PORT_KEY, mgmtPort);
 		return this;
 	}
 

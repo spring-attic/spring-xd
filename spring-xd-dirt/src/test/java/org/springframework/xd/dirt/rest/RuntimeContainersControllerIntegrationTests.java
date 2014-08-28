@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import static org.hamcrest.Matchers.contains;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -65,6 +66,7 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 		containers.add(container2);
 		Page<Container> pagedEntity = new PageImpl<Container>(containers);
 		when(containerRepository.findAll(pageable)).thenReturn(pagedEntity);
+		when(containerRepository.findOne("1")).thenReturn(container1);
 	}
 
 	@Test
@@ -75,5 +77,13 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 				jsonPath("$.content[*].attributes.pid", contains("1234", "2345"))).andExpect(
 				jsonPath("$.content[*].attributes.host", contains("host1", "host2"))).andExpect(
 				jsonPath("$.content[*].attributes.ip", contains("127.0.0.1", "192.168.2.1")));
+	}
+
+	@Test
+	public void testShutdownNonExistingContainer() throws Exception {
+		String containerId = "random";
+		mockMvc.perform(delete("/runtime/containers").param("containerId", containerId)).andExpect(
+				status().isNotFound()).andExpect(
+				jsonPath("$[0].message", Matchers.is("Container could not be found with id " + containerId)));
 	}
 }

@@ -193,6 +193,12 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		return entities;
 	}
 
+	/**
+	 * Update deployment status for the collection of {@link ModuleMetadata}.
+	 *
+	 * @param entities the collection of {@link ModuleMetadata}
+	 * @return the {@link ModuleMetadata} collection with updated deployment status
+	 */
 	private Collection<ModuleMetadata> updateDeploymentStatus(Collection<ModuleMetadata> entities) {
 		Map<String, String> statusMap = new HashMap<String, String>();
 		for (ModuleMetadata entity : entities) {

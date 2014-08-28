@@ -39,6 +39,8 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
 	private final Properties deploymentProperties;
 
+	private String deploymentStatus;
+
 
 	public ModuleMetadata(String id, String name, String unitName, String moduleType, String containerId,
 			Properties moduleOptions,
@@ -78,6 +80,14 @@ public class ModuleMetadata implements Comparable<ModuleMetadata> {
 
 	public Properties getDeploymentProperties() {
 		return deploymentProperties;
+	}
+
+	public String getDeploymentStatus() {
+		return deploymentStatus;
+	}
+
+	public void setDeploymentStatus(String deploymentStatus) {
+		this.deploymentStatus = deploymentStatus;
 	}
 
 	/**

@@ -92,6 +92,7 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		stream1.setStatus(new DeploymentUnitStatus(State.failed));
 		ModuleMetadata entity2 = new ModuleMetadata("s2.sink.log.1", "log.1", "s2", "sink", "2", entityProps2,
 				deploymentProps2);
+		entity2.setDeploymentStatus("deployed");
 		Job job1 = new Job(new JobDefinition("j3", "job"));
 		job1.setStatus(new DeploymentUnitStatus(State.deployed));
 		ModuleMetadata entity3 = new ModuleMetadata("j3.job.myjob.0", "myjob.0", "j3", "job", "3", entityProps3,
@@ -214,7 +215,7 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 				jsonPath("$.content[*].containerId", contains("2"))).andExpect(
 				jsonPath("$.content[*].moduleType", contains("sink"))).andExpect(
 				jsonPath("$.content[*].unitName", contains("s2"))).andExpect(
-				jsonPath("$.content[*].deploymentStatus", contains("deploying"))).andExpect(
+				jsonPath("$.content[*].deploymentStatus", contains("deployed"))).andExpect(
 				jsonPath("$.content[*].moduleOptions.entity2", contains("value2"))).andExpect(
 				jsonPath("$.content[*].deploymentProperties.count", contains("2")));
 	}

@@ -42,7 +42,7 @@ public class ModuleMetadataResourceAssembler extends
 	protected ModuleMetadataResource instantiateResource(ModuleMetadata entity) {
 		return new ModuleMetadataResource(entity.getId(), entity.getName(), entity.getUnitName(),
 				entity.getModuleType(), entity.getContainerId(), entity.getModuleOptions(),
-				entity.getDeploymentProperties());
+				entity.getDeploymentProperties(), entity.getDeploymentStatus());
 	}
 
 }

@@ -98,12 +98,15 @@ public class RuntimeCommands implements CommandMarker {
 			runtimeModules = runtimeOperations().listRuntimeModules();
 		}
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Module")).addHeader(2, new TableHeader("Container Id")).addHeader(
-				3, new TableHeader("Options")).addHeader(4, new TableHeader("Deployment Properties"));
+		table.addHeader(1, new TableHeader("Unit Name")).addHeader(2, new TableHeader("Type")).addHeader(3,
+				new TableHeader("Module")).addHeader(4, new TableHeader("Container Id")).addHeader(5,
+				new TableHeader("Options")).addHeader(6, new TableHeader("Deployment Properties")).addHeader(7,
+				new TableHeader("Unit status"));
 		for (ModuleMetadataResource module : runtimeModules) {
 			final TableRow row = table.newRow();
-			row.addValue(1, module.getModuleId()).addValue(2, module.getContainerId()).addValue(3,
-					module.getModuleOptions().toString()).addValue(4, module.getDeploymentProperties().toString());
+			row.addValue(1, module.getUnitName()).addValue(2, module.getModuleType()).addValue(3, module.getName()).addValue(
+					4, module.getContainerId()).addValue(5, module.getModuleOptions().toString()).addValue(6,
+					module.getDeploymentProperties().toString()).addValue(7, module.getDeploymentStatus());
 		}
 		return table;
 	}

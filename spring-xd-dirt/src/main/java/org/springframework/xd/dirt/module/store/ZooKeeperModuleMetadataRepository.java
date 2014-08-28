@@ -109,8 +109,8 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			if (data != null) {
 				Map<String, String> metadataMap = ZooKeeperUtils.bytesToMap(data);
 				String metadataId = getModuleMetadataId(metadataPath);
-				String moduleId = metadataMap.get(XD_MODULE_NAME_KEY) + "." + metadataMap.get(XD_MODULE_INDEX_KEY);
-				metadata = new ModuleMetadata(moduleId,
+				String moduleName = metadataMap.get(XD_MODULE_NAME_KEY) + "." + metadataMap.get(XD_MODULE_INDEX_KEY);
+				metadata = new ModuleMetadata(metadataId, moduleName,
 						metadataId.substring(0, metadataId.indexOf(".")),
 						metadataMap.get(XD_MODULE_TYPE_KEY),
 						getContainerId(metadataPath),

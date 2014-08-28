@@ -32,6 +32,8 @@ import org.springframework.hateoas.ResourceSupport;
 @XmlRootElement
 public class ModuleMetadataResource extends ResourceSupport {
 
+	private String moduleId;
+
 	private String name;
 
 	private String unitName;
@@ -50,15 +52,20 @@ public class ModuleMetadataResource extends ResourceSupport {
 	private ModuleMetadataResource() {
 	}
 
-	public ModuleMetadataResource(String name, String unitName, String moduleType, String containerId,
+	public ModuleMetadataResource(String moduleId, String name, String unitName, String moduleType, String containerId,
 			Properties moduleProperties,
 			Properties deploymentProperties) {
+		this.moduleId = moduleId;
 		this.name = name;
 		this.unitName = unitName;
 		this.moduleType = moduleType;
 		this.containerId = containerId;
 		this.moduleOptions = moduleProperties;
 		this.deploymentProperties = deploymentProperties;
+	}
+
+	public String getModuleId() {
+		return moduleId;
 	}
 
 	public String getName() {
@@ -95,7 +102,7 @@ public class ModuleMetadataResource extends ResourceSupport {
 
 	@Override
 	public String toString() {
-		return this.name;
+		return this.moduleId;
 	}
 
 	/**

@@ -86,13 +86,16 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		deploymentProps3.put("criteria", "groups.contains('hdfs')");
 		Stream stream1 = new Stream(new StreamDefinition("s1", "http | log"));
 		stream1.setStatus(new DeploymentUnitStatus(State.deployed));
-		ModuleMetadata entity1 = new ModuleMetadata("http-0", "s1", "source", "1", entityProps1, deploymentProps1);
+		ModuleMetadata entity1 = new ModuleMetadata("s1.source.http.0", "http.0", "s1", "source", "1", entityProps1,
+				deploymentProps1);
 		Stream stream2 = new Stream(new StreamDefinition("s2", "http | log"));
 		stream1.setStatus(new DeploymentUnitStatus(State.failed));
-		ModuleMetadata entity2 = new ModuleMetadata("log-1", "s2", "sink", "2", entityProps2, deploymentProps2);
+		ModuleMetadata entity2 = new ModuleMetadata("s2.sink.log.1", "log.1", "s2", "sink", "2", entityProps2,
+				deploymentProps2);
 		Job job1 = new Job(new JobDefinition("j3", "job"));
 		job1.setStatus(new DeploymentUnitStatus(State.deployed));
-		ModuleMetadata entity3 = new ModuleMetadata("myjob-0", "j3", "job", "3", entityProps3, deploymentProps3);
+		ModuleMetadata entity3 = new ModuleMetadata("j3.job.myjob.0", "myjob.0", "j3", "job", "3", entityProps3,
+				deploymentProps3);
 		List<ModuleMetadata> entities1 = new ArrayList<ModuleMetadata>();
 		List<ModuleMetadata> entities2 = new ArrayList<ModuleMetadata>();
 		List<ModuleMetadata> entities3 = new ArrayList<ModuleMetadata>();
@@ -109,8 +112,8 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		when(moduleMetadataRepository.findAll(pageable)).thenReturn(allPages);
 		when(moduleMetadataRepository.findAll()).thenReturn(all);
 		when(moduleMetadataRepository.findAllByContainerId(pageable, "2")).thenReturn(pageEntity2);
-		when(moduleMetadataRepository.findOne("1", "s1.source.http-0")).thenReturn(entity1);
-		when(moduleMetadataRepository.findAllByModuleId(pageable, "j3.job.myjob-0")).thenReturn(pageEntity3);
+		when(moduleMetadataRepository.findOne("1", "s1.source.http.0")).thenReturn(entity1);
+		when(moduleMetadataRepository.findAllByModuleId(pageable, "j3.job.myjob.0")).thenReturn(pageEntity3);
 		Resource resource = new DescriptiveResource("dummy");
 		ModuleDefinition sinkDefinition = new ModuleDefinition("sink",
 				ModuleType.sink, resource);
@@ -160,7 +163,8 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 	public void testListModules() throws Exception {
 		mockMvc.perform(get("/runtime/modules").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(3))).andExpect(
-				jsonPath("$.content[*].name", contains("http-0", "log-1", "myjob-0"))).andExpect(
+				jsonPath("$.content[*].moduleId", contains("s1.source.http.0", "s2.sink.log.1", "j3.job.myjob.0"))).andExpect(
+				jsonPath("$.content[*].name", contains("http.0", "log.1", "myjob.0"))).andExpect(
 				jsonPath("$.content[*].unitName", contains("s1", "s2", "j3"))).andExpect(
 				jsonPath("$.content[*].moduleType", contains("source", "sink", "job"))).andExpect(
 				jsonPath("$.content[*].containerId", contains("1", "2", "3"))).andExpect(
@@ -173,7 +177,8 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		mockMvc.perform(get("/runtime/modules?jobname=j3").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$", Matchers.hasSize(1))).andExpect(
-				jsonPath("$[*].name", contains("myjob-0"))).andExpect(
+				jsonPath("$[*].moduleId", contains("j3.job.myjob.0"))).andExpect(
+				jsonPath("$[*].name", contains("myjob.0"))).andExpect(
 				jsonPath("$[*].containerId", contains("3"))).andExpect(
 				jsonPath("$[*].moduleType", contains("job"))).andExpect(
 				jsonPath("$[*].moduleOptions.entity3", contains("value3"))).andExpect(
@@ -182,10 +187,10 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 
 	@Test
 	public void testListModuleByModuleId() throws Exception {
-		mockMvc.perform(get("/runtime/modules?moduleId=j3.job.myjob-0").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(get("/runtime/modules?moduleId=j3.job.myjob.0").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
-				jsonPath("$.content[*].name", contains("myjob-0"))).andExpect(
+				jsonPath("$.content[*].name", contains("myjob.0"))).andExpect(
 				jsonPath("$.content[*].unitName", contains("j3"))).andExpect(
 				jsonPath("$.content[*].moduleType", contains("job"))).andExpect(
 				jsonPath("$.content[*].containerId", contains("3"))).andExpect(
@@ -205,7 +210,7 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		mockMvc.perform(get("/runtime/modules?containerId=2").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
-				jsonPath("$.content[*].name", contains("log-1"))).andExpect(
+				jsonPath("$.content[*].name", contains("log.1"))).andExpect(
 				jsonPath("$.content[*].containerId", contains("2"))).andExpect(
 				jsonPath("$.content[*].moduleType", contains("sink"))).andExpect(
 				jsonPath("$.content[*].unitName", contains("s2"))).andExpect(
@@ -217,9 +222,9 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 	@Test
 	public void testListModulesByContainerAndModuleId() throws Exception {
 		mockMvc.perform(
-				get("/runtime/modules?containerId=1&moduleId=s1.source.http-0").accept(MediaType.APPLICATION_JSON)).andExpect(
+				get("/runtime/modules?containerId=1&moduleId=s1.source.http.0").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-				jsonPath("$.name", containsString("http-0"))).andExpect(
+				jsonPath("$.name", containsString("http.0"))).andExpect(
 				jsonPath("$.unitName", containsString("s1"))).andExpect(
 				jsonPath("$.containerId", containsString("1"))).andExpect(
 				jsonPath("$.moduleOptions.entity1", containsString("value1"))).andExpect(

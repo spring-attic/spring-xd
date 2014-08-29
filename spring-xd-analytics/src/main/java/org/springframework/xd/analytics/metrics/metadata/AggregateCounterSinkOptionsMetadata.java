@@ -23,13 +23,15 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Captures options for the {@code aggregate-counter} sink module.
- * 
+ *
  * @author Eric Bottard
  */
 @Mixin({ DateFormatMixin.class, MetricNameMixin.class })
 public class AggregateCounterSinkOptionsMetadata {
 
 	private String timeField = "null";
+
+	private String incrementExpression = "1";
 
 	public String getTimeField() {
 		return timeField;
@@ -38,6 +40,15 @@ public class AggregateCounterSinkOptionsMetadata {
 	@ModuleOption("name of a field in the message that contains the timestamp to contribute to")
 	public void setTimeField(String timeField) {
 		this.timeField = timeField;
+	}
+
+	public String getIncrementExpression() {
+		return incrementExpression;
+	}
+
+	@ModuleOption("how much to increment each bucket, as a SpEL against the message")
+	public void setIncrementExpression(String incrementExpression) {
+		this.incrementExpression = incrementExpression;
 	}
 
 

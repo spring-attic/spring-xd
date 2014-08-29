@@ -32,15 +32,15 @@ import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * In-memory aggregate counter with minute resolution.
- * 
+ *
  * Note that the data is permanently accumulated, so will grow steadily in size until the host process is restarted.
- * 
+ *
  * @author Luke Taylor
  * @author Eric Bottard
  */
 @Qualifier("aggregate")
 public class InMemoryAggregateCounterRepository extends AbstractInMemoryRepository<Counter, String> implements
-		AggregateCounterRepository {
+AggregateCounterRepository {
 
 	private Map<String, InMemoryAggregateCounter> aggregates = new HashMap<String, InMemoryAggregateCounter>();
 
@@ -51,7 +51,7 @@ public class InMemoryAggregateCounterRepository extends AbstractInMemoryReposito
 
 	@Override
 	public long increment(String name, long amount) {
-		return increment(name, 1L, DateTime.now());
+		return increment(name, amount, DateTime.now());
 	}
 
 	@Override

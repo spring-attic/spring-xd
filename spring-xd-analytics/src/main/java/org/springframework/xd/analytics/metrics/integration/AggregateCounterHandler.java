@@ -22,6 +22,10 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
@@ -29,7 +33,7 @@ import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 /**
  * @author Luke Taylor
  */
-public class AggregateCounterHandler {
+public class AggregateCounterHandler implements IntegrationEvaluationContextAware {
 
 	private final AggregateCounterRepository aggregateCounterRepository;
 
@@ -37,11 +41,17 @@ public class AggregateCounterHandler {
 
 	private DateTimeFormatter dateFormat = ISODateTimeFormat.dateTime();
 
-	public AggregateCounterHandler(AggregateCounterRepository aggregateCounterRepository, String counterName) {
+	private final Expression incrementExpression;
+
+	private EvaluationContext evaluationContext;
+
+	public AggregateCounterHandler(AggregateCounterRepository aggregateCounterRepository, String counterName,
+			String incrementExpression) {
 		Assert.notNull(aggregateCounterRepository, "Aggregate Counter Repository can not be null");
 		Assert.notNull(counterName, "Counter Name can not be null");
 		this.aggregateCounterRepository = aggregateCounterRepository;
 		this.counterName = counterName;
+		this.incrementExpression = new SpelExpressionParser().parseExpression(incrementExpression);
 	}
 
 	public void setDateFormat(String pattern) {
@@ -53,12 +63,20 @@ public class AggregateCounterHandler {
 		if (message == null) {
 			return null;
 		}
+
+		long increment = incrementExpression.getValue(evaluationContext, message, long.class);
+
 		if (timeField == null) {
-			this.aggregateCounterRepository.increment(counterName);
+			this.aggregateCounterRepository.increment(counterName, increment);
 		}
 		else {
-			this.aggregateCounterRepository.increment(counterName, 1, dateFormat.parseDateTime(timeField));
+			this.aggregateCounterRepository.increment(counterName, increment, dateFormat.parseDateTime(timeField));
 		}
 		return message;
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
 	}
 }

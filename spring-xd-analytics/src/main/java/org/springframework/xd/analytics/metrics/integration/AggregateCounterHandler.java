@@ -22,26 +22,33 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
+import org.springframework.expression.Expression;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 
 /**
+ * Handles incoming messages for the {@code aggregate-counter} module, resolves SpEL expressions
+ * as needed and delegate the heavy lifting to an {@link AggregateCounterRepository}.
+ *
  * @author Luke Taylor
+ * @author Eric Bottard
  */
-public class AggregateCounterHandler {
+public class AggregateCounterHandler extends AbstractMetricHandler {
 
 	private final AggregateCounterRepository aggregateCounterRepository;
 
-	private final String counterName;
-
 	private DateTimeFormatter dateFormat = ISODateTimeFormat.dateTime();
 
-	public AggregateCounterHandler(AggregateCounterRepository aggregateCounterRepository, String counterName) {
+	private final Expression incrementExpression;
+
+	public AggregateCounterHandler(AggregateCounterRepository aggregateCounterRepository, String nameExpression,
+			String incrementExpression) {
+		super(nameExpression);
 		Assert.notNull(aggregateCounterRepository, "Aggregate Counter Repository can not be null");
-		Assert.notNull(counterName, "Counter Name can not be null");
+		Assert.notNull(incrementExpression, "Increment expression can not be null");
 		this.aggregateCounterRepository = aggregateCounterRepository;
-		this.counterName = counterName;
+		this.incrementExpression = spelExpressionParser.parseExpression(incrementExpression);
 	}
 
 	public void setDateFormat(String pattern) {
@@ -53,12 +60,18 @@ public class AggregateCounterHandler {
 		if (message == null) {
 			return null;
 		}
+
+		Double increment = incrementExpression.getValue(evaluationContext, message, Double.class);
+		String counterName = computeMetricName(message);
+
 		if (timeField == null) {
-			this.aggregateCounterRepository.increment(counterName);
+			this.aggregateCounterRepository.increment(counterName, increment.longValue());
 		}
 		else {
-			this.aggregateCounterRepository.increment(counterName, 1, dateFormat.parseDateTime(timeField));
+			this.aggregateCounterRepository.increment(counterName, increment.longValue(),
+					dateFormat.parseDateTime(timeField));
 		}
 		return message;
 	}
+
 }

@@ -81,6 +81,17 @@ public class AggregateCounterTests {
 		assertThat(counts.getCounts(), equalTo(new long[] { 0, 0, 1, 0, 0 }));
 	}
 
+	@Test
+	public void testCountWithCustomIncrement() {
+		applicationContext = new AnnotationConfigApplicationContext(
+				CustomIncrementAggregateCounterTestsConfig.class);
+
+		input().send(new GenericMessage<Object>("43"));
+
+		AggregateCount counts = repository().getCounts("foo", 5, AggregateCountResolution.hour);
+		assertThat(counts.getCounts(), equalTo(new long[] { 0, 0, 0, 0, 43 }));
+	}
+
 	@Configuration
 	@ImportResource("file:../modules/sink/aggregate-counter/config/aggregate-counter.xml")
 	public static class NullTimefieldAggregateCounterTestsConfig {
@@ -91,7 +102,31 @@ public class AggregateCounterTests {
 			Properties props = new Properties();
 			props.put("timeField", "null");
 			props.put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-			props.put("name", "foo");
+			props.put("computedNameExpression", "'foo'");
+			props.put("incrementExpression", "1");
+			propertyPlaceholderConfigurer.setProperties(props);
+			return propertyPlaceholderConfigurer;
+		}
+
+
+		@Bean
+		public AggregateCounterRepository aggregateCounterRepository() {
+			return new InMemoryAggregateCounterRepository();
+		}
+	}
+
+	@Configuration
+	@ImportResource("file:../modules/sink/aggregate-counter/config/aggregate-counter.xml")
+	public static class CustomIncrementAggregateCounterTestsConfig {
+
+		@Bean
+		public PropertyPlaceholderConfigurer ppc() {
+			PropertyPlaceholderConfigurer propertyPlaceholderConfigurer = new PropertyPlaceholderConfigurer();
+			Properties props = new Properties();
+			props.put("timeField", "null");
+			props.put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+			props.put("computedNameExpression", "'foo'");
+			props.put("incrementExpression", "payload");
 			propertyPlaceholderConfigurer.setProperties(props);
 			return propertyPlaceholderConfigurer;
 		}
@@ -113,7 +148,8 @@ public class AggregateCounterTests {
 			Properties props = new Properties();
 			props.put("timeField", "payload.ts");
 			props.put("dateFormat", "dd/MM/yyyy");
-			props.put("name", "foo");
+			props.put("computedNameExpression", "'foo'");
+			props.put("incrementExpression", "1");
 			propertyPlaceholderConfigurer.setProperties(props);
 			return propertyPlaceholderConfigurer;
 		}

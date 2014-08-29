@@ -21,7 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.joda.time.*;
+import org.joda.time.Chronology;
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+import org.joda.time.Duration;
+import org.joda.time.Interval;
+import org.joda.time.Months;
+import org.joda.time.MutableDateTime;
+import org.joda.time.ReadableDateTime;
+import org.joda.time.Years;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -72,6 +80,11 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 	}
 
 	@Override
+	public long increment(String name, long amount) {
+		return increment(name, amount, new DateTime());
+	}
+
+	@Override
 	public long increment(String name, long amount, DateTime dateTime) {
 		final AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, dateTime);
 
@@ -112,10 +125,11 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 		return getCounts(name, nCounts, new DateTime(), resolution);
 	}
 
+	@Override
 	public AggregateCount getCounts(String name, int nCounts, DateTime endDate, AggregateCountResolution resolution) {
 		Assert.notNull(endDate, "endDate cannot be null");
 
-		return getCounts(name, new Interval(resolution.minus(endDate, nCounts-1), endDate), resolution);
+		return getCounts(name, new Interval(resolution.minus(endDate, nCounts - 1), endDate), resolution);
 	}
 
 	/**
@@ -193,12 +207,12 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 		}
 		else if (resolution == AggregateCountResolution.year) {
 			DateTime startYear = new DateTime(interval.getStart().getYear(), 1, 1, 0, 0);
-			DateTime endYear   =  new DateTime(end.getYear() + 1, 1, 1, 0, 0);
+			DateTime endYear = new DateTime(end.getYear() + 1, 1, 1, 0, 0);
 			int nYears = Years.yearsBetween(startYear, endYear).getYears();
 			Map<String, Long> yearCounts = getYearCounts(name);
 			counts = new long[nYears];
 
-			for (int i=0; i < nYears; i++) {
+			for (int i = 0; i < nYears; i++) {
 				int year = startYear.plusYears(i).getYear();
 				Long count = yearCounts.get(Integer.toString(year));
 				if (count == null) {

@@ -12,7 +12,8 @@
 
 	<bean id="handler" class="org.springframework.xd.analytics.metrics.integration.AggregateCounterHandler">
 		<constructor-arg ref="aggregateCounterRepository"/>
-		<constructor-arg value="${name}"/>
+		<constructor-arg value="${computedNameExpression}"/>
+		<constructor-arg value="${incrementExpression}"/>
 		<property name="dateFormat" value="${dateFormat}" />
 	</bean>
 

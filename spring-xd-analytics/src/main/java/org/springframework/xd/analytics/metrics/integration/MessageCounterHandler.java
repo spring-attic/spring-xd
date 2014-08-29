@@ -23,25 +23,22 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
 /**
  * Counts the number of non-null messages using an underlying {@link CounterRepository}.
- * 
+ *
  */
-public class MessageCounterHandler {
+public class MessageCounterHandler extends AbstractMetricHandler {
 
 	private final CounterRepository counterRepository;
 
-	private final String counterName;
-
-	public MessageCounterHandler(CounterRepository counterRepository, String counterName) {
+	public MessageCounterHandler(CounterRepository counterRepository, String nameExpression) {
+		super(nameExpression);
 		Assert.notNull(counterRepository, "Counter Repository can not be null");
-		Assert.notNull(counterName, "Counter Name can not be null");
 		this.counterRepository = counterRepository;
-		this.counterName = counterName;
 	}
 
 	@ServiceActivator
 	public Message<?> process(Message<?> message) {
 		if (message != null) {
-			this.counterRepository.increment(counterName);
+			this.counterRepository.increment(computeMetricName(message));
 		}
 		return message;
 	}

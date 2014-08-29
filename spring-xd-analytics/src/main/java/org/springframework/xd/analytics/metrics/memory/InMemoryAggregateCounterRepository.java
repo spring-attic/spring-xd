@@ -32,9 +32,9 @@ import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * In-memory aggregate counter with minute resolution.
- * 
+ * <p/>
  * Note that the data is permanently accumulated, so will grow steadily in size until the host process is restarted.
- * 
+ *
  * @author Luke Taylor
  * @author Eric Bottard
  */
@@ -51,7 +51,17 @@ public class InMemoryAggregateCounterRepository extends AbstractInMemoryReposito
 
 	@Override
 	public long increment(String name, long amount) {
-		return increment(name, 1L, DateTime.now());
+		return increment(name, amount, DateTime.now());
+	}
+
+	@Override
+	public long decrement(String name) {
+		throw new UnsupportedOperationException("Can't decrement an AggregateCounter");
+	}
+
+	@Override
+	public void reset(String name) {
+		delete(name);
 	}
 
 	@Override
@@ -85,20 +95,15 @@ public class InMemoryAggregateCounterRepository extends AbstractInMemoryReposito
 	}
 
 	@Override
-	public long decrement(String name) {
-		throw new UnsupportedOperationException("Can't decrement an AggregateCounter");
-	}
-
-	@Override
-	public void reset(String name) {
-		delete(name);
-	}
-
-	@Override
 	public <S extends Counter> S save(S entity) {
 		aggregates.remove(entity.getName());
 		increment(entity.getName(), (int) entity.getValue(), DateTime.now());
 		return entity;
+	}
+
+	@Override
+	protected String keyFor(Counter entity) {
+		return entity.getName();
 	}
 
 	@Override
@@ -130,11 +135,6 @@ public class InMemoryAggregateCounterRepository extends AbstractInMemoryReposito
 	@Override
 	public void deleteAll() {
 		aggregates.clear();
-	}
-
-	@Override
-	protected String keyFor(Counter entity) {
-		return entity.getName();
 	}
 
 }

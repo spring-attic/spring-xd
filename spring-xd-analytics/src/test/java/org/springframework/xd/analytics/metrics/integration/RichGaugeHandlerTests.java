@@ -13,14 +13,15 @@
 
 package org.springframework.xd.analytics.metrics.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.Collections;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,14 +46,9 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author David Turanski
  * @author Gary Russell
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = RichGaugeHandlerTestsConfig.class)
@@ -64,10 +60,13 @@ public class RichGaugeHandlerTests {
 	@Autowired
 	RedisRichGaugeRepository repo;
 
+	@Autowired
+	MessageChannel input;
+
 	@Test
 	public void testParseDouble() {
 		RichGaugeRepository richGaugeRepository = mock(RichGaugeRepository.class);
-		RichGaugeHandler handler = new RichGaugeHandler(richGaugeRepository, "test", -1);
+		RichGaugeHandler handler = new RichGaugeHandler(richGaugeRepository, "'test'", -1);
 		int i = 4;
 		double val = handler.convertToDouble(i);
 		assertEquals(4.0, val, 0.001);
@@ -84,9 +83,6 @@ public class RichGaugeHandlerTests {
 		val = handler.convertToDouble(s);
 		assertEquals(4.0, val, 0.001);
 	}
-
-	@Autowired
-	MessageChannel input;
 
 	@Test
 	public void testhandler() {

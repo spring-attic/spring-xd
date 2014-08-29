@@ -18,26 +18,44 @@ package org.springframework.xd.analytics.metrics.metadata;
 
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
 
+import javax.validation.constraints.AssertFalse;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 
 /**
  * Adds a {@code name} option, intended to capture the name of the metric.
- * 
+ *
  * @author Eric Bottard
  */
 public class MetricNameMixin {
 
 	private String name = XD_STREAM_NAME;
 
-	public String getName() {
-		return name;
-	}
+	private String nameExpression = null;
 
-	@ModuleOption("the name of the metric to contribute to (will be created if necessary)")
+	@ModuleOption(value = "the name of the metric to contribute to (will be created if necessary)", defaultValue = XD_STREAM_NAME)
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	@ModuleOption("a SpEL expression to compute the name of the metric to contribute to")
+	public void setNameExpression(String nameExpression) {
+		this.nameExpression = nameExpression;
+	}
+
+	@AssertFalse(message = "only one of 'name' or 'nameExpression' is allowed")
+	private boolean isInvalidName() {
+		return !valuesAreSetToDefaults()
+				&& !(nameExpression != null ^ !XD_STREAM_NAME.equals(name));
+	}
+
+	private boolean valuesAreSetToDefaults() {
+		return nameExpression == null && XD_STREAM_NAME.equals(name);
+	}
+
+	public String getComputedNameExpression() {
+		return nameExpression != null ? nameExpression : ("'" + name + "'");
+	}
 
 }

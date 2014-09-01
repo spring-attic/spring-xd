@@ -11,7 +11,7 @@
 
 	<bean id="handler" class="org.springframework.xd.analytics.metrics.integration.GaugeHandler">
 		<constructor-arg ref="gaugeRepository" />
-		<constructor-arg value="${nameExpression}" />
+		<constructor-arg value="${computedNameExpression}" />
 	</bean>
 
 </beans>

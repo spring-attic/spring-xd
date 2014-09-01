@@ -11,8 +11,8 @@
 
 	<bean id="handler" class="org.springframework.xd.analytics.metrics.integration.FieldValueCounterHandler">
 		<constructor-arg ref="fieldValueCounterRepository"/>
+		<constructor-arg value="${computedNameExpression}" name="nameExpression" />
 		<constructor-arg value="${fieldName}" name="fieldName" />
-		<constructor-arg value="${nameExpression}" name="counterName" />
 	</bean>
 
 </beans>

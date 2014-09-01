@@ -12,7 +12,7 @@
 	<bean id="handler"
 		class="org.springframework.xd.analytics.metrics.integration.RichGaugeHandler">
 		<constructor-arg ref="richGaugeRepository" />
-		<constructor-arg value="${nameExpression}" />
+		<constructor-arg value="${computedNameExpression}" />
 		<constructor-arg value="${alpha}"/>
 	</bean>
 

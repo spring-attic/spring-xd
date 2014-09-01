@@ -17,7 +17,7 @@
 	<bean id="handler"
 		class="org.springframework.xd.analytics.metrics.integration.RichGaugeHandler">
 		<constructor-arg ref="repository" />
-		<constructor-arg value="test" />
+		<constructor-arg value="'test'" />
 		<constructor-arg value="-1" />
 	</bean>
 

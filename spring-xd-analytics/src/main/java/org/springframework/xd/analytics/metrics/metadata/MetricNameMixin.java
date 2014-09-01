@@ -23,20 +23,26 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Adds a {@code name} option, intended to capture the name of the metric.
- * 
+ *
  * @author Eric Bottard
  */
 public class MetricNameMixin {
 
-	private String name = XD_STREAM_NAME;
+	// Default is a SpEL String literal containing the stream name.
+	private String nameExpression = "'" + XD_STREAM_NAME + "'";
 
-	public String getName() {
-		return name;
+	@ModuleOption(value = "the name of the metric to contribute to (will be created if necessary)", defaultValue = XD_STREAM_NAME)
+	public void setName(String name) {
+		this.nameExpression = "'" + name + "'";
 	}
 
-	@ModuleOption("the name of the metric to contribute to (will be created if necessary)")
-	public void setName(String name) {
-		this.name = name;
+	@ModuleOption("a SpEL expression to compute the name of the metric to contribute to")
+	public void setNameExpression(String nameExpression) {
+		this.nameExpression = nameExpression;
+	}
+
+	public String getNameExpression() {
+		return nameExpression;
 	}
 
 

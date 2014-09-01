@@ -162,7 +162,7 @@ public class CompletionProviderTests {
 	// file | counter --name=foo --inputType=bar<TAB> => we're done
 	public void testSinkWithAllOptionsSetCantGoFurther() {
 		List<String> completions = completionProvider.complete(stream,
-				"file | counter --name=foo --inputType=text/plain", 1);
+				"file | log --expression=payload --level=INFO --name=foo --inputType=text/plain", 1);
 
 		assertThat(completions, hasSize(0));
 	}

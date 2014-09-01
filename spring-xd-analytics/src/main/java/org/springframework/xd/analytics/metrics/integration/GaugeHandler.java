@@ -25,26 +25,23 @@ import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 /**
  * @author David Turanski
  * @author Luke Taylor
- * 
+ *
  */
-public class GaugeHandler {
+public class GaugeHandler extends AbstractMetricHandler {
 
 	private final GaugeRepository gaugeRepository;
 
-	private final String name;
-
-	public GaugeHandler(GaugeRepository gaugeRepository, String name) {
+	public GaugeHandler(GaugeRepository gaugeRepository, String nameExpression) {
+		super(nameExpression);
 		Assert.notNull(gaugeRepository, "Gauge Repository can not be null");
-		Assert.notNull(name, "Gauge Name can not be null");
 		this.gaugeRepository = gaugeRepository;
-		this.name = name;
 	}
 
 	@ServiceActivator
 	public void process(Message<?> message) {
 		if (message != null) {
 			long value = convertToLong(message.getPayload());
-			this.gaugeRepository.setValue(name, value);
+			this.gaugeRepository.setValue(computeMtricName(message), value);
 		}
 	}
 

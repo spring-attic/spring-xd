@@ -67,7 +67,7 @@ public class RichGaugeHandlerTests {
 	@Test
 	public void testParseDouble() {
 		RichGaugeRepository richGaugeRepository = mock(RichGaugeRepository.class);
-		RichGaugeHandler handler = new RichGaugeHandler(richGaugeRepository, "test", -1);
+		RichGaugeHandler handler = new RichGaugeHandler(richGaugeRepository, "'test'", -1);
 		int i = 4;
 		double val = handler.convertToDouble(i);
 		assertEquals(4.0, val, 0.001);
@@ -173,7 +173,7 @@ class RichGaugeHandlerTestsConfig {
 			cf.getConnection().close();
 			return cf;
 		} // The following is to have setup properly finishing
-		// The actual test(s) won't be executed thx to RedisAvailableRule
+			// The actual test(s) won't be executed thx to RedisAvailableRule
 		catch (RedisConnectionFailureException e) {
 			RedisConnectionFactory mockCF = mock(RedisConnectionFactory.class);
 			when(mockCF.getConnection()).thenReturn(mock(RedisConnection.class));

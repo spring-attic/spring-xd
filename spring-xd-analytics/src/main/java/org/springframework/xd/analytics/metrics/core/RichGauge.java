@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
  * The value of the average will depend on whether a weight ('alpha') is set for the gauge. If it is unset, the average
  * will contain a simple arithmetic mean. If a weight is set, an exponential moving average will be calculated as
  * defined in this <a href="http://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm">NIST document</a>.
- * 
+ *
  * @author Luke Taylor
  */
 public final class RichGauge implements Metric {
@@ -45,10 +45,10 @@ public final class RichGauge implements Metric {
 
 	/**
 	 * Creates an "empty" gauge.
-	 * 
+	 *
 	 * The average, max and min will be zero, but this initial value will not be included after the first value has been
 	 * set on the gauge.
-	 * 
+	 *
 	 * @param name the name under which the gauge will be stored.
 	 */
 	public RichGauge(String name) {
@@ -95,7 +95,7 @@ public final class RichGauge implements Metric {
 	/**
 	 * Either an exponential weighted moving average or a simple mean, respectively, depending on whether the weight
 	 * 'alpha' has been set for this gauge.
-	 * 
+	 *
 	 * @return The average over all the accumulated values
 	 */
 	public double getAverage() {
@@ -130,14 +130,10 @@ public final class RichGauge implements Metric {
 		return alpha;
 	}
 
-	public RichGauge setAlpha(double alpha) {
+	RichGauge set(double value, double alpha) {
 		Assert.isTrue(alpha == -1 || (alpha > 0.0 && alpha < 1.0),
 				"Smoothing constant must be between 0 and 1, or -1 to use arithmetic mean");
 		this.alpha = alpha;
-		return this;
-	}
-
-	RichGauge set(double value) {
 		if (count == 0) {
 			max = value;
 			min = value;

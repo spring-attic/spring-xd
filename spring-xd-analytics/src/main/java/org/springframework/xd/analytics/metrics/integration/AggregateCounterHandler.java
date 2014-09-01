@@ -22,36 +22,33 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 
 /**
+ * Handles incoming messages for the {@code aggregate-counter} module, resolves SpEL expressions
+ * as needed and delegate the heavy lifting to an {@link AggregateCounterRepository}.
+ *
  * @author Luke Taylor
+ * @author Eric Bottard
  */
-public class AggregateCounterHandler implements IntegrationEvaluationContextAware {
+public class AggregateCounterHandler extends AbstractMetricHandler {
 
 	private final AggregateCounterRepository aggregateCounterRepository;
-
-	private final String counterName;
 
 	private DateTimeFormatter dateFormat = ISODateTimeFormat.dateTime();
 
 	private final Expression incrementExpression;
 
-	private EvaluationContext evaluationContext;
-
-	public AggregateCounterHandler(AggregateCounterRepository aggregateCounterRepository, String counterName,
+	public AggregateCounterHandler(AggregateCounterRepository aggregateCounterRepository, String nameExpression,
 			String incrementExpression) {
+		super(nameExpression);
 		Assert.notNull(aggregateCounterRepository, "Aggregate Counter Repository can not be null");
-		Assert.notNull(counterName, "Counter Name can not be null");
+		Assert.notNull(incrementExpression, "Increment expression can not be null");
 		this.aggregateCounterRepository = aggregateCounterRepository;
-		this.counterName = counterName;
-		this.incrementExpression = new SpelExpressionParser().parseExpression(incrementExpression);
+		this.incrementExpression = spelExpressionParser.parseExpression(incrementExpression);
 	}
 
 	public void setDateFormat(String pattern) {
@@ -64,19 +61,17 @@ public class AggregateCounterHandler implements IntegrationEvaluationContextAwar
 			return null;
 		}
 
-		long increment = incrementExpression.getValue(evaluationContext, message, long.class);
+		Double increment = incrementExpression.getValue(evaluationContext, message, Double.class);
+		String counterName = computeMtricName(message);
 
 		if (timeField == null) {
-			this.aggregateCounterRepository.increment(counterName, increment);
+			this.aggregateCounterRepository.increment(counterName, increment.longValue());
 		}
 		else {
-			this.aggregateCounterRepository.increment(counterName, increment, dateFormat.parseDateTime(timeField));
+			this.aggregateCounterRepository.increment(counterName, increment.longValue(),
+					dateFormat.parseDateTime(timeField));
 		}
 		return message;
 	}
 
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
 }

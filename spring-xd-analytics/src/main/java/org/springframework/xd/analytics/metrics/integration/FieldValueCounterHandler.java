@@ -34,31 +34,28 @@ import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.integration.JsonToTupleTransformer;
 
 /**
- * Counts the occurrence of values for a set of JavaBean properties or Tuple fields using a FieldValueCounterService.
+ * Counts the occurrence of values for a set of JavaBean properties or Tuple fields using a FieldValueCounterRepository.
  * Assumes a String payload is JSON and will convert it to a Tuple.
- * 
+ *
  * @author Mark Pollack
  * @author David Turanski
  * @author Mark Fisher
  */
-public class FieldValueCounterHandler {
+public class FieldValueCounterHandler extends AbstractMetricHandler {
 
 	private final FieldValueCounterRepository fieldValueCounterRepository;
 
 	private final String fieldName;
 
-	private final String counterName;
-
 	private final JsonToTupleTransformer jsonToTupleTransformer;
 
-	public FieldValueCounterHandler(FieldValueCounterRepository fieldValueCounterRepository, String counterName,
+	public FieldValueCounterHandler(FieldValueCounterRepository fieldValueCounterRepository, String nameExpression,
 			String fieldName) {
+		super(nameExpression);
 		Assert.notNull(fieldValueCounterRepository, "FieldValueCounterRepository can not be null");
-		Assert.notNull(counterName, "Counter name can not be null");
 		Assert.hasText(fieldName, "Field name can not be null or empty string");
 		this.fieldValueCounterRepository = fieldValueCounterRepository;
 		this.fieldName = fieldName;
-		this.counterName = counterName;
 		this.jsonToTupleTransformer = new JsonToTupleTransformer();
 
 	}
@@ -75,15 +72,15 @@ public class FieldValueCounterHandler {
 			}
 		}
 		if (payload instanceof Tuple) {
-			processTuple((Tuple) payload);
+			processTuple(computeMtricName(message), (Tuple) payload);
 		}
 		else {
-			processPojo(payload);
+			processPojo(computeMtricName(message), payload);
 		}
 		return message;
 	}
 
-	private void processPojo(Object payload) {
+	private void processPojo(String counterName, Object payload) {
 		BeanWrapper beanWrapper = new BeanWrapperImpl(payload);
 		if (beanWrapper.isReadableProperty(fieldName)) {
 			Object value = beanWrapper.getPropertyValue(fieldName);
@@ -91,7 +88,7 @@ public class FieldValueCounterHandler {
 		}
 	}
 
-	private void processTuple(Tuple tuple) {
+	private void processTuple(String counterName, Tuple tuple) {
 		String[] path = StringUtils.tokenizeToStringArray(fieldName, ".");
 		processValueForCounter(counterName, tuple, path);
 	}

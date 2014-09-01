@@ -16,7 +16,6 @@
 
 package org.springframework.xd.analytics.metrics.memory;
 
-import static org.springframework.xd.analytics.metrics.core.MetricUtils.setRichGaugeAlpha;
 import static org.springframework.xd.analytics.metrics.core.MetricUtils.setRichGaugeValue;
 
 import org.springframework.util.Assert;
@@ -25,12 +24,12 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
  * Memory backed implementation of GaugeRepository that uses a ConcurrentMap
- * 
+ *
  * @author Luke Taylor
- * 
+ *
  */
 public class InMemoryRichGaugeRepository extends InMemoryMetricRepository<RichGauge>
-		implements RichGaugeRepository {
+implements RichGaugeRepository {
 
 	@Override
 	protected RichGauge create(String name) {
@@ -49,20 +48,14 @@ public class InMemoryRichGaugeRepository extends InMemoryMetricRepository<RichGa
 	}
 
 	@Override
-	public void setValue(String name, double value) {
-		RichGauge gauge = getOrCreate(name);
-		setRichGaugeValue(gauge, value);
-	}
-
-	@Override
-	public void setAlpha(String name, double value) {
-		RichGauge gauge = getOrCreate(name);
-		save(setRichGaugeAlpha(gauge, value));
-	}
-
-	@Override
 	public void reset(String name) {
 		RichGauge gauge = getOrCreate(name);
-		setRichGaugeValue(gauge, 0);
+		setRichGaugeValue(gauge, 0, -1D);
+	}
+
+	@Override
+	public void setValue(String name, double value, double alpha) {
+		RichGauge gauge = getOrCreate(name);
+		setRichGaugeValue(gauge, value, alpha);
 	}
 }

@@ -32,12 +32,8 @@ public final class MetricUtils {
 		return g.set(value);
 	}
 
-	public static RichGauge setRichGaugeValue(RichGauge g, double value) {
-		return g.set(value);
-	}
-
-	public static RichGauge setRichGaugeAlpha(RichGauge g, double value) {
-		return g.setAlpha(value);
+	public static RichGauge setRichGaugeValue(RichGauge g, double value, double alpha) {
+		return g.set(value, alpha);
 	}
 
 	public static RichGauge resetRichGauge(RichGauge g) {

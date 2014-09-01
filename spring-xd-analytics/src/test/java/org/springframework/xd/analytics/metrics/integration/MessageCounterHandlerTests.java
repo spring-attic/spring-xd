@@ -31,7 +31,7 @@ import org.springframework.xd.analytics.metrics.memory.InMemoryCounterRepository
  * @author Mark Pollack
  * @author Gary Russell
  * @since 1.0
- * 
+ *
  */
 public class MessageCounterHandlerTests {
 
@@ -39,7 +39,7 @@ public class MessageCounterHandlerTests {
 
 	@Test
 	public void testNoPreexistingCounter() {
-		MessageCounterHandler handler = new MessageCounterHandler(repo, "tupleCounter");
+		MessageCounterHandler handler = new MessageCounterHandler(repo, "'tupleCounter'");
 		Message<String> message = MessageBuilder.withPayload("Hi").build();
 		handler.process(message);
 		Counter counter = repo.findOne("tupleCounter");
@@ -51,7 +51,7 @@ public class MessageCounterHandlerTests {
 	public void testPreexistingCounter() {
 		Counter counter = new Counter("tupleCounter", 12L);
 		repo.save(counter);
-		MessageCounterHandler handler = new MessageCounterHandler(repo, "tupleCounter");
+		MessageCounterHandler handler = new MessageCounterHandler(repo, "'tupleCounter'");
 		Message<String> message = MessageBuilder.withPayload("Hi").build();
 		handler.process(message);
 		counter = repo.findOne("tupleCounter");
@@ -63,7 +63,7 @@ public class MessageCounterHandlerTests {
 	public void testNullMsgHasNoEffect() {
 		Counter counter = new Counter("tupleCounter", 12L);
 		repo.save(counter);
-		MessageCounterHandler handler = new MessageCounterHandler(repo, "tupleCounter");
+		MessageCounterHandler handler = new MessageCounterHandler(repo, "'tupleCounter'");
 		handler.process(null);
 		counter = repo.findOne("tupleCounter");
 		assertThat(counter.getValue(), equalTo(12L));

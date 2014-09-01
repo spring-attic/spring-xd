@@ -71,7 +71,7 @@ public class GaugeHandlerTests {
 	@Test
 	public void testConvertToDouble() {
 		GaugeRepository gaugeRepo = mock(GaugeRepository.class);
-		GaugeHandler handler = new GaugeHandler(gaugeRepo, "test");
+		GaugeHandler handler = new GaugeHandler(gaugeRepo, "'test'");
 		int i = 4;
 		long val = handler.convertToLong(i);
 		assertEquals(4, val, 0.001);

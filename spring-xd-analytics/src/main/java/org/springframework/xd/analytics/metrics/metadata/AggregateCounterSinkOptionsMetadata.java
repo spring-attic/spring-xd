@@ -51,5 +51,4 @@ public class AggregateCounterSinkOptionsMetadata {
 		this.incrementExpression = incrementExpression;
 	}
 
-
 }

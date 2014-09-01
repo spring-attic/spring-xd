@@ -102,7 +102,8 @@ public class AggregateCounterTests {
 			Properties props = new Properties();
 			props.put("timeField", "null");
 			props.put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-			props.put("name", "foo");
+			props.put("nameExpression", "'foo'");
+			props.put("incrementExpression", "1");
 			propertyPlaceholderConfigurer.setProperties(props);
 			return propertyPlaceholderConfigurer;
 		}
@@ -124,7 +125,7 @@ public class AggregateCounterTests {
 			Properties props = new Properties();
 			props.put("timeField", "null");
 			props.put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-			props.put("name", "foo");
+			props.put("nameExpression", "'foo'");
 			props.put("incrementExpression", "payload");
 			propertyPlaceholderConfigurer.setProperties(props);
 			return propertyPlaceholderConfigurer;
@@ -147,7 +148,8 @@ public class AggregateCounterTests {
 			Properties props = new Properties();
 			props.put("timeField", "payload.ts");
 			props.put("dateFormat", "dd/MM/yyyy");
-			props.put("name", "foo");
+			props.put("nameExpression", "'foo'");
+			props.put("incrementExpression", "1");
 			propertyPlaceholderConfigurer.setProperties(props);
 			return propertyPlaceholderConfigurer;
 		}

@@ -47,7 +47,8 @@ public class FieldValueCounterHandlerTests {
 	@Test
 	public void messageCountTest() {
 
-		FieldValueCounterHandler handler = new FieldValueCounterHandler(repo, mentionsFieldValueCounterName, "mentions");
+		FieldValueCounterHandler handler = new FieldValueCounterHandler(repo,
+				"'" + mentionsFieldValueCounterName + "'", "mentions");
 
 		Tuple tuple = TupleBuilder.tuple().of("mentions", Arrays.asList(new String[] { "markp", "markf", "jurgen" }));
 		Message<Tuple> message = MessageBuilder.withPayload(tuple).build();
@@ -81,7 +82,8 @@ public class FieldValueCounterHandlerTests {
 	@Test
 	public void acceptsJson() {
 		String json = "{\"mentions\":[\"markp\",\"markf\",\"jurgen\"]}";
-		FieldValueCounterHandler handler = new FieldValueCounterHandler(repo, mentionsFieldValueCounterName, "mentions");
+		FieldValueCounterHandler handler = new FieldValueCounterHandler(repo,
+				"'" + mentionsFieldValueCounterName + "'", "mentions");
 		handler.process(new GenericMessage<String>(json));
 		Map<String, Double> counts = repo.findOne(mentionsFieldValueCounterName).getFieldValueCount();
 		assertThat(counts.get("markp"), equalTo(1.0));
@@ -99,7 +101,7 @@ public class FieldValueCounterHandlerTests {
 				+
 				"\"favorited\":false,\"retweeted\":false,\"possibly_sensitive\":false,\"filter_level\":\"medium\",\"lang\":\"bg\"}";
 
-		FieldValueCounterHandler handler = new FieldValueCounterHandler(repo, "hashtags", "entities.hashtags.text");
+		FieldValueCounterHandler handler = new FieldValueCounterHandler(repo, "'hashtags'", "entities.hashtags.text");
 		handler.process(new GenericMessage<String>(tweet));
 		Map<String, Double> counts = repo.findOne("hashtags").getFieldValueCount();
 		assertThat(counts.get("hello"), equalTo(1.0));

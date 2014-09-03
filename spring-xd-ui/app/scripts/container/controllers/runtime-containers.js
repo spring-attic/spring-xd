@@ -21,19 +21,20 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'RuntimeContainerService', 'XDUtils', '$timeout', '$rootScope',
-    function ($scope, runtimeContainerService, utils, $timeout, $rootScope) {
+  return ['$scope', 'RuntimeContainerService', 'XDUtils', '$timeout', '$rootScope','$q',
+    function ($scope, runtimeContainerService, utils, $timeout, $rootScope, $q) {
 
       (function loadRuntimeContainers() {
         runtimeContainerService.getRuntimeContainers().$promise.then(
             function (result) {
               utils.$log.info(result);
-              $scope.runtimeContainers = result.content;
-              $scope.runtimeContainers.forEach(function (runtimeContainer) {
+              var containers = result.content;
+              var promises = [];
+              containers.forEach(function (runtimeContainer) {
                 if (runtimeContainer.attributes.managementPort) {
                   var deployedModules = runtimeContainer.deployedModules;
                   deployedModules.forEach(function (deployedModule) {
-                    runtimeContainerService.getMessageRate(runtimeContainer, deployedModule).$promise.then(
+                    promises.push(runtimeContainerService.getMessageRate(runtimeContainer, deployedModule).$promise.then(
                         function (result) {
                           var value = result.value;
                           for (var component in value) {
@@ -44,9 +45,12 @@ define([], function () {
                               deployedModule.outgoingRate = value[component].MeanSendRate.toFixed(5);
                             }
                           }
-                        });
+                        }));
                   });
                 }
+              });
+              $q.all(promises).then(function() {
+                $scope.runtimeContainers = containers;
               });
               var getRuntimeContainers = $timeout(loadRuntimeContainers, $rootScope.pageRefreshTime);
               $scope.$on('$destroy', function () {

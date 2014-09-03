@@ -33,9 +33,9 @@ define([], function () {
                 deploymentProperties: {}
               };
               $scope.modules = response;
-              for (var index in response) {
-                $scope.definitionDeployRequest.deploymentProperties[response[index].moduleLabel] = {};
-              }
+              response.forEach(function (resp) {
+                $scope.definitionDeployRequest.deploymentProperties[resp.moduleLabel] = {};
+              });
             },
             function () {
               utils.growl.addErrorMessage('Error getting modules for the stream.');
@@ -51,20 +51,30 @@ define([], function () {
         utils.$log.info('Deploying Stream Definition ' + definitionDeployRequest.streamDefinition.name);
         utils.$log.info(streamService);
         var deploymentPropertiesString = '';
-        for (var moduleName in definitionDeployRequest.deploymentProperties) {
-          var moduleProperties = definitionDeployRequest.deploymentProperties[moduleName];
-          for (var properties in moduleProperties) {
-            var prop = moduleProperties[properties];
-            if ((properties === 'count' && (prop >= 0 && prop !== null))) {
-              deploymentPropertiesString += 'module.' + moduleName + '.' + properties + '=' + prop;
-              deploymentPropertiesString += ',';
+        var updateDeploymentProperties = function (moduleName, property, value) {
+          deploymentPropertiesString += 'module.' + moduleName + '.' + property + '=' + value;
+          deploymentPropertiesString += ',';
+        };
+        for (var deploymentProperties in definitionDeployRequest.deploymentProperties) {
+          var value = definitionDeployRequest.deploymentProperties[deploymentProperties];
+          if (deploymentProperties === 'count' && (value >= 0 && value !== null)) {
+            deploymentPropertiesString += 'module.*.count=' + value;
+            deploymentPropertiesString += ',';
+          }
+          if (deploymentProperties === 'criteria' && value) {
+            deploymentPropertiesString += 'module.*.criteria=' + value;
+            deploymentPropertiesString += ',';
+          }
+          for (var properties in value) {
+            var propValue = value[properties];
+            if ((properties === 'count' && (propValue >= 0 && propValue !== null))) {
+              updateDeploymentProperties(deploymentProperties, properties, propValue);
             }
-            else if (properties === 'criteria' && prop) {
-              deploymentPropertiesString += 'module.' + moduleName + '.' + properties + '=' + prop;
-              deploymentPropertiesString += ',';
+            else if (properties === 'criteria' && propValue) {
+              updateDeploymentProperties(deploymentProperties, properties, propValue);
             }
-            else if (properties === 'partitionKeyExpression' && prop) {
-              deploymentPropertiesString += 'module.' + moduleName + '.producer.' + properties + '=' + prop;
+            else if (properties === 'partitionKeyExpression' && propValue) {
+              deploymentPropertiesString += 'module.' + deploymentProperties + '.producer.' + properties + '=' + propValue;
               deploymentPropertiesString += ',';
             }
           }

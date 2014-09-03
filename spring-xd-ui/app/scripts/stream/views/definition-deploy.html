@@ -6,25 +6,48 @@
        target="_blank">Technical Documentation</a>.
 </p>
 <form class="form-horizontal" role="form" name="deploymentManifest">
+    <div class="form-group" ng-show="modules.length > 0">
+        <div class="input-group col-lg-6">
+            <div>Default count value for all the modules?</div>
+            <input type="radio" ng-model="defaultCountOptions" value="yes"> Yes
+            <input type="radio" ng-model="defaultCountOptions" value="no" checked> No
+        </div>
+        <div class="input-group" ng-show="defaultCountOptions === 'yes'">
+            <div class="input-group-addon">Default Count</div>
+            <input class="form-control" type="number" min="0" placeholder="Enter default count"
+                   ng-model="definitionDeployRequest.deploymentProperties.count">
+        </div>
+        <div class="input-group">
+            <div>Default container match criteria for all the modules?</div>
+            <input type="radio" ng-model="defaultContainerOptions" value="yes"> Yes
+            <input type="radio" ng-model="defaultContainerOptions" value="no" checked> No
+        </div>
+        <div class="input-group" ng-show="defaultContainerOptions === 'yes'">
+            <div class="input-group-addon">Default Criteria</div>
+            <input class="form-control" type="text" placeholder="Enter default container match criteria"
+                   ng-model="definitionDeployRequest.deploymentProperties.criteria">
+        </div>
+    </div>
     <div ng-repeat="module in modules">
         <div class="form-group">
             <h1>{{module.moduleLabel}}</h1>
 
-                <div class="input-group">
-                    <div class="input-group-addon">Count</div>
-                    <input class="form-control" name="moduleCount" type="number" min="0" placeholder="Enter count"
-                           ng-model="definitionDeployRequest.deploymentProperties[module.moduleLabel].count">
-                </div>
-                <div class="input-group">
-                    <div class="input-group-addon">Criteria</div>
-                    <input class="form-control" type="text" placeholder="Enter container matching criteria" value=""
-                           ng-model="definitionDeployRequest.deploymentProperties[module.moduleLabel].criteria">
-                </div>
-                <div class="input-group" ng-show="module.moduleType !== 'sink'">
-                    <div class="input-group-addon">PartitionKeyExpression</div>
-                    <input class="form-control" type="text" placeholder="Enter partition key expression"
-                           ng-model="definitionDeployRequest.deploymentProperties[module.moduleLabel].partitionKeyExpression">
-                </div>
+            <div class="input-group">
+                <div class="input-group-addon">Count</div>
+                <input class="form-control" type="number" min="0" placeholder="Enter count"
+                       ng-model="definitionDeployRequest.deploymentProperties[module.moduleLabel].count">
+                <span class="label label-warning" ng-show="jobScheduler.fixedDelay.$error.min">Invalid Number</span>
+            </div>
+            <div class="input-group">
+                <div class="input-group-addon">Criteria</div>
+                <input class="form-control" type="text" placeholder="Enter container matching criteria" value=""
+                       ng-model="definitionDeployRequest.deploymentProperties[module.moduleLabel].criteria">
+            </div>
+            <div class="input-group" ng-show="module.moduleType !== 'sink'">
+                <div class="input-group-addon">PartitionKeyExpression</div>
+                <input class="form-control" type="text" placeholder="Enter partition key expression"
+                       ng-model="definitionDeployRequest.deploymentProperties[module.moduleLabel].partitionKeyExpression">
+            </div>
         </div>
     </div>
     <div ng-show="modules.length > 0" class="row">

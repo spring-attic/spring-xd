@@ -25,25 +25,22 @@ define([], function () {
   return ['$scope', 'XDUtils', '$state', '$stateParams', 'StreamService',
     function ($scope, utils, $state, $stateParams, streamService) {
       $scope.$apply(function () {
-        $scope.definitionName = $stateParams.definitionName;
-        var singleStreamDefinitionPromise = streamService.getSingleStreamDefinition($scope.definitionName);
-        utils.$log.info(singleStreamDefinitionPromise);
-        utils.addBusyPromise(singleStreamDefinitionPromise);
-        singleStreamDefinitionPromise.then(
-          function (result) {
-            utils.$log.info(result);
-            var streamDefinition = result.data;
-            if (!streamDefinition) {
-              utils.growl.addErrorMessage('No valid stream definition returned for definition name ' + $scope.definitionName, streamDefinition);
-              return;
+        streamService.getModulesFromDSL($stateParams.definitionName, $stateParams.definition).$promise.then(
+            function (response) {
+              $scope.definitionName = $stateParams.definitionName;
+              $scope.definitionDeployRequest = {
+                streamDefinition: $stateParams.definition,
+                deploymentProperties: {}
+              };
+              $scope.modules = response;
+              for (var index in response) {
+                $scope.definitionDeployRequest.deploymentProperties[response[index].moduleLabel] = {};
+              }
+            },
+            function () {
+              utils.growl.addErrorMessage('Error getting modules for the stream.');
             }
-            $scope.definitionDeployRequest = {
-              streamDefinition: streamDefinition,
-              deploymentProperties: ''
-            };
-          },function (error) {
-            utils.growl.addErrorMessage('Error fetching stream definition. ' + error.data[0].message);
-          });
+        );
       });
       $scope.cancelDefinitionDeploy = function () {
         utils.$log.info('Canceling Stream Definition Deployment');
@@ -53,11 +50,31 @@ define([], function () {
         utils.$log.info('Deploying Stream Definition ' + definitionDeployRequest);
         utils.$log.info('Deploying Stream Definition ' + definitionDeployRequest.streamDefinition.name);
         utils.$log.info(streamService);
-        var properties = definitionDeployRequest.deploymentProperties;
+        var deploymentPropertiesString = '';
+        for (var moduleName in definitionDeployRequest.deploymentProperties) {
+          var moduleProperties = definitionDeployRequest.deploymentProperties[moduleName];
+          for (var properties in moduleProperties) {
+            var prop = moduleProperties[properties];
+            if ((properties === 'count' && (prop >= 0 && prop !== null))) {
+              deploymentPropertiesString += 'module.' + moduleName + '.' + properties + '=' + prop;
+              deploymentPropertiesString += ',';
+            }
+            else if (properties === 'criteria' && prop) {
+              deploymentPropertiesString += 'module.' + moduleName + '.' + properties + '=' + prop;
+              deploymentPropertiesString += ',';
+            }
+            else if (properties === 'partitionKeyExpression' && prop) {
+              deploymentPropertiesString += 'module.' + moduleName + '.producer.' + properties + '=' + prop;
+              deploymentPropertiesString += ',';
+            }
+          }
+        }
+        deploymentPropertiesString = deploymentPropertiesString.substring(0, deploymentPropertiesString.lastIndexOf(','));
+        console.log(deploymentPropertiesString);
 
-        utils.$log.info('Deployment Properties:' + properties);
+        utils.$log.info('Deployment Properties:' + deploymentPropertiesString);
 
-        streamService.deploy(definitionDeployRequest.streamDefinition, properties).$promise.then(
+        streamService.deploy($scope.definitionName, deploymentPropertiesString).$promise.then(
             function () {
               utils.growl.addSuccessMessage('Deployment Request Sent.');
               $state.go('home.streams.tabs.definitions');
@@ -65,7 +82,7 @@ define([], function () {
             function (error) {
               utils.growl.addErrorMessage('Error Deploying Stream. ' + error.data[0].message);
             }
-          );
+        );
       };
     }];
 });

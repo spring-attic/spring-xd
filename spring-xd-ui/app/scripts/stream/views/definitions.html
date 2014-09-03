@@ -23,12 +23,12 @@
         <td>{{item.definition}}</td>
         <td>{{item.status}}</td>
         <td class="action-column">
-            <button type="button" ng-click="undeployStream(item)"
-                    ng-disabled="item.status === 'deploying' || item.status === 'undeployed'"
-                    class="btn btn-default"
-                    ><span class="glyphicon glyphicon-stop"></span> Undeploy
-            </button>
-        </td>
+        <button type="button" ng-click="undeployStream(item)"
+                ng-disabled="item.status === 'deploying' || item.status === 'undeployed'"
+                class="btn btn-default"
+                ><span class="glyphicon glyphicon-stop"></span> Undeploy
+        </button>
+    </td>
         <td class="action-column">
             <button type="button" ng-click="deployStream(item)"
                     ng-disabled="item.status === 'deploying' || item.status === 'deployed' || item.status === 'incomplete' || item.status === 'failed'"

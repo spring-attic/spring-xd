@@ -38,7 +38,7 @@
         <td>
             <table class="table table-condensed">
                 <tr ng-repeat="group in item.groups.split(',')">
-                    <td class="label label-default">
+                    <td ng-show="group" class="label label-default">
                         {{group}}
                     </td>
                 </tr>
@@ -57,7 +57,7 @@
                         title="{{deployments.moduleOptions}} {{deployments.deploymentProperties}}">
                         {{deployments.name}}
                     </td>
-                    <td class="input-group-addon">
+                    <td class="input-group-addon" ng-show="item.attributes.managementPort != undefined">
                         <span ng-show="deployments.incomingRate">
                             <span class="glyphicon glyphicon-arrow-down" data-toggle="tooltip"
                                   data-placement="left"
@@ -72,7 +72,7 @@
             </table>
         </td>
         <td class="action-column">
-            <button type="button" ng-click="shutdownContainer(item.containerId)"
+            <button ng-show="item.attributes.managementPort != undefined" type="button" ng-click="shutdownContainer(item.containerId)"
                     class="btn btn-default"
                     ><span class="glyphicon glyphicon-remove"></span> Shutdown
             </button>

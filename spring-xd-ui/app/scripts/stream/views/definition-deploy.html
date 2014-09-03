@@ -1,20 +1,41 @@
 <h1 ng-show="definitionName">Deploy Stream Definition {{definitionName}}</h1>
 
-	<p class="index-page--subtitle"> On this screen you can also specify deployment properties. </br>For more information please see the
-        <a href="https://github.com/spring-projects/spring-xd/wiki/XD-Distributed-Runtime#deployment-manifest"
-		target="_blank">Technical Documentation</a>.
-	</p>
-	<form name="deployDefinitionForm" class="form-horizontal" role="form">
-		<div class="form-group">
-			<label for="deploymentProperties" class="col-sm-3 control-label">Deployment Properties</label>
-			<div class="col-sm-9">
-				<input type="text" id="deploymentProperties" autofocus
-							 class="form-control" placeholder="Enter deployment properties" ng-model="definitionDeployRequest.deploymentProperties"/>
-			</div>
-		</div>
-	</form>
-	<div class="row">
-		<div class="col-md-6 text-right"><button id="back-button"   type="button" class="btn btn-default" ng-click="cancelDefinitionDeploy()">Back</button></div>
-		<div class="col-md-6 text-left"><button  id="submit-button" type="button" class="btn btn-default"
-		ng-click="deployDefinition(definitionDeployRequest)">Deploy</button></div>
-	</div>
+<p class="index-page--subtitle"> On this screen you can also specify deployment properties. </br>For more information
+    please see the
+    <a href="https://github.com/spring-projects/spring-xd/wiki/XD-Distributed-Runtime#deployment-manifest"
+       target="_blank">Technical Documentation</a>.
+</p>
+<form class="form-horizontal" role="form" name="deploymentManifest">
+    <div ng-repeat="module in modules">
+        <div class="form-group">
+            <h1>{{module.moduleLabel}}</h1>
+
+                <div class="input-group">
+                    <div class="input-group-addon">Count</div>
+                    <input class="form-control" name="moduleCount" type="number" min="0" placeholder="Enter count"
+                           ng-model="definitionDeployRequest.deploymentProperties[module.moduleLabel].count">
+                </div>
+                <div class="input-group">
+                    <div class="input-group-addon">Criteria</div>
+                    <input class="form-control" type="text" placeholder="Enter container matching criteria" value=""
+                           ng-model="definitionDeployRequest.deploymentProperties[module.moduleLabel].criteria">
+                </div>
+                <div class="input-group" ng-show="module.moduleType !== 'sink'">
+                    <div class="input-group-addon">PartitionKeyExpression</div>
+                    <input class="form-control" type="text" placeholder="Enter partition key expression"
+                           ng-model="definitionDeployRequest.deploymentProperties[module.moduleLabel].partitionKeyExpression">
+                </div>
+        </div>
+    </div>
+    <div ng-show="modules.length > 0" class="row">
+        <div class="col-md-6 text-right">
+            <button id="back-button" type="button" class="btn btn-default" ng-click="cancelDefinitionDeploy()">Back
+            </button>
+        </div>
+        <div class="col-md-6 text-left">
+            <button id="submit-button" type="button" class="btn btn-default"
+                    ng-click="deployDefinition(definitionDeployRequest)">Deploy
+            </button>
+        </div>
+    </div>
+</form>

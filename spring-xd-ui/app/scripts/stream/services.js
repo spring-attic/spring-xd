@@ -23,7 +23,7 @@ define(['angular'], function (angular) {
   'use strict';
 
   return angular.module('xdStreamsAdmin.services', [])
-      .factory('StreamService', function ($resource, $rootScope, $log, $http) {
+      .factory('StreamService', function ($resource, $rootScope, $log) {
         return {
           getDefinitions: function () {
             return $resource($rootScope.xdAdminServerUrl + '/streams/definitions.json', {}, {
@@ -32,20 +32,13 @@ define(['angular'], function (angular) {
               }
             });
           },
-          getSingleStreamDefinition: function (streamName) {
-            $log.info('Getting single stream definition for job named ' + streamName);
-            return $http({
-              method: 'GET',
-              url: $rootScope.xdAdminServerUrl + '/streams/definitions/' + streamName
-            });
-          },
-          deploy: function (streamDefinition, properties) {
-            $log.info('Deploy Stream ' + streamDefinition.name);
-            return $resource($rootScope.xdAdminServerUrl + '/streams/deployments/' + streamDefinition.name, null, {
+          deploy: function (name, deploymentProperties) {
+            $log.info('Deploy Stream ' + name);
+            return $resource($rootScope.xdAdminServerUrl + '/streams/deployments/' + name, null, {
               deploy: {
                 method: 'POST',
                 params: {
-                  properties: properties
+                  properties: deploymentProperties
                 }
               }
             }).deploy();
@@ -61,6 +54,12 @@ define(['angular'], function (angular) {
             return $resource($rootScope.xdAdminServerUrl + '/streams/definitions/' + streamDefinition.name, null, {
               destroy: { method: 'DELETE' }
             }).destroy();
+          },
+          getModulesFromDSL: function (streamName, dsl) {
+            $log.info('Get modules from DSL for stream: ' + streamName);
+            return $resource($rootScope.xdAdminServerUrl + '/dslparser', {dsl: dsl}, {
+              getModules: { method: 'GET', isArray: true }
+            }).getModules();
           }
         };
       });

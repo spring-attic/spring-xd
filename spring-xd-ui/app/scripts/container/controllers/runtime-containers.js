@@ -29,31 +29,33 @@ define([], function () {
             function (result) {
               utils.$log.info(result);
               $scope.runtimeContainers = result.content;
-              $scope.runtimeContainers.forEach(function(runtimeContainer) {
-                var deployedModules = runtimeContainer.deployedModules;
-                deployedModules.forEach(function(deployedModule) {
-                  runtimeContainerService.getMessageRate(runtimeContainer, deployedModule).$promise.then(
-                      function(result) {
-                        var value = result.value;
-                        for (var component in value) {
-                          if (component.match('name=input')) {
-                            deployedModule.incomingRate = value[component].MeanSendRate.toFixed(5);
+              $scope.runtimeContainers.forEach(function (runtimeContainer) {
+                if (runtimeContainer.attributes.managementPort) {
+                  var deployedModules = runtimeContainer.deployedModules;
+                  deployedModules.forEach(function (deployedModule) {
+                    runtimeContainerService.getMessageRate(runtimeContainer, deployedModule).$promise.then(
+                        function (result) {
+                          var value = result.value;
+                          for (var component in value) {
+                            if (component.match('name=input')) {
+                              deployedModule.incomingRate = value[component].MeanSendRate.toFixed(5);
+                            }
+                            if (component.match('name=output')) {
+                              deployedModule.outgoingRate = value[component].MeanSendRate.toFixed(5);
+                            }
                           }
-                          if (component.match('name=output')) {
-                            deployedModule.outgoingRate = value[component].MeanSendRate.toFixed(5);
-                          }
-                        }
-                      });
-                });
+                        });
+                  });
+                }
               });
               var getRuntimeContainers = $timeout(loadRuntimeContainers, $rootScope.pageRefreshTime);
-              $scope.$on('$destroy', function(){
+              $scope.$on('$destroy', function () {
                 $timeout.cancel(getRuntimeContainers);
               });
             }
         );
       })();
-      $scope.shutdownContainer = function(containerId) {
+      $scope.shutdownContainer = function (containerId) {
         runtimeContainerService.shutdownContainer(containerId).$promise.then(
             function () {
               utils.growl.addSuccessMessage('Shutdown request sent');

@@ -33,6 +33,7 @@ import org.springframework.xd.rest.domain.JobDefinitionResource;
 import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.domain.JobInstanceInfoResource;
 import org.springframework.xd.rest.domain.ModuleDefinitionResource;
+import org.springframework.xd.rest.domain.ModuleDescriptorResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.RuntimeContainerResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
@@ -71,6 +72,7 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(DetailedJobInfoResource.class).withRel("jobs/configurations"));
 		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("jobs/executions"));
 		xdRuntime.add(entityLinks.linkFor(JobInstanceInfoResource.class).withRel("jobs/instances"));
+		xdRuntime.add(entityLinks.linkFor(ModuleDescriptorResource.class).withRel("dslparser"));
 
 
 		// Maybe https://github.com/spring-projects/spring-hateoas/issues/169 will help eventually

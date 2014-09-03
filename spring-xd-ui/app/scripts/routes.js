@@ -110,7 +110,7 @@ define(['./app'], function (xdAdmin) {
       controller: 'StreamsDefinitionsController'
     })
     .state('home.streams.deployStream', {
-      url : 'streams/definitions/{definitionName}/deploy',
+      url : 'streams/definitions/{definitionName}/deploy/{definition}',
       templateUrl : streamTemplatesPath + '/definition-deploy.html',
       controller: 'DefinitionDeployController',
       data:{

@@ -37,7 +37,7 @@ define([], function () {
         );
       })();
       $scope.deployStream = function (streamDefinition) {
-        $state.go('home.streams.deployStream', {definitionName: streamDefinition.name});
+        $state.go('home.streams.deployStream', {definitionName: streamDefinition.name, definition: streamDefinition.definition});
       };
       $scope.undeployStream = function (streamDefinition) {
         utils.$log.info('Undeploying Stream ' + streamDefinition.name);

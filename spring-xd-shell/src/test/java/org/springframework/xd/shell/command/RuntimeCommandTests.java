@@ -29,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
@@ -79,6 +80,7 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 		assertEquals(1, table.getRows().size());
 	}
 
+	@Ignore
 	@Test
 	public void testListRuntimeModulesAfterUndeploy() {
 		logger.info("List runtime modules after undeploy");

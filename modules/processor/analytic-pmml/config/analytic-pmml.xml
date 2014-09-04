@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://www.springframework.org/schema/integration"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+    <channel id="input"/>
+
+    <transformer input-channel="input" output-channel="output" method="evaluate">
+
+        <beans:bean class="org.springframework.xd.analytics.ml.pmml.TuplePmmlAnalytic">
+
+            <beans:description>
+                <![CDATA[
+Allows the definition of an XD stream processor element that implements analytical models via PMML.
+
+Note:
+inputFieldMapping -> Mapping of input tuple field to model input field.
+outputFieldMapping -> Mapping of model output field to output field.
+
+# Create the stream definition
+stream create --name pmml1 --definition "http --outputType=application/x-xd-tuple | analytic-pmml --modelName=iris-flower-classification-naive-bayes-1 --location=/Users/tom/Documents/dev/repos/thomasdarimont/tmp/iris-flower-classification-naive-bayes-1.pmml.xml --inputFieldMapping='sepalLength:Sepal.Length,sepalWidth:Sepal.Width,petalLength:Petal.Length,petalWidth:Petal.Width' --outputFieldMapping='Predicted_Species:predictedSpecies' | log"
+
+#Post some data to the stream
+http post --target http://localhost:9000 --contentType application/json --data "{ \"sepalLength\": 6.4, \"sepalWidth\": 3.2, \"petalLength\":4.5, \"petalWidth\":1.5 }"
+
+# See the output in the log, note the generated field: "predictedSpecies".
+Output:
+4/03/22 17:46:20 WARN logger.iris-flower-classification:
+10:40:08,785  WARN pool-15-thread-4 logger.pmml12:150 - {"id":"90190500-bb0b-11e3-81e7-005056c00008","timestamp":1396514408784,"sepalLength":"6.4","sepalWidth":"3.2","petalLength":"4.5","petalWidth":"1.5","predictedSpecies":"versicolor"}
+                ]]>
+            </beans:description>
+
+
+            <beans:constructor-arg index="0" value="${modelName:#{null}}" type="java.lang.String"/>
+            <beans:constructor-arg index="1" value="${location}" type="java.lang.String"/>
+            <beans:constructor-arg index="2" value="${inputFieldMapping:#{null}}" type="java.lang.String"/>
+            <beans:constructor-arg index="3" value="${outputFieldMapping:#{null}}" type="java.lang.String"/>
+
+        </beans:bean>
+    </transformer>
+
+    <channel id="output"/>
+
+</beans:beans>

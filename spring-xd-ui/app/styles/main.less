@@ -148,7 +148,7 @@ h1 {
 }
 
 table td {
-  vertical-align: middle !important;
+  vertical-align: middle;
 }
 
 table td .progress {
@@ -167,10 +167,18 @@ table td.action-column {
   font-size: 15px;
 }
 
+.cluster-view th {
+  text-align: center;
+}
+
 .cluster-view td {
   font-size: 18px;
   text-align: center;
-  border-top: none;
+  border: none;
+}
+
+.cluster-view > table td {
+  vertical-align: top;
 }
 
 .cluster-view .label, .cluster-view .column-block {

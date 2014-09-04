@@ -1,4 +1,4 @@
-<h1>Runtime Containers</h1>
+<h1>Cluster view</h1>
 <div class="tab-pane active col-md-12">
     <ul class="nav nav-tabs">
         <li ng-class="{ active: $state.includes('home.containers.tabs') }"><a
@@ -19,24 +19,24 @@
         </div>
     </div>
 </div>
-<table class="table table-condensed">
+<table class="cluster-view table table-condensed">
     <thead>
     <tr>
-        <th>Container</th>
+        <th>Container Id</th>
         <th>Groups</th>
         <th>Deployed Modules</th>
         <th>Action</th>
     </tr>
     </thead>
     <tbody>
-    <tr class="cluster-view" ng-repeat="item in runtimeContainers | filter:filterQuery | orderBy: item.groups"
+    <tr ng-repeat="item in runtimeContainers | filter:filterQuery | orderBy: item.groups"
         ng-show="!item.inactive">
         <td class="label label-primary" data-toggle="tooltip" data-placement="left"
             title="{{item.attributes}}">
             {{item.containerId}}
         </td>
         <td>
-            <table class="table table-condensed">
+            <table>
                 <tr ng-repeat="group in item.groups.split(',')">
                     <td ng-show="group" class="label label-default">
                         {{group}}
@@ -45,7 +45,7 @@
             </table>
         </td>
         <td>
-            <table class="table table-condensed">
+            <table class="deployed-modules">
                 <tr ng-repeat="deployments in item.deployedModules">
                     <td class="label {{deployments.deploymentStatus}}" data-toggle="tooltip"
                         data-placement="left"

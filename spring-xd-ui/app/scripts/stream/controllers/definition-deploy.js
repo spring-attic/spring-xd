@@ -25,20 +25,24 @@ define([], function () {
   return ['$scope', 'XDUtils', '$state', '$stateParams', 'StreamService',
     function ($scope, utils, $state, $stateParams, streamService) {
       $scope.$apply(function () {
-        streamService.getModulesFromDSL($stateParams.definitionName, $stateParams.definition).$promise.then(
-            function (response) {
-              $scope.definitionName = $stateParams.definitionName;
-              $scope.definitionDeployRequest = {
-                streamDefinition: $stateParams.definition,
-                deploymentProperties: {}
-              };
-              $scope.modules = response;
-              response.forEach(function (resp) {
-                $scope.definitionDeployRequest.deploymentProperties[resp.moduleLabel] = {};
-              });
-            },
-            function () {
-              utils.growl.addErrorMessage('Error getting modules for the stream.');
+        streamService.getDefinition($stateParams.definitionName).$promise.then(
+            function (definitionResponse) {
+              streamService.getModulesFromDSL($stateParams.definitionName, definitionResponse.definition).$promise.then(
+                  function (response) {
+                    $scope.definitionName = $stateParams.definitionName;
+                    $scope.definitionDeployRequest = {
+                      streamDefinition: definitionResponse.definition,
+                      deploymentProperties: {}
+                    };
+                    $scope.modules = response;
+                    response.forEach(function (resp) {
+                      $scope.definitionDeployRequest.deploymentProperties[resp.moduleLabel] = {};
+                    });
+                  },
+                  function () {
+                    utils.growl.addErrorMessage('Error getting modules for the stream.');
+                  }
+              );
             }
         );
       });

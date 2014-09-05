@@ -110,13 +110,13 @@ define(['./app'], function (xdAdmin) {
       controller: 'StreamsDefinitionsController'
     })
     .state('home.streams.deployStream', {
-      url : 'streams/definitions/{definitionName}/deploy/{definition}',
+      url : 'streams/definitions/{definitionName}/deploy',
       templateUrl : streamTemplatesPath + '/definition-deploy.html',
-      controller: 'DefinitionDeployController',
+      controller: 'StreamDefinitionDeployController',
       data:{
         authenticate: true
       }
-     })
+    })
     .state('home.jobs.tabs.modules', {
       url : '/modules',
       templateUrl : jobTemplatesPath + '/modules.html',
@@ -130,7 +130,7 @@ define(['./app'], function (xdAdmin) {
     .state('home.jobs.deployjob', {
       url : 'jobs/definitions/{definitionName}/deploy',
       templateUrl : jobTemplatesPath + '/definition-deploy.html',
-      controller: 'DefinitionDeployController',
+      controller: 'JobDefinitionDeployController',
       data:{
         authenticate: true
       }

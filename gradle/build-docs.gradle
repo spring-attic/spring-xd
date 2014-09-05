@@ -7,7 +7,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.8'
+		classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.2.8-SNAPSHOT'
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.3'
 		classpath 'org.ajoberstar:gradle-git:0.8.0'
 	}

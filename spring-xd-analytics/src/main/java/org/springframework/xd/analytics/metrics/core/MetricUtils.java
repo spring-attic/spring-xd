@@ -42,22 +42,24 @@ public final class MetricUtils {
 	}
 
 	public static long[] concatArrays(List<long[]> arrays, int start, int size) {
-		long[] counts = new long[size];
-		long[] first = arrays.remove(0);
-		int index = Math.min(first.length - start, size);
-		System.arraycopy(first, start, counts, 0, index);
-		for (int i = 0; i < arrays.size(); i++) {
-			long[] sub = arrays.get(i);
-			for (int j = 0; j < sub.length; j++) {
-				if (index >= counts.length) {
-					break;
-				}
+		long[] result = new long[size];
+		int howManyLeft = size;
+		int targetPosition = 0;
 
-				counts[index++] = sub[j];
-			}
+		int from = start;
+		for (int i = 0; i < arrays.size() && howManyLeft > 0; i++) {
+			long[] current = arrays.get(i);
+			int howMany = Math.min(current.length - from, howManyLeft);
+			System.arraycopy(current, from, result, targetPosition, howMany);
+			from = 0;
+			howManyLeft -= howMany;
+			targetPosition += howMany;
 		}
-
-		return counts;
+		if (howManyLeft > 0) {
+			throw new ArrayIndexOutOfBoundsException(
+					String.format("Not enough data, short of %d elements", howManyLeft));
+		}
+		return result;
 	}
 
 	public static long sum(long[] array) {

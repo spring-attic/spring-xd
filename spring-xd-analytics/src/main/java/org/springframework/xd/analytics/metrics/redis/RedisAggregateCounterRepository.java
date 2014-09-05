@@ -156,7 +156,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 			dt.setRounding(c.hourOfDay());
 			Duration step = Duration.standardHours(1);
 			List<long[]> hours = new ArrayList<long[]>();
-			while (dt.isBefore(end)) {
+			while (dt.isBefore(end) || dt.isEqual(end)) {
 				hours.add(getMinCountsForHour(name, dt));
 				dt.add(step);
 			}

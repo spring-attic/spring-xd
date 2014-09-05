@@ -32,6 +32,13 @@ define(['angular'], function (angular) {
               }
             });
           },
+          getDefinition: function(name) {
+            return $resource($rootScope.xdAdminServerUrl + '/streams/definitions/' + name, {}, {
+              query: {
+                method: 'GET'
+              }
+            }).query();
+          },
           deploy: function (name, deploymentProperties) {
             $log.info('Deploy Stream ' + name);
             return $resource($rootScope.xdAdminServerUrl + '/streams/deployments/' + name, null, {

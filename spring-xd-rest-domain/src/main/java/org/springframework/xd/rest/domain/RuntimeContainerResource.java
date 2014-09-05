@@ -16,6 +16,7 @@
 
 package org.springframework.xd.rest.domain;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,8 @@ public class RuntimeContainerResource extends ResourceSupport {
 
 	private List<ModuleMetadataResource> deployedModules;
 
+	private Map<String, HashMap<String, Double>> messageRates;
+
 	private Map<String, String> attributes;
 
 	@SuppressWarnings("unused")
@@ -54,15 +57,18 @@ public class RuntimeContainerResource extends ResourceSupport {
 	 * @param attributes the container attributes
 	 * @param deploymentSize number of deployed modules
 	 * @param deployedModules the list of deployed modules
+	 * @param messageRates the messageRates for deployed modules
 	 */
 	public RuntimeContainerResource(Map<String, String> attributes, int deploymentSize,
-			List<ModuleMetadataResource> deployedModules) {
+			List<ModuleMetadataResource> deployedModules,
+			Map<String, HashMap<String, Double>> messageRates) {
 		Assert.notNull(attributes);
 		this.containerId = attributes.get("id");
 		this.groups = attributes.get("groups");
 		this.attributes = attributes;
 		this.deploymentSize = deploymentSize;
 		this.deployedModules = deployedModules;
+		this.messageRates = messageRates;
 	}
 
 	/**
@@ -118,6 +124,10 @@ public class RuntimeContainerResource extends ResourceSupport {
 	 */
 	public List<ModuleMetadataResource> getDeployedModules() {
 		return this.deployedModules;
+	}
+
+	public Map<String, HashMap<String, Double>> getMessageRates() {
+		return this.messageRates;
 	}
 
 	@Override

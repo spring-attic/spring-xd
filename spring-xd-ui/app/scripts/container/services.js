@@ -32,20 +32,6 @@ define(['angular'], function (angular) {
               }
             }).getRuntimeContainers();
           },
-          getMessageRate: function (runtimeContainer, deployedModule) {
-            var ip = runtimeContainer.attributes.ip;
-            var mgmtPort = runtimeContainer.attributes.managementPort;
-            var moduleName = deployedModule.name.split('.')[0];
-            var unitName = deployedModule.unitName;
-            var address = window.location.protocol + '//' + ip + ':' + mgmtPort +
-                '/management/jolokia/read/xd.' + unitName + '%3Amodule=' + moduleName +
-                '.*,component=*,name=*/MeanSendRate';
-            return $resource(address, {}, {
-              getMessageRate: {
-                method: 'GET'
-              }
-            }).getMessageRate();
-          },
           shutdownContainer: function (containerId) {
             return $resource($rootScope.xdAdminServerUrl + '/runtime/containers?containerId=' + containerId, null, {
               shutdownContainer: {

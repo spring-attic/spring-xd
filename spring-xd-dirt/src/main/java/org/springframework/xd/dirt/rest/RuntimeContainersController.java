@@ -16,8 +16,15 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -26,6 +33,7 @@ import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -34,10 +42,13 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerShutdownException;
+import org.springframework.xd.dirt.cluster.ModuleMessageRateNotFoundException;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.cluster.RuntimeContainer;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.container.store.RuntimeContainerRepository;
+import org.springframework.xd.dirt.module.store.ModuleMetadata;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.domain.RuntimeContainerResource;
 
 /**
@@ -60,6 +71,8 @@ public class RuntimeContainersController {
 	private ResourceAssemblerSupport<RuntimeContainer, RuntimeContainerResource> resourceAssembler =
 			new RuntimeContainerResourceAssembler();
 
+	private RestTemplate restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory());
+
 	@Value("${management.contextPath:/management}")
 	private String managementContextPath;
 
@@ -74,14 +87,56 @@ public class RuntimeContainersController {
 
 	/**
 	 * List all the available containers
+	 * @throws ModuleMessageRateNotFoundException
+	 * @throws JSONException
 	 */
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public PagedResources<RuntimeContainerResource> list(Pageable pageable,
-			PagedResourcesAssembler<RuntimeContainer> assembler) {
-		return assembler.toResource(runtimeContainerRepository.findAllRuntimeContainers(pageable),
-				resourceAssembler);
+			PagedResourcesAssembler<RuntimeContainer> assembler) throws ModuleMessageRateNotFoundException,
+			JSONException {
+		Page<RuntimeContainer> containers = runtimeContainerRepository.findAllRuntimeContainers(pageable);
+		for (RuntimeContainer container : containers) {
+			String containerHost = container.getAttributes().getIp();
+			String containerManagementPort = container.getAttributes().getManagementPort();
+			if (StringUtils.hasText(containerManagementPort)) {
+				Map<String, HashMap<String, Double>> messageRates = new HashMap<String, HashMap<String, Double>>();
+				for (ModuleMetadata moduleMetadata : container.getDeployedModules()) {
+					String moduleName = moduleMetadata.getName();
+					String moduleLabel = moduleName.substring(0, moduleName.indexOf('.'));
+					String request = CONTAINER_HOST_URI_PROTOCOL + containerHost + ":"
+							+ containerManagementPort + "/management/jolokia/read/xd." + moduleMetadata.getUnitName()
+							+ ":module=" + moduleLabel + ".*,component=*,name=%s/MeanSendRate";
+					try {
+						HashMap<String, Double> rate = new HashMap<String, Double>();
+						if (moduleMetadata.getModuleType().equals(ModuleType.source.name())) {
+							rate.put("output", getMessageRate(String.format(request, "output")));
+						}
+						else if (moduleMetadata.getModuleType().equals(ModuleType.sink.name())) {
+							rate.put("input", getMessageRate(String.format(request, "input")));
+						}
+						else if (moduleMetadata.getModuleType().equals(ModuleType.processor.name())) {
+							rate.put("output", getMessageRate(String.format(request, "output")));
+							rate.put("input", getMessageRate(String.format(request, "input")));
+						}
+						messageRates.put(moduleMetadata.getId(), rate);
+					}
+					catch (RestClientException e) {
+						throw new ModuleMessageRateNotFoundException(e.getMessage());
+					}
+				}
+				container.setMessageRates(messageRates);
+			}
+		}
+		return assembler.toResource(containers, resourceAssembler);
+	}
+
+	private Double getMessageRate(String requestURL) throws JSONException {
+		String response = restTemplate.getForObject(requestURL, String.class).toString();
+		JSONObject jObject = new JSONObject(response);
+		JSONObject value = jObject.getJSONObject("value");
+		return (Double) value.getJSONObject((String) value.names().get(0)).get("MeanSendRate");
 	}
 
 	/**
@@ -111,4 +166,5 @@ public class RuntimeContainersController {
 			throw new NoSuchContainerException("Container could not be found with id " + containerId);
 		}
 	}
+
 }

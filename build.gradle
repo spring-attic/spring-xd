@@ -6,6 +6,7 @@ apply plugin: 'idea'
 buildscript {
 	repositories {
 		maven { url "http://repo.spring.io/plugins-snapshot" }
+		maven { url "http://repo.spring.io/release" }
 		jcenter()
 	}
 	dependencies {

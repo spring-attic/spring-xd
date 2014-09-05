@@ -21,37 +21,32 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'RuntimeContainerService', 'XDUtils', '$timeout', '$rootScope','$q',
-    function ($scope, runtimeContainerService, utils, $timeout, $rootScope, $q) {
+  return ['$scope', 'RuntimeContainerService', 'XDUtils', '$timeout', '$rootScope',
+    function ($scope, runtimeContainerService, utils, $timeout, $rootScope) {
 
       (function loadRuntimeContainers() {
         runtimeContainerService.getRuntimeContainers().$promise.then(
             function (result) {
               utils.$log.info(result);
               var containers = result.content;
-              var promises = [];
               containers.forEach(function (runtimeContainer) {
                 if (runtimeContainer.attributes.managementPort) {
                   var deployedModules = runtimeContainer.deployedModules;
                   deployedModules.forEach(function (deployedModule) {
-                    promises.push(runtimeContainerService.getMessageRate(runtimeContainer, deployedModule).$promise.then(
-                        function (result) {
-                          var value = result.value;
-                          for (var component in value) {
-                            if (component.match('name=input')) {
-                              deployedModule.incomingRate = value[component].MeanSendRate.toFixed(5);
-                            }
-                            if (component.match('name=output')) {
-                              deployedModule.outgoingRate = value[component].MeanSendRate.toFixed(5);
-                            }
-                          }
-                        }));
+                    console.log(deployedModule);
+                    if (runtimeContainer.messageRates[deployedModule.moduleId]) {
+                      if (runtimeContainer.messageRates[deployedModule.moduleId].hasOwnProperty('input')) {
+                        deployedModule.incomingRate = runtimeContainer.messageRates[deployedModule.moduleId].input.toFixed(5);
+                      }
+                      if (runtimeContainer.messageRates[deployedModule.moduleId].hasOwnProperty('output')) {
+                        deployedModule.outgoingRate = runtimeContainer.messageRates[deployedModule.moduleId].output.toFixed(5);
+                      }
+                    }
                   });
                 }
               });
-              $q.all(promises).then(function() {
-                $scope.runtimeContainers = containers;
-              });
+              $scope.runtimeContainers = containers;
+
               var getRuntimeContainers = $timeout(loadRuntimeContainers, $rootScope.pageRefreshTime);
               $scope.$on('$destroy', function () {
                 $timeout.cancel(getRuntimeContainers);

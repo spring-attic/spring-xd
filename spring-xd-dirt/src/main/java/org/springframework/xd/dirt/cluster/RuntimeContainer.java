@@ -17,7 +17,9 @@
 package org.springframework.xd.dirt.cluster;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 
@@ -31,6 +33,8 @@ public class RuntimeContainer extends Container {
 	private int deploymentSize;
 
 	private List<ModuleMetadata> deployedModules = new ArrayList<ModuleMetadata>();
+
+	private Map<String, HashMap<String, Double>> messageRates;
 
 	/**
 	 * Construct a RuntimeContainer object.
@@ -71,5 +75,13 @@ public class RuntimeContainer extends Container {
 	 */
 	public void setDeployedModules(List<ModuleMetadata> deployedModules) {
 		this.deployedModules = deployedModules;
+	}
+
+	public void setMessageRates(Map<String, HashMap<String, Double>> messageRates) {
+		this.messageRates = messageRates;
+	}
+
+	public Map<String, HashMap<String, Double>> getMessageRates() {
+		return this.messageRates;
 	}
 }

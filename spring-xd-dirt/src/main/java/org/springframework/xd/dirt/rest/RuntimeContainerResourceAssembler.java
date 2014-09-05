@@ -45,7 +45,7 @@ public class RuntimeContainerResourceAssembler extends
 	@Override
 	protected RuntimeContainerResource instantiateResource(RuntimeContainer entity) {
 		return new RuntimeContainerResource(entity.getAttributes(), entity.getDeploymentSize(),
-				moduleMetadatResourceAssembler.toResources(entity.getDeployedModules()));
+				moduleMetadatResourceAssembler.toResources(entity.getDeployedModules()), entity.getMessageRates());
 	}
 
 }

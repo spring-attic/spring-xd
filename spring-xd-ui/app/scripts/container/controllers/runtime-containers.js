@@ -29,22 +29,22 @@ define([], function () {
             function (result) {
               utils.$log.info(result);
               var containers = result.content;
-              containers.forEach(function (runtimeContainer) {
-                if (runtimeContainer.attributes.managementPort) {
-                  var deployedModules = runtimeContainer.deployedModules;
-                  deployedModules.forEach(function (deployedModule) {
-                    console.log(deployedModule);
-                    if (runtimeContainer.messageRates[deployedModule.moduleId]) {
-                      if (runtimeContainer.messageRates[deployedModule.moduleId].hasOwnProperty('input')) {
-                        deployedModule.incomingRate = runtimeContainer.messageRates[deployedModule.moduleId].input.toFixed(5);
-                      }
-                      if (runtimeContainer.messageRates[deployedModule.moduleId].hasOwnProperty('output')) {
-                        deployedModule.outgoingRate = runtimeContainer.messageRates[deployedModule.moduleId].output.toFixed(5);
-                      }
-                    }
-                  });
-                }
-              });
+//              containers.forEach(function (runtimeContainer) {
+//                if (runtimeContainer.attributes.managementPort) {
+//                  var deployedModules = runtimeContainer.deployedModules;
+//                  deployedModules.forEach(function (deployedModule) {
+//                    console.log(deployedModule);
+//                    if (runtimeContainer.messageRates[deployedModule.moduleId]) {
+//                      if (runtimeContainer.messageRates[deployedModule.moduleId].hasOwnProperty('input')) {
+//                        deployedModule.incomingRate = runtimeContainer.messageRates[deployedModule.moduleId].input.toFixed(5);
+//                      }
+//                      if (runtimeContainer.messageRates[deployedModule.moduleId].hasOwnProperty('output')) {
+//                        deployedModule.outgoingRate = runtimeContainer.messageRates[deployedModule.moduleId].output.toFixed(5);
+//                      }
+//                    }
+//                  });
+//                }
+//              });
               $scope.runtimeContainers = containers;
 
               var getRuntimeContainers = $timeout(loadRuntimeContainers, $rootScope.pageRefreshTime);

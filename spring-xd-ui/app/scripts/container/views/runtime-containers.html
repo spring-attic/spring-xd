@@ -57,17 +57,17 @@
                         title="{{deployments.moduleOptions}} {{deployments.deploymentProperties}}">
                         {{deployments.name}}
                     </td>
-                    <!--<td class="input-group-addon" ng-show="item.attributes.managementPort != undefined">-->
-                        <!--<span ng-show="deployments.incomingRate">-->
-                            <!--<span class="glyphicon glyphicon-arrow-down" data-toggle="tooltip"-->
-                                  <!--data-placement="left"-->
-                                  <!--title="msgs/second">{{deployments.incomingRate}}</span>-->
-                        <!--</span>-->
-                        <!--<span ng-show="deployments.outgoingRate">-->
-                            <!--<span class="glyphicon glyphicon-arrow-up" data-toggle="tooltip"-->
-                                  <!--data-placement="left" title="msgs/second">{{deployments.outgoingRate}}</span>-->
-                        <!--</span>-->
-                    <!--</td>-->
+                    <td class="input-group-addon" ng-show="item.attributes.managementPort != undefined">
+                        <span ng-show="deployments.incomingRate">
+                            <span class="glyphicon glyphicon-arrow-down" data-toggle="tooltip"
+                                  data-placement="left"
+                                  title="msgs/second">{{deployments.incomingRate}}</span>
+                        </span>
+                        <span ng-show="deployments.outgoingRate">
+                            <span class="glyphicon glyphicon-arrow-up" data-toggle="tooltip"
+                                  data-placement="left" title="msgs/second">{{deployments.outgoingRate}}</span>
+                        </span>
+                    </td>
                 </tr>
             </table>
         </td>

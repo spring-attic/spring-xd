@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -30,6 +33,7 @@ import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -43,6 +47,8 @@ import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.cluster.RuntimeContainer;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.container.store.RuntimeContainerRepository;
+import org.springframework.xd.dirt.module.store.ModuleMetadata;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.domain.RuntimeContainerResource;
 
 /**
@@ -91,38 +97,38 @@ public class RuntimeContainersController {
 			PagedResourcesAssembler<RuntimeContainer> assembler) throws ModuleMessageRateNotFoundException,
 			JSONException {
 		Page<RuntimeContainer> containers = runtimeContainerRepository.findAllRuntimeContainers(pageable);
-		//for (RuntimeContainer container : containers) {
-		//			String containerHost = container.getAttributes().getIp();
-		//			String containerManagementPort = container.getAttributes().getManagementPort();
-		//			if (StringUtils.hasText(containerManagementPort)) {
-		//				Map<String, HashMap<String, Double>> messageRates = new HashMap<String, HashMap<String, Double>>();
-		//				for (ModuleMetadata moduleMetadata : container.getDeployedModules()) {
-		//					String moduleName = moduleMetadata.getName();
-		//					String moduleLabel = moduleName.substring(0, moduleName.indexOf('.'));
-		//					String request = CONTAINER_HOST_URI_PROTOCOL + containerHost + ":"
-		//							+ containerManagementPort + "/management/jolokia/read/xd." + moduleMetadata.getUnitName()
-		//							+ ":module=" + moduleLabel + ".*,component=*,name=%s/MeanSendRate";
-		//					try {
-		//						HashMap<String, Double> rate = new HashMap<String, Double>();
-		//						if (moduleMetadata.getModuleType().equals(ModuleType.source.name())) {
-		//							rate.put("output", getMessageRate(String.format(request, "output")));
-		//						}
-		//						else if (moduleMetadata.getModuleType().equals(ModuleType.sink.name())) {
-		//							rate.put("input", getMessageRate(String.format(request, "input")));
-		//						}
-		//						else if (moduleMetadata.getModuleType().equals(ModuleType.processor.name())) {
-		//							rate.put("output", getMessageRate(String.format(request, "output")));
-		//							rate.put("input", getMessageRate(String.format(request, "input")));
-		//						}
-		//						messageRates.put(moduleMetadata.getId(), rate);
-		//					}
-		//					catch (RestClientException e) {
-		//						throw new ModuleMessageRateNotFoundException(e.getMessage());
-		//					}
-		//				}
-		//				container.setMessageRates(messageRates);
-		//			}
-		//}
+		for (RuntimeContainer container : containers) {
+			String containerHost = container.getAttributes().getIp();
+			String containerManagementPort = container.getAttributes().getManagementPort();
+			if (StringUtils.hasText(containerManagementPort)) {
+				Map<String, HashMap<String, Double>> messageRates = new HashMap<String, HashMap<String, Double>>();
+				for (ModuleMetadata moduleMetadata : container.getDeployedModules()) {
+					String moduleName = moduleMetadata.getName();
+					String moduleLabel = moduleName.substring(0, moduleName.indexOf('.'));
+					String request = CONTAINER_HOST_URI_PROTOCOL + containerHost + ":"
+							+ containerManagementPort + "/management/jolokia/read/xd." + moduleMetadata.getUnitName()
+							+ ":module=" + moduleLabel + ".*,component=*,name=%s/MeanSendRate";
+					try {
+						HashMap<String, Double> rate = new HashMap<String, Double>();
+						if (moduleMetadata.getModuleType().equals(ModuleType.source.name())) {
+							rate.put("output", getMessageRate(String.format(request, "output")));
+						}
+						else if (moduleMetadata.getModuleType().equals(ModuleType.sink.name())) {
+							rate.put("input", getMessageRate(String.format(request, "input")));
+						}
+						else if (moduleMetadata.getModuleType().equals(ModuleType.processor.name())) {
+							rate.put("output", getMessageRate(String.format(request, "output")));
+							rate.put("input", getMessageRate(String.format(request, "input")));
+						}
+						messageRates.put(moduleMetadata.getId(), rate);
+					}
+					catch (RestClientException e) {
+						throw new ModuleMessageRateNotFoundException(e.getMessage());
+					}
+				}
+				container.setMessageRates(messageRates);
+			}
+		}
 		return assembler.toResource(containers, resourceAssembler);
 	}
 

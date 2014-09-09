@@ -95,6 +95,9 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 			}
 		}
 		else if (streamModules.size() > moduleIndex + 1) {
+			ModuleDeploymentProperties nextProperties = deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
+			String count = nextProperties.get("count");
+			properties.put("producer." + BusProperties.NEXT_MODULE_COUNT, count);
 			/*
 			 *  A direct binding is allowed if all of the following are true:
 			 *  1. the user did not explicitly disallow direct binding
@@ -111,7 +114,6 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 						directBindingKey, directBindingValue);
 			}
 			if (!"false".equalsIgnoreCase(properties.get(directBindingKey))) {
-				ModuleDeploymentProperties nextProperties = deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
 				if (properties.getCount() == 0 && nextProperties.getCount() == 0) {
 					String criteria = properties.getCriteria();
 					if ((criteria == null && nextProperties.getCriteria() == null)

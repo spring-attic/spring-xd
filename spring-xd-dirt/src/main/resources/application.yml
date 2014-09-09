@@ -69,6 +69,11 @@ xd:
         backOffMultiplier:         2.0
         concurrency:               1
         maxAttempts:               3
+    kafka:
+      brokers:                                 localhost:9092
+      zkAddress:                               localhost:2181
+      replicationFactor:                       1
+      numOfKafkaPartitionsForCountEqualsZero:  10
 ---
 
 server:

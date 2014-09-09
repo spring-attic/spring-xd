@@ -36,11 +36,11 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * Tests for buses that use an external broker.
- * 
+ *
  * @author Gary Russell
  */
 public abstract class BrokerBusTests extends
-		AbstractMessageBusTests {
+AbstractMessageBusTests {
 
 	@Test
 	public void testDirectBinding() throws Exception {
@@ -72,18 +72,19 @@ public abstract class BrokerBusTests extends
 		assertNotNull(caller.get());
 		assertSame(Thread.currentThread(), caller.get());
 		assertEquals(2, count.get());
-		assertNull(receive("direct.0", true));
+		assertNull(spyOn("direct.0").receive(true));
 
 		// Remove direct binding and bind producer to the bus
 		bus.unbindConsumers("direct.0");
-		busUnbindLatency();
+		busBindUnbindLatency();
 
+		Spy spy = spyOn("direct.0");
 		count.set(0);
 		moduleOutputChannel.send(new GenericMessage<String>("bar"));
 		moduleOutputChannel.send(new GenericMessage<String>("baz"));
-		Object bar = receive("direct.0", false);
+		Object bar = spy.receive(false);
 		assertEquals("bar", bar);
-		Object baz = receive("direct.0", false);
+		Object baz = spy.receive(false);
 		assertEquals("baz", baz);
 		assertEquals(0, count.get());
 
@@ -95,16 +96,30 @@ public abstract class BrokerBusTests extends
 		assertNotNull(caller.get());
 		assertSame(Thread.currentThread(), caller.get());
 		assertEquals(2, count.get());
-		assertNull(receive("direct.0", true));
+		assertNull(spy.receive(true));
 
 		bus.unbindProducers("direct.0");
 		bus.unbindConsumers("direct.0");
 	}
 
-	protected void busUnbindLatency() throws InterruptedException {
-		// default none
+	/**
+	 * Create a new spy on the given 'queue'. This allows de-correlating the creation of
+	 * the 'connection' from its actual usage, which may be needed by some implementations to
+	 * see messages sent after connection creation.
+	 */
+	public abstract Spy spyOn(final String name);
+
+	/**
+	 * Represents an out-of-band connection to the underlying middleware,
+	 * so that tests can check that some messages actually do (or do not)
+	 * transit through it.
+	 *
+	 * @author Eric Bottard
+	 */
+	public static interface Spy {
+
+		public Object receive(boolean expectNull) throws Exception;
 	}
 
-	protected abstract Object receive(String queue, boolean expectNull) throws Exception;
 
 }

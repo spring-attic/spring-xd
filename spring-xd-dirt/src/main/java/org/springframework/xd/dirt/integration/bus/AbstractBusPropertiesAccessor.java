@@ -24,7 +24,7 @@ import org.springframework.util.StringUtils;
 
 
 /**
- * Base class for bus-specific property accessors; common properies
+ * Base class for bus-specific property accessors; common properties
  * are defined here.
  *
  * @author Gary Russell

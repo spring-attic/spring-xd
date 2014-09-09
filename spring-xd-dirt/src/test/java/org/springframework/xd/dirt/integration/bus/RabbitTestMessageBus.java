@@ -29,7 +29,7 @@ import org.springframework.xd.dirt.integration.rabbit.RabbitMessageBus;
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
  */
-public class RabbitTestMessageBus extends AbstractTestMessageBus {
+public class RabbitTestMessageBus extends AbstractTestMessageBus<RabbitMessageBus> {
 
 	private final RabbitAdmin rabbitAdmin;
 

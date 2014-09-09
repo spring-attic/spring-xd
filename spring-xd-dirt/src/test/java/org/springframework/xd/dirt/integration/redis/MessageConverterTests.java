@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.redis.RedisMessageBus.EmbeddedHeadersMessageConverter;
+import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 
 /**
  * @author Gary Russell

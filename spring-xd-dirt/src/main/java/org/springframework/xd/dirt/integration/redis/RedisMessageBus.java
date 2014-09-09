@@ -17,10 +17,8 @@
 package org.springframework.xd.dirt.integration.redis;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +40,6 @@ import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
 import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -57,6 +54,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
+import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
@@ -129,18 +127,19 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	/**
 	 * None.
 	 */
-	private static final Set<Object> SUPPORTED_PUBSUB_PRODUCER_PROPERTIES = Collections.emptySet();
+	private static final Set<Object> SUPPORTED_PUBSUB_PRODUCER_PROPERTIES = PRODUCER_STANDARD_PROPERTIES;
 
 	/**
 	 * None.
 	 */
-	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = Collections.emptySet();
+	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = PRODUCER_STANDARD_PROPERTIES;
 
 	/**
 	 * Partitioning.
 	 */
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new SetBuilder()
 			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
+			.addAll(PRODUCER_STANDARD_PROPERTIES)
 			.add(BusProperties.DIRECT_BINDING_ALLOWED)
 			.build();
 
@@ -482,73 +481,9 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			return deserializePayloadIfNecessary(theRequestMessage);
 		}
 
-	};
-
-	static class EmbeddedHeadersMessageConverter {
-
-		/**
-		 * Encodes requested headers into payload; max headers = 255; max header name length = 255; max header value
-		 * length = 255.
-		 *
-		 * @throws UnsupportedEncodingException
-		 */
-		Message<byte[]> embedHeaders(Message<byte[]> message, String... headers) throws UnsupportedEncodingException {
-			String[] headerValues = new String[headers.length];
-			int n = 0;
-			int headerCount = 0;
-			int headersLength = 0;
-			for (String header : headers) {
-				String value = message.getHeaders().get(header) == null ? null
-						: message.getHeaders().get(header).toString();
-				headerValues[n++] = value;
-				if (value != null) {
-					headerCount++;
-					headersLength += header.length() + value.length();
-				}
-			}
-			byte[] newPayload = new byte[message.getPayload().length + headersLength + headerCount * 2 + 1];
-			ByteBuffer byteBuffer = ByteBuffer.wrap(newPayload);
-			byteBuffer.put((byte) headerCount);
-			for (int i = 0; i < headers.length; i++) {
-				if (headerValues[i] != null) {
-					byteBuffer.put((byte) headers[i].length());
-					byteBuffer.put(headers[i].getBytes("UTF-8"));
-					byteBuffer.put((byte) headerValues[i].length());
-					byteBuffer.put(headerValues[i].getBytes("UTF-8"));
-				}
-			}
-			byteBuffer.put(message.getPayload());
-			return MessageBuilder.withPayload(newPayload).copyHeaders(message.getHeaders()).build();
-		}
-
-		Message<byte[]> extractHeaders(Message<byte[]> message) throws UnsupportedEncodingException {
-			byte[] bytes = message.getPayload();
-			ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-			int headerCount = byteBuffer.get();
-			Map<String, Object> headers = new HashMap<String, Object>();
-			for (int i = 0; i < headerCount; i++) {
-				int len = byteBuffer.get();
-				String headerName = new String(bytes, byteBuffer.position(), len, "UTF-8");
-				byteBuffer.position(byteBuffer.position() + len);
-				len = byteBuffer.get();
-				String headerValue = new String(bytes, byteBuffer.position(), len, "UTF-8");
-				byteBuffer.position(byteBuffer.position() + len);
-				if (IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(headerName)
-						|| IntegrationMessageHeaderAccessor.SEQUENCE_SIZE.equals(headerName)) {
-					headers.put(headerName, Integer.parseInt(headerValue));
-				}
-				else {
-					headers.put(headerName, headerValue);
-				}
-			}
-			byte[] newPayload = new byte[byteBuffer.remaining()];
-			byteBuffer.get(newPayload);
-			return MessageBuilder.withPayload(newPayload).copyHeaders(headers).build();
-		}
-
 	}
 
-	private class RedisPropertiesAccessor extends AbstractBusPropertiesAccessor {
+	private static class RedisPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
 		public RedisPropertiesAccessor(Properties properties) {
 			super(properties);

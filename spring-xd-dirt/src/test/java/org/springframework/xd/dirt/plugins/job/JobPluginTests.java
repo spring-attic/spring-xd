@@ -83,7 +83,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	private ConfigurableApplicationContext sharedContext;
 
-	protected AbstractTestMessageBus testMessageBus;
+	protected AbstractTestMessageBus<?> testMessageBus;
 
 	private LocalMessageBus messageBus;
 
@@ -98,7 +98,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	@Configuration
 	@ImportResource({ "classpath:/META-INF/spring-xd/batch/batch.xml",
-	"classpath:/META-INF/spring-xd/transports/local-bus.xml" })
+		"classpath:/META-INF/spring-xd/transports/local-bus.xml" })
 	@EnableAutoConfiguration
 	public static class SharedConfiguration {
 
@@ -108,8 +108,8 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void setUp() throws Exception {
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class, HsqlDatasourceConfiguration.class,
 				HsqlServerApplication.class)
-		.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE)
-		.web(false).run();
+				.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE)
+				.web(false).run();
 		messageBus = sharedContext.getBean(LocalMessageBus.class);
 		jobPlugin = new JobPlugin(messageBus);
 		jobPartitionerPlugin = new JobPartitionerPlugin(messageBus);

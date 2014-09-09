@@ -30,15 +30,15 @@ import org.springframework.messaging.MessageChannel;
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
  */
-public abstract class AbstractTestMessageBus implements MessageBus {
+public abstract class AbstractTestMessageBus<C extends MessageBusSupport> implements MessageBus {
 
 	protected Set<String> queues = new HashSet<String>();
 
 	protected Set<String> topics = new HashSet<String>();
 
-	private MessageBusSupport messageBus;
+	private C messageBus;
 
-	public void setMessageBus(MessageBusSupport messageBus) {
+	public void setMessageBus(C messageBus) {
 		messageBus.setIntegrationEvaluationContext(new StandardEvaluationContext());
 		try {
 			messageBus.afterPropertiesSet();
@@ -91,7 +91,7 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 		topics.add("topic." + topicName);
 	}
 
-	public MessageBus getCoreMessageBus() {
+	public C getCoreMessageBus() {
 		return messageBus;
 	}
 

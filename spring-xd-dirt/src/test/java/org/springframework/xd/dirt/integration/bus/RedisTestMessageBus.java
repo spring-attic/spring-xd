@@ -34,7 +34,7 @@ import org.springframework.xd.dirt.integration.redis.RedisMessageBus;
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
  */
-public class RedisTestMessageBus extends AbstractTestMessageBus {
+public class RedisTestMessageBus extends AbstractTestMessageBus<RedisMessageBus> {
 
 	private StringRedisTemplate template;
 

@@ -70,6 +70,11 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		return testMessageBus;
 	}
 
+	@Override
+	protected boolean usesExplicitRouting() {
+		return true;
+	}
+
 	@Test
 	public void testSendAndReceiveBad() throws Exception {
 		MessageBus messageBus = getMessageBus();
@@ -443,20 +448,27 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 	}
 
 	@Override
-	public Object receive(String queue, boolean expectNull) throws Exception {
-		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
-		if (expectNull) {
-			Thread.sleep(50);
-			return template.receiveAndConvert("xdbus." + queue);
-		}
-		Object bar = null;
-		int n = 0;
-		while (n++ < 100 && bar == null) {
-			bar = template.receiveAndConvert("xdbus." + queue);
-			Thread.sleep(100);
-		}
-		assertTrue("Message did not arrive in RabbitMQ", n < 100);
-		return bar;
+	public Spy spyOn(final String queue) {
+		final RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
+		return new Spy() {
+
+			@Override
+			public Object receive(boolean expectNull) throws Exception {
+				if (expectNull) {
+					Thread.sleep(50);
+					return template.receiveAndConvert("xdbus." + queue);
+				}
+				Object bar = null;
+				int n = 0;
+				while (n++ < 100 && bar == null) {
+					bar = template.receiveAndConvert("xdbus." + queue);
+					Thread.sleep(100);
+				}
+				assertTrue("Message did not arrive in RabbitMQ", n < 100);
+				return bar;
+			}
+
+		};
 	}
 
 }

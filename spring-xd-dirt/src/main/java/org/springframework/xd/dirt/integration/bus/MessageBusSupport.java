@@ -111,6 +111,14 @@ public abstract class MessageBusSupport
 
 	private static final int DEFAULT_MAX_ATTEMPTS = 3;
 
+	/**
+	 * The set of properties every bus implementation must support (or at least tolerate).
+	 */
+	protected static final Set<Object> PRODUCER_STANDARD_PROPERTIES = new HashSet<Object>(Arrays.asList(
+			BusProperties.NEXT_MODULE_COUNT
+			));
+
+
 	protected static final Set<Object> CONSUMER_RETRY_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
 		BusProperties.BACK_OFF_INITIAL_INTERVAL,
 		BusProperties.BACK_OFF_MAX_INTERVAL,
@@ -846,7 +854,7 @@ public abstract class MessageBusSupport
 
 	}
 
-	protected class PartitioningMetadata {
+	protected static class PartitioningMetadata {
 
 		private final String partitionKeyExtractorClass;
 

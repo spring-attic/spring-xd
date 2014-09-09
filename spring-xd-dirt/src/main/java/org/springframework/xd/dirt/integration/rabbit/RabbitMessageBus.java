@@ -146,12 +146,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	/**
 	 * Rabbit producer properties.
 	 */
-	private static final Set<Object> SUPPORTED_BASIC_PRODUCER_PROPERTIES = new HashSet<Object>(
-			Arrays.asList(new String[] {
-				RabbitPropertiesAccessor.DELIVERY_MODE,
-				RabbitPropertiesAccessor.PREFIX,
-				RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS
-			}));
+	private static final Set<Object> SUPPORTED_BASIC_PRODUCER_PROPERTIES = new SetBuilder()
+			.addAll(PRODUCER_STANDARD_PROPERTIES)
+			.add(RabbitPropertiesAccessor.DELIVERY_MODE)
+			.add(RabbitPropertiesAccessor.PREFIX)
+			.add(RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS)
+			.build();
 
 	private static final Set<Object> SUPPORTED_PUBSUB_PRODUCER_PROPERTIES = SUPPORTED_BASIC_PRODUCER_PROPERTIES;
 
@@ -167,7 +167,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			.build();
 
 	/**
-	 * Basic producer + basic consumer + concurrency + reply headers. 
+	 * Basic producer + basic consumer + concurrency + reply headers.
 	 */
 	private static final Set<Object> SUPPORTED_REQUESTING_PRODUCER_PROPERTIES = new SetBuilder()
 			// request
@@ -564,7 +564,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	 * Property accessor for the RabbitMessageBus. Refer to the Spring-AMQP
 	 * documentation for information on the specific properties.
 	 */
-	private class RabbitPropertiesAccessor extends AbstractBusPropertiesAccessor {
+	private static class RabbitPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
 		/**
 		 * The acknowledge mode.

@@ -130,14 +130,14 @@ public class LocalMessageBus extends MessageBusSupport {
 	 */
 	@Override
 	public void bindProducer(String name, MessageChannel moduleOutputChannel, Properties properties) {
-		validateConsumerProperties(name, properties, Collections.emptySet());
+		validateConsumerProperties(name, properties, PRODUCER_STANDARD_PROPERTIES);
 		doRegisterProducer(name, moduleOutputChannel, getChannelProvider(name), properties);
 	}
 
 	@Override
 	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel,
 			Properties properties) {
-		validateConsumerProperties(name, properties, Collections.emptySet());
+		validateConsumerProperties(name, properties, PRODUCER_STANDARD_PROPERTIES);
 		doRegisterProducer(name, moduleOutputChannel, this.pubsubChannelProvider, properties);
 	}
 
@@ -277,7 +277,7 @@ public class LocalMessageBus extends MessageBusSupport {
 		return getApplicationContext().getBean(name, requiredType);
 	}
 
-	private class LocalBusPropertiesAccessor extends AbstractBusPropertiesAccessor {
+	private static class LocalBusPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
 		public LocalBusPropertiesAccessor(Properties properties) {
 			super(properties);

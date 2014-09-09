@@ -70,6 +70,11 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		return testMessageBus;
 	}
 
+	@Override
+	protected boolean usesExplicitRouting() {
+		return true;
+	}
+
 	@Test
 	public void testSendAndReceiveBad() throws Exception {
 		MessageBus messageBus = getMessageBus();

@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.integration.bus;
 
 /**
  * Common bus properties.
- * 
+ *
  * @author Gary Russell
  */
 public interface BusProperties {
@@ -85,8 +85,13 @@ public interface BusProperties {
 	public static final String PARTITION_SELECTOR_EXPRESSION = "partitionSelectorExpression";
 
 	/**
-	 * If true, the bus will attempt to create a direct binding between the producer and consumer. 
+	 * If true, the bus will attempt to create a direct binding between the producer and consumer.
 	 */
 	public static final String DIRECT_BINDING_ALLOWED = "directBindingAllowed";
+
+	/**
+	 * For all non-terminal modules, the number of modules coming after this one, irrespective of partitioning.
+	 */
+	public static final String NEXT_MODULE_COUNT = "next.module.count";
 
 }

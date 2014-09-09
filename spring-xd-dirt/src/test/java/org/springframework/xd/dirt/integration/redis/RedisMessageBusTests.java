@@ -73,6 +73,11 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 	}
 
 	@Override
+	protected boolean usesExplicitRouting() {
+		return true;
+	}
+
+	@Override
 	public void testSendAndReceivePubSub() throws Exception {
 
 		TimeUnit.SECONDS.sleep(2); //TODO remove timing issue

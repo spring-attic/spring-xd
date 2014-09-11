@@ -134,6 +134,16 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 	 */
 	protected abstract void onChildAdded(CuratorFramework client, ChildData data) throws Exception;
 
+
+    	/**
+     	* Handle the Update deployment requests.
+     	*
+     	* @param client the curator client
+     	* @param data the data that represents the module deployments
+     	* @throws Exception
+     	*/
+    	protected abstract void onChildUpdated(CuratorFramework client, ChildData data) throws Exception;
+    
 	/**
 	 * Handle the removal of module deployment requests.
 	 *
@@ -219,6 +229,9 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 					case CHILD_REMOVED:
 						onChildRemoved(client, event.getData());
 						break;
+					case CHILD_UPDATED:
+                        			onChildUpdated(client,event.getData());
+                        			break;
 					default:
 						break;
 				}

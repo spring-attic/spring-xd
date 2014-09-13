@@ -41,7 +41,7 @@
           <p ng-if="authenticationEnabled && !user.isAuthenticated" class="navbar-text navbar-right">Not logged in</p>
           <ul class="nav navbar-nav navbar-right">
             <li ng-class="{ active: $state.includes('home.containers') }">
-               <a ui-sref="home.containers.tabs">Containers</a>
+               <a ui-sref="home.containers.tabs.containerlist">Containers</a>
             </li>
             <li ng-class="{ active: $state.includes('home.streams') }">
                <a ui-sref="home.streams.tabs.definitions">Streams</a>

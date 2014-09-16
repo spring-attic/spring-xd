@@ -23,15 +23,15 @@ define(['angular'], function (angular) {
   'use strict';
 
   return angular.module('xdShared.interceptors', [])
-  .factory('httpErrorInterceptor', function(XDUtils){
-    return {
-      responseError: function(rejection) {
-        if (rejection.status === 0) {
-          XDUtils.growl.addErrorMessage('Looks like the XD server is down.');
-        }
-        XDUtils.$log.error('Response Error ' + rejection.status, rejection);
-        return XDUtils.$q.reject(rejection);
-      }
-    };
-  });
+      .factory('httpErrorInterceptor', function (XDUtils) {
+        return {
+          responseError: function (rejection) {
+            if (rejection.status === 0) {
+              XDUtils.growl.addErrorMessage('Looks like the XD server is down.');
+            }
+            XDUtils.$log.error('Response Error ' + rejection.status, rejection);
+            return XDUtils.$q.reject(rejection);
+          }
+        };
+      });
 });

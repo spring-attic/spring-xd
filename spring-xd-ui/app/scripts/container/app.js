@@ -15,22 +15,32 @@
  */
 
 /**
- * Definition of xdAdmin app module.
+ * App for XD containers.
  *
  * @author Ilayaperumal Gopinathan
  */
 define([
   'angular',
-  './job/app',
-  './stream/app',
-  './container/app',
-  './auth/app'
+  'uiRouter',
+  'ngResource',
+  'cgBusy',
+  'ngAnimate',
+  'ngGrowl',
+  './controllers',
+  './services',
+  '../shared/services',
+  '../shared/interceptors'
 ], function (angular) {
   'use strict';
-  return angular.module('xdAdmin', [
-    'xdJobsAdmin',
-    'xdStreamsAdmin',
-    'xdContainerAdmin',
-    'xdAuth'
+  return angular.module('xdContainerAdmin', [
+    'xdContainerAdmin.services',
+    'xdContainerAdmin.controllers',
+    'xdShared.services',
+    'xdShared.interceptors',
+    'ui.router',
+    'ngResource',
+    'ngAnimate',
+    'cgBusy',
+    'angular-growl'
   ]);
 });

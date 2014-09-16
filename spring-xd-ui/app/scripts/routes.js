@@ -36,7 +36,8 @@ define(['./app'], function (xdAdmin) {
     var jobTemplatesPath = 'scripts/job/views',
         streamTemplatesPath = 'scripts/stream/views',
         authTemplatesPath = 'scripts/auth/views',
-        sharedTemplatesPath = 'scripts/shared/views';
+        sharedTemplatesPath = 'scripts/shared/views',
+        containerTemplatesPath = 'scripts/container/views';
 
     $stateProvider.state('home', {
       url : '/',
@@ -51,6 +52,13 @@ define(['./app'], function (xdAdmin) {
       }
     })
     .state('home.streams', {
+      abstract:true,
+      template: '<ui-view/>',
+      data:{
+        authenticate: true
+      }
+    })
+    .state('home.containers', {
       abstract:true,
       template: '<ui-view/>',
       data:{
@@ -114,7 +122,7 @@ define(['./app'], function (xdAdmin) {
     .state('home.jobs.deployjob', {
       url : 'jobs/definitions/{definitionName}/deploy',
       templateUrl : jobTemplatesPath + '/definition-deploy.html',
-      controller: 'DefinitionDeployController',
+      controller: 'JobDefinitionDeployController',
       data:{
         authenticate: true
       }
@@ -179,6 +187,15 @@ define(['./app'], function (xdAdmin) {
         title: 'Module Create Definition',
         authenticate: true
       }
+    })
+    .state('home.containers.tabs', {
+      url : 'containers',
+      templateUrl: containerTemplatesPath + '/containers.html',
+      controller: 'ContainersController',
+      data:{
+        title: 'Containers',
+        authenticate: true
+      }
     });
   });
   xdAdmin.run(function ($rootScope, $state, $stateParams, userService, $log) {
@@ -188,6 +205,7 @@ define(['./app'], function (xdAdmin) {
     $rootScope.authenticationEnabled = false;
     $rootScope.user = userService;
     $rootScope.pageRefreshTime = 5000;
+    $rootScope.enableMessageRates = false;
 
     $rootScope.$on('$stateChangeStart', function(event, toState) {
         $log.info('Need to authenticate? ' + toState.data.authenticate);

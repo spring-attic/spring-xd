@@ -108,13 +108,13 @@ public class ContainersController {
 							+ ":module=" + moduleLabel + ".*,component=*,name=%s/MeanSendRate";
 					try {
 						HashMap<String, Double> rate = new HashMap<String, Double>();
-						if (moduleMetadata.getModuleType().equals(ModuleType.source.name())) {
+						if (moduleMetadata.getModuleType().equals(ModuleType.source)) {
 							rate.put("output", getMessageRate(String.format(request, "output")));
 						}
-						else if (moduleMetadata.getModuleType().equals(ModuleType.sink.name())) {
+						else if (moduleMetadata.getModuleType().equals(ModuleType.sink)) {
 							rate.put("input", getMessageRate(String.format(request, "input")));
 						}
-						else if (moduleMetadata.getModuleType().equals(ModuleType.processor.name())) {
+						else if (moduleMetadata.getModuleType().equals(ModuleType.processor)) {
 							rate.put("output", getMessageRate(String.format(request, "output")));
 							rate.put("input", getMessageRate(String.format(request, "input")));
 						}

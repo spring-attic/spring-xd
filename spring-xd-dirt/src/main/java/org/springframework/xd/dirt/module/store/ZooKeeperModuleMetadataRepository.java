@@ -107,8 +107,8 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 */
 	@Override
 	public ModuleMetadata findOne(String containerId, String moduleId) {
-		Assert.hasLength(containerId, "containerId is required");
-		Assert.hasLength(moduleId, "moduleId is required");
+		Assert.hasText(containerId, "containerId is required");
+		Assert.hasText(moduleId, "moduleId is required");
 		ModuleMetadata md = findOne(metadataPath(containerId, moduleId));
 		return md;
 	}
@@ -295,7 +295,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 */
 	@Override
 	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId) {
-		Assert.hasLength(containerId, "containerId is required");
+		Assert.hasText(containerId, "containerId is required");
 		return pagingUtility.getPagedData(pageable, findAllByContainerId(containerId));
 	}
 
@@ -306,7 +306,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 * @return {@link ModuleMetadata} of the modules deployed into this container.
 	 */
 	public List<ModuleMetadata> findAllByContainerId(String containerId) {
-		Assert.hasLength(containerId, "containerId is required");
+		Assert.hasText(containerId, "containerId is required");
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
 			List<String> deployedModules = getDeployedModules(containerId);
@@ -330,7 +330,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 */
 	@Override
 	public Page<ModuleMetadata> findAllByModuleId(Pageable pageable, String moduleId) {
-		Assert.hasLength(moduleId, "moduleId is required");
+		Assert.hasText(moduleId, "moduleId is required");
 		try {
 			List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 			for (String containerId : getAvailableContainerIds()) {

@@ -45,6 +45,7 @@ import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
 
 /**
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 @Controller
 @RequestMapping("/")

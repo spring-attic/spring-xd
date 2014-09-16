@@ -203,27 +203,24 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 * @return the {@link ModuleMetadata} collection with updated deployment status
 	 */
 	private Collection<ModuleMetadata> updateDeploymentStatus(Collection<ModuleMetadata> entities) {
-		Map<String, String> statusMap = new HashMap<String, String>();
+		Map<String, DeploymentUnitStatus.State> statusMap = new HashMap<String, DeploymentUnitStatus.State>();
 		for (ModuleMetadata entity : entities) {
-			String deploymentStatus;
+			DeploymentUnitStatus.State deploymentStatus;
 			String unitName = entity.getUnitName();
 			if (statusMap.get(unitName) == null) {
 				if (entity.getModuleType().equals(ModuleType.job.name())) {
-					Job job = jobRepository.findOne(entity.getUnitName());
-					deploymentStatus = (job != null) ? job.getStatus().getState().toString() : null;
+					Job job = jobRepository.findOne(unitName);
+					deploymentStatus = (job != null) ? job.getStatus().getState() : null;
 					statusMap.put(unitName, deploymentStatus);
 				}
 				else {
-					Stream stream = streamRepository.findOne(entity.getUnitName());
-					deploymentStatus = (stream != null) ? stream.getStatus().getState().toString() : null;
+					Stream stream = streamRepository.findOne(unitName);
+					deploymentStatus = (stream != null) ? stream.getStatus().getState() : null;
 					statusMap.put(unitName, deploymentStatus);
 				}
 			}
-			else {
-				deploymentStatus = statusMap.get(entity.getUnitName());
-			}
-			if (deploymentStatus != null) {
-				entity.setDeploymentStatus(DeploymentUnitStatus.State.valueOf(deploymentStatus));
+			if (statusMap.get(unitName) != null) {
+				entity.setDeploymentStatus(statusMap.get(unitName));
 			}
 		}
 		return entities;

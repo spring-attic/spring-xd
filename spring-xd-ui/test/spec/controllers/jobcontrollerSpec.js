@@ -65,8 +65,8 @@ define([
       expect(controller).toBeDefined();
     }));
 
-    it('should have a DefinitionDeployController', inject(function($rootScope, $controller) {
-      var controller = $controller('DefinitionDeployController', { $scope: $rootScope.$new(), $rootScope: $rootScope });
+    it('should have a JobDefinitionDeployController', inject(function($rootScope, $controller) {
+      var controller = $controller('JobDefinitionDeployController', { $scope: $rootScope.$new(), $rootScope: $rootScope });
       expect(controller).toBeDefined();
     }));
   });

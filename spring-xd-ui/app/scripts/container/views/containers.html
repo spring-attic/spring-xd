@@ -1,0 +1,82 @@
+<h1>Cluster view</h1>
+<div class="tab-pane active col-md-12">
+    <ul class="nav nav-tabs">
+        <li ng-class="{ active: $state.includes('home.containers.tabs') }"><a
+                ui-sref="home.containers.tabs">Containers</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div ui-view></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="col-md-12 table-filter">
+            <div class="col-md-4 col-md-offset-8">
+                <input type="text" class="form-control" ng-model="filterQuery" id="filterTable"
+                       placeholder="Quick filter">
+            </div>
+        </div>
+    </div>
+</div>
+<table class="cluster-view table table-condensed">
+    <thead>
+    <tr>
+        <th>Container Id</th>
+        <th>Groups</th>
+        <th>Deployed Modules</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="item in containers | filter:filterQuery | orderBy: item.groups"
+        ng-show="!item.inactive">
+        <td class="label label-primary" data-toggle="tooltip" data-placement="left"
+            title="{{item.attributes}}">
+            {{item.containerId}}
+        </td>
+        <td>
+            <table>
+                <tr ng-repeat="group in item.groups.split(',')">
+                    <td ng-show="group" class="label label-default">
+                        {{group}}
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <table class="deployed-modules">
+                <tr ng-repeat="deployments in item.deployedModules">
+                    <td class="label {{deployments.deploymentStatus}}" data-toggle="tooltip"
+                        data-placement="left"
+                        title="{{deployments.deploymentStatus}}">
+                        {{deployments.unitName}}
+                    </td>
+                    <td class="input-group-addon" data-toggle="tooltip"
+                        data-placement="left"
+                        title="{{deployments.moduleOptions}} {{deployments.deploymentProperties}}">
+                        {{deployments.name}}
+                    </td>
+                    <td class="input-group-addon" ng-show="item.attributes.managementPort != undefined">
+                        <span ng-show="deployments.incomingRate">
+                            <span class="glyphicon glyphicon-arrow-down" data-toggle="tooltip"
+                                  data-placement="left"
+                                  title="msgs/second">{{deployments.incomingRate}}</span>
+                        </span>
+                        <span ng-show="deployments.outgoingRate">
+                            <span class="glyphicon glyphicon-arrow-up" data-toggle="tooltip"
+                                  data-placement="left" title="msgs/second">{{deployments.outgoingRate}}</span>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td class="action-column">
+            <button ng-show="item.attributes.managementPort != undefined" type="button" ng-click="shutdownContainer(item.containerId)"
+                    class="btn btn-default"
+                    ><span class="glyphicon glyphicon-remove"></span> Shutdown
+            </button>
+        </td>
+    </tr>
+    </tbody>
+</table>

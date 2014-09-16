@@ -52,7 +52,8 @@ public class ModuleMetadataResource extends ResourceSupport {
 	private ModuleMetadataResource() {
 	}
 
-	public ModuleMetadataResource(String moduleId, String name, String unitName, String moduleType, String containerId,
+	public ModuleMetadataResource(String moduleId, String name, String unitName, String moduleType,
+			String containerId,
 			Properties moduleProperties, Properties deploymentProperties, String deploymentStatus) {
 		this.moduleId = moduleId;
 		this.name = name;

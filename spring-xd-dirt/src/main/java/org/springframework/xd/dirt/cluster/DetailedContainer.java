@@ -77,10 +77,18 @@ public class DetailedContainer extends Container {
 		this.deployedModules = deployedModules;
 	}
 
+	/**
+	 * Set the messageRates for the individual deployed modules.
+	 *
+	 * @param messageRates
+	 */
 	public void setMessageRates(Map<String, HashMap<String, Double>> messageRates) {
 		this.messageRates = messageRates;
 	}
 
+	/**
+	 * @return the map that has the message rate for deployed modules.
+	 */
 	public Map<String, HashMap<String, Double>> getMessageRates() {
 		return this.messageRates;
 	}

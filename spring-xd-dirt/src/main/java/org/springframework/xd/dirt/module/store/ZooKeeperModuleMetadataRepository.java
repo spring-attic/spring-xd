@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.dirt.stream.Stream;
@@ -124,7 +125,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 				String moduleName = metadataMap.get(XD_MODULE_NAME_KEY) + "." + moduleIndex;
 				metadata = new ModuleMetadata(metadataId, moduleName,
 						metadataId.substring(0, metadataId.indexOf(".")),
-						metadataMap.get(XD_MODULE_TYPE_KEY),
+						ModuleType.valueOf(metadataMap.get(XD_MODULE_TYPE_KEY)),
 						getContainerId(metadataPath),
 						getResolvedModuleOptions(metadataMap),
 						getDeploymentProperties(metadataPath));
@@ -221,7 +222,9 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			else {
 				deploymentStatus = statusMap.get(entity.getUnitName());
 			}
-			entity.setDeploymentStatus(deploymentStatus);
+			if (deploymentStatus != null) {
+				entity.setDeploymentStatus(DeploymentUnitStatus.State.valueOf(deploymentStatus));
+			}
 		}
 		return entities;
 	}

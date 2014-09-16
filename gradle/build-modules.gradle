@@ -204,6 +204,12 @@ project('modules.processor.aggregator') {
     }
 }
 
+project('modules.processor.shell') {
+	dependencies {
+		runtime(project(":spring-xd-extension-process"))
+	}
+}
+
 // ================ M O D U L E S : S I N K S ==========================
 
 project('modules.sink.tcp') {

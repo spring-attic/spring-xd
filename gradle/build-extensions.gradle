@@ -50,6 +50,18 @@ project('spring-xd-extension-batch') {
     }
 }
 
+project('spring-xd-extension-process') {
+	description = 'Spring XD support for executing an external process'
+	dependencies {
+		compile "org.springframework.integration:spring-integration-ip"
+		testCompile project(':spring-xd-test')
+		testRuntime "org.slf4j:jcl-over-slf4j",
+				"org.slf4j:slf4j-log4j12",
+				"log4j:log4j"
+	}
+}
+
+
 project('spring-xd-extension-tcp') {
     description = 'Spring XD TCP'
     dependencies {

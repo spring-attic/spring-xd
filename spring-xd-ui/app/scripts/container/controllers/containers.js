@@ -54,13 +54,18 @@ define([], function () {
             }
         );
       })();
+      $scope.confirmShutdown = function (containerId) {
+        $scope.destroyItem = containerId;
+      };
       $scope.shutdownContainer = function (containerId) {
         containerService.shutdownContainer(containerId).$promise.then(
             function () {
               utils.growl.addSuccessMessage('Shutdown request sent');
+              $scope.closeModal();
             },
             function () {
               utils.growl.addErrorMessage('Error shutting down container: ' + containerId);
+              $scope.closeModal();
             }
         );
       };

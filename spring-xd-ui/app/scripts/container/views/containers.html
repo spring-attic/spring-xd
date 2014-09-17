@@ -1,4 +1,8 @@
 <h1>Cluster view</h1>
+<p ng-class="{ hide: !$state.includes('home.containers.tabs') }" class="index-page--subtitle"> This section shows
+    the XD cluster view with the list of all running containers. To enable actions on the containers, make sure to
+    <b>enable</b> the management port.
+</p>
 <div class="tab-pane active col-md-12">
     <ul class="nav nav-tabs">
         <li ng-class="{ active: $state.includes('home.containers.tabs') }"><a
@@ -19,7 +23,7 @@
         </div>
     </div>
 </div>
-<table class="cluster-view table table-condensed">
+<table class="cluster-view table">
     <thead>
     <tr>
         <th>Container Id</th>
@@ -31,8 +35,7 @@
     <tbody>
     <tr ng-repeat="item in containers | filter:filterQuery | orderBy: item.groups"
         ng-show="!item.inactive">
-        <td class="label label-primary" data-toggle="tooltip" data-placement="left"
-            title="{{item.attributes}}">
+        <td id="container-id" data-toggle="tooltip" data-placement="left" title="{{item.attributes}}">
             {{item.containerId}}
         </td>
         <td>
@@ -72,11 +75,31 @@
             </table>
         </td>
         <td class="action-column">
-            <button ng-show="item.attributes.managementPort != undefined" type="button" ng-click="shutdownContainer(item.containerId)"
-                    class="btn btn-default"
-                    ><span class="glyphicon glyphicon-remove"></span> Shutdown
-            </button>
+            <div>
+                <button ng-disabled="item.attributes.managementPort === undefined" type="button" ng-click="confirmShutdown(item.containerId)"
+                        class="btn btn-default" data-toggle="modal" data-target="#confirm-shutdown"
+                        ><span class="glyphicon glyphicon-remove"></span> Shutdown
+                </button>
+            </div>
         </td>
     </tr>
     </tbody>
 </table>
+<div class="modal fade" xd-modal id="confirm-shutdown" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Confirm Shutdown Action</h4>
+            </div>
+            <div class="modal-body">
+                <p>This action will shutdown the container <b>{{destroyItem}}</b>. Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" ng-click="shutdownContainer(destroyItem)">Confirm Shutdown
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

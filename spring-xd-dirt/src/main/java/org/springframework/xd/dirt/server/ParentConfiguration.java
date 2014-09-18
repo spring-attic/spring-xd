@@ -41,8 +41,8 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * @author Mark Fisher
  */
 @EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
-	JmxAutoConfiguration.class, HealthIndicatorAutoConfiguration.class })
-@ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "batch/batch.xml")
+		JmxAutoConfiguration.class, HealthIndicatorAutoConfiguration.class })
+@ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "global/parent-context.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {
 

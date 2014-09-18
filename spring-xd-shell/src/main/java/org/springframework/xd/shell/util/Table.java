@@ -81,15 +81,17 @@ public class Table {
 		for (java.util.Map.Entry<Integer, TableHeader> headerEntry : headers.entrySet()) {
 			final Integer headerEntryKey = headerEntry.getKey();
 			for (TableRow tableRow : rows) {
-				headerEntry.getValue().updateWidth(tableRow.getValue(headerEntryKey).length());
+				if (tableRow.getValue(headerEntryKey) != null) {
+					headerEntry.getValue().updateWidth(tableRow.getValue(headerEntryKey).length());
+				}
 			}
 		}
 	}
 
-    @Override
-    public String toString() {
-        return UiUtils.renderTextTable(this);
-    }
+	@Override
+	public String toString() {
+		return UiUtils.renderTextTable(this);
+	}
 
 	@Override
 	public int hashCode() {

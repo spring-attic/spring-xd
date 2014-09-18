@@ -188,7 +188,7 @@ public final class UiUtils {
 			StringBuilder rowLine = new StringBuilder();
 			for (Entry<Integer, TableHeader> entry : table.getHeaders().entrySet()) {
 				String value = row.getValue(entry.getKey());
-				if (value.length() > entry.getValue().getWidth()) {
+				if (null != value && (value.length() > entry.getValue().getWidth())) {
 					Iterable<String> chunks = Splitter.fixedLength(entry.getValue().getWidth()).split(value);
 					int length = rowLine.length();
 					boolean first = true;

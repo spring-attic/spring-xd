@@ -11,9 +11,20 @@
 		class="org.springframework.xd.dirt.plugins.job.DistributedJobLocator">
 		<property name="jdbcTemplate" ref="jdbcTemplate" />
 	</bean>
-
+	
 	<beans profile="admin">
 		<import resource="classpath:/org/springframework/xd/batch/hsql-datasource.xml" />
+
+		<bean id="batchConfigurer"
+			class="org.springframework.xd.dirt.batch.RuntimeBatchConfigurer">
+			<constructor-arg ref="dataSource" />
+			<property name="isolationLevel" value="${spring.batch.isolationlevel:#{T(org.springframework.xd.dirt.batch.RuntimeBatchConfigurer).DEFAULT_ISOLATION_LEVEL}}" />
+			<property name="clobType" value="${spring.batch.clobtype:#{null}}" />
+			<property name="dbType" value="${spring.batch.dbtype:#{null}}" />
+			<property name="maxVarCharLength" value="${spring.batch.maxvarcharlength:#{T(org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao).DEFAULT_EXIT_MESSAGE_LENGTH}}" />
+			<property name="tablePrefix" value="${spring.batch.tableprefix:#{T(org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao).DEFAULT_TABLE_PREFIX}}" />
+			<property name="validateTransactionState" value="${spring.batch.validatetransactionstate:true}" />
+		</bean>
 
 		<bean class="org.springframework.xd.dirt.plugins.job.DistributedJobService">
 			<constructor-arg ref="jobInstanceDao" />

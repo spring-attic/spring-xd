@@ -225,7 +225,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param stream the stream definition
 	 */
 	public void stream(String stream) {
-		stream(STREAM_NAME, stream, WAIT_TIME);
+		stream(STREAM_NAME, stream);
 	}
 
 	/**
@@ -233,15 +233,14 @@ public abstract class AbstractIntegrationTest {
 	 *
 	 * @param streamName the name of the stream
 	 * @param stream the stream definition
-	 * @param waitTime the time to wait for a stream to be deployed
 	 */
-	public void stream(String streamName, String stream, int waitTime) {
+	public void stream(String streamName, String stream) {
 		Assert.hasText(streamName, "stream name can not be empty nor null");
 		Assert.hasText(stream, "stream needs to be populated with a definition and can not be null");
 		StreamUtils.stream(streamName, stream, adminServer);
 		waitForXD();
 		assertTrue("The stream did not deploy. ",
-				waitForStreamDeployment(streamName, waitTime));
+				waitForStreamDeployment(streamName, WAIT_TIME));
 	}
 
 

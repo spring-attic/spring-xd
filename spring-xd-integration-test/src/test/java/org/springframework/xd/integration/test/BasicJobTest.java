@@ -34,7 +34,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Glenn Renfro
  */
-public class BasicJobTest extends AbstractIntegrationTest {
+public class BasicJobTest extends AbstractJobTest {
 
 	private final static String JOB_NAME = "batchbasic";
 
@@ -52,10 +52,10 @@ public class BasicJobTest extends AbstractIntegrationTest {
 	@Test
 	public void testBasicJob() {
 		String jobName = "bb" + UUID.randomUUID().toString();
-		job(jobName, JOB_NAME, WAIT_TIME);
-		assertTrue(JOB_NAME + " did not deploy", waitForJobDeployment(jobName, WAIT_TIME));
+		job(jobName, JOB_NAME,true);
 		setupDataFiles(getContainerHostForJob(jobName), "/tmp", "sample.txt", "h,e,l,l,o,w,o,r,l,d");
 		jobLaunch(jobName);
+		waitForXD();
 		assertEquals(BatchStatus.COMPLETED, getJobExecutionStatus(jobName));
 	}
 

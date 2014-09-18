@@ -64,8 +64,7 @@ public class HdfsJdbcTest extends AbstractJobTest {
 		job.fileName(HdfsJdbcJob.DEFAULT_FILE_NAME + "-0.txt");
 		// Create a stream that writes to a hdfs file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMITER + sinks.hdfs()
-				.directoryName(HdfsJdbcJob.DEFAULT_DIRECTORY).fileName(DEFAULT_FILE_NAME).toDSL(),
-				WAIT_TIME);
+				.directoryName(HdfsJdbcJob.DEFAULT_DIRECTORY).fileName(DEFAULT_FILE_NAME).toDSL());
 		sources.http(getContainerHostForSource("dataSender")).postData(data);
 		job(job.toDSL());
 		waitForXD();

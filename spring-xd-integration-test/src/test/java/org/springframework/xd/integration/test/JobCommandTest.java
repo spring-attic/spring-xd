@@ -73,7 +73,7 @@ public class JobCommandTest extends AbstractJobTest {
 				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
 		String jobName = "tjl" + UUID.randomUUID().toString();
 		logger.info("Testing Job Lifecycle for: " + jobName);
-		job(jobName, job.toDSL());
+		job(jobName, job.toDSL(),true);
 		checkJob(jobName, job.toDSL(), true);
 		undeployJob(jobName);
 		checkJob(jobName, job.toDSL(), false);
@@ -110,9 +110,9 @@ public class JobCommandTest extends AbstractJobTest {
 
 		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
 				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
-		jobNoDeploy("jobFalseDeploy", job.toDSL());
+		job("jobFalseDeploy", job.toDSL(),false);
 		checkJob(job.toDSL(), false);
-		jobNoDeploy("jobFalseDeploy", job.toDSL());
+		job("jobFalseDeploy", job.toDSL(),false);
 	}
 
 	@Test
@@ -122,7 +122,7 @@ public class JobCommandTest extends AbstractJobTest {
 		String jobName = "tjduf" + UUID.randomUUID().toString();
 		logger.info("Testing Job Deploy Undeploy Flow for: " + jobName);
 
-		job(jobName, job.toDSL());
+		job(jobName, job.toDSL(),true);
 		checkJob(jobName, job.toDSL(), true);
 		undeployJob(jobName);
 		checkJob(jobName, job.toDSL(), false);
@@ -136,7 +136,7 @@ public class JobCommandTest extends AbstractJobTest {
 		exception.expect(SpringXDException.class);
 		exception.expectMessage("Could not find module with name 'adfafadsf' and type 'job'");
 		logger.info("Testing Invalid Job False Descriptor");
-		job("FailJob", "adfafadsf");
+		job("FailJob", "adfafadsf",true);
 	}
 
 	@Test
@@ -144,7 +144,7 @@ public class JobCommandTest extends AbstractJobTest {
 		exception.expect(SpringXDException.class);
 		exception.expectMessage("Definition can not be empty");
 		logger.info("Testing Missing job Descriptor");
-		job("missingdescriptor", "");
+		job("missingdescriptor", "",true);
 	}
 
 	@Test
@@ -158,9 +158,9 @@ public class JobCommandTest extends AbstractJobTest {
 
 		// Create a stream that writes to a file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMITER
-				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL(), WAIT_TIME);
+				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL());
 		sources.http(getContainerHostForSource("dataSender")).postData(data);
-		job(jobName, job.toDSL());
+		job(jobName, job.toDSL(),true);
 		jobLaunch(jobName);
 		String query = String.format("SELECT data FROM %s", tableName);
 

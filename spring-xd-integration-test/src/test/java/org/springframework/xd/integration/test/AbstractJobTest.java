@@ -16,13 +16,6 @@
 
 package org.springframework.xd.integration.test;
 
-import static org.junit.Assert.assertTrue;
-
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.After;
 import org.junit.Before;
 
@@ -31,10 +24,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.fixtures.Jobs;
+import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
 import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.domain.StepExecutionInfoResource;
+
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -55,11 +56,14 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	@Override
 	@Before
 	public void setup() {
-		super.setup();
+		initializer();
 		springXDTemplate = createSpringXDTemplate();
 		destroyAllJobs();
 		waitForEmptyJobList(WAIT_TIME);
-	}
+        StreamUtils.destroyAllStreams(adminServer);
+        waitForXD();
+
+    }
 
 	/**
 	 * Destroys all streams created in the test.
@@ -78,36 +82,8 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	 * @param job the job definition
 	 */
 	public void job(String job) {
-		Assert.hasText(job, "job needs to be poopulated with a definition and can not be null");
-		job(JOB_NAME, job, WAIT_TIME);
-	}
-
-	/**
-	 * Creates a undeployed job on the XD cluster defined by the test's Artifact or Environment variables
-	 *
-	 * @param jobName the name of the job
-	 * @param job the job definition
-	 */
-	public void jobNoDeploy(String jobName, String job) {
-		Assert.hasText(jobName, "job name can not be empty nor null");
 		Assert.hasText(job, "job needs to be populated with a definition and can not be null");
-		springXDTemplate.jobOperations().createJob(jobName, job, false);
-	}
-
-	/**
-	 * Creates a job on the XD cluster defined by the test's Artifact or Environment variables
-	 *
-	 * @param jobName the name of the job
-	 * @param job the job definition
-	 * @param waitTime the time to wait for a job to be deployed
-	 */
-	public void job(String jobName, String job, int waitTime) {
-		Assert.hasText(jobName, "job name can not be empty nor null");
-		Assert.hasText(job, "job needs to be populated with a definition and can not be null");
-		job(jobName, job);
-		assertTrue("The job did not deploy. ",
-				waitForJobDeployment(jobName, waitTime));
-
+		job(JOB_NAME, job, true);
 	}
 
 	/**
@@ -123,7 +99,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	 * @param jobName The name of the job to be launched
 	 */
 	public void jobLaunch(String jobName) {
-		jobLaunch(jobName, "");
+		launchJob(jobName, "");
 	}
 
 	/**
@@ -145,24 +121,13 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 		return getContainerHostForModulePrefix(jobName, ModuleType.job);
 	}
 
-
-	/**
-	 * Wait the "waitTime" for a job to be deployed.
-	 *
-	 * @param waitTime the time in millis to wait.
-	 * @return true if deployed else false.
-	 */
-	public boolean waitForJobDeployment(int waitTime) {
-		return waitForJobDeployment(JOB_NAME, waitTime);
-	}
-
 	/*
 	* Launches a job on the XD instance
 	*
 	* @param jobName The name of the job to be launched
 	* @param jobParameters the job parameters
 	*/
-	public void jobLaunch(String jobName, String jobParameters) {
+	public void launchJob(String jobName, String jobParameters) {
 		Assert.hasText(jobName, "The jobName must not be empty nor null");
 		springXDTemplate.jobOperations().launchJob(jobName, jobParameters);
 	}
@@ -212,13 +177,18 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	/**
 	 * Creates the job definition and deploys it to the cluster being tested.
 	 *
-	 * @param jobName The name of the job
+	 * @param jobName       The name of the job
 	 * @param jobDefinition The definition that needs to be deployed for this job.
+	 * @param isDeploy      true deploy the job.  False do not deploy the job.
 	 */
-	protected void job(final String jobName, final String jobDefinition) {
+	protected void job(final String jobName, final String jobDefinition, boolean isDeploy) {
 		Assert.hasText(jobName, "The job name must be specified.");
 		Assert.notNull(jobDefinition, "a job definition must not be empty.");
-		springXDTemplate.jobOperations().createJob(jobName, jobDefinition, true);
+		springXDTemplate.jobOperations().createJob(jobName, jobDefinition, isDeploy);
+		String action = (isDeploy) ? "deploy" : "undeploy";
+		assertTrue("The job did not " + action + ". ",
+				waitForJobDeploymentChange(jobName, WAIT_TIME, isDeploy));
+
 	}
 
 
@@ -296,13 +266,14 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	}
 
 	/**
-	 * Waits up to the wait time for a job to be deployed.
+	 * Waits up to the wait time for a job to be deployed or undeployed.
 	 *
 	 * @param jobName The name of the job to be evaluated.
 	 * @param waitTime the amount of time in millis to wait.
+     * @param isDeployed if true the method will wait for the job to be deployed.  If false it will wait for the job to become undeployed.
 	 * @return true if the job is deployed else false.
 	 */
-	protected boolean waitForJobDeployment(String jobName, int waitTime) {
+	protected boolean waitForJobDeploymentChange(String jobName, int waitTime,boolean isDeployed) {
 		boolean result = isJobDeployed(jobName);
 		long timeout = System.currentTimeMillis() + waitTime;
 		while (!result && System.currentTimeMillis() < timeout) {
@@ -313,7 +284,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 				Thread.currentThread().interrupt();
 				throw new IllegalStateException(e.getMessage(), e);
 			}
-			result = isJobDeployed(jobName);
+			result = isDeployed?isJobDeployed(jobName):isJobUndeployed(jobName);
 		}
 
 		return result;
@@ -335,6 +306,21 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 		return result;
 	}
 
+    /**
+     * Checks to see if the specified job is undeployed on the XD cluster.
+     *
+     * @param jobName The name of the job to be evaluated.
+     * @return true if the job is deployed else false
+     */
+    protected boolean isJobUndeployed(String jobName) {
+        Assert.hasText(jobName, "The job name must be specified.");
+        JobDefinitionResource resource = getJobDefinitionResource(jobName);
+        boolean result = false;
+        if ("undeployed".equals(resource.getStatus())) {
+            result = true;
+        }
+        return result;
+    }
 	/**
 	 * Wait up to the specified time for the job list to become empty.
 	 * @param waitTime The time in Millis to wait.  

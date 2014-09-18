@@ -58,7 +58,7 @@ public class JdbcTest extends AbstractIntegrationTest {
 	@Test
 	public void testJDBCSink() {
 		String data = UUID.randomUUID().toString();
-		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMITER + jdbcSink, WAIT_TIME);
+		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMITER + jdbcSink);
 
 		String query = String.format("SELECT payload FROM %s", tableName);
 		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 1);

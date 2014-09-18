@@ -206,7 +206,7 @@ configure(javaProjects) { subproject ->
 	configurations.all { resolutionStrategy.cacheChangingModulesFor 60, 'minutes' }
 	// dependencies that are common across all java projects
 	dependencies {
-		versionManagement "io.spring.platform:platform-versions:$platformVersion@properties"
+		versionManagement files(rootProject.file('dependencies.properties'))
 		testCompile "org.springframework.boot:spring-boot-starter-test"
 		testCompile "org.codehaus.groovy:groovy-all"
 	}

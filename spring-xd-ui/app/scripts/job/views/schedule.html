@@ -18,7 +18,7 @@
                     <input type="radio" ng-model="jobScheduleRequest.triggerType" value="fixed-delay"
                            ng-checked="true">
                     Fixed delay
-                    <input name="fixedDelay" class="form-control" type="number" min="1" name="fixedDelay"
+                    <input name="fixedDelay" class="form-control" type="number" min="1"
                            ng-model="jobScheduleRequest.fixedDelay"
                            ng-show="isFixedDelay()" placeholder="in SECONDS"><span
                         class="label label-warning" ng-show="jobScheduler.fixedDelay.$error.min">Invalid Number</span>

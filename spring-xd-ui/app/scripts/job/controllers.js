@@ -30,7 +30,7 @@ define(['angular'], function (angular) {
               $injector.invoke(jobDefinitionsController, this, {'$scope': $scope});
             });
           }])
-      .controller('DefinitionDeployController',
+      .controller('JobDefinitionDeployController',
           ['$scope', '$injector', function ($scope, $injector) {
             require(['job/controllers/definition-deploy'], function (jobDefinitionDeployController) {
               $injector.invoke(jobDefinitionDeployController, this, {'$scope': $scope});

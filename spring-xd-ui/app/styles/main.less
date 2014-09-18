@@ -148,7 +148,7 @@ h1 {
 }
 
 table td {
-  vertical-align: middle !important;
+  vertical-align: middle;
 }
 
 table td .progress {
@@ -161,6 +161,51 @@ table td.action-column {
 
 .help-block {
   color: lighten(@text-color, 0%); // lighten the text some for contrast
+}
+
+.xd-containers {
+  font-size: 15px;
+}
+
+.cluster-view td {
+  font-size: 18px;
+  text-align: center;
+  border: none;
+}
+
+.cluster-view td#container-id {
+  text-align: left;
+}
+.cluster-view > table td {
+  vertical-align: top;
+}
+
+.cluster-view .label, .cluster-view .column-block {
+  display: block;
+}
+
+.cluster-view .input-group-addon {
+  width: 0%;
+}
+
+.cluster-view {
+  margin-bottom: 0;
+}
+
+.deployed {
+  .label-success;
+}
+
+.incomplete {
+  .label-warning;
+}
+
+.failed {
+  .label-danger;
+}
+
+.deploying {
+  .label-info
 }
 
 @import "responsive.less";

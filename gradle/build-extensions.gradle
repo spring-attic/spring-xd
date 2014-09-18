@@ -50,9 +50,18 @@ project('spring-xd-extension-batch') {
     }
 }
 
+project('spring-xd-extension-encoder-support') {
+	description = "Common encoder support for modules"
+	dependencies {
+		compile project(':spring-xd-module-spi')
+		compile "javax.validation:validation-api"
+	}
+}
+
 project('spring-xd-extension-process') {
 	description = 'Spring XD support for executing an external process'
 	dependencies {
+		compile project(':spring-xd-extension-encoder-support')
 		compile "org.springframework.integration:spring-integration-ip"
 		testCompile project(':spring-xd-test')
 		testRuntime "org.slf4j:jcl-over-slf4j",
@@ -65,6 +74,7 @@ project('spring-xd-extension-process') {
 project('spring-xd-extension-tcp') {
     description = 'Spring XD TCP'
     dependencies {
+		compile project(':spring-xd-extension-encoder-support')
         compile "org.springframework.integration:spring-integration-ip"
         compile project(':spring-xd-module-spi')
         compile "javax.validation:validation-api"

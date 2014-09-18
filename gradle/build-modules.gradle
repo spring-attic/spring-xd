@@ -253,6 +253,12 @@ project('modules.sink.gemfire-server') {
     }
 }
 
+project('modules.sink.shell') {
+	dependencies {
+		runtime(project(":spring-xd-extension-process"))
+	}
+}
+
 project('modules.sink.splunk') {
     dependencies {
         runtime(project(":spring-xd-extension-splunk")) { exclude module: 'spring-integration-core' }

@@ -28,8 +28,6 @@
 
 	<channel id="input" />
 
-	<channel id="output" />
-
-	<service-activator input-channel="input" output-channel="output" ref="shellProcessor" method="sendAndReceive"/>
+	<service-activator input-channel="input" ref="shellProcessor" method="send"/>
 
 </beans:beans>

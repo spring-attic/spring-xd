@@ -38,7 +38,7 @@ public class ModuleMetadataResource extends ResourceSupport {
 
 	private String unitName;
 
-	private String moduleType;
+	private RESTModuleType moduleType;
 
 	private String containerId;
 
@@ -46,15 +46,15 @@ public class ModuleMetadataResource extends ResourceSupport {
 
 	private Properties deploymentProperties;
 
-	private String deploymentStatus;
+	private RESTDeploymentState deploymentStatus;
 
 	@SuppressWarnings("unused")
 	private ModuleMetadataResource() {
 	}
 
-	public ModuleMetadataResource(String moduleId, String name, String unitName, String moduleType,
-			String containerId,
-			Properties moduleProperties, Properties deploymentProperties, String deploymentStatus) {
+	public ModuleMetadataResource(String moduleId, String name, String unitName, RESTModuleType moduleType,
+			String containerId, Properties moduleProperties, Properties deploymentProperties,
+			RESTDeploymentState deploymentStatus) {
 		this.moduleId = moduleId;
 		this.name = name;
 		this.unitName = unitName;
@@ -77,7 +77,7 @@ public class ModuleMetadataResource extends ResourceSupport {
 		return this.unitName;
 	}
 
-	public String getModuleType() {
+	public RESTModuleType getModuleType() {
 		return this.moduleType;
 	}
 
@@ -93,7 +93,7 @@ public class ModuleMetadataResource extends ResourceSupport {
 		return deploymentProperties;
 	}
 
-	public String getDeploymentStatus() {
+	public RESTDeploymentState getDeploymentStatus() {
 		return deploymentStatus;
 	}
 

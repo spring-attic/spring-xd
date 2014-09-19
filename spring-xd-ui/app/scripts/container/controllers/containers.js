@@ -23,11 +23,10 @@ define([], function () {
   'use strict';
   return ['$scope', 'ContainerService', 'XDUtils', '$timeout', '$rootScope',
     function ($scope, containerService, utils, $timeout, $rootScope) {
-
-      (function loadContainers() {
+      function loadContainers() {
         containerService.getContainers().$promise.then(
             function (result) {
-              utils.$log.info(result);
+              utils.$log.info('Retrieved containers...', result);
               var containers = result.content;
               containers.forEach(function (container) {
                 if (container.attributes.managementPort && $rootScope.enableMessageRates) {
@@ -46,14 +45,27 @@ define([], function () {
                 }
               });
               $scope.containers = containers;
-
-              var getContainers = $timeout(loadContainers, $rootScope.pageRefreshTime);
-              $scope.$on('$destroy', function () {
-                $timeout.cancel(getContainers);
-              });
+              loadContainersWithTimeout();
             }
         );
-      })();
+      }
+      function loadContainersWithTimeout() {
+        $scope.containerTimeOutPromise = $timeout(loadContainers, $rootScope.pageRefreshTime);
+      }
+      loadContainers();
+
+      $scope.$on('$destroy', function () {
+        console.log('Polling cancelled');
+        $scope.stopPolling();
+      });
+      $scope.startPolling = function () {
+        console.log('Polling started');
+        loadContainersWithTimeout();
+      };
+      $scope.stopPolling = function () {
+        console.log('Polling stopped');
+        $timeout.cancel($scope.containerTimeOutPromise);
+      };
       $scope.confirmShutdown = function (containerId) {
         $scope.destroyItem = containerId;
       };

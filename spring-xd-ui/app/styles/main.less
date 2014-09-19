@@ -167,15 +167,6 @@ table td.action-column {
   font-size: 15px;
 }
 
-.cluster-view td {
-  font-size: 18px;
-  text-align: center;
-  border: none;
-}
-
-.cluster-view td#container-id {
-  text-align: left;
-}
 .cluster-view > table td {
   vertical-align: top;
 }
@@ -192,20 +183,30 @@ table td.action-column {
   margin-bottom: 0;
 }
 
-.deployed {
+.deployment-status-deployed {
   .label-success;
 }
 
-.incomplete {
+.deployment-status-incomplete {
   .label-warning;
 }
 
-.failed {
+.deployment-status-failed {
   .label-danger;
 }
 
-.deploying {
+.deployment-status-deploying {
   .label-info
 }
+.deployment-status-na {
+}
 
+.container-details-table th {
+  background-color: lighten(@spring-brown, 3%);
+  color: @spring-light-grey;
+}
+
+.status-help-content-table td {
+	color: @spring-brown;
+}
 @import "responsive.less";

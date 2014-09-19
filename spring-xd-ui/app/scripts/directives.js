@@ -190,6 +190,34 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
         templateUrl: 'scripts/directives/xdDeploymentStatus.html'
       };
     })
+    .directive('xdPopover', function() {
+      return {
+        restrict: 'A',
+        link: function(scope, element, attributes) {
+          attributes.$observe('xdPopover', function(attributeValue){
+            element.popover({
+              placement: 'bottom',
+              html: 'true',
+              trigger: 'click',
+              content: function () {
+                return $(attributeValue).html();
+              }
+            })
+            .on('show.bs.popover', function(){
+              if (typeof scope.stopPolling === 'function') {
+                scope.stopPolling();
+              }
+              $(this).data('bs.popover').tip().css('max-width', $(this).closest('#xd-content').width() + 'px');
+            })
+            .on('hide.bs.popover', function(){
+              if (typeof scope.startPolling === 'function') {
+                scope.startPolling();
+              }
+            });
+          });
+        }
+      };
+	})
     .directive('notTheSameAs', function() {
       return {
         restrict: 'A',

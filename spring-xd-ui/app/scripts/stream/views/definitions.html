@@ -13,7 +13,7 @@
     <tr>
         <th>Name</th>
         <th>Definition</th>
-        <th>Status <a class="status-help"><span class="glyphicon glyphicon-question-sign"></span></a></th>
+        <th>Status <a class="status-help" xd-popover=".status-help-content" title="Available Deployment Statuses"><span class="glyphicon glyphicon-question-sign"></span></a></th>
         <th colspan="3" class="text-center">Actions</th>
     </tr>
     </thead>
@@ -66,7 +66,7 @@
 </div>
 
 <div class="status-help-content hide">
-  <table class="table-hover table-condensed">
+  <table class="table-hover table-condensed status-help-content-table">
     <tbody>
       <tr><td><strong>deploying</strong></td><td>Deployment has been initiated</td></tr>
       <tr><td><strong>deployed</strong></td><td>Fully deployed based on each of the stream's modules' count properties</td></tr>
@@ -76,22 +76,3 @@
     </tbody>
   </table>
 </div>
-
-<script type="text/javascript">
-
-$(function() {
-  $('.status-help').popover({
-    trigger: 'click',
-    html: true,
-    container: 'body',
-    placement: 'bottom',
-    title: 'Available Deployment Statuses',
-    content: function () {
-      return $('.status-help-content').html();
-    }
-  }).on("show.bs.popover", function(){
-    $(this).data("bs.popover").tip().css("max-width", $(this).closest("table").width() + "px");
-  });
-});
-
-</script>

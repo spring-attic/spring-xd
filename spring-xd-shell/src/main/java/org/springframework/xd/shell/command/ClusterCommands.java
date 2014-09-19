@@ -103,9 +103,10 @@ public class ClusterCommands implements CommandMarker {
 				new TableHeader("Deployment Properties")).addHeader(5, new TableHeader("Unit status"));
 		for (ModuleMetadataResource module : runtimeModules) {
 			final TableRow row = table.newRow();
+			String unitStatus = (module.getDeploymentStatus() != null) ? module.getDeploymentStatus().name() : "";
 			row.addValue(1, String.format("%s.%s.%s", module.getUnitName(), module.getModuleType(), module.getName()))
 					.addValue(2, module.getContainerId()).addValue(3, module.getModuleOptions().toString()).addValue(4,
-							module.getDeploymentProperties().toString()).addValue(5, module.getDeploymentStatus());
+							module.getDeploymentProperties().toString()).addValue(5, unitStatus);
 		}
 		return table;
 	}

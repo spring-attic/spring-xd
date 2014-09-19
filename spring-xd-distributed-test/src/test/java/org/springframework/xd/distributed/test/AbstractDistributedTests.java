@@ -39,7 +39,6 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.distributed.util.DefaultDistributedTestSupport;
 import org.springframework.xd.distributed.util.DistributedTestSupport;
-import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
@@ -222,12 +221,11 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 		for (ModuleMetadataResource module : distributedTestSupport.ensureTemplate()
 				.runtimeOperations().listDeployedModules()) {
 			String moduleStreamName = module.getUnitName();
-			ModuleType moduleType = ModuleType.valueOf(module.getModuleType());
 			String[] fields = module.getName().split("\\.");
 			String moduleLabel = fields[0];
 
 			if (moduleStreamName.equals(streamName)) {
-				switch (moduleType) {
+				switch (module.getModuleType()) {
 					case source:
 						containers.addSourceContainer(module.getContainerId());
 						break;

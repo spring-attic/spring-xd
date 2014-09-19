@@ -92,11 +92,15 @@ addJarsToClassPath( ) {
 
 
 CLASSPATH="$APP_HOME/config"
-XD_LIB=$APP_HOME/../xd/lib
 APP_HOME_LIB=$APP_HOME/lib
-addJarsToClassPath $XD_LIB
+XD_LIB=$APP_HOME/../xd/lib
 addJarsToClassPath $APP_HOME_LIB
-HADOOP_LIB=$XD_LIB/$HADOOP_DISTRO
+if [ -d $XD_LIB ]; then
+    addJarsToClassPath $XD_LIB
+    HADOOP_LIB=$XD_LIB/$HADOOP_DISTRO
+else
+    HADOOP_LIB=$APP_HOME_LIB/$HADOOP_DISTRO
+fi
 addJarsToClassPath $HADOOP_LIB
 
 # Determine the Java command to use to start the JVM.

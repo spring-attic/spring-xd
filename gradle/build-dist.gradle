@@ -152,6 +152,25 @@ task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: tr
 	from ("$buildDir/html") { into "${baseDir}/docs" }
 }
 
+task distShellZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
+        group = 'Application'
+        classifier = 'dist'
+        description = "Bundles the XD Shell as a zip file."
+        archiveName = "${project.name}-shell-${project.version}.zip" 
+        
+        ext.baseDir = "${project.name}-shell-${project.version}";
+
+        from("$buildDir/dist/spring-xd/shell") {
+                into "${baseDir}/shell"
+        }
+
+        from("$buildDir/dist/spring-xd/xd/lib") {
+                include "*"
+                include "**/*"
+                into "${baseDir}/xd/lib"
+        }
+}
+
 task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
 	group = 'Application'
 	appendix = 'yarn'
@@ -251,6 +270,7 @@ artifacts {
 	archives distZip
 	archives distYarnZip
 	archives docsZip
+	archives distShellZip
 }
 
 task dist(dependsOn: assemble) {

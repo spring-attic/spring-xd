@@ -61,10 +61,9 @@
         <td>
             <table class="deployed-modules">
                 <tr ng-repeat="deployments in item.deployedModules | orderBy:'unitName'">
-                    <td class="input-group-addon deployment-status-{{deployments.deploymentStatus || 'na'}}" data-toggle="tooltip"
-                        data-placement="left"
-                        title="{{deployments.deploymentStatus || 'N/A'}}">
-                        {{deployments.unitName}}
+                    <td class="input-group-addon deployment-status-{{deployments.deploymentStatus || 'na'}}">
+                      <span xd-tooltip data-placement="bottom"
+                            title="{{deployments.deploymentStatus || 'N/A'}}">{{deployments.unitName}}</span>
                     </td>
                     <td class="input-group-addon">
                         <a xd-popover=".deploymentDetails{{$index}}" rel="popover" data-original-title="Deployment Details">
@@ -91,15 +90,11 @@
                         </div>
                     </td>
                     <td class="input-group-addon" ng-show="item.attributes.managementPort !== undefined">
-                        <span>
-                            <span class="glyphicon glyphicon-arrow-down" data-toggle="tooltip"
-                                  data-placement="left"
-                                  title="msgs/second">{{deployments.incomingRate || 'N/A'}}</span>
-                        </span>
-                        <span>
-                            <span class="glyphicon glyphicon-arrow-up" data-toggle="tooltip"
-                                  data-placement="left" title="msgs/second">{{deployments.outgoingRate  || 'N/A'}}</span>
-                        </span>
+                      <span xd-tooltip title="Incoming msgs/second" data-placement="bottom"
+                            class="glyphicon glyphicon-arrow-down">{{deployments.incomingRate || 'N/A'}}
+                      </span>
+                      <span xd-tooltip title="Outgoing msgs/second" data-placement="bottom"
+                            class="glyphicon glyphicon-arrow-up">{{deployments.outgoingRate  || 'N/A'}}</span>
                     </td>
                 </tr>
             </table>

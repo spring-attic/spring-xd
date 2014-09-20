@@ -217,6 +217,26 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
           });
         }
       };
+    })
+    .directive('xdTooltip', function() {
+      return {
+        restrict: 'A',
+        link: function(scope, element, attributes) {
+          attributes.$observe('title', function(){
+            element.tooltip()
+            .on('show.bs.tooltip', function(){
+              if (typeof scope.stopPolling === 'function') {
+                scope.stopPolling();
+              }
+            })
+            .on('hide.bs.tooltip', function(){
+              if (typeof scope.startPolling === 'function') {
+                scope.startPolling();
+              }
+            });
+          });
+        }
+      };
 	})
     .directive('notTheSameAs', function() {
       return {

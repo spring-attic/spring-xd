@@ -198,7 +198,15 @@ define(['./app'], function (xdAdmin) {
     })
     .state('home.containers.tabs', {
       url : 'containers',
-      templateUrl: containerTemplatesPath + '/containers.html',
+      abstract:true,
+      data:{
+        authenticate: true
+      },
+      templateUrl : containerTemplatesPath + '/containers.html'
+    })
+    .state('home.containers.tabs.containerlist', {
+      url : '/containers',
+      templateUrl : containerTemplatesPath + '/containerlist.html',
       controller: 'ContainersController',
       data:{
         title: 'Containers',

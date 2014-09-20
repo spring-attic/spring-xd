@@ -208,8 +208,31 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
                 scope.stopPolling();
               }
               $(this).data('bs.popover').tip().css('max-width', $(this).closest('#xd-content').width() + 'px');
+              scope.$on('$destroy', function() {
+                angular.element('.popover').remove();
+              });
             })
             .on('hide.bs.popover', function(){
+              if (typeof scope.startPolling === 'function') {
+                scope.startPolling();
+              }
+            });
+          });
+        }
+      };
+    })
+    .directive('xdTooltip', function() {
+      return {
+        restrict: 'A',
+        link: function(scope, element, attributes) {
+          attributes.$observe('title', function(){
+            element.tooltip()
+            .on('show.bs.tooltip', function(){
+              if (typeof scope.stopPolling === 'function') {
+                scope.stopPolling();
+              }
+            })
+            .on('hide.bs.tooltip', function(){
               if (typeof scope.startPolling === 'function') {
                 scope.startPolling();
               }

@@ -27,7 +27,7 @@ configure(moduleProjects) { moduleProject ->
     apply plugin: 'idea'
 
     dependencies {
-        versionManagement "io.spring.platform:platform-versions:$platformVersion@properties"
+		versionManagement files(rootProject.file('dependencies.properties'))
     }
 
     forceDependencyVersions(moduleProject)

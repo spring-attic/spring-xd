@@ -19,6 +19,8 @@ package org.springframework.xd.dirt.rest;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
+import org.springframework.xd.rest.domain.RESTDeploymentState;
+import org.springframework.xd.rest.domain.RESTModuleType;
 
 
 /**
@@ -41,9 +43,10 @@ public class ModuleMetadataResourceAssembler extends
 	@Override
 	protected ModuleMetadataResource instantiateResource(ModuleMetadata entity) {
 		String moduleType = (entity.getModuleType() != null) ? entity.getModuleType().name() : null;
-		String deploymentStatus = (entity.getDeploymentStatus() != null) ? entity.getDeploymentStatus().name() : null;
+		RESTDeploymentState deploymentStatus = (entity.getDeploymentStatus() != null) ? RESTDeploymentState.valueOf(entity.getDeploymentStatus().name())
+				: null;
 		return new ModuleMetadataResource(entity.getId(), entity.getName(), entity.getUnitName(),
-				moduleType, entity.getContainerId(), entity.getModuleOptions(),
+				RESTModuleType.valueOf(moduleType), entity.getContainerId(), entity.getModuleOptions(),
 				entity.getDeploymentProperties(), deploymentStatus);
 	}
 

@@ -50,18 +50,18 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 
 	private final String root;
 
-	private final boolean active;
-
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
 	public ResourceModuleRegistry(String root) {
-		this.active = (StringUtils.hasText(root)) ? true : false;
 		this.root = StringUtils.trimTrailingCharacter(root, '/');
 	}
 
 	@Override
 	protected Resource locateApplicationContext(String name, ModuleType type) {
 		try {
+			if (root == null) {
+				return null;
+			}
 			String rootUri = rootForType(type);
 			// Try all locations that match in case there are multiple
 			Resource[] resources = resolver.getResources(rootUri + enhancedLocation(name));
@@ -140,6 +140,9 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 	protected List<Resource> locateApplicationContexts(ModuleType type) {
 		try {
 			List<Resource> result = new ArrayList<Resource>();
+			if (root == null) {
+				return result;
+			}
 			String typedRootAsURI = rootForType(type);
 
 			if (!typedRootAsURI.contains("*")) {
@@ -173,11 +176,6 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 	protected String inferModuleName(Resource resource) {
 		return resource.getFilename().substring(0,
 				resource.getFilename().lastIndexOf('.'));
-	}
-
-	@Override
-	public boolean isActive() {
-		return this.active;
 	}
 
 }

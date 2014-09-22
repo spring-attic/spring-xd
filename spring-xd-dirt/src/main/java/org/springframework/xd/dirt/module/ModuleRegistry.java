@@ -25,7 +25,6 @@ import org.springframework.xd.module.ModuleType;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Glenn Renfro
- * @author Ilayaperumal Gopinathan
  */
 public interface ModuleRegistry {
 
@@ -62,12 +61,5 @@ public interface ModuleRegistry {
 	 *         returned.
 	 */
 	List<ModuleDefinition> findDefinitions();
-
-	/**
-	 * Check if the module registry is active.
-	 *
-	 * @return boolean value to specify if the module registry is active.
-	 */
-	boolean isActive();
 
 }

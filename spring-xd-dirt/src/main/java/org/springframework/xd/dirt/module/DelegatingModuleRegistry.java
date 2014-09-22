@@ -38,9 +38,7 @@ public class DelegatingModuleRegistry implements ModuleRegistry {
 
 	public DelegatingModuleRegistry(ModuleRegistry... delegates) {
 		for (ModuleRegistry delegate : delegates) {
-			if (delegate.isActive()) {
-				this.delegates.add(delegate);
-			}
+			this.delegates.add(delegate);
 		}
 	}
 
@@ -105,11 +103,6 @@ public class DelegatingModuleRegistry implements ModuleRegistry {
 			}
 		}
 		return definitions;
-	}
-
-	@Override
-	public boolean isActive() {
-		return true;
 	}
 
 }

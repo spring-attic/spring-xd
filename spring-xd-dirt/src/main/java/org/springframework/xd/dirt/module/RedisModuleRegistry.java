@@ -109,10 +109,4 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 
 	}
 
-	@Override
-	public boolean isActive() {
-		return false;
-	}
-
-
 }

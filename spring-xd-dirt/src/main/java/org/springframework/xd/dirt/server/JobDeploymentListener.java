@@ -27,6 +27,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,6 +113,18 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 	 */
 	private void deployJob(CuratorFramework client, final Job job) throws InterruptedException {
 		if (job != null) {
+			// Ensure that the path for modules used by the container to write
+			// ephemeral nodes exists. The presence of this path is assumed
+			// by the supervisor when it calculates stream state when it is
+			// assigned leadership. See XD-2170 for details.
+			try {
+				client.create().creatingParentsIfNeeded().forPath(Paths.build(
+						Paths.JOB_DEPLOYMENTS, job.getName(), Paths.MODULES));
+			}
+			catch (Exception e) {
+				ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NodeExistsException.class);
+			}
+
 			String statusPath = Paths.build(Paths.JOB_DEPLOYMENTS, job.getName(), Paths.STATUS);
 
 			DeploymentUnitStatus deployingStatus = null;
@@ -127,10 +140,8 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 					String.format("Expected 'deploying' status for job '%s'; current status: %s",
 							job.getName(), deployingStatus));
 
-			ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> provider = new DefaultModuleDeploymentPropertiesProvider(
-					job);
-			List<ModuleDescriptor> descriptors = new ArrayList<ModuleDescriptor>();
-			descriptors.add(job.getJobModuleDescriptor());
+			ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> provider =
+					new DefaultModuleDeploymentPropertiesProvider(job);
 
 			try {
 				Collection<ModuleDeploymentStatus> deploymentStatuses = new ArrayList<ModuleDeploymentStatus>();

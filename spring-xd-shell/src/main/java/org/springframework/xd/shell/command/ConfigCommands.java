@@ -47,6 +47,7 @@ import org.springframework.xd.shell.util.UiUtils;
  * commands will set properties on the {@link Configuration} object.
  *
  * @author Gunnar Hillert
+ * @author Rodrigo Meneses
  * @since 1.0
  *
  */
@@ -69,8 +70,8 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 
 	@CliCommand(value = { "admin config server" }, help = "Configure the XD admin server to use")
 	public String target(@CliOption(mandatory = false, key = { "", "uri" },
-	help = "the location of the XD Admin REST endpoint",
-	unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
+			help = "the location of the XD Admin REST endpoint",
+			unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
 
 		try {
 			configuration.setTarget(new Target(targetUriString));
@@ -181,6 +182,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 				}
 			}
 		}
+
 		return new URI(Target.DEFAULT_SCHEME, null, host, port, null, null, null);
 	}
 }

@@ -64,7 +64,6 @@ SAVED="`pwd`"
 cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
-
 HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop22}"
 x=0
 args=("$@")
@@ -191,5 +190,5 @@ function splitJvmOpts() {
     JVM_OPTS=("$@")
 }
 eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $SPRING_XD_SHELL_OPTS
-
 exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.springframework.shell.Bootstrap "${args[@]}"
+

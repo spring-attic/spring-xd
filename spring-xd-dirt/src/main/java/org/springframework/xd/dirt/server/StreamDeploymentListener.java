@@ -111,6 +111,18 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 	 * @throws InterruptedException
 	 */
 	private void deployStream(CuratorFramework client, Stream stream) throws InterruptedException {
+		// Ensure that the path for modules used by the container to write
+		// ephemeral nodes exists. The presence of this path is assumed
+		// by the supervisor when it calculates stream state when it is
+		// assigned leadership. See XD-2170 for details.
+		try {
+			client.create().creatingParentsIfNeeded().forPath(
+					Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.MODULES));
+		}
+		catch (Exception e) {
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NodeExistsException.class);
+		}
+
 		String statusPath = Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.STATUS);
 
 		// assert that the deployment status has been correctly set to "deploying"

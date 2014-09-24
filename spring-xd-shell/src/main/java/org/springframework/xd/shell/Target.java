@@ -19,6 +19,7 @@ package org.springframework.xd.shell;
 import java.net.URI;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Encapsulates various data points related to the Admin Server Target, such as target URI, success/error state,
@@ -34,15 +35,57 @@ public class Target {
 		SUCCESS, ERROR
 	}
 
+	public class Credentials {
+
+		String username;
+
+		String password;
+
+		// for serialization/persistence
+		public Credentials() {
+		}
+
+		public Credentials(String username, String password) {
+			this.username = username;
+			this.password = password;
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public void setUsername(String username) {
+			this.username = username;
+		}
+
+		public String getPassword() {
+			return password;
+		}
+
+		public void setPassword(String password) {
+			this.password = password;
+		}
+
+		public String getDisplayableContents() {
+			return "[username='" + username +", password=****']";
+		}
+	}
+
 	public static final String DEFAULT_SCHEME = "http";
 
 	public static final String DEFAULT_HOST = "localhost";
 
 	public static final int DEFAULT_PORT = 9393;
 
+	public static final String DEFAULT_USERNAME = "";
+
+	public static final String DEFAULT_PASSWORD = "";
+
 	public static final String DEFAULT_TARGET = DEFAULT_SCHEME + "://" + DEFAULT_HOST + ":" + DEFAULT_PORT + "/";
 
 	private final URI targetUri;
+
+	private final Credentials targetCredentials;
 
 	private Exception targetException;
 
@@ -51,14 +94,32 @@ public class Target {
 	private TargetStatus status;
 
 	/**
-	 * Construct a new Target. The passed in String parameter will be converted to a {@link URI}.
+	 * Construct a new Target. The passed in <code>targetUriAsString</code> String parameter will be converted to a {@link URI}.
+	 * This method allows for providing a username and password for authentication.
+	 *
+	 * @param targetUriAsString Must not be empty
+	 * @param targetUsername    May be empty, if access is unauthenticated
+	 * @param targetPassword    May be empty
+	 * @throws IllegalArgumentException if the given string violates RFC 2396.
+	 */
+	public Target(String targetUriAsString, String targetUsername, String targetPassword) {
+		Assert.hasText(targetUriAsString, "The provided targetUriAsString must neither be null nor empty.");
+		this.targetUri = URI.create(targetUriAsString);
+		if (StringUtils.isEmpty(targetUsername)) {
+			this.targetCredentials = null;
+		} else {
+			this.targetCredentials = new Credentials(targetUsername, targetPassword);
+		}
+	}
+
+	/**
+	 * Construct a new Target. The passed in <code>targetUriAsString</code> String parameter will be converted to a {@link URI}.
 	 *
 	 * @param targetUriAsString Must not be empty
 	 * @throws IllegalArgumentException if the given string violates RFC 2396
 	 */
 	public Target(String targetUriAsString) {
-		Assert.hasText(targetUriAsString, "The provided targetUriAsString must neither be null nor empty.");
-		this.targetUri = URI.create(targetUriAsString);
+		this(targetUriAsString, null, null);
 	}
 
 	/**
@@ -104,6 +165,15 @@ public class Target {
 	 */
 	public String getTargetUriAsString() {
 		return targetUri.toString();
+	}
+
+	/**
+	 * Returns the target credentials
+	 *
+	 * @return The target credentials. May be null if there is no authentication
+	 */
+	public Credentials getTargetCredentials() {
+		return targetCredentials;
 	}
 
 	/**

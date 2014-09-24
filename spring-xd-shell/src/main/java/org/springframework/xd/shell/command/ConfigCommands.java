@@ -24,16 +24,25 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.TreeMap;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.shell.CommandLine;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.shell.Configuration;
 import org.springframework.xd.shell.Target;
@@ -47,6 +56,7 @@ import org.springframework.xd.shell.util.UiUtils;
  * commands will set properties on the {@link Configuration} object.
  *
  * @author Gunnar Hillert
+ * @author Marius Bogoevici
  * @since 1.0
  *
  */
@@ -68,13 +78,33 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 	}
 
 	@CliCommand(value = { "admin config server" }, help = "Configure the XD admin server to use")
-	public String target(@CliOption(mandatory = false, key = { "", "uri" },
-	help = "the location of the XD Admin REST endpoint",
-	unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
+	public String target(
+			@CliOption( mandatory = false, key = { "", "uri" },
+						help = "the location of the XD Admin REST endpoint",
+						unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString,
+			@CliOption (mandatory = false, key = {"username"},
+						help = "the username for authenticated access to the Admin REST endpoint",
+						unspecifiedDefaultValue = Target.DEFAULT_USERNAME) String targetUsername,
+			@CliOption (mandatory = false, key = {"password"},
+						help = "the password for authenticated access to the Admin REST endpoint (valid only with a username)",
+						unspecifiedDefaultValue = Target.DEFAULT_PASSWORD) String targetPassword) {
 
 		try {
-			configuration.setTarget(new Target(targetUriString));
-			this.xdShell.setSpringXDOperations(new SpringXDTemplate(configuration.getTarget().getTargetUri()));
+			Assert.isTrue(StringUtils.isEmpty(targetPassword) || ! StringUtils.isEmpty(targetUsername),
+					"A password may be specified only together with a username");
+			configuration.setTarget(new Target(targetUriString, targetUsername, targetPassword));
+			if (configuration.getTarget().getTargetCredentials() != null) {
+				BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+				credentialsProvider.setCredentials(AuthScope.ANY,
+						new UsernamePasswordCredentials(
+								configuration.getTarget().getTargetCredentials().getUsername(),
+								configuration.getTarget().getTargetCredentials().getPassword()));
+				CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build();
+				HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+				this.xdShell.setSpringXDOperations(new SpringXDTemplate(requestFactory, configuration.getTarget().getTargetUri()));
+			} else {
+				this.xdShell.setSpringXDOperations(new SpringXDTemplate(configuration.getTarget().getTargetUri()));
+			}
 			configuration.getTarget().setTargetResultMessage(
 					String.format("Successfully targeted %s", configuration.getTarget().getTargetUri()));
 		}
@@ -84,7 +114,6 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 			configuration.getTarget().setTargetResultMessage(
 					String.format("Unable to contact XD Admin Server at '%s'.",
 							targetUriString));
-
 			if (logger.isTraceEnabled()) {
 				logger.trace(configuration.getTarget().getTargetResultMessage(), e);
 			}
@@ -101,6 +130,9 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 		final Target target = configuration.getTarget();
 
 		statusValues.put("Target", target.getTargetUriAsString());
+		if (target.getTargetCredentials() != null) {
+			statusValues.put("Credentials", target.getTargetCredentials().getDisplayableContents());
+		}
 		statusValues.put("Result", target.getTargetResultMessage() != null ? target.getTargetResultMessage() : "");
 		statusValues.put("Timezone used", CommonUtils.getTimeZoneNameWithOffset(this.configuration.getClientTimeZone()));
 
@@ -156,7 +188,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 	 */
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		target(getDefaultUri().toString());
+		target(getDefaultUri().toString(), getDefaultUsername(), getDefaultPassword());
 	}
 
 	private URI getDefaultUri() throws URISyntaxException {
@@ -183,4 +215,25 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 		}
 		return new URI(Target.DEFAULT_SCHEME, null, host, port, null, null, null);
 	}
+
+	private String getDefaultUsername() {
+		int indexOfUserParameter = ArrayUtils.indexOf(commandLine.getArgs(), "--username");
+		// if '--username' exists and it is not the last in the list of arguments, the next argument is the password
+		if (indexOfUserParameter >= 0 && indexOfUserParameter < commandLine.getArgs().length - 1) {
+			return commandLine.getArgs()[indexOfUserParameter + 1];
+		} else {
+			return Target.DEFAULT_USERNAME;
+		}
+	}
+
+	private String getDefaultPassword() {
+		int indexOfPasswordParameter = ArrayUtils.indexOf(commandLine.getArgs(), "--password");
+		// if '--password' exists and it is not the last in the list of arguments, the next argument is the password
+		if (indexOfPasswordParameter >= 0 && indexOfPasswordParameter < commandLine.getArgs().length - 1) {
+			return commandLine.getArgs()[indexOfPasswordParameter + 1];
+		} else {
+			return Target.DEFAULT_PASSWORD;
+		}
+	}
+
 }

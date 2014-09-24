@@ -19,25 +19,20 @@ package org.springframework.xd.dirt.batch;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer;
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.explore.support.JobExplorerFactoryBean;
-import org.springframework.batch.core.explore.support.MapJobExplorerFactoryBean;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
-import org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean;
-import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.util.Assert;
 
 /**
  * Spring XD runtime specific {@link BatchConfigurer}.
@@ -49,8 +44,6 @@ import org.springframework.transaction.PlatformTransactionManager;
  */
 @Component
 public class RuntimeBatchConfigurer implements BatchConfigurer {
-
-	private static final Log logger = LogFactory.getLog(RuntimeBatchConfigurer.class);
 
 	private DataSource dataSource;
 
@@ -76,7 +69,7 @@ public class RuntimeBatchConfigurer implements BatchConfigurer {
 
 	public static final String DEFAULT_ISOLATION_LEVEL = "ISOLATION_SERIALIZABLE";
 
-	@Autowired(required = false)
+	@Autowired(required = true)
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 		this.transactionManager = new DataSourceTransactionManager(dataSource);
@@ -111,29 +104,14 @@ public class RuntimeBatchConfigurer implements BatchConfigurer {
 
 	@PostConstruct
 	public void initialize() throws Exception {
-		if (dataSource == null) {
-			logger.warn("No datasource was provided...using a Map based JobRepository");
+		Assert.notNull(dataSource, "No dataSource was provided for Batch runtime configuration");
 
-			if (this.transactionManager == null) {
-				this.transactionManager = new ResourcelessTransactionManager();
-			}
+		this.jobRepository = createJobRepository();
 
-			MapJobRepositoryFactoryBean jobRepositoryFactory = new MapJobRepositoryFactoryBean(this.transactionManager);
-			jobRepositoryFactory.afterPropertiesSet();
-			this.jobRepository = jobRepositoryFactory.getObject();
-
-			MapJobExplorerFactoryBean jobExplorerFactory = new MapJobExplorerFactoryBean(jobRepositoryFactory);
-			jobExplorerFactory.afterPropertiesSet();
-			this.jobExplorer = jobExplorerFactory.getObject();
-		}
-		else {
-			this.jobRepository = createJobRepository();
-
-			JobExplorerFactoryBean jobExplorerFactoryBean = new JobExplorerFactoryBean();
-			jobExplorerFactoryBean.setDataSource(this.dataSource);
-			jobExplorerFactoryBean.afterPropertiesSet();
-			this.jobExplorer = jobExplorerFactoryBean.getObject();
-		}
+		JobExplorerFactoryBean jobExplorerFactoryBean = new JobExplorerFactoryBean();
+		jobExplorerFactoryBean.setDataSource(this.dataSource);
+		jobExplorerFactoryBean.afterPropertiesSet();
+		this.jobExplorer = jobExplorerFactoryBean.getObject();
 
 		this.jobLauncher = createJobLauncher();
 	}
@@ -163,9 +141,6 @@ public class RuntimeBatchConfigurer implements BatchConfigurer {
 		return factory.getObject();
 	}
 
-	/**
-	 * @return
-	 */
 	JobRepositoryFactoryBean createJobRepositoryFactoryBean() {
 		return new JobRepositoryFactoryBean();
 	}

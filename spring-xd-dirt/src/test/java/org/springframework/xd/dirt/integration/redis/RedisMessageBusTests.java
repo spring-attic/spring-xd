@@ -370,25 +370,32 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 	}
 
 	@Override
-	protected Object receive(String queue, boolean expectNull) throws Exception {
-		RedisTemplate<String, Object> template = createTemplate();
-		byte[] bytes = (byte[]) template.boundListOps("queue." + queue).rightPop(50, TimeUnit.MILLISECONDS);
-		if (bytes == null) {
-			return null;
-		}
-		ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-		int headerCount = byteBuffer.get();
-		for (int i = 0; i < headerCount; i++) {
-			int len = byteBuffer.get();
-			byteBuffer.position(byteBuffer.position() + len);
-			len = byteBuffer.get();
-			byteBuffer.position(byteBuffer.position() + len);
-		}
-		return new String(bytes, byteBuffer.position(), byteBuffer.remaining(), "UTF-8");
+	public Spy spyOn(final String queue) {
+		final RedisTemplate<String, Object> template = createTemplate();
+		return new Spy() {
+
+			@Override
+			public Object receive(boolean expectNull) throws Exception {
+				byte[] bytes = (byte[]) template.boundListOps("queue." + queue).rightPop(50, TimeUnit.MILLISECONDS);
+				if (bytes == null) {
+					return null;
+				}
+				ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+				int headerCount = byteBuffer.get();
+				for (int i = 0; i < headerCount; i++) {
+					int len = byteBuffer.get();
+					byteBuffer.position(byteBuffer.position() + len);
+					len = byteBuffer.get();
+					byteBuffer.position(byteBuffer.position() + len);
+				}
+				return new String(bytes, byteBuffer.position(), byteBuffer.remaining(), "UTF-8");
+			}
+
+		};
 	}
 
 	@Override
-	protected void busUnbindLatency() throws InterruptedException {
+	protected void busBindUnbindLatency() throws InterruptedException {
 		Thread.sleep(3000); // needed for Redis see INT-3442
 	}
 

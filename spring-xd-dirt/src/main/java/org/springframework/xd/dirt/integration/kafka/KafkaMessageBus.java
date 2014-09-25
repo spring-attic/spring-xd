@@ -220,15 +220,15 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * Basic + concurrency + partitioning.
 	 */
 	private static final Set<Object> SUPPORTED_CONSUMER_PROPERTIES = new SetBuilder()
-			.add(BusProperties.PARTITION_INDEX) // Not actually used
-			.add(BusProperties.CONCURRENCY)
-			.build();
+	.add(BusProperties.PARTITION_INDEX) // Not actually used
+	.add(BusProperties.CONCURRENCY)
+	.build();
 
 	/**
 	 * Basic + concurrency.
 	 */
 	private static final Set<Object> SUPPORTED_NAMED_CONSUMER_PROPERTIES = new SetBuilder()
-			.build();
+	.build();
 
 	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = PRODUCER_STANDARD_PROPERTIES;
 
@@ -236,10 +236,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * Partitioning + kafka producer properties.
 	 */
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new SetBuilder()
-	.addAll(PRODUCER_PARTITIONING_PROPERTIES)
-	.addAll(PRODUCER_STANDARD_PROPERTIES)
-			.add(BusProperties.DIRECT_BINDING_ALLOWED)
-	.build();
+			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
+			.addAll(PRODUCER_STANDARD_PROPERTIES)
+	.add(BusProperties.DIRECT_BINDING_ALLOWED)
+			.build();
 
 
 	/**
@@ -332,10 +332,16 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	}
 
-	/*default*/ConsumerConnector createConsumerConnector(String consumerGroup) {
+	/*default*/ConsumerConnector createConsumerConnector(String consumerGroup, String... keyValues) {
 		Properties props = new Properties();
 		props.put("zookeeper.connect", zkAddress);
 		props.put("group.id", consumerGroup);
+		Assert.isTrue(keyValues.length % 2 == 0, "keyValues must be an even number of key/value pairs");
+		for (int i = 0; i < keyValues.length; i += 2) {
+			String key = keyValues[i];
+			String value = keyValues[i + 1];
+			props.put(key, value);
+		}
 		ConsumerConfig config = new ConsumerConfig(props);
 		return Consumer.createJavaConsumerConnector(config);
 	}

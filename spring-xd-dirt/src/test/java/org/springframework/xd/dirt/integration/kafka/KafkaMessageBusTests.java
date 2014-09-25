@@ -33,7 +33,6 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.serializer.Decoder;
 import kafka.serializer.DefaultDecoder;
 
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
@@ -54,9 +53,13 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 
 	private KafkaTestMessageBus messageBus;
 
+	@Override
+	protected void busBindUnbindLatency() throws InterruptedException {
+		Thread.sleep(500);
+	}
 
 	@Override
-	protected MessageBus getMessageBus() throws Exception {
+	protected MessageBus getMessageBus() {
 		if (messageBus == null) {
 			messageBus = new KafkaTestMessageBus(getCodec());
 		}
@@ -69,10 +72,11 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 	}
 
 	@Override
-	protected Object receive(String name, boolean expectNull) throws Exception {
+	public Spy spyOn(final String name) {
+		String topic = KafkaMessageBus.escapeTopicName(name);
+
 		Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
 		int numThreads = 1;
-		String topic = KafkaMessageBus.escapeTopicName(name);
 		topicCountMap.put(topic, numThreads);
 
 
@@ -80,41 +84,43 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		Decoder<Integer> keyDecoder = new IntegerEncoderDecoder();
 
 		KafkaTestMessageBus busWrapper = (KafkaTestMessageBus) getMessageBus();
+		// Rewind offset, as tests will have typically already sent the messages we're trying to consume
 		ConsumerConnector connector = busWrapper.getCoreMessageBus().createConsumerConnector(
-				UUID.randomUUID().toString());
+				UUID.randomUUID().toString(), "auto.offset.reset", "smallest");
 
-		Map<String, List<KafkaStream<Integer, byte[]>>> consumerMap = connector.createMessageStreams(
+		Map<String, List<KafkaStream<Integer, byte[]>>> map = connector.createMessageStreams(
 				topicCountMap, keyDecoder, valueDecoder);
 
-		final KafkaStream<Integer, byte[]> stream = consumerMap.get(topic).iterator().next();
+		final ConsumerIterator<Integer, byte[]> iterator = map.get(topic).iterator().next().iterator();
 
-		Future<String> submit = executorService.submit(new Callable<String>() {
+
+		return new Spy() {
 
 			@Override
-			public String call() throws Exception {
-				ConsumerIterator<Integer, byte[]> iterator = stream.iterator();
-				iterator.hasNext();
-				byte[] raw = iterator.next().message();
-				Message<byte[]> theRequestMessage = embeddedHeadersMessageConverter.extractHeaders(MessageBuilder.withPayload(
-						raw).build());
+			public Object receive(boolean expectNull) throws Exception {
+				final Future<String> submit = executorService.submit(new Callable<String>() {
 
-				return new String(theRequestMessage.getPayload(), "UTF-8");
+					@Override
+					public String call() throws Exception {
+						iterator.hasNext();
+						byte[] raw = iterator.next().message();
+						Message<byte[]> theRequestMessage = embeddedHeadersMessageConverter.extractHeaders(MessageBuilder.withPayload(
+								raw).build());
+
+						return new String(theRequestMessage.getPayload(), "UTF-8");
+					}
+
+				});
+				try {
+					return submit.get(expectNull ? 50 : 5000, TimeUnit.MILLISECONDS);
+				}
+				catch (TimeoutException e) {
+					return null;
+				}
 			}
-
-		});
-
-		try {
-			return submit.get(expectNull ? 5000 : 5000, TimeUnit.MILLISECONDS);
-		}
-		catch (TimeoutException e) {
-			return null;
-		}
-
+		};
 
 	}
-
-
-
 
 
 }

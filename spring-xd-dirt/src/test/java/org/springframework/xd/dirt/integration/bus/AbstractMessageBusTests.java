@@ -86,6 +86,8 @@ public abstract class AbstractMessageBusTests {
 		messageBus.bindProducer("foo.0", moduleOutputChannel, null);
 		messageBus.bindConsumer("foo.0", moduleInputChannel, null);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
+		// Let the consumer actually bind to the producer before sending a msg
+		busBindUnbindLatency();
 		moduleOutputChannel.send(message);
 		Message<?> inbound = moduleInputChannel.receive(5000);
 		assertNotNull(inbound);
@@ -103,6 +105,7 @@ public abstract class AbstractMessageBusTests {
 		QueueChannel moduleInputChannel = new QueueChannel();
 		messageBus.bindProducer("bar.0", moduleOutputChannel, null);
 		messageBus.bindConsumer("bar.0", moduleInputChannel, null);
+		busBindUnbindLatency();
 
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		moduleOutputChannel.send(message);
@@ -294,6 +297,13 @@ public abstract class AbstractMessageBusTests {
 		if (testMessageBus != null) {
 			testMessageBus.cleanup();
 		}
+	}
+
+	/**
+	 * If appropriate, let the bus middleware settle down a bit while binding/unbinding actually happens.
+	 */
+	protected void busBindUnbindLatency() throws InterruptedException {
+		// default none
 	}
 
 }

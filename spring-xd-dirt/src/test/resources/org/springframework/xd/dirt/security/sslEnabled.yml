@@ -1,0 +1,5 @@
+server:
+  ssl:
+    key-store: "classpath:org/springframework/xd/dirt/security/springxd.jks"
+    key-store-password: storePass!
+    key-password: keyPass!

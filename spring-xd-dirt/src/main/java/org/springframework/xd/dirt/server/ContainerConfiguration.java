@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.server;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.AuditAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
@@ -43,9 +44,10 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  *
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
+ * @author Marius Bogoevici
  */
 @Configuration
-@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
+@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class, AuditAutoConfiguration.class})
 class ContainerConfiguration {
 
 	@Autowired

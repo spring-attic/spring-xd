@@ -326,6 +326,9 @@ project('spring-xd-dirt') {
 		compile "org.springframework.cloud:spring-cloud-cloudfoundry-connector"
 		compile "org.springframework.boot:spring-boot-autoconfigure"
 		compile "org.springframework.boot:spring-boot-actuator"
+		compile ("org.springframework.boot:spring-boot-starter-security") {
+			exclude module: "spring-boot-starter-logging"
+		}
 		compile "org.springframework.data:spring-data-redis"
 		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.integration:spring-integration-event"
@@ -409,6 +412,7 @@ project('spring-xd-dirt') {
 			exclude group: 'org.fusesource.fuse-extra'
 		}
 		testCompile "org.springframework:spring-jms"
+		testCompile "org.apache.httpcomponents:httpclient"
 	}
 
 

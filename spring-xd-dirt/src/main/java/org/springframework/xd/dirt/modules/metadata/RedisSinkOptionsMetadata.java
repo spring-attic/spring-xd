@@ -35,7 +35,7 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 
 	private static final String QUEUE_PROFILE = "use-queue";
 
-	private static final String KEY_PROFILE = "use-store";
+	private static final String STORE_PROFILE = "use-store";
 
 	private String topic = null;
 
@@ -107,7 +107,7 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 			return new String[] { QUEUE_PROFILE };
 		}
 		else if (key != null) {
-			return new String[] { KEY_PROFILE };
+			return new String[] { STORE_PROFILE };
 		}
 		return new String[] {};
 	}

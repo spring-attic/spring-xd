@@ -220,15 +220,15 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * Basic + concurrency + partitioning.
 	 */
 	private static final Set<Object> SUPPORTED_CONSUMER_PROPERTIES = new SetBuilder()
-	.add(BusProperties.PARTITION_INDEX) // Not actually used
-	.add(BusProperties.CONCURRENCY)
-	.build();
+			.add(BusProperties.PARTITION_INDEX) // Not actually used
+			.add(BusProperties.CONCURRENCY)
+			.build();
 
 	/**
 	 * Basic + concurrency.
 	 */
 	private static final Set<Object> SUPPORTED_NAMED_CONSUMER_PROPERTIES = new SetBuilder()
-	.build();
+			.build();
 
 	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = PRODUCER_STANDARD_PROPERTIES;
 
@@ -236,10 +236,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * Partitioning + kafka producer properties.
 	 */
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new SetBuilder()
-			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
-			.addAll(PRODUCER_STANDARD_PROPERTIES)
-	.add(BusProperties.DIRECT_BINDING_ALLOWED)
-			.build();
+	.addAll(PRODUCER_PARTITIONING_PROPERTIES)
+	.addAll(PRODUCER_STANDARD_PROPERTIES)
+			.add(BusProperties.DIRECT_BINDING_ALLOWED)
+	.build();
 
 
 	/**
@@ -483,7 +483,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 			@Override
 			public void run() {
-				System.out.println(Thread.currentThread());
 				ConsumerIterator<Integer, byte[]> it = stream.iterator();
 				while (it.hasNext()) {
 					byte[] msg = it.next().message();

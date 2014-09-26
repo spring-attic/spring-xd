@@ -143,7 +143,6 @@ abstract public class PartitionCapableBusTests extends BrokerBusTests {
 						42 == accessor.getSequenceNumber() &&
 						43 == accessor.getSequenceSize() &&
 						"bar".equals(accessor.getHeader("xdReplyChannel"));
-				System.out.println("for " + item + " \nresult = " + result);
 				return result;
 			}
 		};
@@ -164,13 +163,15 @@ abstract public class PartitionCapableBusTests extends BrokerBusTests {
 					(Integer) receive2.getPayload()),
 					containsInAnyOrder(0, 1, 2));
 
+			@SuppressWarnings("unchecked")
+			Matcher<Iterable<? extends Message<?>>> containsOur3Messages = containsInAnyOrder(
+					fooMatcher,
+					hasProperty("payload", equalTo(0)),
+					hasProperty("payload", equalTo(1))
+					);
 			assertThat(
 					Arrays.asList(receive0, receive1, receive2),
-					containsInAnyOrder(
-							fooMatcher,
-							hasProperty("payload", equalTo(0)),
-							hasProperty("payload", equalTo(1))
-							));
+					containsOur3Messages);
 
 		}
 

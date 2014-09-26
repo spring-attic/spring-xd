@@ -22,6 +22,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.actuate.autoconfigure.AuditAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
@@ -49,9 +50,10 @@ import org.springframework.xd.dirt.util.XdProfiles;
  *
  * @author Mark Fisher
  * @author David Turanski
+ * @author Marius Bogoevici
  */
 @Configuration
-@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
+@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class, AuditAutoConfiguration.class})
 public class ContainerServerApplication implements EnvironmentAware {
 
 	private static final Log logger = LogFactory.getLog(ContainerServerApplication.class);

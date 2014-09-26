@@ -27,7 +27,7 @@ import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 /**
  * Test class that helps injecting messageBus into {@link ModuleDeployer}'s common context via {@link TestStreamPlugin}.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author David Turanski
  */
@@ -35,7 +35,7 @@ public class TestMessageBusInjection {
 
 	private static final String STREAM_PLUGIN_BEAN_ID = "streamPlugin";
 
-	public static void injectMessageBus(SingleNodeApplication application, AbstractTestMessageBus testMessageBus) {
+	public static void injectMessageBus(SingleNodeApplication application, AbstractTestMessageBus<?> testMessageBus) {
 		ConfigurableApplicationContext pluginContext = application.pluginContext();
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(StreamPlugin.class);
 		ConstructorArgumentValues constructorArgumentValues = new ConstructorArgumentValues();

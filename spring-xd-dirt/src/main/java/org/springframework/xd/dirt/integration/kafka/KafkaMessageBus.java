@@ -312,13 +312,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 */
 	private int numOfKafkaPartitionsForCountEqualsZero = 10;
 
-	public KafkaMessageBus(MultiTypeCodec<Object> codec) {
-		this("localhost:9092", "localhost:2181", codec);
-	}
-
 	public KafkaMessageBus(String brokers, String zkAddress, MultiTypeCodec<Object> codec, String... headersToMap) {
 		this.brokers = brokers;
 		this.zkAddress = zkAddress;
+		setCodec(codec);
 		if (headersToMap.length > 0) {
 			String[] combinedHeadersToMap =
 					Arrays.copyOfRange(STANDARD_HEADERS, 0, STANDARD_HEADERS.length + headersToMap.length);
@@ -328,7 +325,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 		else {
 			this.headersToMap = STANDARD_HEADERS;
 		}
-		setCodec(codec);
 
 	}
 

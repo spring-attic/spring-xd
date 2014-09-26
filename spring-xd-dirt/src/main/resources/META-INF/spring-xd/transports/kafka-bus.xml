@@ -6,6 +6,9 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<bean id="messageBus" class="org.springframework.xd.dirt.integration.kafka.KafkaMessageBus">
+		<constructor-arg value=${xd.messagebus.kafka.brokers}/>
+		<constructor-arg value=${xd.messagebus.kafka.zkAddress}/>
+		<constructor-arg ref="codec"/>
 	</bean>
 
 </beans>

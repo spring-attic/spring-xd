@@ -5,8 +5,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="redis-common.xml" />
-
 	<bean id="messageBus" class="org.springframework.xd.dirt.integration.redis.RedisMessageBus">
 		<constructor-arg ref="redisConnectionFactory" />
 		<constructor-arg ref="codec"/>

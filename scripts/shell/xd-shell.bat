@@ -99,10 +99,9 @@ if exist "%APP_HOME_LIB%" (
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
 )
 
-@rem add xd/lib to CLASSPATH
+@rem add xd/lib/hadoop libs to CLASSPATH
 set XD_LIB=%APP_HOME%\..\xd\lib
 if exist "%XD_LIB%" (
-    set CLASSPATH=!CLASSPATH!;%XD_LIB%\*
     set HADOOP_LIB=%XD_LIB%\!HADOOP_DISTRO!
     if exist "!HADOOP_LIB!" (
         set CLASSPATH=!CLASSPATH!;!HADOOP_LIB!\*

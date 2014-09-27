@@ -94,7 +94,6 @@ addJarsToClassPath( ) {
 CLASSPATH="$APP_HOME/config"
 XD_LIB=$APP_HOME/../xd/lib
 APP_HOME_LIB=$APP_HOME/lib
-#addJarsToClassPath $XD_LIB
 addJarsToClassPath $APP_HOME_LIB
 HADOOP_LIB=$XD_LIB/$HADOOP_DISTRO
 addJarsToClassPath $HADOOP_LIB

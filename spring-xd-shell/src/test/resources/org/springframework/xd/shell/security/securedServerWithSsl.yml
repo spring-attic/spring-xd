@@ -1,0 +1,12 @@
+server:
+  ssl:
+    key-store: "classpath:org/springframework/xd/shell/security/springxd.jks"
+    key-store-password: storePass!
+    key-password: keyPass!
+
+security:
+  basic:
+    enabled: true
+  user:
+    name: admin
+    password: whosThere

@@ -182,3 +182,13 @@ spring:
 spring:
   hadoop:
    fsUri: hdfs://localhost:8020
+
+---
+# Security default settings
+security:
+  basic:
+    enabled: false
+
+management:
+  security:
+    enabled: false

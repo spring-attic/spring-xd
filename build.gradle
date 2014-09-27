@@ -9,7 +9,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.4.RELEASE")
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.7.RELEASE")
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
 		classpath 'com.moowork.gradle:gradle-grunt-plugin:0.4'
 		classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
@@ -63,7 +63,7 @@ allprojects {
 
 	repositories {
 		mavenCentral()
-		//maven { url 'http://repo.spring.io/libs-snapshot' }
+		maven { url 'http://repo.spring.io/libs-snapshot' }
 		maven { url 'http://repo.spring.io/milestone' }
 		//maven { url 'http://repo.spring.io/snapshot' }
 		maven { url 'http://repo.spring.io/libs-milestone' }
@@ -206,7 +206,7 @@ configure(javaProjects) { subproject ->
 	configurations.all { resolutionStrategy.cacheChangingModulesFor 60, 'minutes' }
 	// dependencies that are common across all java projects
 	dependencies {
-		versionManagement "io.spring.platform:platform-versions:$platformVersion@properties"
+		versionManagement files(rootProject.file('dependencies.properties'))
 		testCompile "org.springframework.boot:spring-boot-starter-test"
 		testCompile "org.codehaus.groovy:groovy-all"
 	}
@@ -326,6 +326,9 @@ project('spring-xd-dirt') {
 		compile "org.springframework.cloud:spring-cloud-cloudfoundry-connector"
 		compile "org.springframework.boot:spring-boot-autoconfigure"
 		compile "org.springframework.boot:spring-boot-actuator"
+		compile ("org.springframework.boot:spring-boot-starter-security") {
+			exclude module: "spring-boot-starter-logging"
+		}
 		compile "org.springframework.data:spring-data-redis"
 		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.integration:spring-integration-event"
@@ -409,6 +412,7 @@ project('spring-xd-dirt') {
 			exclude group: 'org.fusesource.fuse-extra'
 		}
 		testCompile "org.springframework:spring-jms"
+		testCompile "org.apache.httpcomponents:httpclient"
 	}
 
 
@@ -733,6 +737,7 @@ project('spring-xd-rest-client') {
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "org.codehaus.jackson:jackson-core-asl"
 		compile "joda-time:joda-time"
+		compile "org.apache.httpcomponents:httpclient"
 	}
 }
 

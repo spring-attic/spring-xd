@@ -193,3 +193,11 @@ xd:
 #      basepackages: com.acme.xd.extensions
 #      locations: META-INF/spring-xd/ext
 ---
+#Custom module registry location
+#Any custom modules built can be placed into this configured location
+#The location must be set to a valid resource URL (file://, classpath:/ etc.,)
+#xd:
+#  customModule:
+#    home: file://mymodulehome
+
+---

@@ -131,17 +131,11 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 								requestedModulesPaths, streamName);
 				Set<String> previouslyDeployed = new HashSet<String>();
 
-				try {
-					for (String deployedModule : client.getChildren().forPath(
-							Paths.build(data.getPath(), Paths.MODULES))) {
-						previouslyDeployed.add(Paths.stripPath(
-								new StreamDeploymentsPath(Paths.build(data.getPath(), Paths.MODULES, deployedModule))
-										.getModuleInstanceAsString()));
-					}
-				}
-				catch (KeeperException.NoNodeException e) {
-					// the stream does not have any modules deployed; this can be
-					// ignored as it will result in an empty deployedModules set
+				for (String deployedModule : client.getChildren().forPath(
+						Paths.build(data.getPath(), Paths.MODULES))) {
+					previouslyDeployed.add(Paths.stripPath(
+							new StreamDeploymentsPath(Paths.build(data.getPath(), Paths.MODULES, deployedModule))
+									.getModuleInstanceAsString()));
 				}
 
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
@@ -187,11 +181,13 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 				List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
 						requestedModulesPaths, jobName);
 				Set<String> previouslyDeployed = new HashSet<String>();
+
 				for (String deployedModule : client.getChildren().forPath(Paths.build(data.getPath(), Paths.MODULES))) {
 					previouslyDeployed.add(Paths.stripPath(new JobDeploymentsPath(Paths.build(data.getPath(),
 							Paths.MODULES,
 							deployedModule)).getModuleInstanceAsString()));
 				}
+
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
 					if (shouldDeploy(moduleDescriptor, path, previouslyDeployed)) {

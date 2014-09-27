@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.module;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +37,9 @@ public class DelegatingModuleRegistry implements ModuleRegistry {
 	private final List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
 
 	public DelegatingModuleRegistry(ModuleRegistry... delegates) {
-		this.delegates.addAll(Arrays.asList(delegates));
+		for (ModuleRegistry delegate : delegates) {
+			this.delegates.add(delegate);
+		}
 	}
 
 	@Override

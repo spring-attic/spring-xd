@@ -62,5 +62,4 @@ public interface ModuleRegistry {
 	 */
 	List<ModuleDefinition> findDefinitions();
 
-
 }

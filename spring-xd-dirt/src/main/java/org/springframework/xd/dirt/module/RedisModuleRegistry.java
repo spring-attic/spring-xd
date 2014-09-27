@@ -109,5 +109,4 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 
 	}
 
-
 }

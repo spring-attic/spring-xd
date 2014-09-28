@@ -1,0 +1,72 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+	<head>
+		<meta charset="utf-8"/>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+		<title>Spring XD - Login</title>
+		<meta name="description" content=""/>
+		<meta name="viewport" content="width=device-width"/>
+		<!-- build:css({.tmp,app}) styles/main.css -->
+		<link rel="stylesheet" href="styles/main.css">
+		<!-- endbuild -->
+	</head>
+	<body>
+
+		<!--[if lt IE 7]>
+			<p>You are using an <strong>outdated</strong> browser. Please upgrade your browser to improve your experience.</p>
+		<![endif]-->
+		<nav class="navbar navbar-default" data-role="navigation">
+			<div class="container">
+				<div class="navbar-header">
+					<a class="navbar-brand"><span></span></a>
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				</div>
+			</div>
+		</nav>
+		<div class="container-fluid homepage-billboard">
+			<div class="row">
+				<div class="homepage-title--container">
+					<div class="homepage-title">Spring XD Admin</div>
+					<div class="homepage-subtitle--container desktop-only">
+						<div class="homepage-subtitle">Spring XD is the one-stop shop for developing
+							and deploying big data applications.</div>
+					</div>
+				</div>
+				<div class="platform--wrapper">
+					<div class="platform--title">Please sign in</div>
+					<div class="platform--text">
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col-md-4 col-md-offset-4">
+								<div th:if="${param.error}" class="alert alert-warning" role="alert">
+									Invalid username and/or password.
+								</div>
+								<div th:if="${param.logout}" class="alert alert-info" role="alert">
+									You have been logged out.
+								</div>
+								<form action="/admin-ui/login" method="post" class="form-signin" data-role="form">
+									<input type="text" name="username" class="form-control" placeholder="Please enter your username" autofocus="autofocus"/>
+									<div class="help-block"></div>
+									<input type="password" class="form-control" placeholder="Please enter your password" name="password"/>
+									<div class="help-block"></div>
+									<button class="btn btn-lg btn-default btn-block" type="submit">Sign in</button>
+								</form>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+</body>
+</html>

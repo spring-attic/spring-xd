@@ -14,7 +14,8 @@ module.exports = function (grunt) {
     // Project settings
     xd: {
       app: 'app',
-      dist: 'dist'
+      dist:          'src/main/resources/public/admin-ui',
+      distTemplates: 'src/main/resources/templates'
     },
     // Set bower task's targetDir to use app directory
     bower: {
@@ -271,6 +272,11 @@ module.exports = function (grunt) {
           }
         ]
       },
+      templates: {
+        files: [
+          { src: '<%= xd.dist %>/login.html', dest: '<%= xd.distTemplates %>/login.html' }
+        ]
+      },
       styles: {
         expand: true,
         cwd: '<%= xd.app %>/styles',
@@ -375,7 +381,8 @@ module.exports = function (grunt) {
     'usemin',
     'htmlmin',
     // Run the karma unit tests
-    'test:unit'
+    'test:unit',
+    'copy:templates'
   ]);
 
   grunt.registerTask('teste2e', ['test:e2e']);

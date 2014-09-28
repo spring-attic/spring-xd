@@ -52,11 +52,12 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.RuntimeUtils;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 import org.springframework.xd.dirt.util.XdProfiles;
+import org.springframework.xd.dirt.web.WebConfiguration;
 
 @Configuration
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class, AuditAutoConfiguration.class})
 @ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml")
-@Import(RestConfiguration.class)
+@Import({ RestConfiguration.class, WebConfiguration.class })
 public class AdminServerApplication {
 
 	private static final Log logger = LogFactory.getLog(AdminServerApplication.class);

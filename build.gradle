@@ -30,8 +30,7 @@ ext {
 	] as String[]
 
 	nonJavaProjects = [
-		project(':redis'),
-		project(':spring-xd-ui')
+		project(':redis')
 	]
 	moduleProjects  = subprojects.findAll { project -> project.path.startsWith(':modules')}
 	javaProjects    = subprojects - (moduleProjects + nonJavaProjects)
@@ -203,7 +202,10 @@ configure(javaProjects) { subproject ->
 		}
 	}
 
-	configurations.all { resolutionStrategy.cacheChangingModulesFor 60, 'minutes' }
+	configurations.all {
+		resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
+		exclude group: 'ch.qos.logback', module: 'logback-classic'
+	}
 	// dependencies that are common across all java projects
 	dependencies {
 		versionManagement files(rootProject.file('dependencies.properties'))
@@ -329,6 +331,7 @@ project('spring-xd-dirt') {
 		compile ("org.springframework.boot:spring-boot-starter-security") {
 			exclude module: "spring-boot-starter-logging"
 		}
+		compile project(":spring-xd-ui")
 		compile "org.springframework.data:spring-data-redis"
 		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.integration:spring-integration-event"
@@ -448,11 +451,6 @@ project('spring-xd-dirt') {
 		outputs.dir config
 	}
 
-	task xdUiFiles {
-		def uiFiles = file("$rootDir/spring-xd-ui/dist")
-		outputs.dir uiFiles
-	}
-
 	task scriptFiles {
 		def scripts = file("$rootDir/scripts/xd")
 		outputs.dir scripts
@@ -465,8 +463,6 @@ project('spring-xd-dirt') {
 	applicationDistribution.from(scriptFiles) { into "bin" }
 
 	applicationDistribution.from(moduleFiles) { into "modules" }
-
-	applicationDistribution.from(xdUiFiles) { into "spring-xd-ui/dist" }
 
 	// Following execution is used by jsTests task to start SingleNodeApplication as background process
 	task backgroundAdminServer << { task ->
@@ -505,7 +501,6 @@ project('spring-xd-exec') {
 		into('.') { from '../spring-xd-dirt/src/main/resources/log4j.properties' }
 		into('modules') { from '../modules' }
 		into('config') { from '../config' }
-		into('spring-xd-ui/dist') { from '../spring-xd-ui/dist' }
 	}
 	moduleProjects.each { moduleProject ->
 		project.jar.dependsOn moduleProject.copyLibs
@@ -763,6 +758,14 @@ project('spring-xd-ui') {
 	description = 'Spring XD UI'
 	apply plugin: 'grunt'
 
+	dependencies {
+		compile "org.springframework.boot:spring-boot-starter-thymeleaf"
+		compile "org.springframework.boot:spring-boot-starter-security"
+		compile "net.sourceforge.nekohtml:nekohtml"
+		compile "log4j:log4j"
+		runtime	"org.slf4j:slf4j-log4j12"
+	}
+
 	node {
 		version = '0.10.25'
 		download = true
@@ -770,7 +773,7 @@ project('spring-xd-ui') {
 
 	task cleanDist(type: Delete) {
 		description = "Remove the 'dist' directory"
-		delete 'dist'
+		delete 'src/main/resources/public/admin-ui'
 	}
 
 	task cleanNodeModules(type: Delete) {

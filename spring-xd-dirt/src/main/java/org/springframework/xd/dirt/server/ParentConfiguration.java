@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
+import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
@@ -41,9 +42,11 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * @author David Turanski
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Gunnar Hillert
  */
 @EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
-		JmxAutoConfiguration.class, HealthIndicatorAutoConfiguration.class, AuditAutoConfiguration.class})
+		ThymeleafAutoConfiguration.class, JmxAutoConfiguration.class,
+		HealthIndicatorAutoConfiguration.class, AuditAutoConfiguration.class})
 @ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "global/parent-context.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {

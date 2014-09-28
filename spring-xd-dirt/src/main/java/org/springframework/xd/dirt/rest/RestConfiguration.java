@@ -31,13 +31,10 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.xd.dirt.plugins.job.support.ExecutionContextJacksonMixIn;
 import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
-import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.rest.domain.support.RestTemplateMessageConverterUtil;
 import org.springframework.xd.rest.domain.util.ISO8601DateFormatWithMilliSeconds;
 
@@ -62,10 +59,6 @@ public class RestConfiguration {
 	@Bean
 	public WebMvcConfigurer configurer() {
 		return new WebMvcConfigurerAdapter() {
-
-			// N.B. must end in "/"
-			@Value("${xd.ui.home:file:${XD_HOME}/spring-xd-ui/dist/}")
-			private String resourceRoot;
 
 			@Value("${xd.ui.allow_origin:http://localhost:9889}")
 			private String allowedOrigin;
@@ -94,20 +87,6 @@ public class RestConfiguration {
 				registry.addInterceptor(new AccessControlInterceptor(allowedOrigin));
 			}
 
-			// add a static resource handler for the UI
-			@Override
-			public void addResourceHandlers(ResourceHandlerRegistry registry) {
-				registry.addResourceHandler("/" + ConfigLocations.XD_ADMIN_UI_BASE_PATH + "/**",
-						"/" + ConfigLocations.XD_ADMIN_UI_BASE_PATH + "/").addResourceLocations(
-						resourceRoot);
-			}
-
-			@Override
-			public void addViewControllers(ViewControllerRegistry registry) {
-				registry.addViewController(ConfigLocations.XD_ADMIN_UI_BASE_PATH).setViewName(
-						"redirect:/" + ConfigLocations.XD_ADMIN_UI_BASE_PATH + "/");
-				registry.addViewController(ConfigLocations.XD_ADMIN_UI_BASE_PATH + "/").setViewName("index.html");
-			}
 		};
 	}
 }

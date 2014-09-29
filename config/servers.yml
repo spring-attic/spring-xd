@@ -129,6 +129,29 @@ xd:
 #    alternateUsernameAllowed: false
 
 ---
+# Config to enable security on administration endpoints (consider adding ssl)
+#spring:
+#  profiles: admin
+#security:
+#  basic:
+#    enabled: true # false to disable security settings (default)
+#    realm: SpringXD
+#  user: # valid only if security.basic.enabled=true
+#    name: yourAdminUsername
+#    password: yourAdminPassword
+---
+# Config to enable HTTPS on administration endpoints
+#spring:
+#  profiles: admin
+#server:
+#  ssl:
+#    key-alias: yourKeyAlias
+#    key-store: path/to/keystore
+#    key-store-password: yourKeyStorePassword
+#    key-password: yourKeyPassword
+#    trust-store: path/to/trust-store
+#    trust-store-password: yourTrustStorePassword
+---
 # Config to enable/disable JMX/jolokia endpoints
 #XD_JMX_ENABLED: true
 #endpoints:

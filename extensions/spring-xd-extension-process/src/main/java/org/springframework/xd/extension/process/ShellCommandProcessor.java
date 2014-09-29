@@ -16,20 +16,15 @@ package org.springframework.xd.extension.process;/*
  *
  */
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
@@ -37,8 +32,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
-import org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -71,6 +67,10 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 
 	private final static Log log = LogFactory.getLog(ShellCommandProcessor.class);
 
+	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+
+	private final String command;
+
 
 	/**
 	 * Creates a process to invoke a shell command to send and receive messages from the processes using the process's stdin and stdout.
@@ -81,7 +81,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	public ShellCommandProcessor(AbstractByteArraySerializer serializer, String command) {
 		Assert.hasLength(command, "A shell command is required");
 		Assert.notNull(serializer, "'serializer' cannot be null");
-
+		this.command = command;
 		List<String> commandPlusArgs = parse(command);
 		Assert.notEmpty(commandPlusArgs, "The shell command is invalid: '" + command + "'");
 		this.serializer = serializer;
@@ -94,27 +94,30 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	@Override
 	public void start() {
 		if (!isRunning()) {
-			String command = StringUtils.arrayToDelimitedString(processBuilder.command().toArray(), " ");
+
+			if (log.isDebugEnabled()) {
+				log.debug("starting process. Command = [" + command + "]");
+			}
+
 			try {
-				if (log.isDebugEnabled()) {
-					log.debug("starting process. Command = [" + command + "]");
-				}
 				process = processBuilder.start();
-				if (!processBuilder.redirectErrorStream()) {
-					monitorErrorStream();
-				}
-				stdout = process.getInputStream();
-				stdin = process.getOutputStream();
-
-
-				running.set(true);
-				if (log.isDebugEnabled()) {
-					log.debug("process started. Command = [" + command + "]");
-				}
 			}
 			catch (IOException e) {
 				log.error(e.getMessage(), e);
 				throw new RuntimeException(e.getMessage(), e);
+			}
+
+			if (!processBuilder.redirectErrorStream()) {
+				monitorErrorStream();
+			}
+			monitorProcess();
+
+			stdout = process.getInputStream();
+			stdin = process.getOutputStream();
+
+			running.set(true);
+			if (log.isDebugEnabled()) {
+				log.debug("process started. Command = [" + command + "]");
 			}
 		}
 	}
@@ -236,38 +239,86 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	}
 
 	/**
-	 * Log any error message that occur during start up.
-	 * //todo: ideally should work as a continuous background task, but not working as expected, i.e..,cannot get the error message without Future.get(). But this causes a start up delay and may be to short in some cases.
+	 * Runs a thread that waits for the Process result.
+	 */
+	private void monitorProcess() {
+		taskExecutor.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				Process process = ShellCommandProcessor.this.process;
+				if (process == null) {
+					if (log.isDebugEnabled()) {
+						log.debug("Process destroyed before starting process monitor");
+					}
+					return;
+				}
+
+				int result = Integer.MIN_VALUE;
+				try {
+					if (log.isDebugEnabled()) {
+						log.debug("Monitoring process '" + command + "'");
+					}
+					result = process.waitFor();
+					if (log.isInfoEnabled()) {
+						log.info("Process '" + command + "' terminated with value " + result);
+
+					}
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					log.error("Interrupted - stopping adapter", e);
+					stop();
+				}
+				finally {
+					process.destroy();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Runs a thread that reads stderr
 	 */
 	private void monitorErrorStream() {
-		final ExecutorService executor = Executors.newSingleThreadExecutor();
-		final FutureTask<String> futureTask = new FutureTask<String>(new Callable<String>() {
-			@Override
-			public String call() {
-				Thread.currentThread().setName("process-error-monitor");
-				String errorMsg = null;
-				byte[] errorBytes = new byte[0];
-				try {
-					errorBytes = new ByteArrayLfSerializer().deserialize(process.getErrorStream());
-					errorMsg = new String(errorBytes, charset);
-					if (errorMsg != null) {
-						log.error(errorMsg);
-					}
+		Process process = this.process;
+		if (process == null) {
+			if (log.isDebugEnabled()) {
+				log.debug("Process destroyed before starting stderr reader");
+			}
+			return;
+		}
+		final BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+		taskExecutor.execute(new Runnable() {
 
+			@Override
+			public void run() {
+				String statusMessage;
+				if (log.isDebugEnabled()) {
+					log.debug("Reading stderr");
+				}
+				try {
+					while ((statusMessage = errorReader.readLine()) != null) {
+						log.error(statusMessage);
+					}
 				}
 				catch (IOException e) {
+					if (log.isDebugEnabled()) {
+						log.debug("Exception on process error reader", e);
+					}
 				}
-				return errorMsg;
-			}});
-		executor.submit(futureTask);
-		try {
-			futureTask.get(1000, TimeUnit.MILLISECONDS);
-		}
-		catch (InterruptedException e) {
-		}
-		catch (ExecutionException e) {
-		}
-		catch (TimeoutException e) {
-		}
+				finally {
+					try {
+						errorReader.close();
+					}
+					catch (IOException e) {
+						if (log.isDebugEnabled()) {
+							log.debug("Exception while closing stderr", e);
+						}
+					}
+				}
+			}
+		});
 	}
+
 }

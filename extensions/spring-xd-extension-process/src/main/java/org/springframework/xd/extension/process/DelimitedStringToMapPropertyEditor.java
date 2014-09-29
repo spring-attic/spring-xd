@@ -26,6 +26,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Converts a String of comma delimited name-value pairs to a Map.
+ * Used here to set environment variables that are passed as a comma delimited String.
  *
  * @author David Turanski
  */

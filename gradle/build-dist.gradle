@@ -156,11 +156,6 @@ task distShellZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
                 into "${baseDir}/shell"
         }
 
-        from("$buildDir/dist/spring-xd/xd/lib/hadoop22") {
-                include "spring-data-hadoop-*.jar"
-                into "${baseDir}/shell/lib"
-        }
-
         from("$buildDir/dist/spring-xd/xd/lib") {
                 include "hadoop22/hadoop-auth-*.jar"
                 include "hadoop22/hadoop-common-*.jar"

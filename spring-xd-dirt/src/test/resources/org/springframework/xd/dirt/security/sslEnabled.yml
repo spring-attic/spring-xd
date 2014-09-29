@@ -1,5 +1,10 @@
+---
+# Configuration for testing application security
+spring:
+  profiles: admin
 server:
   ssl:
     key-store: "classpath:org/springframework/xd/dirt/security/springxd.jks"
     key-store-password: storePass!
     key-password: keyPass!
+---

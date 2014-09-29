@@ -188,6 +188,7 @@ spring:
 security:
   basic:
     enabled: false
+    realm:   SpringXD
 
 management:
   security:

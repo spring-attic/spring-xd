@@ -14,10 +14,16 @@
 
 package org.springframework.xd.dirt.web.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.accept.ContentNegotiationStrategy;
 
 /**
  * Setup Spring Security for development/testing purposes.
@@ -28,20 +34,32 @@ import org.springframework.security.config.annotation.web.servlet.configuration.
 @EnableWebMvcSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+	@Autowired
+	private ContentNegotiationStrategy contentNegotiationStrategy;
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
+
+		final RequestMatcher matcher = new MediaTypeRequestMatcher(contentNegotiationStrategy, MediaType.TEXT_HTML);
+		final String loginPage = "/admin-ui/login";
+
 		http.csrf().disable()
-				.authorizeRequests()
-				.antMatchers("/admin-ui/styles/**").permitAll()
-				.antMatchers("/admin-ui/images/**").permitAll()
-				.antMatchers("/admin-ui/fonts/**").permitAll()
-				.anyRequest().authenticated()
-				.and()
-				.formLogin()
-				.loginPage("/admin-ui/login").permitAll().loginProcessingUrl("/admin-ui/login")
-				.permitAll()
-				.and()
-				.logout().logoutUrl("/admin-ui/logout")
-				.permitAll();
+		.authorizeRequests()
+		.antMatchers("/admin-ui/styles/**").permitAll()
+		.antMatchers("/admin-ui/images/**").permitAll()
+		.antMatchers("/admin-ui/fonts/**").permitAll()
+		.anyRequest().authenticated()
+		.and()
+		.formLogin()
+		.loginPage(loginPage).permitAll().loginProcessingUrl("/admin-ui/login")
+		.permitAll()
+		.and()
+		.logout().logoutUrl("/admin-ui/logout")
+		.permitAll()
+		.and()
+		.httpBasic()
+		.and()
+		.exceptionHandling()
+		.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint(loginPage), matcher);
 	}
 }

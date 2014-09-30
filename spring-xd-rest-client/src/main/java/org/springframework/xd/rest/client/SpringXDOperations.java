@@ -43,7 +43,7 @@ public interface SpringXDOperations {
 	/**
 	 * Returns the portion of the API for interaction with runtime containers/modules.
 	 */
-	public ClusterOperations runtimeOperations();
+	public RuntimeOperations runtimeOperations();
 
 	/**
 	 * Returns the portion of the API for interaction with Counters.

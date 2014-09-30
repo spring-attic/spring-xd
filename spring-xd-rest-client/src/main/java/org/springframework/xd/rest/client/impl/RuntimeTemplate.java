@@ -21,7 +21,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.xd.rest.client.ClusterOperations;
+import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.domain.DetailedContainerResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 
@@ -30,22 +30,22 @@ import org.springframework.xd.rest.domain.ModuleMetadataResource;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class ClusterTemplate extends AbstractTemplate implements ClusterOperations {
+public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperations {
 
-	ClusterTemplate(AbstractTemplate source) {
+	RuntimeTemplate(AbstractTemplate source) {
 		super(source);
 	}
 
 	@Override
 	public DetailedContainerResource.Page listContainers() {
-		String uriTemplate = resources.get("cluster/containers").toString();
+		String uriTemplate = resources.get("runtime/containers").toString();
 		uriTemplate = uriTemplate + "?size=10000";
 		return restTemplate.getForObject(uriTemplate, DetailedContainerResource.Page.class);
 	}
 
 	@Override
 	public ModuleMetadataResource.Page listDeployedModules() {
-		String uriTemplate = resources.get("cluster/modules").toString();
+		String uriTemplate = resources.get("runtime/modules").toString();
 		uriTemplate = uriTemplate + "?size=10000";
 		return restTemplate.getForObject(uriTemplate, ModuleMetadataResource.Page.class);
 	}
@@ -54,7 +54,7 @@ public class ClusterTemplate extends AbstractTemplate implements ClusterOperatio
 	public ModuleMetadataResource listDeployedModule(String containerId, String moduleId) {
 		Assert.isTrue(StringUtils.hasText(containerId));
 		Assert.isTrue(StringUtils.hasText(moduleId));
-		String url = resources.get("cluster/modules").toString();
+		String url = resources.get("runtime/modules").toString();
 		MultiValueMap<String, String> values = new LinkedMultiValueMap<String, String>();
 		values.add("containerId", containerId);
 		values.add("moduleId", moduleId);
@@ -65,7 +65,7 @@ public class ClusterTemplate extends AbstractTemplate implements ClusterOperatio
 	@Override
 	public ModuleMetadataResource.Page listDeployedModulesByContainer(String containerId) {
 		Assert.isTrue(StringUtils.hasText(containerId));
-		String url = resources.get("cluster/modules").toString();
+		String url = resources.get("runtime/modules").toString();
 		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("containerId", containerId).build().toUriString();
 		return restTemplate.getForObject(uriString, ModuleMetadataResource.Page.class);
 	}
@@ -73,7 +73,7 @@ public class ClusterTemplate extends AbstractTemplate implements ClusterOperatio
 	@Override
 	public ModuleMetadataResource.Page listDeployedModulesByModuleId(String moduleId) {
 		Assert.isTrue(StringUtils.hasText(moduleId));
-		String url = resources.get("cluster/modules").toString();
+		String url = resources.get("runtime/modules").toString();
 		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("moduleId", moduleId).build().toUriString();
 		return restTemplate.getForObject(uriString, ModuleMetadataResource.Page.class);
 	}

@@ -25,7 +25,7 @@ import org.springframework.xd.rest.domain.ModuleMetadataResource;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public interface ClusterOperations {
+public interface RuntimeOperations {
 
 	public PagedResources<DetailedContainerResource> listContainers();
 

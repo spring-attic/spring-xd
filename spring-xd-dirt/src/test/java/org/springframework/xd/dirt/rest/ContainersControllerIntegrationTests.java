@@ -72,7 +72,7 @@ public class ContainersControllerIntegrationTests extends AbstractControllerInte
 
 	@Test
 	public void testListContainers() throws Exception {
-		mockMvc.perform(get("/cluster/containers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+		mockMvc.perform(get("/runtime/containers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(2))).andExpect(
 				jsonPath("$.content[*].attributes.id", contains("1", "2"))).andExpect(
 				jsonPath("$.content[*].attributes.pid", contains("1234", "2345"))).andExpect(
@@ -83,7 +83,7 @@ public class ContainersControllerIntegrationTests extends AbstractControllerInte
 	@Test
 	public void testShutdownNonExistingContainer() throws Exception {
 		String containerId = "random";
-		mockMvc.perform(delete("/cluster/containers").param("containerId", containerId)).andExpect(
+		mockMvc.perform(delete("/runtime/containers").param("containerId", containerId)).andExpect(
 				status().isNotFound()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Container could not be found with id " + containerId)));
 	}

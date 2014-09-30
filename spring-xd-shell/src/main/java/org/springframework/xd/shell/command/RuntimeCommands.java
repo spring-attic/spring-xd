@@ -28,7 +28,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.rest.client.ClusterOperations;
+import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.domain.DetailedContainerResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.shell.XDShell;
@@ -42,11 +42,11 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Ilayaperumal Gopinathan
  */
 @Component
-public class ClusterCommands implements CommandMarker {
+public class RuntimeCommands implements CommandMarker {
 
-	private static final String LIST_CONTAINERS = "cluster containers";
+	private static final String LIST_CONTAINERS = "runtime containers";
 
-	private static final String LIST_MODULES = "cluster modules";
+	private static final String LIST_MODULES = "runtime modules";
 
 	@Autowired
 	private XDShell xdShell;
@@ -111,7 +111,7 @@ public class ClusterCommands implements CommandMarker {
 		return table;
 	}
 
-	private ClusterOperations runtimeOperations() {
+	private RuntimeOperations runtimeOperations() {
 		return xdShell.getSpringXDOperations().runtimeOperations();
 	}
 

@@ -164,7 +164,7 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 
 	@Test
 	public void testListModules() throws Exception {
-		mockMvc.perform(get("/cluster/modules").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+		mockMvc.perform(get("/runtime/modules").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(3))).andExpect(
 				jsonPath("$.content[*].moduleId", contains("s1.source.http.0", "s2.sink.log.1", "j3.job.myjob.0"))).andExpect(
 				jsonPath("$.content[*].name", contains("http.0", "log.1", "myjob.0"))).andExpect(
@@ -177,7 +177,7 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 
 	@Test
 	public void testListModulesByJobName() throws Exception {
-		mockMvc.perform(get("/cluster/modules?jobname=j3").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(get("/runtime/modules?jobname=j3").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$", Matchers.hasSize(1))).andExpect(
 				jsonPath("$[*].moduleId", contains("j3.job.myjob.0"))).andExpect(
@@ -190,7 +190,7 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 
 	@Test
 	public void testListModuleByModuleId() throws Exception {
-		mockMvc.perform(get("/cluster/modules?moduleId=j3.job.myjob.0").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(get("/runtime/modules?moduleId=j3.job.myjob.0").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
 				jsonPath("$.content[*].name", contains("myjob.0"))).andExpect(
@@ -203,14 +203,14 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 
 	@Test
 	public void testListModulesByNonExistingJobName() throws Exception {
-		mockMvc.perform(get("/cluster/modules?jobname=notthere").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(get("/runtime/modules?jobname=notthere").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$", Matchers.hasSize(0)));
 	}
 
 	@Test
 	public void testListModulesByContainer() throws Exception {
-		mockMvc.perform(get("/cluster/modules?containerId=2").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(get("/runtime/modules?containerId=2").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
 				jsonPath("$.content[*].name", contains("log.1"))).andExpect(
@@ -225,7 +225,7 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 	@Test
 	public void testListModulesByContainerAndModuleId() throws Exception {
 		mockMvc.perform(
-				get("/cluster/modules?containerId=1&moduleId=s1.source.http.0").accept(MediaType.APPLICATION_JSON)).andExpect(
+				get("/runtime/modules?containerId=1&moduleId=s1.source.http.0").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$.name", containsString("http.0"))).andExpect(
 				jsonPath("$.unitName", containsString("s1"))).andExpect(
@@ -237,7 +237,7 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 	@Test
 	public void testListNonExistingModule() throws Exception {
 		mockMvc.perform(
-				get("/cluster/modules?containerId=1&moduleId=random").accept(MediaType.APPLICATION_JSON)).andExpect(
+				get("/runtime/modules?containerId=1&moduleId=random").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
 						Matchers.is("The module with id 'random' doesn't exist in the container with id '1'")));

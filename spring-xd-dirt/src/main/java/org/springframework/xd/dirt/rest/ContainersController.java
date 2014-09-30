@@ -57,7 +57,7 @@ import org.springframework.xd.rest.domain.DetailedContainerResource;
  * @author Mark Fisher
  */
 @Controller
-@RequestMapping("/cluster/containers")
+@RequestMapping("/runtime/containers")
 @ExposesResourceFor(DetailedContainerResource.class)
 public class ContainersController {
 

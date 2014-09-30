@@ -66,8 +66,8 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(JobDefinitionResource.class).withRel("jobs"));
 		xdRuntime.add(entityLinks.linkFor(ModuleDefinitionResource.class).withRel("modules"));
 
-		xdRuntime.add(entityLinks.linkFor(ModuleMetadataResource.class).withRel("cluster/modules"));
-		xdRuntime.add(entityLinks.linkFor(DetailedContainerResource.class).withRel("cluster/containers"));
+		xdRuntime.add(entityLinks.linkFor(ModuleMetadataResource.class).withRel("runtime/modules"));
+		xdRuntime.add(entityLinks.linkFor(DetailedContainerResource.class).withRel("runtime/containers"));
 
 		xdRuntime.add(entityLinks.linkFor(DetailedJobInfoResource.class).withRel("jobs/configurations"));
 		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("jobs/executions"));

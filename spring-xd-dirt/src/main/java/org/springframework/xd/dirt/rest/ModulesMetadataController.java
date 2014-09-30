@@ -46,7 +46,7 @@ import org.springframework.xd.rest.domain.ModuleMetadataResource;
  * @author Gunnar Hillert
  */
 @Controller
-@RequestMapping("/cluster/modules")
+@RequestMapping("/runtime/modules")
 @ExposesResourceFor(ModuleMetadataResource.class)
 public class ModulesMetadataController {
 

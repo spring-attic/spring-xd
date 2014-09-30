@@ -153,41 +153,24 @@ task distShellZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
         ext.baseDir = "${project.name}-${project.version}-shell";
 
         from("$buildDir/dist/spring-xd/shell") {
-                into "${baseDir}/shell"
+                into "${baseDir}"
         }
-
-        from("$buildDir/dist/spring-xd/xd/lib") {
-                include "hadoop22/hadoop-auth-*.jar"
-                include "hadoop22/hadoop-common-*.jar"
-                include "hadoop22/hadoop-hdfs-*.jar"
-                include "hadoop22/hadoop-mapreduce-client-core-*.jar"
-                include "hadoop22/protobuf-java-*.jar"
-                include "hadoop24/hadoop-auth-*.jar"
-                include "hadoop24/hadoop-common-*.jar"
-                include "hadoop24/hadoop-hdfs-*.jar"
-                include "hadoop24/hadoop-mapreduce-client-core-*.jar"
-                include "hadoop24/protobuf-java-*.jar"
-                include "hdp21/hadoop-auth-*.jar"
-                include "hdp21/hadoop-common-*.jar"
-                include "hdp21/hadoop-hdfs-*.jar"
-                include "hdp21/hadoop-mapreduce-client-core-*.jar"
-                include "hdp21/protobuf-java-*.jar"
-                include "phd1/hadoop-auth-*.jar"
-                include "phd1/hadoop-common-*.jar"
-                include "phd1/hadoop-hdfs-*.jar"
-                include "phd1/hadoop-mapreduce-client-core-*.jar"
-                include "phd1/protobuf-java-*.jar"
-                include "phd20/hadoop-auth-*.jar"
-                include "phd20/hadoop-common-*.jar"
-                include "phd20/hadoop-hdfs-*.jar"
-                include "phd20/hadoop-mapreduce-client-core-*.jar"
-                include "phd20/protobuf-java-*.jar"
-                include "cdh5/hadoop-auth-*.jar"
-                include "cdh5/hadoop-common-*.jar"
-                include "cdh5/hadoop-hdfs-*.jar"
-                include "cdh5/hadoop-mapreduce-client-core-*.jar"
-                include "cdh5/protobuf-java-*.jar"
-                into "${baseDir}/xd/lib"
+        [
+                'hadoop24',
+                'hadoop22',
+                'cdh5',
+                'hdp21',
+                'phd1',
+                'phd20'
+        ].each { distro ->
+                        from("$buildDir/dist/spring-xd/xd/lib/$distro") {
+                            include "hadoop-auth-*.jar"
+                            include "hadoop-common-*.jar"
+                            include "hadoop-hdfs-*.jar"
+                            include "hadoop-mapreduce-client-core-*.jar"
+                            include "protobuf-java-*.jar"
+                            into "${baseDir}/lib/$distro/"
+                }
         }
 }
 

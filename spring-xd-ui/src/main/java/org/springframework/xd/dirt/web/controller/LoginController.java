@@ -41,4 +41,9 @@ public class LoginController {
 	String index() {
 		return "forward:/admin-ui/index.html";
 	}
+
+	@RequestMapping("/admin-ui")
+	String indexWithoutTrailingSlash() {
+		return "redirect:/admin-ui/";
+	}
 }

@@ -17,15 +17,17 @@ package org.springframework.xd.dirt.web;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 /**
- * Provides web-bound Spring configuration
+ * Provides Spring MVC configuration.
  *
  * @author Gunnar Hillert
  */
 @EnableAutoConfiguration
 @Configuration
 @ComponentScan
+@PropertySource("classpath:/org/springframework/xd/dirt/web/custom-configuration.properties")
 public class WebConfiguration {
 
 }

@@ -761,7 +761,6 @@ project('spring-xd-ui') {
 	dependencies {
 		compile "org.springframework.boot:spring-boot-starter-thymeleaf"
 		compile "org.springframework.boot:spring-boot-starter-security"
-		compile "net.sourceforge.nekohtml:nekohtml"
 		compile "log4j:log4j"
 		runtime	"org.slf4j:slf4j-log4j12"
 	}

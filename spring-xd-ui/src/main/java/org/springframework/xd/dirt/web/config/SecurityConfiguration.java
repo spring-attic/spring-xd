@@ -58,6 +58,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		.antMatchers("/admin-ui/styles/**").permitAll()
 		.antMatchers("/admin-ui/images/**").permitAll()
 		.antMatchers("/admin-ui/fonts/**").permitAll()
+		.antMatchers("/assets/**").permitAll()
 		.anyRequest().authenticated()
 		.and()
 		.formLogin()

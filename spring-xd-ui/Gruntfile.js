@@ -381,8 +381,8 @@ module.exports = function (grunt) {
     'usemin',
     'htmlmin',
     // Run the karma unit tests
-    'test:unit',
-    'copy:templates'
+    'test:unit'
+    //'copy:templates'
   ]);
 
   grunt.registerTask('teste2e', ['test:e2e']);

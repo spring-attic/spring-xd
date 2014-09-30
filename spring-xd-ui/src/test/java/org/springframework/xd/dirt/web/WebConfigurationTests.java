@@ -67,7 +67,7 @@ public class WebConfigurationTests {
 	public void testThatServletContextTemplateResolverIsConfigured() throws Exception {
 		Assert.assertNotNull(templateResolver);
 		templateResolver.initialize();
-		Assert.assertEquals(StandardTemplateModeHandlers.LEGACYHTML5.getTemplateModeName(),
+		Assert.assertEquals(StandardTemplateModeHandlers.HTML5.getTemplateModeName(),
 				templateResolver.getTemplateMode());
 	}
 

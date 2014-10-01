@@ -108,124 +108,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * consumer group name is static and hence shared by all containers).
 	 */
 	private static final String POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP = "springXD";
-
-	private class KafkaPropertiesAccessor extends AbstractBusPropertiesAccessor {
-
-		public KafkaPropertiesAccessor(Properties properties) {
-			super(properties);
-		}
-
-		public int getNumberOfKafkaPartitions() {
-			if (new PartitioningMetadata(this).isPartitionedModule()) {
-				return getPartitionCount();
-			}
-			else {
-				int downStreamModuleCount = getProperty(NEXT_MODULE_COUNT, 1);
-				return downStreamModuleCount == 0 ? numOfKafkaPartitionsForCountEqualsZero : downStreamModuleCount;
-			}
-		}
-
-	}
-
-
-	private class ReceivingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
-
-		private ConsumerConnector connector;
-
-		public ReceivingHandler(ConsumerConnector connector) {
-			this.connector = connector;
-			this.setBeanFactory(KafkaMessageBus.this.getBeanFactory());
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		protected Object handleRequestMessage(Message<?> requestMessage) {
-			Message<?> theRequestMessage = requestMessage;
-			try {
-				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
-			}
-			catch (UnsupportedEncodingException e) {
-				logger.error("Could not convert message", e);
-			}
-			Message<?> result = deserializePayloadIfNecessary(theRequestMessage);
-			return result;
-		}
-
-		@Override
-		public boolean isRunning() {
-			return true;
-		}
-
-		@Override
-		public void start() {
-		}
-
-		@Override
-		public void stop() {
-			connector.shutdown();
-		}
-
-
-	}
-
-	private class SendingHandler extends AbstractMessageHandler {
-
-		private final MessageHandler delegate;
-
-		private final PartitioningMetadata partitioningMetadata;
-
-		private final AtomicInteger roundRobinCount = new AtomicInteger();
-
-		private final String topicName;
-
-
-		private SendingHandler(MessageHandler delegate, String topicName,
-				KafkaPropertiesAccessor properties) {
-			this.delegate = delegate;
-			this.topicName = topicName;
-			this.partitioningMetadata = new PartitioningMetadata(properties);
-			this.setBeanFactory(KafkaMessageBus.this.getBeanFactory());
-		}
-
-		private int roundRobin() {
-			int result = roundRobinCount.incrementAndGet();
-			if (result == Integer.MAX_VALUE) {
-				roundRobinCount.set(0);
-			}
-			return result;
-		}
-
-		@Override
-		protected void handleMessageInternal(Message<?> message) throws Exception {
-			Map<String, Object> additionalHeaders = new HashMap<String, Object>();
-
-			int partition;
-			if (partitioningMetadata.isPartitionedModule()) {
-				partition = determinePartition(message, partitioningMetadata);
-			}
-			else {
-				// The value will be modulo-ed by numPartitions by Kafka itself
-				partition = roundRobin();
-			}
-			additionalHeaders.put(PARTITION_HEADER, partition);
-			additionalHeaders.put("messageKey", partition);
-			additionalHeaders.put("topic", topicName);
-
-
-			@SuppressWarnings("unchecked")
-			Message<byte[]> transformed = (Message<byte[]>) serializePayloadIfNecessary(message,
-					MediaType.APPLICATION_OCTET_STREAM);
-			transformed = getMessageBuilderFactory().fromMessage(transformed)
-					.copyHeaders(additionalHeaders)
-					.build();
-			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
-					KafkaMessageBus.this.headersToMap);
-			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
-			delegate.handleMessage(messageToSend);
-		}
-
-	}
-
 	/**
 	 * The headers that will be propagated, by default.
 	 */
@@ -237,7 +119,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 		ORIGINAL_CONTENT_TYPE_HEADER,
 		XD_REPLY_CHANNEL
 	};
-
 	/**
 	 * Basic + concurrency + partitioning.
 	 */
@@ -245,15 +126,12 @@ public class KafkaMessageBus extends MessageBusSupport {
 			.add(BusProperties.PARTITION_INDEX) // Not actually used
 			.add(BusProperties.CONCURRENCY)
 			.build();
-
 	/**
 	 * Basic + concurrency.
 	 */
 	private static final Set<Object> SUPPORTED_NAMED_CONSUMER_PROPERTIES = new SetBuilder()
 			.build();
-
 	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = PRODUCER_STANDARD_PROPERTIES;
-
 	/**
 	 * Partitioning + kafka producer properties.
 	 */
@@ -262,22 +140,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 	.addAll(PRODUCER_STANDARD_PROPERTIES)
 			.add(BusProperties.DIRECT_BINDING_ALLOWED)
 	.build();
-
-
 	/**
 	 * Used when writing directly to ZK. This is what Kafka expects.
 	 */
 	private final static ZkSerializer utf8Serializer = new ZkSerializer() {
-
-		@Override
-		public Object deserialize(byte[] bytes) throws ZkMarshallingError {
-			try {
-				return new String(bytes, "UTF-8");
-			}
-			catch (UnsupportedEncodingException e) {
-				throw new ZkMarshallingError(e);
-			}
-		}
 
 		@Override
 		public byte[] serialize(Object data) throws ZkMarshallingError {
@@ -288,46 +154,23 @@ public class KafkaMessageBus extends MessageBusSupport {
 				throw new ZkMarshallingError(e);
 			}
 		}
-	};
 
-	/**
-	 * Allowed chars are ASCII alphanumerics, '.', '_' and '-'.
-	 * '_' is used as escaped char in the form '_xx' where xx is the hexadecimal
-	 * value of the byte(s) needed to represent an illegal char in utf8.
-	 */
-	/*default*/static String escapeTopicName(String original) {
-		StringBuilder result = new StringBuilder(original.length());
-		try {
-			byte[] utf8 = original.getBytes("UTF-8");
-			for (byte b : utf8) {
-				if ((b >= 'a') && (b <= 'z') || (b >= 'A') && (b <= 'Z') || (b >= '0') && (b <= '9') || (b == '.')
-						|| (b == '-')) {
-					result.append((char) b);
-				}
-				else {
-					result.append(String.format("_%02X", b));
-				}
+		@Override
+		public Object deserialize(byte[] bytes) throws ZkMarshallingError {
+			try {
+				return new String(bytes, "UTF-8");
+			}
+			catch (UnsupportedEncodingException e) {
+				throw new ZkMarshallingError(e);
 			}
 		}
-		catch (UnsupportedEncodingException e) {
-			throw new AssertionError(e); // Can't happen
-		}
-		return result.toString();
-	}
-
-	private String brokers;
-
+	};
 	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
-
-
+	private String brokers;
 	private ExecutorService executor = Executors.newCachedThreadPool();
-
 	private String[] headersToMap;
-
 	private int replicationFactor = 1;
-
 	private String zkAddress;
-
 	/**
 	 * The number of Kafka partitions to use when module count can auto-grow.
 	 * Should be bigger than number of containers that will ever exist.
@@ -350,26 +193,19 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	}
 
-	/*default*/ConsumerConnector createConsumerConnector(String consumerGroup, String... keyValues) {
-		Properties props = new Properties();
-		props.put("zookeeper.connect", zkAddress);
-		props.put("group.id", consumerGroup);
-		Assert.isTrue(keyValues.length % 2 == 0, "keyValues must be an even number of key/value pairs");
-		for (int i = 0; i < keyValues.length; i += 2) {
-			String key = keyValues[i];
-			String value = keyValues[i + 1];
-			props.put(key, value);
-		}
-		ConsumerConfig config = new ConsumerConfig(props);
-		return Consumer.createJavaConsumerConnector(config);
-	}
-
 	@Override
 	public void bindConsumer(String name, final MessageChannel moduleInputChannel, Properties properties) {
 		createKafkaConsumer(name, moduleInputChannel, properties,
 				createConsumerConnector(POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP));
 		bindExistingProducerDirectlyIfPossible(name, moduleInputChannel);
 
+	}
+
+	@Override
+	public void bindPubSubConsumer(String name, MessageChannel inputChannel, Properties properties) {
+		// Usage of a different consumer group each time achieves pub-sub
+		String group = UUID.randomUUID().toString();
+		createKafkaConsumer(name, inputChannel, properties, createConsumerConnector(group));
 	}
 
 	@Override
@@ -438,15 +274,14 @@ public class KafkaMessageBus extends MessageBusSupport {
 	}
 
 	@Override
-	public void bindPubSubConsumer(String name, MessageChannel inputChannel, Properties properties) {
-		// Usage of a different consumer group each time achieves pub-sub
-		String group = UUID.randomUUID().toString();
-		createKafkaConsumer(name, inputChannel, properties, createConsumerConnector(group));
+	public void bindPubSubProducer(String name, MessageChannel outputChannel, Properties properties) {
+		bindProducer(name, outputChannel, properties);
 	}
 
 	@Override
-	public void bindPubSubProducer(String name, MessageChannel outputChannel, Properties properties) {
-		bindProducer(name, outputChannel, properties);
+	public void bindRequestor(String name, MessageChannel requests, MessageChannel replies, Properties properties) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
 	}
 
 	@Override
@@ -455,10 +290,24 @@ public class KafkaMessageBus extends MessageBusSupport {
 		throw new UnsupportedOperationException("Auto-generated method stub");
 	}
 
-	@Override
-	public void bindRequestor(String name, MessageChannel requests, MessageChannel replies, Properties properties) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
+	/**
+	 * Creates a Kafka topic if needed, or try to increase its partition count to the desired number.
+	 */
+	private void ensureTopicCreated(final String topicName, int numPartitions, int replicationFactor) {
+		final int sessionTimeoutMs = 10000;
+		final int connectionTimeoutMs = 10000;
+		ZkClient zkClient = new ZkClient(zkAddress, sessionTimeoutMs, connectionTimeoutMs, utf8Serializer);
+
+		// The following is basically copy/paste from AdminUtils.createTopic() with
+		// createOrUpdateTopicPartitionAssignmentPathInZK(..., update=true)
+		Properties topicConfig = new Properties();
+		Seq<Object> brokerList = ZkUtils.getSortedBrokerList(zkClient);
+		scala.collection.Map<Object, Seq<Object>> replicaAssignment = AdminUtils.assignReplicasToBrokers(brokerList,
+				numPartitions, replicationFactor, -1, -1);
+		AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment, topicConfig,
+				true);
+		zkClient.close();
+
 	}
 
 	private void createKafkaConsumer(String name, final MessageChannel moduleInputChannel, Properties properties,
@@ -511,23 +360,158 @@ public class KafkaMessageBus extends MessageBusSupport {
 		});
 	}
 
-	/**
-	 * Creates a Kafka topic if needed, or try to increase its partition count to the desired number.
-	 */
-	private void ensureTopicCreated(final String topicName, int numPartitions, int replicationFactor) {
-		final int sessionTimeoutMs = 10000;
-		final int connectionTimeoutMs = 10000;
-		ZkClient zkClient = new ZkClient(zkAddress, sessionTimeoutMs, connectionTimeoutMs, utf8Serializer);
+	/*default*/ConsumerConnector createConsumerConnector(String consumerGroup, String... keyValues) {
+		Properties props = new Properties();
+		props.put("zookeeper.connect", zkAddress);
+		props.put("group.id", consumerGroup);
+		Assert.isTrue(keyValues.length % 2 == 0, "keyValues must be an even number of key/value pairs");
+		for (int i = 0; i < keyValues.length; i += 2) {
+			String key = keyValues[i];
+			String value = keyValues[i + 1];
+			props.put(key, value);
+		}
+		ConsumerConfig config = new ConsumerConfig(props);
+		return Consumer.createJavaConsumerConnector(config);
+	}
 
-		// The following is basically copy/paste from AdminUtils.createTopic() with
-		// createOrUpdateTopicPartitionAssignmentPathInZK(..., update=true)
-		Properties topicConfig = new Properties();
-		Seq<Object> brokerList = ZkUtils.getSortedBrokerList(zkClient);
-		scala.collection.Map<Object, Seq<Object>> replicaAssignment = AdminUtils.assignReplicasToBrokers(brokerList,
-				numPartitions, replicationFactor, -1, -1);
-		AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment, topicConfig,
-				true);
-		zkClient.close();
+	/**
+	 * Allowed chars are ASCII alphanumerics, '.', '_' and '-'.
+	 * '_' is used as escaped char in the form '_xx' where xx is the hexadecimal
+	 * value of the byte(s) needed to represent an illegal char in utf8.
+	 */
+	/*default*/static String escapeTopicName(String original) {
+		StringBuilder result = new StringBuilder(original.length());
+		try {
+			byte[] utf8 = original.getBytes("UTF-8");
+			for (byte b : utf8) {
+				if ((b >= 'a') && (b <= 'z') || (b >= 'A') && (b <= 'Z') || (b >= '0') && (b <= '9') || (b == '.')
+						|| (b == '-')) {
+					result.append((char) b);
+				}
+				else {
+					result.append(String.format("_%02X", b));
+				}
+			}
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new AssertionError(e); // Can't happen
+		}
+		return result.toString();
+	}
+
+	private class KafkaPropertiesAccessor extends AbstractBusPropertiesAccessor {
+
+		public KafkaPropertiesAccessor(Properties properties) {
+			super(properties);
+		}
+
+		public int getNumberOfKafkaPartitions() {
+			if (new PartitioningMetadata(this).isPartitionedModule()) {
+				return getPartitionCount();
+			}
+			else {
+				int downStreamModuleCount = getProperty(NEXT_MODULE_COUNT, 1);
+				return downStreamModuleCount == 0 ? numOfKafkaPartitionsForCountEqualsZero : downStreamModuleCount;
+			}
+		}
+
+	}
+
+	private class ReceivingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
+
+		private ConsumerConnector connector;
+
+		public ReceivingHandler(ConsumerConnector connector) {
+			this.connector = connector;
+			this.setBeanFactory(KafkaMessageBus.this.getBeanFactory());
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			Message<?> theRequestMessage = requestMessage;
+			try {
+				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
+			}
+			catch (UnsupportedEncodingException e) {
+				logger.error("Could not convert message", e);
+			}
+			Message<?> result = deserializePayloadIfNecessary(theRequestMessage);
+			return result;
+		}
+
+		@Override
+		public void start() {
+		}
+
+		@Override
+		public void stop() {
+			connector.shutdown();
+		}
+
+		@Override
+		public boolean isRunning() {
+			return true;
+		}
+
+
+	}
+
+	private class SendingHandler extends AbstractMessageHandler {
+
+		private final MessageHandler delegate;
+
+		private final PartitioningMetadata partitioningMetadata;
+
+		private final AtomicInteger roundRobinCount = new AtomicInteger();
+
+		private final String topicName;
+
+
+		private SendingHandler(MessageHandler delegate, String topicName,
+				KafkaPropertiesAccessor properties) {
+			this.delegate = delegate;
+			this.topicName = topicName;
+			this.partitioningMetadata = new PartitioningMetadata(properties);
+			this.setBeanFactory(KafkaMessageBus.this.getBeanFactory());
+		}
+
+		@Override
+		protected void handleMessageInternal(Message<?> message) throws Exception {
+			Map<String, Object> additionalHeaders = new HashMap<String, Object>();
+
+			int partition;
+			if (partitioningMetadata.isPartitionedModule()) {
+				partition = determinePartition(message, partitioningMetadata);
+			}
+			else {
+				// The value will be modulo-ed by numPartitions by Kafka itself
+				partition = roundRobin();
+			}
+			additionalHeaders.put(PARTITION_HEADER, partition);
+			additionalHeaders.put("messageKey", partition);
+			additionalHeaders.put("topic", topicName);
+
+
+			@SuppressWarnings("unchecked")
+			Message<byte[]> transformed = (Message<byte[]>) serializePayloadIfNecessary(message,
+					MediaType.APPLICATION_OCTET_STREAM);
+			transformed = getMessageBuilderFactory().fromMessage(transformed)
+					.copyHeaders(additionalHeaders)
+					.build();
+			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
+					KafkaMessageBus.this.headersToMap);
+			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
+			delegate.handleMessage(messageToSend);
+		}
+
+		private int roundRobin() {
+			int result = roundRobinCount.incrementAndGet();
+			if (result == Integer.MAX_VALUE) {
+				roundRobinCount.set(0);
+			}
+			return result;
+		}
 
 	}
 

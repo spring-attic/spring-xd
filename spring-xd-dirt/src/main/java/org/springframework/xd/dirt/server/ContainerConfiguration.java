@@ -96,22 +96,26 @@ class ContainerConfiguration {
 
 	@Bean
 	public ContainerRegistrar containerRegistrar() {
-		if (zooKeeperConnectionConfigurer != null) {
-			zooKeeperConnectionConfigurer.configureZooKeeperConnection(zooKeeperConnection);
-			zooKeeperConnection.start();
-		}
+		initializeZooKeeperConnection();
+		return new ContainerRegistrar(zooKeeperConnection, containerAttributes,
+				containerRepository, deploymentListener());
+	}
 
+	@Bean DeploymentListener deploymentListener() {
+		initializeZooKeeperConnection();
 		StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
 
 		JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
-
-		return new ContainerRegistrar(zooKeeperConnection, containerAttributes,
-				containerRepository,
-				streamFactory,
-				jobFactory,
-				moduleOptionsMetadataResolver,
-				moduleDeployer);
+		return new DeploymentListener(zooKeeperConnection, moduleDeployer, containerAttributes, jobFactory,streamFactory, moduleOptionsMetadataResolver);
 	}
+
+	private void initializeZooKeeperConnection()  {
+		if (zooKeeperConnectionConfigurer != null) {
+			zooKeeperConnectionConfigurer.configureZooKeeperConnection(zooKeeperConnection);
+			zooKeeperConnection.start();
+		}
+	}
+
 }

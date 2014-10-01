@@ -35,12 +35,13 @@ import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 
 /**
- * Listens for deployment request messages and instantiates {@link Module}s accordingly, applying {@link Plugin} logic
+ * Handles deployment related tasks instantiates {@link Module}s accordingly, applying {@link Plugin} logic
  * to them.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  */
 public class ModuleDeployer implements ApplicationContextAware, InitializingBean {
 

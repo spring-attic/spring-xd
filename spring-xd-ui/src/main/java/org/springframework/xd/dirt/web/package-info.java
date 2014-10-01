@@ -15,8 +15,6 @@
  */
 
 /**
- * 
- * @author hillert
+ * Contains Spring MVC related classes, e.g. web controllers.
  */
-
 package org.springframework.xd.dirt.web;

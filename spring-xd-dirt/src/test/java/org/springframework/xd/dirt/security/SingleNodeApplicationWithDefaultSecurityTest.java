@@ -54,13 +54,13 @@ public class SingleNodeApplicationWithDefaultSecurityTest extends AbstractSingle
 	@Test
 	public void testSslNotEnabledByDefaultForAdminEndpoints() throws Exception {
 		try {
-			restTemplate.getForEntity("https://" + adminHost() + ":" + adminPort() + "/modules", Object.class);
+			restTemplate.getForEntity("https://localhost" + ":" + adminPort() + "/modules", Object.class);
 		} catch (RestClientException e) {
 			// the request fails because the protocol is not HTTPS
 			assertThat(e.getCause(), instanceOf(SSLException.class));
 		}
 		// HTTP, however, succeeds
-		ResponseEntity<Object> responseEntity = restTemplate.getForEntity("http://" + adminHost() + ":" + adminPort() + "/modules", Object.class);
+		ResponseEntity<Object> responseEntity = restTemplate.getForEntity("http://localhost" + ":" + adminPort() + "/modules", Object.class);
 		assertThat(responseEntity.getStatusCode(), equalTo(HttpStatus.OK));
 	}
 
@@ -68,12 +68,12 @@ public class SingleNodeApplicationWithDefaultSecurityTest extends AbstractSingle
 	public void testSslNotEnabledByDefaultForManagementEndpoints() throws Exception {
 		try {
 			// the request fails because the protocol is not HTTPS
-			restTemplate.getForEntity("https://" + adminHost() + ":" + adminPort() + "/management/metrics", Object.class);
+			restTemplate.getForEntity("https://localhost" + ":" + adminPort() + "/management/metrics", Object.class);
 		} catch (RestClientException e) {
 			assertThat(e.getCause(), instanceOf(SSLException.class));
 		}
 		// HTTP, however, succeeds
-		ResponseEntity<Object> responseEntity = restTemplate.getForEntity("http://" + adminHost() + ":" + adminPort() + "/management/metrics", Object.class);
+		ResponseEntity<Object> responseEntity = restTemplate.getForEntity("http://localhost" + ":" + adminPort() + "/management/metrics", Object.class);
 		assertThat(responseEntity.getStatusCode(), equalTo(HttpStatus.OK));
 	}
 }

@@ -35,7 +35,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.dirt.util.RuntimeUtils;
 
 /**
  * Base class for Security Tests - allows for starting single node applications with different
@@ -55,8 +54,6 @@ public abstract class AbstractSingleNodeApplicationSecurityTest {
 	private static String originalConfigLocation = null;
 
 	private static String adminPort;
-
-	private static String adminHost;
 
 	protected RestTemplate restTemplate;
 
@@ -83,7 +80,6 @@ public abstract class AbstractSingleNodeApplicationSecurityTest {
 					                 .addFilters(configurableApplicationContext.getBeansOfType(Filter.class).values().toArray(new Filter[]{}))
 					                 .build();
 			adminPort = application().adminContext().getEnvironment().resolvePlaceholders("${server.port}");
-			adminHost = RuntimeUtils.getHost();
 		}
 
 		@Override
@@ -107,10 +103,6 @@ public abstract class AbstractSingleNodeApplicationSecurityTest {
 
 	public static SingleNodeApplication application() {
 		return singleNodeApplication;
-	}
-
-	protected static String adminHost() {
-		return adminHost;
 	}
 
 	protected static String adminPort() {

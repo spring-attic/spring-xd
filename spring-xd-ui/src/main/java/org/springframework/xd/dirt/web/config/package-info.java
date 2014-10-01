@@ -15,8 +15,6 @@
  */
 
 /**
- * 
- * @author hillert
+ * Contains Java Configuration classes.
  */
-
 package org.springframework.xd.dirt.web.config;

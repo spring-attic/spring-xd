@@ -819,9 +819,6 @@ project('spring-xd-ui') {
 		'cleanBowerFiles'
 	]) { description = "Clean the Admin UI dist, node modules and bower files" }
 
-	test {
-		testLogging.showStandardStreams = true
-	}
 }
 
 project('spring-xd-test') {

@@ -72,10 +72,10 @@ public class FieldValueCounterHandler extends AbstractMetricHandler {
 			}
 		}
 		if (payload instanceof Tuple) {
-			processTuple(computeMtricName(message), (Tuple) payload);
+			processTuple(computeMetricName(message), (Tuple) payload);
 		}
 		else {
-			processPojo(computeMtricName(message), payload);
+			processPojo(computeMetricName(message), payload);
 		}
 		return message;
 	}

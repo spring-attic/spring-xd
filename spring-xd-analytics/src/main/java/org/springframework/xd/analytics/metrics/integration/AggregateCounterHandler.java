@@ -62,7 +62,7 @@ public class AggregateCounterHandler extends AbstractMetricHandler {
 		}
 
 		Double increment = incrementExpression.getValue(evaluationContext, message, Double.class);
-		String counterName = computeMtricName(message);
+		String counterName = computeMetricName(message);
 
 		if (timeField == null) {
 			this.aggregateCounterRepository.increment(counterName, increment.longValue());

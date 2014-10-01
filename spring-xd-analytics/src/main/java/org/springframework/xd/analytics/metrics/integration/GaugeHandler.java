@@ -41,7 +41,7 @@ public class GaugeHandler extends AbstractMetricHandler {
 	public void process(Message<?> message) {
 		if (message != null) {
 			long value = convertToLong(message.getPayload());
-			this.gaugeRepository.setValue(computeMtricName(message), value);
+			this.gaugeRepository.setValue(computeMetricName(message), value);
 		}
 	}
 

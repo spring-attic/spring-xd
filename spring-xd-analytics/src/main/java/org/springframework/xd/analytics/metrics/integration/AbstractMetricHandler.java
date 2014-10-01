@@ -41,7 +41,7 @@ abstract class AbstractMetricHandler implements IntegrationEvaluationContextAwar
 		this.nameExpression = spelExpressionParser.parseExpression(nameExpression);
 	}
 
-	protected String computeMtricName(Message<?> message) {
+	protected String computeMetricName(Message<?> message) {
 		String counterName = nameExpression.getValue(evaluationContext, message, CharSequence.class).toString();
 		return counterName;
 	}

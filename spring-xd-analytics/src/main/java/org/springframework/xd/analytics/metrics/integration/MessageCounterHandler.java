@@ -38,7 +38,7 @@ public class MessageCounterHandler extends AbstractMetricHandler {
 	@ServiceActivator
 	public Message<?> process(Message<?> message) {
 		if (message != null) {
-			this.counterRepository.increment(computeMtricName(message));
+			this.counterRepository.increment(computeMetricName(message));
 		}
 		return message;
 	}

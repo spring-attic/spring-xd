@@ -26,14 +26,14 @@ define(['angular'], function (angular) {
       .factory('ContainerService', function ($resource, $rootScope) {
         return {
           getContainers: function () {
-            return $resource($rootScope.xdAdminServerUrl + '/cluster/containers.json', {}, {
+            return $resource($rootScope.xdAdminServerUrl + '/runtime/containers.json', {}, {
               getContainers: {
                 method: 'GET'
               }
             }).getContainers();
           },
           shutdownContainer: function (containerId) {
-            return $resource($rootScope.xdAdminServerUrl + '/cluster/containers?containerId=' + containerId, null, {
+            return $resource($rootScope.xdAdminServerUrl + '/runtime/containers?containerId=' + containerId, null, {
               shutdownContainer: {
                 method: 'DELETE'
               }

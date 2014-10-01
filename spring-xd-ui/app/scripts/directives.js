@@ -208,6 +208,9 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
                 scope.stopPolling();
               }
               $(this).data('bs.popover').tip().css('max-width', $(this).closest('#xd-content').width() + 'px');
+              scope.$on('$destroy', function() {
+                angular.element('.popover').remove();
+              });
             })
             .on('hide.bs.popover', function(){
               if (typeof scope.startPolling === 'function') {

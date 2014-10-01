@@ -26,13 +26,25 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.OrderComparator;
+import org.springframework.util.Assert;
+import org.springframework.validation.BindException;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
+import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
+import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.ModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
+import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
  * Handles deployment related tasks instantiates {@link Module}s accordingly, applying {@link Plugin} logic
@@ -43,7 +55,7 @@ import org.springframework.xd.module.core.Plugin;
  * @author Ilayaperumal Gopinathan
  * @author David Turanski
  */
-public class ModuleDeployer implements ApplicationContextAware, InitializingBean {
+public class ModuleDeployer implements ApplicationContextAware, InitializingBean, BeanClassLoaderAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -53,7 +65,19 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 
 	private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
 
+	private volatile ClassLoader parentClassLoader;
+
+	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
 	private volatile List<Plugin> plugins;
+
+	/**
+	 *
+	 * @param moduleOptionsMetadataResolver the moduleOptionsMetadataResolver.
+	 */
+	public ModuleDeployer(ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
+		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
+	}
 
 	public Map<String, Map<Integer, Module>> getDeployedModules() {
 		return deployedModules;
@@ -71,6 +95,15 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 		OrderComparator.sort(this.plugins);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.parentClassLoader = classLoader;
+	}
+
+
 	// todo: when refactoring to ZK-based deployment, keep this method but remove the private one
 	// but notice the use of 'group' which is abstract so it can also support jobs (not just streams)
 	// that terminology needs to change since group will be used in criteria expressions. Most likely we
@@ -82,6 +115,90 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 	// todo: same general idea as deployAndStore above
 	public void undeploy(ModuleDescriptor moduleDescriptor) {
 		this.handleUndeploy(moduleDescriptor.getGroup(), moduleDescriptor.getIndex());
+	}
+
+	/**
+	 * Create a module based on the provided {@link ModuleDescriptor}, and
+	 * {@link ModuleDeploymentProperties}.
+	 *
+	 * @param moduleDescriptor descriptor for the module
+	 * @param deploymentProperties deployment related properties for the module
+	 *
+	 * @return new module instance
+	 */
+	public Module createModule(ModuleDescriptor moduleDescriptor,
+			ModuleDeploymentProperties deploymentProperties) {
+		ModuleOptions moduleOptions = this.safeModuleOptionsInterpolate(moduleDescriptor);
+		return (moduleDescriptor.isComposed())
+				? createComposedModule(moduleDescriptor, moduleOptions, deploymentProperties)
+				: createSimpleModule(moduleDescriptor, moduleOptions, deploymentProperties);
+	}
+
+	/**
+	 * Create a simple module based on the provided {@link ModuleDescriptor}, {@link org.springframework.xd.module.options.ModuleOptions}, and
+	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
+	 *
+	 * @param moduleDescriptor descriptor for the composed module
+	 * @param moduleOptions module options for the composed module
+	 * @param deploymentProperties deployment related properties for the composed module
+	 *
+	 * @return new simple module instance
+	 *
+	 */
+	private Module createSimpleModule(ModuleDescriptor moduleDescriptor, ModuleOptions moduleOptions,
+			ModuleDeploymentProperties deploymentProperties) {
+		ModuleDefinition definition = moduleDescriptor.getModuleDefinition();
+		ClassLoader classLoader = (definition.getClasspath() == null) ? null
+				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
+		return new SimpleModule(moduleDescriptor, deploymentProperties, classLoader, moduleOptions);
+	}
+
+	/**
+	 * Create a composed module based on the provided {@link ModuleDescriptor}, {@link org.springframework.xd.module.options.ModuleOptions}, and
+	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
+	 *
+	 * @param compositeDescriptor descriptor for the composed module
+	 * @param options module options for the composed module
+	 * @param deploymentProperties deployment related properties for the composed module
+	 *
+	 * @return new composed module instance
+	 *
+	 * @see ModuleDescriptor#isComposed
+	 */
+	private Module createComposedModule(ModuleDescriptor compositeDescriptor,
+			ModuleOptions options, ModuleDeploymentProperties deploymentProperties) {
+
+		List<ModuleDescriptor> children = compositeDescriptor.getChildren();
+		Assert.notEmpty(children, "child module list must not be empty");
+
+		List<Module> childrenModules = new ArrayList<Module>(children.size());
+		for (ModuleDescriptor childRequest : children) {
+			ModuleOptions narrowedOptions = new PrefixNarrowingModuleOptions(options, childRequest.getModuleName());
+			// due to parser results being reversed, we add each at index 0
+			// todo: is it right to pass the composite deploymentProperties here?
+			childrenModules.add(0, createSimpleModule(childRequest, narrowedOptions, deploymentProperties));
+		}
+		return new CompositeModule(compositeDescriptor, deploymentProperties, childrenModules);
+	}
+
+	/**
+	 * Takes a request and returns an instance of {@link ModuleOptions} bound with the request parameters. Binding is
+	 * assumed to not fail, as it has already been validated on the admin side.
+	 *
+	 * @param descriptor module descriptor for which to bind request parameters
+	 *
+	 * @return module options bound with request parameters
+	 */
+	private ModuleOptions safeModuleOptionsInterpolate(ModuleDescriptor descriptor) {
+		Map<String, String> parameters = descriptor.getParameters();
+		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(descriptor.getModuleDefinition());
+		try {
+			return moduleOptionsMetadata.interpolate(parameters);
+		}
+		catch (BindException e) {
+			// Can't happen as parser should have already validated options
+			throw new IllegalStateException(e);
+		}
 	}
 
 	private void deployAndStore(Module module, String group, int index) {

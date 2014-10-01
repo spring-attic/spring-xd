@@ -91,7 +91,7 @@ class ContainerConfiguration {
 
 	@Bean(name = "moduleDeployer")
 	public ModuleDeployer moduleDeployer() {
-		return new ModuleDeployer();
+		return new ModuleDeployer(moduleOptionsMetadataResolver);
 	}
 
 	@Bean
@@ -101,14 +101,15 @@ class ContainerConfiguration {
 				containerRepository, deploymentListener());
 	}
 
-	@Bean DeploymentListener deploymentListener() {
+	@Bean
+	public DeploymentListener deploymentListener() {
 		initializeZooKeeperConnection();
 		StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
 
 		JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
-		return new DeploymentListener(zooKeeperConnection, moduleDeployer, containerAttributes, jobFactory,streamFactory, moduleOptionsMetadataResolver);
+		return new DeploymentListener(zooKeeperConnection, moduleDeployer, containerAttributes, jobFactory,streamFactory);
 	}
 
 	private void initializeZooKeeperConnection()  {

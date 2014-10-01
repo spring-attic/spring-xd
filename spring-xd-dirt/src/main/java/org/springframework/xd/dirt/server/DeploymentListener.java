@@ -19,11 +19,9 @@
 package org.springframework.xd.dirt.server;
 
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,10 +38,7 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.JobDeploymentsPath;
@@ -56,19 +51,11 @@ import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
-import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
-import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.module.core.SimpleModule;
-import org.springframework.xd.module.options.ModuleOptions;
-import org.springframework.xd.module.options.ModuleOptionsMetadata;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
-import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
-import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
  *
@@ -78,7 +65,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  *
  * Listener for deployment requests for a container instance under {@link org.springframework.xd.dirt.zookeeper.Paths#DEPLOYMENTS}.
  */
-class DeploymentListener implements PathChildrenCacheListener, BeanClassLoaderAware {
+class DeploymentListener implements PathChildrenCacheListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeploymentListener.class);
 
@@ -129,18 +116,6 @@ class DeploymentListener implements PathChildrenCacheListener, BeanClassLoaderAw
 			new ConcurrentHashMap<ModuleDescriptor.Key, ModuleDescriptor>();
 
 	/**
-	 * Module options metadata resolver.
-	 */
-	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
-
-
-	/**
-	 * ClassLoader provided by the ApplicationContext.
-	 */
-	private volatile ClassLoader parentClassLoader;
-
-
-	/**
 	 * Create an instance that will register the provided {@link ContainerAttributes} whenever the underlying
 	 * {@link ZooKeeperConnection} is established. If that connection is already established at the time this instance
 	 * receives a {@link org.springframework.context.event.ContextRefreshedEvent}, the attributes will be registered then. Otherwise, registration occurs
@@ -149,22 +124,18 @@ class DeploymentListener implements PathChildrenCacheListener, BeanClassLoaderAw
 	 * @param containerAttributes runtime and configured attributes for the container
 	 * @param streamFactory factory to construct {@link Stream}
 	 * @param jobFactory factory to construct {@link Job}
-	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 * @param moduleDeployer module deployer
 	 * @param zkConnection ZooKeeper connection
 	 */
 	public DeploymentListener(ZooKeeperConnection zkConnection, ModuleDeployer moduleDeployer, ContainerAttributes containerAttributes,
-			JobFactory jobFactory, StreamFactory streamFactory,
-			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
+			JobFactory jobFactory, StreamFactory streamFactory) {
 		this.zkConnection = zkConnection;
 		this.jobModuleWatcher = new JobModuleWatcher();
 		this.streamModuleWatcher = new StreamModuleWatcher();
-
 		this.moduleDeployer = moduleDeployer;
 		this.containerAttributes = containerAttributes;
 		this.jobFactory = jobFactory;
 		this.streamFactory = streamFactory;
-		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
 	/**
@@ -185,14 +156,6 @@ class DeploymentListener implements PathChildrenCacheListener, BeanClassLoaderAw
 			default:
 				break;
 		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.parentClassLoader = classLoader;
 	}
 
 	/**
@@ -410,14 +373,8 @@ class DeploymentListener implements PathChildrenCacheListener, BeanClassLoaderAw
 		ModuleDescriptor.Key key = new ModuleDescriptor.Key(moduleDescriptor.getGroup(), moduleDescriptor.getType(),
 				moduleDescriptor.getModuleLabel());
 		mapDeployedModules.put(key, moduleDescriptor);
-		ModuleOptions moduleOptions = this.safeModuleOptionsInterpolate(moduleDescriptor);
-		Module module = (moduleDescriptor.isComposed())
-				? createComposedModule(moduleDescriptor, moduleOptions, deploymentProperties)
-				: createSimpleModule(moduleDescriptor, moduleOptions, deploymentProperties);
-
+		Module module = moduleDeployer.createModule(moduleDescriptor,deploymentProperties);
 		registerTap(moduleDescriptor);
-
-		// todo: rather than delegate, merge ContainerRegistrar itself into and remove most of ModuleDeployer
 		this.moduleDeployer.deployAndStore(module, moduleDescriptor);
 		return module;
 	}
@@ -673,72 +630,6 @@ class DeploymentListener implements PathChildrenCacheListener, BeanClassLoaderAw
 					}
 				}
 			}
-		}
-	}
-
-	/**
-	 * Create a composed module based on the provided {@link ModuleDescriptor}, {@link ModuleOptions}, and
-	 * {@link ModuleDeploymentProperties}.
-	 *
-	 * @param compositeDescriptor descriptor for the composed module
-	 * @param options module options for the composed module
-	 * @param deploymentProperties deployment related properties for the composed module
-	 *
-	 * @return new composed module instance
-	 *
-	 * @see ModuleDescriptor#isComposed
-	 */
-	private Module createComposedModule(ModuleDescriptor compositeDescriptor,
-			ModuleOptions options, ModuleDeploymentProperties deploymentProperties) {
-
-		List<ModuleDescriptor> children = compositeDescriptor.getChildren();
-		Assert.notEmpty(children, "child module list must not be empty");
-
-		List<Module> childrenModules = new ArrayList<Module>(children.size());
-		for (ModuleDescriptor childRequest : children) {
-			ModuleOptions narrowedOptions = new PrefixNarrowingModuleOptions(options, childRequest.getModuleName());
-			// due to parser results being reversed, we add each at index 0
-			// todo: is it right to pass the composite deploymentProperties here?
-			childrenModules.add(0, createSimpleModule(childRequest, narrowedOptions, deploymentProperties));
-		}
-		return new CompositeModule(compositeDescriptor, deploymentProperties, childrenModules);
-	}
-
-	/**
-	 * Create a module based on the provided {@link ModuleDescriptor}, {@link ModuleOptions}, and
-	 * {@link ModuleDeploymentProperties}.
-	 *
-	 * @param descriptor descriptor for the module
-	 * @param options module options for the module
-	 * @param deploymentProperties deployment related properties for the module
-	 *
-	 * @return new module instance
-	 */
-	private Module createSimpleModule(ModuleDescriptor descriptor, ModuleOptions options,
-			ModuleDeploymentProperties deploymentProperties) {
-		ModuleDefinition definition = descriptor.getModuleDefinition();
-		ClassLoader classLoader = (definition.getClasspath() == null) ? null
-				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
-		return new SimpleModule(descriptor, deploymentProperties, classLoader, options);
-	}
-
-	/**
-	 * Takes a request and returns an instance of {@link ModuleOptions} bound with the request parameters. Binding is
-	 * assumed to not fail, as it has already been validated on the admin side.
-	 *
-	 * @param descriptor module descriptor for which to bind request parameters
-	 *
-	 * @return module options bound with request parameters
-	 */
-	private ModuleOptions safeModuleOptionsInterpolate(ModuleDescriptor descriptor) {
-		Map<String, String> parameters = descriptor.getParameters();
-		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(descriptor.getModuleDefinition());
-		try {
-			return moduleOptionsMetadata.interpolate(parameters);
-		}
-		catch (BindException e) {
-			// Can't happen as parser should have already validated options
-			throw new IllegalStateException(e);
 		}
 	}
 }

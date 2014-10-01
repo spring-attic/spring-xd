@@ -74,6 +74,28 @@ import scala.collection.Seq;
 /**
  * A message bus that uses Kafka as the underlying middleware.
  *
+ * The general implementation mapping between XD concepts and Kafka concepts is as follows:
+ * <table>
+ *     <tr>
+ *         <th>Stream definition</th><th>Kafka topic</th><th>Kafka partitions</th><th>Notes</th>
+ *     </tr>
+ *     <tr>
+ *         <td>foo = "http | log"</td><td>foo.0</td><td>1 partition</td><td>1 producer, 1 consumer</td>
+ *     </tr>
+ *     <tr>
+ *         <td>foo = "http | log", log.count=x</td><td>foo.0</td><td>x partitions</td><td>1 producer, x consumers with static group 'springXD', achieves queue semantics</td>
+ *     </tr>
+ *     <tr>
+ *         <td>foo = "http | log", log.count=x + XD partitioning</td><td>still 1 topic 'foo.0'</td><td>x partitions + use key computed by XD</td><td>1 producer, x consumers with static group 'springXD', achieves queue semantics</td>
+ *     </tr>
+ *     <tr>
+ *         <td>foo = "http | log", log.count=x, concurrency=y</td><td>foo.0</td><td>x*y partitions</td><td>1 producer, x XD consumers, each with y threads</td>
+ *     </tr>
+ *     <tr>
+ *         <td>foo = "http | log", log.count=0, x actual log containers</td><td>foo.0</td><td>10(configurable) partitions</td><td>1 producer, x XD consumers. Can't know the number of partitions beforehand, so decide a number that better be greater than number of containers</td>
+ *     </tr>
+ * </table>
+ *
  * @author Eric Bottard
  */
 public class KafkaMessageBus extends MessageBusSupport {

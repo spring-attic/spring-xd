@@ -37,6 +37,7 @@ import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionConfigurer;
+import org.springframework.xd.module.core.ModuleFactory;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
@@ -89,9 +90,13 @@ class ContainerConfiguration {
 		return new SourceFilteringListener(context, delegate);
 	}
 
-	@Bean(name = "moduleDeployer")
+	@Bean
+	public ModuleFactory moduleFactory(){
+		return new ModuleFactory(moduleOptionsMetadataResolver);
+	}
+	@Bean/*(name = "moduleDeployer")*/
 	public ModuleDeployer moduleDeployer() {
-		return new ModuleDeployer(moduleOptionsMetadataResolver);
+		return new ModuleDeployer(moduleFactory());
 	}
 
 	@Bean

@@ -42,10 +42,8 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
-import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptions;
@@ -83,11 +81,11 @@ public class SimpleModule extends AbstractModule {
 
 	private final ClassLoader classLoader;
 
-	public SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties) {
+	SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties) {
 		this(descriptor, deploymentProperties, null, defaultModuleOptions());
 	}
 
-	public SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
+	SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
 			ClassLoader classLoader,
 			ModuleOptions moduleOptions) {
 		super(descriptor, deploymentProperties);
@@ -105,11 +103,6 @@ public class SimpleModule extends AbstractModule {
 		this.properties.putAll(moduleOptionsToProperties(moduleOptions));
 
 		application.profiles(moduleOptions.profilesToActivate());
-
-		ModuleDefinition definition = descriptor.getModuleDefinition();
-		if (definition != null && definition.getResource().isReadable()) {
-			this.addComponents(definition.getResource());
-		}
 	}
 
 	private Map<Object, Object> moduleOptionsToProperties(ModuleOptions moduleOptions) {
@@ -130,11 +123,7 @@ public class SimpleModule extends AbstractModule {
 	}
 
 	@Override
-	public void addComponents(Resource resource) {
-		addSource(resource);
-	}
-
-	protected void addSource(Object source) {
+	public void addSource(Object source) {
 		application.sources(source);
 	}
 
@@ -154,7 +143,7 @@ public class SimpleModule extends AbstractModule {
 		return this.properties;
 	}
 
-	public ApplicationContext getApplicationContext() {
+	public ConfigurableApplicationContext getApplicationContext() {
 		return this.context;
 	}
 

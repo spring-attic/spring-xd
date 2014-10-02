@@ -29,6 +29,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -63,15 +64,15 @@ public class CompositeModule extends AbstractModule {
 
 	private final AtomicBoolean isRunning = new AtomicBoolean();
 
-	public CompositeModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
+	CompositeModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
 			List<Module> modules) {
 		super(descriptor, deploymentProperties);
 		this.modules = modules;
 		this.validate();
 	}
-
+	//TODO: This is specific to XD stream composition. Eventually we may want to support more generic composite modules.
 	private void validate() {
-		Assert.isTrue(modules != null && modules.size() > 0, "at least one definition required");
+		Assert.isTrue(modules != null && modules.size() > 0, "at least one module required");
 		ModuleType inferredType = null;
 		if (modules.size() == 1) {
 			inferredType = modules.get(0).getType();
@@ -155,6 +156,11 @@ public class CompositeModule extends AbstractModule {
 		}
 	}
 
+	@Override
+	public ConfigurableApplicationContext getApplicationContext() {
+		return context;
+	}
+
 	private void initContext() {
 		Assert.state(context != null, "An ApplicationContext is required");
 		boolean propertyConfigurerPresent = false;
@@ -186,9 +192,11 @@ public class CompositeModule extends AbstractModule {
 	}
 
 	@Override
-	public void addComponents(Resource resource) {
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
-		reader.loadBeanDefinitions(resource);
+	public void addSource(Object source) {
+		if (source instanceof Resource) {
+			XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
+			reader.loadBeanDefinitions((Resource)source);
+		}
 	}
 
 	@Override

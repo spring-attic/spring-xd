@@ -28,7 +28,7 @@ import org.springframework.xd.module.core.Module;
 
 /**
  * Plugin to enable the registration of jobs in a central registry.
- * 
+ *
  * @author Michael Minella
  * @author Gunnar Hillert
  * @author Gary Russell
@@ -56,7 +56,7 @@ public class JobPlugin extends AbstractJobPlugin {
 	@Override
 	public void preProcessModule(Module module) {
 		Assert.notNull(module, "module cannot be null");
-		module.addComponents(new ClassPathResource(REGISTRAR));
+		module.addSource(new ClassPathResource(REGISTRAR));
 		configureProperties(module);
 	}
 

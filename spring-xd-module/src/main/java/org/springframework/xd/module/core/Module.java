@@ -20,8 +20,8 @@ import java.util.Properties;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.Lifecycle;
-import org.springframework.core.io.Resource;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
@@ -46,9 +46,13 @@ public interface Module extends Lifecycle {
 
 	ModuleDeploymentProperties getDeploymentProperties();
 
+	ConfigurableApplicationContext getApplicationContext();
+
+	//TODO:  is this still needed?
+
 	void setParentContext(ApplicationContext parentContext);
 
-	void addComponents(Resource resource);
+	void addSource(Object source);
 
 	void addProperties(Properties properties);
 

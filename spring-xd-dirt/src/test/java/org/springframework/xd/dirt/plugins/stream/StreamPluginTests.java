@@ -16,15 +16,12 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME_KEY;
+import static org.mockito.Mockito.*;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.*;
 
 import java.util.List;
 import java.util.Properties;
@@ -40,7 +37,9 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.util.PassthruModuleOptionsMetadataResolver;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -49,7 +48,7 @@ import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.core.ModuleFactory;
 
 /**
  * @author Mark Fisher
@@ -70,8 +69,12 @@ public class StreamPluginTests {
 
 	private ZooKeeperConnection zkConnection;
 
+	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
+
+	private ModuleFactory moduleFactory = new ModuleFactory(new PassthruModuleOptionsMetadataResolver());
+
 	@Before
-	public void setup() {
+	public void setup() throws BindException {
 		System.setProperty("XD_TRANSPORT", "local");
 		MockitoAnnotations.initMocks(this);
 		EmbeddedZooKeeper embeddedZooKeeper = new EmbeddedZooKeeper();
@@ -97,7 +100,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule(new ModuleDescriptor.Builder()
+		Module module = moduleFactory.newInstance(new ModuleDescriptor.Builder()
 				.setModuleDefinition(new ModuleDefinition("testsource", ModuleType.source))
 				.setGroup("foo")
 				.setIndex(0)

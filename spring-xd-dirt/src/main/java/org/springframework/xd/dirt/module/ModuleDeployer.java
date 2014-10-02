@@ -17,108 +17,158 @@
 package org.springframework.xd.dirt.module;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import javax.annotation.concurrent.GuardedBy;
 
-import org.springframework.beans.factory.BeanClassLoaderAware;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.OrderComparator;
 import org.springframework.util.Assert;
-import org.springframework.validation.BindException;
-import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
-import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.ModuleFactory;
 import org.springframework.xd.module.core.Plugin;
-import org.springframework.xd.module.core.SimpleModule;
-import org.springframework.xd.module.options.ModuleOptions;
-import org.springframework.xd.module.options.ModuleOptionsMetadata;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
-import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
-import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
- * Handles deployment related tasks instantiates {@link Module}s accordingly, applying {@link Plugin} logic
- * to them.
+ * Handles the creation, deployment, and un-deployment of {@link Module modules}.
+ * Appropriate {@link Plugin} logic is applied throughout the deployment/
+ * un-deployment lifecycle.
+ * <p>
+ * In order to initialize modules with the correct application context,
+ * this class maintains a reference to the global application context.
+ * See <a href="http://docs.spring.io/autorepo/docs/spring-xd/current/reference/html/#XD-Spring-Application-Contexts">
+ * the reference documentation</a> for more details.
  *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
  * @author David Turanski
+ * @author Patrick Peralta
  */
-public class ModuleDeployer implements ApplicationContextAware, InitializingBean, BeanClassLoaderAware {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile ApplicationContext context;
-
-	private volatile ApplicationContext globalContext;
-
-	private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
-
-	private volatile ClassLoader parentClassLoader;
-
-	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
-
-	private volatile List<Plugin> plugins;
+public class ModuleDeployer implements ApplicationContextAware, InitializingBean {
 
 	/**
-	 *
-	 * @param moduleOptionsMetadataResolver the moduleOptionsMetadataResolver.
+	 * Logger.
 	 */
-	public ModuleDeployer(ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
-	}
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	public Map<String, Map<Integer, Module>> getDeployedModules() {
-		return deployedModules;
-	}
+	/**
+	 * The container application context.
+	 */
+	private volatile ApplicationContext context;
 
-	@Override
-	public void setApplicationContext(ApplicationContext context) {
-		this.context = context;
-		this.globalContext = context.getParent().getParent();
-	}
+	/**
+	 * The global top level application context. This is used as the parent
+	 * application context for loaded modules.
+	 */
+	private volatile ApplicationContext globalContext;
 
-	@Override
-	public void afterPropertiesSet() {
-		this.plugins = new ArrayList<Plugin>(this.context.getParent().getBeansOfType(Plugin.class).values());
-		OrderComparator.sort(this.plugins);
+	/**
+	 * Map of deployed modules. Key is the group/deployment unit name,
+	 * value is a map of module index to module.
+	 */
+	@GuardedBy("this")
+	private final Map<String, Map<Integer, Module>> deployedModules = new HashMap<String, Map<Integer, Module>>();
+
+	/**
+	 * List of registered plugins.
+	 */
+	@GuardedBy("this")
+	private final List<Plugin> plugins = new ArrayList<Plugin>();
+
+	/**
+	 * Module factory for creating new {@link Module} instances.
+	 */
+	private final ModuleFactory moduleFactory;
+
+	/**
+	 * Construct a ModuleDeployer.
+	 *
+	 * @param moduleFactory module factory for creating new {@link Module} instances
+	 */
+	public ModuleDeployer(ModuleFactory moduleFactory) {
+		this.moduleFactory = moduleFactory;
 	}
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @param context the container application context
 	 */
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.parentClassLoader = classLoader;
+	public void setApplicationContext(ApplicationContext context) {
+		this.context = context;
+
+		ApplicationContext global = null;
+		try {
+			// TODO: evaluate
+			// The application context hierarchy is arranged as such:
+			//
+			//         Global Context
+			//              ^
+			//     Shared Server Context
+			//              ^
+			//        Plugin Context
+			//              ^
+			//       Container Context
+			//
+			// The global context is supposed to be the parent
+			// context for deployed modules which means the
+			// context should be obtained via
+			// context.getParent().getParent().getParent().
+			// However this is causing shell test failures;
+			// in particular NoSuchBeanDefinitionExceptions
+			// for aggregateCounterRepository, fieldValueCounterRepository,
+			// counterRepository, etc. This should be further evaluated.
+//			global = context.getParent().getParent().getParent();
+			global = context.getParent().getParent();
+		}
+		catch (NullPointerException e) {
+			logger.trace("Exception looking up global application context", e);
+			// npe handled by assert below
+		}
+
+		Assert.notNull(global, "Global application context not found");
+		this.globalContext = global;
 	}
 
-
-	// todo: when refactoring to ZK-based deployment, keep this method but remove the private one
-	// but notice the use of 'group' which is abstract so it can also support jobs (not just streams)
-	// that terminology needs to change since group will be used in criteria expressions. Most likely we
-	// need to be more explicit about jobs vs. streams rather than trying to genericize into one concept.
-	public void deployAndStore(Module module, ModuleDescriptor descriptor) {
-		this.deployAndStore(module, descriptor.getGroup(), descriptor.getIndex());
-	}
-
-	// todo: same general idea as deployAndStore above
-	public void undeploy(ModuleDescriptor moduleDescriptor) {
-		this.handleUndeploy(moduleDescriptor.getGroup(), moduleDescriptor.getIndex());
+	@Override
+	public synchronized void afterPropertiesSet() {
+		if (!plugins.isEmpty()) {
+			plugins.clear();
+		}
+		plugins.addAll(this.context.getParent().getBeansOfType(Plugin.class).values());
+		OrderComparator.sort(this.plugins);
 	}
 
 	/**
-	 * Create a module based on the provided {@link ModuleDescriptor}, and
+	 * Return a read-only map of deployed modules. Key is the group/deployment
+	 * unit name, value is a map of module index to module.
+	 *
+	 * @return map of deployed modules
+	 */
+	public synchronized Map<String, Map<Integer, Module>> getDeployedModules() {
+		Map<String, Map<Integer, Module>> map = new HashMap<String, Map<Integer, Module>>();
+		for (Map.Entry<String, Map<Integer, Module>> entry : this.deployedModules.entrySet()) {
+			map.put(entry.getKey(), Collections.unmodifiableMap(entry.getValue()));
+		}
+		return Collections.unmodifiableMap(map);
+	}
+
+	/**
+	 * Create a module based on the provided {@link ModuleDescriptor} and
 	 * {@link ModuleDeploymentProperties}.
 	 *
 	 * @param moduleDescriptor descriptor for the module
@@ -128,186 +178,161 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 	 */
 	public Module createModule(ModuleDescriptor moduleDescriptor,
 			ModuleDeploymentProperties deploymentProperties) {
-		ModuleOptions moduleOptions = this.safeModuleOptionsInterpolate(moduleDescriptor);
-		return (moduleDescriptor.isComposed())
-				? createComposedModule(moduleDescriptor, moduleOptions, deploymentProperties)
-				: createSimpleModule(moduleDescriptor, moduleOptions, deploymentProperties);
+		return moduleFactory.createModule(moduleDescriptor, deploymentProperties);
 	}
 
 	/**
-	 * Create a simple module based on the provided {@link ModuleDescriptor}, {@link org.springframework.xd.module.options.ModuleOptions}, and
-	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
+	 * Deploy the given module to this container. This action includes
+	 * <ul>
+	 *     <li>applying the appropriate plugins</li>
+	 *     <li>setting the parent application context</li>
+	 *     <li>starting the module</li>
+	 *     <li>registering the module with this container</li>
+	 * </ul>
 	 *
-	 * @param moduleDescriptor descriptor for the composed module
-	 * @param moduleOptions module options for the composed module
-	 * @param deploymentProperties deployment related properties for the composed module
-	 *
-	 * @return new simple module instance
-	 *
+	 * @param module the module to deploy
+	 * @param descriptor descriptor for the module instance
 	 */
-	private Module createSimpleModule(ModuleDescriptor moduleDescriptor, ModuleOptions moduleOptions,
-			ModuleDeploymentProperties deploymentProperties) {
-		ModuleDefinition definition = moduleDescriptor.getModuleDefinition();
-		ClassLoader classLoader = (definition.getClasspath() == null) ? null
-				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
-		return new SimpleModule(moduleDescriptor, deploymentProperties, classLoader, moduleOptions);
-	}
+	public synchronized void deploy(Module module, ModuleDescriptor descriptor) {
+		String group = descriptor.getGroup();
 
-	/**
-	 * Create a composed module based on the provided {@link ModuleDescriptor}, {@link org.springframework.xd.module.options.ModuleOptions}, and
-	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
-	 *
-	 * @param compositeDescriptor descriptor for the composed module
-	 * @param options module options for the composed module
-	 * @param deploymentProperties deployment related properties for the composed module
-	 *
-	 * @return new composed module instance
-	 *
-	 * @see ModuleDescriptor#isComposed
-	 */
-	private Module createComposedModule(ModuleDescriptor compositeDescriptor,
-			ModuleOptions options, ModuleDeploymentProperties deploymentProperties) {
-
-		List<ModuleDescriptor> children = compositeDescriptor.getChildren();
-		Assert.notEmpty(children, "child module list must not be empty");
-
-		List<Module> childrenModules = new ArrayList<Module>(children.size());
-		for (ModuleDescriptor childRequest : children) {
-			ModuleOptions narrowedOptions = new PrefixNarrowingModuleOptions(options, childRequest.getModuleName());
-			// due to parser results being reversed, we add each at index 0
-			// todo: is it right to pass the composite deploymentProperties here?
-			childrenModules.add(0, createSimpleModule(childRequest, narrowedOptions, deploymentProperties));
-		}
-		return new CompositeModule(compositeDescriptor, deploymentProperties, childrenModules);
-	}
-
-	/**
-	 * Takes a request and returns an instance of {@link ModuleOptions} bound with the request parameters. Binding is
-	 * assumed to not fail, as it has already been validated on the admin side.
-	 *
-	 * @param descriptor module descriptor for which to bind request parameters
-	 *
-	 * @return module options bound with request parameters
-	 */
-	private ModuleOptions safeModuleOptionsInterpolate(ModuleDescriptor descriptor) {
-		Map<String, String> parameters = descriptor.getParameters();
-		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(descriptor.getModuleDefinition());
-		try {
-			return moduleOptionsMetadata.interpolate(parameters);
-		}
-		catch (BindException e) {
-			// Can't happen as parser should have already validated options
-			throw new IllegalStateException(e);
-		}
-	}
-
-	private void deployAndStore(Module module, String group, int index) {
 		module.setParentContext(this.globalContext);
-		this.deploy(module);
-		if (logger.isInfoEnabled()) {
-			logger.info("deployed " + module.toString());
+		doDeploy(module);
+		logger.info("Deployed {}", module);
+		Map<Integer, Module> modules = this.deployedModules.get(group);
+		if (modules == null) {
+			modules = new HashMap<Integer, Module>();
+			this.deployedModules.put(group, modules);
 		}
-		this.deployedModules.putIfAbsent(group, new HashMap<Integer, Module>());
-		this.deployedModules.get(group).put(index, module);
+		modules.put(descriptor.getIndex(), module);
 	}
 
-	private void deploy(Module module) {
-		this.preProcessModule(module);
+	/**
+	 * Apply plugins to the module and start it.
+	 *
+	 * @param module module to deploy
+	 */
+	private void doDeploy(Module module) {
+		preProcessModule(module);
 		module.initialize();
-		this.postProcessModule(module);
+		postProcessModule(module);
 		module.start();
 	}
 
-	private void handleUndeploy(String group, int index) {
-		Map<Integer, Module> modules = this.deployedModules.get(group);
-		if (modules != null) {
-			Module module = modules.remove(index);
-			if (modules.size() == 0) {
-				this.deployedModules.remove(group);
-			}
-			if (module != null) {
-				this.destroyModule(module);
-			}
-			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Ignoring undeploy - module with index " + index + " from group " + group
-							+ " is not deployed here");
-				}
-			}
-		}
-		else {
-			if (logger.isTraceEnabled()) {
-				logger.trace("Ignoring undeploy - group not deployed here: " + group);
-			}
-		}
-	}
-
-	private void destroyModule(Module module) {
-		if (logger.isInfoEnabled()) {
-			logger.info("removed " + module.toString());
-		}
-		this.beforeShutdown(module);
-		module.stop();
-		this.removeModule(module);
-		module.destroy();
-	}
-
 	/**
-	 * Get the list of supported plugins for the given module.
-	 *
-	 * @param module
-	 * @return list supported list of plugins
-	 */
-	private List<Plugin> getSupportedPlugins(Module module) {
-		List<Plugin> supportedPlugins = new ArrayList<Plugin>();
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins) {
-				if (plugin.supports(module)) {
-					supportedPlugins.add(plugin);
-				}
-			}
-		}
-		return supportedPlugins;
-	}
-
-	/**
-	 * Allow plugins to contribute properties (e.g. "stream.name") calling module.addProperties(properties), etc.
+	 * Allow plugins to contribute properties (e.g. "stream.name")
+	 * calling {@link Module#addProperties(java.util.Properties)}, etc.
 	 */
 	private void preProcessModule(Module module) {
-		for (Plugin plugin : this.getSupportedPlugins(module)) {
+		for (Plugin plugin : getSupportedPlugins(module)) {
 			plugin.preProcessModule(module);
 		}
 	}
 
 	/**
-	 * Allow plugins to perform other configuration after the module is initialized but before it is started.
+	 * Allow plugins to perform other configuration after the module
+	 * is initialized but before it is started.
 	 */
 	private void postProcessModule(Module module) {
-		for (Plugin plugin : this.getSupportedPlugins(module)) {
+		for (Plugin plugin : getSupportedPlugins(module)) {
 			plugin.postProcessModule(module);
 		}
 	}
 
-	private void removeModule(Module module) {
-		for (Plugin plugin : this.getSupportedPlugins(module)) {
-			plugin.removeModule(module);
+	/**
+	 * Shut down the module indicated by {@code moduleDescriptor}
+	 * and remove its registration from the container. Lifecycle
+	 * plugins are applied during undeployment.
+	 *
+	 * @param moduleDescriptor descriptor for module to be undeployed
+	 */
+	public synchronized void undeploy(ModuleDescriptor moduleDescriptor) {
+		String group = moduleDescriptor.getGroup();
+		int index = moduleDescriptor.getIndex();
+		Map<Integer, Module> modules = deployedModules.get(group);
+		if (modules != null) {
+			Module module = modules.remove(index);
+			if (modules.isEmpty()) {
+				deployedModules.remove(group);
+			}
+			if (module != null) {
+				destroyModule(module);
+			}
+			else {
+				logger.debug("Ignoring undeploy - module with index {} from group {} is not deployed", index, group);
+			}
+		}
+		else {
+			logger.trace("Ignoring undeploy - group not deployed here: {}", group);
 		}
 	}
 
+	/**
+	 * Apply lifecycle plugins and shut down the module.
+	 *
+	 * @param module module to shut down and destroy
+	 */
+	private void destroyModule(Module module) {
+		logger.info("Removed {}", module);
+		beforeShutdown(module);
+		module.stop();
+		removeModule(module);
+		module.destroy();
+	}
+
+	/**
+	 * Apply shutdown lifecycle plugins for the given module.
+	 *
+	 * @param module module to shutdown
+	 */
 	private void beforeShutdown(Module module) {
-		for (Plugin plugin : this.getSupportedPlugins(module)) {
+		for (Plugin plugin : getSupportedPlugins(module)) {
 			try {
 				plugin.beforeShutdown(module);
 			}
 			catch (IllegalStateException e) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("Failed to invoke plugin " + plugin.getClass().getSimpleName()
-							+ " during shutdown. " + e.getMessage());
-					if (logger.isDebugEnabled()) {
-						logger.debug(e);
-					}
-				}
+				logger.warn("Failed to invoke plugin {} during shutdown: {}",
+						plugin.getClass().getSimpleName(), e.getMessage());
+				logger.debug("Full stack trace", e);
 			}
+		}
+	}
+
+	/**
+	 * Apply remove lifecycle plugins for the given module.
+	 *
+	 * @param module module that has been shutdown
+	 */
+	private void removeModule(Module module) {
+		for (Plugin plugin : getSupportedPlugins(module)) {
+			plugin.removeModule(module);
+		}
+	}
+
+	/**
+	 * Return an {@link Iterable} over the list of supported plugins for the given module.
+	 *
+	 * @param module the module for which to obtain supported plugins
+	 * @return iterable of supported plugins for a module
+	 */
+	private Iterable<Plugin> getSupportedPlugins(Module module) {
+		return Iterables.filter(this.plugins, new ModulePluginPredicate(module));
+	}
+
+
+	/**
+	 * Predicate used to determine if a plugin supports a module.
+	 */
+	private class ModulePluginPredicate implements Predicate<Plugin> {
+		private final Module module;
+
+		private ModulePluginPredicate(Module module) {
+			this.module = module;
+		}
+
+		@Override
+		public boolean apply(Plugin plugin) {
+			return plugin.supports(this.module);
 		}
 	}
 

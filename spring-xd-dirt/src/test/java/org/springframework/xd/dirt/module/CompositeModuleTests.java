@@ -16,13 +16,10 @@
 
 package org.springframework.xd.dirt.module;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.xd.module.ModuleType.processor;
-import static org.springframework.xd.module.ModuleType.sink;
-import static org.springframework.xd.module.ModuleType.source;
+import static org.junit.Assert.*;
+import static org.springframework.xd.module.ModuleType.*;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,16 +31,21 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.validation.BindException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.core.ModuleFactory;
+import org.springframework.xd.module.options.ModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 
 /**
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class CompositeModuleTests {
 
@@ -59,8 +61,16 @@ public class CompositeModuleTests {
 
 	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
 
+	private ModuleFactory moduleFactory = new ModuleFactory(new ModuleOptionsMetadataResolver(){
+		@Override
+		public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {
+			return new PassthruModuleOptionsMetadata();
+		}
+	});
+
+
 	@Before
-	public void setupModuleDefinitions() {
+	public void setupModuleDefinitions() throws BindException {
 		moduleRegistry = new ResourceModuleRegistry("file:src/test/resources/testmodules/");
 		sourceDefinition = moduleRegistry.findDefinition("source", source);
 		processor1Definition = moduleRegistry.findDefinition("testprocessor1", processor);
@@ -70,27 +80,27 @@ public class CompositeModuleTests {
 
 	@Test
 	public void testCompositeSource() {
-		List<Module> modules = new ArrayList<Module>();
 		ModuleDescriptor sourceDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(sourceDefinition).setGroup("compositesourcegroup").setIndex(0).build();
-		modules.add(new SimpleModule(sourceDescriptor, deploymentProperties));
 		ModuleDescriptor processor1Descriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(processor1Definition).setGroup("compositesourcegroup").setIndex(1).build();
-		modules.add(new SimpleModule(processor1Descriptor, deploymentProperties));
 		ModuleDescriptor processor2Descriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(processor2Definition).setGroup("compositesourcegroup").setIndex(2).build();
-		modules.add(new SimpleModule(processor2Descriptor, deploymentProperties));
+
+		//parser results being reversed, we emulate here
+		List<ModuleDescriptor> children = Arrays.asList(processor2Descriptor, processor1Descriptor, sourceDescriptor);
 		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(new ModuleDefinition("compositesource", ModuleType.source))
 				.setGroup("compositesourcegroup")
+				.addChildren(children)
 				.build();
-		CompositeModule module = new CompositeModule(compositeDescriptor, deploymentProperties, modules);
+		Module module = moduleFactory.createModule(compositeDescriptor, deploymentProperties);
+		assertTrue(module instanceof CompositeModule);
 		assertEquals(source, module.getType());
 	}
 
 	@Test
 	public void testCompositeProcessor() {
-		List<Module> modules = new ArrayList<Module>();
 		ModuleDescriptor processor1Descriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(processor1Definition)
 				.setGroup("compositeprocessorgroup")
@@ -99,13 +109,18 @@ public class CompositeModuleTests {
 				.setModuleDefinition(processor2Definition)
 				.setGroup("compositeprocessorgroup")
 				.build();
-		modules.add(new SimpleModule(processor1Descriptor, deploymentProperties));
-		modules.add(new SimpleModule(processor2Descriptor, deploymentProperties));
+
+		//parser results being reversed, we emulate here
+		List<ModuleDescriptor> children = Arrays.asList(processor2Descriptor, processor1Descriptor);
+
 		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(new ModuleDefinition("compositeprocessor", ModuleType.processor))
 				.setGroup("compositeprocessorgroup")
+				.addChildren(children)
 				.build();
-		CompositeModule module = new CompositeModule(compositeDescriptor, deploymentProperties, modules);
+
+		Module module = moduleFactory.createModule(compositeDescriptor, deploymentProperties);
+		assertTrue(module instanceof CompositeModule);
 		module.initialize();
 		module.start();
 		assertEquals(processor, module.getType());
@@ -140,16 +155,17 @@ public class CompositeModuleTests {
 				.setModuleDefinition(sinkDefinition)
 				.setGroup("compositesinkgroup")
 				.build();
-		List<Module> modules = new ArrayList<Module>();
-		modules.add(new SimpleModule(processor1Descriptor, deploymentProperties));
-		modules.add(new SimpleModule(processor2Descriptor, deploymentProperties));
-		modules.add(new SimpleModule(sinkDescriptor, deploymentProperties));
+
+		//parser results being reversed, we emulate here
+		List<ModuleDescriptor> children = Arrays.asList(sinkDescriptor, processor2Descriptor, processor1Descriptor);
 		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(new ModuleDefinition("compositesink", ModuleType.sink))
 				.setGroup("compositesinkgroup")
+				.addChildren(children)
 				.setIndex(2)
 				.build();
-		CompositeModule module = new CompositeModule(compositeDescriptor, deploymentProperties, modules);
+		Module module = moduleFactory.createModule(compositeDescriptor, deploymentProperties);
+		assertTrue(module instanceof CompositeModule);
 		assertEquals(sink, module.getType());
 	}
 

@@ -16,14 +16,10 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
-import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME_KEY;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.integration.test.matcher.PayloadMatcher.*;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,7 +62,7 @@ import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.core.ResourceConfiguredModule;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.test.RandomConfigurationSupport;
 
@@ -76,6 +72,7 @@ import org.springframework.xd.test.RandomConfigurationSupport;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  *
  */
 public class JobPluginTests extends RandomConfigurationSupport {
@@ -89,6 +86,8 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	protected AbstractTestMessageBus testMessageBus;
 
 	private LocalMessageBus messageBus;
+
+	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
 
 	@After
 	public void tearDown() {
@@ -114,7 +113,6 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		messageBus = sharedContext.getBean(LocalMessageBus.class);
 		jobPlugin = new JobPlugin(messageBus);
 		jobPartitionerPlugin = new JobPartitionerPlugin(messageBus);
-
 	}
 
 	@Test
@@ -124,7 +122,10 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		.setGroup("foo")
 		.setIndex(0)
 		.build();
-		Module module = new SimpleModule(descriptor, new ModuleDeploymentProperties());
+
+		Module module = new ResourceConfiguredModule(descriptor,
+				new ModuleDeploymentProperties());
+
 		assertEquals(0, module.getProperties().size());
 		jobPlugin.preProcessModule(module);
 
@@ -204,7 +205,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 						new ModuleDefinition("testjob", ModuleType.job)).build());
 
 		jobPlugin.preProcessModule(module);
-		Mockito.verify(module).addComponents(Matchers.any(Resource.class));
+		Mockito.verify(module).addSource(Matchers.any(Resource.class));
 
 		// TODO: assert that the right resource was added.
 		// assertTrue(names.contains("registrar"));
@@ -219,12 +220,14 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	@Test
 	public void testThatInputOutputChannelsAreBound() {
 
-		final Module module = new SimpleModule(new ModuleDescriptor.Builder()
-		.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
-		.setGroup("myjob")
-		.setIndex(0)
-		.build(),
-		new ModuleDeploymentProperties());
+		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
+				.setGroup("myjob")
+				.setIndex(0)
+				.build();
+
+		final Module module = new ResourceConfiguredModule(moduleDescriptor,
+				new ModuleDeploymentProperties());
 
 		final TestMessageBus messageBus = new TestMessageBus();
 		final JobPlugin plugin = new JobPlugin(messageBus);
@@ -248,12 +251,14 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	@Test
 	public void testThatJobEventsChannelsAreBound() {
 
-		final Module module = new SimpleModule(new ModuleDescriptor.Builder()
-		.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
-		.setGroup("myjob")
-		.setIndex(0)
-		.build(),
-		new ModuleDeploymentProperties());
+		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
+				.setGroup("myjob")
+				.setIndex(0)
+				.build();
+
+		final Module module = new ResourceConfiguredModule(moduleDescriptor,
+				new ModuleDeploymentProperties());
 
 		final TestMessageBus messageBus = new TestMessageBus();
 		final JobEventsListenerPlugin eventsListenerPlugin = new JobEventsListenerPlugin(messageBus);

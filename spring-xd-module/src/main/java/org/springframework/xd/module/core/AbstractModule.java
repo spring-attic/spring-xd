@@ -24,7 +24,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * Base support class for modules, wrapping {@link ModuleDescriptor} and {@link ModuleDeploymentProperties}.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
@@ -34,6 +34,7 @@ public abstract class AbstractModule implements Module {
 	private final ModuleDescriptor descriptor;
 
 	private final ModuleDeploymentProperties deploymentProperties;
+
 
 	public AbstractModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties) {
 		Assert.notNull(descriptor, "descriptor must not be null");
@@ -62,11 +63,11 @@ public abstract class AbstractModule implements Module {
 		return this.deploymentProperties;
 	}
 
+
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " [name=" + this.getName() + ", type=" + this.getType() + ", group="
-				+ this.descriptor.getGroup() + ", index=" + this.descriptor.getIndex()
-				+ " @" + ObjectUtils.getIdentityHexString(this) + "]";
+		return this.getClass().getSimpleName() + " [name=" + this.getName() + ", type=" + this.getType() + ", group=" +
+				this.descriptor.getGroup() + ", index=" + this.descriptor.getIndex() + " @" +
+				ObjectUtils.getIdentityHexString(this) + "]";
 	}
-
 }

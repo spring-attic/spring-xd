@@ -20,7 +20,7 @@ import org.springframework.xd.module.core.Module;
 
 /**
  * Exports MBeans from a module using a unique domain name xd.[group].[module].
- * 
+ *
  * @author David Turanski
  * @author Gary Russell
  */
@@ -33,7 +33,7 @@ public class MBeanExportingPlugin extends AbstractPlugin {
 
 	@Override
 	public void preProcessModule(Module module) {
-		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
+		module.addSource(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
 	}
 
 	@Override

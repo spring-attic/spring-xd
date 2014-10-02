@@ -42,7 +42,6 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.ModuleDefinition;
@@ -61,7 +60,7 @@ import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
  * @author Ilayaperumal Gopinathan
  * @author Eric Bottard
  */
-public class SimpleModule extends AbstractModule {
+public abstract class SimpleModule extends AbstractModule {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -106,11 +105,14 @@ public class SimpleModule extends AbstractModule {
 
 		application.profiles(moduleOptions.profilesToActivate());
 
-		ModuleDefinition definition = descriptor.getModuleDefinition();
-		if (definition != null && definition.getResource().isReadable()) {
-			this.addComponents(definition.getResource());
-		}
+		this.configureModuleApplicationContext(this.getDescriptor().getModuleDefinition());
 	}
+
+	/**
+	 * Subclasses implement this method to configure the application context from sources contained in the {@link org.springframework.xd.module.ModuleDefinition}
+	 * @param moduleDefinition
+	 */
+	protected abstract void configureModuleApplicationContext(ModuleDefinition moduleDefinition);
 
 	private Map<Object, Object> moduleOptionsToProperties(ModuleOptions moduleOptions) {
 		Map<Object, Object> result = new HashMap<Object, Object>();
@@ -130,11 +132,7 @@ public class SimpleModule extends AbstractModule {
 	}
 
 	@Override
-	public void addComponents(Resource resource) {
-		addSource(resource);
-	}
-
-	protected void addSource(Object source) {
+	public void addSource(Object source) {
 		application.sources(source);
 	}
 
@@ -154,7 +152,7 @@ public class SimpleModule extends AbstractModule {
 		return this.properties;
 	}
 
-	public ApplicationContext getApplicationContext() {
+	public ConfigurableApplicationContext getApplicationContext() {
 		return this.context;
 	}
 

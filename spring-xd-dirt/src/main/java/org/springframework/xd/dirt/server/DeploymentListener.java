@@ -1,23 +1,20 @@
 /*
+ * Copyright 2014 the original author or authors.
  *
- *  * Copyright 2014 the original author or authors.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  * http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.springframework.xd.dirt.server;
-
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -58,12 +55,10 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 import org.springframework.xd.module.core.Module;
 
 /**
- *
  * @author Mark Fisher
  * @author David Turanski
- * @author Ilayaperumal Gopinathan
- *
- * Listener for deployment requests for a container instance under {@link org.springframework.xd.dirt.zookeeper.Paths#DEPLOYMENTS}.
+ * @author Ilayaperumal Gopinathan Listener for deployment requests for a container instance under {@link
+ *         org.springframework.xd.dirt.zookeeper.Paths#DEPLOYMENTS}.
  */
 class DeploymentListener implements PathChildrenCacheListener {
 
@@ -116,10 +111,11 @@ class DeploymentListener implements PathChildrenCacheListener {
 			new ConcurrentHashMap<ModuleDescriptor.Key, ModuleDescriptor>();
 
 	/**
-	 * Create an instance that will register the provided {@link ContainerAttributes} whenever the underlying
-	 * {@link ZooKeeperConnection} is established. If that connection is already established at the time this instance
-	 * receives a {@link org.springframework.context.event.ContextRefreshedEvent}, the attributes will be registered then. Otherwise, registration occurs
-	 * within a callback that is invoked for connected events as well as reconnected events.
+	 * Create an instance that will register the provided {@link ContainerAttributes} whenever the underlying {@link
+	 * ZooKeeperConnection} is established. If that connection is already established at the time this instance receives
+	 * a {@link org.springframework.context.event.ContextRefreshedEvent}, the attributes will be registered then.
+	 * Otherwise, registration occurs within a callback that is invoked for connected events as well as reconnected
+	 * events.
 	 *
 	 * @param containerAttributes runtime and configured attributes for the container
 	 * @param streamFactory factory to construct {@link Stream}
@@ -127,8 +123,8 @@ class DeploymentListener implements PathChildrenCacheListener {
 	 * @param moduleDeployer module deployer
 	 * @param zkConnection ZooKeeper connection
 	 */
-	public DeploymentListener(ZooKeeperConnection zkConnection, ModuleDeployer moduleDeployer, ContainerAttributes containerAttributes,
-			JobFactory jobFactory, StreamFactory streamFactory) {
+	public DeploymentListener(ZooKeeperConnection zkConnection, ModuleDeployer moduleDeployer,
+			ContainerAttributes containerAttributes, JobFactory jobFactory, StreamFactory streamFactory) {
 		this.zkConnection = zkConnection;
 		this.jobModuleWatcher = new JobModuleWatcher();
 		this.streamModuleWatcher = new StreamModuleWatcher();
@@ -180,12 +176,12 @@ class DeploymentListener implements PathChildrenCacheListener {
 		properties.putAll(ZooKeeperUtils.bytesToMap(data.getData()));
 
 		try {
-			module = (ModuleType.job.toString().equals(moduleType))
-					? deployJobModule(client, unitName, moduleLabel, properties)
-					: deployStreamModule(client, unitName, moduleType, moduleLabel, properties);
+			module = (ModuleType.job.toString().equals(moduleType)) ?
+					deployJobModule(client, unitName, moduleLabel, properties) :
+					deployStreamModule(client, unitName, moduleType, moduleLabel, properties);
 			if (module == null) {
-				status = new ModuleDeploymentStatus(container, moduleSequence, key,
-						ModuleDeploymentStatus.State.failed, "Module deployment returned null");
+				status = new ModuleDeploymentStatus(container, moduleSequence, key, ModuleDeploymentStatus.State.failed,
+						"Module deployment returned null");
 			}
 			else {
 				status = new ModuleDeploymentStatus(container, moduleSequence, key,
@@ -193,8 +189,8 @@ class DeploymentListener implements PathChildrenCacheListener {
 			}
 		}
 		catch (Exception e) {
-			status = new ModuleDeploymentStatus(container, moduleSequence, key,
-					ModuleDeploymentStatus.State.failed, ZooKeeperUtils.getStackTrace(e));
+			status = new ModuleDeploymentStatus(container, moduleSequence, key, ModuleDeploymentStatus.State.failed,
+					ZooKeeperUtils.getStackTrace(e));
 			logger.error("Exception deploying module", e);
 		}
 
@@ -229,15 +225,12 @@ class DeploymentListener implements PathChildrenCacheListener {
 
 		String path;
 		if (ModuleType.job.toString().equals(moduleType)) {
-			path = new JobDeploymentsPath().setJobName(streamName)
-					.setModuleLabel(moduleLabel)
+			path = new JobDeploymentsPath().setJobName(streamName).setModuleLabel(moduleLabel)
 					.setContainer(containerAttributes.getId()).build();
 		}
 		else {
-			path = new StreamDeploymentsPath().setStreamName(streamName)
-					.setModuleType(moduleType)
-					.setModuleLabel(moduleLabel)
-					.setModuleSequence(moduleSequence)
+			path = new StreamDeploymentsPath().setStreamName(streamName).setModuleType(moduleType)
+					.setModuleLabel(moduleLabel).setModuleSequence(moduleSequence)
 					.setContainer(this.containerAttributes.getId()).build();
 		}
 		if (client.checkExists().forPath(path) != null) {
@@ -247,30 +240,28 @@ class DeploymentListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * If the provided module is not null, write its properties to the provided
-	 * ZooKeeper path. If the module is null, no action is taken.
+	 * If the provided module is not null, write its properties to the provided ZooKeeper path. If the module is null,
+	 * no action is taken.
 	 *
-	 * @param client     curator client
-	 * @param module     module for which to write properties; may be null
-	 * @param path       path to write properties to
+	 * @param client curator client
+	 * @param module module for which to write properties; may be null
+	 * @param path path to write properties to
 	 * @throws Exception
 	 */
-	private void writeModuleMetadata(CuratorFramework client, Module module, String path)
-			throws Exception {
+	private void writeModuleMetadata(CuratorFramework client, Module module, String path) throws Exception {
 		if (module != null) {
 			Map<String, String> mapMetadata = new HashMap<String, String>();
 			CollectionUtils.mergePropertiesIntoMap(module.getProperties(), mapMetadata);
 			try {
-				client.create().withMode(CreateMode.EPHEMERAL).forPath(
-						Paths.build(path, Paths.METADATA), ZooKeeperUtils.mapToBytes(mapMetadata));
+				client.create().withMode(CreateMode.EPHEMERAL)
+						.forPath(Paths.build(path, Paths.METADATA), ZooKeeperUtils.mapToBytes(mapMetadata));
 			}
 			catch (KeeperException.NodeExistsException ne) {
 				// This is likely to happen when the container disconnects and reconnects but the admin leader
 				// was not available to handle the container leaving event.
 				ModuleDescriptor descriptor = module.getDescriptor();
-				logger.info("The module metadata path for the module {} of type {} for {}" +
-								"already exists.", descriptor.getModuleLabel(),
-						descriptor.getType().toString(), descriptor.getGroup());
+				logger.info("The module metadata path for the module {} of type {} for {}" + "already exists.",
+						descriptor.getModuleLabel(), descriptor.getType().toString(), descriptor.getGroup());
 			}
 		}
 	}
@@ -278,20 +269,18 @@ class DeploymentListener implements PathChildrenCacheListener {
 	/**
 	 * Deploy the requested job.
 	 *
-	 * @param client      curator client
-	 * @param jobName     job name
-	 * @param jobLabel    job label
-	 * @param properties  module deployment properties
+	 * @param client curator client
+	 * @param jobName job name
+	 * @param jobLabel job label
+	 * @param properties module deployment properties
 	 * @return Module deployed job module
 	 */
 	private Module deployJobModule(CuratorFramework client, String jobName, String jobLabel,
 			RuntimeModuleDeploymentProperties properties) throws Exception {
 		logger.info("Deploying job '{}'", jobName);
 
-		String jobDeploymentPath = new JobDeploymentsPath().setJobName(jobName)
-				.setModuleLabel(jobLabel)
-				.setModuleSequence(properties.getSequenceAsString())
-				.setContainer(containerAttributes.getId()).build();
+		String jobDeploymentPath = new JobDeploymentsPath().setJobName(jobName).setModuleLabel(jobLabel)
+				.setModuleSequence(properties.getSequenceAsString()).setContainer(containerAttributes.getId()).build();
 
 		Module module = null;
 		Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
@@ -321,22 +310,19 @@ class DeploymentListener implements PathChildrenCacheListener {
 	/**
 	 * Deploy the requested module for a stream.
 	 *
-	 * @param client         curator client
-	 * @param streamName     name of the stream for the module
-	 * @param moduleType     module type
-	 * @param moduleLabel    module label
-	 * @param properties     module deployment properties
+	 * @param client curator client
+	 * @param streamName name of the stream for the module
+	 * @param moduleType module type
+	 * @param moduleLabel module label
+	 * @param properties module deployment properties
 	 * @return Module deployed stream module
 	 */
-	private Module deployStreamModule(CuratorFramework client, String streamName,
-			String moduleType, String moduleLabel, RuntimeModuleDeploymentProperties properties)
-			throws Exception {
+	private Module deployStreamModule(CuratorFramework client, String streamName, String moduleType, String moduleLabel,
+			RuntimeModuleDeploymentProperties properties) throws Exception {
 		logger.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
 
-		String streamDeploymentPath = new StreamDeploymentsPath().setStreamName(streamName)
-				.setModuleType(moduleType)
-				.setModuleLabel(moduleLabel)
-				.setModuleSequence(properties.getSequenceAsString())
+		String streamDeploymentPath = new StreamDeploymentsPath().setStreamName(streamName).setModuleType(moduleType)
+				.setModuleLabel(moduleLabel).setModuleSequence(properties.getSequenceAsString())
 				.setContainer(this.containerAttributes.getId()).build();
 
 		Module module = null;
@@ -367,15 +353,14 @@ class DeploymentListener implements PathChildrenCacheListener {
 	 *
 	 * @param moduleDescriptor descriptor for the module to be deployed
 	 */
-	private Module deployModule(ModuleDescriptor moduleDescriptor,
-			ModuleDeploymentProperties deploymentProperties) {
+	private Module deployModule(ModuleDescriptor moduleDescriptor, ModuleDeploymentProperties deploymentProperties) {
 		logger.info("Deploying module {}", moduleDescriptor);
 		ModuleDescriptor.Key key = new ModuleDescriptor.Key(moduleDescriptor.getGroup(), moduleDescriptor.getType(),
 				moduleDescriptor.getModuleLabel());
 		mapDeployedModules.put(key, moduleDescriptor);
-		Module module = moduleDeployer.createModule(moduleDescriptor,deploymentProperties);
+		Module module = moduleDeployer.createModule(moduleDescriptor, deploymentProperties);
 		registerTap(moduleDescriptor);
-		this.moduleDeployer.deployAndStore(module, moduleDescriptor);
+		this.moduleDeployer.deploy(module, moduleDescriptor);
 		return module;
 	}
 
@@ -415,8 +400,7 @@ class DeploymentListener implements PathChildrenCacheListener {
 		if (tapChannelName != null) {
 			try {
 				zkConnection.getClient().create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(
-						Paths.build(Paths.TAPS, tapChannelName, containerAttributes.getId(),
-								descriptor.getGroup()));
+						Paths.build(Paths.TAPS, tapChannelName, containerAttributes.getId(), descriptor.getGroup()));
 			}
 			catch (Exception e) {
 				// if it already exists, ignore
@@ -474,8 +458,8 @@ class DeploymentListener implements PathChildrenCacheListener {
 	 */
 	private String determineTapChannel(ModuleDescriptor descriptor) {
 		String sourceChannelName = descriptor.getSourceChannelName();
-		return (sourceChannelName != null && sourceChannelName.startsWith(TAP_CHANNEL_PREFIX))
-				? sourceChannelName.substring(TAP_CHANNEL_PREFIX.length()) : null;
+		return (sourceChannelName != null && sourceChannelName.startsWith(TAP_CHANNEL_PREFIX)) ?
+				sourceChannelName.substring(TAP_CHANNEL_PREFIX.length()) : null;
 	}
 
 	void undeployAllModules() {
@@ -490,7 +474,6 @@ class DeploymentListener implements PathChildrenCacheListener {
 			iterator.remove();
 		}
 	}
-
 
 	/**
 	 * Watcher for the modules deployed to this container under the {@link Paths#JOB_DEPLOYMENTS} location. If the node
@@ -513,12 +496,9 @@ class DeploymentListener implements PathChildrenCacheListener {
 
 				undeployModule(jobName, ModuleType.job.toString(), moduleLabel);
 
-				String deploymentPath = new ModuleDeploymentsPath()
-						.setContainer(containerAttributes.getId())
-						.setDeploymentUnitName(jobName)
-						.setModuleType(ModuleType.job.toString())
-						.setModuleLabel(moduleLabel)
-						.setModuleSequence(moduleSequence).build();
+				String deploymentPath = new ModuleDeploymentsPath().setContainer(containerAttributes.getId())
+						.setDeploymentUnitName(jobName).setModuleType(ModuleType.job.toString())
+						.setModuleLabel(moduleLabel).setModuleSequence(moduleSequence).build();
 
 				try {
 					if (client.checkExists().forPath(deploymentPath) != null) {
@@ -538,11 +518,11 @@ class DeploymentListener implements PathChildrenCacheListener {
 			}
 			else {
 				logger.debug("Unexpected event {}, ZooKeeper state: {}", event.getType(), event.getState());
-				if (EnumSet.of(Watcher.Event.KeeperState.SyncConnected,
-						Watcher.Event.KeeperState.SaslAuthenticated,
+				if (EnumSet.of(Watcher.Event.KeeperState.SyncConnected, Watcher.Event.KeeperState.SaslAuthenticated,
 						Watcher.Event.KeeperState.ConnectedReadOnly).contains(event.getState())) {
-					// this watcher is only interested in deletes for the purposes of undeploying modules;
-					// if any other change occurs the watch needs to be reestablished
+					// this watcher is only interested in deletes for the purposes of
+					// undeploying modules;if any other change occurs the watch needs to be
+					// reestablished
 					try {
 						client.getData().usingWatcher(this).forPath(event.getPath());
 					}
@@ -584,11 +564,8 @@ class DeploymentListener implements PathChildrenCacheListener {
 
 				undeployModule(streamName, moduleType, moduleLabel);
 
-				String deploymentPath = new ModuleDeploymentsPath()
-						.setContainer(containerAttributes.getId())
-						.setDeploymentUnitName(streamName)
-						.setModuleType(moduleType)
-						.setModuleLabel(moduleLabel)
+				String deploymentPath = new ModuleDeploymentsPath().setContainer(containerAttributes.getId())
+						.setDeploymentUnitName(streamName).setModuleType(moduleType).setModuleLabel(moduleLabel)
 						.setModuleSequence(moduleSequence).build();
 
 				try {
@@ -609,8 +586,7 @@ class DeploymentListener implements PathChildrenCacheListener {
 			}
 			else {
 				logger.debug("Unexpected event {}, ZooKeeper state: {}", event.getType(), event.getState());
-				if (EnumSet.of(Watcher.Event.KeeperState.SyncConnected,
-						Watcher.Event.KeeperState.SaslAuthenticated,
+				if (EnumSet.of(Watcher.Event.KeeperState.SyncConnected, Watcher.Event.KeeperState.SaslAuthenticated,
 						Watcher.Event.KeeperState.ConnectedReadOnly).contains(event.getState())) {
 					// this watcher is only interested in deletes for the purposes of undeploying modules;
 					// if any other change occurs the watch needs to be reestablished

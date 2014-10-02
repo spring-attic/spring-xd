@@ -374,6 +374,7 @@ project('spring-xd-dirt') {
 			exclude group: 'org.springframework'
 		}
 		compile "org.hibernate:hibernate-validator"
+		compile "com.google.code.findbugs:jsr305"
 
 		runtime "org.slf4j:jul-to-slf4j"
 		runtime "org.slf4j:jcl-over-slf4j"

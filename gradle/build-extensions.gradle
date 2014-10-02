@@ -30,14 +30,6 @@ project('spring-xd-extension-gemfire') {
     }
 }
 
-project('spring-xd-extension-kafka') {
-	description = 'Spring XD Kafka'
-	dependencies {
-		compile "org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion"
-		compile project(':spring-xd-module-spi')
-	}
-}
-
 project('spring-xd-extension-batch') {
     description = 'Spring XD batch support'
     dependencies {

@@ -180,12 +180,6 @@ project('modules.source.twittersearch') {
     }
 }
 
-project('modules.source.kafka') {
-	dependencies {
-		runtime(project(":spring-xd-extension-kafka"))
-	}
-}
-
 // ================ M O D U L E S : P R O C E S S O R S ================
 
 

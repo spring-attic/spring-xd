@@ -130,16 +130,16 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * Basic + concurrency.
 	 */
 	private static final Set<Object> SUPPORTED_NAMED_CONSUMER_PROPERTIES = new SetBuilder()
-			.build();
+            .build();
 	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = PRODUCER_STANDARD_PROPERTIES;
 	/**
 	 * Partitioning + kafka producer properties.
 	 */
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new SetBuilder()
-	.addAll(PRODUCER_PARTITIONING_PROPERTIES)
-	.addAll(PRODUCER_STANDARD_PROPERTIES)
-			.add(BusProperties.DIRECT_BINDING_ALLOWED)
-	.build();
+            .addAll(PRODUCER_PARTITIONING_PROPERTIES)
+            .addAll(PRODUCER_STANDARD_PROPERTIES)
+            .add(BusProperties.DIRECT_BINDING_ALLOWED)
+    	    .build();
 	/**
 	 * Used when writing directly to ZK. This is what Kafka expects.
 	 */

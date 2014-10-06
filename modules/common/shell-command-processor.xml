@@ -28,8 +28,8 @@
 	<bean id="shellProcessor" class="org.springframework.xd.extension.process.ShellCommandProcessor">
 		<constructor-arg name="serializer" ref="${encoder}"/>
 		<constructor-arg name="command" value="${command}"/>
-		<property name="environment" value="${environment}"/>
-		<property name="workingDirectory" value="${workingDir}"/>
+		<property name="environment" value="${environment:}"/>
+		<property name="workingDirectory" value="${workingDir:}"/>
 		<property name="redirectErrorStream" value="${redirectErrorStream}"/>
 	</bean>
 

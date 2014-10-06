@@ -44,6 +44,7 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptions;
@@ -59,7 +60,7 @@ import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
  * @author Ilayaperumal Gopinathan
  * @author Eric Bottard
  */
-public class SimpleModule extends AbstractModule {
+public abstract class SimpleModule extends AbstractModule {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -81,11 +82,11 @@ public class SimpleModule extends AbstractModule {
 
 	private final ClassLoader classLoader;
 
-	SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties) {
+	public SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties) {
 		this(descriptor, deploymentProperties, null, defaultModuleOptions());
 	}
 
-	SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
+	public SimpleModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
 			ClassLoader classLoader,
 			ModuleOptions moduleOptions) {
 		super(descriptor, deploymentProperties);
@@ -103,7 +104,15 @@ public class SimpleModule extends AbstractModule {
 		this.properties.putAll(moduleOptionsToProperties(moduleOptions));
 
 		application.profiles(moduleOptions.profilesToActivate());
+
+		this.configureModuleApplicationContext(this.getDescriptor().getModuleDefinition());
 	}
+
+	/**
+	 * Subclasses implement this method to configure the application context from sources contained in the {@link org.springframework.xd.module.ModuleDefinition}
+	 * @param moduleDefinition
+	 */
+	protected abstract void configureModuleApplicationContext(ModuleDefinition moduleDefinition);
 
 	private Map<Object, Object> moduleOptionsToProperties(ModuleOptions moduleOptions) {
 		Map<Object, Object> result = new HashMap<Object, Object>();

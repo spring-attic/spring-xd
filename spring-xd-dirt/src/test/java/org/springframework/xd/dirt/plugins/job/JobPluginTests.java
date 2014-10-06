@@ -57,13 +57,12 @@ import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.util.PassthruModuleOptionsMetadataResolver;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.module.core.ModuleFactory;
+import org.springframework.xd.module.core.ResourceConfiguredModule;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.test.RandomConfigurationSupport;
 
@@ -89,8 +88,6 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	private LocalMessageBus messageBus;
 
 	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
-
-	private ModuleFactory moduleFactory = new ModuleFactory(new PassthruModuleOptionsMetadataResolver());
 
 	@After
 	public void tearDown() {
@@ -125,7 +122,10 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		.setGroup("foo")
 		.setIndex(0)
 		.build();
-		Module module = moduleFactory.newInstance(descriptor, new ModuleDeploymentProperties());
+
+		Module module = new ResourceConfiguredModule(descriptor,
+				new ModuleDeploymentProperties());
+
 		assertEquals(0, module.getProperties().size());
 		jobPlugin.preProcessModule(module);
 
@@ -220,11 +220,13 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	@Test
 	public void testThatInputOutputChannelsAreBound() {
 
-		final Module module = moduleFactory.newInstance(new ModuleDescriptor.Builder()
-						.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
-						.setGroup("myjob")
-						.setIndex(0)
-						.build(),
+		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
+				.setGroup("myjob")
+				.setIndex(0)
+				.build();
+
+		final Module module = new ResourceConfiguredModule(moduleDescriptor,
 				new ModuleDeploymentProperties());
 
 		final TestMessageBus messageBus = new TestMessageBus();
@@ -249,11 +251,13 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	@Test
 	public void testThatJobEventsChannelsAreBound() {
 
-		final Module module = moduleFactory.newInstance(new ModuleDescriptor.Builder()
-						.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
-						.setGroup("myjob")
-						.setIndex(0)
-						.build(),
+		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
+				.setGroup("myjob")
+				.setIndex(0)
+				.build();
+
+		final Module module = new ResourceConfiguredModule(moduleDescriptor,
 				new ModuleDeploymentProperties());
 
 		final TestMessageBus messageBus = new TestMessageBus();

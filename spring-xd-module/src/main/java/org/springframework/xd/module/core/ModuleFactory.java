@@ -18,6 +18,8 @@
 
 package org.springframework.xd.module.core;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +42,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
  *
- * Creates a {@link Module} instance and configures its application context using resources found under the resource location defined in the {@link ModuleDefinition}.
+ * Determines the type of {@link Module} to create from the Module's metadata and creates a module instance. Also, resolves {@link org.springframework.xd.module.options.ModuleOptions} in the process.
  *
  * @author David Turanski
  */
@@ -61,7 +63,9 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	}
 
 	/**
-	 * Create a new {@link Module} instance.
+	 * Create a new {@link org.springframework.xd.module.core.SimpleModule} or {@link org.springframework.xd.module.core.CompositeModule} instance from inspecting the
+	 * {@link org.springframework.xd.module.ModuleDescriptor}, particularly the descriptor's {@link org.springframework.xd.module.ModuleDefinition}.
+	 *
 	 * @param moduleDescriptor contains the module's runtime configuration (required)
 	 * @param deploymentProperties contains deployment properties (may be null)
 	 * @return the module instance
@@ -73,32 +77,18 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	}
 
 	/**
-	 * Configure the application context from the resource. This is required to load any beans that are installed for the module.
-	 * @param module
-	 */
-	private void configureModuleApplicationContext(Module module) {
-		ModuleDefinition moduleDefinition = module.getDescriptor().getModuleDefinition();
-		//todo: change this when ModuleDefinition is refactored.
-		Resource resource = moduleDefinition.getResource();
-		if (log.isInfoEnabled()) {
-			log.info("configuring module " + module.getType() + ":" + module.getName() + " from module definition resource " + module.getDescriptor().getModuleDefinition().getResource());
-		}
-		if (resource != null && resource.exists() && resource.isReadable()) {
-			module.addSource(moduleDefinition.getResource());
-		}
-	}
 
 	/**
-	 *
+	 * Creates and configures a {@link org.springframework.xd.module.core.Module} after resolving {@link org.springframework.xd.module.options.ModuleOptions}.
+	 * createComposedModule() calls this for each component module.
 	 * @param moduleDescriptor
 	 * @param moduleOptions
 	 * @param deploymentProperties
-	 * @return
+	 * @return the module instance
 	 */
 	private Module createAndConfigureModuleInstance(ModuleDescriptor moduleDescriptor, ModuleOptions moduleOptions, ModuleDeploymentProperties deploymentProperties) {
 		Module module = moduleDescriptor.isComposed() ? createComposedModule(moduleDescriptor, moduleOptions, deploymentProperties) :
 				createSimpleModule(moduleDescriptor, moduleOptions, deploymentProperties);
-		configureModuleApplicationContext(module);
 		return module;
 	}
 
@@ -121,7 +111,22 @@ public class ModuleFactory implements BeanClassLoaderAware {
 		ModuleDefinition definition = moduleDescriptor.getModuleDefinition();
 		ClassLoader moduleClassLoader = (definition.getClasspath() == null) ? null
 				: new ParentLastURLClassLoader(definition.getClasspath(), this.classLoader);
-		return new SimpleModule(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions);
+
+		Class<? extends SimpleModule> moduleType = determineModuleType(moduleDescriptor.getModuleDefinition());
+		Assert.notNull(moduleType,String.format("cannot create module '%s:%s' from module definition.",moduleDescriptor.getModuleName(),moduleDescriptor.getType()));
+		return SimpleModuleCreator.newInstance(moduleDescriptor,deploymentProperties, moduleClassLoader, moduleOptions,moduleType);
+	}
+
+	private Class<? extends SimpleModule> determineModuleType(ModuleDefinition moduleDefinition) {
+		Resource resource = moduleDefinition.getResource();
+		Class<? extends  SimpleModule> moduleType = null;
+		//todo: change to use interpret the resource as the root module path when ModuleDefinition is refactored (XD-2199)
+		if (resource != null && resource.exists()) {
+			if (resource.isReadable() && (resource.getFilename().endsWith(".xml") || resource.getFilename().endsWith(".groovy"))) {
+				moduleType = ResourceConfiguredModule.class;
+			}
+		}
+		return moduleType;
 	}
 
 	/**
@@ -177,5 +182,30 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.classLoader = classLoader;
+	}
+
+	static class SimpleModuleCreator {
+		public static <T  extends SimpleModule> T newInstance(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
+			ClassLoader classLoader,ModuleOptions moduleOptions, Class<T> requiredType)  {
+			   	Constructor<T> constructor = null;
+			try {
+				constructor = requiredType.getConstructor(ModuleDescriptor.class, ModuleDeploymentProperties.class, ClassLoader.class, ModuleOptions.class);
+			}
+			catch (NoSuchMethodException e) {
+				e.printStackTrace();
+			}
+			try {
+				return constructor.newInstance(descriptor,deploymentProperties,classLoader,moduleOptions);
+			}
+			catch (InstantiationException e) {
+				throw new RuntimeException(e);
+			}
+			catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
+			catch (InvocationTargetException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 }

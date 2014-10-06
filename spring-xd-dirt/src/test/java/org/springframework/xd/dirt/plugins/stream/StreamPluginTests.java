@@ -39,7 +39,6 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.util.PassthruModuleOptionsMetadataResolver;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -48,7 +47,7 @@ import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.module.core.ModuleFactory;
+import org.springframework.xd.module.core.ResourceConfiguredModule;
 
 /**
  * @author Mark Fisher
@@ -70,8 +69,6 @@ public class StreamPluginTests {
 	private ZooKeeperConnection zkConnection;
 
 	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
-
-	private ModuleFactory moduleFactory = new ModuleFactory(new PassthruModuleOptionsMetadataResolver());
 
 	@Before
 	public void setup() throws BindException {
@@ -100,11 +97,13 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = moduleFactory.newInstance(new ModuleDescriptor.Builder()
+		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(new ModuleDefinition("testsource", ModuleType.source))
 				.setGroup("foo")
 				.setIndex(0)
-				.build(),
+				.build();
+
+		Module module = new ResourceConfiguredModule(moduleDescriptor,
 				new ModuleDeploymentProperties());
 		module.initialize();
 		assertEquals(0, module.getProperties().size());

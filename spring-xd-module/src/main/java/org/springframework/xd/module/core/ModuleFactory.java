@@ -1,19 +1,17 @@
 /*
+ * Copyright 2014 the original author or authors.
  *
- *  * Copyright 2014 the original author or authors.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  * http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.springframework.xd.module.core;
@@ -41,8 +39,8 @@ import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
- *
- * Determines the type of {@link Module} to create from the Module's metadata and creates a module instance. Also, resolves {@link org.springframework.xd.module.options.ModuleOptions} in the process.
+ * Determines the type of {@link Module} to create from the Module's metadata and creates a module instance. Also,
+ * resolves {@link org.springframework.xd.module.options .ModuleOptions} in the process.
  *
  * @author David Turanski
  */
@@ -54,17 +52,18 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
 	/**
-	 *
 	 * @param moduleOptionsMetadataResolver Used to bind configured {@link ModuleOptions} to {@link Module} instances
 	 */
 	public ModuleFactory(ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		Assert.notNull(moduleOptionsMetadataResolver, "'moduleOptionsMetadataResolver' cannot be null");
+		Assert.notNull(moduleOptionsMetadataResolver, "'moduleOptionsMetadataResolver'" + " cannot be null");
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
 	/**
-	 * Create a new {@link org.springframework.xd.module.core.SimpleModule} or {@link org.springframework.xd.module.core.CompositeModule} instance from inspecting the
-	 * {@link org.springframework.xd.module.ModuleDescriptor}, particularly the descriptor's {@link org.springframework.xd.module.ModuleDefinition}.
+	 * Create a new {@link org.springframework.xd.module.core.SimpleModule} or {@link
+	 * org.springframework.xd.module.core.CompositeModule} instance from inspecting the {@link
+	 * org.springframework.xd.module.ModuleDescriptor}, particularly the descriptor's {@link
+	 * org.springframework.xd.module.ModuleDefinition}.
 	 *
 	 * @param moduleDescriptor contains the module's runtime configuration (required)
 	 * @param deploymentProperties contains deployment properties (may be null)
@@ -76,32 +75,34 @@ public class ModuleFactory implements BeanClassLoaderAware {
 		return module;
 	}
 
-	/**
 
 	/**
-	 * Creates and configures a {@link org.springframework.xd.module.core.Module} after resolving {@link org.springframework.xd.module.options.ModuleOptions}.
-	 * createComposedModule() calls this for each component module.
+	 * Creates and configures a {@link org.springframework.xd.module.core.Module} after resolving {@link
+	 * org.springframework.xd.module.options.ModuleOptions}. createComposedModule() calls this for each component
+	 * module.
+	 *
 	 * @param moduleDescriptor
 	 * @param moduleOptions
 	 * @param deploymentProperties
 	 * @return the module instance
 	 */
-	private Module createAndConfigureModuleInstance(ModuleDescriptor moduleDescriptor, ModuleOptions moduleOptions, ModuleDeploymentProperties deploymentProperties) {
-		Module module = moduleDescriptor.isComposed() ? createComposedModule(moduleDescriptor, moduleOptions, deploymentProperties) :
+	private Module createAndConfigureModuleInstance(ModuleDescriptor moduleDescriptor, ModuleOptions moduleOptions,
+			ModuleDeploymentProperties deploymentProperties) {
+		Module module = moduleDescriptor.isComposed() ?
+				createComposedModule(moduleDescriptor, moduleOptions, deploymentProperties) :
 				createSimpleModule(moduleDescriptor, moduleOptions, deploymentProperties);
 		return module;
 	}
 
 	/**
-	 * Create a simple module based on the provided {@link ModuleDescriptor}, {@link org.springframework.xd.module.options.ModuleOptions}, and
+	 * Create a simple module based on the provided {@link ModuleDescriptor}, {@link
+	 * org.springframework.xd.module.options.ModuleOptions}, and
 	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
 	 *
 	 * @param moduleDescriptor descriptor for the composed module
 	 * @param moduleOptions module options for the composed module
 	 * @param deploymentProperties deployment related properties for the composed module
-	 *
 	 * @return new simple module instance
-	 *
 	 */
 	private Module createSimpleModule(ModuleDescriptor moduleDescriptor, ModuleOptions moduleOptions,
 			ModuleDeploymentProperties deploymentProperties) {
@@ -109,20 +110,25 @@ public class ModuleFactory implements BeanClassLoaderAware {
 			log.info("creating simple module " + moduleDescriptor);
 		}
 		ModuleDefinition definition = moduleDescriptor.getModuleDefinition();
-		ClassLoader moduleClassLoader = (definition.getClasspath() == null) ? null
-				: new ParentLastURLClassLoader(definition.getClasspath(), this.classLoader);
+		ClassLoader moduleClassLoader = (definition.getClasspath() == null) ? null :
+				new ParentLastURLClassLoader(definition.getClasspath(), this.classLoader);
 
 		Class<? extends SimpleModule> moduleType = determineModuleType(moduleDescriptor.getModuleDefinition());
-		Assert.notNull(moduleType,String.format("cannot create module '%s:%s' from module definition.",moduleDescriptor.getModuleName(),moduleDescriptor.getType()));
-		return SimpleModuleCreator.newInstance(moduleDescriptor,deploymentProperties, moduleClassLoader, moduleOptions,moduleType);
+		Assert.notNull(moduleType,
+				String.format("cannot create module '%s:%s' from module definition.", moduleDescriptor.getModuleName(),
+						moduleDescriptor.getType()));
+		return SimpleModuleCreator
+				.newInstance(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleType);
 	}
 
 	private Class<? extends SimpleModule> determineModuleType(ModuleDefinition moduleDefinition) {
 		Resource resource = moduleDefinition.getResource();
-		Class<? extends  SimpleModule> moduleType = null;
-		//todo: change to use interpret the resource as the root module path when ModuleDefinition is refactored (XD-2199)
+		Class<? extends SimpleModule> moduleType = null;
+		//todo: change to use interpret the resource as the root module path when
+		// ModuleDefinition is refactored (XD-2199)
 		if (resource != null && resource.exists()) {
-			if (resource.isReadable() && (resource.getFilename().endsWith(".xml") || resource.getFilename().endsWith(".groovy"))) {
+			if (resource.isReadable() &&
+					(resource.getFilename().endsWith(".xml") || resource.getFilename().endsWith(".groovy"))) {
 				moduleType = ResourceConfiguredModule.class;
 			}
 		}
@@ -130,19 +136,17 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	}
 
 	/**
-	 * Create a composed module based on the provided {@link ModuleDescriptor}, {@link org.springframework.xd.module.options.ModuleOptions}, and
-	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
+	 * Create a composed module based on the provided {@link ModuleDescriptor}, {@link
+	 * org.springframework.xd.module.options.ModuleOptions}, and {@link org.springframework.xd.module.ModuleDeploymentProperties}.
 	 *
 	 * @param compositeDescriptor descriptor for the composed module
 	 * @param options module options for the composed module
 	 * @param deploymentProperties deployment related properties for the composed module
-	 *
 	 * @return new composed module instance
-	 *
 	 * @see ModuleDescriptor#isComposed
 	 */
-	private Module createComposedModule(ModuleDescriptor compositeDescriptor,
-			ModuleOptions options, ModuleDeploymentProperties deploymentProperties) {
+	private Module createComposedModule(ModuleDescriptor compositeDescriptor, ModuleOptions options,
+			ModuleDeploymentProperties deploymentProperties) {
 		List<ModuleDescriptor> children = compositeDescriptor.getChildren();
 		Assert.notEmpty(children, "child module list must not be empty");
 		if (log.isInfoEnabled()) {
@@ -154,7 +158,8 @@ public class ModuleFactory implements BeanClassLoaderAware {
 			ModuleOptions moduleOptions = new PrefixNarrowingModuleOptions(options, moduleDescriptor.getModuleName());
 			// due to parser results being reversed, we add each at index 0
 			// todo: is it right to pass the composite deploymentProperties here?
-			childrenModules.add(0, createAndConfigureModuleInstance(moduleDescriptor, moduleOptions, deploymentProperties));
+			childrenModules
+					.add(0, createAndConfigureModuleInstance(moduleDescriptor, moduleOptions, deploymentProperties));
 		}
 		return new CompositeModule(compositeDescriptor, deploymentProperties, childrenModules);
 	}
@@ -164,12 +169,12 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	 * assumed to not fail, as it has already been validated on the admin side.
 	 *
 	 * @param descriptor module descriptor for which to bind request parameters
-	 *
 	 * @return module options bound with request parameters
 	 */
 	private ModuleOptions safeModuleOptionsInterpolate(ModuleDescriptor descriptor) {
 		Map<String, String> parameters = descriptor.getParameters();
-		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(descriptor.getModuleDefinition());
+		ModuleOptionsMetadata moduleOptionsMetadata =
+				moduleOptionsMetadataResolver.resolve(descriptor.getModuleDefinition());
 		try {
 			return moduleOptionsMetadata.interpolate(parameters);
 		}
@@ -185,17 +190,20 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	}
 
 	static class SimpleModuleCreator {
-		public static <T  extends SimpleModule> T newInstance(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
-			ClassLoader classLoader,ModuleOptions moduleOptions, Class<T> requiredType)  {
-			   	Constructor<T> constructor = null;
+		public static <T extends SimpleModule> T newInstance(ModuleDescriptor descriptor,
+				ModuleDeploymentProperties deploymentProperties, ClassLoader classLoader, ModuleOptions moduleOptions,
+				Class<T> requiredType) {
+			Constructor<T> constructor = null;
 			try {
-				constructor = requiredType.getConstructor(ModuleDescriptor.class, ModuleDeploymentProperties.class, ClassLoader.class, ModuleOptions.class);
+				constructor = requiredType
+						.getConstructor(ModuleDescriptor.class, ModuleDeploymentProperties.class, ClassLoader.class,
+								ModuleOptions.class);
 			}
 			catch (NoSuchMethodException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 			try {
-				return constructor.newInstance(descriptor,deploymentProperties,classLoader,moduleOptions);
+				return constructor.newInstance(descriptor, deploymentProperties, classLoader, moduleOptions);
 			}
 			catch (InstantiationException e) {
 				throw new RuntimeException(e);

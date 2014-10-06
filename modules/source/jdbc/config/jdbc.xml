@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<channel id="output"/>
+
+	<channel id="aggregates" />
+
+	<beans:import resource="../../../common/jdbc-datasource.xml"/>
+
+	<int-jdbc:inbound-channel-adapter query="${query}"
+			channel="aggregates"
+			data-source="dataSource"
+			update="${update:#{null}}"
+			max-rows-per-poll="${maxRowsPerPoll}"
+			auto-startup="false">
+		<poller fixed-delay="${fixedDelay}" time-unit="SECONDS">
+			<transactional />
+		</poller>
+	</int-jdbc:inbound-channel-adapter>
+
+	<beans:beans profile="use-splitter">
+		<splitter input-channel="aggregates" output-channel="output"/>
+	</beans:beans>
+	<beans:beans profile="dont-use-splitter">
+		<bridge input-channel="aggregates" output-channel="output"/>
+	</beans:beans>
+
+</beans:beans>

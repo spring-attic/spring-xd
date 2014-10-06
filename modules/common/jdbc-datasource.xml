@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+		<property name="driverClassName" value="${driverClassName}"/>
+		<property name="url" value="${url}"/>
+		<property name="username" value="${username}"/>
+		<property name="password" value="${password}"/>
+		<property name="initialSize" value="${initialSize}" />
+		<property name="maxActive" value="${maxActive}" />
+		<property name="maxIdle" value="${maxIdle}" />
+		<property name="minIdle" value="${minIdle}"/>
+		<property name="maxWait" value="${maxWait}"/>
+		<property name="testOnBorrow" value="${testOnBorrow}"/>
+		<property name="testOnReturn" value="${testOnReturn}"/>
+		<property name="testWhileIdle" value="${testWhileIdle}"/>
+		<property name="validationQuery" value="${validationQuery}"/>
+		<property name="timeBetweenEvictionRunsMillis" value="${timeBetweenEvictionRunsMillis}"/>
+		<property name="minEvictableIdleTimeMillis" value="${minEvictableIdleTimeMillis}"/>
+		<property name="removeAbandoned" value="${removeAbandoned}"/>
+		<property name="removeAbandonedTimeout" value="${removeAbandonedTimeout}"/>
+		<property name="logAbandoned" value="${logAbandoned}"/>
+		<property name="validationInterval" value="${validationInterval}"/>
+		<property name="jmxEnabled" value="${jmxEnabled}"/>
+		<property name="fairQueue" value="${fairQueue}"/>
+		<property name="abandonWhenPercentageFull" value="${abandonWhenPercentageFull}"/>
+		<property name="maxAge" value="${maxAge}"/>
+		<property name="useEquals" value="${useEquals}"/>
+		<property name="suspectTimeout" value="${suspectTimeout}"/>
+		<property name="alternateUsernameAllowed" value="${alternateUsernameAllowed}"/>
+		<property name="validatorClassName" value="${validatorClassName}"/>
+		<property name="connectionProperties" value="${connectionProperties}"/>
+		<property name="initSQL" value="${initSQL}"/>
+		<property name="jdbcInterceptors" value="${jdbcInterceptors}"/>
+	</bean>
+
+</beans>

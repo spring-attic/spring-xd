@@ -41,6 +41,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * Integration tests for Redis sink.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 public class RedisSinkTests extends AbstractStreamIntegrationTest {
 
@@ -51,7 +52,6 @@ public class RedisSinkTests extends AbstractStreamIntegrationTest {
 
 	private RedisMessageListenerContainer container;
 
-	private CountDownLatch latch = new CountDownLatch(1);
 
 	@Before
 	public void setup() {
@@ -59,10 +59,13 @@ public class RedisSinkTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	public void testRedisTopicSink() throws InterruptedException {
-		setupMessageListener();
+	public void testRedisTopicExpressionSink() throws InterruptedException {
+		String topicName = "testTopicExpression";
+		CountDownLatch latch = new CountDownLatch(1);
+		setupMessageListener(latch, topicName);
 		final HttpSource httpSource = newHttpSource();
-		stream().create(generateStreamName(), "%s | redis --topic='''%s'''", httpSource, "testTopic");
+		stream().create(generateStreamName(), "%s | redis --topicExpression='''%s'''", httpSource,
+				topicName);
 		Thread.sleep(1000);
 		final String stringToPost = "test";
 		httpSource.ensureReady().postData(stringToPost);
@@ -72,11 +75,26 @@ public class RedisSinkTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	public void testRedisQueueSink() throws InterruptedException {
-		final String listName = "testList";
+	public void testRedisTopicSink() throws InterruptedException {
+		String topicName = "testTopic";
+		CountDownLatch latch = new CountDownLatch(1);
+		setupMessageListener(latch, topicName);
+		final HttpSource httpSource = newHttpSource();
+		stream().create(generateStreamName(), "%s | redis --topic=%s", httpSource, topicName);
+		Thread.sleep(1000);
+		final String stringToPost = "test";
+		httpSource.ensureReady().postData(stringToPost);
+		latch.await(3, TimeUnit.SECONDS);
+		assertEquals(0, latch.getCount());
+		container.stop();
+	}
+
+	@Test
+	public void testRedisQueueExpressionSink() throws InterruptedException {
+		final String listName = "testListExpression";
 		final String stringToPost = "test";
 		final HttpSource httpSource = newHttpSource();
-		stream().create(generateStreamName(), "%s | redis --queue='''%s'''", httpSource, listName);
+		stream().create(generateStreamName(), "%s | redis --queueExpression='''%s'''", httpSource, listName);
 		Thread.sleep(1000);
 		httpSource.ensureReady().postData(stringToPost);
 		byte[] leftPop = (byte[]) createTemplate().boundListOps(listName).leftPop(5, TimeUnit.SECONDS);
@@ -84,11 +102,37 @@ public class RedisSinkTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	public void testRedisQueueSink() throws InterruptedException {
+		final String listName = "testList";
+		final String stringToPost = "test";
+		final HttpSource httpSource = newHttpSource();
+		stream().create(generateStreamName(), "%s | redis --queue=%s", httpSource, listName);
+		Thread.sleep(1000);
+		httpSource.ensureReady().postData(stringToPost);
+		byte[] leftPop = (byte[]) createTemplate().boundListOps(listName).leftPop(5, TimeUnit.SECONDS);
+		Assert.assertEquals(stringToPost, new String(leftPop));
+	}
+
+	@Test
+	public void testRedisStoreExpressionSink() throws InterruptedException {
+		final String setName = "testSetExpression";
+		final String stringToPost = "test";
+		final HttpSource httpSource = newHttpSource();
+		stream().create(generateStreamName(), "%s | redis --keyExpression='''%s''' --collectionType='SET'", httpSource,
+				setName);
+		Thread.sleep(1000);
+		httpSource.ensureReady().postData(stringToPost);
+		byte[] popped = (byte[]) createTemplate().boundSetOps(setName).pop();
+		Assert.assertEquals(stringToPost, new String(popped));
+	}
+
+	@Test
 	public void testRedisStoreSink() throws InterruptedException {
 		final String setName = "testSet";
 		final String stringToPost = "test";
 		final HttpSource httpSource = newHttpSource();
-		stream().create(generateStreamName(), "%s | redis --key='''%s''' --collectionType='SET'", httpSource, setName);
+		stream().create(generateStreamName(), "%s | redis --key=%s --collectionType='SET'", httpSource,
+				setName);
 		Thread.sleep(1000);
 		httpSource.ensureReady().postData(stringToPost);
 		byte[] popped = (byte[]) createTemplate().boundSetOps(setName).pop();
@@ -108,7 +152,7 @@ public class RedisSinkTests extends AbstractStreamIntegrationTest {
 		return template;
 	}
 
-	private void setupMessageListener() throws InterruptedException {
+	private void setupMessageListener(CountDownLatch latch, String topic) throws InterruptedException {
 		MessageListenerAdapter listener = new MessageListenerAdapter();
 		listener.setDelegate(new Listener(latch));
 		listener.afterPropertiesSet();
@@ -116,7 +160,7 @@ public class RedisSinkTests extends AbstractStreamIntegrationTest {
 		this.container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(this.redisAvailableRule.getResource());
 		container.afterPropertiesSet();
-		container.addMessageListener(listener, Collections.<Topic> singletonList(new ChannelTopic("testTopic")));
+		container.addMessageListener(listener, Collections.<Topic> singletonList(new ChannelTopic(topic)));
 		container.start();
 		Thread.sleep(1000);
 	}

@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.modules.metadata;
 
 import javax.validation.constraints.AssertTrue;
 
+import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
@@ -27,9 +28,16 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * Options metadata for Redis sink module.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 @Mixin(RedisConnectionMixin.class)
 public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
+
+	private static final String TOPIC_EXPRESSION_PROFILE = "use-topic-expression";
+
+	private static final String QUEUE_EXPRESSION_PROFILE = "use-queue-expression";
+
+	private static final String STORE_EXPRESSION_PROFILE = "use-store-expression";
 
 	private static final String TOPIC_PROFILE = "use-topic";
 
@@ -43,68 +51,130 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 
 	private String key = null;
 
-	private String collectionType = "LIST";
+	private String topicExpression = null;
 
-	public String getTopic() {
-		return this.topic;
+	private String queueExpression = null;
+
+	private String keyExpression = null;
+
+	private RedisCollectionFactoryBean.CollectionType collectionType = RedisCollectionFactoryBean.CollectionType.LIST;
+
+	public String getTopicExpression() {
+		return this.topicExpression;
 	}
 
-	@ModuleOption("spel expression to use for topic")
+	@ModuleOption("a SpEL expression to use for topic")
+	public void setTopicExpression(String topicExpression) {
+		this.topicExpression = topicExpression;
+	}
+
+	public String getQueueExpression() {
+		return this.queueExpression;
+	}
+
+	@ModuleOption("a SpEL expression to use for queue")
+	public void setQueueExpression(String queueExpression) {
+		this.queueExpression = queueExpression;
+	}
+
+
+	public String getKeyExpression() {
+		return this.keyExpression;
+	}
+
+	@ModuleOption("a SpEL expression to use for keyExpression")
+	public void setKeyExpression(String keyExpression) {
+		this.keyExpression = keyExpression;
+	}
+
+	public String getTopic() {
+		return topic;
+	}
+
+	@ModuleOption("name for the topic")
 	public void setTopic(String topic) {
 		this.topic = topic;
 	}
 
 	public String getQueue() {
-		return this.queue;
+		return queue;
 	}
 
-	@ModuleOption("spel expression to use for queue")
+	@ModuleOption("name for the queue")
 	public void setQueue(String queue) {
 		this.queue = queue;
 	}
 
-
 	public String getKey() {
-		return this.key;
+		return key;
 	}
 
-	@ModuleOption("name of the redis store key to use")
+	@ModuleOption("name for the key")
 	public void setKey(String key) {
 		this.key = key;
 	}
 
-	public String getCollectionType() {
+	public RedisCollectionFactoryBean.CollectionType getCollectionType() {
 		return collectionType;
 	}
 
 
 	@ModuleOption("the collection type to use for the given key")
-	public void setCollectionType(String collectionType) {
+	public void setCollectionType(RedisCollectionFactoryBean.CollectionType collectionType) {
 		this.collectionType = collectionType;
 	}
 
 	/**
 	 * User can't explicitly set mutually exclusive values together.
 	 */
-	@AssertTrue(message = "the 'topic', 'queue' and 'key' options are mutually exclusive")
-	public boolean isMutuallyExclusive() {
-		return (topic == null || queue != null || key == null) ||
-				(key == null || topic != null || queue == null) ||
-				(queue == null || key != null || topic == null);
+	@AssertTrue(message = "the 'topic', 'topicExpression', 'queue', 'queueExpression', 'key' and 'keyExpression' options are mutually exclusive")
+	public boolean isOptionMutuallyExclusive() {
+		boolean optionSpecified = false;
+		String[] options = { this.topic, this.topicExpression, this.queue, this.queueExpression, this.key,
+			this.keyExpression };
+		for (String option : options) {
+			if (optionSpecified == true && option != null) {
+				return false;
+			}
+			if (option != null) {
+				optionSpecified = true;
+			}
+		}
+		return true;
 	}
 
-	@AssertTrue(message = "one of the 'topic', 'queue' or 'key' values must be set explicitly")
-	public boolean isValid() {
-		return ((queue != null) || (topic != null) || (key != null));
+	@AssertTrue(message = "one of 'topic', 'topicExpression', 'queue', 'queueExpression', 'key', 'keyExpression' options must be set explicitly")
+	public boolean isOptionRequired() {
+		return ((queue != null) || (topic != null) || (key != null) || (queueExpression != null)
+				|| (topicExpression != null) || (keyExpression != null));
+	}
+
+	@AssertTrue(message = "collection type is not valid")
+	public boolean isCollectionTypeValid() {
+		for (RedisCollectionFactoryBean.CollectionType type : RedisCollectionFactoryBean.CollectionType.values()) {
+			if (type.name().equals(this.collectionType.name())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
 	public String[] profilesToActivate() {
-		if (topic != null) {
+		if (topicExpression != null) {
+			return new String[] { TOPIC_EXPRESSION_PROFILE };
+		}
+		else if (topic != null) {
 			return new String[] { TOPIC_PROFILE };
+		}
+		else if (queueExpression != null) {
+			return new String[] { QUEUE_EXPRESSION_PROFILE };
 		}
 		else if (queue != null) {
 			return new String[] { QUEUE_PROFILE };
+		}
+		else if (keyExpression != null) {
+			return new String[] { STORE_EXPRESSION_PROFILE };
 		}
 		else if (key != null) {
 			return new String[] { STORE_PROFILE };

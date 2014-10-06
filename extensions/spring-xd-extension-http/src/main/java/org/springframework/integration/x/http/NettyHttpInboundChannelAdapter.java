@@ -169,7 +169,7 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 			Resource keyStore = resolver.getResource(keyStoreName);
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			KeyStore ks = KeyStore.getInstance("PKCS12");
-			ks.load(keyStore.getInputStream(), "secret".toCharArray());
+			ks.load(keyStore.getInputStream(), keyStorePassPhrase.toCharArray());
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 			kmf.init(ks, keyStorePassPhrase.toCharArray());
 			sslContext.init(kmf.getKeyManagers(), null, null);

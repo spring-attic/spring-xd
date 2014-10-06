@@ -105,6 +105,10 @@ project('modules.source.http') {
     dependencies { runtime	project(":spring-xd-extension-http") }
 }
 
+project('modules.source.jdbc') {
+    dependencies { runtime project(":spring-xd-extension-jdbc") }
+}
+
 project('modules.source.tcp') {
     dependencies { runtime project(":spring-xd-extension-tcp") }
 }

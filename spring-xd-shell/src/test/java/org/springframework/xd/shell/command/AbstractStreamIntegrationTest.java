@@ -28,16 +28,7 @@ import org.junit.After;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.test.fixtures.Disposable;
-import org.springframework.xd.test.fixtures.FileSink;
-import org.springframework.xd.test.fixtures.FileSource;
-import org.springframework.xd.test.fixtures.JdbcSink;
-import org.springframework.xd.test.fixtures.MailSink;
-import org.springframework.xd.test.fixtures.NonPollingImapSource;
-import org.springframework.xd.test.fixtures.PollingMailSource;
-import org.springframework.xd.test.fixtures.TailSource;
-import org.springframework.xd.test.fixtures.TcpSink;
-import org.springframework.xd.test.fixtures.TcpSource;
+import org.springframework.xd.test.fixtures.*;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by the test.
@@ -105,6 +96,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return new JdbcSink(createDataSource());
 	}
 
+    protected JdbcSource newJdbcSource() { return new JdbcSource(createDataSource());}
 
 	private DataSource createDataSource() {
 

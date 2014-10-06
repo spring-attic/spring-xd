@@ -95,6 +95,7 @@ ext {
 	springIntegrationKafkaVersion = '1.0.0.BUILD-SNAPSHOT'
 	springShellVersion = '1.1.0.RELEASE'
 	zookeeperVersion = '3.4.6'
+	sparkVersion = '1.1.0'
 
 	// Also in IO
 	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4

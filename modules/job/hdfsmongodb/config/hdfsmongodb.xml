@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<batch:job id="hdfsmongodb" restartable="${restartable}">
+	<batch:job id="job" restartable="${restartable}">
 		<batch:step id="readResourcesStep">
 			<batch:tasklet>
 				<batch:chunk reader="multifileReader" writer="itemWriter" commit-interval="100"/>

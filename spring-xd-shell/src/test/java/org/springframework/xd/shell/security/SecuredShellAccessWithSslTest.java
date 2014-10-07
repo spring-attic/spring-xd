@@ -39,6 +39,7 @@ import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.domain.RESTModuleType;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
  * Tests a mixed security/SSL scenario, directly with the SpringXDTemplate. This allows a more relaxed
@@ -46,7 +47,7 @@ import org.springframework.xd.rest.domain.RESTModuleType;
  *
  * @author Marius Bogoevici
  */
-public class SecuredShellAccessWithSslTest {
+public class SecuredShellAccessWithSslTest extends RandomConfigurationSupport {
 
 	private static SingleNodeApplication singleNodeApplication;
 

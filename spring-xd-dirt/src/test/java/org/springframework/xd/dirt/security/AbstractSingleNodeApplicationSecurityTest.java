@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 
 /**
  * Base class for Security Tests - allows for starting single node applications with different
@@ -49,13 +50,13 @@ public abstract class AbstractSingleNodeApplicationSecurityTest {
 
 	private static MockMvc mockMvc;
 
-	private static SingleNodeApplication singleNodeApplication;
-
 	private static String originalConfigLocation = null;
 
 	private static String adminPort;
 
 	protected RestTemplate restTemplate;
+
+	private static TestApplicationBootstrap testApplicationBootstrap;
 
 	@ClassRule
 	public static ExternalResource server = new ExternalResource() {
@@ -73,23 +74,24 @@ public abstract class AbstractSingleNodeApplicationSecurityTest {
 
 		@Override
 		protected void before() throws Throwable {
-			singleNodeApplication = new SingleNodeApplication();
-			SingleNodeApplication run = singleNodeApplication.run();
-			ConfigurableApplicationContext configurableApplicationContext = run.adminContext();
+			testApplicationBootstrap = new TestApplicationBootstrap();
+			testApplicationBootstrap.getSingleNodeApplication().run();
+			ConfigurableApplicationContext configurableApplicationContext = testApplicationBootstrap.getSingleNodeApplication().adminContext();
 			mockMvc = MockMvcBuilders.webAppContextSetup((WebApplicationContext) configurableApplicationContext)
 					                 .addFilters(configurableApplicationContext.getBeansOfType(Filter.class).values().toArray(new Filter[]{}))
 					                 .build();
-			adminPort = application().adminContext().getEnvironment().resolvePlaceholders("${server.port}");
+			adminPort = testApplicationBootstrap.getAdminServerPort();
 		}
 
 		@Override
 		protected void after() {
-			singleNodeApplication.close();
+			testApplicationBootstrap.getSingleNodeApplication().close();
 			if (originalConfigLocation != null) {
 				System.setProperty("spring.config.location", originalConfigLocation);
 			} else {
 				System.clearProperty("spring.config.location");
 			}
+			testApplicationBootstrap.cleanup();
 		}
 	};
 
@@ -102,7 +104,7 @@ public abstract class AbstractSingleNodeApplicationSecurityTest {
 	}
 
 	public static SingleNodeApplication application() {
-		return singleNodeApplication;
+		return testApplicationBootstrap.getSingleNodeApplication();
 	}
 
 	protected static String adminPort() {

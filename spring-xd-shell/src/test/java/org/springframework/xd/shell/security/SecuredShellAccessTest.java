@@ -35,13 +35,14 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.shell.Configuration;
 import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
  * Tests basic security support in the shell.
  *
  * @author Marius Bogoevici
  */
-public class SecuredShellAccessTest {
+public class SecuredShellAccessTest extends RandomConfigurationSupport {
 
 	private static SingleNodeApplication singleNodeApplication;
 

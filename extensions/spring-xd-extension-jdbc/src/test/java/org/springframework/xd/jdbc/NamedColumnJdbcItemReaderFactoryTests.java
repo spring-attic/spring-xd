@@ -17,6 +17,10 @@ package org.springframework.xd.jdbc;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import javax.sql.DataSource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -58,5 +62,17 @@ public class NamedColumnJdbcItemReaderFactoryTests {
 	@Test
 	public void testGetObjectType() {
 		assertEquals(NamedColumnJdbcItemReader.class, factory.getObjectType());
+	}
+
+	@Test
+	public void testPartitionedSql() throws Exception {
+		factory.setColumnNames("foo, bar");
+		factory.setTableName("baz");
+		factory.setPartitionClause("WHERE foo BETWEEN 17 AND 42");
+		DataSource dataSource = new SingleConnectionDataSource("jdbc:hsqldb:mem:test", "sa", "", false);
+		factory.setDataSource(dataSource);
+		factory.afterPropertiesSet();
+		assertEquals("Partitioned SQL", "SELECT foo, bar FROM baz WHERE foo BETWEEN 17 AND 42",
+				ReflectionTestUtils.getField(factory, "sql"));
 	}
 }

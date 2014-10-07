@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
  * {@code verifyCursorPosition=false } for both MySql and SQLite.
  *
  * @author Michael Minella
+ * @author Thomas Risberg
  */
 public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumnJdbcItemReader>, InitializingBean {
 
@@ -46,6 +47,8 @@ public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumn
 
 	private String columnNames;
 
+	private String partitionClause;
+
 	private String sql;
 
 	private int fetchSize;
@@ -54,22 +57,14 @@ public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumn
 
 	private boolean initialized = false;
 
+	private NamedColumnJdbcItemReader reader;
+
 	@Override
 	public NamedColumnJdbcItemReader getObject() throws Exception {
+
 		if (!initialized) {
 			throw new IllegalStateException("Properties have not been initalized");
 		}
-
-		NamedColumnJdbcItemReader reader = new NamedColumnJdbcItemReader();
-
-		reader.setColumnNames(columnNames);
-		reader.setTableName(tableName);
-		reader.setSql(sql);
-		reader.setFetchSize(fetchSize);
-		reader.setDataSource(dataSource);
-		reader.setVerifyCursorPosition(verifyCursorPosition);
-		reader.afterPropertiesSet();
-
 		return reader;
 	}
 
@@ -89,7 +84,13 @@ public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumn
 			Assert.hasText(tableName, "tableName must be set");
 			Assert.hasText(columnNames, "columns must be set");
 
-			String sql = "select " + columnNames + " from " + tableName;
+			String sql;
+			if (StringUtils.hasText(partitionClause)) {
+				sql = "SELECT " + columnNames + " FROM " + tableName + " " + partitionClause;
+			}
+			else {
+				sql = "SELECT " + columnNames + " FROM " + tableName;
+			}
 			log.info("Setting SQL to: " + sql);
 			setSql(sql);
 		}
@@ -112,6 +113,13 @@ public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumn
 				// keep configured fetchSize
 		}
 
+		reader = new NamedColumnJdbcItemReader();
+		reader.setSql(sql);
+		reader.setFetchSize(fetchSize);
+		reader.setDataSource(dataSource);
+		reader.setVerifyCursorPosition(verifyCursorPosition);
+		reader.afterPropertiesSet();
+
 		initialized = true;
 	}
 
@@ -127,6 +135,10 @@ public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumn
 		this.columnNames = columnNames;
 	}
 
+	public void setPartitionClause(String partitionClause) {
+		this.partitionClause = partitionClause;
+	}
+
 	public void setSql(String sql) {
 		this.sql = sql;
 	}
@@ -138,4 +150,5 @@ public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumn
 	public void setVerifyCursorPosition(boolean verify) {
 		this.verifyCursorPosition = verify;
 	}
+
 }

@@ -44,6 +44,10 @@ public class JdbcHdfsOptionsMetadata {
 
 	private String columns = "";
 
+	private String partitionColumn = "";
+
+	private int partitions = 1;
+
 	private String sql = "";
 
 	private String fileName = XD_JOB_NAME;
@@ -64,6 +68,16 @@ public class JdbcHdfsOptionsMetadata {
 		this.columns = columns;
 	}
 
+	@ModuleOption("the column to use for partitioning, should be numeric and uniformly distributed")
+	public void setPartitionColumn(String partitionColumn) {
+		this.partitionColumn = partitionColumn;
+	}
+
+	@ModuleOption("the number of partitions")
+	public void setPartitions(int partitions) {
+		this.partitions = partitions;
+	}
+
 	@ModuleOption("the SQL to use to extract data")
 	public void setSql(String sql) {
 		this.sql = sql;
@@ -76,6 +90,16 @@ public class JdbcHdfsOptionsMetadata {
 		}
 		else {
 			return !StringUtils.hasText(tableName) && !StringUtils.hasText(columns);
+		}
+	}
+
+	@AssertTrue(message = "Use ('tableName' AND 'columns') when using partition column")
+	boolean isPartitionedWithTableNmae() {
+		if (StringUtils.hasText(partitionColumn)) {
+			return StringUtils.hasText(tableName) && !StringUtils.hasText(sql);
+		}
+		else {
+			return true;
 		}
 	}
 
@@ -109,6 +133,14 @@ public class JdbcHdfsOptionsMetadata {
 
 	public String getSql() {
 		return sql;
+	}
+
+	public String getPartitionColumn() {
+		return partitionColumn;
+	}
+
+	public int getPartitions() {
+		return partitions;
 	}
 
 	public String getFileName() {

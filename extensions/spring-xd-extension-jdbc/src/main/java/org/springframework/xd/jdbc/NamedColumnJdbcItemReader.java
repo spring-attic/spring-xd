@@ -29,25 +29,9 @@ import java.sql.SQLException;
  * predefined list of column names.
  *
  * @author Luke Taylor
+ * @author Thomas Risberg
  */
 public class NamedColumnJdbcItemReader extends JdbcCursorItemReader<Tuple> {
-	private String names;
-	private String tableName;
-
-	/**
-	 * The column names in the database, in the order in which they should be read and
-	 * assembled into the returned string.
-	 */
-	public void setColumnNames(String names) {
-		this.names = names;
-	}
-
-	/**
-	 * The table to read from.
-	 */
-	public void setTableName(String tableName) {
-		this.tableName = tableName;
-	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {

@@ -58,7 +58,7 @@ public abstract class AbstractModule implements Module {
 		return descriptor;
 	}
 
-@Override
+	@Override
 	public ModuleDeploymentProperties getDeploymentProperties() {
 		return this.deploymentProperties;
 	}
@@ -66,8 +66,8 @@ public abstract class AbstractModule implements Module {
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " [name=" + this.getName() + ", type=" + this.getType() + ", group="
-				+ this.descriptor.getGroup() + ", index=" + this.descriptor.getIndex()
-				+ " @" + ObjectUtils.getIdentityHexString(this) + "]";
+		return this.getClass().getSimpleName() + " [name=" + this.getName() + ", type=" + this.getType() + ", group=" +
+				this.descriptor.getGroup() + ", index=" + this.descriptor.getIndex() + " @" +
+				ObjectUtils.getIdentityHexString(this) + "]";
 	}
 }

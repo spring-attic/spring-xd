@@ -40,7 +40,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
  * Determines the type of {@link Module} to create from the Module's metadata and creates a module instance. Also,
- * resolves {@link org.springframework.xd.module.options .ModuleOptions} in the process.
+ * resolves {@link org.springframework.xd.module.options.ModuleOptions} in the process.
  *
  * @author David Turanski
  */
@@ -95,8 +95,8 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	}
 
 	/**
-	 * Create a simple module based on the provided {@link ModuleDescriptor}, {@link
-	 * org.springframework.xd.module.options.ModuleOptions}, and
+	 * Create a simple module based on the provided {@link ModuleDescriptor},
+	 * {@link org.springframework.xd.module.options.ModuleOptions}, and
 	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
 	 *
 	 * @param moduleDescriptor descriptor for the composed module
@@ -113,12 +113,12 @@ public class ModuleFactory implements BeanClassLoaderAware {
 		ClassLoader moduleClassLoader = (definition.getClasspath() == null) ? null :
 				new ParentLastURLClassLoader(definition.getClasspath(), this.classLoader);
 
-		Class<? extends SimpleModule> moduleType = determineModuleType(moduleDescriptor.getModuleDefinition());
-		Assert.notNull(moduleType,
+		Class<? extends SimpleModule> moduleClass = determineModuleType(moduleDescriptor.getModuleDefinition());
+		Assert.notNull(moduleClass,
 				String.format("cannot create module '%s:%s' from module definition.", moduleDescriptor.getModuleName(),
 						moduleDescriptor.getType()));
 		return SimpleModuleCreator
-				.newInstance(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleType);
+				.newInstance(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleClass);
 	}
 
 	private Class<? extends SimpleModule> determineModuleType(ModuleDefinition moduleDefinition) {

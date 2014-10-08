@@ -103,17 +103,23 @@ public class RuntimeBatchConfigurer implements BatchConfigurer {
 	}
 
 	@PostConstruct
-	public void initialize() throws Exception {
+	public void initialize() {
 		Assert.notNull(dataSource, "No dataSource was provided for Batch runtime configuration");
+		try {
+			this.jobRepository = createJobRepository();
+			this.jobExplorer = createJobExplorer();
+			this.jobLauncher = createJobLauncher();
+		}
+		catch (Exception ex) {
+			throw new IllegalStateException("Unable to initialize Spring Batch", ex);
+		}
+	}
 
-		this.jobRepository = createJobRepository();
-
+	private JobExplorer createJobExplorer() throws Exception {
 		JobExplorerFactoryBean jobExplorerFactoryBean = new JobExplorerFactoryBean();
 		jobExplorerFactoryBean.setDataSource(this.dataSource);
 		jobExplorerFactoryBean.afterPropertiesSet();
-		this.jobExplorer = jobExplorerFactoryBean.getObject();
-
-		this.jobLauncher = createJobLauncher();
+		return jobExplorerFactoryBean.getObject();
 	}
 
 	private JobLauncher createJobLauncher() throws Exception {

@@ -47,7 +47,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
 public class ModuleFactory implements BeanClassLoaderAware {
 	private static Log log = LogFactory.getLog(ModuleFactory.class);
 
-	private volatile ClassLoader classLoader;
+	private volatile ClassLoader parentClassLoader;
 
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
@@ -111,7 +111,7 @@ public class ModuleFactory implements BeanClassLoaderAware {
 		}
 		ModuleDefinition definition = moduleDescriptor.getModuleDefinition();
 		ClassLoader moduleClassLoader = (definition.getClasspath() == null) ? null :
-				new ParentLastURLClassLoader(definition.getClasspath(), this.classLoader);
+				new ParentLastURLClassLoader(definition.getClasspath(), this.parentClassLoader);
 
 		Class<? extends SimpleModule> moduleClass = determineModuleType(moduleDescriptor.getModuleDefinition());
 		Assert.notNull(moduleClass,
@@ -186,7 +186,7 @@ public class ModuleFactory implements BeanClassLoaderAware {
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader;
+		this.parentClassLoader = classLoader;
 	}
 
 	static class SimpleModuleCreator {

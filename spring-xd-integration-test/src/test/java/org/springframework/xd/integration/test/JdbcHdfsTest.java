@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import org.springframework.xd.test.fixtures.JdbcHdfsJob;
 import org.springframework.xd.test.fixtures.JdbcSink;
+import org.springframework.xd.test.fixtures.PartitionedJdbcHdfsJob;
 
 
 /**
@@ -82,8 +83,7 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		waitForXD(2000);
 		// Evaluate the results of the test.
 		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-0.csv";
-		assertTrue(JdbcHdfsJob.DEFAULT_FILE_NAME + "-0.csv is missing from hdfs",
-				hadoopUtil.waitForPath(WAIT_TIME, path));// wait up to 10 seconds for file to be closed
+		assertPathsExists(path);
 		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(path);
 		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
 				fileStatuses.size());
@@ -93,6 +93,51 @@ public class JdbcHdfsTest extends AbstractJobTest {
 				hadoopUtil.getFileContentsFromHdfs(path));
 	}
 
+	/**
+	 * Asserts that jdbcHdfsJob has written the test data from a jdbc source table to a hdfs file system.
+	 *
+	 */
+	@Test
+	public void testPartitionedJdbcHdfsJob() {
+		// Deploy stream and job.
+		jdbcSink.columns(PartitionedJdbcHdfsJob.DEFAULT_COLUMN_NAMES);
+		String data0 = "{\"id\":1,\"name\":\"Sven\"}";
+		String data1 = "{\"id\":2,\"name\":\"Anna\"}";
+		String data2 = "{\"id\":3,\"name\":\"Nisse\"}";
+		jdbcSink.getJdbcTemplate().getDataSource();
+		PartitionedJdbcHdfsJob job = jobs.partitionedJdbcHdfsJob();
+		// Use a trigger to send data to JDBC
+		stream("dataSender", sources.http() + XD_DELIMITER
+				+ jdbcSink);
+		sources.http(getContainerHostForSource("dataSender")).postData(data0);
+		sources.http(getContainerHostForSource("dataSender")).postData(data1);
+		sources.http(getContainerHostForSource("dataSender")).postData(data2);
+
+		job(job.toDSL());
+		waitForXD();
+		jobLaunch();
+		waitForXD(2000);
+		// Evaluate the results of the test.
+		String dir = JdbcHdfsJob.DEFAULT_DIRECTORY + "/";
+		String path0 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0" + "-0.csv";
+		String path1 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p1" + "-0.csv";
+		String path2 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p2" + "-0.csv";
+		assertPathsExists(path0, path1, path2);
+		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(dir);
+		assertEquals("The number of files should be 4. The directory and 3 files. ", 4, fileStatuses.size());
+		for (FileStatus fileStatus : fileStatuses) {
+			if (!fileStatus.isDirectory()) {
+				assertTrue("The file should be of reasonable size", fileStatus.getLen() > 5 && fileStatus.getLen() < 10);
+			}
+		}
+	}
+
+	private void assertPathsExists(String... paths) {
+		for (String path : paths) {
+			assertTrue(path + " is missing from hdfs",
+					hadoopUtil.waitForPath(WAIT_TIME, path));// wait up to 10 seconds for file to be closed
+		}
+	}
 
 	/**
 	 * Being a good steward of the database remove the result table from the database.

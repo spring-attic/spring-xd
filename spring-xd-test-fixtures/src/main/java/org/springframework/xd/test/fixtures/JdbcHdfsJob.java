@@ -28,7 +28,7 @@ public class JdbcHdfsJob extends AbstractModuleFixture<JdbcHdfsJob> {
 
 	public final static String DEFAULT_DIRECTORY = "/xd/jdbchdfstest";
 
-	public final static String DEFAULT_FILE_NAME = "jdbchdfstest.out";
+	public final static String DEFAULT_FILE_NAME = "jdbchdfstest";
 
 	public final static String DEFAULT_SQL = "select payload from jdbchdfstest";
 

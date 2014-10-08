@@ -32,7 +32,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.validation.BindException;
-import org.springframework.xd.dirt.util.PassthruModuleOptionsMetadataResolver;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -40,6 +39,9 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.ModuleFactory;
+import org.springframework.xd.module.options.ModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 
 /**
  * @author Mark Fisher
@@ -59,7 +61,12 @@ public class CompositeModuleTests {
 
 	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
 
-	private ModuleFactory moduleFactory = new ModuleFactory(new PassthruModuleOptionsMetadataResolver());
+	private ModuleFactory moduleFactory = new ModuleFactory(new ModuleOptionsMetadataResolver(){
+		@Override
+		public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {
+			return new PassthruModuleOptionsMetadata();
+		}
+	});
 
 
 	@Before

@@ -64,7 +64,7 @@ public class CompositeModule extends AbstractModule {
 
 	private final AtomicBoolean isRunning = new AtomicBoolean();
 
-	CompositeModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
+	public CompositeModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
 			List<Module> modules) {
 		super(descriptor, deploymentProperties);
 		this.modules = modules;

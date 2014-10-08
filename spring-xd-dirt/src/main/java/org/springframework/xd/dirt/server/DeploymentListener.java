@@ -360,7 +360,7 @@ class DeploymentListener implements PathChildrenCacheListener {
 		mapDeployedModules.put(key, moduleDescriptor);
 		Module module = moduleDeployer.createModule(moduleDescriptor, deploymentProperties);
 		registerTap(moduleDescriptor);
-		this.moduleDeployer.deployAndStore(module, moduleDescriptor);
+		this.moduleDeployer.deploy(module, moduleDescriptor);
 		return module;
 	}
 

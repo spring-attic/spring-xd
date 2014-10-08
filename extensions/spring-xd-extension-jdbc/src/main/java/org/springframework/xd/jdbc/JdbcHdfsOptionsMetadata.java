@@ -94,7 +94,7 @@ public class JdbcHdfsOptionsMetadata {
 	}
 
 	@AssertTrue(message = "Use ('tableName' AND 'columns') when using partition column")
-	boolean isPartitionedWithTableNmae() {
+	boolean isPartitionedWithTableName() {
 		if (StringUtils.hasText(partitionColumn)) {
 			return StringUtils.hasText(tableName) && !StringUtils.hasText(sql);
 		}

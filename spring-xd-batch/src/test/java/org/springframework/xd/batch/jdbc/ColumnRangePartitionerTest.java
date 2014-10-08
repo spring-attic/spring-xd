@@ -1,6 +1,23 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.xd.batch.jdbc;
 
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.batch.item.ExecutionContext;
@@ -35,6 +52,12 @@ public class ColumnRangePartitionerTest {
 	public void setUp() {
 		partitioner = new ColumnRangePartitioner();
 		partitioner.setDataSource(dataSource);
+		jdbc.execute("create table bar (foo int)");
+	}
+
+	@After
+	public void tearDown() {
+		jdbc.execute("drop table bar");
 	}
 
 	@Test
@@ -49,7 +72,6 @@ public class ColumnRangePartitionerTest {
 
 	@Test
 	public void testTwoPartitions() {
-		jdbc.execute("create table bar (foo int)");
 		jdbc.execute("insert into bar (foo) values (1), (2), (3), (4)");
 		partitioner.setColumn("foo");
 		partitioner.setTable("bar");
@@ -62,12 +84,10 @@ public class ColumnRangePartitionerTest {
 		assertTrue(partitions.containsKey("partition1"));
 		assertEquals("WHERE foo BETWEEN 3 AND 4", partitions.get("partition1").get("partClause"));
 		assertEquals("-p1", partitions.get("partition1").get("partSuffix"));
-		jdbc.execute("drop table bar");
 	}
 
 	@Test
 	public void testFivePartitions() {
-		jdbc.execute("create table bar (foo int)");
 		jdbc.execute("insert into bar (foo) values (1), (2), (3), (4), (5)");
 		partitioner.setColumn("foo");
 		partitioner.setTable("bar");
@@ -77,7 +97,6 @@ public class ColumnRangePartitionerTest {
 		assertTrue(partitions.containsKey("partition4"));
 		assertEquals("WHERE foo BETWEEN 5 AND 5", partitions.get("partition4").get("partClause"));
 		assertEquals("-p4", partitions.get("partition4").get("partSuffix"));
-		jdbc.execute("drop table bar");
 	}
 
 }

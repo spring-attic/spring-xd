@@ -94,7 +94,7 @@ public class CompositeModuleTests {
 				.setGroup("compositesourcegroup")
 				.addChildren(children)
 				.build();
-		Module module = moduleFactory.newInstance(compositeDescriptor, deploymentProperties);
+		Module module = moduleFactory.createModule(compositeDescriptor, deploymentProperties);
 		assertTrue(module instanceof CompositeModule);
 		assertEquals(source, module.getType());
 	}
@@ -119,7 +119,7 @@ public class CompositeModuleTests {
 				.addChildren(children)
 				.build();
 
-		Module module = moduleFactory.newInstance(compositeDescriptor, deploymentProperties);
+		Module module = moduleFactory.createModule(compositeDescriptor, deploymentProperties);
 		assertTrue(module instanceof CompositeModule);
 		module.initialize();
 		module.start();
@@ -164,7 +164,7 @@ public class CompositeModuleTests {
 				.addChildren(children)
 				.setIndex(2)
 				.build();
-		Module module = moduleFactory.newInstance(compositeDescriptor, deploymentProperties);
+		Module module = moduleFactory.createModule(compositeDescriptor, deploymentProperties);
 		assertTrue(module instanceof CompositeModule);
 		assertEquals(sink, module.getType());
 	}

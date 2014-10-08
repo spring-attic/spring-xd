@@ -36,32 +36,80 @@ public interface Module extends Lifecycle {
 	void initialize();
 
 	/**
-	 * @return the generic module name or template name
+	 * @return the generic module name or template name.
 	 */
 	String getName();
 
+	/**
+	 *
+	 * @return the module type.
+	 */
 	ModuleType getType();
 
+	/**
+	 *
+	 * @return the module descriptor.
+	 */
 	ModuleDescriptor getDescriptor();
 
+	/**
+	 *
+	 * @return the module deployment properties
+	 */
 	ModuleDeploymentProperties getDeploymentProperties();
 
+	/**
+	 *
+	 * @return the module's top level application context
+	 */
 	ConfigurableApplicationContext getApplicationContext();
 
 	//TODO:  is this still needed?
 
+	/**
+	 * set a parent application context
+	 * @param parentContext
+	 */
 	void setParentContext(ApplicationContext parentContext);
 
+	/**
+	 * @see org.springframework.boot.builder.SpringApplicationBuilder#sources
+	 * @param source can be a configuration class, bean definition {@link org.springframework.core.io.Resource}
+	 * (e.g. XML or groovy file), or an annotated component, or an array of such objects.
+	 */
 	void addSource(Object source);
 
+	/**
+	 * Add properties to the environment.
+	 * @param properties
+	 */
 	void addProperties(Properties properties);
 
+	/**
+	 * Add an application listener to the application context.
+	 * @param listener the listener
+	 */
 	void addListener(ApplicationListener<?> listener);
 
+	/**
+	 * Get the module's properties.
+	 * @return the properties
+	 */
 	Properties getProperties();
 
+	/**
+	 * Get a bean instance by its class.
+	 * @param requiredType the class of the target bean
+	 * @return the bean
+	 */
 	<T> T getComponent(Class<T> requiredType);
 
+	/**
+	 * Get a bean instance by its name and class.
+	 * @param componentName the name of the target bean
+	 * @param requiredType the class of the target bean
+	 * @return the bean
+	 */
 	<T> T getComponent(String componentName, Class<T> requiredType);
 
 	/**

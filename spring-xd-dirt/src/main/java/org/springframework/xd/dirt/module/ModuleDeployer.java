@@ -178,7 +178,7 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 	 */
 	public Module createModule(ModuleDescriptor moduleDescriptor,
 			ModuleDeploymentProperties deploymentProperties) {
-		return moduleFactory.newInstance(moduleDescriptor,deploymentProperties);
+		return moduleFactory.createModule(moduleDescriptor, deploymentProperties);
 	}
 
 	/**

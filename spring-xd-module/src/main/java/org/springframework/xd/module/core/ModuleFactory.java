@@ -60,16 +60,16 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	}
 
 	/**
-	 * Create a new {@link org.springframework.xd.module.core.SimpleModule} or {@link
-	 * org.springframework.xd.module.core.CompositeModule} instance from inspecting the {@link
-	 * org.springframework.xd.module.ModuleDescriptor}, particularly the descriptor's {@link
-	 * org.springframework.xd.module.ModuleDefinition}.
+	 * Create a new {@link org.springframework.xd.module.core.SimpleModule} or
+	 * {@link org.springframework.xd.module.core.CompositeModule} instance from inspecting the
+	 * {@link org.springframework.xd.module.ModuleDescriptor}, particularly the descriptor's
+	 * {@link org.springframework.xd.module.ModuleDefinition}.
 	 *
 	 * @param moduleDescriptor contains the module's runtime configuration (required)
 	 * @param deploymentProperties contains deployment properties (may be null)
 	 * @return the module instance
 	 */
-	public Module newInstance(ModuleDescriptor moduleDescriptor, ModuleDeploymentProperties deploymentProperties) {
+	public Module createModule(ModuleDescriptor moduleDescriptor, ModuleDeploymentProperties deploymentProperties) {
 		ModuleOptions moduleOptions = this.safeModuleOptionsInterpolate(moduleDescriptor);
 		Module module = createAndConfigureModuleInstance(moduleDescriptor, moduleOptions, deploymentProperties);
 		return module;
@@ -89,15 +89,13 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	private Module createAndConfigureModuleInstance(ModuleDescriptor moduleDescriptor, ModuleOptions moduleOptions,
 			ModuleDeploymentProperties deploymentProperties) {
 		Module module = moduleDescriptor.isComposed() ?
-				createComposedModule(moduleDescriptor, moduleOptions, deploymentProperties) :
+				createCompositeModule(moduleDescriptor, moduleOptions, deploymentProperties) :
 				createSimpleModule(moduleDescriptor, moduleOptions, deploymentProperties);
 		return module;
 	}
 
 	/**
-	 * Create a simple module based on the provided {@link ModuleDescriptor},
-	 * {@link org.springframework.xd.module.options.ModuleOptions}, and
-	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
+	 * Create a simple module based on the provided {@link ModuleDescriptor}, {@link ModuleOptions}, and {@link ModuleDeploymentProperties}.
 	 *
 	 * @param moduleDescriptor descriptor for the composed module
 	 * @param moduleOptions module options for the composed module
@@ -113,15 +111,15 @@ public class ModuleFactory implements BeanClassLoaderAware {
 		ClassLoader moduleClassLoader = (definition.getClasspath() == null) ? null :
 				new ParentLastURLClassLoader(definition.getClasspath(), this.parentClassLoader);
 
-		Class<? extends SimpleModule> moduleClass = determineModuleType(moduleDescriptor.getModuleDefinition());
+		Class<? extends SimpleModule> moduleClass = determineModuleClass(moduleDescriptor.getModuleDefinition());
 		Assert.notNull(moduleClass,
 				String.format("cannot create module '%s:%s' from module definition.", moduleDescriptor.getModuleName(),
 						moduleDescriptor.getType()));
 		return SimpleModuleCreator
-				.newInstance(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleClass);
+				.createModule(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleClass);
 	}
 
-	private Class<? extends SimpleModule> determineModuleType(ModuleDefinition moduleDefinition) {
+	private Class<? extends SimpleModule> determineModuleClass(ModuleDefinition moduleDefinition) {
 		Resource resource = moduleDefinition.getResource();
 		Class<? extends SimpleModule> moduleType = null;
 		//todo: change to use interpret the resource as the root module path when
@@ -136,8 +134,9 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	}
 
 	/**
-	 * Create a composed module based on the provided {@link ModuleDescriptor}, {@link
-	 * org.springframework.xd.module.options.ModuleOptions}, and {@link org.springframework.xd.module.ModuleDeploymentProperties}.
+	 * Create a composite module based on the provided {@link ModuleDescriptor},
+	 * {@link org.springframework.xd.module.options.ModuleOptions}, and
+	 * {@link org.springframework.xd.module.ModuleDeploymentProperties}.
 	 *
 	 * @param compositeDescriptor descriptor for the composed module
 	 * @param options module options for the composed module
@@ -145,12 +144,12 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	 * @return new composed module instance
 	 * @see ModuleDescriptor#isComposed
 	 */
-	private Module createComposedModule(ModuleDescriptor compositeDescriptor, ModuleOptions options,
+	private Module createCompositeModule(ModuleDescriptor compositeDescriptor, ModuleOptions options,
 			ModuleDeploymentProperties deploymentProperties) {
 		List<ModuleDescriptor> children = compositeDescriptor.getChildren();
 		Assert.notEmpty(children, "child module list must not be empty");
 		if (log.isInfoEnabled()) {
-			log.info("creating complex module " + compositeDescriptor);
+			log.info("creating composite module " + compositeDescriptor);
 		}
 
 		List<Module> childrenModules = new ArrayList<Module>(children.size());
@@ -190,7 +189,8 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	}
 
 	static class SimpleModuleCreator {
-		public static <T extends SimpleModule> T newInstance(ModuleDescriptor descriptor,
+
+		public static <T extends SimpleModule> T createModule(ModuleDescriptor descriptor,
 				ModuleDeploymentProperties deploymentProperties, ClassLoader classLoader, ModuleOptions moduleOptions,
 				Class<T> requiredType) {
 			Constructor<T> constructor = null;

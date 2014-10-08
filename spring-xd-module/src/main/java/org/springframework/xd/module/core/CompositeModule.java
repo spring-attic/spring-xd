@@ -193,10 +193,11 @@ public class CompositeModule extends AbstractModule {
 
 	@Override
 	public void addSource(Object source) {
-		if (source instanceof Resource) {
-			XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
-			reader.loadBeanDefinitions((Resource)source);
-		}
+		Assert.notNull(source,"source cannot be null");
+		Assert.isInstanceOf(Resource.class,source,"unsupported source: " + source.getClass().getName());
+		Resource resource = (Resource)source;
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
+		reader.loadBeanDefinitions(resource);
 	}
 
 	@Override

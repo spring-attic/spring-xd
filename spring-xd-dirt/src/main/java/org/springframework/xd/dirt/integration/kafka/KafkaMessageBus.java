@@ -143,7 +143,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 	/**
 	 * Used when writing directly to ZK. This is what Kafka expects.
 	 */
-	private final static ZkSerializer utf8Serializer = new ZkSerializer() {
+	public final static ZkSerializer utf8Serializer = new ZkSerializer() {
 
 		@Override
 		public byte[] serialize(Object data) throws ZkMarshallingError {
@@ -364,7 +364,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 		Properties props = new Properties();
 		props.put("zookeeper.connect", zkAddress);
 		props.put("group.id", consumerGroup);
-		Assert.isTrue(keyValues.length % 2 == 0, "keyValues must be an even number of key/value pairs");
+        props.put("rebalance.backoff.ms", "2000");
+        props.put("rebalance.max.retries", "2000");
+//        props.put("zookeeper.session.timeout.ms ", "100");
+        Assert.isTrue(keyValues.length % 2 == 0, "keyValues must be an even number of key/value pairs");
 		for (int i = 0; i < keyValues.length; i += 2) {
 			String key = keyValues[i];
 			String value = keyValues[i + 1];

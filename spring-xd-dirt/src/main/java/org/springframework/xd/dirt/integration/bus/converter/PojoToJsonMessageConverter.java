@@ -35,7 +35,7 @@ public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	private volatile boolean isPrettyPrint = false;
+	private volatile boolean prettyPrint = false;
 
 	public PojoToJsonMessageConverter() {
 		super(MimeTypeUtils.APPLICATION_JSON);
@@ -54,18 +54,18 @@ public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 
 
 	public void setPrettyPrint(boolean isPrettyPrint) {
-		this.isPrettyPrint = isPrettyPrint;
+		this.prettyPrint = isPrettyPrint;
 	}
 
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
 		Object result = null;
 		try {
-			if (isPrettyPrint == false) {
-				result = mapper.writeValueAsString(message.getPayload());
+			if (prettyPrint) {
+				result = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(message.getPayload());
 			}
 			else {
-				result = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(message.getPayload());
+				result = mapper.writeValueAsString(message.getPayload());
 			}
 		}
 		catch (JsonProcessingException e) {

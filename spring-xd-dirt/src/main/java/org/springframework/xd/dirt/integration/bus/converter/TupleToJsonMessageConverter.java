@@ -35,10 +35,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  */
 public class TupleToJsonMessageConverter extends AbstractFromMessageConverter {
 
-	private volatile boolean isPrettyPrint = false;
+	private volatile boolean prettyPrint = false;
 
 	public void setPrettyPrint(boolean isPrettyPrint) {
-		this.isPrettyPrint = isPrettyPrint;
+		this.prettyPrint = isPrettyPrint;
 	}
 
 	public TupleToJsonMessageConverter() {
@@ -59,10 +59,7 @@ public class TupleToJsonMessageConverter extends AbstractFromMessageConverter {
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
 		Tuple t = (Tuple) message.getPayload();
 		String json = null;
-		if (isPrettyPrint == false) {
-			json = t.toString();
-		}
-		else {
+		if (prettyPrint) {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 			try {
@@ -77,6 +74,9 @@ public class TupleToJsonMessageConverter extends AbstractFromMessageConverter {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		else {
+			json = t.toString();
 		}
 		return buildConvertedMessage(json, message.getHeaders(), MimeTypeUtils.APPLICATION_JSON);
 	}

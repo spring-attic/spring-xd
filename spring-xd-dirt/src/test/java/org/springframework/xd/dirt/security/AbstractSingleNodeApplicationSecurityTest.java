@@ -91,7 +91,7 @@ public abstract class AbstractSingleNodeApplicationSecurityTest {
 			} else {
 				System.clearProperty("spring.config.location");
 			}
-			testApplicationBootstrap.cleanup();
+			TestApplicationBootstrap.cleanup();
 		}
 	};
 

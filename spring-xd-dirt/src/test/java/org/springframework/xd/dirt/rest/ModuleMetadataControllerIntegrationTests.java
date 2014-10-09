@@ -86,19 +86,19 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		deploymentProps3.put("criteria", "groups.contains('hdfs')");
 		Stream stream1 = new Stream(new StreamDefinition("s1", "http | log"));
 		stream1.setStatus(new DeploymentUnitStatus(State.deployed));
-		ModuleMetadata entity1 = new ModuleMetadata("s1.source.http.0", "http.0", "s1", ModuleType.source, "1",
-				entityProps1,
-				deploymentProps1);
+		ModuleMetadata entity1 = new ModuleMetadata(new ModuleMetadata.Id("1", "s1.source.http.0"),
+				entityProps1, deploymentProps1, State.deployed);
 		Stream stream2 = new Stream(new StreamDefinition("s2", "http | log"));
 		stream1.setStatus(new DeploymentUnitStatus(State.failed));
-		ModuleMetadata entity2 = new ModuleMetadata("s2.sink.log.1", "log.1", "s2", ModuleType.sink, "2", entityProps2,
-				deploymentProps2);
-		entity2.setDeploymentStatus(DeploymentUnitStatus.State.deployed);
+
+		ModuleMetadata entity2 = new ModuleMetadata(new ModuleMetadata.Id("2", "s2.sink.log.1"),
+				entityProps2, deploymentProps2, DeploymentUnitStatus.State.deployed);
+
 		Job job1 = new Job(new JobDefinition("j3", "job"));
 		job1.setStatus(new DeploymentUnitStatus(State.deployed));
-		ModuleMetadata entity3 = new ModuleMetadata("j3.job.myjob.0", "myjob.0", "j3", ModuleType.job, "3",
-				entityProps3,
-				deploymentProps3);
+
+		ModuleMetadata entity3 = new ModuleMetadata(new ModuleMetadata.Id("3", "j3.job.myjob.0"),
+				entityProps3, deploymentProps3, State.deployed);
 		List<ModuleMetadata> entities1 = new ArrayList<ModuleMetadata>();
 		List<ModuleMetadata> entities2 = new ArrayList<ModuleMetadata>();
 		List<ModuleMetadata> entities3 = new ArrayList<ModuleMetadata>();

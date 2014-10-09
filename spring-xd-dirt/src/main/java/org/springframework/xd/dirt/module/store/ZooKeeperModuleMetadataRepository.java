@@ -17,8 +17,6 @@
 package org.springframework.xd.dirt.module.store;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +25,9 @@ import java.util.Properties;
 import org.apache.commons.collections.MapUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
@@ -36,9 +37,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
-import org.springframework.xd.dirt.stream.Job;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.stream.JobRepository;
-import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -48,11 +48,13 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * ZooKeeper backed repository for runtime info about deployed modules.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author David Turanski
  */
 public class ZooKeeperModuleMetadataRepository implements ModuleMetadataRepository {
+
+	private static final String XD_MODULE_PROPERTIES_PREFIX = "xd.";
 
 	private final ZooKeeperConnection zkConnection;
 
@@ -62,14 +64,11 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 
 	private final PagingUtility<ModuleMetadata> pagingUtility = new PagingUtility<ModuleMetadata>();
 
-	private static final String XD_MODULE_PROPERTIES_PREFIX = "xd.";
-
-	private static final String XD_MODULE_NAME_KEY = "xd.module.name";
-
-	private static final String XD_MODULE_TYPE_KEY = "xd.module.type";
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	public ZooKeeperModuleMetadataRepository(ZooKeeperConnection zkConnection, StreamRepository streamRepository,
+	public ZooKeeperModuleMetadataRepository(ZooKeeperConnection zkConnection,
+			StreamRepository streamRepository,
 			JobRepository jobRepository) {
 		this.zkConnection = zkConnection;
 		this.streamRepository = streamRepository;
@@ -84,51 +83,75 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 
 	@Override
 	public Page<ModuleMetadata> findAll(Pageable pageable) {
-		return updateDeploymentStatus(pagingUtility.getPagedData(pageable, findAll()));
-	}
-
-	@Override
-	public <S extends ModuleMetadata> Iterable<S> save(Iterable<S> entities) {
-		List<S> results = new ArrayList<S>();
-		for (S entity : entities) {
-			results.add(save(entity));
-		}
-		return results;
+		return pagingUtility.getPagedData(pageable, findAll());
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ModuleMetadata findOne(String containerId, String moduleId) {
+		return findOne(new ModuleMetadata.Id(containerId, moduleId));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId) {
+		Assert.hasText(containerId, "containerId is required");
+		return pagingUtility.getPagedData(pageable, findAllByContainerId(containerId));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Page<ModuleMetadata> findAllByModuleId(Pageable pageable, String moduleId) {
+		Assert.hasText(moduleId, "moduleId is required");
+		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
+		for (String containerId : getAvailableContainerIds()) {
+			ModuleMetadata metadata = findOne(new ModuleMetadata.Id(containerId, moduleId));
+			if (metadata != null) {
+				results.add(metadata);
+			}
+		}
+		return pagingUtility.getPagedData(pageable, results);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
 	 * Find the module metadata for the modules that are deployed into the
-	 * given container and module id.
+	 * given container and module metadata id.
 	 *
-	 * @param containerId the containerId of the container
-	 * @param moduleId the module id to use.
+	 * @param id unique id for module deployment
 	 *
 	 * @return {@link ModuleMetadata} of the module.
 	 */
 	@Override
-	public ModuleMetadata findOne(String containerId, String moduleId) {
-		Assert.hasText(containerId, "containerId is required");
-		Assert.hasText(moduleId, "moduleId is required");
-		ModuleMetadata md = findOne(metadataPath(containerId, moduleId));
-		return md;
-	}
+	public ModuleMetadata findOne(ModuleMetadata.Id id) {
+		Assert.notNull(id, "id is required");
 
-	@Override
-	public ModuleMetadata findOne(String metadataPath) {
+		String moduleDeploymentPath = moduleDeploymentPath(id);
+		String metadataPath = Paths.build(moduleDeploymentPath, Paths.METADATA);
 		ModuleMetadata metadata = null;
+
 		try {
 			byte[] data = zkConnection.getClient().getData().forPath(metadataPath);
 			if (data != null) {
 				Map<String, String> metadataMap = ZooKeeperUtils.bytesToMap(data);
-				String metadataId = getModuleMetadataId(metadataPath);
-				String moduleIndex = metadataId.substring(metadataId.lastIndexOf(".") + 1);
-				String moduleName = metadataMap.get(XD_MODULE_NAME_KEY) + "." + moduleIndex;
-				metadata = new ModuleMetadata(metadataId, moduleName,
-						metadataId.substring(0, metadataId.indexOf(".")),
-						ModuleType.valueOf(metadataMap.get(XD_MODULE_TYPE_KEY)),
-						getContainerId(metadataPath),
+				ModuleDeploymentsPath p = new ModuleDeploymentsPath(moduleDeploymentPath);
+				ModuleType moduleType = id.getModuleType();
+
+				DeploymentUnitStatus status = moduleType == ModuleType.job
+						? jobRepository.getDeploymentStatus(id.getUnitName())
+						: streamRepository.getDeploymentStatus(id.getUnitName());
+
+				metadata = new ModuleMetadata(id,
 						getResolvedModuleOptions(metadataMap),
-						getDeploymentProperties(metadataPath));
+						getDeploymentProperties(moduleDeploymentPath),
+						status.getState());
 			}
 		}
 		catch (Exception e) {
@@ -141,16 +164,14 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	/**
 	 * Get the deployment properties associated with this module metadata path.
 	 *
-	 * @param metadataPath the module metadata path
-	 * @return the deployment
+	 * @param moduleDeploymentsPath the module deployment path
+	 * @return deployment properties
 	 */
-	private Properties getDeploymentProperties(String metadataPath) {
+	private Properties getDeploymentProperties(String moduleDeploymentsPath) {
 		Map<String, String> deploymentProperties = new HashMap<String, String>();
 		try {
-			// Get the deployment properties from module deployment path
-			String moduleDeploymentsPath = metadataPath.substring(0, metadataPath.lastIndexOf("/"));
-			deploymentProperties = ZooKeeperUtils.bytesToMap(zkConnection.getClient().getData().forPath(
-					moduleDeploymentsPath));
+			deploymentProperties = ZooKeeperUtils.bytesToMap(zkConnection.getClient().getData()
+					.forPath(moduleDeploymentsPath));
 		}
 		catch (Exception e) {
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
@@ -185,63 +206,11 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		return MapUtils.toProperties(optionsMap);
 	}
 
-	/**
-	 * Update the deployment status for {@link ModuleMetadata} entities.
-	 *
-	 * @param entities {@ModuleMetadata} entities
-	 * @return {@ModuleMetadata} entities with updated deployment status.
-	 */
-	private Page<ModuleMetadata> updateDeploymentStatus(Page<ModuleMetadata> entities) {
-		updateDeploymentStatus(entities.getContent());
-		return entities;
-	}
-
-	/**
-	 * Update deployment status for the collection of {@link ModuleMetadata}.
-	 *
-	 * @param entities the collection of {@link ModuleMetadata}
-	 * @return the {@link ModuleMetadata} collection with updated deployment status
-	 */
-	private Collection<ModuleMetadata> updateDeploymentStatus(Collection<ModuleMetadata> entities) {
-		Map<String, DeploymentUnitStatus.State> statusMap = new HashMap<String, DeploymentUnitStatus.State>();
-		for (ModuleMetadata entity : entities) {
-			DeploymentUnitStatus.State deploymentStatus;
-			String unitName = entity.getUnitName();
-			if (statusMap.get(unitName) == null) {
-				if (entity.getModuleType().equals(ModuleType.job.name())) {
-					Job job = jobRepository.findOne(unitName);
-					deploymentStatus = (job != null) ? job.getStatus().getState() : null;
-					statusMap.put(unitName, deploymentStatus);
-				}
-				else {
-					Stream stream = streamRepository.findOne(unitName);
-					deploymentStatus = (stream != null) ? stream.getStatus().getState() : null;
-					statusMap.put(unitName, deploymentStatus);
-				}
-			}
-			if (statusMap.get(unitName) != null) {
-				entity.setDeploymentStatus(statusMap.get(unitName));
-			}
-		}
-		return entities;
-	}
-
-	private String getModuleMetadataId(String metadataPath) {
-		String modulePath = metadataPath.substring(0, metadataPath.lastIndexOf("/"));
-		return Paths.stripPath(modulePath);
-	}
-
-	private String getContainerId(String metadataPath) {
-		String modulePath = metadataPath.substring(0, metadataPath.lastIndexOf("/"));
-		String containerPath = modulePath.substring(0, modulePath.lastIndexOf("/"));
-		return Paths.stripPath(containerPath);
-	}
-
 	@Override
-	public boolean exists(String id) {
+	public boolean exists(ModuleMetadata.Id id) {
 		try {
-			return null != zkConnection.getClient().checkExists()
-					.forPath(path(id));
+			return zkConnection.getClient().checkExists()
+					.forPath(moduleDeploymentPath(id)) != null;
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
@@ -253,9 +222,9 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
 			for (String containerId : getAvailableContainerIds()) {
-				List<String> modules = getDeployedModules(containerId);
-				for (String moduleId : modules) {
-					ModuleMetadata metadata = findOne(containerId, moduleId);
+				List<ModuleMetadata.Id> modules = getDeployedModules(containerId);
+				for (ModuleMetadata.Id moduleId : modules) {
+					ModuleMetadata metadata = findOne(moduleId);
 					if (metadata != null) {
 						results.add(metadata);
 					}
@@ -283,20 +252,6 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	}
 
 	/**
-	 * Find the module metadata for the modules that are deployed into the
-	 * given container.
-	 *
-	 * @param pageable the paging metadata information
-	 * @param containerId the containerId of the container
-	 * @return the pageable {@link ModuleMetadata} of the modules.
-	 */
-	@Override
-	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId) {
-		Assert.hasText(containerId, "containerId is required");
-		return pagingUtility.getPagedData(pageable, findAllByContainerId(containerId));
-	}
-
-	/**
 	 * Find all the modules that are deployed into this container.
 	 *
 	 * @param containerId the containerId
@@ -304,43 +259,19 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 */
 	public List<ModuleMetadata> findAllByContainerId(String containerId) {
 		Assert.hasText(containerId, "containerId is required");
-		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
-		try {
-			List<String> deployedModules = getDeployedModules(containerId);
-			for (String moduleId : deployedModules) {
-				results.add(findOne(containerId, moduleId));
-			}
-			return (List<ModuleMetadata>) updateDeploymentStatus(results);
 
-		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
-		}
-	}
+		List<ModuleMetadata.Id> deployedModules = getDeployedModules(containerId);
+		logger.debug("deployedModules: {}", deployedModules);
 
-	/**
-	 * Find all module metadata by the given module id.
-	 *
-	 * @param pageable the paging metadata information
-	 * @param moduleId the module id to use
-	 * @return the pageable {@link ModuleMetadata}
-	 */
-	@Override
-	public Page<ModuleMetadata> findAllByModuleId(Pageable pageable, String moduleId) {
-		Assert.hasText(moduleId, "moduleId is required");
-		try {
-			List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
-			for (String containerId : getAvailableContainerIds()) {
-				ModuleMetadata metadata = findOne(containerId, moduleId);
-				if (metadata != null) {
-					results.add(metadata);
-				}
+		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>(deployedModules.size());
+		for (ModuleMetadata.Id moduleId : deployedModules) {
+			ModuleMetadata metadata = findOne(moduleId);
+			logger.debug("found metadata: {}", metadata);
+			if (metadata != null) {
+				results.add(metadata);
 			}
-			return updateDeploymentStatus(pagingUtility.getPagedData(pageable, results));
 		}
-		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
-		}
+		return results;
 	}
 
 	/**
@@ -349,23 +280,27 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 * @param containerId the containerId to filter
 	 * @return the list of moduleIds of the deployed modules.
 	 */
-	private List<String> getDeployedModules(String containerId) {
+	private List<ModuleMetadata.Id> getDeployedModules(String containerId) {
+		List<ModuleMetadata.Id> ids = new ArrayList<ModuleMetadata.Id>();
 		try {
 			CuratorFramework client = zkConnection.getClient();
-			if (null != client.checkExists().forPath(Paths.build(Paths.CONTAINERS, containerId))) {
-				return client.getChildren().forPath(path(containerId));
+			if (client.checkExists().forPath(Paths.build(Paths.CONTAINERS, containerId)) != null) {
+				List<String> qualifiedIds = client.getChildren().forPath(containerAllocationPath(containerId));
+				for (String qualifiedId : qualifiedIds) {
+					ids.add(new ModuleMetadata.Id(containerId, qualifiedId));
+				}
 			}
 		}
 		catch (Exception e) {
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 		}
-		return Collections.emptyList();
+		return ids;
 	}
 
 	@Override
-	public Iterable<ModuleMetadata> findAll(Iterable<String> ids) {
+	public Iterable<ModuleMetadata> findAll(Iterable<ModuleMetadata.Id> ids) {
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
-		for (String id : ids) {
+		for (ModuleMetadata.Id id : ids) {
 			ModuleMetadata entity = findOne(id);
 			if (entity != null) {
 				results.add(entity);
@@ -375,13 +310,21 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	}
 
 	@Override
+	public Iterable<ModuleMetadata> findAllInRange(ModuleMetadata.Id from,
+			boolean fromInclusive, ModuleMetadata.Id to, boolean toInclusive) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
 	public long count() {
 		long count = 0;
 		try {
 			List<String> containerIds = zkConnection.getClient().getChildren().forPath(Paths.MODULE_DEPLOYMENTS);
 			for (String containerId : containerIds) {
-				List<String> modules = zkConnection.getClient().getChildren().forPath(path(containerId));
-				count = count + modules.size();
+				Stat stat = zkConnection.getClient().checkExists().forPath(containerAllocationPath(containerId));
+				if (stat != null) {
+					count+= stat.getNumChildren();
+				}
 			}
 		}
 		catch (Exception e) {
@@ -390,38 +333,57 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		return count;
 	}
 
-	@Override
-	public Iterable<ModuleMetadata> findAllInRange(String from,
-			boolean fromInclusive, String to, boolean toInclusive) {
-		throw new UnsupportedOperationException("Not supported.");
-	}
 
-	private String path(String id) {
+	/**
+	 * Return the module allocation path for the given container id.
+	 *
+	 * @param id container id
+	 * @return path for module allocations for the container
+	 */
+	private String containerAllocationPath(String id) {
 		return Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, id);
 	}
 
-	private String metadataPath(String containerId, String moduleId) {
-		return Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, containerId, moduleId, Paths.METADATA);
+	/**
+	 * Return the module deployment path for the module indicated
+	 * by the provided {@link org.springframework.xd.dirt.module.store.ModuleMetadata.Id}.
+	 *
+	 * @param id id for module instance
+	 * @return path for module allocation
+	 */
+	private String moduleDeploymentPath(ModuleMetadata.Id id) {
+		return Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, id.getContainerId(),
+				id.getFullyQualifiedId());
 	}
 
 	@Override
 	public <S extends ModuleMetadata> S save(S entity) {
-		throw new UnsupportedOperationException("Not supported.");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void delete(String id) {
+	public <S extends ModuleMetadata> Iterable<S> save(Iterable<S> entities) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void delete(ModuleMetadata.Id id) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void delete(ModuleMetadata entity) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void delete(Iterable<? extends ModuleMetadata> entities) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void deleteAll() {
+		throw new UnsupportedOperationException();
 	}
+
 }

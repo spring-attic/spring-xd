@@ -22,20 +22,28 @@ import org.springframework.xd.store.DomainRepository;
 
 /**
  * Repository for persisting {@link ModuleMetadata}
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
-public interface ModuleMetadataRepository extends DomainRepository<ModuleMetadata, String> {
-
+public interface ModuleMetadataRepository extends DomainRepository<ModuleMetadata, ModuleMetadata.Id> {
 
 	/**
-	 * Find paged {@link ModuleMetadata} for all the modules deployed into the given container.
+	 * Find paged {@link ModuleMetadata} for all the modules deployed
+	 * into the given container.
 	 *
 	 * @param pageable the pageable metadata
 	 * @param containerId the container Id
 	 * @return Paged the {@link ModuleMetadata}
 	 */
 	Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String containerId);
+
+	/**
+	 * Find all the modules that are deployed into the given container.
+	 *
+	 * @param containerId the containerId
+	 * @return {@link ModuleMetadata} of the modules deployed into this container.
+	 */
+	Iterable<ModuleMetadata> findAllByContainerId(String containerId);
 
 	/**
 	 * Find paged {@link ModuleMetadata} for the modules of given moduleId.
@@ -50,7 +58,7 @@ public interface ModuleMetadataRepository extends DomainRepository<ModuleMetadat
 	 * Find {@link ModuleMetadata} for the module that has the given module id and
 	 * deployed into given container.
 	 *
-	 * @param containerId the contaienrId
+	 * @param containerId the container Id
 	 * @param moduleId the moduleId
 	 * @return the corresponding {@link ModuleMetadata}
 	 */

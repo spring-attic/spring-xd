@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.integration.bus.converter;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.xd.tuple.Tuple;
@@ -35,6 +36,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  */
 public class TupleToJsonMessageConverter extends AbstractFromMessageConverter {
 
+	@Value("typeconversion.json.prettyPrint")
 	private volatile boolean prettyPrint = false;
 
 	public void setPrettyPrint(boolean isPrettyPrint) {

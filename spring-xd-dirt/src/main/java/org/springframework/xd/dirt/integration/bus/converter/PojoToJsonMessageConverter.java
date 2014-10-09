@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.integration.bus.converter;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeTypeUtils;
 
@@ -35,6 +36,7 @@ public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
+	@Value("typeconversion.json.prettyPrint")
 	private volatile boolean prettyPrint = false;
 
 	public PojoToJsonMessageConverter() {

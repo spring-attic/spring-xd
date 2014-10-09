@@ -23,11 +23,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeType;
@@ -35,8 +32,6 @@ import org.springframework.xd.dirt.integration.bus.converter.AbstractFromMessage
 import org.springframework.xd.dirt.integration.bus.converter.CompositeMessageConverterFactory;
 import org.springframework.xd.dirt.integration.bus.converter.ConversionException;
 import org.springframework.xd.dirt.integration.bus.converter.MessageConverterUtils;
-import org.springframework.xd.dirt.integration.bus.converter.PojoToJsonMessageConverter;
-import org.springframework.xd.dirt.integration.bus.converter.TupleToJsonMessageConverter;
 import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.ModuleType;
@@ -49,17 +44,15 @@ import org.springframework.xd.module.core.SimpleModule;
  * A {@link Plugin} for processing module message conversion parameters (inputType and outputType). Accepts a list of
  * {@link AbstractFromMessageConverter}s which are always available along with an optional list of custom converters
  * which may be provided by end users.
- *
+ * 
  * @author David Turanski
  * @since 1.0
  */
-public class ModuleTypeConversionPlugin extends AbstractPlugin implements EnvironmentAware {
+public class ModuleTypeConversionPlugin extends AbstractPlugin {
 
 	private final static Log logger = LogFactory.getLog(ModuleTypeConversionPlugin.class);
 
 	private final CompositeMessageConverterFactory converterFactory;
-
-	private volatile boolean pretty_print;
 
 	/**
 	 * @param converters a list of default converters
@@ -102,7 +95,6 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin implements Enviro
 			AbstractMessageChannel channel = getChannel(module, isInput);
 
 			CompositeMessageConverter converters = null;
-
 			try {
 				converters = converterFactory.newInstance(contentType);
 			}
@@ -122,19 +114,6 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin implements Enviro
 			else {
 				channel.setDatatypes(dataType);
 				channel.setMessageConverter(converters);
-			}
-
-			if (this.pretty_print == true) {
-				if ("application/json".equals(contentTypeString)) {
-					for (MessageConverter messageConverter : converters.getConverters()) {
-						if (messageConverter instanceof PojoToJsonMessageConverter) {
-							((PojoToJsonMessageConverter) messageConverter).setPrettyPrint(true);
-						}
-						else if (messageConverter instanceof TupleToJsonMessageConverter) {
-							((TupleToJsonMessageConverter) messageConverter).setPrettyPrint(true);
-						}
-					}
-				}
 			}
 
 		}
@@ -173,8 +152,4 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin implements Enviro
 		return true;
 	}
 
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.pretty_print = environment.getProperty("typeconversion.json.pretty_print", Boolean.class, false);
-	}
 }

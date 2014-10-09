@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
@@ -36,6 +37,9 @@ public class ShellCommandProcessorTests {
 	private ShellCommandProcessor scp = null;
 
 	private AbstractByteArraySerializer serializer = new ByteArrayCrLfSerializer();
+
+	@Rule
+	public PythonAvailableRule pythonAvailableRule = new PythonAvailableRule();
 
 	@BeforeClass
 	public static void init() {

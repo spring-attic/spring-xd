@@ -21,11 +21,12 @@ import org.springframework.xd.test.AbstractExternalResourceTestSupport;
 /**
  * @author David Turanski
  */
-public class PythonAvailableRule extends AbstractExternalResourceTestSupport {
+public class PythonAvailableRule extends AbstractExternalResourceTestSupport<Object> {
 	private final ProcessBuilder processBuilder;
+
 	protected PythonAvailableRule() {
 		super("python command");
-		processBuilder=new ProcessBuilder("python");
+		processBuilder = new ProcessBuilder("python");
 	}
 
 	@Override
@@ -35,13 +36,14 @@ public class PythonAvailableRule extends AbstractExternalResourceTestSupport {
 
 	@Override
 	protected void obtainResource() throws Exception {
-		Process process = processBuilder.start();
+		Process process = null;
 		try {
-			if (!process.isAlive()) {
-				throw new Exception("python command is not available on host.");
+			process = processBuilder.start();
+		}
+		finally {
+			if (process != null) {
+				process.destroy();
 			}
-		} finally {
-			process.destroy();
 		}
 	}
 }

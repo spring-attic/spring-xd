@@ -48,6 +48,8 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 
 	private volatile DataSource dataSource;
 
+	private boolean initializeDB = true;
+
 	/**
 	 * Initializes a JdbcSink with the {@link DataSource}. Using this DataSource a JDBCTemplate is created.
 	 *
@@ -70,7 +72,7 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 	protected String toDSL() {
 		StringBuilder dsl = new StringBuilder();
 		try {
-			dsl.append("jdbc --initializeDatabase=true --url=" + dataSource.getConnection().getMetaData().getURL());
+			dsl.append("jdbc --initializeDatabase="+initializeDB+" --url=" + dataSource.getConnection().getMetaData().getURL());
 		}
 		catch (SQLException e) {
 			throw new IllegalStateException("Could not get URL from connection metadata", e);
@@ -152,6 +154,15 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 			}
 		}
 		return result;
+	}
+
+	public boolean isInitializeDB() {
+		return initializeDB;
+	}
+
+	public JdbcSink initializeDB(boolean initializeDB) {
+		this.initializeDB = initializeDB;
+		return this;
 	}
 
 }

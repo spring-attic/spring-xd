@@ -12,7 +12,7 @@
 
 	<channel id="values" />
 
-    <beans:import resource="../../../common/jdbc-datasource.xml"/>
+	<beans:import resource="../../../common/jdbc-datasource.xml"/>
 
 	<transformer input-channel="input" ref="transformer"
 		output-channel="values" />

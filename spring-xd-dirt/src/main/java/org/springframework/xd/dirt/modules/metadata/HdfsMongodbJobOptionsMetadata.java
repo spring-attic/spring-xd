@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import org.springframework.xd.module.options.mixins.BatchJobCommitIntervalOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
@@ -33,7 +34,8 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Thomas Risberg
  */
 @Mixin({ BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class, BatchJobFieldNamesOptionMixin.class,
-	BatchJobFieldDelimiterOptionMixin.class, IntoMongoDbOptionMixin.Job.class, HadoopConfigurationMixin.class })
+	BatchJobFieldDelimiterOptionMixin.class, BatchJobCommitIntervalOptionMixin.class, IntoMongoDbOptionMixin.Job.class,
+	HadoopConfigurationMixin.class })
 public class HdfsMongodbJobOptionsMetadata {
 
 	private String idField;

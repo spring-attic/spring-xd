@@ -10,7 +10,7 @@
 	<batch:job id="hdfsjdbc" restartable="${restartable}">
 		<batch:step id="readResourcesStep">
 			<batch:tasklet>
-				<batch:chunk reader="multiResourceReader" writer="itemWriter" commit-interval="100"/>
+				<batch:chunk reader="multiResourceReader" writer="itemWriter" commit-interval="${commitInterval}"/>
 			</batch:tasklet>
 		</batch:step>
 	</batch:job>

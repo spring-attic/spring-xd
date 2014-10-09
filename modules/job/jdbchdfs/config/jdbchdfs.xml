@@ -18,7 +18,7 @@
 
 	<batch:step id="step1">
 		<batch:tasklet>
-			<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="100"/>
+			<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="${commitInterval}"/>
 		</batch:tasklet>
 	</batch:step>
 
@@ -61,7 +61,7 @@
 		<property name="columnNames" value="${columns}" />
 		<property name="partitionClause" value="#{stepExecutionContext['partClause']}" />
 		<property name="sql" value="${sql}"/>
-		<property name="fetchSize" value="100"/>
+		<property name="fetchSize" value="${commitInterval}"/>
 	</bean>
 
 	<bean id="itemWriter" class="org.springframework.xd.batch.item.hadoop.HdfsTextItemWriter" scope="step">

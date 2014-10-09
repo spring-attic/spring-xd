@@ -21,6 +21,7 @@ import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JO
 import javax.validation.constraints.AssertTrue;
 
 import org.springframework.util.StringUtils;
+import org.springframework.xd.module.options.mixins.BatchJobCommitIntervalOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
 import org.springframework.xd.module.options.mixins.HadoopConfigurationMixin;
@@ -37,7 +38,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Glenn Renfro
  */
 @Mixin({ JdbcConnectionMixin.class, JdbcConnectionPoolMixin.class, BatchJobRestartableOptionMixin.class,
-	BatchJobFieldDelimiterOptionMixin.class, HadoopConfigurationMixin.class })
+	BatchJobFieldDelimiterOptionMixin.class, BatchJobCommitIntervalOptionMixin.class, HadoopConfigurationMixin.class })
 public class JdbcHdfsOptionsMetadata {
 
 	private String tableName = "";

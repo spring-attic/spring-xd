@@ -12,7 +12,7 @@
 
 	<step id="step1" xmlns="http://www.springframework.org/schema/batch">
 		<tasklet>
-			<chunk reader="multiResourceReader" writer="itemWriter" commit-interval="100"/>
+			<chunk reader="multiResourceReader" writer="itemWriter" commit-interval="${commitInterval}"/>
 		</tasklet>
 		<listeners>
 			<listener ref="fileDeletionListener"/>

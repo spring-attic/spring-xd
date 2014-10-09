@@ -19,6 +19,7 @@ package org.springframework.xd.jdbc;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME;
 
 import org.springframework.xd.jdbc.ResourcesIntoJdbcJobModuleOptionsMetadata.JobImportToJdbcMixin;
+import org.springframework.xd.module.options.mixins.BatchJobCommitIntervalOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
@@ -37,7 +38,7 @@ import org.springframework.xd.module.options.spi.Mixin;
  */
 @Mixin({ JdbcConnectionMixin.class, JdbcConnectionPoolMixin.class, BatchJobRestartableOptionMixin.class,
 	BatchJobResourcesOptionMixin.class, BatchJobFieldNamesOptionMixin.class, BatchJobFieldDelimiterOptionMixin.class,
-	JobImportToJdbcMixin.class, HadoopConfigurationMixin.class })
+	BatchJobCommitIntervalOptionMixin.class, JobImportToJdbcMixin.class, HadoopConfigurationMixin.class })
 public class ResourcesIntoJdbcJobModuleOptionsMetadata {
 
 	public static class JobImportToJdbcMixin extends AbstractImportToJdbcOptionsMetadata {

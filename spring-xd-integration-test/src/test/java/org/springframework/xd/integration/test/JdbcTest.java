@@ -17,7 +17,11 @@
 package org.springframework.xd.integration.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.After;
@@ -66,7 +70,34 @@ public class JdbcTest extends AbstractIntegrationTest {
 				data,
 				jdbcSink.getJdbcTemplate().queryForObject(query, String.class));
 	}
+	/**
+	 * * Verifies that when the initializeDatabase option is set to false that the tables are not overwritten.
+	 *
+	 */
+	@Test
+	public void testJDBCNoInitializeSink() {
+		String data = UUID.randomUUID().toString();
+		String jdbcStreamName = UUID.randomUUID().toString();
+		stream("jdbcInit"+jdbcStreamName, "trigger --payload='" + data + "'" + XD_DELIMITER + jdbcSink);
+		String query = String.format("SELECT payload FROM %s", tableName);
+		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 1);
 
+		String data2 = UUID.randomUUID().toString();
+		stream("jdbcInitNoInit"+jdbcStreamName, "trigger --payload='" + data2 + "'" + XD_DELIMITER + jdbcSink.initializeDB(false));
+		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 2);
+
+		List<Map<String,Object>> resultList = jdbcSink.getJdbcTemplate().queryForList(query);
+		assertEquals(2,resultList.size());
+		int dataCount = 0;
+		for(Map<String,Object> map:resultList){
+			if(map.get("payload").equals(data2)){
+				dataCount++;
+			}
+		}
+		assertEquals("There should be one "+data2+" in the DB.",1, dataCount);
+
+
+	}
 	/**
 	 * Being a good steward of the database remove the result table from the database.
 	 */

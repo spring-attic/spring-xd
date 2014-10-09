@@ -36,7 +36,7 @@ public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	@Value("typeconversion.json.prettyPrint")
+	@Value("${typeconversion.json.prettyPrint}")
 	private volatile boolean prettyPrint = false;
 
 	public PojoToJsonMessageConverter() {

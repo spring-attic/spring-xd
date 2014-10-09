@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  */
 public class TupleToJsonMessageConverter extends AbstractFromMessageConverter {
 
-	@Value("typeconversion.json.prettyPrint")
+	@Value("${typeconversion.json.prettyPrint}")
 	private volatile boolean prettyPrint = false;
 
 	public void setPrettyPrint(boolean isPrettyPrint) {

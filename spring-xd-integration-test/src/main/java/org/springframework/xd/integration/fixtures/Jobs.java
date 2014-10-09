@@ -24,6 +24,7 @@ import org.springframework.xd.test.fixtures.FtpHdfsJob;
 import org.springframework.xd.test.fixtures.HdfsJdbcJob;
 import org.springframework.xd.test.fixtures.HdfsMongoDbJob;
 import org.springframework.xd.test.fixtures.JdbcHdfsJob;
+import org.springframework.xd.test.fixtures.PartitionedJdbcHdfsJob;
 
 
 /**
@@ -72,10 +73,21 @@ public class Jobs {
 	 * Create an instance of the JdbcHdfs job with the default hdfs target dir, fileName and source sql statement.
 	 *
 	 * @see JdbcHdfsJob for default values
-	 * @return instance of a FileJDBCJob Fixture.
+	 * @return instance of a JdbcHdfsJob Fixture.
 	 */
 	public JdbcHdfsJob jdbcHdfsJob() {
 		return JdbcHdfsJob.withDefaults();
+	}
+
+	/**
+	 * Create an instance of the PartitionedJdbcHdfsJob job with the default hdfs target dir, fileName, table,
+	 * columnNames, partitionColumn and partitions.
+	 *
+	 * @see PartitionedJdbcHdfsJob for default values
+	 * @return instance of a PartitionedJdbcHdfsJob Fixture.
+	 */
+	public PartitionedJdbcHdfsJob partitionedJdbcHdfsJob() {
+		return PartitionedJdbcHdfsJob.withDefaults();
 	}
 
 	/**

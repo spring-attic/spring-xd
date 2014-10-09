@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.modules.metadata;
 
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME;
 
+import org.springframework.xd.module.options.mixins.BatchJobCommitIntervalOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobDeleteFilesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
@@ -33,7 +34,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Thomas Risberg
  */
 @Mixin({ BatchJobRestartableOptionMixin.class, BatchJobDeleteFilesOptionMixin.class,
-	BatchJobFieldNamesOptionMixin.class, HadoopConfigurationMixin.class })
+	BatchJobFieldNamesOptionMixin.class, BatchJobCommitIntervalOptionMixin.class, HadoopConfigurationMixin.class })
 public class FilePollHdfsJobOptionsMetadata {
 
 	private String fileName = XD_JOB_NAME;

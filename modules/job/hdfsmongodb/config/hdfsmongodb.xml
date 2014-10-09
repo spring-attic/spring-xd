@@ -12,7 +12,7 @@
 	<batch:job id="hdfsmongodb" restartable="${restartable}">
 		<batch:step id="readResourcesStep">
 			<batch:tasklet>
-				<batch:chunk reader="multifileReader" writer="itemWriter" commit-interval="100"/>
+				<batch:chunk reader="multifileReader" writer="itemWriter" commit-interval="${commitInterval}"/>
 			</batch:tasklet>
 		</batch:step>
 	</batch:job>

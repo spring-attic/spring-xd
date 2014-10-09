@@ -10,7 +10,7 @@
 	<batch:job id="filepollhdfs" restartable="${restartable}">
 		<batch:step id="fileHdfsStep">
 			<batch:tasklet>
-				<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="100"/>
+				<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="${commitInterval}"/>
 				<batch:listeners>
 					<batch:listener ref="fileDeletionListener" />
 				</batch:listeners>

@@ -33,6 +33,7 @@ require.config({
     angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
     highlightjs: '../lib/highlightjs/highlight.pack',
     xregexp: '../lib/xregexp/xregexp-all',
+    pagination: '../lib/angular-utils-pagination/dirPagination',
     moment: '../lib/moment/moment',
   },
   shim: {
@@ -47,6 +48,9 @@ require.config({
       deps: ['angular']
     },
     'ngResource': {
+      deps: ['angular']
+    },
+    'pagination': {
       deps: ['angular']
     },
     'ngAnimate': {

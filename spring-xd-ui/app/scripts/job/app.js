@@ -27,6 +27,7 @@ define([
   'cgBusy',
   'ngGrowl',
   'ngAnimate',
+  'pagination',
   'angularHighlightjs',
   './controllers',
   './services',
@@ -46,6 +47,7 @@ define([
     'ui.router',
     'ngResource',
     'ngAnimate',
+    'angularUtils.directives.dirPagination',
     'cgBusy',
     'hljs',
     'angular-growl'

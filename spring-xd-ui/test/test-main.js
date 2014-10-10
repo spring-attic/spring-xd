@@ -22,7 +22,8 @@ require.config({
     ngGrowl: '/base/app/lib/angular-growl/angular-growl',
     ngAnimate: '/base/app/lib/angular-animate/angular-animate',
     xregexp: '/base/app/lib/xregexp/xregexp-all',
-    moment: '/base/app/lib/moment/moment'
+    moment: '/base/app/lib/moment/moment',
+    pagination: '/base/app/lib/angular-utils-pagination/dirPagination'
   },
   baseUrl: '/base/app/scripts',
   shim: {
@@ -42,6 +43,9 @@ require.config({
       deps: ['angular', 'highlightjs']
     },
     'ngResource': {
+      deps: ['angular']
+    },
+    'pagination': {
       deps: ['angular']
     },
     'ngAnimate': {

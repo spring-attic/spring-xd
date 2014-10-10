@@ -48,18 +48,20 @@ describe('Tests', function() {
 
   describe('When I navigate to "/jobs/modules"', function() {
     it('there should be 4 tabs of which one is active', function() {
-      browser.get('#/jobs/modules');
-      expect(element.all(by.css('#xd-jobs ul li')).count()).toEqual(4);
-      expect(element.all(by.css('#xd-jobs ul li.active')).count()).toEqual(1);
+      browser.get('#/jobs/modules').then(function() {
+        expect(element.all(by.css('#xd-jobs ul.nav-tabs li')).count()).toEqual(4);
+        expect(element.all(by.css('#xd-jobs ul.nav-tabs li.active')).count()).toEqual(1);
+      });
     });
     it('the active tab should be labelled "Modules"', function() {
-      browser.get('#/jobs/modules');
-      expect(element(by.css('#xd-jobs ul li.active a')).getText()).toEqual('Modules');
+      browser.get('#/jobs/modules').then(function() {
+        expect(element(by.css('#xd-jobs ul li.active a')).getText()).toEqual('Modules');
+      });
     });
     it('there should be more than 1 job module being listed', function() {
       browser.get('#/jobs/modules').then(function() {
         browser.driver.sleep(2000);
-        expect(element.all(by.css('#xd-jobs table tbody tr')).count()).toBeGreaterThan(5);
+        expect(element.all(by.css('#xd-jobs table tbody tr')).count()).toBeGreaterThan(4);
       });
     });
     it('there should a job module named filejdbc', function() {

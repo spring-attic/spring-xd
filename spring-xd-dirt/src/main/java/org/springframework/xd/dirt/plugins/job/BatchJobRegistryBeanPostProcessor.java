@@ -16,10 +16,9 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.StepListener;
 import org.springframework.batch.core.configuration.JobRegistry;
@@ -34,14 +33,21 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.plugins.job.support.listener.XDJobListenerConstants;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * JobRegistryBeanPostProcessor that processes batch job from the job module.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Michael Minella
  */
 public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProcessor implements BeanFactoryAware,
 XDJobListenerConstants {
+
+	private static final Logger logger = LoggerFactory.getLogger(BatchJobRegistryBeanPostProcessor.class);
 
 	public static final String JOB = "job";
 
@@ -98,8 +104,20 @@ XDJobListenerConstants {
 			}
 		}
 		else if (bean instanceof FlowJob) {
-			if (!jobRegistry.getJobNames().contains(groupName) && beanName.equals(JOB)) {
-				postProcessJob(bean, beanName);
+			if (!jobRegistry.getJobNames().contains(groupName)) {
+				String[] beansOfType = beanFactory.getBeanNamesForType(Job.class);
+
+				if(beansOfType.length > 1) {
+					if(beanName.equalsIgnoreCase(JOB)) {
+						postProcessJob(bean, beanName);
+					}
+					else {
+						logger.debug(beanName + " was not registered as a job since the context has more than one job defined and it's id is not 'job'");
+					}
+				}
+				else {
+					postProcessJob(bean, beanName);
+				}
 			}
 			else if (jobRegistry.getJobNames().contains(groupName)) {
 				throw new BatchJobAlreadyExistsInRegistryException(groupName);

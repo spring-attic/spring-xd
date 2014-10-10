@@ -16,13 +16,19 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.shell.core.CommandResult;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableRow;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,20 +39,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
-import org.springframework.shell.core.CommandResult;
-import org.springframework.xd.shell.util.Table;
-import org.springframework.xd.shell.util.TableRow;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test {@link JobCommands}.
@@ -54,6 +53,7 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
+ * @author Michael Minella
  * @since 1.0
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -237,6 +237,24 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);
+	}
+
+	@Test
+	public void testNestedJobLaunch() {
+		logger.info("Launch nested job");
+		String jobName = generateJobName();
+		executeJobCreate(jobName, NESTED_JOB_DESCRIPTOR);
+		checkForJobInList(jobName, NESTED_JOB_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+	}
+
+	@Test
+	public void testInvalidNestedJobLaunch() {
+		logger.info("Launch nested job");
+		String jobName = generateJobName();
+		CommandResult result = executeCommandExpectingFailure("job create --definition \"" +
+																INVALID_NESTED_JOB_DESCRIPTOR + "\" --name " + jobName);
+		assertTrue(result.getException().getMessage().contains("Could not find module with name 'invalidJob' and type 'job'"));
 	}
 
 	@Test
@@ -536,15 +554,6 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertNotEquals(stepNameFromTable, "N/A");
 		assertFalse(duration.isEmpty());
 		assertNotEquals(duration, "N/A");
-	}
-
-	@Test
-	public void testNestedJob() {
-		logger.info("Launch nested job");
-		String jobName = generateJobName();
-		executeJobCreate(jobName, NESTED_JOB_DESCRIPTOR);
-		checkForJobInList(jobName, NESTED_JOB_DESCRIPTOR, true);
-		executeJobLaunch(jobName);
 	}
 
 }

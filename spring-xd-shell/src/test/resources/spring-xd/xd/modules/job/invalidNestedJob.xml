@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:batch="http://www.springframework.org/schema/batch"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<batch:job id="invalidJob">
+		<batch:step id="helloSpringXDStep" next="step2">
+			<batch:tasklet ref="testTasklet" />
+		</batch:step>
+		<batch:step id="step2">
+			<job ref="job2" />
+		</batch:step>
+	</batch:job>
+
+	<batch:job id="job2">
+		<batch:step id="helloSpringXDStep2">
+			<batch:tasklet ref="testTasklet" />
+		</batch:step>
+	</batch:job>
+
+	<bean id="testTasklet"
+		class="org.springframework.xd.shell.command.SpringBatchStepExecutionTestTasklet" />
+
+</beans>

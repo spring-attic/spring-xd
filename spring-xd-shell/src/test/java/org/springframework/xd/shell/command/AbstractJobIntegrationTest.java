@@ -16,18 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import org.junit.After;
 import org.junit.Before;
-
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.integration.channel.QueueChannel;
@@ -40,6 +30,17 @@ import org.springframework.xd.dirt.test.ResourceStateVerifier;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the jobs that were created by calling executeJobCreate
@@ -81,6 +82,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	public static final String NESTED_JOB_DESCRIPTOR = "nestedJob";
 
 	private static final String NESTED_JOB_TASKLET = "nestedJob.xml";
+
+	public static final String INVALID_NESTED_JOB_DESCRIPTOR = "invalidJob";
 
 	private List<String> jobs = new ArrayList<String>();
 

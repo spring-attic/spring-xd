@@ -1,0 +1,21 @@
+---
+spring:
+  profiles: admin
+security:
+  basic:
+    enabled: true
+  user:
+    name: admin
+    password: whosThere
+
+xd:
+ security:
+   authentication:
+     ldap:
+       enabled: true
+       url: ldap://localhost:${ldap.port}
+       managerDn: uid=bob,ou=people,dc=springframework,dc=org
+       managerPassword: bobspassword
+       userSearchBase: ou=otherpeople,dc=springframework,dc=org
+       userSearchFilter: uid={0}
+---

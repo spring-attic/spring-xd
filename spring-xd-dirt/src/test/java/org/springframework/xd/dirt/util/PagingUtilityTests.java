@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * Tests for {@link PagingUtility}.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 public class PagingUtilityTests {
 
@@ -85,6 +86,39 @@ public class PagingUtilityTests {
 		verifyNthPage(page, Arrays.asList("c"), sliceSize, 2);
 		Assert.isTrue(!page.hasNext());
 		Assert.isTrue(page.isLast());
+	}
+
+	/**
+	 * Verify that a {@link PageNotFoundException} is raised in case a page is requested
+	 * that does not exist.
+	 */
+	@Test(expected = PageNotFoundException.class)
+	public void testInvalidPage() {
+		int sliceSize = 2;
+		PageRequest pageable = new PageRequest(5, sliceSize);
+		pagingUtility.getPagedData(pageable, data);
+	}
+
+	/**
+	 * Verify that a {@link PageNotFoundException} is raised in case a page is requested
+	 * that does not exist and an empty collection is being passed-in.
+	 */
+	@Test(expected = PageNotFoundException.class)
+	public void testInvalidPageWithEmptyCollection() {
+		int sliceSize = 2;
+		PageRequest pageable = new PageRequest(5, sliceSize);
+		pagingUtility.getPagedData(pageable, Collections.emptyList());
+	}
+
+	/**
+	 * Verify that an {@link IllegalArgumentException} is raised in case a {@code null}
+	 * collection is passed in.
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testPassingInNullCollection() {
+		int sliceSize = 2;
+		PageRequest pageable = new PageRequest(5, sliceSize);
+		pagingUtility.getPagedData(pageable, null);
 	}
 
 	/**

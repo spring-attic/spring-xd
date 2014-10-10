@@ -49,10 +49,11 @@ import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.dirt.stream.NotDeployedException;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
+import org.springframework.xd.dirt.util.PageNotFoundException;
 
 /**
  * Central class for behavior common to all REST controllers.
- * 
+ *
  * @author Eric Bottard
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
@@ -289,6 +290,14 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onModuleMessageRateNotFoundException(ModuleMessageRateNotFoundException e) {
+		String logref = logDebug(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onNoSuchPageException(PageNotFoundException e) {
 		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}

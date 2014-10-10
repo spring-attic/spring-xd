@@ -32,26 +32,37 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 public class PagingUtility<T extends Comparable<? super T>> {
 
 	/**
 	 * Get the paged data of the given list.
 	 *
-	 * @param pageable the paging information
-	 * @param list the list of content to paginate
+	 * @param pageable the paging information, must not be null
+	 * @param list the list of content to paginate, must not be null
 	 * @return the paginated implementation of the given list of <T>
+	 * @throws PageNotFoundException in case an invalid page is requested
 	 */
-	public Page<T> getPagedData(Pageable pageable, List<T> list) {
+	public Page<T> getPagedData(Pageable pageable, List<T> list) throws PageNotFoundException {
 
 		Assert.notNull(pageable, "Pagination info can't be null.");
+		Assert.notNull(list, "The provided list must not be null.");
+
+		final int offset = pageable.getOffset();
+		final int to = Math.min(list.size(), offset + pageable.getPageSize());
+
+		if (offset > to) {
+			throw new PageNotFoundException(String.format("Page %s does not exist.", pageable.getPageNumber()));
+		}
+
 		if (CollectionUtils.isEmpty(list)) {
 			return new PageImpl<T>(list);
 		}
 
 		Collections.sort(list);
-		int to = Math.min(list.size(), pageable.getOffset() + pageable.getPageSize());
-		List<T> data = list.subList(pageable.getOffset(), to);
+
+		final List<T> data = list.subList(offset, to);
 		return new PageImpl<T>(data, pageable, list.size());
 	}
 

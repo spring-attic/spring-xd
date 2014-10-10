@@ -17,27 +17,16 @@
 
 package org.springframework.xd.dirt.security;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.springframework.security.crypto.codec.Base64;
 
 /**
- * Applied on {@link org.springframework.xd.dirt.security.AbstractSingleNodeApplicationSecurityTest}, indicates the location(s)
- * for test configuration files.
- *
  * @author Marius Bogoevici
  */
+public abstract class SecurityTestUtils {
 
-@Inherited
-@Documented
-@Target(TYPE)
-@Retention(RUNTIME)
-public @interface WithSpringConfigLocation {
+	public static String basicAuthorizationHeader(String username, String password) {
+		return "Basic " + new String(Base64.encode((username + ":" + password).getBytes()));
+	}
 
-	public String value() default "";
 
 }

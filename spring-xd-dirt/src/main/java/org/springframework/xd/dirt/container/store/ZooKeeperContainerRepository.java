@@ -324,10 +324,10 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 	}
 
 	/**
-	 * Find all the {@DetailedContainer}s in the XD cluster.
+	 * Find all the {@link DetailedContainer}s in the XD cluster.
 	 *
 	 * @param pageable the pagination info
-	 * @return the paged list of {@DetailedContainer}s
+	 * @return the paged list of {@link DetailedContainer}s
 	 */
 	@Override
 	public Page<DetailedContainer> findAllRuntimeContainers(Pageable pageable) {

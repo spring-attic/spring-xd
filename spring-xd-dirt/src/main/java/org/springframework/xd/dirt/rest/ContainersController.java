@@ -52,7 +52,7 @@ import org.springframework.xd.rest.domain.DetailedContainerResource;
 
 /**
  * Handles interaction with the runtime containers/and its modules.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
@@ -118,7 +118,7 @@ public class ContainersController {
 							rate.put("output", getMessageRate(String.format(request, "output")));
 							rate.put("input", getMessageRate(String.format(request, "input")));
 						}
-						messageRates.put(moduleMetadata.getId(), rate);
+						messageRates.put(moduleMetadata.getQualifiedId(), rate);
 					}
 					catch (RestClientException e) {
 						throw new ModuleMessageRateNotFoundException(e.getMessage());

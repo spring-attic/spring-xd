@@ -25,7 +25,7 @@ import org.springframework.xd.rest.domain.RESTModuleType;
 
 /**
  * Knows how to assemble {@link ModuleMetadataResource}s out of {@link ModuleMetadata}s.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public class ModuleMetadataResourceAssembler extends
@@ -37,7 +37,7 @@ public class ModuleMetadataResourceAssembler extends
 
 	@Override
 	public ModuleMetadataResource toResource(ModuleMetadata entity) {
-		return createResourceWithId(entity.getId(), entity);
+		return createResourceWithId(entity.getQualifiedId(), entity);
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class ModuleMetadataResourceAssembler extends
 		String moduleType = (entity.getModuleType() != null) ? entity.getModuleType().name() : null;
 		RESTDeploymentState deploymentStatus = (entity.getDeploymentStatus() != null) ? RESTDeploymentState.valueOf(entity.getDeploymentStatus().name())
 				: null;
-		return new ModuleMetadataResource(entity.getId(), entity.getName(), entity.getUnitName(),
+		return new ModuleMetadataResource(entity.getQualifiedId(), entity.getName(), entity.getUnitName(),
 				RESTModuleType.valueOf(moduleType), entity.getContainerId(), entity.getModuleOptions(),
 				entity.getDeploymentProperties(), deploymentStatus);
 	}

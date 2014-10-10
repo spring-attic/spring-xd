@@ -19,23 +19,41 @@
  *
  * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define(['model/pageable'], function (Pageable) {
   'use strict';
   return ['$scope', 'StreamService', 'XDUtils', '$timeout', '$rootScope', '$state',
     function ($scope, streamService, utils, $timeout, $rootScope, $state) {
+      $scope.pageable = new Pageable();
+      $scope.pagination = {
+        current: 1
+      };
 
-      (function loadStreamDefinitions() {
-        streamService.getDefinitions().get(
-            function (result) {
-              utils.$log.info(result);
-              $scope.streamDefinitions = result.content;
-              var getStreamDefinitions = $timeout(loadStreamDefinitions, $rootScope.pageRefreshTime);
-              $scope.$on('$destroy', function(){
-                $timeout.cancel(getStreamDefinitions);
-              });
-            }
+      $scope.pageChanged = function(newPage) {
+        $scope.pageable.pageNumber = newPage-1;
+        loadStreamDefinitions($scope.pageable);
+      };
+      function loadStreamDefinitions(pageable, showGrowl) {
+        //utils.$log.info('pageable', pageable);
+        var streamDefinitionsPromise = streamService.getDefinitions(pageable).$promise;
+        if (showGrowl || showGrowl === undefined) {
+          utils.addBusyPromise(streamDefinitionsPromise);
+        }
+        utils.$log.info(streamDefinitionsPromise);
+        streamDefinitionsPromise.then(
+          function (result) {
+            $scope.pageable.items = result.content;
+            $scope.pageable.total = result.page.totalElements;
+            var getStreamDefinitions = $timeout(function() {
+              loadStreamDefinitions($scope.pageable, false);
+            }, $rootScope.pageRefreshTime);
+            $scope.$on('$destroy', function(){
+              $timeout.cancel(getStreamDefinitions);
+            });
+          }, function (result) {
+            utils.growl.addErrorMessage(result.data[0].message);
+          }
         );
-      })();
+      }
       $scope.deployStream = function (streamDefinition) {
         $state.go('home.streams.deployStream', {definitionName: streamDefinition.name});
       };
@@ -70,5 +88,7 @@ define([], function () {
             }
         );
       };
+
+      loadStreamDefinitions($scope.pageable);
     }];
 });

@@ -27,12 +27,14 @@ define([
   'cgBusy',
   'ngGrowl',
   'ngAnimate',
+  'pagination',
   'angularHighlightjs',
   './controllers',
   './services',
   '../directives',
   '../filters',
   '../shared/services',
+  'model/pageable',
   '../shared/interceptors'
 ], function (angular) {
   'use strict';
@@ -46,6 +48,7 @@ define([
     'ui.router',
     'ngResource',
     'ngAnimate',
+    'angularUtils.directives.dirPagination',
     'cgBusy',
     'hljs',
     'angular-growl'

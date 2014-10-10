@@ -20,23 +20,40 @@
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define(['model/pageable'], function (Pageable) {
   'use strict';
   return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils', '$state', '$timeout', '$rootScope',
     function ($scope, jobDefinitions, jobDefinitionService, utils, $state, $timeout, $rootScope) {
+      $scope.pageable = new Pageable();
+      $scope.pagination = {
+        current: 1
+      };
+      $scope.pageChanged = function(newPage) {
+        $scope.pageable.pageNumber = newPage-1;
+        loadJobDefinitions($scope.pageable);
+      };
 
-      (function loadJobDefinitions() {
-        jobDefinitions.getAllJobDefinitions().$promise.then(
+      function loadJobDefinitions(pageable, showGrowl) {
+        utils.$log.info('pageable', pageable);
+        var jobDefinitionsPromise = jobDefinitions.getAllJobDefinitions(pageable).$promise;
+        jobDefinitionsPromise.then(
             function (result) {
               utils.$log.info(result);
-              $scope.jobDefinitions = result.content;
-              var getJobDefinitions = $timeout(loadJobDefinitions, $rootScope.pageRefreshTime);
+              $scope.pageable.items = result.content;
+              $scope.pageable.total = result.page.totalElements;
+
+              var getJobDefinitions = $timeout(function() {
+                loadJobDefinitions($scope.pageable, false);
+              }, $rootScope.pageRefreshTime);
               $scope.$on('$destroy', function(){
                 $timeout.cancel(getJobDefinitions);
               });
             }
         );
-      })();
+        if (showGrowl || showGrowl === undefined) {
+          utils.addBusyPromise(jobDefinitionsPromise);
+        }
+      }
       $scope.deployJob = function (jobDefinition) {
         $state.go('home.jobs.deployjob', {definitionName: jobDefinition.name});
       };
@@ -71,5 +88,6 @@ define([], function () {
             }
         );
       };
+      loadJobDefinitions($scope.pageable);
     }];
 });

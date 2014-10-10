@@ -13,33 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
- * Handles user logins.
+ * Handles the listing of job modules.
  *
  * @author Gunnar Hillert
  */
-define([], function () {
+define(['model/pageable'], function (Pageable) {
   'use strict';
+
   return ['$scope', 'JobModuleService', 'XDUtils', '$state',
-          function ($scope, jobModuleService, utils, $state) {
-          $scope.jobModules = {};
-          var jobModulesPromise = jobModuleService.getAllModules().$promise;
-          utils.addBusyPromise(jobModulesPromise);
-          jobModulesPromise.then(
-             function (result) {
-                  utils.$log.info(result);
-                  $scope.jobModules = result.content;
-                }, function () {
-                  utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
-                }
-             );
-          $scope.viewModuleDetails = function (item) {
-              utils.$log.info('Showing Module details for module: ' + item.name);
-              $state.go('home.jobs.moduledetails', {moduleName: item.name});
-            };
-          $scope.createDefinition = function (item) {
-              $state.go('home.jobs.modulecreatedefinition', {moduleName: item.name});
-            };
-        }];
+    function ($scope, jobModuleService, utils, $state) {
+      $scope.pageable = new Pageable();
+      $scope.pagination = {
+        current: 1
+      };
+      $scope.pageChanged = function(newPage) {
+        $scope.pageable.pageNumber = newPage-1;
+        getJobModules($scope.pageable);
+      };
+      function getJobModules(pageable) {
+        utils.$log.info('pageable', pageable);
+        var jobModulesPromise = jobModuleService.getAllModules(pageable).$promise;
+        utils.addBusyPromise(jobModulesPromise);
+        jobModulesPromise.then(
+          function (result) {
+            utils.$log.info(result);
+            $scope.pageable.items = result.content;
+            $scope.pageable.total = result.page.totalElements;
+          }, function (result) {
+            utils.growl.addErrorMessage(result.data[0].message);
+          }
+        );
+      }
+      $scope.viewModuleDetails = function (item) {
+        utils.$log.info('Showing Module details for module: ' + item.name);
+        $state.go('home.jobs.moduledetails', {moduleName: item.name});
+      };
+      $scope.createDefinition = function (item) {
+        $state.go('home.jobs.modulecreatedefinition', {moduleName: item.name});
+      };
+
+      getJobModules($scope.pageable);
+    }
+  ];
 });

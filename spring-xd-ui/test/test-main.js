@@ -9,6 +9,7 @@ for (var file in window.__karma__.files) {
 
 require.config({
   paths: {
+    model:   'shared/model',
     angular: '/base/app/lib/angular/angular',
     angularRoute: '/base/app/lib/angular-route/angular-route',
     angularMocks: '/base/app/lib/angular-mocks/angular-mocks',
@@ -22,7 +23,8 @@ require.config({
     ngGrowl: '/base/app/lib/angular-growl/angular-growl',
     ngAnimate: '/base/app/lib/angular-animate/angular-animate',
     xregexp: '/base/app/lib/xregexp/xregexp-all',
-    moment: '/base/app/lib/moment/moment'
+    moment: '/base/app/lib/moment/moment',
+    pagination: '/base/app/lib/angular-utils-pagination/dirPagination'
   },
   baseUrl: '/base/app/scripts',
   shim: {
@@ -42,6 +44,9 @@ require.config({
       deps: ['angular', 'highlightjs']
     },
     'ngResource': {
+      deps: ['angular']
+    },
+    'pagination': {
       deps: ['angular']
     },
     'ngAnimate': {

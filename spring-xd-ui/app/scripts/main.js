@@ -21,6 +21,7 @@
  */
 require.config({
   paths: {
+    model:   'shared/model',
     domReady: '../lib/requirejs-domready/domReady',
     angular: '../lib/angular/angular',
     jquery: '../lib/jquery/jquery',
@@ -33,7 +34,8 @@ require.config({
     angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
     highlightjs: '../lib/highlightjs/highlight.pack',
     xregexp: '../lib/xregexp/xregexp-all',
-    moment: '../lib/moment/moment',
+    pagination: '../lib/angular-utils-pagination/dirPagination',
+    moment: '../lib/moment/moment'
   },
   shim: {
     angular: {
@@ -47,6 +49,9 @@ require.config({
       deps: ['angular']
     },
     'ngResource': {
+      deps: ['angular']
+    },
+    'pagination': {
       deps: ['angular']
     },
     'ngAnimate': {

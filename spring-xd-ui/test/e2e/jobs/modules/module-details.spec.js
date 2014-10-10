@@ -38,6 +38,7 @@ describe('Tests for the Module Details Page', function() {
       expect(element.all(by.css('#xd-content table thead th')).count()).toEqual(4);
     });
     it('the first column is labelled "Name"', function() {
+      browser.driver.sleep(2000);
       expect(element(by.css('#xd-content table thead th:nth-child(1)')).getText()).toEqual('Name');
     });
     it('the second column is labelled "Type"', function() {

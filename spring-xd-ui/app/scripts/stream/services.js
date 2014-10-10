@@ -25,12 +25,23 @@ define(['angular'], function (angular) {
   return angular.module('xdStreamsAdmin.services', [])
       .factory('StreamService', function ($resource, $rootScope, $log, $http) {
         return {
-          getDefinitions: function () {
-            return $resource($rootScope.xdAdminServerUrl + '/streams/definitions.json', {}, {
+          getDefinitions: function (pageable) {
+            var params = {};
+            if (pageable === undefined) {
+              $log.info('Getting all stream definitions.');
+            }
+            else {
+              $log.info('Getting paged stream definitions', pageable);
+              params = {
+                'page': pageable.pageNumber,
+                'size': pageable.pageSize
+              };
+            }
+            return $resource($rootScope.xdAdminServerUrl + '/streams/definitions.json', params, {
               query: {
                 method: 'GET'
               }
-            });
+            }).get();
           },
           getSingleStreamDefinition: function (streamName) {
             $log.info('Getting single stream definition for job named ' + streamName);

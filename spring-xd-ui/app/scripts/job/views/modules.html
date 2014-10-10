@@ -5,7 +5,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr ng-repeat="item in jobModules | orderBy:'name'">
+    <tr dir-paginate="item in pageable.items | itemsPerPage: pageable.pageSize" total-items="pageable.total">
       <td>{{item.name}}</td>
       <td class="action-column">
         <button type="button"
@@ -18,3 +18,5 @@
     </tr>
   </tbody>
 </table>
+<dir-pagination-controls template-url="scripts/directives/dirPagination.tpl.html"
+                         on-page-change="pageChanged(newPageNumber)"></dir-pagination-controls>

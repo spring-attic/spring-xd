@@ -20,32 +20,46 @@
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define(['model/pageable'], function (Pageable) {
   'use strict';
   return ['$scope', 'JobDeployments', 'XDUtils', '$state',
     function ($scope, jobDeployments, utils, $state) {
-      var jobDeploymentsPromise = jobDeployments.getArray(function (data) {
-
-        utils.$log.info(data);
-        $scope.jobDeployments = data;
-
-        $scope.launchJob = function (item) {
-          utils.$log.info('Launching Job: ' + item.name);
-          $state.go('home.jobs.tabs.deployments.launch', {jobName: item.name});
-        };
-        // schedule job
-        $scope.scheduleJob = function (item) {
-          utils.$log.info('Scheduling Job: ' + item.name);
-          $state.go('home.jobs.tabs.deployments.schedule', {jobName: item.name});
-        };
-      }, function () {
-        utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
-      }).$promise;
-      utils.addBusyPromise(jobDeploymentsPromise);
-
+      $scope.pageable = new Pageable();
+      $scope.pagination = {
+        current: 1
+      };
+      $scope.pageChanged = function(newPage) {
+        $scope.pageable.pageNumber = newPage-1;
+        loadJobDeployments($scope.pageable);
+      };
+      function loadJobDeployments(pageable) {
+        utils.$log.info('pageable', pageable);
+        var jobDeploymentsPromise = jobDeployments.getArray().$promise;
+        utils.addBusyPromise(jobDeploymentsPromise);
+        jobDeploymentsPromise.then(
+          function (data) {
+            utils.$log.info(data);
+            $scope.jobDeployments = data;
+          },
+          function () {
+            utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+          }
+        );
+      }
       $scope.viewDeploymentDetails = function (item) {
           utils.$log.info('Showing Deployment details for job: ' + item.name);
           $state.go('home.jobs.deploymentdetails', {jobName: item.name});
-        };
+      };
+      $scope.launchJob = function (item) {
+        utils.$log.info('Launching Job: ' + item.name);
+        $state.go('home.jobs.tabs.deployments.launch', {jobName: item.name});
+      };
+      // schedule job
+      $scope.scheduleJob = function (item) {
+        utils.$log.info('Scheduling Job: ' + item.name);
+        $state.go('home.jobs.tabs.deployments.schedule', {jobName: item.name});
+      };
+
+      loadJobDeployments($scope.pageable);
     }];
 });

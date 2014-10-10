@@ -18,7 +18,8 @@
     </tr>
     </thead>
     <tbody>
-    <tr ng-repeat="item in streamDefinitions | filter:filterQuery | orderBy:'name'" ng-show="!item.inactive">
+
+    <tr dir-paginate="item in pageable.items | itemsPerPage: pageable.pageSize | filter:filterQuery" total-items="pageable.total" ng-show="!item.inactive">
         <td>{{item.name}}</td>
         <td>{{item.definition}}</td>
         <td>{{item.status}}</td>
@@ -45,6 +46,8 @@
     </tr>
     </tbody>
 </table>
+<dir-pagination-controls template-url="scripts/directives/dirPagination.tpl.html"
+                         on-page-change="pageChanged(newPageNumber)"></dir-pagination-controls>
 <div class="modal fade" xd-modal id="confirm-destroy" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">

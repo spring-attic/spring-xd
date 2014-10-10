@@ -33,7 +33,25 @@ define(['angular'], function (angular) {
               url: $rootScope.xdAdminServerUrl + '/jobs/definitions/' + jobname
             });
           },
-          getAllJobDefinitions: function () {
+          getAllJobDefinitions: function (pageable) {
+            if (pageable === 'undefined') {
+              $log.info('Getting all job definitions.');
+              return $resource($rootScope.xdAdminServerUrl + '/jobs/definitions.json', {}).get();
+            }
+            else {
+              $log.info('Getting job definitions for pageable:', pageable);
+              return $resource($rootScope.xdAdminServerUrl + '/jobs/definitions.json',
+                {
+                  'page': pageable.pageNumber,
+                  'size': pageable.pageSize
+                },
+                {
+                  query: {
+                    method: 'GET',
+                    isArray: true
+                  }
+                }).get();
+            }
             $log.info('Getting all job definitions.');
             return $resource($rootScope.xdAdminServerUrl + '/jobs/definitions.json', {}, {
               query: {
@@ -68,9 +86,20 @@ define(['angular'], function (angular) {
       })
       .factory('JobModuleService', function ($resource, $http, $log, $rootScope) {
         return {
-          getAllModules: function () {
-            $log.info('Getting all job modules.');
-            return $resource($rootScope.xdAdminServerUrl + '/modules.json', { 'type': 'job' }).get();
+          getAllModules: function (pageable) {
+            if (pageable === 'undefined') {
+              $log.info('Getting all job modules.');
+              return $resource($rootScope.xdAdminServerUrl + '/modules.json', { 'type': 'job' }).get();
+            }
+            else {
+              $log.info('Getting job modules for pageable:', pageable);
+              return $resource($rootScope.xdAdminServerUrl + '/modules.json',
+                {
+                  'type': 'job',
+                  'page': pageable.pageNumber,
+                  'size': pageable.pageSize
+                }).get();
+            }
           },
           getSingleModule: function (moduleName) {
             $log.info('Getting details for module ' + moduleName);
@@ -129,16 +158,34 @@ define(['angular'], function (angular) {
           }
         };
       })
-      .factory('JobDeployments', function ($resource, $rootScope) {
-        return $resource($rootScope.xdAdminServerUrl + '/jobs/configurations.json', {}, {
-          getArray: {method: 'GET', isArray: true}
-        });
+      .factory('JobDeployments', function ($resource, $log, $rootScope) {
+        return {
+          getArray: function (pageable) {
+            var params = {};
+            if (pageable === undefined) {
+              $log.info('Getting all job deployments.');
+            }
+            else {
+              $log.info('Getting paged job deployments', pageable);
+              params = {
+                'page': pageable.pageNumber,
+                'size': pageable.pageSize
+              };
+            }
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/configurations.json', params, {
+              getArray: {method: 'GET', isArray: true}
+            }).getArray();
+          }
+        };
       })
       .factory('JobExecutions', function ($resource, $rootScope, $log) {
         return {
-          getArray: function () {
+          getArray: function (pageNumber, pageSize) {
             $log.info('Get Job Executions ');
-            return $resource($rootScope.xdAdminServerUrl + '/jobs/executions', {}, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/executions', {
+              'page': pageNumber,
+              'size': pageSize
+            }, {
               getArray: {method: 'GET', isArray: true}
             }).getArray();
           },

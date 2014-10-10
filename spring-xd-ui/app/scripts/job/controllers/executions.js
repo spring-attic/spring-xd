@@ -23,19 +23,32 @@
 define([], function () {
   'use strict';
   return ['$scope', 'JobExecutions', 'XDUtils', '$state', function ($scope, jobExecutions, utils, $state) {
-    var list = function () {
-      var jobExcutionsPromise = jobExecutions.getArray().$promise;
+
+    $scope.jobExecutions = {};
+    $scope.totalJobExecutions = 0;
+    $scope.jobExecutionsPerPage = 5; // this should match however many results your API puts on one page
+    $scope.pagination = {
+      current: 1
+    };
+
+    $scope.pageChanged = function(newPage) {
+      list(newPage-1, $scope.jobExecutionsPerPage);
+    };
+
+    var list = function (pageNumber, pageSize) {
+      var jobExcutionsPromise = jobExecutions.getArray(pageNumber, pageSize).$promise;
       utils.addBusyPromise(jobExcutionsPromise);
 
       jobExcutionsPromise.then(
           function (result) {
-            utils.$log.info(result);
+            utils.$log.info('job excutions', result);
             $scope.jobExecutions = result;
+            $scope.totalJobExecutions = 100;
           }, function () {
             utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
           });
     };
-    list();
+    list(0, $scope.jobExecutionsPerPage);
     $scope.viewJobExecutionDetails = function (jobExecution) {
       utils.$log.info('Showing Job Execution details for Job Execution with Id: ' + jobExecution.executionId);
       $state.go('home.jobs.executiondetails', {executionId: jobExecution.executionId});

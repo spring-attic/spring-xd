@@ -227,5 +227,5 @@ xd:
 # Pretty print JSON output
 typeconversion:
 	json:
-		pretty_print: true
+		prettyPrint: true
 ---

@@ -24,31 +24,15 @@
 			connection-factory="redisConnectionFactory" />
 	</beans:beans>
 
-	<beans:beans profile="use-topic">
-		<redis:outbound-channel-adapter topic="${topic}"
-			channel="input" connection-factory="redisConnectionFactory" />
-	</beans:beans>
-
 	<beans:beans profile="use-queue-expression">
 		<redis:queue-outbound-channel-adapter
 			queue-expression="${queueExpression}" channel="input"
 			connection-factory="redisConnectionFactory" />
 	</beans:beans>
 
-	<beans:beans profile="use-queue">
-		<redis:queue-outbound-channel-adapter
-			queue="${queue}" channel="input" connection-factory="redisConnectionFactory" />
-	</beans:beans>
-
 	<beans:beans profile="use-store-expression">
 		<redis:store-outbound-channel-adapter
 			key-expression="${keyExpression}" collection-type="${collectionType}"
 			channel="input" connection-factory="redisConnectionFactory" />
-	</beans:beans>
-
-	<beans:beans profile="use-store">
-		<redis:store-outbound-channel-adapter
-			key="${key}" collection-type="${collectionType}" channel="input"
-			connection-factory="redisConnectionFactory" />
 	</beans:beans>
 </beans:beans>

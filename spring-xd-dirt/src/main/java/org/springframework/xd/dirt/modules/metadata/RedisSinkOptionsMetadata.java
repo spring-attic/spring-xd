@@ -28,7 +28,7 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * Options metadata for Redis sink module.
  *
  * @author Ilayaperumal Gopinathan
- * @since 1.1
+ * @since 1.1s
  */
 @Mixin(RedisConnectionMixin.class)
 public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
@@ -38,12 +38,6 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 	private static final String QUEUE_EXPRESSION_PROFILE = "use-queue-expression";
 
 	private static final String STORE_EXPRESSION_PROFILE = "use-store-expression";
-
-	private static final String TOPIC_PROFILE = "use-topic";
-
-	private static final String QUEUE_PROFILE = "use-queue";
-
-	private static final String STORE_PROFILE = "use-store";
 
 	private String topic = null;
 
@@ -165,19 +159,22 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 			return new String[] { TOPIC_EXPRESSION_PROFILE };
 		}
 		else if (topic != null) {
-			return new String[] { TOPIC_PROFILE };
+			this.topicExpression = "'" + this.topic + "'";
+			return new String[] { TOPIC_EXPRESSION_PROFILE };
 		}
 		else if (queueExpression != null) {
 			return new String[] { QUEUE_EXPRESSION_PROFILE };
 		}
 		else if (queue != null) {
-			return new String[] { QUEUE_PROFILE };
+			this.queueExpression = "'" + this.queue + "'";
+			return new String[] { QUEUE_EXPRESSION_PROFILE };
 		}
 		else if (keyExpression != null) {
 			return new String[] { STORE_EXPRESSION_PROFILE };
 		}
 		else if (key != null) {
-			return new String[] { STORE_PROFILE };
+			this.keyExpression = "'" + this.key + "'";
+			return new String[] { STORE_EXPRESSION_PROFILE };
 		}
 		return new String[] {};
 	}

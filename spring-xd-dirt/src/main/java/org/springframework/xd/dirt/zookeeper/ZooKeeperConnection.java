@@ -29,6 +29,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A wrapper for a {@link CuratorFramework} instance whose lifecycle is managed as a Spring bean. Accepts
@@ -90,10 +91,15 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	private final String clientConnectString;
 
 	/**
+	 * Namespace path within ZooKeeper. Default is {@link Paths#XD_NAMESPACE}.
+	 */
+	private final String namespace;
+
+	/**
 	 * Establish a ZooKeeper connection with the default client connect string: {@value #DEFAULT_CLIENT_CONNECT_STRING}
 	 */
 	public ZooKeeperConnection() {
-		this(DEFAULT_CLIENT_CONNECT_STRING);
+		this(DEFAULT_CLIENT_CONNECT_STRING, null);
 	}
 
 	/**
@@ -102,8 +108,19 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	 * @param clientConnectString one or more {@code host:port} strings, comma-delimited if more than one
 	 */
 	public ZooKeeperConnection(String clientConnectString) {
+		this(clientConnectString, null);
+	}
+
+	/**
+	 * Establish a ZooKeeper connection with the provided client connect string and namespace.
+	 *
+	 * @param clientConnectString one or more {@code host:port} strings, comma-delimited if more than one
+	 * @param namespace the root path namespace in ZooKeeper (or default namespace if null)
+	 */
+	public ZooKeeperConnection(String clientConnectString, String namespace) {
 		Assert.hasText(clientConnectString, "clientConnectString is required");
 		this.clientConnectString = clientConnectString;
+		this.namespace = StringUtils.hasText(namespace) ? namespace : Paths.XD_NAMESPACE;
 	}
 
 	/**
@@ -156,10 +173,10 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	/**
 	 * Set the flag that indicates whether this connection
-     * should be started automatically.
-     *
-     * @param autoStartup if true, indicates this connection should
-     *                    be started automatically
+	 * should be started automatically.
+	 *
+	 * @param autoStartup if true, indicates this connection should
+	 *                    be started automatically
 	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
@@ -209,8 +226,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 		if (!this.running) {
 			this.curatorFramework = CuratorFrameworkFactory.builder()
 					.defaultData(new byte[0])
-					// todo: make namespace pluggable so this class can be generic
-					.namespace(Paths.XD_NAMESPACE)
+					.namespace(namespace)
 					.retryPolicy(this.retryPolicy)
 					.connectString(this.clientConnectString)
 					.build();

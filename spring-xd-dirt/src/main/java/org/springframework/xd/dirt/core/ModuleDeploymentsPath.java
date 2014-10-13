@@ -99,7 +99,7 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Construct a {@code DeploymentsPath}. Use of this constructor means that a path will be created via
-	 * {@link #build()} or {@link #buildWithNamespace()}.
+	 * {@link #build()}.
 	 */
 	public ModuleDeploymentsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;
@@ -273,20 +273,6 @@ public class ModuleDeploymentsPath {
 				deploymentDesc[DEPLOYMENT_UNIT_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
 				deploymentDesc[MODULE_SEQUENCE]);
 		return Paths.build(elements);
-	}
-
-	/**
-	 * Build the path string using the field values, including the namespace prefix.
-	 *
-	 * @return path string with namespace
-	 *
-	 * @see Paths#buildWithNamespace
-	 */
-	public String buildWithNamespace() {
-		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s",
-				deploymentDesc[DEPLOYMENT_UNIT_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
-				deploymentDesc[MODULE_SEQUENCE]);
-		return Paths.buildWithNamespace(elements);
 	}
 
 	/**

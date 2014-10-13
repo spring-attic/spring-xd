@@ -97,8 +97,7 @@ public class StreamDeploymentsPath {
 
 	/**
 	 * Construct a {@code StreamDeploymentsPath}. Use of this constructor
-	 * means that a path will be created via {@link #build()} or
-	 * {@link #buildWithNamespace()}.
+	 * means that a path will be created via {@link #build()}.
 	 */
 	public StreamDeploymentsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;
@@ -289,20 +288,6 @@ public class StreamDeploymentsPath {
 		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s", deploymentDesc[MODULE_TYPE],
 				deploymentDesc[MODULE_LABEL], deploymentDesc[MODULE_SEQUENCE], deploymentDesc[CONTAINER]);
 		return Paths.build(elements);
-	}
-
-	/**
-	 * Build the path string using the field values, including the namespace prefix.
-	 *
-	 * @return path string with namespace
-	 * @throws java.lang.IllegalStateException if there are missing fields	 * @see Paths#buildWithNamespace
-	 */
-	public String buildWithNamespace() throws IllegalStateException {
-		validate();
-		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s",
-				deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL], deploymentDesc[MODULE_SEQUENCE],
-				deploymentDesc[CONTAINER]);
-		return Paths.buildWithNamespace(elements);
 	}
 
 	/**

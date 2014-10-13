@@ -154,18 +154,6 @@ public class Paths {
 	}
 
 	/**
-	 * Return a string with the provided path elements separated by a slash {@code /}.
-	 * The {@link #XD_NAMESPACE} is included as a prefix.
-	 *
-	 * @param elements path elements
-	 *
-	 * @return the full path
-	 */
-	public static String buildWithNamespace(String... elements) {
-		return '/' + XD_NAMESPACE + build(elements);
-	}
-
-	/**
 	 * Ensure the existence of the given path.
 	 *
 	 * @param client curator client

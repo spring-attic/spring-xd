@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
@@ -115,6 +116,9 @@ public class SharedServerContextConfiguration {
 		@Value("${zk.client.connect:}")
 		protected String zkClientConnect;
 
+		@Value("${zk.namespace:}")
+		protected String zkNamespace;
+
 		// TODO: Consider a way to not require this property
 		/*
 		 * This is a flag optionally passed as a system property indicating the intention to inject some custom
@@ -132,6 +136,9 @@ public class SharedServerContextConfiguration {
 			if (!StringUtils.hasText(zkClientConnect)) {
 				zkClientConnect = ZooKeeperConnection.DEFAULT_CLIENT_CONNECT_STRING;
 			}
+			if (!StringUtils.hasText(zkNamespace)) {
+				zkNamespace = Paths.XD_NAMESPACE;
+			}
 			if (isEmbedded) {
 				zkProperties.put(EMBEDDED_ZK_CONNECT, zkClientConnect);
 			}
@@ -140,7 +147,7 @@ public class SharedServerContextConfiguration {
 			}
 			this.environment.getPropertySources().addFirst(
 					new PropertiesPropertySource(ZK_PROPERTIES_SOURCE, zkProperties));
-			ZooKeeperConnection zooKeeperConnection = new ZooKeeperConnection(zkClientConnect);
+			ZooKeeperConnection zooKeeperConnection = new ZooKeeperConnection(zkClientConnect, zkNamespace);
 
 			zooKeeperConnection.setAutoStartup(!zkConnectionConfigured);
 

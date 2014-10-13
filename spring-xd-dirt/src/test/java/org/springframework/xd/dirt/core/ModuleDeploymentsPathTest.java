@@ -37,7 +37,7 @@ public class ModuleDeploymentsPathTest {
 		String moduleLabel = "my-label";
 		String moduleSequence = "1";
 		String container = UUID.randomUUID().toString();
-		String path = Paths.buildWithNamespace(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, container,
+		String path = Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, container,
 				String.format("%s.%s.%s.%s", streamName, moduleType, moduleLabel, moduleSequence));
 
 		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath()
@@ -47,7 +47,7 @@ public class ModuleDeploymentsPathTest {
 				.setModuleLabel(moduleLabel)
 				.setModuleSequence(moduleSequence);
 
-		assertEquals(path, moduleDeploymentsPath.buildWithNamespace());
+		assertEquals(path, moduleDeploymentsPath.build());
 
 		ModuleDeploymentsPath fromPath = new ModuleDeploymentsPath(path);
 		assertEquals(container, fromPath.getContainer());

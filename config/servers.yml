@@ -198,9 +198,11 @@ xd:
 #   fsUri: hdfs://localhost:8020
 
 ---
-#Zookeeper properties
+# Zookeeper properties
+# namespace is the path under the root where XD's top level nodes will be created
 # client connect string: host1:port1,host2:port2,...,hostN:portN
 #zk:
+#  namespace: xd
 #  client:
 #     connect: localhost:2181
 ---

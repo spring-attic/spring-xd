@@ -276,20 +276,6 @@ public class ModuleDeploymentsPath {
 	}
 
 	/**
-	 * Build the path string using the field values, including the namespace prefix.
-	 *
-	 * @return path string with namespace
-	 *
-	 * @see Paths#buildWithNamespace
-	 */
-	public String buildWithNamespace() {
-		elements[DEPLOYMENT_DESC] = String.format("%s.%s.%s.%s",
-				deploymentDesc[DEPLOYMENT_UNIT_NAME], deploymentDesc[MODULE_TYPE], deploymentDesc[MODULE_LABEL],
-				deploymentDesc[MODULE_SEQUENCE]);
-		return Paths.buildWithNamespace(elements);
-	}
-
-	/**
 	 * {@inheritDoc}
 	 */
 	@Override

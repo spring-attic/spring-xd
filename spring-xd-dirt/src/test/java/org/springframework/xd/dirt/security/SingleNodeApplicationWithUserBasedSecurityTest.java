@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.security;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Test;
@@ -30,20 +31,22 @@ public class SingleNodeApplicationWithUserBasedSecurityTest extends AbstractSing
 
 	@Test
 	public void testUnauthenticatedAccessToModulesEndpointFails() throws Exception {
-        mockMvc().perform(
-						get("/modules"))
+		mockMvc().perform(
+				get("/modules"))
 				.andExpect(
 						status().isUnauthorized()
-				);
+				).andExpect(header().string("WWW-Authenticate", "Basic realm=\"SpringXD\"")
+		);
 	}
 
 	@Test
 	public void testUnauthenticatedAccessToManagementEndpointFails() throws Exception {
 		mockMvc().perform(
-						get("/management/metrics")
-				).andExpect(
+				get("/management/metrics"))
+				.andExpect(
 						status().isUnauthorized()
-				);
+				).andExpect(header().string("WWW-Authenticate", "Basic realm=\"SpringXD\"")
+		);
 	}
 
 	@Test

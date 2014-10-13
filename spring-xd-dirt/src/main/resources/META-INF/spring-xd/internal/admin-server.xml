@@ -14,9 +14,13 @@
 
 	<bean id="stateCalculator" class="org.springframework.xd.dirt.server.DefaultStateCalculator" />
 
+	<bean id="adminRepository" class="org.springframework.xd.dirt.container.store.ZooKeeperAdminRepository"/>
+
 	<bean id="deploymentSupervisor" class="org.springframework.xd.dirt.server.DeploymentSupervisor">
 		<constructor-arg ref="zooKeeperConnection"/>
 		<constructor-arg ref="containerRepository"/>
+		<constructor-arg ref="adminRepository"/>
+		<constructor-arg ref="adminAttributes"/>
 		<constructor-arg ref="streamDefinitionRepository"/>
 		<constructor-arg ref="jobDefinitionRepository"/>
 		<constructor-arg ref="moduleDefinitionRepository"/>

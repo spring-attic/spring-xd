@@ -44,7 +44,15 @@ public class Paths {
 
 	/**
 	 * Name of admins (that could participate to become leader) node.
-	 * Admin lock nodes are written as children of this node.
+	 * Admin lock nodes are written as children of this node. This node
+	 * is solely used from curator.
+	 */
+	public static final String ADMINELECTION = "adminelection";
+
+	/**
+	 * Name of admins node. Containers are written as children of this node.
+	 * Used to store admin metadata while curator election is handled under
+	 * adminelection.
 	 */
 	public static final String ADMINS = "admins";
 

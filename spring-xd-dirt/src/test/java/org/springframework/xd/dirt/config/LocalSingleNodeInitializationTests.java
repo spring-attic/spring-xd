@@ -25,6 +25,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
+import org.springframework.xd.dirt.cluster.RuntimeAttributes;
 import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.ApplicationUtils;
@@ -35,6 +36,7 @@ import org.springframework.xd.module.core.Plugin;
 
 /**
  * @author David Turanski
+ * @author Janne Valkealahti
  */
 public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitializationTests {
 
@@ -53,6 +55,9 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 		ContainerAttributes containerAttributes = containerContext.getBean(ContainerAttributes.class);
 		assertEquals(RuntimeUtils.getHost(), containerAttributes.getHost());
 		ApplicationUtils.dumpContainerApplicationContextConfiguration(containerContext);
+
+		RuntimeAttributes adminRuntimeAttributes = adminContext.getBean(RuntimeAttributes.class);
+		assertEquals(RuntimeUtils.getHost(), adminRuntimeAttributes.getHost());
 	}
 
 	@Override

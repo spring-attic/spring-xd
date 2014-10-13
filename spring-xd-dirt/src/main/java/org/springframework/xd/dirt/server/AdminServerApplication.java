@@ -44,6 +44,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.xd.batch.XdBatchDatabaseInitializer;
+import org.springframework.xd.dirt.cluster.RuntimeAttributes;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
@@ -55,7 +56,8 @@ import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.dirt.web.WebConfiguration;
 
 @Configuration
-@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class, AuditAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class,
+	AuditAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml")
 @Import({ RestConfiguration.class, WebConfiguration.class })
 public class AdminServerApplication {
@@ -156,6 +158,13 @@ public class AdminServerApplication {
 		}
 	}
 
+	@Bean
+	public RuntimeAttributes runtimeAttributes() {
+		RuntimeAttributes runtimeAttributes = new RuntimeAttributes();
+		runtimeAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress()).setPid(
+				RuntimeUtils.getPid());
+		return runtimeAttributes;
+	}
 
 	@Bean
 	@ConditionalOnWebApplication

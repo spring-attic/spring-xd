@@ -20,16 +20,11 @@
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define(['model/pageable'], function (Pageable) {
   'use strict';
   return ['$scope', 'JobDefinitions', 'JobDefinitionService', 'XDUtils', '$state', '$timeout', '$rootScope',
     function ($scope, jobDefinitions, jobDefinitionService, utils, $state, $timeout, $rootScope) {
-      $scope.pageable = {
-        items: {},
-        pageNumber: 0,
-        pageSize: 5,
-        total: 0
-      };
+      $scope.pageable = new Pageable();
       $scope.pagination = {
         current: 1
       };

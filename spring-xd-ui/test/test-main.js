@@ -9,6 +9,7 @@ for (var file in window.__karma__.files) {
 
 require.config({
   paths: {
+    model:   'shared/model',
     angular: '/base/app/lib/angular/angular',
     angularRoute: '/base/app/lib/angular-route/angular-route',
     angularMocks: '/base/app/lib/angular-mocks/angular-mocks',

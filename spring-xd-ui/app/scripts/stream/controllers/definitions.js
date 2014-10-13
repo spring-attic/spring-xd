@@ -19,16 +19,11 @@
  *
  * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define(['model/pageable'], function (Pageable) {
   'use strict';
   return ['$scope', 'StreamService', 'XDUtils', '$timeout', '$rootScope', '$state',
     function ($scope, streamService, utils, $timeout, $rootScope, $state) {
-      $scope.pageable = {
-        items: {},
-        pageNumber: 0,
-        pageSize: 5,
-        total: 0
-      };
+      $scope.pageable = new Pageable();
       $scope.pagination = {
         current: 1
       };

@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
- * Handles user logins.
+ * Handles the listing of job modules.
  *
  * @author Gunnar Hillert
  */
-define([], function () {
+define(['model/pageable'], function (Pageable) {
   'use strict';
+
   return ['$scope', 'JobModuleService', 'XDUtils', '$state',
     function ($scope, jobModuleService, utils, $state) {
-      $scope.pageable = {
-        items: {},
-        pageNumber: 0,
-        pageSize: 5,
-        total: 0
-      };
+      $scope.pageable = new Pageable();
       $scope.pagination = {
         current: 1
       };

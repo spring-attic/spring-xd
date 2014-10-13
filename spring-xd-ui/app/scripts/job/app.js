@@ -34,6 +34,7 @@ define([
   '../directives',
   '../filters',
   '../shared/services',
+  'model/pageable',
   '../shared/interceptors'
 ], function (angular) {
   'use strict';

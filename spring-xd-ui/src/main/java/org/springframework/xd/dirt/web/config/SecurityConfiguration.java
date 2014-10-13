@@ -15,6 +15,7 @@
 package org.springframework.xd.dirt.web.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -42,8 +43,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private ContentNegotiationStrategy contentNegotiationStrategy;
 
-	@Autowired
-	Environment environment;
+	@Value("${security.basic.realm}")
+	private String realm;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -52,6 +53,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				MediaType.TEXT_HTML);
 
 		final String loginPage = "/admin-ui/login";
+
+		BasicAuthenticationEntryPoint basicAuthenticationEntryPoint = new BasicAuthenticationEntryPoint();
+		basicAuthenticationEntryPoint.setRealmName(realm);
+		basicAuthenticationEntryPoint.afterPropertiesSet();
 
 		http.csrf().disable()
 				.authorizeRequests()
@@ -73,6 +78,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.and()
 				.exceptionHandling()
 				.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint(loginPage), textHtmlMatcher)
-				.defaultAuthenticationEntryPointFor(new BasicAuthenticationEntryPoint(), AnyRequestMatcher.INSTANCE);
+				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, AnyRequestMatcher.INSTANCE);
 	}
 }

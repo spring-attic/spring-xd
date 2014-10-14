@@ -18,12 +18,12 @@
 		<bean id="batchConfigurer"
 			class="org.springframework.xd.dirt.batch.RuntimeBatchConfigurer">
 			<constructor-arg ref="dataSource" />
-			<property name="isolationLevel" value="${spring.batch.isolationlevel:#{T(org.springframework.xd.dirt.batch.RuntimeBatchConfigurer).DEFAULT_ISOLATION_LEVEL}}" />
-			<property name="clobType" value="${spring.batch.clobtype:#{null}}" />
-			<property name="dbType" value="${spring.batch.dbtype:#{null}}" />
-			<property name="maxVarCharLength" value="${spring.batch.maxvarcharlength:#{T(org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao).DEFAULT_EXIT_MESSAGE_LENGTH}}" />
-			<property name="tablePrefix" value="${spring.batch.tableprefix:#{T(org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao).DEFAULT_TABLE_PREFIX}}" />
-			<property name="validateTransactionState" value="${spring.batch.validatetransactionstate:true}" />
+			<property name="isolationLevel" value="${spring.batch.isolationLevel:#{T(org.springframework.xd.dirt.batch.RuntimeBatchConfigurer).DEFAULT_ISOLATION_LEVEL}}" />
+			<property name="clobType" value="${spring.batch.clobType:#{null}}" />
+			<property name="dbType" value="${spring.batch.dbType:#{null}}" />
+			<property name="maxVarCharLength" value="${spring.batch.maxVarcharLength:#{T(org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao).DEFAULT_EXIT_MESSAGE_LENGTH}}" />
+			<property name="tablePrefix" value="${spring.batch.tablePrefix:#{T(org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao).DEFAULT_TABLE_PREFIX}}" />
+			<property name="validateTransactionState" value="${spring.batch.validateTransactionState:true}" />
 		</bean>
 
 		<bean class="org.springframework.xd.dirt.plugins.job.DistributedJobService">

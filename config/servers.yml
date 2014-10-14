@@ -53,6 +53,13 @@
 #  batch:
 #    initializer:
 #       enabled: false
+# Configure other Spring Batch repository values.  Most are typically not needed
+#       isolationLevel: ISOLATION_SERIALIZABLE
+#       clobType:
+#       dbType:
+#       maxVarcharLength: 2500
+#       tablePrefix: BATCH_
+#       validateTransactionState: true
 
 ---
 #Config for singlenode.

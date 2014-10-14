@@ -107,7 +107,7 @@ public class PagingUtilityTests {
 	public void testInvalidPageWithEmptyCollection() {
 		int sliceSize = 2;
 		PageRequest pageable = new PageRequest(5, sliceSize);
-		pagingUtility.getPagedData(pageable, Collections.emptyList());
+		pagingUtility.getPagedData(pageable, Collections.<String> emptyList());
 	}
 
 	/**

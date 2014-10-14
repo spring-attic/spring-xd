@@ -989,18 +989,20 @@ project('spring-xd-integration-test') {
 		compile ("org.apache.hadoop:hadoop-client:$hadoop22Version")
 		compile "com.google.guava:guava:$oldGuavaVersion"
 		compile ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
-		testCompile "mysql:mysql-connector-java"
+ 		testCompile "mysql:mysql-connector-java"
 		testCompile "commons-collections:commons-collections"
 		testCompile "org.springframework.shell:spring-shell:$springShellVersion"
 		testCompile "org.springframework.boot:spring-boot-autoconfigure"
 		testCompile "org.springframework:spring-web"
 		testCompile "org.springframework:spring-jms"
+		testCompile "org.springframework.data:spring-data-gemfire"
 		testCompile ("org.springframework.data:spring-data-hadoop") {
 				exclude group: 'org.apache.hadoop'
 		}
 		runtime "log4j:log4j",
 				"org.slf4j:jcl-over-slf4j",
 				"org.slf4j:slf4j-log4j12"
+
 		testCompile ("org.apache.ftpserver:ftpserver-core:${apacheFtpServerVersion}")
 	}
 

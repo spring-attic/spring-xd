@@ -24,11 +24,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import javax.net.ssl.SSLException;
 
+import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Marius Bogoevici
@@ -37,16 +41,30 @@ import org.springframework.web.client.RestClientException;
 @WithSpringConfigLocation("classpath:org/springframework/xd/dirt/security/defaultSecurity.yml")
 public class SingleNodeApplicationWithDefaultSecurityTest extends AbstractSingleNodeApplicationSecurityTest {
 
+	@ClassRule
+	public static SpringXdResource springXdResource = new SpringXdResource();
+
+	private RestTemplate restTemplate;
+
+	@Before
+	public void setUpRestTemplate() throws Exception {
+		SimpleClientHttpRequestFactory simpleClientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+		// set this value as low as possible, since we're connecting locally
+		simpleClientHttpRequestFactory.setConnectTimeout(500);
+		simpleClientHttpRequestFactory.setReadTimeout(2000);
+		restTemplate = new RestTemplate(simpleClientHttpRequestFactory);
+	}
+
 	@Test
 	public void testModuleEndpointIsNotSecuredByDefault() throws Exception {
-        mockMvc()
+        springXdResource.getMockMvc()
 				.perform(get("/modules"))
 				.andExpect(status().isOk());
 	}
 
 	@Test
 	public void testManagementEndpointIsNotSecuredByDefault() throws Exception {
-		mockMvc()
+		springXdResource.getMockMvc()
 				.perform(get("/management/metrics"))
 				.andExpect(status().isOk());
 	}
@@ -54,13 +72,13 @@ public class SingleNodeApplicationWithDefaultSecurityTest extends AbstractSingle
 	@Test
 	public void testSslNotEnabledByDefaultForAdminEndpoints() throws Exception {
 		try {
-			restTemplate.getForEntity("https://localhost" + ":" + adminPort() + "/modules", Object.class);
+			restTemplate.getForEntity("https://localhost" + ":" + springXdResource.getAdminPort() + "/modules", Object.class);
 		} catch (RestClientException e) {
 			// the request fails because the protocol is not HTTPS
 			assertThat(e.getCause(), instanceOf(SSLException.class));
 		}
 		// HTTP, however, succeeds
-		ResponseEntity<Object> responseEntity = restTemplate.getForEntity("http://localhost" + ":" + adminPort() + "/modules", Object.class);
+		ResponseEntity<Object> responseEntity = restTemplate.getForEntity("http://localhost" + ":" + springXdResource.getAdminPort() + "/modules", Object.class);
 		assertThat(responseEntity.getStatusCode(), equalTo(HttpStatus.OK));
 	}
 
@@ -68,12 +86,12 @@ public class SingleNodeApplicationWithDefaultSecurityTest extends AbstractSingle
 	public void testSslNotEnabledByDefaultForManagementEndpoints() throws Exception {
 		try {
 			// the request fails because the protocol is not HTTPS
-			restTemplate.getForEntity("https://localhost" + ":" + adminPort() + "/management/metrics", Object.class);
+			restTemplate.getForEntity("https://localhost" + ":" + springXdResource.getAdminPort() + "/management/metrics", Object.class);
 		} catch (RestClientException e) {
 			assertThat(e.getCause(), instanceOf(SSLException.class));
 		}
 		// HTTP, however, succeeds
-		ResponseEntity<Object> responseEntity = restTemplate.getForEntity("http://localhost" + ":" + adminPort() + "/management/metrics", Object.class);
+		ResponseEntity<Object> responseEntity = restTemplate.getForEntity("http://localhost" + ":" + springXdResource.getAdminPort() + "/management/metrics", Object.class);
 		assertThat(responseEntity.getStatusCode(), equalTo(HttpStatus.OK));
 	}
 }

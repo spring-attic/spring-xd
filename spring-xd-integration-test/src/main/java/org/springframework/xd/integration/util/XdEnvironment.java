@@ -25,6 +25,7 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
+import com.mongodb.MongoClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,11 +37,8 @@ import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.util.ClassUtils;
 
-import com.mongodb.MongoClient;
-
 /**
  * Extracts the host and port information for the XD Instances.
- *
  * Assumes that the host that runs the RabbitMQ broker is the same host that runs the admin server.
  *
  * @author Glenn Renfro
@@ -145,6 +143,12 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	@Value("${dfs.datanode.http.port:50075}")
 	private String dataNodePort;
 
+	@Value("${gemfire.host}")
+	private String gemfireHost;
+
+	@Value("${gemfire.port}")
+	private int gemfirePort;
+
 	private Properties artifactProperties;
 
 	/**
@@ -171,9 +175,8 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		dataSource = new SimpleDriverDataSource();
 		rabbitConnectionFactory = new CachingConnectionFactory(adminServerUrl.getHost());
 		try {
-			@SuppressWarnings("unchecked")
-			Class<? extends Driver> classz = (Class<? extends Driver>) ClassUtils.forName(jdbcDriver,
-					beanClassLoader);
+			@SuppressWarnings("unchecked") Class<? extends Driver> classz =
+					(Class<? extends Driver>) ClassUtils.forName(jdbcDriver, beanClassLoader);
 			dataSource.setDriverClass(classz);
 		}
 		catch (ClassNotFoundException e) {
@@ -317,6 +320,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	/**
 	 * The mongo db factory to be used for the tests.
+	 *
 	 * @return The current mongoDbFactory instance.
 	 */
 	public MongoDbFactory getMongoDbFactory() {
@@ -325,6 +329,7 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	/**
 	 * Retrieves the host where the mongo server is running.
+	 *
 	 * @return the mongo host
 	 */
 	public String getMongoHost() {
@@ -333,10 +338,28 @@ public class XdEnvironment implements BeanClassLoaderAware {
 
 	/**
 	 * Retrieves the port that the mongo server is monitoring.
+	 *
 	 * @return the mongo server port.
 	 */
 	public String getMongoPort() {
 		return mongoPort;
 	}
 
+	/**
+	 * Retrieves the Gemfire host.
+	 *
+	 * @return the host
+	 */
+	public String getGemfireHost() {
+		return gemfireHost;
+	}
+
+	/**
+	 * Retrieves the Gemfire port.
+	 *
+	 * @return the port
+	 */
+	public int getGemfirePort() {
+		return gemfirePort;
+	}
 }

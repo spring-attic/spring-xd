@@ -8,31 +8,21 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<int:channel id="output" />
+	<import resource="../../../common/gemfire-source.xml"/>
 
-	<gfe:client-cache id="client-cache"
-		use-bean-factory-locator="false" close="false" />
-	<gfe:client-region id="region" cache-ref="client-cache"
-		name="${regionName}" data-policy="EMPTY">
-		<gfe:key-interest>
-			<bean id="key" class="java.lang.String">
-				<constructor-arg value="ALL_KEYS" />
-			</bean>
-		</gfe:key-interest>
-	</gfe:client-region>
-	
-	<int-gfe:inbound-channel-adapter
-		region="region" channel="output" expression="${cacheEventExpression}" />
+	<beans>
+		<int:channel id="output" />
 
-	<beans profile="use-server">
-		<gfe:pool subscription-enabled="true">
-			<gfe:server host="${host}" port="${port}" />
-		</gfe:pool>
-	</beans>
+		<gfe:client-region id="region" cache-ref="client-cache"
+					   name="${regionName}" data-policy="EMPTY">
+			<gfe:key-interest>
+				<bean id="key" class="java.lang.String">
+					<constructor-arg value="ALL_KEYS" />
+				</bean>
+			</gfe:key-interest>
+		</gfe:client-region>
 
-	<beans profile="use-locator">
-		<gfe:pool subscription-enabled="true">
-			<gfe:locator host="${host}" port="${port}" />
-		</gfe:pool>
-	</beans>
+		<int-gfe:inbound-channel-adapter
+			region="region" channel="route-on-data-type" expression="${cacheEventExpression}" />
+		</beans>
 </beans>

@@ -18,6 +18,7 @@ package org.springframework.xd.integration.fixtures;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.util.XdEnvironment;
+import org.springframework.xd.test.fixtures.GemFireServerSink;
 import org.springframework.xd.test.fixtures.HdfsSink;
 import org.springframework.xd.test.fixtures.JdbcSink;
 import org.springframework.xd.test.fixtures.LogSink;
@@ -155,6 +156,16 @@ public class Sinks {
 	 */
 	public RabbitSink rabbit(String routingKey) {
 		return RabbitSink.withDefaults();
+	}
+
+	/**
+	 * Construct a new GemfireServer sink.
+	 *
+	 * @param region the name of the region bound to this sink
+	 * @return an instance of {@link org.springframework.xd.test.fixtures.GemFireServerSink}
+	 */
+	public GemFireServerSink gemfireServer(String region) {
+		return new GemFireServerSink(region).host(environment.getGemfireHost()).port(environment.getGemfirePort());
 	}
 
 }

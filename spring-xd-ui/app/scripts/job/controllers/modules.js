@@ -27,12 +27,10 @@ define(['model/pageable'], function (Pageable) {
       $scope.pagination = {
         current: 1
       };
-
       $scope.pageChanged = function(newPage) {
         $scope.pageable.pageNumber = newPage-1;
         getJobModules($scope.pageable);
       };
-
       function getJobModules(pageable) {
         utils.$log.info('pageable', pageable);
         var jobModulesPromise = jobModuleService.getAllModules(pageable).$promise;

@@ -16,9 +16,9 @@
 
 package org.springframework.integration.x.http;
 
-import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -37,6 +37,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
@@ -60,13 +62,18 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import org.jboss.netty.handler.logging.LoggingHandler;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.jboss.netty.logging.CommonsLoggerFactory;
+import org.jboss.netty.logging.InternalLoggerFactory;
+import org.jboss.netty.util.internal.StringUtil;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.MediaType;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -76,8 +83,11 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Jennifer Hickey
  * @author Gary Russell
+ * @author Marius Bogoevici
  */
 public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
+
+	private static Log logger = LogFactory.getLog(NettyHttpInboundChannelAdapter.class);
 
 	/**
 	 * Default max number of threads for the default {@link Executor}
@@ -104,6 +114,13 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	private volatile Executor executor = new OrderedMemoryAwareThreadPoolExecutor(DEFAULT_CORE_POOL_SIZE,
 			DEFAULT_MAX_CHANNEL_MEMORY_SIZE, DEFAULT_MAX_TOTAL_MEMORY_SIZE);
+
+	private boolean verboseLogging;
+
+	static {
+		// Use commons-logging for Netty logging
+		InternalLoggerFactory.setDefaultFactory(new CommonsLoggerFactory());
+	}
 
 	/**
 	 * Properties file containing keyStore=[resource], keyStore.passPhrase=[passPhrase]
@@ -137,6 +154,10 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	 */
 	public void setSslPropertiesLocation(Resource sslPropertiesLocation) {
 		this.sslPropertiesLocation = sslPropertiesLocation;
+	}
+
+	public void setVerboseLogging(boolean nettyLogging) {
+		this.verboseLogging = nettyLogging;
 	}
 
 	@Override
@@ -190,6 +211,9 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 			if (NettyHttpInboundChannelAdapter.this.ssl) {
 				configureSSL(pipeline);
 			}
+			if (verboseLogging) {
+				pipeline.addLast("logger", new LoggingHandler());
+			}
 			pipeline.addLast("decoder", new HttpRequestDecoder());
 			pipeline.addLast("aggregator", new HttpChunkAggregator(1024 * 1024));
 			pipeline.addLast("encoder", new HttpResponseEncoder());
@@ -205,6 +229,9 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Received HTTP request:\n" + indent(e.getMessage().toString()));
+			}
 			HttpRequest request = (HttpRequest) e.getMessage();
 			ChannelBuffer content = request.getContent();
 			Charset charsetToUse = null;
@@ -237,7 +264,11 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 						builder = getMessageBuilderFactory().withPayload(content.toString(charsetToUse));
 					}
 					builder.copyHeaders(messageHeaders);
-					sendMessage(builder.build());
+					Message<?> message = builder.build();
+					if (logger.isDebugEnabled()) {
+						logger.debug("Sending message: " + message);
+					}
+					sendMessage(message);
 				}
 				catch (Exception ex) {
 					logger.error("Error sending message", ex);
@@ -258,11 +289,21 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 				response.setHeader(CONTENT_LENGTH, response.getContent().readableBytes());
 				response.setHeader(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("Sending HTTP response:\n" + indent(response.toString()));
+			}
 			ChannelFuture future = channel.write(response);
 			if (!keepAlive) {
 				future.addListener(ChannelFutureListener.CLOSE);
 			}
 		}
+	}
+
+	/**
+	 * Indents the content of a multi-line string - used mainly for allowing the pretty display of Netty {@code toString()} output/
+	 */
+	private static String indent(String s) {
+		return "\t"+ s.replace(StringUtil.NEWLINE, StringUtil.NEWLINE + "\t");
 	}
 
 }

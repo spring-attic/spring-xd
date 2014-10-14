@@ -13,6 +13,7 @@
 		<beans:property name="autoStartup" value="false"/>
 		<beans:property name="outputChannel" ref="output"/>
 		<beans:property name="sslPropertiesLocation" value="${sslPropertiesLocation}"/>
+		<beans:property name="verboseLogging" value="${verboseLogging:#{false}}"/>
 	</beans:bean>
 
 	<channel id="output"/>

@@ -17,6 +17,7 @@
 package org.springframework.xd.integration.test;
 
 import org.junit.Test;
+import java.util.UUID;
 
 
 /**
@@ -38,7 +39,6 @@ public class ProcessorTest extends AbstractIntegrationTest {
 	private final static String TO_SPEL_CHANNEL_NAME = "to.spel";
 
 	private final static String TO_SCRIPT_CHANNEL_NAME = "to.script";
-
 
 	/**
 	 * Evaluates that a single data entry of "BAD" is filtered out and not stored. Verifies that the correct elements of
@@ -73,5 +73,62 @@ public class ProcessorTest extends AbstractIntegrationTest {
 		assertValid(filterContent, sinks.file());
 		assertReceived(1);
 	}
+
+	/**
+	 * Tests that a json string is written to file if it meets the filter criteria.
+	 */
+	@Test
+	public void testJsonFilter() {
+		String lastName = UUID.randomUUID().toString();
+		String goodData = "{\"firstName\":\"good\", \"lastName\":\"g" + lastName + "\"}";
+		String badData = "{\"firstName\":\"bad\", \"lastName\":\"b" + lastName + "\"}";
+
+		stream(sources.http() + XD_DELIMITER
+				+ " filter --expression=#jsonPath(payload,'$.firstName').contains('"
+				+ "good') " + XD_DELIMITER
+				+ sinks.file());
+
+		sources.http(getContainerHostForSource()).postData(goodData);
+		sources.http(getContainerHostForSource()).postData(badData);
+
+		assertValid(goodData, sinks.file());
+		assertReceived(1);
+	}
+
+	/**
+	 * Tests Multiple Filters with tags in the same stream.
+	 */
+	@Test
+	public void testMultipleFilters() {
+		String idBase = UUID.randomUUID().toString();
+		String goodBadText = "{\"id\":A" + idBase
+				+ ",\"entities\":{\"hashtags\":[{\"text\":\"good\"},"
+				+ "{\"text\":\"bad\"}],\"urls\":[]}}";
+		String goodGoodText = "{\"id\":B" + idBase
+				+ ",\"entities\":{\"hashtags\":[{\"text\":\"good\"},"
+				+ "{\"text\":\"good\"}],\"urls\":[]}}";
+		String badBadText = "{\"id\":C" + idBase
+				+ ", \"entities\":{\"hashtags\":[{\"text\":\"bad\"},"
+				+ "{\"text\":\"bad\"}],\"urls\":[]}}'";
+
+		stream(sources.http() + XD_DELIMITER
+				+ " good: filter --expression=#jsonPath(payload,'$.entities.hashtags[*]."
+				+ "text').contains('good') "
+				+ XD_DELIMITER + " aftergood: filter --expression=true "
+				+ XD_DELIMITER + " bad:  filter --expression=#jsonPath(payload,'$."
+				+ "entities.hashtags[*].text').contains('bad') "
+				+ XD_DELIMITER
+				+ " goodandbad: splitter --expression=#jsonPath(payload,'$.id') "
+				+ XD_DELIMITER + sinks.file());
+
+		sources.http(getContainerHostForSource()).postData(goodBadText);
+		sources.http(getContainerHostForSource()).postData(goodGoodText);
+		sources.http(getContainerHostForSource()).postData(badBadText);
+
+		assertValid("A" + idBase, sinks.file());
+		assertReceived(1);
+
+	}
+
 
 }

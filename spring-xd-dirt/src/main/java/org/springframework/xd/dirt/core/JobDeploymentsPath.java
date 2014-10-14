@@ -99,8 +99,7 @@ public class JobDeploymentsPath {
 
 	/**
 	 * Construct a {@code JobDeploymentsPath}. Use of this constructor
-	 * means that a path will be created via {@link #build()} or
-	 * {@link #buildWithNamespace()}.
+	 * means that a path will be created via {@link #build()}.
 	 */
 	public JobDeploymentsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;

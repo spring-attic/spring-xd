@@ -99,7 +99,7 @@ public class ModuleDeploymentsPath {
 
 	/**
 	 * Construct a {@code DeploymentsPath}. Use of this constructor means that a path will be created via
-	 * {@link #build()} or {@link #buildWithNamespace()}.
+	 * {@link #build()}.
 	 */
 	public ModuleDeploymentsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;

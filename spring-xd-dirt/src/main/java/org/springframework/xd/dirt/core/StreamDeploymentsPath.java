@@ -97,8 +97,7 @@ public class StreamDeploymentsPath {
 
 	/**
 	 * Construct a {@code StreamDeploymentsPath}. Use of this constructor
-	 * means that a path will be created via {@link #build()} or
-	 * {@link #buildWithNamespace()}.
+	 * means that a path will be created via {@link #build()}.
 	 */
 	public StreamDeploymentsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;

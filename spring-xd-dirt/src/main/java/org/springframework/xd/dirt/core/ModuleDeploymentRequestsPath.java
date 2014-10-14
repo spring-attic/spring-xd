@@ -83,7 +83,7 @@ public class ModuleDeploymentRequestsPath {
 
 	/**
 	 * Construct a {@code ModuleDeploymentRequestsPath}.
-	 * Use of this constructor means that a path will be created via {@link #build()} or {@link #buildWithNamespace()}.
+	 * Use of this constructor means that a path will be created via {@link #build()}.
 	 */
 	public ModuleDeploymentRequestsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;

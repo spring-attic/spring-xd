@@ -23,15 +23,28 @@ import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
+ * Repository for rich-gauges backed by Redis.
+ *
  * @author Luke Taylor
  */
 public final class RedisRichGaugeRepository extends
-AbstractRedisMetricRepository<RichGauge, String> implements RichGaugeRepository {
+		AbstractRedisMetricRepository<RichGauge, String> implements RichGaugeRepository {
 
 	private static final String ZERO = serialize(new RichGauge("zero"));
 
 	public RedisRichGaugeRepository(RedisConnectionFactory connectionFactory) {
 		super(connectionFactory, "richgauges.");
+	}
+
+	private static String serialize(RichGauge g) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(Double.toString(g.getValue())).append(" ");
+		sb.append(Double.toString(g.getAlpha())).append(" ");
+		sb.append(Double.toString(g.getAverage())).append(" ");
+		sb.append(Double.toString(g.getMax())).append(" ");
+		sb.append(Double.toString(g.getMin())).append(" ");
+		sb.append(Long.toString(g.getCount()));
+		return sb.toString();
 	}
 
 	@Override
@@ -44,17 +57,6 @@ AbstractRedisMetricRepository<RichGauge, String> implements RichGaugeRepository 
 	}
 
 	@Override
-	public void setValue(String name, double value, double alpha) {
-		String key = getMetricKey(name);
-		RichGauge g = findOne(name);
-		if (g == null) {
-			g = new RichGauge(name);
-		}
-		MetricUtils.setRichGaugeValue(g, value, alpha);
-		getValueOperations().set(key, serialize(g));
-	}
-
-	@Override
 	String defaultValue() {
 		return ZERO;
 	}
@@ -64,15 +66,15 @@ AbstractRedisMetricRepository<RichGauge, String> implements RichGaugeRepository 
 		return serialize(metric);
 	}
 
-	private static String serialize(RichGauge g) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(Double.toString(g.getValue())).append(" ");
-		sb.append(Double.toString(g.getAlpha())).append(" ");
-		sb.append(Double.toString(g.getAverage())).append(" ");
-		sb.append(Double.toString(g.getMax())).append(" ");
-		sb.append(Double.toString(g.getMin())).append(" ");
-		sb.append(Long.toString(g.getCount()));
-		return sb.toString();
+	@Override
+	public void setValue(String name, double value, double alpha) {
+		String key = getMetricKey(name);
+		RichGauge g = findOne(name);
+		if (g == null) {
+			g = new RichGauge(name);
+		}
+		MetricUtils.setRichGaugeValue(g, value, alpha);
+		getValueOperations().set(key, serialize(g));
 	}
 
 	@Override

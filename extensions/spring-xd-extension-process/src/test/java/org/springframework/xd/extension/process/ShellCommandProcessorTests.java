@@ -48,17 +48,17 @@ public class ShellCommandProcessorTests {
 	}
 
 	@Test
-	public void testConsumingInitialOutput() throws Exception {
-		scp = new ShellCommandProcessor(serializer, "python src/test/resources/echo.py -v");
+	public void echoTest() throws Exception {
+		scp = new ShellCommandProcessor(serializer, "python src/test/resources/echo.py");
 		scp.afterPropertiesSet();
 		scp.start();
-		System.out.println(scp.receive());
 		doEchoTest();
 	}
 
 	@Test
-	public void testWithNoInitialOutput() throws Exception {
-		scp = new ShellCommandProcessor(serializer, "python src/test/resources/echo.py");
+	public void echoTestWithLFEncoder() throws Exception {
+		scp = new ShellCommandProcessor(new ByteArrayLfSerializer(),
+				"python src/test/resources/echo.py");
 		scp.afterPropertiesSet();
 		scp.start();
 		doEchoTest();
@@ -93,7 +93,7 @@ public class ShellCommandProcessorTests {
 
 	@Test
 	public void testError() throws Exception {
-		scp = new ShellCommandProcessor(new ByteArrayLfSerializer(), "python doesnotexist.py");
+		scp = new ShellCommandProcessor(serializer, "python doesnotexist.py");
 		scp.afterPropertiesSet();
 		scp.start();
 	}
@@ -104,5 +104,15 @@ public class ShellCommandProcessorTests {
 		assertEquals("hello", response);
 		response = scp.sendAndReceive("echo");
 		assertEquals("echo", response);
+	}
+
+	@Test
+	public void testUTF8() throws Exception {
+		scp = new ShellCommandProcessor(serializer, "python src/test/resources/echo.py");
+		scp.setCharset("UTF-8");
+		scp.afterPropertiesSet();
+		scp.start();
+		String response = scp.sendAndReceive("hello\u00F6\u00FF");
+		assertEquals("hello\u00F6\u00FF",response);
 	}
 }

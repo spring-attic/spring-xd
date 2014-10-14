@@ -27,6 +27,8 @@ import org.junit.Test;
 
 /**
  * Unit tests for the {@link MetricUtils} class.
+ *
+ * @author Eric Bottard
  */
 public class MetricUtilsTests {
 

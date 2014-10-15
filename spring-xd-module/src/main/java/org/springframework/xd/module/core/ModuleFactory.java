@@ -16,8 +16,10 @@
 
 package org.springframework.xd.module.core;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,12 +28,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
+import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
@@ -44,12 +51,14 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  *
  * @author David Turanski
  */
-public class ModuleFactory implements BeanClassLoaderAware {
+public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware {
 	private static Log log = LogFactory.getLog(ModuleFactory.class);
 
 	private volatile ClassLoader parentClassLoader;
 
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
+	private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
 
 	/**
 	 * @param moduleOptionsMetadataResolver Used to bind configured {@link ModuleOptions} to {@link Module} instances
@@ -108,8 +117,9 @@ public class ModuleFactory implements BeanClassLoaderAware {
 			log.info("creating simple module " + moduleDescriptor);
 		}
 		ModuleDefinition definition = moduleDescriptor.getModuleDefinition();
-		ClassLoader moduleClassLoader = (definition.getClasspath() == null) ? null :
-				new ParentLastURLClassLoader(definition.getClasspath(), this.parentClassLoader);
+		URL[] classpath = determineClassPath((SimpleModuleDefinition) definition);
+		ClassLoader moduleClassLoader = classpath.length == 0 ? null :
+				new ParentLastURLClassLoader(classpath, this.parentClassLoader);
 
 		Class<? extends SimpleModule> moduleClass = determineModuleClass(moduleDescriptor.getModuleDefinition());
 		Assert.notNull(moduleClass,
@@ -117,6 +127,20 @@ public class ModuleFactory implements BeanClassLoaderAware {
 						moduleDescriptor.getType()));
 		return SimpleModuleCreator
 				.createModule(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleClass);
+	}
+
+	private URL[] determineClassPath(SimpleModuleDefinition definition) {
+		try {
+			Resource[] jars = resourceLoader.getResources(definition.getLocation() + "/lib/*.jar");
+			List<URL> result = new ArrayList<URL>(jars.length);
+			for (Resource jar : jars) {
+				result.add(jar.getURL());
+			}
+			return result.toArray(new URL[jars.length]);
+		}
+		catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	private Class<? extends SimpleModule> determineModuleClass(ModuleDefinition moduleDefinition) {
@@ -186,6 +210,11 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.parentClassLoader = classLoader;
+	}
+
+	@Override
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		this.resourceLoader = (ResourcePatternResolver)resourceLoader;
 	}
 
 	static class SimpleModuleCreator {

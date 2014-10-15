@@ -74,7 +74,6 @@ public class ResourceModuleRegistryTests {
 		assertNotNull(def);
 		assertEquals(FILE_MODULE_NAME, def.getName());
 		assertEquals(ModuleType.sink, def.getType());
-		assertEquals(1, def.getClasspath().length);
 	}
 
 	@Test

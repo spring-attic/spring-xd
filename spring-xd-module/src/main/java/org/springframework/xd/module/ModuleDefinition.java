@@ -43,8 +43,6 @@ public class ModuleDefinition implements Comparable<ModuleDefinition> {
 
 	private volatile String definition;
 
-	private volatile URL[] classpath;
-
 	/**
 	 * If a composed module, the list of modules
 	 */
@@ -72,7 +70,6 @@ public class ModuleDefinition implements Comparable<ModuleDefinition> {
 		this.resource = resource;
 		this.name = name;
 		this.type = type;
-		this.classpath = classpath != null && classpath.length > 0 ? classpath : null;
 	}
 
 	/**
@@ -116,17 +113,6 @@ public class ModuleDefinition implements Comparable<ModuleDefinition> {
 
 	public void setDefinition(String definition) {
 		this.definition = definition;
-	}
-
-	public URL[] getClasspath() {
-		return classpath;
-	}
-
-	@Override
-	public String toString() {
-		int nbJars = getClasspath() == null ? 0 : getClasspath().length;
-		return String.format("%s[%s:%s with %d jars at %s]", getClass().getSimpleName(), getType(), getName(), nbJars,
-				getResource().getDescription());
 	}
 
 	/**

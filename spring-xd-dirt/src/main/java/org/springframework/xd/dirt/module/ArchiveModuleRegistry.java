@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.module;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -40,7 +41,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
     private final static String[] SUFFIXES = new String[]{"", ".jar"};
 
     private String root;
-    private ResourcePatternResolver resolver;
+    private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver() ;
 
     public ArchiveModuleRegistry(String root) {
         this.root = StringUtils.trimTrailingCharacter(root, '/');

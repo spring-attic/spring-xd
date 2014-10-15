@@ -17,6 +17,7 @@
 package org.springframework.xd.module.options;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,10 +28,14 @@ import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
@@ -54,7 +59,9 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  *
  * @author Eric Bottard
  */
-public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver {
+public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, ResourceLoaderAware {
+
+	private ResourcePatternResolver resourceLoader;
 
 
 	private static final Pattern DESCRIPTION_KEY_PATTERN = Pattern.compile("^options\\.([a-zA-Z\\-_0-9]+)\\.description$");
@@ -171,10 +178,15 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 	private ModuleOptionsMetadata resolveNormalMetadata(ModuleDefinition definition) {
 		try {
-			ClassLoader classLoaderToUse = definition.getClasspath() != null
-					? new ParentLastURLClassLoader(definition.getClasspath(),
+
+			URL[] classpath = determineClassPath((SimpleModuleDefinition) definition);
+
+			ClassLoader classLoaderToUse = classpath.length > 0
+					? new ParentLastURLClassLoader(classpath,
 							ModuleOptionsMetadataResolver.class.getClassLoader())
 					: ModuleOptionsMetadataResolver.class.getClassLoader();
+
+
 			Resource propertiesResource = definition.getResource().createRelative(
 					definition.getName() + ".properties");
 			if (!propertiesResource.exists()) {
@@ -238,4 +250,23 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 	}
 
+	private URL[] determineClassPath(SimpleModuleDefinition definition) {
+		try {
+			Resource[] jars = resourceLoader.getResources(definition.getLocation() + "/lib/*.jar");
+			List<URL> result = new ArrayList<URL>(jars.length);
+			for (Resource jar : jars) {
+				result.add(jar.getURL());
+			}
+			return result.toArray(new URL[jars.length]);
+		}
+		catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+
+	@Override
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		this.resourceLoader = (ResourcePatternResolver) resourceLoader;
+	}
 }

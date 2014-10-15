@@ -15,6 +15,8 @@
  */
 package org.springframework.xd.module;
 
+import java.net.URL;
+
 /**
  * A module definition for a "simple", single module whose code and supporting resources
  * can be located somewhere.
@@ -39,7 +41,7 @@ public class SimpleModuleDefinition extends ModuleDefinition {
         return location;
     }
 
-    @Override
+	@Override
     public String toString() {
         return String.format("%s[%s]", getClass().getSimpleName(), location);
     }

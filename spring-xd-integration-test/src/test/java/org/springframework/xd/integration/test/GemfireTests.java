@@ -22,57 +22,103 @@ import com.gemstone.gemfire.cache.Region;
 import com.gemstone.gemfire.cache.client.ClientCache;
 import com.gemstone.gemfire.cache.client.ClientCacheFactory;
 import com.gemstone.gemfire.cache.client.ClientRegionShortcut;
+import com.gemstone.gemfire.pdx.JSONFormatter;
 import com.gemstone.gemfire.pdx.PdxInstance;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
-
-import org.springframework.xd.test.fixtures.GemfireServerSink;
 
 /**
  * @author David Turanski
  */
 public class GemfireTests extends AbstractIntegrationTest {
-	//TODO should come from XDEnvironment
-	private static String gemfireServerHost = "ec2-184-73-124-92.compute-1.amazonaws.com";
-	private static int gemfireServerPort = 40404;
 
-	private static ClientCache clientCache;
-	private static Region<?,?> stocks;
 
-	@BeforeClass
-	static public void setUp() {
-		 clientCache = new ClientCacheFactory().addPoolServer(gemfireServerHost,
-				gemfireServerPort).create();
-		 stocks = clientCache.createClientRegionFactory(ClientRegionShortcut.PROXY).create
-				("Stocks");
-		if (stocks.containsKey("gftest1")) {
-			stocks.destroy("gftest1");
+	private ClientCache clientCache;
+
+	private Region<Object, Object> stocks;
+
+	private String streamName = "gftest";
+
+	@Before
+	public void setUp() {
+		clientCache =
+				new ClientCacheFactory().addPoolServer(xdEnvironment.getGemfireHost(), xdEnvironment.getGemfirePort())
+						.create();
+		stocks = clientCache.getRegion("/Stocks");
+		if (stocks == null) {
+			stocks = clientCache.createClientRegionFactory(ClientRegionShortcut.PROXY).create("Stocks");
 		}
-		if (stocks.containsKey("gftest2")) {
-			stocks.destroy("gftest2");
-		}
+		assertNotNull("client region not created.", stocks);
+		stocks.clear();
+
 	}
+
 	@Test
 	public void testBasicGemfireSink() throws InterruptedException {
-		stream("gftest1", sources.http() + XD_DELIMITER + new GemfireServerSink("Stocks").host(gemfireServerHost)
-				.port(gemfireServerPort));
+		stream(streamName, sources.http() + XD_DELIMITER + sinks.gemfireServer("Stocks"));
 		String data = "foo";
-		sources.http(getContainerHostForSource("gftest1")).postData(data);
-		Thread.sleep(1000);
-		String cachedData = (String) stocks.get("gftest1");
-		assertEquals(data,cachedData);
+		sources.http(getContainerHostForSource(streamName)).postData(data);
+		waitForCacheUpdate(streamName);
+		String cachedData = (String) stocks.get(streamName);
+		assertEquals(data, cachedData);
 	}
 
 	@Test
 	public void testGemfireJsonSink() throws InterruptedException {
-		stream("gftest2", sources.http() + XD_DELIMITER + new GemfireServerSink("Stocks").json(true).host
-				(gemfireServerHost).port(gemfireServerPort));
+		stream(streamName, sources.http() + XD_DELIMITER + sinks.gemfireServer("Stocks").json(true));
 		String data = "{\"foo\":\"foo\"}";
-		sources.http(getContainerHostForSource("gftest2")).postData(data);
-		Thread.sleep(1000);
-		Object cachedData = stocks.get("gftest2");
+		sources.http(getContainerHostForSource(streamName)).postData(data);
+		waitForCacheUpdate(streamName);
+		Object cachedData = stocks.get(streamName);
+
 		assertNotNull(cachedData);
 		assertTrue(cachedData instanceof PdxInstance);
-		assertEquals("foo",((PdxInstance)cachedData).getField("foo"));
+		assertEquals("foo", ((PdxInstance) cachedData).getField("foo"));
+	}
+
+	@Test
+	public void testGemfireSourceWithJsonObject() throws InterruptedException {
+		stream(sources.gemFireSource("Stocks") + XD_DELIMITER + sinks.file());
+
+		String data = "{\"symbol\":\"FAKE\",\"price\":73}";
+
+		stocks.put("FAKE", JSONFormatter.fromJSON(data));
+		waitForCacheUpdate("FAKE");
+
+		assertValid(data, sinks.file());
+	}
+
+	@Test
+	public void testGemfireSourceWithString() throws InterruptedException {
+		stream(sources.gemFireSource("Stocks") + XD_DELIMITER + sinks.file());
+
+		String data = "{\"symbol\":\"FAKE\",\"price\":73}";
+
+		stocks.put("FAKE", data);
+		waitForCacheUpdate("FAKE");
+
+		assertValid(data, sinks.file());
+	}
+
+	@Test
+	public void testGemfireCQSourceWithJsonObject() throws InterruptedException {
+		String query = "'Select * from /Stocks where symbol=''FAKE'''";
+		stream(sources.gemFireSource("Stocks") + XD_DELIMITER + sinks.file());
+
+		String data = "{\"symbol\":\"FAKE\",\"price\":73}";
+
+		stocks.put("FAKE", JSONFormatter.fromJSON(data));
+		waitForCacheUpdate("FAKE");
+		assertValid(data, sinks.file());
+	}
+
+
+	private void waitForCacheUpdate(Object key) throws InterruptedException {
+		final long timeout = 5000;
+		long waittime = 0;
+		while (stocks.get(key) == null && waittime < timeout) {
+			Thread.sleep(100);
+			waittime += 100;
+		}
 	}
 }

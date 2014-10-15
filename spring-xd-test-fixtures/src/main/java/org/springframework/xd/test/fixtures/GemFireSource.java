@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.xd.test.fixtures;
 
 import org.springframework.util.Assert;
 
 /**
- * Create a gemfire-server or gemfire-json-server sink.
+ * Create a gemfire source
  *
  * @author David Turanski
  */
-public class GemFireServerSink extends AbstractModuleFixture<GemFireServerSink> {
-	private boolean json;
-
+public class GemFireSource extends AbstractModuleFixture<GemFireSource> {
 	private boolean useLocator;
 
 	private String host = "localhost";
@@ -34,27 +31,16 @@ public class GemFireServerSink extends AbstractModuleFixture<GemFireServerSink> 
 
 	private final String region;
 
-	private String keyExpression;
+	private String cacheEventExpression;
 
 	/**
 	 * Create a Gemfire Sink module.
 	 *
 	 * @param region the name of the region to use for this stream. The region must exist on the server.
 	 */
-	public GemFireServerSink(String region) {
+	public GemFireSource(String region) {
 		super();
 		this.region = region;
-	}
-
-	/**
-	 * Configure this to use GemFire JSON representation, i.e., create a gemfire-json-server sink.
-	 *
-	 * @param json true if using gemfire-json-server, false for gemfire-server.
-	 * @return this
-	 */
-	public GemFireServerSink json(boolean json) {
-		this.json = json;
-		return this;
 	}
 
 	/**
@@ -63,7 +49,7 @@ public class GemFireServerSink extends AbstractModuleFixture<GemFireServerSink> 
 	 * @param useLocator true if using a locator. Default is false.
 	 * @return this
 	 */
-	public GemFireServerSink useLocator(boolean useLocator) {
+	public GemFireSource useLocator(boolean useLocator) {
 		this.useLocator = useLocator;
 		return this;
 	}
@@ -74,7 +60,7 @@ public class GemFireServerSink extends AbstractModuleFixture<GemFireServerSink> 
 	 * @param host the host. Default is localhost
 	 * @return this
 	 */
-	public GemFireServerSink host(String host) {
+	public GemFireSource host(String host) {
 		Assert.hasLength(host, "'host' must not be empty or null");
 		this.host = host;
 		return this;
@@ -86,7 +72,7 @@ public class GemFireServerSink extends AbstractModuleFixture<GemFireServerSink> 
 	 * @param port the port
 	 * @return this
 	 */
-	public GemFireServerSink port(int port) {
+	public GemFireSource port(int port) {
 		this.port = port;
 		return this;
 	}
@@ -94,24 +80,24 @@ public class GemFireServerSink extends AbstractModuleFixture<GemFireServerSink> 
 	/**
 	 * Set the cache key. Defaults to stream name
 	 *
-	 * @param keyExpression a SpEL expression evaluating the payload
+	 * @param cacheEventExpression a SpEL expression evaluating the payload
 	 * @return this
 	 */
-	public GemFireServerSink keyExpression(String keyExpression) {
-		this.keyExpression = keyExpression;
+	public GemFireSource cacheEventExpression(String cacheEventExpression) {
+		this.cacheEventExpression = cacheEventExpression;
 		return this;
 	}
 
 	@Override
 	protected String toDSL() {
 		StringBuilder dslBuilder = new StringBuilder();
-		dslBuilder.append(json ? "gemfire-json-server" : "gemfire-server");
+		dslBuilder.append("gemfire");
 		dslBuilder.append(" --useLocator=" + useLocator);
 		dslBuilder.append(" --host=" + host);
 		dslBuilder.append(" --port=" + port);
 		dslBuilder.append(" --regionName=" + region);
-		if (keyExpression != null) {
-			dslBuilder.append(" --keyExpression=" + keyExpression);
+		if (cacheEventExpression != null) {
+			dslBuilder.append(" --cacheEventExpression=" + cacheEventExpression);
 		}
 
 		return dslBuilder.toString();

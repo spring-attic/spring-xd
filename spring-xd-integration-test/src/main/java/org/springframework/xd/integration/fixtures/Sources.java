@@ -18,6 +18,8 @@ package org.springframework.xd.integration.fixtures;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.util.XdEnvironment;
+import org.springframework.xd.test.fixtures.GemFireCQSource;
+import org.springframework.xd.test.fixtures.GemFireSource;
 import org.springframework.xd.test.fixtures.JmsSource;
 import org.springframework.xd.test.fixtures.MqttSource;
 import org.springframework.xd.test.fixtures.RabbitSource;
@@ -34,7 +36,6 @@ import org.springframework.xd.test.fixtures.TwitterStreamSource;
 
 /**
  * A convenience class for creating instances of sources to be used for integration testing.
- *
  * Created with information about hosts and ports from the testing environment. Only supports one admin server and one
  * container location. The RabbitMQ broker is assumed to be at the same location as the admin server.
  *
@@ -58,6 +59,7 @@ public class Sources {
 
 	/**
 	 * Create an instance of the http source with the default target host (localhost) and default port (9000).
+	 *
 	 * @return an instance of HttpSource
 	 */
 	public SimpleHttpSource http() {
@@ -66,6 +68,7 @@ public class Sources {
 
 	/**
 	 * Create an instance of the http source with the default target host and default port (9000).
+	 *
 	 * @param host the host ip where http data will be posted.
 	 * @return an instance of HttpSource
 	 */
@@ -75,6 +78,7 @@ public class Sources {
 
 	/**
 	 * Create an instance of the http source with the default target host and provided port
+	 *
 	 * @param host the host ip where http data will be posted.
 	 * @param port the port to connect to
 	 * @return an instance of HttpSource
@@ -86,6 +90,7 @@ public class Sources {
 
 	/**
 	 * Construct a new TcpSource with the default target host localhost and port (1234)
+	 *
 	 * @return an instance of TcpSource
 	 */
 	public TcpSource tcp() {
@@ -94,6 +99,7 @@ public class Sources {
 
 	/**
 	 * Construct a new TcpSource with the default target host taken from the environment and default port (1234)
+	 *
 	 * @param host the host ip where tcp data will be posted.
 	 * @return an instance of TcpSource
 	 */
@@ -103,6 +109,7 @@ public class Sources {
 
 	/**
 	 * Construct a new TcpSource with the default target host taken from the environment and the provided port.
+	 *
 	 * @param host the host ip where tcp data will be posted.
 	 * @param port the port to connect to
 	 * @return an instance of TcpSource
@@ -115,7 +122,7 @@ public class Sources {
 	 * Construct a new SimpleTailSource with the the provided file name and delay
 	 *
 	 * @param delayInMillis on platforms that don't wait for a missing file to appear, how often (ms) to look for the
-	 *        file.
+	 * file.
 	 * @param fileName the absolute path of the file to tail
 	 * @return a tail source
 	 */
@@ -133,7 +140,8 @@ public class Sources {
 	}
 
 	/**
-	 * Construct a new MqttSource using the default RabbitMQ (MQTT-enbaled) broker host as specified in the environment.
+	 * Construct a new MqttSource using the default RabbitMQ (MQTT-enbaled) broker host as specified in the
+	 * environment.
 	 *
 	 * @return a mqtt source
 	 */
@@ -171,8 +179,9 @@ public class Sources {
 	 */
 	public TwitterSearchSource twitterSearch(String query) {
 		Assert.hasText(query, "query must not be empty nor null");
-		return TwitterSearchSource.withDefaults(xdEnvironment.getTwitterConsumerKey(),
-				xdEnvironment.getTwitterConsumerSecretKey(), query);
+		return TwitterSearchSource
+				.withDefaults(xdEnvironment.getTwitterConsumerKey(), xdEnvironment.getTwitterConsumerSecretKey(),
+						query);
 	}
 
 	/**
@@ -227,10 +236,31 @@ public class Sources {
 
 	/**
 	 * Constructs a Tap fixture.
+	 *
 	 * @param streamName The name of stream to tap
 	 * @return Tap fixture
 	 */
 	public Tap tap(String streamName) {
 		return new Tap(streamName);
+	}
+
+	/**
+	 * Constructs a new {@link org.springframework.xd.test.fixtures.GemFireSource}.
+	 *
+	 * @param region the name of the region bound to this source
+	 * @return a new instance of {@link org.springframework.xd.test.fixtures.GemFireSource}.
+	 */
+	public GemFireSource gemFireSource(String region) {
+		return new GemFireSource(region).host(xdEnvironment.getGemfireHost()).port(xdEnvironment.getGemfirePort());
+	}
+
+	/**
+	 * Constructs a new {@link org.springframework.xd.test.fixtures.GemFireCQSource}.
+	 *
+	 * @param query the OQL query string bound to this source
+	 * @return a new instance of {@link org.springframework.xd.test.fixtures.GemFireCQSource}.
+	 */
+	public GemFireCQSource gemFireCqSource(String query) {
+		return new GemFireCQSource(query).host(xdEnvironment.getGemfireHost()).port(xdEnvironment.getGemfirePort());
 	}
 }

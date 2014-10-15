@@ -30,6 +30,7 @@ import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 
@@ -65,12 +66,8 @@ public class CompositeModuleDefinitionService {
 		}
 
 		// Create ModuleDefinition instance from list of ModuleDescriptors
-		ModuleDefinition moduleDefinition = new ModuleDefinition(name, type);
-		moduleDefinition.setDefinition(definition);
 		List<ModuleDefinition> composedModuleDefinitions = createComposedModuleDefinitions(modules);
-		if (!composedModuleDefinitions.isEmpty()) {
-			moduleDefinition.setComposedModuleDefinitions(composedModuleDefinitions);
-		}
+		ModuleDefinition moduleDefinition = ModuleDefinitions.composed(name, type, definition, composedModuleDefinitions);
 
 		this.moduleDefinitionRepository.save(moduleDefinition);
 		return moduleDefinition;
@@ -81,7 +78,7 @@ public class CompositeModuleDefinitionService {
 		if (definition == null) {
 			throw new NoSuchModuleException(name, type);
 		}
-		if (definition.getDefinition() == null) {
+		if (!definition.isComposed()) {
 			throw new IllegalStateException(String.format("Cannot delete non-composed module %s:%s", type, name));
 		}
 		Set<String> dependents = this.moduleDefinitionRepository.findDependentModules(name, type);

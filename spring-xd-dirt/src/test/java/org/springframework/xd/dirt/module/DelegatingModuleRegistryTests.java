@@ -117,15 +117,6 @@ public class DelegatingModuleRegistryTests {
 		};
 	}
 
-	/**
-	 * Tests that when several delegates define the same module, the first one wins.
-	 */
-	@Test
-	public void testShadowing() {
-		ModuleDefinition def = registry.findDefinition("test-processor", processor);
-		assertThat(def.getResource(), instanceOf(ClassPathResource.class));
-	}
-
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFindByName() {

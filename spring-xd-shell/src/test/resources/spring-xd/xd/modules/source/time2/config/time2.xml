@@ -10,7 +10,7 @@
 	<inbound-channel-adapter channel="output"
 			auto-startup="false"
 			expression="@now.format(${format:'YYYY-MM-DD hh:mm:ss'})">
-		<poller fixed-delay="${fixedDelay:1}" time-unit="SECONDS"/>
+		<poller fixed-delay="1000" time-unit="SECONDS"/>
 	</inbound-channel-adapter>
 
 	<beans:bean id="tz" factory-method="getDefault" class="java.util.TimeZone" />

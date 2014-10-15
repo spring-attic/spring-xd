@@ -16,10 +16,11 @@
 
 package org.springframework.xd.module.core;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
+import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
 
 /**
@@ -27,6 +28,7 @@ import org.springframework.xd.module.options.ModuleOptions;
  * Groovy)
  *
  * @author David Turanski
+ * @author Eric Bottard
  */
 public class ResourceConfiguredModule extends SimpleModule {
 
@@ -34,19 +36,42 @@ public class ResourceConfiguredModule extends SimpleModule {
 		super(descriptor, deploymentProperties);
 	}
 
+	// Do not remove; Invoked via reflection
+	@SuppressWarnings("unused")
 	public ResourceConfiguredModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
 			ClassLoader classLoader, ModuleOptions moduleOptions) {
 		super(descriptor, deploymentProperties, classLoader, moduleOptions);
 	}
 
-	//todo: change to use interpret the resource as the root module path
-	// when ModuleDefinition is refactored (XD-2199)
+	/**
+	 * Return the resource that can be used to configure a module, or null if no such resource exists.
+	 *
+	 * @throws java.lang.IllegalStateException if both a .xml and .groovy file are present
+	 */
+	public static Resource resourceBasedConfigurationFile(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
+		Resource xml = new ClassPathResource("/config/" + moduleDefinition.getName() + ".xml", moduleClassLoader);
+		Resource groovy = new ClassPathResource("/config/" + moduleDefinition.getName() + ".groovy", moduleClassLoader);
+		boolean xmlOk = xml.exists() && xml.isReadable();
+		boolean groovyOk = groovy.exists() && groovy.isReadable();
+		if (xmlOk && groovyOk) {
+			throw new IllegalStateException(String.format("Found both resources '%s' and '%s' for module %s", xml, groovy, moduleDefinition));
+		} else if (xmlOk) {
+			return xml;
+		} else if (groovyOk) {
+			return groovy;
+		}
+		else {
+			return null;
+		}
+
+	}
+
 	@Override
-	protected void configureModuleApplicationContext(ModuleDefinition moduleDefinition) {
-		Resource resource = moduleDefinition.getResource();
-		if (resource != null && resource.exists() && resource.isReadable() &&
-				(resource.getFilename().endsWith(".xml") || resource.getFilename().endsWith(".groovy"))) {
-			addSource(moduleDefinition.getResource());
+	protected void configureModuleApplicationContext(SimpleModuleDefinition moduleDefinition) {
+		Resource source = resourceBasedConfigurationFile(moduleDefinition, getClassLoader());
+		if (source != null) {
+			addSource(source);
 		}
 	}
+
 }

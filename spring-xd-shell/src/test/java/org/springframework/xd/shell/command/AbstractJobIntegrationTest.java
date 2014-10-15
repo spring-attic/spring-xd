@@ -16,8 +16,16 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.junit.After;
 import org.junit.Before;
+
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.integration.channel.QueueChannel;
@@ -25,22 +33,10 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.shell.core.CommandResult;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.dirt.test.ResourceStateVerifier;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the jobs that were created by calling executeJobCreate
@@ -52,18 +48,6 @@ import static org.junit.Assert.assertTrue;
  * @author David Turanski
  */
 public abstract class AbstractJobIntegrationTest extends AbstractShellIntegrationTest {
-
-	private static final String MODULE_RESOURCE_DIR = "../spring-xd-shell/src/test/resources/spring-xd/xd/modules/job/";
-
-	private static final String MODULE_TARGET_DIR = "../modules/job/";
-
-	private static final String TEST_TASKLET = "test.xml";
-
-	private static final String JOB_WITH_PARAMETERS_TASKLET = "jobWithParameters.xml";
-
-	private static final String JOB_WITH_STEP_EXECUTIONS_TASKLET = "jobWithStepExecutions.xml";
-
-	private static final String JOB_WITH_PARTITIONS_TASKLET = "jobWithPartitions.xml";
 
 	public static final String MY_JOB = "myJob";
 
@@ -96,15 +80,6 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	@Before
 	public void before() {
 		this.jobStateVerifier = integrationTestSupport.jobStateVerifier();
-		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + TEST_TASKLET, MODULE_TARGET_DIR + TEST_TASKLET);
-		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARAMETERS_TASKLET, MODULE_TARGET_DIR
-				+ JOB_WITH_PARAMETERS_TASKLET);
-		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_STEP_EXECUTIONS_TASKLET, MODULE_TARGET_DIR
-				+ JOB_WITH_STEP_EXECUTIONS_TASKLET);
-		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARTITIONS_TASKLET, MODULE_TARGET_DIR
-				+ JOB_WITH_PARTITIONS_TASKLET);
-		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + NESTED_JOB_TASKLET, MODULE_TARGET_DIR
-				+ NESTED_JOB_TASKLET);
 	}
 
 	@After
@@ -294,7 +269,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				"stream create --name " + streamName + " --definition \"trigger --fixedDelay=" + fixedDelay
-				+ " > " + getJobLaunchQueue(jobName) + "\" --deploy true");
+						+ " > " + getJobLaunchQueue(jobName) + "\" --deploy true");
 		streams.add(streamName);
 		waitForJobCompletion(jobName);
 		checkForSuccess(cr);
@@ -303,32 +278,6 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	private Table listJobs() {
 		Object result = getShell().executeCommand("job list").getResult();
 		return (result instanceof Table) ? (Table) result : new Table();
-	}
-
-	private void copyTaskletDescriptorsToServer(String inFile, String outFile) {
-		File out = new File(outFile);
-		File in = new File(inFile);
-		try {
-			FileCopyUtils.copy(in, out);
-		}
-		catch (IOException ioe) {
-			assertTrue("Unable to deploy Job descriptor to server directory", out.isFile());
-		}
-		out.deleteOnExit();
-
-		// Copy the companion .properties file if it exists
-		out = new File(outFile.replaceAll("\\.xml$", ".properties"));
-		in = new File(inFile.replaceAll("\\.xml$", ".properties"));
-		if (in.exists()) {
-			try {
-				FileCopyUtils.copy(in, out);
-			}
-			catch (IOException ioe) {
-				assertTrue("Unable to deploy Job descriptor to server directory", out.isFile());
-			}
-			out.deleteOnExit();
-		}
-
 	}
 
 	protected Table listJobExecutions() {

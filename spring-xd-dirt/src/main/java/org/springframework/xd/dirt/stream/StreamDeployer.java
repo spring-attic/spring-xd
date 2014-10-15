@@ -26,6 +26,7 @@ import org.springframework.xd.dirt.stream.dsl.XDDSLMessages;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDescriptor;
 
 /**
@@ -104,7 +105,7 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 		try {
 			for (ModuleDescriptor request : parser.parse(definition.getName(), definition.getDefinition(),
 					ParsingContext.stream)) {
-				moduleDefinitions.add(new ModuleDefinition(request.getModuleName(), request.getType()));
+				moduleDefinitions.add(ModuleDefinitions.dummy(request.getModuleName(), request.getType()));
 			}
 		}
 		catch (StreamDefinitionException e) {

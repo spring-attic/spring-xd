@@ -16,12 +16,9 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,9 +34,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -48,11 +42,12 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
  * Tests REST compliance of module-related endpoints.
- * 
+ *
  * @author Glenn Renfro
  * @author Mark Fisher
  * @author Gunnar Hillert
@@ -60,7 +55,7 @@ import org.springframework.xd.module.ModuleType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
+@ContextConfiguration(classes = {RestConfiguration.class, Dependencies.class})
 public class ModulesControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Rule
@@ -77,7 +72,6 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 	@Before
 	public void before() throws IOException {
-		Resource resource = new DescriptiveResource("dummy");
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		ArrayList<ModuleDefinition> jobDefinitions = new ArrayList<ModuleDefinition>();
 		ArrayList<ModuleDefinition> processorDefinitions = new ArrayList<ModuleDefinition>();
@@ -86,23 +80,19 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 		for (int moduleCount = 0; moduleCount < 3; moduleCount++) {
 
-			ModuleDefinition moduleDefinition = new ModuleDefinition("job_" + moduleCount,
-					ModuleType.job, resource);
+			ModuleDefinition moduleDefinition = ModuleDefinitions.dummy("job_" + moduleCount, ModuleType.job);
 			moduleDefinitions.add(moduleDefinition);
 			jobDefinitions.add(moduleDefinition);
 
-			moduleDefinition = new ModuleDefinition("source_" + moduleCount,
-					ModuleType.source, resource);
+			moduleDefinition = ModuleDefinitions.dummy("source_" + moduleCount, ModuleType.source);
 			moduleDefinitions.add(moduleDefinition);
 			sourceDefinitions.add(moduleDefinition);
 
-			moduleDefinition = new ModuleDefinition("sink_" + moduleCount,
-					ModuleType.sink, resource);
+			moduleDefinition = ModuleDefinitions.dummy("sink_" + moduleCount, ModuleType.sink);
 			moduleDefinitions.add(moduleDefinition);
 			sinkDefinitions.add(moduleDefinition);
 
-			moduleDefinition = new ModuleDefinition("processor_" + moduleCount,
-					ModuleType.processor, resource);
+			moduleDefinition = ModuleDefinitions.dummy("processor_" + moduleCount, ModuleType.processor);
 			moduleDefinitions.add(moduleDefinition);
 			processorDefinitions.add(moduleDefinition);
 		}
@@ -110,8 +100,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 		final File file = temporaryFolder.newFile("job_4_with_resource.xml");
 		FileUtils.writeStringToFile(file, "This is the contents of job_4_with_resource.xml");
 
-		ModuleDefinition moduleDefinition = new ModuleDefinition("job_4_with_resource",
-				ModuleType.job, new FileSystemResource(file));
+		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("job_4_with_resource", ModuleType.job, "file:" + file.getAbsolutePath());
 		moduleDefinitions.add(moduleDefinition);
 		jobDefinitions.add(moduleDefinition);
 
@@ -187,12 +176,6 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	}
 
 	@Test
-	public void testDisplayJobConfiguration() throws Exception {
-		mockMvc.perform(get("/modules/job/job_4_with_resource/definition").accept(MediaType.APPLICATION_XML)).andExpect(
-				status().isOk()).andExpect(content().string("This is the contents of job_4_with_resource.xml"));
-	}
-
-	@Test
 	public void testListBadType() throws Exception {
 		mockMvc.perform(get("/modules").param("type", "foo").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isInternalServerError());
@@ -205,8 +188,9 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 				.param("definition", "processor_2 | sink_1")
 				.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().is(201)).andExpect(
-						jsonPath("$.name").value("compositesink")).andExpect(
-						jsonPath("$.type").value("sink"));
+				jsonPath("$.name").value("compositesink")).andExpect(
+				jsonPath("$.type").value("sink"));
+
 	}
 
 	@Test

@@ -4,7 +4,7 @@
 /.gradle/
 build
 pom.xml
-/.idea/
+.idea/
 /out/
 target/
 *.pyc

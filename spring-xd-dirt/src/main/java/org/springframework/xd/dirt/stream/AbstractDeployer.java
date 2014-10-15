@@ -42,6 +42,7 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDescriptor;
 
 /**
@@ -94,6 +95,8 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 		List<ModuleDescriptor> moduleDescriptors = parser.parse(definition.getName(),
 				definition.getDefinition(), definitionKind);
+
+		// todo: the result of parse() should already have correct (polymorphic) definitions
 		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
 		if (!moduleDefinitions.isEmpty()) {
 			definition.setModuleDefinitions(moduleDefinitions);
@@ -111,7 +114,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	private List<ModuleDefinition> createModuleDefinitions(List<ModuleDescriptor> moduleDescriptors) {
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDescriptors.size());
 		for (ModuleDescriptor moduleDescriptor : moduleDescriptors) {
-			ModuleDefinition moduleDefinition = new ModuleDefinition(moduleDescriptor.getModuleName(),
+			ModuleDefinition moduleDefinition = ModuleDefinitions.dummy(moduleDescriptor.getModuleName(),
 					moduleDescriptor.getType());
 			moduleDefinitions.add(moduleDefinition);
 		}

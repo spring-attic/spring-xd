@@ -16,17 +16,10 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
-import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.*;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.xd.test.fixtures.FileSink;
@@ -34,31 +27,16 @@ import org.springframework.xd.test.fixtures.FileSink;
 
 /**
  * Tests related to custom module packaging.
- * 
+ *
  * @author Eric Bottard
  */
 public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
-
+	//todo:What is the purpose of this test?
 	@Test
 	public void testModuleWithClasspathAfterServerStarted() throws Exception {
-		installTestModule("source", "time2");
+		//installTestModule("source", "time2");
 		FileSink fileSink = newFileSink();
-		stream().create(generateStreamName(), "time2 --fixedDelay=1000 | %s", fileSink);
-
+		stream().create(generateStreamName(), "time2 | %s", fileSink);
 		assertThat(fileSink, eventually(hasContentsThat(not(isEmptyOrNullString()))));
-	}
-
-	/**
-	 * A workaround for Windows. Once the jar is loaded it cannot be deleted.
-	 * 
-	 * @throws IOException
-	 */
-
-	@Before
-	public void cleanTestFiles() throws IOException {
-		File testModuleDir = new File("../modules/source/time2");
-		if (testModuleDir.exists()) {
-			FileUtils.deleteDirectory(testModuleDir);
-		}
 	}
 }

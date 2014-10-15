@@ -42,6 +42,9 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.module.ArchiveModuleRegistry;
+import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.test.RandomConfigurationSupport;
@@ -62,18 +65,6 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * @author Ilayaperumal Gopinathan
  */
 public abstract class AbstractShellIntegrationTest {
-
-	/**
-	 * Where test module definition assets reside, relative to this project cwd.
-	 */
-	private static final File TEST_MODULES_SOURCE = new File("src/test/resources/spring-xd/xd/modules/");
-
-	/**
-	 * Where test modules should end up, relative to this project cwd.
-	 */
-	private static final File TEST_MODULES_TARGET = new File("../modules/");
-
-	protected static final String DEFAULT_METRIC_NAME = "bar";
 
 	public static boolean SHUTDOWN_AFTER_RUN = true;
 
@@ -108,6 +99,8 @@ public abstract class AbstractShellIntegrationTest {
 			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();
+			DelegatingModuleRegistry moduleRegistry = application.containerContext().getBean(DelegatingModuleRegistry.class);
+			moduleRegistry.addDelegate(new ArchiveModuleRegistry("classpath:/spring-xd/xd/modules"));
 		}
 		if (!shell.isRunning()) {
 			shell.start();
@@ -193,38 +186,6 @@ public abstract class AbstractShellIntegrationTest {
 		CommandResult cr = getShell().executeCommand(command);
 		assertFalse("Expected command to fail.  CommandResult = " + cr.toString(), cr.isSuccess());
 		return cr;
-	}
-
-	/**
-	 * Copies over module files (including jars if this is a directory-style module) from src/test/resources to where it
-	 * will be picked up and makes sure it will disappear at test end.
-	 *
-	 * @param type the type of module, e.g. "source"
-	 * @param name the module name, with extension (e.g. time2.xml or time2 if a directory)
-	 * @throws IOException
-	 */
-	protected void installTestModule(String type, String name) throws IOException {
-		File toCopy = new File(TEST_MODULES_SOURCE, type + File.separator + name);
-		File destination = new File(TEST_MODULES_TARGET, type + File.separator + name);
-		Assert.assertFalse(
-				String.format("Destination %s already present. Make sure you're not overwriting a "
-						+ "standard module, or if this is from a previous aborted test run, please delete manually",
-						destination),
-				destination.exists());
-		toBeDeleted.add(destination);
-		if (toCopy.isDirectory()) {
-			FileUtils.copyDirectory(toCopy, destination);
-		}
-		else {
-			FileUtils.copyFile(toCopy, destination);
-		}
-	}
-
-	@After
-	public void cleanTestModuleFiles() {
-		for (File file : toBeDeleted) {
-			FileUtils.deleteQuietly(file);
-		}
 	}
 
 }

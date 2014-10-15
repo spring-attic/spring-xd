@@ -34,6 +34,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
@@ -63,7 +64,7 @@ public class DefaultContainerMatcherTests {
 
 	@Before
 	public void setUp() {
-		moduleDefinition = new ModuleDefinition("foo", ModuleType.processor);
+		moduleDefinition = ModuleDefinitions.dummy("foo", ModuleType.processor);
 		deploymentProperties = new ModuleDeploymentProperties();
 		moduleDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(moduleDefinition)

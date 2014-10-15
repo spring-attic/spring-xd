@@ -81,6 +81,7 @@ ext {
 	curatorVersion = '2.6.0'
 	equalsverifierVersion = '1.1.3'
 	ftpServerVersion = '1.0.6'
+	apacheSshdVersion = '0.10.1'
 	greenmailVersion = '1.3.1b'
 	hamcrestDateVersion = '0.9.3'
 	httpClientVersion = '4.2.5'
@@ -889,6 +890,8 @@ project('spring-xd-shell') {
 		testCompile "uk.co.modular-it:hamcrest-date:${hamcrestDateVersion}"
 		testCompile "org.springframework.integration:spring-integration-ftp"
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
+		testCompile "org.springframework.integration:spring-integration-sftp"
+		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
 	}
 
 	// skip the startScripts task to avoid default start script generation

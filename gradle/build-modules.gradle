@@ -186,6 +186,10 @@ project('modules.source.kafka') {
 	}
 }
 
+project('modules.source.sftp') {
+    dependencies { runtime      "org.springframework.integration:spring-integration-sftp" }
+}
+
 // ================ M O D U L E S : P R O C E S S O R S ================
 
 

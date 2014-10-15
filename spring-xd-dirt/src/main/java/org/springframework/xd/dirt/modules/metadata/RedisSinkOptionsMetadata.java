@@ -28,7 +28,6 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * Options metadata for Redis sink module.
  *
  * @author Ilayaperumal Gopinathan
- * @since 1.1s
  */
 @Mixin(RedisConnectionMixin.class)
 public class RedisSinkOptionsMetadata implements ProfileNamesProvider {

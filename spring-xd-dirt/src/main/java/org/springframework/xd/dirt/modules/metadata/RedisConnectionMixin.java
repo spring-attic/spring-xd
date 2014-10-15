@@ -23,7 +23,6 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Mixin for Redis connection options.
  *
  * @author Ilayaperumal Gopinathan
- * @since 1.1
  */
 public class RedisConnectionMixin {
 

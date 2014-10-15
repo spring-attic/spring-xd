@@ -41,7 +41,6 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * Integration tests for Redis sink.
  *
  * @author Ilayaperumal Gopinathan
- * @since 1.1
  */
 public class RedisSinkTests extends AbstractStreamIntegrationTest {
 

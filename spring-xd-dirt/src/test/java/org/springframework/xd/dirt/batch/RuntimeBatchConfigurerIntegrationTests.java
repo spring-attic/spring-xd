@@ -43,6 +43,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
  * @author sshcherbakov
@@ -50,7 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @ActiveProfiles(profiles = { "admin", "hsqldbServer" })
-public class RuntimeBatchConfigurerIntegrationTests {
+public class RuntimeBatchConfigurerIntegrationTests extends RandomConfigurationSupport {
 
 	@Configuration
 	@ImportResource("classpath:/META-INF/spring-xd/batch/batch.xml")

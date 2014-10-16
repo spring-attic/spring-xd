@@ -788,10 +788,6 @@ project('spring-xd-ui') {
 		delete 'app/lib'
 	}
 
-	//task afterEclipseImport(dependsOn: 'setupUI') {
-	//	description = "Ensure that the UI Build runs after import into STS"
-	//}
-
 	tasks['grunt_build'].dependsOn(['npmInstall', 'installGrunt']);
 	tasks['grunt_teste2e'].dependsOn(['grunt_build']);
 
@@ -808,13 +804,16 @@ project('spring-xd-ui') {
 		}
 	}
 
-	task setupUI(dependsOn: ['grunt_build']) { description = "Build the Admin UI using Grunt" }
+	task setupUI(dependsOn: ['grunt_build', 'build']) { description = "Build the Admin UI using Grunt" }
 
+	tasks['build'].shouldRunAfter 'grunt_build'
+	tasks['compileJava'].dependsOn(['clean'])
 	grunt_build.shouldRunAfter 'installGrunt'
 	grunt_teste2e.shouldRunAfter 'installGrunt'
 	installGrunt.shouldRunAfter 'npmInstall'
 
 	task cleanUI(dependsOn: [
+		'clean',
 		'cleanDist',
 		'cleanNodeModules',
 		'cleanBowerFiles'

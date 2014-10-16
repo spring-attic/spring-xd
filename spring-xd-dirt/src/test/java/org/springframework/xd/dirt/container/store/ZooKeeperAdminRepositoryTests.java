@@ -36,25 +36,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.dirt.cluster.ContainerRuntime;
-import org.springframework.xd.dirt.cluster.RuntimeAttributes;
-import org.springframework.xd.dirt.container.store.ZooKeeperRuntimeRepositoryTests.ZooKeeperRuntimeRepositoryTestsConfig;
+import org.springframework.xd.dirt.cluster.Admin;
+import org.springframework.xd.dirt.cluster.AdminAttributes;
+import org.springframework.xd.dirt.container.store.ZooKeeperAdminRepositoryTests.ZooKeeperAdminRepositoryTestsConfig;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperAccessException;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
- * Tests for {@link ZooKeeperRuntimeRepository}.
+ * Tests for {@link ZooKeeperAdminRepository}.
  *
  * @author Janne Valkealahti
  */
-@ContextConfiguration(classes = ZooKeeperRuntimeRepositoryTestsConfig.class)
+@ContextConfiguration(classes = ZooKeeperAdminRepositoryTestsConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ZooKeeperRuntimeRepositoryTests {
+public class ZooKeeperAdminRepositoryTests {
 
 	@Autowired
-	private RuntimeRepository runtimeRepository;
+	private AdminRepository adminRepository;
 
 	@Autowired
 	private ZooKeeperConnection zooKeeperConnection;
@@ -81,28 +81,28 @@ public class ZooKeeperRuntimeRepositoryTests {
 			// ignore
 		}
 
-		RuntimeAttributes runtimeAttributes = new RuntimeAttributes(id).setPid(pid).setHost(host).setIp(ip);
-		ContainerRuntime entity = new ContainerRuntime(id, runtimeAttributes);
-		ContainerRuntime savedContainer = runtimeRepository.save(entity);
-		assertNotNull(savedContainer);
-		RuntimeAttributes savedAttributes = savedContainer.getAttributes();
+		AdminAttributes adminAttributes = new AdminAttributes(id).setPid(pid).setHost(host).setIp(ip);
+		Admin entity = new Admin(id, adminAttributes);
+		Admin savedAdmin = adminRepository.save(entity);
+		assertNotNull(savedAdmin);
+		AdminAttributes savedAttributes = savedAdmin.getAttributes();
 		assertEquals(id, savedAttributes.getId());
 		assertEquals(pid, savedAttributes.getPid());
 		assertEquals(host, savedAttributes.getHost());
 		assertEquals(ip, savedAttributes.getIp());
 
-		runtimeAttributes = new RuntimeAttributes(id2).setPid(pid).setHost(host).setIp(ip);
-		entity = new ContainerRuntime(id2, runtimeAttributes);
-		savedContainer = runtimeRepository.save(entity);
-		assertNotNull(savedContainer);
-		assertSavedContainer(id2, runtimeAttributes);
+		adminAttributes = new AdminAttributes(id2).setPid(pid).setHost(host).setIp(ip);
+		entity = new Admin(id2, adminAttributes);
+		savedAdmin = adminRepository.save(entity);
+		assertNotNull(savedAdmin);
+		assertSavedAdmin(id2, adminAttributes);
 	}
 
 	@Test
 	public void findContainerAttributesById() {
-		ContainerRuntime foundContainer = runtimeRepository.findOne(id);
-		assertNotNull(foundContainer);
-		RuntimeAttributes attributes = foundContainer.getAttributes();
+		Admin foundAdmin = adminRepository.findOne(id);
+		assertNotNull(foundAdmin);
+		AdminAttributes attributes = foundAdmin.getAttributes();
 		assertNotNull(attributes);
 		assertEquals(id, attributes.getId());
 		assertEquals(pid, attributes.getPid());
@@ -112,40 +112,40 @@ public class ZooKeeperRuntimeRepositoryTests {
 
 	@Test
 	public void updateContainerAttributes() {
-		ContainerRuntime foundContainer = runtimeRepository.findOne(id);
-		assertNotNull(foundContainer);
-		RuntimeAttributes containerAttributes = new RuntimeAttributes(id).setPid(12345).setHost("randomHost").setIp(
+		Admin foundAdmin = adminRepository.findOne(id);
+		assertNotNull(foundAdmin);
+		AdminAttributes adminAttributes = new AdminAttributes(id).setPid(12345).setHost("randomHost").setIp(
 				"randomIP");
-		containerAttributes.put("groups", "test1,test2");
-		ContainerRuntime entity = new ContainerRuntime(id, containerAttributes);
-		runtimeRepository.update(entity);
-		assertSavedContainer(id, containerAttributes);
+		Admin entity = new Admin(id, adminAttributes);
+		adminRepository.update(entity);
+		assertSavedAdmin(id, adminAttributes);
 	}
 
 	@Test
 	public void updateNonExistingContainer() {
 		exception.expect(ZooKeeperAccessException.class);
 		exception.expectMessage("Could not find admin with id " + id + 10);
-		RuntimeAttributes containerAttributes = new RuntimeAttributes(id + 10).setPid(12345).setHost("randomHost").setIp(
+		AdminAttributes adminAttributes = new AdminAttributes(id + 10).setPid(12345).setHost("randomHost").setIp(
 				"randomIP");
-		ContainerRuntime entity = new ContainerRuntime(id + 10, containerAttributes);
-		runtimeRepository.update(entity);
+		Admin entity = new Admin(id + 10, adminAttributes);
+		adminRepository.update(entity);
 	}
 
 	/**
 	 * Assert if the saved container exists in the {@link ContainerRepository}
 	 *
 	 * @param id the containerId
+	 * @param adminAttributes the admin attributes
 	 */
-	private void assertSavedContainer(String id, RuntimeAttributes runtimeAttributes) {
+	private void assertSavedAdmin(String id, AdminAttributes adminAttributes) {
 		long timeout = System.currentTimeMillis() + 15000;
-		boolean foundContainer = false;
-		while (!foundContainer && System.currentTimeMillis() < timeout) {
+		boolean foundAdmin = false;
+		while (!foundAdmin && System.currentTimeMillis() < timeout) {
 			try {
 				Thread.sleep(200);
-				ContainerRuntime container = runtimeRepository.findOne(id);
-				if (container != null && compareContainerAttributes(container.getAttributes(), runtimeAttributes)) {
-					foundContainer = true;
+				Admin admin = adminRepository.findOne(id);
+				if (admin != null && compareAdminAttributes(admin.getAttributes(), adminAttributes)) {
+					foundAdmin = true;
 				}
 			}
 			catch (InterruptedException e) {
@@ -153,24 +153,24 @@ public class ZooKeeperRuntimeRepositoryTests {
 				break;
 			}
 		}
-		assertTrue("Container repository is not updated with the test containers", foundContainer);
+		assertTrue("Admin repository is not updated with the test containers", foundAdmin);
 	}
 
 	/**
-	 * Check if the container attributes equal.
+	 * Check if the admin attributes equal.
 	 *
-	 * @param attr1 container attributes
-	 * @param attr2 container attributes
-	 * @return true if the container attributes match
+	 * @param attr1 admin attributes
+	 * @param attr2 admin attributes
+	 * @return true if the admin attributes match
 	 */
-	private boolean compareContainerAttributes(RuntimeAttributes attr1, RuntimeAttributes attr2) {
+	private boolean compareAdminAttributes(AdminAttributes attr1, AdminAttributes attr2) {
 		return (attr1.getId().equals(attr2.getId()) &&
 				attr1.getHost().equals(attr2.getHost()) &&
 				attr1.getIp().equals(attr2.getIp()) && (attr1.getPid() == attr2.getPid()));
 	}
 
 	@Configuration
-	public static class ZooKeeperRuntimeRepositoryTestsConfig {
+	public static class ZooKeeperAdminRepositoryTestsConfig {
 
 		@Bean
 		public EmbeddedZooKeeper embeddedZooKeeper() {
@@ -183,8 +183,8 @@ public class ZooKeeperRuntimeRepositoryTests {
 		}
 
 		@Bean
-		public RuntimeRepository runtimeRepository() {
-			return new ZooKeeperRuntimeRepository(zooKeeperConnection());
+		public AdminRepository adminRepository() {
+			return new ZooKeeperAdminRepository(zooKeeperConnection());
 		}
 
 	}

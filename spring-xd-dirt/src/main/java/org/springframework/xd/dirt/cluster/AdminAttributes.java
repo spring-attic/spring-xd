@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * @author Ilayaperumal Gopinathan
  * @author Janne Valkealahti
  */
-public class RuntimeAttributes implements Map<String, String>, Comparable<RuntimeAttributes> {
+public class AdminAttributes implements Map<String, String>, Comparable<AdminAttributes> {
 
 	public final static String CONTAINER_ID_KEY = "id";
 
@@ -61,7 +61,7 @@ public class RuntimeAttributes implements Map<String, String>, Comparable<Runtim
 	/**
 	 * Default constructor generates a random id.
 	 */
-	public RuntimeAttributes() {
+	public AdminAttributes() {
 		this(UUID.randomUUID().toString());
 	}
 
@@ -70,7 +70,7 @@ public class RuntimeAttributes implements Map<String, String>, Comparable<Runtim
 	 *
 	 * @param id the container's id
 	 */
-	public RuntimeAttributes(String id) {
+	public AdminAttributes(String id) {
 		Assert.hasText(id, "id is required");
 		this.put(CONTAINER_ID_KEY, id);
 	}
@@ -81,7 +81,7 @@ public class RuntimeAttributes implements Map<String, String>, Comparable<Runtim
 	 *
 	 * @param attributes the container's attributes
 	 */
-	public RuntimeAttributes(Map<? extends String, ? extends String> attributes) {
+	public AdminAttributes(Map<? extends String, ? extends String> attributes) {
 		Assert.notNull(attributes, "attributes must not be null");
 		if (!attributes.containsKey(CONTAINER_ID_KEY)) {
 			this.put(CONTAINER_ID_KEY, UUID.randomUUID().toString());
@@ -113,27 +113,27 @@ public class RuntimeAttributes implements Map<String, String>, Comparable<Runtim
 		return Integer.parseInt(this.get(PROCESS_ID_KEY));
 	}
 
-	public RuntimeAttributes setPid(Integer pid) {
+	public AdminAttributes setPid(Integer pid) {
 		this.put(PROCESS_ID_KEY, String.valueOf(pid));
 		return this;
 	}
 
-	public RuntimeAttributes setHost(String host) {
+	public AdminAttributes setHost(String host) {
 		this.put(HOST_KEY, host);
 		return this;
 	}
 
-	public RuntimeAttributes setPort(Integer port) {
+	public AdminAttributes setPort(Integer port) {
 		this.put(PORT_KEY, String.valueOf(port));
 		return this;
 	}
 
-	public RuntimeAttributes setIp(String ip) {
+	public AdminAttributes setIp(String ip) {
 		this.put(IP_ADDRESS_KEY, ip);
 		return this;
 	}
 
-	public RuntimeAttributes setManagementPort(Integer mgmtPort) {
+	public AdminAttributes setManagementPort(Integer mgmtPort) {
 		this.put(MGMT_PORT_KEY, String.valueOf(mgmtPort));
 		return this;
 	}
@@ -263,7 +263,7 @@ public class RuntimeAttributes implements Map<String, String>, Comparable<Runtim
 	 * Compares using the containerId.
 	 */
 	@Override
-	public int compareTo(RuntimeAttributes other) {
+	public int compareTo(AdminAttributes other) {
 		return this.getId().compareTo(other.getId());
 	}
 

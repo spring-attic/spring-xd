@@ -24,7 +24,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.xd.dirt.cluster.ContainerRuntime;
+import org.springframework.xd.dirt.cluster.Admin;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -35,7 +35,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
  *
  * @author Janne Valkealahti
  */
-public class ZooKeeperRuntimeRepository implements RuntimeRepository {
+public class ZooKeeperAdminRepository implements AdminRepository {
 
 	/**
 	 * ZooKeeper connection.
@@ -48,7 +48,7 @@ public class ZooKeeperRuntimeRepository implements RuntimeRepository {
 	 * @param zkConnection the ZooKeeper connection
 	 */
 	@Autowired
-	public ZooKeeperRuntimeRepository(ZooKeeperConnection zkConnection) {
+	public ZooKeeperAdminRepository(ZooKeeperConnection zkConnection) {
 		this.zkConnection = zkConnection;
 	}
 
@@ -56,7 +56,7 @@ public class ZooKeeperRuntimeRepository implements RuntimeRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ContainerRuntime save(ContainerRuntime entity) {
+	public Admin save(Admin entity) {
 		CuratorFramework client = zkConnection.getClient();
 		String path = Paths.build(Paths.ADMINS, entity.getName());
 
@@ -74,7 +74,7 @@ public class ZooKeeperRuntimeRepository implements RuntimeRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void update(ContainerRuntime entity) {
+	public void update(Admin entity) {
 		CuratorFramework client = zkConnection.getClient();
 		String path = Paths.build(Paths.ADMINS, entity.getName());
 
@@ -108,15 +108,15 @@ public class ZooKeeperRuntimeRepository implements RuntimeRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public List<ContainerRuntime> findAll() {
-		List<ContainerRuntime> results = new ArrayList<ContainerRuntime>();
+	public List<Admin> findAll() {
+		List<Admin> results = new ArrayList<Admin>();
 		try {
 			List<String> children = zkConnection.getClient().getChildren().forPath(Paths.build(Paths.ADMINS));
 			for (String child : children) {
 				byte[] data = zkConnection.getClient().getData().forPath(
 						Paths.build(Paths.ADMINS, child));
 				if (data != null && data.length > 0) {
-					results.add(new ContainerRuntime(child, ZooKeeperUtils.bytesToMap(data)));
+					results.add(new Admin(child, ZooKeeperUtils.bytesToMap(data)));
 				}
 			}
 
@@ -131,12 +131,12 @@ public class ZooKeeperRuntimeRepository implements RuntimeRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ContainerRuntime findOne(String id) {
+	public Admin findOne(String id) {
 		try {
 			byte[] data = zkConnection.getClient().getData().forPath(
 					Paths.build(Paths.ADMINS, id));
 			if (data != null && data.length > 0) {
-				return new ContainerRuntime(id, ZooKeeperUtils.bytesToMap(data));
+				return new Admin(id, ZooKeeperUtils.bytesToMap(data));
 			}
 		}
 		catch (Exception e) {
@@ -146,7 +146,7 @@ public class ZooKeeperRuntimeRepository implements RuntimeRepository {
 	}
 
 	/**
-	 * Return the path for a container runtime.
+	 * Return the path for a admin runtime.
 	 *
 	 * @param id container runtime id
 	 * @return path for the container

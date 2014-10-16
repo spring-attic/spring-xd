@@ -44,7 +44,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.xd.batch.XdBatchDatabaseInitializer;
-import org.springframework.xd.dirt.cluster.RuntimeAttributes;
+import org.springframework.xd.dirt.cluster.AdminAttributes;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
@@ -159,11 +159,11 @@ public class AdminServerApplication {
 	}
 
 	@Bean
-	public RuntimeAttributes runtimeAttributes() {
-		RuntimeAttributes runtimeAttributes = new RuntimeAttributes();
-		runtimeAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress()).setPid(
+	public AdminAttributes adminAttributes() {
+		AdminAttributes adminAttributes = new AdminAttributes();
+		adminAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress()).setPid(
 				RuntimeUtils.getPid());
-		return runtimeAttributes;
+		return adminAttributes;
 	}
 
 	@Bean

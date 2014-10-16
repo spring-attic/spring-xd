@@ -22,6 +22,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Describes options to the {@code http} source module.
  * 
  * @author Gary Russell
+ * @author Marius Bogoevici
  */
 public class HttpSourceOptionsMetadata {
 
@@ -31,6 +32,7 @@ public class HttpSourceOptionsMetadata {
 
 	private String sslPropertiesLocation = "classpath:httpSSL.properties";
 
+	private boolean verboseLogging;
 
 	public int getPort() {
 		return port;
@@ -57,6 +59,15 @@ public class HttpSourceOptionsMetadata {
 	@ModuleOption("location (resource) of properties containing the location of the pkcs12 keyStore and pass phrase")
 	public void setSslPropertiesLocation(String sslProperties) {
 		this.sslPropertiesLocation = sslProperties;
+	}
+
+	public boolean getVerboseLogging() {
+		return verboseLogging;
+	}
+
+	@ModuleOption(value = "true if verbose logging (via Netty) is enabled", defaultValue = "false")
+	public void setVerboseLogging(boolean verboseLogging) {
+		this.verboseLogging = verboseLogging;
 	}
 
 }

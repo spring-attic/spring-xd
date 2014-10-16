@@ -76,6 +76,7 @@ management:
   contextPath: /management
 ---
 zk:
+  namespace: xd
   client:
     connect: ${ZK_CLIENT_CONNECT:}
 

@@ -199,9 +199,7 @@ public class SftpSourceOptionsMetadata implements ProfileNamesProvider {
 		if (!StringUtils.hasText(password)) {
 			return StringUtils.hasText(privateKey) && StringUtils.hasText(passPhrase);
 		}
-		else {
-			return !StringUtils.hasText(privateKey) && !StringUtils.hasText(passPhrase);
-		}
+		return !StringUtils.hasText(privateKey) && !StringUtils.hasText(passPhrase);
 	}
 
 	@Override
@@ -212,8 +210,6 @@ public class SftpSourceOptionsMetadata implements ProfileNamesProvider {
 		else if (this.pattern != null) {
 			return new String[] { SIMPLE_PATTERN_FILTER };
 		}
-		else {
-			return new String[] { ACCEPT_ALL_FILES };
-		}
+		return new String[] { ACCEPT_ALL_FILES };
 	}
 }

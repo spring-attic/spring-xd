@@ -32,6 +32,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
 
 /**
@@ -40,6 +41,8 @@ import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
  * @author Dave Syer
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
+ *
  */
 public class XdConfigLoggingInitializer implements ApplicationListener<ContextRefreshedEvent>, EnvironmentAware {
 
@@ -63,6 +66,8 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	private static final String XD_ZK_NAMESPACE = "${zk.namespace}";
 
+	private ContainerAttributes containerAttributes;
+
 	public XdConfigLoggingInitializer(boolean isContainer) {
 		this.isContainer = isContainer;
 	}
@@ -70,6 +75,16 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	@Override
 	public void setEnvironment(Environment environment) {
 		this.environment = (ConfigurableEnvironment) environment;
+	}
+
+	/**
+	 * If not set, this property will default to {@code null}.
+	 *
+	 * @param containerAttributes Must not be null
+	 */
+	public void setContainerAttributes(ContainerAttributes containerAttributes) {
+		Assert.notNull(containerAttributes);
+		this.containerAttributes = containerAttributes;
 	}
 
 	/**
@@ -81,6 +96,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 		logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
 		logConfigLocations();
 		if (isContainer) {
+			logContainerInfo();
 			logHadoopDistro();
 		}
 		else {
@@ -98,6 +114,24 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 		String hadoopDistro = environment.resolvePlaceholders(HADOOP_DISTRO_OPTION);
 		logger.info("Hadoop Distro: " + hadoopDistro);
 		logger.info("Hadoop version detected from classpath: " + org.apache.hadoop.util.VersionInfo.getVersion());
+	}
+
+	private void logContainerInfo() {
+
+		final String containerIp;
+		final String containerHostname;
+
+		if (this.containerAttributes != null) {
+			containerIp = containerAttributes.getIp();
+			containerHostname = containerAttributes.getHost();
+		}
+		else {
+			containerIp = "N/A";
+			containerHostname = "N/A";
+		}
+
+		logger.info("Container IP address: " + containerIp);
+		logger.info("Container hostname:   " + containerHostname);
 	}
 
 	/**

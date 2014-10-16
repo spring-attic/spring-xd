@@ -27,7 +27,10 @@ import org.junit.Test;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.XDMatchers;
+import org.springframework.xd.test.fixtures.CounterSink;
 import org.springframework.xd.test.fixtures.JdbcSink;
+import org.springframework.xd.test.fixtures.JdbcSource;
 
 
 /**
@@ -123,6 +126,43 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 		assertEquals("hello", result.get("bar_foo"));
 		assertEquals("5", result.get("foo_bar"));
 		assertEquals("good_bye", result.get("bar_baz"));
+	}
+
+	@Test
+	public void testJdbcSourceNoUpdateStatement() throws Exception {
+		JdbcSource jdbcSource = newJdbcSource().fixedDelay(1);
+		CounterSink counter = metrics().newCounterSink();
+
+		String streamname = generateStreamName().replace("-", "_");
+
+		jdbcSource.getJdbcTemplate().update(String.format("create table %s (seen INT, name VARCHAR(32))", streamname));
+		jdbcSource.getJdbcTemplate().update(String.format("insert into %s (seen, name) values (0, 'eric')", streamname));
+		jdbcSource.getJdbcTemplate().update(String.format("insert into %s (seen, name) values (0, 'eric')", streamname));
+		jdbcSource.query(String.format("SELECT * FROM %s", streamname));
+
+		stream().create(streamname, "%s | %s", jdbcSource, counter);
+		assertThat(counter, XDMatchers.eventually(XDMatchers.hasValue("2")));
+		jdbcSource.getJdbcTemplate().update(String.format("insert into %s (seen, name) values (0, 'eric')", streamname));
+		assertThat(counter, XDMatchers.eventually(XDMatchers.hasValue("" + (2 + 3))));
+	}
+
+	@Test
+	public void testJdbcSourceWithUpdateStatement() throws Exception {
+		JdbcSource jdbcSource = newJdbcSource().fixedDelay(1);
+		CounterSink counter = metrics().newCounterSink();
+
+		String streamname = generateStreamName().replace("-", "_");
+
+		jdbcSource.getJdbcTemplate().update(String.format("create table %s (seen INT, name VARCHAR(32))", streamname));
+		jdbcSource.getJdbcTemplate().update(String.format("insert into %s (seen, name) values (0, 'eric')", streamname));
+		jdbcSource.getJdbcTemplate().update(String.format("insert into %s (seen, name) values (0, 'eric')", streamname));
+		jdbcSource.query(String.format("select * from %s where seen = 0", streamname));
+		jdbcSource.update(String.format("update %s set seen = 1 where seen = 0", streamname));
+
+		stream().create(streamname, "%s | %s", jdbcSource, counter);
+		assertThat(counter, XDMatchers.eventually(XDMatchers.hasValue("2")));
+		jdbcSource.getJdbcTemplate().update(String.format("insert into %s (seen, name) values (0, 'eric')", streamname));
+		assertThat(counter, XDMatchers.eventually(XDMatchers.hasValue("" + (2 + 1))));
 	}
 
 	public static class Result {

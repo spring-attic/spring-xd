@@ -9,7 +9,7 @@
 
 	<int:channel id="input"/>
 
-	<import resource="../../../common/gemfire-client.xml"/>
+	<import resource="../../../common/gemfire-sink.xml"/>
 
 	<int:transformer input-channel="input" output-channel="to.gemfire" method="toObject">
 		<bean class="org.springframework.integration.x.gemfire.JsonStringToObjectTransformer"/>

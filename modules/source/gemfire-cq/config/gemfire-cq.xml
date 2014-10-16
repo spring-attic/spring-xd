@@ -13,28 +13,14 @@
 		http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<gfe:client-cache id="client-cache" use-bean-factory-locator="false"/>
-	 
+	<import resource="../../../common/gemfire-source.xml"/>
 
-	<gfe:cq-listener-container id="cqContainer"
-		cache="client-cache"/>
+	<beans>
+		<int:channel id="output"/>
+		<gfe:cq-listener-container id="cqContainer"
+			cache="client-cache"/>
 
-	<int:channel id="output"/>
-
-	<int-gfe:cq-inbound-channel-adapter channel="to.transformer" 
-	cq-listener-container="cqContainer" query="${query}" durable="false" expression="newValue"/>
-	<int:transformer input-channel="to.transformer" output-channel="output" method="toString">
-		<bean class="org.springframework.integration.x.gemfire.JsonStringToObjectTransformer"/>
-	</int:transformer>
-	
-	<beans profile="use-server">
-		<gfe:pool subscription-enabled="true">
-			<gfe:server host="${host}" port="${port}" />
-		</gfe:pool>
-	</beans>
-	<beans profile="use-locator">
-		<gfe:pool subscription-enabled="true">
-			<gfe:locator host="${host}" port="${port}" />
-		</gfe:pool>
+		<int-gfe:cq-inbound-channel-adapter channel="route-on-data-type"
+			cq-listener-container="cqContainer" query="${query}" durable="false" expression="newValue"/>
 	</beans>
 </beans>

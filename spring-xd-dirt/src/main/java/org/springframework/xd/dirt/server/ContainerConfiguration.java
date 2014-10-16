@@ -48,7 +48,8 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Marius Bogoevici
  */
 @Configuration
-@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class, AuditAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class,
+	AuditAutoConfiguration.class })
 class ContainerConfiguration {
 
 	@Autowired
@@ -87,14 +88,17 @@ class ContainerConfiguration {
 	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
 		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(true);
 		delegate.setEnvironment(context.getEnvironment());
+		delegate.setContainerAttributes(containerAttributes);
 		return new SourceFilteringListener(context, delegate);
 	}
 
 	@Bean
-	public ModuleFactory moduleFactory(){
+	public ModuleFactory moduleFactory() {
 		return new ModuleFactory(moduleOptionsMetadataResolver);
 	}
-	@Bean/*(name = "moduleDeployer")*/
+
+	@Bean
+	/*(name = "moduleDeployer")*/
 	public ModuleDeployer moduleDeployer() {
 		return new ModuleDeployer(moduleFactory());
 	}
@@ -114,10 +118,11 @@ class ContainerConfiguration {
 
 		JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
-		return new DeploymentListener(zooKeeperConnection, moduleDeployer, containerAttributes, jobFactory,streamFactory);
+		return new DeploymentListener(zooKeeperConnection, moduleDeployer, containerAttributes, jobFactory,
+				streamFactory);
 	}
 
-	private void initializeZooKeeperConnection()  {
+	private void initializeZooKeeperConnection() {
 		if (zooKeeperConnectionConfigurer != null) {
 			zooKeeperConnectionConfigurer.configureZooKeeperConnection(zooKeeperConnection);
 			zooKeeperConnection.start();

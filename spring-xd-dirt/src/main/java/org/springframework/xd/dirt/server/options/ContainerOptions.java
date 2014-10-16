@@ -41,19 +41,45 @@ public class ContainerOptions extends CommonDistributedOptions {
 	@Option(name = "--groups", usage = "The group memberships for this container as a comma delimited string")
 	private String groups;
 
-	public void setHADOOP_DISTRO(String distro) {
-		this.distro = distro;
-	}
+	@Option(name = "--containerHostname", usage = "The hostname of the container.")
+	private String hostname;
+
+	@Option(name = "--containerIp", usage = "The IP address of the container.")
+	private String ip;
 
 	public String getHADOOP_DISTRO() {
 		return this.distro;
 	}
 
-	public void setXD_CONTAINER_GROUPS(String groups) {
-		this.groups = groups;
+	public String getXD_CONTAINER_HOSTNAME() {
+		return hostname;
+	}
+
+	public String getXD_CONTAINER_IP() {
+		return ip;
 	}
 
 	public String getXD_CONTAINER_GROUPS() {
 		return this.groups;
 	}
+
+
+	public void setHADOOP_DISTRO(String distro) {
+		this.distro = distro;
+	}
+
+	public void setXD_CONTAINER_HOSTNAME(String hostname) {
+		this.hostname = hostname;
+	}
+
+
+	public void setXD_CONTAINER_IP(String ip) {
+		this.ip = ip;
+	}
+
+
+	public void setXD_CONTAINER_GROUPS(String groups) {
+		this.groups = groups;
+	}
+
 }

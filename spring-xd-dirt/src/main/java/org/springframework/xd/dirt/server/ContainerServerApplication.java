@@ -37,6 +37,7 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
@@ -51,9 +52,12 @@ import org.springframework.xd.dirt.util.XdProfiles;
  * @author Mark Fisher
  * @author David Turanski
  * @author Marius Bogoevici
+ * @author Gunnar Hillert
+ *
  */
 @Configuration
-@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class, AuditAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class,
+		AuditAutoConfiguration.class })
 public class ContainerServerApplication implements EnvironmentAware {
 
 	private static final Log logger = LogFactory.getLog(ContainerServerApplication.class);
@@ -102,10 +106,17 @@ public class ContainerServerApplication implements EnvironmentAware {
 
 	@Bean
 	public ContainerAttributes containerAttributes() {
-		ContainerAttributes containerAttributes = new ContainerAttributes();
-		containerAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress()).setPid(
-				RuntimeUtils.getPid());
+
+		final ContainerAttributes containerAttributes = new ContainerAttributes();
 		setConfiguredContainerAttributes(containerAttributes);
+
+		final String containerIp = environment.getProperty("xd.container.ip");
+		final String containerHostname = environment.getProperty("xd.container.hostname");
+
+		containerAttributes.setIp(StringUtils.hasText(containerIp) ? containerIp : RuntimeUtils.getIpAddress());
+		containerAttributes.setHost(StringUtils.hasText(containerHostname) ? containerHostname : RuntimeUtils.getHost());
+
+		containerAttributes.setPid(RuntimeUtils.getPid());
 		return containerAttributes;
 	}
 

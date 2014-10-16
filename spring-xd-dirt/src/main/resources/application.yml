@@ -33,6 +33,8 @@ xd:
        locations: META-INF/spring-xd/ext
   container:
     groups: ${XD_CONTAINER_GROUPS:}
+    hostname: ${XD_CONTAINER_HOSTNAME:}
+    ip: ${XD_CONTAINER_IP:}
   messagebus:
     rabbit:
       default:

@@ -68,6 +68,7 @@ import org.jboss.netty.logging.CommonsLoggerFactory;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.jboss.netty.util.internal.StringUtil;
 
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.MediaType;
@@ -125,6 +126,8 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	 */
 	private volatile Resource sslPropertiesLocation;
 
+	private SSLContext sslContext;
+
 	public NettyHttpInboundChannelAdapter(int port) {
 		this(port, false);
 	}
@@ -155,6 +158,19 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	@Override
+	protected void onInit() {
+		try {
+			if (this.ssl) {
+				this.sslContext = initializeSSLContext();
+			}
+		}
+		catch (Exception e) {
+			throw new BeanInitializationException("failed to initialize", e);
+		}
+		super.onInit();
+	}
+
+	@Override
 	protected void doStart() {
 		executionHandler = new ExecutionHandler(executor);
 		bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
@@ -171,30 +187,23 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 		}
 	}
 
-	private void configureSSL(ChannelPipeline pipeline) {
-		try {
-			Assert.state(this.sslPropertiesLocation != null, "KeyStore and pass phrase properties file required");
-			Properties sslProperties = new Properties();
-			sslProperties.load(this.sslPropertiesLocation.getInputStream());
-			PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-			String keyStoreName = sslProperties.getProperty("keyStore");
-			Assert.state(StringUtils.hasText(keyStoreName), "keyStore property cannot be null");
-			String keyStorePassPhrase = sslProperties.getProperty("keyStore.passPhrase");
-			Assert.state(StringUtils.hasText(keyStorePassPhrase), "keyStore.passPhrase property cannot be null");
-			Resource keyStore = resolver.getResource(keyStoreName);
-			SSLContext sslContext = SSLContext.getInstance("TLS");
-			KeyStore ks = KeyStore.getInstance("PKCS12");
-			ks.load(keyStore.getInputStream(), keyStorePassPhrase.toCharArray());
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-			kmf.init(ks, keyStorePassPhrase.toCharArray());
-			sslContext.init(kmf.getKeyManagers(), null, null);
-			SSLEngine engine = sslContext.createSSLEngine();
-			engine.setUseClientMode(false);
-			pipeline.addLast("ssl", new SslHandler(engine));
-		}
-		catch (Exception e) {
-			throw new IllegalStateException("Unable to create SSLContext", e);
-		}
+	private SSLContext initializeSSLContext() throws Exception {
+		Assert.state(this.sslPropertiesLocation != null, "KeyStore and pass phrase properties file required");
+		Properties sslProperties = new Properties();
+		sslProperties.load(this.sslPropertiesLocation.getInputStream());
+		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+		String keyStoreName = sslProperties.getProperty("keyStore");
+		Assert.state(StringUtils.hasText(keyStoreName), "keyStore property cannot be null");
+		String keyStorePassPhrase = sslProperties.getProperty("keyStore.passPhrase");
+		Assert.state(StringUtils.hasText(keyStorePassPhrase), "keyStore.passPhrase property cannot be null");
+		Resource keyStore = resolver.getResource(keyStoreName);
+		SSLContext sslContext = SSLContext.getInstance("TLS");
+		KeyStore ks = KeyStore.getInstance("PKCS12");
+		ks.load(keyStore.getInputStream(), keyStorePassPhrase.toCharArray());
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+		kmf.init(ks, keyStorePassPhrase.toCharArray());
+		sslContext.init(kmf.getKeyManagers(), null, null);
+		return sslContext;
 	}
 
 	private class PipelineFactory implements ChannelPipelineFactory {
@@ -203,7 +212,9 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 		public ChannelPipeline getPipeline() throws Exception {
 			ChannelPipeline pipeline = new DefaultChannelPipeline();
 			if (NettyHttpInboundChannelAdapter.this.ssl) {
-				configureSSL(pipeline);
+				SSLEngine engine = sslContext.createSSLEngine();
+				engine.setUseClientMode(false);
+				pipeline.addLast("ssl", new SslHandler(engine));
 			}
 			LoggingHandler loggingHandler = new LoggingHandler();
 			if (loggingHandler.getLogger().isDebugEnabled()) {

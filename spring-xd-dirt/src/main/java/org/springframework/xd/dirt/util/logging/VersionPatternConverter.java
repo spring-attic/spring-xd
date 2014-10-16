@@ -73,7 +73,7 @@ public class VersionPatternConverter extends PatternConverter {
 				Attributes attributes = manifest.getMainAttributes();
 				String value = attributes.getValue("Implementation-Version");
 				if (StringUtils.hasText(value)) {
-					version = value;
+					version = value.replaceAll("BUILD-SNAPSHOT", "SNAP").replaceAll("-RELEASE", "");
 				}
 			}
 		}

@@ -61,6 +61,8 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	private static final String XD_MODULE_CONFIG_NAME = "${xd.module.config.name:modules}";
 
+	private static final String XD_ZK_NAMESPACE = "${zk.namespace}";
+
 	public XdConfigLoggingInitializer(boolean isContainer) {
 		this.isContainer = isContainer;
 	}
@@ -85,6 +87,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 			logAdminUI();
 		}
 		logZkConnectString();
+		logZkNamespace();
 		logger.info("Analytics: " + environment.resolvePlaceholders("${XD_ANALYTICS}"));
 		if ("true".equals(environment.getProperty("verbose"))) {
 			logAllProperties();
@@ -128,6 +131,10 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 					: zkConnectString;
 			logger.info("Zookeeper at: " + connectString);
 		}
+	}
+
+	private void logZkNamespace() {
+		logger.info("Zookeeper namespace: " + environment.resolvePlaceholders(XD_ZK_NAMESPACE));
 	}
 
 	private void logAllProperties() {

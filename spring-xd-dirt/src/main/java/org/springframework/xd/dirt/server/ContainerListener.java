@@ -16,6 +16,12 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -62,6 +68,27 @@ public class ContainerListener implements PathChildrenCacheListener {
 	private final ModuleRedeployer departingContainerModuleRedeployer;
 
 	/**
+	 * Runnable that deploys modules to new containers.
+	 */
+	private final ArrivingContainerDeployer arrivingContainerDeployer = new ArrivingContainerDeployer();
+
+	/**
+	 * The amount of time that must elapse after the newest container arrives
+	 * before deployments to new containers are initiated.
+	 */
+	private final AtomicLong quietPeriod;
+
+	/**
+	 * Executor service for module deployments
+	 */
+	private final ScheduledExecutorService executorService;
+
+	/**
+	 * Container and timestamp info for newest container.
+	 */
+	private final AtomicReference<ContainerArrival> latestContainer = new AtomicReference<ContainerArrival>();
+
+	/**
 	 * Construct a ContainerListener.
 	 *
 	 * @param zkConnection ZooKeeper connection
@@ -72,20 +99,23 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param moduleDeploymentRequests cache of children for requested module deployments path
 	 * @param containerMatcher matches modules to containers
 	 * @param stateCalculator calculator for stream/job state
+	 * @param quietPeriod AtomicLong indicating quiet period for new container module deployments
 	 */
 	public ContainerListener(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository,
 			StreamFactory streamFactory, JobFactory jobFactory,
 			PathChildrenCache streamDeployments, PathChildrenCache jobDeployments,
 			PathChildrenCache moduleDeploymentRequests, ContainerMatcher containerMatcher,
-			DeploymentUnitStateCalculator stateCalculator) {
+			DeploymentUnitStateCalculator stateCalculator,
+			ScheduledExecutorService executorService, AtomicLong quietPeriod) {
 		this.arrivingContainerModuleRedeployer = new ArrivingContainerModuleRedeployer(zkConnection,
 				containerRepository, streamFactory, jobFactory, streamDeployments, jobDeployments,
 				moduleDeploymentRequests, containerMatcher, stateCalculator);
 		this.departingContainerModuleRedeployer = new DepartingContainerModuleRedeployer(zkConnection,
 				containerRepository, streamFactory, jobFactory, moduleDeploymentRequests, containerMatcher,
 				stateCalculator);
-
+		this.quietPeriod = quietPeriod;
+		this.executorService = executorService;
 	}
 
 	/**
@@ -99,7 +129,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 			case CHILD_ADDED:
 				container = getContainer(event.getData());
 				logger.info("Container arrived: {}", container);
-				this.arrivingContainerModuleRedeployer.deployModules(container);
+				latestContainer.set(new ContainerArrival(container, System.currentTimeMillis()));
+				arrivingContainerDeployer.schedule();
 				break;
 			case CHILD_UPDATED:
 				break;
@@ -127,6 +158,87 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private Container getContainer(ChildData data) {
 		return new Container(Paths.stripPath(data.getPath()), ZooKeeperUtils.bytesToMap(data.getData()));
+	}
+
+
+	/**
+	 * Holder to keep track of the latest arrived container and
+	 * the time it arrived.
+	 */
+	private class ContainerArrival {
+		final Container container;
+		final long timestamp;
+
+		private ContainerArrival(Container container, long timestamp) {
+			this.container = container;
+			this.timestamp = timestamp;
+		}
+	}
+
+
+	/**
+	 * Runnable that performs new container module deployments. It schedules
+	 * itself for execution on {@link #executorService} based on the last
+	 * container arrival time and the configured {@link #quietPeriod}.
+	 *
+	 * To request new container module deployments, invoke {@link #schedule}.
+	 */
+	private class ArrivingContainerDeployer implements Runnable {
+
+		/**
+		 * Flag to indicate whether this deployer has already been
+		 * scheduled for execution on {@link #executorService}.
+		 */
+		private final AtomicBoolean scheduled = new AtomicBoolean(false);
+
+		/**
+		 * Schedule new container module deployments. This is scheduled
+		 * for execution {@link #quietPeriod} milliseconds after the
+		 * latest container arrival. If this runnable has already been
+		 * scheduled, invoking this method has no effect.
+		 */
+		void schedule() {
+			if (scheduled.compareAndSet(false, true)) {
+				long delay = Math.max(0, quietPeriod.get() -
+						(System.currentTimeMillis() - latestContainer.get().timestamp));
+				logger.info("Scheduling deployments to new container(s) in {} ms ", delay);
+				executorService.schedule(arrivingContainerDeployer, delay, TimeUnit.MILLISECONDS);
+			}
+			else {
+				logger.trace("Container deployment already scheduled");
+			}
+		}
+
+		/**
+		 * If {@link #quietPeriod} milliseconds have passed since the
+		 * newest container arrived (see {@link #latestContainer}),
+		 * deploy new modules using {@link #arrivingContainerDeployer}.
+		 * If the quiet period has not elapsed, reschedule execution
+		 * of this runnable.
+		 */
+		@Override
+		public void run() {
+			scheduled.set(false);
+			ContainerArrival containerArrival = latestContainer.get();
+			if (containerArrival != null) {
+				if (System.currentTimeMillis() >= containerArrival.timestamp + quietPeriod.get()) {
+					try {
+						arrivingContainerModuleRedeployer.deployModules(containerArrival.container);
+						latestContainer.compareAndSet(containerArrival, null);
+					}
+					catch (Exception e) {
+						logger.error("Error deploying to container " + containerArrival.container, e);
+					}
+				}
+				else {
+					logger.trace("Quiet period not over yet; rescheduling container deployment");
+					schedule();
+				}
+			}
+			else {
+				logger.trace("Arrived container already processed");
+			}
+		}
 	}
 
 }

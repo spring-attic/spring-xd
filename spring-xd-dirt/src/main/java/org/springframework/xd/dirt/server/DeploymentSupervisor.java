@@ -18,8 +18,9 @@ package org.springframework.xd.dirt.server;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -44,6 +45,7 @@ import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Admin;
 import org.springframework.xd.dirt.cluster.AdminAttributes;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.container.store.AdminRepository;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
@@ -151,8 +153,8 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	 *
 	 * @see #instantiatePathChildrenCache
 	 */
-	private final ExecutorService executorService =
-			Executors.newSingleThreadExecutor(ThreadUtils.newThreadFactory("DeploymentSupervisorCacheListener"));
+	private final ScheduledExecutorService executorService =
+			Executors.newSingleThreadScheduledExecutor(ThreadUtils.newThreadFactory("DeploymentSupervisor"));
 
 	/**
 	 * State calculator for stream/job state.
@@ -163,6 +165,18 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	 * Namespace for management context in the container's application context.
 	 */
 	private final static String MGMT_CONTEXT_NAMESPACE = "management";
+
+	/**
+	 * The amount of time that must elapse after the newest container arrives
+	 * before deployments to new containers are initiated.
+	 */
+	private final AtomicLong quietPeriod = new AtomicLong(15000);
+
+	/**
+	 * Property for specifying the {@link #quietPeriod quiet period}
+	 * for deployments to new containers.
+	 */
+	public static final String QUIET_PERIOD_PROPERTY = "xd.admin.quietPeriod";
 
 	/**
 	 * Construct a {@code DeploymentSupervisor}.
@@ -216,6 +230,12 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ContextRefreshedEvent) {
 			this.applicationContext = ((ContextRefreshedEvent) event).getApplicationContext();
+			String delay = this.applicationContext.getEnvironment().getProperty(QUIET_PERIOD_PROPERTY);
+			if (StringUtils.hasText(delay)) {
+				quietPeriod.set(Long.parseLong(delay));
+				logger.info("Set container quiet period to {} ms", delay);
+			}
+
 			if (this.zkConnection.isConnected()) {
 				if (this.applicationContext.equals(((ContextRefreshedEvent) event).getApplicationContext())) {
 					// initial registration, we don't yet have a port info
@@ -444,7 +464,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			PathChildrenCache moduleDeploymentRequests = null;
 			StreamDeploymentListener streamDeploymentListener;
 			JobDeploymentListener jobDeploymentListener;
-			PathChildrenCacheListener containerListener;
+			ContainerListener containerListener;
 
 			try {
 				StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
@@ -496,7 +516,9 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 						jobDeployments,
 						moduleDeploymentRequests,
 						containerMatcher,
-						stateCalculator);
+						stateCalculator,
+						executorService,
+						quietPeriod);
 
 				containers = instantiatePathChildrenCache(client, Paths.CONTAINERS);
 				containers.getListenable().addListener(containerListener);

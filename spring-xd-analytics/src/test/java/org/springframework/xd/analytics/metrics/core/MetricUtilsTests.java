@@ -16,7 +16,7 @@
 
 package org.springframework.xd.analytics.metrics.core;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,16 +36,16 @@ public class MetricUtilsTests {
 
 	@Before
 	public void setup() {
-		data.add(new long[] { 1, 2, 3, 4, 5 });
-		data.add(new long[] { 6, 7, 8, 9, 10, 11, 12, 13 });
-		data.add(new long[] { 14, 15, 16 });
+		data.add(new long[] {1, 2, 3, 4, 5});
+		data.add(new long[] {6, 7, 8, 9, 10, 11, 12, 13});
+		data.add(new long[] {14, 15, 16});
 
 	}
 
 	@Test(expected = IndexOutOfBoundsException.class)
 	public void testNotEnoughData() {
 		List<long[]> data = new ArrayList<long[]>();
-		data.add(new long[] { 1, 2, 3, 4, 5 });
+		data.add(new long[] {1, 2, 3, 4, 5});
 
 		MetricUtils.concatArrays(data, 3, 3);
 	}
@@ -54,7 +54,7 @@ public class MetricUtilsTests {
 	public void testSpanChunks() {
 
 		long[] result = MetricUtils.concatArrays(data, 3, 6);
-		assertArrayEquals(new long[] { 4, 5, 6, 7, 8, 9 }, result);
+		assertArrayEquals(new long[] {4, 5, 6, 7, 8, 9}, result);
 	}
 
 }

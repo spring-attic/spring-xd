@@ -44,34 +44,34 @@ public final class MetricUtils {
 		return g.reset();
 	}
 
-    /**
-     * Concatenate {@code size} many values from the passed in arrays, starting at offset {@code start}.
-     */
+	/**
+	 * Concatenate {@code size} many values from the passed in arrays, starting at offset {@code start}.
+	 */
 	public static long[] concatArrays(List<long[]> arrays, int start, int size) {
 		long[] result = new long[size];
 
-        // How many values we still need to move over
+		// How many values we still need to move over
 		int howManyLeft = size;
 
-        // Where in the resulting array we're currently bulk-writing
+		// Where in the resulting array we're currently bulk-writing
 		int targetPosition = 0;
 
-        // Where we're copying *from*, in (one of) the source array.
-        // Typically 0, except maybe for the first array in the list
+		// Where we're copying *from*, in (one of) the source array.
+		// Typically 0, except maybe for the first array in the list
 		int from = start;
 
 		for (int i = 0; i < arrays.size() && howManyLeft > 0; i++) {
 			long[] current = arrays.get(i);
 
-            // Can't copy more than the current source array size, or the grand total pointer
-			int howManyThisRoung = Math.min(current.length - from, howManyLeft);
-			System.arraycopy(current, from, result, targetPosition, howManyThisRoung);
+			// Can't copy more than the current source array size, or the grand total pointer
+			int howManyThisRound = Math.min(current.length - from, howManyLeft);
+			System.arraycopy(current, from, result, targetPosition, howManyThisRound);
 			from = 0;
-			howManyLeft -= howManyThisRoung;
-			targetPosition += howManyThisRoung;
+			howManyLeft -= howManyThisRound;
+			targetPosition += howManyThisRound;
 		}
 
-        // If this is non-zero here, means we were asked to copy more than what we were provided
+		// If this is non-zero here, means we were asked to copy more than what we were provided
 		if (howManyLeft > 0) {
 			throw new ArrayIndexOutOfBoundsException(
 					String.format("Not enough data, short of %d elements", howManyLeft));

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/sftp
+		http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
+
+	<beans:bean id="sftpSessionFactory"
+		class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+		<beans:property name="host" value="${host}" />
+		<beans:property name="port" value="${port}" />
+		<beans:property name="user" value="${user}" />
+		<beans:property name="password" value="${password}" />
+		<beans:property name="privateKey" value="${privateKey}" />
+		<beans:property name="privateKeyPassphrase" value="${passPhrase}" />
+	</beans:bean>
+
+	<int-sftp:inbound-channel-adapter
+		auto-startup="false" channel="output" session-factory="sftpSessionFactory"
+		filter="filter" remote-directory="${remoteDir}" local-directory="${localDir}"
+		auto-create-local-directory="${autoCreateLocalDir}"
+		temporary-file-suffix="${tmpFileSuffix}" delete-remote-files="${deleteRemoteFiles}">
+		<poller fixed-delay="${fixedDelay}" time-unit="SECONDS" />
+	</int-sftp:inbound-channel-adapter>
+
+	<channel id="output" />
+
+	<beans:beans profile="accept-all-files">
+		<beans:bean id="filter"
+			class="org.springframework.integration.file.filters.AcceptAllFileListFilter" />
+	</beans:beans>
+
+	<beans:beans profile="use-filename-simple-pattern">
+		<beans:bean id="filter"
+			class="org.springframework.integration.sftp.filters.SftpSimplePatternFileListFilter">
+			<beans:constructor-arg name="pattern" value="${pattern}" />
+		</beans:bean>
+	</beans:beans>
+
+	<beans:beans profile="use-filename-regex-pattern">
+		<beans:bean id="filter"
+			class="org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter">
+			<beans:constructor-arg name="pattern" value="${regexPattern}" />
+		</beans:bean>
+	</beans:beans>
+
+</beans:beans>
+
+

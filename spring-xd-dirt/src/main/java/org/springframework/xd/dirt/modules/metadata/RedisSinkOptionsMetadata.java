@@ -87,6 +87,7 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 	@ModuleOption("name for the topic")
 	public void setTopic(String topic) {
 		this.topic = topic;
+		this.topicExpression = "'" + this.topic + "'";
 	}
 
 	public String getQueue() {
@@ -96,6 +97,7 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 	@ModuleOption("name for the queue")
 	public void setQueue(String queue) {
 		this.queue = queue;
+		this.queueExpression = "'" + queue + "'";
 	}
 
 	public String getKey() {
@@ -105,6 +107,7 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 	@ModuleOption("name for the key")
 	public void setKey(String key) {
 		this.key = key;
+		this.keyExpression = "'" + this.key + "'";
 	}
 
 	public RedisCollectionFactoryBean.CollectionType getCollectionType() {
@@ -123,9 +126,8 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 	@AssertTrue(message = "the 'topic', 'topicExpression', 'queue', 'queueExpression', 'key' and 'keyExpression' options are mutually exclusive")
 	public boolean isOptionMutuallyExclusive() {
 		boolean optionSpecified = false;
-		String[] options = { this.topic, this.topicExpression, this.queue, this.queueExpression, this.key,
-			this.keyExpression };
-		for (String option : options) {
+		String[] distinctOptions = { this.topicExpression, this.queueExpression, this.keyExpression };
+		for (String option : distinctOptions) {
 			if (optionSpecified == true && option != null) {
 				return false;
 			}
@@ -133,7 +135,21 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 				optionSpecified = true;
 			}
 		}
-		return true;
+		return (checkMutuallyExclusive(this.queue, this.queueExpression)
+				&& checkMutuallyExclusive(this.topic, this.topicExpression) && checkMutuallyExclusive(this.key,
+					this.keyExpression));
+	}
+
+	/**
+	 * Check if the literal and expression values mutually exclusive (have different content).
+	 *
+	 * @param literal
+	 * @param expression
+	 * @return boolean value
+	 */
+	private boolean checkMutuallyExclusive(String literal, String expression) {
+		return (expression == null || literal == null) ? true
+				: (expression.contains(literal) && (literal.length() + 2 == expression.length()));
 	}
 
 	@AssertTrue(message = "one of 'topic', 'topicExpression', 'queue', 'queueExpression', 'key', 'keyExpression' options must be set explicitly")
@@ -157,22 +173,10 @@ public class RedisSinkOptionsMetadata implements ProfileNamesProvider {
 		if (topicExpression != null) {
 			return new String[] { TOPIC_EXPRESSION_PROFILE };
 		}
-		else if (topic != null) {
-			this.topicExpression = "'" + this.topic + "'";
-			return new String[] { TOPIC_EXPRESSION_PROFILE };
-		}
 		else if (queueExpression != null) {
 			return new String[] { QUEUE_EXPRESSION_PROFILE };
 		}
-		else if (queue != null) {
-			this.queueExpression = "'" + this.queue + "'";
-			return new String[] { QUEUE_EXPRESSION_PROFILE };
-		}
 		else if (keyExpression != null) {
-			return new String[] { STORE_EXPRESSION_PROFILE };
-		}
-		else if (key != null) {
-			this.keyExpression = "'" + this.key + "'";
 			return new String[] { STORE_EXPRESSION_PROFILE };
 		}
 		return new String[] {};

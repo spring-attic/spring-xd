@@ -217,7 +217,6 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 		processBuilder.redirectErrorStream(redirectErrorStream);
 
 		if (StringUtils.hasLength(workingDirectory)) {
-			System.out.println("setting directory to " + workingDirectory);
 			processBuilder.directory(new File(workingDirectory));
 		}
 		if (!CollectionUtils.isEmpty(environment)) {

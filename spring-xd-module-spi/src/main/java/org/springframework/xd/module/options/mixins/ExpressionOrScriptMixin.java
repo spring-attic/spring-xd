@@ -24,11 +24,10 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 /**
  * A standard mixin for modules that do some transformation based on either a script or a SpEL expression.
- * 
+ *
  * <p>
  * Provides the following options:
  * <ul>
- * <li>script</li>
  * <li>expression</li>
  * </ul>
  * and activates one of the following profile accordingly:
@@ -36,32 +35,20 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * <li>use-script</li>
  * <li>use-expression</li>
  * </ul>
- * 
+ *
  * @author Eric Bottard
+ * @author David Turanski
  */
-public class ExpressionOrScriptMixin implements ProfileNamesProvider {
-
+public class ExpressionOrScriptMixin extends ScriptMixin implements ProfileNamesProvider {
 	/**
 	 * The default expression if none is provided.
 	 */
 	private static final String DEFAULT_EXPRESSION = "payload.toString()";
 
-	private String script = null;
-
 	private String expression;
-
-
-	public String getScript() {
-		return script;
-	}
 
 	public String getExpression() {
 		return expression == null ? DEFAULT_EXPRESSION : expression;
-	}
-
-	@ModuleOption("reference to a script used to transform messages")
-	public void setScript(String script) {
-		this.script = script;
 	}
 
 	@ModuleOption("a SpEL expression used to transform messages")
@@ -72,16 +59,21 @@ public class ExpressionOrScriptMixin implements ProfileNamesProvider {
 	/**
 	 * User can't explicitly set both script and expression.
 	 */
+	@Override
 	@AssertTrue(message = "the 'script' and 'expression' options are mutually exclusive")
 	public boolean isValid() {
 		// default value for expression is always set; this is safe as profilesToActivate() will activate 'use-script'
 		// if script is non-null
-		return script == null || expression.equals(DEFAULT_EXPRESSION);
+		return getScript() == null || expression.equals(DEFAULT_EXPRESSION);
+	}
+
+	@AssertTrue(message="'propertiesLocation' and 'variables' only apply to script")
+	public boolean noScriptOptionsWithExpression() {
+		return getScript() == null ^ (getPropertiesLocation() == null && getVariables() == null);
 	}
 
 	@Override
 	public String[] profilesToActivate() {
-		return script == null ? new String[] { "use-expression" } : new String[] { "use-script" };
+		return getScript() == null ? new String[] { "use-expression" } : new String[] { "use-script" };
 	}
-
 }

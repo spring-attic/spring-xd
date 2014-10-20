@@ -218,6 +218,24 @@ project('modules.processor.shell') {
 	}
 }
 
+project('modules.processor.script') {
+	dependencies {
+		runtime(project(":spring-xd-extension-script"))
+	}
+}
+
+project('modules.processor.transform') {
+	dependencies {
+		runtime(project(":spring-xd-extension-script"))
+	}
+}
+
+project('modules.processor.filter') {
+	dependencies {
+		runtime(project(":spring-xd-extension-script"))
+	}
+}
+
 // ================ M O D U L E S : S I N K S ==========================
 
 project('modules.sink.tcp') {
@@ -284,6 +302,13 @@ project('modules.sink.mongodb') {
         runtime ("org.springframework.integration:spring-integration-mongodb")
     }
 }
+
+project('modules.sink.router') {
+	dependencies {
+		runtime(project(":spring-xd-extension-script"))
+	}
+}
+
 
 
 

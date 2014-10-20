@@ -57,7 +57,7 @@ import org.springframework.xd.dirt.util.XdProfiles;
  */
 @Configuration
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class,
-	AuditAutoConfiguration.class })
+		AuditAutoConfiguration.class })
 public class ContainerServerApplication implements EnvironmentAware {
 
 	private static final Log logger = LogFactory.getLog(ContainerServerApplication.class);
@@ -83,20 +83,20 @@ public class ContainerServerApplication implements EnvironmentAware {
 			ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new ContainerOptions());
 
 			this.containerContext = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
-			.logStartupInfo(false)
-			.profiles(XdProfiles.CONTAINER_PROFILE)
-			.listeners(bootstrapContext.commandLineListener())
-			.child(SharedServerContextConfiguration.class, ContainerOptions.class)
-			.logStartupInfo(false)
-			.listeners(bootstrapContext.commandLineListener())
-			.child(ContainerServerApplication.class)
-			.logStartupInfo(false)
-			.listeners(
-					ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-							bootstrapContext.pluginContextInitializers()))
-							.child(ContainerConfiguration.class)
-							.listeners(bootstrapContext.commandLineListener())
-							.initializers(new IdInitializer()).run(args);
+					.logStartupInfo(false)
+					.profiles(XdProfiles.CONTAINER_PROFILE)
+					.listeners(bootstrapContext.commandLineListener())
+					.child(SharedServerContextConfiguration.class, ContainerOptions.class)
+					.logStartupInfo(false)
+					.listeners(bootstrapContext.commandLineListener())
+					.child(ContainerServerApplication.class)
+					.logStartupInfo(false)
+					.listeners(
+							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+									bootstrapContext.pluginContextInitializers()))
+					.child(ContainerConfiguration.class)
+					.listeners(bootstrapContext.commandLineListener())
+					.initializers(new IdInitializer()).run(args);
 		}
 		catch (Exception e) {
 			handleFieldErrors(e);
@@ -113,19 +113,8 @@ public class ContainerServerApplication implements EnvironmentAware {
 		final String containerIp = environment.getProperty("xd.container.ip");
 		final String containerHostname = environment.getProperty("xd.container.hostname");
 
-		if (StringUtils.hasText(containerIp)) {
-			containerAttributes.setIp(containerIp);
-		}
-		else {
-			containerAttributes.setIp(RuntimeUtils.getIpAddress());
-		}
-
-		if (StringUtils.hasText(containerHostname)) {
-			containerAttributes.setHost(containerHostname);
-		}
-		else {
-			containerAttributes.setHost(RuntimeUtils.getHost());
-		}
+		containerAttributes.setIp(StringUtils.hasText(containerIp) ? containerIp : RuntimeUtils.getIpAddress());
+		containerAttributes.setHost(StringUtils.hasText(containerHostname) ? containerHostname : RuntimeUtils.getHost());
 
 		containerAttributes.setPid(RuntimeUtils.getPid());
 		return containerAttributes;

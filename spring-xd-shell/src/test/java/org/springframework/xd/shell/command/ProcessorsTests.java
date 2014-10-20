@@ -135,6 +135,32 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	public void testScriptTransformProcessorWithPropertiesLocation() {
+		HttpSource httpSource = newHttpSource();
+		FileSink fileSink = newFileSink().binary(true);
+		stream().create(generateStreamName(),
+				"%s | transform --script='org/springframework/xd/shell/command/script-with-variables.groovy' " +
+						"--propertiesLocation='org/springframework/xd/shell/command/script.properties'" +
+						" | %s",
+				httpSource, fileSink);
+		httpSource.ensureReady().postData("hello");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("helloFOO"))));
+	}
+
+	@Test
+	public void testScriptTransformProcessorWithInlineProperties() {
+		HttpSource httpSource = newHttpSource();
+		FileSink fileSink = newFileSink().binary(true);
+		stream().create(generateStreamName(),
+				"%s | transform --script='org/springframework/xd/shell/command/script-with-variables.groovy' " +
+						"--variables='foo=FOO'" +
+						" | %s",
+				httpSource, fileSink);
+		httpSource.ensureReady().postData("hello");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("helloFOO"))));
+	}
+
+	@Test
 	public void testExpressionTransformProcessor() {
 		HttpSource httpSource = newHttpSource();
 		FileSink fileSink = newFileSink().binary(true);

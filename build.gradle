@@ -320,7 +320,7 @@ project('spring-xd-analytics-ml') {
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
 	dependencies {
-
+		compile "org.codehaus.groovy:groovy-all"
 		// See XD-903 for breakdown
 		// ************* Common to both Server and Container
 		compile "org.springframework:spring-aop"
@@ -336,9 +336,6 @@ project('spring-xd-dirt') {
 		compile "org.springframework.data:spring-data-redis"
 		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.integration:spring-integration-event"
-		//TODO: Apparently only needed for script, transform, router modules
-		//TODO: reverted to compile for Java 8
-		compile "org.springframework.integration:spring-integration-groovy"
 		//compile "org.springframework.integration:spring-integration-http"
 		// TODO: Investigate why spring-integration-http's optional dependency xerces becomes transitive dependency
 		configurations.compile.exclude(group: "xerces")

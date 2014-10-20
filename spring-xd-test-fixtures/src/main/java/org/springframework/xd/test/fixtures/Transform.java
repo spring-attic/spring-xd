@@ -23,6 +23,7 @@ import org.springframework.xd.test.fixtures.util.FixtureUtils;
 /**
  * Test fixture that creates a Transform.
  * @author Glenn Renfro
+ * @author David Turanski
  */
 public class Transform extends AbstractModuleFixture<Transform> {
 
@@ -30,7 +31,7 @@ public class Transform extends AbstractModuleFixture<Transform> {
 
 	private String script;
 
-	private String properties;
+	private String propertiesLocation;
 
 	/**
 	 * Renders the default DSL for this fixture.
@@ -50,8 +51,8 @@ public class Transform extends AbstractModuleFixture<Transform> {
 			dsl.append(" --script=");
 			dsl.append(script);
 		}
-		if (properties != null) {
-			dsl.append(" properties=" + properties);
+		if (propertiesLocation != null) {
+			dsl.append(" --propertiesLocation =" + propertiesLocation);
 		}
 
 		return dsl.toString();
@@ -80,13 +81,13 @@ public class Transform extends AbstractModuleFixture<Transform> {
 	}
 
 	/**
-	 * Sets the properties to be used by the transform.
-	 * @param properties the location of the properties file
+	 * Sets the propertiesLocation to be used by the transform.
+	 * @param propertiesLocation the location of the propertiesLocation file
 	 * @return current instance of the transform fixture.
 	 */
-	public Transform properties(String properties) {
-		Assert.hasText(properties, "properties can not be empty nor null");
-		this.properties = properties;
+	public Transform properties(String propertiesLocation) {
+		Assert.hasText(propertiesLocation, "propertiesLocation can not be empty nor null");
+		this.propertiesLocation = propertiesLocation;
 		return this;
 	}
 

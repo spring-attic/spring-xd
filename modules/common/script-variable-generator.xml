@@ -6,9 +6,10 @@
 
 		<bean class="org.springframework.integration.scripting.DefaultScriptVariableGenerator" id="variableGenerator">
 			<constructor-arg>
-				<bean class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-					<property name="location" value="${properties-location:null}" />
+				<bean id="props" class="org.springframework.xd.extension.script.ScriptModulePropertiesFactoryBean">
+					<property name="location" value="${propertiesLocation:none}" />
 					<property name="ignoreResourceNotFound" value="true" />
+					<property name="variables" value="${variables:#{null}}"/>
 				</bean>
 			</constructor-arg>
 		</bean>

@@ -159,6 +159,33 @@ xd:
 #    trust-store: path/to/trust-store
 #    trust-store-password: yourTrustStorePassword
 ---
+# Config to enable LDAP simple bind authentication for administration endpoints
+# (security.basic.enabled must be also set to true)
+#spring:
+#  profiles: admin
+#xd:
+# security:
+#   authentication:
+#     ldap:
+#       enabled: true # required for LDAP autentication to come into effect
+#       url: ldap://yourLdapHost:${yourLdapPort}
+#       userDnPattern: yourUserPattern # e.g. uid={0},ou=people,dc=example,dc=com
+---
+# Config to enable LDAP search and bind authentication for administration endpoints
+# (security.basic.enabled must be also set to true)
+#spring:
+#  profiles: admin
+#xd:
+# security:
+#   authentication:
+#     ldap:
+#       enabled: true # required for LDAP authentication to come into effect
+#       url: ldap://yourLdapHost:${yourLdapPort}
+#       managerDn: yourManagerDn # e.g. uid=bob,ou=managers,dc=example,dc=com
+#       managerPassword: yourManagerPassword
+#       userSearchBase: yourUserSearchBase # e.g. ou=otherpeople,dc=example,dc=com
+#       userSearchFilter: yourUserSearchFilter # e.g. uid={0}
+---
 # Config to enable/disable JMX/jolokia endpoints
 #XD_JMX_ENABLED: true
 #endpoints:

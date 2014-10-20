@@ -30,8 +30,8 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 /**
-* @author Marius Bogoevici
-*/
+ * @author Marius Bogoevici
+ */
 public class SpringXdResource extends ExternalResource {
 
 	private String originalConfigLocation = null;
@@ -59,8 +59,8 @@ public class SpringXdResource extends ExternalResource {
 		WebApplicationContext configurableApplicationContext = (WebApplicationContext) singleNodeApplication.adminContext();
 		Collection<Filter> filters = configurableApplicationContext.getBeansOfType(Filter.class).values();
 		mockMvc = MockMvcBuilders.webAppContextSetup(configurableApplicationContext)
-								 .addFilters(filters.toArray(new Filter[filters.size()]))
-								 .build();
+				.addFilters(filters.toArray(new Filter[filters.size()]))
+				.build();
 		adminPort = singleNodeApplication.adminContext().getEnvironment().resolvePlaceholders("${server.port}");
 	}
 
@@ -69,7 +69,8 @@ public class SpringXdResource extends ExternalResource {
 		singleNodeApplication.close();
 		if (originalConfigLocation != null) {
 			System.setProperty("spring.config.location", originalConfigLocation);
-		} else {
+		}
+		else {
 			System.clearProperty("spring.config.location");
 		}
 	}

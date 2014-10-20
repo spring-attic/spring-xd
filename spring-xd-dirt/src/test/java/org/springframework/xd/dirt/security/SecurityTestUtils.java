@@ -28,5 +28,4 @@ public abstract class SecurityTestUtils {
 		return "Basic " + new String(Base64.encode((username + ":" + password).getBytes()));
 	}
 
-
 }

@@ -162,7 +162,8 @@ public class LdapAuthenticationConfiguration extends GlobalAuthenticationConfigu
 			ldapConfigurer.groupSearchBase(groupSearchBase)
 					.groupSearchFilter(groupSearchFilter)
 					.groupRoleAttribute(groupRoleAttribute);
-		} else {
+		}
+		else {
 			ldapConfigurer.ldapAuthoritiesPopulator(new LdapAuthoritiesPopulator() {
 				@Override
 				public Collection<? extends GrantedAuthority> getGrantedAuthorities(DirContextOperations userData, String username) {
@@ -171,7 +172,6 @@ public class LdapAuthenticationConfiguration extends GlobalAuthenticationConfigu
 				}
 			});
 		}
-
 
 	}
 }

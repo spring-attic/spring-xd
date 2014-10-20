@@ -35,44 +35,36 @@ public class SingleNodeApplicationWithUserBasedSecurityTest {
 
 	@Test
 	public void testUnauthenticatedAccessToModulesEndpointFails() throws Exception {
-        springXdResource.getMockMvc().perform(
-				get("/modules"))
-				.andExpect(
-						status().isUnauthorized()
-				).andExpect(header().string("WWW-Authenticate", "Basic realm=\"SpringXD\"")
+		springXdResource.getMockMvc()
+				.perform(get("/modules"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(header().string("WWW-Authenticate", "Basic realm=\"SpringXD\"")
 		);
 	}
 
 	@Test
 	public void testUnauthenticatedAccessToManagementEndpointFails() throws Exception {
-		springXdResource.getMockMvc().perform(
-				get("/management/metrics")
-		).andExpect(
-						status().isUnauthorized()
-				).andExpect(header().string("WWW-Authenticate", "Basic realm=\"SpringXD\"")
+		springXdResource.getMockMvc()
+				.perform(get("/management/metrics"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(header().string("WWW-Authenticate", "Basic realm=\"SpringXD\"")
 		);
 	}
 
 	@Test
 	public void testAuthenticatedAccessToModulesEndpointSucceeds() throws Exception {
 		springXdResource.getMockMvc()
-				.perform(
-						get("/modules")
-								.header("Authorization", basicAuthorizationHeader("admin", "whosThere"))
-				).andDo(print()).andExpect(
-				status().isOk()
+				.perform(get("/modules").header("Authorization", basicAuthorizationHeader("admin", "whosThere")))
+				.andDo(print())
+				.andExpect(status().isOk()
 		);
 	}
 
 	@Test
 	public void testAuthenticatedAccessToManagementEndpointSucceeds() throws Exception {
 		springXdResource.getMockMvc()
-				.perform(
-						get("/management/metrics")
-								.header("Authorization", basicAuthorizationHeader("admin", "whosThere"))
-				).andDo(print())
-				.andExpect(
-						status().isOk()
-				);
+				.perform(get("/management/metrics").header("Authorization", basicAuthorizationHeader("admin", "whosThere")))
+				.andDo(print())
+				.andExpect(status().isOk());
 	}
 }

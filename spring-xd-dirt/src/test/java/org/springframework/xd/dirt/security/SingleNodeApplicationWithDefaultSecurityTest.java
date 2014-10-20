@@ -56,7 +56,7 @@ public class SingleNodeApplicationWithDefaultSecurityTest {
 
 	@Test
 	public void testModuleEndpointIsNotSecuredByDefault() throws Exception {
-        springXdResource.getMockMvc()
+		springXdResource.getMockMvc()
 				.perform(get("/modules"))
 				.andExpect(status().isOk());
 	}
@@ -72,7 +72,8 @@ public class SingleNodeApplicationWithDefaultSecurityTest {
 	public void testSslNotEnabledByDefaultForAdminEndpoints() throws Exception {
 		try {
 			restTemplate.getForEntity("https://localhost" + ":" + springXdResource.getAdminPort() + "/modules", Object.class);
-		} catch (RestClientException e) {
+		}
+		catch (RestClientException e) {
 			// the request fails because the protocol is not HTTPS
 			assertThat(e.getCause(), instanceOf(SSLException.class));
 		}
@@ -86,7 +87,8 @@ public class SingleNodeApplicationWithDefaultSecurityTest {
 		try {
 			// the request fails because the protocol is not HTTPS
 			restTemplate.getForEntity("https://localhost" + ":" + springXdResource.getAdminPort() + "/management/metrics", Object.class);
-		} catch (RestClientException e) {
+		}
+		catch (RestClientException e) {
 			assertThat(e.getCause(), instanceOf(SSLException.class));
 		}
 		// HTTP, however, succeeds

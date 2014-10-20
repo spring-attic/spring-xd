@@ -54,12 +54,14 @@ public class LdapServerResource extends ExternalResource {
 		apacheDSContainer.stop();
 		try {
 			apacheDSContainer.destroy();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		try {
 			FileUtils.deleteDirectory(workingDir);
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

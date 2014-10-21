@@ -16,14 +16,10 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.ArrayList;
 
@@ -61,41 +57,37 @@ import org.springframework.xd.module.ModuleType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
+@ContextConfiguration(classes = {RestConfiguration.class, Dependencies.class})
 public class StreamsControllerIntegrationWithRepositoryTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
-	private StreamDeployer deployer;
+	protected StreamRepository streamRepository;
 
 	@Autowired
-	protected StreamRepository streamRepository;
+	private StreamDeployer deployer;
 
 	@Autowired
 	private ModuleRegistry moduleRegistry;
 
 	@Before
 	public void before() {
-		Resource resource = new DescriptiveResource("dummy");
-		ModuleDefinition sinkDefinition = new ModuleDefinition("sink",
-				ModuleType.sink, resource);
-		ModuleDefinition sourceDefinition = new ModuleDefinition("source",
-				ModuleType.source, resource);
+		ModuleDefinition sinkDefinition = ModuleDefinition.dummy("sink", ModuleType.sink);
+		ModuleDefinition sourceDefinition = ModuleDefinition.dummy("source", ModuleType.source);
 
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("source", ModuleType.source, resource));
+		definitions.add(ModuleDefinition.dummy("source", ModuleType.source));
 		when(moduleRegistry.findDefinitions("source")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("time")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("time", ModuleType.source)).thenReturn(sourceDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("sink", ModuleType.sink, resource));
+		definitions.add(ModuleDefinition.dummy("sink", ModuleType.sink));
 		when(moduleRegistry.findDefinitions("sink")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("log", ModuleType.sink)).thenReturn(sinkDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("processor", ModuleType.processor,
-				resource));
+		definitions.add(ModuleDefinition.dummy("processor", ModuleType.processor));
 		when(moduleRegistry.findDefinitions("processor")).thenReturn(definitions);
 	}
 

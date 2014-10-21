@@ -63,7 +63,7 @@ public class DefaultContainerMatcherTests {
 
 	@Before
 	public void setUp() {
-		moduleDefinition = new ModuleDefinition("foo", ModuleType.processor);
+		moduleDefinition = ModuleDefinition.dummy("foo", ModuleType.processor);
 		deploymentProperties = new ModuleDeploymentProperties();
 		moduleDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(moduleDefinition)

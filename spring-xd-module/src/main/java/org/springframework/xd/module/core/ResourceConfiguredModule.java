@@ -16,10 +16,11 @@
 
 package org.springframework.xd.module.core;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
+import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
 
 /**
@@ -27,6 +28,7 @@ import org.springframework.xd.module.options.ModuleOptions;
  * Groovy)
  *
  * @author David Turanski
+ * @author Eric Bottard
  */
 public class ResourceConfiguredModule extends SimpleModule {
 
@@ -34,19 +36,26 @@ public class ResourceConfiguredModule extends SimpleModule {
 		super(descriptor, deploymentProperties);
 	}
 
+	// Do not remove; Invoked via reflection
+	@SuppressWarnings("unused")
 	public ResourceConfiguredModule(ModuleDescriptor descriptor, ModuleDeploymentProperties deploymentProperties,
 			ClassLoader classLoader, ModuleOptions moduleOptions) {
 		super(descriptor, deploymentProperties, classLoader, moduleOptions);
 	}
 
-	//todo: change to use interpret the resource as the root module path
-	// when ModuleDefinition is refactored (XD-2199)
 	@Override
-	protected void configureModuleApplicationContext(ModuleDefinition moduleDefinition) {
-		Resource resource = moduleDefinition.getResource();
-		if (resource != null && resource.exists() && resource.isReadable() &&
-				(resource.getFilename().endsWith(".xml") || resource.getFilename().endsWith(".groovy"))) {
-			addSource(moduleDefinition.getResource());
+	protected void configureModuleApplicationContext(SimpleModuleDefinition moduleDefinition) {
+		Resource resource = new ClassPathResource("/config/" + moduleDefinition.getName() + ".xml", getClassLoader());
+		if (resource != null && resource.exists() && resource.isReadable()) {
+			addSource(resource);
+		} else {
+			resource = new ClassPathResource("/config/" + moduleDefinition.getName() + ".groovy", getClassLoader());
+			if (resource != null && resource.exists() && resource.isReadable()) {
+				addSource(resource);
+				// TODO: should be able to fail in the else clause
+//			} else {
+//				throw new AssertionError();
+			}
 		}
 	}
 }

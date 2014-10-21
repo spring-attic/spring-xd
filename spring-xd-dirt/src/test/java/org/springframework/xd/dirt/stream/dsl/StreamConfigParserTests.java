@@ -226,7 +226,7 @@ public class StreamConfigParserTests {
 		}
 	}
 
-	public ModuleDefinitionRepository moduleDefinitionRepository() {
+	private ModuleDefinitionRepository moduleDefinitionRepository() {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
 		ModuleDependencyRepository moduleDependencyRepository = mock(ModuleDependencyRepository.class);
 		Resource resource = mock(Resource.class);
@@ -239,20 +239,20 @@ public class StreamConfigParserTests {
 			throw new RuntimeException(ioe);
 		}
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("SOURCE",
-				ModuleType.source, resource));
+		definitions.add(ModuleDefinition.dummy("SOURCE",
+				ModuleType.source));
 		when(registry.findDefinitions("SOURCE")).thenReturn(
 				definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("SINK",
-				ModuleType.sink, resource));
+		definitions.add(ModuleDefinition.dummy("SINK",
+				ModuleType.sink));
 		when(registry.findDefinitions("SINK")).thenReturn(
 				definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("PROCESSOR",
-				ModuleType.processor, resource));
+		definitions.add(ModuleDefinition.dummy("PROCESSOR",
+				ModuleType.processor));
 		when(registry.findDefinitions("PROCESSOR")).thenReturn(
 				definitions);
 		return new ZooKeeperModuleDefinitionRepository(registry, moduleDependencyRepository, zooKeeperConnection);

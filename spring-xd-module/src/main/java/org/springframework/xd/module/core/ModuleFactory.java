@@ -16,7 +16,6 @@
 
 package org.springframework.xd.module.core;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -43,6 +42,7 @@ import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
+import org.springframework.xd.module.support.ModuleUtils;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
@@ -54,9 +54,9 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
 public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware {
 	private static Log log = LogFactory.getLog(ModuleFactory.class);
 
-	private volatile ClassLoader parentClassLoader;
-
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
+	private volatile ClassLoader parentClassLoader = ModuleFactory.class.getClassLoader();
 
 	private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
 
@@ -117,11 +117,11 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 			log.info("creating simple module " + moduleDescriptor);
 		}
 		ModuleDefinition definition = moduleDescriptor.getModuleDefinition();
-		URL[] classpath = determineClassPath((SimpleModuleDefinition) definition);
+		URL[] classpath = ModuleUtils.determineClassPath((SimpleModuleDefinition) definition, resourceLoader);
 		ClassLoader moduleClassLoader = classpath.length == 0 ? null :
 				new ParentLastURLClassLoader(classpath, this.parentClassLoader);
 
-		Class<? extends SimpleModule> moduleClass = determineModuleClass(moduleDescriptor.getModuleDefinition());
+		Class<? extends SimpleModule> moduleClass = determineModuleClass((SimpleModuleDefinition) moduleDescriptor.getModuleDefinition());
 		Assert.notNull(moduleClass,
 				String.format("cannot create module '%s:%s' from module definition.", moduleDescriptor.getModuleName(),
 						moduleDescriptor.getType()));
@@ -129,32 +129,25 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 				.createModule(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleClass);
 	}
 
-	private URL[] determineClassPath(SimpleModuleDefinition definition) {
-		try {
-			Resource[] jars = resourceLoader.getResources(definition.getLocation() + "/lib/*.jar");
-			List<URL> result = new ArrayList<URL>(jars.length);
-			for (Resource jar : jars) {
-				result.add(jar.getURL());
+	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition) {
+		for (Resource resource : resourceBasedConfigurationFiles(moduleDefinition)) {
+			if (resource != null && resource.exists()) {
+				if (resource.isReadable() &&
+						(resource.getFilename().endsWith(".xml") || resource.getFilename().endsWith(".groovy"))) {
+					return ResourceConfiguredModule.class;
+				}
 			}
-			return result.toArray(new URL[jars.length]);
 		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
+		return null;
 	}
 
-	private Class<? extends SimpleModule> determineModuleClass(ModuleDefinition moduleDefinition) {
-		Resource resource = moduleDefinition.getResource();
-		Class<? extends SimpleModule> moduleType = null;
-		//todo: change to use interpret the resource as the root module path when
-		// ModuleDefinition is refactored (XD-2199)
-		if (resource != null && resource.exists()) {
-			if (resource.isReadable() &&
-					(resource.getFilename().endsWith(".xml") || resource.getFilename().endsWith(".groovy"))) {
-				moduleType = ResourceConfiguredModule.class;
-			}
+	private List<Resource> resourceBasedConfigurationFiles(SimpleModuleDefinition moduleDefinition) {
+		List<Resource> candidates = new ArrayList<Resource>();
+		for (String extension : new String[] {".xml", ".groovy"}) {
+			Resource resource = resourceLoader.getResource(moduleDefinition.getLocation() + "/config/" + moduleDefinition.getName() + extension);
+			candidates.add(resource);
 		}
-		return moduleType;
+		return candidates;
 	}
 
 	/**
@@ -214,7 +207,7 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
-		this.resourceLoader = (ResourcePatternResolver)resourceLoader;
+		this.resourceLoader = (ResourcePatternResolver) resourceLoader;
 	}
 
 	static class SimpleModuleCreator {

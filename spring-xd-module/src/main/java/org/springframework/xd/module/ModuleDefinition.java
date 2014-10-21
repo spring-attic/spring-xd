@@ -20,6 +20,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
@@ -33,43 +35,42 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Pollack
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleDefinition implements Comparable<ModuleDefinition> {
+@JsonTypeInfo(use= JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY)
+public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 
-	private volatile String name;
+	private String name;
 
-	private volatile ModuleType type;
+	private ModuleType type;
 
-	private final Resource resource;
-
-	private volatile String definition;
+	private String definition;
 
 	/**
 	 * If a composed module, the list of modules
 	 */
 	private List<ModuleDefinition> composedModuleDefinitions = new ArrayList<ModuleDefinition>();
 
-	@SuppressWarnings("unused")
-	private ModuleDefinition() {
-		// no arg constructor for Jackson serialization
-		// JSON serialization ignores the resource, so set it here to a value.
-		resource = new DescriptiveResource("Dummy resource");
+	protected ModuleDefinition() {
+//		System.err.println("JSON deserializing:");
+//		new Exception().printStackTrace();
 	}
 
-	public ModuleDefinition(String name, ModuleType moduleType) {
-		this(name, moduleType, new DescriptiveResource("Dummy resource"));
-	}
-
-	public ModuleDefinition(String name, ModuleType type, Resource resource) {
-		this(name, type, resource, null);
-	}
-
-	public ModuleDefinition(String name, ModuleType type, Resource resource, URL[] classpath) {
+	protected ModuleDefinition(String name, ModuleType type) {
 		Assert.hasLength(name, "name cannot be blank");
 		Assert.notNull(type, "type cannot be null");
-		Assert.notNull(resource, "resource cannot be null");
-		this.resource = resource;
 		this.name = name;
 		this.type = type;
+	}
+
+	public static ModuleDefinition simple(String name, ModuleType type, String location) {
+		return new SimpleModuleDefinition(name, type, location);
+	}
+
+	public static ModuleDefinition composed(String name, ModuleType type, String dslDefinition, List<ModuleDefinition> children) {
+		return new CompositeModuleModuleDefinition(name, type, dslDefinition, children);
+	}
+
+	public static ModuleDefinition dummy(String name, ModuleType type) {
+		return new SimpleModuleDefinition(name, type, "file:/tmp/dummy/location");
 	}
 
 	/**
@@ -77,9 +78,7 @@ public class ModuleDefinition implements Comparable<ModuleDefinition> {
 	 *
 	 * @return true if this is a composed module, false otherwise.
 	 */
-	public boolean isComposed() {
-		return !CollectionUtils.isEmpty(this.composedModuleDefinitions);
-	}
+	public abstract boolean isComposed();
 
 	/**
 	 * Set the list of composed modules if this is a composite module, can not be null
@@ -101,10 +100,6 @@ public class ModuleDefinition implements Comparable<ModuleDefinition> {
 
 	public ModuleType getType() {
 		return type;
-	}
-
-	public Resource getResource() {
-		return resource;
 	}
 
 	public String getDefinition() {

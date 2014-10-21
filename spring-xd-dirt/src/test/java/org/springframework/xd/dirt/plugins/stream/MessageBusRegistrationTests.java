@@ -62,7 +62,7 @@ public class MessageBusRegistrationTests {
 	private ModuleDescriptor descriptor = new ModuleDescriptor.Builder()
 			.setGroup("mystream")
 			.setIndex(1)
-			.setModuleDefinition(new ModuleDefinition("messageBusRegistrationTests", ModuleType.processor))
+			.setModuleDefinition(ModuleDefinition.dummy("messageBusRegistrationTests", ModuleType.processor))
 			.build();
 
 	private MessageChannel input = new DirectChannel();

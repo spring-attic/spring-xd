@@ -34,9 +34,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.spi.Mixin;
+import org.springframework.xd.module.support.ModuleUtils;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
@@ -60,9 +62,6 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  * @author Eric Bottard
  */
 public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, ResourceLoaderAware {
-
-	private ResourcePatternResolver resourceLoader;
-
 
 	private static final Pattern DESCRIPTION_KEY_PATTERN = Pattern.compile("^options\\.([a-zA-Z\\-_0-9]+)\\.description$");
 
@@ -97,8 +96,9 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 
 	private final DefaultModuleOptionsMetadataCollector defaultModuleOptionsMetadataCollector = new DefaultModuleOptionsMetadataCollector();
+    private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
 
-	/**
+    /**
 	 * Construct a new {@link DefaultModuleOptionsMetadataResolver} that will use the provided conversion service when
 	 * converting from String to rich object (supported for {@link PojoModuleOptionsMetadata} only).
 	 */
@@ -158,7 +158,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	@Override
 	public ModuleOptionsMetadata resolve(ModuleDefinition definition) {
 		if (!definition.isComposed()) {
-			return resolveNormalMetadata(definition);
+			return resolveNormalMetadata((SimpleModuleDefinition) definition);
 		}
 		else {
 			return resolveComposedModuleMetadata(definition);
@@ -176,19 +176,19 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 		return new HierarchicalCompositeModuleOptionsMetadata(hierarchy);
 	}
 
-	private ModuleOptionsMetadata resolveNormalMetadata(ModuleDefinition definition) {
+	private ModuleOptionsMetadata resolveNormalMetadata(SimpleModuleDefinition definition) {
 		try {
 
-			URL[] classpath = determineClassPath((SimpleModuleDefinition) definition);
+			URL[] classpath = ModuleUtils.determineClassPath(definition, resourceLoader);
 
 			ClassLoader classLoaderToUse = classpath.length > 0
 					? new ParentLastURLClassLoader(classpath,
 							ModuleOptionsMetadataResolver.class.getClassLoader())
 					: ModuleOptionsMetadataResolver.class.getClassLoader();
-
-
-			Resource propertiesResource = definition.getResource().createRelative(
-					definition.getName() + ".properties");
+            // TODO: use classloader to load properties resource
+			String propertiesLocation = definition.getLocation() + "/config/" +
+					definition.getName() + ".properties";
+            Resource propertiesResource = resourceLoader.getResource(propertiesLocation);
 			if (!propertiesResource.exists()) {
 				return inferModuleOptionsMetadata(definition, classLoaderToUse);
 			}
@@ -240,30 +240,20 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 *
 	 * Note that this may end up in false positives and does not convey much information.
 	 */
-	private ModuleOptionsMetadata inferModuleOptionsMetadata(ModuleDefinition definition, ClassLoader classLoaderToUse) {
+	private ModuleOptionsMetadata inferModuleOptionsMetadata(SimpleModuleDefinition definition, ClassLoader classLoaderToUse) {
 		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 		reader.setResourceLoader(new PathMatchingResourcePatternResolver(classLoaderToUse));
-		reader.loadBeanDefinitions(definition.getResource());
+        String xmlLocation = definition.getLocation() + "/config/" + definition.getName() + ".xml";
+		Resource xml = resourceLoader.getResource(xmlLocation);
+		if (!xml.exists()) {
+			return new PassthruModuleOptionsMetadata();
+		}
+		reader.loadBeanDefinitions(xml);
 
 		return defaultModuleOptionsMetadataCollector.collect(beanFactory);
 
 	}
-
-	private URL[] determineClassPath(SimpleModuleDefinition definition) {
-		try {
-			Resource[] jars = resourceLoader.getResources(definition.getLocation() + "/lib/*.jar");
-			List<URL> result = new ArrayList<URL>(jars.length);
-			for (Resource jar : jars) {
-				result.add(jar.getURL());
-			}
-			return result.toArray(new URL[jars.length]);
-		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
 
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {

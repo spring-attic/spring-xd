@@ -118,7 +118,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	@Test
 	public void streamNameAdded() {
 		ModuleDescriptor descriptor = new ModuleDescriptor.Builder()
-		.setModuleDefinition(new ModuleDefinition("testJob", ModuleType.job))
+		.setModuleDefinition(ModuleDefinition.dummy("testJob", ModuleType.job))
 		.setGroup("foo")
 		.setIndex(0)
 		.build();
@@ -136,7 +136,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	@Test
 	public void jobOptionsDefaults() throws BindException {
-		ModuleOptionsMetadata metadata = new JobPluginMetadataResolver().resolve(new ModuleDefinition("foo",
+		ModuleOptionsMetadata metadata = new JobPluginMetadataResolver().resolve(ModuleDefinition.dummy("foo",
 				ModuleType.job));
 
 		Map<String, String> emptyMap = Collections.emptyMap();
@@ -157,7 +157,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		when(module.getProperties()).thenReturn(properties);
 		when(module.getDescriptor()).thenReturn(
 				new ModuleDescriptor.Builder().setGroup(moduleGroupName).setIndex(moduleIndex).setModuleDefinition(
-						new ModuleDefinition("testjob", ModuleType.job)).build());
+						ModuleDefinition.dummy("testjob", ModuleType.job)).build());
 
 		MessageChannel stepsOut = new DirectChannel();
 		when(module.getComponent("stepExecutionRequests.output", MessageChannel.class)).thenReturn(stepsOut);
@@ -202,7 +202,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		Mockito.when(module.getProperties()).thenReturn(properties);
 		Mockito.when(module.getDescriptor()).thenReturn(
 				new ModuleDescriptor.Builder().setGroup("job").setIndex(0).setModuleDefinition(
-						new ModuleDefinition("testjob", ModuleType.job)).build());
+						ModuleDefinition.dummy("testjob", ModuleType.job)).build());
 
 		jobPlugin.preProcessModule(module);
 		Mockito.verify(module).addSource(Matchers.any(Resource.class));
@@ -221,7 +221,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void testThatInputOutputChannelsAreBound() {
 
 		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
+				.setModuleDefinition(ModuleDefinition.dummy("myjob", ModuleType.job))
 				.setGroup("myjob")
 				.setIndex(0)
 				.build();
@@ -252,7 +252,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void testThatJobEventsChannelsAreBound() {
 
 		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(new ModuleDefinition("myjob", ModuleType.job))
+				.setModuleDefinition(ModuleDefinition.dummy("myjob", ModuleType.job))
 				.setGroup("myjob")
 				.setIndex(0)
 				.build();

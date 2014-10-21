@@ -63,7 +63,7 @@ import org.springframework.xd.module.ModuleType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
+@ContextConfiguration(classes = {RestConfiguration.class, Dependencies.class})
 public class ModuleMetadataControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
@@ -117,27 +117,23 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		when(moduleMetadataRepository.findAllByContainerId(pageable, "2")).thenReturn(pageEntity2);
 		when(moduleMetadataRepository.findOne("1", "s1.source.http.0")).thenReturn(entity1);
 		when(moduleMetadataRepository.findAllByModuleId(pageable, "j3.job.myjob.0")).thenReturn(pageEntity3);
-		Resource resource = new DescriptiveResource("dummy");
-		ModuleDefinition sinkDefinition = new ModuleDefinition("sink",
-				ModuleType.sink, resource);
-		ModuleDefinition sourceDefinition = new ModuleDefinition("source",
-				ModuleType.source, resource);
-		ModuleDefinition jobDefinition = new ModuleDefinition("job",
-				ModuleType.job, resource);
+		ModuleDefinition sinkDefinition = ModuleDefinition.dummy("sink", ModuleType.sink);
+		ModuleDefinition sourceDefinition = ModuleDefinition.dummy("source", ModuleType.source);
+		ModuleDefinition jobDefinition = ModuleDefinition.dummy("job", ModuleType.job);
 
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("source", ModuleType.source, resource));
+		definitions.add(ModuleDefinition.dummy("source", ModuleType.source));
 		when(moduleRegistry.findDefinitions("source")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("http")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("http", ModuleType.source)).thenReturn(sourceDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("sink", ModuleType.sink, resource));
+		definitions.add(ModuleDefinition.dummy("sink", ModuleType.sink));
 		when(moduleRegistry.findDefinitions("sink")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("log", ModuleType.sink)).thenReturn(sinkDefinition);
 
-		definitions.add(new ModuleDefinition("job", ModuleType.job, resource));
+		definitions.add(ModuleDefinition.dummy("job", ModuleType.job));
 		when(moduleRegistry.findDefinitions("job")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("job")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("job", ModuleType.job)).thenReturn(jobDefinition);

@@ -19,6 +19,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -28,7 +32,6 @@ import org.springframework.xd.dirt.module.DependencyException;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.rest.DetailedModuleDefinitionResourceAssembler;
 import org.springframework.xd.dirt.rest.ModulesController;
-import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -41,9 +44,15 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 
 	@BeforeClass
 	public static void setup() {
-		composeModule("compositesource", "source | testprocessor1", ModuleType.source);
-		composeModule("compositeprocessor", "testprocessor1 | testprocessor2", ModuleType.processor);
-		composeModule("compositesink", "testprocessor2 | sink", ModuleType.sink);
+
+		ModuleDefinition source = ModuleDefinition.dummy("source", ModuleType.source);
+		ModuleDefinition testprocessor1 = ModuleDefinition.dummy("testprocessor1", ModuleType.processor);
+		ModuleDefinition testprocessor2 = ModuleDefinition.dummy("testprocessor2", ModuleType.processor);
+		ModuleDefinition sink = ModuleDefinition.dummy("sink", ModuleType.sink);
+
+		composeModule("compositesource", "source | testprocessor1", ModuleType.source, Arrays.asList(source, testprocessor1));
+		composeModule("compositeprocessor", "testprocessor1 | testprocessor2", ModuleType.processor, Arrays.asList(testprocessor1, testprocessor2));
+		composeModule("compositesink", "testprocessor2 | sink", ModuleType.sink, Arrays.asList(testprocessor2, sink));
 	}
 
 	@Test
@@ -136,8 +145,9 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 		deleteStream("streamWithCompositeSink");
 	}
 
-	private static void composeModule(String name, String definition, ModuleType type) {
-		ModuleDefinition moduleDefinition = new ModuleDefinition(name, type);
+	private static void composeModule(String name, String definition, ModuleType type, List<ModuleDefinition> moduleDefinitions) {
+		//todo: handle children list
+		ModuleDefinition moduleDefinition = ModuleDefinition.composed(name, type, definition, moduleDefinitions);
 		moduleDefinition.setDefinition(definition);
 		getModuleDefinitionRepository().save(moduleDefinition);
 	}

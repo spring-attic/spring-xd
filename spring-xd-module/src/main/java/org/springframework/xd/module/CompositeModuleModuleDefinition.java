@@ -30,7 +30,12 @@ import java.util.List;
 public class CompositeModuleModuleDefinition extends ModuleDefinition {
 
     private String dslDefinition;
-    private final List<ModuleDefinition> children;
+    private List<ModuleDefinition> children;
+
+	@SuppressWarnings("unused")
+	private CompositeModuleModuleDefinition() {
+		// For json de-serialization
+	}
 
     public CompositeModuleModuleDefinition(String name, ModuleType type,
                                            String dslDefinition, List<ModuleDefinition> children) {
@@ -48,6 +53,6 @@ public class CompositeModuleModuleDefinition extends ModuleDefinition {
 
     @Override
     public String toString() {
-        return String.format("%s[%s]", getClass().getSimpleName(), dslDefinition);
+        return String.format("%s (%s:%s) [%s]", getClass().getSimpleName(), getType(), getName(), dslDefinition);
     }
 }

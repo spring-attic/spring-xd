@@ -104,7 +104,7 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 		try {
 			for (ModuleDescriptor request : parser.parse(definition.getName(), definition.getDefinition(),
 					ParsingContext.stream)) {
-				moduleDefinitions.add(new ModuleDefinition(request.getModuleName(), request.getType()));
+				moduleDefinitions.add(ModuleDefinition.dummy(request.getModuleName(), request.getType()));
 			}
 		}
 		catch (StreamDefinitionException e) {

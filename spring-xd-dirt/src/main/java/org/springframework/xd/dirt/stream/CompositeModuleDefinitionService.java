@@ -78,7 +78,7 @@ public class CompositeModuleDefinitionService {
 		if (definition == null) {
 			throw new NoSuchModuleException(name, type);
 		}
-		if (definition.getDefinition() == null) {
+		if (!definition.isComposed()) {
 			throw new IllegalStateException(String.format("Cannot delete non-composed module %s:%s", type, name));
 		}
 		Set<String> dependents = this.moduleDefinitionRepository.findDependentModules(name, type);

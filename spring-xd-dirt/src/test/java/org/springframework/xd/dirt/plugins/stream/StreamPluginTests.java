@@ -98,7 +98,7 @@ public class StreamPluginTests {
 	@Test
 	public void streamPropertiesAdded() {
 		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(new ModuleDefinition("testsource", ModuleType.source))
+				.setModuleDefinition(ModuleDefinition.dummy("testsource", ModuleType.source))
 				.setGroup("foo")
 				.setIndex(0)
 				.build();
@@ -114,7 +114,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamChannelTests() throws InterruptedException {
-		ModuleDefinition moduleDefinition = new ModuleDefinition("testing", ModuleType.processor);
+		ModuleDefinition moduleDefinition = ModuleDefinition.dummy("testing", ModuleType.processor);
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
@@ -139,7 +139,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void testTapOnProxy() throws Exception {
-		ModuleDefinition moduleDefinition = new ModuleDefinition("testing", ModuleType.processor);
+		ModuleDefinition moduleDefinition = ModuleDefinition.dummy("testing", ModuleType.processor);
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")

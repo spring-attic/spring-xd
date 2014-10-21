@@ -27,6 +27,11 @@ public class SimpleModuleDefinition extends ModuleDefinition {
 
     private String location;
 
+	@SuppressWarnings("unused")
+	private SimpleModuleDefinition() {
+		// For json de-serialization
+	}
+
     public SimpleModuleDefinition(String name, ModuleType moduleType, String location) {
         super(name, moduleType);
         this.location = location;
@@ -43,6 +48,6 @@ public class SimpleModuleDefinition extends ModuleDefinition {
 
 	@Override
     public String toString() {
-        return String.format("%s[%s]", getClass().getSimpleName(), location);
+        return String.format("%s (%s:%s) @ %s", getClass().getSimpleName(), getType(), getName(), location);
     }
 }

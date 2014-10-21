@@ -17,13 +17,10 @@
 package org.springframework.xd.dirt.rest;
 
 import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,7 +68,7 @@ import org.springframework.xd.module.ModuleType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
+@ContextConfiguration(classes = {RestConfiguration.class, Dependencies.class})
 public class BatchJobExecutionsControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	private static final String JOB_DEFINITION = "job --cron='*/10 * * * * *'";
@@ -91,9 +88,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@SuppressWarnings("unchecked")
 	@Before
 	public void before() throws Exception {
-		Resource resource = new DescriptiveResource("dummy");
-		ModuleDefinition moduleJobDefinition = new ModuleDefinition("job",
-				ModuleType.job, resource);
+		ModuleDefinition moduleJobDefinition = ModuleDefinition.dummy("job", ModuleType.job);
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		moduleDefinitions.add(moduleJobDefinition);
 		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);
@@ -121,7 +116,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		parametersMap1.put("param2", new JobParameter(123l, false));
 
 		DefaultJobParametersValidator jobParametersValidator = new DefaultJobParametersValidator();
-		String[] requiredStrings = new String[] { "myRequiredString" };
+		String[] requiredStrings = new String[] {"myRequiredString"};
 		jobParametersValidator.setRequiredKeys(requiredStrings);
 		job5.setJobParametersValidator(jobParametersValidator);
 
@@ -165,7 +160,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		jobExecutions1.add(jobExecution2);
 		jobExecutions2.add(jobExecution2);
 		// all the jobs are undeployed/deleted.
-		when(jobLocator.getJobNames()).thenReturn(Collections.<String> emptyList());
+		when(jobLocator.getJobNames()).thenReturn(Collections.<String>emptyList());
 		when(jobLocator.isRestartable("job1")).thenReturn(true);
 		when(jobService.listJobs(0, 20)).thenReturn(jobNames);
 		when(jobService.countJobExecutionsForJob(job1.getName())).thenReturn(2);
@@ -200,7 +195,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		mockMvc.perform(
 				get("/jobs/executions").param("jobname", "job2")
 						.param("startJobExecution", "0").param("pageSize", "20").accept(
-								MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(jsonPath("$", Matchers.hasSize(1)))
 				.andExpect(jsonPath("$[0].executionId").value(3))
 				.andExpect(jsonPath("$[0].jobId").value(2))

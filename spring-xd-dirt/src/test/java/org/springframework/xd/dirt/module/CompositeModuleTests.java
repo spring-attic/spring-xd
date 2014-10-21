@@ -49,6 +49,8 @@ import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
  */
 public class CompositeModuleTests {
 
+	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
+
 	private volatile ModuleRegistry moduleRegistry;
 
 	private volatile ModuleDefinition sourceDefinition;
@@ -59,9 +61,7 @@ public class CompositeModuleTests {
 
 	private volatile ModuleDefinition sinkDefinition;
 
-	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
-
-	private ModuleFactory moduleFactory = new ModuleFactory(new ModuleOptionsMetadataResolver(){
+	private ModuleFactory moduleFactory = new ModuleFactory(new ModuleOptionsMetadataResolver() {
 		@Override
 		public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {
 			return new PassthruModuleOptionsMetadata();
@@ -87,10 +87,15 @@ public class CompositeModuleTests {
 		ModuleDescriptor processor2Descriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(processor2Definition).setGroup("compositesourcegroup").setIndex(2).build();
 
+		ModuleDefinition composed = ModuleDefinition.composed("compositesource", ModuleType.source,
+				"source | processor1 | processor2",
+				Arrays.asList(sourceDefinition, processor1Definition, processor2Definition));
+
+
 		//parser results being reversed, we emulate here
 		List<ModuleDescriptor> children = Arrays.asList(processor2Descriptor, processor1Descriptor, sourceDescriptor);
 		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(new ModuleDefinition("compositesource", ModuleType.source))
+				.setModuleDefinition(composed)
 				.setGroup("compositesourcegroup")
 				.addChildren(children)
 				.build();
@@ -110,11 +115,16 @@ public class CompositeModuleTests {
 				.setGroup("compositeprocessorgroup")
 				.build();
 
+		ModuleDefinition composed = ModuleDefinition.composed("compositeprocessor", ModuleType.processor,
+				"processor1 | processor2",
+				Arrays.asList(processor1Definition, processor2Definition));
+
+
 		//parser results being reversed, we emulate here
 		List<ModuleDescriptor> children = Arrays.asList(processor2Descriptor, processor1Descriptor);
 
 		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(new ModuleDefinition("compositeprocessor", ModuleType.processor))
+				.setModuleDefinition(composed)
 				.setGroup("compositeprocessorgroup")
 				.addChildren(children)
 				.build();
@@ -156,10 +166,14 @@ public class CompositeModuleTests {
 				.setGroup("compositesinkgroup")
 				.build();
 
+		ModuleDefinition composed = ModuleDefinition.composed("compositesink", ModuleType.sink,
+				"processor1 | processor2 | sink",
+				Arrays.asList(processor1Definition, processor2Definition, sinkDefinition));
+
 		//parser results being reversed, we emulate here
 		List<ModuleDescriptor> children = Arrays.asList(sinkDescriptor, processor2Descriptor, processor1Descriptor);
 		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(new ModuleDefinition("compositesink", ModuleType.sink))
+				.setModuleDefinition(composed)
 				.setGroup("compositesinkgroup")
 				.addChildren(children)
 				.setIndex(2)

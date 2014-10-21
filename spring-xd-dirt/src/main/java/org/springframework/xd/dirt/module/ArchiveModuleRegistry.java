@@ -17,6 +17,7 @@ package org.springframework.xd.dirt.module;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.context.ResourceLoaderAware;
@@ -91,7 +92,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 			}
 		}
 		catch (IOException e) {
-			throw new RuntimeIOException("An error occurred trying to locate modules", e);
+			return Collections.emptyList();
 		}
 		return result;
 	}
@@ -109,7 +110,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 			}
 		}
 		catch (IOException e) {
-			throw new RuntimeIOException("An error occurred trying to locate modules", e);
+			return Collections.emptyList();
 		}
 		return result;
 	}
@@ -127,7 +128,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 			}
 		}
 		catch (IOException e) {
-			throw new RuntimeIOException("An error occurred trying to locate modules", e);
+			return Collections.emptyList();
 		}
 		return result;
 	}

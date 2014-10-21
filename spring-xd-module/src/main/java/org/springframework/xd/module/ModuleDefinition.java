@@ -16,26 +16,23 @@
 
 package org.springframework.xd.module;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
- * Defines a module.
+ * An instance of ModuleDefinition reflects the fact that a given module (identified by its type and name) is
+ * 'available', <i>i.e.</i> that it can be used in a job or stream definition.
  *
  * @author Gary Russell
  * @author Eric Bottard
  * @author Mark Pollack
  * @author Ilayaperumal Gopinathan
  */
-@JsonTypeInfo(use= JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY)
 public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 
 	private String name;
@@ -80,6 +77,10 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 	 */
 	public abstract boolean isComposed();
 
+	public List<ModuleDefinition> getComposedModuleDefinitions() {
+		return composedModuleDefinitions;
+	}
+
 	/**
 	 * Set the list of composed modules if this is a composite module, can not be null
 	 *
@@ -88,10 +89,6 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 	public void setComposedModuleDefinitions(List<ModuleDefinition> composedModuleDefinitions) {
 		Assert.notNull(composedModuleDefinitions, "composedModuleDefinitions cannot be null");
 		this.composedModuleDefinitions = composedModuleDefinitions;
-	}
-
-	public List<ModuleDefinition> getComposedModuleDefinitions() {
-		return composedModuleDefinitions;
 	}
 
 	public String getName() {

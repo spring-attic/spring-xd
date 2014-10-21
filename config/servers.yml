@@ -226,7 +226,7 @@ xd:
 #
 # Module deployments triggered by container arrivals only apply to to modules
 # that failed a previous deployment due to the lack of containers to host them.
-# Note that this property only applies to this type of deployment; new deployments
+# Note that this property only applies to that type of deployment; new deployments
 # targeted to existing containers are not subject to delays.
 #
 # The default value for this property is 15000 ms.

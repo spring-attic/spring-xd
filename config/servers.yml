@@ -224,14 +224,16 @@ xd:
 # to new containers. In production environments, longer quiet periods are desirable
 # because it will prevent the first few containers from receiving all deployments.
 #
-# Note that this property only applies to module deployments to new containers;
-# deployments initiated to existing containers are not subject to delays.
+# Module deployments triggered by container arrivals only apply to to modules
+# that failed a previous deployment due to the lack of containers to host them.
+# Note that this property only applies to this type of deployment; new deployments
+# targeted to existing containers are not subject to delays.
 #
 # The default value for this property is 15000 ms.
 #
 # xd:
 #  admin:
-#    quietPeriod: 30000
+#    quietPeriod: 15000
 --
 # User Extensions: Where XD scans the classpath to discover extended container configuration to add beans to the Plugins context.
 # Each property may be a comma delimited string. 'basepackages' refers to package names used for

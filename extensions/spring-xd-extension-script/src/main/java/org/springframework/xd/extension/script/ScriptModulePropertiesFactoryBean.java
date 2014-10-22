@@ -42,8 +42,8 @@ public class ScriptModulePropertiesFactoryBean extends PropertiesFactoryBean {
 		return properties;
 	}
 
-	private Map<String,String> parseVariables() {
-		Map<String, String> variableMap = new HashMap<String,String>();
+	private Map<String, String> parseVariables() {
+		Map<String, String> variableMap = new HashMap<String, String>();
 		if (StringUtils.hasText(variables)) {
 			String[] nameValues = variables.split(",");
 			for (String nameValue : nameValues) {
@@ -51,7 +51,7 @@ public class ScriptModulePropertiesFactoryBean extends PropertiesFactoryBean {
 				Assert.state(tokens.length == 2, "Invalid 'variables' format: " + variables);
 				String name = tokens[0].trim();
 				String value = tokens[1].trim();
-				variableMap.put(name,value);
+				variableMap.put(name, value);
 			}
 		}
 		return variableMap;

@@ -53,7 +53,7 @@ public class ScriptMixin {
 		return propertiesLocation;
 	}
 
-	@ModuleOption("reference to a script used to transform messages")
+	@ModuleOption("reference to a script used to process messages")
 	public void setScript(String script) {
 		this.script = script;
 	}
@@ -68,7 +68,12 @@ public class ScriptMixin {
 		this.variables = variables;
 	}
 
-	@AssertTrue(message="'script' cannot be null or empty")
+	/**
+	 *
+	 * Validates the configuration meets expected conditions. Subclasses may override validation rules.
+	 * @return true if configuration is valid.
+	 */
+	@AssertTrue(message="'script' cannot be null or empty") //Allows subclasses to override 'script' is required.
 	public boolean isValid() {
 		return StringUtils.hasText(script);
 	}

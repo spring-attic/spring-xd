@@ -47,6 +47,7 @@ task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
 	into "$buildDir/dist/spring-xd/xd"
 	exclude "**/lib/hadoop-*.jar"
+	exclude "lib/protobuf-java-*.jar"
 	exclude "**/commons-logging*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
 	exclude "**/lib/mysql-connector-java-*.jar"

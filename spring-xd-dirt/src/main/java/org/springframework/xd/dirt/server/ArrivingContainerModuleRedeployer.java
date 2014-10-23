@@ -23,7 +23,6 @@ import java.util.Set;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +118,6 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	private void deployUnallocatedStreamModules() throws Exception {
 		List<ModuleDeploymentRequestsPath> requestedModulesPaths = getAllModuleDeploymentRequests();
 		CuratorFramework client = getClient();
-		boolean delay = true;
 		// iterate the cache of stream deployments
 		for (ChildData data : streamDeployments.getCurrentData()) {
 			String streamName = ZooKeeperUtils.stripPathConverter.convert(data);
@@ -141,14 +139,6 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(path.getModuleLabel());
 					if (shouldDeploy(moduleDescriptor, path, previouslyDeployed)) {
-						if (delay) {
-							// before attempting to deploy unallocated modules,
-							// wait to see if any more containers show up; this
-							// will mitigate "overloading" of the container that
-							// just arrived
-							Thread.sleep(3000);
-							delay = false;
-						}
 						RuntimeModuleDeploymentProperties moduleDeploymentProperties =
 								new RuntimeModuleDeploymentProperties();
 						moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(
@@ -170,7 +160,6 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 	private void deployUnallocatedJobModules() throws Exception {
 		List<ModuleDeploymentRequestsPath> requestedModulesPaths = getAllModuleDeploymentRequests();
 		CuratorFramework client = getClient();
-		boolean delay = true;
 		// check for "orphaned" jobs that can be deployed to this new container
 		for (ChildData data : jobDeployments.getCurrentData()) {
 			String jobName = ZooKeeperUtils.stripPathConverter.convert(data);
@@ -191,14 +180,6 @@ public class ArrivingContainerModuleRedeployer extends ModuleRedeployer {
 				for (ModuleDeploymentRequestsPath path : requestedModules) {
 					ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
 					if (shouldDeploy(moduleDescriptor, path, previouslyDeployed)) {
-						if (delay) {
-							// before attempting to deploy unallocated modules,
-							// wait to see if any more containers show up; this
-							// will mitigate "overloading" of the container that
-							// just arrived
-							Thread.sleep(3000);
-							delay = false;
-						}
 						RuntimeModuleDeploymentProperties moduleDeploymentProperties =
 								new RuntimeModuleDeploymentProperties();
 						moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(

@@ -68,7 +68,7 @@
 spring:
   profiles: singlenode
 xd:
-  transport: local  
+  transport: local
 #embeddedHsql: true
 
 ---
@@ -216,9 +216,28 @@ xd:
 #    color: green
 #    foo: bar
 ---
+# Quiet Period
+#
+# The quiet period is the amount of time that must elapse after the newest container
+# arrives before deployments to new containers are initiated. A short quiet period
+# is ideal for development environments because it results in quick deployments
+# to new containers. In production environments, longer quiet periods are desirable
+# because it will prevent the first few containers from receiving all deployments.
+#
+# Module deployments triggered by container arrivals only apply to to modules
+# that failed a previous deployment due to the lack of containers to host them.
+# Note that this property only applies to that type of deployment; new deployments
+# targeted to existing containers are not subject to delays.
+#
+# The default value for this property is 15000 ms.
+#
+# xd:
+#  admin:
+#    quietPeriod: 15000
+--
 # User Extensions: Where XD scans the classpath to discover extended container configuration to add beans to the Plugins context.
 # Each property may be a comma delimited string. 'basepackages' refers to package names used for
-# annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing XML or Groovy configuration. 
+# annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing XML or Groovy configuration.
 # XD prepends classpath:* if no prefix included and appends **/*.* to each location
 #xd:
 #  extensions:

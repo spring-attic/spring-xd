@@ -15,7 +15,7 @@
 	<channel id="input" />
 
 	<service-activator output-channel="output" input-channel="input">
-		<int-groovy:script location="${location}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
+		<int-groovy:script location="${script}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
 	</service-activator>
 
 	<channel id="output" />

@@ -175,8 +175,8 @@ project('spring-xd-extension-script') {
 project('spring-xd-extension-spark') {
     description = 'Spring XD spark extensions'
     dependencies {
-	compile "org.apache.spark:spark-core_2.10:1.1.0"
-        provided "org.springframework.batch:spring-batch-core:3.0.1.RELEASE"
+	compile "org.apache.spark:spark-core_2.10:$sparkVersion"
+        provided "org.springframework.batch:spring-batch-core"
         compile project(":spring-xd-module-spi")
 	}
 }

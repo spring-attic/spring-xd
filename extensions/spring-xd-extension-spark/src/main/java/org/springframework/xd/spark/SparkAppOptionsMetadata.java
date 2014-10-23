@@ -20,11 +20,11 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 
 /**
- * Module options for Spark job module.
+ * Module options for Spark application module.
  *
  * @author Ilayaperumal Gopinathan
  */
-public class SparkJobOptionsMetadata {
+public class SparkAppOptionsMetadata {
 
 	private String master = "local";
 
@@ -47,7 +47,7 @@ public class SparkJobOptionsMetadata {
 		return mainClass;
 	}
 
-	@ModuleOption("the main class for spark job (application)")
+	@ModuleOption("the main class for spark application")
 	public void setMainClass(String mainClass) {
 		this.mainClass = mainClass;
 	}

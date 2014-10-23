@@ -19,6 +19,8 @@ package org.springframework.xd.spark.tasklet;
 import java.util.ArrayList;
 
 import org.apache.spark.deploy.SparkSubmit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -41,9 +43,11 @@ import org.springframework.util.StringUtils;
  */
 public class SparkTasklet implements Tasklet, EnvironmentAware {
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	private static final String MODULE_HOME = "xd.module.home";
 
-	private static final String LIB_PATTERN = "/job/sparkjob/lib/*.jar";
+	private static final String LIB_PATTERN = "/job/sparkapp/lib/*.jar";
 
 	/**
 	 * Spark master URL
@@ -103,19 +107,19 @@ public class SparkTasklet implements Tasklet, EnvironmentAware {
 	}
 
 	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = (ConfigurableEnvironment) environment;
+	}
+
+	@Override
 	public RepeatStatus execute(StepContribution contribution,
 			ChunkContext chunkContext) throws Exception {
 		String moduleHome = environment.getProperty(MODULE_HOME);
 		Assert.notNull(moduleHome, "Module home must not be null.");
 		Resource[] resources = resolver.getResources(moduleHome + LIB_PATTERN);
-		StringBuilder builder = new StringBuilder();
+		ArrayList<String> dependencies = new ArrayList<String>();
 		for (int i = 0; i < resources.length; i++) {
-			if (i == (resources.length - 1)) {
-				builder.append(resources[i].getURL().getFile());
-			}
-			else {
-				builder.append(resources[i].getURL().getFile() + ",");
-			}
+			dependencies.add(resources[i].getURL().getFile());
 		}
 		ArrayList<String> args = new ArrayList<String>();
 		args.add("--class");
@@ -125,18 +129,13 @@ public class SparkTasklet implements Tasklet, EnvironmentAware {
 		args.add("--deploy-mode");
 		args.add("client");
 		args.add("--jars");
-		args.add(builder.toString());
+		args.add(StringUtils.collectionToCommaDelimitedString(dependencies));
 		args.add(appJar);
 		if (StringUtils.hasText(programArgs)) {
 			args.add(programArgs);
 		}
 		SparkSubmit.main(args.toArray(new String[args.size()]));
-		System.out.println("Spark job ran successfully.");
+		logger.info("Spark job ran successfully.");
 		return RepeatStatus.FINISHED;
-	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = (ConfigurableEnvironment) environment;
 	}
 }

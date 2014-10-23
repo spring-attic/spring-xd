@@ -146,9 +146,7 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 	}
 
 	private static void composeModule(String name, String definition, ModuleType type, List<ModuleDefinition> moduleDefinitions) {
-		//todo: handle children list
 		ModuleDefinition moduleDefinition = ModuleDefinition.composed(name, type, definition, moduleDefinitions);
-		moduleDefinition.setDefinition(definition);
 		getModuleDefinitionRepository().save(moduleDefinition);
 	}
 

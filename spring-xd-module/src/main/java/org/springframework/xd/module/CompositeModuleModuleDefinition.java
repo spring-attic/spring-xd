@@ -30,6 +30,8 @@ import java.util.List;
 public class CompositeModuleModuleDefinition extends ModuleDefinition {
 
     private String dslDefinition;
+
+    // See XD-2284; should be more than just definitions
     private List<ModuleDefinition> children;
 
 	@SuppressWarnings("unused")
@@ -37,7 +39,7 @@ public class CompositeModuleModuleDefinition extends ModuleDefinition {
 		// For json de-serialization
 	}
 
-    public CompositeModuleModuleDefinition(String name, ModuleType type,
+    /*package*/ CompositeModuleModuleDefinition(String name, ModuleType type,
                                            String dslDefinition, List<ModuleDefinition> children) {
         super(name, type);
         Assert.hasText(dslDefinition, "The dsl definition for a composed module must not be blank");
@@ -54,5 +56,13 @@ public class CompositeModuleModuleDefinition extends ModuleDefinition {
     @Override
     public String toString() {
         return String.format("%s (%s:%s) [%s]", getClass().getSimpleName(), getType(), getName(), dslDefinition);
+    }
+
+	public String getDslDefinition() {
+		return dslDefinition;
+	}
+
+    public List<ModuleDefinition> getChildren() {
+        return children;
     }
 }

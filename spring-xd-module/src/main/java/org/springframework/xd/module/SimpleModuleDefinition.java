@@ -32,7 +32,7 @@ public class SimpleModuleDefinition extends ModuleDefinition {
 		// For json de-serialization
 	}
 
-    public SimpleModuleDefinition(String name, ModuleType moduleType, String location) {
+    /*package*/ SimpleModuleDefinition(String name, ModuleType moduleType, String location) {
         super(name, moduleType);
         this.location = location;
     }

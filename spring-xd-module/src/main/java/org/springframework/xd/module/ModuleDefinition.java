@@ -19,6 +19,7 @@ package org.springframework.xd.module;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import org.springframework.util.Assert;
@@ -39,16 +40,8 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 
 	private ModuleType type;
 
-	private String definition;
-
-	/**
-	 * If a composed module, the list of modules
-	 */
-	private List<ModuleDefinition> composedModuleDefinitions = new ArrayList<ModuleDefinition>();
-
 	protected ModuleDefinition() {
-//		System.err.println("JSON deserializing:");
-//		new Exception().printStackTrace();
+		// For (subclass) JSON deserialization only
 	}
 
 	protected ModuleDefinition(String name, ModuleType type) {
@@ -75,21 +68,8 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 	 *
 	 * @return true if this is a composed module, false otherwise.
 	 */
+	@JsonIgnore
 	public abstract boolean isComposed();
-
-	public List<ModuleDefinition> getComposedModuleDefinitions() {
-		return composedModuleDefinitions;
-	}
-
-	/**
-	 * Set the list of composed modules if this is a composite module, can not be null
-	 *
-	 * @param composedModuleDefinitions list of composed modules
-	 */
-	public void setComposedModuleDefinitions(List<ModuleDefinition> composedModuleDefinitions) {
-		Assert.notNull(composedModuleDefinitions, "composedModuleDefinitions cannot be null");
-		this.composedModuleDefinitions = composedModuleDefinitions;
-	}
 
 	public String getName() {
 		return name;
@@ -97,14 +77,6 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 
 	public ModuleType getType() {
 		return type;
-	}
-
-	public String getDefinition() {
-		return definition;
-	}
-
-	public void setDefinition(String definition) {
-		this.definition = definition;
 	}
 
 	/**

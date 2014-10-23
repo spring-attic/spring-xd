@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.module.support;
 import java.util.List;
 
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
+import org.springframework.xd.module.CompositeModuleModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 
 
@@ -34,8 +35,8 @@ public abstract class ModuleDefinitionRepositoryUtils {
 			String target) {
 		moduleDependencyRepository.store(source.getName(), source.getType(), target);
 		if (source.isComposed()) {
-			List<ModuleDefinition> composedModuleDefinitions = source.getComposedModuleDefinitions();
-			for (ModuleDefinition child : composedModuleDefinitions) {
+			List<ModuleDefinition> children = ((CompositeModuleModuleDefinition)source).getChildren();
+			for (ModuleDefinition child : children) {
 				saveDependencies(moduleDependencyRepository, child, target);
 			}
 		}
@@ -46,8 +47,8 @@ public abstract class ModuleDefinitionRepositoryUtils {
 			String target) {
 		moduleDependencyRepository.delete(source.getName(), source.getType(), target);
 		if (source.isComposed()) {
-			List<ModuleDefinition> composedModuleDefinitions = source.getComposedModuleDefinitions();
-			for (ModuleDefinition child : composedModuleDefinitions) {
+			List<ModuleDefinition> children = ((CompositeModuleModuleDefinition)source).getChildren();
+			for (ModuleDefinition child : children) {
 				deleteDependencies(moduleDependencyRepository, child, target);
 			}
 		}

@@ -67,7 +67,7 @@ public class CompositeModuleDefinitionService {
 
 		// Create ModuleDefinition instance from list of ModuleDescriptors
 		List<ModuleDefinition> composedModuleDefinitions = createComposedModuleDefinitions(modules);
-		ModuleDefinition moduleDefinition = new CompositeModuleModuleDefinition(name, type, definition, composedModuleDefinitions);
+		ModuleDefinition moduleDefinition = ModuleDefinition.composed(name, type, definition, composedModuleDefinitions);
 
 		this.moduleDefinitionRepository.save(moduleDefinition);
 		return moduleDefinition;

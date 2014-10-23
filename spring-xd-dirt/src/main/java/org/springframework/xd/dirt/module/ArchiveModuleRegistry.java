@@ -133,7 +133,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		return result;
 	}
 
-	private SimpleModuleDefinition fromResource(Resource resource) throws IOException {
+	private ModuleDefinition fromResource(Resource resource) throws IOException {
 		if (!resource.exists()) {
 			return null;
 		}
@@ -147,7 +147,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		String canonicalPath = resource.getFile().getCanonicalPath();
 		int lastSlash = canonicalPath.lastIndexOf('/');
 		String typeAsString = canonicalPath.substring(canonicalPath.lastIndexOf('/', lastSlash - 1) + 1, lastSlash);
-		return new SimpleModuleDefinition(name, ModuleType.valueOf(typeAsString), "file:" + canonicalPath + (isDir ? "/" : ""));
+		return ModuleDefinition.simple(name, ModuleType.valueOf(typeAsString), "file:" + canonicalPath + (isDir ? "/" : ""));
 	}
 
 	@Override

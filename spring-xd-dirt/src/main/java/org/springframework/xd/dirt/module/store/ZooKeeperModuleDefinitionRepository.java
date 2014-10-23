@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 
@@ -36,15 +37,14 @@ import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
+import org.springframework.xd.module.CompositeModuleModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A ZooKeeper based store of {@link ModuleDefinition}s that writes each definition to a node, such as:
  * {@code /xd/modules/[moduletype]/[modulename]}.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  */
@@ -70,7 +70,6 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 		this.moduleRegistry = moduleRegistry;
 		this.moduleDependencyRepository = moduleDependencyRepository;
 		this.zooKeeperConnection = zooKeeperConnection;
-		objectMapper.addMixInAnnotations(ModuleDefinition.class, ModuleDefinitionMixin.class);
 	}
 
 	@Override
@@ -81,21 +80,14 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 			String path = Paths.build(Paths.MODULES, type.toString(), name);
 			try {
 				byte[] data = zooKeeperConnection.getClient().getData().forPath(path);
-				ModuleDefinition shallowValue = this.objectMapper.readValue(new String(data, "UTF-8"),
+				return this.objectMapper.readValue(new String(data, "UTF-8"),
 						ModuleDefinition.class);
-				List<ModuleDefinition> deepModules = new ArrayList<ModuleDefinition>(
-						shallowValue.getComposedModuleDefinitions().size());
-				for (ModuleDefinition child : shallowValue.getComposedModuleDefinitions()) {
-					deepModules.add(findByNameAndType(child.getName(), child.getType()));
-				}
-				shallowValue.setComposedModuleDefinitions(deepModules);
-				definition = shallowValue;
 			}
-
 			catch (Exception e) {
 				// NoNodeException will return null
 				ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
 			}
+			// non-composed module
 		}
 		return definition;
 	}
@@ -111,16 +103,9 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 		try {
 			List<String> children = zooKeeperConnection.getClient().getChildren().forPath(path);
 			for (String child : children) {
-				byte[] data = zooKeeperConnection.getClient().getData().forPath(
-						Paths.build(Paths.MODULES, type.toString(), child));
-				// Check for data (only composed modules have definitions)
-				if (data != null && data.length > 0) {
-
-					ModuleDefinition composed = this.findByNameAndType(child, type);
-					if (composed != null) {
-						results.add(composed);
-					}
-				}
+				// 'child' is actually a module name. If it's in ZK, it is composed.
+				ModuleDefinition composed = this.findByNameAndType(child, type);
+				results.add(composed);
 			}
 		}
 		catch (Exception e) {
@@ -149,14 +134,18 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 
 	@Override
 	public ModuleDefinition save(ModuleDefinition moduleDefinition) {
-		String def = moduleDefinition.getDefinition();
-		if (def != null) {
+		if (moduleDefinition.isComposed()) {
 			String path = Paths.build(Paths.MODULES, moduleDefinition.getType().toString(),
 					moduleDefinition.getName());
 			byte[] data = null;
 			try {
 				data = objectMapper.writeValueAsString(moduleDefinition).getBytes("UTF-8");
 				zooKeeperConnection.getClient().create().creatingParentsIfNeeded().forPath(path, data);
+				List<ModuleDefinition> childrenDefinitions = ((CompositeModuleModuleDefinition)moduleDefinition).getChildren();
+				for (ModuleDefinition child : childrenDefinitions) {
+					ModuleDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, child,
+							dependencyKey(moduleDefinition));
+				}
 			}
 			catch (NodeExistsException fallback) {
 				try {
@@ -169,10 +158,6 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 			catch (Exception e) {
 				throw ZooKeeperUtils.wrapThrowable(e);
 			}
-		}
-		for (ModuleDefinition child : moduleDefinition.getComposedModuleDefinitions()) {
-			ModuleDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, child,
-					dependencyKey(moduleDefinition));
 		}
 		return moduleDefinition;
 	}
@@ -190,8 +175,9 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 		String path = Paths.build(Paths.MODULES, moduleDefinition.getType().toString(), moduleDefinition.getName());
 		try {
 			zooKeeperConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
-			for (ModuleDefinition composedModule : moduleDefinition.getComposedModuleDefinitions()) {
-				ModuleDefinitionRepositoryUtils.deleteDependencies(moduleDependencyRepository, composedModule,
+			List<ModuleDefinition> children = ((CompositeModuleModuleDefinition)moduleDefinition).getChildren();
+			for (ModuleDefinition child : children) {
+				ModuleDefinitionRepositoryUtils.deleteDependencies(moduleDependencyRepository, child,
 						dependencyKey(moduleDefinition));
 			}
 		}
@@ -203,7 +189,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 
 	/**
 	 * Generates the key used in the ModuleDependencyRepository.
-	 * 
+	 *
 	 * @param moduleDefinition the moduleDefinition being saved or deleted
 	 * @return generated key
 	 */

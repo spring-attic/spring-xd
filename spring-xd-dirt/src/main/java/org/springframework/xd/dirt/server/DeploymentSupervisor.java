@@ -29,17 +29,23 @@ import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.utils.ThreadUtils;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.cluster.Admin;
+import org.springframework.xd.dirt.cluster.AdminAttributes;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
+import org.springframework.xd.dirt.container.store.AdminRepository;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
@@ -80,6 +86,16 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	 * Repository to load the containers.
 	 */
 	private final ContainerRepository containerRepository;
+
+	/**
+	 * Repository to load the admins.
+	 */
+	private final AdminRepository adminRepository;
+
+	/**
+	 * Attributes for admin stored in admin repository.
+	 */
+	private final AdminAttributes adminAttributes;
 
 	/**
 	 * Repository to load stream definitions.
@@ -144,10 +160,17 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	private final DeploymentUnitStateCalculator stateCalculator;
 
 	/**
+	 * Namespace for management context in the container's application context.
+	 */
+	private final static String MGMT_CONTEXT_NAMESPACE = "management";
+
+	/**
 	 * Construct a {@code DeploymentSupervisor}.
 	 *
 	 * @param zkConnection ZooKeeper connection
 	 * @param containerRepository repository for the containers
+	 * @param adminRepository repository for the admins
+	 * @param adminAttributes attributes for the admin
 	 * @param streamDefinitionRepository repository for streams definitions
 	 * @param jobDefinitionRepository repository for job definitions
 	 * @param moduleDefinitionRepository repository for modules
@@ -157,6 +180,8 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	 */
 	public DeploymentSupervisor(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository,
+			AdminRepository adminRepository,
+			AdminAttributes adminAttributes,
 			StreamDefinitionRepository streamDefinitionRepository,
 			JobDefinitionRepository jobDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
@@ -165,6 +190,8 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			DeploymentUnitStateCalculator stateCalculator) {
 		Assert.notNull(zkConnection, "ZooKeeperConnection must not be null");
 		Assert.notNull(containerRepository, "ContainerRepository must not be null");
+		Assert.notNull(adminRepository, "Admin repository must not be null");
+		Assert.notNull(adminAttributes, "Admin attributes must not be null");
 		Assert.notNull(streamDefinitionRepository, "StreamDefinitionRepository must not be null");
 		Assert.notNull(moduleDefinitionRepository, "ModuleDefinitionRepository must not be null");
 		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver must not be null");
@@ -172,6 +199,8 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		Assert.notNull(stateCalculator, "stateCalculator must not be null");
 		this.zkConnection = zkConnection;
 		this.containerRepository = containerRepository;
+		this.adminRepository = adminRepository;
+		this.adminAttributes = adminAttributes;
 		this.streamDefinitionRepository = streamDefinitionRepository;
 		this.jobDefinitionRepository = jobDefinitionRepository;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
@@ -188,6 +217,10 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		if (event instanceof ContextRefreshedEvent) {
 			this.applicationContext = ((ContextRefreshedEvent) event).getApplicationContext();
 			if (this.zkConnection.isConnected()) {
+				if (this.applicationContext.equals(((ContextRefreshedEvent) event).getApplicationContext())) {
+					// initial registration, we don't yet have a port info
+					registerWithZooKeeper(zkConnection.getClient());
+				}
 				requestLeadership(this.zkConnection.getClient());
 			}
 			this.zkConnection.addListener(connectionListener);
@@ -195,6 +228,21 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		else if (event instanceof ContextStoppedEvent) {
 			if (this.leaderSelector != null) {
 				this.leaderSelector.close();
+			}
+		}
+		else if (event instanceof EmbeddedServletContainerInitializedEvent) {
+			String namespace = ((EmbeddedServletContainerInitializedEvent) event).getApplicationContext().getNamespace();
+			int port = ((EmbeddedServletContainerInitializedEvent) event).getEmbeddedServletContainer().getPort();
+			synchronized (adminAttributes) {
+				if (MGMT_CONTEXT_NAMESPACE.equals(namespace)) {
+					adminAttributes.setManagementPort(port);
+				}
+				else {
+					adminAttributes.setPort(port);
+				}
+				if (zkConnection.isConnected() && adminRepository.exists(adminAttributes.getId())) {
+					adminRepository.update(new Admin(adminAttributes.getId(), adminAttributes));
+				}
 			}
 		}
 	}
@@ -220,12 +268,13 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			Paths.ensurePath(client, Paths.MODULE_DEPLOYMENTS);
 			Paths.ensurePath(client, Paths.STREAM_DEPLOYMENTS);
 			Paths.ensurePath(client, Paths.JOB_DEPLOYMENTS);
+			Paths.ensurePath(client, Paths.ADMINS);
 			Paths.ensurePath(client, Paths.CONTAINERS);
 			Paths.ensurePath(client, Paths.STREAMS);
 			Paths.ensurePath(client, Paths.JOBS);
 
 			if (leaderSelector == null) {
-				leaderSelector = new LeaderSelector(client, Paths.build(Paths.ADMINS), leaderListener);
+				leaderSelector = new LeaderSelector(client, Paths.build(Paths.ADMINELECTION), leaderListener);
 				leaderSelector.setId(getId());
 				leaderSelector.start();
 			}
@@ -263,6 +312,55 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		return new PathChildrenCache(client, path, true, false, executorService);
 	}
 
+	/**
+	 * Write the Container runtime attributes to ZooKeeper in an ephemeral node under {@code /xd/admins}.
+	 */
+	private void registerWithZooKeeper(CuratorFramework client) {
+		try {
+			String containerId = adminAttributes.getId();
+			String containerPath = Paths.build(Paths.ADMINS, containerId);
+			Stat containerPathStat = client.checkExists().forPath(containerPath);
+
+			if (containerPathStat != null) {
+				long prevSession = containerPathStat.getEphemeralOwner();
+				long currSession = client.getZookeeperClient().getZooKeeper().getSessionId();
+				if (prevSession == currSession) {
+					// the current session still exists on the server; skip the
+					// rest of the registration process
+					logger.info(String.format(
+							"Existing registration for admin runtime %s with session 0x%x detected",
+							containerId, currSession));
+					return;
+				}
+
+				logger.info(String.format("Trying to delete previous registration for admin runtime %s with " +
+						"session %x detected; current session: 0x%x; path: %s",
+						containerId, prevSession, currSession, containerPath));
+				try {
+					client.delete().forPath(containerPath);
+				}
+				catch (Exception e) {
+					// NoNodeException - nothing to delete
+					ZooKeeperUtils.wrapAndThrowIgnoring(e, NoNodeException.class);
+				}
+			}
+
+			synchronized (adminAttributes) {
+				// reading the container runtime attributes and writing them to
+				// the container node must be an atomic operation; see
+				// the handling of EmbeddedServletContainerInitializedEvent
+				// in onApplicationEvent
+				adminRepository.save(new Admin(containerId, adminAttributes));
+			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw ZooKeeperUtils.wrapThrowable(e);
+		}
+		catch (Exception e) {
+			throw ZooKeeperUtils.wrapThrowable(e);
+		}
+	}
 
 	/**
 	 * {@link ZooKeeperConnectionListener} implementation that requests leadership
@@ -276,6 +374,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		@Override
 		public void onConnect(CuratorFramework client) {
 			logger.info("Admin {} connection established", getId());
+			registerWithZooKeeper(client);
 			requestLeadership(client);
 		}
 
@@ -285,6 +384,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		@Override
 		public void onResume(CuratorFramework client) {
 			logger.info("Admin {} connection resumed", getId());
+			registerWithZooKeeper(client);
 			requestLeadership(client);
 		}
 

@@ -16,13 +16,19 @@
 
 package org.springframework.xd.spark.tasklet;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 
 import org.apache.spark.deploy.SparkSubmit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
@@ -41,7 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Risberg
  * @author Ilayaperumal Gopinathan
  */
-public class SparkTasklet implements Tasklet, EnvironmentAware {
+public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionListener {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -111,6 +117,31 @@ public class SparkTasklet implements Tasklet, EnvironmentAware {
 		this.environment = (ConfigurableEnvironment) environment;
 	}
 
+	/**
+	 * Before executing the step, make sure the spark application
+	 * main class is loaded from the application jar provided.
+	 */
+	@Override
+	public void beforeStep(StepExecution stepExecution) {
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		if (appJar != null) {
+			URL[] url;
+			try {
+				url = new URL[] { resolver.getResource(appJar).getURL() };
+			}
+			catch (IOException ioe) {
+				throw new SparkAppJarAccessException(ioe.getMessage());
+			}
+			classLoader = new URLClassLoader(url, Thread.currentThread().getContextClassLoader());
+		}
+		try {
+			Class.forName(mainClass, false, classLoader);
+		}
+		catch (ClassNotFoundException e) {
+			throw new SparkAppClassNotFoundException(e.getMessage());
+		}
+	}
+
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
 			ChunkContext chunkContext) throws Exception {
@@ -130,12 +161,19 @@ public class SparkTasklet implements Tasklet, EnvironmentAware {
 		args.add("client");
 		args.add("--jars");
 		args.add(StringUtils.collectionToCommaDelimitedString(dependencies));
-		args.add(appJar);
+		if (StringUtils.hasText(appJar)) {
+			args.add(appJar);
+		}
 		if (StringUtils.hasText(programArgs)) {
 			args.add(programArgs);
 		}
 		SparkSubmit.main(args.toArray(new String[args.size()]));
-		logger.info("Spark job ran successfully.");
+		logger.info("Spark application is finished successfully.");
 		return RepeatStatus.FINISHED;
+	}
+
+	@Override
+	public ExitStatus afterStep(StepExecution stepExecution) {
+		return ExitStatus.COMPLETED;
 	}
 }

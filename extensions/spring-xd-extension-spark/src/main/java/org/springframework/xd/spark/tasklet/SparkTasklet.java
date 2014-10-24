@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -67,6 +68,11 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 	private int exitCode = -1;
 
 	/**
+	 * Spark application name
+	 */
+	private String name;
+
+	/**
 	 * Spark master URL
 	 */
 	private String master;
@@ -81,6 +87,17 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 	 * dependencies excluding spark
 	 */
 	private String appJar;
+
+	/**
+	 * Comma separated list of config key-value pairs to Spark application
+	 */
+	private String conf;
+
+	/**
+	 * Comma separated list of files to be placed in the
+	 * working directory of each executor
+	 */
+	private String files;
 
 	/**
 	 * Program arguments for the application main class.
@@ -121,6 +138,30 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 
 	public void setProgramArgs(String programArgs) {
 		this.programArgs = programArgs;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getConf() {
+		return conf;
+	}
+
+	public void setConf(String conf) {
+		this.conf = conf;
+	}
+
+	public String getFiles() {
+		return files;
+	}
+
+	public void setFiles(String files) {
+		this.files = files;
 	}
 
 	@Override
@@ -168,21 +209,33 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 			dependencies.add(resources[i].getURL().getFile());
 		}
 		ArrayList<String> args = new ArrayList<String>();
+		args.add("--name");
+		args.add(name);
 		args.add("--class");
 		args.add(mainClass);
 		args.add("--master");
 		args.add(master);
 		args.add("--deploy-mode");
 		args.add("client");
+		if (StringUtils.hasText(conf)) {
+			Collection<String> configs = StringUtils.commaDelimitedListToSet(conf);
+			for (String config : configs) {
+				args.add("--conf");
+				args.add("\"" + config + "\"");
+			}
+		}
+		if (StringUtils.hasText(files)) {
+			args.add("--files");
+			args.add(files);
+		}
 		args.add("--jars");
 		args.add(StringUtils.collectionToCommaDelimitedString(dependencies));
 		if (StringUtils.hasText(appJar)) {
 			args.add(appJar);
 		}
 		if (StringUtils.hasText(programArgs)) {
-			args.add(programArgs);
+			args.addAll(StringUtils.commaDelimitedListToSet(programArgs));
 		}
-
 		List<String> sparkCommand = new ArrayList<String>();
 		sparkCommand.add("java");
 		sparkCommand.add(SPARK_SUBMIT_CLASS);

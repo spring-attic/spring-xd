@@ -16,6 +16,8 @@
 
 package org.springframework.xd.spark;
 
+import org.hibernate.validator.constraints.NotBlank;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 
@@ -26,6 +28,8 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class SparkAppOptionsMetadata {
 
+	private String name;
+
 	private String master = "local";
 
 	private String mainClass;
@@ -34,11 +38,25 @@ public class SparkAppOptionsMetadata {
 
 	private String programArgs = "";
 
+	private String conf = "";
+
+	private String files = "";
+
+	@NotBlank
+	public String getName() {
+		return name;
+	}
+
+	@ModuleOption("the name of the Spark application")
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	public String getMaster() {
 		return master;
 	}
 
-	@ModuleOption("the master URL for spark")
+	@ModuleOption("the master URL for Spark")
 	public void setMaster(String master) {
 		this.master = master;
 	}
@@ -47,7 +65,7 @@ public class SparkAppOptionsMetadata {
 		return mainClass;
 	}
 
-	@ModuleOption("the main class for spark application")
+	@ModuleOption("the main class for Spark application")
 	public void setMainClass(String mainClass) {
 		this.mainClass = mainClass;
 	}
@@ -68,6 +86,24 @@ public class SparkAppOptionsMetadata {
 	@ModuleOption("program arguments for the application main class")
 	public void setProgramArgs(String programArgs) {
 		this.programArgs = programArgs;
+	}
+
+	public String getConf() {
+		return conf;
+	}
+
+	@ModuleOption("comma seperated list of key value pairs as config properties")
+	public void setConf(String conf) {
+		this.conf = conf;
+	}
+
+	public String getFiles() {
+		return files;
+	}
+
+	@ModuleOption("comma separated list of files to be placed in the working directory of each executor")
+	public void setFiles(String files) {
+		this.files = files;
 	}
 
 }

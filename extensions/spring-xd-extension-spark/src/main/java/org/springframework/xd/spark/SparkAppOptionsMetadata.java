@@ -56,7 +56,7 @@ public class SparkAppOptionsMetadata {
 		return appJar;
 	}
 
-	@ModuleOption("Path to a bundled jar that includes your application and its dependencies - excluding spark.")
+	@ModuleOption("path to a bundled jar that includes your application and its dependencies - excluding spark")
 	public void setAppJar(String appJar) {
 		this.appJar = appJar;
 	}

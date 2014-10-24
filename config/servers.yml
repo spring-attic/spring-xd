@@ -224,7 +224,7 @@ xd:
 # to new containers. In production environments, longer quiet periods are desirable
 # because it will prevent the first few containers from receiving all deployments.
 #
-# Module deployments triggered by container arrivals only apply to to modules
+# Module deployments triggered by container arrivals only apply to modules
 # that failed a previous deployment due to the lack of containers to host them.
 # Note that this property only applies to that type of deployment; new deployments
 # targeted to existing containers are not subject to delays.

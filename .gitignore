@@ -7,6 +7,8 @@ pom.xml
 /.idea/
 /out/
 target/
+*.pyc
+__init__.py
 *.ipr
 *.iml
 *.iws

@@ -1,32 +1,14 @@
+__author__ = 'David Turanski'
 import sys
+import os
 
-#=====================
-# Write data to stdout
-#=====================
-def send(data):
-	sys.stdout.write(data)
-	sys.stdout.flush()
+sys.path.append(os.path.abspath('../../spring-xd-python/src'))
 
-#===============================================================================
-# Terminate a message, in this case to be consumed using ByteArrayCrlfSerializer
-#===============================================================================
-def eod():
-	send("\r\n")
+from springxd.stream import Processor
 
-#===========================
-# Main - Echo the input
-#===========================
-if len(sys.argv) > 1 :
-	send("running " + sys.argv[0])
-	eod()
 
-while True:
-	try:
-   		data = raw_input()
-   		if not data:
-   			break
-   		send(data)
-   		eod()
-   	except EOFError:
-   		eod()
-   		break
+def echo(data):
+    return data
+
+processor =  Processor()
+processor.start(echo)

@@ -16,12 +16,16 @@
 
 package org.springframework.xd.spark.tasklet;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.spark.deploy.SparkSubmit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +58,13 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 	private static final String MODULE_HOME = "xd.module.home";
 
 	private static final String LIB_PATTERN = "/job/sparkapp/lib/*.jar";
+
+	private static final String SPARK_SUBMIT_CLASS = "org.apache.spark.deploy.SparkSubmit";
+
+	/**
+	 * Exit code of Spark app
+	 */
+	private int exitCode = -1;
 
 	/**
 	 * Spark master URL
@@ -145,6 +156,10 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
 			ChunkContext chunkContext) throws Exception {
+
+		StepExecution stepExecution = chunkContext.getStepContext().getStepExecution();
+		ExitStatus exitStatus = stepExecution.getExitStatus();
+
 		String moduleHome = environment.getProperty(MODULE_HOME);
 		Assert.notNull(moduleHome, "Module home must not be null.");
 		Resource[] resources = resolver.getResources(moduleHome + LIB_PATTERN);
@@ -167,13 +182,98 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 		if (StringUtils.hasText(programArgs)) {
 			args.add(programArgs);
 		}
-		SparkSubmit.main(args.toArray(new String[args.size()]));
-		logger.info("Spark application is finished successfully.");
+
+		List<String> sparkCommand = new ArrayList<String>();
+		sparkCommand.add("java");
+		sparkCommand.add(SPARK_SUBMIT_CLASS);
+		sparkCommand.addAll(args);
+
+		URLClassLoader thisClassLoader;
+		URLClassLoader contextClassLoader;
+		try {
+			thisClassLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
+			contextClassLoader = (URLClassLoader) this.getClass().getClassLoader();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Unable to determine classpath from ClassLoader.", e);
+		}
+		List<String> classPath = new ArrayList<String>();
+		for (URL url : thisClassLoader.getURLs()) {
+			classPath.add(url.getPath());
+		}
+		for (URL url : contextClassLoader.getURLs()) {
+			if (!classPath.contains(url.getPath())) {
+				classPath.add(url.getPath());
+			}
+		}
+		StringBuilder classPathBuilder = new StringBuilder();
+		String separator = System.getProperty("path.separator");
+		for (String url : classPath) {
+			if (classPathBuilder.length() > 0) {
+				classPathBuilder.append(separator);
+			}
+			classPathBuilder.append(url);
+		}
+
+		ProcessBuilder pb = new ProcessBuilder(sparkCommand).redirectErrorStream(true);
+		Map<String, String> env = pb.environment();
+		env.put("CLASSPATH", classPathBuilder.toString());
+		String msg = "Spark application '" + mainClass + "' is being launched";
+		try {
+			Process p = pb.start();
+			p.waitFor();
+			exitCode = p.exitValue();
+			StringBuilder errors = new StringBuilder();
+			if (exitCode != 0) {
+				InputStream in = p.getInputStream();
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+				String line;
+				boolean firstException = false;
+				while ((line = reader.readLine()) != null) {
+					logger.error("Spark Log: " + line);
+					if (line.contains("Exception") && errors.length() == 0) {
+						errors.append(line).append("\n");
+						firstException = true;
+					}
+					else {
+						if (firstException) {
+							if (line.startsWith("\t")) {
+								errors.append(line).append("\n");
+							}
+							else {
+								firstException = false;
+							}
+						}
+					}
+				}
+			}
+			p.destroy();
+			msg = "Spark application '" + mainClass + "' finished with exit code: " + exitCode +
+					(errors.length() > 0 ? '\n' + errors.toString() : "");
+		}
+		catch (IOException e) {
+			msg = "Starting Spark application '" + mainClass + "' caused: " + e;
+			logger.error(msg);
+		}
+		catch (InterruptedException e) {
+			msg = "Executing Spark application '" + mainClass + "' caused: " + e;
+			logger.error(msg);
+		}
+		finally {
+			stepExecution.setExitStatus(exitStatus.addExitDescription(msg));
+		}
+
+		logger.info(msg);
 		return RepeatStatus.FINISHED;
 	}
 
 	@Override
 	public ExitStatus afterStep(StepExecution stepExecution) {
-		return ExitStatus.COMPLETED;
+		if (exitCode == 0) {
+			return ExitStatus.COMPLETED;
+		}
+		else {
+			return ExitStatus.FAILED;
+		}
 	}
 }

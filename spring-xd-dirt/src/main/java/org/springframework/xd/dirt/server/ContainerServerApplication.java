@@ -57,12 +57,12 @@ import org.springframework.xd.dirt.util.XdProfiles;
  */
 @Configuration
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class,
-		AuditAutoConfiguration.class })
+	AuditAutoConfiguration.class })
 public class ContainerServerApplication implements EnvironmentAware {
 
 	private static final Log logger = LogFactory.getLog(ContainerServerApplication.class);
 
-	private static final String CONTAINER_ATTRIBUTES_PREFIX = "xd.container.";
+	protected static final String CONTAINER_ATTRIBUTES_PREFIX = "xd.container.";
 
 	private ConfigurableApplicationContext containerContext;
 
@@ -110,8 +110,10 @@ public class ContainerServerApplication implements EnvironmentAware {
 		final ContainerAttributes containerAttributes = new ContainerAttributes();
 		setConfiguredContainerAttributes(containerAttributes);
 
-		final String containerIp = environment.getProperty("xd.container.ip");
-		final String containerHostname = environment.getProperty("xd.container.hostname");
+		final String containerIp = environment.getProperty(CONTAINER_ATTRIBUTES_PREFIX
+				+ ContainerAttributes.IP_ADDRESS_KEY);
+		final String containerHostname = environment.getProperty(CONTAINER_ATTRIBUTES_PREFIX
+				+ ContainerAttributes.HOST_KEY);
 
 		containerAttributes.setIp(StringUtils.hasText(containerIp) ? containerIp : RuntimeUtils.getIpAddress());
 		containerAttributes.setHost(StringUtils.hasText(containerHostname) ? containerHostname : RuntimeUtils.getHost());

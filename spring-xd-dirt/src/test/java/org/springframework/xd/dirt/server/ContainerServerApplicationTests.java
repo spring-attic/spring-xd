@@ -31,6 +31,12 @@ import org.springframework.xd.dirt.util.RuntimeUtils;
  */
 public class ContainerServerApplicationTests {
 
+	private static final String CONTAINER_IP_KEY = ContainerServerApplication.CONTAINER_ATTRIBUTES_PREFIX
+			+ ContainerAttributes.IP_ADDRESS_KEY;
+
+	private static final String CONTAINER_HOST_KEY = ContainerServerApplication.CONTAINER_ATTRIBUTES_PREFIX
+			+ ContainerAttributes.HOST_KEY;
+
 	@Test
 	public void testDefaultContainerAttributes() {
 
@@ -56,8 +62,8 @@ public class ContainerServerApplicationTests {
 		final String customHostname = "testhost";
 
 		MockEnvironment environment = new MockEnvironment();
-		environment.setProperty("xd.container.ip", customIp);
-		environment.setProperty("xd.container.hostname", customHostname);
+		environment.setProperty(CONTAINER_IP_KEY, customIp);
+		environment.setProperty(CONTAINER_HOST_KEY, customHostname);
 
 		final ContainerServerApplication containerServerApplication = new ContainerServerApplication();
 		containerServerApplication.setEnvironment(environment);
@@ -78,8 +84,8 @@ public class ContainerServerApplicationTests {
 		final String customHostname = "";
 
 		MockEnvironment environment = new MockEnvironment();
-		environment.setProperty("xd.container.ip", customIp);
-		environment.setProperty("xd.container.hostname", customHostname);
+		environment.setProperty(CONTAINER_IP_KEY, customIp);
+		environment.setProperty(CONTAINER_HOST_KEY, customHostname);
 
 		final ContainerServerApplication containerServerApplication = new ContainerServerApplication();
 		containerServerApplication.setEnvironment(environment);

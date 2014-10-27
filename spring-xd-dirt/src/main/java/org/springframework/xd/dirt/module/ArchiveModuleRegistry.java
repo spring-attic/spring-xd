@@ -29,8 +29,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.RuntimeIOException;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SimpleModuleDefinition;
 
 /**
  * A ModuleRegistry that expects to find Spring Boot archives (either as jar file or exploded directory)
@@ -147,7 +147,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		String canonicalPath = resource.getFile().getCanonicalPath();
 		int lastSlash = canonicalPath.lastIndexOf('/');
 		String typeAsString = canonicalPath.substring(canonicalPath.lastIndexOf('/', lastSlash - 1) + 1, lastSlash);
-		return ModuleDefinition.simple(name, ModuleType.valueOf(typeAsString), "file:" + canonicalPath + (isDir ? "/" : ""));
+		return ModuleDefinitions.simple(name, ModuleType.valueOf(typeAsString), "file:" + canonicalPath + (isDir ? "/" : ""));
 	}
 
 	@Override

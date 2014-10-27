@@ -51,18 +51,6 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 		this.type = type;
 	}
 
-	public static ModuleDefinition simple(String name, ModuleType type, String location) {
-		return new SimpleModuleDefinition(name, type, location);
-	}
-
-	public static ModuleDefinition composed(String name, ModuleType type, String dslDefinition, List<ModuleDefinition> children) {
-		return new CompositeModuleModuleDefinition(name, type, dslDefinition, children);
-	}
-
-	public static ModuleDefinition dummy(String name, ModuleType type) {
-		return new SimpleModuleDefinition(name, type, "file:/tmp/dummy/location");
-	}
-
 	/**
 	 * Determine if this a composed module
 	 *

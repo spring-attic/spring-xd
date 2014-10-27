@@ -37,7 +37,7 @@ import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
-import org.springframework.xd.module.CompositeModuleModuleDefinition;
+import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -141,7 +141,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 			try {
 				data = objectMapper.writeValueAsString(moduleDefinition).getBytes("UTF-8");
 				zooKeeperConnection.getClient().create().creatingParentsIfNeeded().forPath(path, data);
-				List<ModuleDefinition> childrenDefinitions = ((CompositeModuleModuleDefinition)moduleDefinition).getChildren();
+				List<ModuleDefinition> childrenDefinitions = ((CompositeModuleDefinition)moduleDefinition).getChildren();
 				for (ModuleDefinition child : childrenDefinitions) {
 					ModuleDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, child,
 							dependencyKey(moduleDefinition));
@@ -175,7 +175,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 		String path = Paths.build(Paths.MODULES, moduleDefinition.getType().toString(), moduleDefinition.getName());
 		try {
 			zooKeeperConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
-			List<ModuleDefinition> children = ((CompositeModuleModuleDefinition)moduleDefinition).getChildren();
+			List<ModuleDefinition> children = ((CompositeModuleDefinition)moduleDefinition).getChildren();
 			for (ModuleDefinition child : children) {
 				ModuleDefinitionRepositoryUtils.deleteDependencies(moduleDependencyRepository, child,
 						dependencyKey(moduleDefinition));

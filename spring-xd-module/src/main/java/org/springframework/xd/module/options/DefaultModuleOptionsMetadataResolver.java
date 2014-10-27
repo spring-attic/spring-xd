@@ -34,8 +34,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.util.Assert;
-import org.springframework.xd.module.CompositeModuleModuleDefinition;
+import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.spi.Mixin;
@@ -162,12 +161,12 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 			return resolveNormalMetadata((SimpleModuleDefinition) definition);
 		}
 		else {
-			return resolveComposedModuleMetadata((CompositeModuleModuleDefinition)definition);
+			return resolveComposedModuleMetadata((CompositeModuleDefinition)definition);
 		}
 
 	}
 
-	private ModuleOptionsMetadata resolveComposedModuleMetadata(CompositeModuleModuleDefinition definition) {
+	private ModuleOptionsMetadata resolveComposedModuleMetadata(CompositeModuleDefinition definition) {
 		Map<String, ModuleOptionsMetadata> hierarchy = new HashMap<String, ModuleOptionsMetadata>();
 		for (ModuleDefinition subModuleDefinition : definition.getChildren()) {
 			ModuleOptionsMetadata subMetadata = compositeResolver.resolve(subModuleDefinition);

@@ -29,8 +29,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -43,6 +41,7 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -71,23 +70,23 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 
 	@Before
 	public void before() {
-		ModuleDefinition sinkDefinition = ModuleDefinition.dummy("sink", ModuleType.sink);
-		ModuleDefinition sourceDefinition = ModuleDefinition.dummy("source", ModuleType.source);
+		ModuleDefinition sinkDefinition = ModuleDefinitions.dummy("sink", ModuleType.sink);
+		ModuleDefinition sourceDefinition = ModuleDefinitions.dummy("source", ModuleType.source);
 
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinition.dummy("source", ModuleType.source));
+		definitions.add(ModuleDefinitions.dummy("source", ModuleType.source));
 		when(moduleRegistry.findDefinitions("source")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("time")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("time", ModuleType.source)).thenReturn(sourceDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinition.dummy("sink", ModuleType.sink));
+		definitions.add(ModuleDefinitions.dummy("sink", ModuleType.sink));
 		when(moduleRegistry.findDefinitions("sink")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("log", ModuleType.sink)).thenReturn(sinkDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinition.dummy("processor", ModuleType.processor));
+		definitions.add(ModuleDefinitions.dummy("processor", ModuleType.processor));
 		when(moduleRegistry.findDefinitions("processor")).thenReturn(definitions);
 	}
 

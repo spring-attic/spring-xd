@@ -41,7 +41,7 @@ import org.springframework.xd.dirt.stream.dsl.SourceChannelNode;
 import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.dirt.stream.dsl.StreamNode;
-import org.springframework.xd.module.CompositeModuleModuleDefinition;
+import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
@@ -264,7 +264,7 @@ public class XDStreamParser implements XDParser {
 	private ModuleDescriptor buildModuleDescriptor(ModuleDescriptor.Builder builder) {
 		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(builder.getModuleName(), builder.getType());
 		if (def.isComposed()) {
-			String dsl = ((CompositeModuleModuleDefinition)def).getDslDefinition();
+			String dsl = ((CompositeModuleDefinition)def).getDslDefinition();
 			List<ModuleDescriptor> children = parse(def.getName(), dsl, ParsingContext.module);
 
 			// Preserve the options set for the "parent" module in the parameters map

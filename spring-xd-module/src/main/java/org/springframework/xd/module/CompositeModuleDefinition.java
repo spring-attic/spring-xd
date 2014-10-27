@@ -23,11 +23,11 @@ import java.util.List;
 /**
 * A module definition for a module which has been custom created as the composition of several other
  * modules (either {@link org.springframework.xd.module.SimpleModuleDefinition simple} or
- * themselves {@link org.springframework.xd.module.CompositeModuleModuleDefinition composed}.
+ * themselves {@link CompositeModuleDefinition composed}.
  *
  * @author Eric Bottard
  */
-public class CompositeModuleModuleDefinition extends ModuleDefinition {
+public class CompositeModuleDefinition extends ModuleDefinition {
 
     private String dslDefinition;
 
@@ -35,12 +35,12 @@ public class CompositeModuleModuleDefinition extends ModuleDefinition {
     private List<ModuleDefinition> children;
 
 	@SuppressWarnings("unused")
-	private CompositeModuleModuleDefinition() {
+	private CompositeModuleDefinition() {
 		// For json de-serialization
 	}
 
-    /*package*/ CompositeModuleModuleDefinition(String name, ModuleType type,
-                                           String dslDefinition, List<ModuleDefinition> children) {
+    /*package*/ CompositeModuleDefinition(String name, ModuleType type,
+            String dslDefinition, List<ModuleDefinition> children) {
         super(name, type);
         Assert.hasText(dslDefinition, "The dsl definition for a composed module must not be blank");
         Assert.notEmpty(children, "The sub-module definitions for a composed module must have at least one element");
@@ -58,10 +58,16 @@ public class CompositeModuleModuleDefinition extends ModuleDefinition {
         return String.format("%s (%s:%s) [%s]", getClass().getSimpleName(), getType(), getName(), dslDefinition);
     }
 
+    /**
+     * Return the definition (in XD DSL) that was used to create the module).
+     */
 	public String getDslDefinition() {
 		return dslDefinition;
 	}
 
+    /**
+     * Return information about the sub-modules that make up this composed module.
+     */
     public List<ModuleDefinition> getChildren() {
         return children;
     }

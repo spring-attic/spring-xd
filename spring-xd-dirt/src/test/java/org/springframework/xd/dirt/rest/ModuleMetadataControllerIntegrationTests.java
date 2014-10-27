@@ -35,8 +35,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -53,6 +51,7 @@ import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -117,23 +116,23 @@ public class ModuleMetadataControllerIntegrationTests extends AbstractController
 		when(moduleMetadataRepository.findAllByContainerId(pageable, "2")).thenReturn(pageEntity2);
 		when(moduleMetadataRepository.findOne("1", "s1.source.http.0")).thenReturn(entity1);
 		when(moduleMetadataRepository.findAllByModuleId(pageable, "j3.job.myjob.0")).thenReturn(pageEntity3);
-		ModuleDefinition sinkDefinition = ModuleDefinition.dummy("sink", ModuleType.sink);
-		ModuleDefinition sourceDefinition = ModuleDefinition.dummy("source", ModuleType.source);
-		ModuleDefinition jobDefinition = ModuleDefinition.dummy("job", ModuleType.job);
+		ModuleDefinition sinkDefinition = ModuleDefinitions.dummy("sink", ModuleType.sink);
+		ModuleDefinition sourceDefinition = ModuleDefinitions.dummy("source", ModuleType.source);
+		ModuleDefinition jobDefinition = ModuleDefinitions.dummy("job", ModuleType.job);
 
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinition.dummy("source", ModuleType.source));
+		definitions.add(ModuleDefinitions.dummy("source", ModuleType.source));
 		when(moduleRegistry.findDefinitions("source")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("http")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("http", ModuleType.source)).thenReturn(sourceDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinition.dummy("sink", ModuleType.sink));
+		definitions.add(ModuleDefinitions.dummy("sink", ModuleType.sink));
 		when(moduleRegistry.findDefinitions("sink")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("log", ModuleType.sink)).thenReturn(sinkDefinition);
 
-		definitions.add(ModuleDefinition.dummy("job", ModuleType.job));
+		definitions.add(ModuleDefinitions.dummy("job", ModuleType.job));
 		when(moduleRegistry.findDefinitions("job")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("job")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("job", ModuleType.job)).thenReturn(jobDefinition);

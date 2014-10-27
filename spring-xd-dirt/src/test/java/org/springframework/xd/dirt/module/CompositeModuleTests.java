@@ -33,6 +33,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
@@ -87,7 +88,7 @@ public class CompositeModuleTests {
 		ModuleDescriptor processor2Descriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(processor2Definition).setGroup("compositesourcegroup").setIndex(2).build();
 
-		ModuleDefinition composed = ModuleDefinition.composed("compositesource", ModuleType.source,
+		ModuleDefinition composed = ModuleDefinitions.composed("compositesource", ModuleType.source,
 				"source | processor1 | processor2",
 				Arrays.asList(sourceDefinition, processor1Definition, processor2Definition));
 
@@ -115,7 +116,7 @@ public class CompositeModuleTests {
 				.setGroup("compositeprocessorgroup")
 				.build();
 
-		ModuleDefinition composed = ModuleDefinition.composed("compositeprocessor", ModuleType.processor,
+		ModuleDefinition composed = ModuleDefinitions.composed("compositeprocessor", ModuleType.processor,
 				"processor1 | processor2",
 				Arrays.asList(processor1Definition, processor2Definition));
 
@@ -166,7 +167,7 @@ public class CompositeModuleTests {
 				.setGroup("compositesinkgroup")
 				.build();
 
-		ModuleDefinition composed = ModuleDefinition.composed("compositesink", ModuleType.sink,
+		ModuleDefinition composed = ModuleDefinitions.composed("compositesink", ModuleType.sink,
 				"processor1 | processor2 | sink",
 				Arrays.asList(processor1Definition, processor2Definition, sinkDefinition));
 

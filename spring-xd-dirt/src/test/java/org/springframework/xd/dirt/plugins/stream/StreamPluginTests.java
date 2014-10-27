@@ -43,6 +43,7 @@ import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
@@ -98,7 +99,7 @@ public class StreamPluginTests {
 	@Test
 	public void streamPropertiesAdded() {
 		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(ModuleDefinition.dummy("testsource", ModuleType.source))
+				.setModuleDefinition(ModuleDefinitions.dummy("testsource", ModuleType.source))
 				.setGroup("foo")
 				.setIndex(0)
 				.build();
@@ -114,7 +115,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamChannelTests() throws InterruptedException {
-		ModuleDefinition moduleDefinition = ModuleDefinition.dummy("testing", ModuleType.processor);
+		ModuleDefinition moduleDefinition = ModuleDefinitions.dummy("testing", ModuleType.processor);
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
@@ -139,7 +140,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void testTapOnProxy() throws Exception {
-		ModuleDefinition moduleDefinition = ModuleDefinition.dummy("testing", ModuleType.processor);
+		ModuleDefinition moduleDefinition = ModuleDefinitions.dummy("testing", ModuleType.processor);
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")

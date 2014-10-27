@@ -34,9 +34,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -45,6 +42,7 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -82,19 +80,19 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 		for (int moduleCount = 0; moduleCount < 3; moduleCount++) {
 
-			ModuleDefinition moduleDefinition = ModuleDefinition.dummy("job_" + moduleCount, ModuleType.job);
+			ModuleDefinition moduleDefinition = ModuleDefinitions.dummy("job_" + moduleCount, ModuleType.job);
 			moduleDefinitions.add(moduleDefinition);
 			jobDefinitions.add(moduleDefinition);
 
-			moduleDefinition = ModuleDefinition.dummy("source_" + moduleCount, ModuleType.source);
+			moduleDefinition = ModuleDefinitions.dummy("source_" + moduleCount, ModuleType.source);
 			moduleDefinitions.add(moduleDefinition);
 			sourceDefinitions.add(moduleDefinition);
 
-			moduleDefinition = ModuleDefinition.dummy("sink_" + moduleCount, ModuleType.sink);
+			moduleDefinition = ModuleDefinitions.dummy("sink_" + moduleCount, ModuleType.sink);
 			moduleDefinitions.add(moduleDefinition);
 			sinkDefinitions.add(moduleDefinition);
 
-			moduleDefinition = ModuleDefinition.dummy("processor_" + moduleCount, ModuleType.processor);
+			moduleDefinition = ModuleDefinitions.dummy("processor_" + moduleCount, ModuleType.processor);
 			moduleDefinitions.add(moduleDefinition);
 			processorDefinitions.add(moduleDefinition);
 		}
@@ -102,7 +100,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 		final File file = temporaryFolder.newFile("job_4_with_resource.xml");
 		FileUtils.writeStringToFile(file, "This is the contents of job_4_with_resource.xml");
 
-		ModuleDefinition moduleDefinition = ModuleDefinition.simple("job_4_with_resource", ModuleType.job, "file:" + file.getAbsolutePath());
+		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("job_4_with_resource", ModuleType.job, "file:" + file.getAbsolutePath());
 		moduleDefinitions.add(moduleDefinition);
 		jobDefinitions.add(moduleDefinition);
 

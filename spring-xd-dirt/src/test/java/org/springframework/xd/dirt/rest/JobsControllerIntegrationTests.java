@@ -32,8 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -45,6 +43,7 @@ import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -76,7 +75,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Before
 	public void before() {
-		ModuleDefinition moduleJobDefinition = ModuleDefinition.dummy("job", ModuleType.job);
+		ModuleDefinition moduleJobDefinition = ModuleDefinitions.dummy("job", ModuleType.job);
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		moduleDefinitions.add(moduleJobDefinition);
 		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);

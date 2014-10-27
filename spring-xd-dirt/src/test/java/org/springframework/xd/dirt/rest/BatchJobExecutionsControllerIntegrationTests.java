@@ -46,8 +46,6 @@ import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.test.context.ContextConfiguration;
@@ -58,6 +56,7 @@ import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -88,7 +87,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@SuppressWarnings("unchecked")
 	@Before
 	public void before() throws Exception {
-		ModuleDefinition moduleJobDefinition = ModuleDefinition.dummy("job", ModuleType.job);
+		ModuleDefinition moduleJobDefinition = ModuleDefinitions.dummy("job", ModuleType.job);
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		moduleDefinitions.add(moduleJobDefinition);
 		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);

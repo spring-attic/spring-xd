@@ -24,6 +24,7 @@ import static org.springframework.xd.module.options.ModuleOptionMatchers.*;
 import org.junit.Test;
 
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 
 
 /**
@@ -39,7 +40,7 @@ public class DefaultModuleOptionsMetadataResolverTests {
 	@SuppressWarnings("unchecked")
 	public void testPojoOptionsConstruction() {
 		String resource = "classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module1";
-		ModuleDefinition definition = ModuleDefinition.simple("module1", source, resource);
+		ModuleDefinition definition = ModuleDefinitions.simple("module1", source, resource);
 		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
 		assertThat(
 				metadata,
@@ -52,7 +53,7 @@ public class DefaultModuleOptionsMetadataResolverTests {
 	public void testMixin() {
 		String resource =
 				"classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module2";
-		ModuleDefinition definition = ModuleDefinition.simple("module2", source, resource);
+		ModuleDefinition definition = ModuleDefinitions.simple("module2", source, resource);
 		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
 		assertThat(
 				metadata,
@@ -63,7 +64,7 @@ public class DefaultModuleOptionsMetadataResolverTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void testMixinOverlap() {
 		String resource = "classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module3";
-		ModuleDefinition definition = ModuleDefinition.simple("module3", source, resource);
+		ModuleDefinition definition = ModuleDefinitions.simple("module3", source, resource);
 		metadataResolver.resolve(definition);
 	}
 }

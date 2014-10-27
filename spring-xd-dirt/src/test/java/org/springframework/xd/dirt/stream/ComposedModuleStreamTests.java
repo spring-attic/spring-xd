@@ -20,7 +20,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.BeforeClass;
@@ -33,6 +32,7 @@ import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.rest.DetailedModuleDefinitionResourceAssembler;
 import org.springframework.xd.dirt.rest.ModulesController;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -45,10 +45,10 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 	@BeforeClass
 	public static void setup() {
 
-		ModuleDefinition source = ModuleDefinition.dummy("source", ModuleType.source);
-		ModuleDefinition testprocessor1 = ModuleDefinition.dummy("testprocessor1", ModuleType.processor);
-		ModuleDefinition testprocessor2 = ModuleDefinition.dummy("testprocessor2", ModuleType.processor);
-		ModuleDefinition sink = ModuleDefinition.dummy("sink", ModuleType.sink);
+		ModuleDefinition source = ModuleDefinitions.dummy("source", ModuleType.source);
+		ModuleDefinition testprocessor1 = ModuleDefinitions.dummy("testprocessor1", ModuleType.processor);
+		ModuleDefinition testprocessor2 = ModuleDefinitions.dummy("testprocessor2", ModuleType.processor);
+		ModuleDefinition sink = ModuleDefinitions.dummy("sink", ModuleType.sink);
 
 		composeModule("compositesource", "source | testprocessor1", ModuleType.source, Arrays.asList(source, testprocessor1));
 		composeModule("compositeprocessor", "testprocessor1 | testprocessor2", ModuleType.processor, Arrays.asList(testprocessor1, testprocessor2));
@@ -146,7 +146,7 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 	}
 
 	private static void composeModule(String name, String definition, ModuleType type, List<ModuleDefinition> moduleDefinitions) {
-		ModuleDefinition moduleDefinition = ModuleDefinition.composed(name, type, definition, moduleDefinitions);
+		ModuleDefinition moduleDefinition = ModuleDefinitions.composed(name, type, definition, moduleDefinitions);
 		getModuleDefinitionRepository().save(moduleDefinition);
 	}
 

@@ -39,7 +39,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
@@ -62,7 +62,7 @@ public class MessageBusRegistrationTests {
 	private ModuleDescriptor descriptor = new ModuleDescriptor.Builder()
 			.setGroup("mystream")
 			.setIndex(1)
-			.setModuleDefinition(ModuleDefinition.dummy("messageBusRegistrationTests", ModuleType.processor))
+			.setModuleDefinition(ModuleDefinitions.dummy("messageBusRegistrationTests", ModuleType.processor))
 			.build();
 
 	private MessageChannel input = new DirectChannel();

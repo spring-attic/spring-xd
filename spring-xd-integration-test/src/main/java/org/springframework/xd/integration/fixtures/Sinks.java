@@ -24,6 +24,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
 import org.springframework.xd.test.fixtures.LogSink;
 import org.springframework.xd.test.fixtures.MqttSink;
 import org.springframework.xd.test.fixtures.RabbitSink;
+import org.springframework.xd.test.fixtures.SimpleCounterSink;
 import org.springframework.xd.test.fixtures.SimpleFileSink;
 import org.springframework.xd.test.fixtures.TcpSink;
 
@@ -168,4 +169,13 @@ public class Sinks {
 		return new GemFireServerSink(region).host(environment.getGemfireHost()).port(environment.getGemfirePort());
 	}
 
+	/**
+	 * Constructs a Counter Sink for capturing  count metrics.
+	 *
+	 * @param name The identifier for the results in the metrics store
+	 * @return an instance of {@link org.springframework.xd.test.fixtures.SimpleCounterSink}
+	 */
+	public SimpleCounterSink counterSink(String name) {
+		return new SimpleCounterSink(name);
+	}
 }

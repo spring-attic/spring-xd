@@ -646,6 +646,24 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
+	 * Wait the "waitTime" for a metric to be created.
+	 *
+	 * @param name the name of metric to be evaluated.
+	 * @return true if metric is created else false.
+	 */
+	public boolean waitForMetric(String name) {
+		return StreamUtils.waitForMetric(name, adminServer, WAIT_TIME);
+	}
+
+	/**
+	 * Retrieve count from the metric store for the counter name specified.
+	 * @param name the counter's name
+	 * @return long value associated with the name.
+	 */
+	public long getCount(String name){
+		return StreamUtils.getCount(adminServer,name);
+	}
+	/**
 	 * Verifies that the content of file on HDFS is the same as the data.
 	 *
 	 * @param data The data expected in the file.

@@ -57,6 +57,8 @@ import org.springframework.xd.rest.domain.StreamDefinitionResource;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteSource;
 import com.google.common.net.HostAndPort;
+import org.springframework.xd.rest.domain.metrics.CounterResource;
+import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Utilities for creating and monitoring streams and the JMX hooks for those strings.
@@ -122,6 +124,21 @@ public class StreamUtils {
 		Assert.notNull(adminServer, "The admin server must be specified.");
 		Assert.hasText(streamName, "The streamName must not be empty nor null");
 		createSpringXDTemplate(adminServer).streamOperations().undeploy(streamName);
+	}
+
+	/**
+	 * Retrieves the value for the counter
+	 *
+	 * @param adminServer the admin server for the cluster being tested.
+	 * @param name        the name of the counter in the metric repo.
+	 * @return the count associated with the name.
+	 */
+	public static long getCount(final URL adminServer, final String name) {
+		Assert.notNull(adminServer, "The admin server must be specified.");
+		Assert.hasText(name, "The name must not be empty nor null");
+		CounterResource resource = createSpringXDTemplate(adminServer).
+				counterOperations().retrieve(name);
+		return resource.getValue();
 	}
 
 	/**
@@ -413,6 +430,33 @@ public class StreamUtils {
 	}
 
 	/**
+	 * Waits up to the wait time for a metric to be created.
+	 *
+	 * @param name        The name of the metric to be evaluated.
+	 * @param adminServer The admin server URL that will be queried.
+	 * @param waitTime    the amount of time in millis to wait.
+	 * @return true if the metric is created else false.
+	 */
+	public static boolean waitForMetric(String name, URL adminServer, int waitTime) {
+		Assert.hasText(name, "name must not be empty nor null");
+		Assert.notNull(adminServer, "The admin server must be specified.");
+
+		SpringXDTemplate xdTemplate = createSpringXDTemplate(adminServer);
+		boolean result = isMetricPresent(xdTemplate, name);
+		long timeout = System.currentTimeMillis() + waitTime;
+		while (!result && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			result = isMetricPresent(xdTemplate, name);
+		}
+		return result;
+	}
+
+	/**
 	 * Retrieves the container pids on the local machine.  
 	 * @param jpsCommand  jps command that will reveal the pids.
 	 * @return An Integer array that contains the pids.
@@ -439,7 +483,7 @@ public class StreamUtils {
 	/**
 	 * Retrieves the container pids for a remote machine.  	 
 	 * @param url The URL where the containers are deployed.
-	 * @param String privateKey ssh private key credentional
+	 * @param privateKey ssh private key credentional
 	 * @param jpsCommand The command to retrieve java processes on container machine.
 	 * @return An Integer array that contains the pids.
 	 */
@@ -500,5 +544,19 @@ public class StreamUtils {
 		}
 	}
 
+	private static boolean isMetricPresent(SpringXDTemplate xdTemplate, String name) {
+
+		boolean result = false;
+		PagedResources<MetricResource> resources = xdTemplate.counterOperations().list();
+		Iterator<MetricResource> resourceIter = resources.iterator();
+		while (resourceIter.hasNext()) {
+			MetricResource resource = resourceIter.next();
+			if (name.equals(resource.getName())) {
+				result = true;
+				break;
+			}
+		}
+		return result;
+	}
 
 }

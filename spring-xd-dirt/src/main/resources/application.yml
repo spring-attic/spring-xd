@@ -44,6 +44,7 @@ xd:
             # Note: MANUAL requires specialized code in the consuming module and is unlikely to be
             # used in an XD application. For more information, see
             # http://docs.spring.io/spring-integration/reference/html/amqp.html#amqp-inbound-ack
+        autoBindDLQ:               false
         backOffInitialInterval:    1000
         backOffMaxInterval:        10000
         backOffMultiplier:         2.0

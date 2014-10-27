@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.integration.rabbit;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,11 +31,14 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.ChannelCallback;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -65,6 +69,8 @@ import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+
+import com.rabbitmq.client.Channel;
 
 /**
  * A {@link MessageBus} implementation backed by RabbitMQ.
@@ -101,7 +107,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS,
 		RabbitPropertiesAccessor.REQUEUE,
 		RabbitPropertiesAccessor.TRANSACTED,
-		RabbitPropertiesAccessor.TX_SIZE
+		RabbitPropertiesAccessor.TX_SIZE,
+		RabbitPropertiesAccessor.AUTO_BIND_DLQ
 	}));
 
 	/**
@@ -167,7 +174,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			.build();
 
 	/**
-	 * Basic producer + basic consumer + concurrency + reply headers. 
+	 * Basic producer + basic consumer + concurrency + reply headers.
 	 */
 	private static final Set<Object> SUPPORTED_REQUESTING_PRODUCER_PROPERTIES = new SetBuilder()
 			// request
@@ -209,6 +216,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private volatile String[] defaultRequestHeaderPatterns = DEFAULT_REQUEST_HEADER_PATTERNS;
 
 	private volatile String[] defaultReplyHeaderPatterns = DEFAULT_REPLY_HEADER_PATTERNS;
+
+	private volatile boolean defaultAutoBindDLQ = false;
 
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
@@ -272,6 +281,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.defaultReplyHeaderPatterns = defaultReplyHeaderPatterns;
 	}
 
+	public void setDefaultAutoBindDLQ(boolean defaultAutoBindDLQ) {
+		this.defaultAutoBindDLQ = defaultAutoBindDLQ;
+	}
+
 	@Override
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel, Properties properties) {
 		if (logger.isInfoEnabled()) {
@@ -290,7 +303,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			queueName += "-" + partitionIndex;
 		}
 		Queue queue = new Queue(queueName);
-		this.rabbitAdmin.declareQueue(queue);
+		declareQueueIfNotPresent(queue);
+		autoBindDLQ(name, accessor);
 		doRegisterConsumer(name, moduleInputChannel, queue, accessor, false);
 		bindExistingProducerDirectlyIfPossible(name, moduleInputChannel);
 	}
@@ -304,10 +318,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		validateConsumerProperties(name, properties, SUPPORTED_PUBSUB_CONSUMER_PROPERTIES);
 		String prefix = accessor.getPrefix(this.defaultPrefix);
 		FanoutExchange exchange = new FanoutExchange(prefix + "topic." + name);
-		rabbitAdmin.declareExchange(exchange);
-		Queue queue = new Queue(prefix + name + "." + UUID.randomUUID().toString(),
-				false, true, true);
-		this.rabbitAdmin.declareQueue(queue);
+		declareExchangeIfNotPresent(exchange);
+		String uniqueName = name + "." + UUID.randomUUID().toString();
+		Queue queue = new Queue(prefix + uniqueName, false, true, true);
+		declareQueueIfNotPresent(queue);
 		org.springframework.amqp.core.Binding binding = BindingBuilder.bind(queue).to(exchange);
 		this.rabbitAdmin.declareBinding(binding);
 		// register with context so they will be redeclared after a connection failure
@@ -317,6 +331,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			this.autoDeclareContext.getBeanFactory().registerSingleton(bindingBeanName, binding);
 		}
 		doRegisterConsumer(name, moduleInputChannel, queue, accessor, true);
+		autoBindDLQ(uniqueName, accessor);
 	}
 
 	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel, Queue queue,
@@ -398,7 +413,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		Expression partitionKeyExpression = properties.getPartitionKeyExpression();
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
 		if (partitionKeyExpression == null && !StringUtils.hasText(partitionKeyExtractorClass)) {
-			rabbitAdmin.declareQueue(new Queue(queueName));
+			declareQueueIfNotPresent(new Queue(queueName));
 			queue.setRoutingKey(queueName); // uses default exchange
 		}
 		else {
@@ -427,7 +442,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		validateProducerProperties(name, properties, SUPPORTED_PUBSUB_PRODUCER_PROPERTIES);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String exchangeName = accessor.getPrefix(this.defaultPrefix) + "topic." + name;
-		this.rabbitAdmin.declareExchange(new FanoutExchange(exchangeName));
+		declareExchangeIfNotPresent(new FanoutExchange(exchangeName));
 		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
 		fanout.setExchangeName(exchangeName);
 		configureOutboundHandler(fanout, accessor);
@@ -469,7 +484,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				+ this.getIdGenerator().generateId();
 		this.doRegisterProducer(name, requests, queue, replyQueueName, accessor);
 		Queue replyQueue = new Queue(replyQueueName, false, false, true); // auto-delete
-		this.rabbitAdmin.declareQueue(replyQueue);
+		declareQueueIfNotPresent(replyQueue);
 		// register with context so it will be redeclared after a connection failure
 		this.autoDeclareContext.getBeanFactory().registerSingleton(replyQueueName, replyQueue);
 		this.doRegisterConsumer(name, replies, replyQueue, accessor, false);
@@ -484,13 +499,66 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		validateConsumerProperties(name, properties, SUPPORTED_REPLYING_CONSUMER_PROPERTIES);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		Queue requestQueue = new Queue(accessor.getPrefix(this.defaultPrefix) + name + ".requests");
-		this.rabbitAdmin.declareQueue(requestQueue);
+		declareQueueIfNotPresent(requestQueue);
 		this.doRegisterConsumer(name, requests, requestQueue, accessor, false);
 
 		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
 		replyQueue.setRoutingKeyExpression("headers['" + AmqpHeaders.REPLY_TO + "']");
 		configureOutboundHandler(replyQueue, accessor);
 		doRegisterProducer(name, replies, replyQueue, accessor);
+	}
+
+	/**
+	 * Try passive declaration first, in case the user has pre-configured the queue with
+	 * incompatible arguments.
+	 * @param queue The queue.
+	 */
+	private void declareQueueIfNotPresent(Queue queue) {
+		if (this.rabbitAdmin.getQueueProperties(queue.getName()) == null) {
+			this.rabbitAdmin.declareQueue(queue);
+		}
+	}
+
+	/**
+	 * Try passive declaration first, in case the user has pre-configured the exchange with
+	 * incompatible arguments.
+	 * @param exchange
+	 */
+	private void declareExchangeIfNotPresent(final Exchange exchange) {
+		this.rabbitTemplate.execute(new ChannelCallback<Void>() {
+
+			@Override
+			public Void doInRabbit(Channel channel) throws Exception {
+				try {
+					channel.exchangeDeclarePassive(exchange.getName());
+				}
+				catch (IOException e) {
+					RabbitMessageBus.this.rabbitAdmin.declareExchange(exchange);
+				}
+				return null;
+			}
+
+		});
+	}
+
+	/**
+	 * If so requested, declare the DLX/DLQ and bind it. The DLQ is bound
+	 * to the DLX with a routing key of the original queue name because we
+	 * use default exchange routing by queue name for the original message.
+	 * @param name The name.
+	 * @param properties The properties accessor.
+	 */
+	private void autoBindDLQ(final String name, RabbitPropertiesAccessor properties) {
+		if (properties.getAutoBindDLQ(this.defaultAutoBindDLQ)) {
+			String prefix = properties.getPrefix(this.defaultPrefix);
+			String dlqName = prefix + name + ".dlq";
+			Queue dlq = new Queue(dlqName);
+			declareQueueIfNotPresent(dlq);
+			final String dlxName = properties.getPrefix(this.defaultPrefix) + "DLX";
+			final DirectExchange dlx = new DirectExchange(dlxName);
+			declareExchangeIfNotPresent(dlx);
+			this.rabbitAdmin.declareBinding(BindingBuilder.bind(dlq).to(dlx).with(prefix + name));
+		}
 	}
 
 	@Override
@@ -611,6 +679,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		 */
 		private static final String TX_SIZE = "txSize";
 
+		/**
+		 * Whether to automatically declare the DLQ and bind it to the bus DLX.
+		 */
+		private static final String AUTO_BIND_DLQ = "autoBindDLQ";
+
 		public RabbitPropertiesAccessor(Properties properties) {
 			super(properties);
 		}
@@ -661,6 +734,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		public int getTxSize(int defaultValue) {
 			return getProperty(TX_SIZE, defaultValue);
+		}
+
+		public boolean getAutoBindDLQ(boolean defaultValue) {
+			return getProperty(AUTO_BIND_DLQ, defaultValue);
 		}
 
 	}

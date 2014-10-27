@@ -16,8 +16,6 @@
 
 package org.springframework.xd.spark;
 
-import org.hibernate.validator.constraints.NotBlank;
-
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 
@@ -28,7 +26,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class SparkAppOptionsMetadata {
 
-	private String name;
+	private String name = "";
 
 	private String master = "local";
 
@@ -42,7 +40,6 @@ public class SparkAppOptionsMetadata {
 
 	private String files = "";
 
-	@NotBlank
 	public String getName() {
 		return name;
 	}

@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link Tasklet} for running Spark job.
+ * {@link Tasklet} for running Spark application.
  *
  * @author Thomas Risberg
  * @author Ilayaperumal Gopinathan
@@ -169,31 +169,6 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 		this.environment = (ConfigurableEnvironment) environment;
 	}
 
-	/**
-	 * Before executing the step, make sure the spark application
-	 * main class is loaded from the application jar provided.
-	 */
-	@Override
-	public void beforeStep(StepExecution stepExecution) {
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		if (appJar != null) {
-			URL[] url;
-			try {
-				url = new URL[] { resolver.getResource(appJar).getURL() };
-			}
-			catch (IOException ioe) {
-				throw new SparkAppJarAccessException(ioe.getMessage());
-			}
-			classLoader = new URLClassLoader(url, Thread.currentThread().getContextClassLoader());
-		}
-		try {
-			Class.forName(mainClass, false, classLoader);
-		}
-		catch (ClassNotFoundException e) {
-			throw new SparkAppClassNotFoundException(e.getMessage());
-		}
-	}
-
 	@Override
 	public RepeatStatus execute(StepContribution contribution,
 			ChunkContext chunkContext) throws Exception {
@@ -209,8 +184,10 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 			dependencies.add(resources[i].getURL().getFile());
 		}
 		ArrayList<String> args = new ArrayList<String>();
-		args.add("--name");
-		args.add(name);
+		if (StringUtils.hasText(name)) {
+			args.add("--name");
+			args.add(name);
+		}
 		args.add("--class");
 		args.add(mainClass);
 		args.add("--master");
@@ -221,7 +198,7 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 			Collection<String> configs = StringUtils.commaDelimitedListToSet(conf);
 			for (String config : configs) {
 				args.add("--conf");
-				args.add("\"" + config + "\"");
+				args.add(config.trim());
 			}
 		}
 		if (StringUtils.hasText(files)) {
@@ -277,6 +254,7 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 			p.waitFor();
 			exitCode = p.exitValue();
 			StringBuilder errors = new StringBuilder();
+			StringBuilder debug = new StringBuilder();
 			if (exitCode != 0) {
 				InputStream in = p.getInputStream();
 				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
@@ -295,6 +273,7 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 							}
 							else {
 								firstException = false;
+								logger.debug("Spark Log: " + line);
 							}
 						}
 					}
@@ -328,5 +307,9 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 		else {
 			return ExitStatus.FAILED;
 		}
+	}
+
+	@Override
+	public void beforeStep(StepExecution stepExecution) {
 	}
 }

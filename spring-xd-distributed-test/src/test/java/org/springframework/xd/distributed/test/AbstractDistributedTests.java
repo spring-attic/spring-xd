@@ -17,6 +17,7 @@
 package org.springframework.xd.distributed.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -40,6 +41,7 @@ import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.distributed.util.DefaultDistributedTestSupport;
 import org.springframework.xd.distributed.util.DistributedTestSupport;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+import org.springframework.xd.rest.domain.JobDefinitionResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
 
@@ -262,6 +264,37 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	}
 
 	/**
+	 * Assert that the given job has been created.
+	 *
+	 * @param jobName  name of job to verify
+	 */
+	protected void verifyJobCreated(String jobName) {
+		assertNotNull(String.format("Job %s was not found", jobName), getJob(jobName));
+	}
+
+	/**
+	 * Return a {@link JobDefinitionResource} with a name matching
+	 * the requested {@code jobName}.
+	 *
+	 * @param jobName name of job
+	 *
+	 * @return a {@code JobDefinitionResource} for the job or {@code null}
+	 *         if the job does not exist
+	 */
+	private JobDefinitionResource getJob(String jobName) {
+		PagedResources<JobDefinitionResource> list = distributedTestSupport.ensureTemplate()
+				.jobOperations().list();
+
+		for (JobDefinitionResource job : list) {
+			if (job.getName().equals(jobName)) {
+				return job;
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Block the executing thread until either the stream state is
 	 * {@link DeploymentUnitStatus.State#deployed} or 30 seconds
 	 * have elapsed.
@@ -296,6 +329,28 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	}
 
 	/**
+	 * Block the executing thread until either the job state
+	 * matches the indicated state or 30 seconds have elapsed.
+	 *
+	 * @param jobName name of job to verify
+	 * @param expected   the expected state of the job
+	 * @throws InterruptedException
+	 */
+	protected void verifyJobState(String jobName, DeploymentUnitStatus.State expected)
+			throws InterruptedException {
+		long expiry = System.currentTimeMillis() + 30000;
+		DeploymentUnitStatus.State state = null;
+
+		while (state != expected && System.currentTimeMillis() < expiry) {
+			Thread.sleep(500);
+			state = getJobState(jobName);
+		}
+
+		logger.debug("Job '{}' state: {}", jobName, state);
+		assertEquals("Failed assertion for job " + jobName, expected, state);
+	}
+
+	/**
 	 * Return the state of the given stream.
 	 *
 	 * @param streamName name of stream for which to obtain state
@@ -312,6 +367,20 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 		}
 
 		throw new IllegalStateException(String.format("Stream %s not deployed", streamName));
+	}
+
+	/**
+	 * Return the state of the given job.
+	 *
+	 * @param jobName name of job for which to obtain state
+	 * @return the state of the job
+	 */
+	protected DeploymentUnitStatus.State getJobState(String jobName) {
+		JobDefinitionResource job = getJob(jobName);
+		if (job == null) {
+			throw new IllegalStateException(String.format("Job %s not deployed", jobName));
+		}
+		return DeploymentUnitStatus.State.valueOf(job.getStatus());
 	}
 
 

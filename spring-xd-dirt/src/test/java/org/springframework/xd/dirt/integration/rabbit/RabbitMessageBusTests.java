@@ -26,7 +26,9 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +39,8 @@ import org.junit.Test;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.utils.test.TestUtils;
@@ -407,6 +411,53 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		bus.unbindConsumers("props.0");
 		bus.unbindProducers("props.0");
 		assertEquals(0, bindings.size());
+	}
+
+	@Test
+	public void testAutoBindDLQ() throws Exception {
+		// pre-declare the queue with dead-lettering, users can also use a policy
+		RabbitAdmin admin = new RabbitAdmin(this.rabbitAvailableRule.getResource());
+		Map<String, Object> args = new HashMap<String, Object>();
+		args.put("x-dead-letter-exchange", "xdbustest.DLX");
+		Queue queue = new Queue("xdbustest.dlqtest", true, false, false, args);
+		admin.declareQueue(queue);
+
+		MessageBus bus = getMessageBus();
+		Properties properties = new Properties();
+		properties.put("prefix", "xdbustest.");
+		properties.put("autoBindDLQ", "true");
+		properties.put("maxAttempts", "1"); // disable retry
+		properties.put("requeue", "false");
+		DirectChannel moduleInputChannel = new DirectChannel();
+		moduleInputChannel.setBeanName("dlqTest");
+		moduleInputChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				throw new RuntimeException("foo");
+			}
+
+		});
+		bus.bindConsumer("dlqtest", moduleInputChannel, properties);
+
+		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
+		template.convertAndSend("", "xdbustest.dlqtest", "foo");
+
+		int n = 0;
+		while (n++ < 100) {
+			Object deadLetter = template.receiveAndConvert("xdbustest.dlqtest.dlq");
+			if (deadLetter != null) {
+				assertEquals("foo", deadLetter);
+				break;
+			}
+			Thread.sleep(100);
+		}
+		assertTrue(n < 100);
+
+		bus.unbindConsumer("dlqtest", moduleInputChannel);
+		admin.deleteQueue("xdbustest.dlqtest.dlq");
+		admin.deleteQueue("xdbustest.dlqtest");
+		admin.deleteExchange("xdbustest.DLX");
 	}
 
 	private SimpleMessageListenerContainer verifyContainer(AbstractEndpoint endpoint) {

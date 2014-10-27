@@ -190,6 +190,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 				.andExpect(status().is(201)).andExpect(
 				jsonPath("$.name").value("compositesink")).andExpect(
 				jsonPath("$.type").value("sink"));
+
 	}
 
 	@Test

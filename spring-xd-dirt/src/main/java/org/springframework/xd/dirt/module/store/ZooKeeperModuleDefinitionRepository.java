@@ -103,9 +103,16 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 		try {
 			List<String> children = zooKeeperConnection.getClient().getChildren().forPath(path);
 			for (String child : children) {
-				// 'child' is actually a module name. If it's in ZK, it is composed.
-				ModuleDefinition composed = this.findByNameAndType(child, type);
-				results.add(composed);
+				byte[] data = zooKeeperConnection.getClient().getData().forPath(
+						Paths.build(Paths.MODULES, type.toString(), child));
+				// Check for data (only composed modules have definitions)
+				if (data != null && data.length > 0) {
+
+					ModuleDefinition composed = this.findByNameAndType(child, type);
+					if (composed != null) {
+						results.add(composed);
+					}
+				}
 			}
 		}
 		catch (Exception e) {
@@ -141,7 +148,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 			try {
 				data = objectMapper.writeValueAsString(moduleDefinition).getBytes("UTF-8");
 				zooKeeperConnection.getClient().create().creatingParentsIfNeeded().forPath(path, data);
-				List<ModuleDefinition> childrenDefinitions = ((CompositeModuleDefinition)moduleDefinition).getChildren();
+				List<ModuleDefinition> childrenDefinitions = ((CompositeModuleDefinition) moduleDefinition).getChildren();
 				for (ModuleDefinition child : childrenDefinitions) {
 					ModuleDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, child,
 							dependencyKey(moduleDefinition));
@@ -175,7 +182,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 		String path = Paths.build(Paths.MODULES, moduleDefinition.getType().toString(), moduleDefinition.getName());
 		try {
 			zooKeeperConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
-			List<ModuleDefinition> children = ((CompositeModuleDefinition)moduleDefinition).getChildren();
+			List<ModuleDefinition> children = ((CompositeModuleDefinition) moduleDefinition).getChildren();
 			for (ModuleDefinition child : children) {
 				ModuleDefinitionRepositoryUtils.deleteDependencies(moduleDependencyRepository, child,
 						dependencyKey(moduleDefinition));

@@ -75,4 +75,22 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 		return this.getName().compareTo(other.getName());
 	}
 
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o) return true;
+
+		ModuleDefinition that = (ModuleDefinition) o;
+
+		if (!name.equals(that.name)) return false;
+		if (type != that.type) return false;
+
+		return true;
+	}
+
+	@Override
+	public final int hashCode() {
+		int result = name.hashCode();
+		result = 31 * result + type.hashCode();
+		return result;
+	}
 }

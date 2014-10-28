@@ -95,7 +95,7 @@ public class TimestampFileTasklet implements Tasklet {
 
 		String name = directory + FILE_SEPARATOR + fileName + '.' + fileExtension;
 		DateFormat dateFormat = new SimpleDateFormat(format);
-		PrintWriter writer =  null;
+		PrintWriter writer = null;
 
 		try {
 			writer = new PrintWriter(new BufferedWriter(new FileWriter(name)));

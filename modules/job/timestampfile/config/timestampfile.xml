@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<batch:job id="job">
+	<batch:job id="job" restartable="${restartable}">
 		<batch:step id="step">
 			<batch:tasklet>
 				<bean class="org.springframework.batch.integration.x.TimestampFileTasklet">

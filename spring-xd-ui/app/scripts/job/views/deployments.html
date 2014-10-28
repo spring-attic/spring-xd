@@ -6,7 +6,7 @@
     </tr>
     </thead>
     <tbody>
-    <tr ng-repeat="item in jobDeployments | orderBy: 'name'">
+    <tr dir-paginate="item in pageable.items | itemsPerPage: pageable.pageSize | filter:filterQuery" total-items="pageable.total">
         <td>{{item.name}}</td>
         <td class="text-center">{{item.executionCount}}</td>
         <td ng-class="{'text-success': item.exitStatus.exitCode === 'COMPLETED', 'text-danger': item.exitStatus.exitCode === 'FAILED'}">{{item.exitStatus.exitCode}}</td>
@@ -24,4 +24,6 @@
     </tr>
     </tbody>
 </table>
+<dir-pagination-controls template-url="scripts/directives/dirPagination.tpl.html"
+                         on-page-change="pageChanged(newPageNumber)"></dir-pagination-controls>
 <div ui-view></div>

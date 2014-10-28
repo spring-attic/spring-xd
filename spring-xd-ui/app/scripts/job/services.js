@@ -160,7 +160,7 @@ define(['angular'], function (angular) {
       })
       .factory('JobDeployments', function ($resource, $log, $rootScope) {
         return {
-          getArray: function (pageable) {
+          getJobDeployments: function (pageable) {
             var params = {};
             if (pageable === undefined) {
               $log.info('Getting all job deployments.');
@@ -173,8 +173,8 @@ define(['angular'], function (angular) {
               };
             }
             return $resource($rootScope.xdAdminServerUrl + '/jobs/configurations.json', params, {
-              getArray: {method: 'GET', isArray: true}
-            }).getArray();
+              get: {method: 'GET'}
+            }).get();
           }
         };
       })

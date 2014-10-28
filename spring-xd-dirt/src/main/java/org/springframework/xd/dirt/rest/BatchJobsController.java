@@ -22,12 +22,16 @@ import java.util.List;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.xd.dirt.job.DetailedJobInfo;
@@ -51,30 +55,23 @@ import org.springframework.xd.rest.domain.DetailedJobInfoResource;
 public class BatchJobsController extends AbstractBatchJobsController {
 
 	/**
-	 * Get a list of JobInfo, in a given range.
+	 * Get the paged resources of {@link DetailedJobInfoResource}
 	 * 
-	 * @param startJob the start index of the job names to return
-	 * @param pageSize page size for the list
+	 * @param pageable the paging metadata
+	 * @param assembler the paged resource assembler of type {@link DetailedJobInfo}
 	 */
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public Collection<DetailedJobInfoResource> jobs(@RequestParam(defaultValue = "0") int startJob,
-			@RequestParam(defaultValue = "20") int pageSize) {
-		Collection<String> names = jobService.listJobs(startJob, pageSize);
-		List<DetailedJobInfoResource> jobs = new ArrayList<DetailedJobInfoResource>();
-		// Check if the job is deployed into XD
-		List<Job> deployedJobs = (List<Job>) xdJobrepository.findAll();
-		for (String name : names) {
-			boolean deployed = false;
-			for (Job deployedJob : deployedJobs) {
-				if (deployedJob.getDefinition().getName().equals(name)) {
-					deployed = true;
-					break;
-				}
-			}
-			jobs.add(getJobInfo(name, deployed));
+	public PagedResources<DetailedJobInfoResource> jobs(Pageable pageable,
+			PagedResourcesAssembler<DetailedJobInfo> assembler) {
+		Page<Job> deployedJobs = xdJobrepository.findAll(pageable);
+		List<DetailedJobInfo> detailedJobs = new ArrayList<DetailedJobInfo>();
+		for (Job deployedJob : deployedJobs) {
+			detailedJobs.add(getJobInfo(deployedJob.getDefinition().getName(), true));
 		}
-		return jobs;
+		return assembler.toResource(
+				new PageImpl<DetailedJobInfo>(detailedJobs, pageable, deployedJobs.getTotalElements()),
+				jobInfoResourceAssembler);
 	}
 
 	/**
@@ -84,12 +81,16 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	public DetailedJobInfoResource jobinfo(@PathVariable String jobName) {
-		return getJobInfo(jobName);
+		return getJobInfoResource(jobName);
 	}
 
-	private DetailedJobInfoResource getJobInfo(String jobName) {
+	/**
+	 * @param jobName
+	 * @return the detailed job info resource for the given job name.
+	 */
+	private DetailedJobInfoResource getJobInfoResource(String jobName) {
 		Job deployedJob = xdJobrepository.findOne(jobName);
-		return getJobInfo(jobName, (null != deployedJob));
+		return jobInfoResourceAssembler.instantiateResource(getJobInfo(jobName, (null != deployedJob)));
 	}
 
 	/**
@@ -99,14 +100,13 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	 * @param deployed the deployment status of the job
 	 * @return a job info for this job
 	 */
-	private DetailedJobInfoResource getJobInfo(String jobName, boolean deployed) {
+	private DetailedJobInfo getJobInfo(String jobName, boolean deployed) {
 		boolean launchable = jobService.isLaunchable(jobName);
 		try {
 			int count = jobService.countJobExecutionsForJob(jobName);
-			DetailedJobInfo detailedJobInfo = new DetailedJobInfo(jobName, count, launchable,
+			return new DetailedJobInfo(jobName, count, launchable,
 					jobService.isIncrementable(jobName),
 					getLastExecution(jobName), deployed);
-			return jobInfoResourceAssembler.toResource(detailedJobInfo);
 		}
 		catch (NoSuchJobException e) {
 			throw new NoSuchBatchJobException(jobName);

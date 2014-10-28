@@ -21,10 +21,12 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,6 +35,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +55,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.dirt.stream.JobRepository;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.domain.util.TimeUtils;
 
 /**
@@ -75,15 +84,32 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 	@Autowired
 	private BatchJobsController batchJobsController;
 
+	@Autowired
+	private JobRepository xdJobRepository;
+
 	private JobExecution execution;
 
 	private TimeZone timeZone = TimeUtils.getDefaultTimeZone();
 
+	private static final String JOB_DEFINITION = "job --cron='*/10 * * * * *'";
+
+	@Autowired
+	private ModuleRegistry moduleRegistry;
+
+	@Autowired
+	private JobDefinitionRepository jobDefinitionRepository;
+
 	@Before
 	public void before() throws Exception {
+		ModuleDefinition moduleJobDefinition = ModuleDefinitions.dummy("job", ModuleType.job);
+		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
+		moduleDefinitions.add(moduleJobDefinition);
+		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);
+		when(moduleRegistry.findDefinition("job", ModuleType.job)).thenReturn(moduleJobDefinition);
+		when(jobLocator.getJobNames()).thenReturn(Arrays.asList(new String[] {}));
+
 		SimpleJob job1 = new SimpleJob("job1");
 		SimpleJob job2 = new SimpleJob("job2");
-
 		Collection<String> jobNames = new ArrayList<String>();
 		jobNames.add(job1.getName());
 		jobNames.add(job2.getName());
@@ -113,8 +139,6 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		jobExecutions1.add(jobExecution1);
 		jobExecutions1.add(jobExecution2);
 		jobExecutions2.add(jobExecution2);
-		when(jobLocator.getJobNames()).thenReturn(jobNames);
-		when(jobService.listJobs(0, 20)).thenReturn(jobNames);
 		when(jobService.countJobExecutionsForJob(job1.getName())).thenReturn(2);
 		when(jobService.countJobExecutionsForJob(job2.getName())).thenReturn(1);
 
@@ -136,45 +160,91 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		execution.setEndTime(endTime);
 		jobExecutions.add(execution);
 
-		when(jobService.listJobExecutionsForJob(job1.getName(), 0, 1)).thenReturn(jobExecutions);
+		when(jobService.listJobExecutionsForJob("job1", 0, 1)).thenReturn(jobExecutions);
 		when(jobService.listJobExecutions(0, 20)).thenReturn(jobExecutions1);
 		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
 
 	}
 
-	@SuppressWarnings("unchecked")
+	@After
+	public void cleanUp() {
+		jobDefinitionRepository.deleteAll();
+		xdJobRepository.deleteAll();
+	}
+
 	@Test
 	public void testGetBatchJobs() throws Exception {
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job2").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		JobExecutionInfo info = new JobExecutionInfo(execution, timeZone);
 		mockMvc.perform(
-				get("/jobs/configurations").param("startJob", "0").param("pageSize", "20").accept(
+				get("/jobs/configurations").accept(
 						MediaType.APPLICATION_JSON)).andExpect(
-				status().isOk()).andExpect(jsonPath("$", Matchers.hasSize(2))).andExpect(
-				jsonPath("$[*].executionCount", contains(2, 1))).andExpect(
-				jsonPath("$[*].launchable", contains(false, true))).andExpect(
-				jsonPath("$[*].deployed", contains(false, false))).andExpect(
-				jsonPath("$[*].incrementable", contains(false, true))).andExpect(
-				jsonPath("$[*].jobInstanceId", contains(nullValue(), nullValue()))).andExpect(
-				jsonPath("$[*].duration", contains(info.getDuration(), null))).andExpect(
-				jsonPath("$[*].startTime", contains(info.getStartTime(), null))).andExpect(
-				jsonPath("$[*].startDate", contains(info.getStartDate(), null))).andExpect(
-				jsonPath("$[*].stepExecutionCount", contains(info.getStepExecutionCount(), 0))).andExpect(
-				jsonPath("$[*].jobParameters", contains(info.getJobParametersString(), null)))
+				status().isOk()).andExpect(jsonPath("$.content", Matchers.hasSize(2))).andExpect(
+				jsonPath("$.content[*].executionCount", contains(2, 1))).andExpect(
+				jsonPath("$.content[*].launchable", contains(false, true))).andExpect(
+				jsonPath("$.content[*].deployed", contains(true, true))).andExpect(
+				jsonPath("$.content[*].incrementable", contains(false, true))).andExpect(
+				jsonPath("$.content[*].jobInstanceId", contains(nullValue(), nullValue()))).andExpect(
+				jsonPath("$.content[*].duration", contains(info.getDuration(), null))).andExpect(
+				jsonPath("$.content[*].startTime", contains(info.getStartTime(), null))).andExpect(
+				jsonPath("$.content[*].startDate", contains(info.getStartDate(), null))).andExpect(
+				jsonPath("$.content[*].stepExecutionCount", contains(info.getStepExecutionCount(), 0))).andExpect(
+				jsonPath("$.content[*].jobParameters", contains(info.getJobParametersString(), null)))
 
 				// should contain the display name (ie- without the .job suffix)
-				.andExpect(jsonPath("$[0].name", equalTo("job1"))).andExpect(
-						jsonPath("$[0].jobInstanceId", nullValue()))
+				.andExpect(jsonPath("$.content[0].name", equalTo("job1"))).andExpect(
+						jsonPath("$.content[0].jobInstanceId", nullValue()))
 
-				.andExpect(jsonPath("$[1].name", equalTo("job2"))).andExpect(
-						jsonPath("$[1].jobInstanceId", nullValue()))
+				.andExpect(jsonPath("$.content[1].name", equalTo("job2"))).andExpect(
+						jsonPath("$.content[1].jobInstanceId", nullValue()))
 
 				// exit status is non null for job 0 and null for job 1
 				.andExpect(
-						jsonPath("$[0].exitStatus.exitDescription",
+						jsonPath("$.content[0].exitStatus.exitDescription",
 								equalTo(execution.getExitStatus().getExitDescription()))).andExpect(
-						jsonPath("$[0].exitStatus.exitCode", equalTo(execution.getExitStatus().getExitCode()))).andExpect(
-						jsonPath("$[0].exitStatus.running", equalTo(false))).andExpect(
-						jsonPath("$[1].exitStatus", nullValue()));
+						jsonPath("$.content[0].exitStatus.exitCode", equalTo(execution.getExitStatus().getExitCode()))).andExpect(
+						jsonPath("$.content[0].exitStatus.running", equalTo(false))).andExpect(
+						jsonPath("$.content[1].exitStatus", nullValue()));
+	}
+
+	@Test
+	public void testGetPagedBatchJobs() throws Exception {
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job2").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		JobExecutionInfo info = new JobExecutionInfo(execution, timeZone);
+		mockMvc.perform(
+				get("/jobs/configurations").param("page", "0").param("size", "1").accept(
+						MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk()).andExpect(jsonPath("$.content", Matchers.hasSize(1))).andExpect(
+				jsonPath("$.content[*].executionCount", contains(2))).andExpect(
+				jsonPath("$.content[*].launchable", contains(false))).andExpect(
+				jsonPath("$.content[*].deployed", contains(true))).andExpect(
+				jsonPath("$.content[*].incrementable", contains(false))).andExpect(
+				jsonPath("$.content[*].jobInstanceId", contains(nullValue()))).andExpect(
+				jsonPath("$.content[*].duration", contains(info.getDuration()))).andExpect(
+				jsonPath("$.content[*].startTime", contains(info.getStartTime()))).andExpect(
+				jsonPath("$.content[*].startDate", contains(info.getStartDate()))).andExpect(
+				jsonPath("$.content[*].stepExecutionCount", contains(info.getStepExecutionCount()))).andExpect(
+				jsonPath("$.content[*].jobParameters", contains(info.getJobParametersString())))
+
+				// should contain the display name (ie- without the .job suffix)
+				.andExpect(jsonPath("$.content[0].name", equalTo("job1"))).andExpect(
+						jsonPath("$.content[0].jobInstanceId", nullValue()))
+
+				.andExpect(
+						jsonPath("$.content[0].exitStatus.exitDescription",
+								equalTo(execution.getExitStatus().getExitDescription()))).andExpect(
+						jsonPath("$.content[0].exitStatus.exitCode", equalTo(execution.getExitStatus().getExitCode()))).andExpect(
+						jsonPath("$.content[0].exitStatus.running", equalTo(false)));
 	}
 
 	@Test

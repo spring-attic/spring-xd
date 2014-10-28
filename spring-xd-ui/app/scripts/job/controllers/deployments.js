@@ -34,12 +34,13 @@ define(['model/pageable'], function (Pageable) {
       };
       function loadJobDeployments(pageable) {
         utils.$log.info('pageable', pageable);
-        var jobDeploymentsPromise = jobDeployments.getArray().$promise;
+        var jobDeploymentsPromise = jobDeployments.getJobDeployments(pageable).$promise;
         utils.addBusyPromise(jobDeploymentsPromise);
         jobDeploymentsPromise.then(
           function (data) {
             utils.$log.info(data);
-            $scope.jobDeployments = data;
+            $scope.pageable.items = data.content;
+            $scope.pageable.total = data.page.totalElements;
           },
           function () {
             utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');

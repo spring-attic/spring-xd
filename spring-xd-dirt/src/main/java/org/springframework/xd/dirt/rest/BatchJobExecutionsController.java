@@ -31,7 +31,11 @@ import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.repository.dao.StepExecutionDao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
+import org.springframework.hateoas.PagedResources.PageMetadata;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,31 +76,33 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 	private StepExecutionDao stepExecutionDao;
 
 	/**
-	 * List all job executions in a given range.
+	 * List all job executions in a given range. If no pagination is provided,
+	 * the default {@code PageRequest(0, 20)} is passed in. See {@link PageableHandlerMethodArgumentResolver}
+	 * for details.
 	 *
-	 * @param startJobExecution index of the first job execution to get
-	 * @param pageSize how many executions to return
+	 * @param pageable If not provided will default to page 0 and a page size of 20
 	 * @return Collection of JobExecutionInfoResource
 	 */
 	@RequestMapping(value = { "" }, method = RequestMethod.GET, produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
-	public Collection<JobExecutionInfoResource> list(@RequestParam(defaultValue = "0") int startJobExecution,
-			@RequestParam(defaultValue = "20") int pageSize) {
+	public PagedResources<JobExecutionInfoResource> list(Pageable pageable) {
 
-		final Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
-
+		final List<JobExecutionInfoResource> resources = new ArrayList<JobExecutionInfoResource>();
 		final Set<String> restartableJobs = new HashSet<String>(jobLocator.getAllRestartableJobs());
 		final Set<String> deployedJobs = new HashSet<String>(jobLocator.getJobNames());
 		final Set<String> jobDefinitionNames = new HashSet<String>(getJobDefinitionNames());
 
-		for (JobExecution jobExecution : jobService.listJobExecutions(startJobExecution, pageSize)) {
+		for (JobExecution jobExecution : jobService.listJobExecutions(pageable.getOffset(), pageable.getPageSize())) {
 			stepExecutionDao.addStepExecutions(jobExecution);
 			final JobExecutionInfoResource jobExecutionInfoResource = getJobExecutionInfoResource(jobExecution,
 					restartableJobs, deployedJobs, jobDefinitionNames);
-			result.add(jobExecutionInfoResource);
+			resources.add(jobExecutionInfoResource);
 		}
 
-		return result;
+		final PagedResources<JobExecutionInfoResource> p = new PagedResources<JobExecutionInfoResource>(resources,
+				new PageMetadata(pageable.getPageSize(), pageable.getPageNumber(),
+						Long.valueOf(jobService.countJobExecutions())));
+		return p;
 	}
 
 	/**
@@ -287,7 +293,7 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 		catch (JobParametersInvalidException e) {
 			throw new org.springframework.xd.dirt.job.JobParametersInvalidException(
 					"The Job Parameters for Job Execution " + jobExecution.getId()
-							+ " are invalid.");
+					+ " are invalid.");
 		}
 
 		final BatchStatus status = jobExecution.getStatus();

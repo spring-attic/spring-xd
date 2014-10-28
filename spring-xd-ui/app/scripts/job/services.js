@@ -180,14 +180,25 @@ define(['angular'], function (angular) {
       })
       .factory('JobExecutions', function ($resource, $rootScope, $log) {
         return {
-          getArray: function (pageNumber, pageSize) {
-            $log.info('Get Job Executions ');
-            return $resource($rootScope.xdAdminServerUrl + '/jobs/executions', {
-              'page': pageNumber,
-              'size': pageSize
-            }, {
-              getArray: {method: 'GET', isArray: true}
-            }).getArray();
+          getArray: function (pageable) {
+            if (pageable === 'undefined') {
+              $log.info('Getting all job executions.');
+              return $resource($rootScope.xdAdminServerUrl + '/jobs/executions', {}).get();
+            }
+            else {
+              $log.info('Getting job definitions for pageable:', pageable);
+              return $resource($rootScope.xdAdminServerUrl + '/jobs/executions',
+                {
+                  'page': pageable.pageNumber,
+                  'size': pageable.pageSize
+                },
+                {
+                  query: {
+                    method: 'GET',
+                    isArray: true
+                  }
+                }).get();
+            }
           },
           getSingleJobExecution: function (jobExecutionId) {
             $log.info('Getting details for Job Execution with Id ' + jobExecutionId);

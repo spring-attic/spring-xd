@@ -15,7 +15,8 @@
 		</tr>
 	</thead>
 	<tbody>
-		<tr ng-repeat="item in jobExecutions | filter:filterQuery">
+		<tr dir-paginate="item in pageable.items | itemsPerPage: pageable.pageSize | filter:filterQuery" total-items="pageable.total"
+		    ng-show="!item.inactive">
 			<td>{{item.name}}&nbsp;<span xd-deployment-status="item"></span></td>
             <td class="text-center">{{item.jobExecution.jobInstance.id}}</td>
             <td class="text-center">{{item.jobExecution.id}}</td>
@@ -32,3 +33,5 @@
 		</tr>
 	</tbody>
 </table>
+<dir-pagination-controls template-url="scripts/directives/dirPagination.tpl.html"
+                         on-page-change="pageChanged(newPageNumber)"></dir-pagination-controls>

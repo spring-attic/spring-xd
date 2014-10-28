@@ -413,12 +413,13 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		// pre-declare the queue with dead-lettering, users can also use a policy
 		RabbitAdmin admin = new RabbitAdmin(this.rabbitAvailableRule.getResource());
 		Map<String, Object> args = new HashMap<String, Object>();
-		args.put("x-dead-letter-exchange", "xdbus.DLX");
-		Queue queue = new Queue("xdbus.dlqtest", true, false, false, args);
+		args.put("x-dead-letter-exchange", "xdbustest.DLX");
+		Queue queue = new Queue("xdbustest.dlqtest", true, false, false, args);
 		admin.declareQueue(queue);
 
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();
+		properties.put("prefix", "xdbustest.");
 		properties.put("autoBindDLQ", "true");
 		properties.put("maxAttempts", "1"); // disable retry
 		properties.put("requeue", "false");
@@ -435,11 +436,11 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		bus.bindConsumer("dlqtest", moduleInputChannel, properties);
 
 		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
-		template.convertAndSend("", "xdbus.dlqtest", "foo");
+		template.convertAndSend("", "xdbustest.dlqtest", "foo");
 
 		int n = 0;
 		while (n++ < 100) {
-			Object deadLetter = template.receiveAndConvert("xdbus.dlqtest.dlq");
+			Object deadLetter = template.receiveAndConvert("xdbustest.dlqtest.dlq");
 			if (deadLetter != null) {
 				assertEquals("foo", deadLetter);
 				break;
@@ -448,7 +449,10 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		}
 		assertTrue(n < 100);
 
-		admin.deleteQueue("xdbus.dlqtest.dlq");
+		bus.unbindConsumer("dlqtest", moduleInputChannel);
+		admin.deleteQueue("xdbustest.dlqtest.dlq");
+		admin.deleteQueue("xdbustest.dlqtest");
+		admin.deleteExchange("xdbustest.DLX");
 	}
 
 	private SimpleMessageListenerContainer verifyContainer(AbstractEndpoint endpoint) {

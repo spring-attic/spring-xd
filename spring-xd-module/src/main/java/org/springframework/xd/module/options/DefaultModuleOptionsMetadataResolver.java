@@ -37,6 +37,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModuleDefinition;
+import org.springframework.xd.module.core.ResourceConfiguredModule;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.support.ModuleUtils;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
@@ -181,15 +182,10 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 			URL[] classpath = ModuleUtils.determineClassPath(definition, resourceLoader);
 
-			ClassLoader classLoaderToUse = classpath.length > 0
-					? new ParentLastURLClassLoader(classpath,
-							ModuleOptionsMetadataResolver.class.getClassLoader())
-					: ModuleOptionsMetadataResolver.class.getClassLoader();
-            // TODO: use classloader to load properties resource
-			String propertiesLocation = definition.getLocation() + "/config/" +
-					definition.getName() + ".properties";
-            Resource propertiesResource = resourceLoader.getResource(propertiesLocation);
-			if (!propertiesResource.exists()) {
+			ClassLoader classLoaderToUse = new ParentLastURLClassLoader(classpath,
+							ModuleOptionsMetadataResolver.class.getClassLoader());
+            Resource propertiesResource = ModuleUtils.modulePropertiesFile(definition, classLoaderToUse);
+			if (propertiesResource == null) {
 				return inferModuleOptionsMetadata(definition, classLoaderToUse);
 			}
 			else {
@@ -244,12 +240,11 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 		reader.setResourceLoader(new PathMatchingResourcePatternResolver(classLoaderToUse));
-        String xmlLocation = definition.getLocation() + "/config/" + definition.getName() + ".xml";
-		Resource xml = resourceLoader.getResource(xmlLocation);
-		if (!xml.exists()) {
+		Resource source = ResourceConfiguredModule.resourceBasedConfigurationFile(definition, classLoaderToUse);
+		if (source == null) {
 			return new PassthruModuleOptionsMetadata();
 		}
-		reader.loadBeanDefinitions(xml);
+		reader.loadBeanDefinitions(source);
 
 		return defaultModuleOptionsMetadataCollector.collect(beanFactory);
 

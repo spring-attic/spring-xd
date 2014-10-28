@@ -43,19 +43,35 @@ public class ResourceConfiguredModule extends SimpleModule {
 		super(descriptor, deploymentProperties, classLoader, moduleOptions);
 	}
 
+	/**
+	 * Return the resource that can be used to configure a module, or null if no such resource exists.
+	 *
+	 * @throws java.lang.IllegalStateException if both a .xml and .groovy file are present
+	 */
+	public static Resource resourceBasedConfigurationFile(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
+		Resource xml = new ClassPathResource("/config/" + moduleDefinition.getName() + ".xml", moduleClassLoader);
+		Resource groovy = new ClassPathResource("/config/" + moduleDefinition.getName() + ".groovy", moduleClassLoader);
+		boolean xmlOk = xml.exists() && xml.isReadable();
+		boolean groovyOk = groovy.exists() && groovy.isReadable();
+		if (xmlOk && groovyOk) {
+			throw new IllegalStateException(String.format("Found both resources '%s' and '%s' for module %s", xml, groovy, moduleDefinition));
+		} else if (xmlOk) {
+			return xml;
+		} else if (groovyOk) {
+			return groovy;
+		}
+		else {
+			return null;
+		}
+
+	}
+
 	@Override
 	protected void configureModuleApplicationContext(SimpleModuleDefinition moduleDefinition) {
-		Resource resource = new ClassPathResource("/config/" + moduleDefinition.getName() + ".xml", getClassLoader());
-		if (resource != null && resource.exists() && resource.isReadable()) {
-			addSource(resource);
-		} else {
-			resource = new ClassPathResource("/config/" + moduleDefinition.getName() + ".groovy", getClassLoader());
-			if (resource != null && resource.exists() && resource.isReadable()) {
-				addSource(resource);
-				// TODO: should be able to fail in the else clause
-//			} else {
-//				throw new AssertionError();
-			}
+		Resource source = resourceBasedConfigurationFile(moduleDefinition, getClassLoader());
+		if (source != null) {
+			addSource(source);
 		}
 	}
+
 }

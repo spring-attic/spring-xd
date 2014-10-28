@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -48,17 +49,13 @@ public class ModuleUtils {
 		}
 	}
 
-	public static Resource moduleResourceFile(SimpleModuleDefinition moduleDefinition, ResourceLoader resourceLoader) {
-		for (String extension : new String[] {".xml", ".groovy"}) {
-			for (String subpath : new String[] {"/", "/config/"}) {
-				Resource resource = resourceLoader.getResource(moduleDefinition.getLocation() + subpath + moduleDefinition.getName() + extension);
-				if (resource.exists() && resource.isReadable()) {
-					return resource;
-				}
-			}
-		}
-		return null;
-
+	/**
+	 * Return a resource that can be used to load the module '.properties' file (containing <i>e.g.</i> information
+	 * about module options, or null if no such file exists.
+	 */
+	public static Resource modulePropertiesFile(SimpleModuleDefinition definition, ClassLoader moduleClassLoader) {
+		Resource result = new ClassPathResource("/config/" + definition.getName() + ".properties", moduleClassLoader);
+		return result.exists() && result.isReadable() ? result : null;
 	}
 
 }

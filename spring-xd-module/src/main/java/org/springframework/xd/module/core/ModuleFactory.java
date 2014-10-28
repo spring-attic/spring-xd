@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -118,10 +119,9 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 		}
 		ModuleDefinition definition = moduleDescriptor.getModuleDefinition();
 		URL[] classpath = ModuleUtils.determineClassPath((SimpleModuleDefinition) definition, resourceLoader);
-		ClassLoader moduleClassLoader = classpath.length == 0 ? null :
-				new ParentLastURLClassLoader(classpath, this.parentClassLoader);
+		ClassLoader moduleClassLoader = new ParentLastURLClassLoader(classpath, this.parentClassLoader);
 
-		Class<? extends SimpleModule> moduleClass = determineModuleClass((SimpleModuleDefinition) moduleDescriptor.getModuleDefinition());
+		Class<? extends SimpleModule> moduleClass = determineModuleClass((SimpleModuleDefinition) moduleDescriptor.getModuleDefinition(), moduleClassLoader);
 		Assert.notNull(moduleClass,
 				String.format("cannot create module '%s:%s' from module definition.", moduleDescriptor.getModuleName(),
 						moduleDescriptor.getType()));
@@ -129,25 +129,11 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 				.createModule(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleClass);
 	}
 
-	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition) {
-		for (Resource resource : resourceBasedConfigurationFiles(moduleDefinition)) {
-			if (resource != null && resource.exists()) {
-				if (resource.isReadable() &&
-						(resource.getFilename().endsWith(".xml") || resource.getFilename().endsWith(".groovy"))) {
-					return ResourceConfiguredModule.class;
-				}
-			}
+	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
+		if( ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition, moduleClassLoader) != null) {
+				return ResourceConfiguredModule.class;
 		}
 		return null;
-	}
-
-	private List<Resource> resourceBasedConfigurationFiles(SimpleModuleDefinition moduleDefinition) {
-		List<Resource> candidates = new ArrayList<Resource>();
-		for (String extension : new String[] {".xml", ".groovy"}) {
-			Resource resource = resourceLoader.getResource(moduleDefinition.getLocation() + "/config/" + moduleDefinition.getName() + extension);
-			candidates.add(resource);
-		}
-		return candidates;
 	}
 
 	/**

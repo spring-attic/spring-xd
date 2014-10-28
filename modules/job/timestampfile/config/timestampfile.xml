@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:batch="http://www.springframework.org/schema/batch"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<batch:job id="job" restartable="${restartable}">
+		<batch:step id="step">
+			<batch:tasklet>
+				<bean class="org.springframework.batch.integration.x.TimestampFileTasklet">
+					<constructor-arg value="${fileName}" />
+					<constructor-arg value="${directory}" />
+					<constructor-arg value="${fileExtension}" />
+					<constructor-arg value="${format}" />
+				</bean>
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+
+</beans>

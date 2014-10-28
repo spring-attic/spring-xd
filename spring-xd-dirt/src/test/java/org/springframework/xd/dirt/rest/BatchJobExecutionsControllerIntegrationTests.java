@@ -174,6 +174,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		when(jobService.isIncrementable(job1.getName())).thenReturn(false);
 		when(jobService.isIncrementable(job2.getName())).thenReturn(true);
 
+		when(jobService.listJobExecutions(5, 5)).thenReturn(jobExecutions1);
 		when(jobService.listJobExecutions(0, 20)).thenReturn(jobExecutions1);
 		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
 		when(jobService.getJobExecution(jobExecution1.getId())).thenReturn(jobExecution1);
@@ -222,19 +223,27 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@Test
 	public void testGetBatchJobExecutions() throws Exception {
 		mockMvc.perform(
-				get("/jobs/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
+				get("/jobs/executions").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
-				jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$[*].executionId", contains(0, 3))).andExpect(
-				jsonPath("$[*].jobExecution[*].stepExecutions", Matchers.hasSize(2))).andExpect(
-				jsonPath("$[*].jobId", contains(0, 2))).andExpect(jsonPath("$[*].deleted", contains(true, true))).andExpect(
-				jsonPath("$[*].deployed", contains(false, false))).andExpect(
-				jsonPath("$[*].jobExecution[*].id", contains(0, 3))).andExpect(
-				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.value", contains("test", "test"))).andExpect(
-				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.type", contains("STRING", "STRING"))).andExpect(
-				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.identifying", contains(true, true))).andExpect(
-				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.value", contains(123, 123))).andExpect(
-				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.type", contains("LONG", "LONG"))).andExpect(
-				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.identifying", contains(false, false)));
+				jsonPath("$.content[*]", Matchers.hasSize(2))).andExpect(jsonPath("$.content[*].executionId", contains(0, 3))).andExpect(
+				jsonPath("$.content[*].jobExecution[*].stepExecutions", Matchers.hasSize(2))).andExpect(
+				jsonPath("$.content[*].jobId", contains(0, 2))).andExpect(jsonPath("$.content[*].deleted", contains(true, true))).andExpect(
+				jsonPath("$.content[*].deployed", contains(false, false))).andExpect(
+				jsonPath("$.content[*].jobExecution[*].id", contains(0, 3))).andExpect(
+				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param1.value", contains("test", "test"))).andExpect(
+				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param1.type", contains("STRING", "STRING"))).andExpect(
+				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param1.identifying", contains(true, true))).andExpect(
+				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param2.value", contains(123, 123))).andExpect(
+				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param2.type", contains("LONG", "LONG"))).andExpect(
+				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param2.identifying", contains(false, false)));
+	}
+
+	@Test
+	public void testGetBatchJobExecutionsPaginated() throws Exception {
+		mockMvc.perform(
+				get("/jobs/executions").param("page", "1").param("size", "5").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+				jsonPath("$.content[*]", Matchers.hasSize(2)));
 	}
 
 	@Test

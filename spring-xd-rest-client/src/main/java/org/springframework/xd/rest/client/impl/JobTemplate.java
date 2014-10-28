@@ -69,7 +69,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		if (properties != null) {
 			values.add("properties", properties);
 		}
-		//TODO: Do we need JobDeploymentResource? 
+		//TODO: Do we need JobDeploymentResource?
 		restTemplate.postForObject(uriTemplate, values, Object.class, name);
 	}
 
@@ -138,13 +138,11 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public List<JobExecutionInfoResource> listJobExecutions() {
+	public JobExecutionInfoResource.Page listJobExecutions() {
 		String uriTemplate = resources.get("jobs/executions").toString();
 		// TODO handle pagination at the client side
 		uriTemplate = uriTemplate + "?size=10000";
-		JobExecutionInfoResource[] jobExecutionInfoResources = restTemplate.getForObject(uriTemplate,
-				JobExecutionInfoResource[].class);
-		return Arrays.asList(jobExecutionInfoResources);
+		return restTemplate.getForObject(uriTemplate, JobExecutionInfoResource.Page.class);
 	}
 
 	@Override

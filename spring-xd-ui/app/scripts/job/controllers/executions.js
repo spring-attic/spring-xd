@@ -20,35 +20,32 @@
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  */
-define([], function () {
+define(['model/pageable'], function (Pageable) {
   'use strict';
   return ['$scope', 'JobExecutions', 'XDUtils', '$state', function ($scope, jobExecutions, utils, $state) {
-
-    $scope.jobExecutions = {};
-    $scope.totalJobExecutions = 0;
-    $scope.jobExecutionsPerPage = 5; // this should match however many results your API puts on one page
+    $scope.pageable = new Pageable();
     $scope.pagination = {
       current: 1
     };
-
     $scope.pageChanged = function(newPage) {
-      list(newPage-1, $scope.jobExecutionsPerPage);
+      $scope.pageable.pageNumber = newPage-1;
+      loadJobExecutions($scope.pageable);
     };
 
-    var list = function (pageNumber, pageSize) {
-      var jobExcutionsPromise = jobExecutions.getArray(pageNumber, pageSize).$promise;
+    function loadJobExecutions(pageable) {
+      var jobExcutionsPromise = jobExecutions.getAllJobExecutions(pageable).$promise;
       utils.addBusyPromise(jobExcutionsPromise);
 
       jobExcutionsPromise.then(
           function (result) {
             utils.$log.info('job excutions', result);
-            $scope.jobExecutions = result;
-            $scope.totalJobExecutions = 100;
+            $scope.pageable.items = result.content;
+            $scope.pageable.total = result.page.totalElements;
+            utils.$log.info('$scope.pageable', $scope.pageable);
           }, function () {
             utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
           });
-    };
-    list(0, $scope.jobExecutionsPerPage);
+    }
     $scope.viewJobExecutionDetails = function (jobExecution) {
       utils.$log.info('Showing Job Execution details for Job Execution with Id: ' + jobExecution.executionId);
       $state.go('home.jobs.executiondetails', {executionId: jobExecution.executionId});
@@ -59,7 +56,7 @@ define([], function () {
           function (result) {
             utils.$log.info(result);
             utils.growl.addSuccessMessage('Job was relaunched.');
-            list();
+            loadJobExecutions($scope.pageable);
           }, function (error) {
             if (error.data[0].logref === 'NoSuchBatchJobException') {
               utils.growl.addErrorMessage('The BatchJob ' + job.name + ' is currently not deployed.');
@@ -75,10 +72,11 @@ define([], function () {
           function (result) {
             utils.$log.info(result);
             utils.growl.addSuccessMessage('Stop request sent.');
-            list();
+            loadJobExecutions($scope.pageable);
           }, function (error) {
             utils.growl.addErrorMessage(error.data[0].message);
           });
     };
+    loadJobExecutions($scope.pageable);
   }];
 });

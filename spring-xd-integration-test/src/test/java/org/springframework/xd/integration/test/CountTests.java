@@ -30,11 +30,11 @@ public class CountTests extends AbstractIntegrationTest {
 
 	private String streamName;
 
-	private static String GOOD_BAD_TEXT = "{\"id\":A123,\"entities\":{\"hashtags\"" +
+	private static final String GOOD_BAD_TEXT = "{\"id\":A123,\"entities\":{\"hashtags\"" +
 			":[{\"text\":\"good\"},{\"text\":\"bad\"}],\"urls\":[]}}";
-	private static String GOOD_TEXT = "{\"id\":B123,\"entities\":{\"hashtags\"" +
+	private static final String GOOD_TEXT = "{\"id\":B123,\"entities\":{\"hashtags\"" +
 			":[{\"text\":\"good\"},{\"text\":\"good\"}],\"urls\":[]}}";
-	private static String BAD_TEXT = "{\"id\":C123, \"entities\":{\"hashtags\"" +
+	private static final String BAD_TEXT = "{\"id\":C123, \"entities\":{\"hashtags\"" +
 			":[{\"text\":\"bad\"},{\"text\":\"bad\"}],\"urls\":[]}}'";
 
 

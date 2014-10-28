@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:batch="http://www.springframework.org/schema/batch" xmlns:aop="http://www.springframework.org/schema/aop"
-	   xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="
-        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
-        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
-        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+		xmlns:batch="http://www.springframework.org/schema/batch"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
 	<batch:job id="job">
 		<batch:step id="step">
 			<batch:tasklet>
 				<bean class="org.springframework.batch.integration.x.TimestampFileTasklet">
-					<property name="fileName" value="${fileName}" />
-					<property name="directory" value="${directory}" />
-					<property name="fileExtension" value="${fileExtension}" />
-					<property name="format" value="${format}" />
+					<constructor-arg value="${fileName}" />
+					<constructor-arg value="${directory}" />
+					<constructor-arg value="${fileExtension}" />
+					<constructor-arg value="${format}" />
 				</bean>
 			</batch:tasklet>
 		</batch:step>

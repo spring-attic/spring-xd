@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.modules.metadata;
 
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME;
 
+import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
@@ -25,6 +27,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  *
  * @author Patrick Peralta
  */
+@Mixin({ BatchJobRestartableOptionMixin.class })
 public class TimestampFileJobOptionsMetadata {
 
 	/**

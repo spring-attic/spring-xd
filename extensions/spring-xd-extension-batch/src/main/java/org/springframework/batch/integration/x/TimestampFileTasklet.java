@@ -33,7 +33,6 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 /**
@@ -42,7 +41,7 @@ import org.springframework.util.Assert;
  *
  * @author Patrick Peralta
  */
-public class TimestampFileTasklet implements Tasklet, InitializingBean {
+public class TimestampFileTasklet implements Tasklet {
 
 	/**
 	 * File separator.
@@ -58,72 +57,44 @@ public class TimestampFileTasklet implements Tasklet, InitializingBean {
 	 * Name of file to write timestamps to. Excludes parent directory
 	 * and file extension.
 	 */
-	private String fileName;
+	private final String fileName;
 
 	/**
 	 * Name of directory to write timestamp file to.
 	 */
-	private String directory;
+	private final String directory;
 
 	/**
 	 * Extension for file to write timestamps to.
 	 */
-	private String fileExtension;
+	private final String fileExtension;
 
 	/**
 	 * Time stamp date format.
 	 *
 	 * @see java.text.SimpleDateFormat
 	 */
-	private String format;
+	private final String format;
 
 
-	public String getFileName() {
-		return fileName;
-	}
-
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
-	}
-
-	public String getDirectory() {
-		return directory;
-	}
-
-	public void setDirectory(String directory) {
-		this.directory = directory;
-	}
-
-	public String getFileExtension() {
-		return fileExtension;
-	}
-
-	public void setFileExtension(String fileExtension) {
-		this.fileExtension = fileExtension;
-	}
-
-	public String getFormat() {
-		return format;
-	}
-
-	public void setFormat(String format) {
-		this.format = format;
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
+	public TimestampFileTasklet(String fileName, String directory, String fileExtension, String format) {
 		Assert.hasText(fileName, "fileName required");
 		Assert.hasText(directory, "directory required");
 		Assert.hasText(fileExtension, "fileExtension required");
 		Assert.hasText(format, "format required");
+
+		this.fileName = fileName;
+		this.directory = directory;
+		this.fileExtension = fileExtension;
+		this.format = format;
 	}
 
 	@Override
-	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws IOException {
 		ensureDirectory();
 
-		String name = getDirectory() + FILE_SEPARATOR + getFileName() + '.' + getFileExtension();
-		DateFormat dateFormat = new SimpleDateFormat(getFormat());
+		String name = directory + FILE_SEPARATOR + fileName + '.' + fileExtension;
+		DateFormat dateFormat = new SimpleDateFormat(format);
 		PrintWriter writer =  null;
 
 		try {
@@ -140,11 +111,12 @@ public class TimestampFileTasklet implements Tasklet, InitializingBean {
 	}
 
 	private void ensureDirectory() throws IOException {
-		File dir = new File(getDirectory());
+		File dir = new File(directory);
 		if (!dir.exists()) {
 			FileUtils.forceMkdir(dir);
 		}
 		Assert.isTrue(dir.exists());
+		Assert.isTrue(dir.canWrite());
 	}
 
 }

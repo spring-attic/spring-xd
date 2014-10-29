@@ -117,9 +117,9 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 		if (log.isInfoEnabled()) {
 			log.info("creating simple module " + moduleDescriptor);
 		}
-		ModuleDefinition definition = moduleDescriptor.getModuleDefinition();
-		URL[] classpath = ModuleUtils.determineClassPath((SimpleModuleDefinition) definition, resourceLoader);
-		ClassLoader moduleClassLoader = new ParentLastURLClassLoader(classpath, this.parentClassLoader);
+		SimpleModuleDefinition definition = (SimpleModuleDefinition) moduleDescriptor.getModuleDefinition();
+		Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
+		ClassLoader moduleClassLoader = ModuleUtils.createModuleClassLoader(moduleLocation, this.parentClassLoader);
 
 		Class<? extends SimpleModule> moduleClass = determineModuleClass((SimpleModuleDefinition) moduleDescriptor.getModuleDefinition(), moduleClassLoader);
 		Assert.notNull(moduleClass,

@@ -180,10 +180,9 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	private ModuleOptionsMetadata resolveNormalMetadata(SimpleModuleDefinition definition) {
 		try {
 
-			URL[] classpath = ModuleUtils.determineClassPath(definition, resourceLoader);
+			Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
+			ClassLoader classLoaderToUse = ModuleUtils.createModuleClassLoader(moduleLocation, ModuleOptionsMetadataResolver.class.getClassLoader());
 
-			ClassLoader classLoaderToUse = new ParentLastURLClassLoader(classpath,
-							ModuleOptionsMetadataResolver.class.getClassLoader());
             Resource propertiesResource = ModuleUtils.modulePropertiesFile(definition, classLoaderToUse);
 			if (propertiesResource == null) {
 				return inferModuleOptionsMetadata(definition, classLoaderToUse);

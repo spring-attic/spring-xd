@@ -702,6 +702,7 @@ project('spring-xd-module') {
 	dependencies {
 		compile "org.springframework.integration:spring-integration-core"
 		compile "org.springframework.boot:spring-boot-autoconfigure"
+		compile "org.springframework.boot:spring-boot-loader"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile project(':spring-xd-module-spi')
 	}

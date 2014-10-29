@@ -27,11 +27,11 @@ import org.springframework.xd.rest.domain.StepExecutionProgressInfoResource;
 
 /**
  * Interface defining operations available against jobs.
- * 
+ *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  */
 public interface JobOperations extends ResourceOperations {
 
@@ -42,7 +42,7 @@ public interface JobOperations extends ResourceOperations {
 
 	/**
 	 * Launch a job that is already deployed.
-	 * 
+	 *
 	 * @param name the name of the job to launch
 	 * @param jobParameters the JSON string as jobParameters
 	 */
@@ -56,17 +56,17 @@ public interface JobOperations extends ResourceOperations {
 	/**
 	 * List all Job Executions.
 	 */
-	public List<JobExecutionInfoResource> listJobExecutions();
+	public PagedResources<JobExecutionInfoResource> listJobExecutions();
 
 	/**
 	 * Retrieve a specific Job Execution for the provided {@code jobExecutionId}.
-	 * 
+	 *
 	 */
 	public JobExecutionInfoResource displayJobExecution(long jobExecutionId);
 
 	/**
 	 * Retrieve a {@link List} of {@link StepExecutionInfoResource}s for the provided {@code jobExecutionId}.
-	 * 
+	 *
 	 */
 	public List<StepExecutionInfoResource> listStepExecutions(long jobExecutionId);
 

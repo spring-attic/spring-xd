@@ -29,6 +29,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.xd.rest.domain.util.TimeUtils;
 
@@ -224,5 +225,14 @@ public class JobExecutionInfoResource extends ResourceSupport {
 	 */
 	public void setDeleted(boolean deleted) {
 		this.deleted = deleted;
+	}
+
+	/**
+	 * Dedicated subclass to workaround type erasure.
+	 *
+	 * @author Gunnar Hillert
+	 */
+	public static class Page extends PagedResources<JobExecutionInfoResource> {
+
 	}
 }

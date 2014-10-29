@@ -43,6 +43,7 @@ import static org.junit.Assert.assertTrue;
  * Base Class for Spring XD Integration Job test classes
  *
  * @author Glenn Renfro
+ * @author Gunnar Hillert
  */
 public abstract class AbstractJobTest extends AbstractIntegrationTest {
 
@@ -296,7 +297,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	 * @return a list of JobExecutionInfoResources
 	 */
 	protected List<JobExecutionInfoResource> getJobExecInfoByName(String jobName) {
-		List<JobExecutionInfoResource> jobExecutions = springXDTemplate.jobOperations().listJobExecutions();
+		PagedResources<JobExecutionInfoResource> jobExecutions = springXDTemplate.jobOperations().listJobExecutions();
 		Iterator<JobExecutionInfoResource> iter = jobExecutions.iterator();
 		List<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
 		while (iter.hasNext()) {

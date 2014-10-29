@@ -79,7 +79,7 @@ public class StreamCommands implements CommandMarker {
 	public String destroyAllStreams(
 			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force) {
 		// Be sure to short-circuit prompt if force is true
-		if (force || "y".equalsIgnoreCase(userInput.prompt("Really destroy all streams?", "n", "y", "n"))) {
+		if (force || "y".equalsIgnoreCase(userInput.promptWithOptions("Really destroy all streams?", "n", "y", "n"))) {
 			streamOperations().destroyAll();
 			return "Destroyed all streams";
 		}
@@ -108,7 +108,7 @@ public class StreamCommands implements CommandMarker {
 	public String undeployAllStreams(
 			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
 			) {
-		if (force || "y".equalsIgnoreCase(userInput.prompt("Really undeploy all streams?", "n", "y", "n"))) {
+		if (force || "y".equalsIgnoreCase(userInput.promptWithOptions("Really undeploy all streams?", "n", "y", "n"))) {
 			streamOperations().undeployAll();
 			return String.format("Un-deployed all the streams");
 		}

@@ -37,25 +37,47 @@ public class ConsoleUserInput implements UserInput {
 	 * {@code defaultValue}.
 	 */
 	@Override
-	public String prompt(String prompt, String defaultValue, String... options) {
+	public String promptWithOptions(String prompt, String defaultValue, String... options) {
 		List<String> optionsAsList = Arrays.asList(options);
 		InputStreamReader console = new InputStreamReader(System.in);
 		String answer;
 		do {
-			answer = "";
 			System.out.format("%s %s: ", prompt, optionsAsList);
-			try {
-				for (char c = (char) console.read(); !(c == '\n' || c == '\r'); c = (char) console.read()) {
-					System.out.print(c);
-					answer += c;
-				}
-				System.out.println();
-			}
-			catch (IOException e) {
-				throw new IllegalStateException(e);
-			}
+			answer = read(console, true);
 		}
 		while (!optionsAsList.contains(answer) && !"".equals(answer));
 		return "".equals(answer) && !optionsAsList.contains("") ? defaultValue : answer;
+	}
+
+	@Override
+	public String prompt(String prompt, String defaultValue, boolean echo) {
+		InputStreamReader console = new InputStreamReader(System.in);
+		System.out.format("%s: ", prompt);
+		String answer = read(console, echo);
+		return "".equals(answer) ? defaultValue : answer;
+	}
+
+  /**
+	 *  Reads a single line of input from the console.
+	 *
+	 *  @param console input
+	 *  @param echo    whether the input should be echoed (e.g. false for passwords, other sensitive data)
+   */
+	private String read(InputStreamReader console, boolean echo) {
+		String answer;
+		answer = "";
+		try {
+			for (char c = (char) console.read(); !(c == '\n' || c == '\r'); c = (char) console.read()) {
+				if (echo) {
+					System.out.print(c);
+				}
+				answer += c;
+			}
+			System.out.println();
+		}
+		catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+		return answer;
 	}
 }

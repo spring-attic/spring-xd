@@ -249,53 +249,65 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 		Map<String, String> env = pb.environment();
 		env.put("CLASSPATH", classPathBuilder.toString());
 		String msg = "Spark application '" + mainClass + "' is being launched";
+		StringBuilder sparkCommandString = new StringBuilder();
+		for (String cmd : sparkCommand) {
+			sparkCommandString.append(cmd).append(" ");
+		}
+		stepExecution.getExecutionContext().putString("spark.command", sparkCommandString.toString());
+		List<String> sparkLog = new ArrayList<String>();
 		try {
 			Process p = pb.start();
 			p.waitFor();
 			exitCode = p.exitValue();
-			StringBuilder errors = new StringBuilder();
-			StringBuilder debug = new StringBuilder();
-			if (exitCode != 0) {
-				InputStream in = p.getInputStream();
-				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-				String line;
-				boolean firstException = false;
-				while ((line = reader.readLine()) != null) {
-					logger.error("Spark Log: " + line);
-					if (line.contains("Exception") && errors.length() == 0) {
-						errors.append(line).append("\n");
-						firstException = true;
-					}
-					else {
-						if (firstException) {
-							if (line.startsWith("\t")) {
-								errors.append(line).append("\n");
-							}
-							else {
-								firstException = false;
-								logger.debug("Spark Log: " + line);
-							}
-						}
-					}
-				}
+			msg = "Spark application '" + mainClass + "' finished with exit code: " + exitCode ;
+			if (exitCode == 0) {
+				logger.info(msg);
 			}
+			else {
+				logger.error(msg);
+			}
+			sparkLog = getProcessOutput(p);
 			p.destroy();
-			msg = "Spark application '" + mainClass + "' finished with exit code: " + exitCode +
-					(errors.length() > 0 ? '\n' + errors.toString() : "");
 		}
 		catch (IOException e) {
-			msg = "Starting Spark application '" + mainClass + "' caused: " + e;
+			msg = "Starting Spark application '" + mainClass + "' failed with: " + e;
 			logger.error(msg);
 		}
 		catch (InterruptedException e) {
-			msg = "Executing Spark application '" + mainClass + "' caused: " + e;
+			msg = "Executing Spark application '" + mainClass + "' failed with: " + e;
 			logger.error(msg);
 		}
 		finally {
+			printLog(sparkLog, exitCode);
+			StringBuilder firstException = new StringBuilder();
+			if (exitCode != 0) {
+				for (String line : sparkLog) {
+					if (firstException.length() == 0) {
+						if (line.contains("Exception")) {
+							firstException.append(line).append("\n");
+						}
+					}
+					else {
+						if (line.startsWith("\t")) {
+							firstException.append(line).append("\n");
+						}
+						else {
+							break;
+						}
+					}
+				}
+				if (firstException.length() > 0) {
+					msg = msg + "\n" + firstException.toString();
+				}
+			}
+			StringBuilder sparkLogMessages = new StringBuilder();
+			for (String line : sparkLog) {
+				sparkLogMessages.append(line).append("</br>");
+			}
+			stepExecution.getExecutionContext().putString("spark.log", sparkLogMessages.toString());
 			stepExecution.setExitStatus(exitStatus.addExitDescription(msg));
 		}
 
-		logger.info(msg);
 		return RepeatStatus.FINISHED;
 	}
 
@@ -311,5 +323,37 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
+	}
+
+	private List<String> getProcessOutput(Process p) {
+		List<String> lines = new ArrayList<String>();
+		if (p == null) {
+			return lines;
+		}
+		InputStream in = p.getInputStream();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+		String line;
+		try {
+			while ((line = reader.readLine()) != null) {
+				lines.add(line);
+			}
+		} catch (IOException ignore) {
+		}
+		return lines;
+	}
+
+	private void printLog(List<String> lines, int exitCode) {
+		if (exitCode != 0) {
+			for (String line : lines) {
+				logger.error("Spark Log: " + line);
+			}
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				for (String line : lines) {
+					logger.debug("Spark Log: " + line);
+				}
+			}
+		}
 	}
 }

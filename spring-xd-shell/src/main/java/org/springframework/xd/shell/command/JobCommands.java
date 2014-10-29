@@ -307,7 +307,7 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = STOP_ALL_JOB_EXECUTIONS, help = "Stop all the job executions that are running")
 	public String stopAllJobExecutions(
 			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force) {
-		if (force || "y".equalsIgnoreCase(userInput.prompt("Really stop all job executions?", "n", "y", "n"))) {
+		if (force || "y".equalsIgnoreCase(userInput.promptWithOptions("Really stop all job executions?", "n", "y", "n"))) {
 			jobOperations().stopAllJobExecutions();
 			return String.format("Stopped all the job executions");
 		}
@@ -358,7 +358,7 @@ public class JobCommands implements CommandMarker {
 	public String undeployAllJobs(
 			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
 			) {
-		if (force || "y".equalsIgnoreCase(userInput.prompt("Really undeploy all jobs?", "n", "y", "n"))) {
+		if (force || "y".equalsIgnoreCase(userInput.promptWithOptions("Really undeploy all jobs?", "n", "y", "n"))) {
 			jobOperations().undeployAll();
 			return String.format("Un-deployed all the jobs");
 		}
@@ -414,7 +414,7 @@ public class JobCommands implements CommandMarker {
 			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
 
 			) {
-		if (force || "y".equalsIgnoreCase(userInput.prompt("Really destroy all jobs?", "n", "y", "n"))) {
+		if (force || "y".equalsIgnoreCase(userInput.promptWithOptions("Really destroy all jobs?", "n", "y", "n"))) {
 			jobOperations().destroyAll();
 			return String.format("Destroyed all the jobs");
 		}

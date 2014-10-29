@@ -41,7 +41,6 @@ import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.shell.Configuration;
@@ -72,26 +71,35 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 	private Configuration configuration;
 
 	@Autowired
-	XDShell xdShell;
+	private XDShell xdShell;
+
+	@Autowired
+	private UserInput userInput;
 
 	public ConfigCommands() {
 	}
 
-	@CliCommand(value = { "admin config server" }, help = "Configure the XD admin server to use")
+	@CliCommand(value = {"admin config server"}, help = "Configure the XD admin server to use")
 	public String target(
-			@CliOption( mandatory = false, key = { "", "uri" },
-						help = "the location of the XD Admin REST endpoint",
-						unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString,
-			@CliOption (mandatory = false, key = {"username"},
-						help = "the username for authenticated access to the Admin REST endpoint",
-						unspecifiedDefaultValue = Target.DEFAULT_USERNAME) String targetUsername,
-			@CliOption (mandatory = false, key = {"password"},
-						help = "the password for authenticated access to the Admin REST endpoint (valid only with a username)",
-						unspecifiedDefaultValue = Target.DEFAULT_PASSWORD) String targetPassword) {
+			@CliOption(mandatory = false, key = {"", "uri"},
+					help = "the location of the XD Admin REST endpoint",
+					unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString,
+			@CliOption(mandatory = false, key = {"username"},
+					help = "the username for authenticated access to the Admin REST endpoint",
+					unspecifiedDefaultValue = Target.DEFAULT_USERNAME) String targetUsername,
+			@CliOption(mandatory = false, key = {"password"},
+					help = "the password for authenticated access to the Admin REST endpoint (valid only with a username)",
+					specifiedDefaultValue = Target.DEFAULT_SPECIFIED_PASSWORD,
+					unspecifiedDefaultValue = Target.DEFAULT_UNSPECIFIED_PASSWORD) String targetPassword) {
 
 		try {
-			Assert.isTrue(StringUtils.isEmpty(targetPassword) || ! StringUtils.isEmpty(targetUsername),
-					"A password may be specified only together with a username");
+			if (!StringUtils.isEmpty(targetPassword) && StringUtils.isEmpty(targetUsername)) {
+				return "A password may be specified only together with a username";
+			}
+			if (Target.DEFAULT_SPECIFIED_PASSWORD.equalsIgnoreCase(targetPassword) && !StringUtils.isEmpty(targetUsername)) {
+				// read password from the command line
+				targetPassword = userInput.prompt("Password", "", false);
+			}
 			configuration.setTarget(new Target(targetUriString, targetUsername, targetPassword));
 			if (configuration.getTarget().getTargetCredentials() != null) {
 				BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -102,7 +110,8 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 				CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build();
 				HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 				this.xdShell.setSpringXDOperations(new SpringXDTemplate(requestFactory, configuration.getTarget().getTargetUri()));
-			} else {
+			}
+			else {
 				this.xdShell.setSpringXDOperations(new SpringXDTemplate(configuration.getTarget().getTargetUri()));
 			}
 			configuration.getTarget().setTargetResultMessage(
@@ -122,7 +131,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 		return configuration.getTarget().getTargetResultMessage();
 	}
 
-	@CliCommand(value = { "admin config info" }, help = "Show the XD admin server being used")
+	@CliCommand(value = {"admin config info"}, help = "Show the XD admin server being used")
 	public String info() {
 
 		final Map<String, String> statusValues = new TreeMap<String, String>();
@@ -169,7 +178,7 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 	 */
 	@CliCommand(value = "admin config timezone set", help = "Set the timezone of the Spring XD Shell (Not persisted)")
 	public String setTimeZone(
-			@CliOption(mandatory = true, key = { "", "timeZone" }, help = "the id of the timezone, "
+			@CliOption(mandatory = true, key = {"", "timeZone"}, help = "the id of the timezone, "
 					+ "You can obtain a list of timezone ids using 'admin config timezone list', "
 					+ "If an invalid timezone id is provided, then 'Greenwich Mean Time' "
 					+ "is being used") String timeZoneId) {
@@ -221,7 +230,8 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 		// if '--username' exists and it is not the last in the list of arguments, the next argument is the password
 		if (indexOfUserParameter >= 0 && indexOfUserParameter < commandLine.getArgs().length - 1) {
 			return commandLine.getArgs()[indexOfUserParameter + 1];
-		} else {
+		}
+		else {
 			return Target.DEFAULT_USERNAME;
 		}
 	}
@@ -229,10 +239,16 @@ public class ConfigCommands implements CommandMarker, InitializingBean {
 	private String getDefaultPassword() {
 		int indexOfPasswordParameter = ArrayUtils.indexOf(commandLine.getArgs(), "--password");
 		// if '--password' exists and it is not the last in the list of arguments, the next argument is the password
-		if (indexOfPasswordParameter >= 0 && indexOfPasswordParameter < commandLine.getArgs().length - 1) {
-			return commandLine.getArgs()[indexOfPasswordParameter + 1];
-		} else {
-			return Target.DEFAULT_PASSWORD;
+		if (indexOfPasswordParameter >= 0) {
+			if (indexOfPasswordParameter < commandLine.getArgs().length - 1) {
+				return commandLine.getArgs()[indexOfPasswordParameter + 1];
+			}
+			else {
+				return Target.DEFAULT_SPECIFIED_PASSWORD;
+			}
+		}
+		else {
+			return Target.DEFAULT_SPECIFIED_PASSWORD;
 		}
 	}
 

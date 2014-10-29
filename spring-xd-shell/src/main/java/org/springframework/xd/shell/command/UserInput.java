@@ -21,12 +21,23 @@ package org.springframework.xd.shell.command;
  * Abstraction for a mechanism used to get user interactive user input.
  * 
  * @author Eric Bottard
+ * @author Marius Bogoevici
  */
 public interface UserInput {
 
 	/**
 	 * Display a prompt text to the user and expect one of {@code options} in return.
+	 * @param prompt the a message to prompt the user with
+	 * @param defaultValue the default value to be returned if the user simply presses Enter
+	 * @param options valid input option set
 	 */
-	public String prompt(String prompt, String defaultValue, String... options);
+	public String promptWithOptions(String prompt, String defaultValue, String... options);
 
+	/**
+	 * Display a prompt text to the user and expect them to enter a free-form value. Optionally, the input is echoed.
+	 * @param prompt the a message to prompt the user with
+	 * @param defaultValue the default value to be returned if the user simply presses Enter
+	 * @param echo echo the input to output (set to false for sensitive input, e.g. passwords)
+	 */
+	public String prompt(String prompt, String defaultValue, boolean echo);
 }

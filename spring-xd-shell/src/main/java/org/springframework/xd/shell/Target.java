@@ -79,7 +79,9 @@ public class Target {
 
 	public static final String DEFAULT_USERNAME = "";
 
-	public static final String DEFAULT_PASSWORD = "";
+	public static final String DEFAULT_SPECIFIED_PASSWORD = "";
+
+	public static final String DEFAULT_UNSPECIFIED_PASSWORD = "__NULL__";
 
 	public static final String DEFAULT_TARGET = DEFAULT_SCHEME + "://" + DEFAULT_HOST + ":" + DEFAULT_PORT + "/";
 

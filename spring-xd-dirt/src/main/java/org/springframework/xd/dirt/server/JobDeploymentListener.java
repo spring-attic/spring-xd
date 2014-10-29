@@ -166,8 +166,13 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 					RuntimeModuleDeploymentPropertiesProvider deploymentRuntimeProvider =
 							new RuntimeModuleDeploymentPropertiesProvider(provider);
 
-					deploymentStatuses.addAll(moduleDeploymentWriter.writeDeployment(
-							descriptor, deploymentRuntimeProvider, matchedContainers));
+					try {
+						deploymentStatuses.addAll(moduleDeploymentWriter.writeDeployment(
+								descriptor, deploymentRuntimeProvider, matchedContainers));
+					}
+					catch (NoContainerException e) {
+						logger.warn("No containers available for deployment of job {}", job.getName());
+					}
 
 					DeploymentUnitStatus status = stateCalculator.calculate(job, provider, deploymentStatuses);
 
@@ -175,9 +180,6 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 
 					client.setData().forPath(statusPath, ZooKeeperUtils.mapToBytes(status.toMap()));
 				}
-			}
-			catch (NoContainerException e) {
-				logger.warn("No containers available for deployment of job {}", job.getName());
 			}
 			catch (InterruptedException e) {
 				throw e;

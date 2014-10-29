@@ -174,6 +174,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		when(jobService.isIncrementable(job1.getName())).thenReturn(false);
 		when(jobService.isIncrementable(job2.getName())).thenReturn(true);
 
+		when(jobService.listJobExecutions(5, 5)).thenReturn(jobExecutions1);
 		when(jobService.listJobExecutions(0, 20)).thenReturn(jobExecutions1);
 		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
 		when(jobService.getJobExecution(jobExecution1.getId())).thenReturn(jobExecution1);
@@ -235,6 +236,14 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param2.value", contains(123, 123))).andExpect(
 				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param2.type", contains("LONG", "LONG"))).andExpect(
 				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param2.identifying", contains(false, false)));
+	}
+
+	@Test
+	public void testGetBatchJobExecutionsPaginated() throws Exception {
+		mockMvc.perform(
+				get("/jobs/executions").param("page", "1").param("size", "5").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+				jsonPath("$.content[*]", Matchers.hasSize(2)));
 	}
 
 	@Test

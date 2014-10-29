@@ -180,7 +180,7 @@ define(['angular'], function (angular) {
       })
       .factory('JobExecutions', function ($resource, $rootScope, $log) {
         return {
-          getArray: function (pageable) {
+          getAllJobExecutions: function (pageable) {
             if (pageable === 'undefined') {
               $log.info('Getting all job executions.');
               return $resource($rootScope.xdAdminServerUrl + '/jobs/executions', {}).get();

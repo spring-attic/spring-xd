@@ -99,10 +99,10 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 			resources.add(jobExecutionInfoResource);
 		}
 
-		final PagedResources<JobExecutionInfoResource> p = new PagedResources<JobExecutionInfoResource>(resources,
+		final PagedResources<JobExecutionInfoResource> pagedResources = new PagedResources<JobExecutionInfoResource>(resources,
 				new PageMetadata(pageable.getPageSize(), pageable.getPageNumber(),
 						Long.valueOf(jobService.countJobExecutions())));
-		return p;
+		return pagedResources;
 	}
 
 	/**

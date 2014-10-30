@@ -17,6 +17,7 @@
 package org.springframework.xd.module.options;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,11 +28,18 @@ import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.SimpleModuleDefinition;
+import org.springframework.xd.module.core.ResourceConfiguredModule;
 import org.springframework.xd.module.options.spi.Mixin;
+import org.springframework.xd.module.support.ModuleUtils;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
@@ -54,8 +62,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  *
  * @author Eric Bottard
  */
-public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver {
-
+public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, ResourceLoaderAware {
 
 	private static final Pattern DESCRIPTION_KEY_PATTERN = Pattern.compile("^options\\.([a-zA-Z\\-_0-9]+)\\.description$");
 
@@ -90,8 +97,9 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 
 	private final DefaultModuleOptionsMetadataCollector defaultModuleOptionsMetadataCollector = new DefaultModuleOptionsMetadataCollector();
+    private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
 
-	/**
+    /**
 	 * Construct a new {@link DefaultModuleOptionsMetadataResolver} that will use the provided conversion service when
 	 * converting from String to rich object (supported for {@link PojoModuleOptionsMetadata} only).
 	 */
@@ -151,17 +159,17 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	@Override
 	public ModuleOptionsMetadata resolve(ModuleDefinition definition) {
 		if (!definition.isComposed()) {
-			return resolveNormalMetadata(definition);
+			return resolveNormalMetadata((SimpleModuleDefinition) definition);
 		}
 		else {
-			return resolveComposedModuleMetadata(definition);
+			return resolveComposedModuleMetadata((CompositeModuleDefinition)definition);
 		}
 
 	}
 
-	private ModuleOptionsMetadata resolveComposedModuleMetadata(ModuleDefinition definition) {
+	private ModuleOptionsMetadata resolveComposedModuleMetadata(CompositeModuleDefinition definition) {
 		Map<String, ModuleOptionsMetadata> hierarchy = new HashMap<String, ModuleOptionsMetadata>();
-		for (ModuleDefinition subModuleDefinition : definition.getComposedModuleDefinitions()) {
+		for (ModuleDefinition subModuleDefinition : definition.getChildren()) {
 			ModuleOptionsMetadata subMetadata = compositeResolver.resolve(subModuleDefinition);
 			// TODO: should be .getAlias() instead of name
 			hierarchy.put(subModuleDefinition.getName(), subMetadata);
@@ -169,15 +177,15 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 		return new HierarchicalCompositeModuleOptionsMetadata(hierarchy);
 	}
 
-	private ModuleOptionsMetadata resolveNormalMetadata(ModuleDefinition definition) {
+	private ModuleOptionsMetadata resolveNormalMetadata(SimpleModuleDefinition definition) {
 		try {
-			ClassLoader classLoaderToUse = definition.getClasspath() != null
-					? new ParentLastURLClassLoader(definition.getClasspath(),
-							ModuleOptionsMetadataResolver.class.getClassLoader())
-					: ModuleOptionsMetadataResolver.class.getClassLoader();
-			Resource propertiesResource = definition.getResource().createRelative(
-					definition.getName() + ".properties");
-			if (!propertiesResource.exists()) {
+
+			URL[] classpath = ModuleUtils.determineClassPath(definition, resourceLoader);
+
+			ClassLoader classLoaderToUse = new ParentLastURLClassLoader(classpath,
+							ModuleOptionsMetadataResolver.class.getClassLoader());
+            Resource propertiesResource = ModuleUtils.modulePropertiesFile(definition, classLoaderToUse);
+			if (propertiesResource == null) {
 				return inferModuleOptionsMetadata(definition, classLoaderToUse);
 			}
 			else {
@@ -228,14 +236,22 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 *
 	 * Note that this may end up in false positives and does not convey much information.
 	 */
-	private ModuleOptionsMetadata inferModuleOptionsMetadata(ModuleDefinition definition, ClassLoader classLoaderToUse) {
+	private ModuleOptionsMetadata inferModuleOptionsMetadata(SimpleModuleDefinition definition, ClassLoader classLoaderToUse) {
 		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 		reader.setResourceLoader(new PathMatchingResourcePatternResolver(classLoaderToUse));
-		reader.loadBeanDefinitions(definition.getResource());
+		Resource source = ResourceConfiguredModule.resourceBasedConfigurationFile(definition, classLoaderToUse);
+		if (source == null) {
+			return new PassthruModuleOptionsMetadata();
+		}
+		reader.loadBeanDefinitions(source);
 
 		return defaultModuleOptionsMetadataCollector.collect(beanFactory);
 
 	}
 
+	@Override
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		this.resourceLoader = (ResourcePatternResolver) resourceLoader;
+	}
 }

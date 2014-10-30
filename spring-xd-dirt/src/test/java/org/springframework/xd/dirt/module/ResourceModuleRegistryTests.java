@@ -74,7 +74,6 @@ public class ResourceModuleRegistryTests {
 		assertNotNull(def);
 		assertEquals(FILE_MODULE_NAME, def.getName());
 		assertEquals(ModuleType.sink, def.getType());
-		assertEquals(1, def.getClasspath().length);
 	}
 
 	@Test
@@ -102,7 +101,7 @@ public class ResourceModuleRegistryTests {
 	}
 
 
-	private Matcher<ModuleDefinition> hasName(final String name) {
+	static Matcher<ModuleDefinition>  hasName(final String name) {
 		return new CustomMatcher<ModuleDefinition>("Module named " + name) {
 
 			@Override
@@ -112,7 +111,7 @@ public class ResourceModuleRegistryTests {
 		};
 	}
 
-	private Matcher<ModuleDefinition> hasType(final ModuleType type) {
+	static Matcher<ModuleDefinition> hasType(final ModuleType type) {
 		return new CustomMatcher<ModuleDefinition>("Module with type " + type) {
 
 			@Override

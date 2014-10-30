@@ -16,16 +16,11 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,8 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -50,6 +43,7 @@ import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -62,7 +56,7 @@ import org.springframework.xd.module.ModuleType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
+@ContextConfiguration(classes = {RestConfiguration.class, Dependencies.class})
 public class JobsControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	private static final String JOB_DEFINITION = "job --cron='*/10 * * * * *'";
@@ -81,9 +75,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Before
 	public void before() {
-		Resource resource = new DescriptiveResource("dummy");
-		ModuleDefinition moduleJobDefinition = new ModuleDefinition("job",
-				ModuleType.job, resource);
+		ModuleDefinition moduleJobDefinition = ModuleDefinitions.dummy("job", ModuleType.job);
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		moduleDefinitions.add(moduleJobDefinition);
 		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);
@@ -210,12 +202,12 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Test
 	public void testJobThatAlreadyExistsInJobRepo() throws Exception {
-		when(jobLocator.getJobNames()).thenReturn(Arrays.asList(new String[] { "mydupejob" }));
+		when(jobLocator.getJobNames()).thenReturn(Arrays.asList(new String[] {"mydupejob"}));
 		mockMvc.perform(
 				post("/jobs/definitions").param("name", "mydupejob").param("definition", "job adsfa").accept(
 						MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest()).andExpect(
-						jsonPath("$[0].message", Matchers.is("Batch Job with the name mydupejob already exists")));
+				jsonPath("$[0].message", Matchers.is("Batch Job with the name mydupejob already exists")));
 	}
 
 	@Test

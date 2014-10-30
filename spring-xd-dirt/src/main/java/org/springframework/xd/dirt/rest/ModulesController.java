@@ -132,38 +132,4 @@ public class ModulesController {
 		compositeModuleDefinitionService.delete(name, type);
 	}
 
-	/**
-	 * Retrieve the configuration file for the provided module information.
-	 *
-	 * @param name the name of an existing resource (required)
-	 * @param type the type of the module (required)
-	 */
-	@RequestMapping(value = "/{type}/{name}/definition", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public Resource downloadDefinition(@PathVariable("type") ModuleType type, @PathVariable("name") String name) {
-
-		final ModuleDefinition definition = this.compositeModuleDefinitionService.getModuleDefinitionRepository().findByNameAndType(
-				name, type);
-
-		if (definition == null) {
-			throw new NoSuchModuleException(name, type);
-		}
-
-		final Resource resource = definition.getResource();
-
-		try {
-			if (logger.isWarnEnabled() && resource.getFile().length() == 0) {
-				logger.warn(String.format("The length of the file '%s' for module '%s' (%s) is zero.",
-						resource.getFilename(), definition.getName(), definition.getType().name()));
-			}
-		}
-		catch (IOException e) {
-			throw new IllegalStateException("Unable to return the file for the provided resource: "
-					+ resource.getFilename(), e);
-		}
-
-		return resource;
-	}
-
 }

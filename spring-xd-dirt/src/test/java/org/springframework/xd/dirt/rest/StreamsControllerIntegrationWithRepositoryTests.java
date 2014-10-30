@@ -16,14 +16,10 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.ArrayList;
 
@@ -33,8 +29,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -47,6 +41,7 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -61,41 +56,37 @@ import org.springframework.xd.module.ModuleType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
+@ContextConfiguration(classes = {RestConfiguration.class, Dependencies.class})
 public class StreamsControllerIntegrationWithRepositoryTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
-	private StreamDeployer deployer;
+	protected StreamRepository streamRepository;
 
 	@Autowired
-	protected StreamRepository streamRepository;
+	private StreamDeployer deployer;
 
 	@Autowired
 	private ModuleRegistry moduleRegistry;
 
 	@Before
 	public void before() {
-		Resource resource = new DescriptiveResource("dummy");
-		ModuleDefinition sinkDefinition = new ModuleDefinition("sink",
-				ModuleType.sink, resource);
-		ModuleDefinition sourceDefinition = new ModuleDefinition("source",
-				ModuleType.source, resource);
+		ModuleDefinition sinkDefinition = ModuleDefinitions.dummy("sink", ModuleType.sink);
+		ModuleDefinition sourceDefinition = ModuleDefinitions.dummy("source", ModuleType.source);
 
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("source", ModuleType.source, resource));
+		definitions.add(ModuleDefinitions.dummy("source", ModuleType.source));
 		when(moduleRegistry.findDefinitions("source")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("time")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("time", ModuleType.source)).thenReturn(sourceDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("sink", ModuleType.sink, resource));
+		definitions.add(ModuleDefinitions.dummy("sink", ModuleType.sink));
 		when(moduleRegistry.findDefinitions("sink")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("log", ModuleType.sink)).thenReturn(sinkDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition("processor", ModuleType.processor,
-				resource));
+		definitions.add(ModuleDefinitions.dummy("processor", ModuleType.processor));
 		when(moduleRegistry.findDefinitions("processor")).thenReturn(definitions);
 	}
 

@@ -47,6 +47,7 @@ import org.springframework.validation.BindException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
+import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 
@@ -105,14 +106,14 @@ public abstract class SimpleModule extends AbstractModule {
 
 		application.profiles(moduleOptions.profilesToActivate());
 
-		this.configureModuleApplicationContext(this.getDescriptor().getModuleDefinition());
+		this.configureModuleApplicationContext((SimpleModuleDefinition) this.getDescriptor().getModuleDefinition());
 	}
 
 	/**
-	 * Subclasses implement this method to configure the application context from sources contained in the {@link org.springframework.xd.module.ModuleDefinition}
-	 * @param moduleDefinition
+	 * Subclasses implement this method to configure the application context from sources contained in the
+     * {@link org.springframework.xd.module.ModuleDefinition}
 	 */
-	protected abstract void configureModuleApplicationContext(ModuleDefinition moduleDefinition);
+	protected abstract void configureModuleApplicationContext(SimpleModuleDefinition moduleDefinition);
 
 	private Map<Object, Object> moduleOptionsToProperties(ModuleOptions moduleOptions) {
 		Map<Object, Object> result = new HashMap<Object, Object>();
@@ -161,7 +162,11 @@ public abstract class SimpleModule extends AbstractModule {
 		return (this.context.isActive()) ? this.context.getBean(requiredType) : null;
 	}
 
-	@Override
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    @Override
 	public <T> T getComponent(String componentName, Class<T> requiredType) {
 		if (this.context.isActive() && this.context.containsBean(componentName)) {
 			return context.getBean(componentName, requiredType);
@@ -176,6 +181,10 @@ public abstract class SimpleModule extends AbstractModule {
 		this.propertySources.addLast(propertySource);
 	}
 
+	/**
+	 * Initialize this module by creating its application context, and provide it with a special
+	 * {@link org.springframework.core.env.Environment} that knows how to resolve module options placeholders.
+	 */
 	@Override
 	public void initialize() {
 		this.application.initializers(new ContextIdApplicationContextInitializer(this.toString()));

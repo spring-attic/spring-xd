@@ -16,63 +16,39 @@
 
 package org.springframework.xd.module;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.core.io.DescriptiveResource;
-import org.springframework.core.io.Resource;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
- * Defines a module.
+ * An instance of ModuleDefinition reflects the fact that a given module (identified by its type and name) is
+ * 'available', <i>i.e.</i> that it can be used in a job or stream definition.
  *
  * @author Gary Russell
  * @author Eric Bottard
  * @author Mark Pollack
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleDefinition implements Comparable<ModuleDefinition> {
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY)
+public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 
-	private volatile String name;
+	private String name;
 
-	private volatile ModuleType type;
+	private ModuleType type;
 
-	private final Resource resource;
-
-	private volatile String definition;
-
-	private volatile URL[] classpath;
-
-	/**
-	 * If a composed module, the list of modules
-	 */
-	private List<ModuleDefinition> composedModuleDefinitions = new ArrayList<ModuleDefinition>();
-
-	@SuppressWarnings("unused")
-	private ModuleDefinition() {
-		// no arg constructor for Jackson serialization
-		// JSON serialization ignores the resource, so set it here to a value.
-		resource = new DescriptiveResource("Dummy resource");
+	protected ModuleDefinition() {
+		// For (subclass) JSON deserialization only
 	}
 
-	public ModuleDefinition(String name, ModuleType moduleType) {
-		this(name, moduleType, new DescriptiveResource("Dummy resource"));
-	}
-
-	public ModuleDefinition(String name, ModuleType type, Resource resource) {
-		this(name, type, resource, null);
-	}
-
-	public ModuleDefinition(String name, ModuleType type, Resource resource, URL[] classpath) {
+	protected ModuleDefinition(String name, ModuleType type) {
 		Assert.hasLength(name, "name cannot be blank");
 		Assert.notNull(type, "type cannot be null");
-		Assert.notNull(resource, "resource cannot be null");
-		this.resource = resource;
 		this.name = name;
 		this.type = type;
-		this.classpath = classpath != null && classpath.length > 0 ? classpath : null;
 	}
 
 	/**
@@ -80,23 +56,8 @@ public class ModuleDefinition implements Comparable<ModuleDefinition> {
 	 *
 	 * @return true if this is a composed module, false otherwise.
 	 */
-	public boolean isComposed() {
-		return !CollectionUtils.isEmpty(this.composedModuleDefinitions);
-	}
-
-	/**
-	 * Set the list of composed modules if this is a composite module, can not be null
-	 *
-	 * @param composedModuleDefinitions list of composed modules
-	 */
-	public void setComposedModuleDefinitions(List<ModuleDefinition> composedModuleDefinitions) {
-		Assert.notNull(composedModuleDefinitions, "composedModuleDefinitions cannot be null");
-		this.composedModuleDefinitions = composedModuleDefinitions;
-	}
-
-	public List<ModuleDefinition> getComposedModuleDefinitions() {
-		return composedModuleDefinitions;
-	}
+	@JsonIgnore
+	public abstract boolean isComposed();
 
 	public String getName() {
 		return name;
@@ -104,29 +65,6 @@ public class ModuleDefinition implements Comparable<ModuleDefinition> {
 
 	public ModuleType getType() {
 		return type;
-	}
-
-	public Resource getResource() {
-		return resource;
-	}
-
-	public String getDefinition() {
-		return definition;
-	}
-
-	public void setDefinition(String definition) {
-		this.definition = definition;
-	}
-
-	public URL[] getClasspath() {
-		return classpath;
-	}
-
-	@Override
-	public String toString() {
-		int nbJars = getClasspath() == null ? 0 : getClasspath().length;
-		return String.format("%s[%s:%s with %d jars at %s]", getClass().getSimpleName(), getType(), getName(), nbJars,
-				getResource().getDescription());
 	}
 
 	/**
@@ -137,4 +75,22 @@ public class ModuleDefinition implements Comparable<ModuleDefinition> {
 		return this.getName().compareTo(other.getName());
 	}
 
+	@Override
+	public final boolean equals(Object o) {
+		if (this == o) return true;
+
+		ModuleDefinition that = (ModuleDefinition) o;
+
+		if (!name.equals(that.name)) return false;
+		if (type != that.type) return false;
+
+		return true;
+	}
+
+	@Override
+	public final int hashCode() {
+		int result = name.hashCode();
+		result = 31 * result + type.hashCode();
+		return result;
+	}
 }

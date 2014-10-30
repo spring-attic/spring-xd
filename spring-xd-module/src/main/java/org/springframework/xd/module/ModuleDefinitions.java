@@ -18,7 +18,11 @@
 
 package org.springframework.xd.module;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+
+import org.springframework.util.Assert;
 
 /**
  * Factory class to create {@code ModuleDefinition}s.
@@ -66,6 +70,15 @@ public class ModuleDefinitions {
 	 * @param type the type of the module
 	 */
 	public static ModuleDefinition dummy(String name, ModuleType type) {
-		return new SimpleModuleDefinition(name, type, "file:/tmp/dummy/location");
+		try {
+			File location = File.createTempFile("dummy-module", type + name);
+			Assert.isTrue(location.delete(), "could not delete temp file");
+			Assert.isTrue(location.mkdirs(), "could not re-create file as a dir");
+			location.deleteOnExit();
+			return new SimpleModuleDefinition(name, type, "file:" + location.getAbsolutePath());
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

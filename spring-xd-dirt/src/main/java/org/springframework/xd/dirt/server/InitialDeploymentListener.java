@@ -16,11 +16,6 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -77,22 +72,6 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 	 */
 	protected final DeploymentUnitStateCalculator stateCalculator;
 
-	/**
-	 * Executor service dedicated to handling events raised from
-	 * {@link org.apache.curator.framework.recipes.cache.PathChildrenCache}.
-	 *
-	 * @see #childEvent
-	 * @see InitialDeploymentListener.EventHandler
-	 */
-	private final ExecutorService executorService = Executors.newSingleThreadExecutor(new ThreadFactory() {
-
-		@Override
-		public Thread newThread(Runnable runnable) {
-			Thread thread = new Thread(runnable, "Deployer");
-			thread.setDaemon(true);
-			return thread;
-		}
-	});
 
 	/**
 	 * Construct a {@code PrimaryDeploymentListener}.
@@ -122,7 +101,16 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 	@Override
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 		ZooKeeperUtils.logCacheEvent(logger, event);
-		executorService.submit(new EventHandler(client, event));
+		switch (event.getType()) {
+			case CHILD_ADDED:
+				onChildAdded(client, event.getData());
+				break;
+			case CHILD_REMOVED:
+				onChildRemoved(client, event.getData());
+				break;
+			default:
+				break;
+		}
 	}
 
 	/**
@@ -175,59 +163,6 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
-		}
-	}
-
-	/**
-	 * Callable that handles events from a {@link org.apache.curator.framework.recipes.cache.PathChildrenCache}. This
-	 * allows for the handling of events to be executed in a separate thread from the Curator thread that raises these
-	 * events.
-	 */
-	class EventHandler implements Callable<Void> {
-
-		/**
-		 * Curator client.
-		 */
-		private final CuratorFramework client;
-
-		/**
-		 * Event raised from Curator.
-		 */
-		private final PathChildrenCacheEvent event;
-
-		/**
-		 * Construct an {@code EventHandler}.
-		 *
-		 * @param client curator client
-		 * @param event event raised from Curator
-		 */
-		EventHandler(CuratorFramework client, PathChildrenCacheEvent event) {
-			this.client = client;
-			this.event = event;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public Void call() throws Exception {
-			try {
-				switch (event.getType()) {
-					case CHILD_ADDED:
-						onChildAdded(client, event.getData());
-						break;
-					case CHILD_REMOVED:
-						onChildRemoved(client, event.getData());
-						break;
-					default:
-						break;
-				}
-				return null;
-			}
-			catch (Exception e) {
-				logger.error("Exception caught while handling event", e);
-				throw e;
-			}
 		}
 	}
 

@@ -36,11 +36,6 @@ define([], function () {
                 utils.growl.addErrorMessage('Error fetching module details. ' + error.data[0].message);
               }
             );
-        var moduleDefinitionPromise = jobModuleService.getModuleDefinition($stateParams.moduleName);
-        utils.addBusyPromise(moduleDefinitionPromise);
-        moduleDefinitionPromise.success(function(data){
-          $scope.moduleDefinition = data;
-        });
         $scope.closeModuleDetails = function () {
             utils.$log.info('Closing Job Details Window');
             $state.go('home.jobs.tabs.modules');

@@ -117,13 +117,6 @@ define(['angular'], function (angular) {
                 }
               }
             }).createDefinition();
-          },
-          getModuleDefinition: function (moduleName) {
-            $log.info('Getting module definition file for module ' + moduleName);
-            return $http({
-              method: 'GET',
-              url: $rootScope.xdAdminServerUrl + '/modules/job/' + moduleName + '/definition'
-            });
           }
         };
       })

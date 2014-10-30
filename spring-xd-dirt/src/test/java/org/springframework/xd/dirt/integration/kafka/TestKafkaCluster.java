@@ -54,9 +54,12 @@ public class TestKafkaCluster {
         try {
             // Use very short ticktime so that disconnects are picked up quickly
             // and rebalances go through
-            int tickTime = 100;
-            InstanceSpec spec = new InstanceSpec(null, -1, -1, -1, true, -1, tickTime, -1);
-            zkServer = new TestingServer(spec, true);
+//            int tickTime = 100;
+//            InstanceSpec spec = new InstanceSpec(null, -1, -1, -1, true, -1, tickTime, -1);
+//            zkServer = new TestingServer(spec, true);
+            zkServer = new TestingServer();
+
+
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -85,6 +88,10 @@ public class TestKafkaCluster {
         zkServer.stop();
     }
 
+
+    /**
+     * See XD-2293. This is used to reproduce Kafka rebalance issues.
+     */
     public static void main(String[] args) throws Exception {
         TestKafkaCluster cluster = new TestKafkaCluster();
         ZkClient client = new ZkClient(cluster.getZkConnectString(), 10000, 10000, KafkaMessageBus.utf8Serializer);

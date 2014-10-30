@@ -34,9 +34,15 @@ public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
 	//todo:What is the purpose of this test?
 	@Test
 	public void testModuleWithClasspathAfterServerStarted() throws Exception {
-		//installTestModule("source", "time2");
 		FileSink fileSink = newFileSink();
 		stream().create(generateStreamName(), "time2 | %s", fileSink);
+		assertThat(fileSink, eventually(hasContentsThat(not(isEmptyOrNullString()))));
+	}
+
+	@Test
+	public void testUberJarModule() {
+		FileSink fileSink = newFileSink();
+		stream().create(generateStreamName(), "time3 | %s", fileSink);
 		assertThat(fileSink, eventually(hasContentsThat(not(isEmptyOrNullString()))));
 	}
 }

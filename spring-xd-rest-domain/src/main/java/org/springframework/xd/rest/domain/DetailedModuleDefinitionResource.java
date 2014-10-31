@@ -28,6 +28,7 @@ import org.springframework.hateoas.PagedResources;
  * Extends {@link ModuleDefinitionResource} with information about module options.
  *
  * @author Eric Bottard
+ * @author Gunnar Hillert
  */
 @XmlRootElement
 public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
@@ -80,7 +81,6 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 			this.hidden = hidden;
 		}
 
-
 		public String getName() {
 			return name;
 		}
@@ -104,6 +104,11 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 			return hidden;
 		}
 
+		@Override
+		public String toString() {
+			return "Option [name=" + name + ", type=" + type + ", defaultValue=" + defaultValue + ", hidden=" + hidden
+					+ "]";
+		}
 
 	}
 

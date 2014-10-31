@@ -37,7 +37,7 @@
 				<div class="col-sm-10" ng-if="definitionParam.type === 'boolean'">
 				<div class="checkbox">
 					<label>
-						<input type="checkbox" id="{{definitionParam.name}}"
+						<input type="checkbox" id="{{definitionParam.name}}" ng-true-value="true" ng-false-value="false"
 							name="{{definitionParam.name}}" ng-model="definitionParam.value">
 						{{definitionParam.description | capitalize}}
 					</label>

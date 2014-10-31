@@ -61,7 +61,7 @@ public class JobStateTests extends AbstractDistributedTests {
 
 	/**
 	 * Assert the correct deployment and state transition for job deployments,
-	 * in particular with regard to container avaliability.
+	 * in particular with regard to container availability.
 	 *
 	 * @throws Exception
 	 */
@@ -150,10 +150,30 @@ public class JobStateTests extends AbstractDistributedTests {
 		 */
 		private final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 
+		/**
+		 * Construct a {@code FileContentMatcher} that expects a timestamp
+		 * in the job output file.
+		 *
+		 * @param startTime the approximate start time of the test
+		 */
 		private FileContentMatcher(long startTime) {
 			this.startTime = startTime;
 		}
 
+		/**
+		 * Return {@code true} if:
+		 * <ul>
+		 *     <li>The expected file was created</li>
+		 *     <li>The file contains a timestamp as its last line</li>
+		 *     <li>The timestamp indicates a time not less than 60
+		 *         seconds after the test was launched; this handles
+		 *         the scenario where a prior test run correctly
+		 *         executed the job but the current test run did not</li>
+		 * </ul>
+		 *
+		 * @param item name of the timestamp file that should be created by the job
+		 * @return true if the file contains an acceptable timestamp
+		 */
 		@Override
 		public boolean matches(Object item) {
 			String fileName = (String) item;
@@ -209,11 +229,17 @@ public class JobStateTests extends AbstractDistributedTests {
 			return true;
 		}
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void describeMismatch(Object item, Description description) {
 			description.appendText(mismatch.toString());
 		}
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void describeTo(Description description) {
 			description.appendText("expected timestamp file");

@@ -17,6 +17,7 @@
 package org.springframework.xd.distributed.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -268,16 +269,29 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 * @param jobName  name of job to verify
 	 */
 	protected void verifyJobCreated(String jobName) {
+		assertNotNull(String.format("Job %s was not found", jobName), getJob(jobName));
+	}
+
+	/**
+	 * Return a {@link JobDefinitionResource} with a name matching
+	 * the requested {@code jobName}.
+	 *
+	 * @param jobName name of job
+	 *
+	 * @return a {@code JobDefinitionResource} for the job or {@code null}
+	 *         if the job does not exist
+	 */
+	private JobDefinitionResource getJob(String jobName) {
 		PagedResources<JobDefinitionResource> list = distributedTestSupport.ensureTemplate()
 				.jobOperations().list();
 
 		for (JobDefinitionResource job : list) {
 			if (job.getName().equals(jobName)) {
-				return;
+				return job;
 			}
 		}
 
-		fail(String.format("Job %s was not found", jobName));
+		return null;
 	}
 
 	/**
@@ -362,16 +376,11 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 * @return the state of the job
 	 */
 	protected DeploymentUnitStatus.State getJobState(String jobName) {
-		PagedResources<JobDefinitionResource> list = distributedTestSupport.ensureTemplate()
-				.jobOperations().list();
-
-		for (JobDefinitionResource job : list) {
-			if (job.getName().equals(jobName)) {
-				return DeploymentUnitStatus.State.valueOf(job.getStatus());
-			}
+		JobDefinitionResource job = getJob(jobName);
+		if (job == null) {
+			throw new IllegalStateException(String.format("Job %s not deployed", jobName));
 		}
-
-		throw new IllegalStateException(String.format("Job %s not deployed", jobName));
+		return DeploymentUnitStatus.State.valueOf(job.getStatus());
 	}
 
 

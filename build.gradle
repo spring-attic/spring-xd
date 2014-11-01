@@ -711,6 +711,7 @@ project('spring-xd-module') {
 		compile "org.springframework.boot:spring-boot-autoconfigure"
 		compile "org.springframework.boot:spring-boot-loader"
 		compile "com.fasterxml.jackson.core:jackson-databind"
+		compile 'org.codehaus.groovy:groovy-all'
 		compile project(':spring-xd-module-spi')
 	}
 }

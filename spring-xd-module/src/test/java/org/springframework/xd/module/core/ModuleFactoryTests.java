@@ -52,4 +52,30 @@ public class ModuleFactoryTests {
 		module.getComponent("output",MessageChannel.class);
 		module.getComponent("transformer",Object.class);
 	}
+
+	@Test
+	public void createXmlModule() {
+		createResourceConfiguredModule("xmlModule",ModuleType.processor);
+	}
+
+	@Test
+	public void createGroovyModule() {
+		createResourceConfiguredModule("groovyModule",ModuleType.processor);
+	}
+
+	private void createResourceConfiguredModule(String moduleName, ModuleType moduleType) {
+		ModuleDefinition moduleDefinition = ModuleDefinitions.simple(moduleName,moduleType,
+				"classpath:/ModuleFactoryTests/modules/" + moduleType + "/" + moduleName + "/");
+		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(moduleDefinition)
+				.setModuleName(moduleName)
+				.setGroup("group")
+				.setModuleDefinition(moduleDefinition)
+				.build();
+
+		Module module = moduleFactory.createModule(moduleDescriptor, new ModuleDeploymentProperties());
+		assertTrue(module instanceof ResourceConfiguredModule);
+		module.initialize();
+		assertEquals("foo",module.getComponent("foo", String.class));
+	}
 }

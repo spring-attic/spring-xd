@@ -1,0 +1,5 @@
+These fake module files are used in ResourceModuleRegistryTests. Do NOT modify
+or repurpose them for other tests. Instead, create your own module root
+that you can easily interpret as a registry thanks to ResourceModuleRegistry.
+Note that the exact combination of overlapping file names (e.g. file-test) is
+important to the above tests.

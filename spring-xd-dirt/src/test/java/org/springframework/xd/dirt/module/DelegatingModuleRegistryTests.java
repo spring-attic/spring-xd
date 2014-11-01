@@ -18,38 +18,33 @@ package org.springframework.xd.dirt.module;
 
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.springframework.xd.dirt.module.ModuleDefinitionMatchers.module;
 import static org.springframework.xd.module.ModuleType.processor;
 import static org.springframework.xd.module.ModuleType.sink;
 import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.List;
 
-import org.hamcrest.Description;
-import org.hamcrest.DiagnosingMatcher;
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleType;
 
 
 /**
  * Tests for DelegatingModuleRegistry.
- * 
+ *
  * @author Eric Bottard
  * @author Glenn Renfro
  */
 public class DelegatingModuleRegistryTests {
 
-	private ModuleRegistry registry;
-
 	private static final String REGISTRY_ROOT = "org.springframework.xd.dirt.module.delegating_module_registry_tests";
+
+	private ModuleRegistry registry;
 
 	@Before
 	public void setup() {
@@ -90,31 +85,14 @@ public class DelegatingModuleRegistryTests {
 	public void testFindDefinitions() {
 		List<ModuleDefinition> definitions = registry.findDefinitions();
 
-		assertThat(definitions, containsInAnyOrder(module("test-source", source),
+		assertThat(definitions, containsInAnyOrder(
+				module("test-source", source),
 				module("test-processor", processor),
 				module("test-sink", sink),
 				module("foobar", source),
 				module("foobar", sink)
-				));
+		));
 
-	}
-
-	private Matcher<ModuleDefinition> module(final String name, final ModuleType type) {
-		return new DiagnosingMatcher<ModuleDefinition>() {
-
-			@Override
-			public void describeTo(Description description) {
-				description.appendText("a module named ").appendValue(name).appendText(" with type ").appendValue(type);
-			}
-
-			@Override
-			protected boolean matches(Object item, Description mismatchDescription) {
-				ModuleDefinition def = (ModuleDefinition) item;
-				mismatchDescription.appendText("a module named ").appendValue(def.getName())
-						.appendText(" with type ").appendValue(def.getType());
-				return name.equals(def.getName()) && type == def.getType();
-			}
-		};
 	}
 
 	@SuppressWarnings("unchecked")

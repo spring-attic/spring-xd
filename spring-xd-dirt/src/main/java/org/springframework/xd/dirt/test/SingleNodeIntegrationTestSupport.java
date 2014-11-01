@@ -77,7 +77,7 @@ public class SingleNodeIntegrationTestSupport {
 	private final Map<String, PathChildrenCache> mapChildren = new HashMap<String, PathChildrenCache>();
 
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
-		this(application, "file:./config");
+		this(application, "classpath:/module");
 	}
 
 	/**

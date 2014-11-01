@@ -18,7 +18,6 @@ package org.springframework.xd.module.core;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,14 +27,12 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
-import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.SimpleModuleDefinition;
@@ -44,7 +41,6 @@ import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
 import org.springframework.xd.module.support.ModuleUtils;
-import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
  * Determines the type of {@link Module} to create from the Module's metadata and creates a module instance. Also,
@@ -130,8 +126,11 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 	}
 
 	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
-		if( ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition, moduleClassLoader) != null) {
-				return ResourceConfiguredModule.class;
+		if (ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition, moduleClassLoader) != null) {
+			return ResourceConfiguredModule.class;
+		}
+		else if (JavaConfiguredModule.basePackages(moduleDefinition, moduleClassLoader).length > 0) {
+			return JavaConfiguredModule.class;
 		}
 		return null;
 	}

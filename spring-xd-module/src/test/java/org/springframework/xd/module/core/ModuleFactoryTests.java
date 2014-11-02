@@ -71,11 +71,13 @@ public class ModuleFactoryTests {
 				.setModuleName(moduleName)
 				.setGroup("group")
 				.setModuleDefinition(moduleDefinition)
+				.setParameter("bar","hello")
 				.build();
 
 		Module module = moduleFactory.createModule(moduleDescriptor, new ModuleDeploymentProperties());
 		assertTrue(module instanceof ResourceConfiguredModule);
 		module.initialize();
 		assertEquals("foo",module.getComponent("foo", String.class));
+		assertEquals("hello",module.getComponent("bar", String.class));
 	}
 }

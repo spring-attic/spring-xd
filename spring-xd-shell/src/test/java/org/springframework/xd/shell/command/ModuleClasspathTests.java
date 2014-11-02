@@ -50,7 +50,7 @@ public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testJavaConfigModule() {
 		FileSink fileSink = newFileSink();
-		stream().create(generateStreamName(), "time | javaConfigModule --prefix=foo --suffix=bar| %s", fileSink);
+		stream().create(generateStreamName(), "time | siDslModule --prefix=foo --suffix=bar| %s", fileSink);
 		assertThat(fileSink, eventually(allOf(hasContentsThat(containsString("foo")), hasContentsThat(containsString
 				("bar")))));
 	}

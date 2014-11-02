@@ -35,8 +35,8 @@ public class ModuleFactoryTests {
 
 	@Test
 	public void createJavaConfiguredModule() {
-		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("javaConfigModule", ModuleType.processor,
-				"classpath:/ModuleFactoryTests/modules/processor/JavaConfigModule.jar");
+		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("siDslModule", ModuleType.processor,
+				"classpath:/ModuleFactoryTests/modules/processor/siDslModule.jar");
 		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(moduleDefinition)
 				.setModuleName("javaConfigModule")

@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.integration.bus.converter;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeTypeUtils;
 
@@ -29,10 +30,14 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  * to convert a Java object to a JSON String
  *
  * @author David Turanski
+ * @author David Liu
  */
 public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 
 	private final ObjectMapper mapper = new ObjectMapper();
+
+	@Value("${typeconversion.json.prettyPrint}")
+	private volatile boolean prettyPrint = false;
 
 	public PojoToJsonMessageConverter() {
 		super(MimeTypeUtils.APPLICATION_JSON);
@@ -49,11 +54,21 @@ public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 		return null;
 	}
 
+
+	public void setPrettyPrint(boolean isPrettyPrint) {
+		this.prettyPrint = isPrettyPrint;
+	}
+
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
 		Object result = null;
 		try {
-			result = mapper.writeValueAsString(message.getPayload());
+			if (prettyPrint) {
+				result = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(message.getPayload());
+			}
+			else {
+				result = mapper.writeValueAsString(message.getPayload());
+			}
 		}
 		catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);

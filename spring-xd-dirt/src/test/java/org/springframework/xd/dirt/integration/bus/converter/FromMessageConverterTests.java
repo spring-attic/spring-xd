@@ -46,7 +46,7 @@ import org.springframework.xd.tuple.TupleBuilder;
 
 /**
  * Tests for converting from a Message.
- * 
+ *
  * @author David Turanski
  */
 public class FromMessageConverterTests {
@@ -69,6 +69,30 @@ public class FromMessageConverterTests {
 		converters.add(new PojoToStringMessageConverter());
 		converterFactory = new CompositeMessageConverterFactory(converters);
 	}
+
+	@Test
+	public void testPojoToJsonPrettyPrint() {
+		String json = "{\n  \"foo\" : \"bar\"\n}";
+		PojoToJsonMessageConverter messageConverter = new PojoToJsonMessageConverter();
+		messageConverter.setPrettyPrint(true);
+		Message<?> msg = (Message<?>) messageConverter.fromMessage(new GenericMessage<Foo>(new Foo()), String.class);
+		assertEquals(json, msg.getPayload());
+		assertEquals(MimeTypeUtils.APPLICATION_JSON, msg.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void testTupleToJsonPrettyPrint() {
+		Tuple t = TupleBuilder.fromString("{\"foo\":\"bar\"}");
+		Message<?> msg = MessageBuilder.withPayload(t).build();
+		TupleToJsonMessageConverter messageConverter = new TupleToJsonMessageConverter();
+		messageConverter.setPrettyPrint(true);
+		Message<String> result = (Message<String>) messageConverter.fromMessage(msg, String.class);
+		assertTrue(result.getPayload(), result.getPayload().contains("{\n"));
+		assertTrue(result.getPayload(), result.getPayload().contains("\"foo\" : \"bar\""));
+		assertEquals(MimeTypeUtils.APPLICATION_JSON,
+				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
 
 	@Test
 	public void testPojoToJsonString() {

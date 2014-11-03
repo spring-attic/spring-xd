@@ -280,3 +280,8 @@ xd:
 #    home: file://mymodulehome
 
 ---
+# Pretty print JSON output
+typeconversion:
+	json:
+		prettyPrint: true
+---

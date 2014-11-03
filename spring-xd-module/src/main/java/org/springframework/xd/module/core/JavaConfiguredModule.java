@@ -61,12 +61,9 @@ public class JavaConfiguredModule extends SimpleModule {
 	}
 
 	public static String[] basePackages(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
-		Resource propertiesFile = new ClassPathResource("/config/" + moduleDefinition.getName() + ".properties",
-				moduleClassLoader);
-		//todo: this shouldn't happen but this probably isn't the right place to validate and throw an exception.
-		if (propertiesFile == null) {
-			return new String[0];
-		}
+		String propertiesPath = "/config/" + moduleDefinition.getName() + ".properties";
+		Resource propertiesFile = new ClassPathResource(propertiesPath, moduleClassLoader);
+		Assert.notNull(propertiesFile, String.format("Required classpath resource %s not found.", propertiesPath));
 
 		Properties properties = new Properties();
 		try {

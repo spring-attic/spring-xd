@@ -1,4 +1,4 @@
-see /spring-xd-module/src/test/resources/ModuleFactoryTests/modules/processor/siDslModule.zip which contains a module
-project using spring-integration-dsl-java, the jar was built with:
+see /spring-xd-module/src/test/resources/ModuleFactoryTests/modules/processor/siDslModule.zip which contains the sources
+for a module project using spring-integration-dsl-java, the jar was built with:
 
 $ mvn package

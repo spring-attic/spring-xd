@@ -103,7 +103,7 @@ ext {
 	oldGuavaVersion = '15.0'  // This is only used by spring-xd-integration-test, IO uses version 17.0
 	guavaVersion = '16.0.1'
 
-	springDataHadoopBase = '2.0.2.RELEASE'
+	springDataHadoopBase = '2.1.0.M2'
 
 	singleNodeServerProcess = new SingleNodeServerProcess()
 }
@@ -996,8 +996,8 @@ project('spring-xd-integration-test') {
 		compile "org.apache.jclouds.provider:aws-ec2:$jcloudsVersion"
 		compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"
 		compile "com.fasterxml.jackson.core:jackson-databind"
-		compile ("org.apache.hadoop:hadoop-common:$hadoop22Version")
-		compile ("org.apache.hadoop:hadoop-client:$hadoop22Version")
+		compile ("org.apache.hadoop:hadoop-common:$hadoop25Version")
+		compile ("org.apache.hadoop:hadoop-client:$hadoop25Version")
 		compile "com.google.guava:guava:$oldGuavaVersion"
 		compile ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
  		testCompile "mysql:mysql-connector-java"

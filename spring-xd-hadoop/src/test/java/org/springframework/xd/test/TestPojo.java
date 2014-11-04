@@ -26,7 +26,7 @@ public class TestPojo {
 
 	Long timestamp;
 
-	@Nullable
+	//@Nullable  //TODO: this is commented out due to changes in Kite SDK 0.17.0
 	String description;
 
 	public Integer getId() {

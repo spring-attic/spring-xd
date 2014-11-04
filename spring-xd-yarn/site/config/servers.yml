@@ -22,13 +22,13 @@ spring:
 # Just comment out the ones not needed and make sure the one for your current distro is not commented out. These settings are based
 # on single-node VMs provided for each distro and they might need tweaking for other installation types.
 
-# Hadoop 2.2.x (hadoop22) and Hadoop 2.4.x (hadoop24):
+# Hadoop Hadoop 2.4.x (hadoop24) and Hadoop 2.5.x (hadoop25):
 spring:
     yarn:
         siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*"
         siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*"
 
-# Pivotal HD 2.0 (phd20):
+# Pivotal HD 2.0 and Pivotal HD 2.1 (phd21):
 #spring:
 #    yarn:
 #        siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*"
@@ -54,11 +54,33 @@ spring:
 #    resourceManagerHost: localhost
 
 ---
-#Zookeeper properties
+# Zookeeper properties
+# namespace is the path under the root where XD's top level nodes will be created
 # client connect string: host1:port1,host2:port2,...,hostN:portN
 #zk:
+#  namespace: xd
 #  client:
 #     connect: localhost:2181
+
+---
+# Quiet Period
+#
+# The quiet period is the amount of time that must elapse after the newest container
+# arrives before deployments to new containers are initiated. A short quiet period
+# is ideal for development environments because it results in quick deployments
+# to new containers. In production environments, longer quiet periods are desirable
+# because it will prevent the first few containers from receiving all deployments.
+#
+# Module deployments triggered by container arrivals only apply to modules
+# that failed a previous deployment due to the lack of containers to host them.
+# Note that this property only applies to that type of deployment; new deployments
+# targeted to existing containers are not subject to delays.
+#
+# The default value for this property is 15000 ms.
+#
+# xd:
+#  admin:
+#    quietPeriod: 15000
 
 ---
 
@@ -75,6 +97,7 @@ spring:
             # Note: MANUAL requires specialized code in the consuming module and is unlikely to be
             # used in an XD application. For more information, see
             # http://docs.spring.io/spring-integration/reference/html/amqp.html#amqp-inbound-ack
+#        autoBindDLQ:               false
 #        backOffInitialInterval:    1000
 #        backOffMaxInterval:        10000
 #        backOffMultiplier:         2.0
@@ -92,7 +115,10 @@ spring:
 #        txSize:                    1
 
 #    redis:
+#      headers:
+            # comman-delimited list of additional (string-valued) header names to transport
 #      default:
+            # default bus properties, if not specified at the module level
 #        backOffInitialInterval:    1000
 #        backOffMaxInterval:        10000
 #        backOffMultiplier:         2.0
@@ -102,6 +128,13 @@ spring:
 #Disable batch database initialization
 #spring:
 #  batch:
+# Configure other Spring Batch repository values.  Most are typically not needed
+#    isolationLevel: ISOLATION_SERIALIZABLE
+#    clobType:
+#    dbType:
+#    maxVarcharLength: 2500
+#    tablePrefix: BATCH_
+#    validateTransactionState: true
 #    initializer:
 #       enabled: false
 
@@ -172,6 +205,14 @@ spring:
 #  jmx:
 #    enabled: ${XD_JMX_ENABLED:true}
 #    uniqueNames: true
+
+---
+# This is useful for shutting down containers from UI
+# Port that container management is listening on
+spring:
+  profiles: container
+management:
+  port: 0
 
 ---
 # Redis properties

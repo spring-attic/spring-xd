@@ -19,11 +19,11 @@ package org.springframework.xd.hadoop.fs;
 import java.util.Collection;
 
 import org.kitesdk.data.DatasetDescriptor;
-import org.kitesdk.data.PartitionKey;
 
 import org.springframework.data.hadoop.store.dataset.DatasetOperations;
 import org.springframework.data.hadoop.store.dataset.DatasetRepositoryCallback;
 import org.springframework.data.hadoop.store.dataset.RecordCallback;
+import org.springframework.data.hadoop.store.dataset.ViewCallback;
 
 /**
  * @author Thomas Risberg
@@ -41,12 +41,12 @@ public class StubDatasetOperations implements DatasetOperations {
 	}
 
 	@Override
-	public <T> void read(Class<T> targetClass, RecordCallback<T> callback, PartitionKey partitionKey) {
+	public <T> void read(Class<T> targetClass, RecordCallback<T> callback, ViewCallback viewCallback) {
 		throw new UnsupportedOperationException("not implemented");
 	}
 
 	@Override
-	public <T> Collection<T> read(Class<T> targetClass, PartitionKey partitionKey) {
+	public <T> Collection<T> read(Class<T> targetClass, ViewCallback viewCallback) {
 		throw new UnsupportedOperationException("not implemented");
 	}
 

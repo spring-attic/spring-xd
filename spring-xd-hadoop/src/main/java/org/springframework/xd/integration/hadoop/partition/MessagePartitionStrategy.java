@@ -19,21 +19,22 @@ package org.springframework.xd.integration.hadoop.partition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
-
 import org.springframework.data.hadoop.store.partition.AbstractPartitionStrategy;
 import org.springframework.data.hadoop.store.partition.PartitionKeyResolver;
 import org.springframework.data.hadoop.store.partition.PartitionResolver;
-import org.springframework.data.hadoop.store.partition.PartitionStrategy;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelCompilerMode;
+import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.xd.integration.hadoop.expression.MessageExpressionMethods;
 
 /**
- * A {@link PartitionStrategy} which is used to provide a generic partitioning support using Spring SpEL.
+ * A {@link org.springframework.data.hadoop.store.partition.PartitionStrategy} which is used to provide a generic partitioning support using Spring SpEL.
  *
  * @author Janne Valkealahti
  *
@@ -61,7 +62,19 @@ public class MessagePartitionStrategy<T extends Object> extends AbstractPartitio
 	 * @param evaluationContext the evaluation context
 	 */
 	public MessagePartitionStrategy(String expression, StandardEvaluationContext evaluationContext) {
-		super(new MessagePartitionResolver(expression, evaluationContext), new MessagePartitionKeyResolver<T>());
+		this(expression, evaluationContext, null);
+	}
+
+	/**
+	 * Instantiates a new message partition strategy with
+	 * {@link EvaluationContext}.
+	 *
+	 * @param expression the expression
+	 * @param evaluationContext the evaluation context
+	 * @param expressionParser the expression parser
+	 */
+	public MessagePartitionStrategy(String expression, StandardEvaluationContext evaluationContext, ExpressionParser expressionParser) {
+		super(new MessagePartitionResolver(expression, evaluationContext, expressionParser), new MessagePartitionKeyResolver<T>());
 	}
 
 	/**
@@ -74,10 +87,13 @@ public class MessagePartitionStrategy<T extends Object> extends AbstractPartitio
 
 		private final MessageExpressionMethods methods;
 
-		public MessagePartitionResolver(String expression, StandardEvaluationContext evaluationContext) {
-			ExpressionParser parser = new SpelExpressionParser();
-			this.expression = parser.parseExpression(expression);
-			this.methods = new MessageExpressionMethods(evaluationContext);
+		public MessagePartitionResolver(String expression, StandardEvaluationContext evaluationContext, ExpressionParser expressionParser) {
+			if (expressionParser == null) {
+				// default to mixed mode
+				expressionParser = new SpelExpressionParser(new SpelParserConfiguration(SpelCompilerMode.MIXED, null));
+			}
+			this.expression = expressionParser.parseExpression(expression);
+			this.methods = new MessageExpressionMethods(evaluationContext, true, true);
 			log.info("Using expression=[" + this.expression.getExpressionString() + "]");
 		}
 
@@ -95,7 +111,7 @@ public class MessagePartitionStrategy<T extends Object> extends AbstractPartitio
 	}
 
 	/**
-	 * A {@link PartitionKeyResolver} which simply creates a new {@link Message}
+	 * A {@link org.springframework.data.hadoop.store.partition.PartitionKeyResolver} which simply creates a new {@link Message}
 	 * as a partition key using an passed in entity.
 	 */
 	private static class MessagePartitionKeyResolver<T extends Object> implements PartitionKeyResolver<T, Message<?>> {

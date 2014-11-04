@@ -42,9 +42,9 @@ public class DatasetOutboundChannelAdapterIntegrationTests {
 		String path = context.getBean("path", String.class);
 		assertTrue("Dataset path created", new File(path).exists());
 		assertTrue("Dataset storage created",
-				new File(path + "/" + datasetOperations.getDatasetName(String.class)).exists());
+				new File(path + "/" + "test/" + datasetOperations.getDatasetName(String.class)).exists());
 		assertTrue("Dataset metadata created",
-				new File(path + "/" + datasetOperations.getDatasetName(String.class) + "/.metadata").exists());
+				new File(path + "/" + "test/" + datasetOperations.getDatasetName(String.class) + "/.metadata").exists());
 		context.close();
 	}
 

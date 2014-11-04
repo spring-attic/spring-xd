@@ -65,7 +65,7 @@ cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 # If you change the default hadoop distro, make sure to update ContainerOptions.DEFAULT_HADOOP_OPTION
-HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop22}"
+HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop25}"
 x=0
 args=("$@")
 for arg in "${args[@]}" ; do

@@ -50,6 +50,8 @@ public class DatasetDefinitionFactoryBean implements InitializingBean, FactoryBe
 
 	private String partitionPath;
 
+	private int writerCacheSize;
+
 	private DatasetDefinition datasetDefinition;
 
 	public void setFormat(String format) {
@@ -62,6 +64,10 @@ public class DatasetDefinitionFactoryBean implements InitializingBean, FactoryBe
 
 	public void setPartitionPath(String partitionPath) {
 		this.partitionPath = partitionPath;
+	}
+
+	public void setWriterCacheSize(int writerCacheSize) {
+		this.writerCacheSize = writerCacheSize;
 	}
 
 	@Override
@@ -85,9 +91,13 @@ public class DatasetDefinitionFactoryBean implements InitializingBean, FactoryBe
 		logger.info("  allowNulValues: " + allowNullValues);
 		logger.info("          format: " + format);
 		logger.info("   partitionPath: " + partitionPath);
+		logger.info(" writerCacheSize: " + writerCacheSize);
 		datasetDefinition = new DatasetDefinition(allowNullValues, format);
 		if (StringUtils.hasText(partitionPath)) {
 			datasetDefinition.setPartitionStrategy(parsePartitionExpression(partitionPath));
+		}
+		if (writerCacheSize > 0) {
+			datasetDefinition.setWriterCacheSize(writerCacheSize);
 		}
 	}
 

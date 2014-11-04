@@ -47,13 +47,15 @@
 
 	<bean id="datasetRepositoryFactory" class="org.springframework.data.hadoop.store.dataset.DatasetRepositoryFactory">
 		<property name="conf" ref="hadoopConfiguration"/>
-		<property name="basePath" value="${directory}"/>
+		<property name="basePath" value="${basePath}"/>
+		<property name="namespace" value="${namespace}"/>
 	</bean>
 
 	<bean id="defaultDatasetDefinition" class="org.springframework.xd.hadoop.fs.DatasetDefinitionFactoryBean">
 		<property name="allowNullValues" value="${allowNullValues}"/>
 		<property name="format" value="${format}"/>
 		<property name="partitionPath" value="${partitionPath}"/>
+		<property name="writerCacheSize" value="${writerCacheSize:null}"/>
 	</bean>
 
 	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">

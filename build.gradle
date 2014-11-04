@@ -64,7 +64,7 @@ allprojects {
 		mavenCentral()
 		maven { url 'http://repo.spring.io/libs-snapshot' }
 		maven { url 'http://repo.spring.io/milestone' }
-		//maven { url 'http://repo.spring.io/snapshot' }
+		maven { url 'http://repo.spring.io/snapshot' }
 		maven { url 'http://repo.spring.io/libs-milestone' }
 		maven { url 'http://repo.spring.io/plugins-release' }
 		maven { url 'http://repo.spring.io/plugins-snapshot' }

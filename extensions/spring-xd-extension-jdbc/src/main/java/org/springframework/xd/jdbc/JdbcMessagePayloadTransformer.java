@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
+import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.integration.support.json.JsonObjectMapper;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.jdbc.support.JdbcUtils;
@@ -34,12 +34,13 @@ import org.springframework.util.StringUtils;
  * corresponding to the column names specified. This could be expanded for additional payload types
  *
  * @author Thomas Risberg
+ * @author Gary Russell
  * @since 1.0
  */
 @SuppressWarnings("rawtypes")
 public class JdbcMessagePayloadTransformer extends AbstractPayloadTransformer<String, Map> {
 
-	private final JsonObjectMapper<?, ?> jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
+	private final JsonObjectMapper<?, ?> jsonObjectMapper = new Jackson2JsonObjectMapper();
 
 	private List<String> columnNames = new ArrayList<String>();
 

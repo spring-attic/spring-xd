@@ -26,6 +26,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -191,7 +192,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 				MessageDeliveryMode.class);
 		assertEquals(MessageDeliveryMode.PERSISTENT, mode);
 		List<?> requestHeaders = TestUtils.getPropertyValue(endpoint,
-				"handler.delegate.headerMapper.requestHeaderNames", List.class);
+				"handler.delegate.headerMapper.requestHeaderMatcher.strategies", List.class);
 		assertEquals(2, requestHeaders.size());
 		bus.unbindProducers("props.0");
 		assertEquals(0, bindings.size());
@@ -215,10 +216,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		mode = TestUtils.getPropertyValue(endpoint, "handler.delegate.defaultDeliveryMode",
 				MessageDeliveryMode.class);
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, mode);
-		requestHeaders = TestUtils.getPropertyValue(endpoint, "handler.delegate.headerMapper.requestHeaderNames",
-				List.class);
-		assertEquals(1, requestHeaders.size());
-		assertEquals("foo", requestHeaders.get(0));
+		verifyFooRequestProducer(endpoint);
 
 		try {
 			bus.bindPubSubProducer("dummy", new DirectChannel(), properties);
@@ -286,26 +284,13 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		MessageDeliveryMode mode = TestUtils.getPropertyValue(endpoint, "handler.delegate.defaultDeliveryMode",
 				MessageDeliveryMode.class);
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, mode);
-		List<?> requestHeaders = TestUtils.getPropertyValue(endpoint,
-				"handler.delegate.headerMapper.requestHeaderNames",
-				List.class);
-		assertEquals(1, requestHeaders.size());
-		assertEquals("foo", requestHeaders.get(0));
-		List<?> replyHeaders = TestUtils.getPropertyValue(endpoint,
-				"handler.delegate.headerMapper.replyHeaderNames",
-				List.class);
-		assertEquals(1, replyHeaders.size());
-		assertEquals("bar", replyHeaders.get(0));
+		verifyFooRequestBarReplyProducer(endpoint);
 
 		endpoint = bindings.get(1).getEndpoint(); // consumer
 
 		verifyContainer(endpoint);
 
-		replyHeaders = TestUtils.getPropertyValue(endpoint,
-				"headerMapper.replyHeaderNames",
-				List.class);
-		assertEquals(1, replyHeaders.size());
-		assertEquals("bar", replyHeaders.get(0));
+		verifyBarReplyConsumer(endpoint);
 
 		properties.put("partitionKeyExpression", "'foo'");
 		properties.put("partitionKeyExtractorClass", "foo");
@@ -366,26 +351,14 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		MessageDeliveryMode mode = TestUtils.getPropertyValue(endpoint, "handler.delegate.defaultDeliveryMode",
 				MessageDeliveryMode.class);
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, mode);
-		List<?> requestHeaders = TestUtils.getPropertyValue(endpoint,
-				"handler.delegate.headerMapper.requestHeaderNames",
-				List.class);
-		assertEquals(1, requestHeaders.size());
-		assertEquals("foo", requestHeaders.get(0));
-		List<?> replyHeaders = TestUtils.getPropertyValue(endpoint,
-				"handler.delegate.headerMapper.replyHeaderNames",
-				List.class);
-		assertEquals(1, replyHeaders.size());
-		assertEquals("bar", replyHeaders.get(0));
+
+		verifyFooRequestBarReplyProducer(endpoint);
 
 		endpoint = bindings.get(0).getEndpoint(); // consumer
 
 		verifyContainer(endpoint);
 
-		replyHeaders = TestUtils.getPropertyValue(endpoint,
-				"headerMapper.replyHeaderNames",
-				List.class);
-		assertEquals(1, replyHeaders.size());
-		assertEquals("bar", replyHeaders.get(0));
+		verifyBarReplyConsumer(endpoint);
 
 		properties.put("partitionKeyExpression", "'foo'");
 		properties.put("partitionKeyExtractorClass", "foo");
@@ -479,13 +452,43 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		assertEquals(20000L, TestUtils.getPropertyValue(retry, "retryOperations.backOffPolicy.maxInterval"));
 		assertEquals(5.0, TestUtils.getPropertyValue(retry, "retryOperations.backOffPolicy.multiplier"));
 
-		List<?> requestHeaders = TestUtils.getPropertyValue(endpoint,
-				"headerMapper.requestHeaderNames",
+		List<?> requestMatchers = TestUtils.getPropertyValue(endpoint,
+				"headerMapper.requestHeaderMatcher.strategies",
 				List.class);
-		assertEquals(1, requestHeaders.size());
-		assertEquals("foo", requestHeaders.get(0));
+		assertEquals(1, requestMatchers.size());
+		assertEquals("foo",
+				TestUtils.getPropertyValue(requestMatchers.get(0), "patterns", Collection.class).iterator().next());
 
 		return container;
+	}
+
+	private void verifyBarReplyConsumer(AbstractEndpoint endpoint) {
+		List<?> replyMatchers;
+		replyMatchers = TestUtils.getPropertyValue(endpoint,
+				"headerMapper.replyHeaderMatcher.strategies",
+				List.class);
+		assertEquals(1, replyMatchers.size());
+		assertEquals("bar",
+				TestUtils.getPropertyValue(replyMatchers.get(0), "patterns", Collection.class).iterator().next());
+	}
+
+	private void verifyFooRequestBarReplyProducer(AbstractEndpoint endpoint) {
+		verifyFooRequestProducer(endpoint);
+		List<?> replyMatchers = TestUtils.getPropertyValue(endpoint,
+				"handler.delegate.headerMapper.replyHeaderMatcher.strategies",
+				List.class);
+		assertEquals(1, replyMatchers.size());
+		assertEquals("bar",
+				TestUtils.getPropertyValue(replyMatchers.get(0), "patterns", Collection.class).iterator().next());
+	}
+
+	private void verifyFooRequestProducer(AbstractEndpoint endpoint) {
+		List<?> requestMatchers = TestUtils.getPropertyValue(endpoint,
+				"handler.delegate.headerMapper.requestHeaderMatcher.strategies",
+				List.class);
+		assertEquals(1, requestMatchers.size());
+		assertEquals("foo",
+				TestUtils.getPropertyValue(requestMatchers.get(0), "patterns", Collection.class).iterator().next());
 	}
 
 	@Override

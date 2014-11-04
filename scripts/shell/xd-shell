@@ -65,17 +65,17 @@ cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 
-HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop22}"
+HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop25}"
 x=0
 args=("$@")
 for arg in "${args[@]}" ; do
     if [ "$arg" = "--hadoopDistro" ] ; then
-        if [ "${args[x+1]}" = "hadoop22" ] || [ "${args[x+1]}" = "hadoop24" ] || [ "${args[x+1]}" = "cdh5" ] || [ "${args[x+1]}" = "hdp21" ] || [ "${args[x+1]}" = "phd1" ] || [ "${args[x+1]}" = "phd20" ] ; then
+        if [ "${args[x+1]}" = "hadoop25" ] || [ "${args[x+1]}" = "hadoop24" ] || [ "${args[x+1]}" = "cdh5" ] || [ "${args[x+1]}" = "hdp21" ] || [ "${args[x+1]}" = "phd21" ] ; then
           HADOOP_DISTRO="${args[x+1]}"
           unset args[x+1]
           unset args[x]
         else
-          echo "ERROR: '${args[x+1]}' is not a valid Hadoop distro - valid distros are hadoop22, hadoop24, cdh5, hdp21, phd1 and phd20"
+          echo "ERROR: '${args[x+1]}' is not a valid Hadoop distro - valid distros are hadoop24, hadoop25, cdh5, hdp21 and phd21"
           exit
         fi
     fi

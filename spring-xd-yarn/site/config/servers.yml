@@ -22,13 +22,13 @@ spring:
 # Just comment out the ones not needed and make sure the one for your current distro is not commented out. These settings are based
 # on single-node VMs provided for each distro and they might need tweaking for other installation types.
 
-# Hadoop 2.2.x (hadoop22) and Hadoop 2.4.x (hadoop24):
+# Hadoop Hadoop 2.4.x (hadoop24) and Hadoop 2.5.x (hadoop25):
 spring:
     yarn:
         siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*"
         siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*"
 
-# Pivotal HD 2.0 (phd20):
+# Pivotal HD 2.0 and Pivotal HD 2.1 (phd21):
 #spring:
 #    yarn:
 #        siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*"

@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.springframework.xd.dirt.module.support.SingletonModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.SimpleModuleDefinition;
 
 
 /**
@@ -42,10 +43,11 @@ public class SingletonModuleRegistryTests {
 				ModuleType.source};
 		for (ModuleType moduleType : moduleTypes) {
 			ModuleRegistry registry = new SingletonModuleRegistry(moduleType, MODULE_NAME);
-			ModuleDefinition def = registry.findDefinition(MODULE_NAME, moduleType);
+			SimpleModuleDefinition def = (SimpleModuleDefinition)registry.findDefinition(MODULE_NAME, moduleType);
 			assertNotNull(def);
 			assertEquals(MODULE_NAME, def.getName());
 			assertEquals(moduleType, def.getType());
+			assertEquals("",def.getLocation());
 		}
 	}
 

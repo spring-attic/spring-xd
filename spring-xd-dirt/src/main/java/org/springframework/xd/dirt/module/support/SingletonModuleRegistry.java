@@ -114,7 +114,7 @@ public class SingletonModuleRegistry extends ArchiveModuleRegistry {
 
 
 		ModuleDefinition found = ModuleDefinitions.simple(this.moduleName, this.moduleType,
-				moduleConfigProperties.getFilename());
+				this.root);
 
 		holder.add(found);
 	}

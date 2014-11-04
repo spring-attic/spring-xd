@@ -74,21 +74,19 @@ public class SingleNodeIntegrationTestSupport {
 
 	private final ResourceStateVerifier jobResourceStateVerifier;
 
+	private final SingleNodeApplication application;
+
 	private final Map<String, PathChildrenCache> mapChildren = new HashMap<String, PathChildrenCache>();
 
-	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
-		this(application, "classpath:/module");
-	}
 
 	/**
 	 * Constructor useful for testing custom modules
 	 *
 	 * @param application the {@link SingleNodeApplication}
-	 * @param moduleResourceLocation an additional Spring (file: or classpath:) resource location used by the
-	 *        {@link ModuleRegistry}
 	 */
-	public SingleNodeIntegrationTestSupport(SingleNodeApplication application, String moduleResourceLocation) {
+	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
 		Assert.notNull(application, "SingleNodeApplication must not be null");
+		this.application = application;
 		streamDefinitionRepository = application.pluginContext().getBean(StreamDefinitionRepository.class);
 		jobDefinitionRepository = application.pluginContext().getBean(JobDefinitionRepository.class);
 		streamRepository = application.pluginContext().getBean(StreamRepository.class);
@@ -99,12 +97,14 @@ public class SingleNodeIntegrationTestSupport {
 		messageBus = application.pluginContext().getBean(MessageBusSupport.class);
 		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
 		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
-		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
+	}
+
+	public final void addModuleRegistry(ModuleRegistry moduleRegistry) {
 		DelegatingModuleRegistry cmr1 = application.pluginContext().getBean(DelegatingModuleRegistry.class);
-		cmr1.addDelegate(cp);
+		cmr1.addDelegate(moduleRegistry);
 		DelegatingModuleRegistry cmr2 = application.adminContext().getBean(DelegatingModuleRegistry.class);
 		if (cmr1 != cmr2) {
-			cmr2.addDelegate(cp);
+			cmr2.addDelegate(moduleRegistry);
 		}
 	}
 

@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.module;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.springframework.context.ResourceLoaderAware;
@@ -35,10 +34,11 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModuleDefinition;
 
 /**
- * A ModuleRegistry that expects to find Spring Boot archives (either as jar file or exploded directory)
- * at the following location pattern: {@code <registry root>/<module type>/<archive named after the module>}.
+ * A ModuleRegistry that expects to find Spring Boot archives (either as jar file or exploded directory) at the
+ * following location pattern: {@code <registry root>/<module type>/<archive named after the module>}.
  *
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAware {
 
@@ -49,9 +49,9 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 
 	private final static String[] SUFFIXES = new String[] {"", ARCHIVE_AS_FILE_EXTENSION};
 
-	private String root;
+	protected final String root;
 
-	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+	protected ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
 	public ArchiveModuleRegistry(String root) {
 		this.root = StringUtils.trimTrailingCharacter(root, '/');
@@ -61,16 +61,16 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 	public ModuleDefinition findDefinition(String name, ModuleType moduleType) {
 		List<ModuleDefinition> result = new ArrayList<ModuleDefinition>();
 		try {
-			for (String ext : SUFFIXES) {
-				String location = String.format("%s/%s/%s%s", root, moduleType.name(), name, ext);
-				Resource[] resources = resolver.getResources(location);
+			for (String suffix : SUFFIXES) {
+				Resource[] resources = this.getResources(moduleType.name(), name, suffix);
 				for (Resource resource : resources) {
 					fromResource(resource, result);
 				}
 			}
 		}
 		catch (IOException e) {
-			throw new RuntimeIOException(String.format("An error occurred trying to locate module '%s:%s'", moduleType, name), e);
+			throw new RuntimeIOException(String.format("An error occurred trying to locate module '%s:%s'",
+					moduleType, name), e);
 		}
 
 		return result.size() == 1 ? result.iterator().next() : null;
@@ -82,7 +82,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		List<ModuleDefinition> result = new ArrayList<ModuleDefinition>();
 		try {
 			for (String suffix : SUFFIXES) {
-				Resource[] resources = resolver.getResources(String.format("%s/*/%s%s", root, name, suffix));
+				Resource[] resources = this.getResources("*", name, suffix);
 				for (Resource resource : resources) {
 					fromResource(resource, result);
 				}
@@ -98,7 +98,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 	public List<ModuleDefinition> findDefinitions(ModuleType type) {
 		List<ModuleDefinition> result = new ArrayList<ModuleDefinition>();
 		try {
-			Resource[] resources = resolver.getResources(String.format("%s/%s/*", root, type.name()));
+			Resource[] resources = this.getResources(type.name(), "*", "");
 			for (Resource resource : resources) {
 				fromResource(resource, result);
 			}
@@ -113,7 +113,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 	public List<ModuleDefinition> findDefinitions() {
 		List<ModuleDefinition> result = new ArrayList<ModuleDefinition>();
 		try {
-			Resource[] resources = resolver.getResources(String.format("%s/*/*", root));
+			Resource[] resources = this.getResources("*", "*", "");
 			for (Resource resource : resources) {
 				fromResource(resource, result);
 			}
@@ -124,7 +124,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		return result;
 	}
 
-	private void fromResource(Resource resource, List<ModuleDefinition> holder) throws IOException {
+	protected void fromResource(Resource resource, List<ModuleDefinition> holder) throws IOException {
 		if (!resource.exists()) {
 			return;
 		}
@@ -138,13 +138,18 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		String canonicalPath = resource.getFile().getCanonicalPath();
 		int lastSlash = canonicalPath.lastIndexOf('/');
 		String typeAsString = canonicalPath.substring(canonicalPath.lastIndexOf('/', lastSlash - 1) + 1, lastSlash);
-		ModuleDefinition found = ModuleDefinitions.simple(name, ModuleType.valueOf(typeAsString), "file:" + canonicalPath + (isDir ? "/" : ""));
+		ModuleDefinition found = ModuleDefinitions.simple(name, ModuleType.valueOf(typeAsString),
+				"file:" + canonicalPath + (isDir ? "/" : ""));
 		if (holder.contains(found)) {
 			SimpleModuleDefinition one = (SimpleModuleDefinition) found;
 			SimpleModuleDefinition two = (SimpleModuleDefinition) holder.get(holder.indexOf(found));
-			throw new IllegalStateException(String.format("Duplicate module definitions for '%s:%s' found at '%s' and '%s'",
+			throw new IllegalStateException(String.format("Duplicate module definitions for '%s:%s' found at '%s' " +
+							"and" +
+							" " +
+							"'%s'",
 					found.getType(), found.getName(), one.getLocation(), two.getLocation()));
-		} else {
+		}
+		else {
 			holder.add(found);
 		}
 	}
@@ -154,6 +159,12 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		Assert.isTrue(resourceLoader instanceof ResourcePatternResolver,
 				"resourceLoader must be a ResourcePatternResolver");
 		resolver = (ResourcePatternResolver) resourceLoader;
+	}
+
+	protected Resource[] getResources(String moduleType,
+			String moduleName, String suffix) throws IOException {
+		String path = String.format("%s/%s/%s%s", this.root, moduleType, moduleName, suffix);
+		return this.resolver.getResources(path);
 	}
 
 }

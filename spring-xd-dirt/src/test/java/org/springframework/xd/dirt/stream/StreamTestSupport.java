@@ -30,6 +30,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.module.ArchiveModuleRegistry;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
@@ -58,9 +59,8 @@ public class StreamTestSupport {
 		// Explicitly set this to true since RandomConfigurationSupport disables JMX by default.
 		System.setProperty("XD_JMX_ENABLED", "true");
 		adminContext = application.adminContext();
-		integrationTestSupport = new SingleNodeIntegrationTestSupport(application,
-				"classpath:/testmodules/");
-
+		integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
+		integrationTestSupport.addModuleRegistry(new ArchiveModuleRegistry("classpath:/testmodules/"));
 		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);
 	}
 

@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.test.process;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.module.ArchiveModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
@@ -60,7 +61,8 @@ public abstract class AbstractSingleNodeProcessingChain {
 		Assert.hasText(processingChain, "processingChain cannot be null or empty");
 		Assert.hasText(streamName, "streamName cannot be null or empty");
 		Assert.hasText(moduleResourceLocation, "moduleResourceLocation cannot be null or empty");
-		this.integrationSupport = new SingleNodeIntegrationTestSupport(application, moduleResourceLocation);
+		this.integrationSupport = new SingleNodeIntegrationTestSupport(application);
+		this.integrationSupport.addModuleRegistry(new ArchiveModuleRegistry(moduleResourceLocation));
 		String streamDefinition = buildStreamDefinition(processingChain);
 		stream = new StreamDefinition(streamName, streamDefinition);
 

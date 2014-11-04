@@ -50,10 +50,6 @@ describe('Tests for the Module Details Page', function() {
     it('the fourth column is labelled "Description"', function() {
       expect(element(by.css('#xd-content table thead th:nth-child(4)')).getText()).toEqual('Description');
     });
-    it('the Definition File should be populated', function() {
-      expect(element(by.css('#module-definition-file')).isPresent()).toBe(true);
-      expect(element(by.css('#module-definition-file')).getText()).not.toEqual('');
-    });
     it('if the user clicks the "back" button, the module list page should be loaded', function() {
       var backButton = element(by.css('#back-button'));
       expect(backButton.isPresent()).toBe(true);

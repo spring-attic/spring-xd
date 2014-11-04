@@ -40,9 +40,11 @@ define([], function () {
                 var arrayLength = result.options.length;
                 for (var i = 0; i < arrayLength; i++) {
                   var option = result.options[i];
+                  var optionValue = option.defaultValue ? option.defaultValue : '';
+
                   $scope.jobDefinition.parameters.push({
                     name: option.name,
-                    value: option.defaultValue ? option.defaultValue : '',
+                    value: optionValue,
                     type: option.type,
                     description: option.description
                   });

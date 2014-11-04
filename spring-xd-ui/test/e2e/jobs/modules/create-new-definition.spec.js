@@ -21,13 +21,6 @@
  */
 describe('Tests for creating a new Job Definition from a Module', function() {
 
-   beforeEach(function() {
-     browser.ignoreSynchronization = true;
-   });
-   afterEach(function() {
-     browser.ignoreSynchronization = false;
-  });
-
   describe('When I navigate to the Module Create Definition URL for the "filejdbc" module - "#/jobs/modules/filejdbc/create-definition"', function() {
 
     it('The page title should be "Module Details"', function() {
@@ -41,7 +34,8 @@ describe('Tests for creating a new Job Definition from a Module', function() {
       expect(formGroup.getAttribute('class')).toMatch('has-warning');
     });
     it('When entering a "Definition Name" input field should not be in error state', function() {
-      $('#definitionName').sendKeys('hello');
+      element(by.model('jobDefinition.name')).sendKeys('hello');
+
       var formGroup = $('#definition-name-form-group');
       expect(formGroup.getAttribute('class')).not.toMatch('has-feedback');
       expect(formGroup.getAttribute('class')).not.toMatch('has-warning');
@@ -64,9 +58,17 @@ describe('Tests for creating a new Job Definition from a Module', function() {
       expect(passwordField.getAttribute('type')).toMatch('password');
     });
     it('The "Restartable" field should be of type "checkbox"', function() {
-        var passwordField = $('#restartable');
-        expect(passwordField.getAttribute('type')).toMatch('checkbox');
-      });
+      var passwordField = $('#restartable');
+      expect(passwordField.getAttribute('type')).toMatch('checkbox');
+    });
+    it('The "MakeUnique" field should be of type "checkbox"', function() {
+      var passwordField = $('#makeUnique');
+      expect(passwordField.getAttribute('type')).toMatch('checkbox');
+    });
+    it('The "MakeUnique" field should be checked', function() {
+      var passwordField = $('#makeUnique');
+      expect(passwordField.isSelected()).toBeTruthy();
+    });
     it('if the user clicks the "back" button, the module list page should be loaded', function() {
       var backButton = element(by.css('#back-button'));
       expect(backButton.isPresent()).toBe(true);

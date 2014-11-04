@@ -172,6 +172,7 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		xdJobRepository.deleteAll();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetBatchJobs() throws Exception {
 		mockMvc.perform(

@@ -32,10 +32,10 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.xd.rest.domain.DetailedContainerResource;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
 import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
-import org.springframework.xd.rest.domain.DetailedContainerResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.domain.XDRuntime;
 import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
@@ -51,14 +51,15 @@ import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
  * <li>Resets a {@link RestTemplate}'s message converters list to have json support come <em>before</em> xml.</li>
  * <li>Force injects JAXBContexts that know about our particular classes</li>
  * </ol>
- * 
+ *
  * <p>
  * The second item is necessary when marshalling (on the server) instances of <i>e.g.</i> {@link PagedResources} because
  * of type erasure. This hack can be worked around when un-marshalling (on the client) with use of constructs like
  * {@link org.springframework.xd.rest.domain.StreamDefinitionResource.Page}.
  * </p>
- * 
+ *
  * @author Eric Bottard
+ * @author Gary Russell
  */
 public class RestTemplateMessageConverterUtil {
 
@@ -89,7 +90,6 @@ public class RestTemplateMessageConverterUtil {
 	/**
 	 * Install message converters we're interested in, with json coming before xml.
 	 */
-	@SuppressWarnings("deprecation")
 	public static List<HttpMessageConverter<?>> installMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		messageConverters.add(new AllEncompassingFormHttpMessageConverter());
 		if (jackson2Present) {
@@ -97,7 +97,7 @@ public class RestTemplateMessageConverterUtil {
 		}
 		else if (jacksonPresent) {
 			// avoiding import of MappingJacksonHttpMessageConverter to prevent deprecation warning
-			messageConverters.add(new org.springframework.http.converter.json.MappingJacksonHttpMessageConverter());
+			messageConverters.add(new MappingJackson2HttpMessageConverter());
 		}
 		if (jaxb2Present) {
 			Jaxb2RootElementHttpMessageConverter jaxbConverter = new Jaxb2RootElementHttpMessageConverter();

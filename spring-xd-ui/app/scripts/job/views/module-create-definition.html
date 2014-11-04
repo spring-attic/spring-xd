@@ -3,8 +3,8 @@
 	<form name="createDefinitionForm" class="form-horizontal" role="form" ng-submit="submitJobDefinition()" novalidate>
 		<fieldset id="commonDefinitionParameters">
 			<div class="form-group" id="definition-name-form-group" ng-class="createDefinitionForm.definitionName.$invalid ? 'has-warning has-feedback' : ''">
-				<label for="definitionName" class="col-sm-2 control-label">Definition Name</label>
-				<div class="col-sm-10">
+				<label for="definitionName" class="col-sm-3 control-label">Definition Name</label>
+				<div class="col-sm-9">
 					<input type="text" id="definitionName" name="definitionName" autofocus
 					       required not-the-same-as="{{moduleDetails.name}}"
 					       class="form-control" placeholder="Enter a definition name" ng-model="jobDefinition.name">
@@ -13,7 +13,7 @@
 				</div>
 			</div>
 			<div class="form-group">
-				<div class="col-sm-offset-2 col-sm-10">
+				<div class="col-sm-offset-3 col-sm-9">
 					<div class="checkbox">
 						<label><input type="checkbox" ng-model="jobDefinition.deploy" name="deploy"> Deploy created definition</label>
 					</div>
@@ -23,21 +23,21 @@
 		<fieldset id="jobParameters">
 			<legend>Parameters</legend>
 			<div class="form-group" ng-repeat="definitionParam in jobDefinition.parameters" ng-if="jobDefinition.parameters.length">
-				<label for="{{definitionParam.name}}" class="col-sm-2 control-label">{{definitionParam.name | capitalize}}</label>
-				<div class="col-sm-10" ng-if="definitionParam.type !== 'Password' && definitionParam.type !== 'boolean'">
+				<label for="{{definitionParam.name}}" class="col-sm-3 control-label">{{definitionParam.name | camelCaseToHuman}}</label>
+				<div class="col-sm-9" ng-if="definitionParam.type !== 'Password' && definitionParam.type !== 'boolean'">
 					<input type="text" id="{{definitionParam.name}}"
 						name="{{definitionParam.name}}" class="form-control" placeholder="" ng-model="definitionParam.value">
 					<p class="help-block">{{definitionParam.description | capitalize}}</p>
 				</div>
-				<div class="col-sm-10" ng-if="definitionParam.type === 'Password'">
+				<div class="col-sm-9" ng-if="definitionParam.type === 'Password'">
 					<input type="password" id="{{definitionParam.name}}"
 						name="{{definitionParam.name}}" class="form-control" placeholder="" ng-model="definitionParam.value">
 					<p class="help-block">{{definitionParam.description | capitalize}}</p>
 				</div>
-				<div class="col-sm-10" ng-if="definitionParam.type === 'boolean'">
+				<div class="col-sm-9" ng-if="definitionParam.type === 'boolean'">
 				<div class="checkbox">
 					<label>
-						<input type="checkbox" id="{{definitionParam.name}}" ng-true-value="true" ng-false-value="false"
+						<input type="checkbox" id="{{definitionParam.name}}" ng-true-value="'true'" ng-false-value="'false'"
 							name="{{definitionParam.name}}" ng-model="definitionParam.value">
 						{{definitionParam.description | capitalize}}
 					</label>

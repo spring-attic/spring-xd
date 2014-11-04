@@ -29,5 +29,13 @@ define(['angular'], function(angular) {
         }
         return input;
       };
+    })
+    .filter('camelCaseToHuman', function() {
+      return function(input) {
+        if (input) {
+          return input.charAt(0).toUpperCase() + input.substr(1).replace(/[A-Z]/g, ' $&');
+        }
+        return input;
+      };
     });
 });

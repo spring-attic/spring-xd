@@ -69,18 +69,20 @@ task copyXDShellInstall(type: Copy, dependsOn: ["copyXDInstall", ":spring-xd-she
 task copyHadoopLibs(dependsOn: [
 	":spring-xd-hadoop:hadoop22:copyToLib",
 	":spring-xd-hadoop:hadoop24:copyToLib",
+	":spring-xd-hadoop:hadoop25:copyToLib",
 	":spring-xd-hadoop:cdh5:copyToLib",
 	":spring-xd-hadoop:hdp21:copyToLib",
 	":spring-xd-hadoop:phd1:copyToLib",
-	":spring-xd-hadoop:phd20:copyToLib"
+	":spring-xd-hadoop:phd21:copyToLib"
 ]) << {
 	[
-		'hadoop24',
 		'hadoop22',
+		'hadoop24',
+		'hadoop25',
 		'cdh5',
 		'hdp21',
 		'phd1',
-		'phd20'
+		'phd21'
 	].each { distro ->
 		copy {
 			from "$rootDir/spring-xd-hadoop/$distro/build/lib"

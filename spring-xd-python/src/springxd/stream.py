@@ -53,13 +53,24 @@ class Processor:
                     self.send(func(data))
             except EOFError:
                 break
+            except KeyboardInterrupt:
+                break
+            
 
+class Sink(Processor):
+    '''
+    Run the I/O loop with a user-defined function
+    '''
+    def start(self, func):
+        while True:
             try:
-                data = raw_input()
-                if data:
-                    self.send(func(data))
+                input = raw_input()
+                if input:
+                    data = self.decode(input)
+                    func(data)
+            except EOFError:
+                break
             except EOFError:
                 break
             except KeyboardInterrupt:
                 break
-            

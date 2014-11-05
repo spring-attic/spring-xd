@@ -5,5 +5,5 @@ services:
 env:
   - TERM=dumb
 script:
-  - ./gradlew clean build -PtestLoggingStarted=true
+  - travis_wait ./gradlew clean build -PtestLoggingStarted=true
 

@@ -51,7 +51,7 @@ define([], function () {
                 }
                 $scope.moduleDetails = result;
               }, function () {
-                utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+                utils.growl.error('Error fetching data. Is the XD server running?');
               });
         $scope.closeCreateDefinition = function () {
             utils.$log.info('Closing Job Definition Creation Window');
@@ -65,10 +65,10 @@ define([], function () {
             utils.addBusyPromise(createDefinitionPromise);
             createDefinitionPromise.then(
                     function () {
-                      utils.growl.addSuccessMessage('The Definition was created.');
+                      utils.growl.success('The Definition was created.');
                       $state.go('home.jobs.tabs.modules');
                     }, function (error) {
-                      utils.growl.addErrorMessage(error.data[0].message);
+                      utils.growl.error(error.data[0].message);
                     });
           };
         $scope.$watch('jobDefinition', function() {

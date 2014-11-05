@@ -33,7 +33,7 @@ define([], function () {
             utils.$log.info(result);
             var jobDefinition = result.data;
             if (!jobDefinition) {
-              utils.growl.addErrorMessage('No valid job definition returned for definition name ' + $scope.definitionName, jobDefinition);
+              utils.growl.error('No valid job definition returned for definition name ' + $scope.definitionName, jobDefinition);
               return;
             }
             var moduleName = utils.getModuleNameFromJobDefinition(jobDefinition.definition);
@@ -44,7 +44,7 @@ define([], function () {
               jobModuleCount: ''
             };
           },function (error) {
-            utils.growl.addErrorMessage('Error fetching job definition. ' + error.data[0].message);
+            utils.growl.error('Error fetching job definition. ' + error.data[0].message);
           });
       });
       $scope.cancelDefinitionDeploy = function () {
@@ -69,11 +69,11 @@ define([], function () {
 
         jobDefinitionService.deploy(definitionDeployRequest.jobDefinition, properties).$promise.then(
             function () {
-              utils.growl.addSuccessMessage('Deployment Request Sent.');
+              utils.growl.success('Deployment Request Sent.');
               $state.go('home.jobs.tabs.definitions');
             },
             function (error) {
-              utils.growl.addErrorMessage('Error Deploying Job. ' + error.data[0].message);
+              utils.growl.error('Error Deploying Job. ' + error.data[0].message);
             }
           );
       };

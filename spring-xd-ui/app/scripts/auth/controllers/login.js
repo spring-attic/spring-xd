@@ -27,7 +27,7 @@ define([], function () {
           $scope.login = function() {
             user.isAuthenticated = true;
             user.username = $scope.loginFormData.name;
-            utils.growl.addSuccessMessage('user ' + user.username + ' logged in.');
+            utils.growl.success('user ' + user.username + ' logged in.');
             $state.go('home.jobs.tabs.definitions');
           };
         }];

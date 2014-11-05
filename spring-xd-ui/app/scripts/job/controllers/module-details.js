@@ -33,7 +33,7 @@ define([], function () {
             function (result) {
                 $scope.moduleDetails = result;
               }, function (error) {
-                utils.growl.addErrorMessage('Error fetching module details. ' + error.data[0].message);
+                utils.growl.error('Error fetching module details. ' + error.data[0].message);
               }
             );
         $scope.closeModuleDetails = function () {

@@ -25,7 +25,7 @@ define([], function () {
           function ($scope, user, utils, $state) {
       user.isAuthenticated = false;
       user.username = '';
-      utils.growl.addSuccessMessage('user ' + user.username + ' logged out.');
+      utils.growl.success('user ' + user.username + ' logged out.');
       $state.go('login');
     }];
 });

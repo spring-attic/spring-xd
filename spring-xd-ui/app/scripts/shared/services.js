@@ -26,7 +26,6 @@ define(['angular', 'xregexp'], function (angular) {
       .factory('XDUtils', function ($log, growl, $timeout, $q, $rootScope) {
 
         var moduleNameRegex = new XRegExp('[\\p{N}|\\p{L}|\\p{Po}]*(?=[\\s]*--)', 'i');
-
         return {
           $log: $log,
           growl: growl,

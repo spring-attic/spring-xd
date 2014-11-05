@@ -259,12 +259,12 @@ define(['angular'], function (angular) {
               launch: { method: 'POST' }
             }).launch().$promise.then(
                 function () {
-                  growl.addSuccessMessage('Job ' + jobName + ' launched.');
+                  growl.success('Job ' + jobName + ' launched.');
                 },
                 function (data) {
                   console.error(data);
-                  growl.addErrorMessage('Yikes, something bad happened while launching job ' + jobName);
-                  growl.addErrorMessage(data.data[0].message);
+                  growl.error('Error while launching job ' + jobName);
+                  growl.error(data.data[0].message);
                 }
             );
           }
@@ -283,8 +283,8 @@ define(['angular'], function (angular) {
                 },
                 function (data) {
                   console.error(data);
-                  growl.addErrorMessage('Yikes, something bad happened while deploying scheduler stream');
-                  growl.addErrorMessage(data.data[0].message);
+                  growl.error('Error while deploying scheduler stream');
+                  growl.error(data.data[0].message);
                 }
             );
           }

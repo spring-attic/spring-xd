@@ -43,7 +43,7 @@ define(['model/pageable'], function (Pageable) {
             $scope.pageable.total = result.page.totalElements;
             utils.$log.info('$scope.pageable', $scope.pageable);
           }, function () {
-            utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+            utils.growl.error('Error fetching data. Is the XD server running?');
           });
     }
     $scope.viewJobExecutionDetails = function (jobExecution) {
@@ -55,14 +55,14 @@ define(['model/pageable'], function (Pageable) {
       jobExecutions.restart(job).$promise.then(
           function (result) {
             utils.$log.info(result);
-            utils.growl.addSuccessMessage('Job was relaunched.');
+            utils.growl.success('Job was relaunched.');
             loadJobExecutions($scope.pageable);
           }, function (error) {
             if (error.data[0].logref === 'NoSuchBatchJobException') {
-              utils.growl.addErrorMessage('The BatchJob ' + job.name + ' is currently not deployed.');
+              utils.growl.error('The BatchJob ' + job.name + ' is currently not deployed.');
             }
             else {
-              utils.growl.addErrorMessage(error.data[0].message);
+              utils.growl.error(error.data[0].message);
             }
           });
     };
@@ -71,10 +71,10 @@ define(['model/pageable'], function (Pageable) {
       jobExecutions.stop(job).$promise.then(
           function (result) {
             utils.$log.info(result);
-            utils.growl.addSuccessMessage('Stop request sent.');
+            utils.growl.success('Stop request sent.');
             loadJobExecutions($scope.pageable);
           }, function (error) {
-            utils.growl.addErrorMessage(error.data[0].message);
+            utils.growl.error(error.data[0].message);
           });
     };
     loadJobExecutions($scope.pageable);

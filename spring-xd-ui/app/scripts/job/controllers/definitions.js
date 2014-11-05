@@ -63,10 +63,10 @@ define(['model/pageable'], function (Pageable) {
         jobDefinitionService.undeploy(jobDefinition).$promise.then(
             function (data) {
               console.log(data);
-              utils.growl.addSuccessMessage('Undeployment Request Sent.');
+              utils.growl.success('Undeployment Request Sent.');
             },
             function () {
-              utils.growl.addErrorMessage('Error Undeploying Job.');
+              utils.growl.error('Error Undeploying Job.');
             }
         );
       };
@@ -78,12 +78,12 @@ define(['model/pageable'], function (Pageable) {
         utils.$log.info(jobDefinitionService);
         jobDefinitionService.destroy(jobDefinition).$promise.then(
             function () {
-              utils.growl.addSuccessMessage('Destroy Request Sent.');
+              utils.growl.success('Destroy Request Sent.');
               jobDefinition.inactive = true;
               $scope.closeModal();
             },
             function () {
-              utils.growl.addErrorMessage('Error Destroying Job.');
+              utils.growl.error('Error Destroying Job.');
               $scope.closeModal();
             }
         );

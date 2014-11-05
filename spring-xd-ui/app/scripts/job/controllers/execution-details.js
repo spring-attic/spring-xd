@@ -40,7 +40,7 @@ define([], function () {
               $scope.executionId = $stateParams.executionId;
             }
             else {
-              utils.growl.addErrorMessage(error);
+              utils.growl.error(error);
             }
           }
         );

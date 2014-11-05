@@ -62,10 +62,10 @@ define(['model/pageable'], function (Pageable) {
         utils.$log.info(streamService);
         streamService.undeploy(streamDefinition).$promise.then(
             function () {
-              utils.growl.addSuccessMessage('Undeployment Request Sent.');
+              utils.growl.success('Undeployment Request Sent.');
             },
             function () {
-              utils.growl.addErrorMessage('Error Undeploying Stream.');
+              utils.growl.error('Error Undeploying Stream.');
             }
         );
       };
@@ -78,12 +78,12 @@ define(['model/pageable'], function (Pageable) {
 
         streamService.destroy(streamDefinition).$promise.then(
             function () {
-              utils.growl.addSuccessMessage('Destroy Request Sent.');
+              utils.growl.success('Destroy Request Sent.');
               streamDefinition.inactive = true;
               $scope.closeModal();
             },
             function () {
-              utils.growl.addErrorMessage('Error Destroying Stream.');
+              utils.growl.error('Error Destroying Stream.');
               $scope.closeModal();
             }
         );

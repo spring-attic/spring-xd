@@ -27,7 +27,7 @@ define(['angular'], function (angular) {
         return {
           responseError: function (rejection) {
             if (rejection.status === 0) {
-              XDUtils.growl.addErrorMessage('Looks like the XD server is down.');
+              XDUtils.growl.error('Looks like the XD server is down.');
             }
             XDUtils.$log.error('Response Error ' + rejection.status, rejection);
             return XDUtils.$q.reject(rejection);

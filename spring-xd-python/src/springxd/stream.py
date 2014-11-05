@@ -1,5 +1,9 @@
 __author__ = 'David Turanski'
 import sys
+'''
+Python 2 or 3 agnostic input function
+'''
+receive_input = input  if sys.version_info >= (3,0) else raw_input;
 
 class Encoders:
     CRLF, LF = range(2)
@@ -12,7 +16,7 @@ standard nor portable.
 '''
 class Processor:
 
-    def __init__(self, encoder = Encoders.LF):
+    def __init__(self, encoder = Encoders.CRLF):
         self.encoder = encoder
 
     '''
@@ -47,19 +51,30 @@ class Processor:
     def start(self, func):
         while True:
             try:
-                input = raw_input()
+                input = receive_input()
                 if input:
                     data = self.decode(input)
-                    self.send(func(data))
-            except EOFError:
-                break
-
-            try:
-                data = raw_input()
-                if data:
                     self.send(func(data))
             except EOFError:
                 break
             except KeyboardInterrupt:
                 break
             
+
+class Sink(Processor):
+    '''
+    Run the I/O loop with a user-defined function
+    '''
+    def start(self, func):
+        while True:
+            try:
+                input = receive_input()
+                if input:
+                    data = self.decode(input)
+                    func(data)
+            except EOFError:
+                break
+            except EOFError:
+                break
+            except KeyboardInterrupt:
+                break

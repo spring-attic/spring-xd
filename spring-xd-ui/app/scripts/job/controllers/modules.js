@@ -41,7 +41,7 @@ define(['model/pageable'], function (Pageable) {
             $scope.pageable.items = result.content;
             $scope.pageable.total = result.page.totalElements;
           }, function (result) {
-            utils.growl.addErrorMessage(result.data[0].message);
+            utils.growl.error(result.data[0].message);
           }
         );
       }

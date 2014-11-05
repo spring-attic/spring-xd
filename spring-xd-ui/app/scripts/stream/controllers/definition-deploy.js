@@ -34,7 +34,7 @@ define([], function () {
             utils.$log.info(result);
             var streamDefinition = result.data;
             if (!streamDefinition) {
-              utils.growl.addErrorMessage('No valid stream definition returned for definition name ' + $scope.definitionName, streamDefinition);
+              utils.growl.error('No valid stream definition returned for definition name ' + $scope.definitionName, streamDefinition);
               return;
             }
             $scope.definitionDeployRequest = {
@@ -42,7 +42,7 @@ define([], function () {
               deploymentProperties: ''
             };
           },function (error) {
-            utils.growl.addErrorMessage('Error fetching stream definition. ' + error.data[0].message);
+            utils.growl.error('Error fetching stream definition. ' + error.data[0].message);
           });
       });
       $scope.cancelDefinitionDeploy = function () {
@@ -57,11 +57,11 @@ define([], function () {
 
         streamService.deploy(definitionDeployRequest.streamDefinition, properties).$promise.then(
             function () {
-              utils.growl.addSuccessMessage('Deployment Request Sent.');
+              utils.growl.success('Deployment Request Sent.');
               $state.go('home.streams.tabs.definitions');
             },
             function (error) {
-              utils.growl.addErrorMessage('Error Deploying Stream. ' + error.data[0].message);
+              utils.growl.error('Error Deploying Stream. ' + error.data[0].message);
             }
           );
       };

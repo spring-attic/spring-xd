@@ -43,7 +43,7 @@ define([], function () {
               $scope.stepExecutionProgress = result;
             },
             function (error) {
-              utils.growl.addErrorMessage(error);
+              utils.growl.error(error);
             });
       };
       $scope.closeStepExecutionDetails = function (stepExecutionDetails) {
@@ -67,7 +67,7 @@ define([], function () {
                 $scope.stepExecutionId = $stateParams.stepExecutionId;
               }
               else {
-                utils.growl.addErrorMessage(error);
+                utils.growl.error(error);
               }
             }
         );

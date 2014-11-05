@@ -20,7 +20,7 @@ require.config({
     highlightjs: '/base/app/lib/highlightjs/highlight.pack',
     uiRouter: '/base/app/lib/angular-ui-router/angular-ui-router',
     cgBusy: '/base/app/lib/angular-busy/angular-busy',
-    ngGrowl: '/base/app/lib/angular-growl/angular-growl',
+    ngGrowl: '/base/app/lib/angular-growl-v2/angular-growl',
     ngAnimate: '/base/app/lib/angular-animate/angular-animate',
     xregexp: '/base/app/lib/xregexp/xregexp-all',
     moment: '/base/app/lib/moment/moment',

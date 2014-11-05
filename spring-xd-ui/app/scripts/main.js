@@ -29,7 +29,7 @@ require.config({
     ngResource: '../lib/angular-resource/angular-resource',
     uiRouter: '../lib/angular-ui-router/angular-ui-router',
     cgBusy: '../lib/angular-busy/angular-busy',
-    ngGrowl: '../lib/angular-growl/angular-growl',
+    ngGrowl: '../lib/angular-growl-v2/angular-growl',
     ngAnimate: '../lib/angular-animate/angular-animate',
     angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
     highlightjs: '../lib/highlightjs/highlight.pack',
@@ -95,12 +95,17 @@ define([
   function updateGrowl() {
     var bodyScrollTop = $('body').scrollTop();
     var navHeight = $('nav').outerHeight();
+    var marginToParent = 10;
+
+    if ($(window).width() <= 768) {
+      marginToParent = 0;
+    }
 
     if (bodyScrollTop > navHeight) {
-      $('.growl').css('top', 10);
+      $('.growl-container').css('top', marginToParent);
     } else if (bodyScrollTop >= 0) {
       var distance = navHeight - bodyScrollTop;
-      $('.growl').css('top', distance + 10);
+      $('.growl-container').css('top', distance + marginToParent);
     }
   }
 });

@@ -43,7 +43,7 @@ define(['model/pageable'], function (Pageable) {
             $scope.pageable.total = data.page.totalElements;
           },
           function () {
-            utils.growl.addErrorMessage('Error fetching data. Is the XD server running?');
+            utils.growl.error('Error fetching data. Is the XD server running?');
           }
         );
       }

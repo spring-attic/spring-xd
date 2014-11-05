@@ -35,6 +35,12 @@ task copyBatchInstall(type: Copy, dependsOn: [":spring-xd-batch:installApp", "co
 	}
 }
 
+task copyPythonInstall(type: Copy) {
+	from "$rootDir/spring-xd-python"
+	into "$buildDir/dist/spring-xd/python"
+	exclude "**/*.pyc"
+}
+
 import org.apache.tools.ant.filters.ReplaceTokens
 
 task copyZookeeperInstall(type: Copy) {
@@ -102,7 +108,7 @@ task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-x
 	exclude "**/lib/log4j-*.jar"
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall", "copyZookeeperInstall"]) {
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall", "copyZookeeperInstall", "copyPythonInstall"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"

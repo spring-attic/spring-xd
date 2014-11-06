@@ -53,12 +53,12 @@ define(['model/pageable'], function (Pageable) {
       };
       $scope.launchJob = function (item) {
         utils.$log.info('Launching Job: ' + item.name);
-        $state.go('home.jobs.tabs.deployments.launch', {jobName: item.name});
+        $state.go('home.jobs.deploymentsLaunch', {jobName: item.name});
       };
       // schedule job
       $scope.scheduleJob = function (item) {
         utils.$log.info('Scheduling Job: ' + item.name);
-        $state.go('home.jobs.tabs.deployments.schedule', {jobName: item.name});
+        $state.go('home.jobs.deploymentsSchedule', {jobName: item.name});
       };
 
       loadJobDeployments($scope.pageable);

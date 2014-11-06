@@ -97,6 +97,7 @@ import scala.collection.Seq;
  * </table>
  *
  * @author Eric Bottard
+ * @author Marius Bogoevici
  */
 public class KafkaMessageBus extends MessageBusSupport {
 
@@ -191,6 +192,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 			this.headersToMap = STANDARD_HEADERS;
 		}
 
+	}
+
+	public void setReplicationFactor(int replicationFactor) {
+		this.replicationFactor = replicationFactor;
 	}
 
 	@Override

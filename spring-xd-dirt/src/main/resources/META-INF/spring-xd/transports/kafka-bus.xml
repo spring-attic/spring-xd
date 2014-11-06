@@ -10,6 +10,7 @@
 		<constructor-arg value="${xd.messagebus.kafka.zkAddress}"/>
 		<constructor-arg ref="codec"/>
 		<constructor-arg value="#{new String[0]}"/>
+		<property name="replicationFactor" value="${xd.messagebus.kafka.replicationFactor}"/>
 	</bean>
 
 </beans>

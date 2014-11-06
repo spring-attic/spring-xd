@@ -168,13 +168,13 @@ define(['./app'], function (xdAdmin) {
       templateUrl : jobTemplatesPath + '/stepexecution-progress.html',
       controller: 'StepExecutionProgressController'
     })
-    .state('home.jobs.tabs.deployments.launch', {
-      url : '/launch/{jobName}',
+    .state('home.jobs.deploymentsLaunch', {
+      url : 'jobs/deployments/launch/{jobName}',
       templateUrl : jobTemplatesPath + '/launch.html',
       controller: 'JobLaunchController'
     })
-    .state('home.jobs.tabs.deployments.schedule', {
-      url : '/schedule/{jobName}',
+    .state('home.jobs.deploymentsSchedule', {
+      url : 'schedule/{jobName}',
       templateUrl : jobTemplatesPath + '/schedule.html',
       controller: 'JobScheduleController'
     })

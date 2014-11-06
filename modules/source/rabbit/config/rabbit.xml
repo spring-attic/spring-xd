@@ -27,17 +27,17 @@
 	<bean id="rejectAndDontRequeueRecoverer" class="org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer"/>
 
 	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
-    	<property name="backOffPolicy">
+		<property name="backOffPolicy">
         	<bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
             	<property name="initialInterval" value="${initialInterval}" />
             	<property name="maxInterval" value="${maxInterval}" />
         	</bean>     
 		</property>
 		<property name="retryPolicy">
-			<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
+				<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
 				<property name="maxAttempts" value="${maxAttempts}" />
 			</bean>     
-    	</property>
+		</property>
 	</bean>  
 
 	<bean id="listenerContainer" class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">

@@ -56,7 +56,7 @@
 	<int:channel id="stepExecutionReplies.input" />
 
 	<int:header-enricher input-channel="stepExecutionReplies.input" output-channel="resultAggregationChannel">
-		<int:reply-channel expression="@replyChannelRegistry.channelNameToChannel(headers.xdReplyChannel)" />
+		<int:reply-channel expression="@replyChannelRegistry.channelNameToChannel(headers.xdReplyChannel)" overwrite="true" />
 	</int:header-enricher>
 
 	<int:channel id="resultAggregationChannel" />

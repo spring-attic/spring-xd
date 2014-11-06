@@ -12,7 +12,7 @@ standard nor portable.
 '''
 class Processor:
 
-    def __init__(self, encoder = Encoders.LF):
+    def __init__(self, encoder = Encoders.CRLF):
         self.encoder = encoder
 
     '''

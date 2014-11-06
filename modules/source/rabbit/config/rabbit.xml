@@ -15,7 +15,30 @@
 		channel="output"
 		listener-container="listenerContainer"
 		message-converter="messageConverter" 
-		mapped-request-headers="${mappedRequestHeaders}"/>
+		mapped-request-headers="${mappedRequestHeaders}"
+	/>
+	
+
+	<bean id="retryInterceptor" class="org.springframework.amqp.rabbit.config.StatelessRetryOperationsInterceptorFactoryBean">
+    	<property name="messageRecoverer" ref="rejectAndDontRequeueRecoverer"/>
+    	<property name="retryOperations" ref="retryTemplate" />
+	</bean> 
+
+	<bean id="rejectAndDontRequeueRecoverer" class="org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer"/>
+
+	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
+    	<property name="backOffPolicy">
+        	<bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+            	<property name="initialInterval" value="${initialInterval}" />
+            	<property name="maxInterval" value="${maxInterval}" />
+        	</bean>     
+		</property>
+		<property name="retryPolicy">
+			<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
+				<property name="maxAttempts" value="${maxAttempts}" />
+			</bean>     
+    	</property>
+	</bean>  
 
 	<bean id="listenerContainer" class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
 		<property name="connectionFactory" ref="rabbitConnectionFactory" />
@@ -26,12 +49,31 @@
 		<property name="defaultRequeueRejected" value="${requeue}" />
 		<property name="maxConcurrentConsumers" value="${maxConcurrency}" />
 		<property name="prefetchCount" value="${prefetch}" />
-		<property name="queueNames" value="${queues}" />
+		<property name="queues" ref="${queues}" />
 		<property name="txSize" value="${txSize}" />
+		<property name="adviceChain" ref="retryInterceptor"/>
 	</bean>
+	
+	<rabbit:queue name="${queues}" declared-by="containerAdmin">
+    	<rabbit:queue-arguments> 
+        	<entry key="x-dead-letter-exchange" value="dlx"/>
+        	<entry key="x-message-ttl" value="${xMessageTtl}" value-type="java.lang.Long"/>
+    	</rabbit:queue-arguments>
+	</rabbit:queue>
+
+	<rabbit:queue name="${dlgQueueName}" declared-by="containerAdmin"/>
+
+	<rabbit:direct-exchange name="dlx" declared-by="containerAdmin">
+    	<rabbit:bindings>
+        	<rabbit:binding key="${queues}" queue="${dlgQueueName}"/>
+    	</rabbit:bindings>
+	</rabbit:direct-exchange>
+
+	<rabbit:admin id="containerAdmin" connection-factory="rabbitConnectionFactory"
+		auto-startup="true" />
 
 	<bean id="messageConverter" class="${converterClass}" />
-
+	
 	<int:channel id="output" />
 
 	<rabbit:connection-factory id="rabbitConnectionFactory"

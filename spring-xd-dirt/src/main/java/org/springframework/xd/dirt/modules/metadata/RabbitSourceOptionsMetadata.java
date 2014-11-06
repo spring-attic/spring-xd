@@ -28,6 +28,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  *
  * @author Eric Bottard
  * @author Gary Russell
+ * @author David Liu
  */
 @Mixin({ RabbitConnectionMixin.class, MappedRequestHeadersMixin.Amqp.class })
 public class RabbitSourceOptionsMetadata {
@@ -47,6 +48,16 @@ public class RabbitSourceOptionsMetadata {
 	private int prefetch = 1;
 
 	private int txSize = 1;
+
+	private int initialInterval = 3000;
+
+	private int maxInterval = 30000;
+
+	private int maxAttempts = 3;
+
+	private Long xMessageTtl = 30000L;
+
+	private String dlgQueueName = "dlg";
 
 	private String converterClass = "org.springframework.amqp.support.converter.SimpleMessageConverter";
 
@@ -132,5 +143,56 @@ public class RabbitSourceOptionsMetadata {
 	public void setConverterClass(String converterClass) {
 		this.converterClass = converterClass;
 	}
+
+
+	public int getInitialInterval() {
+		return initialInterval;
+	}
+
+	@ModuleOption("initial interval of the backOffPolicy")
+	public void setInitialInterval(int initialInterval) {
+		this.initialInterval = initialInterval;
+	}
+
+
+	public int getMaxInterval() {
+		return maxInterval;
+	}
+
+	@ModuleOption("max interval of the backOffPolicy")
+	public void setMaxInterval(int maxInterval) {
+		this.maxInterval = maxInterval;
+	}
+
+
+	public int getMaxAttempts() {
+		return maxAttempts;
+	}
+
+	@ModuleOption("max attempts of the retry")
+	public void setMaxAttempts(int maxAttempts) {
+		this.maxAttempts = maxAttempts;
+	}
+
+
+	public Long getxMessageTtl() {
+		return xMessageTtl;
+	}
+
+	@ModuleOption("message time to live")
+	public void setxMessageTtl(Long xMessageTtl) {
+		this.xMessageTtl = xMessageTtl;
+	}
+
+
+	public String getDlgQueueName() {
+		return dlgQueueName;
+	}
+
+	@ModuleOption("dead message queue name")
+	public void setDlgQueueName(String dlgQueueName) {
+		this.dlgQueueName = dlgQueueName;
+	}
+
 
 }

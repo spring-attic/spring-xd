@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.xd.dirt.module.support.SingletonModuleRegistry;
+import org.springframework.xd.dirt.test.SingletonModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModuleDefinition;

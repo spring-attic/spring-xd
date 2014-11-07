@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module.support;
+package org.springframework.xd.dirt.test;
 
 import java.io.IOException;
 import java.util.List;

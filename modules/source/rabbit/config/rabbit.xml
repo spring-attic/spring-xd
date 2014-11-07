@@ -54,23 +54,22 @@
 		<property name="adviceChain" ref="retryInterceptor"/>
 	</bean>
 	
-	<rabbit:queue name="${queues}" declared-by="containerAdmin">
-    	<rabbit:queue-arguments> 
-        	<entry key="x-dead-letter-exchange" value="dlx"/>
-        	<entry key="x-message-ttl" value="${xMessageTtl}" value-type="java.lang.Long"/>
-    	</rabbit:queue-arguments>
+	<rabbit:admin connection-factory="rabbitConnectionFactory"/>
+	
+	<rabbit:queue name="${queues}">
+		<rabbit:queue-arguments> 
+			<entry key="x-dead-letter-exchange" value="dlx"/>
+			<entry key="x-message-ttl" value="${xMessageTtl}" value-type="long"/>
+		</rabbit:queue-arguments>
 	</rabbit:queue>
 
-	<rabbit:queue name="${dlgQueueName}" declared-by="containerAdmin"/>
+	<rabbit:queue name="${dlgQueueName}"/>
 
-	<rabbit:direct-exchange name="dlx" declared-by="containerAdmin">
-    	<rabbit:bindings>
-        	<rabbit:binding key="${queues}" queue="${dlgQueueName}"/>
-    	</rabbit:bindings>
+	<rabbit:direct-exchange name="dlx">
+		<rabbit:bindings>
+			<rabbit:binding key="${queues}" queue="${dlgQueueName}"/>
+		</rabbit:bindings>
 	</rabbit:direct-exchange>
-
-	<rabbit:admin id="containerAdmin" connection-factory="rabbitConnectionFactory"
-		auto-startup="true" />
 
 	<bean id="messageConverter" class="${converterClass}" />
 	

@@ -55,7 +55,7 @@ public class RabbitSourceOptionsMetadata {
 
 	private int maxAttempts = 3;
 
-	private Long xMessageTtl = 30000L;
+	private long messageTtl = 30000L;
 
 	private String dlgQueueName = "dlg";
 
@@ -175,13 +175,13 @@ public class RabbitSourceOptionsMetadata {
 	}
 
 
-	public Long getxMessageTtl() {
-		return xMessageTtl;
+	public long getxMessageTtl() {
+		return messageTtl;
 	}
 
 	@ModuleOption("message time to live")
-	public void setxMessageTtl(Long xMessageTtl) {
-		this.xMessageTtl = xMessageTtl;
+	public void setxMessageTtl(long messageTtl) {
+		this.messageTtl = messageTtl;
 	}
 
 

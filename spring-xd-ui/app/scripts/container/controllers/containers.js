@@ -23,6 +23,7 @@ define([], function () {
   'use strict';
   return ['$scope', 'ContainerService', 'XDUtils', '$timeout', '$rootScope',
     function ($scope, containerService, utils, $timeout, $rootScope) {
+      $scope.enableMessageRates = $rootScope.enableMessageRates;
       function loadContainers() {
         containerService.getContainers().$promise.then(
             function (result) {
@@ -49,9 +50,11 @@ define([], function () {
             }
         );
       }
+
       function loadContainersWithTimeout() {
         $scope.containerTimeOutPromise = $timeout(loadContainers, $rootScope.pageRefreshTime);
       }
+
       loadContainers();
 
       $scope.$on('$destroy', function () {
@@ -80,6 +83,10 @@ define([], function () {
               $scope.closeModal();
             }
         );
+      };
+      $scope.enableDisableMessageRates = function () {
+        $rootScope.enableMessageRates = !$scope.enableMessageRates;
+        $scope.enableMessageRates = $rootScope.enableMessageRates;
       };
     }];
 });

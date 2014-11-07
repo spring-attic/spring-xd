@@ -41,7 +41,13 @@ public class RichGaugeHandler extends AbstractMetricHandler {
 	public void process(Message<?> message) {
 		if (message != null) {
 			double value = convertToDouble(message.getPayload());
-			this.richGaugeRepository.setValue(computeMetricName(message), value, alpha);
+			String metricName = computeMetricName(message);
+			RichGauge gauge = this.richGaugeRepository.findOne(metricName);
+			if (gauge == null) {
+				gauge = new RichGauge(metricName, 0.0D, this.alpha, 0.0D, 0.0D, 0.0D, 0L);
+			}
+			gauge.set(value);
+			this.richGaugeRepository.save(gauge);
 		}
 	}
 

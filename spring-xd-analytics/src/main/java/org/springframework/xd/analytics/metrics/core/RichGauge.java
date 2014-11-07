@@ -57,17 +57,13 @@ public final class RichGauge implements Metric {
 	}
 
 	public RichGauge(String name, double value) {
-		Assert.notNull(name, "The gauge name cannot be null or empty");
-		this.name = name;
-		this.value = value;
-		average = this.value;
-		min = this.value;
-		max = this.value;
-		alpha = -1.0;
-		count = 1;
+		this(name, value, -1.0D, value, value, value, 1L);
 	}
 
 	public RichGauge(String name, double value, double alpha, double mean, double max, double min, long count) {
+		Assert.notNull(name, "The gauge name cannot be null or empty");
+		Assert.isTrue(alpha == -1 || (alpha > 0.0 && alpha < 1.0),
+				"Smoothing constant must be between 0 and 1, or -1 to use arithmetic mean");
 		this.name = name;
 		this.value = value;
 		this.alpha = alpha;
@@ -130,10 +126,7 @@ public final class RichGauge implements Metric {
 		return alpha;
 	}
 
-	RichGauge set(double value, double alpha) {
-		Assert.isTrue(alpha == -1 || (alpha > 0.0 && alpha < 1.0),
-				"Smoothing constant must be between 0 and 1, or -1 to use arithmetic mean");
-		this.alpha = alpha;
+	public RichGauge set(double value) {
 		if (count == 0) {
 			max = value;
 			min = value;

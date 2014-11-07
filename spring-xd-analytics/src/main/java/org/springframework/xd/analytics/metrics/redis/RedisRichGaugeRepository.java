@@ -66,19 +66,4 @@ public final class RedisRichGaugeRepository extends
 		return serialize(metric);
 	}
 
-	@Override
-	public void setValue(String name, double value, double alpha) {
-		String key = getMetricKey(name);
-		RichGauge g = findOne(name);
-		if (g == null) {
-			g = new RichGauge(name);
-		}
-		MetricUtils.setRichGaugeValue(g, value, alpha);
-		getValueOperations().set(key, serialize(g));
-	}
-
-	@Override
-	public void reset(String name) {
-		getValueOperations().set(getMetricKey(name), ZERO);
-	}
 }

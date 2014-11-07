@@ -33,8 +33,10 @@ public abstract class AbstractRichGaugeRepositoryTests {
 	@Test
 	public void getOrCreateReturnsCorrectInstance() throws Exception {
 		RichGaugeRepository gs = createService();
-		gs.setValue("test", 9.99, -1D);
-		gs.setValue("test", 0.01, -1D);
+		RichGauge original = new RichGauge("test");
+		original.set(9.99);
+		original.set(0.01);
+		gs.save(original);
 
 		RichGauge g = gs.findOne("test");
 		assertEquals("test", g.getName());
@@ -44,29 +46,4 @@ public abstract class AbstractRichGaugeRepositoryTests {
 		assertEquals(0.01, g.getMin(), 1E-6);
 	}
 
-	@Test
-	public void resetExistingGaugeCausesReset() throws Exception {
-		RichGaugeRepository gs = createService();
-		gs.setValue("test", 9.99, -1D);
-		gs.reset("test");
-		RichGauge g = gs.findOne("test");
-		assertEquals(0.0, g.getValue(), 1E-6);
-	}
-
-	@Test
-	public void testExponentialMovingAverage() throws Exception {
-		RichGaugeRepository gs = createService();
-		gs.setValue("test", 71.0, 0.1D);
-		RichGauge g = gs.findOne("test");
-		assertEquals(71.0, g.getAverage(), 1E-6);
-		gs.setValue("test", 70.0, 0.1D);
-		g = gs.findOne("test");
-		assertEquals(71.0, g.getAverage(), 1E-6);
-		gs.setValue("test", 69.0, 0.1D);
-		g = gs.findOne("test");
-		assertEquals(70.9, g.getAverage(), 1E-6);
-		gs.setValue("test", 68.0, 0.1D);
-		g = gs.findOne("test");
-		assertEquals(70.71, g.getAverage(), 1E-6);
-	}
 }

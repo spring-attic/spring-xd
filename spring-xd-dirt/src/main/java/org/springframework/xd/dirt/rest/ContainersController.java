@@ -72,6 +72,9 @@ public class ContainersController {
 	@Value("${management.contextPath:/management}")
 	private String managementContextPath;
 
+	@Value("${xd.messageRateMonitoring.enabled:false}")
+	private boolean enableMessageRates;
+
 	private final static String CONTAINER_HOST_URI_PROTOCOL = "http://";
 
 	private final static String SHUTDOWN_ENDPOINT = "/shutdown";
@@ -98,7 +101,7 @@ public class ContainersController {
 		for (DetailedContainer container : containers) {
 			String containerHost = container.getAttributes().getIp();
 			String containerManagementPort = container.getAttributes().getManagementPort();
-			if (StringUtils.hasText(containerManagementPort)) {
+			if (StringUtils.hasText(containerManagementPort) && enableMessageRates) {
 				Map<String, HashMap<String, Double>> messageRates = new HashMap<String, HashMap<String, Double>>();
 				for (ModuleMetadata moduleMetadata : container.getDeployedModules()) {
 					String moduleName = moduleMetadata.getName();

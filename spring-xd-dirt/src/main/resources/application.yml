@@ -35,6 +35,8 @@ xd:
     groups: ${XD_CONTAINER_GROUPS:}
     host: ${XD_CONTAINER_HOSTNAME:}
     ip: ${XD_CONTAINER_IP:}
+  messageRateMonitoring:
+    enabled: false
   messagebus:
     rabbit:
       default:

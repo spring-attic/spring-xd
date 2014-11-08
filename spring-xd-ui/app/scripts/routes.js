@@ -221,7 +221,7 @@ define(['./app'], function (xdAdmin) {
     $rootScope.authenticationEnabled = false;
     $rootScope.user = userService;
     $rootScope.pageRefreshTime = 5000;
-    $rootScope.enableMessageRates = false;
+    $rootScope.enableMessageRates = true;
 
     $rootScope.$on('$stateChangeStart', function(event, toState) {
         $log.info('Need to authenticate? ' + toState.data.authenticate);

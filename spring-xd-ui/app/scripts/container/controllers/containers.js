@@ -33,7 +33,7 @@ define([], function () {
                   var deployedModules = container.deployedModules;
                   deployedModules.forEach(function (deployedModule) {
                     console.log(deployedModule);
-                    if (container.messageRates[deployedModule.moduleId]) {
+                    if (container.messageRates && container.messageRates[deployedModule.moduleId]) {
                       if (container.messageRates[deployedModule.moduleId].hasOwnProperty('input')) {
                         deployedModule.incomingRate = container.messageRates[deployedModule.moduleId].input.toFixed(5);
                       }

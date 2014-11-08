@@ -281,7 +281,7 @@ xd:
 
 ---
 # Pretty print JSON output
-typeconversion:
- json:
-  prettyPrint: true
+#typeconversion:
+# json:
+#  prettyPrint: true
 ---

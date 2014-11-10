@@ -45,6 +45,7 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.utils.test.TestUtils;
+import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.MessageBuilder;
@@ -212,7 +213,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		endpoint = bindings.get(0).getEndpoint();
 		assertEquals(
 				"'foo.props.0-' + headers['partition']",
-				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
+				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression", SpelExpression.class).getExpressionString());
 		mode = TestUtils.getPropertyValue(endpoint, "handler.delegate.defaultDeliveryMode",
 				MessageDeliveryMode.class);
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, mode);
@@ -346,8 +347,9 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 
 		assertEquals(2, bindings.size());
 		AbstractEndpoint endpoint = bindings.get(1).getEndpoint(); // producer
-		assertEquals("headers['amqp_replyTo']",
-				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression"));
+		assertEquals(
+				"headers['amqp_replyTo']",
+				TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression", SpelExpression.class).getExpressionString());
 		MessageDeliveryMode mode = TestUtils.getPropertyValue(endpoint, "handler.delegate.defaultDeliveryMode",
 				MessageDeliveryMode.class);
 		assertEquals(MessageDeliveryMode.NON_PERSISTENT, mode);
@@ -493,12 +495,12 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 
 	@Override
 	protected String getEndpointRouting(AbstractEndpoint endpoint) {
-		return TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression", String.class);
+		return TestUtils.getPropertyValue(endpoint, "handler.delegate.routingKeyExpression", SpelExpression.class).getExpressionString();
 	}
 
 	@Override
 	protected String getPubSubEndpointRouting(AbstractEndpoint endpoint) {
-		return TestUtils.getPropertyValue(endpoint, "handler.delegate.exchangeNameExpression", String.class);
+		return TestUtils.getPropertyValue(endpoint, "handler.delegate.exchangeNameExpression", SpelExpression.class).getExpressionString();
 	}
 
 	@Override

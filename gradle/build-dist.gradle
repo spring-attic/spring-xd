@@ -98,8 +98,8 @@ task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-x
 	exclude "**/config/modules"
 	exclude "**/lib/hadoop-*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
-		exclude "**/lib/slf4j-log4j12-*.jar"
-		exclude "**/lib/log4j-*.jar"
+	exclude "**/lib/slf4j-log4j12-*.jar"
+	exclude "**/lib/log4j-*.jar"
 }
 
 task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall", "copyZookeeperInstall"]) {
@@ -161,11 +161,17 @@ task distShellZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
         ext.baseDir = "${project.name}-${project.version}-shell";
 
         from("$buildDir/dist/spring-xd/shell") {
-                into "${baseDir}"
+            into "${baseDir}"
+        }
+        from("$buildDir/dist/spring-xd/xd/lib") {
+            into "${baseDir}/lib"
+            include "*.jar"
         }
         from("$rootDir/spring-xd-shell/build/install/spring-xd-shell/lib") {
-                into "${baseDir}/lib"
+            into "${baseDir}/lib"
+            include "spring-data-hadoop-*.jar"
         }
+        // copy hadoop distro jars
         [
                 'hadoop24',
                 'hadoop22',

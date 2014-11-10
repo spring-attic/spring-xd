@@ -290,3 +290,8 @@ xd:
 #  messageRateMonitoring:
 #    enabled: true
 ---
+#Enable collecting message rates from containers that have management port enabled.
+#xd:
+#  messageRateMonitoring:
+#    enabled: true
+---

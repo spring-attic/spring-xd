@@ -20,16 +20,19 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.springframework.xd.test.fixtures.util.FixtureUtils;
+
 /**
  * Support class that represents a tail source.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public class TailSource extends DisposableFileSupport<TailSource> {
 
 	@Override
 	public String toDSL() {
-		return String.format("tail --nativeOptions='-F -n +0' --name=%s", file.getAbsolutePath());
+		return String.format("tail --nativeOptions='-f -n +0' --name=%s",
+				FixtureUtils.handleShellEscapeProcessing(file.getAbsolutePath()));
 	}
 
 	public void appendToFile(String contents) throws IOException {

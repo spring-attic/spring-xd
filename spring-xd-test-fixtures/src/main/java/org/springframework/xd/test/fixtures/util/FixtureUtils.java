@@ -34,4 +34,20 @@ public class FixtureUtils {
 		return (StringUtils.hasLength(label)) ? label + ":" : "";
 	}
 
+	/**
+	 * Fixes file paths in Windows environments that contain things that the Shell interprets as escape sequences.
+	 * @param path a file path
+	 * @return fixed path
+	 */
+	public static String handleShellEscapeProcessing(String path) {
+		if (path == null) {
+			return null;
+		}
+		char[] escaped = new char[] { 'r', 't', 'n', 'f', 'u' };
+		for (char c : escaped) {
+			path = path.replace("\\" + c, "\\\\" + c);
+		}
+		return path;
+	}
+
 }

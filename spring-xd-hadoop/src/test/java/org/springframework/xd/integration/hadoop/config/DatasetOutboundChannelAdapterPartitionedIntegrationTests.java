@@ -22,6 +22,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -33,10 +34,17 @@ import org.springframework.xd.test.TestPojo;
 
 /**
  * Tests the {@code int-hadoop:dataset-outbound-channel-adapter} backed by a {@lnk DatasetWritingMessageHandlerFactoryBean}
- * 
+ *
  * @author Thomas Risberg
+ * @author David Turanski
  */
 public class DatasetOutboundChannelAdapterPartitionedIntegrationTests {
+
+	@Before
+	public void beforeMethod() {
+		//This test disabled for Windows. Getting NPE in ProcessBuilder.start() called from org.apache.util.Shell
+		org.junit.Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("windows"));
+	}
 
 	@Test
 	public void testWritingDataset() throws Exception {

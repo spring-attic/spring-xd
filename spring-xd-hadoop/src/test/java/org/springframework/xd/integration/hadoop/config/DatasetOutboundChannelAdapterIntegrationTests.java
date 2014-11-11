@@ -16,23 +16,33 @@
 
 package org.springframework.xd.integration.hadoop.config;
 
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+
+import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.hadoop.store.dataset.DatasetOperations;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 
-import java.io.File;
-
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Thomas Risberg
+ * @author David Turanski
  */
 public class DatasetOutboundChannelAdapterIntegrationTests {
 
+	@Before
+	public void beforeMethod() {
+		//This test disabled for Windows. Getting NPE in ProcessBuilder.start() called from org.apache.util.Shell
+		org.junit.Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("windows"));
+	}
+
 	@Test
 	public void testWritingDataset() throws Exception {
+
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"org/springframework/xd/integration/hadoop/config/DatasetOutboundChannelAdapterIntegrationTests.xml");
 		MessageChannel channel = context.getBean("datasetOut", MessageChannel.class);
@@ -41,6 +51,7 @@ public class DatasetOutboundChannelAdapterIntegrationTests {
 		DatasetOperations datasetOperations = context.getBean("datasetOperations", DatasetOperations.class);
 		String path = context.getBean("path", String.class);
 		assertTrue("Dataset path created", new File(path).exists());
+		String fileSeparator = File.separator;
 		assertTrue("Dataset storage created",
 				new File(path + "/" + "test/" + datasetOperations.getDatasetName(String.class)).exists());
 		assertTrue("Dataset metadata created",

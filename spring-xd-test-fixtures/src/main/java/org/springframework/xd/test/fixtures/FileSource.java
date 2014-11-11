@@ -21,9 +21,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.springframework.xd.test.fixtures.util.FixtureUtils;
+
 /**
  * Support class that represents the file source module.
- * 
+ *
  * @author Eric Bottard
  * @author David Turanski
  */
@@ -50,7 +52,8 @@ public class FileSource extends DisposableFileSupport<FileSource> {
 
 	@Override
 	protected String toDSL() {
-		return String.format("file --outputType=text/plain --dir=%s", file.getParent());
+		return String.format("file --outputType=text/plain --dir=%s",
+				FixtureUtils.handleShellEscapeProcessing(file.getParent()));
 	}
 
 	public void appendToFile(String contents) throws IOException {

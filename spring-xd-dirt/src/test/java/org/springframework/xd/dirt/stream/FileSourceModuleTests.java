@@ -38,7 +38,7 @@ import org.springframework.xd.dirt.integration.bus.StringConvertingContentTypeRe
 
 
 /**
- * 
+ *
  * @author David Turanski
  */
 public class FileSourceModuleTests extends StreamTestSupport {
@@ -46,7 +46,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 	private static String tmpDirName = System.getProperty("java.io.tmpdir");
 
 	private static String sourceDirName =
-			tmpDirName + (tmpDirName.endsWith("/") ? "" : "/") + "filesourcetests";
+			tmpDirName + (tmpDirName.endsWith(File.separator) ? "" : File.separator) + "filesourcetests";
 
 	private static File sourceDir = new File(sourceDirName);
 
@@ -116,7 +116,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 			@Override
 			public void test(Message<?> message) throws MessagingException {
 				File file = (File) message.getPayload();
-				assertEquals(sourceDirName + "/" + "foo1.txt", file.getAbsolutePath());
+				assertEquals(sourceDirName + File.separator + "foo1.txt", file.getAbsolutePath());
 			}
 		};
 		StreamTestSupport.getSinkInputChannel("fileref").subscribe(test);

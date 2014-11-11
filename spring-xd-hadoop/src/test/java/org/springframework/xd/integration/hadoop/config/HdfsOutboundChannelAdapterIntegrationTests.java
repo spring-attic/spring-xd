@@ -26,6 +26,7 @@ import java.util.Date;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -35,8 +36,15 @@ import org.springframework.messaging.MessageChannel;
 /**
  * @author Mark Fisher
  * @author Thomas Risberg
+ * @author David Turanski
  */
 public class HdfsOutboundChannelAdapterIntegrationTests {
+
+	@Before
+	public void beforeMethod() {
+		//This test disabled for Windows. Getting NPE in ProcessBuilder.start() called from org.apache.util.Shell
+		org.junit.Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("windows"));
+	}
 
 	@Test
 	public void testWritesWithRollover() throws Exception {

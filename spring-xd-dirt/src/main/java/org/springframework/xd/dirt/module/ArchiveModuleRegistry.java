@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.module;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.springframework.context.ResourceLoaderAware;
@@ -47,7 +48,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 	 */
 	public static final String ARCHIVE_AS_FILE_EXTENSION = ".jar";
 
-	private final static String[] SUFFIXES = new String[] {"", ARCHIVE_AS_FILE_EXTENSION};
+	private final static String[] SUFFIXES = new String[] { "", ARCHIVE_AS_FILE_EXTENSION };
 
 	private String root;
 
@@ -70,7 +71,8 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 			}
 		}
 		catch (IOException e) {
-			throw new RuntimeIOException(String.format("An error occurred trying to locate module '%s:%s'", moduleType, name), e);
+			throw new RuntimeIOException(String.format("An error occurred trying to locate module '%s:%s'", moduleType,
+					name), e);
 		}
 
 		return result.size() == 1 ? result.iterator().next() : null;
@@ -136,8 +138,11 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		}
 		String name = isDir ? filename : filename.substring(0, filename.lastIndexOf(ARCHIVE_AS_FILE_EXTENSION));
 		String canonicalPath = resource.getFile().getCanonicalPath();
-		int lastSlash = canonicalPath.lastIndexOf('/');
-		String typeAsString = canonicalPath.substring(canonicalPath.lastIndexOf('/', lastSlash - 1) + 1, lastSlash);
+
+		String fileSeparator = File.separator;
+		int lastSlash = canonicalPath.lastIndexOf(fileSeparator);
+		String typeAsString = canonicalPath.substring(canonicalPath.lastIndexOf(fileSeparator, lastSlash - 1) + 1,
+				lastSlash);
 		ModuleType type = null;
 		try {
 			type = ModuleType.valueOf(typeAsString);
@@ -146,13 +151,17 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 			// Not an actual type name, skip
 			return;
 		}
-		ModuleDefinition found = ModuleDefinitions.simple(name, type, "file:" + canonicalPath + (isDir ? "/" : ""));
+		ModuleDefinition found = ModuleDefinitions.simple(name, type,
+				"file:" + canonicalPath + (isDir ? fileSeparator : ""));
+
 		if (holder.contains(found)) {
 			SimpleModuleDefinition one = (SimpleModuleDefinition) found;
 			SimpleModuleDefinition two = (SimpleModuleDefinition) holder.get(holder.indexOf(found));
-			throw new IllegalStateException(String.format("Duplicate module definitions for '%s:%s' found at '%s' and '%s'",
+			throw new IllegalStateException(String.format(
+					"Duplicate module definitions for '%s:%s' found at '%s' and '%s'",
 					found.getType(), found.getName(), one.getLocation(), two.getLocation()));
-		} else {
+		}
+		else {
 			holder.add(found);
 		}
 	}

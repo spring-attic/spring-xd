@@ -309,7 +309,11 @@ project('modules.sink.router') {
 	}
 }
 
-
+project('modules.sink.kafka') {
+        dependencies {
+                runtime(project(":spring-xd-extension-kafka"))
+        }
+}
 
 
 // ================ M O D U L E S : J O B S ============================

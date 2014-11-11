@@ -71,7 +71,7 @@ if [ -d "$APP_HOME_LIB" ]; then
     for i in "$APP_HOME_LIB"/*.jar; do
         CLASSPATH="$CLASSPATH":"$i"
     done
-    HADOOP_LIB=$APP_HOME/lib/hadoop22
+    HADOOP_LIB=$APP_HOME/lib/hadoop25
     if [ -d "$HADOOP_LIB" ]; then
         for j in "$HADOOP_LIB"/spring-data-hadoop-*.jar; do
             CLASSPATH="$CLASSPATH":"$j"

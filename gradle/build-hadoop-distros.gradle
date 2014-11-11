@@ -3,42 +3,11 @@
  */ 
 
 ext {
-	hadoop22Version = '2.2.0'
 	hadoop24Version = '2.4.1'
-	cdh5Version = '2.3.0-cdh5.0.0'
+	hadoop25Version = '2.5.1'
+	cdh5Version = '2.3.0-cdh5.1.3'
 	hdp21Version = '2.4.0'
-	phd1Version = '2.0.5-alpha-gphd-2.1.0.0'
-	phd20Version = '2.2.0-gphd-3.0.1.0'
-}
-
-project('spring-xd-hadoop:hadoop22') {
-	description = 'Hadoop 2.2.x dependencies'
-	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.apache.hadoop:hadoop-common:$hadoop22Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop22Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop22Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop22Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop22Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop22Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop22Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'spring-data-hadoop-*'
-		include 'hadoop-*'
-		include 'avro-*'
-		include 'protobuf-java-*'
-		include 'jetty-util-*'
-		include 'jersey-core-*'
-		include 'jersey-server-*'
-	}
+	phd21Version = '2.2.0-gphd-3.1.0.0'
 }
 
 project('spring-xd-hadoop:hadoop24') {
@@ -57,6 +26,36 @@ project('spring-xd-hadoop:hadoop24') {
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop24Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop24Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop24Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
+		include 'avro-*'
+		include 'protobuf-java-*'
+		include 'jetty-util-*'
+		include 'jersey-core-*'
+		include 'jersey-server-*'
+	}
+}
+
+project('spring-xd-hadoop:hadoop25') {
+	description = 'Hadoop 2.5.x dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop25") {
+			exclude group: 'org.apache.hadoop'
+		}
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop25") {
+			exclude group: 'org.apache.hadoop'
+		}
+		runtime ("org.apache.hadoop:hadoop-common:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop25Version")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -131,54 +130,23 @@ project('spring-xd-hadoop:hdp21') {
 	}
 }
 
-project('spring-xd-hadoop:phd1') {
-	description = 'Pivotal HD 1.0 dependencies'
+project('spring-xd-hadoop:phd21') {
+	description = 'Pivotal HD 2.1 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-phd1") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-phd21") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-phd1") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-phd21") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.apache.hadoop:hadoop-common:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-client:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd1Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'spring-data-hadoop-*'
-		include 'hadoop-*'
-		include 'avro-*'
-		include 'protobuf-java-*'
-		include 'jetty-util-*'
-		include 'jersey-core-*'
-		include 'jersey-server-*'
-	}
-}
-
-project('spring-xd-hadoop:phd20') {
-	description = 'Pivotal HD 2.0 dependencies'
-	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-phd20") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-phd20") {
-			exclude group: 'org.apache.hadoop'
-		}
-		runtime ("org.apache.hadoop:hadoop-common:$phd20Version")
-		runtime ("org.apache.hadoop:hadoop-client:$phd20Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$phd20Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$phd20Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd20Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$phd20Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$phd20Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd20Version")
+		runtime ("org.apache.hadoop:hadoop-common:$phd21Version")
+		runtime ("org.apache.hadoop:hadoop-client:$phd21Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$phd21Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$phd21Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd21Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$phd21Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$phd21Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd21Version")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"

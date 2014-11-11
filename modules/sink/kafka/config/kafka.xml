@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<int:channel id="input" />
+
+	<int-kafka:outbound-channel-adapter
+		kafka-producer-context-ref="kafkaProducerContext" auto-startup="false" channel="input">
+	</int-kafka:outbound-channel-adapter>
+
+	<bean id="stringEncoder" class="org.springframework.integration.kafka.serializer.common.StringEncoder">
+		<property name="encoding" value="${encoding}"/>
+	</bean>
+
+	<int-kafka:producer-context id="kafkaProducerContext">
+		<int-kafka:producer-configurations>
+			<int-kafka:producer-configuration
+				broker-list="${brokerList}" key-class-type="java.lang.String"
+				value-class-type="java.lang.String" topic="${topic}" value-encoder="stringEncoder"
+				key-encoder="stringEncoder" compression-codec="default" />
+		</int-kafka:producer-configurations>
+	</int-kafka:producer-context>
+</beans>

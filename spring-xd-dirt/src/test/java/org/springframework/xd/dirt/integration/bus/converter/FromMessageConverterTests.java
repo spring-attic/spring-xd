@@ -72,11 +72,12 @@ public class FromMessageConverterTests {
 
 	@Test
 	public void testPojoToJsonPrettyPrint() {
-		String json = "{\n  \"foo\" : \"bar\"\n}";
+		//OS agnostic
+		String json = String.format("{%n  \"foo\" : \"bar\"%n}");
 		PojoToJsonMessageConverter messageConverter = new PojoToJsonMessageConverter();
 		messageConverter.setPrettyPrint(true);
 		Message<?> msg = (Message<?>) messageConverter.fromMessage(new GenericMessage<Foo>(new Foo()), String.class);
-		assertEquals(json, msg.getPayload());
+		assertEquals(json, msg.getPayload().toString().trim());
 		assertEquals(MimeTypeUtils.APPLICATION_JSON, msg.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
@@ -88,7 +89,7 @@ public class FromMessageConverterTests {
 		TupleToJsonMessageConverter messageConverter = new TupleToJsonMessageConverter();
 		messageConverter.setPrettyPrint(true);
 		Message<String> result = (Message<String>) messageConverter.fromMessage(msg, String.class);
-		assertTrue(result.getPayload(), result.getPayload().contains("{\n"));
+		assertTrue(result.getPayload(), result.getPayload().contains(String.format("{%n")));
 		assertTrue(result.getPayload(), result.getPayload().contains("\"foo\" : \"bar\""));
 		assertEquals(MimeTypeUtils.APPLICATION_JSON,
 				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));

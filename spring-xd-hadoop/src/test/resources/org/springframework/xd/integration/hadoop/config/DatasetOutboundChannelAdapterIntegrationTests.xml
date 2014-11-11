@@ -12,7 +12,7 @@
     </hdp:configuration>
 
     <bean id="path" class="java.lang.String">
-        <constructor-arg value="#{systemProperties['java.io.tmpdir']}/dataset/test"/>
+        <constructor-arg value="file:///#{systemProperties['java.io.tmpdir'].replaceAll('\\','/')}dataset/test"/>
     </bean>
 
     <hdp:script id="initScript" language="javascript" run-at-startup="true">

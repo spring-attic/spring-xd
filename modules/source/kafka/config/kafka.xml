@@ -23,8 +23,8 @@
 
 	<util:properties id="consumerProperties" location="${xd.config.home}/kafka-consumer.properties"/>
 
-	<bean id="stringDecoder" class="org.springframework.integration.x.kafka.StringDecoder">
-		<property name="encoding" value="${encoding}"/>
+	<bean id="stringDecoder" class="org.springframework.integration.kafka.serializer.common.StringDecoder">
+		<constructor-arg name="encoding" value="${encoding}"/>
 	</bean>
 
 	<int:chain input-channel="kafkaOutput" output-channel="output">

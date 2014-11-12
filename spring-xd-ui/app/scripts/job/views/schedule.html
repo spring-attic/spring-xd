@@ -1,59 +1,77 @@
-<div class="modal-header">
-    <h4 class="modal-title">Scheduling job {{jobScheduleRequest.jobName}}</h4>
-</div>
-<div class="modal-body">
-    <form class="form-horizontal" role="form" name="jobScheduler">
+<h1>Scheduling job {{jobScheduleRequest.jobName}}</h1>
 
-        <div class="form-group">
-            <div class="col-xs-5">
-                <label>Scheduler (Stream) Name</label>
-                <input class="form-control" type="text" required ng-model="jobScheduleRequest.schedulerName"><span
-                   class="label label-warning" ng-show="!jobScheduleRequest.schedulerName">Required</span>
+    <form class="form-horizontal" name="jobScheduler" role="form" ng-submit="scheduleJob(jobScheduleRequest)" novalidate>
+
+        <div class="form-group" ng-class="jobScheduler.schedulerName.$invalid && jobScheduler.schedulerName.$touched ? 'has-warning has-feedback' : ''">
+            <label for="schedulerName" class="col-sm-3 control-label">Scheduler (Stream) Name</label>
+            <div class="col-sm-9">
+                <input type="text" id="schedulerName" name="schedulerName" autofocus required
+                       class="form-control" placeholder="Enter a name for the schedule stream" ng-model="jobScheduleRequest.schedulerName">
+                <span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="jobScheduler.schedulerName.$invalid && jobScheduler.schedulerName.$touched"></span>
+                <p class="help-block" ng-show="jobScheduler.schedulerName.$error.required && jobScheduler.schedulerName.$touched">
+                    You must provide a name for the Scheduler Stream.</p>
+            </div>
+        </div>
+        <div class="row" style="margin-bottom: 1em;">
+            <div class="col-sm-9 col-sm-offset-3">
+                <ul class="nav nav-tabs" role="tablist">
+                  <li role="presentation" ng-class="{ active: isFixedDelay()}"><a href="" ng-click="setFixedDelay()" role="tab">Fixed delay</a></li>
+                  <li role="presentation" ng-class="{ active: isDate() }"><a href="" ng-click="setDate()" role="tab">Date</a></li>
+                  <li role="presentation" ng-class="{ active: isCron() }"><a href="" ng-click="setCron()" role="tab">Cron</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="form-group" ng-show="isFixedDelay()"
+             ng-class="jobScheduler.fixedDelay.$invalid && jobScheduler.fixedDelay.$touched ? 'has-warning has-feedback' : ''">
+            <label for="schedulerName" class="col-sm-3 control-label"></label>
+            <div class="col-sm-9">
+                <input name="fixedDelay" class="form-control" type="number" min="1" ng-required="isFixedDelay()"
+                       ng-model="jobScheduleRequest.fixedDelay"
+                       placeholder="in SECONDS">
+                <span class="glyphicon glyphicon-warning-sign form-control-feedback"
+                      ng-show="jobScheduler.fixedDelay.$error.required && jobScheduler.fixedDelay.$touched"></span>
+                <p class="help-block"
+                   ng-show="jobScheduler.fixedDelay.$error.required && jobScheduler.fixedDelay.$touched">
+                  Please provide a valid integer number.</p>
+            </div>
+        </div>
+        <div class="form-group" ng-show="isDate()"
+             ng-class="jobScheduler.date.$invalid && jobScheduler.date.$touched ? 'has-warning has-feedback' : ''">
+            <label for="schedulerName" class="col-sm-3 control-label"></label>
+            <div class="col-sm-9">
+                <input name="date" class="form-control" type="datetime-local" ng-required="isDate()"
+                       ng-required='jobScheduleRequest.triggerType === "date"'
+                       ng-model="jobScheduleRequest.date"
+                       placeholder="MM/dd/yy HH:mm:ss">
+                <span class="glyphicon glyphicon-warning-sign form-control-feedback"
+                      ng-show="jobScheduler.date.$invalid && jobScheduler.date.$touched"></span>
+                <p class="help-block" ng-show="isDate()">Date is interpreted using the Server Timezone.</p>
+                <p class="help-block"
+                   ng-show="jobScheduler.date.$error.required && jobScheduler.date.$touched">
+                   Please provide a valid date.
+                </p>
+            </div>
+        </div>
+        <div class="form-group" ng-show="isCron()"
+             ng-class="jobScheduler.cron.$invalid && jobScheduler.cron.$touched ? 'has-warning has-feedback' : ''">
+            <label for="schedulerName" class="col-sm-3 control-label"></label>
+            <div class="col-sm-9">
+                <input name="cron" class="form-control" type="text" ng-model="jobScheduleRequest.cron" ng-required="isCron()"
+                       placeholder="Cron Expression">
+                <span class="glyphicon glyphicon-warning-sign form-control-feedback"
+                      ng-show="jobScheduler.cron.$invalid && jobScheduler.cron.$touched"></span>
+                <p class="help-block" ng-show="isCron()">Cron Expressions are interpreted using the Server Timezone.</p>
+                <p class="help-block"
+                   ng-show="jobScheduler.cron.$error.required && jobScheduler.cron.$touched">
+                   Please provide a cron expression.
+                </p>
             </div>
         </div>
 
-        <div class="form-group">
-            <label class="radio">
-                <div class="col-xs-4">
-                    <input type="radio" ng-model="jobScheduleRequest.triggerType" value="fixed-delay"
-                           ng-checked="true">
-                    Fixed delay
-                    <input name="fixedDelay" class="form-control" type="number" min="1"
-                           ng-model="jobScheduleRequest.fixedDelay"
-                           ng-show="isFixedDelay()" placeholder="in SECONDS"><span
-                        class="label label-warning" ng-show="jobScheduler.fixedDelay.$error.min">Invalid Number</span>
-                </div>
-            </label>
-        </div>
-        <div class="form-group">
-            <label class="radio">
-                <div class="col-xs-5">
-                    <input type="radio" ng-model="jobScheduleRequest.triggerType"
-                           value="date"> Date
-                    <input class="form-control" type="datetime-local"
-                           ng-required='jobScheduleRequest.triggerType === "date"'
-                           ng-model="jobScheduleRequest.date"
-                           ng-show="isDate()" placeholder="MM/dd/yy HH:mm:ss">
-                    <p class="help-block" ng-show="isDate()">Date is interpreted using the Server Timezone.</p>
-                </div>
-            </label>
-        </div>
-        <div class="form-group">
-            <label class="radio">
-                <div class="col-xs-5">
-                    <input type="radio" ng-model="jobScheduleRequest.triggerType" value="cron"> Cron
-                    <input class="form-control" type="text" ng-model="jobScheduleRequest.cron"
-                           ng-show="isCron()" placeholder="Cron Expression">
-                    <p class="help-block" ng-show="isCron()">Cron Expressions are interpreted using the Server Timezone.</p>
-                </div>
-            </label>
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-6 text-right"><button type="button" class="btn btn-default" ng-click="cancelJobSchedule()">Back</button></div>
+          <div class="col-md-6 text-left"><button type="submit" class="btn btn-primary schedule-job"
+          ng-disabled="jobScheduler.$invalid">Schedule Job <span class="glyphicon glyphicon-play"></span></button></div>
         </div>
     </form>
-</div>
 
-<div class="modal-footer">
-    <button type="button" class="btn btn-default" ng-click="cancelJobSchedule()">Close</button>
-    <button type="button" class="btn btn-primary schedule-job" ng-click="scheduleJob(jobScheduleRequest)"
-            ng-disabled="jobScheduler.$invalid">Schedule
-        Job <span class="glyphicon glyphicon-play"></span></button>
-</div>

@@ -279,7 +279,7 @@ define(['angular'], function (angular) {
                 { createSteam: { method: 'POST' , params: { 'name': jobScheduleRequest.schedulerName, 'definition': streamDefinition, 'deploy': 'true' } }
                 }).createSteam().$promise.then(
                 function () {
-                  growl.addSuccessMessage('Scheduler stream deployed');
+                  growl.success('Scheduler stream ' + jobScheduleRequest.schedulerName + ' deployed');
                 },
                 function (data) {
                   console.error(data);

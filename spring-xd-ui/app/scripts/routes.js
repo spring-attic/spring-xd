@@ -173,8 +173,8 @@ define(['./app'], function (xdAdmin) {
       templateUrl : jobTemplatesPath + '/launch.html',
       controller: 'JobLaunchController'
     })
-    .state('home.jobs.tabs.deployments.schedule', {
-      url : '/schedule/{jobName}',
+    .state('home.jobs.deploymentsSchedule', {
+      url : 'jobs/deployments/schedule/{jobName}',
       templateUrl : jobTemplatesPath + '/schedule.html',
       controller: 'JobScheduleController'
     })

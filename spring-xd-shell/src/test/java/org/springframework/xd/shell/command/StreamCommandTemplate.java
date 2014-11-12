@@ -16,7 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -159,7 +160,8 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		Table t = (Table) cr.getResult();
 		assertTrue(t.getRows().contains(
-				new TableRow().addValue(1, streamName).addValue(2, definition).addValue(3, deployed ? "deployed" : "undeployed")));
+				new TableRow().addValue(1, streamName).addValue(2, definition.replace("\\\\", "\\")).addValue(3,
+						deployed ? "deployed" : "undeployed")));
 	}
 
 }

@@ -21,6 +21,7 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventuall
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasValue;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -51,6 +52,12 @@ public class SftpSourceTests extends AbstractStreamIntegrationTest {
 		catch (Exception e) {
 			// ignore
 		}
+	}
+
+	@Before
+	public void setUp() {
+		//These test disabled for Windows
+		org.junit.Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("windows"));
 	}
 
 	@Test

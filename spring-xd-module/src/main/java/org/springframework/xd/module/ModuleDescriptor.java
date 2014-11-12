@@ -249,7 +249,6 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 				.append("group", group)
 				.append("sourceChannelName", sourceChannelName)
 				.append("sinkChannelName", sinkChannelName)
-				.append("sinkChannelName", sinkChannelName)
 				.append("index", index)
 				.append("type", moduleDefinition != null ? moduleDefinition.getType() : null)
 				.append("parameters", parameters)

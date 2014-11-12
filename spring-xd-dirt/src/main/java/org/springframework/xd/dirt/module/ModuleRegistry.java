@@ -22,6 +22,10 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
 /**
+ * A module registry is used to lookup modules by name and/or type. A non-null / non-empty
+ * result indicates that a module exists, but further validation and introspection is left to
+ * the caller.
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Glenn Renfro

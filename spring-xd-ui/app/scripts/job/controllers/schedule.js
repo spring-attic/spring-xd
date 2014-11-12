@@ -56,6 +56,16 @@ define([], function () {
         $scope.isCron = function () {
           return ($scope.jobScheduleRequest.triggerType === 'cron');
         };
+        $scope.setFixedDelay = function () {
+          $scope.jobScheduleRequest.triggerType = 'fixed-delay';
+        };
+        $scope.setDate = function () {
+          console.log('date');
+          $scope.jobScheduleRequest.triggerType = 'date';
+        };
+        $scope.setCron = function () {
+          $scope.jobScheduleRequest.triggerType = 'cron';
+        };
       });
     }];
 });

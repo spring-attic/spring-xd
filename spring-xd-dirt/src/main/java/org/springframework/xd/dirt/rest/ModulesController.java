@@ -34,8 +34,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.module.ModuleDefinitionService;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
-import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
@@ -56,18 +56,18 @@ public class ModulesController {
 
 	private final Log logger = LogFactory.getLog(ModulesController.class);
 
-	private final CompositeModuleDefinitionService compositeModuleDefinitionService;
-
-	private ModuleDefinitionResourceAssembler moduleDefinitionResourceAssembler = new ModuleDefinitionResourceAssembler();
+	private final ModuleDefinitionService moduleDefinitionService;
 
 	private final DetailedModuleDefinitionResourceAssembler detailedAssembler;
 
+	private ModuleDefinitionResourceAssembler moduleDefinitionResourceAssembler = new ModuleDefinitionResourceAssembler();
+
 	@Autowired
-	public ModulesController(CompositeModuleDefinitionService compositeModuleDefinitionService,
+	public ModulesController(ModuleDefinitionService moduleDefinitionService,
 			DetailedModuleDefinitionResourceAssembler detailedAssembler) {
-		Assert.notNull(compositeModuleDefinitionService, "compositeModuleDefinitionService must not be null");
+		Assert.notNull(moduleDefinitionService, "moduleDefinitionService must not be null");
 		Assert.notNull(detailedAssembler, "detailedAssembler must not be null");
-		this.compositeModuleDefinitionService = compositeModuleDefinitionService;
+		this.moduleDefinitionService = moduleDefinitionService;
 		this.detailedAssembler = detailedAssembler;
 	}
 
@@ -80,8 +80,7 @@ public class ModulesController {
 	public PagedResources<ModuleDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<ModuleDefinition> assembler,
 			@RequestParam(value = "type", required = false) ModuleType type) {
-		Page<ModuleDefinition> page = compositeModuleDefinitionService.getModuleDefinitionRepository().findByType(
-				pageable, type);
+		Page<ModuleDefinition> page = type == null ? moduleDefinitionService.findDefinitions(pageable) : moduleDefinitionService.findDefinitions(pageable, type);
 		PagedResources<ModuleDefinitionResource> result = assembler.toResource(page,
 				new ModuleDefinitionResourceAssembler());
 		return result;
@@ -95,8 +94,7 @@ public class ModulesController {
 	@ResponseBody
 	public DetailedModuleDefinitionResource info(@PathVariable("type") ModuleType type,
 			@PathVariable("name") String name) {
-		ModuleDefinition def = compositeModuleDefinitionService.getModuleDefinitionRepository().findByNameAndType(name,
-				type);
+		ModuleDefinition def = moduleDefinitionService.findDefinition(name, type);
 		if (def == null) {
 			throw new NoSuchModuleException(name, type);
 		}
@@ -114,18 +112,18 @@ public class ModulesController {
 	@ResponseBody
 	public ModuleDefinitionResource save(@RequestParam("name") String name,
 			@RequestParam("definition") String definition) {
-		ModuleDefinition moduleDefinition = compositeModuleDefinitionService.save(name, definition);
+		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, /*TODO*/null, definition);
 		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);
 		return resource;
 	}
 
 	/**
-	 * Delete a (composite) module.
+	 * Delete a module.
 	 */
 	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void delete(@PathVariable("type") ModuleType type, @PathVariable("name") String name) {
-		compositeModuleDefinitionService.delete(name, type);
+		moduleDefinitionService.delete(name, type);
 	}
 
 }

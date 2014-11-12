@@ -138,7 +138,15 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		String canonicalPath = resource.getFile().getCanonicalPath();
 		int lastSlash = canonicalPath.lastIndexOf('/');
 		String typeAsString = canonicalPath.substring(canonicalPath.lastIndexOf('/', lastSlash - 1) + 1, lastSlash);
-		ModuleDefinition found = ModuleDefinitions.simple(name, ModuleType.valueOf(typeAsString), "file:" + canonicalPath + (isDir ? "/" : ""));
+		ModuleType type = null;
+		try {
+			type = ModuleType.valueOf(typeAsString);
+		}
+		catch (IllegalArgumentException e) {
+			// Not an actual type name, skip
+			return;
+		}
+		ModuleDefinition found = ModuleDefinitions.simple(name, type, "file:" + canonicalPath + (isDir ? "/" : ""));
 		if (holder.contains(found)) {
 			SimpleModuleDefinition one = (SimpleModuleDefinition) found;
 			SimpleModuleDefinition two = (SimpleModuleDefinition) holder.get(holder.indexOf(found));

@@ -22,7 +22,7 @@ import java.util.Map;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
@@ -44,13 +44,13 @@ public class StreamFactory {
 	 * Construct a StreamFactory to create {@link Stream} domain model instances.
 	 *
 	 * @param streamDefinitionRepository     repository for stream definitions
-	 * @param moduleDefinitionRepository     repository for module definitions
+	 * @param moduleRegistry                 registry for module definitions
 	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
 	 */
 	public StreamFactory(StreamDefinitionRepository streamDefinitionRepository,
-			ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleRegistry moduleRegistry,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		this.parser = new XDStreamParser(streamDefinitionRepository, moduleDefinitionRepository,
+		this.parser = new XDStreamParser(streamDefinitionRepository, moduleRegistry,
 				moduleOptionsMetadataResolver);
 	}
 

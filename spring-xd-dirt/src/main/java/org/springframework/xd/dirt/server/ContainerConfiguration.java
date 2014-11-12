@@ -29,8 +29,8 @@ import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.job.JobFactory;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
@@ -48,9 +48,17 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Marius Bogoevici
  */
 @Configuration
-@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class,
-	AuditAutoConfiguration.class })
+@EnableAutoConfiguration(exclude = {BatchAutoConfiguration.class, JmxAutoConfiguration.class,
+		AuditAutoConfiguration.class})
 class ContainerConfiguration {
+
+	/*
+	 * An optional bean to configure the ZooKeeperConnection. XD by default does not provide this bean but it may be
+	 * added via an extension. This is also effected by the boolean property value ${zk.client.connection.configured}
+	 * which if set, defers the start of the ZooKeeper connection until now.
+	 */
+	@Autowired(required = false)
+	ZooKeeperConnectionConfigurer zooKeeperConnectionConfigurer;
 
 	@Autowired
 	private ContainerAttributes containerAttributes;
@@ -65,7 +73,7 @@ class ContainerConfiguration {
 	private JobDefinitionRepository jobDefinitionRepository;
 
 	@Autowired
-	private ModuleDefinitionRepository moduleDefinitionRepository;
+	private ModuleRegistry moduleRegistry;
 
 	@Autowired
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
@@ -75,14 +83,6 @@ class ContainerConfiguration {
 
 	@Autowired
 	private ZooKeeperConnection zooKeeperConnection;
-
-	/*
-	 * An optional bean to configure the ZooKeeperConnection. XD by default does not provide this bean but it may be
-	 * added via an extension. This is also effected by the boolean property value ${zk.client.connection.configured}
-	 * which if set, defers the start of the ZooKeeper connection until now.
-	 */
-	@Autowired(required = false)
-	ZooKeeperConnectionConfigurer zooKeeperConnectionConfigurer;
 
 	@Bean
 	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
@@ -113,10 +113,10 @@ class ContainerConfiguration {
 	@Bean
 	public DeploymentListener deploymentListener() {
 		initializeZooKeeperConnection();
-		StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
+		StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleRegistry,
 				moduleOptionsMetadataResolver);
 
-		JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleDefinitionRepository,
+		JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleRegistry,
 				moduleOptionsMetadataResolver);
 		return new DeploymentListener(zooKeeperConnection, moduleDeployer, containerAttributes, jobFactory,
 				streamFactory);

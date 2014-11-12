@@ -25,7 +25,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
 import org.springframework.xd.module.ModuleDefinition;
@@ -45,7 +45,7 @@ import org.springframework.xd.rest.domain.CompletionKind;
 public class OptionNameAfterDashDashRecoveryStrategy extends
 		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
-	private ModuleDefinitionRepository moduleDefinitionRepository;
+	private ModuleRegistry moduleRegistry;
 
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
@@ -54,18 +54,18 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 	 * Construct a new ExpandOneDashToTwoDashesRecoveryStrategy given the parser,
 	 *
 	 * @param parser the parser used to parse the text the partial module definition.
-	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
+	 * @param moduleRegistry the registry to check for the existence of the last entered module
 	 *        definition.
 	 * @param moduleOptionsMetadataResolver the metadata resolver to use in order to create a list of proposals for
 	 *        module options that have not yet been specified.
 	 */
 	@Autowired
 	public OptionNameAfterDashDashRecoveryStrategy(XDParser parser,
-			ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleRegistry moduleRegistry,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		super(parser, CheckpointedStreamDefinitionException.class, "file --dir=foo --", "file --",
 				"file | filter | transform --");
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleRegistry = moduleRegistry;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
@@ -79,8 +79,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 		ModuleDescriptor lastModule = parsed.get(0);
 		String lastModuleName = lastModule.getModuleName();
 		ModuleType lastModuleType = lastModule.getType();
-		ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,
-				lastModuleType);
+		ModuleDefinition lastModuleDefinition = moduleRegistry.findDefinition(lastModuleName, lastModuleType);
 
 		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet().size());
 		// If we're providing completions for a composed module, some options
@@ -96,7 +95,6 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 				proposals.add(String.format("%s --%s=", safe, option.getName()));
 			}
 		}
-
 
 	}
 

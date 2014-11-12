@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.module.ModuleDefinition;
@@ -40,19 +40,19 @@ import org.springframework.xd.rest.domain.CompletionKind;
 public class UnfinishedModuleNameRecoveryStrategy extends
 		StacktraceFingerprintingCompletionRecoveryStrategy<NoSuchModuleException> {
 
-	private final ModuleDefinitionRepository moduleDefinitionRepository;
+	private final ModuleRegistry moduleRegistry;
 
 	/**
 	 * Construct a new UnfinishedModuleNameRecoveryStrategy given the parser
 	 * 
 	 * @param parser the parser used to parse the text the partial module definition.
-	 * @param moduleDefinitionRepository the repository to use for looking up all modules that start with a given name
+	 * @param moduleRegistry the registry to use for looking up all modules that start with a given name
 	 *        prefix.
 	 */
 	@Autowired
-	public UnfinishedModuleNameRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
+	public UnfinishedModuleNameRecoveryStrategy(XDParser parser, ModuleRegistry moduleRegistry) {
 		super(parser, NoSuchModuleException.class, "ht", "file | brid", "file | bridge | jd", "queue:foo > bar");
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleRegistry = moduleRegistry;
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class UnfinishedModuleNameRecoveryStrategy extends
 	}
 
 	private void addModulesOfTypeWithPrefix(String beginning, String modulePrefix, ModuleType type, List<String> results) {
-		Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
+		List<ModuleDefinition> mods = moduleRegistry.findDefinitions(type);
 		for (ModuleDefinition mod : mods) {
 			if (mod.getName().startsWith(modulePrefix)) {
 				results.add(beginning + mod.getName());

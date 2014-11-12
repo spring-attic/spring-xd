@@ -24,11 +24,9 @@ import static org.springframework.xd.module.ModuleType.source;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
 import org.springframework.xd.dirt.stream.dsl.TokenKind;
@@ -41,26 +39,26 @@ import org.springframework.xd.rest.domain.CompletionKind;
  * <li>typed nothing</li>
  * <li>typed a channel name followed by a ">"</li>
  * </ul>
- * 
+ *
  * @author Eric Bottard
  */
 @Component
 public class EmptyStartYieldsModulesRecoveryStrategy extends
 		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
-	private ModuleDefinitionRepository moduleDefinitionRepository;
+	private ModuleRegistry moduleRegistry;
 
 	/**
 	 * Construct a new EmptyStartYieldsModulesRecoveryStrategy given the parser and ModuleDefinition repository.
-	 * 
+	 *
 	 * @param parser the parser used to parse the text the partial module definition.
-	 * @param moduleDefinitionRepository the repository to use for looking up all modules of a given type.
+	 * @param moduleRegistry the registry to use for looking up all modules of a given type.
 	 */
 	@Autowired
 	public EmptyStartYieldsModulesRecoveryStrategy(XDParser parser,
-			ModuleDefinitionRepository moduleDefinitionRepository) {
+			ModuleRegistry moduleRegistry) {
 		super(parser, CheckpointedStreamDefinitionException.class, "", "queue:foo >");
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleRegistry = moduleRegistry;
 	}
 
 	@Override
@@ -102,16 +100,14 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 			}
 		}
 
-
 	}
 
 	private void addAllModulesOfType(List<String> results, String start, ModuleType type) {
 		String beginning = start.length() == 0 || start.endsWith(" ") ? start : start + " ";
-		Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
+		List<ModuleDefinition> mods = moduleRegistry.findDefinitions(type);
 		for (ModuleDefinition mod : mods) {
 			results.add(beginning + mod.getName());
 		}
 	}
-
 
 }

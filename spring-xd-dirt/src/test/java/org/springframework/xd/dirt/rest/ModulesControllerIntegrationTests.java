@@ -32,15 +32,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDefinitionService;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
+import org.springframework.xd.dirt.module.WriteableModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
@@ -62,16 +63,20 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 	@Autowired
-	private ModuleRegistry moduleRegistry;
+	private WriteableModuleRegistry moduleRegistry;
 
 	@Autowired
-	private ModuleDefinitionRepository moduleDefinitionRepository;
+	private ModuleDefinitionService moduleDefinitionService;
 
-	@Autowired
-	private CompositeModuleDefinitionService compositeModuleDefinitionService;
 
 	@Before
-	public void before() throws IOException {
+	public void setupSuccessfulModuleComposition() {
+		ModuleDefinition any = Mockito.any();
+		when(moduleRegistry.registerNew(any)).thenReturn(true);
+	}
+
+	@Before
+	public void setupFindDefinitionResults() throws IOException {
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		ArrayList<ModuleDefinition> jobDefinitions = new ArrayList<ModuleDefinition>();
 		ArrayList<ModuleDefinition> processorDefinitions = new ArrayList<ModuleDefinition>();
@@ -123,9 +128,6 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 		when(moduleRegistry.findDefinitions()).thenReturn(moduleDefinitions);
 		when(moduleRegistry.findDefinition("job_4_with_resource", ModuleType.job)).thenReturn(moduleDefinition);
 
-		// clear this one so it does not have side effects on other tests
-		// compositeModuleDefinitionService.delete("compositesink", ModuleType.sink);
-		moduleDefinitionRepository.delete("compositesink", ModuleType.sink);
 	}
 
 	@Test

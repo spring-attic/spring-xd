@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.xd.dirt.module.DependencyException;
+import org.springframework.xd.dirt.module.ModuleDefinitionService;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.rest.DetailedModuleDefinitionResourceAssembler;
 import org.springframework.xd.dirt.rest.ModulesController;
@@ -45,10 +46,10 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 	@BeforeClass
 	public static void setup() {
 
-		ModuleDefinition source = ModuleDefinitions.dummy("source", ModuleType.source);
-		ModuleDefinition testprocessor1 = ModuleDefinitions.dummy("testprocessor1", ModuleType.processor);
-		ModuleDefinition testprocessor2 = ModuleDefinitions.dummy("testprocessor2", ModuleType.processor);
-		ModuleDefinition sink = ModuleDefinitions.dummy("sink", ModuleType.sink);
+		ModuleDefinition source = getModuleRegistry().findDefinition("source", ModuleType.source);
+		ModuleDefinition testprocessor1 = getModuleRegistry().findDefinition("testprocessor1", ModuleType.processor);
+		ModuleDefinition testprocessor2 = getModuleRegistry().findDefinition("testprocessor2", ModuleType.processor);
+		ModuleDefinition sink = getModuleRegistry().findDefinition("sink", ModuleType.sink);
 
 		composeModule("compositesource", "source | testprocessor1", ModuleType.source, Arrays.asList(source, testprocessor1));
 		composeModule("compositeprocessor", "testprocessor1 | testprocessor2", ModuleType.processor, Arrays.asList(testprocessor1, testprocessor2));
@@ -73,11 +74,11 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 	@Test
 	public void testDeleteCompositeSource() {
 		deployStream("aCompositeStream", "compositesource | sink");
-		CompositeModuleDefinitionService compositeModuleDefinitionService = getAdminContext().getBean(
-				CompositeModuleDefinitionService.class);
+		ModuleDefinitionService moduleDefinitionService = getAdminContext().getBean(
+				ModuleDefinitionService.class);
 		// Not actually used in test so ok for now
 		DetailedModuleDefinitionResourceAssembler assembler = mock(DetailedModuleDefinitionResourceAssembler.class);
-		ModulesController modulesController = new ModulesController(compositeModuleDefinitionService, assembler);
+		ModulesController modulesController = new ModulesController(moduleDefinitionService, assembler);
 		try {
 			modulesController.delete(ModuleType.source, "compositeModuleThatDoesNotExist");
 			fail("Exception should be thrown when trying to delete a composite module that does not exist.");
@@ -87,11 +88,12 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 					e.getMessage());
 		}
 		try {
-			modulesController.delete(ModuleType.source, "source");
-			fail("Exception should be thrown when trying to delete a non-composite module.");
+			// source:file is a valid module, that is not used by a composite
+			modulesController.delete(ModuleType.source, "file");
+			fail("Exception should be thrown when trying to delete a non-deletable (because non-composite) module.");
 		}
-		catch (IllegalStateException e) {
-			assertEquals("Cannot delete non-composed module source:source", e.getMessage());
+		catch (IllegalArgumentException e) {
+			assertEquals("Could not delete module 'source:file'", e.getMessage());
 		}
 		assertDeleteFailsWhenPartOfStreamDef(modulesController);
 		undeployStream("aCompositeStream");
@@ -102,7 +104,7 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 		// Now delete the composite module
 		modulesController.delete(ModuleType.source, "compositesource");
 		// Assert that it was deleted
-		assertNull(getModuleDefinitionRepository().findByNameAndType("compositesource", ModuleType.source));
+		assertNull(getModuleRegistry().findDefinition("compositesource", ModuleType.source));
 	}
 
 	private void assertDeleteFailsWhenPartOfStreamDef(ModulesController modulesController) {
@@ -147,7 +149,7 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 
 	private static void composeModule(String name, String definition, ModuleType type, List<ModuleDefinition> moduleDefinitions) {
 		ModuleDefinition moduleDefinition = ModuleDefinitions.composed(name, type, definition, moduleDefinitions);
-		getModuleDefinitionRepository().save(moduleDefinition);
+		getModuleRegistry().registerNew(moduleDefinition);
 	}
 
 }

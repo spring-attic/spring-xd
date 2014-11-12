@@ -16,8 +16,7 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.dirt.stream.completion.CompletionProvider.shouldShowOption;
-import static org.springframework.xd.dirt.stream.completion.CompletionProvider.toParsingContext;
+import static org.springframework.xd.dirt.stream.completion.CompletionProvider.*;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,7 +24,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
 import org.springframework.xd.dirt.stream.dsl.Token;
@@ -47,7 +46,7 @@ import org.springframework.xd.rest.domain.CompletionKind;
 public class UnfinishedOptionNameRecoveryStrategy extends
 		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
-	private ModuleDefinitionRepository moduleDefinitionRepository;
+	private ModuleRegistry moduleRegistry;
 
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
@@ -55,17 +54,17 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 	 * Construct a new UnfinishedOptionNameRecoveryStrategy given the parser
 	 *
 	 * @param parser the parser used to parse the text the partial module definition.
-	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
+	 * @param moduleRegistry the registry to check for the existence of the last entered module
 	 *        definition.
 	 * @param moduleOptionsMetadataResolver the metadata resolver to use in order to create a list of proposals for
 	 *        module options that have not yet been specified.
 	 */
 	@Autowired
-	public UnfinishedOptionNameRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository,
+	public UnfinishedOptionNameRecoveryStrategy(XDParser parser, ModuleRegistry moduleRegistry,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		super(parser, CheckpointedStreamDefinitionException.class, "file --dir=foo --pa", "file --pa",
 				"file --some.composed.", "file | filter | transform --expr");
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleRegistry = moduleRegistry;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
@@ -96,8 +95,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 		ModuleDescriptor lastModule = parsed.get(0);
 		String lastModuleName = lastModule.getModuleName();
 		ModuleType lastModuleType = lastModule.getType();
-		ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,
-				lastModuleType);
+		ModuleDefinition lastModuleDefinition = moduleRegistry.findDefinition(lastModuleName, lastModuleType);
 
 		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
@@ -108,6 +106,5 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 		}
 
 	}
-
 
 }

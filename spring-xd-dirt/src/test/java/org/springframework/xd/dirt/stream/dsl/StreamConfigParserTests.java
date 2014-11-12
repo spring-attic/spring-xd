@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
-import static org.springframework.xd.dirt.stream.ParsingContext.stream;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
@@ -25,11 +23,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,19 +36,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import org.springframework.core.io.Resource;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleDefinitions;
-import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 
 /**
@@ -64,14 +52,16 @@ import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolve
  */
 public class StreamConfigParserTests {
 
+	@Rule
+	public ExpectedException thrown = ExpectedException.none();
+
 	private StreamNode sn;
 
 	private EmbeddedZooKeeper zk = new EmbeddedZooKeeper();
 
 	private ZooKeeperConnection zooKeeperConnection;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
+	private TestRepository testRepository = new TestRepository();
 
 	@Before
 	public void setUp() {
@@ -216,7 +206,7 @@ public class StreamConfigParserTests {
 	@Test
 	public void testInvalidModules() {
 		String config = "test | foo--x=13";
-		XDStreamParser parser = new XDStreamParser(testRepository, moduleDefinitionRepository(),
+		XDStreamParser parser = new XDStreamParser(testRepository, mock(ModuleRegistry.class),
 				new DefaultModuleOptionsMetadataResolver());
 		try {
 			parser.parse("t", config, stream);
@@ -225,38 +215,6 @@ public class StreamConfigParserTests {
 		catch (Exception e) {
 			// success
 		}
-	}
-
-	private ModuleDefinitionRepository moduleDefinitionRepository() {
-		ModuleRegistry registry = mock(ModuleRegistry.class);
-		ModuleDependencyRepository moduleDependencyRepository = mock(ModuleDependencyRepository.class);
-		Resource resource = mock(Resource.class);
-		File file = mock(File.class);
-		when(file.exists()).thenReturn(true);
-		try {
-			when(resource.getFile()).thenReturn(file);
-		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
-		}
-		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinitions.dummy("SOURCE",
-				ModuleType.source));
-		when(registry.findDefinitions("SOURCE")).thenReturn(
-				definitions);
-
-		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinitions.dummy("SINK",
-				ModuleType.sink));
-		when(registry.findDefinitions("SINK")).thenReturn(
-				definitions);
-
-		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinitions.dummy("PROCESSOR",
-				ModuleType.processor));
-		when(registry.findDefinitions("PROCESSOR")).thenReturn(
-				definitions);
-		return new ZooKeeperModuleDefinitionRepository(registry, moduleDependencyRepository, zooKeeperConnection);
 	}
 
 	@Test
@@ -496,7 +454,6 @@ public class StreamConfigParserTests {
 		assertEquals("[(tap:queue:xxy:0>13)>(ModuleNode:file:16>20)]", ast.stringify(true));
 	}
 
-
 	@Test
 	public void sourceTapChannel2() {
 		parse("mystream = http | file");
@@ -638,16 +595,14 @@ public class StreamConfigParserTests {
 		checkForParseError("foo --name= value", XDDSLMessages.NO_WHITESPACE_BEFORE_ARG_VALUE, 12);
 	}
 
+	// ---
+
 	@Test
 	public void testComposedOptionNameErros() {
 		checkForParseError("foo --name.=value", XDDSLMessages.NOT_EXPECTED_TOKEN, 11);
 		checkForParseError("foo --name .sub=value", XDDSLMessages.NO_WHITESPACE_IN_DOTTED_NAME, 11);
 		checkForParseError("foo --name. sub=value", XDDSLMessages.NO_WHITESPACE_IN_DOTTED_NAME, 12);
 	}
-
-	// ---
-
-	private TestRepository testRepository = new TestRepository();
 
 	@After
 	public void reset() {

@@ -26,6 +26,7 @@ import org.hamcrest.Matcher;
 
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.xd.test.fixtures.util.FixtureUtils;
 
 /**
  * Support class to capture output of a sink in a File.
@@ -114,7 +115,7 @@ public class FileSink extends DisposableFileSupport<FileSink> {
 	protected String toDSL() {
 		String fileName = file.getName();
 		return String.format("file --dir=%s --name=%s --suffix=%s --charset=%s --binary=%b --mode=%s",
-				file.getParent(),
+				FixtureUtils.preventShellEscapeProcessing(file.getParent()),
 				fileName.substring(0, fileName.lastIndexOf(".txt")), "txt", charset, binary, "APPEND");
 	}
 

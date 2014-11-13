@@ -222,19 +222,21 @@ public class DefaultDistributedTestSupport implements DistributedTestSupport {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void shutdownContainers() {
+	public void shutdownContainers() throws InterruptedException {
 		for (Iterator<Map.Entry<Long, JavaApplication<SimpleJavaApplication>>> iterator =
 					mapPidContainers.entrySet().iterator(); iterator.hasNext();) {
 			iterator.next().getValue().close();
 			iterator.remove();
 		}
+		waitForContainers();
+		logger.info("All containers shutdown");
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void shutdownAll() {
+	public void shutdownAll() throws InterruptedException {
 		shutdownContainers();
 		if (adminServer != null) {
 			try {

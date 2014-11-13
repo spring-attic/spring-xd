@@ -263,5 +263,47 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
           });
         }
       };
+    })
+    .directive('validateCronExpression', function($http, $rootScope, $q) {
+      return {
+        require : 'ngModel',
+        link : function($scope, element, attrs, ngModel) {
+          ngModel.$asyncValidators.cronExpressionValid = function(modelValue) {
+            var deferred = $q.defer();
+            if (modelValue) {
+              $http({
+                  method: 'POST',
+                  url: $rootScope.xdAdminServerUrl + '/validation/cron',
+                  data: {
+                    cronExpression: modelValue
+                  }
+              }).
+              success(function(data) {
+                $scope.cronValidation = data;
+                if (data.valid) {
+                  console.log('Cron Expression valid', data);
+                  deferred.resolve();
+                }
+                else {
+                  console.log('Cron Expression invalid', data);
+                  deferred.reject();
+                }
+              }).
+              error(function(data) {
+                console.log('An error occurred during HTTP post', data);
+                $scope.cronValidation = {
+                  errorMessage: 'An error occurred during HTTP post'
+                };
+                deferred.reject();
+              });
+              return deferred.promise;
+            }
+            else {
+              deferred.reject();
+            }
+            return deferred.promise;
+          };
+        }
+      };
     });
 });

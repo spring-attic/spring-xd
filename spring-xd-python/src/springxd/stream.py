@@ -3,7 +3,10 @@ import sys
 '''
 Python 2 or 3 agnostic input function
 '''
-receive_input = input  if sys.version_info >= (3,0) else raw_input;
+if sys.version_info >= (3,0):
+	receive_input = input
+else:
+	receive_input = raw_input
 
 class Encoders:
     CRLF, LF = range(2)

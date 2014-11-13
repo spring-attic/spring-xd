@@ -16,16 +16,13 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.module.ModuleType.processor;
-import static org.springframework.xd.module.ModuleType.sink;
+import static org.springframework.xd.module.ModuleType.*;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
 import org.springframework.xd.module.ModuleDefinition;
@@ -34,7 +31,7 @@ import org.springframework.xd.rest.domain.CompletionKind;
 
 /**
  * Provides completions for the case where the user has entered a pipe symbol and a module reference is expected next.
- * 
+ *
  * @author Eric Bottard
  */
 @Component
@@ -42,19 +39,19 @@ public class ModulesAfterPipeRecoveryStrategy extends
 		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 
-	private final ModuleDefinitionRepository moduleDefinitionRepository;
+	private final ModuleRegistry moduleRegistry;
 
 	/**
 	 * Construct a new ExpandOneDashToTwoDashesRecoveryStrategy given the parser.
-	 * 
+	 *
 	 * @param parser the parser used to parse the text the partial module definition.
-	 * @param moduleDefinitionRepository the repository to use for looking up all processors or sinks that can be added
+	 * @param moduleRegistry the registry to use for looking up all processors or sinks that can be added
 	 *        after the pipe symbol.
 	 */
 	@Autowired
-	public ModulesAfterPipeRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
+	public ModulesAfterPipeRecoveryStrategy(XDParser parser, ModuleRegistry moduleRegistry) {
 		super(parser, CheckpointedStreamDefinitionException.class, "file | filter |");
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleRegistry = moduleRegistry;
 	}
 
 	@Override
@@ -66,11 +63,10 @@ public class ModulesAfterPipeRecoveryStrategy extends
 	}
 
 	private void addAllModulesOfType(String beginning, ModuleType type, List<String> results) {
-		Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
+		List<ModuleDefinition> mods = moduleRegistry.findDefinitions(type);
 		for (ModuleDefinition mod : mods) {
 			results.add(beginning + mod.getName());
 		}
 	}
-
 
 }

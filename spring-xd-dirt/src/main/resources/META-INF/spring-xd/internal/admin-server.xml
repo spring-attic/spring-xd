@@ -23,7 +23,7 @@
 		<constructor-arg ref="adminAttributes"/>
 		<constructor-arg ref="streamDefinitionRepository"/>
 		<constructor-arg ref="jobDefinitionRepository"/>
-		<constructor-arg ref="moduleDefinitionRepository"/>
+		<constructor-arg ref="moduleRegistry"/>
 		<constructor-arg ref="moduleOptionsMetadataResolver"/>
 		<constructor-arg ref="containerMatcher"/>
 		<constructor-arg ref="stateCalculator"/>

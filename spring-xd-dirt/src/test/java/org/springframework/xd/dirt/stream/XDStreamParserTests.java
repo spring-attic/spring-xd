@@ -16,17 +16,10 @@
 
 package org.springframework.xd.dirt.stream;
 
-import static org.springframework.xd.dirt.stream.ParsingContext.job;
-import static org.springframework.xd.dirt.stream.ParsingContext.module;
-import static org.springframework.xd.dirt.stream.ParsingContext.stream;
-
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.xd.dirt.stream.ParsingContext.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,10 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -58,7 +48,7 @@ public class XDStreamParserTests {
 
 	@Before
 	public void setup() {
-		parser = new XDStreamParser(moduleDefinitionRepository(), new DefaultModuleOptionsMetadataResolver());
+		parser = new XDStreamParser(moduleRegistry(), new DefaultModuleOptionsMetadataResolver());
 	}
 
 	@Test
@@ -181,7 +171,7 @@ public class XDStreamParserTests {
 	@Test
 	public void tap() throws Exception {
 		StreamDefinitionRepository streamRepo = mock(StreamDefinitionRepository.class);
-		parser = new XDStreamParser(streamRepo, moduleDefinitionRepository(),
+		parser = new XDStreamParser(streamRepo, moduleRegistry(),
 				new DefaultModuleOptionsMetadataResolver());
 		when(streamRepo.findOne("xxx")).thenReturn(new StreamDefinition("xxx", "http | file"));
 		List<ModuleDescriptor> requests = parser.parse("test", "tap:stream:xxx.http > file", stream);
@@ -239,12 +229,6 @@ public class XDStreamParserTests {
 					containsString("A named channel is not supported in this kind of definition"));
 			assertThat(expected.getPosition(), is(13));
 		}
-	}
-
-	@Bean
-	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new ZooKeeperModuleDefinitionRepository(moduleRegistry(), mock(ModuleDependencyRepository.class),
-				zooKeeperConnection());
 	}
 
 	@Bean

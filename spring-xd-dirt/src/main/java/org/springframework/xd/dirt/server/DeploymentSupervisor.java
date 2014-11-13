@@ -50,7 +50,7 @@ import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.container.store.AdminRepository;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.job.JobFactory;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
@@ -110,9 +110,9 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	private final JobDefinitionRepository jobDefinitionRepository;
 
 	/**
-	 * Repository to load module definitions.
+	 * Registry to load module definitions.
 	 */
-	private final ModuleDefinitionRepository moduleDefinitionRepository;
+	private final ModuleRegistry moduleRegistry;
 
 	/**
 	 * Resolver for module options metadata.
@@ -187,7 +187,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	 * @param adminAttributes attributes for the admin
 	 * @param streamDefinitionRepository repository for streams definitions
 	 * @param jobDefinitionRepository repository for job definitions
-	 * @param moduleDefinitionRepository repository for modules
+	 * @param moduleRegistry registry for modules
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 * @param containerMatcher matches modules to containers
 	 * @param stateCalculator calculator for stream/job state
@@ -198,7 +198,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			AdminAttributes adminAttributes,
 			StreamDefinitionRepository streamDefinitionRepository,
 			JobDefinitionRepository jobDefinitionRepository,
-			ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleRegistry moduleRegistry,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
 			ContainerMatcher containerMatcher,
 			DeploymentUnitStateCalculator stateCalculator) {
@@ -207,7 +207,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		Assert.notNull(adminRepository, "Admin repository must not be null");
 		Assert.notNull(adminAttributes, "Admin attributes must not be null");
 		Assert.notNull(streamDefinitionRepository, "StreamDefinitionRepository must not be null");
-		Assert.notNull(moduleDefinitionRepository, "ModuleDefinitionRepository must not be null");
+		Assert.notNull(moduleRegistry, "moduleRegistry must not be null");
 		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver must not be null");
 		Assert.notNull(containerMatcher, "containerMatcher must not be null");
 		Assert.notNull(stateCalculator, "stateCalculator must not be null");
@@ -217,7 +217,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		this.adminAttributes = adminAttributes;
 		this.streamDefinitionRepository = streamDefinitionRepository;
 		this.jobDefinitionRepository = jobDefinitionRepository;
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleRegistry = moduleRegistry;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 		this.containerMatcher = containerMatcher;
 		this.stateCalculator = stateCalculator;
@@ -467,10 +467,10 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			ContainerListener containerListener;
 
 			try {
-				StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
+				StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleRegistry,
 						moduleOptionsMetadataResolver);
 
-				JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleDefinitionRepository,
+				JobFactory jobFactory = new JobFactory(jobDefinitionRepository, moduleRegistry,
 						moduleOptionsMetadataResolver);
 
 				String requestedModulesPath = Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.REQUESTED);

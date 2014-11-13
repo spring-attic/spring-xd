@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Job;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDStreamParser;
@@ -45,13 +45,13 @@ public class JobFactory {
 	 * Construct a JobFactory to create {@link Job} domain model instances.
 	 *
 	 * @param jobDefinitionRepository        repository for job definitions
-	 * @param moduleDefinitionRepository     repository for module definitions
+	 * @param moduleRegistry			     registry for module definitions
 	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
 	 */
 	public JobFactory(JobDefinitionRepository jobDefinitionRepository,
-			ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleRegistry moduleRegistry,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		this.parser = new XDStreamParser(jobDefinitionRepository, moduleDefinitionRepository,
+		this.parser = new XDStreamParser(jobDefinitionRepository, moduleRegistry,
 				moduleOptionsMetadataResolver);
 	}
 

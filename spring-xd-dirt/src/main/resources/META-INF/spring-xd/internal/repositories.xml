@@ -10,8 +10,7 @@
 	<bean id="containerRepository" class="org.springframework.xd.dirt.container.store.ZooKeeperContainerRepository"/>
 	<bean id="moduleMetadataRepository" class="org.springframework.xd.dirt.module.store.ZooKeeperModuleMetadataRepository"/>
 	<bean id="moduleDependencyRepository" class="org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository"/>
-	<bean id="moduleDefinitionRepository" class="org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository"/>
-	
+
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
 		<constructor-arg>
 			<list>
@@ -23,6 +22,8 @@
 				</bean>
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
 					<constructor-arg value="${xd.customModule.home:#{null}}" />
+				</bean>
+				<bean class="org.springframework.xd.dirt.module.store.ZooKeeperComposedModuleDefinitionRegistry">
 				</bean>
 			</list>
 		</constructor-arg>

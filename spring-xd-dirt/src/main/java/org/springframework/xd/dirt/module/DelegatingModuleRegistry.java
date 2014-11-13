@@ -32,7 +32,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Glenn Renfro
  * @author David Turanski
  */
-public class DelegatingModuleRegistry implements ModuleRegistry {
+public class DelegatingModuleRegistry implements WriteableModuleRegistry {
 
 	private final List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
 
@@ -105,4 +105,29 @@ public class DelegatingModuleRegistry implements ModuleRegistry {
 		return definitions;
 	}
 
+	@Override
+	public boolean delete(ModuleDefinition definition) {
+		for (ModuleRegistry delegate : delegates) {
+			if (delegate instanceof WriteableModuleRegistry) {
+				WriteableModuleRegistry writeableModuleRegistry = (WriteableModuleRegistry) delegate;
+				if (writeableModuleRegistry.delete(definition)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public boolean registerNew(ModuleDefinition definition) {
+		for (ModuleRegistry delegate : delegates) {
+			if (delegate instanceof WriteableModuleRegistry) {
+				WriteableModuleRegistry writeableModuleRegistry = (WriteableModuleRegistry) delegate;
+				if (writeableModuleRegistry.registerNew(definition)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }

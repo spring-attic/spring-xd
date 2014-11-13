@@ -16,20 +16,14 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.rest.domain.CompletionKind.module;
-import static org.springframework.xd.rest.domain.CompletionKind.stream;
-
-import static org.springframework.xd.module.ModuleType.processor;
-import static org.springframework.xd.module.ModuleType.sink;
-import static org.springframework.xd.module.ModuleType.source;
+import static org.springframework.xd.module.ModuleType.*;
+import static org.springframework.xd.rest.domain.CompletionKind.*;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
@@ -38,24 +32,24 @@ import org.springframework.xd.rest.domain.CompletionKind;
 /**
  * Continues a well-formed stream definition by adding a pipe symbol and another module, provided that the stream
  * definition hasn't reached its end yet.
- * 
+ *
  * @author Eric Bottard
  */
 @Component
 public class PipeIntoOtherModulesExpansionStrategy implements CompletionExpansionStrategy {
 
 
-	private ModuleDefinitionRepository moduleDefinitionRepository;
+	private ModuleRegistry moduleRegistry;
 
 	/**
 	 * Construct a new PipeIntoOtherModulesExpansionStrategy given a ModuleDefinition repository.
-	 * 
-	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
+	 *
+	 * @param moduleRegistry the registry to check for the existence of the last entered module
 	 *        definition.
 	 */
 	@Autowired
-	public PipeIntoOtherModulesExpansionStrategy(ModuleDefinitionRepository moduleDefinitionRepository) {
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+	public PipeIntoOtherModulesExpansionStrategy(ModuleRegistry moduleRegistry) {
+		this.moduleRegistry = moduleRegistry;
 	}
 
 	@Override
@@ -86,15 +80,13 @@ public class PipeIntoOtherModulesExpansionStrategy implements CompletionExpansio
 			}
 		}
 
-
 	}
 
 	private void addAllModulesOfType(String beginning, ModuleType type, List<String> results) {
-		Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
+		List<ModuleDefinition> mods = moduleRegistry.findDefinitions(type);
 		for (ModuleDefinition mod : mods) {
 			results.add(beginning + mod.getName());
 		}
 	}
-
 
 }

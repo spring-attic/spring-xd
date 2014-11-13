@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,7 +56,7 @@ public class ModuleDefinitionService {
 
 	private final PagingUtility<ModuleDefinition> pagingUtility = new PagingUtility<ModuleDefinition>();
 
-
+	@Autowired
 	public ModuleDefinitionService(WriteableModuleRegistry registry, XDStreamParser parser, ModuleDependencyRepository dependencyRepository) {
 		this.registry = registry;
 		this.parser = parser;

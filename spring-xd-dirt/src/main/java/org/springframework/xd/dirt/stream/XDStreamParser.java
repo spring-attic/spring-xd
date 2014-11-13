@@ -30,7 +30,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.core.BaseDefinition;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.dirt.stream.ParsingContext.Position;
@@ -59,6 +59,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Glenn Renfro
  * @author Mark Fisher
  * @author Patrick Peralta
+ * @author Eric Bottard
  * @since 1.0
  */
 public class XDStreamParser implements XDParser {
@@ -74,7 +75,7 @@ public class XDStreamParser implements XDParser {
 	/**
 	 * Repository for user defined modules.
 	 */
-	private final ModuleDefinitionRepository moduleDefinitionRepository;
+	private final ModuleRegistry moduleRegistry;
 
 	/**
 	 * Resolver for module options metadata.
@@ -86,28 +87,28 @@ public class XDStreamParser implements XDParser {
 	 * Construct an {@code XDStreamParser}.
 	 *
 	 * @param repository                     repository for stream definitions (optional)
-	 * @param moduleDefinitionRepository     repository for user defined modules
+	 * @param moduleRegistry     			 registry for modules
 	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
 	 */
 	public XDStreamParser(CrudRepository<? extends BaseDefinition, String> repository,
-			ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleRegistry moduleRegistry,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository can not be null");
+		Assert.notNull(moduleRegistry, "moduleRegistry can not be null");
 		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver can not be null");
 		this.repository = repository;
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleRegistry = moduleRegistry;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
 	/**
 	 * Construct an {@code XDStreamParser}.
 	 *
-	 * @param moduleDefinitionRepository     repository for user defined modules
+	 * @param moduleRegistry     			 registry for modules
 	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
 	 */
-	public XDStreamParser(ModuleDefinitionRepository moduleDefinitionRepository,
+	public XDStreamParser(ModuleRegistry moduleRegistry,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		this(null, moduleDefinitionRepository, moduleOptionsMetadataResolver);
+		this(null, moduleRegistry, moduleOptionsMetadataResolver);
 	}
 
 	/**
@@ -168,8 +169,7 @@ public class XDStreamParser implements XDParser {
 			builder.setType(determineType(builder, builders.size() - 1, parsingContext));
 
 			// definition is guaranteed to be non-null here
-			ModuleDefinition moduleDefinition = moduleDefinitionRepository
-					.findByNameAndType(builder.getModuleName(), builder.getType());
+			ModuleDefinition moduleDefinition = moduleRegistry.findDefinition(builder.getModuleName(), builder.getType());
 			builder.setModuleDefinition(moduleDefinition);
 			ModuleOptionsMetadata optionsMetadata = moduleOptionsMetadataResolver.resolve(moduleDefinition);
 			if (parsingContext.shouldBindAndValidate()) {
@@ -262,7 +262,7 @@ public class XDStreamParser implements XDParser {
 	 * @return new instance of {@code ModuleDescriptor}
 	 */
 	private ModuleDescriptor buildModuleDescriptor(ModuleDescriptor.Builder builder) {
-		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(builder.getModuleName(), builder.getType());
+		ModuleDefinition def = moduleRegistry.findDefinition(builder.getModuleName(), builder.getType());
 		if (def.isComposed()) {
 			String dsl = ((CompositeModuleDefinition)def).getDslDefinition();
 			List<ModuleDescriptor> children = parse(def.getName(), dsl, ParsingContext.module);
@@ -314,7 +314,7 @@ public class XDStreamParser implements XDParser {
 	 */
 	private ModuleType resolveModuleType(String moduleName, ModuleType... candidates) {
 		for (ModuleType type : candidates) {
-			ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(moduleName, type);
+			ModuleDefinition def = moduleRegistry.findDefinition(moduleName, type);
 			if (def != null) {
 				return type;
 			}

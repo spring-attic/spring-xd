@@ -16,15 +16,9 @@
 
 package org.springframework.xd.dirt.stream.completionnoscan;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
-import static org.springframework.xd.rest.domain.CompletionKind.job;
-import static org.springframework.xd.rest.domain.CompletionKind.module;
-import static org.springframework.xd.rest.domain.CompletionKind.stream;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.xd.rest.domain.CompletionKind.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,15 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
-import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.XDStreamParser;
@@ -59,14 +49,14 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { CompletionProviderTests.Config.class })
+@ContextConfiguration(classes = {CompletionProviderTests.Config.class})
 public class CompletionProviderTests {
 
 	@Autowired
 	private CompletionProvider completionProvider;
 
 	@Autowired
-	private ModuleDefinitionRepository moduleDefinitionRepository;
+	private ModuleRegistry moduleRegistry;
 
 	@Test
 	// <TAB> => file,http,etc
@@ -256,7 +246,7 @@ public class CompletionProviderTests {
 	}
 
 	private List<String> namesOfModulesWithType(ModuleType type) {
-		Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
+		List<ModuleDefinition> mods = moduleRegistry.findDefinitions(type);
 		List<String> result = new ArrayList<String>();
 		for (ModuleDefinition mod : mods) {
 			result.add(mod.getName());
@@ -279,15 +269,8 @@ public class CompletionProviderTests {
 		}
 
 		@Bean
-		public ModuleDefinitionRepository moduleDefinitionRepository() {
-			return new ZooKeeperModuleDefinitionRepository(moduleRegistry(), moduleDependencyRepository(),
-					zooKeeperConnection());
-		}
-
-		@Bean
-		public XDParser parser(ModuleDefinitionRepository moduleDefinitionRepository,
-				ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-			return new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
+		public XDParser parser() {
+			return new XDStreamParser(moduleRegistry(), moduleOptionsMetadataResolver());
 		}
 
 		@Bean

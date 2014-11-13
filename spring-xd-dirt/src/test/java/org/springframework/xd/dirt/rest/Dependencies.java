@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 import org.springframework.batch.admin.service.JdbcSearchableJobExecutionDao;
 import org.springframework.batch.admin.service.JdbcSearchableJobInstanceDao;
@@ -45,15 +45,13 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDefinitionService;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
-import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.WriteableModuleRegistry;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
-import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
-import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -97,14 +95,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new ZooKeeperModuleDefinitionRepository(moduleRegistry(), moduleDependencyRepository(),
-				zooKeeperConnection());
-	}
-
-	@Bean
-	public ModuleRegistry moduleRegistry() {
-		return mock(ModuleRegistry.class);
+	public WriteableModuleRegistry moduleRegistry() {
+		return mock(WriteableModuleRegistry.class);
 	}
 
 	@Bean
@@ -139,7 +131,7 @@ public class Dependencies {
 	@Bean
 	public XDStreamParser parser() {
 		return new XDStreamParser(streamDefinitionRepository(),
-				moduleDefinitionRepository(), moduleOptionsMetadataResolver());
+				moduleRegistry(), moduleOptionsMetadataResolver());
 	}
 
 	@Bean
@@ -176,8 +168,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public CompositeModuleDefinitionService compositeModuleDefinitionService() {
-		return new CompositeModuleDefinitionService(moduleDefinitionRepository(), parser());
+	public ModuleDefinitionService moduleDefinitionService() {
+		return new ModuleDefinitionService(moduleRegistry(), parser(), moduleDependencyRepository());
 	}
 
 	@Bean

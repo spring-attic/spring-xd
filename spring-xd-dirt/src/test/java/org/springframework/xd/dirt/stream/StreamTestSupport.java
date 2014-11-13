@@ -13,7 +13,7 @@
 
 package org.springframework.xd.dirt.stream;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.List;
 import java.util.Map;
@@ -30,10 +30,9 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.WriteableModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
-import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
@@ -44,7 +43,7 @@ import org.springframework.xd.module.core.Module;
  */
 public class StreamTestSupport {
 
-	private static ModuleDefinitionRepository moduleDefinitionRepository;
+	private static WriteableModuleRegistry moduleRegistry;
 
 	private static SingleNodeApplication application;
 
@@ -61,7 +60,7 @@ public class StreamTestSupport {
 		integrationTestSupport = new SingleNodeIntegrationTestSupport(application,
 				"classpath:/testmodules/");
 
-		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);
+		moduleRegistry = adminContext.getBean(WriteableModuleRegistry.class);
 	}
 
 	protected static boolean deployStream(String name, String config) {
@@ -122,8 +121,15 @@ public class StreamTestSupport {
 		return adminContext;
 	}
 
-	protected static ModuleDefinitionRepository getModuleDefinitionRepository() {
-		return moduleDefinitionRepository;
+	protected static WriteableModuleRegistry getModuleRegistry() {
+		return moduleRegistry;
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		if (application != null) {
+			application.close();
+		}
 	}
 
 	protected void sendMessageAndVerifyOutput(String streamName, Message<?> message, MessageTest test) {
@@ -214,12 +220,5 @@ public class StreamTestSupport {
 			}
 		}
 
-	}
-
-	@AfterClass
-	public static void cleanUp() {
-		if (application != null) {
-			application.close();
-		}
 	}
 }

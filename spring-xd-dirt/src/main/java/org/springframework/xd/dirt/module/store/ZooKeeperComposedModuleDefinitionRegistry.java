@@ -131,6 +131,9 @@ public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModul
 		String path = Paths.build(Paths.MODULES, type.toString(), name);
 		try {
 			byte[] data = zooKeeperConnection.getClient().getData().forPath(path);
+			if (data.length == 0) {
+				return null;
+			}
 			return this.objectMapper.readValue(new String(data, "UTF-8"),
 					ModuleDefinition.class);
 		}

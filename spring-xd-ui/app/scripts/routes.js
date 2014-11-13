@@ -22,7 +22,7 @@
  */
 define(['./app'], function (xdAdmin) {
   'use strict';
-  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider, growlProvider) {
+  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider, growlProvider, $animateProvider) {
     $httpProvider.defaults.useXDomain = true;
     $httpProvider.interceptors.push('httpErrorInterceptor');
     $urlRouterProvider.otherwise('/jobs/definitions');
@@ -32,6 +32,9 @@ define(['./app'], function (xdAdmin) {
     });
 
     growlProvider.globalTimeToLive(5000);
+
+    //Let's make sure ngAnimate is not triggered for certain CSS classes
+    $animateProvider.classNameFilter(/^((?!(myspinner)).)*$/);
 
     var jobTemplatesPath = 'scripts/job/views',
         streamTemplatesPath = 'scripts/stream/views',

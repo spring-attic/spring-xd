@@ -38,9 +38,10 @@ import org.springframework.xd.test.fixtures.TailSource;
 
 /**
  * Tests various metrics related sinks.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  */
 public class MetricsTests extends AbstractStreamIntegrationTest {
 
@@ -120,6 +121,10 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testFieldValueCounterList() throws Exception {
+
+		//This test disabled for Windows since we can't assume 'tail' is installed.
+		org.junit.Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("windows"));
+
 		TailSource tailSource = newTailSource();
 		tailTweets(tailSource);
 
@@ -131,6 +136,9 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testFieldValueCounterDisplay() throws Exception {
+
+		//This test disabled for Windows since we can't assume 'tail' is installed.
+		org.junit.Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("windows"));
 		TreeMap<String, Double> fvcMap = new TreeMap<String, Double>();
 		fvcMap.put("BestNoSQL", 1d);
 		fvcMap.put("SpringSource", 2d);

@@ -151,7 +151,8 @@ public class ServerProcessUtils {
 	/**
 	 * Block the executing thread until all of the indicated process IDs
 	 * have been identified in the list of runtime containers as indicated
-	 * by the admin server.
+	 * by the admin server. If an empty list is provided, the executing
+	 * thread will block until there are no containers running.
 	 *
 	 * @param template REST template used to communicate with the admin server
 	 * @param pids     set of process IDs for the expected containers
@@ -163,19 +164,12 @@ public class ServerProcessUtils {
 	public static Map<Long, String> waitForContainers(SpringXDTemplate template,
 			Set<Long> pids) throws InterruptedException, IllegalStateException {
 		int pidCount = pids.size();
-		Map<Long, String> mapPidUuid = new HashMap<Long, String>();
+		Map<Long, String> mapPidUuid = getRunningContainers(template);
 		long expiry = System.currentTimeMillis() + 3 * 60000;
 
 		while (mapPidUuid.size() != pidCount && System.currentTimeMillis() < expiry) {
 			Thread.sleep(500);
-			mapPidUuid.clear();
-			PagedResources<DetailedContainerResource> containers =
-					template.runtimeOperations().listContainers();
-			for (DetailedContainerResource container : containers) {
-				logger.trace("Container: {}", container);
-				long pid = Long.parseLong(container.getAttribute("pid"));
-				mapPidUuid.put(pid, container.getAttribute("id"));
-			}
+			mapPidUuid = getRunningContainers(template);
 		}
 
 		if (mapPidUuid.size() == pidCount && mapPidUuid.keySet().containsAll(pids)) {
@@ -202,6 +196,26 @@ public class ServerProcessUtils {
 		}
 
 		throw new IllegalStateException(builder.toString());
+	}
+
+	/**
+	 * Return a map of running containers. Map key is pid; value is
+	 * the container ID.
+	 *
+	 * @param template REST template used to communicate with the admin server
+	 * @return map of process id to container id
+	 */
+	public static Map<Long, String> getRunningContainers(SpringXDTemplate template) {
+		Map<Long, String> mapPidUuid = new HashMap<Long, String>();
+		PagedResources<DetailedContainerResource> containers =
+				template.runtimeOperations().listContainers();
+		for (DetailedContainerResource container : containers) {
+			logger.trace("Container: {}", container);
+			long pid = Long.parseLong(container.getAttribute("pid"));
+			mapPidUuid.put(pid, container.getAttribute("id"));
+		}
+
+		return mapPidUuid;
 	}
 
 	/**

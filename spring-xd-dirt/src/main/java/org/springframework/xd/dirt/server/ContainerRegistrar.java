@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.server;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.utils.ThreadUtils;
@@ -306,14 +307,25 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 		@Override
 		public void onResume(CuratorFramework client) {
 			if (lastKnownState == ConnectionState.LOST) {
-				// force a shutdown and restart of the client;
-				// this will create a new ZooKeeper session id
-				// and cause expiration of the previous session
-				// after which ZooKeeper will clean up the previous
-				// ephemeral nodes for this container
-				logger.info("ZooKeeper connection lost; restarting connection");
-				zkConnection.stop();
-				zkConnection.start();
+				if (client.getState() == CuratorFrameworkState.STARTED) {
+					// this condition (connection lost but framework started)
+					// may occur in single node mode when the node disconnects
+					// and reconnects to ZK (see XD-2331) - note that
+					// DeploymentSupervisor.ConnectionListener.onResume
+					// may be invoked before this method
+					logger.info("ZooKeeper connection lost and restarted; registering container");
+					registerWithZooKeeper(client);
+				}
+				else {
+					// force a shutdown and restart of the client;
+					// this will create a new ZooKeeper session id
+					// and cause expiration of the previous session
+					// after which ZooKeeper will clean up the previous
+					// ephemeral nodes for this container
+					logger.info("ZooKeeper connection lost; restarting connection");
+					zkConnection.stop();
+					zkConnection.start();
+				}
 			}
 			else if (lastKnownState == ConnectionState.SUSPENDED) {
 				logger.info("ZooKeeper connection resumed");

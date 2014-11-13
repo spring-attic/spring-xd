@@ -67,7 +67,7 @@ public class DistributedTestSuite {
 	 * @see DistributedTestSupport#shutdownAll
 	 */
 	@AfterClass
-	public static void afterClass() {
+	public static void afterClass() throws InterruptedException {
 		distributedTestSupport.shutdownAll();
 	}
 

@@ -403,7 +403,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		 */
 		@Override
 		public void onResume(CuratorFramework client) {
-			logger.info("Admin {} connection resumed", getId());
+			logger.info("Admin {} connection resumed, client state: {}", getId(), client.getState());
 			registerWithZooKeeper(client);
 			requestLeadership(client);
 		}

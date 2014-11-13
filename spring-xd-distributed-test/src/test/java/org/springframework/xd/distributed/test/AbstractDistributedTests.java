@@ -74,6 +74,12 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	/**
+	 * Maximum number of milliseconds a thread will be blocked
+	 * while waiting for a module/job/stream state transition.
+	 */
+	private static final long STATE_TRANSITION_TIMEOUT = 60000;
+
+	/**
 	 * Distributed test support infrastructure.
 	 */
 	private static DistributedTestSupport distributedTestSupport;
@@ -124,12 +130,13 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 
 	/**
 	 * After each test execution, all containers are shut down
-	 * and all streams destroyed.
+	 * and all streams/jobs destroyed.
 	 */
 	@After
-	public void after() {
-		distributedTestSupport.shutdownContainers();
+	public void after() throws InterruptedException {
 		distributedTestSupport.ensureTemplate().streamOperations().destroyAll();
+		distributedTestSupport.ensureTemplate().jobOperations().destroyAll();
+		distributedTestSupport.shutdownContainers();
 	}
 
 	/**
@@ -138,7 +145,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 * {@link DistributedTestSuite}.
 	 */
 	@AfterClass
-	public static void afterClass() {
+	public static void afterClass() throws InterruptedException {
 		if (!suiteDetected) {
 			distributedTestSupport.shutdownAll();
 		}
@@ -196,7 +203,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void shutdownContainers() {
+	public void shutdownContainers() throws InterruptedException {
 		distributedTestSupport.shutdownContainers();
 	}
 
@@ -204,7 +211,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void shutdownAll() {
+	public void shutdownAll() throws InterruptedException {
 		distributedTestSupport.shutdownAll();
 	}
 
@@ -312,11 +319,12 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 *
 	 * @param streamName name of stream to verify
 	 * @param expected   the expected state of the stream
-	 * @throws InterruptedException
+	 * @throws InterruptedExceptionå
+	 * @see #STATE_TRANSITION_TIMEOUT
 	 */
 	protected void verifyStreamState(String streamName, DeploymentUnitStatus.State expected)
 			throws InterruptedException {
-		long expiry = System.currentTimeMillis() + 30000;
+		long expiry = System.currentTimeMillis() + STATE_TRANSITION_TIMEOUT;
 		DeploymentUnitStatus.State state = null;
 
 		while (state != expected && System.currentTimeMillis() < expiry) {
@@ -335,10 +343,11 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 * @param jobName name of job to verify
 	 * @param expected   the expected state of the job
 	 * @throws InterruptedException
+	 * @see #STATE_TRANSITION_TIMEOUT
 	 */
 	protected void verifyJobState(String jobName, DeploymentUnitStatus.State expected)
 			throws InterruptedException {
-		long expiry = System.currentTimeMillis() + 30000;
+		long expiry = System.currentTimeMillis() + STATE_TRANSITION_TIMEOUT;
 		DeploymentUnitStatus.State state = null;
 
 		while (state != expected && System.currentTimeMillis() < expiry) {

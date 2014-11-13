@@ -88,14 +88,20 @@ public interface DistributedTestSupport {
 
 	/**
 	 * Shut down all containers started via {@link #startContainer}.
+	 * This method will block the executing thread until the
+	 * admin server indicates that there are no containers running.
+	 *
+	 * @throws InterruptedException
 	 */
-	void shutdownContainers();
+	void shutdownContainers() throws InterruptedException;
 
 	/**
 	 * Shut down all servers started, including those started via
 	 * {@link #startup} and all containers started via
 	 * {@link #startContainer}.
+	 *
+	 * @throws java.lang.InterruptedException
 	 */
-	void shutdownAll();
+	void shutdownAll() throws InterruptedException;
 }
 

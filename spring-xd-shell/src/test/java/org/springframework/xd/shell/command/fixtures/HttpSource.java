@@ -111,7 +111,7 @@ public class HttpSource extends AbstractModuleFixture<HttpSource> {
 	public HttpSource postFromFile(File file) {
 		String command = String.format(
 				"http post --target http://localhost:%d --file \"%s\"",
-				port, FixtureUtils.preventShellEscapeProcessing(file.getAbsolutePath()));
+				port, FixtureUtils.handleShellEscapeProcessingInPathNames(file.getAbsolutePath()));
 		if (contentType != null) {
 			command += String.format(" --contentType \"%s\"", contentType);
 		}

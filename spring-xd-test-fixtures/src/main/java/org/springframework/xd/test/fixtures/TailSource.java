@@ -32,7 +32,7 @@ public class TailSource extends DisposableFileSupport<TailSource> {
 	@Override
 	public String toDSL() {
 		return String.format("tail --nativeOptions='-f -n +0' --name=%s",
-				FixtureUtils.preventShellEscapeProcessing(file.getAbsolutePath()));
+				FixtureUtils.handleShellEscapeProcessingInPathNames(file.getAbsolutePath()));
 	}
 
 	public void appendToFile(String contents) throws IOException {

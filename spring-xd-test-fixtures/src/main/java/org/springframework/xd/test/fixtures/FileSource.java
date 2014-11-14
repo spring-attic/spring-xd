@@ -53,7 +53,7 @@ public class FileSource extends DisposableFileSupport<FileSource> {
 	@Override
 	protected String toDSL() {
 		return String.format("file --outputType=text/plain --dir=%s",
-				FixtureUtils.preventShellEscapeProcessing(file.getParent()));
+				FixtureUtils.handleShellEscapeProcessingInPathNames(file.getParent()));
 	}
 
 	public void appendToFile(String contents) throws IOException {

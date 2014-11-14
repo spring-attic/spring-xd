@@ -39,7 +39,7 @@ public class FixtureUtils {
 	 * @param path a file path
 	 * @return fixed path
 	 */
-	public static String preventShellEscapeProcessing(String path) {
+	public static String handleShellEscapeProcessing(String path) {
 		if (path == null) {
 			return null;
 		}

@@ -115,7 +115,7 @@ public class FileSink extends DisposableFileSupport<FileSink> {
 	protected String toDSL() {
 		String fileName = file.getName();
 		return String.format("file --dir=%s --name=%s --suffix=%s --charset=%s --binary=%b --mode=%s",
-				FixtureUtils.preventShellEscapeProcessing(file.getParent()),
+				FixtureUtils.handleShellEscapeProcessingInPathNames(file.getParent()),
 				fileName.substring(0, fileName.lastIndexOf(".txt")), "txt", charset, binary, "APPEND");
 	}
 

@@ -18,15 +18,20 @@ package org.springframework.xd.dirt.integration.bus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.utils.IntegrationUtils;
@@ -34,6 +39,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
@@ -67,6 +73,46 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 		verifyPayloadConversion(new TestPayload(), bus);
 	}
 
+	@Test
+	public void testTapDoesntHurtStream() throws Exception {
+		LocalMessageBus bus = (LocalMessageBus) getMessageBus();
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		moduleOutputChannel.setBeanName("bangOut");
+		DirectChannel tapChannel = new DirectChannel();
+		tapChannel.setBeanName("tapChannel");
+		WireTap tap = new WireTap(tapChannel);
+		moduleOutputChannel.addInterceptor(tap);
+		bus.bindProducer("bang.0", moduleOutputChannel, null);
+		final AtomicBoolean messageReceived = new AtomicBoolean();
+		final AtomicReference<Thread> streamThread = new AtomicReference<Thread>();
+		bus.bindConsumer("bang.0", new DirectChannel() {
+
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				messageReceived.set(true);
+				streamThread.set(Thread.currentThread());
+				return true;
+			}
+		}, null);
+		final CountDownLatch tapped = new CountDownLatch(1);
+		final AtomicReference<Thread> tapThread = new AtomicReference<Thread>();
+		bus.bindPubSubProducer("tap:stream:bang.0", tapChannel, null);
+		bus.bindPubSubConsumer("tap:stream:bang.0", new DirectChannel() {
+
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				tapped.countDown();
+				tapThread.set(Thread.currentThread());
+				throw new RuntimeException("bang");
+			}
+		}, null);
+		moduleOutputChannel.send(new GenericMessage<String>("Foo"));
+		assertTrue(tapped.await(10, TimeUnit.SECONDS));
+		assertTrue(messageReceived.get());
+		assertSame(Thread.currentThread(), streamThread.get());
+		assertNotNull(tapThread.get());
+		assertSame(Thread.currentThread(), tapThread.get());
+	}
 
 	private void verifyPayloadConversion(final Object expectedValue, final LocalMessageBus bus) {
 		DirectChannel myChannel = new DirectChannel();

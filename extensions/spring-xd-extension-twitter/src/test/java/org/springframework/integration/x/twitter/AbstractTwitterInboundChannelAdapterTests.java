@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.web.client.RestTemplate;
@@ -57,6 +58,7 @@ public class AbstractTwitterInboundChannelAdapterTests {
 			}
 
 		};
+		adapter.setBeanFactory(mock(BeanFactory.class));
 		adapter.afterPropertiesSet();
 		adapter.start();
 		assertTrue(latch.await(10, TimeUnit.SECONDS));

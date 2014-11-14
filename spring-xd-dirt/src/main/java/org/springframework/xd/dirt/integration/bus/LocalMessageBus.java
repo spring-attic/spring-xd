@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.BridgeHandler;
@@ -52,20 +53,50 @@ import org.springframework.util.Assert;
  */
 public class LocalMessageBus extends MessageBusSupport {
 
-	private PollerMetadata poller;
+	private volatile PollerMetadata poller;
 
 	private final Map<String, ExecutorChannel> requestReplyChannels = new HashMap<String, ExecutorChannel>();
 
 	private final ExecutorService executor = Executors.newCachedThreadPool();
 
-	@SuppressWarnings("unused")
-	private boolean hasCodec;
+	private volatile int queueSize = Integer.MAX_VALUE;
+
+	/**
+	 * Used to create and customize {@link QueueChannel}s when the binding operation involves aliased names.
+	 */
+	private final SharedChannelProvider<QueueChannel> queueChannelProvider = new SharedChannelProvider<QueueChannel>(
+			QueueChannel.class) {
+
+		@Override
+		protected QueueChannel createSharedChannel(String name) {
+			QueueChannel queueChannel = new QueueChannel(queueSize);
+			return queueChannel;
+		}
+	};
+
+	private final SharedChannelProvider<PublishSubscribeChannel> pubsubChannelProvider = new SharedChannelProvider<PublishSubscribeChannel>(
+			PublishSubscribeChannel.class) {
+
+		@Override
+		protected PublishSubscribeChannel createSharedChannel(String name) {
+			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel();
+			publishSubscribeChannel.setIgnoreFailures(true);
+			return publishSubscribeChannel;
+		}
+	};
 
 	/**
 	 * Set the poller to use when QueueChannels are used.
 	 */
 	public void setPoller(PollerMetadata poller) {
 		this.poller = poller;
+	}
+
+	/**
+	 * Set the size of the queue when using {@link QueueChannel}s.
+	 */
+	public void setQueueSize(int queueSize) {
+		this.queueSize = queueSize;
 	}
 
 	/**

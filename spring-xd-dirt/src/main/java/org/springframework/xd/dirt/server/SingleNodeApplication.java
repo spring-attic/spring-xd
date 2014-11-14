@@ -60,6 +60,7 @@ public class SingleNodeApplication {
 				.child(SingleNodeOptions.class, AdminServerApplication.class)
 				.main(AdminServerApplication.class)
 				.listeners(bootstrapContext.commandLineListener());
+		admin.showBanner(false);
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
@@ -72,6 +73,7 @@ public class SingleNodeApplication {
 				.main(ContainerServerApplication.class)
 				.listeners(bootstrapContext.commandLineListener())
 				.web(false);
+		container.showBanner(false);
 		container.run(args);
 
 		adminContext = admin.context();

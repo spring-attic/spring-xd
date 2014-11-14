@@ -21,7 +21,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.actuate.autoconfigure.AuditAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.HealthIndicatorAutoConfiguration;
-import org.springframework.boot.actuate.health.VanillaHealthIndicator;
+import org.springframework.boot.actuate.health.ApplicationHealthIndicator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
@@ -87,8 +87,8 @@ public class ParentConfiguration {
 
 	@Bean
 	@ConditionalOnExpression("${endpoints.health.enabled:true}")
-	public VanillaHealthIndicator healthIndicator() {
-		return new VanillaHealthIndicator();
+	public ApplicationHealthIndicator healthIndicator() {
+		return new ApplicationHealthIndicator();
 	}
 
 }

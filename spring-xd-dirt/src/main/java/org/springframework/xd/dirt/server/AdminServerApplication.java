@@ -94,6 +94,7 @@ public class AdminServerApplication {
 					.child(AdminServerApplication.class)
 					.listeners(commandLineListener)
 					.initializers(new AdminIdInitializer())
+					.showBanner(false)
 					.run(args);
 		}
 		catch (Exception e) {

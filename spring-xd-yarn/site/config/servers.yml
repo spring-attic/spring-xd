@@ -187,7 +187,6 @@ spring:
 #    removeAbandonedTimeout: 60
 #    logAbandoned: false
 #Tomcat JDBC Enhanced Attributes
-#    validationInterval: 30000
 #    jmxEnabled: true
 #    fairQueue: true
 #    abandonWhenPercentageFull: 0

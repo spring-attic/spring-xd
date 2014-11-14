@@ -51,6 +51,7 @@ class ContainerBootstrapContext {
 				.listeners(commandLineListener)
 				.headless(true)
 				.web(false)
+				.showBanner(false)
 				.run();
 
 		Collection<OrderedContextInitializer> orderedContextInitializers = bootstrapContext.getBeansOfType(

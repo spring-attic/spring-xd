@@ -54,8 +54,9 @@ public abstract class ApplicationUtils {
 		StringBuilder sb = new StringBuilder();
 		sb.append("\n").append(contextName).append(":\n");
 		for (Entry<String, Object> entry : beans.entrySet()) {
-			sb.append("\t[").append(entry.getKey()).append("] =").append(entry.getValue().getClass().getName()).append(
-					"\n");
+			sb.append("\t[").append(entry.getKey()).append("] =")
+					.append((entry.getValue() != null ? entry.getValue().getClass().getName() : "null"))
+					.append("\n");
 		}
 		return sb.toString();
 	}

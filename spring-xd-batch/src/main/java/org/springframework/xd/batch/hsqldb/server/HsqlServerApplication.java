@@ -19,8 +19,10 @@ package org.springframework.xd.batch.hsqldb.server;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchDatabaseInitializer;
+import org.springframework.boot.autoconfigure.batch.BatchProperties;
 import org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.batch.XdBatchDatabaseInitializer;
@@ -34,6 +36,7 @@ import org.springframework.xd.batch.XdBatchDatabaseInitializer;
  */
 @Configuration
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, IntegrationAutoConfiguration.class })
+@EnableConfigurationProperties(BatchProperties.class)
 public class HsqlServerApplication {
 
 	public final static String HSQLDBSERVER_PROFILE = "hsqldbServer";

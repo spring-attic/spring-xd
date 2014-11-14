@@ -92,7 +92,8 @@ public abstract class SimpleModule extends AbstractModule {
 			ModuleOptions moduleOptions) {
 		super(descriptor, deploymentProperties);
 		this.moduleOptions = moduleOptions;
-		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class).web(false);
+		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class)
+				.web(false).showBanner(false);
 
 		this.classLoader = classLoader;
 

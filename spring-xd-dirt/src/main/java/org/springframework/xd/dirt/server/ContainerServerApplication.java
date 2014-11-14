@@ -96,7 +96,9 @@ public class ContainerServerApplication implements EnvironmentAware {
 									bootstrapContext.pluginContextInitializers()))
 					.child(ContainerConfiguration.class)
 					.listeners(bootstrapContext.commandLineListener())
-					.initializers(new IdInitializer()).run(args);
+					.initializers(new IdInitializer())
+					.showBanner(false)
+					.run(args);
 		}
 		catch (Exception e) {
 			handleFieldErrors(e);

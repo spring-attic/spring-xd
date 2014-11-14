@@ -134,8 +134,8 @@ embeddedHsql: true
 ---
 
 # HSQL database configuration
- spring:
-   datasource:
+spring:
+  datasource:
     url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
     username: sa
     password:
@@ -157,7 +157,6 @@ embeddedHsql: true
     removeAbandonedTimeout: 60
     logAbandoned: false
 #Tomcat JDBC Enhanced Attributes
-    validationInterval: 30000
     jmxEnabled: true
     fairQueue: true
     abandonWhenPercentageFull: 0

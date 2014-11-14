@@ -9,7 +9,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.7.RELEASE")
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.0.RC1")
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
 		classpath 'com.moowork.gradle:gradle-grunt-plugin:0.4'
 		classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'

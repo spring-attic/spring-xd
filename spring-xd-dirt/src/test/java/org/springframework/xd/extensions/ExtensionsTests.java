@@ -19,7 +19,6 @@ package org.springframework.xd.extensions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -52,9 +51,8 @@ public class ExtensionsTests {
 
 	@BeforeClass
 	public static void setUp() {
-		String currentDir = new File(".").getAbsolutePath();
 		originalConfigLocation = System.getProperty("spring.config.location");
-		System.setProperty("spring.config.location", currentDir + "/src/test/resources/extensions/extensions-test.yml");
+		System.setProperty("spring.config.location", "classpath:extensions/extensions-test.yml");
 		application = new TestApplicationBootstrap().getSingleNodeApplication().run();
 		context = application.pluginContext();
 	}

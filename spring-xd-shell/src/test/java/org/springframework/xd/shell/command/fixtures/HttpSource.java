@@ -24,11 +24,12 @@ import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.test.fixtures.AbstractModuleFixture;
 import org.springframework.xd.test.fixtures.AvailableSocketPorts;
+import org.springframework.xd.test.fixtures.util.FixtureUtils;
 
 
 /**
  * Represents an http source running on localhost.
- * 
+ *
  * @author Eric Bottard
  */
 public class HttpSource extends AbstractModuleFixture<HttpSource> {
@@ -110,7 +111,7 @@ public class HttpSource extends AbstractModuleFixture<HttpSource> {
 	public HttpSource postFromFile(File file) {
 		String command = String.format(
 				"http post --target http://localhost:%d --file \"%s\"",
-				port, file.getAbsolutePath());
+				port, FixtureUtils.preventShellEscapeProcessing(file.getAbsolutePath()));
 		if (contentType != null) {
 			command += String.format(" --contentType \"%s\"", contentType);
 		}

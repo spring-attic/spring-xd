@@ -97,10 +97,9 @@ public abstract class AbstractShellIntegrationTest {
 		if (application == null) {
 			application = new SingleNodeApplication().run("--transport", "local", "--analytics", "redis");
 			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
+			integrationTestSupport.addModuleRegistry(new ArchiveModuleRegistry("classpath:/spring-xd/xd/modules"));
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();
-			DelegatingModuleRegistry moduleRegistry = application.containerContext().getBean(DelegatingModuleRegistry.class);
-			moduleRegistry.addDelegate(new ArchiveModuleRegistry("classpath:/spring-xd/xd/modules"));
 		}
 		if (!shell.isRunning()) {
 			shell.start();

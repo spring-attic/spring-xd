@@ -26,6 +26,8 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.groovy.GroovyBeanDefinitionReader;
+import org.springframework.beans.factory.support.AbstractBeanDefinitionReader;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ResourceLoaderAware;
@@ -237,12 +239,18 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 */
 	private ModuleOptionsMetadata inferModuleOptionsMetadata(SimpleModuleDefinition definition, ClassLoader classLoaderToUse) {
 		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
-		reader.setResourceLoader(new PathMatchingResourcePatternResolver(classLoaderToUse));
+
 		Resource source = ResourceConfiguredModule.resourceBasedConfigurationFile(definition, classLoaderToUse);
 		if (source == null) {
 			return new PassthruModuleOptionsMetadata();
 		}
+
+		AbstractBeanDefinitionReader reader = source.getFilename().endsWith("xml") ?
+				new XmlBeanDefinitionReader(beanFactory):
+				new GroovyBeanDefinitionReader(beanFactory);
+
+		reader.setResourceLoader(new PathMatchingResourcePatternResolver(classLoaderToUse));
+
 		reader.loadBeanDefinitions(source);
 
 		return defaultModuleOptionsMetadataCollector.collect(beanFactory);

@@ -29,6 +29,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  * Tests related to custom module packaging.
  *
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
 	//todo:What is the purpose of this test?
@@ -44,5 +45,13 @@ public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
 		FileSink fileSink = newFileSink();
 		stream().create(generateStreamName(), "time3 | %s", fileSink);
 		assertThat(fileSink, eventually(hasContentsThat(not(isEmptyOrNullString()))));
+	}
+
+	@Test
+	public void testJavaConfigModule() {
+		FileSink fileSink = newFileSink();
+		stream().create(generateStreamName(), "time | siDslModule --prefix=foo --suffix=bar| %s", fileSink);
+		assertThat(fileSink, eventually(allOf(hasContentsThat(containsString("foo")), hasContentsThat(containsString
+				("bar")))));
 	}
 }

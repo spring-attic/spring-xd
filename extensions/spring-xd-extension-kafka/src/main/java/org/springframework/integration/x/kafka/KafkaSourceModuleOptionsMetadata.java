@@ -26,7 +26,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  *
  * @author Ilayaperumal Gopinathan
  */
-@Mixin(KafkaOptionMixin.class)
+@Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class})
 public class KafkaSourceModuleOptionsMetadata {
 
 	private String topic = ModulePlaceholders.XD_STREAM_NAME;

@@ -35,6 +35,7 @@ project('spring-xd-extension-kafka') {
 	dependencies {
 		compile "org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion"
 		compile project(':spring-xd-module-spi')
+		compile "javax.validation:validation-api"
 	}
 }
 

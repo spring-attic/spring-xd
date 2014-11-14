@@ -11,7 +11,7 @@ buildscript {
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.3'
 		classpath 'org.ajoberstar:gradle-git:0.8.0'
 	}
-	
+
 }
 
 ext {
@@ -25,7 +25,6 @@ import org.ajoberstar.grgit.auth.AuthConfig
 import org.apache.tools.ant.filters.TokenFilter
 import org.asciidoctor.gradle.*
 
-
 task(pullDocs) {
 	if (project.gradle.startParameter.offline) {
 		enabled = false
@@ -35,6 +34,21 @@ task(pullDocs) {
 
 pullDocs << {
 
+	def xdGit = Grgit.open(rootProject.projectDir)
+	def springXdBranchName = xdGit.branch.getCurrent().name
+
+	println "Spring XD Branch: $springXdBranchName"
+	println "Spring XD Version: $version"
+
+	if (rootProject.hasProperty('wikiBranch')) {
+		ext.wikiBranch = rootProject.getProperty('wikiBranch')
+		println "Using custom wiki branch: ${ext.wikiBranch}"
+	}
+	else {
+		ext.wikiBranch = 'origin/' + springXdBranchName;
+		println "Using default wiki branch: ${ext.wikiBranch}"
+	}
+
 	def uri = "https://github.com/spring-projects/spring-xd.wiki.git"
 
 	if (cloneDestination.exists()) {
@@ -42,7 +56,17 @@ pullDocs << {
 		file("$buildDir/asciidoc").deleteDir()
 	}
 
+	println "Cloning docs: $uri to ${ext.cloneDestination}"
 	def repo = Grgit.clone(dir: cloneDestination, uri: uri)
+	println "Switching to wiki branch: ${ext.wikiBranch}"
+
+	try {
+		repo.checkout(branch: ext.wikiBranch, createBranch: false)
+	}
+	catch (org.ajoberstar.grgit.exception.GrgitException e) {
+		throw new GradleException("Error while switching to branch: ${ext.wikiBranch}. Cause: "
+			+ e.getCause().getMessage(), e)
+	}
 }
 
 task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-dirt:build", ":spring-xd-shell:compileTestJava", pullDocs]) {
@@ -67,10 +91,30 @@ task shellReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-shell:compileTest
 
 task pushGeneratedDocs(dependsOn: [moduleOptionsReferenceDoc, shellReferenceDoc]) << {
 	def docsRepo = Grgit.open(pullDocs.cloneDestination)
+
+	try {
+		docsRepo.checkout(branch: pullDocs.wikiBranch, createBranch: false)
+	}
+	catch (org.ajoberstar.grgit.exception.GrgitException e) {
+		throw new GradleException("Error while switching to branch: ${pullDocs.wikiBranch}. Cause: "
+			+ e.getCause().getMessage(), e)
+	}
+
+	println("Pushing docs to ${pullDocs.cloneDestination}, Branch: ${pullDocs.wikiBranch}")
+
 	def xdRepo = Grgit.open(file("$rootDir"))
 	docsRepo.add(patterns: ['.'])
 	docsRepo.commit(message: "Automated doc generation in synch with XD ${xdRepo.head().id}")
-	docsRepo.push()
+
+	try {
+		docsRepo.push()
+	}
+	catch (org.ajoberstar.grgit.exception.GrgitException e) {
+		throw new GradleException("Error while pushing to branch: ${pullDocs.wikiBranch}. Cause: "
+			+ e.getCause().getMessage(), e)
+	}
+
+	println("Pushed docs to ${pullDocs.cloneDestination}, Branch: ${pullDocs.wikiBranch}")
 }
 
 task transformDocs(type: Copy, dependsOn: [pullDocs, shellReferenceDoc, moduleOptionsReferenceDoc]) {

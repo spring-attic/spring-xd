@@ -46,8 +46,6 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.support.MessageBuilder;
@@ -88,8 +86,6 @@ public abstract class MessageBusSupport
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private volatile AbstractApplicationContext applicationContext;
-
-	private int queueSize = Integer.MAX_VALUE;
 
 	private volatile MultiTypeCodec<Object> codec;
 
@@ -147,29 +143,6 @@ public abstract class MessageBusSupport
 		}
 	};
 
-	/**
-	 * Used to create and customize {@link QueueChannel}s when the binding operation involves aliased names.
-	 */
-	protected final SharedChannelProvider<QueueChannel> queueChannelProvider = new SharedChannelProvider<QueueChannel>(
-			QueueChannel.class) {
-
-		@Override
-		protected QueueChannel createSharedChannel(String name) {
-			QueueChannel queueChannel = new QueueChannel(queueSize);
-			return queueChannel;
-		}
-	};
-
-	protected final SharedChannelProvider<PublishSubscribeChannel> pubsubChannelProvider = new SharedChannelProvider<PublishSubscribeChannel>(
-			PublishSubscribeChannel.class) {
-
-		@Override
-		protected PublishSubscribeChannel createSharedChannel(String name) {
-			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel();
-			return publishSubscribeChannel;
-		}
-	};
-
 	protected volatile long defaultBackOffInitialInterval = DEFAULT_BACKOFF_INITIAL_INTERVAL;
 
 	protected volatile long defaultBackOffMaxInterval = DEFAULT_BACKOFF_MAX_INTERVAL;
@@ -192,13 +165,6 @@ public abstract class MessageBusSupport
 
 	protected ConfigurableListableBeanFactory getBeanFactory() {
 		return this.applicationContext.getBeanFactory();
-	}
-
-	/**
-	 * Set the size of the queue when using {@link QueueChannel}s.
-	 */
-	public void setQueueSize(int queueSize) {
-		this.queueSize = queueSize;
 	}
 
 	public void setCodec(MultiTypeCodec<Object> codec) {
@@ -880,7 +846,7 @@ public abstract class MessageBusSupport
 
 		private final Class<T> requiredType;
 
-		private SharedChannelProvider(Class<T> clazz) {
+		protected SharedChannelProvider(Class<T> clazz) {
 			this.requiredType = clazz;
 		}
 

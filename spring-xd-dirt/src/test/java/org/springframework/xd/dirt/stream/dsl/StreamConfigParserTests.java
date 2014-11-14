@@ -16,10 +16,14 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.xd.dirt.stream.ParsingContext.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
 import java.util.HashMap;
 import java.util.List;

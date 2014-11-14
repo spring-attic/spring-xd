@@ -17,7 +17,7 @@
 package org.springframework.xd.dirt.stream;
 
 
-import static org.springframework.xd.dirt.stream.dsl.XDDSLMessages.NAMED_CHANNELS_UNSUPPORTED_HERE;
+import static org.springframework.xd.dirt.stream.dsl.XDDSLMessages.*;
 
 import java.util.ArrayList;
 import java.util.Deque;
@@ -65,14 +65,6 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 public class XDStreamParser implements XDParser {
 
 	/**
-	 * Optional definition repository used to obtain sub-stream/label
-	 * references.
-	 *
-	 * @see org.springframework.xd.dirt.stream.dsl.StreamConfigParser
-	 */
-	private CrudRepository<? extends BaseDefinition, String> repository;
-
-	/**
 	 * Repository for user defined modules.
 	 */
 	private final ModuleRegistry moduleRegistry;
@@ -82,12 +74,20 @@ public class XDStreamParser implements XDParser {
 	 */
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
+	/**
+	 * Optional definition repository used to obtain sub-stream/label
+	 * references.
+	 *
+	 * @see org.springframework.xd.dirt.stream.dsl.StreamConfigParser
+	 */
+	private CrudRepository<? extends BaseDefinition, String> repository;
+
 
 	/**
 	 * Construct an {@code XDStreamParser}.
 	 *
 	 * @param repository                     repository for stream definitions (optional)
-	 * @param moduleRegistry     			 registry for modules
+	 * @param moduleRegistry                 registry for modules
 	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
 	 */
 	public XDStreamParser(CrudRepository<? extends BaseDefinition, String> repository,
@@ -103,7 +103,7 @@ public class XDStreamParser implements XDParser {
 	/**
 	 * Construct an {@code XDStreamParser}.
 	 *
-	 * @param moduleRegistry     			 registry for modules
+	 * @param moduleRegistry                 registry for modules
 	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
 	 */
 	public XDStreamParser(ModuleRegistry moduleRegistry,
@@ -264,7 +264,7 @@ public class XDStreamParser implements XDParser {
 	private ModuleDescriptor buildModuleDescriptor(ModuleDescriptor.Builder builder) {
 		ModuleDefinition def = moduleRegistry.findDefinition(builder.getModuleName(), builder.getType());
 		if (def.isComposed()) {
-			String dsl = ((CompositeModuleDefinition)def).getDslDefinition();
+			String dsl = ((CompositeModuleDefinition) def).getDslDefinition();
 			List<ModuleDescriptor> children = parse(def.getName(), dsl, ParsingContext.module);
 
 			// Preserve the options set for the "parent" module in the parameters map

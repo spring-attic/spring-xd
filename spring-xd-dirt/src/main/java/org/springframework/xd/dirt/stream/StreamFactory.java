@@ -44,7 +44,7 @@ public class StreamFactory {
 	 * Construct a StreamFactory to create {@link Stream} domain model instances.
 	 *
 	 * @param streamDefinitionRepository     repository for stream definitions
-	 * @param moduleRegistry     			 registry for module definitions
+	 * @param moduleRegistry                 registry for module definitions
 	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
 	 */
 	public StreamFactory(StreamDefinitionRepository streamDefinitionRepository,

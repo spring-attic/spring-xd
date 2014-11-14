@@ -16,7 +16,8 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.module.ModuleType.*;
+import static org.springframework.xd.module.ModuleType.processor;
+import static org.springframework.xd.module.ModuleType.sink;
 
 import java.util.List;
 

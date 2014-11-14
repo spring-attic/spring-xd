@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 import org.springframework.batch.admin.service.JdbcSearchableJobExecutionDao;
 import org.springframework.batch.admin.service.JdbcSearchableJobInstanceDao;

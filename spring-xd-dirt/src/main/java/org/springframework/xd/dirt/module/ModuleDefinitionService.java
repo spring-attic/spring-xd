@@ -83,7 +83,7 @@ public class ModuleDefinitionService {
 	}
 
 	public ModuleDefinition compose(String name, ModuleType typeHint, String dslDefinition) {
-		// TODO: pass typeHint to parser
+		// TODO: pass typeHint to parser (XD-2343)
 		List<ModuleDescriptor> parseResult = this.parser.parse(name, dslDefinition, module);
 
 		ModuleType type = this.determineType(parseResult);
@@ -91,7 +91,7 @@ public class ModuleDefinitionService {
 			throw new ModuleAlreadyExistsException(name, type);
 		}
 
-		// TODO: need more than ModuleDefinitions (need to capture passed in options, etc)
+		// TODO: XD-2284 need more than ModuleDefinitions (need to capture passed in options, etc)
 		List<ModuleDefinition> composedModuleDefinitions = createComposedModuleDefinitions(parseResult);
 		ModuleDefinition moduleDefinition = ModuleDefinitions.composed(name, type, dslDefinition, composedModuleDefinitions);
 
@@ -100,6 +100,7 @@ public class ModuleDefinitionService {
 	}
 
 	public ModuleDefinition upload(String name, ModuleType type, Resource bytes) {
+		//TODO XD-2306
 		return null;
 	}
 

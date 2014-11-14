@@ -16,7 +16,8 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.dirt.stream.completion.CompletionProvider.*;
+import static org.springframework.xd.dirt.stream.completion.CompletionProvider.shouldShowOption;
+import static org.springframework.xd.dirt.stream.completion.CompletionProvider.toParsingContext;
 
 import java.util.HashSet;
 import java.util.List;

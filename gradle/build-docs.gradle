@@ -65,7 +65,7 @@ pullDocs << {
 	}
 	catch (org.ajoberstar.grgit.exception.GrgitException e) {
 		throw new GradleException("Error while switching to branch: ${ext.wikiBranch}. Cause: "
-			+ e.getCause().getMessage(), e.getCause())
+			+ e.getCause().getMessage(), e)
 	}
 }
 
@@ -97,7 +97,7 @@ task pushGeneratedDocs(dependsOn: [moduleOptionsReferenceDoc, shellReferenceDoc]
 	}
 	catch (org.ajoberstar.grgit.exception.GrgitException e) {
 		throw new GradleException("Error while switching to branch: ${pullDocs.wikiBranch}. Cause: "
-			+ e.getCause().getMessage(), e.getCause())
+			+ e.getCause().getMessage(), e)
 	}
 
 	println("Pushing docs to ${pullDocs.cloneDestination}, Branch: ${pullDocs.wikiBranch}")
@@ -111,7 +111,7 @@ task pushGeneratedDocs(dependsOn: [moduleOptionsReferenceDoc, shellReferenceDoc]
 	}
 	catch (org.ajoberstar.grgit.exception.GrgitException e) {
 		throw new GradleException("Error while pushing to branch: ${pullDocs.wikiBranch}. Cause: "
-			+ e.getCause().getMessage(), e.getCause())
+			+ e.getCause().getMessage(), e)
 	}
 
 	println("Pushed docs to ${pullDocs.cloneDestination}, Branch: ${pullDocs.wikiBranch}")

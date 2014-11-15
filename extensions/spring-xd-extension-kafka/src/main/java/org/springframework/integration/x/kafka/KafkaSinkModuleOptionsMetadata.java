@@ -16,6 +16,7 @@
 
 package org.springframework.integration.x.kafka;
 
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
@@ -25,6 +26,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  *
  * @author Ilayaperumal Gopinathan
  */
+@Mixin(KafkaProducerOptionsMixin.class)
 public class KafkaSinkModuleOptionsMetadata {
 
 	private String topic = ModulePlaceholders.XD_STREAM_NAME;

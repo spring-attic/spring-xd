@@ -2,11 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
-	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int:channel id="input" />
 
@@ -14,18 +12,36 @@
 		kafka-producer-context-ref="kafkaProducerContext" auto-startup="false" channel="input">
 	</int-kafka:outbound-channel-adapter>
 
+	<bean id="producerProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="properties">
+				<props>
+					<prop key="request.required.acks">${requestRequiredAck}</prop>
+					<prop key="request.timeout.ms">${requestTimeout}</prop>
+					<prop key="producer.type">${producerType}</prop>
+					<prop key="compression.codec">${compressionCodec}</prop>
+					<prop key="compressed.topics">${compressedTopics}</prop>
+					<prop key="message.send.max.retries">${maxSendRetries}</prop>
+					<prop key="retry.backoff.ms">${retryBackoff}</prop>
+					<prop key="topic.metadata.refresh.interval.ms">${topicMetadataRefreshInterval}</prop>
+					<prop key="queue.buffering.max.ms">${maxBufferTime}</prop>
+					<prop key="queue.buffering.max.messages">${maxBufferMsgs}</prop>
+					<prop key="queue.enqueue.timeout.ms">${enqueueTimeout}</prop>
+					<prop key="batch.num.messages">${batchCount}</prop>
+					<prop key="send.buffer.bytes">${socketBufferSize}</prop>
+				</props>
+		</property>
+	</bean>
+
 	<bean id="stringEncoder" class="org.springframework.integration.kafka.serializer.common.StringEncoder">
 		<property name="encoding" value="${encoding}"/>
 	</bean>
-
-	<util:properties id="producerProperties" location="${xd.config.home}/kafka-producer.properties"/>
 
 	<int-kafka:producer-context id="kafkaProducerContext" producer-properties="producerProperties">
 		<int-kafka:producer-configurations>
 			<int-kafka:producer-configuration
 				broker-list="${brokerList}" key-class-type="java.lang.String"
 				value-class-type="java.lang.String" topic="${topic}" value-encoder="stringEncoder"
-				key-encoder="stringEncoder" compression-codec="default" />
+				key-encoder="stringEncoder" />
 		</int-kafka:producer-configurations>
 	</int-kafka:producer-context>
 </beans>

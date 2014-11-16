@@ -33,6 +33,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.mvc.WebContentInterceptor;
 import org.springframework.xd.dirt.plugins.job.support.ExecutionContextJacksonMixIn;
 import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
 import org.springframework.xd.rest.domain.support.RestTemplateMessageConverterUtil;
@@ -55,6 +56,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 @EnableSpringDataWebSupport
 @ComponentScan(excludeFilters = @Filter(Configuration.class))
 public class RestConfiguration {
+
+	@Bean
+	public WebContentInterceptor webContentInterceptor() {
+		WebContentInterceptor webContentInterceptor = new WebContentInterceptor();
+		webContentInterceptor.setCacheSeconds(0);
+		webContentInterceptor.setUseCacheControlHeader(true);
+		webContentInterceptor.setUseExpiresHeader(true);
+		return webContentInterceptor;
+	}
 
 	@Bean
 	public WebMvcConfigurer configurer() {
@@ -85,6 +95,7 @@ public class RestConfiguration {
 			@Override
 			public void addInterceptors(InterceptorRegistry registry) {
 				registry.addInterceptor(new AccessControlInterceptor(allowedOrigin));
+				registry.addInterceptor(webContentInterceptor());
 			}
 
 		};

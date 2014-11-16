@@ -93,7 +93,7 @@ define([
   });
 
   function updateGrowl() {
-    var bodyScrollTop = $('body').scrollTop();
+    var bodyScrollTop = $(document).scrollTop();
     var navHeight = $('nav').outerHeight();
     var marginToParent = 10;
 

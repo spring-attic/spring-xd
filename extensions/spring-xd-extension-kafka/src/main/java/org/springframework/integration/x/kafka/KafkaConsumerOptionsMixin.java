@@ -50,10 +50,9 @@ public class KafkaConsumerOptionsMixin {
 
 	private int refreshLeaderBackOff = 200;
 
-	private String autoOffsetReset = "largest";
+	private String autoOffsetReset = "smallest";
 
-	private int consumerTimeout = -1;
-
+	private int consumerTimeout = 5000;
 
 	public int getSocketTimeout() {
 		return socketTimeout;

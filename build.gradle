@@ -241,6 +241,7 @@ configure(javaProjects) { subproject ->
 				events 'started'
 			}
 		}
+		environment 'SI_FATAL_WHEN_NO_BEANFACTORY', 'true'
 	}
 
 	javadoc {

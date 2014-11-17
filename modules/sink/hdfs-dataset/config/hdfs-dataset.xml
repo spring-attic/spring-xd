@@ -4,11 +4,13 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-hadoop="http://www.springframework.org/schema/integration/hadoop"
 	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:hdp="http://www.springframework.org/schema/hadoop"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
 
 	<int:channel id="input"/>
@@ -58,8 +60,18 @@
 		<property name="writerCacheSize" value="${writerCacheSize:null}"/>
 	</bean>
 
-	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">
+	<context:property-placeholder location="${xd.config.home}/hadoop.properties"/>
+
+	<hdp:configuration
+		register-url-handler="false"
+		properties-location="${xd.config.home}/hadoop.properties"
+		security-method="${hadoop.security.authentication:}"
+		user-keytab="${spring.hadoop.userKeytab:}"
+		user-principal="${spring.hadoop.userPrincipal:}"
+		namenode-principal="${dfs.namenode.kerberos.principal:}"
+		rm-manager-principal="${yarn.resourcemanager.principal:}">
 		fs.defaultFS=${fsUri}
 	</hdp:configuration>
+
 
 </beans>

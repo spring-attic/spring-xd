@@ -53,11 +53,7 @@ public class RabbitSourceOptionsMetadata {
 
 	private int maxInterval = 30000;
 
-	private int maxAttempts = 3;
-
-	private long messageTtl = 30000L;
-
-	private String dlgQueueName = "dlg";
+	private int maxAttempts = 1;
 
 	private String converterClass = "org.springframework.amqp.support.converter.SimpleMessageConverter";
 
@@ -173,26 +169,5 @@ public class RabbitSourceOptionsMetadata {
 	public void setMaxAttempts(int maxAttempts) {
 		this.maxAttempts = maxAttempts;
 	}
-
-
-	public long getxMessageTtl() {
-		return messageTtl;
-	}
-
-	@ModuleOption("message time to live")
-	public void setxMessageTtl(long messageTtl) {
-		this.messageTtl = messageTtl;
-	}
-
-
-	public String getDlgQueueName() {
-		return dlgQueueName;
-	}
-
-	@ModuleOption("dead message queue name")
-	public void setDlgQueueName(String dlgQueueName) {
-		this.dlgQueueName = dlgQueueName;
-	}
-
 
 }

@@ -229,11 +229,15 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 		}
 		List<String> classPath = new ArrayList<String>();
 		for (URL url : thisClassLoader.getURLs()) {
-			classPath.add(url.getPath());
+			String file = url.getFile().split("\\!", 2)[0];
+			if (file.endsWith(".jar")) {
+				classPath.add(file);
+			}
 		}
 		for (URL url : contextClassLoader.getURLs()) {
-			if (!classPath.contains(url.getPath())) {
-				classPath.add(url.getPath());
+			String file = url.getFile().split("\\!", 2)[0];
+			if (file.endsWith(".jar") && !classPath.contains(file)) {
+				classPath.add(file);
 			}
 		}
 		StringBuilder classPathBuilder = new StringBuilder();
@@ -259,7 +263,7 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 			Process p = pb.start();
 			p.waitFor();
 			exitCode = p.exitValue();
-			msg = "Spark application '" + mainClass + "' finished with exit code: " + exitCode ;
+			msg = "Spark application '" + mainClass + "' finished with exit code: " + exitCode;
 			if (exitCode == 0) {
 				logger.info(msg);
 			}
@@ -337,7 +341,8 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 			while ((line = reader.readLine()) != null) {
 				lines.add(line);
 			}
-		} catch (IOException ignore) {
+		}
+		catch (IOException ignore) {
 		}
 		return lines;
 	}

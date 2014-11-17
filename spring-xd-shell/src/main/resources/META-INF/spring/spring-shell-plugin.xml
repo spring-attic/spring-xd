@@ -9,7 +9,15 @@
 
 	<context:component-scan base-package="org.springframework.xd.shell" />
 
-	<hadoop:configuration>
+	<context:property-placeholder location="hadoop.properties"/>
+
+	<hadoop:configuration
+		properties-location="hadoop.properties"
+		security-method="${hadoop.security.authentication:}"
+		user-keytab="${spring.hadoop.userKeytab:}"
+		user-principal="${spring.hadoop.userPrincipal:}"
+		namenode-principal="${dfs.namenode.kerberos.principal:}"
+		rm-manager-principal="${yarn.resourcemanager.principal:}">
 		fs.defaultFS=
 	</hadoop:configuration>
 

@@ -79,7 +79,7 @@ public class LocalMessageBus extends MessageBusSupport {
 
 		@Override
 		protected PublishSubscribeChannel createSharedChannel(String name) {
-			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel(executor);
+			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel();
 			publishSubscribeChannel.setIgnoreFailures(true);
 			return publishSubscribeChannel;
 		}

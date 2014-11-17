@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.integration.bus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -112,7 +111,7 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 		assertTrue(messageReceived.get());
 		assertSame(Thread.currentThread(), streamThread.get());
 		assertNotNull(tapThread.get());
-		assertNotSame(Thread.currentThread(), tapThread.get());
+		assertSame(Thread.currentThread(), tapThread.get());
 	}
 
 	private void verifyPayloadConversion(final Object expectedValue, final LocalMessageBus bus) {

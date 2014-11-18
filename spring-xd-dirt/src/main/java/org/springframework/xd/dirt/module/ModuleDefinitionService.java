@@ -100,7 +100,10 @@ public class ModuleDefinitionService {
 	}
 
 	public ModuleDefinition upload(String name, ModuleType type, byte[] bytes) {
-		//TODO XD-2306
+		if (registry.findDefinition(name, type) != null) {
+			throw new ModuleAlreadyExistsException(name, type);
+		}
+
 		ModuleDefinition definition = new UploadedModuleDefinition(name, type, bytes);
 		Assert.isTrue(this.registry.registerNew(definition), definition + " could not be saved");
 		return definition;

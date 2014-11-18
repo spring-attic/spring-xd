@@ -16,6 +16,10 @@
 
 package org.springframework.xd.rest.client;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.springframework.core.io.Resource;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
 import org.springframework.xd.rest.domain.ModuleDefinitionResource;
@@ -26,12 +30,13 @@ import org.springframework.xd.rest.domain.RESTModuleType;
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @author Eric Bottard
  * 
  */
 public interface ModuleOperations {
 
 	/**
-	 * Compose a new virtual Module.
+	 * Compose a new composed Module.
 	 */
 	public ModuleDefinitionResource composeModule(String name, String definition);
 
@@ -40,16 +45,6 @@ public interface ModuleOperations {
 	 * List modules known to the system.
 	 */
 	public PagedResources<ModuleDefinitionResource> list(RESTModuleType type);
-
-	/**
-	 * Get the configuration file associated with the provided module information.
-	 * 
-	 * @param type Must not be null
-	 * @param name Must not be empty
-	 * 
-	 * @return The file contents of the module
-	 */
-	public String downloadConfigurationFile(RESTModuleType type, String name);
 
 	/**
 	 * Request deletion of module with given name and type. Only composite modules, which are not currently in use can
@@ -62,4 +57,8 @@ public interface ModuleOperations {
 	 */
 	public DetailedModuleDefinitionResource info(String name, RESTModuleType type);
 
+	/**
+	 * Create a new module by uploading the contents of an archive.
+	 */
+	public ModuleDefinitionResource uploadModule(String name, RESTModuleType type, Resource bytes) throws IOException;
 }

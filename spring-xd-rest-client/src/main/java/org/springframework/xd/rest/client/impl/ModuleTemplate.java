@@ -16,6 +16,9 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import java.io.IOException;
+
+import org.springframework.core.io.Resource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.ModuleOperations;
@@ -59,6 +62,12 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 	}
 
 	@Override
+	public ModuleDefinitionResource uploadModule(String name, RESTModuleType type, Resource bytes) throws IOException {
+		String uriTemplate = resources.get("modules").toString() + "/{type}/{name}";
+		return restTemplate.postForObject(uriTemplate, bytes, ModuleDefinitionResource.class, type, name);
+	}
+
+	@Override
 	public ModuleDefinitionResource.Page list(RESTModuleType type) {
 		String uriTemplate = resources.get("modules").toString();
 		// TODO handle pagination at the client side
@@ -71,10 +80,5 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 		return "ModuleTemplate [restTemplate=" + restTemplate + ", resources=" + resources + "]";
 	}
 
-	@Override
-	public String downloadConfigurationFile(RESTModuleType type, String name) {
-		final String uriTemplate = resources.get("modules").toString() + "/{type}/{name}/definition";
-		return restTemplate.getForObject(uriTemplate, String.class, type.name(), name);
-	}
 
 }

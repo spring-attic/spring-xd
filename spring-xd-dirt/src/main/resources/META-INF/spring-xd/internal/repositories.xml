@@ -14,7 +14,7 @@
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
 		<constructor-arg>
 			<list>
-				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+				<bean class="org.springframework.xd.dirt.module.WriteCapableArchiveModuleRegistry">
 					<constructor-arg value="${xd.module.home}/" />
 				</bean>
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">

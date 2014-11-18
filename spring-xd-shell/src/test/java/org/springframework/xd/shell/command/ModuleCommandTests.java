@@ -47,12 +47,13 @@ import org.springframework.xd.test.fixtures.FileSink;
  * @author Gunnar Hillert
  * @author Mark Fisher
  * @author David Turanski
+ * @author Eric Bottard
  */
 public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testModuleCompose() {
-		compose().newModule("compositesource", "time | splitter");
+		module().compose("compositesource", "time | splitter");
 
 		Table t = listAll();
 
@@ -66,7 +67,7 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 	public void testComposedModulesValuesInDefinition() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
-		compose().newModule("filterAndTransform",
+		module().compose("filterAndTransform",
 				"filter --expression=true | transform --expression=payload.replace('abc','...')");
 		stream().create(generateStreamName(), "%s | filterAndTransform | %s", httpSource, sink);
 		httpSource.ensureReady().postData("abcdefghi!");
@@ -80,7 +81,7 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 	public void testComposedModulesValuesAtUsageTime() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
-		compose().newModule("filterAndTransform",
+		module().compose("filterAndTransform",
 				"filter --expression=false | transform --expression=payload.replace('abc','...')");
 		String options = String.format(
 				"--filter%sexpression=true --transform%sexpression=payload.replace('def','...')", OPTION_SEPARATOR,
@@ -110,7 +111,7 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testCollidingModuleComposeWithOtherComposite() {
-		compose().newModule("compositesource", "time | splitter");
+		module().compose("compositesource", "time | splitter");
 
 		CommandResult result = getShell().executeCommand(
 				"module compose compositesource --definition \"time | transform\"");
@@ -129,34 +130,39 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testAttemptToDeleteNonComposedModule() {
-		assertFalse(compose().delete("tcp", ModuleType.source));
+		assertFalse(module().delete("tcp", ModuleType.source));
 	}
 
 	@Test
 	public void testDeleteUnusedComposedModule() {
-		compose().newModule("myhttp", "http | filter");
-		assertTrue(compose().delete("myhttp", ModuleType.source));
+		module().compose("myhttp", "http | filter");
+		assertTrue(module().delete("myhttp", ModuleType.source));
 	}
 
 	@Test
 	public void testDeleteComposedModuleUsedByOtherModule() {
-		compose().newModule("myhttp", "http | filter");
-		compose().newModule("evenbetterhttp", "myhttp | transform");
-		assertFalse(compose().delete("myhttp", ModuleType.source));
+		module().compose("myhttp", "http | filter");
+		module().compose("evenbetterhttp", "myhttp | transform");
+		assertFalse(module().delete("myhttp", ModuleType.source));
 
 		// Now delete blocking module
-		assertTrue(compose().delete("evenbetterhttp", ModuleType.source));
-		assertTrue(compose().delete("myhttp", ModuleType.source));
+		assertTrue(module().delete("evenbetterhttp", ModuleType.source));
+		assertTrue(module().delete("myhttp", ModuleType.source));
 	}
 
 	@Test
 	public void testDeleteComposedModuleUsedByStream() {
-		compose().newModule("myhttp", "http | filter");
+		module().compose("myhttp", "http | filter");
 		executeCommand("stream create foo --definition \"myhttp | log\" --deploy false");
-		assertFalse(compose().delete("myhttp", ModuleType.source));
+		assertFalse(module().delete("myhttp", ModuleType.source));
 		// Now deleting blocking stream
 		executeCommand("stream destroy foo");
-		assertTrue(compose().delete("myhttp", ModuleType.source));
+		assertTrue(module().delete("myhttp", ModuleType.source));
+	}
+
+	@Test
+	public void testModuleUpload() {
+
 	}
 
 	private Table listAll() {

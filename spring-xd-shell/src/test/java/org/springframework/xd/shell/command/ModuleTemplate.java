@@ -32,17 +32,17 @@ import org.springframework.xd.test.fixtures.Disposable;
 
 
 /**
- * Issues commands related to module composition and remembers created modules, so that they can be cleaned up.
+ * Issues commands related to module composition and upload. Also remembers created modules, so that they can be cleaned up.
  * 
  * @author Eric Bottard
  */
-public class ComposedTemplate implements Disposable {
+public class ModuleTemplate implements Disposable {
 
 	private static final Pattern COMPOSE_SUCCESS_PATTERN = Pattern.compile("Successfully created module '(.+)' with type (.+)");
 
 	private final JLineShellComponent shell;
 
-	public ComposedTemplate(JLineShellComponent shell) {
+	public ModuleTemplate(JLineShellComponent shell) {
 		this.shell = shell;
 	}
 
@@ -51,7 +51,7 @@ public class ComposedTemplate implements Disposable {
 	 */
 	private List<String> modules = new ArrayList<>();
 
-	public String newModule(String name, String definition) {
+	public String compose(String name, String definition) {
 		CommandResult result = shell.executeCommand(String.format("module compose %s --definition \"%s\"", name,
 				definition));
 		assertNotNull("Module composition apparently failed. Exception is: " + result.getException(),

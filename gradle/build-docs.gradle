@@ -14,12 +14,6 @@ buildscript {
 
 }
 
-ext {
-	// Drives the Asciidoctor version used
-	//asciidoctorjVersion =  '1.5.0.preview.7'
-}
-
-
 import org.ajoberstar.grgit.*
 import org.ajoberstar.grgit.auth.AuthConfig
 import org.apache.tools.ant.filters.TokenFilter

@@ -229,13 +229,13 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 		}
 		List<String> classPath = new ArrayList<String>();
 		for (URL url : thisClassLoader.getURLs()) {
-			String file = url.getFile().split("\\!", 2)[0];
+			String file = url.getFile().split("\\!/", 2)[0];
 			if (file.endsWith(".jar")) {
 				classPath.add(file);
 			}
 		}
 		for (URL url : contextClassLoader.getURLs()) {
-			String file = url.getFile().split("\\!", 2)[0];
+			String file = url.getFile().split("\\!/", 2)[0];
 			if (file.endsWith(".jar") && !classPath.contains(file)) {
 				classPath.add(file);
 			}

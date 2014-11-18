@@ -187,13 +187,22 @@ xd:
 #       userSearchFilter: yourUserSearchFilter # e.g. uid={0}
 ---
 # Config to enable/disable JMX/jolokia endpoints
-#XD_JMX_ENABLED: true
-#endpoints:
-#  jolokia:
-#    enabled: ${XD_JMX_ENABLED:true}
-#  jmx:
-#    enabled: ${XD_JMX_ENABLED:true}
-#    uniqueNames: true
+XD_JMX_ENABLED: true
+endpoints:
+  jolokia:
+    enabled: ${XD_JMX_ENABLED:true}
+  jmx:
+    enabled: ${XD_JMX_ENABLED:true}
+    uniqueNames: true
+
+# Config to enable the shutdown button on the UI
+
+#---
+#spring:
+#  profiles: container
+#management:
+#  port: 0
+
 
 ---
 # Redis properties

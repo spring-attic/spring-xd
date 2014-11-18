@@ -99,9 +99,14 @@ public class ModuleDefinitionService {
 		return moduleDefinition;
 	}
 
-	public ModuleDefinition upload(String name, ModuleType type, Resource bytes) {
-		//TODO XD-2306
-		return null;
+	public ModuleDefinition upload(String name, ModuleType type, byte[] bytes) {
+		if (registry.findDefinition(name, type) != null) {
+			throw new ModuleAlreadyExistsException(name, type);
+		}
+
+		ModuleDefinition definition = new UploadedModuleDefinition(name, type, bytes);
+		Assert.isTrue(this.registry.registerNew(definition), definition + " could not be saved");
+		return definition;
 	}
 
 	public void delete(String name, ModuleType type) {

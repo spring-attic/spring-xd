@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -102,7 +103,7 @@ public class ModulesController {
 	}
 
 	/**
-	 * Create a new composite Module.
+	 * Create (install) a new module, by way of composition. Resulting type is inferred.
 	 *
 	 * @param name The name of the module to create (required)
 	 * @param definition The module definition, expressed in the XD DSL (required)
@@ -110,9 +111,42 @@ public class ModulesController {
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public ModuleDefinitionResource save(@RequestParam("name") String name,
+	public ModuleDefinitionResource compose(@RequestParam("name") String name,
 			@RequestParam("definition") String definition) {
 		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, /*TODO*/null, definition);
+		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);
+		return resource;
+	}
+
+	/**
+	 * Create (install) a new module, by way of composition.
+	 *
+	 * @param type The type of the module to create (required)
+	 * @param name The name of the module to create (required)
+	 * @param definition The module definition, expressed in the XD DSL (required)
+	 */
+	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.POST, consumes = "text/plain")
+	@ResponseStatus(HttpStatus.CREATED)
+	@ResponseBody
+	public ModuleDefinitionResource compose(@PathVariable("type") ModuleType type, @PathVariable("name") String name,
+			@RequestBody String definition) {
+		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, type, definition);
+		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);
+		return resource;
+	}
+
+	/**
+	 * Create (install) a new module, by way of uploading a module archive.
+	 *
+	 * @param type The type of the module to create (required)
+	 * @param name The name of the module to create (required)
+	 */
+	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.POST, consumes = "application/octet-stream")
+	@ResponseStatus(HttpStatus.CREATED)
+	@ResponseBody
+	public ModuleDefinitionResource upload(@PathVariable("type") ModuleType type, @PathVariable("name") String name,
+			@RequestBody byte[] bytes) {
+		ModuleDefinition moduleDefinition = moduleDefinitionService.upload(name, type, bytes);
 		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);
 		return resource;
 	}

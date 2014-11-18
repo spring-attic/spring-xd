@@ -1,4 +1,4 @@
-Spring XD 1.0.1.RELEASE
+Spring XD 1.0.2.RELEASE
 =======================
 
 Please refer to the Reference Guide for more information on Getting Started with Spring XD.
@@ -21,9 +21,12 @@ The Spring XD distribution has the following directory structure:
 │   │   ├── bin
 │   │   ├── config
 │   │   └── lib
+│   ├── zookeeper
+│   │   ├── bin
+│   │   ├── conf
 │   └── xd
 │       ├── bin
-│       ├── config
+│       ├── config
 │       ├── lib
 │       └── modules
 │       |   ├── common
@@ -40,6 +43,10 @@ To install Redis:
 cd spring-xd/redis/bin
 ./install-redis
   - This will compile the redis source tar and make the executables available under redis/bin
+
+To install Zookeeper:
+cd spring-xd/zookeeper/bin
+./install-zookeeper
 
 To run Spring-XD container:
 ./spring-xd/xd/bin/xd-container[*.bat] [options] 

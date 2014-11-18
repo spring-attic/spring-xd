@@ -30,26 +30,19 @@ import org.springframework.xd.module.ModuleDefinition;
 /**
  * An extension of ArchiveModuleRegistry that knows how to save uploaded modules (in compressed form).
  *
- * <p>By default does not allow deletion of modules that are in exploded form (which is the case of
- * out of the box modules)</p>
+ * @author Eric Bottard
  */
 public class WriteCapableArchiveModuleRegistry extends ArchiveModuleRegistry implements WriteableModuleRegistry {
 
-	private boolean allowExplodedDeletion;
-
 	public WriteCapableArchiveModuleRegistry(String root) {
 		super(root);
-	}
-
-	public void setAllowExplodedDeletion(boolean allowExplodedDeletion) {
-		this.allowExplodedDeletion = allowExplodedDeletion;
 	}
 
 	@Override
 	public boolean delete(ModuleDefinition definition) {
 		try {
 			File jar = targetModuleLocation(definition);
-			return jar.exists() && jar.delete();
+			return jar.exists() && !jar.isDirectory() && jar.delete();
 		}
 		catch (IOException e) {
 			throw new RuntimeIOException("Error trying to delete " + definition, e);

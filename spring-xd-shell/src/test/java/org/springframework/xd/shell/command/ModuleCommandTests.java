@@ -16,16 +16,21 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.springframework.xd.module.ModuleType.processor;
+import static org.springframework.xd.module.ModuleType.source;
 import static org.springframework.xd.module.core.CompositeModule.OPTION_SEPARATOR;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.hamcrest.Description;
@@ -92,23 +97,6 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
 	}
 
-	private Matcher<TableRow> rowWithValue(final int col, final String value) {
-		return new DiagnosingMatcher<TableRow>() {
-
-			@Override
-			public void describeTo(Description description) {
-				description.appendText("a row with ").appendValue(value);
-			}
-
-			@Override
-			protected boolean matches(Object item, Description mismatchDescription) {
-				String actualValue = ((TableRow) item).getValue(col);
-				mismatchDescription.appendText("a row with ").appendValue(actualValue);
-				return value.equals(actualValue);
-			}
-		};
-	}
-
 	@Test
 	public void testCollidingModuleComposeWithOtherComposite() {
 		module().compose("compositesource", "time | splitter");
@@ -162,11 +150,55 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testModuleUpload() {
+		module().upload("siDslModule", processor, new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar"));
 
+		Table t = listAll();
+
+		assertThat(t.getRows(), hasItem(rowWithValue(2, "    siDslModule")));
+
+	}
+
+	@Test
+	public void testModuleUploadClashing() {
+		try {
+			module().upload("http", source, new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar"));
+			fail("Should have failed uploading module");
+		}
+		catch (AssertionError error) {
+			assertThat(error.getMessage(), containsString("There is already a module named 'http' with type 'source'"));
+		}
+	}
+
+	@Test
+	public void testDeleteUploadedModuleUsedByStream() {
+		module().upload("siDslModule", processor, new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar"));
+		executeCommand("stream create foo --definition \"http | siDslModule --prefix=foo | log\" --deploy false");
+		assertFalse(module().delete("siDslModule", processor));
+		// Now deleting blocking stream
+		executeCommand("stream destroy foo");
+		assertTrue(module().delete("siDslModule", processor));
 	}
 
 	private Table listAll() {
 		return (Table) getShell().executeCommand("module list").getResult();
 	}
+
+	private Matcher<TableRow> rowWithValue(final int col, final String value) {
+		return new DiagnosingMatcher<TableRow>() {
+
+			@Override
+			public void describeTo(Description description) {
+				description.appendText("a row with ").appendValue(value);
+			}
+
+			@Override
+			protected boolean matches(Object item, Description mismatchDescription) {
+				String actualValue = ((TableRow) item).getValue(col);
+				mismatchDescription.appendText("a row with ").appendValue(actualValue);
+				return value.equals(actualValue);
+			}
+		};
+	}
+
 
 }

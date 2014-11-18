@@ -185,6 +185,7 @@ public class StreamTestSupport {
 
 		consumer.subscribe(test);
 		producer.send(message);
+		test.waitForCompletion(10000);
 		assertTrue(test.getMessageHandled());
 
 		undeployStream(tapName);

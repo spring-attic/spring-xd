@@ -297,8 +297,13 @@ project('spring-xd-analytics') {
 	dependencies {
 		compile project(":spring-xd-tuple")
 		compile "org.springframework:spring-core"
-		compile "org.springframework.data:spring-data-redis"
-		compile "org.springframework.data:spring-data-commons"
+		compile("org.springframework.data:spring-data-redis") {
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
+		compile ("org.springframework.data:spring-data-commons"){
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
 		compile "redis.clients:jedis"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "joda-time:joda-time"
@@ -333,11 +338,16 @@ project('spring-xd-dirt') {
 		compile "org.springframework.boot:spring-boot-autoconfigure"
 		compile "org.springframework.boot:spring-boot-actuator"
 		compile ("org.springframework.boot:spring-boot-starter-security") {
-			exclude module: "spring-boot-starter-logging"
+			exclude group: 'org.springframework.boot', module: "spring-boot-starter-logging"
 		}
-		compile "org.springframework.security:spring-security-ldap"
+		compile ("org.springframework.security:spring-security-ldap") {
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
 		compile project(":spring-xd-ui")
-		compile "org.springframework.data:spring-data-redis"
+		compile("org.springframework.data:spring-data-redis") {
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
 		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.integration:spring-integration-event"
 		//compile "org.springframework.integration:spring-integration-http"
@@ -353,27 +363,41 @@ project('spring-xd-dirt') {
 		compile "com.esotericsoftware.kryo:kryo"
 		compile "redis.clients:jedis"
 		compile ("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
-			exclude group: 'jline'
+			exclude group:'jline', module:'jline'
 		}
 		compile ("org.apache.curator:curator-recipes:$curatorVersion") {
-			exclude group: 'org.apache.zookeeper'
-			exclude group: 'org.jboss.netty'
+			exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+			exclude group: 'org.jboss.netty', module: 'netty'
 		}
 		compile "commons-lang:commons-lang:2.4"
 		compile "args4j:args4j:$args4jVersion"
 
 		compile "org.springframework.batch:spring-batch-core"
 		//Required for a classloading issue. See https://github.com/spring-projects/spring-xd/pull/1116
-		runtime ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
+		runtime ("org.springframework.data:spring-data-mongodb") { 
+			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
+			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+			exclude group: 'org.springframework', module: 'spring-expression'
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
+
 		compile "org.apache.tomcat:tomcat-jdbc"
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
-			exclude group: 'org.freemarker'
+			exclude group: 'org.freemarker', module: 'freemarker'
+			//TODO: Not sure this is doing anything
 			exclude group: 'hsqldb'
-			exclude module: 'spring-batch-integration'
+			exclude group: 'org.springframework.batch', module: 'spring-batch-integration'
+			exclude group: 'org.springframework', module: 'spring-jdbc'
+			exclude group: 'org.springframework.integration', module:'spring-integration-http'
+			exclude group: 'org.springframework.integration', module: 'spring-integration-file'
 		}
 		compile ("org.springframework.batch:spring-batch-integration") {
-			exclude group: 'org.springframework.integration'
-			exclude group: 'org.springframework'
+			exclude group: 'org.springframework.integration', module: 'spring-integration-core'
+			exclude group: 'org.springframework', module: 'spring-aop'
+			exclude group: 'org.springframework', module: 'spring-context'
+			exclude group: 'org.springframework', module: 'spring-messaging'
+			exclude group: 'org.springframework', module: 'spring-tx'
 		}
 		compile "org.hibernate:hibernate-validator"
 		compile "com.google.code.findbugs:jsr305"
@@ -386,7 +410,7 @@ project('spring-xd-dirt') {
 		runtime "mysql:mysql-connector-java"
 
 		compile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
-			exclude group: 'org.apache.velocity'
+			exclude group: 'org.apache.velocity', module: 'velocity'
 		}
 		testCompile "org.apache.kafka:kafka_2.10:${kafkaVersion}:test"
 		testCompile "org.apache.curator:curator-test:${curatorVersion}"
@@ -396,7 +420,10 @@ project('spring-xd-dirt') {
 		// ************* Dirt-Server only
 		compile project(':spring-xd-rest-domain')
 		compile "org.springframework:spring-webmvc"
-		runtime "org.springframework.data:spring-data-commons"
+		runtime ("org.springframework.data:spring-data-commons"){
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
 		compile "org.apache.tomcat.embed:tomcat-embed-core"
 
 		// ************* Dirt-Container only (per se)
@@ -531,19 +558,25 @@ project('spring-xd-hadoop') {
 		compile "org.springframework.integration:spring-integration-core"
 		compile "org.springframework.batch:spring-batch-core"
 		compile ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
-			exclude group: 'org.springframework.batch'
-			exclude group: 'javax.servlet'
-			exclude group: 'javax.servlet.jsp'
-			exclude group: 'tomcat'
-			exclude group: 'org.mortbay.jetty'
-			exclude group: 'com.sun.jersey'
-			exclude group: 'org.codehaus.jackson'
-			exclude group: 'net.java.dev.jets3t'
-			exclude group: 'com.jcraft'
-			exclude group: 'junit'
+			exclude group: 'org.springframework.batch', module: 'spring-batch-core'
+			exclude group: 'org.springframework.batch', module: 'spring-batch-infrastructure'
+			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
+			exclude group: 'tomcat', module: 'jasper-runtime'
+			exclude group: 'tomcat', module: 'jasper-compiler'
+			exclude group: 'org.mortbay.jetty', module: 'jetty'
+			exclude group: 'org.mortbay.jetty', module: 'jetty-util'
+			exclude group: 'com.sun.jersey', module: 'jersey-core'
+			exclude group: 'com.sun.jersey', module: 'jersey-server'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-core-asl'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-mapper-asl'
+			exclude group: 'net.java.dev.jets3t', module: 'jets3t'
+			exclude group: 'com.jcraft', module: 'jsch'
+			exclude group: 'junit', module: 'junit'
+			//TODO: Not sure this is doing anything
 			exclude group: 'hsqldb'
-			exclude group: 'jline'
-			exclude group: 'com.sun.jersey.jersey-test-framework'
+			exclude group: 'jline', module: 'jline'
+			exclude group: 'com.sun.jersey.jersey-test-framework', module: 'jersey-test-framework-grizzly2'
 		}
 		// Exclude transitive dependency
 		configurations.compile.exclude(group: "commons-beanutils", module: "commons-beanutils-core")
@@ -566,18 +599,25 @@ project('spring-xd-yarn:spring-xd-yarn-client') {
 		compile "org.springframework:spring-tx"
 		compile "org.springframework.batch:spring-batch-core"
 		compile ("org.springframework.data:spring-yarn-boot") {
-				exclude group: 'javax.servlet'
-				exclude group: 'javax.servlet.jsp'
-				exclude group: 'tomcat'
-				exclude group: 'org.mortbay.jetty'
-				exclude group: 'com.sun.jersey'
-				exclude group: 'org.codehaus.jackson'
-				exclude group: 'net.java.dev.jets3t'
-				exclude group: 'com.jcraft'
-				exclude group: 'junit'
-				exclude group: 'hsqldb'
-				exclude group: 'org.slf4j'
-				exclude group: 'log4j'
+			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
+			exclude group: 'tomcat', module: 'jasper-runtime'
+			exclude group: 'tomcat', module: 'jasper-compiler'
+			exclude group: 'org.mortbay.jetty', module: 'jetty'
+			exclude group: 'org.mortbay.jetty', module: 'jetty-util'
+			exclude group: 'com.sun.jersey', module: 'jersey-core'
+			exclude group: 'com.sun.jersey', module: 'jersey-server'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-core-asl'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-mapper-asl'
+			exclude group: 'net.java.dev.jets3t', module: 'jets3t'
+			exclude group: 'com.jcraft', module: 'jsch'
+			exclude group: 'junit', module: 'junit'
+			//TODO: Not sure this is doing anything
+			exclude group: 'hsqldb'
+			exclude group: 'org.slf4j', module: 'slf4j-api'
+			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
+			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+			exclude group: 'log4j', module: 'log4j'
 		}
 		compile "org.springframework.boot:spring-boot-autoconfigure"
 		runtime "log4j:log4j",
@@ -606,21 +646,30 @@ project('spring-xd-yarn:spring-xd-yarn-appmaster') {
 		compile "org.springframework:spring-tx"
 		compile "org.springframework.batch:spring-batch-core"
 		compile ("org.springframework.data:spring-yarn-boot") {
-				exclude group: 'javax.servlet'
-				exclude group: 'javax.servlet.jsp'
-				exclude group: 'tomcat'
-				exclude group: 'org.mortbay.jetty'
-				exclude group: 'com.sun.jersey'
-				exclude group: 'org.codehaus.jackson'
-				exclude group: 'net.java.dev.jets3t'
-				exclude group: 'com.jcraft'
-				exclude group: 'junit'
-				exclude group: 'hsqldb'
-				exclude group: 'org.slf4j'
-				exclude group: 'log4j'
-				runtime "org.slf4j:jcl-over-slf4j",
-								"org.slf4j:slf4j-log4j12"
+			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
+			exclude group: 'tomcat', module: 'jasper-runtime'
+			exclude group: 'tomcat', module: 'jasper-compiler'
+			exclude group: 'org.mortbay.jetty', module: 'jetty'
+			exclude group: 'org.mortbay.jetty', module: 'jetty-util'
+			exclude group: 'com.sun.jersey', module: 'jersey-core'
+			exclude group: 'com.sun.jersey', module: 'jersey-server'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-core-asl'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-mapper-asl'
+			exclude group: 'net.java.dev.jets3t', module: 'jets3t'
+			exclude group: 'com.jcraft', module: 'jsch'
+			exclude group: 'junit', module: 'junit'
+			//TODO: Not sure this is doing anything
+			exclude group: 'hsqldb'
+			exclude group: 'org.slf4j', module: 'slf4j-api'
+			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
+			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+			exclude group: 'log4j', module: 'log4j'
 		}
+
+		runtime "org.slf4j:jcl-over-slf4j",
+				"org.slf4j:slf4j-log4j12"
+
 		compile "org.springframework.boot:spring-boot-autoconfigure"
 	}
 
@@ -757,10 +806,10 @@ project('spring-xd-rest-domain') {
 		compile ("org.springframework.hateoas:spring-hateoas") { exclude module: "spring-asm" }
 		compile "org.springframework.plugin:spring-plugin-core"
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
-			exclude module: 'spring-batch-integration'
-			exclude group: 'org.springframework.integration'
-			exclude group: 'org.slf4j'
-			exclude group: 'org.freemarker'
+			exclude group: 'org.freemarker', module: 'freemarker'
+			//TODO: Not sure this is doing anything
+			exclude group: 'hsqldb'
+			exclude group: 'org.springframework.batch', module: 'spring-batch-integration'
 		}
 		compile "org.springframework.batch:spring-batch-core"
 		compile "com.fasterxml.jackson.core:jackson-databind"
@@ -842,21 +891,30 @@ project('spring-xd-test') {
 		compile "org.springframework.integration:spring-integration-redis"
 		compile "org.springframework.integration:spring-integration-mqtt"
 		compile ("org.springframework.data:spring-data-hadoop") {
-			exclude group: 'javax.servlet'
-			exclude group: 'javax.servlet.jsp'
-			exclude group: 'tomcat'
-			exclude group: 'org.mortbay.jetty'
-			exclude group: 'com.sun.jersey'
-			exclude group: 'org.codehaus.jackson'
-			exclude group: 'net.java.dev.jets3t'
-			exclude group: 'com.jcraft'
-			exclude group: 'junit'
+			exclude group: 'org.springframework.batch', module: 'spring-batch-core'
+			exclude group: 'org.springframework.batch', module: 'spring-batch-infrastructure'
+			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
+			exclude group: 'tomcat', module: 'jasper-runtime'
+			exclude group: 'tomcat', module: 'jasper-compiler'
+			exclude group: 'org.mortbay.jetty', module: 'jetty'
+			exclude group: 'org.mortbay.jetty', module: 'jetty-util'
+			exclude group: 'com.sun.jersey', module: 'jersey-core'
+			exclude group: 'com.sun.jersey', module: 'jersey-server'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-core-asl'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-mapper-asl'
+			exclude group: 'net.java.dev.jets3t', module: 'jets3t'
+			exclude group: 'com.jcraft', module: 'jsch'
+			exclude group: 'junit', module: 'junit'
+			//TODO: Not sure this is doing anything
 			exclude group: 'hsqldb'
-			exclude group: 'org.springframework.batch'
-			exclude group: 'jline'
+			exclude group: 'jline', module: 'jline'
+			exclude group: 'com.sun.jersey.jersey-test-framework', module: 'jersey-test-framework-grizzly2'
 		}
 		compile "com.google.guava:guava:$guavaVersion"
-		compile "org.springframework.data:spring-data-redis"
+		compile("org.springframework.data:spring-data-redis") {
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
 		compile "org.springframework:spring-context"
 		compile "org.springframework:spring-context-support"
 		compile "org.springframework:spring-tx"
@@ -884,9 +942,25 @@ project('spring-xd-shell') {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"
 		compile project(":spring-xd-rest-client")
 		compile ("org.springframework.data:spring-data-hadoop") {
-			exclude group: 'javax.servlet'
-			exclude group: 'org.mortbay.jetty'
+			exclude group: 'org.springframework.batch', module: 'spring-batch-core'
+			exclude group: 'org.springframework.batch', module: 'spring-batch-infrastructure'
+			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
+			exclude group: 'tomcat', module: 'jasper-runtime'
+			exclude group: 'tomcat', module: 'jasper-compiler'
+			exclude group: 'org.mortbay.jetty', module: 'jetty'
+			exclude group: 'org.mortbay.jetty', module: 'jetty-util'
+			exclude group: 'com.sun.jersey', module: 'jersey-core'
+			exclude group: 'com.sun.jersey', module: 'jersey-server'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-core-asl'
+			exclude group: 'org.codehaus.jackson', module: 'jackson-mapper-asl'
+			exclude group: 'net.java.dev.jets3t', module: 'jets3t'
+			exclude group: 'com.jcraft', module: 'jsch'
+			exclude group: 'junit', module: 'junit'
+			//TODO: Not sure this is doing anything
 			exclude group: 'hsqldb'
+			exclude group: 'jline', module: 'jline'
+			exclude group: 'com.sun.jersey.jersey-test-framework', module: 'jersey-test-framework-grizzly2'
 		}
 		compile "com.google.guava:guava:$guavaVersion"
 		compile	"org.codehaus.jackson:jackson-mapper-asl"
@@ -960,7 +1034,12 @@ project('spring-xd-test-fixtures') {
 		compile "org.springframework:spring-jms"
 		compile "org.apache.activemq:activemq-client"
 		compile "org.springframework:spring-web"
-		compile ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
+		compile ("org.springframework.data:spring-data-mongodb") { 
+			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
+			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
 
 		runtime "log4j:log4j",
 				"org.slf4j:jcl-over-slf4j",
@@ -1002,7 +1081,12 @@ project('spring-xd-integration-test') {
 		compile ("org.apache.hadoop:hadoop-common:$hadoop25Version")
 		compile ("org.apache.hadoop:hadoop-client:$hadoop25Version")
 		compile "com.google.guava:guava:$oldGuavaVersion"
-		compile ("org.springframework.data:spring-data-mongodb") { exclude group: 'org.slf4j' }
+		compile ("org.springframework.data:spring-data-mongodb") { 
+			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
+			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+			exclude group: 'org.springframework', module: 'spring-beans'
+			exclude group: 'org.springframework', module: 'spring-core'
+		}
  		testCompile "mysql:mysql-connector-java"
 		testCompile "commons-collections:commons-collections"
 		testCompile "org.springframework.shell:spring-shell:$springShellVersion"

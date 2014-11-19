@@ -7,7 +7,7 @@ ext.optional = { optionalDeps << it }
 ext.provided = { providedDeps << it }
 
 // exclude hadoop install sub projects
-def hadoopInstalls=['cdh5','hadoop24','hadoop25','hdp21','phd21']
+def hadoopInstalls = ['cdh5', 'hadoop24', 'hadoop25', 'hdp21', 'phd21']
 if (hadoopInstalls.contains(project.name)) {
 	// Disable installing hadoop distro artifacts
 	install.enabled = false
@@ -36,8 +36,27 @@ def customizePom(pom, gradleProject) {
 			dep.scope == 'test'
 		}
 
+		def versions = new Properties()
+		def propertiesFile = new File('dependencies.properties')
+		propertiesFile.withInputStream {
+			versions.load(it)
+		}
+
 		// add all items necessary for maven central publication
 		generatedPom.project {
+			dependencyManagement {
+				dependencies {
+					versions.each { k,v ->
+						dependency {
+							def toks = k.split(':')
+							groupId = toks[0]
+							artifactId = toks[1]
+							version = v
+						}
+					}
+				}
+			}
+
 			name = gradleProject.description
 			description = gradleProject.description
 			url = linkHomepage
@@ -56,18 +75,6 @@ def customizePom(pom, gradleProject) {
 				url = linkScmUrl
 				connection = linkScmConnection
 				developerConnection = linkScmDevConnection
-			}
-
-			dependencyManagement {
-				dependencies {
-					dependency {
-						groupId = 'io.spring.platform'
-						artifactId = 'platform-bom'
-						version = platformVersion
-						scope = 'import'
-						type = 'pom'
-					}
-				}
 			}
 
 			developers {
@@ -102,25 +109,30 @@ def customizePom(pom, gradleProject) {
 					email = 'dturanski@pivotal.io'
 				}
 				developer {
-                                        id = 'ebottard'
-                                        name = 'Eric Bottard'
-                                        email = 'ebottard@pivotal.io'
-                                }
+					id = 'ebottard'
+					name = 'Eric Bottard'
+					email = 'ebottard@pivotal.io'
+				}
 				developer {
-                                        id = 'grenfro'
-                                        name = 'Glenn Renfro'
-                                        email = 'grenfro@pivotal.io'
-                                }
+					id = 'grenfro'
+					name = 'Glenn Renfro'
+					email = 'grenfro@pivotal.io'
+				}
 				developer {
-                                        id = 'igopinathan'
-                                        name = 'Ilayaperumal Gopinathan'
-                                        email = 'igopinathan@pivotal.io'
-                                }
+					id = 'igopinathan'
+					name = 'Ilayaperumal Gopinathan'
+					email = 'igopinathan@pivotal.io'
+				}
 				developer {
-                                        id = 'trisberg'
-                                        name = 'Thomas Risberg'
-                                        email = 'trisberg@pivotal.io'
-                                }
+					id = 'trisberg'
+					name = 'Thomas Risberg'
+					email = 'trisberg@pivotal.io'
+				}
+				developer {
+					id = 'mbogoevici'
+					name = 'Marius Bogoevici'
+					email = 'mbogoevici@pivotal.io'
+				}
 				developer {
 					id = 'jhickey'
 					name = 'Jennifer Hickey'

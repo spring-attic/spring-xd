@@ -30,11 +30,7 @@
 		<property name="txSize" value="${txSize}" />
 	</bean>
 
-	<bean id="clazz" class="java.lang.Class" factory-method="forName">
-	  <constructor-arg value="${converterClass}"/>
-	</bean>
-
-	<bean id="messageConverter" factory-bean="clazz" factory-method="newInstance"/>
+	<bean id="messageConverter" class="${converterClass}" />
 
 	<int:channel id="output" />
 

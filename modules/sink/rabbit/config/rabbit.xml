@@ -28,11 +28,7 @@
 		virtual-host="${vhost}"
 		username="${username}" password="${password}" />
 
-	<bean id="clazz" class="java.lang.Class" factory-method="forName">
-	  <constructor-arg value="${converterClass}"/>
-	</bean>
-
-	<bean id="messageConverter" factory-bean="clazz" factory-method="newInstance"/>
+	<bean id="messageConverter" class="${converterClass}" />
 
 	<bean id="connectionFactory" class="org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryBean">
 		<property name="useSSL" value="${useSSL}" />

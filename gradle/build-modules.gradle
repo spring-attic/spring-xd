@@ -27,7 +27,7 @@ configure(moduleProjects) { moduleProject ->
     apply plugin: 'idea'
 
     dependencies {
-	versionManagement files(rootProject.file('dependencies.properties'))
+        versionManagement files(rootProject.file('dependencies.properties'))
     }
 
     forceDependencyVersions(moduleProject)
@@ -51,18 +51,18 @@ configure(moduleProjects) { moduleProject ->
     }
 
     [
-            'test',
-            'build',
-            'eclipse',
-            'idea'
+        'test',
+        'build',
+        'eclipse',
+        'idea'
     ].each {t -> tasks[t].dependsOn copyLibs}
 
     task cleanLibs(type: Delete)  { delete copyLibs.outputs }
 
     [
-            'clean',
-            'cleanEclipse',
-            'cleanIdea'
+        'clean',
+        'cleanEclipse',
+        'cleanIdea'
     ].each {t -> tasks[t].dependsOn cleanLibs}
 
     project(':spring-xd-dirt').tasks['build'].dependsOn(moduleProject.tasks['build'])

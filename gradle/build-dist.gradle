@@ -93,6 +93,11 @@ task copyHadoopLibs(dependsOn: [
 	}
 }
 
+task copyMessageBusLibs(type: Copy) {
+	from "$rootDir/lib/messagebus"
+	into "$buildDir/dist/spring-xd/xd/lib/messagebus"
+}
+
 task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp", ":spring-xd-yarn:spring-xd-yarn-client:build", ":spring-xd-yarn:spring-xd-yarn-appmaster:build"]) {
 		group = 'Application'
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
@@ -106,7 +111,7 @@ task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-x
 	exclude "**/lib/log4j-*.jar"
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall", "copyZookeeperInstall", "copyPythonInstall"]) {
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall", "copyZookeeperInstall", "copyPythonInstall", "copyMessageBusLibs"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"

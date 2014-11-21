@@ -55,7 +55,7 @@ import org.springframework.validation.BindException;
 import org.springframework.xd.batch.hsqldb.server.HsqlDatasourceConfiguration;
 import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
-import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
+import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
@@ -98,7 +98,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	@Configuration
 	@ImportResource({ "classpath:/META-INF/spring-xd/batch/batch.xml",
-		"classpath:/META-INF/spring-xd/transports/local-bus.xml" })
+		"classpath:/META-INF/spring-xd/bus/local-bus.xml" })
 	@EnableAutoConfiguration
 	public static class SharedConfiguration {
 

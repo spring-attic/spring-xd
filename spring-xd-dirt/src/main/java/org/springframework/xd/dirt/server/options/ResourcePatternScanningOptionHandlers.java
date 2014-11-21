@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server.options;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.kohsuke.args4j.CmdLineParser;
@@ -41,25 +42,29 @@ public final class ResourcePatternScanningOptionHandlers {
 	private static final String CONFIGURATION_ROOT = "classpath*:/" + ConfigLocations.XD_CONFIG_ROOT;
 
 	/**
-	 * Computes values for (data) --transport for the distributed case.
-	 */
-	public static class DistributedDataTransportOptionHandler extends ResourcePatternScanningOptionHandler {
-
-		public DistributedDataTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
-				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-bus.xml");
-			exclude("local");
-		}
-	}
-
-	/**
 	 * Computes values for (data) --transport for the singlenode case.
 	 */
 	public static class SingleNodeDataTransportOptionHandler extends ResourcePatternScanningOptionHandler {
 
 		public SingleNodeDataTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-bus.xml");
+			super(parser, option, setter, resolveMessageBusPath());
+		}
+
+		private static String resolveMessageBusPath() {
+			String xdHome = CommandLinePropertySourceOverridingListener.getCurrentEnvironment().resolvePlaceholders(
+					"${XD_HOME}");
+			return "file:" + xdHome + File.separator + "lib" + File.separator + "messagebus" + File.separator +
+					"*";
+		}
+
+		protected boolean shouldConsider(Resource r) {
+			try {
+				return r.getFile().isDirectory();
+			}
+			catch (IOException e) {
+				return false;
+			}
 		}
 	}
 
@@ -94,11 +99,12 @@ public final class ResourcePatternScanningOptionHandlers {
 		public HadoopDistroOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, resolveXDHome());
+			exclude("messagebus");
 		}
 
 		/**
-		 * Attempt to resolve the xd.home placeholder and take care of corner cases where the user may
-		 * have provided a trailing slash, etc. 
+		 * Attempt to resolve the xd.home placeholder and take care of corner cases where the user may have provided a
+		 * trailing slash, etc.
 		 */
 		private static String resolveXDHome() {
 			Assert.state(
@@ -106,6 +112,7 @@ public final class ResourcePatternScanningOptionHandlers {
 					"Expected to be called in the control flow of "
 							+ CommandLinePropertySourceOverridingListener.class.getSimpleName()
 							+ ".onApplicationEvent()");
+			//TODO: I'm not sure if this works. compare to resolveMessageBusPath() above
 			String resolved = CommandLinePropertySourceOverridingListener.getCurrentEnvironment()
 					.resolvePlaceholders("${xd.home:.}/lib/*");
 			resolved = StringUtils.cleanPath(resolved).replace("//", "/");

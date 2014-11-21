@@ -48,6 +48,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 
 /**
  * @author Mark Fisher

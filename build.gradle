@@ -34,6 +34,7 @@ ext {
 	]
 	moduleProjects  = subprojects.findAll { project -> project.path.startsWith(':modules')}
 	javaProjects    = subprojects - (moduleProjects + nonJavaProjects)
+	messagebusProjects = subprojects.findAll {project -> project.path.startsWith(':spring-xd-messagebus-')} - project(':spring-xd-messagebus-spi')
 	coverageProjects = [
 		'spring-xd-dirt',
 		'spring-xd-analytics',
@@ -48,8 +49,11 @@ ext {
 		'spring-xd-extension-jdbc',
 		'spring-xd-extension-reactor',
 		'spring-xd-extension-gemfire',
-		'spring-xd-extension-kafka'
-	].collect { p -> project(p) }
+		'spring-xd-extension-kafka',
+		'spring-xd-messagebus-spi',
+		'spring-xd-spi-common'
+	].collect { p -> project(p) } +
+	messagebusProjects
 }
 
 // custom class to store the SingleNode server process
@@ -291,6 +295,7 @@ configure(javaProjects) { subproject ->
 }
 
 apply from: 'gradle/build-modules.gradle'
+apply from: 'gradle/build-messagebuses.gradle'
 
 project('spring-xd-analytics') {
 	description = 'Spring XD Anayltics'
@@ -334,6 +339,15 @@ project('spring-xd-dirt') {
 		// ************* Common to both Server and Container
 		compile "org.springframework:spring-aop"
 		compile project(":spring-xd-analytics")
+		compile project(":spring-xd-messagebus-spi")
+
+		// The following bus projects jars are loaded by a custom ClassLoader
+		// in normal operation mode. Tests need them visible, this is how it is achieved (for now)
+		testCompile project(":spring-xd-messagebus-local")
+		testCompile project(":spring-xd-messagebus-kafka")
+		testCompile project(":spring-xd-messagebus-redis")
+		testCompile project(":spring-xd-messagebus-rabbit")
+
 		compile "org.springframework.cloud:spring-cloud-spring-service-connector"
 		compile "org.springframework.cloud:spring-cloud-cloudfoundry-connector"
 		compile "org.springframework.boot:spring-boot-autoconfigure"
@@ -349,7 +363,6 @@ project('spring-xd-dirt') {
 		compile("org.springframework.data:spring-data-redis") {
 			exclude group: 'org.springframework', module: 'spring-core'
 		}
-		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.integration:spring-integration-event"
 		//compile "org.springframework.integration:spring-integration-http"
 		// TODO: Investigate why spring-integration-http's optional dependency xerces becomes transitive dependency
@@ -357,7 +370,6 @@ project('spring-xd-dirt') {
 		// Remove transitive dependency on commons-logging-api
 		configurations.compile.exclude(group: 'commons-logging', module: 'commons-logging-api')
 		compile "org.springframework.integration:spring-integration-jmx"
-		compile "org.springframework.integration:spring-integration-redis"
 		compile "org.jolokia:jolokia-core"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "log4j:log4j"
@@ -410,9 +422,6 @@ project('spring-xd-dirt') {
 		runtime "org.postgresql:postgresql:$postgresqlVersion"
 		runtime "mysql:mysql-connector-java"
 
-		compile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
-			exclude group: 'org.apache.velocity', module: 'velocity'
-		}
 		testCompile "org.apache.kafka:kafka_2.10:${kafkaVersion}:test"
 		testCompile "org.apache.curator:curator-test:${curatorVersion}"
 
@@ -826,6 +835,57 @@ project('spring-xd-rest-domain') {
 	}
 }
 
+project ('spring-xd-spi-common') {
+	description = 'Spring XD SPI shared code'
+}
+
+project ('spring-xd-messagebus-spi') {
+	description = 'Spring XD MessageBus Service Provider Interface'
+	dependencies {
+		compile project(':spring-xd-spi-common')
+		compile "org.springframework:spring-messaging"
+		compile "org.springframework.retry:spring-retry"
+		compile "org.springframework.integration:spring-integration-core"
+	}
+}
+
+project ('spring-xd-messagebus-local') {
+	description = 'Spring XD MessageBus (Local implementation)'
+	dependencies {
+		compile project(':spring-xd-messagebus-spi')
+	}
+}
+
+project ('spring-xd-messagebus-redis') {
+	description = 'Spring XD MessageBus (Redis implementation)'
+	dependencies {
+		compile project(':spring-xd-messagebus-spi')
+		compile "org.springframework.integration:spring-integration-redis"
+	}
+}
+
+project ('spring-xd-messagebus-rabbit') {
+	description = 'Spring XD MessageBus (Rabbit implementation)'
+	dependencies {
+		compile project(':spring-xd-messagebus-spi')
+		compile "org.springframework.integration:spring-integration-amqp"
+		compile "org.springframework.boot:spring-boot-autoconfigure"
+	}
+}
+
+project ('spring-xd-messagebus-kafka') {
+	description = 'Spring XD MessageBus (Kafka implementation)'
+	dependencies {
+		compile project(':spring-xd-messagebus-spi')
+		compile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
+			exclude group: 'org.apache.velocity', module: 'velocity'
+		}
+	}
+}
+
+
+
+
 project('spring-xd-ui') {
 	description = 'Spring XD UI'
 	apply plugin: 'grunt'
@@ -984,12 +1044,14 @@ project('spring-xd-shell') {
 		runtime	"log4j:log4j"
 		testCompile project(":spring-xd-test-fixtures")
 		testCompile project(":spring-xd-dirt")
+		testCompile project(":spring-xd-messagebus-local")
 		testCompile "uk.co.modular-it:hamcrest-date:${hamcrestDateVersion}"
 		testCompile "org.springframework.integration:spring-integration-ftp"
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 		testCompile "org.springframework.integration:spring-integration-sftp"
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
-                testCompile project(":spring-xd-test")
+		testCompile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion")
+        testCompile project(":spring-xd-test")
 	}
 
 	// skip the startScripts task to avoid default start script generation

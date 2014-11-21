@@ -47,7 +47,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
+import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.test.hadoop.HadoopFileSystemTestSupport;
 

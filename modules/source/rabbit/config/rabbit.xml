@@ -40,7 +40,7 @@
 		virtual-host="${vhost}"
 		username="${username}" password="${password}" />
 
-	<bean id="connectionFactory" class="org.springframework.xd.dirt.integration.rabbit.RabbitConnectionFactoryBean">
+	<bean id="connectionFactory" class="org.springframework.amqp.rabbit.connection.RabbitConnectionFactoryBean">
 		<property name="useSSL" value="${useSSL}" />
 		<property name="sslPropertiesLocation" value="${sslPropertiesLocation}"/>
 	</bean>

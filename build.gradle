@@ -560,7 +560,7 @@ project('spring-xd-hadoop') {
 		compile ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
 			exclude group: 'org.springframework.batch', module: 'spring-batch-core'
 			exclude group: 'org.springframework.batch', module: 'spring-batch-infrastructure'
-			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet', module: 'servlet-api'
 			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
 			exclude group: 'tomcat', module: 'jasper-runtime'
 			exclude group: 'tomcat', module: 'jasper-compiler'

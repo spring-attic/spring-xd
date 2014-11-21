@@ -14,10 +14,12 @@ project('spring-xd-hadoop:hadoop24') {
 	description = 'Hadoop 2.4.x dependencies'
 	dependencies {
 		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop24") {
-			exclude group: 'org.apache.hadoop'
+			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
+			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
 		}
 		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop24") {
-			exclude group: 'org.apache.hadoop'
+			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
+			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
 		}
 		runtime ("org.apache.hadoop:hadoop-common:$hadoop24Version")
 		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop24Version")
@@ -44,14 +46,20 @@ project('spring-xd-hadoop:hadoop25') {
 	description = 'Hadoop 2.5.x dependencies'
 	dependencies {
 		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
-			exclude group: 'org.apache.hadoop'
+			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
+			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
 		}
 		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}") {
-			exclude group: 'org.apache.hadoop'
+			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
+			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
 		}
-		runtime ("org.apache.hadoop:hadoop-common:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-common:$hadoop25Version") {
+			exclude group: 'javax.servlet', module: 'servlet-api'
+		}
 		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop25Version") {
+			exclude group: 'javax.servlet', module: 'servlet-api'
+		}
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop25Version")
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop25Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop25Version")

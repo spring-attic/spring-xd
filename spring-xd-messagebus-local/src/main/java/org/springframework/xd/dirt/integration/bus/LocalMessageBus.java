@@ -21,7 +21,6 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -37,6 +36,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeType;
 
 /**
  * A simple implementation of {@link MessageBus} for in-process use. For inbound and outbound, creates a
@@ -258,7 +258,7 @@ public class LocalMessageBus extends MessageBusSupport {
 
 
 	protected BridgeHandler bridge(String name, MessageChannel from, MessageChannel to, String bridgeName,
-			final Collection<MediaType> acceptedMediaTypes, LocalBusPropertiesAccessor properties) {
+			final Collection<MimeType> acceptedMimeTypes, LocalBusPropertiesAccessor properties) {
 
 		final boolean isInbound = bridgeName.startsWith("inbound.");
 

@@ -335,6 +335,10 @@ project('spring-xd-dirt') {
 		compile "org.springframework:spring-aop"
 		compile project(":spring-xd-analytics")
 		compile project(":spring-xd-messagebus-spi")
+		runtime project(":spring-xd-messagebus-local")
+		runtime project(":spring-xd-messagebus-kafka")
+		runtime project(":spring-xd-messagebus-redis")
+		runtime project(":spring-xd-messagebus-rabbit")
 		compile "org.springframework.cloud:spring-cloud-spring-service-connector"
 		compile "org.springframework.cloud:spring-cloud-cloudfoundry-connector"
 		compile "org.springframework.boot:spring-boot-autoconfigure"

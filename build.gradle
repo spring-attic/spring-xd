@@ -334,6 +334,7 @@ project('spring-xd-dirt') {
 		// ************* Common to both Server and Container
 		compile "org.springframework:spring-aop"
 		compile project(":spring-xd-analytics")
+		compile project(":spring-xd-messagebus-spi")
 		compile "org.springframework.cloud:spring-cloud-spring-service-connector"
 		compile "org.springframework.cloud:spring-cloud-cloudfoundry-connector"
 		compile "org.springframework.boot:spring-boot-autoconfigure"
@@ -825,6 +826,51 @@ project('spring-xd-rest-domain') {
 		compile "org.codehaus.jackson:jackson-core-asl"
 	}
 }
+
+project ('spring-xd-spi-common') {
+	description = 'Spring XD SPI shared code'
+}
+
+project ('spring-xd-messagebus-spi') {
+	description = 'Spring XD MessageBus Service Provider Interface'
+	dependencies {
+		compile project(':spring-xd-spi-common')
+		compile "org.springframework:spring-messaging"
+		compile "org.springframework.retry:spring-retry"
+		compile "org.springframework.integration:spring-integration-core"
+	}
+}
+
+project ('spring-xd-messagebus-local') {
+	description = 'Spring XD MessageBus (Local implementation)'
+	dependencies {
+		compile project(':spring-xd-messagebus-spi')
+	}
+}
+
+project ('spring-xd-messagebus-redis') {
+	description = 'Spring XD MessageBus (Redis implementation)'
+	dependencies {
+		compile project(':spring-xd-messagebus-spi')
+	}
+}
+
+project ('spring-xd-messagebus-rabbit') {
+	description = 'Spring XD MessageBus (Rabbit implementation)'
+	dependencies {
+		compile project(':spring-xd-messagebus-spi')
+	}
+}
+
+project ('spring-xd-messagebus-kafka') {
+	description = 'Spring XD MessageBus (Kafka implementation)'
+	dependencies {
+		compile project(':spring-xd-messagebus-spi')
+	}
+}
+
+
+
 
 project('spring-xd-ui') {
 	description = 'Spring XD UI'

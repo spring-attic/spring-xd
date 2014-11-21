@@ -1,7 +1,16 @@
 rootProject.name = 'spring-xd'
 
+include 'spring-xd-spi-common'
+
 include 'spring-xd-analytics'
 include 'spring-xd-analytics-ml'
+
+include 'spring-xd-messagebus-spi'
+include 'spring-xd-messagebus-local'
+include 'spring-xd-messagebus-kafka'
+include 'spring-xd-messagebus-redis'
+include 'spring-xd-messagebus-rabbit'
+
 include 'spring-xd-dirt'
 include 'spring-xd-batch'
 include 'spring-xd-gemfire-server'

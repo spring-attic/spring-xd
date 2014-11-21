@@ -599,7 +599,7 @@ project('spring-xd-yarn:spring-xd-yarn-client') {
 		compile "org.springframework:spring-tx"
 		compile "org.springframework.batch:spring-batch-core"
 		compile ("org.springframework.data:spring-yarn-boot") {
-			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet', module: 'servlet-api'
 			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
 			exclude group: 'tomcat', module: 'jasper-runtime'
 			exclude group: 'tomcat', module: 'jasper-compiler'
@@ -646,7 +646,7 @@ project('spring-xd-yarn:spring-xd-yarn-appmaster') {
 		compile "org.springframework:spring-tx"
 		compile "org.springframework.batch:spring-batch-core"
 		compile ("org.springframework.data:spring-yarn-boot") {
-			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet', module: 'servlet-api'
 			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
 			exclude group: 'tomcat', module: 'jasper-runtime'
 			exclude group: 'tomcat', module: 'jasper-compiler'
@@ -893,7 +893,7 @@ project('spring-xd-test') {
 		compile ("org.springframework.data:spring-data-hadoop") {
 			exclude group: 'org.springframework.batch', module: 'spring-batch-core'
 			exclude group: 'org.springframework.batch', module: 'spring-batch-infrastructure'
-			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet', module: 'servlet-api'
 			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
 			exclude group: 'tomcat', module: 'jasper-runtime'
 			exclude group: 'tomcat', module: 'jasper-compiler'
@@ -944,7 +944,7 @@ project('spring-xd-shell') {
 		compile ("org.springframework.data:spring-data-hadoop") {
 			exclude group: 'org.springframework.batch', module: 'spring-batch-core'
 			exclude group: 'org.springframework.batch', module: 'spring-batch-infrastructure'
-			exclude group: 'javax.servlet', module: 'javax.servlet-api'
+			exclude group: 'javax.servlet', module: 'servlet-api'
 			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
 			exclude group: 'tomcat', module: 'jasper-runtime'
 			exclude group: 'tomcat', module: 'jasper-compiler'

@@ -39,6 +39,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  * @author Kashyap Parikh
  * @author Andy Clement
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
@@ -310,6 +311,24 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().create(tapName, "%s > %s", getTapName(streamName), generateQueueName());
 		stream().destroyStream(streamName);
 		stream().destroyStream(tapName);
+	}
+
+	@Test
+	public void testTapCreateAndReDeploy() {
+		HttpSource source = newHttpSource();
+		FileSink tapSink1 = newFileSink().binary(true);
+		FileSink tapSink2 = newFileSink().binary(true);
+		String streamName = generateStreamName();
+		String tapName1 = generateStreamName();
+		String tapName2 = generateStreamName();
+		stream().create(streamName, "%s | null", source);
+		stream().create(tapName1, "%s > %s", getTapName(streamName), tapSink1);
+		source.ensureReady().postData("123");
+		assertThat(tapSink1, eventually(hasContentsThat(equalTo("123"))));
+		stream().undeploy(tapName1);
+		stream().create(tapName2, "%s > %s", getTapName(streamName), tapSink2);
+		source.ensureReady().postData("234");
+		assertThat(tapSink2, eventually(hasContentsThat(equalTo("234"))));
 	}
 
 	@Test

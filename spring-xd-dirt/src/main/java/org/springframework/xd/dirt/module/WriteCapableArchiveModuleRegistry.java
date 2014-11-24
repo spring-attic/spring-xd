@@ -24,6 +24,7 @@ import java.io.IOException;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.xd.dirt.core.RuntimeIOException;
 import org.springframework.xd.module.ModuleDefinition;
 
@@ -41,8 +42,15 @@ public class WriteCapableArchiveModuleRegistry extends ArchiveModuleRegistry imp
 	@Override
 	public boolean delete(ModuleDefinition definition) {
 		try {
-			File jar = targetModuleLocation(definition);
-			return jar.exists() && !jar.isDirectory() && jar.delete();
+			File module = targetModuleLocation(definition);
+			boolean wasFile = module.exists() && !module.isDirectory() && module.delete();
+			if (wasFile) {
+				return true;
+			} else {
+				String filename = module.getName();
+				File asDir = new File(module.getParentFile(), filename.substring(0, filename.lastIndexOf('.')));
+				return asDir.exists() && asDir.isDirectory() && FileSystemUtils.deleteRecursively(asDir);
+			}
 		}
 		catch (IOException e) {
 			throw new RuntimeIOException("Error trying to delete " + definition, e);

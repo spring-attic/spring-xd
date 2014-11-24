@@ -1,0 +1,6 @@
+This folder is the default location for custom modules, where modules
+uploaded by 'module upload' end up. It is pointed to by the
+${xd.customModule.home} variable, but users should feel free to
+have that variable point to a location outside of the XD install, so
+that it survives XD upgrades.
+

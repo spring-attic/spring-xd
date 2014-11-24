@@ -246,7 +246,9 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		MessageChannel outputChannel = module.getComponent(MODULE_OUTPUT_CHANNEL, MessageChannel.class);
 		if (outputChannel != null) {
 			messageBus.unbindProducer(getOutputChannelName(module), outputChannel);
-			unbindTapChannel(buildTapChannelName(module));
+			String tapChannelName = buildTapChannelName(module);
+			unbindTapChannel(tapChannelName);
+			tappableChannels.remove(tapChannelName);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Unbound producer(s) for " + module.toString());
 			}
@@ -255,7 +257,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 
 	private void unbindTapChannel(String tapChannelName) {
 		// Should this be unbindProducer() as there won't be multiple producers on the tap channel.
-		MessageChannel tappedChannel = tappableChannels.remove(tapChannelName);
+		MessageChannel tappedChannel = tappableChannels.get(tapChannelName);
 		if (tappedChannel instanceof ChannelInterceptorAware) {
 			ChannelInterceptorAware interceptorAware = ((ChannelInterceptorAware) tappedChannel);
 			List<ChannelInterceptor> interceptors = new ArrayList<ChannelInterceptor>();

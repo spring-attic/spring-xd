@@ -346,8 +346,6 @@ project('spring-xd-dirt') {
 		testCompile project(":spring-xd-messagebus-redis")
 		testCompile project(":spring-xd-messagebus-rabbit")
 
-		compile "org.springframework.integration:spring-integration-amqp"
-
 		compile "org.springframework.cloud:spring-cloud-spring-service-connector"
 		compile "org.springframework.cloud:spring-cloud-cloudfoundry-connector"
 		compile "org.springframework.boot:spring-boot-autoconfigure"
@@ -871,8 +869,8 @@ project ('spring-xd-messagebus-rabbit') {
 	description = 'Spring XD MessageBus (Rabbit implementation)'
 	dependencies {
 		compile project(':spring-xd-messagebus-spi')
-//		compile "org.springframework.integration:spring-integration-amqp"
-//		compile "org.springframework.boot:spring-boot-autoconfigure"
+		compile "org.springframework.integration:spring-integration-amqp"
+		compile "org.springframework.boot:spring-boot-autoconfigure"
 	}
 }
 

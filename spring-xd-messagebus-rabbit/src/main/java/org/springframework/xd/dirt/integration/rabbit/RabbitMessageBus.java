@@ -48,7 +48,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
-import org.springframework.http.MediaType;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -62,6 +61,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
@@ -584,7 +584,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			Message<?> messageToSend = serializePayloadIfNecessary(message,
-					MediaType.APPLICATION_OCTET_STREAM);
+					MimeTypeUtils.APPLICATION_OCTET_STREAM);
 			Map<String, Object> additionalHeaders = null;
 			if (replyTo != null) {
 				additionalHeaders = new HashMap<String, Object>();

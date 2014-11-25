@@ -23,11 +23,15 @@ define(['angular'], function (angular) {
   'use strict';
 
   return angular.module('xdShared.interceptors', [])
-      .factory('httpErrorInterceptor', function (XDUtils) {
+      .factory('httpErrorInterceptor', function (XDUtils, $location, $window) {
         return {
           responseError: function (rejection) {
             if (rejection.status === 0) {
               XDUtils.growl.error('Looks like the XD server is down.');
+            }
+            if (rejection.status === 401) {
+              XDUtils.growl.error('Not authenticated. Please login again.');
+              $window.location.href = '/admin-ui/login';
             }
             XDUtils.$log.error('Response Error ' + rejection.status, rejection);
             return XDUtils.$q.reject(rejection);

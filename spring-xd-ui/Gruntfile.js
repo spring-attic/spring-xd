@@ -102,7 +102,7 @@ module.exports = function (grunt) {
       },
       proxies: [
         {
-          context: ['/batch', '/job', '/meta', '/modules', '/streams', '/runtime', '/validation', '/management'],
+          context: ['/batch', '/job', '/meta', '/modules', '/streams', '/runtime', '/validation', '/management', '/admin-ui', '/security'],
           host: 'localhost',
           port: 9393,
           changeOrigin: true

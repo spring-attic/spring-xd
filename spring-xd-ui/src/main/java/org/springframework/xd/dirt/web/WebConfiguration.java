@@ -15,6 +15,7 @@
 package org.springframework.xd.dirt.web;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Gunnar Hillert
  */
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = GroovyTemplateAutoConfiguration.class)
 @Configuration
 @ComponentScan
 public class WebConfiguration {

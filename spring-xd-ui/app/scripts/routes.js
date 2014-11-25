@@ -95,7 +95,6 @@ define(['./app'], function (xdAdmin) {
     .state('logout', {
       url : '/logout',
       controller: 'LogoutController',
-      templateUrl : authTemplatesPath + '/login.html',
       data:{
         authenticate: true
       }
@@ -218,20 +217,19 @@ define(['./app'], function (xdAdmin) {
       }
     });
   });
-  xdAdmin.run(function ($rootScope, $state, $stateParams, userService, $log) {
+  xdAdmin.run(function ($rootScope, $state, $stateParams, userService, $log, $window) {
+
     $rootScope.$state = $state;
     $rootScope.$stateParams = $stateParams;
     $rootScope.xdAdminServerUrl = window.location.protocol + '//' + window.location.host;
-    $rootScope.authenticationEnabled = false;
     $rootScope.user = userService;
     $rootScope.pageRefreshTime = 5000;
     $rootScope.enableMessageRates = true;
 
     $rootScope.$on('$stateChangeStart', function(event, toState) {
-        $log.info('Need to authenticate? ' + toState.data.authenticate);
-        if ($rootScope.authenticationEnabled && toState.data.authenticate && !userService.isAuthenticated){
-          // User is not authenticated
-          $state.transitionTo('login');
+        if (userService.authenticationEnabled && toState.data.authenticate && !userService.isAuthenticated){
+          $log.info('Need to authenticate...');
+          $window.location.href = '/admin-ui/login';
           event.preventDefault();
         }
       });

@@ -32,6 +32,7 @@ describe('Tests', function() {
   describe('When I navigate to the root URL "/"', function() {
     it('the app should redirect to "#/jobs/definitions"', function() {
       browser.get('/');
+      browser.driver.sleep(2000);
       expect(browser.getCurrentUrl()).toContain('/#/jobs/definitions')
       expect(browser.getTitle()).toBe('Spring XD');
     });

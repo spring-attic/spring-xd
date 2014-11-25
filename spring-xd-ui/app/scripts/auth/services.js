@@ -24,11 +24,12 @@ define(['angular'], function (angular) {
   'use strict';
 
   return angular.module('xdAuth.services', [])
-      .factory('userService', function() {
-          var sdo = {
-            isAuthenticated: false,
-            username: ''
+      .factory('userService', function(securityInfo) {
+          var user = {
+            authenticationEnabled: securityInfo.authenticationEnabled,
+            isAuthenticated: securityInfo.authenticated,
+            username: securityInfo.username
           };
-          return sdo;
+          return user;
         });
 });

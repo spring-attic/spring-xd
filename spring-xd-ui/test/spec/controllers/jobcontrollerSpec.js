@@ -20,10 +20,14 @@ define([
 ], function(angular) {
   'use strict';
 
+  angular.module('xdConf', [])
+    .constant('securityInfo', {});
+
   describe('Unit: Testing Jobs Controllers', function() {
 
     var $httpBackend, $rootScope, $scope;
 
+    beforeEach(angular.mock.module('xdConf'));
     beforeEach(angular.mock.module('xdJobsAdmin'));
 
     beforeEach(inject(function(_$httpBackend_, _$rootScope_) {

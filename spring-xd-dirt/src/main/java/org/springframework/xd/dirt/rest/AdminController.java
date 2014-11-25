@@ -43,10 +43,12 @@ import org.springframework.xd.rest.domain.metrics.CounterResource;
 import org.springframework.xd.rest.domain.metrics.FieldValueCounterResource;
 import org.springframework.xd.rest.domain.metrics.GaugeResource;
 import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
+import org.springframework.xd.rest.domain.security.SecurityInfoResource;
 
 /**
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 @Controller
 @RequestMapping("/")
@@ -66,7 +68,7 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("streams"));
 		xdRuntime.add(entityLinks.linkFor(JobDefinitionResource.class).withRel("jobs"));
 		xdRuntime.add(entityLinks.linkFor(ModuleDefinitionResource.class).withRel("modules"));
-
+		xdRuntime.add(entityLinks.linkFor(SecurityInfoResource.class).withRel("security/info"));
 		xdRuntime.add(entityLinks.linkFor(ModuleMetadataResource.class).withRel("runtime/modules"));
 		xdRuntime.add(entityLinks.linkFor(DetailedContainerResource.class).withRel("runtime/containers"));
 

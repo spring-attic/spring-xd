@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public final class BannerUtils {
 			return FileCopyUtils.copyToString(
 					new InputStreamReader(BannerUtils.class
 							.getResourceAsStream("banner.txt"))).replaceAll(
-									"(\\r|\\n)+", LINE_SEPARATOR);
+					"(\\r|\\n)+", LINE_SEPARATOR);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Could not read banner.txt");
@@ -70,11 +70,7 @@ public final class BannerUtils {
 	}
 
 	public static String getVersion() {
-		final Package pkg = BannerUtils.class.getPackage();
-		String version = null;
-		if (pkg != null) {
-			version = pkg.getImplementationVersion();
-		}
+		final String version = XdUtils.getSpringXdVersion();
 		return (version != null ? version : "Unknown Version");
 	}
 
@@ -82,14 +78,14 @@ public final class BannerUtils {
 			String additionalMessage) {
 		StringBuffer sb = new StringBuffer(LINE_SEPARATOR);
 		sb.append(getBanner())
-		.append(StringUtils.isEmpty(additionalMessage) ? ""
-				: additionalMessage)
+				.append(StringUtils.isEmpty(additionalMessage) ? ""
+						: additionalMessage)
 				.append(LINE_SEPARATOR)
 				.append(StringUtils.isEmpty(containerName) ? ""
 						: "Started : " + containerName)
-						.append(LINE_SEPARATOR)
-						.append("Documentation: https://github.com/spring-projects/spring-xd/wiki")
-						.append(LINE_SEPARATOR);
+				.append(LINE_SEPARATOR)
+				.append("Documentation: https://github.com/spring-projects/spring-xd/wiki")
+				.append(LINE_SEPARATOR);
 		return sb.toString();
 	}
 

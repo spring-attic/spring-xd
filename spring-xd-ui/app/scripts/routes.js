@@ -78,6 +78,7 @@ define(['./app'], function (xdAdmin) {
     })
     .state('home.about', {
       url : 'about',
+      controller: 'AboutController',
       templateUrl : sharedTemplatesPath + '/about.html',
       data:{
         authenticate: false

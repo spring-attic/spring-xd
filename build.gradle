@@ -326,6 +326,7 @@ project('spring-xd-analytics-ml') {
 }
 
 project('spring-xd-dirt') {
+
 	description = 'Spring XD DIRT'
 	dependencies {
 		compile "org.codehaus.groovy:groovy-all"
@@ -520,6 +521,14 @@ project('spring-xd-dirt') {
 	tasks["backgroundAdminServer"].dependsOn("classes")
 	tasks["clean"].dependsOn("cleanDataDir")
 
+	processResources {
+		filesMatching("**/application.yml") {
+			filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
+				'gradle_project_name'    : rootProject.description,
+				'gradle_project_version' : rootProject.version,
+			], beginToken: '~', endToken: '~')
+		}
+	}
 }
 
 project('spring-xd-exec') {

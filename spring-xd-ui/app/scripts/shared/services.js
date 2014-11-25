@@ -52,5 +52,12 @@ define(['angular', 'xregexp'], function (angular) {
             return moduleName;
           }
         };
+      })
+      .factory('xdVersionInfo', function ($resource, $rootScope) {
+        return $resource($rootScope.xdAdminServerUrl + '/meta/version', {}, {
+          query: {
+            method: 'GET'
+          }
+        }).query();
       });
 });

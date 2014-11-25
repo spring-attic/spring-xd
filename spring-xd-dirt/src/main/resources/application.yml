@@ -136,6 +136,10 @@ management:
   security:
     enabled: false
 
+info:
+  build:
+  name: ~gradle_project_name~
+  version: ~gradle_project_version~
 
 zk:
   namespace: xd
@@ -147,6 +151,7 @@ security:
   basic:
     enabled: false
     realm:   SpringXD
+
 
 # Profile specific documents below
 --- 

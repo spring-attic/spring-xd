@@ -28,6 +28,7 @@ define([
   'ngGrowl',
   './controllers',
   './services',
+  '../shared/controllers',
   '../shared/services',
   '../shared/interceptors'
 ], function (angular) {
@@ -35,6 +36,7 @@ define([
   return angular.module('xdContainerAdmin', [
     'xdContainerAdmin.services',
     'xdContainerAdmin.controllers',
+    'xdShared.controllers',
     'xdShared.services',
     'xdShared.interceptors',
     'ui.router',

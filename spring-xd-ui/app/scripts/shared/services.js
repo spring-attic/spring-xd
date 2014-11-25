@@ -52,5 +52,12 @@ define(['angular', 'xregexp'], function (angular) {
             return moduleName;
           }
         };
+      })
+      .factory('xdManagementInfo', function ($resource, $rootScope) {
+        return $resource($rootScope.xdAdminServerUrl + '/management/info', {}, {
+          query: {
+            method: 'GET'
+          }
+        }).query();
       });
 });

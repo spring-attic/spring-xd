@@ -74,16 +74,32 @@ require.config({
 
 define([
   'require',
-  'angular',
-  'app',
-  './routes'
+  'angular'
 ], function (require, angular) {
   'use strict';
 
-  require(['domReady!'], function (document) {
-    console.log('Start angular application.');
-    angular.bootstrap(document, ['xdAdmin']);
+  var app = angular.module('xdConf', []);
+
+  var initInjector = angular.injector(["ng"]);
+  var $http = initInjector.get("$http");
+  var securityInfoUrl = '/security/info';
+  var timeout = 20000;
+  var promiseHttp = $http.get(securityInfoUrl, {timeout: timeout});
+
+  promiseHttp.then(function(response) {
+    app.constant("securityInfo", response.data);
+    require(['app', './routes'], function () {
+      require(['domReady!'], function (document) {
+        console.log('Start angular application.');
+        angular.bootstrap(document, ['xdAdmin']);
+      });
+    });
+  }, function(errorResponse) {
+    var errorMessage = 'Error retrieving security info from ' + securityInfoUrl + ' (timeout: ' + timeout + 'ms)';
+    console.log(errorMessage, errorResponse);
+    $('.splash .container').html(errorMessage);
   });
+
   require(['jquery', 'bootstrap'], function () {
     console.log('Loaded Twitter Bootstrap.');
     updateGrowl();

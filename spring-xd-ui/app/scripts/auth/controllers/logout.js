@@ -21,11 +21,7 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', 'userService', 'XDUtils', '$state',
-          function ($scope, user, utils, $state) {
-      user.isAuthenticated = false;
-      user.username = '';
-      utils.growl.success('user ' + user.username + ' logged out.');
-      $state.go('login');
-    }];
+  return ['$window', function ($window) {
+    $window.location.href = '/admin-ui/logout';
+  }];
 });

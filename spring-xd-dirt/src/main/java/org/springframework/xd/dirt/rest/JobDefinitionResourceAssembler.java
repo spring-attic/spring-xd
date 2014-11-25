@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,15 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.dirt.stream.JobDefinition;
-import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
 
 /**
- * Knows how to build a REST resource out of our domain model {@link StreamDefinition}.
- * 
+ * Knows how to build a REST resource out of our domain model {@link JobDefinition}.
+ *
  * @author Glenn Renfro
  */
 public class JobDefinitionResourceAssembler extends
-		ResourceAssemblerSupport<JobDefinition, JobDefinitionResource> {
+ResourceAssemblerSupport<JobDefinition, JobDefinitionResource> {
 
 	public JobDefinitionResourceAssembler() {
 		super(JobsController.class, JobDefinitionResource.class);

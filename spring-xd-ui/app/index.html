@@ -35,10 +35,10 @@
           </button>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-          <p ng-if="authenticationEnabled && user.isAuthenticated" class="navbar-text navbar-right">Signed in as
+          <p ng-if="user.authenticationEnabled && user.isAuthenticated" class="navbar-text navbar-right">Signed in as
             <strong>{{user.username}}</strong>
           </p>
-          <p ng-if="authenticationEnabled && !user.isAuthenticated" class="navbar-text navbar-right">Not logged in</p>
+          <p ng-if="user.authenticationEnabled && !user.isAuthenticated" class="navbar-text navbar-right">Not logged in</p>
           <ul class="nav navbar-nav navbar-right">
             <li ng-class="{ active: $state.includes('home.containers') }">
                <a ui-sref="home.containers.tabs.containerlist">Containers</a>
@@ -52,7 +52,7 @@
             <li ng-class="{ active: $state.includes('home.about') }">
               <a ui-sref="home.about">About</a>
             </li>
-            <li ng-if="authenticationEnabled"
+            <li ng-if="user.authenticationEnabled"
               class="dropdown"><a data-target="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>
               <ul class="dropdown-menu">
                 <li ng-if="user.isAuthenticated"><a ui-sref="logout">Logout</a></li>

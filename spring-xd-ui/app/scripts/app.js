@@ -27,7 +27,11 @@ define([
   './auth/app'
 ], function (angular) {
   'use strict';
-  return angular.module('xdAdmin', [
+
+  console.log('Loading Spring XD Admin UI');
+
+  return  angular.module('xdAdmin', [
+      'xdConf',
     'xdJobsAdmin',
     'xdStreamsAdmin',
     'xdContainerAdmin',

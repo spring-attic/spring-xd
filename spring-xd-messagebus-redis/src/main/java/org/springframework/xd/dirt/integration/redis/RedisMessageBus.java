@@ -29,7 +29,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.http.MediaType;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -50,6 +49,7 @@ import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
@@ -436,7 +436,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			@SuppressWarnings("unchecked")
 			Message<byte[]> transformed = (Message<byte[]>) serializePayloadIfNecessary(message,
-					MediaType.APPLICATION_OCTET_STREAM);
+					MimeTypeUtils.APPLICATION_OCTET_STREAM);
 			Map<String, Object> additionalHeaders = null;
 			if (replyTo != null) {
 				additionalHeaders = new HashMap<String, Object>();

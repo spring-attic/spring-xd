@@ -368,7 +368,6 @@ project('spring-xd-dirt') {
 		// Remove transitive dependency on commons-logging-api
 		configurations.compile.exclude(group: 'commons-logging', module: 'commons-logging-api')
 		compile "org.springframework.integration:spring-integration-jmx"
-		compile "org.springframework.integration:spring-integration-redis"
 		compile "org.jolokia:jolokia-core"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "log4j:log4j"
@@ -859,6 +858,7 @@ project ('spring-xd-messagebus-redis') {
 	description = 'Spring XD MessageBus (Redis implementation)'
 	dependencies {
 		compile project(':spring-xd-messagebus-spi')
+		compile "org.springframework.integration:spring-integration-redis"
 	}
 }
 

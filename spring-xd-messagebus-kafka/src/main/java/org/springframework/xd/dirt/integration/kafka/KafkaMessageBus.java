@@ -47,7 +47,6 @@ import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.http.MediaType;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -62,6 +61,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
@@ -503,7 +503,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 			@SuppressWarnings("unchecked")
 			Message<byte[]> transformed = (Message<byte[]>) serializePayloadIfNecessary(message,
-					MediaType.APPLICATION_OCTET_STREAM);
+					MimeTypeUtils.APPLICATION_OCTET_STREAM);
 			transformed = getMessageBuilderFactory().fromMessage(transformed)
 					.copyHeaders(additionalHeaders)
 					.build();

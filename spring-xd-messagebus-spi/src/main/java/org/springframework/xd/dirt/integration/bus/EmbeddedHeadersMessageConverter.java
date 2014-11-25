@@ -28,6 +28,7 @@ import org.springframework.messaging.Message;
 /**
  * Encodes requested headers into payload.
  *
+ * @author Eric Bottard
  */
 public class EmbeddedHeadersMessageConverter {
 

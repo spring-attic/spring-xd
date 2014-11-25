@@ -421,9 +421,6 @@ project('spring-xd-dirt') {
 		runtime "org.postgresql:postgresql:$postgresqlVersion"
 		runtime "mysql:mysql-connector-java"
 
-		compile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
-			exclude group: 'org.apache.velocity', module: 'velocity'
-		}
 		testCompile "org.apache.kafka:kafka_2.10:${kafkaVersion}:test"
 		testCompile "org.apache.curator:curator-test:${curatorVersion}"
 
@@ -878,6 +875,9 @@ project ('spring-xd-messagebus-kafka') {
 	description = 'Spring XD MessageBus (Kafka implementation)'
 	dependencies {
 		compile project(':spring-xd-messagebus-spi')
+		compile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
+			exclude group: 'org.apache.velocity', module: 'velocity'
+		}
 	}
 }
 

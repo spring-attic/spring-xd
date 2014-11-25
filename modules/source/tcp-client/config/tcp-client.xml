@@ -11,7 +11,6 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-	<import resource="../../../common/script-variable-generator.xml" />
 	<import resource="../../../common/tcp-encdec.xml"/>
 	
 	<int-ip:tcp-connection-factory id="connectionFactory"
@@ -47,6 +46,7 @@
 	<int:channel id="output"/>
 	
 	<beans profile="use-script">
+		<import resource="../../../common/script-variable-generator.xml" />
 		<int:transformer input-channel="commandsTrigger" output-channel="commands">
 			<int-groovy:script location="${script}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
 		</int:transformer>

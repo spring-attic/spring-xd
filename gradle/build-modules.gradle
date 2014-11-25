@@ -114,7 +114,10 @@ project('modules.source.tcp') {
 }
 
 project('modules.source.tcp-client') {
-    dependencies { runtime project(":spring-xd-extension-tcp") }
+    dependencies { 
+        runtime project(":spring-xd-extension-tcp") 
+        runtime(project(":spring-xd-extension-script"))
+    }
 }
 
 project('modules.source.mqtt') {

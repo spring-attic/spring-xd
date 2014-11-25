@@ -9,7 +9,6 @@
 		http://www.springframework.org/schema/integration/groovy
 		http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd">
 
-	<beans:import resource="../../../common/script-variable-generator.xml" />
 
 	<channel id="input" />
 
@@ -21,6 +20,7 @@
 	</beans:beans>
 
 	<beans:beans profile="use-script">
+		<beans:import resource="../../../common/script-variable-generator.xml" />
 		<transformer input-channel="input" output-channel="output">
 			<int-groovy:script location="${script}"
 				script-variable-generator="variableGenerator" refresh-check-delay="60" />

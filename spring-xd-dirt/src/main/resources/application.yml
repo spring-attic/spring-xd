@@ -74,13 +74,28 @@ server:
 management:
   port: ${XD_MGMT_PORT:${PORT:9393}}
   contextPath: /management
----
+  security:
+    enabled: false
+
+info:
+  build:
+    name: ~gradle_project_name~
+    version: ~gradle_project_version~
+
 zk:
   namespace: xd
   client:
     connect: ${ZK_CLIENT_CONNECT:}
 
----
+# Security default settings
+security:
+  basic:
+    enabled: false
+    realm:   SpringXD
+
+
+# Profile specific documents below
+--- 
 spring:
   profiles: rabbit
 transport: rabbit

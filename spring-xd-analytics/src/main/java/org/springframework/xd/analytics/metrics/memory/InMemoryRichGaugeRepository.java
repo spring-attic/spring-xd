@@ -30,6 +30,17 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 public class InMemoryRichGaugeRepository extends InMemoryMetricRepository<RichGauge>
 		implements RichGaugeRepository {
 
+	@Override
+	public void setValue(String name, double value, double alpha) {
+		RichGauge gauge = getOrCreate(name);
+		setRichGaugeValue(gauge, value, alpha);
+	}
+
+	@Override
+	public void reset(String name) {
+		RichGauge gauge = getOrCreate(name);
+		setRichGaugeValue(gauge, 0, -1D);
+	}
 
 	@Override
 	protected RichGauge getOrCreate(String name) {

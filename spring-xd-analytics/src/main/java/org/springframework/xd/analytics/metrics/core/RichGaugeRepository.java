@@ -17,10 +17,41 @@
 package org.springframework.xd.analytics.metrics.core;
 
 /**
- * A Repository for managing RichGauge instances.
- **
+ * A service for managing RichGauge instances.
+ *
+ * The setValue method updates the current value of the gauge as well as incrementing the internal counter and updating
+ * the max, min and average values.
+ *
+ * It also provides a 'getOrCreate' method that will return an existing gauge given the name or create a new gauge set
+ * to zero.
+ *
+ * Supports a "smoothing constant", "alpha" for use in calculating an <a
+ * href="http://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm">exponential moving average</a> for the
+ * gauge.
+ * The parameter can be changed at any time after the gauge has been created. The mean calculated up to that point will
+ * be used to initialize the moving average from that point on.
+ *
  * @author Luke Taylor
  *
  */
 public interface RichGaugeRepository extends MetricRepository<RichGauge> {
+
+	/**
+	 * Sets the current value of the gauge.
+	 *
+	 * @param name the gauge name
+	 * @param value the value of the gauge
+	 * @param alpha
+	 * @throws IllegalArgumentException in case the given name is null
+	 */
+	void setValue(String name, double value, double alpha);
+
+	/**
+	 * Reset the gauge to zero and reset any accumulated average, max and min values
+	 *
+	 * @param name the gauge name
+	 * @throws IllegalArgumentException in case the given name is null
+	 */
+	void reset(String name);
+
 }

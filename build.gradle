@@ -34,6 +34,7 @@ ext {
 	]
 	moduleProjects  = subprojects.findAll { project -> project.path.startsWith(':modules')}
 	javaProjects    = subprojects - (moduleProjects + nonJavaProjects)
+	messagebusProjects = subprojects.findAll {project -> project.path.startsWith(':spring-xd-messagebus-')} - project(':spring-xd-messagebus-spi')
 	coverageProjects = [
 		'spring-xd-dirt',
 		'spring-xd-analytics',
@@ -48,8 +49,11 @@ ext {
 		'spring-xd-extension-jdbc',
 		'spring-xd-extension-reactor',
 		'spring-xd-extension-gemfire',
-		'spring-xd-extension-kafka'
-	].collect { p -> project(p) }
+		'spring-xd-extension-kafka',
+		'spring-xd-messagebus-spi',
+		'spring-xd-spi-common'
+	].collect { p -> project(p) } +
+	messagebusProjects
 }
 
 // custom class to store the SingleNode server process
@@ -291,6 +295,7 @@ configure(javaProjects) { subproject ->
 }
 
 apply from: 'gradle/build-modules.gradle'
+apply from: 'gradle/build-messagebuses.gradle'
 
 project('spring-xd-analytics') {
 	description = 'Spring XD Anayltics'
@@ -336,10 +341,10 @@ project('spring-xd-dirt') {
 		compile project(":spring-xd-analytics")
 		compile project(":spring-xd-messagebus-spi")
 		
-		runtime project(":spring-xd-messagebus-local")
-		runtime project(":spring-xd-messagebus-kafka")
-		runtime project(":spring-xd-messagebus-redis")
-		runtime project(":spring-xd-messagebus-rabbit")
+//		messagebus project(":spring-xd-messagebus-local")
+//		messagebus project(":spring-xd-messagebus-kafka")
+//		messagebus project(":spring-xd-messagebus-redis")
+//		messagebus project(":spring-xd-messagebus-rabbit")
 		
 		testCompile project(":spring-xd-messagebus-local")
 		testCompile project(":spring-xd-messagebus-kafka")

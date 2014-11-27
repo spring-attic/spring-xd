@@ -1,0 +1,32 @@
+/*
+ * Tasks related to building the Spring XD bus implementations
+*/
+
+apply from: 'gradle/build-common.gradle'
+
+configure(messagebusProjects) { busProject ->
+
+    def dirt = project(':spring-xd-dirt')
+    def shortname = busProject.name.substring('spring-xd-messagebus-'.length())
+    def target = file("$rootDir/lib/messagebus/" + shortname)
+
+    task copyLibs(type: Copy, dependsOn: [jar]) {
+        description "Copy the jars needed for message bus $shortname into XD_HOME/lib/messagebus"
+        def dirtDeps = dirt.configurations.runtime
+
+        def whatToCopy = busProject.configurations.runtime.minus(dirtDeps)
+        inputs.property('deps', whatToCopy)
+        outputs.dir target
+
+        from whatToCopy
+        from "${jar.archivePath}"
+        into target
+    }
+
+    tasks['clean'].dependsOn(busProject.tasks['cleanCopyLibs'])
+
+    dirt.tasks['classes'].dependsOn(busProject.tasks['copyLibs'])
+}
+
+
+

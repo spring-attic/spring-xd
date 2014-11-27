@@ -82,13 +82,17 @@ public class AdminServerApplication {
 		CommandLinePropertySourceOverridingListener<AdminOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<AdminOptions>(
 				new AdminOptions());
 
+		MessageBusClassLoaderFactory classLoaderFactory = new MessageBusClassLoaderFactory();
+
 		try {
 			this.context = new SpringApplicationBuilder(AdminOptions.class, ParentConfiguration.class)
 					.logStartupInfo(false)
 					.profiles(XdProfiles.ADMIN_PROFILE)
 					.listeners(commandLineListener)
-					.initializers(new AdminPortAvailablityInitializer())
+					.listeners(classLoaderFactory)
+					.initializers(new AdminPortAvailabilityInitializer())
 					.child(SharedServerContextConfiguration.class, AdminOptions.class)
+					.resourceLoader(classLoaderFactory.getResolver())
 					.logStartupInfo(false)
 					.listeners(commandLineListener)
 					.child(AdminServerApplication.class)
@@ -118,7 +122,7 @@ public class AdminServerApplication {
 		System.exit(1);
 	}
 
-	private class AdminIdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+	private static class AdminIdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {
@@ -133,7 +137,7 @@ public class AdminServerApplication {
 	 *
 	 * @author Ilayaperumal Gopinathan
 	 */
-	private class AdminPortAvailablityInitializer implements
+	private static class AdminPortAvailabilityInitializer implements
 			ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		private static final String ADMIN_PORT_PLACEHOLDER = "${server.port}";

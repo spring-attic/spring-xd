@@ -13,10 +13,14 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.net.URL;
+import java.net.URLClassLoader;
+
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
@@ -48,13 +52,17 @@ public class SingleNodeApplication {
 
 		ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new SingleNodeOptions());
 
+		MessageBusClassLoaderFactory classLoaderFactory = new MessageBusClassLoaderFactory();
+
 		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
 				ParentConfiguration.class)
 				.logStartupInfo(false)
 				.listeners(bootstrapContext.commandLineListener())
+				.listeners(classLoaderFactory)
 				.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
 				.initializers(new HsqldbServerProfileActivator())
 				.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
+				.resourceLoader(classLoaderFactory.getResolver())
 				.logStartupInfo(false)
 				.listeners(bootstrapContext.commandLineListener())
 				.child(SingleNodeOptions.class, AdminServerApplication.class)

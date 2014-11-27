@@ -82,11 +82,15 @@ public class ContainerServerApplication implements EnvironmentAware {
 		try {
 			ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new ContainerOptions());
 
+			MessageBusClassLoaderFactory classLoaderFactory = new MessageBusClassLoaderFactory();
+
 			this.containerContext = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.logStartupInfo(false)
 					.profiles(XdProfiles.CONTAINER_PROFILE)
 					.listeners(bootstrapContext.commandLineListener())
+					.listeners(classLoaderFactory)
 					.child(SharedServerContextConfiguration.class, ContainerOptions.class)
+					.resourceLoader(classLoaderFactory.getResolver())
 					.logStartupInfo(false)
 					.listeners(bootstrapContext.commandLineListener())
 					.child(ContainerServerApplication.class)
@@ -165,7 +169,7 @@ public class ContainerServerApplication implements EnvironmentAware {
 		System.exit(1);
 	}
 
-	private class IdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+	private static class IdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {

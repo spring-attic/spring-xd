@@ -98,7 +98,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	@Configuration
 	@ImportResource({ "classpath:/META-INF/spring-xd/batch/batch.xml",
-		"classpath:/META-INF/spring-xd/transports/local-bus.xml" })
+		"classpath:/META-INF/spring-xd/bus/local-bus.xml" })
 	@EnableAutoConfiguration
 	public static class SharedConfiguration {
 

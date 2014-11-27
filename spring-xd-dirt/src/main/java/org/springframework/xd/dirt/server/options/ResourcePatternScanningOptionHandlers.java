@@ -47,7 +47,7 @@ public final class ResourcePatternScanningOptionHandlers {
 
 		public DistributedDataTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-bus.xml");
+			super(parser, option, setter, CONFIGURATION_ROOT + "bus/*-bus.xml");
 			exclude("local");
 		}
 	}
@@ -59,7 +59,7 @@ public final class ResourcePatternScanningOptionHandlers {
 
 		public SingleNodeDataTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-bus.xml");
+			super(parser, option, setter, CONFIGURATION_ROOT + "bus/*-bus.xml");
 		}
 	}
 

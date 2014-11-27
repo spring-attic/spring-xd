@@ -340,12 +340,9 @@ project('spring-xd-dirt') {
 		compile "org.springframework:spring-aop"
 		compile project(":spring-xd-analytics")
 		compile project(":spring-xd-messagebus-spi")
-		
-//		messagebus project(":spring-xd-messagebus-local")
-//		messagebus project(":spring-xd-messagebus-kafka")
-//		messagebus project(":spring-xd-messagebus-redis")
-//		messagebus project(":spring-xd-messagebus-rabbit")
-		
+
+		// The following bus projects jars are loaded by a custom ClassLoader
+		// in normal operation mode. Tests need them visible, this is how it is achieved (for now)
 		testCompile project(":spring-xd-messagebus-local")
 		testCompile project(":spring-xd-messagebus-kafka")
 		testCompile project(":spring-xd-messagebus-redis")

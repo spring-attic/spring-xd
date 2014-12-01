@@ -1,0 +1,196 @@
+apply plugin: 'maven'
+import org.gradle.api.artifacts.ProjectDependency
+
+install.repositories.mavenInstaller {
+	customizePom(pom, project)
+}
+
+ext.dependencyList = []
+
+def addChildrenToList(pResolvedDependency, addSelf) {
+
+	pResolvedDependency.children.each{
+		addChildrenToList(it,true)
+	}
+
+	def dep = "${pResolvedDependency.moduleGroup}:${pResolvedDependency.moduleName}"
+	if(addSelf && !dependencyList.contains(dep)) {
+		dependencyList << dep
+	}
+}
+
+def getAllDependentProjects(project) {
+	configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
+		addChildrenToList(it, false)
+	}
+}
+
+def customizePom(pom, gradleProject) {
+	pom.whenConfigured { generatedPom ->
+		// add all items necessary for maven central publication
+		
+		getAllDependentProjects(gradleProject)
+
+		generatedPom.dependencies.clear()
+		
+    	generatedPom.project {
+      		inceptionYear '2014'
+      		packaging 'pom'
+      		url linkHomepage
+      		licenses {
+        		license {
+          			name 'The Apache Software License, Version 2.0'
+          			url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          			distribution 'repo'
+        		}
+      		}
+      		scm {
+				url = linkScmUrl
+				connection = linkScmConnection
+				developerConnection = linkScmDevConnection
+	  		}
+  
+			name = gradleProject.description
+			description = gradleProject.description
+
+			properties {
+				'project.build.sourceEncoding' 'UTF-8'
+				'java.version' '1.6'
+				'resource.delimiter' '@'
+				'project.reporting.outputEncoding' 'UTF-8'
+				'maven.compiler.source' '${java.version}'
+				'maven.compiler.target' '${java.version}'
+				'spring.xd.version'  version
+				'spring.boot.version' '1.2.0.RELEASE'
+			}
+			
+	 
+			/*
+			TODO: This breaks with Gradle 2.x see http://forums.gradle.org/gradle/topics/after_upgrade_gradle_to_2_0_version_the_maven_pom_not_support_build_property
+			*/
+			'build' {
+				'plugins' {
+					'plugin' {
+						'groupId' 'org.springframework.boot'
+						'artifactId' 'spring-boot-maven-plugin'
+						'version' '${spring.boot.version}'
+						'configuration' {
+							'layout' 'MODULE'
+							excludes {
+								dependencyList.each {
+									def toks = it.split(':')
+									exclude {
+										groupId toks[0]
+										artifactId toks[1]
+									}
+								}
+							}
+						}
+						'executions' {
+							'execution' {
+								'goals' {
+									'goal' 'repackage'
+								}
+							}
+						}
+					}
+
+					plugin {
+					  	'groupId' 'org.apache.maven.plugins'
+						'artifactId' 'maven-dependency-plugin'
+					  	'version' '2.9'
+      					executions {
+      						execution {
+      							'id' 'copy'
+      							'phase' 'process-resources'
+      							goals {
+      								'goal' 'copy'
+      							}
+      							configuration {
+      								artifactItems {
+      									artifactItem {
+      										'groupId' 'org.springframework.xd'
+      										'artifactId' 'spring-xd-messagebus-local'
+      										'version' version
+      										'overWrite' 'true'
+      										'outputDirectory' '${project.basedir}/lib/messagebus/local'
+      									}
+      								}
+      							}
+      						}
+      					}		 
+      
+					}
+					plugin {
+						'groupId' 'org.apache.maven.plugins'
+						'artifactId' 'maven-surefire-plugin'
+					  	'version' '2.18'
+					  	configuration {
+					  		systemPropertyVariables {
+					  			'XD_HOME' '${project.basedir}'
+					  		}
+					  	}
+					}
+				}
+			}
+
+			dependencies {
+				dependency {
+					groupId 'org.springframework.xd'
+					artifactId 'spring-xd-dirt'
+					version '${spring.xd.version}'
+					scope 'provided'
+					exclusions {
+						exclusion {
+							groupId 'org.springframework.xd'
+							artifactId 'spring-xd-hadoop'
+						}
+					}
+				}
+				dependency {
+					groupId 'org.springframework.xd'
+					artifactId 'spring-xd-test'
+					version '${spring.xd.version}'
+					scope 'test'
+					exclusions {
+						exclusion {
+							groupId 'org.springframework.xd'
+							artifactId 'spring-xd-hadoop'
+						}
+					}
+				}
+				dependency {
+					groupId 'org.apache.hadoop'
+					artifactId 'hadoop-common'
+					version '2.3.0'
+					scope 'provided'
+				}
+			}
+
+			repositories {
+				repository {
+					id = 'jcenter'
+					name = 'JCenter Repository'
+					url = 'http://jcenter.bintray.com/'
+				}
+				repository {
+					id = 'repository.io.snapshot'
+					name = 'Spring Snapshot Repository'
+					url = 'http://repo.spring.io/snapshot'
+				}
+				repository {
+					id = 'repository.io.milestone'
+					name = 'Spring Milestone Repository'
+					url = 'http://repo.spring.io/milestone'
+				}
+			}
+			pluginRepositories {
+				pluginRepository {
+					id = 'repository.io.milestone'
+					name = 'Spring Milestone Repository'
+					url = 'http://repo.spring.io/milestone'
+				}
+			}
+		}
+	}
+}

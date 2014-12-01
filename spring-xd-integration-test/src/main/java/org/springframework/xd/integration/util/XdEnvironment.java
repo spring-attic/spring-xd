@@ -155,6 +155,12 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	@Value("${kafka.brokerList}")
 	private String kafkaBrokerList;
 
+	@Value("${tcp.client.host}")
+	private String tcpClientHost;
+
+	@Value("${tcp.client.port}")
+	private int tcpClientPort;
+
 	private Properties artifactProperties;
 
 	/**
@@ -385,6 +391,24 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	 */
 	public String  getKafkaZkConnect() {
 		return zkConnect;
+	}
+
+	/**
+	 * Retrieves the TCP Client port.
+	 *
+	 * @return the port
+	 */
+	public int getTcpClientPort() {
+		return tcpClientPort;
+	}
+
+	/**
+	 * Retrieves the TCP Client host.
+	 *
+	 * @return the host
+	 */
+	public String getTcpClientHost() {
+		return tcpClientHost;
 	}
 
 }

@@ -21,6 +21,7 @@ import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.GemFireCQSource;
 import org.springframework.xd.test.fixtures.GemFireSource;
 import org.springframework.xd.test.fixtures.JmsSource;
+import org.springframework.xd.test.fixtures.KafkaSource;
 import org.springframework.xd.test.fixtures.MqttSource;
 import org.springframework.xd.test.fixtures.RabbitSource;
 import org.springframework.xd.test.fixtures.SimpleFileSource;
@@ -32,7 +33,7 @@ import org.springframework.xd.test.fixtures.Tap;
 import org.springframework.xd.test.fixtures.TcpSource;
 import org.springframework.xd.test.fixtures.TwitterSearchSource;
 import org.springframework.xd.test.fixtures.TwitterStreamSource;
-import org.springframework.xd.test.fixtures.KafkaSource;
+import org.springframework.xd.test.fixtures.TcpClientSource;
 
 
 /**
@@ -271,6 +272,15 @@ public class Sources {
 	 */
 	public KafkaSource kafkaSource(){
 		return new KafkaSource(xdEnvironment.getKafkaZkConnect());
+	}
+
+	/**
+	 * Constructs a new {@link org.springframework.xd.test.fixtures.TcpClientSource}.
+	 *
+	 * @return a new instance of {@link org.springframework.xd.test.fixtures.TcpClientSource}.
+	 */
+	public TcpClientSource tcpClientSource() {
+		return new TcpClientSource(xdEnvironment.getTcpClientHost(), xdEnvironment.getTcpClientPort());
 	}
 
 }

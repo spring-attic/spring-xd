@@ -299,6 +299,7 @@ configure(javaProjects) { subproject ->
 
 apply from: 'gradle/build-modules.gradle'
 apply from: 'gradle/build-messagebuses.gradle'
+apply from: 'gradle/build-starters.gradle'
 
 project('spring-xd-analytics') {
 	description = 'Spring XD Anayltics'

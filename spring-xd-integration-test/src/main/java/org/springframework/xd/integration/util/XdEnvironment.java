@@ -149,6 +149,12 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	@Value("${gemfire.port}")
 	private int gemfirePort;
 
+	@Value("${tcp.client.host}")
+	private String tcpClientHost;
+
+	@Value("${tcp.client.port}")
+	private int tcpClientPort;
+
 	private Properties artifactProperties;
 
 	/**
@@ -361,5 +367,23 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	 */
 	public int getGemfirePort() {
 		return gemfirePort;
+	}
+
+	/**
+	 * Retrieves the TCP Client port.
+	 *
+	 * @return the port
+	 */
+	public int getTcpClientPort() {
+		return tcpClientPort;
+	}
+
+	/**
+	 * Retrieves the TCP Client host.
+	 *
+	 * @return the host
+	 */
+	public String getTcpClientHost() {
+		return tcpClientHost;
 	}
 }

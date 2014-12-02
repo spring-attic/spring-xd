@@ -27,6 +27,7 @@ import org.springframework.xd.test.fixtures.RabbitSink;
 import org.springframework.xd.test.fixtures.SimpleCounterSink;
 import org.springframework.xd.test.fixtures.SimpleFileSink;
 import org.springframework.xd.test.fixtures.TcpSink;
+import org.springframework.xd.test.fixtures.KafkaSink;
 
 
 /**
@@ -177,5 +178,13 @@ public class Sinks {
 	 */
 	public SimpleCounterSink counterSink(String name) {
 		return new SimpleCounterSink(name);
+	}
+
+	/**
+	 * Constructs a new {@link org.springframework.xd.test.fixtures.KafkaSink}
+	 * @return a new instance of {@link org.springframework.xd.test.fixtures.KafkaSink}
+	 */
+	public KafkaSink kafkaSink(){
+		return new KafkaSink(environment.getKafkaBrokerList());
 	}
 }

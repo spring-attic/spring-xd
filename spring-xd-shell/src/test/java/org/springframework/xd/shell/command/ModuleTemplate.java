@@ -83,6 +83,10 @@ public class ModuleTemplate implements Disposable {
 		return result.isSuccess();
 	}
 
+	public void info(String name, ModuleType type) {
+		CommandResult result = shell.executeCommand(String.format("module info %s:%s", type, name));
+	}
+
 	@Override
 	public void cleanup() {
 		Collections.reverse(modules);

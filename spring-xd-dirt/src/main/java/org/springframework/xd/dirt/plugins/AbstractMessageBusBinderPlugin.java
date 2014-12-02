@@ -203,8 +203,10 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	private void createAndBindTapChannel(String tapChannelName, MessageChannel outputChannel) {
 		logger.info("creating and binding tap channel for {}", tapChannelName);
 		if (outputChannel instanceof ChannelInterceptorAware) {
-			MessageChannel tapChannel = tapOutputChannel(tapChannelName, (ChannelInterceptorAware) outputChannel);
+			DirectChannel tapChannel = new DirectChannel();
+			tapChannel.setBeanName(tapChannelName + ".tap.bridge");
 			messageBus.bindPubSubProducer(tapChannelName, tapChannel, null); // TODO tap producer props
+			tapOutputChannel(tapChannel, (ChannelInterceptorAware) outputChannel);
 		}
 		else {
 			if (logger.isDebugEnabled()) {
@@ -213,9 +215,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		}
 	}
 
-	private MessageChannel tapOutputChannel(String tapChannelName, ChannelInterceptorAware outputChannel) {
-		DirectChannel tapChannel = new DirectChannel();
-		tapChannel.setBeanName(tapChannelName + ".tap.bridge");
+	private MessageChannel tapOutputChannel(MessageChannel tapChannel, ChannelInterceptorAware outputChannel) {
 		outputChannel.addInterceptor(new WireTap(tapChannel));
 		return tapChannel;
 	}

@@ -22,7 +22,7 @@ package org.springframework.xd.test.fixtures;
  * @author Glenn Renfro
  */
 
-public class TcpClientSource extends AbstractModuleFixture<TcpSource> {
+public class TcpClientSource extends AbstractModuleFixture<TcpClientSource> {
 
 	private static final String DEFAULT_OUTPUT_TYPE = "text/plain";
 

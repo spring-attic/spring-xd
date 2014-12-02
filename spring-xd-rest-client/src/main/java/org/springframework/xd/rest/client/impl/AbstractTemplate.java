@@ -32,6 +32,7 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.hateoas.UriTemplate;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -102,6 +103,7 @@ class AbstractTemplate {
 		}
 
 		converters.add(new StringHttpMessageConverter());
+		converters.add(0, new ResourceHttpMessageConverter());
 		restTemplate.setMessageConverters(converters);
 		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));
 	}

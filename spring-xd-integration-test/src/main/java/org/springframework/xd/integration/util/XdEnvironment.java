@@ -149,6 +149,12 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	@Value("${gemfire.port}")
 	private int gemfirePort;
 
+	@Value("${kafka.zkConnect}")
+	private String zkConnect;
+
+	@Value("${kafka.brokerList}")
+	private String kafkaBrokerList;
+
 	private Properties artifactProperties;
 
 	/**
@@ -362,4 +368,23 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	public int getGemfirePort() {
 		return gemfirePort;
 	}
+
+	/**
+	 * Retrieves the Kafka Broker List.
+	 *
+	 * @return the kafka broker list
+	 */
+	public String  getKafkaBrokerList() {
+		return kafkaBrokerList;
+	}
+
+	/**
+	 * Retrieves the Kafka ZK Connection String.
+	 *
+	 * @return the kafka ZK Connection String
+	 */
+	public String  getKafkaZkConnect() {
+		return zkConnect;
+	}
+
 }

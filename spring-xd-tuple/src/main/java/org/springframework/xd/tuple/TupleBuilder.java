@@ -53,17 +53,24 @@ public class TupleBuilder {
 
 	private static Converter<String, Tuple> stringToTupleConverter = new JsonStringToTupleConverter();
 
-	private DateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
-	{
-		dateFormat.setLenient(false);
+	private static ThreadLocal<DateFormat> dateFormat = new ThreadLocal<DateFormat>() {
+
+		@Override
+		protected DateFormat initialValue() {
+			SimpleDateFormat format = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
+			format.setLenient(false);
+			return format;
+		}
+	};
+
+	private static DateFormat getDateFormat() {
+		return dateFormat.get();
 	}
 
 	public static TupleBuilder tuple() {
 		TupleBuilder tb = new TupleBuilder();
 		tb.setNumberFormatFromLocale(DEFAULT_LOCALE);
-		DateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
-		dateFormat.setLenient(false);
-		tb.setDateFormat(dateFormat);
+		tb.setDateFormat(getDateFormat());
 		return tb;
 	}
 

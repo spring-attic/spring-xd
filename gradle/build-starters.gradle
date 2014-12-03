@@ -24,5 +24,8 @@ project('spring-xd-starter-module') {
 			compile "org.springframework.xd:spring-xd-dirt:${version}"
 			compile "org.springframework.xd:spring-xd-module-spi:${version}"
 	}
+	javadoc.enabled = false
+	javadocJar.enabled = false
+	sourcesJar.enabled = false
 }
 

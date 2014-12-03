@@ -37,6 +37,7 @@ import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.domain.XDRuntime;
+import org.springframework.xd.rest.domain.meta.VersionResource;
 import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.domain.metrics.CounterResource;
 import org.springframework.xd.rest.domain.metrics.FieldValueCounterResource;
@@ -73,6 +74,7 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("jobs/executions"));
 		xdRuntime.add(entityLinks.linkFor(JobInstanceInfoResource.class).withRel("jobs/instances"));
 
+		xdRuntime.add(entityLinks.linkFor(VersionResource.class).withRel("meta/version"));
 
 		// Maybe https://github.com/spring-projects/spring-hateoas/issues/169 will help eventually
 		TemplateVariable start = new TemplateVariable("start", VariableType.REQUEST_PARAM);

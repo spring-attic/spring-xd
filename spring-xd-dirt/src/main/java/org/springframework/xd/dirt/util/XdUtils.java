@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,18 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.springframework.xd.dirt.util;
+
 /**
- * About Controller logic.
+ * Provides general utilities for Spring XD.
  *
  * @author Gunnar Hillert
+ * @since 1.1
  */
-define([], function () {
-  'use strict';
+public final class XdUtils {
 
-  return ['$scope', 'xdVersionInfo',
-    function ($scope, xdVersionInfo) {
-      console.log(xdVersionInfo);
-      $scope.xdVersionInfo = xdVersionInfo;
-    }
-  ];
-});
+	/**
+	 * Returns the Spring XD version using {@link java.lang.Package#getImplementationVersion()}.
+	 *
+	 * @return May return null.
+	 */
+	public static String getSpringXdVersion() {
+		final Package pkg = XdUtils.class.getPackage();
+		String version = null;
+		if (pkg != null) {
+			version = pkg.getImplementationVersion();
+		}
+		return version;
+	}
+
+}

@@ -53,8 +53,8 @@ define(['angular', 'xregexp'], function (angular) {
           }
         };
       })
-      .factory('xdManagementInfo', function ($resource, $rootScope) {
-        return $resource($rootScope.xdAdminServerUrl + '/management/info', {}, {
+      .factory('xdVersionInfo', function ($resource, $rootScope) {
+        return $resource($rootScope.xdAdminServerUrl + '/meta/version', {}, {
           query: {
             method: 'GET'
           }

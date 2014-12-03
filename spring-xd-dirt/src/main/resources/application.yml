@@ -138,8 +138,8 @@ management:
 
 info:
   build:
-  name: ~gradle_project_name~
-  version: ~gradle_project_version~
+    name: ~gradle_project_name~
+    version: ~gradle_project_version~
 
 zk:
   namespace: xd

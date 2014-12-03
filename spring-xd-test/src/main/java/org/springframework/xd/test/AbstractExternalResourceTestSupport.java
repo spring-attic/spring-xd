@@ -83,7 +83,7 @@ public abstract class AbstractExternalResourceTestSupport<R> implements TestRule
 		};
 	}
 
-	private Statement failOrSkip(Exception e) {
+	private Statement failOrSkip(final Exception e) {
 		String serversRequired = System.getenv(XD_EXTERNAL_SERVERS_REQUIRED);
 		if ("true".equalsIgnoreCase(serversRequired)) {
 			logger.error(resourceDescription + " IS REQUIRED BUT NOT AVAILABLE", e);
@@ -97,7 +97,7 @@ public abstract class AbstractExternalResourceTestSupport<R> implements TestRule
 
 				@Override
 				public void evaluate() throws Throwable {
-					Assume.assumeTrue("Skipping test due to " + resourceDescription + " not being available", false);
+					Assume.assumeTrue("Skipping test due to " + resourceDescription + " not being available " + e, false);
 				}
 			};
 		}

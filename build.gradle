@@ -11,7 +11,7 @@ buildscript {
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.0.RC1")
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
-		classpath 'com.moowork.gradle:gradle-grunt-plugin:0.4'
+		classpath 'com.moowork.gradle:gradle-grunt-plugin:0.5'
 		classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
 		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.10.0'
 	}
@@ -374,7 +374,7 @@ project('spring-xd-dirt') {
 
 		compile "org.springframework.batch:spring-batch-core"
 		//Required for a classloading issue. See https://github.com/spring-projects/spring-xd/pull/1116
-		runtime ("org.springframework.data:spring-data-mongodb") { 
+		runtime ("org.springframework.data:spring-data-mongodb") {
 			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
 			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 			exclude group: 'org.springframework', module: 'spring-expression'
@@ -829,7 +829,7 @@ project('spring-xd-ui') {
 	}
 
 	node {
-		version = '0.10.25'
+		version = '0.10.33'
 		download = true
 	}
 
@@ -1034,7 +1034,7 @@ project('spring-xd-test-fixtures') {
 		compile "org.springframework:spring-jms"
 		compile "org.apache.activemq:activemq-client"
 		compile "org.springframework:spring-web"
-		compile ("org.springframework.data:spring-data-mongodb") { 
+		compile ("org.springframework.data:spring-data-mongodb") {
 			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
 			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 			exclude group: 'org.springframework', module: 'spring-beans'
@@ -1081,7 +1081,7 @@ project('spring-xd-integration-test') {
 		compile ("org.apache.hadoop:hadoop-common:$hadoop25Version")
 		compile ("org.apache.hadoop:hadoop-client:$hadoop25Version")
 		compile "com.google.guava:guava:$oldGuavaVersion"
-		compile ("org.springframework.data:spring-data-mongodb") { 
+		compile ("org.springframework.data:spring-data-mongodb") {
 			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
 			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 			exclude group: 'org.springframework', module: 'spring-beans'

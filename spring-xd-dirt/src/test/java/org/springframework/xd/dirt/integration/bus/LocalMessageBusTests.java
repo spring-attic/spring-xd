@@ -102,8 +102,8 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 
 			@Override
 			protected boolean doSend(Message<?> message, long timeout) {
-				tapped.countDown();
 				tapThread.set(Thread.currentThread());
+				tapped.countDown();
 				throw new RuntimeException("bang");
 			}
 		}, null);

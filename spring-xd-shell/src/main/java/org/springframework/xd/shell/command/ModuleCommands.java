@@ -16,9 +16,13 @@
 
 package org.springframework.xd.shell.command;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -56,31 +60,21 @@ public class ModuleCommands implements CommandMarker {
 
 	private final static String MODULE_INFO = "module info";
 
-	public static class QualifiedModuleName {
-
-		public QualifiedModuleName(String name, RESTModuleType type) {
-			this.name = name;
-			this.type = type;
-		}
-
-		public RESTModuleType type;
-
-		public String name;
-	}
+	private static final String UPLOAD_MODULE = "module upload";
 
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ COMPOSE_MODULE, LIST_MODULES, MODULE_INFO, DELETE_MODULE })
+	@CliAvailabilityIndicator({COMPOSE_MODULE, LIST_MODULES, MODULE_INFO, DELETE_MODULE, UPLOAD_MODULE})
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
 
 	@CliCommand(value = MODULE_INFO, help = "Get information about a module")
 	public String moduleInfo(
-			@CliOption(mandatory = true, key = { "name", "" }, help = "name of the module to query, in the form 'type:name'") QualifiedModuleName module,
+			@CliOption(mandatory = true, key = {"name", ""}, help = "name of the module to query, in the form 'type:name'") QualifiedModuleName module,
 			@CliOption(key = "hidden", help = "whether to show 'hidden' options", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") boolean showHidden
-			) {
+	) {
 		DetailedModuleDefinitionResource info = moduleOperations().info(module.name, module.type);
 		List<Option> options = info.getOptions();
 		StringBuilder result = new StringBuilder();
@@ -92,7 +86,7 @@ public class ModuleCommands implements CommandMarker {
 		else {
 			Table table = new Table().addHeader(1, new TableHeader("Option Name")).addHeader(2,
 					new TableHeader("Description")).addHeader(
-							3, new TableHeader("Default")).addHeader(4, new TableHeader("Type"));
+					3, new TableHeader("Default")).addHeader(4, new TableHeader("Type"));
 			for (DetailedModuleDefinitionResource.Option o : options) {
 				if (!showHidden && o.isHidden()) {
 					continue;
@@ -110,19 +104,29 @@ public class ModuleCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = COMPOSE_MODULE, help = "Create a virtual module")
-	public String createModule(
-			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the module") String name,
+	public String composeModule(
+			@CliOption(mandatory = true, key = {"name", ""}, help = "the name to give to the module") String name,
 			@CliOption(mandatory = true, key = "definition", optionContext = "completion-module disable-string-converter", help = "module definition using xd dsl") String dsl) {
 		ModuleDefinitionResource composedModule = moduleOperations().composeModule(name, dsl);
 		return String.format(("Successfully created module '%s' with type %s"), composedModule.getName(),
 				composedModule.getType());
 	}
 
+	@CliCommand(value = UPLOAD_MODULE, help = "Upload a new module")
+	public String uploadModule(
+			@CliOption(mandatory = true, key = {"type"}, help = "the type for the uploaded module") RESTModuleType type,
+			@CliOption(mandatory = true, key = {"name"}, help = "the name for the uploaded module") String name,
+			@CliOption(mandatory = true, key = {"", "file"}, help = "path to the module archive") File file) throws IOException {
+		Resource resource = new FileSystemResource(file);
+		ModuleDefinitionResource composedModule = moduleOperations().uploadModule(name, type, resource);
+		return String.format(("Successfully uploaded module '%s:%s'"), composedModule.getType(),
+				composedModule.getName());
+	}
+
 	@CliCommand(value = DELETE_MODULE, help = "Delete a virtual module")
 	public String destroyModule(
-			@CliOption(mandatory = true, key = { "name", "" }, help = "name of the module to delete, in the form 'type:name'") QualifiedModuleName module
-
-			) {
+			@CliOption(mandatory = true, key = {"name", ""}, help = "name of the module to delete, in the form 'type:name'") QualifiedModuleName module
+	) {
 		moduleOperations().deleteModule(module.name, module.type);
 		return String.format(("Successfully destroyed module '%s' with type %s"), module.name,
 				module.type);
@@ -136,5 +140,17 @@ public class ModuleCommands implements CommandMarker {
 
 	private ModuleOperations moduleOperations() {
 		return xdShell.getSpringXDOperations().moduleOperations();
+	}
+
+	public static class QualifiedModuleName {
+
+		public RESTModuleType type;
+
+		public String name;
+
+		public QualifiedModuleName(String name, RESTModuleType type) {
+			this.name = name;
+			this.type = type;
+		}
 	}
 }

@@ -33,6 +33,7 @@ import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.support.ModuleUtils;
 
 /**
  * A {@link SimpleModule} configured by an @Configuration class.
@@ -61,9 +62,8 @@ public class JavaConfiguredModule extends SimpleModule {
 	}
 
 	public static String[] basePackages(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
-		String propertiesPath = "/config/" + moduleDefinition.getName() + ".properties";
-		Resource propertiesFile = new ClassPathResource(propertiesPath, moduleClassLoader);
-		Assert.notNull(propertiesFile, String.format("Required classpath resource %s not found.", propertiesPath));
+		Resource propertiesFile = ModuleUtils.locateModuleResource(moduleDefinition, moduleClassLoader,".properties");
+		Assert.notNull(propertiesFile, "required module properties not found.");
 
 		Properties properties = new Properties();
 		try {

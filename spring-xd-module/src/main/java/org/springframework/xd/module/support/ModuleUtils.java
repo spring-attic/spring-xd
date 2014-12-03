@@ -21,32 +21,32 @@ package org.springframework.xd.module.support;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.boot.loader.JarLauncher;
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.ExplodedArchive;
 import org.springframework.boot.loader.archive.JarFileArchive;
-import org.springframework.boot.loader.jar.JarFile;
 import org.springframework.boot.loader.util.AsciiBytes;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.util.Assert;
 import org.springframework.xd.module.SimpleModuleDefinition;
 
 /**
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class ModuleUtils {
 
 	private static final AsciiBytes LIB = new AsciiBytes("lib/");
 
+	private static final String SPRING_MODULE = "spring-module";
+
 	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent) {
 		try {
 			File moduleFile = moduleLocation.getFile();
-			Archive moduleArchive = moduleFile.isDirectory() ? new ExplodedArchive(moduleFile) : new JarFileArchive(moduleFile);
+			Archive moduleArchive = moduleFile.isDirectory() ? new ExplodedArchive(moduleFile) : new JarFileArchive
+					(moduleFile);
 			List<Archive> nestedArchives = moduleArchive.getNestedArchives(new Archive.EntryFilter() {
 				@Override
 				public boolean matches(Archive.Entry entry) {
@@ -71,8 +71,29 @@ public class ModuleUtils {
 	 * about module options, or null if no such file exists.
 	 */
 	public static Resource modulePropertiesFile(SimpleModuleDefinition definition, ClassLoader moduleClassLoader) {
-		Resource result = new ClassPathResource("/config/" + definition.getName() + ".properties", moduleClassLoader);
-		return result.exists() && result.isReadable() ? result : null;
+		return ModuleUtils.locateModuleResource(definition, moduleClassLoader, ".properties");
+	}
+
+	/**
+	 * Return an expected module resource searching conventional file names. Will throw an exception if more than one
+	 * such resource exists
+	 */
+	public static Resource locateModuleResource(SimpleModuleDefinition definition, ClassLoader moduleClassLoader,
+			String extension) {
+		String[] supportedFileNames = new String[] {definition.getName(), SPRING_MODULE};
+
+		Resource result = null;
+		String ext = extension.startsWith(".") ? extension : "." + extension;
+		for (String fileName : supportedFileNames) {
+			Resource candidate = new ClassPathResource(String.format("/%s/%s%s", "config", fileName, ext),
+					moduleClassLoader);
+			if (candidate.exists() && candidate.isReadable()) {
+				Assert.isNull(result, String.format("duplicate module definitions found: %s and %s",
+						(result == null ? "" : result.getFilename()), candidate.getFilename()));
+				result = candidate;
+			}
+		}
+		return result;
 	}
 
 }

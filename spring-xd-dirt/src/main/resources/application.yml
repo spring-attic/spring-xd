@@ -74,6 +74,8 @@ xd:
     home: file:${XD_HOME}/config
   module:
     home: file:${XD_HOME}/modules
+  customModule:
+    home: file:${XD_HOME}/custom-modules
   ui:
     home: file:${XD_HOME}/spring-xd-ui/dist/
     allow_origin: http://localhost:9889

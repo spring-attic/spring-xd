@@ -16,12 +16,12 @@
 
 package org.springframework.xd.module.core;
 
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.support.ModuleUtils;
 
 /**
  * A {@link org.springframework.xd.module.core.SimpleModule} configured using a bean definition resource (XML or
@@ -48,16 +48,20 @@ public class ResourceConfiguredModule extends SimpleModule {
 	 *
 	 * @throws java.lang.IllegalStateException if both a .xml and .groovy file are present
 	 */
-	public static Resource resourceBasedConfigurationFile(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
-		Resource xml = new ClassPathResource("/config/" + moduleDefinition.getName() + ".xml", moduleClassLoader);
-		Resource groovy = new ClassPathResource("/config/" + moduleDefinition.getName() + ".groovy", moduleClassLoader);
-		boolean xmlOk = xml.exists() && xml.isReadable();
-		boolean groovyOk = groovy.exists() && groovy.isReadable();
-		if (xmlOk && groovyOk) {
-			throw new IllegalStateException(String.format("Found both resources '%s' and '%s' for module %s", xml, groovy, moduleDefinition));
-		} else if (xmlOk) {
+	public static Resource resourceBasedConfigurationFile(SimpleModuleDefinition moduleDefinition,
+			ClassLoader moduleClassLoader) {
+		Resource xml = ModuleUtils.locateModuleResource(moduleDefinition, moduleClassLoader, ".xml");
+		Resource groovy = ModuleUtils.locateModuleResource(moduleDefinition, moduleClassLoader, ".groovy");
+		boolean xmlExists = xml != null;
+		boolean groovyExists = groovy != null;
+		if (xmlExists && groovyExists) {
+			throw new IllegalStateException(String.format("Found both resources '%s' and '%s' for module %s", xml,
+					groovy, moduleDefinition));
+		}
+		else if (xmlExists) {
 			return xml;
-		} else if (groovyOk) {
+		}
+		else if (groovyExists) {
 			return groovy;
 		}
 		else {

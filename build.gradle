@@ -924,6 +924,9 @@ project('spring-xd-test') {
 		compile "org.apache.tomcat:tomcat-jdbc"
 		compile "junit:junit"
 		compile "commons-io:commons-io"
+		compile "org.apache.kafka:kafka_2.10:${kafkaVersion}"
+                compile "org.apache.kafka:kafka_2.10:${kafkaVersion}:test"
+                compile "org.apache.curator:curator-test:${curatorVersion}"
 	}
 }
 
@@ -977,6 +980,7 @@ project('spring-xd-shell') {
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 		testCompile "org.springframework.integration:spring-integration-sftp"
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
+                testCompile project(":spring-xd-test")
 	}
 
 	// skip the startScripts task to avoid default start script generation

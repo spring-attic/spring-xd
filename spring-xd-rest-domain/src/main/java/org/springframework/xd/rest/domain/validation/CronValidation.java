@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.rest;
+package org.springframework.xd.rest.domain.validation;
 
 import java.util.Date;
 
@@ -22,7 +22,7 @@ import java.util.Date;
 /**
  * @author Gunnar Hillert
  */
-public class CronValidationDto {
+public class CronValidation {
 
 	private String cronExpression;
 
@@ -32,7 +32,7 @@ public class CronValidationDto {
 
 	private Date nextExecutionTime;
 
-	public CronValidationDto() {
+	public CronValidation() {
 		super();
 	}
 

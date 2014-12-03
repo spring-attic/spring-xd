@@ -5,13 +5,62 @@ spring:
     show_banner: false
   freemarker:
     checkTemplateLocation: false
+# Redis properties
+  redis:
+   port: 6379
+   host: localhost
+   pool.maxIdle: 8
+   pool.minIdle: 0
+   pool.maxActive: 8
+   pool.maxWait: -1
+
+# RabbitMQ properties
+  rabbitmq:
+   addresses: localhost:5672
+   username: guest
+   password: guest
+   virtual_host: /
+   useSSL: false
+   sslProperties:
+# HSQL database configuration
+  datasource:
+    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+    username: sa
+    password:
+    driverClassName: org.hsqldb.jdbc.JDBCDriver
+#ConnectionPoolSettings
+    testOnBorrow: true
+    validationQuery: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
+    validationInterval: 30000
+    maxActive: 100
+    maxIdle: 100
+    minIdle: 10
+    initialSize: 0
+    maxWait: 30000
+    testOnReturn: false
+    testWhileIdle: false
+    timeBetweenEvictionRunsMillis: 5000
+    minEvictableIdleTimeMillis: 60000
+    removeAbandoned: false
+    removeAbandonedTimeout: 60
+    logAbandoned: false
+#Tomcat JDBC Enhanced Attributes
+    jmxEnabled: true
+    fairQueue: true
+    abandonWhenPercentageFull: 0
+    maxAge: 0
+    useEquals: true
+    suspectTimeout: 0
+    alternateUsernameAllowed: false
+# Hadoop properties
+  hadoop:
+   fsUri: hdfs://localhost:8020
 endpoints:
   jolokia:
     enabled: ${XD_JMX_ENABLED:true}
   jmx:
     enabled: ${XD_JMX_ENABLED:true}
     uniqueNames: true
-  
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${xd.transport:${transport:redis}}
@@ -77,20 +126,30 @@ xd:
       zkAddress:                               localhost:2181
       replicationFactor:                       1
       numOfKafkaPartitionsForCountEqualsZero:  10
----
+
 
 server:
   port: ${PORT:9393}
 management:
   port: ${XD_MGMT_PORT:${PORT:9393}}
   contextPath: /management
----
+  security:
+    enabled: false
+
+
 zk:
   namespace: xd
   client:
     connect: ${ZK_CLIENT_CONNECT:}
 
----
+# Security default settings
+security:
+  basic:
+    enabled: false
+    realm:   SpringXD
+
+# Profile specific documents below
+--- 
 spring:
   profiles: rabbit
 transport: rabbit
@@ -132,74 +191,3 @@ analytics: memory
 embeddedHsql: true
 
 ---
-
-# HSQL database configuration
-spring:
-  datasource:
-    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
-    username: sa
-    password:
-    driverClassName: org.hsqldb.jdbc.JDBCDriver
-#ConnectionPoolSettings
-    testOnBorrow: true
-    validationQuery: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
-    validationInterval: 30000
-    maxActive: 100
-    maxIdle: 100
-    minIdle: 10
-    initialSize: 0
-    maxWait: 30000
-    testOnReturn: false
-    testWhileIdle: false
-    timeBetweenEvictionRunsMillis: 5000
-    minEvictableIdleTimeMillis: 60000
-    removeAbandoned: false
-    removeAbandonedTimeout: 60
-    logAbandoned: false
-#Tomcat JDBC Enhanced Attributes
-    jmxEnabled: true
-    fairQueue: true
-    abandonWhenPercentageFull: 0
-    maxAge: 0
-    useEquals: true
-    suspectTimeout: 0
-    alternateUsernameAllowed: false
----
-
-# Redis properties
-spring:
-  redis:
-   port: 6379
-   host: localhost
-   pool.maxIdle: 8
-   pool.minIdle: 0
-   pool.maxActive: 8
-   pool.maxWait: -1
-
----
-# RabbitMQ properties
-spring:
-  rabbitmq:
-   addresses: localhost:5672
-   username: guest
-   password: guest
-   virtual_host: /
-   useSSL: false
-   sslProperties:
-
----
-# Hadoop properties
-spring:
-  hadoop:
-   fsUri: hdfs://localhost:8020
-
----
-# Security default settings
-security:
-  basic:
-    enabled: false
-    realm:   SpringXD
-
-management:
-  security:
-    enabled: false

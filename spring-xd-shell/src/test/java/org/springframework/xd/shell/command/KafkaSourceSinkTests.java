@@ -21,9 +21,12 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.*;
 import java.util.Properties;
 
 import kafka.admin.AdminUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.springframework.integration.kafka.core.ZookeeperConnectDefaults;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.test.fixtures.CounterSink;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
@@ -32,35 +35,44 @@ import org.springframework.xd.test.kafka.KafkaTestSupport;
  * Integration tests for Kafka source and sinks.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
-public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest{
+public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 
-	private static final String zkConnectString = "localhost:2181";
+	private static final String zkConnectString = ZookeeperConnectDefaults.ZK_CONNECT;
+
+	private String topicToUse;
 
 	@Rule
 	public KafkaTestSupport kafkaTestSupport = new KafkaTestSupport(zkConnectString);
 
+	@Before
+	public void createTopic() {
+		topicToUse = "kafka-test-topic-" + random.nextInt();
+		// create Kafka topic
+		AdminUtils.createTopic(kafkaTestSupport.getZkClient(), topicToUse, 1, 1, new Properties());
+	}
+
+	@After
+	public void deleteTopic() {
+		// delete topic
+		AdminUtils.deleteTopic(kafkaTestSupport.getZkClient(), topicToUse);
+	}
+
+
 	@Test
 	public void testKafkaSourceAndSink() throws Exception {
-		String topicName = generateStreamName();
 		final String stringToPost = "Hi there!";
-		// create Kafka topic
-		AdminUtils.createTopic(kafkaTestSupport.getZkClient(), topicName, 1, 1, new Properties());
 		// create stream with kafka sink
 		final HttpSource httpSource = newHttpSource();
-		stream().create(topicName, "%s | kafka --topic='%s'", httpSource, topicName);
-		Thread.sleep(1000);
+		stream().create(generateStreamName(), "%s | kafka --topic='%s'", httpSource, topicToUse);
 		// create stream with kafka source
 		final CounterSink counter = metrics().newCounterSink();
-		stream().create(generateStreamName(), "kafka --topic='%s' --zkconnect=%s | " +
+		stream().create(generateStreamName(), "kafka --topic='%s' --zkconnect=%s --consumerTimeout=-1 | " +
 				"filter --expression=payload.toString().contains('%s') | %s",
-				topicName, zkConnectString, stringToPost, counter );
-		Thread.sleep(1000);
+				topicToUse, zkConnectString, stringToPost, counter );
 		httpSource.ensureReady().postData(stringToPost);
-		Thread.sleep(5000);
 		assertThat(counter, eventually(exists()));
-		// delete topic
-		AdminUtils.deleteTopic(kafkaTestSupport.getZkClient(), topicName);
 	}
 
 

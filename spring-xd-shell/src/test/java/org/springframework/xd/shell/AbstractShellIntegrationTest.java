@@ -24,12 +24,9 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -43,8 +40,6 @@ import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.module.ArchiveModuleRegistry;
-import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
-import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.test.RandomConfigurationSupport;
@@ -83,7 +78,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected static SingleNodeIntegrationTestSupport integrationTestSupport;
 
-	private Random random = new Random();
+	protected Random random = new Random();
 
 	/**
 	 * Used to capture currently executing test method.

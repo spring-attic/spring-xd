@@ -925,8 +925,8 @@ project('spring-xd-test') {
 		compile "junit:junit"
 		compile "commons-io:commons-io"
 		compile "org.apache.kafka:kafka_2.10:${kafkaVersion}"
-                compile "org.apache.kafka:kafka_2.10:${kafkaVersion}:test"
-                compile "org.apache.curator:curator-test:${curatorVersion}"
+		compile "org.apache.kafka:kafka_2.10:${kafkaVersion}:test"
+		compile "org.apache.curator:curator-test:${curatorVersion}"
 	}
 }
 

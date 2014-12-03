@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@
 package org.springframework.xd.test.kafka;
 
 
+import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
-import org.I0Itec.zkclient.exception.ZkMarshallingError;
-import org.I0Itec.zkclient.serialize.ZkSerializer;
 import org.junit.Rule;
 
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
@@ -29,6 +28,7 @@ import org.springframework.xd.test.AbstractExternalResourceTestSupport;
  * JUnit {@link Rule} that detects if Kafka is available on localhost.
  * 
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String> {
 
@@ -43,10 +43,15 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 
 	@Override
 	protected void obtainResource() throws Exception {
-		this.zkClient = new ZkClient(zkConnectString, 5000, 5000, new ZkStringSerializer());
-		if (ZkUtils.getAllBrokersInCluster(zkClient).size() == 0) {
-			throw new RuntimeException("Kafka server not available on localhost");
-		};
+		try {
+			this.zkClient = new ZkClient(zkConnectString, 5000, 5000, ZKStringSerializer$.MODULE$);
+			if (ZkUtils.getAllBrokersInCluster(zkClient).size() == 0) {
+				throw new RuntimeException("Kafka server not available on localhost");
+			}
+		}
+		catch (Exception e) {
+			throw new RuntimeException("Issues connecting to ZK server");
+		}
 	}
 
 	@Override
@@ -56,19 +61,6 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 
 	public ZkClient getZkClient() {
 		return this.zkClient;
-	}
-
-	private class ZkStringSerializer implements ZkSerializer {
-
-		@Override
-		public byte[] serialize(Object data) throws ZkMarshallingError {
-			return ((String) data).getBytes();
-		}
-
-		@Override
-		public String deserialize(byte[] bytes) throws ZkMarshallingError {
-			return new String(bytes);
-		}
 	}
 
 }

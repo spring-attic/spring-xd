@@ -32,6 +32,7 @@ import org.springframework.xd.test.fixtures.Tap;
 import org.springframework.xd.test.fixtures.TcpSource;
 import org.springframework.xd.test.fixtures.TwitterSearchSource;
 import org.springframework.xd.test.fixtures.TwitterStreamSource;
+import org.springframework.xd.test.fixtures.KafkaSource;
 
 
 /**
@@ -263,4 +264,13 @@ public class Sources {
 	public GemFireCQSource gemFireCqSource(String query) {
 		return new GemFireCQSource(query).host(xdEnvironment.getGemfireHost()).port(xdEnvironment.getGemfirePort());
 	}
+
+	/**
+	 * Constructs a new {@link org.springframework.xd.test.fixtures.KafkaSource}
+	 * @return a new instance of {@link org.springframework.xd.test.fixtures.KafkaSource}
+	 */
+	public KafkaSource kafkaSource(){
+		return new KafkaSource(xdEnvironment.getKafkaZkConnect());
+	}
+
 }

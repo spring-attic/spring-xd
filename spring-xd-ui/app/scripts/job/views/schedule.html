@@ -29,9 +29,9 @@
                        ng-model="jobScheduleRequest.fixedDelay"
                        placeholder="in SECONDS">
                 <span class="glyphicon glyphicon-warning-sign form-control-feedback"
-                      ng-show="jobScheduler.fixedDelay.$error.required && jobScheduler.fixedDelay.$touched"></span>
+                      ng-show="jobScheduler.fixedDelay.$invalid && jobScheduler.fixedDelay.$touched"></span>
                 <p class="help-block"
-                   ng-show="jobScheduler.fixedDelay.$error.required && jobScheduler.fixedDelay.$touched">
+                   ng-show="jobScheduler.fixedDelay.$invalid && jobScheduler.fixedDelay.$touched">
                   Please provide a valid integer number.</p>
             </div>
         </div>
@@ -40,34 +40,49 @@
             <label for="schedulerName" class="col-sm-3 control-label"></label>
             <div class="col-sm-9">
                 <input name="date" class="form-control" type="datetime-local" ng-required="isDate()"
-                       ng-required='jobScheduleRequest.triggerType === "date"'
                        ng-model="jobScheduleRequest.date"
                        placeholder="MM/dd/yy HH:mm:ss">
                 <span class="glyphicon glyphicon-warning-sign form-control-feedback"
                       ng-show="jobScheduler.date.$invalid && jobScheduler.date.$touched"></span>
                 <p class="help-block" ng-show="isDate()">Date is interpreted using the Server Timezone.</p>
                 <p class="help-block"
-                   ng-show="jobScheduler.date.$error.required && jobScheduler.date.$touched">
+                   ng-show="jobScheduler.date.$invalid && jobScheduler.date.$touched">
                    Please provide a valid date.
                 </p>
             </div>
         </div>
         <div class="form-group" ng-show="isCron()"
-             ng-class="jobScheduler.cron.$invalid && jobScheduler.cron.$touched ? 'has-warning has-feedback' : ''">
+             ng-class="{
+               'has-warning has-feedback' : jobScheduler.cron.$invalid && jobScheduler.cron.$touched,
+               'has-feedback' : jobScheduler.cron.$pending,
+               'has-success has-feedback' : jobScheduler.cron.$valid,
+             }">
             <label for="schedulerName" class="col-sm-3 control-label"></label>
             <div class="col-sm-9">
-                <input name="cron" class="form-control" type="text" ng-model="jobScheduleRequest.cron" ng-required="isCron()"
+                <input name="cron" class="form-control" type="text" ng-model="jobScheduleRequest.cron"
+                       ng-required="isCron()" validate-cron-expression="isCron()"
+                       ng-model-options="{ debounce : { 'default' : 1000, blur : 0 } }"
                        placeholder="Cron Expression">
                 <span class="glyphicon glyphicon-warning-sign form-control-feedback"
                       ng-show="jobScheduler.cron.$invalid && jobScheduler.cron.$touched"></span>
+                <span class="glyphicon glyphicon-cog form-control-feedback myspinner"
+                      ng-show="jobScheduler.cron.$pending"></span>
+                <span class="glyphicon glyphicon-ok form-control-feedback"
+                      ng-show="jobScheduler.cron.$valid"></span>
                 <p class="help-block" ng-show="isCron()">Cron Expressions are interpreted using the Server Timezone.</p>
                 <p class="help-block"
                    ng-show="jobScheduler.cron.$error.required && jobScheduler.cron.$touched">
                    Please provide a cron expression.
                 </p>
+                <p class="help-block"
+                   ng-show="jobScheduler.cron.$error.cronExpressionValid">
+                   {{cronValidation.errorMessage}}
+                </p>
+                <p class="help-block" ng-show="jobScheduler.cron.$valid">
+                  Next execution time: <span xd-date-time="{{cronValidation.nextExecutionTime}}"></span>
+                </p>
             </div>
         </div>
-
         <div class="row" style="margin-top: 1em;">
           <div class="col-md-6 text-right"><button type="button" class="btn btn-default" ng-click="cancelJobSchedule()">Back</button></div>
           <div class="col-md-6 text-left"><button type="submit" class="btn btn-primary schedule-job"

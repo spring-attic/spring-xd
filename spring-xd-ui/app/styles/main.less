@@ -226,6 +226,29 @@ table td.action-column {
   .alert-variant(fade(@alert-danger-bg, 70%); @alert-danger-border; @alert-danger-text);
 }
 
+.myspinner {
+  animation-name: spinner;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+
+  -webkit-transform-origin: 49% 50%;
+  -webkit-animation-name: spinner;
+  -webkit-animation-duration: 2s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+}
+
+@keyframes "spinner" {
+  from { transform: rotate( 0deg );   }
+  to   { transform: rotate( 360deg ); }
+}
+
+@-webkit-keyframes "spinner" {
+  from { -webkit-transform: rotate( 0deg ); }
+  to   { -webkit-transform: rotate( 360deg ); }
+}
+
 hr {
   border-top: 1px dotted @spring-brown;
 }

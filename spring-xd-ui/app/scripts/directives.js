@@ -268,38 +268,50 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
       return {
         require : 'ngModel',
         link : function($scope, element, attrs, ngModel) {
-          ngModel.$asyncValidators.cronExpressionValid = function(modelValue) {
-            var deferred = $q.defer();
-            if (modelValue) {
-              $http({
-                  method: 'POST',
-                  url: $rootScope.xdAdminServerUrl + '/validation/cron',
-                  data: {
-                    cronExpression: modelValue
-                  }
-              }).
-              success(function(data) {
-                $scope.cronValidation = data;
-                if (data.valid) {
-                  console.log('Cron Expression valid', data);
-                  deferred.resolve();
-                }
-                else {
-                  console.log('Cron Expression invalid', data);
-                  deferred.reject();
-                }
-              }).
-              error(function(data) {
-                console.log('An error occurred during HTTP post', data);
-                $scope.cronValidation = {
-                  errorMessage: 'An error occurred during HTTP post'
-                };
-                deferred.reject();
-              });
-              return deferred.promise;
+
+          var isActive = false;
+
+          $scope.$watch(attrs.validateCronExpression, function(value){
+            isActive = value;
+            if (!isActive) {
+              ngModel.$setValidity('cronExpressionValid', true);
             }
             else {
-              deferred.reject();
+              ngModel.$validate();
+            }
+          });
+          ngModel.$asyncValidators.cronExpressionValid = function(modelValue) {
+            var deferred = $q.defer();
+            if (isActive) {
+              if (modelValue) {
+                $http({
+                  method: 'POST', url: $rootScope.xdAdminServerUrl + '/validation/cron', data: {
+                    cronExpression: modelValue
+                  }
+                }).success(function (data) {
+                  $scope.cronValidation = data;
+                  if (data.valid) {
+                    console.log('Cron Expression valid', data);
+                    deferred.resolve();
+                  }
+                  else {
+                    console.log('Cron Expression invalid', data);
+                    deferred.reject();
+                  }
+                }).error(function (data) {
+                  console.log('An error occurred during HTTP post', data);
+                  $scope.cronValidation = {
+                    errorMessage: 'An error occurred during HTTP post'
+                  };
+                  deferred.reject();
+                });
+              }
+              else {
+                deferred.reject();
+              }
+            }
+            else {
+              deferred.resolve();
             }
             return deferred.promise;
           };

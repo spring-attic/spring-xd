@@ -29,9 +29,9 @@
                        ng-model="jobScheduleRequest.fixedDelay"
                        placeholder="in SECONDS">
                 <span class="glyphicon glyphicon-warning-sign form-control-feedback"
-                      ng-show="jobScheduler.fixedDelay.$error.required && jobScheduler.fixedDelay.$touched"></span>
+                      ng-show="jobScheduler.fixedDelay.$invalid && jobScheduler.fixedDelay.$touched"></span>
                 <p class="help-block"
-                   ng-show="jobScheduler.fixedDelay.$error.required && jobScheduler.fixedDelay.$touched">
+                   ng-show="jobScheduler.fixedDelay.$invalid && jobScheduler.fixedDelay.$touched">
                   Please provide a valid integer number.</p>
             </div>
         </div>
@@ -40,14 +40,13 @@
             <label for="schedulerName" class="col-sm-3 control-label"></label>
             <div class="col-sm-9">
                 <input name="date" class="form-control" type="datetime-local" ng-required="isDate()"
-                       ng-required='jobScheduleRequest.triggerType === "date"'
                        ng-model="jobScheduleRequest.date"
                        placeholder="MM/dd/yy HH:mm:ss">
                 <span class="glyphicon glyphicon-warning-sign form-control-feedback"
                       ng-show="jobScheduler.date.$invalid && jobScheduler.date.$touched"></span>
                 <p class="help-block" ng-show="isDate()">Date is interpreted using the Server Timezone.</p>
                 <p class="help-block"
-                   ng-show="jobScheduler.date.$error.required && jobScheduler.date.$touched">
+                   ng-show="jobScheduler.date.$invalid && jobScheduler.date.$touched">
                    Please provide a valid date.
                 </p>
             </div>
@@ -61,7 +60,7 @@
             <label for="schedulerName" class="col-sm-3 control-label"></label>
             <div class="col-sm-9">
                 <input name="cron" class="form-control" type="text" ng-model="jobScheduleRequest.cron"
-                       ng-required="isCron()" validate-cron-expression
+                       ng-required="isCron()" validate-cron-expression="isCron()"
                        ng-model-options="{ debounce : { 'default' : 1000, blur : 0 } }"
                        placeholder="Cron Expression">
                 <span class="glyphicon glyphicon-warning-sign form-control-feedback"

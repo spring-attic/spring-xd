@@ -15,8 +15,9 @@
  */
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.*;
-import static org.springframework.xd.shell.command.fixtures.XDMatchers.*;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.exists;
 
 import java.util.Properties;
 

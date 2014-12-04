@@ -31,10 +31,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.rest.domain.security.SecurityInfoResource;
 
 /**
- * Handles all Stream related interaction.
+ * Provides security-related meta information. Provides one REST endpoint at present
+ * time {@code /security/info} that provides information such as whether security
+ * is enabled and if so what is the username of the currently logged in user etc.
  *
  * @author Gunnar Hillert
- *
  * @since 1.1
  */
 @Controller

@@ -1,9 +1,18 @@
 language: java
+
 services:
   - rabbitmq
   - redis-server
+
+sudo: false
+
+cache:
+  directories:
+  - $HOME/.gradle
+
 env:
   - TERM=dumb
+
 script:
   - travis_wait ./gradlew clean build -PtestLoggingStarted=true
 

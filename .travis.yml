@@ -16,3 +16,4 @@ env:
 script:
   - travis_wait ./gradlew clean build -PtestLoggingStarted=true
 
+#test

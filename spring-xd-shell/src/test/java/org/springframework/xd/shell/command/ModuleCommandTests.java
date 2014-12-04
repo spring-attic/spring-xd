@@ -150,11 +150,11 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testModuleUpload() {
-		module().upload("siDslModule", processor, new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar"));
+		module().upload("siDslModule2", processor, new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar"));
 
 		Table t = listAll();
 
-		assertThat(t.getRows(), hasItem(rowWithValue(2, "    siDslModule")));
+		assertThat(t.getRows(), hasItem(rowWithValue(2, "    siDslModule2")));
 
 	}
 
@@ -171,12 +171,12 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testDeleteUploadedModuleUsedByStream() {
-		module().upload("siDslModule", processor, new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar"));
-		executeCommand("stream create foo --definition \"http | siDslModule --prefix=foo | log\" --deploy false");
-		assertFalse(module().delete("siDslModule", processor));
+		module().upload("siDslModule2", processor, new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar"));
+		executeCommand("stream create foo --definition \"http | siDslModule2 --prefix=foo | log\" --deploy false");
+		assertFalse(module().delete("siDslModule2", processor));
 		// Now deleting blocking stream
 		executeCommand("stream destroy foo");
-		assertTrue(module().delete("siDslModule", processor));
+		assertTrue(module().delete("siDslModule2", processor));
 	}
 
 	private Table listAll() {

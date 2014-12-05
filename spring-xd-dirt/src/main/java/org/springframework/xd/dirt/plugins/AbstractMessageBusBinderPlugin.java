@@ -117,16 +117,13 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 
 	/**
 	 * Bind input/output channel of the module's message consumer/producers to {@link MessageBus}'s message
-	 * source/target entities.
+	 * source/target entities. The producer must be bound first so that messages can immediately
+	 * start flowing from the consumer.
 	 *
 	 * @param module the module whose consumer and producers to bind to the {@link MessageBus}.
 	 */
 	protected final void bindConsumerAndProducers(Module module) {
 		Properties[] properties = extractConsumerProducerProperties(module);
-		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
-		if (inputChannel != null) {
-			bindMessageConsumer(inputChannel, getInputChannelName(module), properties[0]);
-		}
 		MessageChannel outputChannel = module.getComponent(MODULE_OUTPUT_CHANNEL, MessageChannel.class);
 		if (outputChannel != null) {
 			bindMessageProducer(outputChannel, getOutputChannelName(module), properties[1]);
@@ -135,6 +132,10 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 			if (isTapActive(tapChannelName)) {
 				createAndBindTapChannel(tapChannelName, outputChannel);
 			}
+		}
+		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
+		if (inputChannel != null) {
+			bindMessageConsumer(inputChannel, getInputChannelName(module), properties[0]);
 		}
 	}
 

@@ -54,11 +54,14 @@ define(['angular', 'xregexp'], function (angular) {
           }
         };
       })
-      .factory('xdVersionInfo', function ($resource, $rootScope) {
-        return $resource($rootScope.xdAdminServerUrl + '/meta/version', {}, {
+      .factory('xdVersionInfo', function ($resource, $rootScope, XDUtils) {
+        console.log('xdVersionInfo');
+        var xdVersionInfoPromise =  $resource($rootScope.xdAdminServerUrl + '/meta/version', {}, {
           query: {
             method: 'GET'
           }
         }).query();
+        XDUtils.addBusyPromise(xdVersionInfoPromise);
+        return xdVersionInfoPromise;
       });
 });

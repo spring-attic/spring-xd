@@ -23,8 +23,10 @@ define([], function () {
 
   return ['$scope', 'xdVersionInfo',
     function ($scope, xdVersionInfo) {
-      console.log(xdVersionInfo);
-      $scope.xdVersionInfo = xdVersionInfo;
+      $scope.$apply(function () {
+        console.log(xdVersionInfo);
+        $scope.xdVersionInfo = xdVersionInfo;
+      });
     }
   ];
 });

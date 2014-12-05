@@ -95,7 +95,6 @@ define(['./app'], function (xdAdmin) {
     .state('logout', {
       url : '/logout',
       controller: 'LogoutController',
-      templateUrl : authTemplatesPath + '/login.html',
       data:{
         authenticate: true
       }

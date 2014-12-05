@@ -16,15 +16,20 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.*;
-import static org.springframework.xd.module.options.spi.ModulePlaceholders.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME_KEY;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.Before;
@@ -35,9 +40,17 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.validation.BindException;
+import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -163,4 +176,78 @@ public class StreamPluginTests {
 		assertEquals(1, interceptors.size());
 		assertTrue(interceptors.get(0) instanceof WireTap);
 	}
+
+	@Test
+	// XD 2429
+	public void testBindOrder() {
+		ModuleDefinition moduleDefinition = new ModuleDefinition("testing", ModuleType.processor);
+		Module module = mock(Module.class);
+		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
+				.setGroup("foo")
+				.setIndex(1)
+				.setModuleDefinition(moduleDefinition)
+				.build());
+		when(module.getType()).thenReturn(moduleDefinition.getType());
+		when(module.getName()).thenReturn(moduleDefinition.getName());
+		final AtomicBoolean messageReceived = new AtomicBoolean();
+		LocalMessageBus bus = new LocalMessageBus() {
+
+			final AtomicBoolean consumerBound = new AtomicBoolean();
+
+			@Override
+			public void bindProducer(String name, final MessageChannel moduleOutputChannel, Properties properties) {
+
+				final MessageHandler handler = new MessageHandler() {
+
+					@Override
+					public void handleMessage(Message<?> message) throws MessagingException {
+						messageReceived.set(true);
+					}
+
+				};
+
+				if (consumerBound.get()) {
+					Executors.newSingleThreadExecutor().execute(new Runnable() {
+
+						@Override
+						public void run() {
+							try {
+								Thread.sleep(1000); //delay the bind to exhibit the XD-2429 behavior
+							}
+							catch (InterruptedException e) {
+								Thread.currentThread().interrupt();
+							}
+							((SubscribableChannel) moduleOutputChannel).subscribe(handler);
+						}
+					});
+				}
+				else {
+					((SubscribableChannel) moduleOutputChannel).subscribe(handler);
+				}
+			}
+
+			@Override
+			public void bindConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
+				this.consumerBound.set(true);
+			}
+
+		};
+		when(module.getComponent(MessageBus.class)).thenReturn(bus);
+		DirectChannel input = new DirectChannel();
+		input.setBeanName("test.input.channel");
+		DirectChannel output = new DirectChannel();
+		output.setBeanName("test.output.channel");
+		BridgeHandler handler = new BridgeHandler();
+		handler.setOutputChannel(output);
+		EventDrivenConsumer bridge = new EventDrivenConsumer(input, handler);
+		bridge.start();
+		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
+		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
+		StreamPlugin plugin = new StreamPlugin(bus, zkConnection);
+		plugin.preProcessModule(module);
+		plugin.postProcessModule(module);
+		input.send(new GenericMessage<String>("foo"));
+		assertTrue(messageReceived.get());
+	}
+
 }

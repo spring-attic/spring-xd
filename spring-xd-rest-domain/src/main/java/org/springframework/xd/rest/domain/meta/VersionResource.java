@@ -19,8 +19,7 @@ package org.springframework.xd.rest.domain.meta;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.hateoas.ResourceSupport;
-
-import reactor.util.Assert;
+import org.springframework.util.Assert;
 
 /**
  * Provides the version information for Spring XD.

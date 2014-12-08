@@ -47,12 +47,19 @@ define(['angular', 'xregexp', 'moment'], function(angular) {
       };
     }])
     .directive('xdFormatStream', [function() {
-      var mainRegex = new XRegExp('(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)([\\p{N}|\\p{L}|\\p{Po}]*)', 'gi');
+      var mainRegex = new XRegExp(
+          '(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)(("[\\p{L}|\\p{Pd}|\\p{Ps}|\\p{Pe}|\\p{Pc}|\\p{S}|\\p{N}|\\p{Z}]*")|([\\p{N}|\\p{L}|\\p{Po}|\\p{Pc}|\\p{S}]*))', 'gi');
+
       var subRegex = new XRegExp('\\P{C}', 'gi');
       var linkFunction = function(scope, element) {
         scope.$watch('xdFormatStream', function(originalStreamDefinition){
           if(originalStreamDefinition) {
             var result = XRegExp.replace(originalStreamDefinition, mainRegex, function(match, p1, p2, p3) {
+              if (p3.charAt(0) === '"' && p3.slice(-1) === '"') {
+                var resultWithoutQuotes = p3.substr(1, p3.length-2);
+                var maskedResult = XRegExp.replace(resultWithoutQuotes, subRegex,'*');
+                return p1 + '"' + maskedResult + '"';
+              }
               return p1 + XRegExp.replace(p3, subRegex,'*');
             });
             element.html(result);

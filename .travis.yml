@@ -14,6 +14,6 @@ env:
   - TERM=dumb
 
 script:
-  - travis_wait ./gradlew clean build -PtestLoggingStarted=true
+  - travis_wait ./gradlew --debug clean build -PtestLoggingStarted=true
 
 #test

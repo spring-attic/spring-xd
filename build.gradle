@@ -1041,6 +1041,7 @@ project('spring-xd-shell') {
 		runtime	"log4j:log4j"
 		testCompile project(":spring-xd-test-fixtures")
 		testCompile project(":spring-xd-dirt")
+		testCompile project(":spring-xd-messagebus-local")
 		testCompile "uk.co.modular-it:hamcrest-date:${hamcrestDateVersion}"
 		testCompile "org.springframework.integration:spring-integration-ftp"
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"

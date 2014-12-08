@@ -21,6 +21,8 @@ package org.springframework.xd.dirt.integration.rabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.RabbitConnectionFactoryBean;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
@@ -52,6 +54,12 @@ public class ConnectionFactorySettings {
 			factory.setVirtualHost(config.getVirtualHost());
 		}
 		return factory;
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(RabbitProperties.class)
+	RabbitProperties rabbitProperties() {
+		return new RabbitProperties();
 	}
 
 	@Bean

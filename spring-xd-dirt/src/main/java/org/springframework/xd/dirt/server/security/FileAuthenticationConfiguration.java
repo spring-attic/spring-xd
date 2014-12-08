@@ -52,4 +52,6 @@ public class FileAuthenticationConfiguration extends GlobalAuthenticationConfigu
 		InMemoryUserDetailsManager inMemory = new InMemoryUserDetailsManager(getUsers());
 		auth.userDetailsService(inMemory);
 	}
+
+
 }

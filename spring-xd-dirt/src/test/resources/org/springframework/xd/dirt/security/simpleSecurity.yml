@@ -7,4 +7,5 @@ security:
   user:
     name: admin
     password: whosThere
+    role: VIEW, CREATE, ADMIN
 ---

@@ -14,5 +14,6 @@ xd:
      file:
        enabled: true
        users:
-         bob: bobspassword, ROLE_MANAGER
+         bob: bobspassword, ROLE_VIEW
+         alice: alicepwd, ROLE_ADMIN
 ---

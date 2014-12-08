@@ -88,7 +88,7 @@ public class SingleNodeApplicationWithUsersFileTest {
 	@Test
 	public void testAuthenticatedAccessToManagementEndpointSucceeds() throws Exception {
 		springXdResource.getMockMvc()
-				.perform(get("/management/metrics").header("Authorization", basicAuthorizationHeader("bob", "bobspassword")))
+				.perform(get("/management/metrics").header("Authorization", basicAuthorizationHeader("alice", "alicepwd")))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}}

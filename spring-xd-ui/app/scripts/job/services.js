@@ -106,7 +106,6 @@ define(['angular'], function (angular) {
             return $resource($rootScope.xdAdminServerUrl + '/modules/job/' + moduleName + '.json').get();
           },
           createDefinition: function (name, definition, deploy) {
-            $log.info('Creating definition ' + definition);
             return $resource($rootScope.xdAdminServerUrl + '/jobs/definitions', {}, {
               createDefinition: {
                 method: 'POST',

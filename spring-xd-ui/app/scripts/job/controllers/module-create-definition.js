@@ -81,17 +81,20 @@ define([], function () {
           for (var i = 0; i < arrayLength; i++) {
             var parameter = jobDefinition.parameters[i];
             if (parameter.value) {
-              var parameterValueToUse = escapeStringIfNecessary(parameter.value);
+              var parameterValueToUse = escapeStringIfNecessary(parameter.name, parameter.value);
               $scope.calculatedDefinition = $scope.calculatedDefinition + ' --' + parameter.name + '=' + parameterValueToUse;
             }
           }
         }
-        function escapeStringIfNecessary(string) {
-          if (string && /\s/g.test(string)) {
-            return '"' + string + '"';
+        function escapeStringIfNecessary(name, value) {
+          if (value && /\s/g.test(value)) {
+            return '"' + value + '"';
+          }
+          else if (name === 'password' || name === 'passwd') {
+            return '"' + value + '"';
           }
           else {
-            return string;
+            return value;
           }
         }
       });

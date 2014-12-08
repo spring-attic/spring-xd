@@ -84,28 +84,113 @@ public class PasswordUtilsTests {
 		assertEquals("mystream --PASSWORD=*****", maskedPassword);
 	}
 
+	/**
+	 * A basic stream definition parameter (parameter in middle of stream) called "password" should have its value masked.
+	 */
 	@Test
 	public void testMaskStreamDefinitionWithPasswordParameterInMiddle() {
 		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --password=12345678 --driverClassName=org.postgresql.Driver");
 		assertEquals("filejdbc --password=******** --driverClassName=org.postgresql.Driver", maskedPassword);
 	}
 
+	/**
+	 * The password parameter can be upper-case, lower-case or mixed-case.
+	 */
 	@Test
 	public void testMaskStreamDefinitionWithMultiplePasswordParametersAndMixedCase() {
 		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("mystream -- password=12 --PASSword=  1234 --PASSWORD=  1234");
 		assertEquals("mystream -- password=** --PASSword=  **** --PASSWORD=  ****", maskedPassword);
 	}
 
+	/**
+	 * The password parameter value in Russian (UTF) should be masked also.
+	 */
 	@Test
 	public void testMaskStreamDefinitionWithUnicodePasswordParameter() {
 		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("mystream --password=\u0411\u0435\u0440\u043b\u0438\u043d");
 		assertEquals("mystream --password=******", maskedPassword);
 	}
 
+	/**
+	 * Mask Stream Definition With Password Parameter Containing a Dot.
+	 */
 	@Test
 	public void testMaskStreamDefinitionWithPasswordParameterContainingADot() {
 		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("mystream -- password=   12.34.5");
 		assertEquals("mystream -- password=   *******", maskedPassword);
 	}
 
+	/**
+	 * A basic stream definition parameter (parameter at end) called "passwwd" should have its value masked.
+	 */
+	@Test
+	public void testMaskStreamDefinitionWithPasswordParameterAtEnd() {
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --driverClassName=org.postgresql.Driver --passwd=12345678");
+		assertEquals("filejdbc --driverClassName=org.postgresql.Driver --passwd=********", maskedPassword);
+	}
+
+	/**
+	 * A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value contains an underscore.
+	 */
+	@Test
+	public void testMaskStreamDefinitionWithPasswordParameterAtEndContainingUnderscore() {
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --driverClassName=org.postgresql.Driver --password=12345678_abcd");
+		assertEquals("filejdbc --driverClassName=org.postgresql.Driver --password=*************", maskedPassword);
+	}
+
+	/**
+	 * A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value contains a currency symbols.
+	 */
+	@Test
+	public void testMaskStreamDefinitionWithPasswordParameterAtEndContainingCurrencySymbol() {
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --driverClassName=org.postgresql.Driver --password=12345678$a\u20acbc\u00a5d");
+		assertEquals("filejdbc --driverClassName=org.postgresql.Driver --password=***************", maskedPassword);
+	}
+
+	/**
+	 * A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value is wrapped in quotation marks.
+	 */
+	@Test
+	public void testMaskStreamDefinitionWithPasswordParameterAtEndWrappedInQuotes() {
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --driverClassName=org.postgresql.Driver --password=\"abcd\"");
+		assertEquals("filejdbc --driverClassName=org.postgresql.Driver --password=\"****\"", maskedPassword);
+	}
+
+	/**
+	 * A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value contains spaces.
+	 */
+	@Test
+	public void testMaskStreamDefinitionWithPasswordParameterAtEndWrappedInQuotesContainingSpaces() {
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --driverClassName=org.postgresql.Driver --password=\"ab  cd\"");
+		assertEquals("filejdbc --driverClassName=org.postgresql.Driver --password=\"******\"", maskedPassword);
+	}
+
+	/**
+	 * A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value contains dashes.
+	 */
+	@Test
+	public void testMaskStreamDefinitionWithPasswordParameterAtEndWrappedInQuotesContainingDashes() {
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --driverClassName=org.postgresql.Driver --password=\"ab---cd\"");
+		assertEquals("filejdbc --driverClassName=org.postgresql.Driver --password=\"*******\"", maskedPassword);
+	}
+
+	/**
+	 * A basic stream definition parameter (parameter in middle of stream) called "password" with value wrapped in quotes should have its value masked
+	 */
+	@Test
+	public void testMaskStreamDefinitionWithPasswordParameterInMiddleWrappedInQuotes() {
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --password=\"12345678\" --driverClassName=\"org.postgresql.Driver\"");
+		assertEquals("filejdbc --password=\"********\" --driverClassName=\"org.postgresql.Driver\"", maskedPassword);
+	}
+
+	/**
+	 * A basic stream definition parameter (parameter in middle of stream) called "password" with value wrapped in quotes should have its value masked
+	 */
+	@Test
+	public void testMaskStreamDefinitionWithMultiplePasswordParametersWrappedInQuotes() {
+		String maskedPassword = PasswordUtils.maskPasswordsInDefinition("filejdbc --password=\"12345678\" --driverClassName=\"org.postgresql.Driver\" --passwd=\"12345678\"");
+		assertEquals(
+				"filejdbc --password=\"********\" --driverClassName=\"org.postgresql.Driver\" --passwd=\"********\"",
+				maskedPassword);
+	}
 }

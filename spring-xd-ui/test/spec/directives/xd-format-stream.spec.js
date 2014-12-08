@@ -90,6 +90,43 @@ define([
       var elementValue = element.text();
       expect(elementValue).toEqual('filejdbc --driverClassName=org.postgresql.Driver --passwd=********');
     }));
+    it('A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value contains an underscore.', inject(function() {
+      $scope.myVal = 'filejdbc --driverClassName=org.postgresql.Driver --password=12345678_abcd';
+      $scope.$digest();
+      var elementValue = element.text();
+      expect(elementValue).toEqual('filejdbc --driverClassName=org.postgresql.Driver --password=*************');
+    }));
+    it('A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value contains a currency symbols.', inject(function() {
+      $scope.myVal = 'filejdbc --driverClassName=org.postgresql.Driver --password=12345678$a€bc¥d';
+      $scope.$digest();
+      var elementValue = element.text();
+      expect(elementValue).toEqual('filejdbc --driverClassName=org.postgresql.Driver --password=***************');
+    }));
+    it('A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value is wrapped in quotation marks.', inject(function() {
+      $scope.myVal = 'filejdbc --driverClassName=org.postgresql.Driver --password="abcd"';
+      $scope.$digest();
+      var elementValue = element.text();
+      expect(elementValue).toEqual('filejdbc --driverClassName=org.postgresql.Driver --password="****"');
+    }));
+    it('A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value contains spaces.', inject(function() {
+      $scope.myVal = 'filejdbc --driverClassName=org.postgresql.Driver --password="ab  cd"';
+      $scope.$digest();
+      var elementValue = element.text();
+      expect(elementValue).toEqual('filejdbc --driverClassName=org.postgresql.Driver --password="******"');
+    }));
+    it('A basic stream definition parameter (parameter at end) called "password" should have its value masked. The value contains dashes.', inject(function() {
+      $scope.myVal = 'filejdbc --driverClassName=org.postgresql.Driver --password="ab---cd"';
+      $scope.$digest();
+      var elementValue = element.text();
+      expect(elementValue).toEqual('filejdbc --driverClassName=org.postgresql.Driver --password="*******"');
+    }));
+    it('A basic stream definition parameter (parameter in middle of stream) called "password" with value wrapped in quotes should have its value masked', inject(function() {
+      $scope.myVal = 'filejdbc --password="12345678" --driverClassName="org.postgresql.Driver"';
+      $scope.$digest();
+      var elementValue = element.text();
+      expect(elementValue).toEqual('filejdbc --password="********" --driverClassName="org.postgresql.Driver"');
+    }));
+
   });
 });
 

@@ -70,4 +70,9 @@ public abstract class AbstractModule implements Module {
 				this.descriptor.getGroup() + ", index=" + this.descriptor.getIndex() + " @" +
 				ObjectUtils.getIdentityHexString(this) + "]";
 	}
+
+	@Override
+	public boolean shouldBind() {
+		return true;
+	}
 }

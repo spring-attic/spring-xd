@@ -102,6 +102,11 @@ public class LocalMessageBus extends MessageBusSupport {
 		this.queueSize = queueSize;
 	}
 
+	public String[] getMessageBusSpecificProperties() {
+		LocalBusPropertiesAccessor propertiesAccessor = new LocalBusPropertiesAccessor(null);
+		return propertiesAccessor.getDefaultProperties();
+	}
+
 	/**
 	 * For the local bus we bridge the router "output" channel to a queue channel; the queue
 	 * channel gets the name and the source channel is named 'dynamic.output.to.' + name.
@@ -315,6 +320,10 @@ public class LocalMessageBus extends MessageBusSupport {
 
 		public LocalBusPropertiesAccessor(Properties properties) {
 			super(properties);
+		}
+
+		public String[] getDefaultProperties() {
+			return new String[0];
 		}
 
 	}

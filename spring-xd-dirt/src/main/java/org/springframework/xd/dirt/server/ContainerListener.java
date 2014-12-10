@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.Stream;
@@ -59,7 +58,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * The {@link ModuleRedeployer} that deploys unallocated stream/job modules
 	 * upon new container arrival.
 	 */
-	private final ModuleRedeployer arrivingContainerModuleRedeployer;
+	private final ContainerMatchingModuleRedeployer containerMatchingModuleRedeployer;
 
 	/**
 	 * The {@link ModuleRedeployer} that re-deploys the stream/job modules
@@ -108,7 +107,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 			PathChildrenCache moduleDeploymentRequests, ContainerMatcher containerMatcher,
 			DeploymentUnitStateCalculator stateCalculator,
 			ScheduledExecutorService executorService, AtomicLong quietPeriod) {
-		this.arrivingContainerModuleRedeployer = new ArrivingContainerModuleRedeployer(zkConnection,
+		this.containerMatchingModuleRedeployer = new ContainerMatchingModuleRedeployer(zkConnection,
 				containerRepository, streamFactory, jobFactory, streamDeployments, jobDeployments,
 				moduleDeploymentRequests, containerMatcher, stateCalculator);
 		this.departingContainerModuleRedeployer = new DepartingContainerModuleRedeployer(zkConnection,
@@ -223,7 +222,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 			if (containerArrival != null) {
 				if (System.currentTimeMillis() >= containerArrival.timestamp + quietPeriod.get()) {
 					try {
-						arrivingContainerModuleRedeployer.deployModules(containerArrival.container);
+						containerMatchingModuleRedeployer.deployModules(containerArrival.container);
 						latestContainer.compareAndSet(containerArrival, null);
 					}
 					catch (Exception e) {

@@ -17,7 +17,7 @@
 package org.springframework.xd.module;
 
 /**
- * Represents the kind of modules that make up a stream.
+ * Represents the kind of modules that make up a stream or job.
  * 
  * @author Glenn Renfro
  */

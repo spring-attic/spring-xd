@@ -119,9 +119,23 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	public static final int METADATA_VERIFICATION_MAX_INTERVAL = 1000;
 
-	public static final String COMPRESSION_CODEC = "compressionCodec";
+	public static final String BATCHING_ENABLED = "batchingEnabled";
+
+	public static final String BATCH_SIZE = "batchSize";
+
+	public static final String BATCH_TIMEOUT = "batchTimeout";
+
+	public static final String REPLICATION_FACTOR = "replicationFactor";
+
+	public static final String CONCURRENCY = "concurrency";
 
 	public static final String REQUIRED_ACKS = "requiredAcks";
+
+	public static final String COMPRESSION_CODEC = "compressionCodec";
+
+	private static final String DEFAULT_COMPRESSION_CODEC = "default";
+
+	private static final int DEFAULT_REQUIRED_ACKS = 1;
 
 	/**
 	 * Used when writing directly to ZK. This is what Kafka expects.
@@ -217,9 +231,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 	// -------- Default values for properties -------
 	private int defaultReplicationFactor = 1;
 
-	private String defaultCompressionCodec = "default";
+	private String defaultCompressionCodec = DEFAULT_COMPRESSION_CODEC;
 
-	private int defaultRequiredAcks = 1;
+	private int defaultRequiredAcks = DEFAULT_REQUIRED_ACKS;
 
 	/**
 	 * The number of Kafka partitions to use when module count can auto-grow.
@@ -509,6 +523,16 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private class KafkaPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
+		private final String[] KAFKA_PROPERTIES = new String[] {
+				BATCHING_ENABLED,
+				BATCH_SIZE,
+				BATCH_TIMEOUT,
+				CONCURRENCY,
+				REPLICATION_FACTOR,
+				COMPRESSION_CODEC,
+				REQUIRED_ACKS
+		};
+
 		public KafkaPropertiesAccessor(Properties properties) {
 			super(properties);
 		}
@@ -532,6 +556,15 @@ public class KafkaMessageBus extends MessageBusSupport {
 		public int getRequiredAcks(int defaultRequiredAcks) {
 			return getProperty(REQUIRED_ACKS, defaultRequiredAcks);
 		}
+
+		public String[] getDefaultProperties() {
+			return KAFKA_PROPERTIES;
+		}
+	}
+
+	public String[] getMessageBusSpecificProperties() {
+		KafkaPropertiesAccessor propertiesAccessor = new KafkaPropertiesAccessor(null);
+		return propertiesAccessor.getDefaultProperties();
 	}
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {

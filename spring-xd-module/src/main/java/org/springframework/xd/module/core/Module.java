@@ -30,6 +30,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  */
 public interface Module extends Lifecycle {
 
@@ -116,5 +117,10 @@ public interface Module extends Lifecycle {
 	 * Destroy this module's application context.
 	 */
 	void destroy();
+
+	/**
+	 * Should the module require messagebus binding.
+	 */
+	boolean shouldBind();
 
 }

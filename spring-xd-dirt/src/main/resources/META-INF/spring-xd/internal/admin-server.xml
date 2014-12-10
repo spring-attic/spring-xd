@@ -10,7 +10,13 @@
 
 	<context:component-scan base-package="org.springframework.xd.dirt.stream.completion" />
 
-	<bean id="containerMatcher" class="org.springframework.xd.dirt.cluster.DefaultContainerMatcher"/>
+	<bean id="containerMatcher" class="org.springframework.xd.dirt.server.ContainerMatcher">
+		<constructor-arg>
+			<list>
+				<bean class="org.springframework.xd.dirt.spark.SparkStreamingContainerFilter"/>
+			</list>
+		</constructor-arg>
+	</bean>
 
 	<bean id="stateCalculator" class="org.springframework.xd.dirt.server.DefaultStateCalculator" />
 

@@ -294,6 +294,10 @@ public class MessageBusSupportTests {
 				Properties properties) {
 		}
 
+		@Override
+		public String[] getMessageBusSpecificProperties() {
+			return new String[0];
+		}
 	}
 
 }

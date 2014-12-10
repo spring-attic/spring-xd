@@ -50,10 +50,19 @@ task copyZookeeperInstall(type: Copy) {
 }
 
 task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
+	def versions = [:]
+	def file = rootProject.file('dependencies.properties')
+		file.withReader { reader ->
+			def properties = new Properties()
+			properties.load(reader)
+			versions << properties
+		}
+	def protobufVersion = versions["com.google.protobuf:protobuf-java"]
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
 	into "$buildDir/dist/spring-xd/xd"
 	exclude "**/lib/hadoop-*.jar"
-	exclude "lib/protobuf-java-*.jar"
+	// to include protobuf-java-*-spark.jar following change is necessary.
+	exclude "**/lib/protobuf-java-"+ protobufVersion +".jar"
 	exclude "**/commons-logging*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
 	exclude "**/lib/mysql-connector-java-*.jar"

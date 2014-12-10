@@ -38,7 +38,7 @@ public class ResourceStateVerifier {
 
 	private static final long STATE_CHANGE_WAIT_TIME = 50;
 
-	private static final long STATE_CHANGE_TIMEOUT = 10000;
+	private static final long STATE_CHANGE_TIMEOUT = 35000;
 
 	private final DeploymentStatusRepository<?, String> deploymentStatusRepository;
 

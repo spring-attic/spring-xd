@@ -235,6 +235,16 @@ management:
   security:
     enabled: false
 
+---
+# Spark Streaming Configuration
+spark:
+  master: spark://localhost:7077
+  storageLevel: MEMORY_ONLY
+  streaming:
+    batchInterval: 2000
+
+---
+
 info:
   build:
     name: ~gradle_project_name~

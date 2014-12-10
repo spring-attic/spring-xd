@@ -47,6 +47,8 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 
 	private KafkaServer kafkaServer;
 
+	private Properties kafkaConfig;
+
 	public KafkaTestSupport() {
 		super("KAFKA");
 	}
@@ -89,14 +91,21 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 			throw new RuntimeException("Issues creating the ZK client", e);
 		}
 		try {
-			Properties brokerConfigProperties = TestUtils.createBrokerConfig(0, TestUtils.choosePort());
-			kafkaServer = TestUtils.createServer(new KafkaConfig(brokerConfigProperties), SystemTime$.MODULE$);
+			kafkaServer = TestUtils.createServer(new KafkaConfig(this.getKafkaConfig()), SystemTime$.MODULE$);
 		}
 		catch (Exception e) {
 			zookeeper.shutdown();
 			zkClient.close();
 			throw new RuntimeException("Issues creating the Kafka server", e);
 		}
+	}
+
+	public Properties getKafkaConfig() {
+		return (this.kafkaConfig == null) ? TestUtils.createBrokerConfig(0, TestUtils.choosePort()) : this.kafkaConfig;
+	}
+
+	public void setKafkaConfig(Properties properties) {
+		this.kafkaConfig = properties;
 	}
 
 	@Override

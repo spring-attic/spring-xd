@@ -42,6 +42,8 @@ public class RandomConfigurationSupport {
 
 	private static final String HSQLDB_DATABASE = "hsql.server.database";
 
+	private static final String ZK_NAMESPACE_DIR = "zk.namespace";
+
 	private static String tmpDir = FileUtils.getTempDirectory().toString();
 
 	private static String batchJobsDirectory = tmpDir;
@@ -50,12 +52,15 @@ public class RandomConfigurationSupport {
 
 	private final int adminPort;
 
+	private static String zkNamespaceDir = tmpDir + "/xd";
+
 	public RandomConfigurationSupport() {
 		now = System.currentTimeMillis();
 		adminPort = SocketUtils.findAvailableTcpPort();
 		setupRandomAdminServerPort();
 		setupRandomHSQLDBConfig();
 		disableJmx();
+		setZKNamespacePath();
 	}
 
 	private void setupRandomHSQLDBConfig(String host) {
@@ -78,6 +83,10 @@ public class RandomConfigurationSupport {
 		System.setProperty("XD_JMX_ENABLED", "false");
 	}
 
+	private void setZKNamespacePath() {
+		System.setProperty(ZK_NAMESPACE_DIR, zkNamespaceDir.substring(1));
+	}
+
 	public String getAdminServerPort() {
 		return String.valueOf(adminPort);
 	}
@@ -88,6 +97,7 @@ public class RandomConfigurationSupport {
 		// Refer batch.xml
 		try {
 			FileUtils.deleteDirectory(new File(batchJobsDirectory + "/jobs"));
+			FileUtils.deleteDirectory(new File(zkNamespaceDir));
 		}
 		catch (Exception e) {
 			e.printStackTrace();

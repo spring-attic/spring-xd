@@ -24,7 +24,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * Captures the context in which a parse operation is made.
- * 
+ *
  * @author Eric Bottard
  */
 public enum ParsingContext {
@@ -67,7 +67,7 @@ public enum ParsingContext {
 
 	/**
 	 * Represents the position of a module in an XD DSL declaration.
-	 * 
+	 *
 	 * @author Eric Bottard
 	 */
 	public static enum Position {
@@ -139,7 +139,7 @@ public enum ParsingContext {
 
 	/**
 	 * Whether to apply binding and validation to module options.
-	 * 
+	 *
 	 * <p>
 	 * Actual deployments will want this, while partials typically don't contain all required options yet, so we don't
 	 * want to fail with a validation exception.

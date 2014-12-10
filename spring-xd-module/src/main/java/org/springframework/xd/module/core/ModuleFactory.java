@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,15 +40,19 @@ import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
+import org.springframework.xd.module.spark.streaming.SparkStreamingDriverModule;
 import org.springframework.xd.module.support.ModuleUtils;
+import org.springframework.xd.spark.streaming.Processor;
 
 /**
  * Determines the type of {@link Module} to create from the Module's metadata and creates a module instance. Also,
  * resolves {@link org.springframework.xd.module.options.ModuleOptions} in the process.
  *
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware {
+
 	private static Log log = LogFactory.getLog(ModuleFactory.class);
 
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
@@ -56,6 +60,12 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 	private volatile ClassLoader parentClassLoader = ModuleFactory.class.getClassLoader();
 
 	private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
+
+	/**
+	 * This key is used by the module to define the execution framework(spark streaming, reactor etc.,) to be used when
+	 * deploying it.
+	 */
+	public static final String MODULE_EXECUTION_FRAMEWORK_KEY = "moduleExecutionFramework";
 
 	/**
 	 * @param moduleOptionsMetadataResolver Used to bind configured {@link ModuleOptions} to {@link Module} instances
@@ -117,7 +127,8 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 		Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
 		ClassLoader moduleClassLoader = ModuleUtils.createModuleClassLoader(moduleLocation, this.parentClassLoader);
 
-		Class<? extends SimpleModule> moduleClass = determineModuleClass((SimpleModuleDefinition) moduleDescriptor.getModuleDefinition(), moduleClassLoader);
+		Class<? extends SimpleModule> moduleClass = determineModuleClass((SimpleModuleDefinition) moduleDescriptor.getModuleDefinition(),
+				moduleClassLoader, moduleOptions);
 		Assert.notNull(moduleClass,
 				String.format("Required module artifacts are either missing or invalid. Unable to determine module type for module definition: '%s:%s'.",
 						moduleDescriptor.getType(), moduleDescriptor.getModuleName()));
@@ -125,8 +136,13 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 				.createModule(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleClass);
 	}
 
-	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
-		if (ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition, moduleClassLoader) != null) {
+	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition,
+			ClassLoader moduleClassLoader, ModuleOptions moduleOptions) {
+		String name = (String) moduleOptions.asPropertySource().getProperty(MODULE_EXECUTION_FRAMEWORK_KEY);
+		if (Processor.MODULE_EXECUTION_FRAMEWORK.equals(name)) {
+			return SparkStreamingDriverModule.class;
+		}
+		else if (ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition, moduleClassLoader) != null) {
 			return ResourceConfiguredModule.class;
 		}
 		else if (JavaConfiguredModule.basePackages(moduleDefinition, moduleClassLoader).length > 0) {

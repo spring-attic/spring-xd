@@ -47,7 +47,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 * @param shell the spring shell to execute commands against
 	 */
 	/* default */
-	StreamCommandTemplate(JLineShellComponent shell, SingleNodeIntegrationTestSupport integrationTestSupport) {
+	public StreamCommandTemplate(JLineShellComponent shell, SingleNodeIntegrationTestSupport integrationTestSupport) {
 		super(shell, integrationTestSupport.streamStateVerifier());
 	}
 

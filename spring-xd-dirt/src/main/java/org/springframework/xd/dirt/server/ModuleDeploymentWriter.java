@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -46,7 +45,7 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
  * Utility class to write module deployment requests under {@code /xd/deployments/modules}.
  * There are several {@code writeDeployment} methods that allow for targeting
  * a deployment to a specific container or to a collection of containers indicated
- * by the {@link org.springframework.xd.dirt.cluster.ContainerMatcher} passed into
+ * by the {@link org.springframework.xd.dirt.server.ContainerMatcher} passed into
  * the constructor.
  * <p/>
  * General usage is to invoke {@code writeDeployment} and examine the {@link ModuleDeploymentStatus}

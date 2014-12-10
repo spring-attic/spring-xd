@@ -21,11 +21,15 @@ import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_ST
 import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusAwareRouterBeanPostProcessor;
+import org.springframework.xd.dirt.module.spark.MessageBusReceiver;
 import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleType;
@@ -70,7 +74,17 @@ public class StreamPlugin extends AbstractStreamPlugin {
 
 	@Override
 	public void postProcessModule(Module module) {
-		bindConsumerAndProducers(module);
+		if (module.getName().contains("spark")) {
+			ConfigurableApplicationContext context = module.getApplicationContext();
+			ConfigurableBeanFactory beanFactory = context.getBeanFactory();
+			// todo: what properties should we pass from the context environment?
+			MessageBusReceiver receiver = new MessageBusReceiver(System.getProperties());
+			receiver.setInputChannelName(getInputChannelName(module));
+			beanFactory.registerSingleton("messageBusReceiver", receiver);
+		}
+		else {
+			bindConsumerAndProducers(module);
+		}
 	}
 
 	@Override

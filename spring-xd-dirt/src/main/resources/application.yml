@@ -138,6 +138,16 @@ management:
   security:
     enabled: false
 
+---
+# Spark Streaming Configuration
+spark:
+  master:
+    url: spark://localhost:7077
+  streaming:
+    batchInterval: 1000
+
+---
+
 info:
   build:
     name: ~gradle_project_name~

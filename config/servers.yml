@@ -292,6 +292,15 @@ endpoints:
 #typeconversion:
 # json:
 #  prettyPrint: true
+
+---
+# Spark Streaming Configuration
+#spark:
+#  master:
+#    url: spark://localhost:7077
+#  streaming:
+#    batchInterval: 2000
+
 ---
 #Enable collecting message rates from containers that have management port enabled.
 #xd:

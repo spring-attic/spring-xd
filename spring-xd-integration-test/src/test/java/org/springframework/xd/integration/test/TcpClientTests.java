@@ -22,6 +22,9 @@ import java.util.UUID;
 
 /**
  * Runs a basic suite of TCPClient tests on an XD Cluster instance.
+ * In this integration test an external tcp server will need to provide the test string
+ * "UOHSO638abna9beqw12" upon request.  Provided in the src/scripts directory are 2
+ * scripts (sampleNIX.sh and sampleOSX.sh) that will provide a sample tcp server.
  *
  * @author Glenn Renfro
  */

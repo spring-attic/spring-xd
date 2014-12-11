@@ -39,13 +39,17 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.BatchingRabbitTemplate;
 import org.springframework.amqp.rabbit.core.ChannelCallback;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.core.support.BatchingStrategy;
+import org.springframework.amqp.rabbit.core.support.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
@@ -53,6 +57,7 @@ import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -61,6 +66,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MimeTypeUtils;
@@ -160,9 +166,17 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			.add(RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS)
 			.build();
 
-	private static final Set<Object> SUPPORTED_PUBSUB_PRODUCER_PROPERTIES = SUPPORTED_BASIC_PRODUCER_PROPERTIES;
+	private static final Set<Object> SUPPORTED_PUBSUB_PRODUCER_PROPERTIES = new SetBuilder()
+			.addAll(SUPPORTED_BASIC_PRODUCER_PROPERTIES)
+			.addAll(PRODUCER_BATCHING_BASIC_PROPERTIES)
+			.addAll(PRODUCER_BATCHING_ADVANCED_PROPERTIES)
+			.build();
 
-	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = SUPPORTED_BASIC_PRODUCER_PROPERTIES;
+	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = new SetBuilder()
+			.addAll(SUPPORTED_BASIC_PRODUCER_PROPERTIES)
+			.addAll(PRODUCER_BATCHING_BASIC_PROPERTIES)
+			.addAll(PRODUCER_BATCHING_ADVANCED_PROPERTIES)
+			.build();
 
 	/**
 	 * Partitioning + rabbit producer properties.
@@ -171,6 +185,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
 			.addAll(SUPPORTED_BASIC_PRODUCER_PROPERTIES)
 			.add(BusProperties.DIRECT_BINDING_ALLOWED)
+			.addAll(PRODUCER_BATCHING_BASIC_PROPERTIES)
+			.addAll(PRODUCER_BATCHING_ADVANCED_PROPERTIES)
 			.build();
 
 	/**
@@ -412,12 +428,13 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			if (logger.isInfoEnabled()) {
 				logger.info("declaring queue for outbound: " + name);
 			}
-			AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(name, accessor);
+			AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(name, accessor, determineRabbitTemplate(accessor));
 			doRegisterProducer(name, moduleOutputChannel, queue, accessor);
 		}
 	}
 
-	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name, RabbitPropertiesAccessor properties) {
+	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name, RabbitPropertiesAccessor properties,
+			RabbitTemplate rabbitTemplate) {
 		String queueName = properties.getPrefix(this.defaultPrefix) + name;
 		String partitionKeyExtractorClass = properties.getPartitionKeyExtractorClass();
 		Expression partitionKeyExpression = properties.getPartitionKeyExpression();
@@ -453,10 +470,27 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String exchangeName = accessor.getPrefix(this.defaultPrefix) + "topic." + name;
 		declareExchangeIfNotPresent(new FanoutExchange(exchangeName));
-		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
+		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(determineRabbitTemplate(accessor));
 		fanout.setExchangeName(exchangeName);
 		configureOutboundHandler(fanout, accessor);
 		doRegisterProducer(name, moduleOutputChannel, fanout, accessor);
+	}
+
+	private RabbitTemplate determineRabbitTemplate(RabbitPropertiesAccessor properties) {
+		if (properties.isBatchingEnabled(this.defaultBatchingEnabled)) {
+			BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(
+					properties.getBatchSize(this.defaultBatchSize),
+					properties.geteBatchBufferLimit(this.defaultBatchBufferLimit),
+					properties.getBatchTimeout(this.defaultBatchTimeout));
+			BatchingRabbitTemplate template = new BatchingRabbitTemplate(batchingStrategy,
+					getApplicationContext().getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME,
+							TaskScheduler.class));
+			template.setConnectionFactory(this.connectionFactory);
+			return template;
+		}
+		else {
+			return this.rabbitTemplate;
+		}
 	}
 
 	private void doRegisterProducer(final String name, MessageChannel moduleOutputChannel,
@@ -487,7 +521,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String queueName = name + ".requests";
-		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(queueName, accessor);
+		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(queueName, accessor, this.rabbitTemplate);
 		queue.setBeanFactory(this.getBeanFactory());
 
 		String replyQueueName = accessor.getPrefix(this.defaultPrefix) + name + ".replies."
@@ -576,7 +610,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		stopBindings();
 	}
 
-	private class SendingHandler extends AbstractMessageHandler {
+	private class SendingHandler extends AbstractMessageHandler implements Lifecycle {
 
 		private final MessageHandler delegate;
 
@@ -613,6 +647,31 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			}
 			this.delegate.handleMessage(messageToSend);
 		}
+
+		@Override
+		public void start() {
+			if (this.delegate instanceof Lifecycle) {
+				((Lifecycle) this.delegate).start();
+			}
+		}
+
+		@Override
+		public void stop() {
+			if (this.delegate instanceof Lifecycle) {
+				((Lifecycle) this.delegate).stop();
+			}
+		}
+
+		@Override
+		public boolean isRunning() {
+			if (this.delegate instanceof Lifecycle) {
+				return ((Lifecycle) this.delegate).isRunning();
+			}
+			else {
+				return true;
+			}
+		}
+
 	}
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {

@@ -26,6 +26,10 @@
 		<property name="defaultRequestHeaderPatterns" value="${xd.messagebus.rabbit.default.requestHeaderPatterns}" />
 		<property name="defaultTxSize" value="${xd.messagebus.rabbit.default.txSize}" />
 		<property name="defaultAutoBindDLQ" value="${xd.messagebus.rabbit.default.autoBindDLQ}" />
+		<property name="defaultBatchingEnabled" value="${xd.messagebus.rabbit.default.batchingEnabled}" />
+		<property name="defaultBatchSize" value="${xd.messagebus.rabbit.default.batchSize}" />
+		<property name="defaultBatchBufferLimit" value="${xd.messagebus.rabbit.default.batchBufferLimit}" />
+		<property name="defaultBatchTimeout" value="${xd.messagebus.rabbit.default.batchTimeout}" />
 	</bean>
 
 </beans>

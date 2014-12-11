@@ -109,6 +109,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * consumer group name is static and hence shared by all containers).
 	 */
 	private static final String POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP = "springXD";
+
 	/**
 	 * The headers that will be propagated, by default.
 	 */
@@ -120,6 +121,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		ORIGINAL_CONTENT_TYPE_HEADER,
 		XD_REPLY_CHANNEL
 	};
+
 	/**
 	 * Basic + concurrency + partitioning.
 	 */
@@ -127,20 +129,28 @@ public class KafkaMessageBus extends MessageBusSupport {
 			.add(BusProperties.PARTITION_INDEX) // Not actually used
 			.add(BusProperties.CONCURRENCY)
 			.build();
+
 	/**
 	 * Basic + concurrency.
 	 */
 	private static final Set<Object> SUPPORTED_NAMED_CONSUMER_PROPERTIES = new SetBuilder()
-            .build();
-	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = PRODUCER_STANDARD_PROPERTIES;
+			.build();
+
+	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = new SetBuilder()
+			.addAll(PRODUCER_STANDARD_PROPERTIES)
+			.addAll(PRODUCER_BATCHING_BASIC_PROPERTIES)
+			.build();
+
 	/**
 	 * Partitioning + kafka producer properties.
 	 */
 	private static final Set<Object> SUPPORTED_PRODUCER_PROPERTIES = new SetBuilder()
-            .addAll(PRODUCER_PARTITIONING_PROPERTIES)
-            .addAll(PRODUCER_STANDARD_PROPERTIES)
-            .add(BusProperties.DIRECT_BINDING_ALLOWED)
-    	    .build();
+			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
+			.addAll(PRODUCER_STANDARD_PROPERTIES)
+			.add(BusProperties.DIRECT_BINDING_ALLOWED)
+			.addAll(PRODUCER_BATCHING_BASIC_PROPERTIES)
+			.build();
+
 	/**
 	 * Used when writing directly to ZK. This is what Kafka expects.
 	 */
@@ -166,12 +176,19 @@ public class KafkaMessageBus extends MessageBusSupport {
 			}
 		}
 	};
+
 	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
+
 	private String brokers;
+
 	private ExecutorService executor = Executors.newCachedThreadPool();
+
 	private String[] headersToMap;
+
 	private int replicationFactor = 1;
+
 	private String zkAddress;
+
 	/**
 	 * The number of Kafka partitions to use when module count can auto-grow.
 	 * Should be bigger than number of containers that will ever exist.
@@ -242,6 +259,11 @@ public class KafkaMessageBus extends MessageBusSupport {
 			props.put("key.serializer.class", IntegerEncoderDecoder.class.getName());
 			props.put("partitioner.class", DefaultPartitioner.class.getName());
 			props.put("request.required.acks", "1");
+			if (accessor.isBatchingEnabled(this.defaultBatchingEnabled)) {
+				props.put("producer.type", "async");
+				props.put("batch.num.messages", String.valueOf(accessor.getBatchSize(this.defaultBatchSize)));
+				props.put("queue.buffering.max.ms", String.valueOf(accessor.getBatchTimeout(this.defaultBatchTimeout)));
+			}
 			ProducerConfig producerConfig = new ProducerConfig(props);
 
 
@@ -369,10 +391,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 		Properties props = new Properties();
 		props.put("zookeeper.connect", zkAddress);
 		props.put("group.id", consumerGroup);
-        props.put("rebalance.backoff.ms", "2000");
-        props.put("rebalance.max.retries", "2000");
-//        props.put("zookeeper.session.timeout.ms ", "100");
-        Assert.isTrue(keyValues.length % 2 == 0, "keyValues must be an even number of key/value pairs");
+		props.put("rebalance.backoff.ms", "2000");
+		props.put("rebalance.max.retries", "2000");
+		//        props.put("zookeeper.session.timeout.ms ", "100");
+		Assert.isTrue(keyValues.length % 2 == 0, "keyValues must be an even number of key/value pairs");
 		for (int i = 0; i < keyValues.length; i += 2) {
 			String key = keyValues[i];
 			String value = keyValues[i + 1];

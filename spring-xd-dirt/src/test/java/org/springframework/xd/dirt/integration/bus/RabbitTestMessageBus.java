@@ -19,6 +19,8 @@ package org.springframework.xd.dirt.integration.bus;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.rabbit.RabbitMessageBus;
 
@@ -40,6 +42,10 @@ public class RabbitTestMessageBus extends AbstractTestMessageBus<RabbitMessageBu
 	public RabbitTestMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		RabbitMessageBus messageBus = new RabbitMessageBus(connectionFactory, codec);
 		GenericApplicationContext context = new GenericApplicationContext();
+		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+		scheduler.setPoolSize(1);
+		scheduler.afterPropertiesSet();
+		context.getBeanFactory().registerSingleton(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, scheduler);
 		context.refresh();
 		messageBus.setApplicationContext(context);
 		this.setMessageBus(messageBus);

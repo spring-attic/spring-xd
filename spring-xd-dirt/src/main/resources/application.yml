@@ -101,6 +101,10 @@ xd:
         backOffInitialInterval:    1000
         backOffMaxInterval:        10000
         backOffMultiplier:         2.0
+        batchBufferLimit:          10000
+        batchingEnabled:           false
+        batchSize:                 100
+        batchTimeout:              5000
         concurrency:               1
         deliveryMode:              PERSISTENT
         maxAttempts:               3
@@ -128,6 +132,10 @@ xd:
       zkAddress:                               localhost:2181
       replicationFactor:                       1
       numOfKafkaPartitionsForCountEqualsZero:  10
+      default:
+        batchingEnabled:           false
+        batchSize:                 200
+        batchTimeout:              5000
 
 
 server:

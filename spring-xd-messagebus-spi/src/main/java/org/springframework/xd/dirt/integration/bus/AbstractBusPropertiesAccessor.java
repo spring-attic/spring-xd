@@ -279,6 +279,44 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 		return getProperty(DIRECT_BINDING_ALLOWED, false);
 	}
 
+	// Batching
+
+	/**
+	 * If true, enable batching.
+	 * @param defaultValue the default value.
+	 * @return the property or default value.
+	 */
+	public boolean isBatchingEnabled(boolean defaultValue) {
+		return getProperty(BATCHING_ENABLED, defaultValue);
+	}
+
+	/**
+	 * The batch size.
+	 * @param defaultValue the default value.
+	 * @return the property or default value.
+	 */
+	public int getBatchSize(int defaultValue) {
+		return getProperty(BATCH_SIZE, defaultValue);
+	}
+
+	/**
+	 * The batch buffer limit.
+	 * @param defaultValue the default value.
+	 * @return the property or default value.
+	 */
+	public int geteBatchBufferLimit(int defaultValue) {
+		return getProperty(BATCH_BUFFER_LIMIT, defaultValue);
+	}
+
+	/**
+	 * The batch timeout.
+	 * @param defaultValue the default value.
+	 * @return the property or default value.
+	 */
+	public long getBatchTimeout(long defaultValue) {
+		return getProperty(BATCH_TIMEOUT, defaultValue);
+	}
+
 	// Utility methods
 
 	/**

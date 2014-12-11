@@ -107,6 +107,12 @@ public abstract class MessageBusSupport
 
 	private static final int DEFAULT_MAX_ATTEMPTS = 3;
 
+	private static final int DEFAULT_BATCH_SIZE = 50;
+
+	private static final int DEFAULT_BATCH_BUFFER_LIMIT = 10000;
+
+	private static final int DEFAULT_BATCH_TIMEOUT = 5000;
+
 	/**
 	 * The set of properties every bus implementation must support (or at least tolerate).
 	 */
@@ -129,6 +135,18 @@ public abstract class MessageBusSupport
 				BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
 				BusProperties.PARTITION_SELECTOR_CLASS,
 				BusProperties.PARTITION_SELECTOR_EXPRESSION,
+			}));
+
+	protected static final Set<Object> PRODUCER_BATCHING_BASIC_PROPERTIES = new HashSet<Object>(
+			Arrays.asList(new String[] {
+				BusProperties.BATCHING_ENABLED,
+				BusProperties.BATCH_SIZE,
+				BusProperties.BATCH_TIMEOUT,
+			}));
+
+	protected static final Set<Object> PRODUCER_BATCHING_ADVANCED_PROPERTIES = new HashSet<Object>(
+			Arrays.asList(new String[] {
+				BusProperties.BATCH_BUFFER_LIMIT,
 			}));
 
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
@@ -160,6 +178,17 @@ public abstract class MessageBusSupport
 	protected volatile int defaultConcurrency = DEFAULT_CONCURRENCY;
 
 	protected volatile int defaultMaxAttempts = DEFAULT_MAX_ATTEMPTS;
+
+	// properties for bus implementations that support batching
+
+	protected volatile boolean defaultBatchingEnabled = false;
+
+	protected volatile int defaultBatchSize = DEFAULT_BATCH_SIZE;
+
+	protected volatile int defaultBatchBufferLimit = DEFAULT_BATCH_BUFFER_LIMIT;
+
+	protected volatile long defaultBatchTimeout = DEFAULT_BATCH_TIMEOUT;
+
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -241,6 +270,44 @@ public abstract class MessageBusSupport
 	 */
 	public void setDefaultMaxAttempts(int defaultMaxAttempts) {
 		this.defaultMaxAttempts = defaultMaxAttempts;
+	}
+
+	/**
+	 * Set whether this bus batches message sends by default. Only applies
+	 * to bus implementations that support batching.
+	 * @param defaultBatchingEnabled the defaultBatchingEnabled to set.
+	 */
+	public void setDefaultBatchingEnabled(boolean defaultBatchingEnabled) {
+		this.defaultBatchingEnabled = defaultBatchingEnabled;
+	}
+
+	/**
+	 * Set the default batch size; only applies when batching is enabled and
+	 * the bus supports batching.
+	 * @param defaultBatchSize the defaultBatchSize to set.
+	 */
+	public void setDefaultBatchSize(int defaultBatchSize) {
+		this.defaultBatchSize = defaultBatchSize;
+	}
+
+	/**
+	 * Set the default batch buffer limit - used to send a batch early if
+	 * its size exceeds this. Only applies if batching is enabled and the
+	 * bus supports this property.
+	 * @param defaultBatchBufferLimit the defaultBatchBufferLimit to set.
+	 */
+	public void setDefaultBatchBufferLimit(int defaultBatchBufferLimit) {
+		this.defaultBatchBufferLimit = defaultBatchBufferLimit;
+	}
+
+	/**
+	 * Set the default batch timeout - used to send a batch if no messages
+	 * arrive during this time. Only applies if batching is enabled and the
+	 * bus supports this property.
+	 * @param defaultBatchTimeout the defaultBatchTimeout to set.
+	 */
+	public void setDefaultBatchTimeout(long defaultBatchTimeout) {
+		this.defaultBatchTimeout = defaultBatchTimeout;
 	}
 
 	@Override

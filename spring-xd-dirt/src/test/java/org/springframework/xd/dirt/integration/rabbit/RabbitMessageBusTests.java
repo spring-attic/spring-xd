@@ -18,9 +18,11 @@ package org.springframework.xd.dirt.integration.rabbit;
 
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -47,12 +49,14 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
@@ -433,6 +437,50 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		admin.deleteQueue("xdbustest.dlqtest.dlq");
 		admin.deleteQueue("xdbustest.dlqtest");
 		admin.deleteExchange("xdbustest.DLX");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testBatching() throws Exception {
+		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
+		MessageBus bus = getMessageBus();
+		Properties properties = new Properties();
+		properties.put("deliveryMode", "NON_PERSISTENT");
+		properties.put("batchingEnabled", "true");
+		properties.put("batchSize", "2");
+		properties.put("batchBufferLimit", "100000");
+		properties.put("batchTimeout", "30000");
+
+		DirectChannel output = new DirectChannel();
+		output.setBeanName("batchingProducer");
+		bus.bindProducer("batching.0", output, properties);
+
+		while (template.receive("xdbus.batching.0") != null) {
+		}
+
+		output.send(new GenericMessage<>("foo".getBytes()));
+		output.send(new GenericMessage<>("bar".getBytes()));
+
+		Object out = spyOn("batching.0").receive(false);
+		assertThat(out, instanceOf(byte[].class));
+		assertEquals("\u0000\u0000\u0000\u0003foo\u0000\u0000\u0000\u0003bar", new String((byte[]) out));
+
+		QueueChannel input = new QueueChannel();
+		input.setBeanName("batchingConsumer");
+		bus.bindConsumer("batching.0", input, null);
+
+		output.send(new GenericMessage<>("foo".getBytes()));
+		output.send(new GenericMessage<>("bar".getBytes()));
+
+		Message<byte[]> in = (Message<byte[]>) input.receive(10000);
+		assertNotNull(in);
+		assertEquals("foo", new String(in.getPayload()));
+		in = (Message<byte[]>) input.receive(10000);
+		assertNotNull(in);
+		assertEquals("bar", new String(in.getPayload()));
+
+		bus.unbindProducers("batching.0");
+		bus.unbindConsumers("batching.0");
 	}
 
 	private SimpleMessageListenerContainer verifyContainer(AbstractEndpoint endpoint) {

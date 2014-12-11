@@ -94,4 +94,24 @@ public interface BusProperties {
 	 */
 	public static final String NEXT_MODULE_COUNT = "next.module.count";
 
+	/**
+	 * True if message batching is enabled.
+	 */
+	public static final String BATCHING_ENABLED = "batchingEnabled";
+
+	/**
+	 * The batch size if batching is enabled.
+	 */
+	public static final String BATCH_SIZE = "batchSize";
+
+	/**
+	 * The buffer limit if batching is enabled.
+	 */
+	public static final String BATCH_BUFFER_LIMIT = "batchBufferLimit";
+
+	/**
+	 * The batch timeout if batching is enabled.
+	 */
+	public static final String BATCH_TIMEOUT = "batchTimeout";
+
 }

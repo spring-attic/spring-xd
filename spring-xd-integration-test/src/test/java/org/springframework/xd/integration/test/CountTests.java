@@ -59,7 +59,7 @@ public class CountTests extends AbstractIntegrationTest {
 		stream(sources.tap(streamName).label(labelName) + XD_TAP_DELIMITER +
 				sinks.counterSink(counterName));
 
-		sources.http(getContainerHostForSource(streamName)).postData(GOOD_TEXT);
+		sources.httpSource(streamName).postData(GOOD_TEXT);
 		waitForMetric(counterName);
 
 		assertEquals("The value expected for this counter was 1", 1, getCount(counterName));
@@ -91,9 +91,9 @@ public class CountTests extends AbstractIntegrationTest {
 				label(goodAndBadLabelName) + XD_TAP_DELIMITER +
 				sinks.counterSink(goodAndBadCounterName));
 
-		sources.http(getContainerHostForSource(streamName)).postData(GOOD_TEXT);
-		sources.http(getContainerHostForSource(streamName)).postData(GOOD_BAD_TEXT);
-		sources.http(getContainerHostForSource(streamName)).postData(BAD_TEXT);
+		sources.httpSource(streamName).postData(GOOD_TEXT);
+		sources.httpSource(streamName).postData(GOOD_BAD_TEXT);
+		sources.httpSource(streamName).postData(BAD_TEXT);
 
 		waitForMetric(afterGoodCounterName);
 		waitForMetric(goodAndBadCounterName);

@@ -159,7 +159,7 @@ public class JobCommandTest extends AbstractJobTest {
 		// Create a stream that writes to a file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMITER
 				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL());
-		sources.http(getContainerHostForSource("dataSender")).postData(data);
+		sources.httpSource("dataSender").postData(data);
 		job(jobName, job.toDSL(),true);
 		jobLaunch(jobName);
 		String query = String.format("SELECT data FROM %s", tableName);

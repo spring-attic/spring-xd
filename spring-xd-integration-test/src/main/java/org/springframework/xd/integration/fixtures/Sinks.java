@@ -35,7 +35,7 @@ import org.springframework.xd.test.fixtures.KafkaSink;
  *
  * @author Glenn Renfro
  */
-public class Sinks {
+public class Sinks extends ModuleFixture {
 
 	private TcpSink tcpSink;
 
@@ -73,6 +73,15 @@ public class Sinks {
 	 */
 	public TcpSink tcp(String host) {
 		return TcpSink.withDefaults(host);
+	}
+
+	/**
+	 * Construct a new TcpSink with the target host resolved at runtime from the default stream name.
+	 *
+	 * @return an instance of TcpSource configured with host and port of http module deployed at runtime.
+	 */
+	public TcpSink tcpSink() {
+		return tcp(getContainerResolver().getContainerHostForSource());
 	}
 
 

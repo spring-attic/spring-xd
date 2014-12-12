@@ -75,7 +75,7 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		// Use a trigger to send data to JDBC
 		stream("dataSender", sources.http() + XD_DELIMITER
 				+ jdbcSink);
-		sources.http(getContainerHostForSource("dataSender")).postData(data);
+		sources.httpSource("dataSender").postData(data);
 
 		job(job.toDSL());
 		waitForXD();
@@ -109,9 +109,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		// Use a trigger to send data to JDBC
 		stream("dataSender", sources.http() + XD_DELIMITER
 				+ jdbcSink);
-		sources.http(getContainerHostForSource("dataSender")).postData(data0);
-		sources.http(getContainerHostForSource("dataSender")).postData(data1);
-		sources.http(getContainerHostForSource("dataSender")).postData(data2);
+		sources.httpSource("dataSender").postData(data0);
+		sources.httpSource("dataSender").postData(data1);
+		sources.httpSource("dataSender").postData(data2);
 
 		job(job.toDSL());
 		waitForXD();

@@ -57,7 +57,7 @@ public class GemfireTests extends AbstractIntegrationTest {
 	public void testBasicGemfireSink()  {
 		stream(streamName, sources.http() + XD_DELIMITER + sinks.gemfireServer("Stocks"));
 		String data = "foo";
-		sources.http(getContainerHostForSource(streamName)).postData(data);
+		sources.httpSource(streamName).postData(data);
 		waitForCacheUpdate(streamName);
 		String cachedData = (String) stocks.get(streamName);
 		assertEquals(data, cachedData);
@@ -67,7 +67,7 @@ public class GemfireTests extends AbstractIntegrationTest {
 	public void testGemfireJsonSink()  {
 		stream(streamName, sources.http() + XD_DELIMITER + sinks.gemfireServer("Stocks").json(true));
 		String data = "{\"foo\":\"foo\"}";
-		sources.http(getContainerHostForSource(streamName)).postData(data);
+		sources.httpSource(streamName).postData(data);
 		waitForCacheUpdate(streamName);
 		Object cachedData = stocks.get(streamName);
 

@@ -34,6 +34,8 @@ import org.springframework.xd.test.fixtures.TwitterSearchSource;
 import org.springframework.xd.test.fixtures.TwitterStreamSource;
 import org.springframework.xd.test.fixtures.KafkaSource;
 
+import java.util.Map;
+
 
 /**
  * A convenience class for creating instances of sources to be used for integration testing.
@@ -43,9 +45,12 @@ import org.springframework.xd.test.fixtures.KafkaSource;
  * @author Glenn Renfro
  * @author Mark Pollack
  */
-public class Sources {
+public class Sources extends ModuleFixture {
 
 	private final XdEnvironment xdEnvironment;
+	
+	private Map<String, String> containers;
+
 
 	/**
 	 * Construct a new Sources instance using the provided environment.
@@ -88,6 +93,23 @@ public class Sources {
 		return new SimpleHttpSource(host, port);
 	}
 
+	/**
+	 * Create an instance of the http source with the target host resolved at runtime from the stream name.
+	 *
+	 * @param streamName the name of the stream that has an http source module deployed
+	 * @return an instance of HttpSource configured with host and port of http module deployed at runtime.
+	 */
+	public SimpleHttpSource httpSource(String streamName) {
+		return http(getContainerResolver().getContainerHostForSource(streamName));
+	}
+
+	/**
+	 * Create an instance of the http source with the target host resolved at runtime from the default stream name.
+	 * @return an instance of HttpSource configured with host and port of http module deployed at runtime.
+	 */
+	public SimpleHttpSource httpSource() {
+		return http(getContainerResolver().getContainerHostForSource());
+	}
 
 	/**
 	 * Construct a new TcpSource with the default target host localhost and port (1234)
@@ -117,6 +139,26 @@ public class Sources {
 	 */
 	public TcpSource tcp(String host, int port) {
 		return new TcpSource(host, port);
+	}
+
+
+	/**
+	 * Construct a new TcpSource with the target host resolved at runtime from the default stream name.
+	 *
+	 * @return an instance of TcpSource configured with host and port of tcp module deployed at runtime.
+	 */
+	public TcpSource tcpSource() {
+		return new TcpSource(getContainerResolver().getContainerHostForSource());
+	}
+
+	/**
+	 * Construct a new TcpSource with the target host resolved at runtime from the stream name.
+	 *
+	 * @param streamName the name of the stream that has an tcp source module deployed
+	 * @return an instance of TcpSource configured with host and port of http module deployed at runtime.
+	 */
+	public TcpSource tcpSource(String streamName) {
+		return new TcpSource(getContainerResolver().getContainerHostForSource(streamName));
 	}
 
 	/**
@@ -202,7 +244,7 @@ public class Sources {
 	 * @param host the ip of the machine where simulated syslog traffic will be sent.
 	 * @return an instance of SyslogTcpSource.
 	 */
-	public SyslogTcpSource syslogTcpSource(String host) {
+	public SyslogTcpSource syslogTcp(String host) {
 		return SyslogTcpSource.withDefaults(host);
 	}
 
@@ -211,8 +253,17 @@ public class Sources {
 	 *
 	 * @return an instance of SyslogTcpSource.
 	 */
-	public SyslogTcpSource syslogTcpSource() {
+	public SyslogTcpSource syslogTcp() {
 		return SyslogTcpSource.withDefaults();
+	}
+
+	/**
+	 * Construct a new SyslogTcpSource with the target host resolved at runtime from the default stream name.
+	 *
+	 * @return an instance of SyslogTcpSource configured with host and port of syslogtcp source deployed at runtime.
+	 */
+	public SyslogTcpSource syslogTcpSource() {
+		return syslogTcp(getContainerResolver().getContainerHostForSource());
 	}
 
 	/**
@@ -221,7 +272,7 @@ public class Sources {
 	 * @param host the ip of the machine where simulated syslog traffic will be sent.
 	 * @return an instance of SyslogUdpSource.
 	 */
-	public SyslogUdpSource syslogUdpSource(String host) {
+	public SyslogUdpSource syslogUdp(String host) {
 		return SyslogUdpSource.withDefaults(host);
 	}
 
@@ -230,8 +281,17 @@ public class Sources {
 	 *
 	 * @return an instance of SyslogUdpSource.
 	 */
-	public SyslogUdpSource syslogUdpSource() {
+	public SyslogUdpSource syslogUdp() {
 		return SyslogUdpSource.withDefaults();
+	}
+
+	/**
+	 * Construct a new SyslogUdpSource with the target host resolved at runtime from the default stream name.
+	 *
+	 * @return an instance of SyslogTcpSource configured with host and port of syslogudp source deployed at runtime.
+	 */
+	public SyslogUdpSource syslogUdpSource() {
+		return syslogUdp(getContainerResolver().getContainerHostForSource());
 	}
 
 
@@ -272,5 +332,6 @@ public class Sources {
 	public KafkaSource kafkaSource(){
 		return new KafkaSource(xdEnvironment.getKafkaZkConnect());
 	}
+
 
 }

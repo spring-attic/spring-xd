@@ -23,11 +23,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +37,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
-import org.springframework.batch.core.BatchStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -48,16 +45,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.xd.integration.fixtures.Processors;
-import org.springframework.xd.integration.fixtures.Sinks;
-import org.springframework.xd.integration.fixtures.Sources;
+import org.springframework.xd.integration.fixtures.*;
 import org.springframework.xd.integration.util.ConfigUtil;
 import org.springframework.xd.integration.util.HadoopUtils;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
-import org.springframework.xd.rest.domain.JobExecutionInfoResource;
-import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.test.fixtures.AbstractModuleFixture;
 import org.springframework.xd.test.fixtures.LogSink;
 import org.springframework.xd.test.fixtures.SimpleFileSink;
@@ -73,8 +66,6 @@ import org.springframework.xd.test.fixtures.SimpleFileSink;
 public abstract class AbstractIntegrationTest {
 
 	private final static String STREAM_NAME = "ec2Test3";
-
-	protected final static String DEFAULT_XD_PORT = "9393";
 
 	protected final static String XD_DELIMITER = " | ";
 
@@ -128,6 +119,8 @@ public abstract class AbstractIntegrationTest {
 	 */
 	private Map<String, String> containers;
 
+	private ContainerResolver containerResolver;
+
 
 	/**
 	 * Initializes the environment before the test. Also asserts that the admin server is up and at least one container is
@@ -138,6 +131,8 @@ public abstract class AbstractIntegrationTest {
 			adminServer = xdEnvironment.getAdminServerUrl();
 			validation.verifyXDAdminReady(adminServer);
 			containers = getAvailableContainers(adminServer);
+			containerResolver = new ContainerResolver(adminServer, containers, STREAM_NAME);
+			sources.setContainerResolver(containerResolver);
 			assertTrue("There must be at least one container", containers.size() > 0);
 			initialized = true;
 		}
@@ -217,6 +212,13 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 	}
 
+	/**
+	 * Return the container resolver created by this test.
+	 * @return container resolver
+	 */
+	public ContainerResolver getContainerResolver() {
+		return containerResolver;
+	}
 
 	/**
 	 * Creates a stream on the XD cluster defined by the test's Artifact or Environment variables Uses STREAM_NAME as
@@ -252,7 +254,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param data The data to be written to the file
 	 */
 	public void setupSourceDataFiles(String sourceDir, String fileName, String data) {
-		setupDataFiles(getContainerHostForSource(), sourceDir, fileName, data);
+		setupDataFiles(containerResolver.getContainerHostForSource(), sourceDir, fileName, data);
 	}
 
 	/**
@@ -434,7 +436,7 @@ public abstract class AbstractIntegrationTest {
 		Assert.notNull(dataToAppend, "dataToAppend must not be null");
 
 		if (xdEnvironment.isOnEc2()) {
-			StreamUtils.appendToRemoteFile(xdEnvironment.getPrivateKey(), getContainerHostForSource(), sourceDir,
+			StreamUtils.appendToRemoteFile(xdEnvironment.getPrivateKey(), containerResolver.getContainerHostForSource(), sourceDir,
 					fileName,
 					dataToAppend);
 		}
@@ -456,91 +458,7 @@ public abstract class AbstractIntegrationTest {
 		}
 	}
 
-	/**
-	 * Gets the URL of the container for the sink being tested.
-	 *
-	 * @return The URL that contains the sink.
-	 */
-	public URL getContainerUrlForSink() {
-		Assert.hasText(STREAM_NAME, "stream name can not be empty nor null");
-		// Assuming one container for now.
-		return getContainerUrlForSink(STREAM_NAME);
-	}
 
-	/**
-	 * Gets the URL of the container where the sink was deployed using default XD Port.
-	 *
-	 * @param streamName Used to find the container that contains the sink.
-	 * @return The URL that contains the sink.
-	 */
-	public URL getContainerUrlForSink(String streamName) {
-		return getContainerHostForURL(streamName, ModuleType.sink);
-	}
-
-	/**
-	 * Gets the URL of the container where the processor was deployed
-	 *
-	 * @return The URL that contains the sink.
-	 */
-
-	public URL getContainerUrlForProcessor() {
-		return getContainerUrlForProcessor(STREAM_NAME);
-	}
-
-
-	/**
-	 * Gets the URL of the container where the processor was deployed
-	 *
-	 * @param streamName Used to find the container that contains the processor.
-	 * @return The URL that contains the processor.
-	 */
-	public URL getContainerUrlForProcessor(String streamName) {
-
-		return getContainerHostForURL(streamName, ModuleType.processor);
-	}
-
-	/**
-	 * Gets the host of the container where the source was deployed
-	 *
-	 * @return The host that contains the source.
-	 */
-	public String getContainerHostForSource() {
-		return getContainerHostForSource(STREAM_NAME);
-	}
-
-	/**
-	 * Gets the host of the container where the source was deployed
-	 *
-	 * @param streamName Used to find the container that contains the source.
-	 * @return The host that contains the source.
-	 */
-	public String getContainerHostForSource(String streamName) {
-		return getContainerHostForModulePrefix(streamName, ModuleType.source);
-	}
-
-	/**
-	 * Gets the URL of the container where the module
-	 *
-	 * @param streamName Used construct the module id prefix.
-	 * @return The URL that contains the module.
-	 */
-	public String getContainerHostForModulePrefix(String streamName, ModuleType moduleType) {
-		Assert.hasText(streamName, "stream name can not be empty nor null");
-		String moduleIdPrefix = streamName + "." + moduleType + ".";
-		Iterator<ModuleMetadataResource> resourceIter = StreamUtils.getRuntimeModules(adminServer).iterator();
-		ArrayList<String> containerIds = new ArrayList<String>();
-		while (resourceIter.hasNext()) {
-			ModuleMetadataResource resource = resourceIter.next();
-			if (resource.getModuleId().startsWith(moduleIdPrefix)) {
-				containerIds.add(resource.getContainerId());
-			}
-		}
-		Assert.isTrue(
-				containerIds.size() == 1,
-				"Test require that module to be deployed to only one container. It was deployed to "
-						+ containerIds.size() + " containers");
-		return containers.get(containerIds.get(0));
-	}
 
 	/**
 	 * Asserts that the expected number of messages were received by all modules in a stream.
@@ -549,7 +467,7 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
-						getContainerUrlForSink(STREAM_NAME), xdEnvironment.getJmxPort()),
+						containerResolver.getContainerUrlForSink(STREAM_NAME), xdEnvironment.getJmxPort()),
 				STREAM_NAME, msgCountExpected);
 	}
 
@@ -570,6 +488,43 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
+	 * Asserts that all channels of the processor channel combination, processed the correct number of messages
+	 * The location of the processor is resolved at runtime.
+	 *
+	 * @param moduleName the name of the module jmx element to interrogate.
+	 * @param channelName the name of the channel jmx element to interrogate
+	 * @param msgCountExpected The number of messages this module and channel should have sent.
+	 */
+	public void assertReceivedByProcessor(String moduleName, String channelName, int msgCountExpected) {
+		assertReceived(getContainerResolver().getContainerUrlForProcessor(), moduleName, channelName, msgCountExpected);
+	}
+
+	/**
+	 * Asserts that all channels of the processor channel combination, processed the correct number of messages
+	 * The location of the sink is resolved at runtime.
+	 *
+	 * @param moduleName the name of the module jmx element to interrogate.
+	 * @param channelName the name of the channel jmx element to interrogate
+	 * @param msgCountExpected The number of messages this module and channel should have sent.
+	 */
+	public void assertReceivedBySink(String moduleName, String channelName, int msgCountExpected) {
+		assertReceived(getContainerResolver().getContainerUrlForSink(), moduleName, channelName, msgCountExpected);
+	}
+
+	/**
+	 * Asserts that all channels of the processor channel combination, processed the correct number of messages
+	 * The location of the source  is resolved at runtime.
+	 *
+	 * @param moduleName the name of the module jmx element to interrogate.
+	 * @param channelName the name of the channel jmx element to interrogate
+	 * @param msgCountExpected The number of messages this module and channel should have sent.
+	 */
+	public void assertReceivedBySource(String moduleName, String channelName, int msgCountExpected) {
+		//TODO
+		assertReceived(getContainerResolver().getContainerUrlForSink(), moduleName, channelName, msgCountExpected);
+	}
+
+	/**
 	 * Asserts that the data stored by the file or log sink is what was expected.
 	 *
 	 * @param data The data expected in the file or log sink
@@ -579,10 +534,10 @@ public abstract class AbstractIntegrationTest {
 		Assert.hasText(data, "data can not be empty nor null");
 		Assert.notNull(sinkInstance, "sinkInstance must not be null");
 		if (sinkInstance.getClass().equals(SimpleFileSink.class)) {
-			assertValidFile(data, getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
+			assertValidFile(data, containerResolver.getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
 		}
 		if (sinkInstance.getClass().equals(LogSink.class)) {
-			assertLogEntry(data, getContainerUrlForSink(STREAM_NAME));
+			assertLogEntry(data, containerResolver.getContainerUrlForSink(STREAM_NAME));
 		}
 
 	}
@@ -594,7 +549,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param data The data expected in the file
 	 */
 	public void assertFileContains(String data) {
-		assertFileContains(data, getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
+		assertFileContains(data, containerResolver.getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
 	}
 
 	/**
@@ -604,7 +559,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param data The data expected in the file
 	 */
 	public void assertFileContainsIgnoreCase(String data) {
-		assertFileContainsIgnoreCase(data, getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
+		assertFileContainsIgnoreCase(data, containerResolver.getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
 	}
 
 	/**
@@ -797,24 +752,6 @@ public abstract class AbstractIntegrationTest {
 
 	}
 
-	/**
-	 * Finds the container URL where the module is deployed with the stream name & module type
-	 *
-	 * @param streamName The name of the stream that the module is deployed
-	 * @param moduleType The type of module that we are seeking
-	 * @return the container url.
-	 */
-	private URL getContainerHostForURL(String streamName, ModuleType moduleType) {
-		URL result = null;
-		try {
-			result = new URL("http://"
-					+ getContainerHostForModulePrefix(streamName, moduleType) + ":" + DEFAULT_XD_PORT);
-		}
-		catch (MalformedURLException e) {
-			throw new IllegalStateException(e.getMessage(), e);
-		}
-		return result;
-	}
 
 
 	/**
@@ -826,8 +763,5 @@ public abstract class AbstractIntegrationTest {
 		return xdEnvironment;
 	}
 
-	public enum ModuleType {
-		sink, source, processor, job
-	}
 
 }

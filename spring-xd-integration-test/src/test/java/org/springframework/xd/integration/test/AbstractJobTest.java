@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.fixtures.Jobs;
+import org.springframework.xd.integration.fixtures.ModuleType;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
@@ -119,7 +120,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	 * @return The host that contains the job.
 	 */
 	public String getContainerHostForJob(String jobName) {
-		return getContainerHostForModulePrefix(jobName, ModuleType.job);
+		return this.getContainerResolver().getContainerHostForModulePrefix(jobName, ModuleType.job);
 	}
 
 	/*

@@ -59,7 +59,7 @@ public class HdfsMongoDbTest extends AbstractJobTest {
 		// Create a stream that writes to a hdfs file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMITER + sinks.hdfs()
 				.directoryName(HdfsMongoDbJob.DEFAULT_DIRECTORY).fileName(HdfsMongoDbJob.DEFAULT_FILE_NAME).toDSL());
-		sources.http(getContainerHostForSource("dataSender")).postData(data);
+		sources.httpSource("dataSender").postData(data);
 		job(job.toDSL());
 		waitForXD();
 		//Undeploy the dataSender stream to force XD to close the file.

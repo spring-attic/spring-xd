@@ -42,8 +42,7 @@ public class KafkaTests extends AbstractIntegrationTest {
 
 		stream(source + XD_DELIMITER + sinks.file());
 		stream(sinkStreamName, sources.http() + XD_DELIMITER + sink);
-		sources.http(getContainerHostForSource(sinkStreamName)).postData(data);
-
+		sources.httpSource(sinkStreamName).postData(data);
 		assertFileContains(data);
 		assertReceived(1);
 	}

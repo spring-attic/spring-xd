@@ -50,13 +50,13 @@ public class ProcessorTest extends AbstractIntegrationTest {
 		String filterContent = "BAD";
 		stream(sources.http() + XD_DELIMITER + " filter --expression=payload=='good' " + XD_DELIMITER
 				+ sinks.file());
-		sources.http(getContainerHostForSource()).postData(filterContent);
+		sources.httpSource().postData(filterContent);
 		waitForXD();
-		assertReceived(getContainerUrlForProcessor(), FILTER_MODULE_NAME, INPUT_CHANNEL_NAME, 1);
-		assertReceived(getContainerUrlForProcessor(), FILTER_MODULE_NAME, OUTPUT_CHANNEL_NAME, 0);
-		assertReceived(getContainerUrlForProcessor(), FILTER_MODULE_NAME, TO_SPEL_CHANNEL_NAME, 1);
-		assertReceived(getContainerUrlForProcessor(), FILTER_MODULE_NAME, TO_SCRIPT_CHANNEL_NAME, 0);
-		assertReceived(getContainerUrlForSink(), HTTP_MODULE_NAME, OUTPUT_CHANNEL_NAME, 1);
+		assertReceivedByProcessor(FILTER_MODULE_NAME, INPUT_CHANNEL_NAME, 1);
+		assertReceivedByProcessor(FILTER_MODULE_NAME, OUTPUT_CHANNEL_NAME, 0);
+		assertReceivedByProcessor(FILTER_MODULE_NAME, TO_SPEL_CHANNEL_NAME, 1);
+		assertReceivedByProcessor(FILTER_MODULE_NAME, TO_SCRIPT_CHANNEL_NAME, 0);
+		assertReceivedBySource(HTTP_MODULE_NAME, OUTPUT_CHANNEL_NAME, 1);
 
 	}
 
@@ -69,7 +69,7 @@ public class ProcessorTest extends AbstractIntegrationTest {
 		String filterContent = "good";
 		stream(sources.http() + XD_DELIMITER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMITER
 				+ sinks.file());
-		sources.http(getContainerHostForSource()).postData(filterContent);
+		sources.httpSource().postData(filterContent);
 		assertValid(filterContent, sinks.file());
 		assertReceived(1);
 	}
@@ -88,8 +88,8 @@ public class ProcessorTest extends AbstractIntegrationTest {
 				+ "good') " + XD_DELIMITER
 				+ sinks.file());
 
-		sources.http(getContainerHostForSource()).postData(goodData);
-		sources.http(getContainerHostForSource()).postData(badData);
+		sources.httpSource().postData(goodData);
+		sources.httpSource().postData(badData);
 
 		assertValid(goodData, sinks.file());
 		assertReceived(1);
@@ -121,9 +121,9 @@ public class ProcessorTest extends AbstractIntegrationTest {
 				+ " goodandbad: splitter --expression=#jsonPath(payload,'$.id') "
 				+ XD_DELIMITER + sinks.file());
 
-		sources.http(getContainerHostForSource()).postData(goodBadText);
-		sources.http(getContainerHostForSource()).postData(goodGoodText);
-		sources.http(getContainerHostForSource()).postData(badBadText);
+		sources.httpSource().postData(goodBadText);
+		sources.httpSource().postData(goodGoodText);
+		sources.httpSource().postData(badBadText);
 
 		assertValid("A" + idBase, sinks.file());
 		assertReceived(1);

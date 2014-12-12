@@ -41,7 +41,7 @@ public class TapTest extends AbstractIntegrationTest {
 		stream(sources.tap("dataSender") + XD_TAP_DELIMITER
 				+ sinks.file());
 
-		sources.http(getContainerHostForSource("dataSender")).postData(data);
+		sources.httpSource("dataSender").postData(data);
 		assertValid(data, sinks.file());
 	}
 
@@ -61,7 +61,7 @@ public class TapTest extends AbstractIntegrationTest {
 		stream(sources.tap("dataSender").label("label2") + XD_TAP_DELIMITER
 				+ sinks.file());
 
-		sources.http(getContainerHostForSource("dataSender")).postData(data);
+		sources.httpSource("dataSender").postData(data);
 		assertValid(data.toUpperCase().substring(3), sinks.file());
 	}
 
@@ -79,7 +79,7 @@ public class TapTest extends AbstractIntegrationTest {
 		stream(sources.tap("dataSender").label("ds1") + XD_TAP_DELIMITER
 				+ sinks.file());
 
-		sources.http(getContainerHostForSource("dataSender")).postData(data);
+		sources.httpSource("dataSender").postData(data);
 		assertValid(data.toUpperCase(), sinks.file());
 	}
 

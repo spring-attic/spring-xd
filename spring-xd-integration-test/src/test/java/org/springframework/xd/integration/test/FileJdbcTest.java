@@ -70,7 +70,8 @@ public class FileJdbcTest extends AbstractJobTest {
 			// Create a stream that writes to a file. This file will be used by the job.
 			stream("dataSender" + i, sources.http("foobar", 9000 + i) + XD_DELIMITER
 					+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME + "partition" + i).toDSL());
-			sources.http(getContainerHostForSource("dataSender" + i), 9000 + i).postData(data);
+			String host = getContainerResolver().getContainerHostForSource("dataSender" + i);
+			sources.http(host, 9000 + i).postData(data);
 		}
 		waitForXD();
 		job(job.toDSL());
@@ -103,7 +104,7 @@ public class FileJdbcTest extends AbstractJobTest {
 		// Create a stream that writes to a file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMITER
 				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL());
-		sources.http(getContainerHostForSource("dataSender")).postData(data);
+		sources.httpSource("dataSender").postData(data);
 		job(job.toDSL());
 		waitForXD();
 		jobLaunch();

@@ -10,10 +10,14 @@
 		<constructor-arg value="${xd.messagebus.kafka.zkAddress}"/>
 		<constructor-arg ref="codec"/>
 		<constructor-arg value="#{new String[0]}"/>
-		<property name="replicationFactor" value="${xd.messagebus.kafka.replicationFactor}"/>
+
 		<property name="defaultBatchingEnabled" value="${xd.messagebus.kafka.default.batchingEnabled}" />
 		<property name="defaultBatchSize" value="${xd.messagebus.kafka.default.batchSize}" />
 		<property name="defaultBatchTimeout" value="${xd.messagebus.kafka.default.batchTimeout}" />
+		<property name="defaultReplicationFactor" value="${xd.messagebus.kafka.default.replicationFactor}"/>
+		<property name="defaultConcurrency" value="${xd.messagebus.kafka.default.concurrency}"/>
+		<property name="defaultRequiredAcks" value="${xd.messagebus.kafka.default.requiredAcks}"/>
+		<property name="defaultCompressionCodec" value="${xd.messagebus.kafka.default.compressionCodec}"/>
 	</bean>
 
 </beans>

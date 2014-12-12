@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.integration.kafka;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -41,10 +42,10 @@ import kafka.serializer.Decoder;
 import kafka.serializer.DefaultDecoder;
 import kafka.serializer.DefaultEncoder;
 import kafka.utils.ZkUtils;
-
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
+import scala.collection.Seq;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
@@ -53,6 +54,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
+import org.springframework.integration.kafka.support.ProducerFactoryBean;
 import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -68,8 +70,6 @@ import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-
-import scala.collection.Seq;
 
 /**
  * A message bus that uses Kafka as the underlying middleware.
@@ -101,8 +101,42 @@ import scala.collection.Seq;
  */
 public class KafkaMessageBus extends MessageBusSupport {
 
-	private static final String XD_REPLY_CHANNEL = "xdReplyChannel";
+	public static final String COMPRESSION_CODEC = "compressionCodec";
 
+	public static final String REQUIRED_ACKS = "requiredAcks";
+
+	/**
+	 * Used when writing directly to ZK. This is what Kafka expects.
+	 */
+	public final static ZkSerializer utf8Serializer = new ZkSerializer() {
+
+		@Override
+		public byte[] serialize(Object data) throws ZkMarshallingError {
+			try {
+				return ((String) data).getBytes("UTF-8");
+			}
+			catch (UnsupportedEncodingException e) {
+				throw new ZkMarshallingError(e);
+			}
+		}
+
+		@Override
+		public Object deserialize(byte[] bytes) throws ZkMarshallingError {
+			try {
+				return new String(bytes, "UTF-8");
+			}
+			catch (UnsupportedEncodingException e) {
+				throw new ZkMarshallingError(e);
+			}
+		}
+	};
+
+	protected static final Set<Object> PRODUCER_COMPRESSION_PROPERTIES = new HashSet<Object>(
+			Arrays.asList(new String[] {
+					KafkaMessageBus.COMPRESSION_CODEC,
+			}));
+
+	private static final String XD_REPLY_CHANNEL = "xdReplyChannel";
 
 	/**
 	 * The consumer group to use when achieving point to point semantics (that
@@ -114,12 +148,12 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * The headers that will be propagated, by default.
 	 */
 	private static final String[] STANDARD_HEADERS = new String[] {
-		IntegrationMessageHeaderAccessor.CORRELATION_ID,
-		IntegrationMessageHeaderAccessor.SEQUENCE_SIZE,
-		IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
-		MessageHeaders.CONTENT_TYPE,
-		ORIGINAL_CONTENT_TYPE_HEADER,
-		XD_REPLY_CHANNEL
+			IntegrationMessageHeaderAccessor.CORRELATION_ID,
+			IntegrationMessageHeaderAccessor.SEQUENCE_SIZE,
+			IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
+			MessageHeaders.CONTENT_TYPE,
+			ORIGINAL_CONTENT_TYPE_HEADER,
+			XD_REPLY_CHANNEL
 	};
 
 	/**
@@ -149,33 +183,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 			.addAll(PRODUCER_STANDARD_PROPERTIES)
 			.add(BusProperties.DIRECT_BINDING_ALLOWED)
 			.addAll(PRODUCER_BATCHING_BASIC_PROPERTIES)
+			.addAll(PRODUCER_COMPRESSION_PROPERTIES)
 			.build();
-
-	/**
-	 * Used when writing directly to ZK. This is what Kafka expects.
-	 */
-	public final static ZkSerializer utf8Serializer = new ZkSerializer() {
-
-		@Override
-		public byte[] serialize(Object data) throws ZkMarshallingError {
-			try {
-				return ((String) data).getBytes("UTF-8");
-			}
-			catch (UnsupportedEncodingException e) {
-				throw new ZkMarshallingError(e);
-			}
-		}
-
-		@Override
-		public Object deserialize(byte[] bytes) throws ZkMarshallingError {
-			try {
-				return new String(bytes, "UTF-8");
-			}
-			catch (UnsupportedEncodingException e) {
-				throw new ZkMarshallingError(e);
-			}
-		}
-	};
 
 	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
 
@@ -185,15 +194,22 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private String[] headersToMap;
 
-	private int replicationFactor = 1;
-
 	private String zkAddress;
+
+	// -------- Default values for properties -------
+	private int defaultReplicationFactor = 1;
+
+	private String defaultCompressionCodec = "default";
+
+	private int defaultRequiredAcks = 1;
 
 	/**
 	 * The number of Kafka partitions to use when module count can auto-grow.
 	 * Should be bigger than number of containers that will ever exist.
 	 */
 	private int numOfKafkaPartitionsForCountEqualsZero = 10;
+
+
 
 	public KafkaMessageBus(String brokers, String zkAddress, MultiTypeCodec<Object> codec, String... headersToMap) {
 		this.brokers = brokers;
@@ -211,8 +227,42 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	}
 
-	public void setReplicationFactor(int replicationFactor) {
-		this.replicationFactor = replicationFactor;
+	/**
+	 * Allowed chars are ASCII alphanumerics, '.', '_' and '-'.
+	 * '_' is used as escaped char in the form '_xx' where xx is the hexadecimal
+	 * value of the byte(s) needed to represent an illegal char in utf8.
+	 */
+	/*default*/
+	static String escapeTopicName(String original) {
+		StringBuilder result = new StringBuilder(original.length());
+		try {
+			byte[] utf8 = original.getBytes("UTF-8");
+			for (byte b : utf8) {
+				if ((b >= 'a') && (b <= 'z') || (b >= 'A') && (b <= 'Z') || (b >= '0') && (b <= '9') || (b == '.')
+						|| (b == '-')) {
+					result.append((char) b);
+				}
+				else {
+					result.append(String.format("_%02X", b));
+				}
+			}
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new AssertionError(e); // Can't happen
+		}
+		return result.toString();
+	}
+
+	public void setDefaultReplicationFactor(int defaultReplicationFactor) {
+		this.defaultReplicationFactor = defaultReplicationFactor;
+	}
+
+	public void setDefaultCompressionCodec(String defaultCompressionCodec) {
+		this.defaultCompressionCodec = defaultCompressionCodec;
+	}
+
+	public void setDefaultRequiredAcks(int defaultRequiredAcks) {
+		this.defaultRequiredAcks = defaultRequiredAcks;
 	}
 
 	@Override
@@ -250,21 +300,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 			final String topicName = escapeTopicName(name);
 			int numPartitions = accessor.getNumberOfKafkaPartitions();
 
-			ensureTopicCreated(topicName, numPartitions, replicationFactor);
+			ensureTopicCreated(topicName, numPartitions, defaultReplicationFactor);
 
 
-			Properties props = new Properties();
-			props.put("metadata.broker.list", brokers);
-			props.put("serializer.class", DefaultEncoder.class.getName());
-			props.put("key.serializer.class", IntegerEncoderDecoder.class.getName());
-			props.put("partitioner.class", DefaultPartitioner.class.getName());
-			props.put("request.required.acks", "1");
-			if (accessor.isBatchingEnabled(this.defaultBatchingEnabled)) {
-				props.put("producer.type", "async");
-				props.put("batch.num.messages", String.valueOf(accessor.getBatchSize(this.defaultBatchSize)));
-				props.put("queue.buffering.max.ms", String.valueOf(accessor.getBatchTimeout(this.defaultBatchTimeout)));
-			}
-			ProducerConfig producerConfig = new ProducerConfig(props);
 
 
 			ProducerMetadata<Integer, byte[]> producerMetadata = new ProducerMetadata<Integer, byte[]>(
@@ -273,28 +311,46 @@ public class KafkaMessageBus extends MessageBusSupport {
 			producerMetadata.setValueClassType(byte[].class);
 			producerMetadata.setKeyEncoder(new IntegerEncoderDecoder(null));
 			producerMetadata.setKeyClassType(Integer.class);
+			producerMetadata.setCompressionCodec(accessor.getCompressionCodec(this.defaultCompressionCodec));
+			producerMetadata.setPartitioner(new DefaultPartitioner(null));
 
-			final Producer<Integer, byte[]> producer = new Producer<Integer, byte[]>(producerConfig);
-			final ProducerConfiguration<Integer, byte[]> producerConfiguration = new ProducerConfiguration<Integer, byte[]>(
-					producerMetadata, producer);
+			Properties additionalProps = new Properties();
+			additionalProps.put("request.required.acks", String.valueOf(accessor.getRequiredAcks(this.defaultRequiredAcks)));
+			if (accessor.isBatchingEnabled(this.defaultBatchingEnabled)) {
+				producerMetadata.setAsync(true);
+				producerMetadata.setBatchNumMessages(String.valueOf(accessor.getBatchSize(this.defaultBatchSize)));
+				additionalProps.put("queue.buffering.max.ms", String.valueOf(accessor.getBatchTimeout(this.defaultBatchTimeout)));
+			}
 
-			MessageHandler messageHandler = new AbstractMessageHandler() {
+			ProducerFactoryBean<Integer, byte[]> producerFB = new ProducerFactoryBean<Integer, byte[]>(producerMetadata, brokers, additionalProps);
 
-				@Override
-				protected void handleMessageInternal(Message<?> message) throws Exception {
-					producerConfiguration.send(message);
-				}
-			};
+			try {
+				final Producer<Integer, byte[]> producer = producerFB.getObject();
 
-			Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
-			MessageHandler handler = new SendingHandler(messageHandler, topicName, accessor);
-			EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
-			consumer.setBeanFactory(this.getBeanFactory());
-			consumer.setBeanName("outbound." + name);
-			consumer.afterPropertiesSet();
-			Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer, accessor);
-			addBinding(producerBinding);
-			producerBinding.start();
+
+				final ProducerConfiguration<Integer, byte[]> producerConfiguration = new ProducerConfiguration<Integer, byte[]>(
+						producerMetadata, producer);
+
+				MessageHandler messageHandler = new AbstractMessageHandler() {
+
+					@Override
+					protected void handleMessageInternal(Message<?> message) throws Exception {
+						producerConfiguration.send(message);
+					}
+				};
+
+				MessageHandler handler = new SendingHandler(messageHandler, topicName, accessor);
+				EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
+				consumer.setBeanFactory(this.getBeanFactory());
+				consumer.setBeanName("outbound." + name);
+				consumer.afterPropertiesSet();
+				Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer, accessor);
+				addBinding(producerBinding);
+				producerBinding.start();
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 
 		}
 
@@ -349,8 +405,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		KafkaPropertiesAccessor accessor = new KafkaPropertiesAccessor(properties);
 
 		Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-		//		int numThreads = accessor.getConcurrency(1);
-		int numThreads = 1;
+		int numThreads = accessor.getConcurrency(defaultConcurrency);
 		String topic = escapeTopicName(name);
 		topicCountMap.put(topic, numThreads);
 
@@ -391,9 +446,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 		Properties props = new Properties();
 		props.put("zookeeper.connect", zkAddress);
 		props.put("group.id", consumerGroup);
-		props.put("rebalance.backoff.ms", "2000");
-		props.put("rebalance.max.retries", "2000");
-		//        props.put("zookeeper.session.timeout.ms ", "100");
 		Assert.isTrue(keyValues.length % 2 == 0, "keyValues must be an even number of key/value pairs");
 		for (int i = 0; i < keyValues.length; i += 2) {
 			String key = keyValues[i];
@@ -404,31 +456,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 		return Consumer.createJavaConsumerConnector(config);
 	}
 
-	/**
-	 * Allowed chars are ASCII alphanumerics, '.', '_' and '-'.
-	 * '_' is used as escaped char in the form '_xx' where xx is the hexadecimal
-	 * value of the byte(s) needed to represent an illegal char in utf8.
-	 */
-	/*default*/static String escapeTopicName(String original) {
-		StringBuilder result = new StringBuilder(original.length());
-		try {
-			byte[] utf8 = original.getBytes("UTF-8");
-			for (byte b : utf8) {
-				if ((b >= 'a') && (b <= 'z') || (b >= 'A') && (b <= 'Z') || (b >= '0') && (b <= '9') || (b == '.')
-						|| (b == '-')) {
-					result.append((char) b);
-				}
-				else {
-					result.append(String.format("_%02X", b));
-				}
-			}
-		}
-		catch (UnsupportedEncodingException e) {
-			throw new AssertionError(e); // Can't happen
-		}
-		return result.toString();
-	}
-
 	private class KafkaPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
 		public KafkaPropertiesAccessor(Properties properties) {
@@ -436,15 +463,24 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 
 		public int getNumberOfKafkaPartitions() {
+			int concurrency = getProperty(NEXT_MODULE_CONCURRENCY, defaultConcurrency);
 			if (new PartitioningMetadata(this).isPartitionedModule()) {
-				return getPartitionCount();
+				return getPartitionCount() * concurrency;
 			}
 			else {
 				int downStreamModuleCount = getProperty(NEXT_MODULE_COUNT, 1);
-				return downStreamModuleCount == 0 ? numOfKafkaPartitionsForCountEqualsZero : downStreamModuleCount;
+				int base = downStreamModuleCount == 0 ? numOfKafkaPartitionsForCountEqualsZero : downStreamModuleCount;
+				return base * concurrency;
 			}
 		}
 
+		public String getCompressionCodec(String defaultValue) {
+			return getProperty(COMPRESSION_CODEC, defaultValue);
+		}
+
+		public int getRequiredAcks(int defaultRequiredAcks) {
+			return getProperty(REQUIRED_ACKS, defaultRequiredAcks);
+		}
 	}
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
@@ -483,7 +519,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 		public boolean isRunning() {
 			return true;
 		}
-
 
 	}
 
@@ -544,6 +579,5 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 
 	}
-
 
 }

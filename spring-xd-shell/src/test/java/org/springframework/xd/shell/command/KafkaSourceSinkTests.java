@@ -36,16 +36,15 @@ import org.springframework.xd.test.kafka.KafkaTestSupport;
  * Integration tests for Kafka source and sinks.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Marius Bogoevici
  * @since 1.1
  */
 public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 
-	private static final String zkConnectString = ZookeeperConnectDefaults.ZK_CONNECT;
-
 	private String topicToUse;
 
 	@Rule
-	public KafkaTestSupport kafkaTestSupport = new KafkaTestSupport(zkConnectString);
+	public KafkaTestSupport kafkaTestSupport = new KafkaTestSupport();
 
 	@Before
 	public void createTopic() {
@@ -66,12 +65,13 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 		final String stringToPost = "Hi there!";
 		// create stream with kafka sink
 		final HttpSource httpSource = newHttpSource();
-		stream().create(generateStreamName(), "%s | kafka --topic='%s'", httpSource, topicToUse);
+		stream().create(generateStreamName(), "%s | kafka --topic='%s' --brokerList='%s'",
+				httpSource, topicToUse, kafkaTestSupport.getBrokerAddress());
 		// create stream with kafka source
 		final CounterSink counter = metrics().newCounterSink();
 		stream().create(generateStreamName(), "kafka --topic='%s' --zkconnect=%s --consumerTimeout=-1 | " +
 				"filter --expression=payload.toString().contains('%s') | %s",
-				topicToUse, zkConnectString, stringToPost, counter );
+				topicToUse, kafkaTestSupport.getZkconnectstring(), stringToPost, counter );
 		httpSource.ensureReady().postData(stringToPost);
 		assertThat(counter, eventually(exists()));
 	}

@@ -10,9 +10,33 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int-syslog:inbound-channel-adapter id="adapter" channel="output"
+			protocol="tcp"
+			connection-factory="syslogIn"
 			auto-startup="false"
-			protocol="tcp" port="${port}" />
+			converter="syslogConverter" />
+
+	<int-ip:tcp-connection-factory id="syslogIn"
+			type="server"
+			using-nio="${nio}"
+			port="${port}"
+			deserializer="syslogDeserializer" />
 
 	<int:channel id="output"/>
+
+	<beans profile="rfc3164"> <!-- aka BSD -->
+
+		<bean id="syslogDeserializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer" />
+
+		<bean id="syslogConverter" class="org.springframework.integration.syslog.DefaultMessageConverter" />
+
+	</beans>
+
+	<beans profile="rfc5424">
+
+		<bean id="syslogDeserializer" class="org.springframework.integration.syslog.inbound.RFC6587SyslogDeserializer" />
+
+		<bean id="syslogConverter" class="org.springframework.integration.syslog.RFC5424MessageConverter" />
+
+	</beans>
 
 </beans>

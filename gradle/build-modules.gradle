@@ -125,11 +125,17 @@ project('modules.source.mqtt') {
 }
 
 project('modules.source.syslog-tcp') {
-    dependencies { runtime "org.springframework.integration:spring-integration-syslog" }
+    dependencies {
+	runtime "org.springframework.integration:spring-integration-syslog"
+	runtime project(":spring-xd-extension-syslog")
+    }
 }
 
 project('modules.source.syslog-udp') {
-    dependencies { runtime "org.springframework.integration:spring-integration-syslog" }
+    dependencies {
+	runtime "org.springframework.integration:spring-integration-syslog"
+	runtime project(":spring-xd-extension-syslog")
+    }
 }
 
 project('modules.source.reactor-ip') {

@@ -73,6 +73,15 @@ project('spring-xd-extension-process') {
 	}
 }
 
+project('spring-xd-extension-syslog') {
+    description = 'Spring XD SYSLOG'
+    dependencies {
+        compile "org.springframework.integration:spring-integration-syslog"
+        compile project(':spring-xd-module-spi')
+        compile "javax.validation:validation-api"
+    }
+}
+
 project('spring-xd-extension-tcp') {
     description = 'Spring XD TCP'
     dependencies {

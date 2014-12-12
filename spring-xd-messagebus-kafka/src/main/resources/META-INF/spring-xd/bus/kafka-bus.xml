@@ -11,9 +11,9 @@
 		<constructor-arg ref="codec"/>
 		<constructor-arg value="#{new String[0]}"/>
 		<property name="replicationFactor" value="${xd.messagebus.kafka.replicationFactor}"/>
-		<property name="defaultBatchingEnabled" value="${xd.messagebus.rabbit.default.batchingEnabled}" />
-		<property name="defaultBatchSize" value="${xd.messagebus.rabbit.default.batchSize}" />
-		<property name="defaultBatchTimeout" value="${xd.messagebus.rabbit.default.batchTimeout}" />
+		<property name="defaultBatchingEnabled" value="${xd.messagebus.kafka.default.batchingEnabled}" />
+		<property name="defaultBatchSize" value="${xd.messagebus.kafka.default.batchSize}" />
+		<property name="defaultBatchTimeout" value="${xd.messagebus.kafka.default.batchTimeout}" />
 	</bean>
 
 </beans>

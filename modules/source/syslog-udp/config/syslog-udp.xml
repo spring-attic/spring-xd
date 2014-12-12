@@ -10,8 +10,21 @@
 	<int-syslog:inbound-channel-adapter id="adapter" channel="output"
 			auto-startup="false"
 			protocol="udp"
-			port="${port}"/>
+			port="${port}"
+			converter="syslogConverter" />
 
 	<int:channel id="output"/>
+
+	<beans profile="rfc3164"> <!-- aka BSD -->
+
+		<bean id="syslogConverter" class="org.springframework.integration.syslog.DefaultMessageConverter" />
+
+	</beans>
+
+	<beans profile="rfc5424">
+
+		<bean id="syslogConverter" class="org.springframework.integration.syslog.RFC5424MessageConverter" />
+
+	</beans>
 
 </beans>

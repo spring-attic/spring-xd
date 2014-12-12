@@ -44,8 +44,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
 
 import reactor.core.Environment;
-import reactor.core.Reactor;
-import reactor.core.spec.Reactors;
 import reactor.spring.context.config.EnableReactor;
 
 /**
@@ -135,11 +133,6 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 
 		@Value("${transport:tcp}")
 		String transport;
-
-		@Bean
-		public Reactor reactor(Environment env) {
-			return Reactors.reactor().env(env).get();
-		}
 
 		@Bean
 		public DirectChannel output() {

@@ -20,14 +20,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.messaging.Message;
 
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.Assert;
 import reactor.core.Environment;
-import reactor.event.dispatch.SynchronousDispatcher;
+import reactor.core.dispatch.SynchronousDispatcher;
 import reactor.function.Consumer;
 import reactor.function.Function;
 import reactor.io.Buffer;
@@ -40,7 +38,6 @@ import reactor.net.encoding.syslog.SyslogMessage;
 import reactor.net.netty.tcp.NettyTcpServer;
 import reactor.net.netty.udp.NettyDatagramServer;
 import reactor.net.spec.NetServerSpec;
-import reactor.net.tcp.TcpServer;
 import reactor.net.tcp.spec.TcpServerSpec;
 import reactor.net.udp.spec.DatagramServerSpec;
 

@@ -24,8 +24,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import reactor.core.Dispatcher;
 import reactor.core.Environment;
-import reactor.event.dispatch.Dispatcher;
 import reactor.io.encoding.Codec;
 import reactor.io.encoding.DelimitedCodec;
 import reactor.io.encoding.LengthFieldCodec;
@@ -120,7 +120,7 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 	}
 
 	/**
-	 * Set the name of the {@link reactor.event.dispatch.Dispatcher} to use, which will be pulled from the current
+	 * Set the name of the {@link reactor.core.Dispatcher} to use, which will be pulled from the current
 	 * {@link reactor.core.Environment}.
 	 * 
 	 * @param dispatcher dispatcher name

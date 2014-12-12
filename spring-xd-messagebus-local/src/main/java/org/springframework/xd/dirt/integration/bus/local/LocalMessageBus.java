@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus;
+package org.springframework.xd.dirt.integration.bus.local;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -37,9 +37,12 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
+import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
+import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 
 /**
- * A simple implementation of {@link MessageBus} for in-process use. For inbound and outbound, creates a
+ * A simple implementation of {@link org.springframework.xd.dirt.integration.bus.MessageBus} for in-process use. For inbound and outbound, creates a
  * {@link DirectChannel} or a {@link QueueChannel} depending on whether the binding is aliased or not then bridges the
  * passed {@link MessageChannel} to the channel which is registered in the given application context. If that channel
  * does not yet exist, it will be created.

@@ -64,7 +64,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.dirt.integration.bus.BusTestUtils;
-import org.springframework.xd.dirt.integration.bus.LocalMessageBus;
+import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 
 
 /**

@@ -29,11 +29,11 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.util.Assert;
 
 /**
- * An ApplicationListener which tracks which MessageBus implementation ought to be used so that it exposes a
- * ClassLoader that knows about the correct jar files for that bus.
- *
+ * An ApplicationListener which tracks which MessageBus implementation ought to be used so that it exposes a ClassLoader
+ * that knows about the correct jar files for that bus.
  * <p>Make sure that this listener is triggered before the created ClassLoader is used.</p>
  *
  * @author Eric Bottard
@@ -73,7 +73,10 @@ public class MessageBusClassLoaderFactory implements ApplicationListener<Applica
 	}
 
 	private ClassLoader makeClassLoader(String jarsLocation) {
-		return new URLClassLoader(getUrls(jarsLocation), MessageBusClassLoaderFactory.class.getClassLoader());
+		URL[] messageBusJars = getUrls(jarsLocation);
+		Assert.notEmpty(messageBusJars, "Unable to locate any message bus implementation jars at location " +
+				jarsLocation);
+		return new URLClassLoader(messageBusJars, MessageBusClassLoaderFactory.class.getClassLoader());
 	}
 
 	public PathMatchingResourcePatternResolver getResolver() {

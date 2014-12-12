@@ -858,7 +858,7 @@ public abstract class MessageBusSupport
 			this.requiredType = clazz;
 		}
 
-		protected synchronized final T lookupOrCreateSharedChannel(String name) {
+		public synchronized final T lookupOrCreateSharedChannel(String name) {
 			T channel = lookupSharedChannel(name);
 			if (channel == null) {
 				channel = createAndRegisterChannel(name);
@@ -867,7 +867,7 @@ public abstract class MessageBusSupport
 		}
 
 		@SuppressWarnings("unchecked")
-		protected T createAndRegisterChannel(String name) {
+		public T createAndRegisterChannel(String name) {
 			T channel = createSharedChannel(name);
 			ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
 			beanFactory.registerSingleton(name, channel);
@@ -880,7 +880,7 @@ public abstract class MessageBusSupport
 
 		protected abstract T createSharedChannel(String name);
 
-		protected T lookupSharedChannel(String name) {
+		public T lookupSharedChannel(String name) {
 			T channel = null;
 			if (applicationContext.containsBean(name)) {
 				try {

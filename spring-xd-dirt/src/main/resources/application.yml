@@ -130,13 +130,15 @@ xd:
     kafka:
       brokers:                                 localhost:9092
       zkAddress:                               localhost:2181
-      replicationFactor:                       1
       numOfKafkaPartitionsForCountEqualsZero:  10
       default:
         batchingEnabled:           false
         batchSize:                 200
         batchTimeout:              5000
-
+        replicationFactor:         1
+        concurrency:               1
+        requiredAcks:              1
+        compressionCodec:          default
 
 server:
   port: ${PORT:9393}

@@ -133,6 +133,7 @@ public abstract class AbstractIntegrationTest {
 			containers = getAvailableContainers(adminServer);
 			containerResolver = new ContainerResolver(adminServer, containers, STREAM_NAME);
 			sources.setContainerResolver(containerResolver);
+			sinks.setContainerResolver(containerResolver);
 			assertTrue("There must be at least one container", containers.size() > 0);
 			initialized = true;
 		}

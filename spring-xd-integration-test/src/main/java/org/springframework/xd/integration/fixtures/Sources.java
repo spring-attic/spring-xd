@@ -149,7 +149,7 @@ public class Sources extends ModuleFixture {
 	 * @return an instance of TcpSource configured with host and port of tcp module deployed at runtime.
 	 */
 	public TcpSource tcpSource() {
-		return new TcpSource(getContainerResolver().getContainerHostForSource());
+		return TcpSource.withDefaultPort(getContainerResolver().getContainerHostForSource());
 	}
 
 	/**
@@ -278,7 +278,7 @@ public class Sources extends ModuleFixture {
 	}
 
 	/**
-	 * Constructs a SyslogUdpSource that receives syslog events via udp.
+	 * Constructs a SyslogUdpSource that receives syslog events via udp using defaults.
 	 *
 	 * @return an instance of SyslogUdpSource.
 	 */
@@ -291,7 +291,7 @@ public class Sources extends ModuleFixture {
 	 *
 	 * @return an instance of SyslogTcpSource configured with host and port of syslogudp source deployed at runtime.
 	 */
-	public SyslogUdpSource syslogUdpSource() {
+	public SyslogUdpSource syslogUdpForContainerHost() {
 		return syslogUdp(getContainerResolver().getContainerHostForSource());
 	}
 

@@ -52,7 +52,7 @@ public class SyslogTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		stream(sources.syslogUdp() + XD_DELIMITER
 				+ "file");
-		sources.syslogUdpSource().sendBytes((data + "\r\n").getBytes());
+		sources.syslogUdpForContainerHost().sendBytes((data + "\r\n").getBytes());
 		assertReceived(1);
 		this.assertFileContains(data);
 	}

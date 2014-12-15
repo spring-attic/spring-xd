@@ -56,7 +56,7 @@ public class ProcessorTest extends AbstractIntegrationTest {
 		assertReceivedByProcessor(FILTER_MODULE_NAME, OUTPUT_CHANNEL_NAME, 0);
 		assertReceivedByProcessor(FILTER_MODULE_NAME, TO_SPEL_CHANNEL_NAME, 1);
 		assertReceivedByProcessor(FILTER_MODULE_NAME, TO_SCRIPT_CHANNEL_NAME, 0);
-		assertReceivedBySource(HTTP_MODULE_NAME, OUTPUT_CHANNEL_NAME, 1);
+		assertReceivedBySink(HTTP_MODULE_NAME, OUTPUT_CHANNEL_NAME, 1);
 
 	}
 

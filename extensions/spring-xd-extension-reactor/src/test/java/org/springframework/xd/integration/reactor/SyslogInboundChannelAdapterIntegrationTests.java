@@ -16,7 +16,7 @@
 
 package org.springframework.xd.integration.reactor;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -29,6 +29,10 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.Environment;
+import reactor.core.Reactor;
+import reactor.core.spec.Reactors;
+import reactor.spring.context.config.EnableReactor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,9 +46,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
-
-import reactor.core.Environment;
-import reactor.spring.context.config.EnableReactor;
 
 /**
  * @author Jon Brisbin
@@ -126,13 +127,19 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 	@EnableReactor
 	static class TestConfiguration {
 
-		static @Bean
+		static
+		@Bean
 		public PropertyPlaceholderConfigurer propertyPlaceholderConfigurer() {
 			return new PropertyPlaceholderConfigurer();
 		}
 
 		@Value("${transport:tcp}")
 		String transport;
+
+		@Bean
+		public Reactor reactor(Environment env) {
+			return Reactors.reactor().env(env).get();
+		}
 
 		@Bean
 		public DirectChannel output() {
@@ -204,7 +211,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 
 				ByteBuffer buff = ByteBuffer.wrap(
 						("<34>Oct 11 22:14:15 mymachine su: 'su root' failed for lonvick on /dev/pts/8\n").getBytes()
-						);
+				);
 				for (int i = 0; i < runs; i++) {
 					out.write(buff);
 					buff.flip();

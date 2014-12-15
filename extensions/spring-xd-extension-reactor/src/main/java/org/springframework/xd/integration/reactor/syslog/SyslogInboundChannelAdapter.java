@@ -19,13 +19,8 @@ package org.springframework.xd.integration.reactor.syslog;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.transformer.SyslogToMapTransformer;
-import org.springframework.messaging.Message;
-
-import org.springframework.messaging.support.GenericMessage;
 import reactor.core.Environment;
-import reactor.core.dispatch.SynchronousDispatcher;
+import reactor.event.dispatch.SynchronousDispatcher;
 import reactor.function.Consumer;
 import reactor.function.Function;
 import reactor.io.Buffer;
@@ -40,6 +35,11 @@ import reactor.net.netty.udp.NettyDatagramServer;
 import reactor.net.spec.NetServerSpec;
 import reactor.net.tcp.spec.TcpServerSpec;
 import reactor.net.udp.spec.DatagramServerSpec;
+
+import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.transformer.SyslogToMapTransformer;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * {@code InboundChannelAdapter} implementation that uses the Reactor TCP support to read in syslog messages and
@@ -69,7 +69,7 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 	 * @param transport transport
 	 */
 	public void setTransport(String transport) {
-		if(null == transport || (!"tcp".equals(transport.toLowerCase()) && !"udp".equals(transport.toLowerCase()))) {
+		if (null == transport || (!"tcp".equals(transport.toLowerCase()) && !"udp".equals(transport.toLowerCase()))) {
 			throw new IllegalArgumentException("Transport must be 'tcp' or 'udp'");
 		}
 		this.transport = transport.toLowerCase();
@@ -102,10 +102,12 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 	protected void onInit() {
 		super.onInit();
 
-		NetServerSpec<Buffer, Buffer, ? extends NetServerSpec<Buffer, Buffer, ?, ?>, ? extends NetServer<Buffer, Buffer>> spec;
-		if("udp".equals(transport)) {
+		NetServerSpec<Buffer, Buffer, ? extends NetServerSpec<Buffer, Buffer, ?, ?>, ? extends NetServer<Buffer,
+				Buffer>> spec;
+		if ("udp".equals(transport)) {
 			spec = new DatagramServerSpec<Buffer, Buffer>(NettyDatagramServer.class);
-		} else {
+		}
+		else {
 			spec = new TcpServerSpec<Buffer, Buffer>(NettyTcpServer.class);
 		}
 
@@ -132,7 +134,7 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 		spec.env(env)
 				// safest guess of Dispatcher since we don't know what's happening downstream
 				.dispatcher(new SynchronousDispatcher())
-				// optimize for massive throughput by using lightweight codec in server
+						// optimize for massive throughput by using lightweight codec in server
 				.codec(new DelimitedCodec<Buffer, Buffer>(false, StandardCodecs.PASS_THROUGH_CODEC))
 				.listen(host, port)
 				.consume(new Consumer<NetChannel<Buffer, Buffer>>() {

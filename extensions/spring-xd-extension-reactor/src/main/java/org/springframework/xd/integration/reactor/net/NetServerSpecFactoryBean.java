@@ -20,12 +20,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import reactor.core.Dispatcher;
 import reactor.core.Environment;
+import reactor.event.dispatch.Dispatcher;
 import reactor.io.encoding.Codec;
 import reactor.io.encoding.DelimitedCodec;
 import reactor.io.encoding.LengthFieldCodec;
@@ -37,10 +33,14 @@ import reactor.net.spec.NetServerSpec;
 import reactor.net.tcp.spec.TcpServers;
 import reactor.net.udp.spec.DatagramServers;
 
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
 /**
  * @author Jon Brisbin
  */
-@SuppressWarnings({ "unchecked", "rawtypes" })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 
 	private static final Map<String, Codec> DEFAULT_CODECS = new HashMap<String, Codec>();
@@ -99,7 +99,7 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 		if (null != uri.getQuery()) {
 			String[] params = StringUtils.split(uri.getQuery(), "&");
 			if (null == params) {
-				params = new String[] { uri.getQuery() };
+				params = new String[] {uri.getQuery()};
 			}
 			for (String pair : params) {
 				String[] parts = StringUtils.split(pair, "=");
@@ -120,11 +120,10 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 	}
 
 	/**
-	 * Set the name of the {@link reactor.core.Dispatcher} to use, which will be pulled from the current
-	 * {@link reactor.core.Environment}.
-	 * 
+	 * Set the name of the {@link reactor.event.dispatch.Dispatcher} to use, which will be pulled from the current {@link
+	 * reactor.core.Environment}.
+	 *
 	 * @param dispatcher dispatcher name
-	 * 
 	 * @return {@literal this}
 	 */
 	public NetServerSpecFactoryBean setDispatcher(String dispatcher) {
@@ -139,9 +138,8 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 
 	/**
 	 * Set the host to which this server will bind.
-	 * 
+	 *
 	 * @param host the host to bind to (defaults to {@code 0.0.0.0})
-	 * 
 	 * @return {@literal this}
 	 */
 	public NetServerSpecFactoryBean setHost(String host) {
@@ -152,9 +150,8 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 
 	/**
 	 * Set the port to which this server will bind.
-	 * 
+	 *
 	 * @param port the port to bind to (defaults to {@code 3000})
-	 * 
 	 * @return {@literal this}
 	 */
 	public NetServerSpecFactoryBean setPort(int port) {
@@ -164,18 +161,12 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 	}
 
 	/**
-	 * Set the type of {@link reactor.io.encoding.Codec} to use to managing encoding and decoding of the data.
-	 * <p>
-	 * The default options for codecs are:
-	 * <ul>
-	 * <li>{@code bytes} - Use the standard byte array codec.</li>
-	 * <li>{@code string} - Use the standard String codec.</li>
-	 * <li>{@code syslog} - Use the standard Syslog codec.</li>
-	 * </ul>
+	 * Set the type of {@link reactor.io.encoding.Codec} to use to managing encoding and decoding of the data. <p> The
+	 * default options for codecs are: <ul> <li>{@code bytes} - Use the standard byte array codec.</li> <li>{@code
+	 * string} - Use the standard String codec.</li> <li>{@code syslog} - Use the standard Syslog codec.</li> </ul>
 	 * </p>
-	 * 
+	 *
 	 * @param codec the codec
-	 * 
 	 * @return {@literal this}
 	 */
 	public NetServerSpecFactoryBean setCodec(String codec) {
@@ -185,18 +176,11 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 	}
 
 	/**
-	 * Set the type of framing to use.
-	 * <p>
-	 * The options for framing are:
-	 * <ul>
-	 * <li>{@code linefeed} - Means use an LF-delimited linefeed codec.</li>
-	 * <li>{@code length} - Means use a length-field based codec where the initial bytes of a message are the length of
-	 * the rest of the message.</li>
-	 * </ul>
-	 * </p>
-	 * 
+	 * Set the type of framing to use. <p> The options for framing are: <ul> <li>{@code linefeed} - Means use an
+	 * LF-delimited linefeed codec.</li> <li>{@code length} - Means use a length-field based codec where the initial
+	 * bytes of a message are the length of the rest of the message.</li> </ul> </p>
+	 *
 	 * @param framing type of framing
-	 * 
 	 * @return {@literal this}
 	 */
 	public NetServerSpecFactoryBean setFraming(String framing) {
@@ -207,10 +191,9 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 
 	/**
 	 * Set the length of the length field if using length-field framing.
-	 * 
+	 *
 	 * @param lengthFieldLength {@code 2} for a {@code short}, {@code 4} for an {@code int} (the default), or {@code 8}
-	 *        for a {@code long}
-	 * 
+	 * for a {@code long}
 	 * @return {@literal this}
 	 */
 	public NetServerSpecFactoryBean setLengthFieldLength(int lengthFieldLength) {

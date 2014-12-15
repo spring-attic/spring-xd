@@ -38,12 +38,9 @@ import org.springframework.xd.dirt.rest.RestConfiguration;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration()
-@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
+@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class },
+		initializers = SecurityControllerIntegrationTestsInitializer.class)
 public class SecurityControllerIntegrationTests extends AbstractControllerIntegrationTest {
-
-	static {
-		System.setProperty("security.basic.enabled", "false");
-	}
 
 	@Test
 	public void testGetSecurityInfo() throws Exception {
@@ -52,5 +49,4 @@ public class SecurityControllerIntegrationTests extends AbstractControllerIntegr
 				.andExpect(jsonPath("$.authenticationEnabled").value(false))
 				.andExpect(jsonPath("$.authenticated").value(false));
 	}
-
 }

@@ -36,18 +36,17 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.xd.dirt.job.DetailedJobInfo;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
-import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.rest.domain.DetailedJobInfoResource;
 
 
 /**
  * Controller for batch jobs and job instances, job executions on a given batch job.
- * 
+ *
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
  * @author Andrew Eisenberg
- * 
+ *
  */
 @RestController
 @RequestMapping("/jobs/configurations")
@@ -56,21 +55,24 @@ public class BatchJobsController extends AbstractBatchJobsController {
 
 	/**
 	 * Get the paged resources of {@link DetailedJobInfoResource}
-	 * 
+	 *
 	 * @param pageable the paging metadata
 	 * @param assembler the paged resource assembler of type {@link DetailedJobInfo}
 	 */
-	@RequestMapping(value = "", method = RequestMethod.GET)
+	@RequestMapping(value = "", method = RequestMethod.GET, produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public PagedResources<DetailedJobInfoResource> jobs(Pageable pageable,
 			PagedResourcesAssembler<DetailedJobInfo> assembler) {
 		Page<Job> deployedJobs = xdJobrepository.findAll(pageable);
 		List<DetailedJobInfo> detailedJobs = new ArrayList<DetailedJobInfo>();
 		for (Job deployedJob : deployedJobs) {
-			detailedJobs.add(getJobInfo(deployedJob.getDefinition().getName(), true));
+			DetailedJobInfo detailedJobInfo = getJobInfo(deployedJob.getDefinition().getName(), true);
+			if (detailedJobInfo != null) {
+				detailedJobs.add(detailedJobInfo);
+			}
 		}
 		return assembler.toResource(
-				new PageImpl<DetailedJobInfo>(detailedJobs, pageable, deployedJobs.getTotalElements()),
+				new PageImpl<DetailedJobInfo>(detailedJobs, pageable, detailedJobs.size()),
 				jobInfoResourceAssembler);
 	}
 
@@ -78,7 +80,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	 * @param jobName name of the job
 	 * @return ExpandedJobInfo for the given job name
 	 */
-	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET, produces ="application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public DetailedJobInfoResource jobinfo(@PathVariable String jobName) {
 		return getJobInfoResource(jobName);
@@ -90,7 +92,8 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	 */
 	private DetailedJobInfoResource getJobInfoResource(String jobName) {
 		Job deployedJob = xdJobrepository.findOne(jobName);
-		return jobInfoResourceAssembler.instantiateResource(getJobInfo(jobName, (null != deployedJob)));
+		DetailedJobInfo detailedJobInfo = getJobInfo(jobName, (null != deployedJob));
+		return (detailedJobInfo != null) ? jobInfoResourceAssembler.instantiateResource(detailedJobInfo) : null ;
 	}
 
 	/**
@@ -98,7 +101,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	 *
 	 * @param jobName name of the job
 	 * @param deployed the deployment status of the job
-	 * @return a job info for this job
+	 * @return a job info for this job or null if job doesn't exist
 	 */
 	private DetailedJobInfo getJobInfo(String jobName, boolean deployed) {
 		boolean launchable = jobService.isLaunchable(jobName);
@@ -109,7 +112,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 					getLastExecution(jobName), deployed);
 		}
 		catch (NoSuchJobException e) {
-			throw new NoSuchBatchJobException(jobName);
+			return null;
 		}
 	}
 

@@ -105,7 +105,7 @@ Inject your dependencies into your `index.html` file:
 
 **Important** By default, Node Package Manager (NPM) for Spring XD uses the Artifactory NPM repo at http://repo.spring.io. As such you will notice a file called **.npmrc** in the **spring-xd-ui**  directory pointing to the registry at http://repo.spring.io/api/npm/npmjs.
 
-If you add/update dependencies that are not yet cached by *Artifactory*, you must use NPM authentication so that they will pulled into the the Artifactory NPM repo.
+If you add/update dependencies that are not yet cached by *Artifactory*, you must use NPM authentication so that they will be pulled into the Artifactory NPM repo.
 
 Follow the following steps to setup NPM authentication:
 

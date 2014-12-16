@@ -21,11 +21,11 @@ package org.springframework.xd.dirt.integration.rabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.RabbitConnectionFactoryBean;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 
 /**
  * Configures the connection factory used by the rabbit message bus.
@@ -56,10 +56,11 @@ public class ConnectionFactorySettings {
 		return factory;
 	}
 
-	@Bean
+	// If no RabbitProperties bean is available, instantiate one, deferring to Spring Boot for populating it
+	@Configuration
 	@ConditionalOnMissingBean(RabbitProperties.class)
-	RabbitProperties rabbitProperties() {
-		return new RabbitProperties();
+	@EnableConfigurationProperties(RabbitProperties.class)
+	public static class RabbitPropertiesLoader {
 	}
 
 	@Bean

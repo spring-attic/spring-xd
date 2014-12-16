@@ -25,24 +25,31 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.junit.Rule;
 import org.junit.Test;
-
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.hadoop.test.context.HadoopDelegatingSmartContextLoader;
+import org.springframework.data.hadoop.test.context.MiniHadoopCluster;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TestFtpServer;
-import org.springframework.xd.test.hadoop.HadoopFileSystemTestSupport;
 
 
 /**
  *
  * @author Gary Russell
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(loader=HadoopDelegatingSmartContextLoader.class, classes = JobCommandWithHadoopTests.EmptyConfig.class)
+@MiniHadoopCluster
 public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
 
 	private static final Log logger = LogFactory.getLog(JobCommandWithHadoopTests.class);
 
-	@Rule
-	public final HadoopFileSystemTestSupport hadoopTestSupport = new HadoopFileSystemTestSupport();
+	@Autowired
+	org.apache.hadoop.conf.Configuration configuration;
 
 	@Test
 	public void testLaunchFtpHadoopJob() throws Throwable {
@@ -51,7 +58,8 @@ public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
 		server.before();
 
 		// clean up from old tests
-		FileSystem fs = this.hadoopTestSupport.getResource();
+		FileSystem fs = FileSystem.get(configuration);
+
 		Path p1 = new Path("foo/ftpSource/ftpSource1.txt");
 		fs.delete(p1, true);
 		Path p2 = new Path("foo/ftpSource/ftpSource2.txt");
@@ -61,8 +69,8 @@ public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
 
 		try {
 			int port = server.getPort();
-			executeJobCreate("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port);
-			checkForJobInList("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port, true);
+			executeJobCreate("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port + " --fsUri=" + fs.getUri().toString());
+			checkForJobInList("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port + " --fsUri=" + fs.getUri().toString(), true);
 			executeJobLaunch("myftphdfs", "{\"-remoteDirectory\":\"ftpSource\",\"hdfsDirectory\":\"foo\"}");
 
 			Table jobExecutions = listJobExecutions();
@@ -88,9 +96,12 @@ public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
 			assertEquals("source2", new String(out));
 		}
 		finally {
-			this.hadoopTestSupport.cleanupResource();
 			server.after();
 		}
+	}
+
+	@Configuration
+	static class EmptyConfig {
 	}
 
 }

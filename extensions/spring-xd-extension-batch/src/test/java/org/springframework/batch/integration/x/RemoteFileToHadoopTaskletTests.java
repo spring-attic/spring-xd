@@ -28,8 +28,8 @@ import java.io.File;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -37,22 +37,30 @@ import org.springframework.batch.core.scope.context.StepContext;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.hadoop.test.context.HadoopDelegatingSmartContextLoader;
+import org.springframework.data.hadoop.test.context.MiniHadoopCluster;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.xd.test.hadoop.HadoopFileSystemTestSupport;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 
 /**
- * 
+ *
  * @author Gary Russell
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(loader = HadoopDelegatingSmartContextLoader.class, classes = RemoteFileToHadoopTaskletTests.EmptyConfig.class)
+@MiniHadoopCluster
 public class RemoteFileToHadoopTaskletTests {
 
 	private static final String tmpDir = System.getProperty("java.io.tmpdir");
 
-	@Rule
-	public final HadoopFileSystemTestSupport hadoopFileSystemTestSupport = new HadoopFileSystemTestSupport();
+	@Autowired
+	org.apache.hadoop.conf.Configuration configuration;
 
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -79,13 +87,13 @@ public class RemoteFileToHadoopTaskletTests {
 		template.afterPropertiesSet();
 
 		// clean up from old tests
-		FileSystem fs = this.hadoopFileSystemTestSupport.getResource();
+		FileSystem fs = FileSystem.get(configuration);
 		Path p = new Path("/qux/foo.txt");
 		fs.delete(p, true);
 		assertFalse(fs.exists(p));
 
 		RemoteFileToHadoopTasklet tasklet = new RemoteFileToHadoopTasklet(template,
-				this.hadoopFileSystemTestSupport.getConfiguration(), "/qux");
+				configuration, "/qux");
 
 		assertEquals(RepeatStatus.FINISHED, tasklet.execute(null, chunkContext));
 
@@ -98,6 +106,10 @@ public class RemoteFileToHadoopTaskletTests {
 		assertEquals("foobarbaz", new String(out));
 
 		fs.close();
+	}
+
+	@Configuration
+	static class EmptyConfig {
 	}
 
 }

@@ -108,6 +108,20 @@ ou: developer
 member: uid=ben,ou=people,dc=springframework,dc=org
 member: uid=bob,ou=people,dc=springframework,dc=org
 
+dn: cn=view,ou=groups,dc=springframework,dc=org
+objectclass: top
+objectclass: groupOfNames
+cn: view
+ou: view
+member: uid=joe,ou=otherpeople,dc=springframework,dc=org
+
+dn: cn=admin,ou=groups,dc=springframework,dc=org
+objectclass: top
+objectclass: groupOfNames
+cn: admin
+ou: admin
+member: uid=joe,ou=otherpeople,dc=springframework,dc=org
+
 dn: cn=managers,ou=groups,dc=springframework,dc=org
 objectclass: top
 objectclass: groupOfNames

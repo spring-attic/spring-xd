@@ -128,7 +128,85 @@ xd:
       zkAddress:                               localhost:2181
       replicationFactor:                       1
       numOfKafkaPartitionsForCountEqualsZero:  10
-
+  security:
+    authorization:
+      rules:
+        # Streams
+        - GET    /streams/definitions            => hasRole('ROLE_VIEW')
+        - DELETE /streams/definitions            => hasRole('ROLE_CREATE')
+        - GET    /streams/definitions/*          => hasRole('ROLE_VIEW')
+        - POST   /streams/definitions            => hasRole('ROLE_CREATE')
+        - DELETE /streams/definitions/*          => hasRole('ROLE_CREATE')
+        # Stream Deployments
+        - GET    /streams/deployments/           => hasRole('ROLE_VIEW')
+        - DELETE /streams/deployments/           => hasRole('ROLE_CREATE')
+        - GET    /streams/deployments/*          => hasRole('ROLE_VIEW')
+        - POST   /streams/deployments/*          => hasRole('ROLE_CREATE')
+        - DELETE /streams/deployments/*          => hasRole('ROLE_CREATE')
+        # Job Definitions
+        - GET    /jobs/definitions               => hasRole('ROLE_VIEW')
+        - DELETE /jobs/definitions               => hasRole('ROLE_CREATE')
+        - GET    /jobs/definitions/*             => hasRole('ROLE_VIEW')
+        - POST   /jobs/definitions               => hasRole('ROLE_CREATE')
+        - DELETE /jobs/definitions/*             => hasRole('ROLE_CREATE')
+        # Job Deployments
+        - GET    /jobs/deployments/              => hasRole('ROLE_VIEW')
+        - DELETE /jobs/deployments/              => hasRole('ROLE_CREATE')
+        - GET    /jobs/deployments/*             => hasRole('ROLE_VIEW')
+        - POST   /jobs/deployments/*             => hasRole('ROLE_CREATE')
+        - DELETE /jobs/deployments/*             => hasRole('ROLE_CREATE')
+        # Batch Job Configurations
+        - GET    /jobs/configurations            => hasRole('ROLE_VIEW')
+        - GET    /jobs/configurations/*          => hasRole('ROLE_VIEW')
+        # Batch Job Executions
+        - GET    /jobs/executions                => hasRole('ROLE_VIEW')
+        - PUT    /jobs/executions?stop=true      => hasRole('ROLE_CREATE')
+        - GET    /jobs/executions?jobname=*      => hasRole('ROLE_VIEW')
+        - POST   /jobs/executions?jobname=*      => hasRole('ROLE_CREATE')
+        - GET    /jobs/executions/*              => hasRole('ROLE_VIEW')
+        - PUT    /jobs/executions/*?restart=true => hasRole('ROLE_CREATE')
+        - PUT    /jobs/executions/*?stop=true    => hasRole('ROLE_CREATE')
+        - GET    /jobs/executions/*/steps        => hasRole('ROLE_VIEW')
+        - GET    /jobs/executions/*/steps/*      => hasRole('ROLE_VIEW')
+        - GET    /jobs/executions/*/steps/*/progress => hasRole('ROLE_VIEW')
+        # Batch Job Instances
+        - GET    /jobs/instances?jobname=*       => hasRole('ROLE_VIEW')
+        - GET    /jobs/instances/*               => hasRole('ROLE_VIEW')
+        # Module Definitions
+        - GET    /modules                        => hasRole('ROLE_VIEW')
+        - POST   /modules                        => hasRole('ROLE_CREATE')
+        - GET    /modules/*/*                    => hasRole('ROLE_VIEW')
+        - DELETE /modules/*/*                    => hasRole('ROLE_CREATE')
+        # Deployed Modules
+        - GET    /runtime/modules                => hasRole('ROLE_VIEW')
+        # Containers
+        - GET    /runtime/containers             => hasRole('ROLE_VIEW')
+        # Counters
+        - GET    /metrics/counters               => hasRole('ROLE_VIEW')
+        - GET    /metrics/counters/*             => hasRole('ROLE_VIEW')
+        - DELETE /metrics/counters/*             => hasRole('ROLE_CREATE')
+        # Field Value Counters
+        - GET    /metrics/field-value-counters   => hasRole('ROLE_VIEW')
+        - GET    /metrics/field-value-counters/* => hasRole('ROLE_VIEW')
+        - DELETE /metrics/field-value-counters/* => hasRole('ROLE_CREATE')
+        # Aggregate Counters
+        - GET    /metrics/aggregate-counters     => hasRole('ROLE_VIEW')
+        - GET    /metrics/aggregate-counters/*   => hasRole('ROLE_VIEW')
+        - DELETE /metrics/aggregate-counters/*   => hasRole('ROLE_CREATE')
+        # Gauges
+        - GET    /metrics/gauges                 => hasRole('ROLE_VIEW')
+        - GET    /metrics/gauges/*               => hasRole('ROLE_VIEW')
+        - DELETE /metrics/gauges/*               => hasRole('ROLE_CREATE')
+        # Rich Gauges
+        - GET    /metrics/rich-gauges            => hasRole('ROLE_VIEW')
+        - GET    /metrics/rich-gauges/*          => hasRole('ROLE_VIEW')
+        - DELETE /metrics/rich-gauges/*          => hasRole('ROLE_CREATE')
+        # Tab Completions
+        - GET    /completions/stream?start=*     => hasRole('ROLE_VIEW')
+        - GET    /completions/job?start=*        => hasRole('ROLE_VIEW')
+        - GET    /completions/module?start=*     => hasRole('ROLE_VIEW')
+        # Boot Endpoints
+        - GET    /management/**                  => hasRole('ROLE_ADMIN')
 
 server:
   port: ${PORT:9393}

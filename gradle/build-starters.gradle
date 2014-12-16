@@ -22,7 +22,6 @@ project('spring-xd-module-parent') {
 	apply from: 'publish-maven.gradle'
 	dependencies {
 		compile "org.springframework.xd:spring-xd-dirt:${version}"
-		compile "org.springframework.xd:spring-xd-module-spi:${version}"
 	}
 }
 

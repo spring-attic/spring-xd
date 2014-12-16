@@ -122,7 +122,7 @@ apply from: 'gradle/build-common.gradle'
 configure(javaProjects) { subproject ->
 
 	apply plugin: 'groovy'
-	if (!subproject.name.equals('spring-xd-module-parent')) {
+	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters')) {
 		apply from: "${rootProject.projectDir}/publish-maven.gradle"
 		apply plugin: 'eclipse'
 		apply plugin: 'idea'

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!--
+	this bean is needed in cases where 'hadoopConfiguration' exists in other xml configs and we need to
+	get it from a running hadoop minicluster. Order to override beans in xml this needs to be after other
+	import so that bean actually gets overridden. we can't use @Configuration because beans from xml
+	are resolved in higher level.
+	-->
+	<bean id="hadoopConfiguration" class="org.springframework.data.hadoop.test.support.ConfigurationDelegatingFactoryBean">
+		<property name="cluster" ref="hadoopCluster"/>
+	</bean>
+
+</beans>

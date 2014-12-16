@@ -988,6 +988,7 @@ project('spring-xd-test') {
 		compile "org.springframework:spring-context-support"
 		compile "org.springframework:spring-tx"
 		compile "org.springframework:spring-test"
+		compile "org.springframework.data:spring-data-hadoop-test"
 		compile "redis.clients:jedis"
 		compile "org.hsqldb:hsqldb"
 		compile "org.apache.tomcat:tomcat-jdbc"

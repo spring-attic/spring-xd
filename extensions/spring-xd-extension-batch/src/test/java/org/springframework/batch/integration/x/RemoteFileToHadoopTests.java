@@ -32,9 +32,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
@@ -42,24 +41,35 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.hadoop.test.context.HadoopDelegatingSmartContextLoader;
+import org.springframework.data.hadoop.test.context.MiniHadoopCluster;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.test.hadoop.HadoopFileSystemTestSupport;
+import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 
 
 /**
  *
  * @author Gary Russell
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(loader = HadoopDelegatingSmartContextLoader.class, classes = RemoteFileToHadoopTests.EmptyConfig.class)
+@MiniHadoopCluster
 public class RemoteFileToHadoopTests {
 
-	@Rule
-	public final HadoopFileSystemTestSupport hadoopFileSystemTestSupport = new HadoopFileSystemTestSupport();
+	@Autowired
+	private ApplicationContext context;
+
+	@Autowired
+	org.apache.hadoop.conf.Configuration configuration;
 
 	private JobLauncher launcher;
 
@@ -77,19 +87,20 @@ public class RemoteFileToHadoopTests {
 
 	private MessageBus bus;
 
-	@BeforeClass
-	public static void init() {
-		if (System.getProperty("fsUri") == null) {
-			System.setProperty("fsUri", "hdfs://localhost:8020");
-		}
-	}
-
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
 	public void setup() throws Exception {
 		byte[] bytes = "foobarbaz".getBytes();
-		ApplicationContext ctx = new ClassPathXmlApplicationContext(
-				this.getClass().getSimpleName() + "-context.xml", this.getClass());
+
+		// using this trick here by getting hadoop minicluster from main test
+		// context and then using it to override 'hadoopConfiguration' bean
+		// which is imported from ftphdfs.xml.
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext();
+		ctx.setConfigLocations("org/springframework/batch/integration/x/RemoteFileToHadoopTests-context.xml",
+				"org/springframework/batch/integration/x/miniclusterconfig.xml");
+		ctx.setParent(context);
+		ctx.refresh();
+
 		this.sessionFactory = ctx.getBean(SessionFactory.class);
 
 		Session session = mock(Session.class);
@@ -129,40 +140,38 @@ public class RemoteFileToHadoopTests {
 
 	@Test
 	public void testSimple() throws Exception {
-		try {
-			// clean up from old tests
-			FileSystem fs = this.hadoopFileSystemTestSupport.getResource();
-			Path p1 = new Path("/qux/foo/bar.txt");
-			fs.delete(p1, true);
-			Path p2 = new Path("/qux/foo/baz.txt");
-			fs.delete(p2, true);
-			assertFalse(fs.exists(p1));
-			assertFalse(fs.exists(p2));
+		FileSystem fs = FileSystem.get(configuration);
+		Path p1 = new Path("/qux/foo/bar.txt");
+		fs.delete(p1, true);
+		Path p2 = new Path("/qux/foo/baz.txt");
+		fs.delete(p2, true);
+		assertFalse(fs.exists(p1));
+		assertFalse(fs.exists(p2));
 
-			Map<String, JobParameter> params = new HashMap<String, JobParameter>();
-			params.put("remoteDirectory", new JobParameter("/foo/"));
-			params.put("hdfsDirectory", new JobParameter("/qux"));
-			JobParameters parameters = new JobParameters(params);
-			JobExecution execution = launcher.run(job, parameters);
-			assertEquals(ExitStatus.COMPLETED, execution.getExitStatus());
+		Map<String, JobParameter> params = new HashMap<String, JobParameter>();
+		params.put("remoteDirectory", new JobParameter("/foo/"));
+		params.put("hdfsDirectory", new JobParameter("/qux"));
+		JobParameters parameters = new JobParameters(params);
+		JobExecution execution = launcher.run(job, parameters);
+		assertEquals(ExitStatus.COMPLETED, execution.getExitStatus());
 
-			assertTrue(fs.exists(p1));
-			assertTrue(fs.exists(p2));
+		assertTrue(fs.exists(p1));
+		assertTrue(fs.exists(p2));
 
-			FSDataInputStream stream = fs.open(p1);
-			byte[] out = new byte[9];
-			stream.readFully(out);
-			stream.close();
-			assertEquals("foobarbaz", new String(out));
+		FSDataInputStream stream = fs.open(p1);
+		byte[] out = new byte[9];
+		stream.readFully(out);
+		stream.close();
+		assertEquals("foobarbaz", new String(out));
 
-			stream = fs.open(p2);
-			stream.readFully(out);
-			stream.close();
-			assertEquals("foobarbaz", new String(out));
-		}
-		finally {
-			this.hadoopFileSystemTestSupport.cleanupResource();
-		}
+		stream = fs.open(p2);
+		stream.readFully(out);
+		stream.close();
+		assertEquals("foobarbaz", new String(out));
+	}
+
+	@Configuration
+	static class EmptyConfig {
 	}
 
 }

@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import com.rabbitmq.client.Channel;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -61,6 +62,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
@@ -69,8 +71,6 @@ import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-
-import com.rabbitmq.client.Channel;
 
 /**
  * A {@link MessageBus} implementation backed by RabbitMQ.
@@ -336,55 +336,65 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel, Queue queue,
 			RabbitPropertiesAccessor properties, boolean isPubSub) {
-		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
-		listenerContainer.setAcknowledgeMode(properties.getAcknowledgeMode(this.defaultAcknowledgeMode));
-		listenerContainer.setChannelTransacted(properties.getTransacted(this.defaultChannelTransacted));
-		listenerContainer.setDefaultRequeueRejected(properties.getRequeueRejected(this.defaultDefaultRequeueRejected));
-		if (!isPubSub) {
-			int concurrency = properties.getConcurrency(this.defaultConcurrency);
-			concurrency = concurrency > 0 ? concurrency : 1;
-			listenerContainer.setConcurrentConsumers(concurrency);
-			int maxConcurrency = properties.getMaxConcurrency(this.defaultMaxConcurrency);
-			if (maxConcurrency > concurrency) {
-				listenerContainer.setMaxConcurrentConsumers(maxConcurrency);
+		// Fix for XD-2503
+		// Temporarily overrides the thread context classloader with the one where the Rabbit message bus is defined
+		// This allows for the proxying that happens while initializing the SimpleMessageListenerContainer to work correctly
+		ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
+		try {
+			ClassUtils.overrideThreadContextClassLoader(SimpleMessageListenerContainer.class.getClassLoader());
+			SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
+			listenerContainer.setAcknowledgeMode(properties.getAcknowledgeMode(this.defaultAcknowledgeMode));
+			listenerContainer.setChannelTransacted(properties.getTransacted(this.defaultChannelTransacted));
+			listenerContainer.setDefaultRequeueRejected(properties.getRequeueRejected(this.defaultDefaultRequeueRejected));
+			if (!isPubSub) {
+				int concurrency = properties.getConcurrency(this.defaultConcurrency);
+				concurrency = concurrency > 0 ? concurrency : 1;
+				listenerContainer.setConcurrentConsumers(concurrency);
+				int maxConcurrency = properties.getMaxConcurrency(this.defaultMaxConcurrency);
+				if (maxConcurrency > concurrency) {
+					listenerContainer.setMaxConcurrentConsumers(maxConcurrency);
+				}
 			}
+			listenerContainer.setPrefetchCount(properties.getPrefetchCount(this.defaultPrefetchCount));
+			listenerContainer.setTxSize(properties.getTxSize(this.defaultTxSize));
+			listenerContainer.setTaskExecutor(new SimpleAsyncTaskExecutor(queue.getName() + "-"));
+			listenerContainer.setQueues(queue);
+			int maxAttempts = properties.getMaxAttempts(this.defaultMaxAttempts);
+			if (maxAttempts > 1) {
+				RetryOperationsInterceptor retryInterceptor = RetryInterceptorBuilder.stateless()
+						.maxAttempts(maxAttempts)
+						.backOffOptions(properties.getBackOffInitialInterval(this.defaultBackOffInitialInterval),
+								properties.getBackOffMultiplier(this.defaultBackOffMultiplier),
+								properties.getBackOffMaxInterval(this.defaultBackOffMaxInterval))
+						.recoverer(new RejectAndDontRequeueRecoverer())
+						.build();
+				listenerContainer.setAdviceChain(new Advice[] {retryInterceptor});
+			}
+			listenerContainer.afterPropertiesSet();
+			AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
+			adapter.setBeanFactory(this.getBeanFactory());
+			DirectChannel bridgeToModuleChannel = new DirectChannel();
+			bridgeToModuleChannel.setBeanFactory(this.getBeanFactory());
+			bridgeToModuleChannel.setBeanName(name + ".bridge");
+			adapter.setOutputChannel(bridgeToModuleChannel);
+			adapter.setBeanName("inbound." + name);
+			DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
+			mapper.setRequestHeaderNames(properties.getRequestHeaderPattens(this.defaultRequestHeaderPatterns));
+			mapper.setReplyHeaderNames(properties.getReplyHeaderPattens(this.defaultReplyHeaderPatterns));
+			adapter.setHeaderMapper(mapper);
+			adapter.afterPropertiesSet();
+			Binding consumerBinding = Binding.forConsumer(name, adapter, moduleInputChannel, properties);
+			addBinding(consumerBinding);
+			ReceivingHandler convertingBridge = new ReceivingHandler();
+			convertingBridge.setOutputChannel(moduleInputChannel);
+			convertingBridge.setBeanName(name + ".convert.bridge");
+			convertingBridge.afterPropertiesSet();
+			bridgeToModuleChannel.subscribe(convertingBridge);
+			consumerBinding.start();
 		}
-		listenerContainer.setPrefetchCount(properties.getPrefetchCount(this.defaultPrefetchCount));
-		listenerContainer.setTxSize(properties.getTxSize(this.defaultTxSize));
-		listenerContainer.setTaskExecutor(new SimpleAsyncTaskExecutor(queue.getName() + "-"));
-		listenerContainer.setQueues(queue);
-		int maxAttempts = properties.getMaxAttempts(this.defaultMaxAttempts);
-		if (maxAttempts > 1) {
-			RetryOperationsInterceptor retryInterceptor = RetryInterceptorBuilder.stateless()
-					.maxAttempts(maxAttempts)
-					.backOffOptions(properties.getBackOffInitialInterval(this.defaultBackOffInitialInterval),
-							properties.getBackOffMultiplier(this.defaultBackOffMultiplier),
-							properties.getBackOffMaxInterval(this.defaultBackOffMaxInterval))
-					.recoverer(new RejectAndDontRequeueRecoverer())
-					.build();
-			listenerContainer.setAdviceChain(new Advice[] { retryInterceptor });
+		finally {
+			Thread.currentThread().setContextClassLoader(originalClassloader);
 		}
-		listenerContainer.afterPropertiesSet();
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
-		adapter.setBeanFactory(this.getBeanFactory());
-		DirectChannel bridgeToModuleChannel = new DirectChannel();
-		bridgeToModuleChannel.setBeanFactory(this.getBeanFactory());
-		bridgeToModuleChannel.setBeanName(name + ".bridge");
-		adapter.setOutputChannel(bridgeToModuleChannel);
-		adapter.setBeanName("inbound." + name);
-		DefaultAmqpHeaderMapper mapper = new DefaultAmqpHeaderMapper();
-		mapper.setRequestHeaderNames(properties.getRequestHeaderPattens(this.defaultRequestHeaderPatterns));
-		mapper.setReplyHeaderNames(properties.getReplyHeaderPattens(this.defaultReplyHeaderPatterns));
-		adapter.setHeaderMapper(mapper);
-		adapter.afterPropertiesSet();
-		Binding consumerBinding = Binding.forConsumer(name, adapter, moduleInputChannel, properties);
-		addBinding(consumerBinding);
-		ReceivingHandler convertingBridge = new ReceivingHandler();
-		convertingBridge.setOutputChannel(moduleInputChannel);
-		convertingBridge.setBeanName(name + ".convert.bridge");
-		convertingBridge.afterPropertiesSet();
-		bridgeToModuleChannel.subscribe(convertingBridge);
-		consumerBinding.start();
 	}
 
 	@Override

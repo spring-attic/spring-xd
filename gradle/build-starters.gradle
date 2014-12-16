@@ -17,15 +17,12 @@
  * Spring XD Starters projects, supporting starter poms for modules, etc.
 */
 
-project('spring-xd-starter-module') {
-    description = 'Spring XD Starter POM for a Module'
+project('spring-xd-module-parent') {
+    description = 'Spring XD parent POM for a Module'
 	apply from: 'publish-maven.gradle'
 	dependencies {
-			compile "org.springframework.xd:spring-xd-dirt:${version}"
-			compile "org.springframework.xd:spring-xd-module-spi:${version}"
+		compile "org.springframework.xd:spring-xd-dirt:${version}"
+		compile "org.springframework.xd:spring-xd-module-spi:${version}"
 	}
-	javadoc.enabled = false
-	javadocJar.enabled = false
-	sourcesJar.enabled = false
 }
 

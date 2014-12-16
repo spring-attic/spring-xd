@@ -61,7 +61,7 @@ def customizePom(pom, gradleProject) {
 				'maven.compiler.source' '${java.version}'
 				'maven.compiler.target' '${java.version}'
 				'spring.xd.version'  version
-				'spring.boot.version' '1.2.0.RC2'
+				'spring.boot.version' '1.2.0.RELEASE'
 			}
 			
 	 
@@ -93,6 +93,43 @@ def customizePom(pom, gradleProject) {
 								}
 							}
 						}
+					}
+
+					plugin {
+					  	'groupId' 'org.apache.maven.plugins'
+						'artifactId' 'maven-dependency-plugin'
+					  	'version' '2.9'
+      					executions {
+      						execution {
+      							'id' 'copy'
+      							'phase' 'process-resources'
+      							goals {
+      								'goal' 'copy'
+      							}
+      							configuration {
+      								artifactItems {
+      									artifactItem {
+      										'groupId' 'org.springframework.xd'
+      										'artifactId' 'spring-xd-messagebus-local'
+      										'version' version
+      										'overWrite' 'true'
+      										'outputDirectory' '${project.basedir}/lib/messagebus/local'
+      									}
+      								}
+      							}
+      						}
+      					}		 
+      
+					}
+					plugin {
+						'groupId' 'org.apache.maven.plugins'
+						'artifactId' 'maven-surefire-plugin'
+					  	'version' '2.18'
+					  	configuration {
+					  		systemPropertyVariables {
+					  			'XD_HOME' '${project.basedir}'
+					  		}
+					  	}
 					}
 				}
 			}

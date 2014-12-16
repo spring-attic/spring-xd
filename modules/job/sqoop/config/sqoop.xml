@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:hdp="http://www.springframework.org/schema/hadoop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/hadoop
+		http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
+		http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<batch:job id="sqoopJob">
+		<batch:step id="tasklet">
+			<batch:tasklet ref="sqoopTasklet" />
+		</batch:step>
+	</batch:job>
+
+	<bean id="sqoopTasklet" class="org.springframework.xd.sqoop.SqoopTasklet">
+		<property name="arguments">
+			<list>
+				<value>${command}</value>
+				<value>${args}</value>
+				<value>jdbc.url=${url}</value>
+				<value>jdbc.username=${username}</value>
+				<value>jdbc.password=${password}</value>
+				<value>fs.defaultFS=${fsUri}</value>
+				<value>yarn.resourcemanager.address=${resourceManagerHost}:${resourceManagerPort}</value>
+			</list>
+		</property>
+	</bean>
+
+	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">
+		fs.defaultFS=${fsUri}
+	</hdp:configuration>
+
+</beans>

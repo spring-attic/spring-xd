@@ -383,3 +383,9 @@ project('modules.job.timestampfile') {
         runtime project(":spring-xd-extension-batch")
     }
 }
+
+project('modules.job.sqoop') {
+    dependencies {
+        runtime(project(":spring-xd-extension-sqoop"))
+    }
+}

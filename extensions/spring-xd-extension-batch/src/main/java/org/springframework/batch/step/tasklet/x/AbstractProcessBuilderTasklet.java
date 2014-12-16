@@ -1,0 +1,251 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.batch.step.tasklet.x;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.tasklet.SimpleSystemProcessExitCodeMapper;
+import org.springframework.batch.core.step.tasklet.SystemProcessExitCodeMapper;
+import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.repeat.RepeatStatus;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Abstract tasklet for running code in a separate process and capturing the log output. The step execution
+ * context will be updated with some runtime information as well as with the log output.
+ *
+ * @since 1.1
+ * @author Thomas Rrisberg
+ */
+public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExecutionListener {
+
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	/**
+	 * Exit code of job
+	 */
+	protected int exitCode = -1;
+
+	private SystemProcessExitCodeMapper systemProcessExitCodeMapper = new SimpleSystemProcessExitCodeMapper();
+
+
+	@Override
+	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+
+		StepExecution stepExecution = chunkContext.getStepContext().getStepExecution();
+		ExitStatus exitStatus = stepExecution.getExitStatus();
+
+		String commandDescription = getCommandDescription();
+
+		String commandName = getCommandName();
+
+		String commandDisplayString = getCommandDisplayString();
+
+		List<String> command = createCommand();
+
+		String commandClassPath = createClassPath(this.getClass());
+
+		ProcessBuilder pb = new ProcessBuilder(command).redirectErrorStream(true);
+		Map<String, String> env = pb.environment();
+		env.put("CLASSPATH", commandClassPath);
+		String msg = commandDescription + " is being launched";
+		stepExecution.getExecutionContext().putString(commandName.toLowerCase() + ".command", commandDisplayString.trim());
+		List<String> commandLog = new ArrayList<String>();
+		try {
+			Process p = pb.start();
+			p.waitFor();
+			exitCode = p.exitValue();
+			msg = commandDescription + " finished with exit code: " + exitCode;
+			if (exitCode == 0) {
+				logger.info(msg);
+			}
+			else {
+				logger.error(msg);
+			}
+			commandLog = getProcessOutput(p);
+			p.destroy();
+		}
+		catch (IOException e) {
+			msg = commandDescription + " job failed with: " + e;
+			logger.error(msg);
+		}
+		catch (InterruptedException e) {
+			msg = commandDescription + " job failed with: " + e;
+			logger.error(msg);
+		}
+		finally {
+			printLog(commandName, commandLog, exitCode);
+			StringBuilder firstException = new StringBuilder();
+			if (exitCode != 0) {
+				for (String line : commandLog) {
+					if (firstException.length() == 0) {
+						if (line.contains("Exception")) {
+							firstException.append(line).append("\n");
+						}
+					}
+					else {
+						if (line.startsWith("\t")) {
+							firstException.append(line).append("\n");
+						}
+						else {
+							break;
+						}
+					}
+				}
+				if (firstException.length() > 0) {
+					msg = msg + "\n" + firstException.toString();
+				}
+			}
+			StringBuilder commandLogMessages = new StringBuilder();
+			for (String line : commandLog) {
+				commandLogMessages.append(line).append("</br>");
+			}
+			stepExecution.getExecutionContext().putString(commandName.toLowerCase() + ".log", commandLogMessages.toString());
+			stepExecution.setExitStatus(exitStatus.addExitDescription(msg));
+		}
+
+		return RepeatStatus.FINISHED;
+
+	}
+
+	@Override
+	public void beforeStep(StepExecution stepExecution) {
+	}
+
+	@Override
+	public ExitStatus afterStep(StepExecution stepExecution) {
+		return systemProcessExitCodeMapper.getExitStatus(exitCode);
+	}
+
+	protected abstract List<String> createCommand();
+
+	protected abstract String getCommandDisplayString();
+
+	protected abstract String getCommandName();
+
+	protected abstract String getCommandDescription();
+
+	protected String createClassPath(Class taskletClass) {
+		URLClassLoader thisClassLoader;
+		URLClassLoader contextClassLoader;
+		try {
+			contextClassLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
+			thisClassLoader = (URLClassLoader) taskletClass.getClassLoader();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Unable to determine classpath from ClassLoader.", e);
+		}
+		if (thisClassLoader == null) {
+			throw new IllegalStateException("Unable to access ClassLoader for " + taskletClass + ".");
+		}
+		if (contextClassLoader == null) {
+			throw new IllegalStateException("Unable to access Context ClassLoader.");
+		}
+		List<String> classPath = new ArrayList<String>();
+		for (URL url : thisClassLoader.getURLs()) {
+			String file = url.getFile().split("\\!/", 2)[0];
+			if (file.endsWith(".jar")) {
+				classPath.add(file);
+			}
+		}
+		for (URL url : contextClassLoader.getURLs()) {
+			String file = url.getFile().split("\\!/", 2)[0];
+			if (file.endsWith(".jar") && !classPath.contains(file)) {
+				classPath.add(file);
+			}
+		}
+		StringBuilder classPathBuilder = new StringBuilder();
+		String separator = System.getProperty("path.separator");
+		for (String url : classPath) {
+			if (classPathBuilder.length() > 0) {
+				classPathBuilder.append(separator);
+			}
+			classPathBuilder.append(url);
+		}
+		return classPathBuilder.toString();
+	}
+
+	protected List<String> getProcessOutput(Process p) {
+		List<String> lines = new ArrayList<String>();
+		if (p == null) {
+			return lines;
+		}
+		InputStream in = p.getInputStream();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+		String line;
+		try {
+			while ((line = reader.readLine()) != null) {
+				if (lines.size() < 10000) {
+					lines.add(line);
+				}
+				else {
+					lines.add("(log output truncated)");
+					break;
+				}
+			}
+		}
+		catch (IOException e) {
+			lines.add("Failed to read log output due to " + e.getClass().getName());
+			lines.add(e.getMessage());
+		}
+		finally {
+			try {
+				reader.close();
+			} catch (IOException ignore) {}
+		}
+		return lines;
+	}
+
+	protected void printLog(String commandName, List<String> lines, int exitCode) {
+		if (exitCode != 0) {
+			for (String line : lines) {
+				logger.error(commandName + " log: " + line);
+			}
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				for (String line : lines) {
+					logger.debug(commandName + " log: " + line);
+				}
+			}
+		}
+	}
+
+	/**
+	 * @param systemProcessExitCodeMapper maps system process return value to
+	 * <code>ExitStatus</code> returned by Tasklet.
+	 * {@link org.springframework.batch.core.step.tasklet.SimpleSystemProcessExitCodeMapper} is used by default.
+	 */
+	public void setSystemProcessExitCodeMapper(SystemProcessExitCodeMapper systemProcessExitCodeMapper) {
+		this.systemProcessExitCodeMapper = systemProcessExitCodeMapper;
+	}
+
+}

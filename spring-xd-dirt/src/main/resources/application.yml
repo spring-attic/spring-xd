@@ -54,7 +54,10 @@ spring:
     alternateUsernameAllowed: false
 # Hadoop properties
   hadoop:
-   fsUri: hdfs://localhost:8020
+    fsUri: hdfs://localhost:8020
+    resourceManagerHost: localhost
+    resourceManagerPort: 8032
+
 endpoints:
   jolokia:
     enabled: ${XD_JMX_ENABLED:true}

@@ -197,6 +197,11 @@ project('modules.source.sftp') {
     dependencies { runtime      "org.springframework.integration:spring-integration-sftp" }
 }
 
+project('modules.source.rabbit') {
+    dependencies { runtime "org.springframework.integration:spring-integration-amqp" }
+}
+
+
 // ================ M O D U L E S : P R O C E S S O R S ================
 
 
@@ -316,6 +321,10 @@ project('modules.sink.kafka') {
         dependencies {
                 runtime(project(":spring-xd-extension-kafka"))
         }
+}
+
+project('modules.sink.rabbit') {
+    dependencies { runtime "org.springframework.integration:spring-integration-amqp" }
 }
 
 

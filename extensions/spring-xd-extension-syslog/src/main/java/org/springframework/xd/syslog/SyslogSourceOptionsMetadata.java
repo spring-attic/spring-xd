@@ -33,7 +33,7 @@ public class SyslogSourceOptionsMetadata implements ProfileNamesProvider{
 
 	private String rfc = "3164";
 
-	private int port = 1514;
+	private int port = 5140;
 
 	@Pattern(regexp = "(3164|5424)")
 	public String getRfc() {

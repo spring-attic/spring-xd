@@ -36,22 +36,23 @@ ext {
 	javaProjects = subprojects - (moduleProjects + nonJavaProjects)
 	messagebusProjects = subprojects.findAll { project -> project.path.startsWith(':spring-xd-messagebus-') } - project(':spring-xd-messagebus-spi')
 	coverageProjects = [
-			'spring-xd-dirt',
-			'spring-xd-analytics',
-			'spring-xd-analytics-ml',
-			'spring-xd-tuple',
-			'spring-xd-module',
-			'spring-xd-rest-client',
-			'spring-xd-rest-domain',
-			'spring-xd-shell',
-			'spring-xd-hadoop',
-			'spring-xd-extension-http',
-			'spring-xd-extension-jdbc',
-			'spring-xd-extension-reactor',
-			'spring-xd-extension-gemfire',
-			'spring-xd-extension-kafka',
-			'spring-xd-messagebus-spi',
-			'spring-xd-spi-common'
+		'spring-xd-dirt',
+		'spring-xd-analytics',
+		'spring-xd-analytics-ml',
+		'spring-xd-reactor',
+		'spring-xd-tuple',
+		'spring-xd-module',
+		'spring-xd-rest-client',
+		'spring-xd-rest-domain',
+		'spring-xd-shell',
+		'spring-xd-hadoop',
+		'spring-xd-extension-http',
+		'spring-xd-extension-jdbc',
+		'spring-xd-extension-reactor',
+		'spring-xd-extension-gemfire',
+		'spring-xd-extension-kafka',
+		'spring-xd-messagebus-spi',
+		'spring-xd-spi-common'
 	].collect { p -> project(p) } +
 			messagebusProjects
 }
@@ -101,6 +102,7 @@ ext {
 	springShellVersion = '1.1.0.RELEASE'
 	zookeeperVersion = '3.4.6'
 	sparkVersion = '1.1.0'
+
 
 	// Also in IO
 	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4
@@ -333,6 +335,14 @@ project('spring-xd-analytics-ml') {
 	dependencies {
 		compile "org.springframework:spring-core"
 		testCompile project(":spring-xd-tuple")
+	}
+}
+
+project('spring-xd-reactor') {
+	description = 'Spring XD Reactor'
+	dependencies {
+		compile "org.projectreactor:reactor-core"
+		compile "org.springframework.integration:spring-integration-core"
 	}
 }
 

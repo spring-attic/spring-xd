@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <int:channel id="outputChannel">
+        <int:queue capacity="20"/>
+    </int:channel>
+
+
+    <int:channel id="toHandlerChannel"/>
+
+    <bean id="messageProcessor" class="org.springframework.xd.reactor.PongMessageProcessor"/>
+
+    <bean name="reactorMessageHandler" class="org.springframework.xd.reactor.SynchronousDispatcherMessageHandler">
+        <constructor-arg ref="messageProcessor"/>
+    </bean>
+
+
+    <bean id="stringProcessor" class="org.springframework.xd.reactor.PongStringProcessor"/>
+
+    <bean name="reactorStringHandler" class="org.springframework.xd.reactor.SynchronousDispatcherMessageHandler">
+        <constructor-arg ref="stringProcessor"/>
+    </bean>
+
+    <int:service-activator input-channel="toHandlerChannel" ref="reactorStringHandler"
+                           output-channel="outputChannel"/>
+
+
+</beans>

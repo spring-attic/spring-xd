@@ -39,6 +39,7 @@ ext {
 		'spring-xd-dirt',
 		'spring-xd-analytics',
 		'spring-xd-analytics-ml',
+		'spring-xd-reactor',
 		'spring-xd-tuple',
 		'spring-xd-module',
 		'spring-xd-rest-client',
@@ -101,6 +102,7 @@ ext {
 	springShellVersion = '1.1.0.RELEASE'
 	zookeeperVersion = '3.4.6'
 	sparkVersion = '1.1.0'
+
 
 	// Also in IO
 	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4
@@ -330,6 +332,14 @@ project('spring-xd-analytics-ml') {
 	dependencies {
 		compile "org.springframework:spring-core"
 		testCompile project(":spring-xd-tuple")
+	}
+}
+
+project('spring-xd-reactor') {
+	description = 'Spring XD Reactor'
+	dependencies {
+		compile "org.projectreactor:reactor-core"
+		compile project(':spring-xd-dirt') 
 	}
 }
 

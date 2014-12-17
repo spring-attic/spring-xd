@@ -5,6 +5,8 @@ include 'spring-xd-spi-common'
 include 'spring-xd-analytics'
 include 'spring-xd-analytics-ml'
 
+include 'spring-xd-reactor'
+
 include 'spring-xd-messagebus-spi'
 include 'spring-xd-messagebus-local'
 include 'spring-xd-messagebus-kafka'

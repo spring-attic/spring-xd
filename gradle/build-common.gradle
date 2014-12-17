@@ -38,3 +38,7 @@ def forceDependencyVersions(project) {
 		}
 	}
 }
+
+ext {
+	forceDependencyVersions = this.&forceDependencyVersions
+}

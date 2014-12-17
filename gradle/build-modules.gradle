@@ -333,6 +333,10 @@ project('modules.sink.rabbit') {
     dependencies { runtime "org.springframework.integration:spring-integration-amqp" }
 }
 
+project('modules.sink.rabbit') {
+    dependencies { runtime "org.springframework.integration:spring-integration-amqp" }
+}
+
 
 // ================ M O D U L E S : J O B S ============================
 

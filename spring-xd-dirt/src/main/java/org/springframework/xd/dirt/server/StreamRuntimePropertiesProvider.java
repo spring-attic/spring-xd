@@ -70,13 +70,29 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 		RuntimeModuleDeploymentProperties properties = super.propertiesForDescriptor(moduleDescriptor);
 		int moduleSequence = properties.getSequence();
 		int moduleIndex = moduleDescriptor.getIndex();
+
+		// Not first
 		if (moduleIndex > 0) {
 			ModuleDescriptor previous = streamModules.get(moduleIndex - 1);
 			ModuleDeploymentProperties previousProperties = deploymentPropertiesProvider.propertiesForDescriptor(previous);
 			if (hasPartitionKeyProperty(previousProperties)) {
-				properties.put("consumer.partitionIndex", String.valueOf(moduleSequence - 1));
+				properties.put("consumer." + BusProperties.PARTITION_INDEX, String.valueOf(moduleSequence - 1));
 			}
 		}
+		// Not last
+		if (moduleIndex + 1 < streamModules.size()) {
+			ModuleDeploymentProperties nextProperties = deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
+			String count = nextProperties.get("count");
+			if (count != null) {
+				properties.put("producer." + BusProperties.NEXT_MODULE_COUNT, count);
+			}
+			String concurrency = nextProperties.get(BusProperties.CONCURRENCY);
+			if (concurrency != null) {
+				properties.put("producer." + BusProperties.NEXT_MODULE_CONCURRENCY, concurrency);
+			}
+		}
+
+		// Partitioning
 		if (hasPartitionKeyProperty(properties)) {
 			try {
 				ModuleDeploymentProperties nextProperties =
@@ -84,7 +100,7 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 
 				String count = nextProperties.get("count");
 				validateCountProperty(count, moduleDescriptor);
-				properties.put("producer.partitionCount", count);
+				properties.put("producer." + BusProperties.PARTITION_COUNT, count);
 			}
 			catch (IndexOutOfBoundsException e) {
 				logger.warn("Module '{}' is a sink module which contains a property " +
@@ -94,10 +110,8 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 
 			}
 		}
-		else if (streamModules.size() > moduleIndex + 1) {
+		else if (moduleIndex + 1 < streamModules.size()) {
 			ModuleDeploymentProperties nextProperties = deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
-			String count = nextProperties.get("count");
-			properties.put("producer." + BusProperties.NEXT_MODULE_COUNT, count);
 			/*
 			 *  A direct binding is allowed if all of the following are true:
 			 *  1. the user did not explicitly disallow direct binding
@@ -108,7 +122,7 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 			 */
 			String directBindingKey = "producer." + BusProperties.DIRECT_BINDING_ALLOWED;
 			String directBindingValue = properties.get(directBindingKey);
-			if (directBindingValue != null && !"false".equalsIgnoreCase(properties.get(directBindingKey))) {
+			if (directBindingValue != null && !"false".equalsIgnoreCase(directBindingValue)) {
 				logger.warn(
 						"Only 'false' is allowed as an explicit value for the {} property,  but the value was: '{}'",
 						directBindingKey, directBindingValue);

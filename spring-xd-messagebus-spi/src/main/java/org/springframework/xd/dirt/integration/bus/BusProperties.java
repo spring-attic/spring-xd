@@ -90,11 +90,6 @@ public interface BusProperties {
 	public static final String DIRECT_BINDING_ALLOWED = "directBindingAllowed";
 
 	/**
-	 * For all non-terminal modules, the number of modules coming after this one, irrespective of partitioning.
-	 */
-	public static final String NEXT_MODULE_COUNT = "next.module.count";
-
-	/**
 	 * True if message batching is enabled.
 	 */
 	public static final String BATCHING_ENABLED = "batchingEnabled";
@@ -113,5 +108,15 @@ public interface BusProperties {
 	 * The batch timeout if batching is enabled.
 	 */
 	public static final String BATCH_TIMEOUT = "batchTimeout";
+
+	/**
+	 * For all non-terminal modules, the number of modules coming after this one, irrespective of partitioning.
+	 */
+	public static final String NEXT_MODULE_COUNT = "next.module.count";
+
+	/**
+	 * For all non-terminal modules, the concurrency for module coming after this one.
+	 */
+	public static final String NEXT_MODULE_CONCURRENCY = "next.module.concurrency";
 
 }

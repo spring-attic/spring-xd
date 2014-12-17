@@ -16,9 +16,16 @@
 
 package org.springframework.xd.dirt.integration.kafka;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -35,10 +42,14 @@ import kafka.serializer.DefaultDecoder;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
 
 
@@ -124,6 +135,34 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 
 	}
 
+	@Test
+	public void testCompression() throws Exception {
+		final String[] codecs = new String[] {null, "default", "gzip", "snappy"};
+
+		byte[] ratherBigPayload = new byte[2048];
+		Arrays.fill(ratherBigPayload, (byte) 65);
+		MessageBus messageBus = getMessageBus();
+
+		for (String codec : codecs) {
+			DirectChannel moduleOutputChannel = new DirectChannel();
+			QueueChannel moduleInputChannel = new QueueChannel();
+			Properties props = new Properties();
+			if (codec != null) {
+				props.put(KafkaMessageBus.COMPRESSION_CODEC, codec);
+			}
+			messageBus.bindProducer("foo.0", moduleOutputChannel, props);
+			messageBus.bindConsumer("foo.0", moduleInputChannel, null);
+			Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
+			// Let the consumer actually bind to the producer before sending a msg
+			busBindUnbindLatency();
+			moduleOutputChannel.send(message);
+			Message<?> inbound = moduleInputChannel.receive(2000);
+			assertNotNull(inbound);
+			assertArrayEquals(ratherBigPayload, (byte[]) inbound.getPayload());
+			messageBus.unbindProducers("foo.0");
+			messageBus.unbindConsumers("foo.0");
+		}
+	}
 
 	@Test
 	@Ignore("XD-2293 Revisit later")

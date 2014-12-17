@@ -166,6 +166,9 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [	transformDocs, shell
 }
 
 task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [transformDocs, shellReferenceDoc, moduleOptionsReferenceDoc ]) {
+	group = 'Documentation'
+	description = 'Generate the HTML documentation using Asciidoctor'
+
 	classpath = project.configurations.asciidoctor
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")

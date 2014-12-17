@@ -197,6 +197,11 @@ project('modules.source.sftp') {
     dependencies { runtime      "org.springframework.integration:spring-integration-sftp" }
 }
 
+project('modules.source.rabbit') {
+    dependencies { runtime "org.springframework.integration:spring-integration-amqp" }
+}
+
+
 // ================ M O D U L E S : P R O C E S S O R S ================
 
 
@@ -209,7 +214,7 @@ project('modules.processor.http-client') {
 
 project('modules.processor.aggregator') {
     dependencies {
-        // Adding redis for the message store, as it may become optional in DIRT itself
+        // These are for the message stores
         runtime	("org.springframework.integration:spring-integration-redis") { exclude group: 'org.slf4j' }
         runtime	("org.springframework.integration:spring-integration-jdbc")
     }
@@ -306,6 +311,12 @@ project('modules.sink.mongodb') {
     }
 }
 
+project('modules.sink.redis') {
+    dependencies {
+        runtime ("org.springframework.integration:spring-integration-redis")
+    }
+}
+
 project('modules.sink.router') {
 	dependencies {
 		runtime(project(":spring-xd-extension-script"))
@@ -313,9 +324,13 @@ project('modules.sink.router') {
 }
 
 project('modules.sink.kafka') {
-        dependencies {
-                runtime(project(":spring-xd-extension-kafka"))
-        }
+    dependencies {
+        runtime(project(":spring-xd-extension-kafka"))
+    }
+}
+
+project('modules.sink.rabbit') {
+    dependencies { runtime "org.springframework.integration:spring-integration-amqp" }
 }
 
 

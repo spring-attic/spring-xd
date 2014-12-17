@@ -16,30 +16,29 @@
 
 package org.springframework.xd.integration.reactor.syslog;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import reactor.core.Environment;
-import reactor.event.dispatch.SynchronousDispatcher;
-import reactor.function.Consumer;
-import reactor.function.Function;
-import reactor.io.Buffer;
-import reactor.io.encoding.DelimitedCodec;
-import reactor.io.encoding.StandardCodecs;
-import reactor.net.NetChannel;
-import reactor.net.NetServer;
-import reactor.net.encoding.syslog.SyslogCodec;
-import reactor.net.encoding.syslog.SyslogMessage;
-import reactor.net.netty.tcp.NettyTcpServer;
-import reactor.net.netty.udp.NettyDatagramServer;
-import reactor.net.spec.NetServerSpec;
-import reactor.net.tcp.spec.TcpServerSpec;
-import reactor.net.udp.spec.DatagramServerSpec;
-
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import reactor.Environment;
+import reactor.core.dispatch.SynchronousDispatcher;
+import reactor.fn.Consumer;
+import reactor.fn.Function;
+import reactor.io.buffer.Buffer;
+import reactor.io.codec.DelimitedCodec;
+import reactor.io.codec.StandardCodecs;
+import reactor.io.net.NetChannel;
+import reactor.io.net.NetServer;
+import reactor.io.net.codec.syslog.SyslogCodec;
+import reactor.io.net.codec.syslog.SyslogMessage;
+import reactor.io.net.netty.tcp.NettyTcpServer;
+import reactor.io.net.netty.udp.NettyDatagramServer;
+import reactor.io.net.spec.NetServerSpec;
+import reactor.io.net.tcp.spec.TcpServerSpec;
+import reactor.io.net.udp.spec.DatagramServerSpec;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * {@code InboundChannelAdapter} implementation that uses the Reactor TCP support to read in syslog messages and

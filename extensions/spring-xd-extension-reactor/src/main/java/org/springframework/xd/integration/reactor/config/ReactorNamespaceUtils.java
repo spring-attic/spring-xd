@@ -16,10 +16,9 @@
 
 package org.springframework.xd.integration.reactor.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Namespace parser helper for creating {@link BeanDefinitionBuilder} instances that have a reference to a Reactor

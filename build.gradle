@@ -109,6 +109,9 @@ ext {
 
 	springDataHadoopBase = '2.1.0.M2'
 
+	//Reactor 1.1 is used in spring-xd-extension-batch transitively though spring integration
+	reactor11xVersion = '1.1.5.RELEASE'
+
 	singleNodeServerProcess = new SingleNodeServerProcess()
 }
 

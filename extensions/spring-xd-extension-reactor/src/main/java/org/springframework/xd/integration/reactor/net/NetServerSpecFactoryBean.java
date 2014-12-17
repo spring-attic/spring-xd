@@ -16,26 +16,26 @@
 
 package org.springframework.xd.integration.reactor.net;
 
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+import reactor.Environment;
+import reactor.core.Dispatcher;
+import reactor.io.codec.Codec;
+import reactor.io.codec.DelimitedCodec;
+import reactor.io.codec.LengthFieldCodec;
+import reactor.io.codec.StandardCodecs;
+import reactor.io.net.codec.syslog.SyslogCodec;
+import reactor.io.net.netty.tcp.NettyTcpServer;
+import reactor.io.net.netty.udp.NettyDatagramServer;
+import reactor.io.net.spec.NetServerSpec;
+import reactor.io.net.tcp.spec.TcpServers;
+import reactor.io.net.udp.spec.DatagramServers;
+
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import reactor.core.Environment;
-import reactor.event.dispatch.Dispatcher;
-import reactor.io.encoding.Codec;
-import reactor.io.encoding.DelimitedCodec;
-import reactor.io.encoding.LengthFieldCodec;
-import reactor.io.encoding.StandardCodecs;
-import reactor.net.encoding.syslog.SyslogCodec;
-import reactor.net.netty.tcp.NettyTcpServer;
-import reactor.net.netty.udp.NettyDatagramServer;
-import reactor.net.spec.NetServerSpec;
-import reactor.net.tcp.spec.TcpServers;
-import reactor.net.udp.spec.DatagramServers;
-
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Jon Brisbin
@@ -120,8 +120,8 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 	}
 
 	/**
-	 * Set the name of the {@link reactor.event.dispatch.Dispatcher} to use, which will be pulled from the current {@link
-	 * reactor.core.Environment}.
+	 * Set the name of the {@link reactor.core.Dispatcher} to use, which will be pulled from the current {@link
+	 * reactor.Environment}.
 	 *
 	 * @param dispatcher dispatcher name
 	 * @return {@literal this}
@@ -161,7 +161,7 @@ public class NetServerSpecFactoryBean implements FactoryBean<NetServerSpec> {
 	}
 
 	/**
-	 * Set the type of {@link reactor.io.encoding.Codec} to use to managing encoding and decoding of the data. <p> The
+	 * Set the type of {@link reactor.io.codec.Codec} to use to managing encoding and decoding of the data. <p> The
 	 * default options for codecs are: <ul> <li>{@code bytes} - Use the standard byte array codec.</li> <li>{@code
 	 * string} - Use the standard String codec.</li> <li>{@code syslog} - Use the standard Syslog codec.</li> </ul>
 	 * </p>

@@ -1251,7 +1251,7 @@ apply from: 'gradle/build-dist.gradle'
 
 task wrapper(type: Wrapper) {
 	description = "Generates build_xd[.bat] scripts"
-	gradleVersion = "1.12"
+	gradleVersion = "2.2.1"
 	scriptFile= "gradle/build_xd"
 }
 

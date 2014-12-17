@@ -19,9 +19,9 @@ package org.springframework.xd.integration.reactor.net;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import reactor.function.Consumer;
-import reactor.net.NetServer;
-import reactor.net.spec.NetServerSpec;
+import reactor.fn.Consumer;
+import reactor.io.net.NetServer;
+import reactor.io.net.spec.NetServerSpec;
 
 /**
  * Inbound ChannelAdapter that uses Reactor's {@code NetServer} abstraction to provide high-speed TCP or UDP ingest.
@@ -31,8 +31,8 @@ import reactor.net.spec.NetServerSpec;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class NetServerInboundChannelAdapter extends MessageProducerSupport {
 
-	private final    NetServerSpec spec;
-	private volatile NetServer     server;
+	private final NetServerSpec spec;
+	private volatile NetServer server;
 
 	public NetServerInboundChannelAdapter(NetServerSpec spec) {
 		Assert.notNull(spec, "NetServerSpec cannot be null");

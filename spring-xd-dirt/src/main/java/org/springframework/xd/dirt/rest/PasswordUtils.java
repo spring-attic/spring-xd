@@ -41,7 +41,8 @@ public class PasswordUtils {
 	}
 
 	public static Pattern passwordParameterPattern = Pattern.compile(
-			"(?i)(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)([\\p{N}|\\p{L}|\\p{Po}]*)",
+			//"(?i)(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)([\\p{N}|\\p{L}|\\p{Po}]*)",
+			"(?i)(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)((\"[\\p{L}|\\p{Pd}|\\p{Ps}|\\p{Pe}|\\p{Pc}|\\p{S}|\\p{N}|\\p{Z}]*\")|([\\p{N}|\\p{L}|\\p{Po}|\\p{Pc}|\\p{S}]*))",
 			Pattern.UNICODE_CASE);
 
 	/**
@@ -59,7 +60,16 @@ public class PasswordUtils {
 		final StringBuffer output = new StringBuffer();
 		final Matcher matcher = passwordParameterPattern.matcher(definition);
 		while (matcher.find()) {
-			matcher.appendReplacement(output, matcher.group(1) + matcher.group(3).replaceAll(".", "*"));
+			final String passwordValue = matcher.group(3);
+			final String maskedPasswordValue;
+			if (passwordValue.startsWith("\"") && passwordValue.endsWith("\"")) {
+				final String passwordValueWithoutQuotes = passwordValue.substring(1, passwordValue.length() - 1);
+				maskedPasswordValue = "\"" + passwordValueWithoutQuotes.replaceAll(".", "*") + "\"";
+			}
+			else {
+				maskedPasswordValue = matcher.group(3).replaceAll(".", "*");
+			}
+			matcher.appendReplacement(output, matcher.group(1) + maskedPasswordValue);
 		}
 		matcher.appendTail(output);
 		return output.toString();

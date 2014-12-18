@@ -68,7 +68,7 @@ def customizePom(pom, gradleProject) {
 			/*
 			TODO: This breaks with Gradle 2.x see http://forums.gradle.org/gradle/topics/after_upgrade_gradle_to_2_0_version_the_maven_pom_not_support_build_property
 			*/
-			build {
+			'build' {
 				'plugins' {
 					'plugin' {
 						'groupId' 'org.springframework.boot'

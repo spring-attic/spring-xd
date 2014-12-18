@@ -32,7 +32,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test the {@link org.springframework.xd.reactor.SynchronousDispatcherMessageHandler} by using two types of
- * {@link org.springframework.xd.reactor.Processor}. The first is  parameterized by
+ * {@link org.springframework.xd.reactor.Processor}. The first is parameterized by
  * {@link org.springframework.messaging.Message} and the second by String to test extracting payload types and
  * wrapping return types in a Message.
  *
@@ -54,7 +54,7 @@ public class SynchronousDispatcherMessageHandlerTests {
 
         sendMessages();
         for (int i = 0; i < numMessages; i++) {
-            Message<?> outputMessage = outputChannel.receive();
+            Message<?> outputMessage = outputChannel.receive(500);
             assertEquals("ping-pong", outputMessage.getPayload());
         }
     }
@@ -63,7 +63,7 @@ public class SynchronousDispatcherMessageHandlerTests {
     public void pojoBasedProcessor() throws IOException {
         sendMessages();
         for (int i = 0; i < numMessages; i++) {
-            Message<?> outputMessage = outputChannel.receive();
+            Message<?> outputMessage = outputChannel.receive(500);
             assertEquals("ping-pong", outputMessage.getPayload());
         }
     }

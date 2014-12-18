@@ -339,7 +339,7 @@ project('spring-xd-reactor') {
 	description = 'Spring XD Reactor'
 	dependencies {
 		compile "org.projectreactor:reactor-core"
-		compile project(':spring-xd-dirt') 
+		compile "org.springframework.integration:spring-integration-core"
 	}
 }
 

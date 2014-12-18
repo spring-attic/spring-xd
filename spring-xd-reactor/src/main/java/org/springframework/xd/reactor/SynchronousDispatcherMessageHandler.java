@@ -37,7 +37,7 @@ import java.lang.reflect.Method;
  * A handler that adapts item at a time delivery in a
  * {@link org.springframework.messaging.MessageHandler}
  * and delegates processing to a Reactor Stream with synchronous dispatch  so that processing
- * occurs on the same thread that invoke the handler..
+ * occurs on the same thread that invokes the handler.
  * <p/>
  * The output stream of the processor is consumed and sent to the output channel.
  *
@@ -62,7 +62,7 @@ public class SynchronousDispatcherMessageHandler extends AbstractMessageProducin
      * @param processor The stream based reactor processor
      */
     public SynchronousDispatcherMessageHandler(Processor processor) {
-        Assert.notNull(processor, "ReactorModule cannot be null.");
+        Assert.notNull(processor, "processor cannot be null.");
         this.reactorProcessor = processor;
         Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
         Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);

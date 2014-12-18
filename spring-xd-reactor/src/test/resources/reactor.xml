@@ -20,10 +20,6 @@
     </bean>
 
 
-    <int:service-activator input-channel="toMessageHandlerChannel" ref="reactorMessageHandler"
-                           output-channel="outputChannel"/>
-
-
     <bean id="stringProcessor" class="org.springframework.xd.reactor.PongStringProcessor"/>
 
     <bean name="reactorStringHandler" class="org.springframework.xd.reactor.SynchronousDispatcherMessageHandler">

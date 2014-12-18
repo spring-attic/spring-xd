@@ -24,9 +24,9 @@ import java.util.List;
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.ExplodedArchive;
 import org.springframework.boot.loader.archive.JarFileArchive;
-import org.springframework.boot.loader.util.AsciiBytes;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.SimpleModuleDefinition;
@@ -54,26 +54,22 @@ public class ModuleUtils {
 			Archive moduleArchive = moduleFile.isDirectory() ? new ExplodedArchive(moduleFile) : new JarFileArchive
 					(moduleFile);
 
-			List<Archive> nestedArchives = new ArrayList<Archive>();
+			List<URL> urls = new ArrayList<URL>();
 			if (includeNestedJars) {
-				nestedArchives = moduleArchive.getNestedArchives(new Archive.EntryFilter() {
-					@Override
-					public boolean matches(Archive.Entry entry) {
-						String name = entry.getName().toString().toLowerCase();
-						return !entry.isDirectory() && name.startsWith(LIB) && 
-								(name.endsWith(DOT_JAR) || name.endsWith(DOT_ZIP));
+				String[] patterns = new String[] {"/lib/*.jar", "/lib/*.zip"};
+
+				ResourcePatternResolver resolver = new ArchiveResourceLoader(moduleArchive);
+
+				for (String pattern : patterns) {
+					for (Resource jar : resolver.getResources(pattern)) {
+						urls.add(jar.getURL());
 					}
-				});
+				}
 			}
 
-			URL[] urls = new URL[nestedArchives.size() + 1];
-			int i = 0;
-			for (Archive nested : nestedArchives) {
-				urls[i++] = nested.getUrl();
-			}
-
-			urls[i] = moduleArchive.getUrl();
-			return new ParentLastURLClassLoader(urls, parent);
+			// Add the module archive itself
+			urls.add(moduleArchive.getUrl());
+			return new ParentLastURLClassLoader(urls.toArray(new URL[urls.size()]), parent);
 		}
 		catch (IOException e) {
 			throw new RuntimeException("Exception creating module classloader for " + moduleLocation, e);

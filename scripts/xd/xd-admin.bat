@@ -95,7 +95,7 @@ set APP_HOME_LIB=%APP_HOME%\lib
 
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
-    set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config;%APP_HOME%
+    set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
 )
 

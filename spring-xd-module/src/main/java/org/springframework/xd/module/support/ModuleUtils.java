@@ -17,63 +17,103 @@ package org.springframework.xd.module.support;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.ExplodedArchive;
 import org.springframework.boot.loader.archive.JarFileArchive;
-import org.springframework.boot.loader.util.AsciiBytes;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.PropertyResolver;
+import org.springframework.core.env.PropertySourcesPropertyResolver;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.SimpleModuleDefinition;
+import org.springframework.xd.module.options.ModuleOptions;
 
 /**
+ * Contains utility methods for accessing a module's properties and dealing with ClassLoaders.
+ *
  * @author Eric Bottard
  * @author David Turanski
  */
 public class ModuleUtils {
 
-	private static final String LIB = "lib/";
+	private static final List<String> DEFAULT_EXTRA_LIBS = Arrays.asList("/lib/*.jar", "/lib/*.zip");
 
-	public static final String DOT_JAR = ".jar";
+	private static final String MODULE_CLASSPATH_KEY = "module.classpath";
 
-	public static final String DOT_ZIP = ".zip";
+	/**
+	 * Used to resolve the module 'location'. Always a file: location at the time of writing.
+	 */
+	private static final PathMatchingResourcePatternResolver simpleResourceResolver = new PathMatchingResourcePatternResolver();
 
-	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent) {
-		return createModuleClassLoader(moduleLocation, parent, true);
+	/**
+	 * Create a ClassLoader suitable for running a module. Extra libraries can come from paths that are derived from
+	 * module options. Any path that starts with a slash will be assumed to be an in-Archive entry, whereas any other
+	 * path (including those starting with a protocol) will be dealt with by a classical resource pattern resolver.
+	 */
+	public static ClassLoader createModuleRuntimeClassLoader(SimpleModuleDefinition definition, ModuleOptions moduleOptions, ClassLoader parent) {
+		Resource moduleLocation = simpleResourceResolver.getResource(definition.getLocation());
+
+		Properties moduleProperties = loadModuleProperties(definition);
+		moduleProperties = moduleProperties == null ? new Properties() : moduleProperties;
+		String extraLibsCSV = moduleProperties.getProperty(MODULE_CLASSPATH_KEY, StringUtils.collectionToCommaDelimitedString(DEFAULT_EXTRA_LIBS));
+		List<String> extraLibs = new ArrayList<>();
+		String[] paths = extraLibsCSV.split("\\s*,\\s*");
+		MutablePropertySources propertySources = new MutablePropertySources();
+		propertySources.addFirst(moduleOptions.asPropertySource());
+		PropertyResolver placeHolderResolver = new PropertySourcesPropertyResolver(propertySources);
+		for (String path : paths) {
+			try {
+				extraLibs.add(placeHolderResolver.resolveRequiredPlaceholders(path));
+			}
+			catch (IllegalArgumentException ignored) {
+			}
+		}
+
+		return createModuleClassLoader(moduleLocation, parent, extraLibs);
 	}
 
-	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent,
-			boolean includeNestedJars) {
+	/**
+	 * Create a "simple" ClassLoader for a module, suitable for early discovery phase, before module options are known.
+	 * Only the default library paths are used.
+	 */
+	public static ClassLoader createModuleDiscoveryClassLoader(Resource moduleLocation, ClassLoader parent) {
+		return createModuleClassLoader(moduleLocation, parent, DEFAULT_EXTRA_LIBS);
+	}
+
+
+	private static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent,
+			Iterable<String> patterns) {
 		try {
 			File moduleFile = moduleLocation.getFile();
 			Archive moduleArchive = moduleFile.isDirectory() ? new ExplodedArchive(moduleFile) : new JarFileArchive
 					(moduleFile);
 
-			List<Archive> nestedArchives = new ArrayList<Archive>();
-			if (includeNestedJars) {
-				nestedArchives = moduleArchive.getNestedArchives(new Archive.EntryFilter() {
-					@Override
-					public boolean matches(Archive.Entry entry) {
-						String name = entry.getName().toString().toLowerCase();
-						return !entry.isDirectory() && name.startsWith(LIB) && 
-								(name.endsWith(DOT_JAR) || name.endsWith(DOT_ZIP));
-					}
-				});
+			List<URL> urls = new ArrayList<>();
+
+			ResourcePatternResolver resolver = new ArchiveResourceLoader(moduleArchive);
+
+			for (String pattern : patterns) {
+				for (Resource jar : resolver.getResources(pattern)) {
+					urls.add(jar.getURL());
+				}
 			}
 
-			URL[] urls = new URL[nestedArchives.size() + 1];
-			int i = 0;
-			for (Archive nested : nestedArchives) {
-				urls[i++] = nested.getUrl();
-			}
-
-			urls[i] = moduleArchive.getUrl();
-			return new ParentLastURLClassLoader(urls, parent);
+			// Add the module archive itself
+			urls.add(moduleArchive.getUrl());
+			return new ParentLastURLClassLoader(urls.toArray(new URL[urls.size()]), parent);
 		}
 		catch (IOException e) {
 			throw new RuntimeException("Exception creating module classloader for " + moduleLocation, e);
@@ -84,40 +124,63 @@ public class ModuleUtils {
 	 * Return a resource that can be used to load the module '.properties' file (containing <i>e.g.</i> information
 	 * about module options, or null if no such file exists.
 	 */
-	public static Resource modulePropertiesFile(SimpleModuleDefinition definition, ClassLoader moduleClassLoader) {
-		return ModuleUtils.locateModuleResource(definition, moduleClassLoader, ".properties");
+	public static Resource modulePropertiesFile(SimpleModuleDefinition definition) {
+		return ModuleUtils.locateModuleResource(definition, ".properties");
+	}
+
+	/**
+	 * Locate the module '.properties' file and load it as a {@link java.util.Properties} object.
+	 * @return {@code null} if no properties file exists
+	 */
+	public static Properties loadModuleProperties(SimpleModuleDefinition moduleDefinition) {
+		Resource resource = modulePropertiesFile(moduleDefinition);
+		if (resource == null) {
+			return null;
+		}
+		Properties properties = new Properties();
+		try (InputStream inputStream = resource.getInputStream()) {
+			properties.load(inputStream);
+			return properties;
+		}
+		catch (IOException e) {
+			throw new RuntimeException(String.format("Unable to read module properties for %s:%s",
+					moduleDefinition.getName(), moduleDefinition.getType()), e);
+		}
 	}
 
 	/**
 	 * Return an expected module resource given a file extension. Will throw an exception if more than one such
-	 * resource exists.
+	 * resource exists. The resource is searched using an insulated module ClassLoader that only knows about the flat
+	 * contents of the module archive (does not search any parent classloader, nor any additional module library).
 	 */
-	public static Resource locateModuleResource(SimpleModuleDefinition definition, ClassLoader moduleClassLoader,
-			String extension) {
+	public static Resource locateModuleResource(SimpleModuleDefinition definition, String extension) {
 
-		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(moduleClassLoader);
-		Resource moduleLocation = resolver.getResource(definition.getLocation());
+		Resource moduleLocation = simpleResourceResolver.getResource(definition.getLocation());
 		Assert.isTrue(moduleLocation.exists(), "module resource " + definition.getLocation() + " does not exist");
-		ClassLoader parentClassloader = moduleClassLoader == null? null : moduleClassLoader.getParent();
-		PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver
-				(createModuleClassLoader(moduleLocation, parentClassloader, false));
 
-		Resource result = null;
 		String ext = extension.startsWith(".") ? extension : "." + extension;
+
 		try {
-			Resource[] resources = moduleResolver.getResources("classpath:/config/*" + ext);
-			if (resources.length > 1) {
-				throw new IllegalStateException("Multiple top level module resources found :" + StringUtils
-						.arrayToCommaDelimitedString(resources));
+			URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[] {moduleLocation.getURL()}, NullClassLoader.NO_PARENT, true);
+			PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver(insulatedClassLoader);
+
+			try {
+				Resource[] resources = moduleResolver.getResources("classpath:/config/*" + ext);
+				if (resources.length > 1) {
+					throw new IllegalStateException("Multiple top level module resources found :" + StringUtils
+							.arrayToCommaDelimitedString(resources));
+				}
+				else if (resources.length == 1) {
+					return resources[0];
+				}
 			}
-			else if (resources.length == 1) {
-				result = resources[0];
+			catch (IOException e) {
+				return null;
 			}
 		}
 		catch (IOException e) {
-			return null;
+			throw new RuntimeException("Exception creating module classloader for " + moduleLocation, e);
 		}
-
-		return result;
+		return null;
 	}
 }

@@ -9,10 +9,10 @@ Spring XD supports data ingestion by allowing users to define xref:Streams#strea
 
 Modules are categorized by `type`, typically representing the role or function of the module. Current Spring XD module types include `source`, `sink`, `processor`, and `job`. The type determines how the modules may be composed in a stream, or used to deploy a batch job. More precisely:
 
-* A source polls an external resource, or is triggered by an event and only provides output. The first module in a stream must be a source. 
-* A processor performs some type of task, using a message as input and produces a new message, so it requires both input and output. 
+* A source polls an external resource, or is triggered by an event and only provides output. The first module in a stream must be a source.
+* A processor performs some type of task, using a message as input and produces a new message, so it requires both input and output.
 
-* A sink consumes input messages and outputs data to an external resource to terminate the stream. 
+* A sink consumes input messages and outputs data to an external resource to terminate the stream.
 
 * A job module implements a Spring Batch job enabled for Spring XD.
 
@@ -57,11 +57,11 @@ Physically, a Module is somewhat analogous to a _war_ file in Servlet container.
       │  
 ----
 
-For historical reasons, all modules included with Spring XD distribution are provided in expanded form and are commonly configured using XML bean definition files (`<module-name>.xml`) and property files (`<module-name>.properties`>. This is subject to change as this convention is no longer required. Meanwhile the out-of-the-box modules provide copious examples of module configuration and packaging. 
+For historical reasons, all modules included with Spring XD distribution are provided in expanded form and are commonly configured using XML bean definition files (`<module-name>.xml`) and property files (`<module-name>.properties`>. This is subject to change as this convention is no longer required. Meanwhile the out-of-the-box modules provide copious examples of module configuration and packaging.
 
 A module's contents typically includes:
 
-* *Application context configuration:* If either _config/<any_name>.xml_, or _config/<any_name>.groovy_ are present, this will be loaded by an http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/factory/xml/XmlBeanDefinitionReader.html[XmlBeanDefinitionReader] or http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/factory/groovy/GroovyBeanDefinitionReader.html[GroovyBeanDefinitionReader] to configure the application context. If using an @Configuration class, neither of these files should be present. 
+* *Application context configuration:* If either _config/<any_name>.xml_, or _config/<any_name>.groovy_ are present, this will be loaded by an http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/factory/xml/XmlBeanDefinitionReader.html[XmlBeanDefinitionReader] or http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/factory/groovy/GroovyBeanDefinitionReader.html[GroovyBeanDefinitionReader] to configure the application context. If using an @Configuration class, neither of these files should be present.
 * *Module properties file:* If the module declares options (e.g. property placeholders whose values must be supplied for each instance when creating a stream), the properties file _config/<any_name>.properties_ may provide an _options_class_ property containing the fully qualified class name of a Module Options Metadata class. Alternately the properties file may provide in-line Module Option descriptors (see <<module-options,Module Options>> below).
 
 [NOTE]
@@ -71,16 +71,16 @@ As of Spring XD 1.1, the names of the module's bean definition resource (xml or 
 If no configuration resource (`config/*.xml` or `config/*.groovy`) is present, Spring XD will expect a _base_packages_ property containing a comma delimited list of package names to enable Spring component scanning scoped to the module.
 
 * *Custom code:*
-Any root level _.class_ files packaged as in a typical jar file. This could include an @Configuration class and dependent classes defined by the module. 
+Any root level _.class_ files packaged as in a typical jar file. This could include an @Configuration class and dependent classes defined by the module.
 
-* *Dependent jar files:* 
+* *Dependent jar files:*
 Any required runtime dependencies that are not already present in the Spring XD class path (_$XD_INSTALL_DIR/xd/lib_) must be provided in the module's _/lib_ directory.
 
 As mentioned previously, a Spring XD module can be installed as an expanded directory tree or an archive. If the module requires dependent jars, which is the typical case, it may be packaged as an http://stackoverflow.com/questions/11947037/what-is-an-uber-jar[uberjar] compatible with Spring Boot, and conforming to the above structure. The next section describes Spring XD's support for module packaging and development.
 
 [[creating-a-module-project]]
 ==== Creating a Module Project
-Spring XD 1.1.x provides support for creating a module project to test and package the module with Maven or Gradle. 
+Spring XD 1.1.x provides support for creating a module project to test and package the module with Maven or Gradle.
 
 ===== Configuring your Maven build
 
@@ -105,13 +105,13 @@ buildscript {
     repositories {
      ...
     }
-    // Add the path of the Spring XD Module plugin 
+    // Add the path of the Spring XD Module plugin
     dependencies {
       classpath("org.springframework.xd:spring-xd-module-plugin:1.1.0.RELEASE") //or a later release of the plugin
     }
 }
 
-//The Spring XD version is required by the plugin to pull in order to configure dependent libraries that your module project will likely need. 
+//The Spring XD version is required by the plugin to pull in order to configure dependent libraries that your module project will likely need.
 ext {
   springXdVersion = '1.1.0.RELEASE' //or a later release of Spring XD
 }
@@ -155,7 +155,7 @@ In rare cases, it may be necessary to override the default exclusions. For examp
 <!-- specify exactly what is included; again transitive dependencies are not included -->
             <includes>
               <include>
-                <groupId>xmlpull</groupId> 
+                <groupId>xmlpull</groupId>
                 <artifactId>xmlpull</artifactId>
               </include>
             </includes>
@@ -215,7 +215,7 @@ $./gradlew clean test bootRepackage
 [NOTE]
 ====
 Spring XD does not parse any embedded version in the jar name, a la Maven. `myModule-v1.jar` resolves to module named `myModule-v1`.
-====  
+====
 
 See the https://github.com/spring-projects/spring-xd-samples/tree/master/si-dsl-module[si-dsl-module example] for a complete working example.
 
@@ -227,7 +227,7 @@ Registering a module requires you to install to the Spring XD Module Registry. A
 
 ----
 xd:>module upload --file [path-to]/mymodule-1.0.0.BUILD-SNAPSHOT.jar --name mymodule --type processor
----- 
+----
 
 ==== The Module Registry
 
@@ -248,21 +248,55 @@ modules
 
 Spring XD provides a strategy interface http://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/dirt/module/ModuleRegistry.html[ModuleRegistry] used to locate a module of a given name and type. Currently Spring XD implements a ResourceModuleRegistry which is configured to locate modules in the following locations in this order:
 
-* The file path given by `xd.module.home` (`${xd.home}/modules` by default)      
+* The file path given by `xd.module.home` (`${xd.home}/modules` by default)
 * `classpath:/modules/`  (Spring XD does not provide any module definitions here)
 * The file path given by `xd.customModule.home` (`${xd.home}/custom-modules` by default)
 
 ==== Custom Module Registry
 
-Custom modules are located separately from out-of-the-box modules. The location is given by `xd.customModule.home` in servers.yml. The location defaults to `${xd.home}/custom-modules` but we strongly recommend setting this to an external location on a network file system if you are using custom modules in production. There are two reasons for doing this. First, custom modules must be accessible to all nodes on the Spring XD cluster, including the XD Admin node. This allows any container instance to deploy the module. Second, if custom modules are registered within the Spring XD installation, they will not survive an upgrade to the Spring XD distribution and will need to be reinstalled. 
+Custom modules are located separately from out-of-the-box modules. The location is given by `xd.customModule.home` in servers.yml. The location defaults to `${xd.home}/custom-modules` but we strongly recommend setting this to an external location on a network file system if you are using custom modules in production. There are two reasons for doing this. First, custom modules must be accessible to all nodes on the Spring XD cluster, including the XD Admin node. This allows any container instance to deploy the module. Second, if custom modules are registered within the Spring XD installation, they will not survive an upgrade to the Spring XD distribution and will need to be reinstalled.
 
 === Module Class Loading
 
-Modules use a separate class loader that will first load classes from jars in the module's /lib (and any class files located in the module's root path). If not found, the class will be loaded from the parent ClassLoader that Spring XD normally uses (which includes everything under _$XD_HOME/lib_). Still, there are a couple of caveats to be aware of:
+Modules use a separate class loader that will first load classes from jars in the module's `/lib` (and any class files located in the module's root path). If not found, the class will be loaded from the parent ClassLoader that Spring XD normally uses (which includes everything under _$XD_HOME/lib_). Still, there are a couple of caveats to be aware of:
 
 * Avoid putting into the module's _lib/_ directory any jar files that are already in Spring XD's class path or you may end up with ClassCastExceptions or other class loading issues.
 
-* Any class that is directly or indirectly referenced from the payload type of your messages (__i.e.__ any type in transit from module to module) must be referenced by both the producing and consuming modules and thus should be installed into _xd/lib_.
+* When using local transport, any class that is directly or indirectly referenced from the payload type of your messages (__i.e.__ any type in transit from module to module) must be referenced by both the producing and consuming modules and thus should be installed into _xd/lib_.
+
+==== Dynamic Module ClassLoader
+Starting with Spring XD 1.2, a module can selectively add libraries from paths that are derived from module options. The aim is __e.g.__ to support several alternative implementations in the same module. This works like the following:
+
+ 1. In the module `.properties` file, specify a value for the `module.classloader` key. The default is `/lib/*.jar,/lib/*.zip`, which is consistent with what has been exposed earlier.
+ 2. The value for that key is a comma separated list of paths (most certainly with Ant-style patterns) that will be looked for additional libraries to add to the module ClassLoader (in addition to the module "Archive" itself, which is always considered).
+   a. paths that start with a `/` (as `/lib/*.jar` in the example above) are considered internal resources to the archives (__e.g.__ nested jars in the über-jar)
+   b. paths that do __not__ start with a `/` (and in particular paths that start with a protocol, such as `file:`) are loaded with a regular Spring resource pattern resolver
+ 3. Those paths can contain placeholders of the form `${foo}`. Those will be resolved against the visible module options (and other inherited properties). Paths containing unresolvable placeholders are silently ignored.
+
+This allows constructions like those (assuming for example that we want to create a `jpa` module that supports several JPA providers):
+
+----
+jpa.jar
+  +- config/
+  |    jpa.properties
+  +- lib/
+       +- hibernate/
+       |    hibernate-core-4.2.jar
+       |    other-hibernate-specific.jar
+       +- eclipse-link/
+       |    eclipse-link-2.5.0.jar
+       |    ...
+       +- some-common.jar
+       +- another-common.jar
+----
+And, in `jpa.properties`:
+----
+options_class = com.acme.jpa.JpaOptionsMetadata
+
+module.classloader = /lib/*.jar, /lib/${provider}/*.jar, ${xd.home}/lib/jpa/${provider}/*.jpa
+----
+
+Where the metadata class includes a `provider` option (of type `String`) that will take __e.g.__ the values `hibernate` or `eclipse-link`. Note the presence of a third `${xd.home}/lib/jpa/${provider}/*.jpa` entry that can be used for unforeseen provider implementations.
 
 [[module-options]]
 === Module Options
@@ -298,7 +332,7 @@ For example, here is part of the Spring configuration for the _twittersearch_ so
 </beans>
 ----
 
-Note the Spring properties such as _query_, _language_, _consumerKey_ and _consumerSecret_. Spring XD will bind values for all of these properties as provided as options for each module instance. The options exposed for this module are defined in https://github.com/spring-projects/spring-xd/blob/master/extensions/spring-xd-extension-twitter/src/main/java/org/springframework/integration/x/twitter/TwitterSearchOptionsMetadata.java[TwitterSearchOptionsMetadata.java] 
+Note the Spring properties such as _query_, _language_, _consumerKey_ and _consumerSecret_. Spring XD will bind values for all of these properties as provided as options for each module instance. The options exposed for this module are defined in https://github.com/spring-projects/spring-xd/blob/master/extensions/spring-xd-extension-twitter/src/main/java/org/springframework/integration/x/twitter/TwitterSearchOptionsMetadata.java[TwitterSearchOptionsMetadata.java]
 
 For example, we can create two different streams, each using the _twittersearch_ source providing different option values.
 
@@ -332,11 +366,11 @@ By convention, Spring XD defined properties are prefixed with _xd_. Below is the
 
 [options=header]
 |======================
-|Placeholder             |Context           |Meaning         
-|`${xd.stream.name}`     |streams           |the name of the stream the module lives in    
-|`${xd.job.name}`        |jobs              |the name of the job the module lives in    
-|`${xd.module.name}`     |streams, jobs     |the technical name of the module    
-|`${xd.module.type}`     |streams, jobs     |the type of the module    
+|Placeholder             |Context           |Meaning
+|`${xd.stream.name}`     |streams           |the name of the stream the module lives in
+|`${xd.job.name}`        |jobs              |the name of the job the module lives in
+|`${xd.module.name}`     |streams, jobs     |the technical name of the module
+|`${xd.module.type}`     |streams, jobs     |the type of the module
 |`${xd.module.index}`    |streams           |the 0-based position of the module inside the stream
 |`${xd.container.id}`    |streams, jobs     |the generated unique id of the container the module is deployed in
 |`${xd.container.host}`  |streams, jobs     |the hostname of the container the module is deployed in
@@ -374,7 +408,7 @@ Going into more detail, the platform-wide defaults will resolve like so, assumin
 3. a key named `<optionname>` in the *properties* file `<root>/<moduletype>/<modulename>/<modulename>.properties`
 4. a key named `<moduletype>.<modulename>.<optionname>` in the *YaML* file `<root>/<module-config>.yml`
 
-where 
+where
 
 `<root>`:: is the value of the `xd.module.config.location` system property (driven by the `XD_MODULE_CONFIG_LOCATION` env var when using the canonical Spring XD shell scripts). This property defaults to `${xd.config.home}/modules/`
 `<module-config>`:: is the value of the `xd.module.config.name` system property (driven by the `XD_MODULE_CONFIG_NAME` env var). Defaults to `xd-module-config`

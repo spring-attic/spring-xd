@@ -57,7 +57,7 @@ public class JavaConfiguredModule extends SimpleModule {
 
 	@Override
 	protected void configureModuleApplicationContext(SimpleModuleDefinition moduleDefinition) {
-		String[] basePackages = basePackages(moduleDefinition, this.getClassLoader());
+		String[] basePackages = basePackages(moduleDefinition);
 		Assert.notEmpty(basePackages, String.format("%s property does not exist or does not contain a value for " +
 				"module" +
 				" %s.", BASE_PACKAGES, moduleDefinition.toString()));
@@ -66,22 +66,14 @@ public class JavaConfiguredModule extends SimpleModule {
 
 	}
 
-	public static String[] basePackages(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
+	public static String[] basePackages(SimpleModuleDefinition moduleDefinition) {
 
-		Resource propertiesFile = ModuleUtils.modulePropertiesFile(moduleDefinition, moduleClassLoader);
+		Properties properties = ModuleUtils.loadModuleProperties(moduleDefinition);
 		//Assert.notNull(propertiesFile, "required module properties not found.");
-		if (propertiesFile == null) {
+		if (properties == null) {
 			return new String[0];
 		}
 
-		Properties properties = new Properties();
-		try {
-			properties.load(propertiesFile.getInputStream());
-		}
-		catch (IOException e) {
-			throw new RuntimeException(String.format("Unable to read module properties for %s:%s",
-					moduleDefinition.getName(), moduleDefinition.getType()), e);
-		}
 
 		String basePackageNames = properties.getProperty(BASE_PACKAGES);
 		return StringUtils.commaDelimitedListToStringArray(basePackageNames);

@@ -317,6 +317,15 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 		return getProperty(BATCH_TIMEOUT, defaultValue);
 	}
 
+	/**
+	 * If true, messages will be compressed.
+	 * @param defaultValue the default value.
+	 * @return the property or default value.
+	 */
+	public boolean isCompress(boolean defaultValue) {
+		return getProperty(COMPRESS, defaultValue);
+	}
+
 	// Utility methods
 
 	/**

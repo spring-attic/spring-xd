@@ -189,6 +189,9 @@ public abstract class MessageBusSupport
 
 	protected volatile long defaultBatchTimeout = DEFAULT_BATCH_TIMEOUT;
 
+	// compression
+
+	protected volatile boolean defaultCompress = false;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -308,6 +311,14 @@ public abstract class MessageBusSupport
 	 */
 	public void setDefaultBatchTimeout(long defaultBatchTimeout) {
 		this.defaultBatchTimeout = defaultBatchTimeout;
+	}
+
+	/**
+	 * Set whether compression will be used by producers, by default.
+	 * @param defaultCompress 'true' to use compression.
+	 */
+	public void setDefaultCompress(boolean defaultCompress) {
+		this.defaultCompress = defaultCompress;
 	}
 
 	@Override

@@ -25,7 +25,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import com.rabbitmq.client.Channel;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,6 +35,7 @@ import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -48,6 +48,8 @@ import org.springframework.amqp.rabbit.core.support.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.amqp.support.postprocessor.DelegatingDecompressingPostProcessor;
+import org.springframework.amqp.support.postprocessor.GZipPostProcessor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.support.GenericApplicationContext;
@@ -77,6 +79,8 @@ import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+
+import com.rabbitmq.client.Channel;
 
 /**
  * A {@link MessageBus} implementation backed by RabbitMQ.
@@ -164,6 +168,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			.add(RabbitPropertiesAccessor.DELIVERY_MODE)
 			.add(RabbitPropertiesAccessor.PREFIX)
 			.add(RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS)
+			.add(BusProperties.COMPRESS)
 			.build();
 
 	private static final Set<Object> SUPPORTED_PUBSUB_PRODUCER_PROPERTIES = new SetBuilder()
@@ -211,6 +216,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private final GenericApplicationContext autoDeclareContext = new GenericApplicationContext();
 
+	private MessagePostProcessor decompressingPostProcessor = new DelegatingDecompressingPostProcessor();
+
+	private MessagePostProcessor compressingPostProcessor = new GZipPostProcessor();
+
 	// Default RabbitMQ Container properties
 
 	private volatile AcknowledgeMode defaultAcknowledgeMode = DEFAULT_ACKNOWLEDGE_MODE;
@@ -247,6 +256,24 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.rabbitAdmin.setApplicationContext(this.autoDeclareContext);
 		this.rabbitAdmin.afterPropertiesSet();
 		this.setCodec(codec);
+	}
+
+	/**
+	 * Set a {@link MessagePostProcessor} to decompress messages. Defaults to a
+	 * {@link DelegatingDecompressingPostProcessor} with its default delegates.
+	 * @param decompressingPostProcessor the post processor.
+	 */
+	public void setDecompressingPostProcessor(MessagePostProcessor decompressingPostProcessor) {
+		this.decompressingPostProcessor = decompressingPostProcessor;
+	}
+
+	/**
+	 * Set a {@link org.springframework.amqp.core.MessagePostProcessor} to compress messages. Defaults to a
+	 * {@link org.springframework.amqp.support.postprocessor.GZipPostProcessor}.
+	 * @param compressingPostProcessor the post processor.
+	 */
+	public void setCompressingPostProcessor(MessagePostProcessor compressingPostProcessor) {
+		this.compressingPostProcessor = compressingPostProcessor;
 	}
 
 	public void setDefaultAcknowledgeMode(AcknowledgeMode defaultAcknowledgeMode) {
@@ -358,7 +385,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
 		try {
 			ClassUtils.overrideThreadContextClassLoader(SimpleMessageListenerContainer.class.getClassLoader());
-			SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
+			SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(
+					this.connectionFactory);
 			listenerContainer.setAcknowledgeMode(properties.getAcknowledgeMode(this.defaultAcknowledgeMode));
 			listenerContainer.setChannelTransacted(properties.getTransacted(this.defaultChannelTransacted));
 			listenerContainer.setDefaultRequeueRejected(properties.getRequeueRejected(this.defaultDefaultRequeueRejected));
@@ -384,8 +412,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 								properties.getBackOffMaxInterval(this.defaultBackOffMaxInterval))
 						.recoverer(new RejectAndDontRequeueRecoverer())
 						.build();
-				listenerContainer.setAdviceChain(new Advice[] {retryInterceptor});
+				listenerContainer.setAdviceChain(new Advice[] { retryInterceptor });
 			}
+			listenerContainer.setAfterReceivePostProcessors(this.decompressingPostProcessor);
 			listenerContainer.afterPropertiesSet();
 			AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
 			adapter.setBeanFactory(this.getBeanFactory());
@@ -477,20 +506,28 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	private RabbitTemplate determineRabbitTemplate(RabbitPropertiesAccessor properties) {
+		RabbitTemplate rabbitTemplate = null;
 		if (properties.isBatchingEnabled(this.defaultBatchingEnabled)) {
 			BatchingStrategy batchingStrategy = new SimpleBatchingStrategy(
 					properties.getBatchSize(this.defaultBatchSize),
 					properties.geteBatchBufferLimit(this.defaultBatchBufferLimit),
 					properties.getBatchTimeout(this.defaultBatchTimeout));
-			BatchingRabbitTemplate template = new BatchingRabbitTemplate(batchingStrategy,
+			rabbitTemplate = new BatchingRabbitTemplate(batchingStrategy,
 					getApplicationContext().getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME,
 							TaskScheduler.class));
-			template.setConnectionFactory(this.connectionFactory);
-			return template;
+			rabbitTemplate.setConnectionFactory(this.connectionFactory);
 		}
-		else {
-			return this.rabbitTemplate;
+		if (properties.isCompress(this.defaultCompress)) {
+			if (rabbitTemplate == null) {
+				rabbitTemplate = new RabbitTemplate(this.connectionFactory);
+			}
+			rabbitTemplate.setBeforePublishPostProcessors(this.compressingPostProcessor);
+			rabbitTemplate.afterPropertiesSet();
 		}
+		if (rabbitTemplate == null) {
+			rabbitTemplate = this.rabbitTemplate;
+		}
+		return rabbitTemplate;
 	}
 
 	private void doRegisterProducer(final String name, MessageChannel moduleOutputChannel,

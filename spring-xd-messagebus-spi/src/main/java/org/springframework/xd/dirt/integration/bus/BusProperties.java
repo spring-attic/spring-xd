@@ -119,4 +119,9 @@ public interface BusProperties {
 	 */
 	public static final String NEXT_MODULE_CONCURRENCY = "next.module.concurrency";
 
+	/**
+	 * Compression enabled.
+	 */
+	public static final String COMPRESS = "compress";
+
 }

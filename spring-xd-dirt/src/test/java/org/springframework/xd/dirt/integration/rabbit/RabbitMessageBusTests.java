@@ -27,6 +27,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,8 +40,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.aopalliance.aop.Advice;
+import org.apache.commons.logging.Log;
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -46,7 +52,9 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.support.postprocessor.DelegatingDecompressingPostProcessor;
 import org.springframework.amqp.utils.test.TestUtils;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -441,7 +449,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testBatching() throws Exception {
+	public void testBatchingAndCompression() throws Exception {
 		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();
@@ -450,6 +458,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		properties.put("batchSize", "2");
 		properties.put("batchBufferLimit", "100000");
 		properties.put("batchTimeout", "30000");
+		properties.put("compress", "true");
 
 		DirectChannel output = new DirectChannel();
 		output.setBeanName("batchingProducer");
@@ -458,12 +467,21 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		while (template.receive("xdbus.batching.0") != null) {
 		}
 
+		Log logger = spy(TestUtils.getPropertyValue(bus, "messageBus.compressingPostProcessor.logger", Log.class));
+		new DirectFieldAccessor(TestUtils.getPropertyValue(bus, "messageBus.compressingPostProcessor"))
+				.setPropertyValue("logger", logger);
+		when(logger.isTraceEnabled()).thenReturn(true);
+
 		output.send(new GenericMessage<>("foo".getBytes()));
 		output.send(new GenericMessage<>("bar".getBytes()));
 
 		Object out = spyOn("batching.0").receive(false);
 		assertThat(out, instanceOf(byte[].class));
 		assertEquals("\u0000\u0000\u0000\u0003foo\u0000\u0000\u0000\u0003bar", new String((byte[]) out));
+
+		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+		verify(logger).trace(captor.capture());
+		assertThat(captor.getValue().toString(), containsString("Compressed 14 to "));
 
 		QueueChannel input = new QueueChannel();
 		input.setBeanName("batchingConsumer");
@@ -554,6 +572,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 	@Override
 	public Spy spyOn(final String queue) {
 		final RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
+		template.setAfterReceivePostProcessor(new DelegatingDecompressingPostProcessor());
 		return new Spy() {
 
 			@Override

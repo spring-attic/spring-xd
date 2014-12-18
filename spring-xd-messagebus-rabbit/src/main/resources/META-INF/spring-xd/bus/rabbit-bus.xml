@@ -30,6 +30,17 @@
 		<property name="defaultBatchSize" value="${xd.messagebus.rabbit.default.batchSize}" />
 		<property name="defaultBatchBufferLimit" value="${xd.messagebus.rabbit.default.batchBufferLimit}" />
 		<property name="defaultBatchTimeout" value="${xd.messagebus.rabbit.default.batchTimeout}" />
+		<property name="defaultCompress" value="${xd.messagebus.rabbit.default.compress}" />
+		<property name="compressingPostProcessor">
+			<bean class="org.springframework.amqp.support.postprocessor.GZipPostProcessor">
+				<property name="level" value="#{T(java.util.zip.Deflater).BEST_SPEED}" />
+			</bean>
+		</property>
+		<property name="decompressingPostProcessor">
+			<bean class="org.springframework.amqp.support.postprocessor.DelegatingDecompressingPostProcessor">
+				<!-- set a map of decompressors here if using other than the default -->
+			</bean>
+		</property>
 	</bean>
 
 </beans>

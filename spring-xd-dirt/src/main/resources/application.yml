@@ -105,6 +105,7 @@ xd:
         batchingEnabled:           false
         batchSize:                 100
         batchTimeout:              5000
+        compress:                  false
         concurrency:               1
         deliveryMode:              PERSISTENT
         maxAttempts:               3

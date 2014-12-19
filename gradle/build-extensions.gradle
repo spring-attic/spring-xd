@@ -41,6 +41,18 @@ project('spring-xd-extension-kafka') {
 
 project('spring-xd-extension-batch') {
     description = 'Spring XD batch support'
+
+    configurations.all {
+        resolutionStrategy {
+            eachDependency { DependencyResolveDetails details ->
+                //Force version of Guava
+                if (details.requested.group == 'com.google.guava') {
+                    details.useVersion "$hadoopGuavaVersion"
+                }
+            }
+        }
+    }
+
     dependencies {
         compile "org.springframework.integration:spring-integration-file"
         runtime "org.springframework.integration:spring-integration-ftp"

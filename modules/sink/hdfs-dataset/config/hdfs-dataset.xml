@@ -58,6 +58,7 @@
 		<property name="format" value="${format}"/>
 		<property name="partitionPath" value="${partitionPath}"/>
 		<property name="writerCacheSize" value="${writerCacheSize:null}"/>
+		<property name="compressionType" value="${compressionType:null}"/>
 	</bean>
 
 	<context:property-placeholder location="${xd.config.home}/hadoop.properties"/>

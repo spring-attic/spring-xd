@@ -106,10 +106,11 @@ ext {
 
 	// Also in IO
 	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4
+	hadoopGuavaVersion = '11.0.2' // This is only used by the mini cluster in the spring-xd-batch-extension tests
 	oldGuavaVersion = '15.0'  // This is only used by spring-xd-integration-test, IO uses version 17.0
 	guavaVersion = '16.0.1'
 
-	springDataHadoopBase = '2.1.0.M2'
+	springDataHadoopBase = '2.1.0.M3'
 
 	//Reactor 1.1 is used in spring-xd-extension-batch transitively though spring integration
 	reactor11xVersion = '1.1.5.RELEASE'
@@ -609,9 +610,30 @@ project('spring-xd-hadoop') {
 			exclude group: 'hsqldb'
 			exclude group: 'jline', module: 'jline'
 			exclude group: 'com.sun.jersey.jersey-test-framework', module: 'jersey-test-framework-grizzly2'
+			exclude group: 'org.apache.directory.server', module: 'apacheds-kerberos-codec'
+			exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+			exclude group: 'com.sun.jersey', module: 'jersey-client'
+			exclude group: 'org.fusesource.leveldbjni', module: 'leveldbjni-all'
 		}
-		// Exclude transitive dependency
-		configurations.compile.exclude(group: "commons-beanutils", module: "commons-beanutils-core")
+		// Exclude transitive dependencies
+		configurations.compile.exclude(group: 'commons-beanutils', module: 'commons-beanutils-core')
+		configurations.compile.exclude(group: 'javax.servlet', module: 'servlet-api')
+		configurations.compile.exclude(group: 'javax.servlet.jsp', module: 'jsp-api')
+		configurations.compile.exclude(group: 'tomcat', module: 'jasper-runtime')
+		configurations.compile.exclude(group: 'tomcat', module: 'jasper-compiler')
+		configurations.compile.exclude(group: 'org.mortbay.jetty', module: 'jetty')
+		configurations.compile.exclude(group: 'org.mortbay.jetty', module: 'jetty-util')
+		configurations.compile.exclude(group: 'net.java.dev.jets3t', module: 'jets3t')
+		configurations.compile.exclude(group: 'com.jcraft', module: 'jsch')
+		configurations.compile.exclude(group: 'com.sun.jersey', module: 'jersey-core')
+		configurations.compile.exclude(group: 'com.sun.jersey', module: 'jersey-server')
+		configurations.compile.exclude(group: 'com.sun.jersey.jersey-test-framework', module: 'jersey-test-framework-grizzly2')
+		configurations.compile.exclude(group: 'jline', module: 'jline')
+		configurations.compile.exclude(group: 'org.apache.directory.server', module: 'apacheds-kerberos-codec')
+		configurations.compile.exclude(group: 'org.apache.httpcomponents', module: 'httpclient')
+		configurations.compile.exclude(group: 'org.apache.httpcomponents', module: 'httpcore')
+		configurations.compile.exclude(group: 'com.sun.jersey', module: 'jersey-client')
+		configurations.compile.exclude(group: 'org.fusesource.leveldbjni', module: 'leveldbjni-all')
 
 		compile("org.springframework.data:spring-data-hadoop-store") { exclude group: 'org.apache.hadoop' }
 		testRuntime "org.xerial.snappy:snappy-java"

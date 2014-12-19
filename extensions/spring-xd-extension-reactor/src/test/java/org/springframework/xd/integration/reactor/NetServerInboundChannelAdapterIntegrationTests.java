@@ -16,8 +16,23 @@
 
 package org.springframework.xd.integration.reactor;
 
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.net.tcp.support.SocketUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,20 +50,6 @@ import org.springframework.validation.BindException;
 import org.springframework.xd.integration.reactor.net.NetServerInboundChannelAdapterConfiguration;
 import org.springframework.xd.integration.reactor.net.NetServerSourceOptionsMetadata;
 import org.springframework.xd.module.options.PojoModuleOptionsMetadata;
-import reactor.io.net.tcp.support.SocketUtils;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jon Brisbin

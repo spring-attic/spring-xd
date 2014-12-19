@@ -22,7 +22,7 @@ import org.w3c.dom.Element;
 
 /**
  * Namespace parser helper for creating {@link BeanDefinitionBuilder} instances that have a reference to a Reactor
- * {@link reactor.core.Environment} as their first constructor parameter.
+ * {@link reactor.Environment} as their first constructor parameter.
  *
  * @author Jon Brisbin
  */
@@ -35,8 +35,8 @@ public abstract class ReactorNamespaceUtils {
 
 	/**
 	 * Create a {@link BeanDefinitionBuilder} that checks for an {@code env} attribute and uses that as the
-	 * {@link reactor.core.Environment} bean reference. If not set, then it defaults to {@code reactorEnv},
-     * which is the name of the global Reactor {@link reactor.core.Environment}.
+	 * {@link reactor.Environment} bean reference. If not set, then it defaults to {@code reactorEnv},
+     * which is the name of the global Reactor {@link reactor.Environment}.
 	 *
 	 * @param componentType the {@code Class} of the bean that the definition is being created for
 	 * @param element element to query for an {@code env} attribute

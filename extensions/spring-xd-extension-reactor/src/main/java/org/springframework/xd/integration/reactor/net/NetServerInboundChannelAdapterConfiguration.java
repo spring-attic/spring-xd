@@ -16,16 +16,17 @@
 
 package org.springframework.xd.integration.reactor.net;
 
+import java.util.Map;
+
+import reactor.Environment;
+import reactor.io.codec.Codec;
+import reactor.net.spec.NetServerSpec;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.MessageChannel;
-import reactor.Environment;
-import reactor.io.codec.Codec;
-import reactor.io.net.spec.NetServerSpec;
-
-import java.util.Map;
 
 /**
  * @author Jon Brisbin

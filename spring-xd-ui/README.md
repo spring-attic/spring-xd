@@ -101,26 +101,6 @@ Inject your dependencies into your `index.html` file:
 
 	$ grunt bower-install
 
-# Dependency Management using the Node Package Manager (used by Grunt)
-
-**Important** By default, Node Package Manager (NPM) for Spring XD uses the Artifactory NPM repo at http://repo.spring.io. As such you will notice a file called **.npmrc** in the **spring-xd-ui**  directory pointing to the registry at http://repo.spring.io/api/npm/npmjs.
-
-If you add/update dependencies that are not yet cached by *Artifactory*, you must use NPM authentication so that they will be pulled into the Artifactory NPM repo.
-
-Follow the following steps to setup NPM authentication:
-
-Point to the Artifactory NPM repo
-
-	$ npm config set registry http://repo.spring.io/api/npm/npmjs
-
-Setup local credentials:
-
-	curl -uYour_Artifactory_Username_:myEncryptedArtifactoryPassword "http://repo.spring.io/api/npm/auth" >> ~/.npmrc
-
-Now you're good to go and can install new dependencies, e.g.:
-
-	npm install request
-
 ## Install Build Dependency
 
 	$ npm install --save-dev grunt-contrib-less

@@ -257,6 +257,14 @@ public class KafkaMessageBus extends MessageBusSupport {
 		this.defaultReplicationFactor = defaultReplicationFactor;
 	}
 
+	public void setDefaultCompressionCodec(String defaultCompressionCodec) {
+		this.defaultCompressionCodec = defaultCompressionCodec;
+	}
+
+	public void setDefaultRequiredAcks(int defaultRequiredAcks) {
+		this.defaultRequiredAcks = defaultRequiredAcks;
+	}
+
 	@Override
 	public void bindConsumer(String name, final MessageChannel moduleInputChannel, Properties properties) {
 		createKafkaConsumer(name, moduleInputChannel, properties,

@@ -49,8 +49,5 @@
   },
   "engines": {
     "node": ">=0.10.0"
-  },
-  "scripts": {
-    "postinstall": "node_modules/protractor/bin/webdriver-manager update"
   }
 }

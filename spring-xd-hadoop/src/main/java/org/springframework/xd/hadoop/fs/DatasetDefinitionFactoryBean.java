@@ -52,7 +52,10 @@ public class DatasetDefinitionFactoryBean implements InitializingBean, FactoryBe
 
 	private int writerCacheSize;
 
+	private String compressionType;
+
 	private DatasetDefinition datasetDefinition;
+
 
 	public void setFormat(String format) {
 		this.format = format;
@@ -68,6 +71,10 @@ public class DatasetDefinitionFactoryBean implements InitializingBean, FactoryBe
 
 	public void setWriterCacheSize(int writerCacheSize) {
 		this.writerCacheSize = writerCacheSize;
+	}
+
+	public void setCompressionType(String compressionType) {
+		this.compressionType = compressionType;
 	}
 
 	@Override
@@ -92,12 +99,16 @@ public class DatasetDefinitionFactoryBean implements InitializingBean, FactoryBe
 		logger.info("          format: " + format);
 		logger.info("   partitionPath: " + partitionPath);
 		logger.info(" writerCacheSize: " + writerCacheSize);
+		logger.info(" compressionType: " + compressionType);
 		datasetDefinition = new DatasetDefinition(allowNullValues, format);
 		if (StringUtils.hasText(partitionPath)) {
 			datasetDefinition.setPartitionStrategy(parsePartitionExpression(partitionPath));
 		}
 		if (writerCacheSize > 0) {
 			datasetDefinition.setWriterCacheSize(writerCacheSize);
+		}
+		if (StringUtils.hasText(compressionType)) {
+			datasetDefinition.setCompressionType(compressionType);
 		}
 	}
 

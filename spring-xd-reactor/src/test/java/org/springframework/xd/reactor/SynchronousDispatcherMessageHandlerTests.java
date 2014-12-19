@@ -15,9 +15,15 @@
  */
 package org.springframework.xd.reactor;
 
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
@@ -25,10 +31,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Test the {@link org.springframework.xd.reactor.SynchronousDispatcherMessageHandler} by using two types of
@@ -43,37 +45,55 @@ import static org.junit.Assert.assertEquals;
 @DirtiesContext
 public class SynchronousDispatcherMessageHandlerTests {
 
-    private final int numMessages = 10;
-    @Autowired
-    PollableChannel outputChannel;
-    @Autowired
-    MessageChannel toHandlerChannel;
+	private final int numMessages = 10;
 
-    @Test
-    public void messageBasedProcessor() throws IOException {
+	@Autowired
+	@Qualifier("outputChannel1")
+	PollableChannel outputChannel1;
 
-        sendMessages();
-        for (int i = 0; i < numMessages; i++) {
-            Message<?> outputMessage = outputChannel.receive(500);
-            assertEquals("ping-pong", outputMessage.getPayload());
-        }
-    }
+	@Autowired
+	@Qualifier("outputChannel2")
+	PollableChannel outputChannel2;
 
-    @Test
-    public void pojoBasedProcessor() throws IOException {
-        sendMessages();
-        for (int i = 0; i < numMessages; i++) {
-            Message<?> outputMessage = outputChannel.receive(500);
-            assertEquals("ping-pong", outputMessage.getPayload());
-        }
-    }
+	@Autowired
+	@Qualifier("toMessageHandlerChannel")
+	MessageChannel toMessageHandlerChannel;
 
-    private void sendMessages() {
-        Message<?> message = new GenericMessage<String>("ping");
-        for (int i = 0; i < numMessages; i++) {
-            toHandlerChannel.send(message);
-        }
-    }
+	@Autowired
+	@Qualifier("toStringHandlerChannel")
+	MessageChannel toStringHandlerChannel;
 
+	@Test
+	public void pojoBasedProcessor() throws IOException {
+		sendPojoMessages();
+		for (int i = 0; i < numMessages; i++) {
+			Message<?> outputMessage = outputChannel1.receive(500);
+			assertEquals("ping-pojopong", outputMessage.getPayload());
+		}
+	}
+
+	@Test
+	public void stringBasedProcessor() throws IOException {
+
+		sendStringMessages();
+		for (int i = 0; i < numMessages; i++) {
+			Message<?> outputMessage = outputChannel2.receive(500);
+			assertEquals("ping-stringpong", outputMessage.getPayload());
+		}
+	}
+
+	private void sendPojoMessages() {
+		Message<?> message = new GenericMessage<String>("ping");
+		for (int i = 0; i < numMessages; i++) {
+			toMessageHandlerChannel.send(message);
+		}
+	}
+
+	private void sendStringMessages() {
+		Message<?> message = new GenericMessage<String>("ping");
+		for (int i = 0; i < numMessages; i++) {
+			toStringHandlerChannel.send(message);
+		}
+	}
 
 }

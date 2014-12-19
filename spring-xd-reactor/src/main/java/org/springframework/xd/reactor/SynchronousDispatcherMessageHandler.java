@@ -31,6 +31,7 @@ import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.stream.Broadcaster;
 
+import java.lang.SuppressWarnings;
 import java.lang.reflect.Method;
 
 /**
@@ -49,6 +50,7 @@ public class SynchronousDispatcherMessageHandler extends AbstractMessageProducin
 
     private final Broadcaster<Object> stream;
 
+	@SuppressWarnings("rawtypes")
     private final Processor reactorProcessor;
 
     private final ResolvableType inputType;
@@ -61,6 +63,7 @@ public class SynchronousDispatcherMessageHandler extends AbstractMessageProducin
      *
      * @param processor The stream based reactor processor
      */
+	@SuppressWarnings({"unchecked", "rawtypes"})
     public SynchronousDispatcherMessageHandler(Processor processor) {
         Assert.notNull(processor, "processor cannot be null.");
         this.reactorProcessor = processor;

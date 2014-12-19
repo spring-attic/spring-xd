@@ -30,7 +30,7 @@ public class PongStringProcessor implements Processor<String, String> {
         return inputStream.map(new Function<String, String>() {
             @Override
             public String apply(String message) {
-                return message + "-pong";
+                return message + "-stringpong";
             }
         });
     }

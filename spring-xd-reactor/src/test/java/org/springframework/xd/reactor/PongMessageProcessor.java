@@ -15,16 +15,18 @@
  */
 package org.springframework.xd.reactor;
 
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.GenericMessage;
 import reactor.fn.Function;
 import reactor.rx.Stream;
+
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * A simple stream processor that transforms messages by adding "-pong" to the payload.
  *
  * @author Mark Pollack
  */
+@SuppressWarnings("rawtypes")
 public class PongMessageProcessor implements Processor<Message, Message> {
 
     @Override
@@ -32,7 +34,7 @@ public class PongMessageProcessor implements Processor<Message, Message> {
         return inputStream.map(new Function<Message, Message>() {
             @Override
             public Message apply(Message message) {
-                return new GenericMessage<String>(message.getPayload() + "-pong");
+                return new GenericMessage<String>(message.getPayload() + "-pojopong");
             }
         });
     }

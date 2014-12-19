@@ -6,12 +6,18 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
-    <int:channel id="outputChannel">
+    <int:channel id="outputChannel1">
         <int:queue capacity="20"/>
     </int:channel>
 
+	<int:channel id="outputChannel2">
+		<int:queue capacity="20"/>
+	</int:channel>
 
-    <int:channel id="toHandlerChannel"/>
+
+    <int:channel id="toMessageHandlerChannel"/>
+
+	<int:channel id="toStringHandlerChannel"/>
 
     <bean id="messageProcessor" class="org.springframework.xd.reactor.PongMessageProcessor"/>
 
@@ -19,6 +25,8 @@
         <constructor-arg ref="messageProcessor"/>
     </bean>
 
+	<int:service-activator input-channel="toMessageHandlerChannel" ref="reactorMessageHandler"
+						   output-channel="outputChannel1"/>
 
     <bean id="stringProcessor" class="org.springframework.xd.reactor.PongStringProcessor"/>
 
@@ -26,8 +34,8 @@
         <constructor-arg ref="stringProcessor"/>
     </bean>
 
-    <int:service-activator input-channel="toHandlerChannel" ref="reactorStringHandler"
-                           output-channel="outputChannel"/>
+    <int:service-activator input-channel="toStringHandlerChannel" ref="reactorStringHandler"
+                           output-channel="outputChannel2"/>
 
 
 </beans>

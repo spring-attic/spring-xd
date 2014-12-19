@@ -17,7 +17,7 @@
 
 	<int:aggregator
 			input-channel="input"
-			correlation-strategy-expression="payload.class.name"
+			correlation-strategy-expression="payload.getClass().name"
 			release-strategy-expression="size() == ${batchSize}"
 			expire-groups-upon-completion="true"
 			send-partial-result-on-expiry="true"

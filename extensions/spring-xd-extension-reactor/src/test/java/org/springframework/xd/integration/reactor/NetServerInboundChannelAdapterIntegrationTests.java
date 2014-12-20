@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import reactor.net.tcp.support.SocketUtils;
+import reactor.io.net.tcp.support.SocketUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

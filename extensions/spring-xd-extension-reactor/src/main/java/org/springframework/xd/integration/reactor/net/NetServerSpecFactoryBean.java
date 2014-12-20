@@ -26,12 +26,12 @@ import reactor.io.codec.Codec;
 import reactor.io.codec.DelimitedCodec;
 import reactor.io.codec.LengthFieldCodec;
 import reactor.io.codec.StandardCodecs;
-import reactor.net.codec.syslog.SyslogCodec;
-import reactor.net.netty.tcp.NettyTcpServer;
-import reactor.net.netty.udp.NettyDatagramServer;
-import reactor.net.spec.NetServerSpec;
-import reactor.net.tcp.spec.TcpServers;
-import reactor.net.udp.spec.DatagramServers;
+import reactor.io.net.codec.syslog.SyslogCodec;
+import reactor.io.net.netty.tcp.NettyTcpServer;
+import reactor.io.net.netty.udp.NettyDatagramServer;
+import reactor.io.net.spec.NetServerSpec;
+import reactor.io.net.tcp.spec.TcpServers;
+import reactor.io.net.udp.spec.DatagramServers;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.util.Assert;

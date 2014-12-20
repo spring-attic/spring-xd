@@ -20,7 +20,7 @@ import java.util.Map;
 
 import reactor.Environment;
 import reactor.io.codec.Codec;
-import reactor.net.spec.NetServerSpec;
+import reactor.io.net.spec.NetServerSpec;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

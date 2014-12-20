@@ -17,8 +17,8 @@
 package org.springframework.xd.integration.reactor.net;
 
 import reactor.fn.Consumer;
-import reactor.net.NetServer;
-import reactor.net.spec.NetServerSpec;
+import reactor.io.net.NetServer;
+import reactor.io.net.spec.NetServerSpec;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.messaging.support.GenericMessage;

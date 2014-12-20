@@ -1,6 +1,6 @@
 /*
  * Spring XD Extension projects, supporting module definitions.
-*/
+ */
 
 project('spring-xd-extension-mail') {
     description = 'Spring XD Mail'
@@ -187,8 +187,21 @@ project('spring-xd-extension-script') {
 project('spring-xd-extension-spark') {
     description = 'Spring XD spark extensions'
     dependencies {
-	compile "org.apache.spark:spark-core_2.10:$sparkVersion"
+        compile "org.apache.spark:spark-core_2.10:$sparkVersion"
         provided "org.springframework.batch:spring-batch-core"
         compile project(":spring-xd-module-spi")
 	}
+}
+
+project('spring-xd-extension-sqoop') {
+    description = 'Spring XD Sqoop extensions'
+    dependencies {
+        compile project(':spring-xd-module-spi')
+        compile project(':spring-xd-extension-batch')
+        compile project(':spring-xd-extension-jdbc')
+        compile "org.apache.sqoop:sqoop:${sqoopVersion}:hadoop200"
+        provided "org.springframework.batch:spring-batch-core"
+        provided "org.springframework.data:spring-data-hadoop-core:${springDataHadoopBase}"
+        provided "org.springframework.data:spring-data-hadoop-batch:${springDataHadoopBase}"
+    }
 }

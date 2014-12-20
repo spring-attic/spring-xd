@@ -246,6 +246,8 @@ endpoints:
 #spring:
 #  hadoop:
 #   fsUri: hdfs://localhost:8020
+#   resourceManagerHost: localhost
+#   resourceManagerPort: 8032
 
 ---
 # Zookeeper properties

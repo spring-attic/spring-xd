@@ -22,15 +22,17 @@ import org.springframework.xd.module.options.mixins.MappedRequestHeadersMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 /**
  * Describes options to the {@code rabbit} source module.
  *
  * @author Eric Bottard
  * @author Gary Russell
+ * @author David Liu
  */
 @Mixin({ RabbitConnectionMixin.class, MappedRequestHeadersMixin.Amqp.class })
-public class RabbitSourceOptionsMetadata {
+public class RabbitSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private String queues = ModulePlaceholders.XD_STREAM_NAME;
 
@@ -48,7 +50,17 @@ public class RabbitSourceOptionsMetadata {
 
 	private int txSize = 1;
 
+	private int initialRetryInterval = 1000;
+
+	private int maxRetryInterval = 30000;
+
+	private double retryMultiplier = 2.0;
+
+	private int maxAttempts = 3;
+
 	private String converterClass = "org.springframework.amqp.support.converter.SimpleMessageConverter";
+
+	private boolean enableRetry;
 
 	@NotBlank
 	public String getQueues() {
@@ -71,7 +83,7 @@ public class RabbitSourceOptionsMetadata {
 	}
 
 	public boolean isTransacted() {
-		return transacted;
+		return this.transacted;
 	}
 
 	@ModuleOption("true if the channel is to be transacted")
@@ -80,7 +92,7 @@ public class RabbitSourceOptionsMetadata {
 	}
 
 	public int getConcurrency() {
-		return concurrency;
+		return this.concurrency;
 	}
 
 	@ModuleOption("the minimum number of consumers")
@@ -89,7 +101,7 @@ public class RabbitSourceOptionsMetadata {
 	}
 
 	public boolean isRequeue() {
-		return requeue;
+		return this.requeue;
 	}
 
 	@ModuleOption("whether rejected messages will be requeued by default")
@@ -98,7 +110,7 @@ public class RabbitSourceOptionsMetadata {
 	}
 
 	public int getMaxConcurrency() {
-		return maxConcurrency;
+		return this.maxConcurrency;
 	}
 
 	@ModuleOption("the maximum number of consumers")
@@ -107,7 +119,7 @@ public class RabbitSourceOptionsMetadata {
 	}
 
 	public int getPrefetch() {
-		return prefetch;
+		return this.prefetch;
 	}
 
 	@ModuleOption("the prefetch size")
@@ -116,7 +128,7 @@ public class RabbitSourceOptionsMetadata {
 	}
 
 	public int getTxSize() {
-		return txSize;
+		return this.txSize;
 	}
 
 	@ModuleOption("the number of messages to process before acking")
@@ -125,12 +137,63 @@ public class RabbitSourceOptionsMetadata {
 	}
 
 	public String getConverterClass() {
-		return converterClass;
+		return this.converterClass;
 	}
 
 	@ModuleOption("the class name of the message converter")
 	public void setConverterClass(String converterClass) {
 		this.converterClass = converterClass;
+	}
+
+	public int getInitialRetryInterval() {
+		return this.initialRetryInterval;
+	}
+
+	@ModuleOption("initial interval between retries")
+	public void setInitialRetryInterval(int initialRetryInterval) {
+		this.initialRetryInterval = initialRetryInterval;
+	}
+
+	public int getMaxRetryInterval() {
+		return this.maxRetryInterval;
+	}
+
+	@ModuleOption("maximum retry interval")
+	public void setMaxRetryInterval(int maxRetryInterval) {
+		this.maxRetryInterval = maxRetryInterval;
+	}
+
+	public double getRetryMultiplier() {
+		return this.retryMultiplier;
+	}
+
+	@ModuleOption("retry interval multiplier")
+	public void setRetryMultiplier(double retryMultiplier) {
+		this.retryMultiplier = retryMultiplier;
+	}
+
+	public int getMaxAttempts() {
+		return this.maxAttempts;
+	}
+
+	@ModuleOption("maximum delivery attempts")
+	public void setMaxAttempts(int maxAttempts) {
+		this.maxAttempts = maxAttempts;
+	}
+
+	public boolean isEnableRetry() {
+		return this.enableRetry;
+	}
+
+	@ModuleOption("enable retry; when retries are exhausted the message will be rejected; "
+			+ "message disposition will depend on dead letter configuration")
+	public void setEnableRetry(boolean enableRetry) {
+		this.enableRetry = enableRetry;
+	}
+
+	@Override
+	public String[] profilesToActivate() {
+		return new String[] { this.enableRetry ? "enable-retry" : "no-retry" };
 	}
 
 }

@@ -9,29 +9,40 @@
 		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-
+	
 	<int-amqp:inbound-channel-adapter
-		auto-startup="false"
-		channel="output"
-		listener-container="listenerContainer"
-		message-converter="messageConverter" 
-		mapped-request-headers="${mappedRequestHeaders}"/>
+			auto-startup="false"
+			channel="output"
+			listener-container="listenerContainer"
+			message-converter="messageConverter" 
+			mapped-request-headers="${mappedRequestHeaders}"
+		/>
 
-	<bean id="listenerContainer" class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
-		<property name="connectionFactory" ref="rabbitConnectionFactory" />
-		<property name="acknowledgeMode" value="#{T(org.springframework.amqp.core.AcknowledgeMode).${ackMode}}" />
-		<property name="autoStartup" value="false" />
-		<property name="channelTransacted" value="${transacted}" />
-		<property name="concurrentConsumers" value="${concurrency}" />
-		<property name="defaultRequeueRejected" value="${requeue}" />
-		<property name="maxConcurrentConsumers" value="${maxConcurrency}" />
-		<property name="prefetchCount" value="${prefetch}" />
-		<property name="queueNames" value="${queues}" />
-		<property name="txSize" value="${txSize}" />
-	</bean>
+	<bean id="retryInterceptor" class="org.springframework.amqp.rabbit.config.StatelessRetryOperationsInterceptorFactoryBean">
+		<property name="messageRecoverer" ref="rejectAndDontRequeueRecoverer"/>
+		<property name="retryOperations" ref="retryTemplate" />
+	</bean> 
 
+	<bean id="rejectAndDontRequeueRecoverer" class="org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer"/>
+
+	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
+		<property name="backOffPolicy">
+			<bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+				<property name="initialInterval" value="${initialInterval}" />
+				<property name="maxInterval" value="${maxInterval}" />
+			</bean>     
+		</property>
+		<property name="retryPolicy">
+				<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
+				<property name="maxAttempts" value="${maxAttempts}" />
+			</bean>     
+		</property>
+	</bean>  
+
+	<rabbit:admin connection-factory="rabbitConnectionFactory"/>
+	
 	<bean id="messageConverter" class="${converterClass}" />
-
+	
 	<int:channel id="output" />
 
 	<rabbit:connection-factory id="rabbitConnectionFactory"
@@ -44,5 +55,36 @@
 		<property name="useSSL" value="${useSSL}" />
 		<property name="sslPropertiesLocation" value="${sslPropertiesLocation}"/>
 	</bean>
+	
+	<beans profile="use-retry">
+		<bean id="listenerContainer" class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+			<property name="connectionFactory" ref="rabbitConnectionFactory" />
+			<property name="acknowledgeMode" value="#{T(org.springframework.amqp.core.AcknowledgeMode).${ackMode}}" />
+			<property name="autoStartup" value="false" />
+			<property name="channelTransacted" value="${transacted}" />
+			<property name="concurrentConsumers" value="${concurrency}" />
+			<property name="defaultRequeueRejected" value="${requeue}" />
+			<property name="maxConcurrentConsumers" value="${maxConcurrency}" />
+			<property name="prefetchCount" value="${prefetch}" />
+			<property name="queueNames" value="${queues}" />
+			<property name="txSize" value="${txSize}" />
+			<property name="adviceChain" ref="retryInterceptor"/>
+		</bean>
+	</beans>
+	
+	<beans profile="default">
+		<bean id="listenerContainer" class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
+			<property name="connectionFactory" ref="rabbitConnectionFactory" />
+			<property name="acknowledgeMode" value="#{T(org.springframework.amqp.core.AcknowledgeMode).${ackMode}}" />
+			<property name="autoStartup" value="false" />
+			<property name="channelTransacted" value="${transacted}" />
+			<property name="concurrentConsumers" value="${concurrency}" />
+			<property name="defaultRequeueRejected" value="${requeue}" />
+			<property name="maxConcurrentConsumers" value="${maxConcurrency}" />
+			<property name="prefetchCount" value="${prefetch}" />
+			<property name="queueNames" value="${queues}" />
+			<property name="txSize" value="${txSize}" />
+		</bean>
+	</beans>
 
 </beans>

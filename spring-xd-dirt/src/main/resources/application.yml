@@ -93,6 +93,9 @@ xd:
     enabled: false
   messagebus:
     rabbit:
+      compressionLevel:            1
+            # bus-level property, applies only when 'compress=true' for a stream module
+            # See java.util.zip.Deflater; 1=BEST_SPEED, 9=BEST_COMPRESSION, ...
       default:
         ackMode:                   AUTO
             # Valid: AUTO (container acks), NONE (broker acks), MANUAL (consumer acks).

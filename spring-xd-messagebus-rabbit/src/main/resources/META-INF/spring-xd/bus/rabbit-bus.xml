@@ -33,7 +33,7 @@
 		<property name="defaultCompress" value="${xd.messagebus.rabbit.default.compress}" />
 		<property name="compressingPostProcessor">
 			<bean class="org.springframework.amqp.support.postprocessor.GZipPostProcessor">
-				<property name="level" value="#{T(java.util.zip.Deflater).BEST_SPEED}" />
+				<property name="level" value="${xd.messagebus.rabbit.compressionLevel:#{T(java.util.zip.Deflater).BEST_SPEED}}" />
 			</bean>
 		</property>
 		<property name="decompressingPostProcessor">

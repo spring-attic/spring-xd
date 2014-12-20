@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<int-amqp:inbound-channel-adapter
 		auto-startup="false"
 		channel="output"
 		listener-container="listenerContainer"
 		message-converter="messageConverter" 
-		mapped-request-headers="${mappedRequestHeaders}"/>
+		mapped-request-headers="${mappedRequestHeaders}" />
 
 	<bean id="listenerContainer" class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
 		<property name="connectionFactory" ref="rabbitConnectionFactory" />
@@ -28,6 +31,7 @@
 		<property name="prefetchCount" value="${prefetch}" />
 		<property name="queueNames" value="${queues}" />
 		<property name="txSize" value="${txSize}" />
+		<property name="adviceChain" ref="adviceChain" />
 	</bean>
 
 	<bean id="messageConverter" class="${converterClass}" />
@@ -42,7 +46,40 @@
 
 	<bean id="connectionFactory" class="org.springframework.amqp.rabbit.connection.RabbitConnectionFactoryBean">
 		<property name="useSSL" value="${useSSL}" />
-		<property name="sslPropertiesLocation" value="${sslPropertiesLocation}"/>
+		<property name="sslPropertiesLocation" value="${sslPropertiesLocation}" />
 	</bean>
+
+	<beans profile="enable-retry">
+
+		<bean id="retryInterceptor" class="org.springframework.amqp.rabbit.config.StatelessRetryOperationsInterceptorFactoryBean">
+			<property name="messageRecoverer" ref="rejectAndDontRequeueRecoverer" />
+			<property name="retryOperations" ref="retryTemplate" />
+		</bean>
+
+		<bean id="rejectAndDontRequeueRecoverer" class="org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer"/>
+
+		<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
+			<property name="backOffPolicy">
+				<bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+					<property name="initialInterval" value="${initialRetryInterval}" />
+					<property name="maxInterval" value="${maxRetryInterval}" />
+					<property name="multiplier" value="${retryMultiplier}" />
+				</bean>
+			</property>
+			<property name="retryPolicy">
+				<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
+					<property name="maxAttempts" value="${maxAttempts}" />
+				</bean>
+			</property>
+		</bean>
+
+		<util:list id="adviceChain">
+			<ref bean="retryInterceptor" />
+		</util:list>
+	</beans>
+
+	<beans profile="no-retry">
+		<util:list id="adviceChain" />
+	</beans>
 
 </beans>

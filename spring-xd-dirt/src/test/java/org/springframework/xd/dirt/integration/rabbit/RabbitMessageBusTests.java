@@ -38,10 +38,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.Deflater;
 
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
-import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -471,6 +471,8 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		new DirectFieldAccessor(TestUtils.getPropertyValue(bus, "messageBus.compressingPostProcessor"))
 				.setPropertyValue("logger", logger);
 		when(logger.isTraceEnabled()).thenReturn(true);
+
+		assertEquals(Deflater.BEST_SPEED, TestUtils.getPropertyValue(bus, "messageBus.compressingPostProcessor.level"));
 
 		output.send(new GenericMessage<>("foo".getBytes()));
 		output.send(new GenericMessage<>("bar".getBytes()));

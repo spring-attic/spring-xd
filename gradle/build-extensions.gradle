@@ -158,7 +158,7 @@ project('spring-xd-extension-reactor') {
     description = 'Spring XD Reactor'
     dependencies {
         compile project(':spring-xd-module-spi'),
-                "org.projectreactor:reactor-net",
+                "io.projectreactor:reactor-net",
                 "org.springframework.integration:spring-integration-core",
                 "javax.validation:validation-api"
 

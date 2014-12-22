@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.xd.dirt.job.DetailedJobInfo;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
-import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.rest.domain.DetailedJobInfoResource;
 
@@ -56,7 +55,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	 * @param startJob the start index of the job names to return
 	 * @param pageSize page size for the list
 	 */
-	@RequestMapping(value = "", method = RequestMethod.GET)
+	@RequestMapping(value = "", method = RequestMethod.GET, produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public Collection<DetailedJobInfoResource> jobs(@RequestParam(defaultValue = "0") int startJob,
 			@RequestParam(defaultValue = "20") int pageSize) {
@@ -72,7 +71,10 @@ public class BatchJobsController extends AbstractBatchJobsController {
 					break;
 				}
 			}
-			jobs.add(getJobInfo(name, deployed));
+			DetailedJobInfoResource jobInfoResource = getJobInfo(name, deployed);
+			if (jobInfoResource != null) {
+				jobs.add(jobInfoResource);
+			}
 		}
 		return jobs;
 	}
@@ -81,7 +83,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	 * @param jobName name of the job
 	 * @return ExpandedJobInfo for the given job name
 	 */
-	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET, produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public DetailedJobInfoResource jobinfo(@PathVariable String jobName) {
 		return getJobInfo(jobName);
@@ -97,7 +99,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	 *
 	 * @param jobName name of the job
 	 * @param deployed the deployment status of the job
-	 * @return a job info for this job
+	 * @return a job info for this job or null if job doesn't exist
 	 */
 	private DetailedJobInfoResource getJobInfo(String jobName, boolean deployed) {
 		boolean launchable = jobService.isLaunchable(jobName);
@@ -109,7 +111,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 			return jobInfoResourceAssembler.toResource(detailedJobInfo);
 		}
 		catch (NoSuchJobException e) {
-			throw new NoSuchBatchJobException(jobName);
+			return null;
 		}
 	}
 

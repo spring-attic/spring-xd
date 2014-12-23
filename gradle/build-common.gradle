@@ -20,7 +20,7 @@ def forceDependencyVersions(project) {
 
 				resolutionStrategy {
 					eachDependency { details ->
-						if (details.requested.group != 'com.google.guava') {
+						if (details.requested.group != 'com.google.guava' && details.requested.group != 'org.eclipse.jetty') {
 							def version = versions["$details.requested.group:$details.requested.name"]
 							if (version) {
 								if (details.requested.group == 'org.springframework.data' &&

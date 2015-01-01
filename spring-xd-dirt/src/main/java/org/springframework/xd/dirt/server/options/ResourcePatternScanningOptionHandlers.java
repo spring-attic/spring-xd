@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.server.options;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.kohsuke.args4j.CmdLineParser;
@@ -32,6 +31,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * Holds definitions of {@link ResourcePatternScanningOptionHandler}s used in Spring XD.
  *
  * @author Eric Bottard
+ * @author Gary Russell
  */
 public final class ResourcePatternScanningOptionHandlers {
 
@@ -54,10 +54,10 @@ public final class ResourcePatternScanningOptionHandlers {
 		private static String resolveMessageBusPath() {
 			String xdHome = CommandLinePropertySourceOverridingListener.getCurrentEnvironment().resolvePlaceholders(
 					"${XD_HOME}");
-			return "file:" + xdHome + File.separator + "lib" + File.separator + "messagebus" + File.separator +
-					"*";
+			return "file:" + xdHome.replaceAll("\\\\", "/") + "/lib/messagebus/*";
 		}
 
+		@Override
 		protected boolean shouldConsider(Resource r) {
 			try {
 				return r.getFile().isDirectory();

@@ -69,7 +69,7 @@ public class DatasetOutboundChannelAdapterPartitionedIntegrationTests {
 				new File(path + "/" + "test/" + datasetOperations.getDatasetName(TestPojo.class)).exists());
 		assertTrue("Dataset metadata created",
 				new File(path + "/" + "test/" + datasetOperations.getDatasetName(TestPojo.class) + "/.metadata").exists());
-		String year = new SimpleDateFormat("YYYY").format(t1.getTimestamp());
+		String year = new SimpleDateFormat("yyyy").format(t1.getTimestamp());
 		assertTrue("Dataset partition path created",
 				new File(path + "/" + "test/" + datasetOperations.getDatasetName(TestPojo.class) + "/year=" + year).exists());
 		context.close();

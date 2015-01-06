@@ -36,6 +36,8 @@ public class MqttSourceOptionsMetadata {
 
 	private String topics = "xd.mqtt.test";
 
+	private String qos = "0";
+
 	private boolean binary = false;
 
 	private String charset = "UTF-8";
@@ -57,9 +59,18 @@ public class MqttSourceOptionsMetadata {
 		return topics;
 	}
 
-	@ModuleOption("the topic(s) to which the source will subscribe")
+	@ModuleOption("the topic(s) (comma-delimited) to which the source will subscribe")
 	public void setTopics(String topics) {
 		this.topics = topics;
+	}
+
+	public String getQos() {
+		return qos;
+	}
+
+	@ModuleOption("the qos; a single value for all topics or a comma-delimited list to match the topics")
+	public void setQos(String qos) {
+		this.qos = qos;
 	}
 
 	public String getCharset() {

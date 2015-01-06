@@ -46,7 +46,7 @@ import org.springframework.xd.test.rabbit.RabbitTestSupport;
  * @author Gary Russell
  */
 public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
-		AbstractDistributedTransportSingleNodeStreamDeploymentIntegrationTests {
+AbstractDistributedTransportSingleNodeStreamDeploymentIntegrationTests {
 
 	@ClassRule
 	public static RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
@@ -72,7 +72,7 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 
 	@Test
 	public void mqttSourceStreamReceivesMqttSinkStreamOutput() throws Exception {
-		StreamDefinition mqtt1 = new StreamDefinition("mqtt1", "queue:mqttsource > mqtt --topic=foo");
+		StreamDefinition mqtt1 = new StreamDefinition("mqtt1", "queue:mqttsource > mqtt --topic=foo --async=true");
 		StreamDefinition mqtt2 = new StreamDefinition("mqtt2", "mqtt --topics=foo --charset=UTF-8 > queue:mqttsink");
 		integrationSupport.createAndDeployStream(mqtt1);
 		integrationSupport.createAndDeployStream(mqtt2);

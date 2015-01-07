@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.postprocessor.DelegatingDecompressingPostProcessor;
 import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.DirectFieldAccessor;
@@ -498,6 +499,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		in = (Message<byte[]>) input.receive(10000);
 		assertNotNull(in);
 		assertEquals("bar", new String(in.getPayload()));
+		assertNull(in.getHeaders().get(AmqpHeaders.DELIVERY_MODE));
 
 		bus.unbindProducers("batching.0");
 		bus.unbindConsumers("batching.0");

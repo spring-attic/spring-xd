@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -47,6 +48,8 @@ import org.springframework.amqp.rabbit.core.support.BatchingStrategy;
 import org.springframework.amqp.rabbit.core.support.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
+import org.springframework.amqp.rabbit.support.DefaultMessagePropertiesConverter;
+import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.postprocessor.DelegatingDecompressingPostProcessor;
 import org.springframework.amqp.support.postprocessor.GZipPostProcessor;
@@ -80,7 +83,9 @@ import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Envelope;
 
 /**
  * A {@link MessageBus} implementation backed by RabbitMQ.
@@ -205,6 +210,18 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			.add(BusProperties.CONCURRENCY)
 			.add(RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS)
 			.build();
+
+	private static final MessagePropertiesConverter inboundMessagePropertiesConverter =
+			new DefaultMessagePropertiesConverter() {
+
+				@Override
+				public MessageProperties toMessageProperties(AMQP.BasicProperties source, Envelope envelope,
+						String charset) {
+					MessageProperties properties = super.toMessageProperties(source, envelope, charset);
+					properties.setDeliveryMode(null);
+					return properties;
+				}
+			};
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -415,6 +432,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				listenerContainer.setAdviceChain(new Advice[] { retryInterceptor });
 			}
 			listenerContainer.setAfterReceivePostProcessors(this.decompressingPostProcessor);
+			listenerContainer.setMessagePropertiesConverter(RabbitMessageBus.inboundMessagePropertiesConverter);
 			listenerContainer.afterPropertiesSet();
 			AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
 			adapter.setBeanFactory(this.getBeanFactory());

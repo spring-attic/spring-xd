@@ -451,7 +451,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			argValue = t.data;
 		}
 		else if (t.getKind() == TokenKind.LITERAL_STRING) {
-			argValue = t.data.substring(1, t.data.length() - 1).replaceAll("''", "'").replaceAll("\"\"", "\"");
+			String quotesUsed = t.data.substring(0, 1);
+			argValue = t.data.substring(1, t.data.length() - 1).replace(quotesUsed+quotesUsed, quotesUsed);
 		}
 		else {
 			raiseException(t.startpos, XDDSLMessages.EXPECTED_ARGUMENT_VALUE, t.data);

@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.springframework.xd.dirt.stream.ParsingContext.stream;
@@ -355,7 +356,7 @@ public class StreamConfigParserTests {
 		assertEquals("'hi'", ast.getModule("transform").getArguments()[0].getValue());
 
 		ast = parse("http | transform --expression=\"''''hi''''\" | log");
-		assertEquals("''hi''", ast.getModule("transform").getArguments()[0].getValue());
+		assertEquals("''''hi''''", ast.getModule("transform").getArguments()[0].getValue());
 	}
 
 	@Test
@@ -603,6 +604,16 @@ public class StreamConfigParserTests {
 		checkForParseError("foo --name .sub=value", XDDSLMessages.NO_WHITESPACE_IN_DOTTED_NAME, 11);
 		checkForParseError("foo --name. sub=value", XDDSLMessages.NO_WHITESPACE_IN_DOTTED_NAME, 12);
 	}
+
+	@Test
+	public void testXD2416() {
+		StreamNode ast = parse("http | transform --expression='payload.replace(\"abc\", \"\")' | log");
+		assertThat((String)ast.getModuleNodes().get(1).getArgumentsAsProperties().get("expression"), equalTo("payload.replace(\"abc\", \"\")"));
+
+		ast = parse("http | transform --expression='payload.replace(\"abc\", '''')' | log");
+		assertThat((String)ast.getModuleNodes().get(1).getArgumentsAsProperties().get("expression"), equalTo("payload.replace(\"abc\", '')"));
+	}
+
 
 	@After
 	public void reset() {

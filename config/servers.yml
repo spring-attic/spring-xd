@@ -263,7 +263,7 @@ endpoints:
 ---
 #Container Attributes: Used to target containers configured with attribute values for module deployment by specifying attribute expressions in the deployment manifest.
 #'groups' is a native XD convention for targeting a group of container instances and is also supported as a command line option and environment variable XD_CONTAINER_GROUPS.
-# A container instance may belong to multiple groups. XD Also supports any user defined attributes provided here.
+# A container instance may belong to multiple groups. XD also supports any user defined attributes provided here.
 #
 #xd:
 #  container:

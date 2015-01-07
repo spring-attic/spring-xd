@@ -90,7 +90,7 @@ public class SecurityConfigurationTests {
 	public void testThatSecurityIsEnabled() throws Exception {
 		Assert.assertNotNull("'security.basic.enabled' property should not be null",
 				environment.getProperty("security.basic.enabled", Boolean.class));
-		Assert.assertTrue("Security should be anabled",
+		Assert.assertTrue("Security should be enabled",
 				environment.getProperty("security.basic.enabled", Boolean.class));
 	}
 

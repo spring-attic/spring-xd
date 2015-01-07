@@ -45,6 +45,11 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 	}
 
 	@Override
+	protected boolean isStoppable() {
+		return false;
+	}
+
+	@Override
 	protected List<String> createCommand() {
 		List<String> command = new ArrayList<String>();
 		command.add("java");

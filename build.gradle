@@ -996,27 +996,23 @@ project('spring-xd-test') {
 		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.integration:spring-integration-redis"
 		compile "org.springframework.integration:spring-integration-mqtt"
-		compile("org.springframework.data:spring-data-hadoop") {
-			exclude group: 'org.springframework.batch', module: 'spring-batch-core'
-			exclude group: 'org.springframework.batch', module: 'spring-batch-infrastructure'
-			exclude group: 'javax.servlet', module: 'servlet-api'
-			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
-			exclude group: 'tomcat', module: 'jasper-runtime'
-			exclude group: 'tomcat', module: 'jasper-compiler'
-			exclude group: 'org.mortbay.jetty', module: 'jetty'
-			exclude group: 'org.mortbay.jetty', module: 'jetty-util'
-			exclude group: 'com.sun.jersey', module: 'jersey-core'
-			exclude group: 'com.sun.jersey', module: 'jersey-server'
-			exclude group: 'org.codehaus.jackson', module: 'jackson-core-asl'
-			exclude group: 'org.codehaus.jackson', module: 'jackson-mapper-asl'
-			exclude group: 'net.java.dev.jets3t', module: 'jets3t'
-			exclude group: 'com.jcraft', module: 'jsch'
-			exclude group: 'junit', module: 'junit'
-			//TODO: Not sure this is doing anything
-			exclude group: 'hsqldb'
-			exclude group: 'jline', module: 'jline'
-			exclude group: 'com.sun.jersey.jersey-test-framework', module: 'jersey-test-framework-grizzly2'
-		}
+
+		compile("org.springframework.data:spring-data-hadoop")
+		// Exclude transitive dependencies
+		configurations.compile.exclude(group: 'commons-beanutils', module: 'commons-beanutils-core')
+		configurations.compile.exclude(group: 'javax.servlet', module: 'servlet-api')
+		configurations.compile.exclude(group: 'javax.servlet.jsp', module: 'jsp-api')
+		configurations.compile.exclude(group: 'tomcat', module: 'jasper-runtime')
+		configurations.compile.exclude(group: 'tomcat', module: 'jasper-compiler')
+		configurations.compile.exclude(group: 'net.java.dev.jets3t', module: 'jets3t')
+		configurations.compile.exclude(group: 'com.jcraft', module: 'jsch')
+		configurations.compile.exclude(group: 'jline', module: 'jline')
+		configurations.compile.exclude(group: 'org.apache.directory.server', module: 'apacheds-kerberos-codec')
+		configurations.compile.exclude(group: 'org.apache.httpcomponents', module: 'httpclient')
+		configurations.compile.exclude(group: 'org.apache.httpcomponents', module: 'httpcore')
+		configurations.compile.exclude(group: 'com.sun.jersey', module: 'jersey-client')
+		configurations.compile.exclude(group: 'org.fusesource.leveldbjni', module: 'leveldbjni-all')
+
 		compile "com.google.guava:guava:$guavaVersion"
 		compile("org.springframework.data:spring-data-redis") {
 			exclude group: 'org.springframework', module: 'spring-core'

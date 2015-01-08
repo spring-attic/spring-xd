@@ -28,6 +28,7 @@ project('spring-xd-hadoop:hadoop24') {
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop24Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop24Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop24Version")
+		configurations.runtime.exclude(group: 'org.xerial.snappy')
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -64,6 +65,7 @@ project('spring-xd-hadoop:hadoop25') {
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop25Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop25Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop25Version")
+		configurations.runtime.exclude(group: 'org.xerial.snappy')
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -94,6 +96,7 @@ project('spring-xd-hadoop:cdh5') {
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$cdh5Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$cdh5Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$cdh5Version")
+		configurations.runtime.exclude(group: 'org.xerial.snappy')
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -124,6 +127,7 @@ project('spring-xd-hadoop:hdp21') {
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hdp21Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hdp21Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$hdp21Version")
+		configurations.runtime.exclude(group: 'org.xerial.snappy')
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -155,6 +159,7 @@ project('spring-xd-hadoop:phd21') {
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$phd21Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$phd21Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd21Version")
+		configurations.runtime.exclude(group: 'org.xerial.snappy')
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"

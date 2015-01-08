@@ -20,7 +20,7 @@
 		<prop key="xd.config.home">file:../../config</prop>
 	</util:properties>
 
-	<import resource="file:../../modules/job/ftphdfs/config/ftphdfs.xml" />
+	<import resource="file:../../modules/job/ftphdfs/config/module.xml" />
 
 	<bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
 		<property name="jobRepository" ref="jobRepository" />

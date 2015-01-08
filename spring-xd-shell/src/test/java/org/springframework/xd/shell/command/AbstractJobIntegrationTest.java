@@ -65,7 +65,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	public static final String NESTED_JOB_DESCRIPTOR = "nestedJob";
 
-	private static final String NESTED_JOB_TASKLET = "nestedJob.xml";
+	private static final String NESTED_JOB_TASKLET = "spring-module.xml";
 
 	public static final String INVALID_NESTED_JOB_DESCRIPTOR = "invalidJob";
 

@@ -42,7 +42,7 @@ include 'documentation-toolchain'
 
 ['source', 'processor', 'sink', 'job'].each {kind->
 	new File(rootDir, "modules/${kind}").eachDir { dir ->
-		if (new File(dir, "config/${dir.name}.xml").exists()) {
+		if (new File(dir, "config/module.xml").exists() || new File(dir, "config/module.properties").exists()) {
 		    include ":modules.${kind}.${dir.name}"
 		    project(":modules.${kind}.${dir.name}").projectDir = dir
 		}

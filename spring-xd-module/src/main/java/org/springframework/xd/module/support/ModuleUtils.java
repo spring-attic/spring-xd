@@ -40,7 +40,7 @@ public class ModuleUtils {
 
 	private static final AsciiBytes LIB = new AsciiBytes("lib/");
 
-	private static final String SPRING_MODULE = "spring-module";
+	private static final String MODULE = "module";
 
 	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent) {
 		try {
@@ -80,7 +80,7 @@ public class ModuleUtils {
 	 */
 	public static Resource locateModuleResource(SimpleModuleDefinition definition, ClassLoader moduleClassLoader,
 			String extension) {
-		String[] supportedFileNames = new String[] {definition.getName(), SPRING_MODULE};
+		String[] supportedFileNames = new String[] {MODULE};
 
 		Resource result = null;
 		String ext = extension.startsWith(".") ? extension : "." + extension;

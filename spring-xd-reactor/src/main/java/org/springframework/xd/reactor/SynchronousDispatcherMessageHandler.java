@@ -33,6 +33,8 @@ import reactor.rx.stream.Broadcaster;
 
 import java.lang.SuppressWarnings;
 import java.lang.reflect.Method;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A handler that adapts item at a time delivery in a
@@ -48,14 +50,15 @@ public class SynchronousDispatcherMessageHandler extends AbstractMessageProducin
 
     protected final Log logger = LogFactory.getLog(getClass());
 
-    private final Broadcaster<Object> stream;
+    private final ConcurrentMap<Long, Broadcaster<Object>> broadcasterMap =
+            new ConcurrentHashMap<Long, Broadcaster<Object>>();
+
+    private final Object monitor = new Object();
 
 	@SuppressWarnings("rawtypes")
     private final Processor reactorProcessor;
 
     private final ResolvableType inputType;
-
-    private final Controls consume;
 
     /**
      * Construct a new SynchronousDispatcherMessageHandler given the reactor based Processor to delegate
@@ -70,53 +73,65 @@ public class SynchronousDispatcherMessageHandler extends AbstractMessageProducin
         Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
         Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
         this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
-
-        //Stream with a SynchronousDispatcher as this handler is called by Message Listener managed threads
-        this.stream = Streams.broadcast();
-
-        //user defined stream processing
-        Stream<?> outputStream = processor.process(stream);
-
-        //Simple log error handling
-        outputStream.when(Throwable.class, new Consumer<Throwable>() {
-            @Override
-            public void accept(Throwable throwable) {
-                logger.error(throwable);
-            }
-        });
-
-        this.consume = outputStream.consume(new Consumer<Object>() {
-            @Override
-            public void accept(Object outputObject) {
-                if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-                    getOutputChannel().send((Message) outputObject);
-                } else {
-                    //TODO handle copy of header values when possible
-                    getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-                }
-                //TODO handle Void
-            }
-        });
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(consume.debug());
-        }
-
     }
 
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {
-
+        Broadcaster<Object> broadcasterToUse = getBroadcaster();
         if (ClassUtils.isAssignable(inputType.getRawClass(), message.getClass())) {
-            stream.onNext(message);
+            broadcasterToUse.onNext(message);
         } else if (ClassUtils.isAssignable(inputType.getRawClass(), message.getPayload().getClass())) {
             //TODO handle type conversion of payload to input type if possible
-            stream.onNext(message.getPayload());
+            broadcasterToUse.onNext(message.getPayload());
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.debug(consume.debug());
+        //TODO store Controls per-thread to keep this debugging
+//        if (logger.isDebugEnabled()) {
+//            logger.debug(consume.debug());
+//        }
+    }
+
+
+    private Broadcaster<Object>  getBroadcaster() {
+        long idToUse = Thread.currentThread().getId();
+        Broadcaster<Object> broadcaster = broadcasterMap.get(idToUse);
+        if (broadcaster == null) {
+            Broadcaster<Object> existingBroadcaster = broadcasterMap.putIfAbsent(idToUse, Streams.broadcast());
+            if (existingBroadcaster == null) {
+                broadcaster = broadcasterMap.get(idToUse);
+                synchronized (this.monitor) {
+                    if (broadcaster.getSubscription() == null) {
+                        //user defined stream processing
+                        Stream<?> outputStream = reactorProcessor.process(broadcaster);
+                        //Simple log error handling
+                        outputStream.when(Throwable.class, new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) {
+                                logger.error(throwable);
+                            }
+                        });
+
+                        Controls controls = outputStream.consume(new Consumer<Object>() {
+                            @Override
+                            public void accept(Object outputObject) {
+                                if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
+                                    getOutputChannel().send((Message) outputObject);
+                                } else {
+                                    //TODO handle copy of header values when possible
+                                    getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+                                }
+                                //TODO handle Void
+                            }
+                        });
+
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(controls.debug());
+                        }
+                    }
+                }
+            }
         }
+        return broadcaster;
     }
 
 }

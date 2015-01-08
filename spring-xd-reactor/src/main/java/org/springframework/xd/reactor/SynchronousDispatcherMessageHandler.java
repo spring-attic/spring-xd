@@ -21,6 +21,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -80,12 +81,15 @@ public class SynchronousDispatcherMessageHandler extends AbstractMessageProducin
     }
 
     @Override
-    protected void handleMessageInternal(Message<?> message) throws Exception {
+    protected void handleMessageInternal(Message<?> message) {
         Broadcaster<Object> broadcasterToUse = getBroadcaster();
         if (ClassUtils.isAssignable(inputType.getRawClass(), message.getClass())) {
             broadcasterToUse.onNext(message);
         } else if (ClassUtils.isAssignable(inputType.getRawClass(), message.getPayload().getClass())) {
             broadcasterToUse.onNext(message.getPayload());
+        } else {
+            throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
+                    + "] or [" + message.getPayload().getClass() + "]");
         }
 
         if (logger.isDebugEnabled()) {

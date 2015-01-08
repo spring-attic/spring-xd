@@ -63,6 +63,14 @@ public abstract class AbstractFieldValueCounterRepositoryTests {
 		counts = fieldValueCounterRepository.findOne(tickersFieldValueCounterName).getFieldValueCount();
 		assertThat(counts.get("VMW"), equalTo(2.0));
 
+		//Check that we can save back another value.
+		fvTickersCounter.getFieldValueCount().put("VMW", 1.0D);
+		fieldValueCounterRepository.save(counter);
+		counts = fieldValueCounterRepository.findOne(tickersFieldValueCounterName).getFieldValueCount();
+		assertThat(counts.get("VMW"), equalTo(1.0));
+		//Increment again to prepare for decrement test below
+		fieldValueCounterRepository.increment(tickersFieldValueCounterName, "VMW");
+
 		fieldValueCounterRepository.increment(tickersFieldValueCounterName, "ORCL");
 		counts = fieldValueCounterRepository.findOne(tickersFieldValueCounterName).getFieldValueCount();
 		assertThat(counts.get("ORCL"), equalTo(1.0));

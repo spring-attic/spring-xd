@@ -54,23 +54,21 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 		redisTemplate.afterPropertiesSet();
 	}
 
+	/*
+	 * Note: Handler implementations typically use increment() variants to save state. The save() contract
+	 * is to store the counter as a whole. Simplest approach is erase/rewrite.
+	 */
 	@Override
 	public <S extends FieldValueCounter> S save(S fieldValueCounter) {
-		String counterKey = getMetricKey(fieldValueCounter.getName());
-		if (this.redisTemplate.opsForValue().get(counterKey) == null) {
-			if (fieldValueCounter.getFieldValueCount().size() > 0) {
-				for (Map.Entry<String, Double> entry : fieldValueCounter.getFieldValueCount().entrySet()) {
-					increment(fieldValueCounter.getName(), entry.getKey(), entry.getValue());
-				}
-			}
-			else {
-				increment(fieldValueCounter.getName(), MARKER, 0);
-			}
+		delete(fieldValueCounter.getName());
+		increment(fieldValueCounter.getName(), MARKER, 0);
+		for (Map.Entry<String, Double> entry : fieldValueCounter.getFieldValueCount().entrySet()) {
+			increment(fieldValueCounter.getName(), entry.getKey(), entry.getValue());
 		}
-		// else TODO decide behavior
 		return fieldValueCounter;
-
 	}
+
+
 
 	@Override
 	public <S extends FieldValueCounter> Iterable<S> save(Iterable<S> metrics) {

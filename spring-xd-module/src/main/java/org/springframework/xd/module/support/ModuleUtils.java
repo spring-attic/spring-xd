@@ -80,7 +80,7 @@ public class ModuleUtils {
 	 */
 	public static Resource locateModuleResource(SimpleModuleDefinition definition, ClassLoader moduleClassLoader,
 			String extension) {
-		String[] supportedFileNames = new String[] {definition.getName(), SPRING_MODULE};
+		String[] supportedFileNames = new String[] {SPRING_MODULE};
 
 		Resource result = null;
 		String ext = extension.startsWith(".") ? extension : "." + extension;

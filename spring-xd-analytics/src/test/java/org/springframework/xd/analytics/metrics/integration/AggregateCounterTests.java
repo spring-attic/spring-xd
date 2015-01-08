@@ -93,7 +93,7 @@ public class AggregateCounterTests {
 	}
 
 	@Configuration
-	@ImportResource("file:../modules/sink/aggregate-counter/config/aggregate-counter.xml")
+	@ImportResource("file:../modules/sink/aggregate-counter/config/spring-module.xml")
 	public static class NullTimefieldAggregateCounterTestsConfig {
 
 		@Bean
@@ -116,7 +116,7 @@ public class AggregateCounterTests {
 	}
 
 	@Configuration
-	@ImportResource("file:../modules/sink/aggregate-counter/config/aggregate-counter.xml")
+	@ImportResource("file:../modules/sink/aggregate-counter/config/spring-module.xml")
 	public static class CustomIncrementAggregateCounterTestsConfig {
 
 		@Bean
@@ -139,7 +139,7 @@ public class AggregateCounterTests {
 	}
 
 	@Configuration
-	@ImportResource("file:../modules/sink/aggregate-counter/config/aggregate-counter.xml")
+	@ImportResource("file:../modules/sink/aggregate-counter/config/spring-module.xml")
 	public static class WithTimefieldAggregateCounterTestsConfig {
 
 		@Bean

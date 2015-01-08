@@ -33,7 +33,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Test the {@link org.springframework.xd.reactor.SynchronousDispatcherMessageHandler} by using two types of
+ * Test the {@link MultipleBroadcasterMessageHandler} by using two types of
  * {@link org.springframework.xd.reactor.Processor}. The first is parameterized by
  * {@link org.springframework.messaging.Message} and the second by String to test extracting payload types and
  * wrapping return types in a Message.
@@ -41,9 +41,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Pollack
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("/reactor.xml")
+@ContextConfiguration
 @DirtiesContext
-public class SynchronousDispatcherMessageHandlerTests {
+public class MultipleBroadcasterMessageHandlerTests {
 
 	private final int numMessages = 10;
 

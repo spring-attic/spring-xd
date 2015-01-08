@@ -21,7 +21,7 @@
 
     <bean id="messageProcessor" class="org.springframework.xd.reactor.PongMessageProcessor"/>
 
-    <bean name="reactorMessageHandler" class="org.springframework.xd.reactor.SynchronousDispatcherMessageHandler">
+    <bean name="reactorMessageHandler" class="org.springframework.xd.reactor.MultipleBroadcasterMessageHandler">
         <constructor-arg ref="messageProcessor"/>
     </bean>
 
@@ -30,7 +30,7 @@
 
     <bean id="stringProcessor" class="org.springframework.xd.reactor.PongStringProcessor"/>
 
-    <bean name="reactorStringHandler" class="org.springframework.xd.reactor.SynchronousDispatcherMessageHandler">
+    <bean name="reactorStringHandler" class="org.springframework.xd.reactor.MultipleBroadcasterMessageHandler">
         <constructor-arg ref="stringProcessor"/>
     </bean>
 

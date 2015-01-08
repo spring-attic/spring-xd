@@ -345,6 +345,7 @@ project('spring-xd-reactor') {
 	dependencies {
 		compile "io.projectreactor:reactor-core"
 		compile "org.springframework.integration:spring-integration-core"
+		compile "org.springframework.integration:spring-integration-expression"
 	}
 }
 

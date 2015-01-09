@@ -168,6 +168,53 @@ public class NettyHttpInboundChannelAdapterTests {
 		adapter.stop();
 	}
 
+    private String buildLargeString(int characters) {
+        StringBuilder result = new StringBuilder();
+        for(int i = 0; i < characters; i++) {
+            result.append("c");
+        }
+        return result.toString();
+    }
+
+	@Test
+	public void testLargeBinaryContent() throws Exception {
+		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				messages.add(message);
+				latch.countDown();
+			}
+		});
+		int port = SocketUtils.findAvailableServerSocket();
+		NettyHttpInboundChannelAdapter adapter = new NettyHttpInboundChannelAdapter(port);
+		adapter.setOutputChannel(channel);
+		adapter.start();
+		RestTemplate template = new RestTemplate();
+		URI uri1 = new URI("http://localhost:" + port + "/test1");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        String largeContent = buildLargeString(10000);
+		HttpEntity<byte[]> entity = new HttpEntity<byte[]>(largeContent.getBytes(), headers);
+
+		ResponseEntity<?> response = template.postForEntity(uri1, entity, HttpEntity.class);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertEquals(1, messages.size());
+		Message<?> message = messages.get(0);
+
+		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE, message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertThat(message.getPayload(), Matchers.instanceOf(byte[].class));
+		assertEquals(largeContent, new String((byte[]) message.getPayload()));
+
+		adapter.stop();
+	}
+
 	@Test(expected = HttpServerErrorException.class)
 	public void testErrorResponse() throws URISyntaxException {
 		DirectChannel channel = new DirectChannel();

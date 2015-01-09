@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,16 @@
 
 package org.springframework.integration.x.http;
 
+import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
-import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
+import static org.jboss.netty.handler.codec.http.HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 import java.security.KeyStore;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -40,7 +37,6 @@ import javax.net.ssl.SSLEngine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -50,8 +46,10 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.DefaultChannelPipeline;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.handler.codec.frame.TooLongFrameException;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpContentCompressor;
@@ -71,11 +69,10 @@ import org.jboss.netty.util.internal.StringUtil;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.http.MediaType;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -105,6 +102,11 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	 */
 	private static final long DEFAULT_MAX_TOTAL_MEMORY_SIZE = 1048576;
 
+	/**
+	 * Default max content length
+	 */
+	private static final int DEFAULT_MAX_CONTENT_LENGTH = 1048576;
+
 	private final int port;
 
 	private final boolean ssl;
@@ -115,6 +117,10 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	private volatile Executor executor = new OrderedMemoryAwareThreadPoolExecutor(DEFAULT_CORE_POOL_SIZE,
 			DEFAULT_MAX_CHANNEL_MEMORY_SIZE, DEFAULT_MAX_TOTAL_MEMORY_SIZE);
+
+	private volatile MessageConverter messageConverter;
+
+	private volatile int maxContentLength = DEFAULT_MAX_CONTENT_LENGTH;
 
 	static {
 		// Use commons-logging for Netty logging
@@ -157,6 +163,22 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 		this.sslPropertiesLocation = sslPropertiesLocation;
 	}
 
+	/**
+	 * Set the message converter; defaults to {@link NettyInboundMessageConverter}.
+	 * @param messageConverter the converter.
+	 */
+	public void setMessageConverter(MessageConverter messageConverter) {
+		this.messageConverter = messageConverter;
+	}
+
+	/**
+	 * Set the max content length; default 1Mb.
+	 * @param maxContentLength the max content length.
+	 */
+	public void setMaxContentLength(int maxContentLength) {
+		this.maxContentLength = maxContentLength;
+	}
+
 	@Override
 	protected void onInit() {
 		try {
@@ -172,6 +194,9 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	@Override
 	protected void doStart() {
+		if (this.messageConverter == null) {
+			this.messageConverter = new NettyInboundMessageConverter(getMessageBuilderFactory());
+		}
 		executionHandler = new ExecutionHandler(executor);
 		bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
 				Executors.newCachedThreadPool()));
@@ -221,56 +246,73 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 				pipeline.addLast("logger", loggingHandler);
 			}
 			pipeline.addLast("decoder", new HttpRequestDecoder());
-			pipeline.addLast("aggregator", new HttpChunkAggregator(1024 * 1024));
+			pipeline.addLast("aggregator", new HttpChunkAggregator(maxContentLength));
+			pipeline.addLast("errorHandler", new SimpleChannelHandler() {
+
+				@Override
+				public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
+						throws Exception {
+					if (e.getCause() instanceof TooLongFrameException) {
+						HttpResponse err = new DefaultHttpResponse(HTTP_1_1,
+								REQUEST_ENTITY_TOO_LARGE);
+						e.getChannel().write(err).addListener(ChannelFutureListener.CLOSE);
+					}
+				}
+			});
 			pipeline.addLast("encoder", new HttpResponseEncoder());
-			pipeline.addLast("compressor", new HttpContentCompressor());
+			pipeline.addLast("compressor", new HttpContentCompressor() {
+
+				/*
+				 * Required because the content compressor rejects a reply when no request
+				 * has yet been processed. Even through the exception is caused further down
+				 * the pipleline, writes go through all handlers.
+				 */
+				@Override
+				public void writeRequested(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+					Object msg = e.getMessage();
+					if (msg instanceof HttpResponse
+							&& ((HttpResponse) e.getMessage()).getStatus().equals(REQUEST_ENTITY_TOO_LARGE)) {
+						ctx.sendDownstream(e);
+					}
+					else {
+						super.writeRequested(ctx, e);
+					}
+				}
+
+			});
 			pipeline.addLast("executionHandler", executionHandler);
-			pipeline.addLast("handler", new Handler());
+			pipeline.addLast("handler", new Handler(messageConverter));
 			return pipeline;
 		}
-
 	}
 
 	private class Handler extends SimpleChannelUpstreamHandler {
 
+		private final MessageConverter messageConverter;
+
+		public Handler(MessageConverter messageConverter) {
+			Assert.notNull(messageConverter, "'messageConverter' must not be null");
+			this.messageConverter = messageConverter;
+		}
+
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+			Assert.isInstanceOf(HttpRequest.class, e.getMessage());
+			HttpRequest request = (HttpRequest) e.getMessage();
 			if (logger.isDebugEnabled()) {
 				logger.debug("Received HTTP request:\n" + indent(e.getMessage().toString()));
 			}
-			HttpRequest request = (HttpRequest) e.getMessage();
-			ChannelBuffer content = request.getContent();
-			Charset charsetToUse = null;
-			boolean binary = false;
 			HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
-			if (content.readable()) {
-				Map<String, String> messageHeaders = new HashMap<String, String>();
-				for (Entry<String, String> entry : request.getHeaders()) {
-					if (entry.getKey().equalsIgnoreCase("Content-Type")) {
-						MediaType contentType = MediaType.parseMediaType(entry.getValue());
-						charsetToUse = contentType.getCharSet();
-						messageHeaders.put(MessageHeaders.CONTENT_TYPE, entry.getValue());
-						binary = MediaType.APPLICATION_OCTET_STREAM.equals(contentType);
-					}
-					else if (!entry.getKey().toUpperCase().startsWith("ACCEPT")
-							&& !entry.getKey().toUpperCase().equals("CONNECTION")) {
-						messageHeaders.put(entry.getKey(), entry.getValue());
-					}
-				}
-				messageHeaders.put("requestPath", request.getUri());
-				messageHeaders.put("requestMethod", request.getMethod().toString());
+			Message<?> message = null;
+			try {
+				message = this.messageConverter.toMessage(request, null);
+			}
+			catch (MessageConversionException ex) {
+				logger.error("Failed to convert message", ex);
+				response = new DefaultHttpResponse(HTTP_1_1, INTERNAL_SERVER_ERROR);
+			}
+			if (message != null) {
 				try {
-					AbstractIntegrationMessageBuilder<?> builder;
-					if (binary) {
-						builder = getMessageBuilderFactory().withPayload(content.array());
-					}
-					else {
-						// ISO-8859-1 is the default http charset when not set
-						charsetToUse = charsetToUse == null ? Charset.forName("ISO-8859-1") : charsetToUse;
-						builder = getMessageBuilderFactory().withPayload(content.toString(charsetToUse));
-					}
-					builder.copyHeaders(messageHeaders);
-					Message<?> message = builder.build();
 					if (logger.isDebugEnabled()) {
 						logger.debug("Sending message: " + message);
 					}
@@ -286,7 +328,8 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 		@Override
 		public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-			throw new RuntimeException(e.getCause());
+			logger.error("Unhandled exception, closing channel", e.getCause());
+			e.getChannel().close();
 		}
 
 		private void writeResponse(HttpRequest request, HttpResponse response, Channel channel) {

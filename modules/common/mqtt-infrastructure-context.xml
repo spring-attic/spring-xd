@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:int="http://www.springframework.org/schema/integration"
+        xmlns:int-mqtt="http://www.springframework.org/schema/integration/mqtt"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+                http://www.springframework.org/schema/integration/mqtt http://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt.xsd
+                http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+        <bean id="clientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
+                <property name="userName" value="${username}" />
+                <property name="password" value="${password}" />
+                <property name="serverURIs" value="${url}" />
+                <property name="cleanSession" value="${cleanSession}" />
+                <property name="connectionTimeout" value="${connectionTimeout}" />
+                <property name="keepAliveInterval" value="${keepAliveInterval}" />
+                <property name="persistence" ref="persistence" />
+        </bean>
+
+        <beans profile="memory">
+                <bean id="persistence" class="org.eclipse.paho.client.mqttv3.persist.MemoryPersistence" />
+        </beans>
+
+        <beans profile="file">
+                <bean id="persistence" class="org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence">
+                        <constructor-arg value="${persistenceDirectory}" />
+                </bean>
+        </beans>
+
+</beans>

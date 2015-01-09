@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Describes options to the {@code mqtt} source module.
  * 
  * @author Eric Bottard
+ * @author Gary Russell
  */
 @Mixin(MqttConnectionMixin.class)
 public class MqttSourceOptionsMetadata {
@@ -34,6 +35,12 @@ public class MqttSourceOptionsMetadata {
 	private String clientId = "xd.mqtt.client.id.src";
 
 	private String topics = "xd.mqtt.test";
+
+	private String qos = "0";
+
+	private boolean binary = false;
+
+	private String charset = "UTF-8";
 
 
 	@NotBlank
@@ -52,10 +59,36 @@ public class MqttSourceOptionsMetadata {
 		return topics;
 	}
 
-	@ModuleOption("the topic(s) to which the source will subscribe")
+	@ModuleOption("the topic(s) (comma-delimited) to which the source will subscribe")
 	public void setTopics(String topics) {
 		this.topics = topics;
 	}
 
+	public String getQos() {
+		return qos;
+	}
+
+	@ModuleOption("the qos; a single value for all topics or a comma-delimited list to match the topics")
+	public void setQos(String qos) {
+		this.qos = qos;
+	}
+
+	public String getCharset() {
+		return charset;
+	}
+
+	@ModuleOption("the charset used to convert bytes to String (when binary is false)")
+	public void setCharset(String charset) {
+		this.charset = charset;
+	}
+
+	public boolean isBinary() {
+		return binary;
+	}
+
+	@ModuleOption("true to leave the payload as bytes")
+	public void setBinary(boolean binary) {
+		this.binary = binary;
+	}
 
 }

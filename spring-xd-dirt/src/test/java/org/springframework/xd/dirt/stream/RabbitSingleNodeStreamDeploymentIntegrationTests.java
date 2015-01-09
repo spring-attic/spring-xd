@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,8 +13,10 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.util.MatcherAssertionErrors.assertThat;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +34,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
-import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.test.source.NamedChannelSource;
@@ -45,7 +46,7 @@ import org.springframework.xd.test.rabbit.RabbitTestSupport;
  * @author Gary Russell
  */
 public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
-		AbstractDistributedTransportSingleNodeStreamDeploymentIntegrationTests {
+AbstractDistributedTransportSingleNodeStreamDeploymentIntegrationTests {
 
 	@ClassRule
 	public static RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
@@ -71,8 +72,8 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 
 	@Test
 	public void mqttSourceStreamReceivesMqttSinkStreamOutput() throws Exception {
-		StreamDefinition mqtt1 = new StreamDefinition("mqtt1", "queue:mqttsource > mqtt --topic=foo");
-		StreamDefinition mqtt2 = new StreamDefinition("mqtt2", "mqtt --topics=foo > queue:mqttsink");
+		StreamDefinition mqtt1 = new StreamDefinition("mqtt1", "queue:mqttsource > mqtt --topic=foo --async=true");
+		StreamDefinition mqtt2 = new StreamDefinition("mqtt2", "mqtt --topics=foo --charset=UTF-8 > queue:mqttsink");
 		integrationSupport.createAndDeployStream(mqtt1);
 		integrationSupport.createAndDeployStream(mqtt2);
 
@@ -84,6 +85,26 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 		Object result = sink.receivePayload(1000);
 
 		assertEquals("hello", result);
+		source.unbind();
+		sink.unbind();
+	}
+
+	@Test
+	public void mqttSourceStreamReceivesMqttSinkStreamOutputBinary() throws Exception {
+		StreamDefinition mqtt3 = new StreamDefinition("mqtt3", "queue:mqttsource2 > mqtt --topic=foo2");
+		StreamDefinition mqtt4 = new StreamDefinition("mqtt4", "mqtt --topics=foo2 --binary=true > queue:mqttsink2");
+		integrationSupport.createAndDeployStream(mqtt3);
+		integrationSupport.createAndDeployStream(mqtt4);
+
+		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(integrationSupport.messageBus()).createNamedChannelSource("queue:mqttsource2");
+		NamedChannelSink sink = new SingleNodeNamedChannelSinkFactory(integrationSupport.messageBus()).createNamedChannelSink("queue:mqttsink2");
+
+		Thread.sleep(1000);
+		source.sendPayload("hello");
+		Object result = sink.receivePayload(1000);
+
+		assertThat(result, instanceOf(byte[].class));
+		assertEquals("hello", new String((byte[]) result));
 		source.unbind();
 		sink.unbind();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Describes options to the {@code mqtt} sink module.
  * 
  * @author Eric Bottard
+ * @author Gary Russell
  */
 @Mixin(MqttConnectionMixin.class)
 public class MqttSinkOptionsMetadata {
@@ -40,6 +41,10 @@ public class MqttSinkOptionsMetadata {
 	private int qos = 1;
 
 	private boolean retained = false;
+
+	private String charset = "UTF-8";
+
+	private boolean async = false;
 
 
 	@Range(min = 0, max = 2)
@@ -83,5 +88,22 @@ public class MqttSinkOptionsMetadata {
 		this.topic = topic;
 	}
 
+	public String getCharset() {
+		return charset;
+	}
+
+	@ModuleOption("the charset used to convert a String payload to byte[]")
+	public void setCharset(String charset) {
+		this.charset = charset;
+	}
+
+	public boolean isAsync() {
+		return async;
+	}
+
+	@ModuleOption("whether or not to use async sends")
+	public void setAsync(boolean async) {
+		this.async = async;
+	}
 
 }

@@ -196,7 +196,9 @@ project('modules.source.twittersearch') {
 project('modules.source.kafka') {
 	dependencies {
 		runtime(project(":spring-xd-extension-kafka"))
-	}
+        // for the metadata store
+        runtime	("org.springframework.integration:spring-integration-redis") { exclude group: 'org.slf4j' }
+    }
 }
 
 project('modules.source.sftp') {

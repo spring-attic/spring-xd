@@ -1,0 +1,16 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="redisConnectionFactory"
+							class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="hostName" value="${spring.redis.host}" />
+		<property name="port" value="${spring.redis.port}" />
+		<property name="password" value="${spring.redis.password:#{null}}" />
+	</bean>
+
+	<bean id="metadataStore" class="org.springframework.integration.redis.metadata.RedisMetadataStore">
+		<constructor-arg ref="redisConnectionFactory"/>
+	</bean>
+
+</beans>

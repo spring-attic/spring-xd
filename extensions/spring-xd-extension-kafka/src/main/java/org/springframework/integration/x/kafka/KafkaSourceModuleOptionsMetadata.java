@@ -25,11 +25,16 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  * Module options for Kafka source module.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Marius Bogoevici
  */
-@Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class})
+@Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class, KafkaSourceOffsetOptionsMetadata.class})
 public class KafkaSourceModuleOptionsMetadata {
 
 	private String topic = ModulePlaceholders.XD_STREAM_NAME;
+
+	private String partitions = "";
+
+	private String initialOffsets = "";
 
 	private int streams = 1;
 
@@ -44,6 +49,24 @@ public class KafkaSourceModuleOptionsMetadata {
 
 	public String getTopic() {
 		return this.topic;
+	}
+
+	public String getPartitions() {
+		return partitions;
+	}
+
+	@ModuleOption("kafka partitions")
+	public void setPartitions(String partitions) {
+		this.partitions = partitions;
+	}
+
+	public String getInitialOffsets() {
+		return initialOffsets;
+	}
+
+	@ModuleOption("initial offsets")
+	public void setInitialOffsets(String initialOffsets) {
+		this.initialOffsets = initialOffsets;
 	}
 
 	@ModuleOption("number of streams in the topic")

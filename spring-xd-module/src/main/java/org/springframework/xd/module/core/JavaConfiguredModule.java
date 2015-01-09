@@ -18,14 +18,9 @@ package org.springframework.xd.module.core;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -62,8 +57,12 @@ public class JavaConfiguredModule extends SimpleModule {
 	}
 
 	public static String[] basePackages(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
-		Resource propertiesFile = ModuleUtils.locateModuleResource(moduleDefinition, moduleClassLoader,".properties");
-		Assert.notNull(propertiesFile, "required module properties not found.");
+
+		Resource propertiesFile = ModuleUtils.modulePropertiesFile(moduleDefinition, moduleClassLoader);
+		//Assert.notNull(propertiesFile, "required module properties not found.");
+		if (propertiesFile == null) {
+			return new String[0];
+		}
 
 		Properties properties = new Properties();
 		try {
@@ -79,16 +78,17 @@ public class JavaConfiguredModule extends SimpleModule {
 	}
 
 
-
 	static class JavaConfigModuleListener implements ApplicationListener<ApplicationPreparedEvent> {
 		private final String[] basePackages;
 
-		public JavaConfigModuleListener(String ... basePackages) {
+		public JavaConfigModuleListener(String... basePackages) {
 			this.basePackages = basePackages;
 		}
+
 		@Override
 		public void onApplicationEvent(ApplicationPreparedEvent event) {
-			AnnotationConfigApplicationContext context = (AnnotationConfigApplicationContext)event.getApplicationContext();
+			AnnotationConfigApplicationContext context = (AnnotationConfigApplicationContext) event
+					.getApplicationContext();
 			context.scan(basePackages);
 		}
 	}

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.spy;
 
 import javax.sql.DataSource;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -50,6 +52,7 @@ import org.springframework.xd.test.RandomConfigurationSupport;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@DirtiesContext
 @ActiveProfiles(profiles = { "admin", "hsqldbServer" })
 public class RuntimeBatchConfigurerIntegrationTests extends RandomConfigurationSupport {
 
@@ -108,6 +111,9 @@ public class RuntimeBatchConfigurerIntegrationTests extends RandomConfigurationS
 	@Autowired
 	TestConfig testConfig;
 
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
 	@Test
 	public void testRuntimeBatchConfigurer() throws Exception {
 
@@ -119,6 +125,11 @@ public class RuntimeBatchConfigurerIntegrationTests extends RandomConfigurationS
 
 	}
 
+	@After
+	public void cleanUp() {
+		// Need to shut down the HSQL database server started by batch.xml
+		jdbcTemplate.execute("SHUTDOWN");
+	}
 
 	@SuppressWarnings({ "unchecked" })
 	private <T> T getTargetObject(Object proxy, Class<T> targetClass) throws Exception {

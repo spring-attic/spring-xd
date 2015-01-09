@@ -37,14 +37,14 @@ package org.springframework.xd.analytics.metrics.core;
 public interface RichGaugeRepository extends MetricRepository<RichGauge> {
 
 	/**
-	 * Sets the current value of the gauge.
+	 * Set the current value of the gauge, smoothing accumulated values with the provided alpha value.
 	 *
 	 * @param name the gauge name
 	 * @param value the value of the gauge
-	 * @param alpha
+	 * @param alpha the smoothing factor to use
 	 * @throws IllegalArgumentException in case the given name is null
 	 */
-	void setValue(String name, double value, double alpha);
+	void recordValue(String name, double value, double alpha);
 
 	/**
 	 * Reset the gauge to zero and reset any accumulated average, max and min values

@@ -56,11 +56,11 @@ public abstract class SharedGaugeRepositoryTests {
 
 	public void setValueAndResetWorkAsExpected() {
 		String gaugeName = "simpleGauge";
-		gaugeRepository.setValue(gaugeName, 1);
+		gaugeRepository.recordValue(gaugeName, 1);
 		Gauge g = gaugeRepository.findOne(gaugeName);
 		assertThat(g.getValue(), equalTo(1L));
 
-		gaugeRepository.setValue(gaugeName, 20);
+		gaugeRepository.recordValue(gaugeName, 20);
 		assertThat(gaugeRepository.findOne(gaugeName).getValue(), equalTo(20L));
 
 		gaugeRepository.reset(gaugeName);

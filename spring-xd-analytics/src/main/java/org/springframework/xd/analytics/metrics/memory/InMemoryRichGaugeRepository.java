@@ -31,7 +31,7 @@ public class InMemoryRichGaugeRepository extends InMemoryMetricRepository<RichGa
 		implements RichGaugeRepository {
 
 	@Override
-	public void setValue(String name, double value, double alpha) {
+	public void recordValue(String name, double value, double alpha) {
 		RichGauge gauge = getOrCreate(name);
 		setRichGaugeValue(gauge, value, alpha);
 	}

@@ -1,6 +1,11 @@
 ---
 spring:
   profiles: admin
+
+management:
+  security:
+    enabled: true
+
 security:
   basic:
     enabled: true

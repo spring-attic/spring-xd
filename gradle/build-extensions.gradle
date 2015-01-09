@@ -33,7 +33,10 @@ project('spring-xd-extension-gemfire') {
 project('spring-xd-extension-kafka') {
 	description = 'Spring XD Kafka'
 	dependencies {
-		compile "org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion"
+		compile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
+           exclude module: "zookeeper"
+        }
+        provided project(':spring-xd-dirt')
 		compile project(':spring-xd-module-spi')
 		compile "javax.validation:validation-api"
 	}

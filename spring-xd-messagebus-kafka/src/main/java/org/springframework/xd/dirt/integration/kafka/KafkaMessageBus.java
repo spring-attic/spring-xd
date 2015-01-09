@@ -349,7 +349,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 					@Override
 					protected void handleMessageInternal(Message<?> message) throws Exception {
-						producerConfiguration.send(message);
+						producerConfiguration.send(topicName, null, message);
 					}
 				};
 

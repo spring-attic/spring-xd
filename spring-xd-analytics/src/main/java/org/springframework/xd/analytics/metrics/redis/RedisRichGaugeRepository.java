@@ -67,7 +67,7 @@ public final class RedisRichGaugeRepository extends
 	}
 
 	@Override
-	public void setValue(String name, double value, double alpha) {
+	public void recordValue(String name, double value, double alpha) {
 		String key = getMetricKey(name);
 		RichGauge g = findOne(name);
 		if (g == null) {

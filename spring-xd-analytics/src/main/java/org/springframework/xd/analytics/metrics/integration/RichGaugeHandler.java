@@ -17,7 +17,6 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
-import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
@@ -41,7 +40,7 @@ public class RichGaugeHandler extends AbstractMetricHandler {
 	public void process(Message<?> message) {
 		if (message != null) {
 			double value = convertToDouble(message.getPayload());
-			this.richGaugeRepository.setValue(computeMetricName(message), value, alpha);
+			this.richGaugeRepository.recordValue(computeMetricName(message), value, alpha);
 		}
 	}
 

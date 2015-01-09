@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Describes options to the {@code http} source module.
- * 
+ *
  * @author Gary Russell
  */
 public class HttpSourceOptionsMetadata {
@@ -31,6 +31,9 @@ public class HttpSourceOptionsMetadata {
 
 	private String sslPropertiesLocation = "classpath:httpSSL.properties";
 
+	private int maxContentLength = 1048576;
+
+	private String messageConverterClass = "org.springframework.integration.x.http.NettyInboundMessageConverter";
 
 	public int getPort() {
 		return port;
@@ -57,6 +60,24 @@ public class HttpSourceOptionsMetadata {
 	@ModuleOption("location (resource) of properties containing the location of the pkcs12 keyStore and pass phrase")
 	public void setSslPropertiesLocation(String sslProperties) {
 		this.sslPropertiesLocation = sslProperties;
+	}
+
+	public int getMaxContentLength() {
+		return maxContentLength;
+	}
+
+	@ModuleOption("the maximum allowed content length")
+	public void setMaxContentLength(int maxContentLength) {
+		this.maxContentLength = maxContentLength;
+	}
+
+	public String getMessageConverterClass() {
+		return messageConverterClass;
+	}
+
+	@ModuleOption("the name of a custom MessageConverter class, to convert HttpRequest to Message; must have a constructor with a 'MessageBuilderFactory' parameter")
+	public void setMessageConverterClass(String messageConverterClass) {
+		this.messageConverterClass = messageConverterClass;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.x.http;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -40,12 +41,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -55,6 +58,7 @@ import org.springframework.web.client.RestTemplate;
  * @author David Turanski
  * @author Jennifer Hickey
  * @author Gary Russell
+ * @author Peter Rietzler
  */
 public class NettyHttpInboundChannelAdapterTests {
 
@@ -164,6 +168,85 @@ public class NettyHttpInboundChannelAdapterTests {
 		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE, message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		assertThat(message.getPayload(), Matchers.instanceOf(byte[].class));
 		assertEquals("foo", new String((byte[]) message.getPayload()));
+
+		adapter.stop();
+	}
+
+	@Test
+	public void testLargeBinaryContent() throws Exception {
+		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				messages.add(message);
+				latch.countDown();
+			}
+		});
+		int port = SocketUtils.findAvailableServerSocket();
+		NettyHttpInboundChannelAdapter adapter = new NettyHttpInboundChannelAdapter(port);
+		adapter.setOutputChannel(channel);
+		adapter.setMaxContentLength(10_000_000);
+		adapter.start();
+		RestTemplate template = new RestTemplate();
+		SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+		requestFactory.setReadTimeout(10000);
+		template.setRequestFactory(requestFactory);
+		URI uri1 = new URI("http://localhost:" + port + "/test1");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+		String largeContent = new String(new byte[10_000_000]);
+		HttpEntity<byte[]> entity = new HttpEntity<byte[]>(largeContent.getBytes(), headers);
+
+		ResponseEntity<?> response = template.postForEntity(uri1, entity, HttpEntity.class);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+		assertEquals(1, messages.size());
+		Message<?> message = messages.get(0);
+
+		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE, message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertThat(message.getPayload(), Matchers.instanceOf(byte[].class));
+		assertEquals(largeContent, new String((byte[]) message.getPayload()));
+
+		adapter.stop();
+	}
+
+	@Test
+	public void testTooLargeBinaryContent() throws Exception {
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		});
+		int port = SocketUtils.findAvailableServerSocket();
+		NettyHttpInboundChannelAdapter adapter = new NettyHttpInboundChannelAdapter(port);
+		adapter.setOutputChannel(channel);
+		adapter.setMaxContentLength(1000);
+		adapter.start();
+		RestTemplate template = new RestTemplate();
+		SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+		requestFactory.setReadTimeout(10000);
+		template.setRequestFactory(requestFactory);
+		URI uri1 = new URI("http://localhost:" + port + "/test1");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+		String largeContent = new String(new byte[10_000]);
+		HttpEntity<byte[]> entity = new HttpEntity<byte[]>(largeContent.getBytes(), headers);
+
+		try {
+			template.postForEntity(uri1, entity, HttpEntity.class);
+			fail("Exception expected");
+		}
+		catch (HttpClientErrorException e) {
+			assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, e.getStatusCode());
+		}
 
 		adapter.stop();
 	}

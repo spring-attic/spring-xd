@@ -27,9 +27,9 @@ import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.ExplodedArchive;
 import org.springframework.boot.loader.archive.JarFileArchive;
 import org.springframework.boot.loader.util.AsciiBytes;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.module.SimpleModuleDefinition;
 
 /**
@@ -39,8 +39,6 @@ import org.springframework.xd.module.SimpleModuleDefinition;
 public class ModuleUtils {
 
 	private static final AsciiBytes LIB = new AsciiBytes("lib/");
-
-	private static final String SPRING_MODULE = "spring-module";
 
 	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent) {
 		try {
@@ -75,24 +73,29 @@ public class ModuleUtils {
 	}
 
 	/**
-	 * Return an expected module resource searching conventional file names. Will throw an exception if more than one
-	 * such resource exists
+	 * Return an expected module resource given a file extension. Will throw an exception if more than one such
+	 * resource
+	 * exists
 	 */
 	public static Resource locateModuleResource(SimpleModuleDefinition definition, ClassLoader moduleClassLoader,
 			String extension) {
-		String[] supportedFileNames = new String[] {definition.getName(), SPRING_MODULE};
-
+		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(moduleClassLoader);
 		Resource result = null;
 		String ext = extension.startsWith(".") ? extension : "." + extension;
-		for (String fileName : supportedFileNames) {
-			Resource candidate = new ClassPathResource(String.format("/%s/%s%s", "config", fileName, ext),
-					moduleClassLoader);
-			if (candidate.exists() && candidate.isReadable()) {
-				Assert.isNull(result, String.format("duplicate module definitions found: %s and %s",
-						(result == null ? "" : result.getFilename()), candidate.getFilename()));
-				result = candidate;
+		try {
+			Resource[] resources = resolver.getResources("/config/*" + ext);
+			if (resources.length > 1) {
+				throw new IllegalStateException("Multiple top level module resources found :" + StringUtils
+						.arrayToCommaDelimitedString(resources));
+			}
+			else if (resources.length == 1) {
+				result = resources[0];
 			}
 		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 		return result;
 	}
 

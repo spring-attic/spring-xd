@@ -58,6 +58,25 @@ public class ModuleFactoryTests {
 		createResourceConfiguredModule("xmlModule",ModuleType.processor);
 	}
 
+	@Test(expected = IllegalStateException.class)
+	public void multipleXmlConfigThrowsException() {
+		createResourceConfiguredModule("invalid",ModuleType.processor);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void missingConfigThrowsException() {
+		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("missing", ModuleType.processor,
+				"classpath:/ModuleFactoryTests/modules/processor/missing");
+		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(moduleDefinition)
+				.setModuleName("missing")
+				.setGroup("group")
+				.setModuleDefinition(moduleDefinition)
+				.build();
+		createResourceConfiguredModule("missing",ModuleType.processor);
+	}
+
+
 	@Test
 	public void createGroovyModule() {
 		createResourceConfiguredModule("groovyModule",ModuleType.processor);

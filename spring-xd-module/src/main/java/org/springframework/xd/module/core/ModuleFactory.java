@@ -119,8 +119,8 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 
 		Class<? extends SimpleModule> moduleClass = determineModuleClass((SimpleModuleDefinition) moduleDescriptor.getModuleDefinition(), moduleClassLoader);
 		Assert.notNull(moduleClass,
-				String.format("cannot create module '%s:%s' from module definition.", moduleDescriptor.getModuleName(),
-						moduleDescriptor.getType()));
+				String.format("Required module artifacts are either missing or invalid. Unable to determine module type for module definition: '%s:%s'.",
+						moduleDescriptor.getType(), moduleDescriptor.getModuleName()));
 		return SimpleModuleCreator
 				.createModule(moduleDescriptor, deploymentProperties, moduleClassLoader, moduleOptions, moduleClass);
 	}

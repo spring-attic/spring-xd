@@ -40,7 +40,7 @@ public class ParentLastURLClassLoaderTests {
 
 		URLClassLoader classLoader = new ParentLastURLClassLoader(new URL[] {module.getURL()}, getClass().getClassLoader());
 
-		assertNotNull(classLoader.getResource("config/module1.properties"));
+		assertNotNull(classLoader.getResource("config/foo.properties"));
 
 	}
 }

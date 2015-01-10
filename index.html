@@ -40,19 +40,21 @@ Spring XD is a unified, distributed, and extensible system for data ingestion, r
 
 {% capture main_content %}
 ## Introduction
-Spring XD is a unified, distributed, and extensible system for data ingestion, real time analytics, batch processing, and data export. The project's goal is to simplify the development of big data applications.
+Spring XD is a unified, distributed, and extensible runtime for data ingestion, real time analytics, batch processing, and data export. The project's goal is to simplify the development of big data applications.
 
-Big data applications share many characteristics with Enterprise Integration and Batch applications. Spring has provided proven solutions for building integration and batch applications for more than 7 years now via the Spring Integration and Spring Batch projects. Spring XD builds upon this foundation and provides a scalable, fault-tolerant runtime environment that is easily configured and assembled via a simple DSL.
+Big data applications share many characteristics with Enterprise Integration and Batch applications. Spring has provided proven solutions for building integration and batch applications for more than 8 years now via the Spring Integration and Spring Batch projects. Spring XD builds upon this foundation and provides a scalable, fault-tolerant runtime environment that is easily configured and assembled via a simple DSL. Application developers can focus on business logic as the developer friendly fixtures promote productivity and the DevOps can operationalize seamlessly as the orchestration is handled out-of-the-box.
 
-The Spring ecosystem of projects provides an excellent foundation for building big data applications. The Spring XD project aims to build upon this foundation and provide a one stop shop solution for these use-cases. This is in contrast to many other offerings that are more siloed and fragmented. One of our first features is to create an out-of-the-box server that provide a consistent configuration model and runtime that spans the four use-case categories listed above.
+The Spring ecosystem of projects provides an excellent foundation for building big data applications. The Spring XD project aims to build upon this foundation and provide a one stop shop solution for data-driven use-cases. This is in contrast to many other offerings that are more siloed and fragmented. One of the primary features is an out-of-the-box server that provides a consistent configuration model and runtime that spans traditional enterprise to big data use-cases.
 
-You don't need to code anything up to get going, no build scripts, no IDE, no maven coordinates. You can use a high level configuration DSL that will allow you to hit your head against the keyboard and get started quickly. However, if you choose to extend the platform (and we hope you will), Spring provides the foundation for extensibility.
+You don't need to code anything up to get going: no build scripts, no IDE, no maven coordinates, no bundling or packaging. You can use a high level configuration DSL that will allow you to hit your head against the keyboard and get started quickly. However, if you choose to extend the platform (and we hope you will), Spring provides the foundation for extensibility.
+
+Spring XD is designed with the goal to adapt to frameworks, standards and patterns that matter the most for enterprises. Adapting to Spring’s philosophy, Spring XD follows the mantra _“simple things should be simple, complex things should be possible”_.
 
 For the curious, XD is an abbreviation for eXtreme Data.
 
-
 ## Features
 
+* Easy to adapt linux style pipe-and-filter semantics
 * Unified platform - Stream Processing and Batch Jobs
  * Off-Hadoop Batch Jobs
  * Hadoop Batch workflow orchestration
@@ -60,9 +62,26 @@ For the curious, XD is an abbreviation for eXtreme Data.
  * Scoring of Machine Learning algorithms
 * Runtime that provides critical non-functional requirements
  * Scalable, distributed, Fault-Tolerant
- * Portable.  On prem DIY cluster, YARN, EC2.
-* Easy to use
+ * Portable runtime that runs where there is JVM. On prem DIY cluster, YARN, EC2, Mesos, Docker, Pivotal Cloud Foundry (coming soon)
+* Responsive UI
+ * Stream and Batch Job listing
+ * Create and deploy Batch Jobs
+ * Historical snapshot of Batch Job executions
+ * Container cluster view and management
+ * Visualize pipeline message rates
+* Rich integration options
+ * Functional programming model with Reactor, RxJava, and Spark Streaming
+ * Kafka source, sink, and as message bus
+ * Sqoop job
+ * Spark job
+* Secured runtime for data pipelines
+ * LDAP integration
+ * File based security Auth
+ * HTTPS/Basic Auth support
+ * Kerberos support for HDFS sink
+ * Role based access control (RBAC) 
 * Easy to extend and integrate other technologies
+* No vendor lock-in
 
 <span id="quick-start"></span>
 ## Quick Start

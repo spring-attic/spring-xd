@@ -104,6 +104,8 @@ task copyYarnInstallDirt(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spri
 	into "$buildDir/dist/spring-xd-yarn/xd-yarn"
 	exclude "**/bin/*"
 	exclude "**/config/servers.yml"
+	exclude "**/config/xd-admin-logger.properties"
+	exclude "**/config/xd-container-logger.properties"
 	exclude "**/config/modules"
 	exclude "**/lib/hadoop-*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"

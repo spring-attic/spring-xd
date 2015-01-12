@@ -1,46 +1,30 @@
 spring:
+    main:
+        show_banner: false
     hadoop:
         fsUri: hdfs://localhost:8020
         resourceManagerHost: localhost
     yarn:
+        applicationBaseDir: /xd/yarn/
+        appName: spring-xd
+        appType: XD
         client:
             resource:
-                memory: 512M
+                memory: "${xd.appmasterMemory:512M}"
             files:
                 - "file:${spring.xd.yarn.app.path}/${spring.xd.yarn.app.zip}"
                 - "file:${spring.xd.yarn.am.path}/${spring.xd.yarn.am.jar}"
                 - "file:${spring.xd.yarn.config.path}/servers.yml"
+                - "file:${spring.xd.yarn.config.path}/xd-admin-logger.properties"
+                - "file:${spring.xd.yarn.config.path}/xd-container-logger.properties"
                 - "file:${spring.xd.yarn.config.path}/modules-config.zip"
                 - "file:${spring.xd.yarn.app.path}/custom-modules.zip"
             launchcontext:
                 archiveFile: "${spring.xd.yarn.am.jar}"
+                arguments:
+                    -Dspring.xd.yarn.app.zip: "${spring.xd.yarn.app.zip}"
+                    -Dspring.config.location: "./servers.yml"
+                    -Dspring.yarn.applicationBaseDir: "${spring.yarn.applicationBaseDir}"
             localizer:
                 patterns:
                     - "servers.yml"
----
-spring:
-    profiles: admin
-    yarn:
-        appName: xd-admin
-        client:
-            launchcontext:
-                arguments:
-                    -Dspring.profiles.active: "admin"
-                    -Dspring.xd.yarn.app.zip: "${spring.xd.yarn.app.zip}"
-                    -Dspring.config.location: "./servers.yml"
-                    --spring.yarn.appmaster.containerCount: "${xd.adminServers:1}"
-                    --spring.yarn.appmaster.resource.memory: "${xd.adminMemory:512M}"
----
-spring:
-    profiles: container
-    yarn:
-        appName: xd-container
-        client:
-            launchcontext:
-                arguments:
-                    -Dspring.profiles.active: "container"
-                    -Dspring.xd.yarn.app.zip: "${spring.xd.yarn.app.zip}"
-                    -Dspring.yarn.applicationDir: "${spring.yarn.applicationDir}"
-                    -Dspring.config.location: "./servers.yml"
-                    --spring.yarn.appmaster.containerCount: "${xd.containers:1}"
-                    --spring.yarn.appmaster.resource.memory: "${xd.containerMemory:512M}"

@@ -8,17 +8,28 @@
 
 # Usage
 USAGE="NAME:
-    xd-yarn - A command line script to deploy Spring XD on YARN
+    xd-yarn - A command line script to deploy and control Spring XD on YARN
 
 COMMANDS:
-    xd-yarn [OPTIONS] push                   Push the application artifacts to HDFS
-    xd-yarn [OPTIONS] start SERVER           Start the specified SERVER (admin or container)
+    xd-yarn push [OPTIONS]                   Push the application artifacts to HDFS
+    xd-yarn pushed [OPTIONS]                 List a pushed instances
+    xd-yarn submit [OPTIONS]                 Submit a new application instance
+    xd-yarn submitted [OPTIONS]              List status of submitted instances
+    xd-yarn kill [OPTIONS]                   Kill an running instance
+    xd-yarn clustersinfo [OPTIONS]           List instance container clusters info
+    xd-yarn clustercreate [OPTIONS]          Create a new container cluster
+    xd-yarn clusterdestroy [OPTIONS]         Destroy a existing container cluster
+    xd-yarn clusterinfo [OPTIONS]            List instance container cluster info
+    xd-yarn clustermodify [OPTIONS]          Modify a existing container cluster
+    xd-yarn clusterstart [OPTIONS]           Start a container cluster
+    xd-yarn clusterstop [OPTIONS]            Stop a container cluster
+    xd-yarn help <command>                   Prints command options
 
 OPTIONS:
-      -h, --help displays a usage message
+      -h, --help displays a usage message for this shell script
       -f, --manifest PATH_TO_DIRECTORY_FOR_MANIFEST
     push:
-      -p, --path PATH_TO_DIRECTORY_FOR_APP_ARTIFACTS
+      -d, --dir PATH_TO_DIRECTORY_FOR_APP_ARTIFACTS
 "
 
 # Add default JVM options here. You can also use JAVA_OPTS to pass JVM options to this script.
@@ -79,6 +90,12 @@ MANIFEST_PATH="$SAVED"
 APP_HOME="$SAVED"
 ACTION=""
 APP_NAME=""
+PARAMS=
+
+if [ $# -eq 0 ]; then
+    die "$USAGE"
+fi
+
 while (("$#"))
 do
     if [ "$1" = "-f" ] || [ "$1" = "--manifest" ]; then
@@ -92,7 +109,7 @@ do
         else
             die "No manifest directory location specified for -f option"
         fi
-    elif [ "$1" = "-p" ] || [ "$1" = "--path" ]; then
+    elif [ "$1" = "-d" ] || [ "$1" = "--dir" ]; then
         shift
         if (($#)); then
             APP_HOME=${1%/}
@@ -101,39 +118,26 @@ do
                 die "$APP_HOME is not a valid directory for application location"
             fi
         else
-            die "No application directory location specified for -p option"
+            die "No application directory location specified for -d option"
         fi
-    elif [ "$1" = "push" ]; then
+    elif [ "$1" = "push" ] || [ "$1" = "shell" ] || [ "$1" = "kill" ] || [ "$1" = "pushed" ] || [ "$1" = "submit" ] || [ "$1" = "submitted" ] || [ "$1" = "clustercreate" ] || [ "$1" = "clusterdestroy" ] || [ "$1" = "clusterinfo" ] || [ "$1" = "clustermodify" ] || [ "$1" = "clustersinfo" ] || [ "$1" = "clusterstart" ] || [ "$1" = "clusterstop" ]; then
+        PARAMS=("${PARAMS[@]}" "$1")
         if [ "$ACTION" = "" ]; then
             ACTION="$1"
         else
             die "Multiple actions specified: $ACTION $1"
         fi
         shift
-    elif [ "$1" = "start" ]; then
-        if [ "$ACTION" = "" ]; then
-            ACTION="$1"
-        else
-            die "Multiple actions specified: $ACTION $1"
-        fi
-        shift
-        if [ "$1" = "admin" ] || [ "$1" = "container" ]; then
-            APP_NAME=$1
-            shift
-        else
-            die "'$1' is not a valid application for start command, valid options are 'admin' or 'container'"
-        fi
     elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         die "$USAGE"
     else
-        die "Invalid option(s) specified: $@
-
-$USAGE"
+        PARAMS=("${PARAMS[@]}" "$1")
+        shift
     fi
 done
 
 # XD options/settings
-if [ $ACTION = "push" ]; then
+if [ "$ACTION" = "push" ]; then
     cd "$APP_HOME" >&-
     APP_HOME_PATH="`pwd`"
     if [ ! -f spring-xd-yarn*.zip ] || [ ! -f lib/spring-xd-yarn-appmaster*.jar ] || [ ! -f lib/spring-xd-yarn-client*.jar ]; then
@@ -160,7 +164,7 @@ ${YAML_SNIPPET}"
 fi
 
 # Write manifest
-if [ $ACTION = "push" ]; then
+if [ "$ACTION" = "push" ]; then
     if [ ! -f $APP_HOME/config/servers.yml ]; then
         die "XD configuration file 'servers.yml' not found in ${APP_HOME}/config"
     fi
@@ -274,8 +278,5 @@ function splitJvmOpts() {
 }
 eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS
 
-if [ $ACTION = "push" ]; then
-    exec "$JAVACMD" "${JVM_OPTS[@]}" "-Dspring.config.location=${MANIFEST_PATH}/manifest.yml" -jar "${APP_HOME}/lib/${XD_CLIENT_JAR}" --install
-elif [ $ACTION = "start" ]; then
-    exec "$JAVACMD" "${JVM_OPTS[@]}" "-Dspring.profiles.active=$APP_NAME" "-Dspring.config.location=${MANIFEST_PATH}/manifest.yml" -jar "${APP_HOME}/lib/${XD_CLIENT_JAR}"
-fi
+exec "$JAVACMD" "${JVM_OPTS[@]}" "-Dspring.config.location=${MANIFEST_PATH}/manifest.yml" -jar "${APP_HOME}/lib/${XD_CLIENT_JAR}" ${PARAMS[@]}
+

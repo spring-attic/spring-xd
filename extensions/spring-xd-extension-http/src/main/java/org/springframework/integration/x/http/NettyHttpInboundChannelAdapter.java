@@ -23,6 +23,7 @@ import static org.jboss.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SER
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
+import java.io.ByteArrayOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
@@ -262,7 +263,7 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 				try {
 					AbstractIntegrationMessageBuilder<?> builder;
 					if (binary) {
-						builder = getMessageBuilderFactory().withPayload(content.array());
+						builder = getMessageBuilderFactory().withPayload(toByteArray(content));
 					}
 					else {
 						// ISO-8859-1 is the default http charset when not set
@@ -283,6 +284,14 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 			}
 			writeResponse(request, response, e.getChannel());
 		}
+
+        private byte[] toByteArray(ChannelBuffer content) {
+            if(content.hasArray()) return content.array();
+
+            byte[] bytes = new byte[content.readableBytes()];
+            content.getBytes(0, bytes);
+            return bytes;
+        }
 
 		@Override
 		public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {

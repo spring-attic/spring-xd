@@ -35,7 +35,7 @@ public class RedisGaugeRepository extends AbstractRedisMetricRepository<Gauge, L
 
 	public RedisGaugeRepository(RedisConnectionFactory connectionFactory,
 			String gaugePrefix) {
-		super(connectionFactory, gaugePrefix);
+		super(connectionFactory, gaugePrefix, Long.class);
 	}
 
 	@Override

@@ -4,10 +4,13 @@
 #
 
 xd:
+    appmasterMemory: 512M
     adminServers: 1
     adminMemory: 512M
+    adminLocality: false
     containers: 3
     containerMemory: 512M
+    containerLocality: false
     container:
         groups: yarn
 

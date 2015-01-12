@@ -1,55 +1,154 @@
 spring:
     yarn:
+        endpoints:
+            containercluster:
+                enabled: true
         appmaster:
-            appmasterClass: org.springframework.yarn.am.StaticEventingAppmaster
-            containerCount: 1
-            keepContextAlive: false
-            launchcontext:
-                useYarnAppClasspath: true
-                useMapreduceAppClasspath: true
+            appmasterClass: org.springframework.xd.yarn.XdAppmaster
+            keepContextAlive: true
             localizer:
                 patterns:
                     - "spring-xd-yarn*.zip"
                     - "servers.yml"
                     - "modules-config.zip"
                     - "custom-modules.zip"
----
-spring:
-    profiles: admin
-    yarn:
-        appName: xd-admin
-        appmaster:
-            resource:
-                memory: 512M
-            launchcontext:
-                runnerClass: org.springframework.xd.dirt.server.AdminServerApplication
-                arguments:
-                    -Dspring.application.name: "admin"
-                    -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
-                    -Dspring.config.location: "./servers.yml"
-                    -Dxd.module.config.location: "file:./modules-config.zip/"
-                containerAppClasspath:
-                    - "./${spring.xd.yarn.app.zip}/config"
-                    - "./${spring.xd.yarn.app.zip}/lib/*"
-                    - "./custom-modules.zip"
----
-spring:
-    profiles: container
-    yarn:
-        appName: xd-container
-        appmaster:
-            resource:
-                memory: 512M
-            launchcontext:
-                runnerClass: org.springframework.xd.dirt.server.ContainerServerApplication
-                arguments:
-                    -Dspring.application.name: "container"
-                    -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
-                    -Dspring.config.location: "./servers.yml"
-                    -Dxd.module.config.location: "file:./modules-config.zip/"
-                containerAppClasspath:
-                    - "./${spring.xd.yarn.app.zip}/config"
-                    - "./${spring.xd.yarn.app.zip}/lib/*"
-                    - "./${spring.xd.yarn.app.zip}/modules/processor/scripts"
-                    - "./custom-modules.zip/modules/processor/scripts"
-                    - "./custom-modules.zip"
+            containercluster:
+                enabled: true
+                clusters:
+                    admin:
+                        projection:
+                            type: default
+                            data:
+                                any: "${xd.adminServers:1}"
+                        resource:
+                            priority: 1
+                            memory: "${xd.adminMemory:512M}"
+                            virtualCores: 1
+                        launchcontext:
+                            runnerClass: org.springframework.xd.dirt.server.AdminServerApplication
+                            locality: "${xd.adminLocality:false}"
+                            useYarnAppClasspath: true
+                            useMapreduceAppClasspath: true
+                            arguments:
+                                -Dspring.application.name: "admin"
+                                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
+                                -Dspring.config.location: "./servers.yml"
+                                -Dlogging.config: "./${spring.xd.yarn.app.zip}/config/xd-admin-logger.properties"
+                                -Dxd.module.config.location: "file:./"
+                            containerAppClasspath:
+                                - "./${spring.xd.yarn.app.zip}/config"
+                                - "./${spring.xd.yarn.app.zip}/lib/*"
+                                - "./custom-modules.zip"
+                    container:
+                        projection:
+                            type: default
+                            data:
+                                any: "${xd.containers:1}"
+                        resource:
+                            priority: 2
+                            memory: "${xd.containerMemory:512M}"
+                            virtualCores: 1
+                        launchcontext:
+                            runnerClass: org.springframework.xd.dirt.server.ContainerServerApplication
+                            locality: "${xd.containerLocality:false}"
+                            useYarnAppClasspath: true
+                            useMapreduceAppClasspath: true
+                            arguments:
+                                -Dspring.application.name: "container"
+                                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
+                                -Dspring.config.location: "./servers.yml"
+                                -Dlogging.config: "./${spring.xd.yarn.app.zip}/config/xd-container-logger.properties"
+                                -Dxd.module.config.location: "file:./"
+                                -Dxd.container.groups: "${xd.container.groups:yarn}"
+                            containerAppClasspath:
+                                - "./${spring.xd.yarn.app.zip}/config"
+                                - "./${spring.xd.yarn.app.zip}/lib/*"
+                                - "./${spring.xd.yarn.app.zip}/modules/processor/scripts"
+                                - "./custom-modules.zip/modules/processor/scripts"
+                                - "./custom-modules.zip"
+                    admin-nolocality-template:
+                        resource:
+                            priority: 10
+                            memory: "${xd.adminMemory:512M}"
+                            virtualCores: 1
+                        launchcontext:
+                            runnerClass: org.springframework.xd.dirt.server.AdminServerApplication
+                            locality: false
+                            useYarnAppClasspath: true
+                            useMapreduceAppClasspath: true
+                            arguments:
+                                -Dspring.application.name: "admin"
+                                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
+                                -Dspring.config.location: "./servers.yml"
+                                -Dlogging.config: "./${spring.xd.yarn.app.zip}/config/xd-admin-logger.properties"
+                                -Dxd.module.config.location: "file:./"
+                            containerAppClasspath:
+                                - "./${spring.xd.yarn.app.zip}/config"
+                                - "./${spring.xd.yarn.app.zip}/lib/*"
+                                - "./custom-modules.zip"
+                    admin-locality-template:
+                        resource:
+                            priority: 20
+                            memory: "${xd.adminMemory:512M}"
+                            virtualCores: 1
+                        launchcontext:
+                            runnerClass: org.springframework.xd.dirt.server.AdminServerApplication
+                            locality: true
+                            useYarnAppClasspath: true
+                            useMapreduceAppClasspath: true
+                            arguments:
+                                -Dspring.application.name: "admin"
+                                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
+                                -Dspring.config.location: "./servers.yml"
+                                -Dlogging.config: "./${spring.xd.yarn.app.zip}/config/xd-admin-logger.properties"
+                                -Dxd.module.config.location: "file:./"
+                            containerAppClasspath:
+                                - "./${spring.xd.yarn.app.zip}/config"
+                                - "./${spring.xd.yarn.app.zip}/lib/*"
+                                - "./custom-modules.zip"
+                    container-nolocality-template:
+                        resource:
+                            priority: 30
+                            memory: "${xd.containerMemory:512M}"
+                            virtualCores: 1
+                        launchcontext:
+                            runnerClass: org.springframework.xd.dirt.server.ContainerServerApplication
+                            locality: false
+                            useYarnAppClasspath: true
+                            useMapreduceAppClasspath: true
+                            arguments:
+                                -Dspring.application.name: "container"
+                                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
+                                -Dspring.config.location: "./servers.yml"
+                                -Dlogging.config: "./${spring.xd.yarn.app.zip}/config/xd-container-logger.properties"
+                                -Dxd.module.config.location: "file:./"
+                                -Dxd.container.groups: "${xd.container.groups:yarn}"
+                            containerAppClasspath:
+                                - "./${spring.xd.yarn.app.zip}/config"
+                                - "./${spring.xd.yarn.app.zip}/lib/*"
+                                - "./${spring.xd.yarn.app.zip}/modules/processor/scripts"
+                                - "./custom-modules.zip/modules/processor/scripts"
+                                - "./custom-modules.zip"
+                    container-locality-template:
+                        resource:
+                            priority: 40
+                            memory: "${xd.containerMemory:512M}"
+                            virtualCores: 1
+                        launchcontext:
+                            runnerClass: org.springframework.xd.dirt.server.ContainerServerApplication
+                            locality: true
+                            useYarnAppClasspath: true
+                            useMapreduceAppClasspath: true
+                            arguments:
+                                -Dspring.application.name: "container"
+                                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
+                                -Dspring.config.location: "./servers.yml"
+                                -Dlogging.config: "./${spring.xd.yarn.app.zip}/config/xd-container-logger.properties"
+                                -Dxd.module.config.location: "file:./"
+                                -Dxd.container.groups: "${xd.container.groups:yarn}"
+                            containerAppClasspath:
+                                - "./${spring.xd.yarn.app.zip}/config"
+                                - "./${spring.xd.yarn.app.zip}/lib/*"
+                                - "./${spring.xd.yarn.app.zip}/modules/processor/scripts"
+                                - "./custom-modules.zip/modules/processor/scripts"
+                                - "./custom-modules.zip"

@@ -67,12 +67,6 @@ public class ModuleFactoryTests {
 	public void missingConfigThrowsException() {
 		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("missing", ModuleType.processor,
 				"classpath:/ModuleFactoryTests/modules/processor/missing");
-		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(moduleDefinition)
-				.setModuleName("missing")
-				.setGroup("group")
-				.setModuleDefinition(moduleDefinition)
-				.build();
 		createResourceConfiguredModule("missing",ModuleType.processor);
 	}
 

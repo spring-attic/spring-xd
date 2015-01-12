@@ -57,7 +57,9 @@ public class JavaConfiguredModule extends SimpleModule {
 	}
 
 	public static String[] basePackages(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
-		Resource propertiesFile = ModuleUtils.locateModuleResource(moduleDefinition, moduleClassLoader, ".properties");
+
+		Resource propertiesFile = ModuleUtils.modulePropertiesFile(moduleDefinition, moduleClassLoader);
+		//Assert.notNull(propertiesFile, "required module properties not found.");
 		if (propertiesFile == null) {
 			return new String[0];
 		}

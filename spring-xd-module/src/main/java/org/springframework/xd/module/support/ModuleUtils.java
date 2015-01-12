@@ -21,7 +21,9 @@ package org.springframework.xd.module.support;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.ExplodedArchive;
@@ -74,16 +76,17 @@ public class ModuleUtils {
 
 	/**
 	 * Return an expected module resource given a file extension. Will throw an exception if more than one such
-	 * resource
-	 * exists
+	 * resource exists.
 	 */
 	public static Resource locateModuleResource(SimpleModuleDefinition definition, ClassLoader moduleClassLoader,
 			String extension) {
-		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(moduleClassLoader);
+
+		PathMatchingResourcePatternResolver resolver = new ModuleResourceResolver(moduleClassLoader,
+				definition.getLocation());
 		Resource result = null;
 		String ext = extension.startsWith(".") ? extension : "." + extension;
 		try {
-			Resource[] resources = resolver.getResources("/config/*" + ext);
+			Resource[] resources = resolver.getResources("classpath*:/config/*" + ext);
 			if (resources.length > 1) {
 				throw new IllegalStateException("Multiple top level module resources found :" + StringUtils
 						.arrayToCommaDelimitedString(resources));
@@ -97,6 +100,38 @@ public class ModuleUtils {
 		}
 
 		return result;
+	}
+
+	/**
+	 * An implementation of PathMatchingResourcePatternResolver that ignores resources from jars on the classpath
+	 * unless it is the module uber-jar itself.
+	 */
+	static class ModuleResourceResolver extends PathMatchingResourcePatternResolver {
+		final String moduleResourcelocation;
+		ModuleResourceResolver(ClassLoader classLoader, String location) {
+			super(classLoader);
+			//This will be an empty string or the name of the uber jar.
+			this.moduleResourcelocation = location.substring(location.lastIndexOf('/') + 1);
+		}
+
+		/**
+		 * If the module resource location is the same as the jar we are scanning, then delegate to super,
+		 * otherwise ignore resources located in jars on the classspath.
+		 * @param rootDirResource
+		 * @param subPattern
+		 * @return
+		 * @throws IOException
+		 */
+		protected Set doFindPathMatchingJarResources(Resource rootDirResource,
+				String subPattern)
+				throws IOException {
+			if (this.moduleResourcelocation.endsWith(".jar") &&
+					rootDirResource.getURL().toString().contains(this.moduleResourcelocation)) {
+				return super.doFindPathMatchingJarResources(rootDirResource, subPattern);
+			}
+			return new HashSet();
+
+		}
 	}
 
 }

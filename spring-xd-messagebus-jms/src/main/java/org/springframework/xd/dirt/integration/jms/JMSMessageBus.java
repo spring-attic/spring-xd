@@ -1,15 +1,19 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 
 package org.springframework.xd.dirt.integration.jms;
 
@@ -37,8 +41,17 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+
+
+/**
+ * A {@link MessageBus} implementation backed by JMS.
+ *
+ * @author David Turanski
+ * @author Sathiya Shunmugasundaram
+ */
 
 
 public class JMSMessageBus extends MessageBusSupport implements DisposableBean {
@@ -90,7 +103,7 @@ public class JMSMessageBus extends MessageBusSupport implements DisposableBean {
 		Binding consumerBinding = Binding.forConsumer(name, endpoint, moduleInputChannel,
 				new AbstractBusPropertiesAccessor(properties) {
 
-		});
+				});
 		addBinding(consumerBinding);
 		consumerBinding.start();
 	}
@@ -123,7 +136,7 @@ public class JMSMessageBus extends MessageBusSupport implements DisposableBean {
 		Binding consumerBinding = Binding.forConsumer(name, endpoint, moduleInputChannel,
 				new AbstractBusPropertiesAccessor(properties) {
 
-		});
+				});
 		addBinding(consumerBinding);
 		consumerBinding.start();
 	}
@@ -157,7 +170,7 @@ public class JMSMessageBus extends MessageBusSupport implements DisposableBean {
 		Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer,
 				new AbstractBusPropertiesAccessor(properties) {
 
-		});
+				});
 		addBinding(producerBinding);
 		producerBinding.start();
 	}
@@ -189,7 +202,7 @@ public class JMSMessageBus extends MessageBusSupport implements DisposableBean {
 		Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer,
 				new AbstractBusPropertiesAccessor(properties) {
 
-		});
+				});
 		addBinding(producerBinding);
 		producerBinding.start();
 	}

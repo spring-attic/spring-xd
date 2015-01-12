@@ -12,6 +12,7 @@ include 'spring-xd-messagebus-local'
 include 'spring-xd-messagebus-kafka'
 include 'spring-xd-messagebus-redis'
 include 'spring-xd-messagebus-rabbit'
+include 'spring-xd-messagebus-jms'
 
 include 'spring-xd-dirt'
 include 'spring-xd-batch'

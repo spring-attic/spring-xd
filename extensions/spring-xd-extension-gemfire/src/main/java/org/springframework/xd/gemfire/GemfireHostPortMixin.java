@@ -35,7 +35,7 @@ public class GemfireHostPortMixin implements ProfileNamesProvider {
 		return host;
 	}
 
-	@ModuleOption("host name of the cache server or locator (if useLocator=true)")
+	@ModuleOption("host name of the cache server or locator (if useLocator=true). May be a comma delimited list.")
 	public void setHost(String host) {
 		this.host = host;
 	}
@@ -44,7 +44,7 @@ public class GemfireHostPortMixin implements ProfileNamesProvider {
 		return port;
 	}
 
-	@ModuleOption("port of the cache server or locator (if useLocator=true)")
+	@ModuleOption("port of the cache server or locator (if useLocator=true). May be a comma delimited list.")
 	public void setPort(String port) {
 		this.port = port;
 	}

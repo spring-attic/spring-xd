@@ -30,7 +30,9 @@ import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.subjects.PublishSubject;
+import rx.subjects.SerializedSubject;
 import rx.subjects.Subject;
 
 import java.lang.reflect.Method;
@@ -59,71 +61,57 @@ public class SubjectMessageHandler extends AbstractMessageProducingHandler imple
 
     private final ResolvableType inputType;
 
+    private final Subject subject;
+
+    private final Subscription subscription;
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     public SubjectMessageHandler(Processor processor) {
         Assert.notNull(processor, "processor cannot be null.");
         this.processor = processor;
         Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Observable.class);
         this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
+        subject = new SerializedSubject(PublishSubject.create());
+        subject.onErrorResumeNext(new Func1<Throwable, Observable>() {
+            @Override
+            public Observable call(Throwable throwable) {
+                logger.error("Resuming Next on Error", throwable);
+                return null; //Discuss
+            }
+        });
+        Observable<?> outputStream = processor.process(subject);
+         subscription = outputStream.subscribe(new Action1<Object>() {
+            @Override
+            public void call(Object outputObject) {
+                if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
+                    getOutputChannel().send((Message) outputObject);
+                } else {
+                    getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+                }
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                logger.error(throwable);
+            }
+        });
     }
 
 
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {
-        Subject subjectToUse = getSubject();
         if (ClassUtils.isAssignable(inputType.getRawClass(), message.getClass())) {
-            subjectToUse.onNext(message);
+            subject.onNext(message);
         } else if (ClassUtils.isAssignable(inputType.getRawClass(), message.getPayload().getClass())) {
-            subjectToUse.onNext(message.getPayload());
+            subject.onNext(message.getPayload());
         } else {
             throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
                     + "] or [" + message.getPayload().getClass() + "]");
         }
     }
 
-    private Subject getSubject() {
-        long idToUse = Thread.currentThread().getId();
-        Subject subject = subjectMap.get(idToUse);
-        if (subject == null) {
-            PublishSubject existingSubject = subjectMap.putIfAbsent(idToUse, PublishSubject.create());
-            if (existingSubject == null)
-                subject = subjectMap.get(idToUse);
-            //user defined stream processing
-            Observable<?> outputStream = processor.process(subject);
-
-            final Subscription subscription = outputStream.subscribe(new Action1<Object>() {
-                @Override
-                public void call(Object outputObject) {
-                    if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-                        getOutputChannel().send((Message) outputObject);
-                    } else {
-                        getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-                    }
-                }
-            }, new Action1<Throwable>() {
-                @Override
-                public void call(Throwable throwable) {
-                    logger.error(throwable);
-                }
-            }, new Action0() {
-                @Override
-                public void call() {
-                    subjectMap.remove(Thread.currentThread().getId());
-                }
-            });
-
-            subscriptionMap.put(idToUse, subscription);
-
-
-        }
-        return subject;
-
-    }
-
     @Override
     public void destroy() throws Exception {
-        for (Subscription subscription : subscriptionMap.values()) {
             subscription.unsubscribe();
-        }
     }
 }

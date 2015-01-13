@@ -1,8 +1,8 @@
 beans {
 	xmlns([gfe   : 'http://www.springframework.org/schema/gemfire',
 		   intgfe: 'http://www.springframework.org/schema/integration/gemfire'])
-	def xdhome = environment.getProperty('xd.home')
 
+	def xdhome = environment.getProperty('xd.home')
 	importBeans "file:${xdhome}/modules/common/gemfire-source.groovy"
 
 	gfe.'cq-listener-container'(id: "cqContainer", cache: "client-cache")

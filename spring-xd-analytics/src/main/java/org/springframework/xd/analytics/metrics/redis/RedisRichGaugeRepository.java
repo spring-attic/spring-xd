@@ -16,6 +16,7 @@
 
 package org.springframework.xd.analytics.metrics.redis;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.dao.DataAccessException;
@@ -25,6 +26,8 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
@@ -42,10 +45,18 @@ public class RedisRichGaugeRepository extends
 
 	private static final String ZERO = serialize(new RichGauge("ZERO"));
 
-	private RetryTemplate retryTemplate = new RetryTemplate();
+	private RetryTemplate retryTemplate;
 
 	public RedisRichGaugeRepository(RedisConnectionFactory connectionFactory) {
 		super(connectionFactory, "richgauges.", String.class);
+
+		// In case of concurrent access on same key, retry up to 3x, with 100ms delay
+		retryTemplate = new RetryTemplate();
+		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(3, Collections.<Class<? extends Throwable>, Boolean> singletonMap(OptimisticLockingFailureException.class, true)));
+		FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
+		backOffPolicy.setBackOffPeriod(100L);
+		retryTemplate.setBackOffPolicy(backOffPolicy);
+
 	}
 
 	private static String serialize(RichGauge g) {

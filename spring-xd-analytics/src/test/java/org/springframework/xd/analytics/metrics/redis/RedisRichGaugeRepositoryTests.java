@@ -92,13 +92,13 @@ public class RedisRichGaugeRepositoryTests extends AbstractRichGaugeRepositoryTe
 				catch (InterruptedException e) {
 					throw new RuntimeException(e);
 				}
-				repo.setValue("foo", 42.0D, -1.0D);
+				repo.recordValue("foo", 42.0D, -1.0D);
 			}
 		};
 
 
 		concurrent.start();
-		modified.setValue("foo", 1.0D, -1.0D);
+		modified.recordValue("foo", 1.0D, -1.0D);
 		concurrent.join();
 
 		RichGauge result = repo.findOne("foo");

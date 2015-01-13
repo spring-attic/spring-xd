@@ -26,7 +26,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.StringUtils;
@@ -50,11 +50,13 @@ public class RedisRichGaugeRepository extends
 	public RedisRichGaugeRepository(RedisConnectionFactory connectionFactory) {
 		super(connectionFactory, "richgauges.", String.class);
 
-		// In case of concurrent access on same key, retry up to 3x, with 100ms delay
+		// In case of concurrent access on same key, retry a bit before giving up eventually
 		retryTemplate = new RetryTemplate();
 		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(3, Collections.<Class<? extends Throwable>, Boolean> singletonMap(OptimisticLockingFailureException.class, true)));
-		FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
-		backOffPolicy.setBackOffPeriod(100L);
+		ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+		backOffPolicy.setInitialInterval(50L);
+		backOffPolicy.setMaxInterval(1000L);
+		backOffPolicy.setMultiplier(2);
 		retryTemplate.setBackOffPolicy(backOffPolicy);
 
 	}
@@ -99,6 +101,7 @@ public class RedisRichGaugeRepository extends
 			public Void doWithRetry(RetryContext context) {
 				return getRedisOperations().execute(new SessionCallback<Void>() {
 					@Override
+					@SuppressWarnings("unchecked")
 					public <K, V> Void execute(RedisOperations<K, V> operations) throws DataAccessException {
 						operations.watch((K) key);
 						RichGauge g = findOne(name);

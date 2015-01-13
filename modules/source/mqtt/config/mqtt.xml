@@ -21,8 +21,6 @@
                 converter="converter" />
 
         <bean id="converter" class="org.springframework.integration.mqtt.support.DefaultPahoMessageConverter">
-                <constructor-arg value="0" />  <!-- not used on inbound; need a new ctor INT-3594 -->
-                <constructor-arg value="false" /> <!-- not used on inbound; need a new ctor INT-3594 -->
                 <constructor-arg value="${charset}" />
                 <property name="payloadAsBytes" value="${binary}" />
         </bean>

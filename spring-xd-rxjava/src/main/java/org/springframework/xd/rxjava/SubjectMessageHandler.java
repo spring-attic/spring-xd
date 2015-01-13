@@ -28,7 +28,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import rx.Observable;
 import rx.Subscription;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.PublishSubject;
@@ -80,7 +79,7 @@ public class SubjectMessageHandler extends AbstractMessageProducingHandler imple
             }
         });
         Observable<?> outputStream = processor.process(subject);
-         subscription = outputStream.subscribe(new Action1<Object>() {
+        subscription = outputStream.subscribe(new Action1<Object>() {
             @Override
             public void call(Object outputObject) {
                 if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
@@ -112,6 +111,6 @@ public class SubjectMessageHandler extends AbstractMessageProducingHandler imple
 
     @Override
     public void destroy() throws Exception {
-            subscription.unsubscribe();
+        subscription.unsubscribe();
     }
 }

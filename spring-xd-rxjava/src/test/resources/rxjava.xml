@@ -21,8 +21,13 @@
 
     <bean id="messageProcessor" class="org.springframework.xd.rxjava.PongMessageProcessor"/>
 
-    <bean name="reactorMessageHandler" class="org.springframework.xd.rxjava.SubjectMessageHandler">
+    <!--<bean name="reactorMessageHandler" class="org.springframework.xd.rxjava.SubjectMessageHandler">-->
+        <!--<constructor-arg ref="messageProcessor"/>-->
+    <!--</bean>-->
+
+    <bean name="reactorMessageHandler" class="org.springframework.xd.rxjava.MultipleSubjectMessageHandler">
         <constructor-arg ref="messageProcessor"/>
+        <constructor-arg value="T(java.lang.Thread).currentThread().getId()"/>
     </bean>
 
     <int:service-activator input-channel="toMessageHandlerChannel" ref="reactorMessageHandler"

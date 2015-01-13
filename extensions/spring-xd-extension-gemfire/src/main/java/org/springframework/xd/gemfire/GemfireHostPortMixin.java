@@ -17,6 +17,7 @@ package org.springframework.xd.gemfire;
 
 import javax.validation.constraints.AssertTrue;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
@@ -25,11 +26,11 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * @author David Turanski
  */
 public class GemfireHostPortMixin implements ProfileNamesProvider {
-	private String host = "localhost";
+	private String host;
 
-	private String port = "40404";
+	private String port;
 
-	private boolean useLocator = false;
+	private boolean useLocator;
 
 	public String getHost() {
 		return host;

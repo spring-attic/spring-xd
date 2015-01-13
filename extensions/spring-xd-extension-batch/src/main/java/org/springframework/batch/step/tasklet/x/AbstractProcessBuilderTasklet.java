@@ -46,6 +46,8 @@ import java.util.Map;
  * Abstract tasklet for running code in a separate process and capturing the log output. The step execution
  * context will be updated with some runtime information as well as with the log output.
  *
+ * Note: This this class is not thread-safe.
+ *
  * @since 1.1
  * @author Thomas Rrisberg
  */

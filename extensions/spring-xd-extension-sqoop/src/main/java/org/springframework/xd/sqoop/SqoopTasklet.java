@@ -26,6 +26,8 @@ import java.util.List;
 /**
  * Tasklet used for running Sqoop tool.
  *
+ * Note: This this class is not thread-safe.
+ *
  * @since 1.1
  * @author Thomas Risberg
  */

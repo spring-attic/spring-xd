@@ -18,6 +18,9 @@ package org.springframework.xd.gemfire;
 
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
 
+import javax.validation.constraints.AssertTrue;
+
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
@@ -26,49 +29,14 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * Captures module options for the "gemfire-server" and "gemfire-json-server" sink modules.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
-public class GemfireServerSinkModuleOptionsMetadata implements ProfileNamesProvider {
-
-	private String host = "localhost";
-
-	private int port = 40404;
+@Mixin(GemfireHostPortMixin.class)
+public class GemfireServerSinkModuleOptionsMetadata  {
 
 	private String regionName = XD_STREAM_NAME;
 
 	private String keyExpression = "'" + XD_STREAM_NAME + "'";
-
-	private boolean useLocator = false;
-
-
-	public String getHost() {
-		return host;
-	}
-
-
-	@ModuleOption("host name of the cache server or locator (if useLocator=true)")
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-
-	public int getPort() {
-		return port;
-	}
-
-	@ModuleOption("port of the cache server or locator (if useLocator=true)")
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	@Override
-	public String[] profilesToActivate() {
-		if (useLocator) {
-			return new String[] { "use-locator" };
-		}
-		else {
-			return new String[] { "use-server" };
-		}
-	}
 
 
 	public String getRegionName() {
@@ -80,25 +48,12 @@ public class GemfireServerSinkModuleOptionsMetadata implements ProfileNamesProvi
 		this.regionName = regionName;
 	}
 
-
 	public String getKeyExpression() {
 		return keyExpression;
 	}
-
 
 	@ModuleOption("a SpEL expression which is evaluated to create a cache key")
 	public void setKeyExpression(String keyExpression) {
 		this.keyExpression = keyExpression;
 	}
-
-
-	public boolean isUseLocator() {
-		return useLocator;
-	}
-
-	@ModuleOption("indicates whether a locator is used to access the cache server")
-	public void setUseLocator(boolean useLocator) {
-		this.useLocator = useLocator;
-	}
-
 }

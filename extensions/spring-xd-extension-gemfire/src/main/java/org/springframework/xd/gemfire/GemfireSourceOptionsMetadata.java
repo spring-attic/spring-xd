@@ -20,6 +20,7 @@ import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_ST
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
@@ -29,37 +30,12 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * @author Eric Bottard
  * @author David Turanski
  */
-public class GemfireSourceOptionsMetadata implements ProfileNamesProvider {
+@Mixin(GemfireHostPortMixin.class)
+public class GemfireSourceOptionsMetadata {
 
 	private String cacheEventExpression = "newValue";
 
 	private String regionName = XD_STREAM_NAME;
-
-	private String host = "localhost";
-
-	private int port = 40404;
-
-	private boolean useLocator = false;
-
-	public String getHost() {
-		return host;
-	}
-
-
-	@ModuleOption("host name of the cache server or locator (if useLocator=true)")
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-
-	public int getPort() {
-		return port;
-	}
-
-	@ModuleOption("port of the cache server or locator (if useLocator=true)")
-	public void setPort(int port) {
-		this.port = port;
-	}
 
 	@NotBlank
 	public String getCacheEventExpression() {
@@ -79,24 +55,5 @@ public class GemfireSourceOptionsMetadata implements ProfileNamesProvider {
 	@ModuleOption("the name of the region for which events are to be monitored")
 	public void setRegionName(String regionName) {
 		this.regionName = regionName;
-	}
-
-	public boolean isUseLocator() {
-		return useLocator;
-	}
-
-	@ModuleOption("set to true if using a locator")
-	public void setUseLocator(boolean useLocator) {
-		this.useLocator = useLocator;
-	}
-
-	@Override
-	public String[] profilesToActivate() {
-		if (useLocator) {
-			return new String[] { "use-locator" };
-		}
-		else {
-			return new String[] { "use-server" };
-		}
 	}
 }

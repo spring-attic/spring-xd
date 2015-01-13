@@ -76,3 +76,15 @@
 #  zkconnect: localhost:2181/xd-kafkasource
 
 ---
+
+#Gemfire module properties
+#
+# host and port may each be comma-delimited values or single values. If both are comma-delimited values they will be
+# applied pair-wise in list order. The following is equivalent to localhost[10334],localhost[10335]
+#
+#gemfire:
+#   useLocator: true
+#   host: localhost
+#   port: 10334,10335
+
+---

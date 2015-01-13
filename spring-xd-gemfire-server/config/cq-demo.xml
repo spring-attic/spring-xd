@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<gfe:cache />
-	<gfe:replicated-region id="Stocks">
+	<gfe:replicated-region id="Stocks" scope="global">
 		<gfe:cache-listener>
 			<bean class="org.springframework.xd.gemfire.server.LoggingCacheListener">
 				<constructor-arg name="level" value="INFO" />

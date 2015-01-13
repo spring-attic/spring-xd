@@ -21,6 +21,7 @@ import javax.validation.constraints.Min;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
@@ -30,39 +31,9 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * @author Eric Bottard
  * @author David Turanski
  */
-public class GemfireCQSourceOptionsMetadata implements ProfileNamesProvider {
-
-	private int port = 40404;
-
-	private String host = "localhost";
-
+@Mixin(GemfireHostPortMixin.class)
+public class GemfireCQSourceOptionsMetadata{
 	private String query;
-
-	private boolean useLocator = false;
-
-
-	@Min(0)
-	@Max(65535)
-	public int getPort() {
-		return port;
-	}
-
-	@ModuleOption("the port on which the GemFire server is running")
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	@NotBlank
-	public String getHost() {
-		return host;
-	}
-
-
-	@ModuleOption("the host on which the GemFire server is running")
-	public void setHost(String host) {
-		this.host = host;
-	}
-
 
 	@NotBlank
 	public String getQuery() {
@@ -73,24 +44,4 @@ public class GemfireCQSourceOptionsMetadata implements ProfileNamesProvider {
 	public void setQuery(String query) {
 		this.query = query;
 	}
-
-	public boolean isUseLocator() {
-		return useLocator;
-	}
-
-	@ModuleOption("set to true if using a locator")
-	public void setUseLocator(boolean useLocator) {
-		this.useLocator = useLocator;
-	}
-
-	@Override
-	public String[] profilesToActivate() {
-		if (useLocator) {
-			return new String[] { "use-locator" };
-		}
-		else {
-			return new String[] { "use-server" };
-		}
-	}
-
 }

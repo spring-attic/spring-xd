@@ -5,9 +5,8 @@ spring:
         fsUri: hdfs://localhost:8020
         resourceManagerHost: localhost
     yarn:
-        applicationBaseDir: /xd/
-        applicationDir: /xd/app/
-        appName: xd-app
+        applicationBaseDir: /xd/app/
+        appName: spring-xd
         appType: XD
         client:
             resource:
@@ -25,7 +24,7 @@ spring:
                 arguments:
                     -Dspring.xd.yarn.app.zip: "${spring.xd.yarn.app.zip}"
                     -Dspring.config.location: "./servers.yml"
-                    -Dspring.yarn.applicationDir: "${spring.yarn.applicationDir}"
+                    -Dspring.yarn.applicationBaseDir: "${spring.yarn.applicationBaseDir}"
             localizer:
                 patterns:
                     - "servers.yml"

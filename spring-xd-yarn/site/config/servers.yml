@@ -16,7 +16,7 @@ xd:
 
 spring:
     yarn:
-        applicationDir: /xd/app/
+        applicationBaseDir: /xd/app/
 
 ---
 

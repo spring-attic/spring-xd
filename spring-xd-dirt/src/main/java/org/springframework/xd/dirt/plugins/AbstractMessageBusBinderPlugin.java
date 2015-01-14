@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.xd.dirt.plugins;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -32,8 +34,13 @@ import org.apache.curator.utils.ThreadUtils;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
+import org.springframework.integration.support.utils.IntegrationUtils;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
@@ -41,9 +48,10 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
-
+import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
 /**
  * Abstract {@link Plugin} that has common implementation methods to bind/unbind {@link Module}'s message producers and
@@ -122,8 +130,16 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	 *
 	 * @param module the module whose consumer and producers to bind to the {@link MessageBus}.
 	 */
-	protected final void bindConsumerAndProducers(Module module) {
+	protected final void bindConsumerAndProducers(final Module module) {
+		boolean trackHistory = module.getDeploymentProperties() != null
+				? module.getDeploymentProperties().getTrackHistory()
+				: false;
 		Properties[] properties = extractConsumerProducerProperties(module);
+		Map<String, Object> historyProperties = null;
+		if (trackHistory) {
+			historyProperties = extractHistoryProperties(module);
+			addHistoryTag(module, historyProperties);
+		}
 		MessageChannel outputChannel = module.getComponent(MODULE_OUTPUT_CHANNEL, MessageChannel.class);
 		if (outputChannel != null) {
 			bindMessageProducer(outputChannel, getOutputChannelName(module), properties[1]);
@@ -132,10 +148,63 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 			if (isTapActive(tapChannelName)) {
 				createAndBindTapChannel(tapChannelName, outputChannel);
 			}
+			if (trackHistory) {
+				track(module, outputChannel, historyProperties);
+			}
 		}
 		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
 		if (inputChannel != null) {
 			bindMessageConsumer(inputChannel, getInputChannelName(module), properties[0]);
+			if (trackHistory && module.getType().equals(ModuleType.sink)) {
+				track(module, inputChannel, historyProperties);
+			}
+		}
+	}
+
+	private void addHistoryTag(Module module, Map<String, Object> historyProperties) {
+		String historyTag = module.getDescriptor().getModuleLabel();
+		if (module.getDescriptor().getSinkChannelName() != null) {
+			historyTag += ">" + module.getDescriptor().getSinkChannelName();
+		}
+		if (module.getDescriptor().getSourceChannelName() != null) {
+			historyTag = module.getDescriptor().getSourceChannelName() + ">" + historyTag;
+		}
+		historyProperties.put("module", historyTag);
+	}
+
+	private void track(final Module module, MessageChannel channel, final Map<String, Object> historyProps) {
+		final MessageBuilderFactory messageBuilderFactory = module.getComponent(
+					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+						MessageBuilderFactory.class) == null
+				? new DefaultMessageBuilderFactory()
+				: module.getComponent(
+					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+						MessageBuilderFactory.class);
+		if (channel instanceof ChannelInterceptorAware) {
+			((ChannelInterceptorAware) channel).addInterceptor(new ChannelInterceptorAdapter() {
+
+				@Override
+				public Message<?> preSend(Message<?> message, MessageChannel channel) {
+					@SuppressWarnings("unchecked")
+					Collection<Map<String, Object>> history =
+							(Collection<Map<String, Object>>) message.getHeaders().get("xdHistory");
+					if (history == null) {
+						history = new ArrayList<Map<String, Object>>(1);
+					}
+					else {
+						history = new ArrayList<Map<String, Object>>(history);
+					}
+					Map<String, Object> map = new LinkedHashMap<String, Object>();
+					map.putAll(historyProps);
+					map.put("thread", Thread.currentThread().getName());
+					history.add(map);
+					Message<?> out = messageBuilderFactory
+										.fromMessage(message)
+										.setHeader("xdHistory", history)
+										.build();
+					return out;
+				}
+			});
 		}
 	}
 
@@ -155,6 +224,28 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 			}
 		}
 		return new Properties[] { consumerProperties, producerProperties };
+	}
+
+	protected final Map<String, Object> extractHistoryProperties(Module module) {
+		Map<String, Object> properties = new LinkedHashMap<String, Object>();
+		if (module.getProperties() != null) {
+			for (Map.Entry<Object, Object> entry : module.getProperties().entrySet()) {
+				if (entry.getKey() instanceof String) {
+					String key = (String) entry.getKey();
+					if (key.startsWith(ModulePlaceholders.XD_CONTAINER_KEY_PREFIX)) {
+						key = key.substring(ModulePlaceholders.XD_CONTAINER_KEY_PREFIX.length());
+						if (key.equals("id")) {
+							key = "container.id";
+						}
+						properties.put(key, entry.getValue());
+					}
+					else if (key.equals(ModulePlaceholders.XD_STREAM_NAME_KEY)) {
+						properties.put(key.substring(3), entry.getValue());
+					}
+				}
+			}
+		}
+		return properties;
 	}
 
 	@Override

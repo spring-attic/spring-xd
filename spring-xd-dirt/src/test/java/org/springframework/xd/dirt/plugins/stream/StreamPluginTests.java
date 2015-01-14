@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.plugins.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -26,10 +27,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME_KEY;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
 import org.junit.Before;
@@ -42,6 +46,8 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
+import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -50,8 +56,9 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.validation.BindException;
-import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
+import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -190,7 +197,7 @@ public class StreamPluginTests {
 				.build());
 		when(module.getType()).thenReturn(moduleDefinition.getType());
 		when(module.getName()).thenReturn(moduleDefinition.getName());
-		final AtomicBoolean messageReceived = new AtomicBoolean();
+		final AtomicReference<Message<?>> messageReceived = new AtomicReference<>();
 		LocalMessageBus bus = new LocalMessageBus() {
 
 			final AtomicBoolean consumerBound = new AtomicBoolean();
@@ -202,7 +209,7 @@ public class StreamPluginTests {
 
 					@Override
 					public void handleMessage(Message<?> message) throws MessagingException {
-						messageReceived.set(true);
+						messageReceived.set(message);
 					}
 
 				};
@@ -244,11 +251,19 @@ public class StreamPluginTests {
 		bridge.start();
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
+		ModuleDeploymentProperties props = new ModuleDeploymentProperties();
+		props.setTrackHistory(true);
+		when(module.getDeploymentProperties()).thenReturn(props);
+		when(module.getComponent(MessageBuilderFactory.class)).thenReturn(new DefaultMessageBuilderFactory());
 		StreamPlugin plugin = new StreamPlugin(bus, zkConnection);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
 		input.send(new GenericMessage<String>("foo"));
-		assertTrue(messageReceived.get());
+		assertNotNull(messageReceived.get());
+		Collection<Map<String, Object>> xdHistory =
+				(Collection<Map<String, Object>>) messageReceived.get().getHeaders().get("xdHistory");
+		assertTrue(xdHistory != null);
+		assertEquals("testing", xdHistory.iterator().next().get("module"));
 	}
 
 }

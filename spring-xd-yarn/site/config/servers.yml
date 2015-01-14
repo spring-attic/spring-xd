@@ -7,16 +7,18 @@ xd:
     appmasterMemory: 512M
     adminServers: 1
     adminMemory: 512M
+    adminJavaOpts: -XX:MaxPermSize=256m
     adminLocality: false
     containers: 3
     containerMemory: 512M
+    containerJavaOpts: -XX:MaxPermSize=256m
     containerLocality: false
     container:
         groups: yarn
 
 spring:
     yarn:
-        applicationBaseDir: /xd/app/
+        applicationBaseDir: /xd/yarn/
 
 ---
 
@@ -224,8 +226,9 @@ management:
 #   host: localhost
 
 #Port that admin-ui is listening on
-#server:
-#  port: 9393
+#should be kept 0 for not getting port conflicts
+server:
+  port: 0
 
 ---
 # RabbitMQ properties

@@ -5,7 +5,7 @@ spring:
         fsUri: hdfs://localhost:8020
         resourceManagerHost: localhost
     yarn:
-        applicationBaseDir: /xd/app/
+        applicationBaseDir: /xd/yarn/
         appName: spring-xd
         appType: XD
         client:

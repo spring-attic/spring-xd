@@ -42,6 +42,7 @@ ext {
 		'spring-xd-analytics',
 		'spring-xd-analytics-ml',
 		'spring-xd-reactor',
+		'spring-xd-rxjava',
 		'spring-xd-tuple',
 		'spring-xd-module',
 		'spring-xd-rest-client',
@@ -347,6 +348,15 @@ project('spring-xd-reactor') {
 	dependencies {
 		compile "io.projectreactor:reactor-core"
 		compile "org.springframework.integration:spring-integration-core"
+	}
+}
+
+project('spring-xd-rxjava') {
+	description = 'Spring XD RxJava'
+	dependencies {
+		compile "io.reactivex:rxjava"
+		compile "org.springframework.integration:spring-integration-core"
+		compile "org.springframework.integration:spring-integration-expression"
 	}
 }
 

@@ -45,13 +45,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * A handler that adapts the item at a time delivery in a {@link org.springframework.messaging.MessageHandler}
- * and delegates processing to a RxJava Observable.  The number of observables that the message can be delegated
- * to is determined by the evaluation of the partitionExpression.
- *
- * For example, using the expression T(java.lang.Thread).currentThread().getId(), would map an instance of a
- * RxJava Observable to each dispatcher thread of the MessageBus.  If you wanted to have an Observable per
- * Kafka partition, the expression header['kafka_partition_id'].
+ * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
+ * by delegating processing to an Observable based on a partitionExpression.
+ * <p/>
+ * The specific Observable that the message is delegated is determined by the partitionExpression value.
+ * Unless you change the scheduling of the inputStream in your processor, you should ensure that the
+ * partitionExpression does not map messages delivered on different message bus dispatcher threads to the same
+ * observable.  This is due to the underlying use of a <code>PublishSubject</code>.
+ * <p/>
+ * For example, using the expression <code>T(java.lang.Thread).currentThread().getId()</code> would map the current
+ * dispatcher thread id to an instance of a RxJava Observable.  If you wanted to have an Observable per
+ * Kafka partition, the expression header['kafka_partition_id'] since the MessageBus dispatcher thread will be
+ * the same for each partition.
+ * <p/>
+ * If the Observable mapped to the partitionExpression value has an error or completes, it will be recreated when the
+ * next message consumed maps to the same partitionExpression value.
+ * <p/>
+ * All error handling is the responsibility of the processor implementation.
  *
  * @author Mark Pollack
  */
@@ -107,36 +117,41 @@ public class MultipleSubjectMessageHandler extends AbstractMessageProducingHandl
         }
         Subject subject = subjectMap.get(idToUse);
         if (subject == null) {
-            PublishSubject existingSubject = subjectMap.putIfAbsent(idToUse, PublishSubject.create());
-            if (existingSubject == null)
+            Subject existingSubject = subjectMap.putIfAbsent(idToUse, PublishSubject.create());
+            if (existingSubject == null) {
                 subject = subjectMap.get(idToUse);
                 //user defined stream processing
                 Observable<?> outputStream = processor.process(subject);
 
-            final Subscription subscription = outputStream.subscribe(new Action1<Object>() {
-                @Override
-                public void call(Object outputObject) {
-                    if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-                        getOutputChannel().send((Message) outputObject);
-                    } else {
-                        getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+                final Subscription subscription = outputStream.subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object outputObject) {
+                        if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
+                            getOutputChannel().send((Message) outputObject);
+                        } else {
+                            getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+                        }
                     }
-                }
-            }, new Action1<Throwable>() {
-                @Override
-                public void call(Throwable throwable) {
-                    logger.error(throwable);
-                }
-            }, new Action0() {
-                @Override
-                public void call() {
-                    subjectMap.remove(idToUse);
-                }
-            });
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        logger.error(throwable);
+                        subjectMap.remove(idToUse);
+                    }
+                });
 
-            subscriptionMap.put(idToUse, subscription);
+                outputStream.doOnCompleted(new Action0() {
+                    @Override
+                    public void call() {
+                        logger.error("Subscription close for [" + subscription + "]");
+                        subjectMap.remove(idToUse);
+                    }
+                });
 
-
+                subscriptionMap.put(idToUse, subscription);
+            } else {
+                subject = existingSubject;
+            }
         }
         return subject;
 

@@ -28,6 +28,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import rx.Observable;
 import rx.Subscription;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.PublishSubject;
@@ -41,8 +42,30 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * A handler that adapts the item at a time delivery in a {@link org.springframework.messaging.MessageHandler}
- * and delegates processing to an RxJava Observable.  A
+ * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
+ * by delegating processing to a {@link Observable}.
+ * <p/>
+ * The outputStream of the processor is used to create a message and send it to the output channel.  If the
+ * input channel and output channel are connected to the MessageBus, then data delivered to the input stream via
+ * a call to onNext is invoked on the dispatcher thread of the message bus and sending a message to the output
+ * channel will involve IO operations on the message bus.
+ * <p/>
+ * The implementation uses a SerializedSubject.  This has the advantage that the state of the Observabale
+ * can be shared across all the incoming dispatcher threads that are invoking onNext.  It has the disadvantage
+ * that processing and sending to the output channel will execute serially on one of the dispatcher threads.
+ * <p/>
+ * The use of this handler makes for a very natural first experience when processing data.  For example given
+ * the stream <code></code>http | rxjava-processor | log</code> where the <code>rxjava-processor</code> does does a
+ * <code>buffer(5)</code> and then produces a single value.  Sending 10 messages to the http source will
+ * result in 2 messages in the log, no matter how many dispatcher threads are used.
+ * <p/>
+ * You can modify what thread the outputStream subscriber, which does the send to the output channel,
+ * will use by explicitly calling <code>observeOn</code> before returning the outputStream from your processor.
+ * <p/>
+ * Use {@link org.springframework.xd.rxjava.MultipleSubjectMessageHandler} for concurrent execution on dispatcher
+ * threads spread across across multiple Observables.
+
+ * All error handling is the responsibility of the processor implementation.
  *
  * @author Mark Pollack
  */
@@ -71,13 +94,6 @@ public class SubjectMessageHandler extends AbstractMessageProducingHandler imple
         Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Observable.class);
         this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
         subject = new SerializedSubject(PublishSubject.create());
-        subject.onErrorResumeNext(new Func1<Throwable, Observable>() {
-            @Override
-            public Observable call(Throwable throwable) {
-                logger.error("Resuming Next on Error", throwable);
-                return null; //Discuss
-            }
-        });
         Observable<?> outputStream = processor.process(subject);
         subscription = outputStream.subscribe(new Action1<Object>() {
             @Override
@@ -92,6 +108,11 @@ public class SubjectMessageHandler extends AbstractMessageProducingHandler imple
             @Override
             public void call(Throwable throwable) {
                 logger.error(throwable);
+            }
+        }, new Action0() {
+            @Override
+            public void call() {
+                logger.error("Subscription close for [" + subscription + "]");
             }
         });
     }

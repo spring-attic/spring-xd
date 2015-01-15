@@ -91,7 +91,7 @@ public class ModuleUtils {
 
 		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(moduleClassLoader);
 		Resource moduleLocation = resolver.getResource(definition.getLocation());
-		Assert.isTrue(moduleLocation.exists());
+		Assert.isTrue(moduleLocation.exists(), "module resource " + definition.getLocation() + " does not exist");
 		ClassLoader parentClassloader = moduleClassLoader == null? null : moduleClassLoader.getParent();
 		PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver
 				(createModuleClassLoader(moduleLocation, parentClassloader, false));

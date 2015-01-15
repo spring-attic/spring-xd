@@ -4,21 +4,21 @@
 #
 
 xd:
-    appmasterMemory: 512M
-    adminServers: 1
-    adminMemory: 512M
-    adminJavaOpts: -XX:MaxPermSize=256m
-    adminLocality: false
-    containers: 3
-    containerMemory: 512M
-    containerJavaOpts: -XX:MaxPermSize=256m
-    containerLocality: false
-    container:
-        groups: yarn
+  appmasterMemory: 512M
+  adminServers: 1
+  adminMemory: 512M
+  adminJavaOpts: -XX:MaxPermSize=128m
+  adminLocality: false
+  containers: 3
+  containerMemory: 512M
+  containerJavaOpts: -XX:MaxPermSize=128m
+  containerLocality: false
+  container:
+    groups: yarn
 
 spring:
-    yarn:
-        applicationBaseDir: /xd/yarn/
+  yarn:
+    applicationBaseDir: /xd/yarn/
 
 ---
 
@@ -65,7 +65,7 @@ spring:
 #zk:
 #  namespace: xd
 #  client:
-#     connect: localhost:2181
+#    connect: localhost:2181
 
 ---
 # Quiet Period
@@ -211,10 +211,9 @@ spring:
 #    uniqueNames: true
 
 ---
-# This is useful for shutting down containers from UI
-# Port that container management is listening on
+# Port that admin management is listening on
 spring:
-  profiles: container
+  profiles: admin
 management:
   port: 0
 
@@ -222,8 +221,8 @@ management:
 # Redis properties
 #spring:
 #  redis:
-#   port: 6379
-#   host: localhost
+#    port: 6379
+#    host: localhost
 
 #Port that admin-ui is listening on
 #should be kept 0 for not getting port conflicts
@@ -234,12 +233,12 @@ server:
 # RabbitMQ properties
 #spring:
 #  rabbitmq:
-#   addresses: localhost:5672
-#   username: guest
-#   password: guest
-#   virtual_host: /
-#   useSSL: false
-#   sslProperties:
+#    addresses: localhost:5672
+#    username: guest
+#    password: guest
+#    virtual_host: /
+#    useSSL: false
+#    sslProperties:
 
 ---
 # User Extensions: Where XD scans the classpath to discover extended container configuration to add beans to the Plugins context.
@@ -248,6 +247,6 @@ server:
 # XD prepends classpath:* if no prefix included and appends **/*.* to each location
 #xd:
 #  extensions:
-#      basepackages: com.acme.xd.extensions
-#      locations: META-INF/spring-xd/ext
+#    basepackages: com.acme.xd.extensions
+#    locations: META-INF/spring-xd/ext
 ---

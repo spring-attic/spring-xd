@@ -3,31 +3,31 @@
  */ 
 
 ext {
-	hadoop24Version = '2.4.1'
-	hadoop25Version = '2.5.1'
-	cdh5Version = '2.5.0-cdh5.2.0'
-	hdp21Version = '2.4.0'
+	hadoop25Version = '2.5.2'
+	hadoop26Version = '2.6.0'
+	cdh5Version = '2.5.0-cdh5.3.0'
+	hdp22Version = '2.6.0.2.2.0.0-2041'
 	phd21Version = '2.2.0-gphd-3.1.0.0'
 }
 
-project('spring-xd-hadoop:hadoop24') {
-	description = 'Hadoop 2.4.x dependencies'
+project('spring-xd-hadoop:hadoop25') {
+	description = 'Hadoop 2.5.x dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop24") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop25") {
 			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
 			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop24") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop25") {
 			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
 			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
 		}
-		runtime ("org.apache.hadoop:hadoop-common:$hadoop24Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop24Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop24Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop24Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop24Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop24Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop24Version")
+		runtime ("org.apache.hadoop:hadoop-common:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop25Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
@@ -43,8 +43,8 @@ project('spring-xd-hadoop:hadoop24') {
 	}
 }
 
-project('spring-xd-hadoop:hadoop25') {
-	description = 'Hadoop 2.5.x dependencies'
+project('spring-xd-hadoop:hadoop26') {
+	description = 'Hadoop 2.6.x dependencies'
 	dependencies {
 		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
 			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
@@ -54,17 +54,17 @@ project('spring-xd-hadoop:hadoop25') {
 			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
 			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
 		}
-		runtime ("org.apache.hadoop:hadoop-common:$hadoop25Version") {
+		runtime ("org.apache.hadoop:hadoop-common:$hadoop26Version") {
 			exclude group: 'javax.servlet', module: 'servlet-api'
 		}
-		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop25Version") {
+		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop26Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop26Version") {
 			exclude group: 'javax.servlet', module: 'servlet-api'
 		}
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop25Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop26Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop26Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop26Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop26Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
@@ -111,22 +111,22 @@ project('spring-xd-hadoop:cdh5') {
 	}
 }
 
-project('spring-xd-hadoop:hdp21') {
-	description = 'Hortonworks HDP 2.1 dependencies'
+project('spring-xd-hadoop:hdp22') {
+	description = 'Hortonworks HDP 2.2 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hdp21") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hdp22") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hdp21") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hdp22") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.apache.hadoop:hadoop-common:$hdp21Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$hdp21Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hdp21Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hdp21Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hdp21Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hdp21Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$hdp21Version")
+		runtime ("org.apache.hadoop:hadoop-common:$hdp22Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$hdp22Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hdp22Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hdp22Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hdp22Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hdp22Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hdp22Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')
 	}
 	task copyToLib(dependsOn: build, type: Copy) {

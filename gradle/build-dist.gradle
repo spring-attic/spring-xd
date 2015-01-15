@@ -73,17 +73,17 @@ task copyXDShellInstall(type: Copy, dependsOn: ["copyXDInstall", ":spring-xd-she
 }
 
 task copyHadoopLibs(dependsOn: [
-	":spring-xd-hadoop:hadoop24:copyToLib",
 	":spring-xd-hadoop:hadoop25:copyToLib",
+	":spring-xd-hadoop:hadoop26:copyToLib",
 	":spring-xd-hadoop:cdh5:copyToLib",
-	":spring-xd-hadoop:hdp21:copyToLib",
+	":spring-xd-hadoop:hdp22:copyToLib",
 	":spring-xd-hadoop:phd21:copyToLib"
 ]) << {
 	[
-		'hadoop24',
 		'hadoop25',
+		'hadoop26',
 		'cdh5',
-		'hdp21',
+		'hdp22',
 		'phd21'
 	].each { distro ->
 		copy {
@@ -216,7 +216,7 @@ task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
 	from("$buildDir/dist/spring-xd-yarn/xd-yarn/lib") {
 		into "/lib"
 	}
-	from("$buildDir/dist/spring-xd/xd/lib/hadoop25") {
+	from("$buildDir/dist/spring-xd/xd/lib/hadoop26") {
 		include "spring-data-hadoop-*.jar"
 		into "/lib"
 	}

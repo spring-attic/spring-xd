@@ -75,7 +75,7 @@ if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config;%APP_HOME%
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
-    set HADOOP_LIB=%APP_HOME%\lib\hadoop25
+    set HADOOP_LIB=%APP_HOME%\lib\hadoop26
     if exist "!HADOOP_LIB!" (
         set CLASSPATH=!CLASSPATH!;!HADOOP_LIB!\spring-data-hadoop-*
     )

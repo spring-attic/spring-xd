@@ -3,7 +3,7 @@
 */
 
 def forceDependencyVersions(project) {
-	def hadoopInstalls=['cdh5','hadoop24', 'hadoop25','hdp21','phd21']
+	def hadoopInstalls=['cdh5','hadoop25', 'hadoop26','hdp22','phd21']
 	if (!hadoopInstalls.contains(project.name)) {
 		project.configurations.all { configuration ->
 			if ('versionManagement' != configuration.name) {

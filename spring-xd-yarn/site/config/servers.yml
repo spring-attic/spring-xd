@@ -27,7 +27,7 @@ spring:
 # Just comment out the ones not needed and make sure the one for your current distro is not commented out. These settings are based
 # on single-node VMs provided for each distro and they might need tweaking for other installation types.
 
-# Hadoop Hadoop 2.4.x (hadoop24) and Hadoop 2.5.x (hadoop25):
+# Hadoop Hadoop 2.5.x (hadoop25) and Hadoop 2.6.x (hadoop26):
 spring:
     yarn:
         siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*"
@@ -39,7 +39,7 @@ spring:
 #        siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*"
 #        siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
-# Hortonworks HDP 2.1 (hdp21):
+# Hortonworks HDP 2.2 (hdp22):
 #spring:
 #    yarn:
 #        siteYarnAppClasspath: "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*"

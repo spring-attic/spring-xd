@@ -32,7 +32,7 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
 public class ContainerOptions extends CommonDistributedOptions {
 
 	/* This is also used in SingleNodeOptions. */
-	/*default*/static final String DEFAULT_HADOOP_DISTRO = "hadoop25";
+	/*default*/static final String DEFAULT_HADOOP_DISTRO = "hadoop26";
 
 	@Option(name = "--hadoopDistro", handler = HadoopDistroOptionHandler.class,
 			usage = "The Hadoop distribution to be used for HDFS access")

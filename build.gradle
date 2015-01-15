@@ -356,7 +356,7 @@ project('spring-xd-rxjava') {
 	dependencies {
 		compile "io.reactivex:rxjava"
 		compile "org.springframework.integration:spring-integration-core"
-		compile "org.springframework.integration:spring-integration-expression"
+		compile "org.springframework.integration:spring-expression"
 	}
 }
 

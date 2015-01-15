@@ -17,9 +17,11 @@ package org.springframework.xd.reactor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -31,8 +33,11 @@ import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.stream.Broadcaster;
 
-import java.lang.SuppressWarnings;
 import java.lang.reflect.Method;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A handler that adapts item at a time delivery in a
@@ -44,18 +49,21 @@ import java.lang.reflect.Method;
  *
  * @author Mark Pollack
  */
-public class SynchronousDispatcherMessageHandler extends AbstractMessageProducingHandler {
+public class SynchronousDispatcherMessageHandler extends AbstractMessageProducingHandler implements DisposableBean {
 
     protected final Log logger = LogFactory.getLog(getClass());
 
-    private final Broadcaster<Object> stream;
+    private final ConcurrentMap<Long, Broadcaster<Object>> broadcasterMap =
+            new ConcurrentHashMap<Long, Broadcaster<Object>>();
 
-	@SuppressWarnings("rawtypes")
+    private final Map<Long, Controls> controlsMap = new Hashtable<Long, Controls>();
+
+    private final Environment environment;
+
+    @SuppressWarnings("rawtypes")
     private final Processor reactorProcessor;
 
     private final ResolvableType inputType;
-
-    private final Controls consume;
 
     /**
      * Construct a new SynchronousDispatcherMessageHandler given the reactor based Processor to delegate
@@ -63,60 +71,87 @@ public class SynchronousDispatcherMessageHandler extends AbstractMessageProducin
      *
      * @param processor The stream based reactor processor
      */
-	@SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public SynchronousDispatcherMessageHandler(Processor processor) {
         Assert.notNull(processor, "processor cannot be null.");
         this.reactorProcessor = processor;
-        Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
+        environment = Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
         Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
         this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
-
-        //Stream with a SynchronousDispatcher as this handler is called by Message Listener managed threads
-        this.stream = Streams.broadcast();
-
-        //user defined stream processing
-        Stream<?> outputStream = processor.process(stream);
-
-        //Simple log error handling
-        outputStream.when(Throwable.class, new Consumer<Throwable>() {
-            @Override
-            public void accept(Throwable throwable) {
-                logger.error(throwable);
-            }
-        });
-
-        this.consume = outputStream.consume(new Consumer<Object>() {
-            @Override
-            public void accept(Object outputObject) {
-                if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-                    getOutputChannel().send((Message) outputObject);
-                } else {
-                    //TODO handle copy of header values when possible
-                    getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-                }
-                //TODO handle Void
-            }
-        });
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(consume.debug());
-        }
-
     }
 
     @Override
-    protected void handleMessageInternal(Message<?> message) throws Exception {
-
+    protected void handleMessageInternal(Message<?> message) {
+        Broadcaster<Object> broadcasterToUse = getBroadcaster();
         if (ClassUtils.isAssignable(inputType.getRawClass(), message.getClass())) {
-            stream.onNext(message);
+            broadcasterToUse.onNext(message);
         } else if (ClassUtils.isAssignable(inputType.getRawClass(), message.getPayload().getClass())) {
-            //TODO handle type conversion of payload to input type if possible
-            stream.onNext(message.getPayload());
+            broadcasterToUse.onNext(message.getPayload());
+        } else {
+            throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
+                    + "] or [" + message.getPayload().getClass() + "]");
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug(consume.debug());
+            Controls controls = this.controlsMap.get(Thread.currentThread().getId());
+            if (controls != null) {
+                logger.debug(controls.debug());
+            }
         }
     }
 
+
+    private Broadcaster<Object> getBroadcaster() {
+        long idToUse = Thread.currentThread().getId();
+        Broadcaster<Object> broadcaster = broadcasterMap.get(idToUse);
+
+        if (broadcaster == null) {
+            Broadcaster<Object> existingBroadcaster = broadcasterMap.putIfAbsent(idToUse, Streams.broadcast());
+            if (existingBroadcaster == null) {
+                broadcaster = broadcasterMap.get(idToUse);
+                //user defined stream processing
+                Stream<?> outputStream = reactorProcessor.process(broadcaster);
+                //Simple log error handling
+                outputStream.when(Throwable.class, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) {
+                        logger.error(throwable);
+                    }
+                });
+
+                Controls controls = outputStream.consume(new Consumer<Object>() {
+                    @Override
+                    public void accept(Object outputObject) {
+                        if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
+                            getOutputChannel().send((Message) outputObject);
+                        } else {
+                            getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+                        }
+                    }
+                });
+
+                controlsMap.put(idToUse, controls);
+
+                broadcaster.observeComplete(new Consumer<Void>() {
+                    @Override
+                    public void accept(Void aVoid) {
+                        broadcasterMap.remove(Thread.currentThread().getId());
+                    }
+                });
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug(controls.debug());
+                }
+            }
+        }
+        return broadcaster;
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        for (Controls controls : controlsMap.values()) {
+            controls.cancel();
+        }
+        environment.shutdown();
+    }
 }

@@ -17,14 +17,13 @@
 package org.springframework.xd.dirt.modules.metadata;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
-import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 /**
  * Describes options to the {@code http} source module.
  *
  * @author Gary Russell
  */
-public class HttpSourceOptionsMetadata implements ProfileNamesProvider {
+public class HttpSourceOptionsMetadata {
 
 	private int port = 9000;
 
@@ -34,7 +33,7 @@ public class HttpSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private int maxContentLength = 1048576;
 
-	private String messageConverterClass = null;
+	private String messageConverterClass = "org.springframework.integration.x.http.NettyInboundMessageConverter";
 
 	public int getPort() {
 		return port;
@@ -76,19 +75,9 @@ public class HttpSourceOptionsMetadata implements ProfileNamesProvider {
 		return messageConverterClass;
 	}
 
-	@ModuleOption("the name of a custom MessageConverter class, to convert HttpRequest to Message")
+	@ModuleOption("the name of a custom MessageConverter class, to convert HttpRequest to Message; must have a constructor with a 'MessageBuilderFactory' parameter")
 	public void setMessageConverterClass(String messageConverterClass) {
 		this.messageConverterClass = messageConverterClass;
-	}
-
-	@Override
-	public String[] profilesToActivate() {
-		if (this.messageConverterClass != null) {
-			return new String[] { "customConverter" };
-		}
-		else {
-			return new String[0];
-		}
 	}
 
 }

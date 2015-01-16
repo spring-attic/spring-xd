@@ -17,12 +17,10 @@
 		<beans:property name="messageConverter" ref="converter"/>
 	</beans:bean>
 
-	<beans:bean id="converter" class="org.springframework.integration.x.http.NettyInboundMessageConverter"/>
-
 	<channel id="output"/>
 
-	<beans:beans profile="customConverter">
-		<beans:bean id="converter" class="${messageConverterClass}"/>
-	</beans:beans>
+	<beans:bean id="converter" class="${messageConverterClass}">
+		<beans:constructor-arg ref="#{T(org.springframework.integration.support.utils.IntegrationUtils).INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME}"/>
+	</beans:bean>
 
 </beans:beans>

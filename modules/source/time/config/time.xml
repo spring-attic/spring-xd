@@ -10,7 +10,13 @@
 	<inbound-channel-adapter channel="output"
 			auto-startup="false"
 			expression="new java.text.SimpleDateFormat('${format}').format(new java.util.Date())">
-		<poller fixed-delay="${fixedDelay}" time-unit="SECONDS"/>
+		<poller trigger="fixedDelayTrigger" />
 	</inbound-channel-adapter>
+
+	<beans:bean id="fixedDelayTrigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+		<beans:constructor-arg value="${fixedDelay}" />
+		<beans:constructor-arg value="${timeUnit}" />
+		<beans:property name="initialDelay" value="${initialDelay} "/>
+	</beans:bean>
 
 </beans:beans>

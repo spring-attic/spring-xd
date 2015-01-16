@@ -6,15 +6,16 @@
 
 	<int:channel id="output" />
 
+	<int:inbound-channel-adapter channel="output"
+		auto-startup="false" expression="'${payload}'">
+		<int:poller trigger="trigger" />
+	</int:inbound-channel-adapter>
+
 	<beans profile="use-date">
-		<int:inbound-channel-adapter channel="output"
-			auto-startup="false" expression="'${payload}'">
-			<int:poller trigger="dateTrigger" />
-		</int:inbound-channel-adapter>
         <bean id="df" class="java.text.SimpleDateFormat">
             <constructor-arg value="${dateFormat}" />
         </bean>
-        <bean id="dateTrigger" class="org.springframework.xd.module.support.DateTrigger">
+        <bean id="trigger" class="org.springframework.xd.module.support.DateTrigger">
             <constructor-arg>
                 <bean factory-bean="df" factory-method="parse">
                     <constructor-arg value="${date}" />
@@ -24,17 +25,17 @@
 	</beans>
 
 	<beans profile="use-cron">
-		<int:inbound-channel-adapter channel="output"
-			auto-startup="false" expression="'${payload}'">
-			<int:poller cron="${cron}" />
-		</int:inbound-channel-adapter>
+		<bean id="trigger" class="org.springframework.scheduling.support.CronTrigger">
+			<constructor-arg value="${cron}" />
+		</bean>
 	</beans>
 
 	<beans profile="use-delay">
-		<int:inbound-channel-adapter channel="output"
-			auto-startup="false" expression="'${payload}'">
-			<int:poller fixed-delay="${fixedDelay}" time-unit="SECONDS" />
-		</int:inbound-channel-adapter>
+		<bean id="trigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+			<constructor-arg value="${fixedDelay}" />
+			<constructor-arg value="${timeUnit}" />
+			<property name="initialDelay" value="${initialDelay} "/>
+		</bean>
 	</beans>
 
 </beans>

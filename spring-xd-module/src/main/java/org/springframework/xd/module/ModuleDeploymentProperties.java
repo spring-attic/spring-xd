@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.Set;
  * Deployment properties for a module.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ModuleDeploymentProperties implements Map<String, String> {
 
@@ -44,6 +45,11 @@ public class ModuleDeploymentProperties implements Map<String, String> {
 	 * Key for the {@code criteria} property. Value should be a SpEL expression.
 	 */
 	public static final String CRITERIA_KEY = "criteria";
+
+	/**
+	 * Key for the {@code trackHistory} property. Value should be a boolean.
+	 */
+	public static final String TRACK_HISTORY_KEY = "trackHistory";
 
 	/**
 	 * The underlying map.
@@ -93,6 +99,23 @@ public class ModuleDeploymentProperties implements Map<String, String> {
 	 */
 	public ModuleDeploymentProperties setCriteria(String criteria) {
 		put(CRITERIA_KEY, criteria);
+		return this;
+	}
+
+	/**
+	 * Return the trackHistory property for this module.
+	 *
+	 * @return true if history should be tracked.
+	 */
+	public boolean getTrackHistory() {
+		return Boolean.valueOf(get(TRACK_HISTORY_KEY));
+	}
+
+	/**
+	 * Specify the trackHistory property for this module.
+	 */
+	public ModuleDeploymentProperties setTrackHistory(boolean trackHistory) {
+		put(TRACK_HISTORY_KEY, String.valueOf(trackHistory));
 		return this;
 	}
 

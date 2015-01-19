@@ -34,6 +34,7 @@ import org.apache.curator.utils.ThreadUtils;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.messaging.Message;
@@ -42,7 +43,6 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -131,13 +131,15 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	 * @param module the module whose consumer and producers to bind to the {@link MessageBus}.
 	 */
 	protected final void bindConsumerAndProducers(final Module module) {
-		String xdHistory = module.getDeploymentProperties() != null
-				? module.getDeploymentProperties().get(BusProperties.TRACK_HISTORY)
-				: null;
-		boolean trackHistory = Boolean.valueOf(xdHistory);
+		boolean trackHistory = module.getDeploymentProperties() != null
+				? module.getDeploymentProperties().getTrackHistory()
+				: false;
 		Properties[] properties = extractConsumerProducerProperties(module);
-		Map<String, Object> historyProperties = extractHistoryProperties(module);
-		addHistoryTag(module, historyProperties);
+		Map<String, Object> historyProperties = null;
+		if (trackHistory) {
+			historyProperties = extractHistoryProperties(module);
+			addHistoryTag(module, historyProperties);
+		}
 		MessageChannel outputChannel = module.getComponent(MODULE_OUTPUT_CHANNEL, MessageChannel.class);
 		if (outputChannel != null) {
 			bindMessageProducer(outputChannel, getOutputChannelName(module), properties[1]);
@@ -171,6 +173,13 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	}
 
 	private void track(final Module module, MessageChannel channel, final Map<String, Object> historyProps) {
+		final MessageBuilderFactory messageBuilderFactory = module.getComponent(
+					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+						MessageBuilderFactory.class) == null
+				? new DefaultMessageBuilderFactory()
+				: module.getComponent(
+					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+						MessageBuilderFactory.class);
 		if (channel instanceof ChannelInterceptorAware) {
 			((ChannelInterceptorAware) channel).addInterceptor(new ChannelInterceptorAdapter() {
 
@@ -189,11 +198,10 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 					map.putAll(historyProps);
 					map.put("thread", Thread.currentThread().getName());
 					history.add(map);
-					Message<?> out = module.getComponent(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
-							MessageBuilderFactory.class)
-								.fromMessage(message)
-								.setHeader("xdHistory", history)
-								.build();
+					Message<?> out = messageBuilderFactory
+										.fromMessage(message)
+										.setHeader("xdHistory", history)
+										.build();
 					return out;
 				}
 			});

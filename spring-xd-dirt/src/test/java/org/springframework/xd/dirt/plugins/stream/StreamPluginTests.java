@@ -252,7 +252,7 @@ public class StreamPluginTests {
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		ModuleDeploymentProperties props = new ModuleDeploymentProperties();
-		props.put(BusProperties.TRACK_HISTORY, "true");
+		props.setTrackHistory(true);
 		when(module.getDeploymentProperties()).thenReturn(props);
 		when(module.getComponent(MessageBuilderFactory.class)).thenReturn(new DefaultMessageBuilderFactory());
 		StreamPlugin plugin = new StreamPlugin(bus, zkConnection);

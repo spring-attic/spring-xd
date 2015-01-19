@@ -124,9 +124,4 @@ public interface BusProperties {
 	 */
 	public static final String COMPRESS = "compress";
 
-	/**
-	 * Track history.
-	 */
-	public static final String TRACK_HISTORY = "trackHistory";
-
 }

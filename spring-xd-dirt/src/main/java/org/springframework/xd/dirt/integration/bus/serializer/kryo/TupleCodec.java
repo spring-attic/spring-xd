@@ -16,27 +16,26 @@
 
 package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.DefaultTupleConversionService;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleToJsonStringConverter;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.shaded.org.objenesis.strategy.StdInstantiatorStrategy;
-
 /**
  * Kryo serializer for {@link Tuple}
- * 
+ *
  * @author David Turanski
  * @since 1.0
  */
 public class TupleCodec extends AbstractKryoCodec<Tuple> {
 
 	@Override
-	protected void doSerialize(Tuple object, Kryo kryo, Output output) {
+	protected void doSerialize(Kryo kryo, Tuple object, Output output) {
 		kryo.writeObject(output, object);
 	}
 
@@ -44,7 +43,6 @@ public class TupleCodec extends AbstractKryoCodec<Tuple> {
 	protected Tuple doDeserialize(Kryo kryo, Input input) {
 		DefaultTuple tuple = kryo.readObject(input, DefaultTuple.class);
 		restoreConversionService(tuple);
-
 		return tuple;
 	}
 
@@ -71,11 +69,7 @@ public class TupleCodec extends AbstractKryoCodec<Tuple> {
 		dfa.setPropertyValue("tupleToStringConverter", tupleToJsonStringConverter);
 	}
 
-	@Override
-	protected Kryo getKryoInstance() {
-		Kryo kryo = new Kryo();
-		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
-		kryo.register(DefaultTuple.class);
-		return kryo;
+	protected void configureKryoInstance(Kryo kryo) {
+		kryo.register(DefaultTuple.class, TUPLE_REGISTRATION_ID);
 	}
 }

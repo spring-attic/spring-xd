@@ -21,13 +21,15 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
+ * Kryo Codec for Strings
+ *
  * @author David Turanski
  * @since 1.0
  */
 public class StringCodec extends AbstractKryoCodec<String> {
 
 	@Override
-	protected void doSerialize(String object, Kryo kryo, Output output) {
+	protected void doSerialize(Kryo kryo, String object, Output output) {
 		output.writeString(object);
 	}
 

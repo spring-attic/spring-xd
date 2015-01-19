@@ -403,7 +403,7 @@ project('spring-xd-dirt') {
 		compile "org.jolokia:jolokia-core"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "log4j:log4j"
-		compile "com.esotericsoftware.kryo:kryo"
+		compile "com.esotericsoftware:kryo-shaded"
 		compile "redis.clients:jedis"
 		compile("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
 			exclude group: 'jline', module: 'jline'

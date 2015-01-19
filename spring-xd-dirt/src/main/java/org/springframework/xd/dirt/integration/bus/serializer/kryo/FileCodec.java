@@ -37,4 +37,8 @@ public class FileCodec extends AbstractKryoCodec<File> {
 		File file = kryo.readObject(input, File.class);
 		return new File(file.getPath());
 	}
+
+	protected void configureKryoInstance(Kryo kryo) {
+		kryo.register(File.class);
+	}
 }

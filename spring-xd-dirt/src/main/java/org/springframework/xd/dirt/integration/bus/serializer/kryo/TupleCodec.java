@@ -68,4 +68,8 @@ public class TupleCodec extends AbstractKryoCodec<Tuple> {
 		dfa.setPropertyValue("formattingConversionService", defaultTupleConversionService);
 		dfa.setPropertyValue("tupleToStringConverter", tupleToJsonStringConverter);
 	}
+
+	protected void configureKryoInstance(Kryo kryo) {
+		kryo.register(DefaultTuple.class);
+	}
 }

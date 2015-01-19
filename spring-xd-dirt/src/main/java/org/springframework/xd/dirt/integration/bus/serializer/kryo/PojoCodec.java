@@ -20,18 +20,17 @@ package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.shaded.org.objenesis.strategy.StdInstantiatorStrategy;
 
 /**
- * Kryo Serializer that can handle arbitrary types
- * 
+ * Kryo Codec that can handle arbitrary types
+ *
  * @author David Turanski
  * @since 1.0
  */
 public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 
 	@Override
-	protected void doSerialize(Object object, Kryo kryo, Output output) {
+	protected void doSerialize(Kryo kryo, Object object, Output output) {
 		kryo.register(object.getClass());
 		kryo.writeObject(output, object);
 	}
@@ -40,13 +39,5 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 	protected Object doDeserialize(Kryo kryo, Input input, Class<? extends Object> type) {
 		kryo.register(type);
 		return kryo.readObject(input, type);
-	}
-
-
-	@Override
-	protected synchronized Kryo getKryoInstance() {
-		Kryo kryo = new Kryo();
-		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
-		return kryo;
 	}
 }

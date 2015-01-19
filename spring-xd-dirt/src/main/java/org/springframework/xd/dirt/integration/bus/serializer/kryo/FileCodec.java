@@ -21,32 +21,20 @@ import java.io.File;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.shaded.org.objenesis.strategy.StdInstantiatorStrategy;
-
 
 /**
- * 
  * @author David Turanski
  */
 public class FileCodec extends AbstractKryoCodec<File> {
 
 	@Override
-	protected void doSerialize(File object, Kryo kryo, Output output) {
+	protected void doSerialize(Kryo kryo, final File object, final Output output) {
 		kryo.writeObject(output, object);
 	}
 
 	@Override
-	protected File doDeserialize(Kryo kryo, Input input) {
+	protected File doDeserialize(Kryo kryo, final Input input) {
 		File file = kryo.readObject(input, File.class);
 		return new File(file.getPath());
 	}
-
-	@Override
-	protected Kryo getKryoInstance() {
-		Kryo kryo = new Kryo();
-		kryo.register(File.class);
-		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
-		return kryo;
-	}
-
 }

@@ -30,6 +30,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import kafka.admin.AdminUtils;
+import kafka.api.TopicMetadata;
+import kafka.common.ErrorMapping;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
@@ -37,7 +39,6 @@ import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.DefaultPartitioner;
-import kafka.producer.ProducerConfig;
 import kafka.serializer.Decoder;
 import kafka.serializer.DefaultDecoder;
 import kafka.serializer.DefaultEncoder;
@@ -62,6 +63,13 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryPolicy;
+import org.springframework.retry.policy.CompositeRetryPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.policy.TimeoutRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
@@ -100,6 +108,10 @@ import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
  * @author Marius Bogoevici
  */
 public class KafkaMessageBus extends MessageBusSupport {
+
+	public static final int METADATA_VERIFICATION_TIMEOUT = 5000;
+
+	public static final int METADATA_VERIFICATION_RETRY_ATTEMPTS = 10;
 
 	public static final String COMPRESSION_CODEC = "compressionCodec";
 
@@ -209,8 +221,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 */
 	private int numOfKafkaPartitionsForCountEqualsZero = 10;
 
-
-
 	public KafkaMessageBus(String brokers, String zkAddress, MultiTypeCodec<Object> codec, String... headersToMap) {
 		this.brokers = brokers;
 		this.zkAddress = zkAddress;
@@ -303,8 +313,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 			ensureTopicCreated(topicName, numPartitions, defaultReplicationFactor);
 
 
-
-
 			ProducerMetadata<Integer, byte[]> producerMetadata = new ProducerMetadata<Integer, byte[]>(
 					topicName);
 			producerMetadata.setValueEncoder(new DefaultEncoder(null));
@@ -377,20 +385,50 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * Creates a Kafka topic if needed, or try to increase its partition count to the desired number.
 	 */
 	private void ensureTopicCreated(final String topicName, int numPartitions, int replicationFactor) {
+
 		final int sessionTimeoutMs = 10000;
 		final int connectionTimeoutMs = 10000;
-		ZkClient zkClient = new ZkClient(zkAddress, sessionTimeoutMs, connectionTimeoutMs, utf8Serializer);
+		final ZkClient zkClient = new ZkClient(zkAddress, sessionTimeoutMs, connectionTimeoutMs, utf8Serializer);
+		try {
+			// The following is basically copy/paste from AdminUtils.createTopic() with
+			// createOrUpdateTopicPartitionAssignmentPathInZK(..., update=true)
+			Properties topicConfig = new Properties();
+			Seq<Object> brokerList = ZkUtils.getSortedBrokerList(zkClient);
+			scala.collection.Map<Object, Seq<Object>> replicaAssignment = AdminUtils.assignReplicasToBrokers(brokerList,
+					numPartitions, replicationFactor, -1, -1);
+			AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment, topicConfig,
+					true);
 
-		// The following is basically copy/paste from AdminUtils.createTopic() with
-		// createOrUpdateTopicPartitionAssignmentPathInZK(..., update=true)
-		Properties topicConfig = new Properties();
-		Seq<Object> brokerList = ZkUtils.getSortedBrokerList(zkClient);
-		scala.collection.Map<Object, Seq<Object>> replicaAssignment = AdminUtils.assignReplicasToBrokers(brokerList,
-				numPartitions, replicationFactor, -1, -1);
-		AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment, topicConfig,
-				true);
+			RetryTemplate retryTemplate = new RetryTemplate();
+
+			CompositeRetryPolicy policy = new CompositeRetryPolicy();
+			TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
+			timeoutRetryPolicy.setTimeout(METADATA_VERIFICATION_TIMEOUT);
+			SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy();
+			simpleRetryPolicy.setMaxAttempts(METADATA_VERIFICATION_RETRY_ATTEMPTS);
+			policy.setPolicies(new RetryPolicy[] {timeoutRetryPolicy, simpleRetryPolicy});
+
+			try {
+				retryTemplate.execute(new RetryCallback<Boolean, Exception>() {
+					@Override
+					public Boolean doWithRetry(RetryContext context) throws Exception {
+						TopicMetadata topicMetadata = AdminUtils.fetchTopicMetadataFromZk(topicName, zkClient);
+						if (topicMetadata.errorCode() != ErrorMapping.NoError()) {
+							// downcast to Exception because that's what the error throws
+							throw (Exception) ErrorMapping.exceptionFor(topicMetadata.errorCode());
+						}
+						return true;
+					}
+				});
+			}
+			catch (Exception e) {
+				logger.error("Cannot initialize MessageBus", e);
+				throw new RuntimeException("Cannot initialize message bus:", e);
+			}
+		}
+		finally {
 		zkClient.close();
-
+		}
 	}
 
 	private void createKafkaConsumer(String name, final MessageChannel moduleInputChannel, Properties properties,

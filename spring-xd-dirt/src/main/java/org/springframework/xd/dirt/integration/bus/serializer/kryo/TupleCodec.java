@@ -70,6 +70,6 @@ public class TupleCodec extends AbstractKryoCodec<Tuple> {
 	}
 
 	protected void configureKryoInstance(Kryo kryo) {
-		kryo.register(DefaultTuple.class);
+		kryo.register(DefaultTuple.class, TUPLE_REGISTRATION_ID);
 	}
 }

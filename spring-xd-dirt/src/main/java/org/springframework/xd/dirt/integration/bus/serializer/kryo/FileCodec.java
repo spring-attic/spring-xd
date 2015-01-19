@@ -39,6 +39,6 @@ public class FileCodec extends AbstractKryoCodec<File> {
 	}
 
 	protected void configureKryoInstance(Kryo kryo) {
-		kryo.register(File.class);
+		kryo.register(File.class, FILE_REGISTRATION_ID);
 	}
 }

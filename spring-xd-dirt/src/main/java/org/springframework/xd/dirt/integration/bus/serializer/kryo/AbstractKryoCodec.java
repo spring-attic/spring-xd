@@ -32,10 +32,15 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 
 /**
- *  Base class for Codecs using {@link com.esotericsoftware.kryo.Kryo}
+ * Base class for Codecs using {@link com.esotericsoftware.kryo.Kryo}
+ *
  * @author David Turanski
  */
 abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
+
+	protected final static int FILE_REGISTRATION_ID = 1;
+
+	protected final static int TUPLE_REGISTRATION_ID = 2;
 
 	private final KryoFactory factory;
 

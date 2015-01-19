@@ -40,7 +40,7 @@ spring:
                                 -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                                 -Dspring.config.location: "./servers.yml"
                                 -Dlogging.config: "./xd-admin-logger.properties"
-                                -Dxd.module.config.location: "file:./"
+                                -Dxd.module.config.location: "file:./modules-config.zip/"
                             containerAppClasspath:
                                 - "./${spring.xd.yarn.app.zip}/config"
                                 - "./${spring.xd.yarn.app.zip}/lib/*"
@@ -66,7 +66,7 @@ spring:
                                 -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                                 -Dspring.config.location: "./servers.yml"
                                 -Dlogging.config: "./xd-container-logger.properties"
-                                -Dxd.module.config.location: "file:./"
+                                -Dxd.module.config.location: "file:./modules-config.zip/"
                                 -Dxd.container.groups: "${xd.container.groups:yarn}"
                             containerAppClasspath:
                                 - "./${spring.xd.yarn.app.zip}/config"
@@ -91,7 +91,7 @@ spring:
                                 -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                                 -Dspring.config.location: "./servers.yml"
                                 -Dlogging.config: "./xd-admin-logger.properties"
-                                -Dxd.module.config.location: "file:./"
+                                -Dxd.module.config.location: "file:./modules-config.zip/"
                             containerAppClasspath:
                                 - "./${spring.xd.yarn.app.zip}/config"
                                 - "./${spring.xd.yarn.app.zip}/lib/*"
@@ -113,7 +113,7 @@ spring:
                                 -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                                 -Dspring.config.location: "./servers.yml"
                                 -Dlogging.config: "./xd-admin-logger.properties"
-                                -Dxd.module.config.location: "file:./"
+                                -Dxd.module.config.location: "file:./modules-config.zip/"
                             containerAppClasspath:
                                 - "./${spring.xd.yarn.app.zip}/config"
                                 - "./${spring.xd.yarn.app.zip}/lib/*"
@@ -135,7 +135,7 @@ spring:
                                 -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                                 -Dspring.config.location: "./servers.yml"
                                 -Dlogging.config: "./xd-container-logger.properties"
-                                -Dxd.module.config.location: "file:./"
+                                -Dxd.module.config.location: "file:./modules-config.zip/"
                                 -Dxd.container.groups: "${xd.container.groups:yarn}"
                             containerAppClasspath:
                                 - "./${spring.xd.yarn.app.zip}/config"
@@ -160,7 +160,7 @@ spring:
                                 -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                                 -Dspring.config.location: "./servers.yml"
                                 -Dlogging.config: "./xd-container-logger.properties"
-                                -Dxd.module.config.location: "file:./"
+                                -Dxd.module.config.location: "file:./modules-config.zip/"
                                 -Dxd.container.groups: "${xd.container.groups:yarn}"
                             containerAppClasspath:
                                 - "./${spring.xd.yarn.app.zip}/config"

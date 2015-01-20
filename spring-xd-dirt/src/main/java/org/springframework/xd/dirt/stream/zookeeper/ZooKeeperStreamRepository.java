@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
  * Stream instance repository. It should only return values for Streams that are deployed.
  *
  * @author Mark Fisher
+ * @author Gunnar Hillert
  */
 // todo: the StreamRepository abstraction can be removed once we are fully zk-enabled since we do not need to
 // support multiple impls at that point
@@ -282,7 +283,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 
 		List<Stream> results = new ArrayList<Stream>();
 		for (Stream stream : all) {
-			if (stream.getDefinition().getName().compareTo(to) > 1) {
+			if (stream.getDefinition().getName().compareTo(to) > 0) {
 				break;
 			}
 			if (stream.getDefinition().getName().compareTo(from) < 0) {

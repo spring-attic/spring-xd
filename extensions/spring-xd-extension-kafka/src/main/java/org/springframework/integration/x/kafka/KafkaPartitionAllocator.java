@@ -17,10 +17,9 @@
 
 package org.springframework.integration.x.kafka;
 
-import static org.apache.curator.framework.imps.CuratorFrameworkState.STARTED;
+import static org.apache.curator.framework.imps.CuratorFrameworkState.*;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,9 +50,6 @@ import org.springframework.integration.kafka.core.ConnectionFactory;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.core.DeploymentUnitStatus;
-import org.springframework.xd.dirt.zookeeper.Paths;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
  * Is responsible for managing the partition allocation between multiple instances of a Kafka source module
@@ -76,6 +72,12 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 
 	private static final Pattern PARTITION_LIST_VALIDATION_REGEX =
 			Pattern.compile("\\d+([,-]\\d+)*");
+
+	public static final String STREAM_STATUS_UNDEPLOYED = "undeployed";
+
+	public static final String STREAM_STATUS_UNDEPLOYING = "undeploying";
+
+	public static final String STREAM_PATH_PATTERN = "deployments/streams/%s/status";
 
 	private final String topic;
 
@@ -262,18 +264,24 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 			try {
 				byte[] streamStatusData;
 				try {
-					streamStatusData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName, Paths.STATUS));
+					streamStatusData = client.getData().forPath(String.format(STREAM_PATH_PATTERN, streamName));
 				}
 				catch (KeeperException.NoNodeException e) {
 					// we ignore this error - the stream path does not exist, so it may have been removed already
 					// we'll behave as if we have received no data
 					streamStatusData = null;
 				}
-				DeploymentUnitStatus status = streamStatusData != null ?
-						new DeploymentUnitStatus(ZooKeeperUtils.bytesToMap(streamStatusData)) :
-						new DeploymentUnitStatus(DeploymentUnitStatus.State.undeployed);
-				if (DeploymentUnitStatus.State.undeployed.equals(status.getState())
-						|| DeploymentUnitStatus.State.undeploying.equals(status.getState())) {
+				// use the stored values in Zookeeper directoy, so as to we do not have a dependency on spring-xd-dirt
+				String deploymentStatus;
+				if (streamStatusData == null || streamStatusData.length == 0) {
+					deploymentStatus = STREAM_STATUS_UNDEPLOYED;
+				}
+				else {
+					Map<String, String> statusDataAsMap = objectMapper.reader(Map.class).readValue(streamStatusData);
+					deploymentStatus = statusDataAsMap.get("state");
+				}
+				if (STREAM_STATUS_UNDEPLOYED.equals(deploymentStatus)
+						|| STREAM_STATUS_UNDEPLOYING.equals(deploymentStatus)) {
 					// remove partitioning data from Kafka
 					if (client.checkExists().forPath(getDataPath()) != null) {
 						try {

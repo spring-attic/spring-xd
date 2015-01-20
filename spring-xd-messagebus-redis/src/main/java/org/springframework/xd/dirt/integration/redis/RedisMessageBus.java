@@ -96,6 +96,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	 * Retry only.
 	 */
 	private static final Set<Object> SUPPORTED_PUBSUB_CONSUMER_PROPERTIES = new SetBuilder()
+			.addAll(CONSUMER_STANDARD_PROPERTIES)
 			.addAll(CONSUMER_RETRY_PROPERTIES)
 			.build();
 
@@ -103,6 +104,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	 * Retry + concurrency.
 	 */
 	private static final Set<Object> SUPPORTED_NAMED_CONSUMER_PROPERTIES = new SetBuilder()
+			.addAll(CONSUMER_STANDARD_PROPERTIES)
 			.addAll(CONSUMER_RETRY_PROPERTIES)
 			.add(BusProperties.CONCURRENCY)
 			.build();
@@ -120,6 +122,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	 */
 	private static final Set<Object> SUPPORTED_REPLYING_CONSUMER_PROPERTIES = new SetBuilder()
 			// request
+			.addAll(CONSUMER_STANDARD_PROPERTIES)
 			.addAll(CONSUMER_RETRY_PROPERTIES)
 			.add(BusProperties.CONCURRENCY)
 			.build();

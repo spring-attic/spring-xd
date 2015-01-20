@@ -143,13 +143,13 @@ public class LocalMessageBus extends MessageBusSupport {
 	 */
 	@Override
 	public void bindConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
-		validateConsumerProperties(name, properties, Collections.emptySet());
+		validateConsumerProperties(name, properties, CONSUMER_STANDARD_PROPERTIES);
 		doRegisterConsumer(name, moduleInputChannel, getChannelProvider(name), properties);
 	}
 
 	@Override
 	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
-		validateConsumerProperties(name, properties, Collections.emptySet());
+		validateConsumerProperties(name, properties, CONSUMER_STANDARD_PROPERTIES);
 		doRegisterConsumer(name, moduleInputChannel, this.pubsubChannelProvider, properties);
 	}
 
@@ -193,7 +193,7 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public void bindRequestor(final String name, MessageChannel requests, final MessageChannel replies,
 			Properties properties) {
-		validateConsumerProperties(name, properties, Collections.emptySet());
+		validateConsumerProperties(name, properties, CONSUMER_STANDARD_PROPERTIES);
 		final MessageChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
 		// TODO: handle Pollable ?
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
@@ -218,7 +218,7 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public void bindReplier(String name, final MessageChannel requests, MessageChannel replies,
 			Properties properties) {
-		validateConsumerProperties(name, properties, Collections.emptySet());
+		validateConsumerProperties(name, properties, CONSUMER_STANDARD_PROPERTIES);
 		SubscribableChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
 		requestChannel.subscribe(new MessageHandler() {
 

@@ -17,20 +17,19 @@
 package org.springframework.xd.test.kafka;
 
 
-import java.util.Properties;
-
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
-import kafka.utils.SystemTime$;
-import kafka.utils.TestUtils;
-import kafka.utils.TestZKUtils;
-import kafka.utils.Utils;
-import kafka.utils.ZKStringSerializer$;
+import kafka.utils.*;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
 import org.junit.Rule;
 
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
+
+import java.util.Properties;
 
 /**
  * JUnit {@link Rule} that starts an embedded Kafka server (with an associated Zookeeper)
@@ -40,6 +39,8 @@ import org.springframework.xd.test.AbstractExternalResourceTestSupport;
  * @since 1.1
  */
 public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String> {
+
+	private Log log = LogFactory.getLog(KafkaTestSupport.class);
 
 	private ZkClient zkClient;
 
@@ -51,16 +52,6 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 
 	public KafkaTestSupport() {
 		super("KAFKA");
-	}
-
-	public KafkaTestSupport(String ... properties) {
-		super("KAFKA");
-		if (properties.length % 2 != 0) {
-			throw new IllegalArgumentException("A list of key value pairs must be provided");
-		}
-		for (int i = 0; i < properties.length / 2; i++) {
-			this.brokerConfig.setProperty(properties[i], properties[i+1]);
-		}
 	}
 
 	public void setBrokerConfig(Properties brokerConfig) {
@@ -90,7 +81,9 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 	@Override
 	protected void obtainResource() throws Exception {
 		try {
+			log.debug("Starting Zookeeper");
 			zookeeper = new EmbeddedZookeeper(TestZKUtils.zookeeperConnect());
+			log.debug("Started Zookeeper at " + zookeeper.getConnectString());
 		}
 		catch (Exception e) {
 			throw new RuntimeException("Issues creating the ZK server", e);
@@ -105,8 +98,10 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 			throw new RuntimeException("Issues creating the ZK client", e);
 		}
 		try {
+			log.debug("Creating Kafka server");
 			Properties brokerConfigProperties = brokerConfig;
 			kafkaServer = TestUtils.createServer(new KafkaConfig(brokerConfigProperties), SystemTime$.MODULE$);
+			log.debug("Created Kafka server at " + kafkaServer.config().hostName() + ":" + kafkaServer.config().port());
 		}
 		catch (Exception e) {
 			zookeeper.shutdown();
@@ -122,24 +117,28 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 		}
 		catch (Exception e) {
 			// ignore errors on shutdown
+			log.error(e);
 		}
 		try {
 			Utils.rm(kafkaServer.config().logDirs());
 		}
 		catch (Exception e) {
 			// ignore errors on shutdown
+			log.error(e);
 		}
 		try {
 			zkClient.close();
 		}
 		catch (ZkInterruptedException e) {
 			// ignore errors on shutdown
+			log.error(e);
 		}
 		try {
 			zookeeper.shutdown();
 		}
 		catch (Exception e) {
 			// ignore errors on shutdown
+			log.error(e);
 		}
 	}
 

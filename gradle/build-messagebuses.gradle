@@ -29,4 +29,8 @@ configure(messagebusProjects) { busProject ->
 }
 
 
-
+project('spring-xd-messagebus-kafka') {
+    dependencies {
+        compile project(":spring-xd-extension-kafka")
+    }
+}

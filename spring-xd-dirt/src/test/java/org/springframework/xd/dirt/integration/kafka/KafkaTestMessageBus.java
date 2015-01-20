@@ -16,11 +16,11 @@
 
 package org.springframework.xd.dirt.integration.kafka;
 
-import java.io.IOException;
-
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+import org.springframework.xd.test.kafka.KafkaTestSupport;
 
 
 /**
@@ -32,27 +32,27 @@ import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus> {
 
 
-	private TestKafkaCluster kafkaCluster;
+	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport, MultiTypeCodec<Object> codec) {
 
-	public KafkaTestMessageBus(MultiTypeCodec<Object> codec) {
-		kafkaCluster = new TestKafkaCluster();
-
-		KafkaMessageBus messageBus = new KafkaMessageBus(kafkaCluster.getKafkaBrokerString(),
-				kafkaCluster.getZkConnectString(), codec);
-		GenericApplicationContext context = new GenericApplicationContext();
-		context.refresh();
-		messageBus.setApplicationContext(context);
-		this.setMessageBus(messageBus);
+		try {
+			ZookeeperConnect zookeeperConnect = new ZookeeperConnect();
+			zookeeperConnect.setZkConnect(kafkaTestSupport.getZkconnectstring());
+			KafkaMessageBus messageBus = new KafkaMessageBus(zookeeperConnect,
+                    kafkaTestSupport.getBrokerAddress(),
+                    kafkaTestSupport.getZkconnectstring(), codec);
+			messageBus.afterPropertiesSet();
+			GenericApplicationContext context = new GenericApplicationContext();
+			context.refresh();
+			messageBus.setApplicationContext(context);
+			this.setMessageBus(messageBus);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public void cleanup() {
-		try {
-			kafkaCluster.stop();
-		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
+		// do nothing - the rule will take care of that
 	}
 
 }

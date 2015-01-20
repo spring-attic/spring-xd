@@ -128,9 +128,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}));
 
 	/**
-	 * Retry + rabbit consumer properties.
+	 * Standard + retry + rabbit consumer properties.
 	 */
 	private static final Set<Object> SUPPORTED_BASIC_CONSUMER_PROPERTIES = new SetBuilder()
+			.addAll(CONSUMER_STANDARD_PROPERTIES)
 			.addAll(CONSUMER_RETRY_PROPERTIES)
 			.addAll(RABBIT_CONSUMER_PROPERTIES)
 			.build();

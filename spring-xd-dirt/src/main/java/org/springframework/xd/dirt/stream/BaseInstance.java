@@ -24,10 +24,10 @@ import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 
 /**
  * A runtime representation of a Definition.
- * 
+ *
  * @author Gunnar Hillert
  * @since 1.0
- * 
+ *
  * @param <D> The definition class representing this instance
  */
 public class BaseInstance<D extends BaseDefinition> {
@@ -71,7 +71,7 @@ public class BaseInstance<D extends BaseDefinition> {
 
 	/**
 	 * Set the date when this instance was started.
-	 * 
+	 *
 	 * @param startedAt Must not be null
 	 */
 	public void setStartedAt(Date startedAt) {
@@ -88,11 +88,16 @@ public class BaseInstance<D extends BaseDefinition> {
 
 	/**
 	 * Set the {@link DeploymentUnitStatus} for this instance.
-	 * 
+	 *
 	 * @param status the status for this instance
 	 */
 	public void setStatus(DeploymentUnitStatus status) {
 		this.status = status;
+	}
+
+	@Override
+	public String toString() {
+		return "BaseInstance [definition=" + definition + ", startedAt=" + startedAt + ", status=" + status + "]";
 	}
 
 }

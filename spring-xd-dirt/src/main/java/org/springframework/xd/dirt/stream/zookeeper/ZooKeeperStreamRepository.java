@@ -282,7 +282,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 
 		List<Stream> results = new ArrayList<Stream>();
 		for (Stream stream : all) {
-			if (stream.getDefinition().getName().compareTo(to) > 1) {
+			if (stream.getDefinition().getName().compareTo(to) > 0) {
 				break;
 			}
 			if (stream.getDefinition().getName().compareTo(from) < 0) {
@@ -308,7 +308,7 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 
 		return (statusBytes == null)
 				? new DeploymentUnitStatus(DeploymentUnitStatus.State.undeployed)
-				: new DeploymentUnitStatus(ZooKeeperUtils.bytesToMap(statusBytes));
+		: new DeploymentUnitStatus(ZooKeeperUtils.bytesToMap(statusBytes));
 	}
 
 }

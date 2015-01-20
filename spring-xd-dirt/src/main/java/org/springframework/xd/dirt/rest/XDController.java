@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +28,7 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -54,6 +56,7 @@ import org.springframework.xd.rest.domain.NamedResource;
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @author David Turanski
+ * @author Gunnar Hillert
  */
 
 public abstract class XDController<D extends BaseDefinition, A extends ResourceAssemblerSupport<D, R>, R extends NamedResource> {
@@ -135,7 +138,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	}
 
 	/**
-	 * Request deployment of an existing definition resource. The definition must exist before deploying and is included 
+	 * Request deployment of an existing definition resource. The definition must exist before deploying and is included
 	 * in the path. A new deployment instance is created.
 	 *
 	 * @param name the name of an existing definition resource (job or stream) (required)
@@ -204,7 +207,16 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 					((DeployableResource) definitionResource).setStatus(DeploymentUnitStatus.State.undeployed.toString());
 				}
 			}
-			Assert.state(!deployedInstances.hasNext(), "Not all instances were looked at");
+			if (deployedInstances.hasNext()) {
+				final List<String> uninspectedInstanceNames = new ArrayList<String>();
+
+				while (deployedInstances.hasNext()) {
+					final BaseInstance<D> uninspectedInstance = deployedInstances.next();
+					uninspectedInstanceNames.add(uninspectedInstance.getDefinition().getName());
+				}
+				throw new IllegalStateException("Not all instances were looked at: "
+						+ StringUtils.collectionToCommaDelimitedString(uninspectedInstanceNames));
+			}
 		}
 	}
 

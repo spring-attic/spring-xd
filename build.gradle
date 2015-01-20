@@ -41,7 +41,6 @@ ext {
 		'spring-xd-dirt',
 		'spring-xd-analytics',
 		'spring-xd-analytics-ml',
-		'spring-xd-reactor',
 		'spring-xd-rxjava',
 		'spring-xd-tuple',
 		'spring-xd-module',
@@ -340,14 +339,6 @@ project('spring-xd-analytics-ml') {
 	dependencies {
 		compile "org.springframework:spring-core"
 		testCompile project(":spring-xd-tuple")
-	}
-}
-
-project('spring-xd-reactor') {
-	description = 'Spring XD Reactor'
-	dependencies {
-		compile "io.projectreactor:reactor-core"
-		compile "org.springframework.integration:spring-integration-core"
 	}
 }
 

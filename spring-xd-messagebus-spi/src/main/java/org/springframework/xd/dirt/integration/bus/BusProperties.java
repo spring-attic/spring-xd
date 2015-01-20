@@ -55,6 +55,18 @@ public interface BusProperties {
 	public static final String MAX_CONCURRENCY = "maxConcurrency";
 
 	/**
+	 *  The sequence index of the module.
+	 *  In a partitioned stream, it is identical to the partition index.
+	 */
+	public static final String SEQUENCE = "sequence";
+
+	/**
+	 *  The number of consumers, i.e. module instances in the stream.
+	 *  In a partitioned stream, it is identical to the partition count.
+	 */
+	public static final String COUNT = "count";
+
+	/**
 	 * The partition count.
 	 */
 	public static final String PARTITION_COUNT = "partitionCount";

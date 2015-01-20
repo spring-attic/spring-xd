@@ -36,6 +36,7 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
  * @author Patrick Peralta
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
+ * @author Marius Bogoevici
  */
 public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentPropertiesProvider {
 
@@ -75,6 +76,8 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 		if (moduleIndex > 0) {
 			ModuleDescriptor previous = streamModules.get(moduleIndex - 1);
 			ModuleDeploymentProperties previousProperties = deploymentPropertiesProvider.propertiesForDescriptor(previous);
+			properties.put("consumer." + BusProperties.SEQUENCE, String.valueOf(moduleSequence));
+			properties.put("consumer." + BusProperties.COUNT, String.valueOf(properties.getCount()));
 			if (hasPartitionKeyProperty(previousProperties)) {
 				properties.put("consumer." + BusProperties.PARTITION_INDEX, String.valueOf(moduleSequence - 1));
 			}

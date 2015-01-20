@@ -1,23 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+
+	<bean id="zookeeperConnect" class="org.springframework.integration.kafka.support.ZookeeperConnect">
+		<property name="zkConnect" value="${xd.messagebus.kafka.zkAddress}"/>
+	</bean>
+
+
 	<bean id="messageBus" class="org.springframework.xd.dirt.integration.kafka.KafkaMessageBus">
+		<constructor-arg ref="zookeeperConnect"/>
 		<constructor-arg value="${xd.messagebus.kafka.brokers}"/>
 		<constructor-arg value="${xd.messagebus.kafka.zkAddress}"/>
 		<constructor-arg ref="codec"/>
 		<constructor-arg value="#{new String[0]}"/>
 
-		<property name="defaultBatchingEnabled" value="${xd.messagebus.kafka.default.batchingEnabled}" />
-		<property name="defaultBatchSize" value="${xd.messagebus.kafka.default.batchSize}" />
-		<property name="defaultBatchTimeout" value="${xd.messagebus.kafka.default.batchTimeout}" />
+		<property name="defaultBatchingEnabled" value="${xd.messagebus.kafka.default.batchingEnabled}"/>
+		<property name="defaultBatchSize" value="${xd.messagebus.kafka.default.batchSize}"/>
+		<property name="defaultBatchTimeout" value="${xd.messagebus.kafka.default.batchTimeout}"/>
 		<property name="defaultReplicationFactor" value="${xd.messagebus.kafka.default.replicationFactor}"/>
 		<property name="defaultConcurrency" value="${xd.messagebus.kafka.default.concurrency}"/>
 		<property name="defaultRequiredAcks" value="${xd.messagebus.kafka.default.requiredAcks}"/>
 		<property name="defaultCompressionCodec" value="${xd.messagebus.kafka.default.compressionCodec}"/>
+		<property name="offsetStoreTopic" value="${xd.messagebus.kafka.offsetStoreTopic}"/>
 	</bean>
 
 </beans>

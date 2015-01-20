@@ -112,6 +112,12 @@ public abstract class MessageBusSupport
 	/**
 	 * The set of properties every bus implementation must support (or at least tolerate).
 	 */
+
+	protected static final Set<Object> CONSUMER_STANDARD_PROPERTIES = new SetBuilder()
+			.add(BusProperties.COUNT)
+			.add(BusProperties.SEQUENCE)
+			.build();
+
 	protected static final Set<Object> PRODUCER_STANDARD_PROPERTIES = new HashSet<Object>(Arrays.asList(
 			BusProperties.NEXT_MODULE_COUNT
 			));
@@ -917,6 +923,10 @@ public abstract class MessageBusSupport
 
 		public boolean isPartitionedModule() {
 			return StringUtils.hasText(this.partitionKeyExtractorClass) || this.partitionKeyExpression != null;
+		}
+
+		public int getPartitionCount() {
+			return partitionCount;
 		}
 	}
 

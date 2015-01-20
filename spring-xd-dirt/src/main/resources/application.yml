@@ -138,6 +138,7 @@ xd:
       brokers:                                 localhost:9092
       zkAddress:                               localhost:2181
       numOfKafkaPartitionsForCountEqualsZero:  10
+      offsetStoreTopic:                        SpringXdOffsets
       default:
         batchingEnabled:           false
         batchSize:                 200

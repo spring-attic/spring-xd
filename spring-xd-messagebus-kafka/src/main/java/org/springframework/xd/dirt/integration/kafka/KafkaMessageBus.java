@@ -66,6 +66,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.CompositeRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.policy.TimeoutRetryPolicy;
@@ -111,6 +112,12 @@ public class KafkaMessageBus extends MessageBusSupport {
 	public static final int METADATA_VERIFICATION_TIMEOUT = 5000;
 
 	public static final int METADATA_VERIFICATION_RETRY_ATTEMPTS = 10;
+
+	public static final double METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER = 1.5;
+
+	public static final int METADATA_VERIFICATION_RETRY_INITIAL_INTERVAL = 100;
+
+	public static final int METADATA_VERIFICATION_MAX_INTERVAL = 1000;
 
 	public static final String COMPRESSION_CODEC = "compressionCodec";
 
@@ -406,6 +413,13 @@ public class KafkaMessageBus extends MessageBusSupport {
 			SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy();
 			simpleRetryPolicy.setMaxAttempts(METADATA_VERIFICATION_RETRY_ATTEMPTS);
 			policy.setPolicies(new RetryPolicy[] {timeoutRetryPolicy, simpleRetryPolicy});
+			retryTemplate.setRetryPolicy(policy);
+
+			ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+			backOffPolicy.setInitialInterval(METADATA_VERIFICATION_RETRY_INITIAL_INTERVAL);
+			backOffPolicy.setMultiplier(METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER);
+			backOffPolicy.setMaxInterval(METADATA_VERIFICATION_MAX_INTERVAL);
+			retryTemplate.setBackOffPolicy(backOffPolicy);
 
 			try {
 				retryTemplate.execute(new RetryCallback<Boolean, Exception>() {

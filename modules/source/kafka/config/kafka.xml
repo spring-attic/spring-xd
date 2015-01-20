@@ -12,9 +12,9 @@
 	<int:channel id="output"/>
 
 	<int-kafka:zookeeper-connect id="kafkaSourceZookeeperConnect" zk-connect="${zkconnect}"
-								 zk-connection-timeout="${zkconnectionTimeout}"
-								 zk-session-timeout="${zksessionTimeout}"
-								 zk-sync-time="${zksyncTime}"/>
+															 zk-connection-timeout="${zkconnectionTimeout}"
+															 zk-session-timeout="${zksessionTimeout}"
+															 zk-sync-time="${zksyncTime}"/>
 
 	<bean id="kafkaConfiguration" class="org.springframework.integration.kafka.core.ZookeeperConfiguration">
 		<constructor-arg index="0" ref="kafkaSourceZookeeperConnect"/>
@@ -24,25 +24,24 @@
 		<constructor-arg index="0" ref="kafkaConfiguration"/>
 		<property name="minBytes" value="${fetchMinBytes}"/>
 		<property name="maxWait" value="${fetchMaxWait}"/>
+		<property name="bufferSize" value="${socketBufferBytes}"/>
+		<property name="socketTimeout" value="${socketTimeout}"/>
 	</bean>
 
 	<!-- enriches the behaviour of the MetadataStore, adding a distinct namespace to the keys -->
-	<bean id="namespaceMetadataStore" class="org.springframework.integration.x.kafka.NamespaceDelegatingConcurrentMetadataStore">
+	<bean id="namespaceMetadataStore"
+				class="org.springframework.integration.x.kafka.NamespaceDelegatingConcurrentMetadataStore">
 		<constructor-arg index="0" ref="metadataStore"/>
 		<constructor-arg index="1" value="xd:${xd.stream.name}:${xd.module.name}"/>
 	</bean>
 
 	<bean id="offsetManager" class="org.springframework.integration.x.kafka.SpringXdOffsetManager">
-		<constructor-arg ref="connectionFactory"/>
-		<constructor-arg ref="initialOffsets"/>
+		<constructor-arg index="0" ref="connectionFactory"/>
+		<constructor-arg index="1" value="${topic}"/>
+		<constructor-arg index="2" value="${initialOffsets}"/>
 		<property name="consumerId" value="${groupId}"/>
 		<property name="metadataStore" ref="namespaceMetadataStore"/>
 		<property name="autoOffsetReset" value="${autoOffsetReset}"/>
-	</bean>
-
-	<bean id="initialOffsets" class="org.springframework.integration.x.kafka.InitialOffsetFactoryBean">
-		<constructor-arg index="0" value="${topic}"/>
-		<constructor-arg index="1" value="${initialOffsets}"/>
 	</bean>
 
 	<bean id="partitions" class="org.springframework.integration.x.kafka.KafkaPartitionAllocator">

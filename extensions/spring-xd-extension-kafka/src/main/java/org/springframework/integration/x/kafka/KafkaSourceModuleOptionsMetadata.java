@@ -27,7 +27,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  * @author Ilayaperumal Gopinathan
  * @author Marius Bogoevici
  */
-@Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class, KafkaSourceOffsetOptionsMetadata.class})
+@Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class})
 public class KafkaSourceModuleOptionsMetadata {
 
 	private String topic = ModulePlaceholders.XD_STREAM_NAME;
@@ -35,6 +35,8 @@ public class KafkaSourceModuleOptionsMetadata {
 	private String partitions = "";
 
 	private String initialOffsets = "";
+
+	private String offsetStorage = "inmemory";
 
 	private int streams = 1;
 
@@ -67,6 +69,15 @@ public class KafkaSourceModuleOptionsMetadata {
 	@ModuleOption("initial offsets")
 	public void setInitialOffsets(String initialOffsets) {
 		this.initialOffsets = initialOffsets;
+	}
+
+	public String getOffsetStorage() {
+		return offsetStorage;
+	}
+
+	@ModuleOption("offset storage strategy")
+	public void setOffsetStorage(String offsetStorage) {
+		this.offsetStorage = offsetStorage;
 	}
 
 	@ModuleOption("number of streams in the topic")

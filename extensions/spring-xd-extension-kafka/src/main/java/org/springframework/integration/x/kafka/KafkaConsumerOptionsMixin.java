@@ -34,21 +34,9 @@ public class KafkaConsumerOptionsMixin {
 
 	private int fetchMaxBytes = 300 * 1024;
 
-	private boolean autoCommitEnable = true;
-
-	private int autoCommitInterval = 60 * 1000;
-
-	private int queuedChunksMax = 10;
-
-	private int rebalanceMaxRetries = 4;
-
 	private int fetchMinBytes = 1;
 
 	private int fetchMaxWait = 100;
-
-	private int rebalanceBackoff = 2000;
-
-	private int refreshLeaderBackOff = 200;
 
 	private String autoOffsetReset = "smallest";
 
@@ -81,42 +69,6 @@ public class KafkaConsumerOptionsMixin {
 		this.fetchMaxBytes = fetchMaxBytes;
 	}
 
-	public boolean isAutoCommitEnable() {
-		return autoCommitEnable;
-	}
-
-	@ModuleOption("auto commit to zookeeper the latest consumed offset of each partition")
-	public void setAutoCommitEnable(boolean autoCommitEnable) {
-		this.autoCommitEnable = autoCommitEnable;
-	}
-
-	public int getAutoCommitInterval() {
-		return autoCommitInterval;
-	}
-
-	@ModuleOption("auto commit interval in milliseconds")
-	public void setAutoCommitInterval(int autoCommitInterval) {
-		this.autoCommitInterval = autoCommitInterval;
-	}
-
-	public int getQueuedChunksMax() {
-		return queuedChunksMax;
-	}
-
-	@ModuleOption("max number of message chunks buffered for consumption")
-	public void setQueuedChunksMax(int queuedChunksMax) {
-		this.queuedChunksMax = queuedChunksMax;
-	}
-
-	public int getRebalanceMaxRetries() {
-		return rebalanceMaxRetries;
-	}
-
-	@ModuleOption("max number of rebalance tries")
-	public void setRebalanceMaxRetries(int rebalanceMaxRetries) {
-		this.rebalanceMaxRetries = rebalanceMaxRetries;
-	}
-
 	public int getFetchMinBytes() {
 		return fetchMinBytes;
 	}
@@ -135,24 +87,6 @@ public class KafkaConsumerOptionsMixin {
 		this.fetchMaxWait = fetchMaxWait;
 	}
 
-	public int getRebalanceBackoff() {
-		return rebalanceBackoff;
-	}
-
-	@ModuleOption("backoff time between retries during rebalance")
-	public void setRebalanceBackoff(int rebalanceBackoff) {
-		this.rebalanceBackoff = rebalanceBackoff;
-	}
-
-	public int getRefreshLeaderBackOff() {
-		return refreshLeaderBackOff;
-	}
-
-	@ModuleOption("backoff time to wait before trying to determine the leader of a partition that has just lost its leader")
-	public void setRefreshLeaderBackOff(int refreshLeaderBackOff) {
-		this.refreshLeaderBackOff = refreshLeaderBackOff;
-	}
-
 	public String getAutoOffsetReset() {
 		return autoOffsetReset;
 	}
@@ -165,14 +99,5 @@ public class KafkaConsumerOptionsMixin {
 	@AssertTrue(message = "AutoOffset Reset can either be 'smallest' or 'largest'")
 	public boolean isValidAutoOffsetReset() {
 		return (this.autoOffsetReset.equals("smallest") || this.autoOffsetReset.equals("largest"));
-	}
-
-	public int getConsumerTimeout() {
-		return consumerTimeout;
-	}
-
-	@ModuleOption("throw timeout exception to the consumer if no message is available for consumption after the specified interval")
-	public void setConsumerTimeout(int consumerTimeout) {
-		this.consumerTimeout = consumerTimeout;
 	}
 }

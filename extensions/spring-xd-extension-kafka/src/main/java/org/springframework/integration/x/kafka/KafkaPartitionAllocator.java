@@ -56,9 +56,24 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
+ * Is responsible for managing the partition allocation between multiple instances of a Kafka source module
+ * deployed in a stream.
+ *
+ * As a {@link FactoryBean} it will return the partitions that the current module instance should listen to.
+ * The list of partitions is stored in ZooKeeper, and is created when the module is started for the first time.
+ * If multiple module instances are started at the same time, they synchronize via ZooKeeper, and only the first
+ * will end up creating the module list, while the other instances will read it.
+ *
+ * Restarted modules will read the list of partitions that corresponds to their own sequence. Zero-count Kafka source
+ * modules are not supported.
+ *
+ * As an {@link ApplicationListener}
+ *
+ *
  * @author Marius Bogoevici
  */
-public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Partition[]>, ApplicationListener<ContextClosedEvent> {
+public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Partition[]>,
+		ApplicationListener<ContextClosedEvent> {
 
 	private static final Log log = LogFactory.getLog(KafkaPartitionAllocator.class);
 
@@ -93,7 +108,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 		Assert.notNull(connectionFactory, "cannot be null");
 		Assert.notNull(topic, "cannot be null");
 		Assert.hasText(topic, "cannot be empty");
-		Assert.isTrue(count > 0, " must be a positive number. 0 count modules");
+		Assert.isTrue(count > 0, " must be a positive number. 0 count modules are not currently supported");
 		this.topic = topic;
 		this.partitionList = partitionList;
 		this.connectionFactory = connectionFactory;

@@ -17,25 +17,45 @@
 
 package org.springframework.integration.x.kafka;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import kafka.api.OffsetRequest;
 
 import org.springframework.integration.kafka.core.ConnectionFactory;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.listener.MetadataStoreOffsetManager;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
+ * Spring Integration Kafka {@link MetadataStoreOffsetManager} with additional features such
+ * as the ability to delete offsets, and recognizing Kafka consumer code for "earliest time"
+ * and "latest time" ("smallest" and "largest" respectively).
+ *
  * @author Marius Bogoevici
  */
 public class SpringXdOffsetManager extends MetadataStoreOffsetManager {
+
+	// Matches expressions like 0@20,1@50 etc.
+	public static final Pattern VALIDATION_PATTERN = Pattern.compile("(\\d+@\\d+)[,(\\d+@\\d+)]*");
 
 	public SpringXdOffsetManager(ConnectionFactory connectionFactory) {
 		super(connectionFactory);
 	}
 
-	public SpringXdOffsetManager(ConnectionFactory connectionFactory, Map<Partition, Long> initialOffsets) {
-		super(connectionFactory, initialOffsets);
+	/**
+	 * Creates a {@link MetadataStoreOffsetManager} with
+	 *
+	 * @param connectionFactory
+	 * @param initialOffsets
+	 */
+	@SuppressWarnings("unchecked")
+	public SpringXdOffsetManager(ConnectionFactory connectionFactory, String topic, String initialOffsets) {
+		super(connectionFactory,
+				StringUtils.hasText(initialOffsets) ? parseOffsetList(topic, initialOffsets) : Collections.EMPTY_MAP);
 	}
 
 	public void deleteOffset(Partition partition) {
@@ -44,6 +64,18 @@ public class SpringXdOffsetManager extends MetadataStoreOffsetManager {
 
 	public void setAutoOffsetReset(AutoOffsetResetStrategy autoOffsetResetStrategy) {
 		this.setReferenceTimestamp(autoOffsetResetStrategy.code());
+	}
+
+	private static Map<Integer, Long> parseOffsetList(String topic, String offsetList) throws IllegalArgumentException {
+		Assert.hasText(offsetList, "must contain a list of values");
+		Assert.isTrue(VALIDATION_PATTERN.matcher(offsetList).matches(), "must be in the form 0@20");
+		Map<Integer, Long> partitionNumbers = new HashMap<Integer, Long>();
+		String[] partitionOffsetPairs = offsetList.split(",");
+		for (String partitionOffsetPair : partitionOffsetPairs) {
+			String[] split = partitionOffsetPair.split("@");
+			partitionNumbers.put(Integer.parseInt(split[0]), Long.parseLong(split[1]));
+		}
+		return partitionNumbers;
 	}
 
 	public static enum AutoOffsetResetStrategy {

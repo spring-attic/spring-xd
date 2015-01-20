@@ -29,7 +29,8 @@ import org.springframework.xd.module.core.Module;
 
 
 /**
- * A plugin that exposes information such as the module name and index to be available inside the environment.
+ * A plugin that exposes information such as the module name, index, sequence or count to be available inside the
+ * environment.
  * 
  * @author Eric Bottard
  * @author Marius Bogoevici

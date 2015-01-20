@@ -22,6 +22,11 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 
 /**
+ * Wraps a delegate {@link ConcurrentMetadataStore} and adds a prefix to all the handled keys.
+ *
+ * Useful for sharing the same {@link ConcurrentMetadataStore} or underlying location without interference
+ * between clients.
+ *
  * @author Marius Bogoevici
  */
 public class NamespaceDelegatingConcurrentMetadataStore implements ConcurrentMetadataStore {

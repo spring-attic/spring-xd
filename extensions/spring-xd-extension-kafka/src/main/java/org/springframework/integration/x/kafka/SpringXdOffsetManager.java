@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import kafka.api.OffsetRequest;
+import org.thymeleaf.spring4.util.SpringVersionUtils;
 
 import org.springframework.integration.kafka.core.ConnectionFactory;
 import org.springframework.integration.kafka.core.Partition;
@@ -56,6 +57,9 @@ public class SpringXdOffsetManager extends MetadataStoreOffsetManager {
 	public SpringXdOffsetManager(ConnectionFactory connectionFactory, String topic, String initialOffsets) {
 		super(connectionFactory,
 				StringUtils.hasText(initialOffsets) ? parseOffsetList(topic, initialOffsets) : Collections.EMPTY_MAP);
+		for (Map.Entry<Partition, Long> integerLongEntry : parseOffsetList(topic, initialOffsets).entrySet()) {
+			System.out.println(topic + ":" + integerLongEntry.getKey().getTopic() + ":" + integerLongEntry.getKey().getId() + ":" + integerLongEntry.getValue());
+		}
 	}
 
 	public void deleteOffset(Partition partition) {
@@ -66,14 +70,14 @@ public class SpringXdOffsetManager extends MetadataStoreOffsetManager {
 		this.setReferenceTimestamp(autoOffsetResetStrategy.code());
 	}
 
-	private static Map<Integer, Long> parseOffsetList(String topic, String offsetList) throws IllegalArgumentException {
+	private static Map<Partition, Long> parseOffsetList(String topic, String offsetList) throws IllegalArgumentException {
 		Assert.hasText(offsetList, "must contain a list of values");
 		Assert.isTrue(VALIDATION_PATTERN.matcher(offsetList).matches(), "must be in the form 0@20");
-		Map<Integer, Long> partitionNumbers = new HashMap<Integer, Long>();
+		Map<Partition, Long> partitionNumbers = new HashMap<Partition, Long>();
 		String[] partitionOffsetPairs = offsetList.split(",");
 		for (String partitionOffsetPair : partitionOffsetPairs) {
 			String[] split = partitionOffsetPair.split("@");
-			partitionNumbers.put(Integer.parseInt(split[0]), Long.parseLong(split[1]));
+			partitionNumbers.put(new Partition(topic,Integer.parseInt(split[0])), Long.parseLong(split[1]));
 		}
 		return partitionNumbers;
 	}

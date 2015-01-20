@@ -28,10 +28,9 @@ import org.springframework.xd.module.core.Module;
  *
  * @author Marius Bogoevici
  */
-public class ZookeeperConnectionPlugin extends AbstractPlugin
-{
+public class ZookeeperConnectionPlugin extends AbstractPlugin {
 
-	public static final String XD_ZOOKEEPER_CONNECTION = "xd.zookeeper.connection";
+	public static final String XD_ZOOKEEPER_CLIENT = "xd.zookeeper.client";
 
 	@Override
 	public boolean supports(Module module) {
@@ -45,7 +44,7 @@ public class ZookeeperConnectionPlugin extends AbstractPlugin
 			public void onApplicationEvent(ApplicationPreparedEvent event) {
 				ZooKeeperConnection bean = getApplicationContext().getBean(ZooKeeperConnection.class);
 				ConfigurableListableBeanFactory moduleBeanFactory = event.getApplicationContext().getBeanFactory();
-				moduleBeanFactory.registerSingleton(XD_ZOOKEEPER_CONNECTION, bean.getClient());
+				moduleBeanFactory.registerSingleton(XD_ZOOKEEPER_CLIENT, bean.getClient());
 			}
 		});
 	}

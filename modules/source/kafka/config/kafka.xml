@@ -7,8 +7,6 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd">
 
-	<import resource="${offsetStorage:inmemory}-metadata-store.xml"/>
-
 	<int:channel id="output"/>
 
 	<int-kafka:zookeeper-connect id="kafkaSourceZookeeperConnect" zk-connect="${zkconnect}"
@@ -45,15 +43,15 @@
 	</bean>
 
 	<bean id="partitions" class="org.springframework.integration.x.kafka.KafkaPartitionAllocator">
-		<constructor-arg index="0" ref="xd.zookeeper.connection"/>
+		<constructor-arg index="0" ref="xd.zookeeper.client"/>
 		<constructor-arg index="1" ref="connectionFactory"/>
-		<constructor-arg index="2" value="${topic}"/>
-		<constructor-arg index="3" value="${partitions}"/>
-		<constructor-arg index="4" value="${xd.module.sequence}"/>
-		<constructor-arg index="5" value="${xd.module.count}"/>
-		<constructor-arg index="6" ref="offsetManager"/>
-		<property name="moduleName" value="${xd.module.name}"/>
-		<property name="streamName" value="${xd.stream.name}"/>
+		<constructor-arg index="2" value="${xd.module.name}"/>
+		<constructor-arg index="3" value="${xd.stream.name}"/>
+		<constructor-arg index="4" value="${topic}"/>
+		<constructor-arg index="5" value="${partitions}"/>
+		<constructor-arg index="6" value="${xd.module.sequence}"/>
+		<constructor-arg index="7" value="${xd.module.count}"/>
+		<constructor-arg index="8" ref="offsetManager"/>
 	</bean>
 
 	<bean id="kafkaMessageListenerContainer"
@@ -76,5 +74,26 @@
 		<property name="keyDecoder" ref="stringDecoder"/>
 		<property name="payloadDecoder" ref="stringDecoder"/>
 	</bean>
+
+	<beans profile="inmemory-metadata-store">
+
+		<bean id="metadataStore" class="org.springframework.integration.metadata.SimpleMetadataStore"/>
+
+	</beans>
+
+	<beans profile="redis-metadata-store">
+
+		<bean id="redisConnectionFactory"
+					class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+			<property name="hostName" value="${spring.redis.host}"/>
+			<property name="port" value="${spring.redis.port}"/>
+			<property name="password" value="${spring.redis.password:#{null}}"/>
+		</bean>
+
+		<bean id="metadataStore" class="org.springframework.integration.redis.metadata.RedisMetadataStore">
+			<constructor-arg ref="redisConnectionFactory"/>
+		</bean>
+
+	</beans>
 
 </beans>

@@ -16,9 +16,12 @@
 
 package org.springframework.integration.x.kafka;
 
+import org.apache.commons.lang.ArrayUtils;
+
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**
@@ -28,7 +31,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  * @author Marius Bogoevici
  */
 @Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class})
-public class KafkaSourceModuleOptionsMetadata {
+public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private String topic = ModulePlaceholders.XD_STREAM_NAME;
 
@@ -36,7 +39,7 @@ public class KafkaSourceModuleOptionsMetadata {
 
 	private String initialOffsets = "";
 
-	private String offsetStorage = "inmemory";
+	private OffsetStorageStrategy offsetStorage = OffsetStorageStrategy.inmemory;
 
 	private int streams = 1;
 
@@ -71,12 +74,12 @@ public class KafkaSourceModuleOptionsMetadata {
 		this.initialOffsets = initialOffsets;
 	}
 
-	public String getOffsetStorage() {
+	public OffsetStorageStrategy getOffsetStorage() {
 		return offsetStorage;
 	}
 
 	@ModuleOption("offset storage strategy")
-	public void setOffsetStorage(String offsetStorage) {
+	public void setOffsetStorage(OffsetStorageStrategy offsetStorage) {
 		this.offsetStorage = offsetStorage;
 	}
 
@@ -106,4 +109,18 @@ public class KafkaSourceModuleOptionsMetadata {
 	public String getEncoding() {
 		return this.encoding;
 	}
+
+	public enum OffsetStorageStrategy {
+		inmemory,
+		redis
+	}
+
+	@Override
+	public String[] profilesToActivate() {
+		if (offsetStorage != null) {
+			return new String[] {String.format("%s-metadata-store", offsetStorage)};
+		} else {
+			throw new IllegalStateException("An offset storage strategy must be configured");
+		}
+ 	}
 }

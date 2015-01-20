@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
@@ -49,7 +50,6 @@ import org.springframework.integration.kafka.core.BrokerAddress;
 import org.springframework.integration.kafka.core.ConnectionFactory;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -58,17 +58,14 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 /**
  * Is responsible for managing the partition allocation between multiple instances of a Kafka source module
  * deployed in a stream.
- *
  * As a {@link FactoryBean} it will return the partitions that the current module instance should listen to.
  * The list of partitions is stored in ZooKeeper, and is created when the module is started for the first time.
  * If multiple module instances are started at the same time, they synchronize via ZooKeeper, and only the first
  * will end up creating the module list, while the other instances will read it.
- *
  * Restarted modules will read the list of partitions that corresponds to their own sequence. Zero-count Kafka source
  * modules are not supported.
- *
- * As an {@link ApplicationListener}
- *
+ * As an {@link ApplicationListener}, it checks whether the current Stream state is cleans up the partition table in
+ * ZooKeeper when the stream is undeploying (validating that against the stream data path in ZooKeeper.
  *
  * @author Marius Bogoevici
  */
@@ -76,6 +73,9 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 		ApplicationListener<ContextClosedEvent> {
 
 	private static final Log log = LogFactory.getLog(KafkaPartitionAllocator.class);
+
+	private static final Pattern PARTITION_LIST_VALIDATION_REGEX =
+			Pattern.compile("\\d+([,-]\\d+)*");
 
 	private final String topic;
 
@@ -91,48 +91,46 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 
 	private final SpringXdOffsetManager offsetManager;
 
-	private String moduleName;
+	private final String moduleName;
 
-	private String streamName;
+	private final String streamName;
 
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper();
+
+	private final String partitionDataPath;
+
+	private volatile Partition[] partitions;
 
 	private InterProcessMutex partitionDataMutex;
 
-	private String partitionDataPath;
-
-	private Partition[] partitions;
-
-	public KafkaPartitionAllocator(CuratorFramework client, ConnectionFactory connectionFactory,
-			String topic, String partitionList, int sequence, int count, SpringXdOffsetManager offsetMetadataStore) {
+	public KafkaPartitionAllocator(CuratorFramework client, ConnectionFactory connectionFactory, String moduleName,
+			String streamName, String topic, String partitionList, int sequence, int count,
+			SpringXdOffsetManager offsetMetadataStore) {
 		Assert.notNull(connectionFactory, "cannot be null");
-		Assert.notNull(topic, "cannot be null");
+		Assert.hasText(moduleName, "cannot be empty");
+		Assert.hasText(streamName, "cannot be empty");
 		Assert.hasText(topic, "cannot be empty");
-		Assert.isTrue(count > 0, " must be a positive number. 0 count modules are not currently supported");
+		Assert.isTrue(sequence > 0, " must be a positive number. 0-count kafka sources are not currently supported");
+		Assert.isTrue(count > 0, " must be a positive number. 0-count kafka sources are not currently supported");
+		Assert.notNull(count > 0, " must be a positive number. 0-count kafka sources are not currently supported");
+		this.client = client;
+		this.connectionFactory = connectionFactory;
+		this.moduleName = moduleName;
+		this.streamName = streamName;
 		this.topic = topic;
 		this.partitionList = partitionList;
-		this.connectionFactory = connectionFactory;
-		this.client = client;
-		this.count = count;
 		this.sequence = sequence;
+		this.count = count;
 		this.offsetManager = offsetMetadataStore;
-	}
-
-	public void setModuleName(String moduleName) {
-		this.moduleName = moduleName;
-	}
-
-	public void setStreamName(String streamName) {
-		this.streamName = streamName;
+		this.partitionDataPath = String.format("/sources/%s/%s", this.streamName, this.moduleName);
 	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		partitionDataPath = getDataPath();
-		EnsurePath ensurePath = new EnsurePath(partitionDataPath);
-		if (STARTED.equals(client.getState())) {
+		if (STARTED.equals(this.client.getState())) {
+			EnsurePath ensurePath = new EnsurePath(partitionDataPath);
 			ensurePath.ensure(client.getZookeeperClient());
-			partitionDataMutex = new InterProcessMutex(client, partitionDataPath);
+			this.partitionDataMutex = new InterProcessMutex(client, partitionDataPath);
 		}
 		else {
 			throw new BeanInitializationException("Cannot connect to ZooKeeper, client state is " + client.getState());
@@ -249,7 +247,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 
 	@Override
 	public Class<?> getObjectType() {
-		return Array.class;
+		return Partition[].class;
 	}
 
 	@Override
@@ -286,19 +284,14 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 							}
 							else {
 								// this actually was an exception : we cannot recover, but cannot stop either
-								log.error(e);
-								e.printStackTrace();
+								log.error("Irrecoverable error while trying to clean partitions table:", e);
 							}
 						}
 					}
 				}
-				else {
-					System.out.println("We cannot clean, because: " + status);
-				}
 			}
 			catch (Exception e) {
 				log.error(e);
-				e.printStackTrace();
 			}
 		}
 		else {
@@ -331,7 +324,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 	 */
 	public static Iterable<Integer> parseNumberList(String numberList) throws IllegalArgumentException {
 		Assert.hasText(numberList, "must contain a list of values");
-		// TODO: regex validate
+		Assert.isTrue(PARTITION_LIST_VALIDATION_REGEX.matcher(numberList).matches(),"is not a list of numbers or ranges");
 		Set<Integer> numbers = new TreeSet<Integer>();
 		String[] numbersOrRanges = numberList.split(",");
 		for (String numberOrRange : numbersOrRanges) {

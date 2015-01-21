@@ -1,0 +1,119 @@
+<button type="button" class="btn btn-default pull-right" ng-click="closeJobExecutionDetails()">Back</button>
+<div class="row hidden-xs" ng-show="jobExecutionDetails">
+  <div class="col-sm-12">
+    <h1>Job Execution Details - Execution ID: {{jobExecutionDetails.executionId}}</h1>
+  </div>
+</div>
+<div class="visible-xs" ng-show="jobExecutionDetails">
+  <div class="row">
+    <div class="col-xs-12">
+      <h1>Job Execution Details</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-xs-12">
+      <h1>Execution ID: {{jobExecutionDetails.executionId}}</h1>
+    </div>
+  </div>
+</div>
+
+<h4 ng-show="jobExecutionDetailsNotFound">The Job Execution Details for Execution ID {{executionId}} could not be found.</h4>
+
+<table class="table table-striped table-hover" ng-show="jobExecutionDetails">
+  <thead>
+    <tr>
+      <th>Property</th><th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Id</td>
+      <td>{{jobExecutionDetails.executionId}}</td>
+    <tr>
+    <tr>
+      <td>Job Name</td>
+      <td>{{jobExecutionDetails.name}}</td>
+    <tr>
+    <tr>
+      <td>Job Instance</td>
+      <td>{{jobExecutionDetails.jobExecution.jobInstance.instanceId}}</td>
+    <tr>
+    <tr>
+      <td>Job Parameters</td>
+      <td>{{jobExecutionDetails.jobParametersString}}</td>
+    <tr>
+    <tr>
+      <td>Start Time</td>
+      <td xd-date-time="{{jobExecutionDetails.jobExecution.startTime}}"></td>
+    <tr>
+    <tr>
+      <td>End Time</td>
+      <td xd-date-time="{{jobExecutionDetails.jobExecution.endTime}}"></td>
+    <tr>
+    <tr>
+      <td>Duration</td>
+      <td xd-duration start='jobExecutionDetails.jobExecution.startTime' end='jobExecutionDetails.jobExecution.endTime'></td>
+    <tr>
+    <tr>
+      <td>Status</td>
+      <td ng-class="{'text-success': jobExecutionDetails.jobExecution.status === 'COMPLETED', 'text-danger': jobExecutionDetails.jobExecution.status === 'FAILED'}">{{jobExecutionDetails.jobExecution.status}}</td>
+    <tr>
+    <tr>
+      <td>Exit Code</td>
+      <td ng-class="{'text-success': jobExecutionDetails.jobExecution.exitStatus.exitCode === 'COMPLETED', 'text-danger': jobExecutionDetails.jobExecution.exitStatus.exitCode === 'FAILED'}">{{jobExecutionDetails.jobExecution.exitStatus.exitCode}}</td>
+    <tr>
+    <tr>
+      <td>Exit Message</td>
+      <td>{{jobExecutionDetails.jobExecution.exitStatus.exitDescription || 'N/A'}}</td>
+    <tr>
+    <tr>
+      <td>Step Execution Count</td>
+      <td>{{jobExecutionDetails.stepExecutionCount}}</td>
+    <tr>
+  </tbody>
+</table>
+
+<h4 ng-show="jobExecutionDetails">Steps</h4>
+
+<table class="table table-striped table-hover" ng-show="jobExecutionDetails">
+  <thead>
+    <tr>
+      <th class="text-center">Step Id</th><th>Step Name</th><th class="text-center">Reads</th><th class="text-center">Writes</th>
+      <th class="text-center">Commits</th>
+      <th class="text-center">Rollbacks</th><th>Duration</th><th>Status</th><th class="text-center">Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="stepExecution in jobExecutionDetails.jobExecution.stepExecutions">
+      <td class="text-center">{{stepExecution.id}}</td>
+      <td>{{stepExecution.stepName}}</td>
+      <td class="text-center">{{stepExecution.readCount}}</td>
+      <td class="text-center">{{stepExecution.writeCount}}</td>
+      <td class="text-center">{{stepExecution.commitCount}}</td>
+      <td class="text-center">{{stepExecution.rollbackCount}}</td>
+      <td xd-duration start='stepExecution.startTime' end='stepExecution.endTime'></td>
+      <td><a ng-class="{'text-success': stepExecution.exitStatus.exitCode === 'COMPLETED', 'text-danger': stepExecution.exitStatus.exitCode === 'FAILED'}" href="" data-toggle="modal" data-target="#step-execution-id-{{stepExecution.id}}"
+             ng-click="viewJobExecutionDetails(item)" title="Exit Status Details"
+                >{{stepExecution.exitStatus.exitCode}}</a></td>
+      <td class="action-column"><button type="button" class="btn btn-default" ng-click="viewStepExecutionDetails(jobExecutionDetails, stepExecution)" title="Details"><span class="glyphicon glyphicon-search"></span></button></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="modal fade" id="step-execution-id-{{stepExecution.id}}" ng-repeat="stepExecution in jobExecutionDetails.jobExecution.stepExecutions"
+     tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Exit Description for Step '{{stepExecution.stepName}}'</h4>
+      </div>
+      <div class="modal-body" style="overflow-x: auto;">
+        {{stepExecution.exitStatus.exitDescription || 'N/A'}}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<h1 ng-show="definitionName">Deploy Definition {{definitionName}}</h1>
+
+	<p ng-show="definitionDeployRequest.moduleName" class="index-page--subtitle"> On this screen you can also specify the
+		following optional Module Deployment Properties for module <strong>'{{definitionDeployRequest.moduleName}}'</strong>. These
+		properties will ultimately form the Deployment Manifest. For more information
+		please see the <a href="https://github.com/spring-projects/spring-xd/wiki/XD-Distributed-Runtime#deployment-manifest"
+		target="_blank">Technical Documentation</a>.
+	</p>
+	<p ng-show="!definitionDeployRequest.moduleName" class="index-page--subtitle"> An error occurred. We were unable to retrieve
+		the module name from the provided definition '<strong>{{definitionName}}</strong>'.
+	</p>
+	<form name="deployDefinitionForm" class="form-horizontal" role="form">
+		<div class="form-group" ng-class="deployDefinitionForm.containerMatchCriteria.$invalid ? 'has-warning has-feedback' : ''">
+			<label for="containerMatchCriteria" class="col-sm-3 control-label">Container Match Criteria</label>
+			<div class="col-sm-9">
+				<input type="text" id="containerMatchCriteria" name="containerMatchCriteria" autofocus
+							 class="form-control" placeholder="Enter a Container Match Criteria" ng-model="definitionDeployRequest.containerMatchCriteria">
+				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.containerMatchCriteria.$invalid"></span>
+				<p class="help-block">If no criteria, leave it as blank. Optional, if set must be a valid SpEL expression.</p>
+			</div>
+		</div>
+		<div class="form-group" ng-class="deployDefinitionForm.jobModuleCount.$invalid ? 'has-warning has-feedback' : ''">
+			<label for="jobModuleCount" class="col-sm-3 control-label">Job Module Count</label>
+			<div class="col-sm-9">
+				<input type="number" id="jobModuleCount" name="jobModuleCount" min="0"
+							 class="form-control" placeholder="Enter the number of container instances" ng-model="definitionDeployRequest.jobModuleCount">
+				<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="deployDefinitionForm.jobModuleCount.$invalid"></span>
+				<p class="help-block">Default is <strong>1</strong>. Specifies the number of container instances
+				this module should be deployed to. A value of <strong>0</strong>
+				indicates that this Job Definition should be deployed to all
+				containers that match the provided target expression. If no
+				target expression is provided and the count value is <strong>0</strong>,
+				this definition will be deployed to all containers.When a container joins the cluster,
+                that one will be matched as well.</p>
+			</div>
+		</div>
+	</form>
+	<div class="row">
+		<div class="col-md-6 text-right"><button id="back-button"   type="button" class="btn btn-default" ng-click="cancelDefinitionDeploy()">Back</button></div>
+		<div class="col-md-6 text-left"><button  id="submit-button" type="button" class="btn btn-default"
+		ng-click="deployDefinition(definitionDeployRequest)" ng-disabled="deployDefinitionForm.$invalid || !definitionDeployRequest.moduleName">Deploy</button></div>
+	</div>

@@ -1,0 +1,21 @@
+<h1 ng-show="moduleDetails.name">Module {{moduleDetails.name}} (Type: {{moduleDetails.type}})</h1>
+
+<h4>Options</h4>
+
+<table class="table table-striped table-hover" ng-show="moduleDetails.options">
+  <thead>
+    <tr>
+      <th>Name</th><th>Type</th><th>Default Value</th><th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="option in moduleDetails.options | orderBy:optionsPredicate">
+      <td><strong>{{option.name}}</strong></td>
+      <td>{{option.type}}</td>
+      <td>{{option.defaultValue}}</td>
+      <td>{{option.description}}</td>
+    </tr>
+  </tbody>
+</table>
+
+<button id="back-button" type="button" class="btn btn-default" ng-click="closeModuleDetails()">Back</button>

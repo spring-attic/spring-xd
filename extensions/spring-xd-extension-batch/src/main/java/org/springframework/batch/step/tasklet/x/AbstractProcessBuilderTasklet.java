@@ -236,29 +236,29 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExec
 	protected abstract String getCommandDescription();
 
 	protected String createClassPath(Class taskletClass) {
-		URLClassLoader thisClassLoader;
-		URLClassLoader contextClassLoader;
+		URLClassLoader serverClassLoader;
+		URLClassLoader taskletClassLoader;
 		try {
-			contextClassLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-			thisClassLoader = (URLClassLoader) taskletClass.getClassLoader();
+			serverClassLoader = (URLClassLoader) Class.forName("org.springframework.xd.dirt.core.Job").getClassLoader();
+			taskletClassLoader = (URLClassLoader) taskletClass.getClassLoader();
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Unable to determine classpath from ClassLoader.", e);
 		}
-		if (thisClassLoader == null) {
+		if (serverClassLoader == null) {
 			throw new IllegalStateException("Unable to access ClassLoader for " + taskletClass + ".");
 		}
-		if (contextClassLoader == null) {
+		if (taskletClassLoader == null) {
 			throw new IllegalStateException("Unable to access Context ClassLoader.");
 		}
 		List<String> classPath = new ArrayList<String>();
-		for (URL url : thisClassLoader.getURLs()) {
+		for (URL url : serverClassLoader.getURLs()) {
 			String file = url.getFile().split("\\!/", 2)[0];
 			if (file.endsWith(".jar")) {
 				classPath.add(file);
 			}
 		}
-		for (URL url : contextClassLoader.getURLs()) {
+		for (URL url : taskletClassLoader.getURLs()) {
 			String file = url.getFile().split("\\!/", 2)[0];
 			if (file.endsWith(".jar") && !classPath.contains(file)) {
 				classPath.add(file);

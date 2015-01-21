@@ -218,23 +218,24 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 		sparkCommand.add(SPARK_SUBMIT_CLASS);
 		sparkCommand.addAll(args);
 
-		URLClassLoader thisClassLoader;
-		URLClassLoader contextClassLoader;
+		URLClassLoader serverClassLoader;
+		URLClassLoader taskletClassLoader;
 		try {
-			thisClassLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-			contextClassLoader = (URLClassLoader) this.getClass().getClassLoader();
+			serverClassLoader = (URLClassLoader) Class.forName("org.springframework.xd.dirt.core.Job").getClassLoader();
+			taskletClassLoader = (URLClassLoader) this.getClass().getClassLoader();
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Unable to determine classpath from ClassLoader.", e);
 		}
+
 		List<String> classPath = new ArrayList<String>();
-		for (URL url : thisClassLoader.getURLs()) {
+		for (URL url : serverClassLoader.getURLs()) {
 			String file = url.getFile().split("\\!/", 2)[0];
 			if (file.endsWith(".jar")) {
 				classPath.add(file);
 			}
 		}
-		for (URL url : contextClassLoader.getURLs()) {
+		for (URL url : taskletClassLoader.getURLs()) {
 			String file = url.getFile().split("\\!/", 2)[0];
 			if (file.endsWith(".jar") && !classPath.contains(file)) {
 				classPath.add(file);

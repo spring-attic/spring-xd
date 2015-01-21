@@ -1,0 +1,17 @@
+<h1>Streams</h1>
+<p ng-class="{ hide: !$state.includes('home.streams.tabs.definitions') }" class="index-page--subtitle"> This section
+    lists all the stream definitions and provides the ability to <a
+            href="https://github.com/spring-projects/spring-xd/wiki/Streams#deploying-and-undeploying-streams">deploy/undeploy</a> or <a
+            href="https://github.com/spring-projects/spring-xd/wiki/Streams#deleting-a-stream">destroy</a>
+    streams.
+</p>
+<div class="tab-pane active col-md-12">
+    <ul class="nav nav-tabs">
+        <li ng-class="{ active: $state.includes('home.streams.tabs.definitions') }"><a
+                ui-sref="home.streams.tabs.definitions">Definitions</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div ui-view></div>
+    </div>
+</div>

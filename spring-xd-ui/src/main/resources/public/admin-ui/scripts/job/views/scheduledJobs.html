@@ -1,0 +1,23 @@
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th>Name</th><th>Next Scheduled</th><th>Recurrence</th><th>Execution Count</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr ng-repeat="item in jobDefinitions">
+			<td>{{item.name}}</td>
+			<td><button type="button" ng-click="deployJob(item)"
+				ng-disabled="item.deployed"
+				class="btn btn-default"
+				><span class="glyphicon glyphicon-play"></span> Deploy</button>
+			</td>
+			<td><button type="button" ng-click="undeployJob(item)"
+				ng-disabled="!item.deployed"
+				class="btn btn-default"
+				><span class="glyphicon glyphicon-stop"></span> Undeploy</button>
+			</td>
+			<td>{{item.definition}}</td>
+		</tr>
+	</tbody>
+</table>

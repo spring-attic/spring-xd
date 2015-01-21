@@ -1,0 +1,59 @@
+<h1>Launch - Job Parameters for Job {{jobLaunchRequest.jobName}}</h1>
+
+<form class="form-horizontal" name="launchJobForm" role="form" ng-submit="launchJob(jobLaunchRequest)" novalidate>
+	<fieldset id="jobParameters" ng-form="jobParameterForm" ng-repeat="jobParam in jobLaunchRequest.jobParameters" ng-if="jobLaunchRequest.jobParameters.length">
+		<div class="row" ng-show="!$first">
+			<div class="col-xs-12">
+				<hr>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-2">
+				<button data-id="" type="button" class="btn btn-warning" data-dismiss="modal" ng-click="removeParameter(jobParam)"><span class="glyphicon glyphicon-remove"></span></button>
+			</div>
+			<div class="col-xs-10">
+				<div class="form-group">
+					<div class="col-xs-10 col-sm-5" ng-class="jobParameterForm.key.$invalid && jobParameterForm.key.$touched ? 'has-warning has-feedback' : ''">
+						<input type="text" name="key" class="form-control" placeholder="Parameter Key" ng-model="jobParam.key" required>
+						<span class="glyphicon glyphicon-warning-sign form-control-feedback"
+								ng-show="jobParameterForm.key.$invalid && jobParameterForm.key.$touched"></span>
+						<p class="help-block" ng-show="jobParameterForm.key.$error.required && jobParameterForm.key.$touched">You must provide a key.</p>
+					</div>
+					<div class="col-xs-10 col-sm-5" ng-class="jobParameterForm.value.$invalid && jobParameterForm.value.$touched ? 'has-warning has-feedback' : ''">
+						<input type="text" name="value" class="form-control" placeholder="Parameter Value" ng-model="jobParam.value" required>
+						<span class="glyphicon glyphicon-warning-sign form-control-feedback"
+								ng-show="jobParameterForm.value.$invalid && jobParameterForm.value.$touched"></span>
+						<p class="help-block" ng-show="jobParameterForm.value.$error.required && jobParameterForm.value.$touched">You must provide a value.</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-xs-5 job-params">
+						<select name="type" class="form-control" ng-model="jobParam.type"
+							ng-options="dataType.key as dataType.name for dataType in dataTypes">
+						</select>
+					</div>
+					<div class="col-xs-5">
+						<div class="checkbox">
+							<label><input type="checkbox" name="isIdentifying" ng-model="jobParam.isIdentifying">Identifying</label>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</fieldset>
+	<fieldset id="jobParameters3" ng-if="!jobLaunchRequest.jobParameters.length">
+		<div class="row">
+			<div class="col-md-12 text-center">
+				No parameters added. If needed, please add a job parameter before launching the job.
+			</div>
+		</div>
+	</fieldset>
+	<div class="row" style="margin-top: 1em;">
+		<div class="col-md-3 text-left"><button type="button" class="btn btn-default add-job-param" ng-click="addParameter()">
+		<span class="glyphicon glyphicon-plus"></span> Param</button></div>
+		<div class="col-md-3 text-right"><button type="button" class="btn btn-default" ng-click="cancelJobLaunch(jobLaunchRequest)">Back</button></div>
+		<div class="col-md-6 text-left"><button type="submit" class="btn btn-primary launch-job"
+		ng-disabled="launchJobForm.$invalid">Launch Job <span class="glyphicon glyphicon-play"></span></button></div>
+	</div>
+</form>
+

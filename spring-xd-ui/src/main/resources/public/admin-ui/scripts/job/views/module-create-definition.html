@@ -1,0 +1,57 @@
+<h1 ng-show="moduleDetails.name">Create Definition for Job Module {{moduleDetails.name}}</h1>
+
+	<form name="createDefinitionForm" class="form-horizontal" role="form" ng-submit="submitJobDefinition()" novalidate>
+		<fieldset id="commonDefinitionParameters">
+			<div class="form-group" id="definition-name-form-group" ng-class="createDefinitionForm.definitionName.$invalid ? 'has-warning has-feedback' : ''">
+				<label for="definitionName" class="col-sm-3 control-label">Definition Name</label>
+				<div class="col-sm-9">
+					<input type="text" id="definitionName" name="definitionName" autofocus
+					       required not-the-same-as="{{moduleDetails.name}}"
+					       class="form-control" placeholder="Enter a definition name" ng-model="jobDefinition.name">
+					<span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="createDefinitionForm.definitionName.$invalid"></span>
+					<p class="help-block">The name of the definition must be different from the module name</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-offset-3 col-sm-9">
+					<div class="checkbox">
+						<label><input type="checkbox" ng-model="jobDefinition.deploy" name="deploy"> Deploy created definition</label>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+		<fieldset id="jobParameters">
+			<legend>Parameters</legend>
+			<div class="form-group" ng-repeat="definitionParam in jobDefinition.parameters" ng-if="jobDefinition.parameters.length">
+				<label for="{{definitionParam.name}}" class="col-sm-3 control-label">{{definitionParam.name | camelCaseToHuman}}</label>
+				<div class="col-sm-9" ng-if="definitionParam.type !== 'Password' && definitionParam.type !== 'boolean'">
+					<input type="text" id="{{definitionParam.name}}"
+						name="{{definitionParam.name}}" class="form-control" placeholder="" ng-model="definitionParam.value">
+					<p class="help-block">{{definitionParam.description | capitalize}}</p>
+				</div>
+				<div class="col-sm-9" ng-if="definitionParam.type === 'Password'">
+					<input type="password" id="{{definitionParam.name}}"
+						name="{{definitionParam.name}}" class="form-control" placeholder="" ng-model="definitionParam.value">
+					<p class="help-block">{{definitionParam.description | capitalize}}</p>
+				</div>
+				<div class="col-sm-9" ng-if="definitionParam.type === 'boolean'">
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="{{definitionParam.name}}" ng-true-value="'true'" ng-false-value="'false'"
+							name="{{definitionParam.name}}" ng-model="definitionParam.value">
+						{{definitionParam.description | capitalize}}
+					</label>
+				</div>
+			</div>
+			<div class="row" ng-if="!jobDefinition.parameters.length">No parameters available.</div>
+		</fieldset>
+		<h2>Resulting Definition</h2>
+		<div class="row">
+			<div class="col-xs-12"><pre xd-format-stream='calculatedDefinition'></pre></div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 text-right"><button id="back-button"   type="button" class="btn btn-default" ng-click="closeCreateDefinition()">Back</button></div>
+			<div class="col-md-6 text-left"><button  id="submit-button" type="submit" class="btn btn-default"
+				ng-disabled="createDefinitionForm.$invalid">Submit</button></div>
+		</div>
+	</form>

@@ -1,0 +1,118 @@
+<div class="row" ng-show="stepExecutionProgress">
+  <div class="col-md-10">
+    <h1>Step Execution Progress for Step '{{stepExecutionProgress.stepExecution.stepName}}'</h1>
+  </div>
+  <div class="col-md-2">
+      <button type="button" class="btn btn-default pull-right" ng-click="closeStepExecutionProgress()">Back</button>
+      <button type="button" class="btn btn-default pull-right"
+              ng-click="refreshStepExecutionProgress()">
+          <span class="glyphicon glyphicon-refresh"></span></button>
+  </div>
+</div>
+
+<table class="table table-striped table-hover" ng-show="stepExecutionProgress">
+  <tbody>
+    <tr>
+      <th>Percentage Complete</th>
+      <td><div class="progress"
+        ><div class="progress-bar" role="progressbar" aria-valuenow="{{stepExecutionProgress.percentageFormatted}}" aria-valuemin="0" aria-valuemax="100" style="width: {{stepExecutionProgress.percentageFormatted}}%;"
+        >{{stepExecutionProgress.percentageFormatted}} %</div></div></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 ng-show="stepExecutionProgress">Step Execution History</h4>
+
+<table class="table table-striped table-hover" ng-show="stepExecutionProgress">
+  <thead>
+    <tr><th>Name</th>
+      <th class="text-center">Count</th>
+      <th class="text-center">Min</th>
+      <th class="text-center">Max</th>
+      <th class="text-center">Mean</th>
+      <th class="text-center">Standard Deviation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Commit Count</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.commitCount.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.commitCount.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.commitCount.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.commitCount.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.commitCount.standardDeviation.toFixed(2)}}</td>
+    </tr>
+    <tr>
+      <td>Duration</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.duration.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.duration.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.duration.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.duration.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.duration.standardDeviation.toFixed(2)}}</td>
+    </tr>
+    <tr>
+      <td>Duration per Read</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.durationPerRead.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.durationPerRead.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.durationPerRead.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.durationPerRead.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.durationPerRead.standardDeviation.toFixed(2)}}</td>
+    </tr>
+    <tr>
+      <td>Filter Count</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.filterCount.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.filterCount.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.filterCount.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.filterCount.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.filterCount.standardDeviation.toFixed(2)}}</td>
+    </tr>
+    <tr>
+      <td>Process Skip Count</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.standardDeviation.toFixed(2)}}</td>
+    </tr>
+    <tr>
+      <td>Read Count</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.processSkipCount.standardDeviation.toFixed(2)}}</td>
+    </tr>
+    <tr>
+      <td>Read Skip Count</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.readSkipCount.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.readSkipCount.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.readSkipCount.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.readSkipCount.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.readSkipCount.standardDeviation.toFixed(2)}}</td>
+    </tr>
+    <tr>
+      <td>Rollback Count</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.rollbackCount.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.rollbackCount.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.rollbackCount.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.rollbackCount.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.rollbackCount.standardDeviation.toFixed(2)}}</td>
+    </tr>
+    <tr>
+      <td>Write Count</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeCount.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeCount.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeCount.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeCount.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeCount.standardDeviation.toFixed(2)}}</td>
+    </tr>
+    <tr>
+      <td>Write Skip Count</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeSkipCount.count}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeSkipCount.min}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeSkipCount.max}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeSkipCount.mean.toFixed(2)}}</td>
+      <td class="text-right">{{stepExecutionProgress.stepExecutionHistory.writeSkipCount.standardDeviation.toFixed(2)}}</td>
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,22 @@
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Name</th><th class="text-center" colspan="2">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr dir-paginate="item in pageable.items | itemsPerPage: pageable.pageSize" total-items="pageable.total">
+      <td>{{item.name}}</td>
+      <td class="action-column">
+        <button type="button"
+        class="btn btn-default" ng-click="createDefinition(item)" title="Create Definition"
+        ><span class="glyphicon glyphicon-import"></span></button>
+      </td>
+      <td class="action-column"><button type="button" title="Details"
+        class="btn btn-default" ng-click="viewModuleDetails(item)"
+        ><span class="glyphicon glyphicon-search"></span></button></td>
+    </tr>
+  </tbody>
+</table>
+<dir-pagination-controls template-url="scripts/directives/dirPagination.tpl.html"
+                         on-page-change="pageChanged(newPageNumber)"></dir-pagination-controls>

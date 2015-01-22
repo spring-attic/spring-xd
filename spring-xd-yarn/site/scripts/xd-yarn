@@ -16,6 +16,7 @@ COMMANDS:
     xd-yarn submit [OPTIONS]                 Submit a new application instance
     xd-yarn submitted [OPTIONS]              List status of submitted instances
     xd-yarn kill [OPTIONS]                   Kill an running instance
+    xd-yarn admininfo                        List http host and port info for the admin servers
     xd-yarn clustersinfo [OPTIONS]           List instance container clusters info
     xd-yarn clustercreate [OPTIONS]          Create a new container cluster
     xd-yarn clusterdestroy [OPTIONS]         Destroy a existing container cluster
@@ -120,7 +121,7 @@ do
         else
             die "No application directory location specified for -d option"
         fi
-    elif [ "$1" = "push" ] || [ "$1" = "shell" ] || [ "$1" = "kill" ] || [ "$1" = "pushed" ] || [ "$1" = "submit" ] || [ "$1" = "submitted" ] || [ "$1" = "clustercreate" ] || [ "$1" = "clusterdestroy" ] || [ "$1" = "clusterinfo" ] || [ "$1" = "clustermodify" ] || [ "$1" = "clustersinfo" ] || [ "$1" = "clusterstart" ] || [ "$1" = "clusterstop" ]; then
+    elif [ "$1" = "push" ] || [ "$1" = "shell" ] || [ "$1" = "kill" ] || [ "$1" = "pushed" ] || [ "$1" = "submit" ] || [ "$1" = "submitted" ] || [ "$1" = "clustercreate" ] || [ "$1" = "clusterdestroy" ] || [ "$1" = "clusterinfo" ] || [ "$1" = "clustermodify" ] || [ "$1" = "clustersinfo" ] || [ "$1" = "clusterstart" ] || [ "$1" = "clusterstop" ] || [ "$1" = "admininfo" ]; then
         PARAMS=("${PARAMS[@]}" "$1")
         if [ "$ACTION" = "" ]; then
             ACTION="$1"

@@ -16,12 +16,12 @@
 
 package org.springframework.xd.extension.process;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -56,6 +56,53 @@ public class ShellCommandProcessorTests {
 		scp.start();
 		doEchoTest();
 	}
+
+	@Test
+	public void doConcurrentTest() throws Exception {
+		scp = new ShellCommandProcessor(serializer, "python src/test/resources/echo.py");
+		scp.afterPropertiesSet();
+		scp.start();
+		CountDownLatch latch = new CountDownLatch(2);
+		Thread t1 = new Thread(new ShellRunner("hello", scp, latch));
+		Thread t2 = new Thread(new ShellRunner("world", scp, latch));
+		t1.start();
+		t2.start();
+		latch.await();
+	}
+
+	static class ShellRunner implements Runnable {
+		private final String message;
+
+		private final long delay = 50;
+
+		private final int iterations = 100;
+
+		private final ShellCommandProcessor shellCommandProcessor;
+
+		private final CountDownLatch latch;
+
+		public ShellRunner(String message, ShellCommandProcessor shellCommandProcessor, CountDownLatch latch) {
+			this.shellCommandProcessor = shellCommandProcessor;
+			this.message = message;
+			this.latch = latch;
+		}
+
+		@Override
+		public void run() {
+			for (int i = 0; i < iterations; i++) {
+				String response = shellCommandProcessor.sendAndReceive(message);
+				assertEquals(message, response);
+				try {
+					Thread.sleep(delay);
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			latch.countDown();
+		}
+	}
+
 
 	@Test
 	public void echoTestWithLFEncoder() throws Exception {
@@ -107,6 +154,7 @@ public class ShellCommandProcessorTests {
 		assertEquals("echo", response);
 	}
 
+
 	@Test
 	public void testUTF8() throws Exception {
 		scp = new ShellCommandProcessor(serializer, "python src/test/resources/echo.py");
@@ -116,4 +164,6 @@ public class ShellCommandProcessorTests {
 		String response = scp.sendAndReceive("hello\u00F6\u00FF");
 		assertEquals("hello\u00F6\u00FF", response);
 	}
+
 }
+

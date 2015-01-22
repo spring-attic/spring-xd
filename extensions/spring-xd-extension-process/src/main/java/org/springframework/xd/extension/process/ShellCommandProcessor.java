@@ -93,7 +93,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * Start the process.
 	 */
 	@Override
-	public void start() {
+	public synchronized void start() {
 		if (!isRunning()) {
 
 			if (log.isDebugEnabled()) {
@@ -127,7 +127,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * Receive data from the process.
 	 * @return any available data from stdout
 	 */
-	public String receive() {
+	public synchronized String receive() {
 		Assert.isTrue(isRunning(), "Shell process is not started.");
 		String data;
 		try {
@@ -137,6 +137,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 		catch (IOException e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}
+
 		return data == null ? null : data.trim();
 	}
 
@@ -144,7 +145,8 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * Send data as a String to stdin.
 	 * @param data the data
 	 */
-	public void send(String data) {
+	public synchronized void send(String data) {
+		Assert.isTrue(isRunning(), "Shell process is not started.");
 		try {
 			serializer.serialize(data.getBytes(charset), stdin);
 		}
@@ -161,15 +163,17 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 */
 	public String sendAndReceive(String data) {
 		Assert.isTrue(isRunning(), "Shell process is not started");
-		send(data);
-		return receive();
+		synchronized (process) {
+			send(data);
+			return receive();
+		}
 	}
 
 	/**
 	 * Stop the process and close streams.
 	 */
 	@Override
-	public void stop() {
+	public synchronized void stop() {
 		if (isRunning()) {
 			process.destroy();
 			running.set(false);

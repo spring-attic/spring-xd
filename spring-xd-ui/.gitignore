@@ -11,4 +11,5 @@ xd-ui.sublime-workspace
 app/lib
 app/styles/main.css
 app/styles/main.css.map
+!src/main/resources/public/admin-ui/lib
 

@@ -127,7 +127,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * Receive data from the process.
 	 * @return any available data from stdout
 	 */
-	public synchronized String receive() {
+	public String receive() {
 		Assert.isTrue(isRunning(), "Shell process is not started.");
 		synchronized (process) {
 			String data;
@@ -148,6 +148,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * @param data the data
 	 */
 	public void send(String data) {
+		Assert.isTrue(isRunning(), "Shell process is not started.");
 		synchronized (process) {
 			try {
 				serializer.serialize(data.getBytes(charset), stdin);

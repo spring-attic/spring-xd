@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import kafka.api.OffsetRequest;
-import org.thymeleaf.spring4.util.SpringVersionUtils;
 
 import org.springframework.integration.kafka.core.ConnectionFactory;
 import org.springframework.integration.kafka.core.Partition;
@@ -57,9 +56,6 @@ public class SpringXdOffsetManager extends MetadataStoreOffsetManager {
 	public SpringXdOffsetManager(ConnectionFactory connectionFactory, String topic, String initialOffsets) {
 		super(connectionFactory,
 				StringUtils.hasText(initialOffsets) ? parseOffsetList(topic, initialOffsets) : Collections.EMPTY_MAP);
-		for (Map.Entry<Partition, Long> integerLongEntry : parseOffsetList(topic, initialOffsets).entrySet()) {
-			System.out.println(topic + ":" + integerLongEntry.getKey().getTopic() + ":" + integerLongEntry.getKey().getId() + ":" + integerLongEntry.getValue());
-		}
 	}
 
 	public void deleteOffset(Partition partition) {

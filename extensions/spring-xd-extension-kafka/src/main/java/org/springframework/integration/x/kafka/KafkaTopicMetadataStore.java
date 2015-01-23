@@ -209,7 +209,7 @@ public class KafkaTopicMetadataStore implements InitializingBean, MetadataStore,
 			AdminUtils$.MODULE$.createTopic(zkClient, topic, 1, replicationFactor, topicConfig);
 		}
 		catch (TopicExistsException e) {
-			// ignore
+			log.debug("Topic already exists", e);
 		}
 	}
 
@@ -236,6 +236,8 @@ public class KafkaTopicMetadataStore implements InitializingBean, MetadataStore,
 		if (partitions.size() > 1) {
 			throw new BeanInitializationException("Offset management topic cannot have more than one partition");
 		}
+
+		//Also, validate that topic is compacted: see https://jira.spring.io/browse/XD-2641
 	}
 
 	private void readOffsetData(Partition offsetManagementPartition, BrokerAddress leader) {

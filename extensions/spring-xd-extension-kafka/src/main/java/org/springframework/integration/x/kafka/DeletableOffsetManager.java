@@ -23,11 +23,17 @@ import org.springframework.integration.kafka.listener.OffsetManager;
 /**
  * An {@link OffsetManager} with the ability of deleting entries
  *
- * TODO: add this into OffsetManager
+ * To be refactored once https://jira.spring.io/browse/INTEXT-131 is fixed
+ *
  * @author Marius Bogoevici
  */
 public interface DeletableOffsetManager extends OffsetManager {
 
+	/**
+	 * Removes the offset for a given {@link Partition}.
+	 *
+	 * @param partition
+	 */
 	void deleteOffset(Partition partition);
 
 }

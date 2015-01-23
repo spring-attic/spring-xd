@@ -16,20 +16,30 @@
 
 package org.springframework.integration.x.kafka;
 
+import org.apache.commons.lang.ArrayUtils;
+
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**
  * Module options for Kafka source module.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Marius Bogoevici
  */
 @Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class})
-public class KafkaSourceModuleOptionsMetadata {
+public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private String topic = ModulePlaceholders.XD_STREAM_NAME;
+
+	private String partitions = "";
+
+	private String initialOffsets = "";
+
+	private OffsetStorageStrategy offsetStorage = OffsetStorageStrategy.inmemory;
 
 	private int streams = 1;
 
@@ -44,6 +54,33 @@ public class KafkaSourceModuleOptionsMetadata {
 
 	public String getTopic() {
 		return this.topic;
+	}
+
+	public String getPartitions() {
+		return partitions;
+	}
+
+	@ModuleOption("kafka partitions")
+	public void setPartitions(String partitions) {
+		this.partitions = partitions;
+	}
+
+	public String getInitialOffsets() {
+		return initialOffsets;
+	}
+
+	@ModuleOption("initial offsets")
+	public void setInitialOffsets(String initialOffsets) {
+		this.initialOffsets = initialOffsets;
+	}
+
+	public OffsetStorageStrategy getOffsetStorage() {
+		return offsetStorage;
+	}
+
+	@ModuleOption("offset storage strategy")
+	public void setOffsetStorage(OffsetStorageStrategy offsetStorage) {
+		this.offsetStorage = offsetStorage;
 	}
 
 	@ModuleOption("number of streams in the topic")
@@ -72,4 +109,18 @@ public class KafkaSourceModuleOptionsMetadata {
 	public String getEncoding() {
 		return this.encoding;
 	}
+
+	public enum OffsetStorageStrategy {
+		inmemory,
+		redis
+	}
+
+	@Override
+	public String[] profilesToActivate() {
+		if (offsetStorage != null) {
+			return new String[] {String.format("%s-metadata-store", offsetStorage)};
+		} else {
+			throw new IllegalStateException("An offset storage strategy must be configured");
+		}
+ 	}
 }

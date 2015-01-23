@@ -19,15 +19,22 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.exists;
 
+import java.util.Collections;
 import java.util.Properties;
 
 import kafka.admin.AdminUtils;
+import kafka.api.TopicMetadata;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.springframework.integration.kafka.core.ZookeeperConnectDefaults;
+import org.springframework.integration.kafka.core.TopicNotFoundException;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.test.fixtures.CounterSink;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
@@ -47,10 +54,20 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 	public KafkaTestSupport kafkaTestSupport = new KafkaTestSupport();
 
 	@Before
-	public void createTopic() {
+	public void createTopic() throws Exception {
 		topicToUse = "kafka-test-topic-" + random.nextInt();
 		// create Kafka topic
 		AdminUtils.createTopic(kafkaTestSupport.getZkClient(), topicToUse, 1, 1, new Properties());
+		RetryTemplate retryTemplate = new RetryTemplate();
+		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5,
+				Collections.<Class<? extends Throwable>,Boolean>singletonMap(TopicNotFoundException.class, true)));
+		retryTemplate.setBackOffPolicy(new ExponentialBackOffPolicy());
+		retryTemplate.execute(new RetryCallback<TopicMetadata, Exception>() {
+			@Override
+			public TopicMetadata doWithRetry(RetryContext context) throws Exception {
+				return AdminUtils.fetchTopicMetadataFromZk(topicToUse, kafkaTestSupport.getZkClient());
+			}
+		});
 	}
 
 	@After
@@ -69,7 +86,7 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 				httpSource, topicToUse, kafkaTestSupport.getBrokerAddress());
 		// create stream with kafka source
 		final CounterSink counter = metrics().newCounterSink();
-		stream().create(generateStreamName(), "kafka --topic='%s' --zkconnect=%s --consumerTimeout=-1 | " +
+		stream().create(generateStreamName(), "kafka --topic='%s' --zkconnect=%s | " +
 				"filter --expression=payload.toString().contains('%s') | %s",
 				topicToUse, kafkaTestSupport.getZkconnectstring(), stringToPost, counter );
 		httpSource.ensureReady().postData(stringToPost);

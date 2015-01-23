@@ -37,6 +37,10 @@ public final class ModulePlaceholders {
 
 	public static final String XD_MODULE_INDEX_KEY = "xd.module.index";
 
+	public static final String XD_MODULE_COUNT_KEY = "xd.module.count";
+
+	public static final String XD_MODULE_SEQUENCE_KEY = "xd.module.sequence";
+
 	public static final String XD_CONTAINER_KEY_PREFIX = "xd.container.";
 
 

@@ -19,6 +19,7 @@
 package org.springframework.xd.dirt.module;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.springframework.core.io.Resource;
@@ -63,9 +64,8 @@ public class WriteCapableArchiveModuleRegistry extends ArchiveModuleRegistry imp
 			UploadedModuleDefinition uploadedModuleDefinition = (UploadedModuleDefinition) definition;
 			try {
 				File jar = targetModuleLocation(definition);
-				Assert.isTrue(!jar.exists(), "Could not install " + uploadedModuleDefinition + " at location " + jar
-						+ " as that file already exists");
-				FileCopyUtils.copy(uploadedModuleDefinition.getBytes(), jar);
+				Assert.isTrue(!jar.exists(), "Could not install " + uploadedModuleDefinition + " at location " + jar + " as that file already exists");
+				FileCopyUtils.copy(uploadedModuleDefinition.getInputStream(), new FileOutputStream(jar));
 				return true;
 			}
 			catch (IOException e) {

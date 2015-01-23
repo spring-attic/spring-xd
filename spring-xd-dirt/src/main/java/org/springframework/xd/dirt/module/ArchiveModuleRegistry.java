@@ -66,7 +66,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 			for (String suffix : SUFFIXES) {
 				Resource[] resources = this.getResources(moduleType.name(), name, suffix);
 				for (Resource resource : resources) {
-					fromResource(resource, result);
+					collect(resource, result);
 				}
 			}
 		}
@@ -86,7 +86,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 			for (String suffix : SUFFIXES) {
 				Resource[] resources = this.getResources("*", name, suffix);
 				for (Resource resource : resources) {
-					fromResource(resource, result);
+					collect(resource, result);
 				}
 			}
 		}
@@ -102,7 +102,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		try {
 			Resource[] resources = this.getResources(type.name(), "*", "");
 			for (Resource resource : resources) {
-				fromResource(resource, result);
+				collect(resource, result);
 			}
 		}
 		catch (IOException e) {
@@ -117,7 +117,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		try {
 			Resource[] resources = this.getResources("*", "*", "");
 			for (Resource resource : resources) {
-				fromResource(resource, result);
+				collect(resource, result);
 			}
 		}
 		catch (IOException e) {
@@ -126,7 +126,7 @@ public class ArchiveModuleRegistry implements ModuleRegistry, ResourceLoaderAwar
 		return result;
 	}
 
-	protected void fromResource(Resource resource, List<ModuleDefinition> holder) throws IOException {
+	protected void collect(Resource resource, List<ModuleDefinition> holder) throws IOException {
 		if (!resource.exists()) {
 			return;
 		}

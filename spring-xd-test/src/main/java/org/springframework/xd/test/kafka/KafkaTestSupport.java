@@ -47,8 +47,24 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 
 	private KafkaServer kafkaServer;
 
+	private Properties brokerConfig = TestUtils.createBrokerConfig(0, TestUtils.choosePort());
+
 	public KafkaTestSupport() {
 		super("KAFKA");
+	}
+
+	public KafkaTestSupport(String ... properties) {
+		super("KAFKA");
+		if (properties.length % 2 != 0) {
+			throw new IllegalArgumentException("A list of key value pairs must be provided");
+		}
+		for (int i = 0; i < properties.length / 2; i++) {
+			this.brokerConfig.setProperty(properties[i], properties[i+1]);
+		}
+	}
+
+	public void setBrokerConfig(Properties brokerConfig) {
+		this.brokerConfig = brokerConfig;
 	}
 
 	public String getZkconnectstring() {
@@ -89,7 +105,7 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 			throw new RuntimeException("Issues creating the ZK client", e);
 		}
 		try {
-			Properties brokerConfigProperties = TestUtils.createBrokerConfig(0, TestUtils.choosePort());
+			Properties brokerConfigProperties = brokerConfig;
 			kafkaServer = TestUtils.createServer(new KafkaConfig(brokerConfigProperties), SystemTime$.MODULE$);
 		}
 		catch (Exception e) {

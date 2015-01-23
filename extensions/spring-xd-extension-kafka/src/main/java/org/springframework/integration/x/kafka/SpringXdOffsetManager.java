@@ -37,7 +37,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Marius Bogoevici
  */
-public class SpringXdOffsetManager extends MetadataStoreOffsetManager {
+public class SpringXdOffsetManager extends MetadataStoreOffsetManager implements DeletableOffsetManager {
 
 	// Matches expressions like 0@20,1@50 etc.
 	public static final Pattern VALIDATION_PATTERN = Pattern.compile("(\\d+@\\d+)[,(\\d+@\\d+)]*");
@@ -58,6 +58,7 @@ public class SpringXdOffsetManager extends MetadataStoreOffsetManager {
 				StringUtils.hasText(initialOffsets) ? parseOffsetList(topic, initialOffsets) : Collections.EMPTY_MAP);
 	}
 
+	@Override
 	public void deleteOffset(Partition partition) {
 		getMetadataStore().remove(partition.getTopic() + ":" + partition.getId() + ":" + getConsumerId());
 	}

@@ -89,7 +89,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 
 	private final CuratorFramework client;
 
-	private final SpringXdOffsetManager offsetManager;
+	private final DeletableOffsetManager offsetManager;
 
 	private final String moduleName;
 
@@ -105,7 +105,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 
 	public KafkaPartitionAllocator(CuratorFramework client, ConnectionFactory connectionFactory, String moduleName,
 			String streamName, String topic, String partitionList, int sequence, int count,
-			SpringXdOffsetManager offsetMetadataStore) {
+			DeletableOffsetManager offsetMetadataStore) {
 		Assert.notNull(connectionFactory, "cannot be null");
 		Assert.hasText(moduleName, "cannot be empty");
 		Assert.hasText(streamName, "cannot be empty");
@@ -274,6 +274,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 						new DeploymentUnitStatus(DeploymentUnitStatus.State.undeployed);
 				if (DeploymentUnitStatus.State.undeployed.equals(status.getState())
 						|| DeploymentUnitStatus.State.undeploying.equals(status.getState())) {
+					// remove partitioning data from Kafka
 					if (client.checkExists().forPath(getDataPath()) != null) {
 						try {
 							client.delete().deletingChildrenIfNeeded().forPath(getDataPath());
@@ -288,6 +289,20 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 							}
 						}
 					}
+					// also, remove offsets
+					for (Partition partition : partitions) {
+						if (log.isDebugEnabled()) {
+							log.debug("Deleting offsets for " + partition.toString());
+						}
+						offsetManager.deleteOffset(partition);
+						try {
+							offsetManager.flush();
+						}
+						catch (IOException e) {
+							log.error("Error while trying to flush offsets: " + e);
+						}
+					}
+
 				}
 			}
 			catch (Exception e) {
@@ -296,19 +311,6 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 		}
 		else {
 			log.warn("Could not check the stream state and perform cleanup, client state was " + state);
-		}
-		// clear metadata (offsets)
-		for (Partition partition : partitions) {
-			if (log.isDebugEnabled()) {
-				log.debug("Deleting offsets for " + partition.toString());
-			}
-			offsetManager.deleteOffset(partition);
-			try {
-				offsetManager.flush();
-			}
-			catch (IOException e) {
-				log.error("Error while trying to flush offsets: " + e);
-			}
 		}
 	}
 
@@ -324,7 +326,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 	 */
 	public static Iterable<Integer> parseNumberList(String numberList) throws IllegalArgumentException {
 		Assert.hasText(numberList, "must contain a list of values");
-		Assert.isTrue(PARTITION_LIST_VALIDATION_REGEX.matcher(numberList).matches(),"is not a list of numbers or ranges");
+		Assert.isTrue(PARTITION_LIST_VALIDATION_REGEX.matcher(numberList).matches(), "is not a list of numbers or ranges");
 		Set<Integer> numbers = new TreeSet<Integer>();
 		String[] numbersOrRanges = numberList.split(",");
 		for (String numberOrRange : numbersOrRanges) {

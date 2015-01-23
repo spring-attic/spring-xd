@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.modules.metadata;
 
 import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 
@@ -44,6 +45,8 @@ public class PeriodicTriggerMixin {
 		this.initialDelay = initialDelay;
 	}
 
+	@Pattern(regexp = "(?i)(NANOSECONDS|MICROSECONDS|MILLISECONDS|SECONDS|MINUTES|HOURS|DAYS)",
+			message = "timeUnit must be one of NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS, MINUTES, HOURS, DAYS (case-insensitive)")
 	public String getTimeUnit() {
 		return timeUnit;
 	}

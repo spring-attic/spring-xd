@@ -39,7 +39,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private String initialOffsets = "";
 
-	private OffsetStorageStrategy offsetStorage = OffsetStorageStrategy.inmemory;
+	private OffsetStorageStrategy offsetStorage = OffsetStorageStrategy.kafka;
 
 	private int streams = 1;
 
@@ -112,7 +112,8 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	public enum OffsetStorageStrategy {
 		inmemory,
-		redis
+		redis,
+		kafka
 	}
 
 	@Override

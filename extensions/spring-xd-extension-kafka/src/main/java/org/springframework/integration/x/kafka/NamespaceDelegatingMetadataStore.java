@@ -17,37 +17,27 @@
 
 package org.springframework.integration.x.kafka;
 
-import org.springframework.integration.metadata.ConcurrentMetadataStore;
+import org.springframework.integration.metadata.MetadataStore;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 
 /**
- * Wraps a delegate {@link ConcurrentMetadataStore} and adds a prefix to all the handled keys.
+ * Wraps a delegate {@link MetadataStore} and adds a prefix to all the handled keys.
  *
- * Useful for sharing the same {@link ConcurrentMetadataStore} or underlying location without interference
+ * Useful for sharing the same {@link MetadataStore} or underlying location without interference
  * between clients.
  *
  * @author Marius Bogoevici
  */
-public class NamespaceDelegatingConcurrentMetadataStore implements ConcurrentMetadataStore {
+public class NamespaceDelegatingMetadataStore implements MetadataStore {
 
-	private final ConcurrentMetadataStore delegate;
+	private final MetadataStore delegate;
 
 	private final String namespace;
 
-	public NamespaceDelegatingConcurrentMetadataStore(ConcurrentMetadataStore delegate, String namespace) {
+	public NamespaceDelegatingMetadataStore(MetadataStore delegate, String namespace) {
 		this.delegate = delegate;
 		this.namespace = namespace;
-	}
-
-	@Override
-	public String putIfAbsent(String key, String value) {
-		return delegate.putIfAbsent(getDelegateKey(key), value);
-	}
-
-	@Override
-	public boolean replace(String key, String oldValue, String newValue) {
-		return delegate.replace(getDelegateKey(key), oldValue, newValue);
 	}
 
 	@Override

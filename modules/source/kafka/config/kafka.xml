@@ -28,7 +28,7 @@
 
 	<!-- enriches the behaviour of the MetadataStore, adding a distinct namespace to the keys -->
 	<bean id="namespaceMetadataStore"
-				class="org.springframework.integration.x.kafka.NamespaceDelegatingConcurrentMetadataStore">
+				class="org.springframework.integration.x.kafka.NamespaceDelegatingMetadataStore">
 		<constructor-arg index="0" ref="metadataStore"/>
 		<constructor-arg index="1" value="xd:${xd.stream.name}:${xd.module.name}"/>
 	</bean>
@@ -94,6 +94,14 @@
 			<constructor-arg ref="redisConnectionFactory"/>
 		</bean>
 
+	</beans>
+
+	<beans profile="kafka-metadata-store">
+		<bean id="metadataStore" class="org.springframework.integration.x.kafka.KafkaTopicMetadataStore">
+			<constructor-arg ref="kafkaSourceZookeeperConnect"/>
+			<constructor-arg ref="connectionFactory"/>
+			<constructor-arg value="${xd.stream.name}-${xd.module.name}-offsets"/>
+		</bean>
 	</beans>
 
 </beans>

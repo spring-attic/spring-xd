@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.NoContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;

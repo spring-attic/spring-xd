@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,21 @@
 
 package org.springframework.xd.shell.command.fixtures;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
+import org.hamcrest.Description;
+import org.hamcrest.DiagnosingMatcher;
 import org.hamcrest.Matcher;
 
+import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.test.fixtures.AbstractMetricSink;
 import org.springframework.xd.test.fixtures.EventuallyMatcher;
 import org.springframework.xd.test.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FileSink.FileSinkContentsMatcher;
 import org.springframework.xd.test.fixtures.HasDisplayValue;
 import org.springframework.xd.test.fixtures.MetricHasSimpleValueMatcher;
-import org.springframework.xd.test.fixtures.FileSink.FileSinkContentsMatcher;
 
 
 /**
@@ -58,4 +65,39 @@ public class XDMatchers {
 		return new FileSink.FileSinkContentsMatcher(matcher);
 	}
 
+	public static FileContentsMatcher fileContent(Matcher<String> matcher) {
+		return new FileContentsMatcher(matcher);
+	}
+
+
+	/**
+	 * A Matcher for File content.
+	 */
+	private static final class FileContentsMatcher extends DiagnosingMatcher<File> {
+
+		private final Matcher<String> matcher;
+
+		public FileContentsMatcher(Matcher<String> matcher) {
+			this.matcher = matcher;
+		}
+
+		@Override
+		public void describeTo(Description description) {
+			description.appendDescriptionOf(matcher);
+		}
+
+		@Override
+		protected boolean matches(Object item, Description mismatchDescription) {
+			File file = (File) item;
+			try {
+				String contents = FileCopyUtils.copyToString(new FileReader(file));
+				mismatchDescription.appendValue(contents);
+				return matcher.matches(contents);
+			}
+			catch (IOException e) {
+				mismatchDescription.appendText("failed with an IOException: " + e.getMessage());
+				return false;
+			}
+		}
+	}
 }

@@ -13,11 +13,7 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import static org.springframework.util.MimeTypeUtils.ALL;
-import static org.springframework.util.MimeTypeUtils.APPLICATION_OCTET_STREAM;
-import static org.springframework.util.MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
-import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN;
-import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
+import static org.springframework.util.MimeTypeUtils.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -330,6 +326,7 @@ public abstract class MessageBusSupport
 	protected void onInit() {
 	}
 
+	public abstract String[] getMessageBusSpecificProperties();
 	/**
 	 * Dynamically create a producer for the named channel.
 	 * @param name The name.

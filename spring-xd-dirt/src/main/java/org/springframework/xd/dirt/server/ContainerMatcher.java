@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.cluster;
+package org.springframework.xd.dirt.server;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -32,11 +33,13 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.cluster.Container;
+import org.springframework.xd.dirt.cluster.ContainerFilter;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 
 /**
- * Implementation of {@link ContainerMatcher} that returns a collection of containers to deploy a
+ * Implementation of a Container matching strategy that returns a collection of containers to deploy a
  * {@link ModuleDescriptor} to. This implementation examines the deployment properties for a stream to determine
  * the preferences for each individual module. The deployment properties can (optionally) specify two preferences:
  * <em>criteria</em> and <em>count</em>.
@@ -51,18 +54,18 @@ import org.springframework.xd.module.ModuleDescriptor;
  * <p/>
  * In cases where all containers are not deploying a module, an attempt at container round robin distribution for module
  * deployments will be made (but not guaranteed).
- * 
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
  */
-public class DefaultContainerMatcher implements ContainerMatcher {
+class ContainerMatcher {
 
 	/**
 	 * Logger.
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(DefaultContainerMatcher.class);
+	private static final Logger logger = LoggerFactory.getLogger(ContainerMatcher.class);
 
 	/**
 	 * Current index for iterating over containers.
@@ -80,16 +83,41 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	/**
+	 * Collection of {@link ContainerFilter}s to apply to the candidate Containers.
+	 */
+	private final Collection<ContainerFilter> containerFilters;
+
+
+	/**
 	 * Creates a container matcher instance and prepares the SpEL evaluation context to support Map properties directly.
 	 */
-	public DefaultContainerMatcher() {
-		evaluationContext.addPropertyAccessor(new MapAccessor());
+	public ContainerMatcher() {
+		this(new ContainerFilter[0]);
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Creates a container matcher instance with the provided {@link ContainerFilter}s
+	 * and prepares the SpEL evaluation context to support Map properties directly.
 	 */
-	@Override
+	public ContainerMatcher(ContainerFilter... containerFilters) {
+		this.containerFilters = (containerFilters != null)
+				? Collections.unmodifiableList(Arrays.asList(containerFilters))
+				: Collections.<ContainerFilter>emptyList();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+	}
+
+
+	/**
+	 * Matches the provided module against one of the candidate containers.
+	 *
+	 * @param moduleDescriptor      the module to match against
+	 * @param deploymentProperties  deployment properties for the module; this provides
+	 *                              hints such as the number of containers and other
+	 *                              matching criteria
+	 * @param containers            iterable list of containers to match against
+	 *
+	 * @return a collection of matched containers; collection is empty if no suitable containers are found
+	 */
 	public Collection<Container> match(ModuleDescriptor moduleDescriptor,
 			ModuleDeploymentProperties deploymentProperties, Iterable<Container> containers) {
 		Assert.notNull(moduleDescriptor, "'moduleDescriptor' cannot be null.");
@@ -98,18 +126,34 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		logger.debug("Matching containers for module {}", moduleDescriptor);
 		String criteria = deploymentProperties.getCriteria();
 		List<Container> candidates = findAllContainersMatchingCriteria(containers, criteria);
-		if (candidates.isEmpty() && StringUtils.hasText(criteria)) {
+		Collection<Container> filteredContainers = applyFilters(moduleDescriptor, candidates);
+		List<Container> results = new ArrayList<Container>(filteredContainers);
+		if (results.isEmpty() && StringUtils.hasText(criteria)) {
 			logger.warn("No currently available containers match deployment criteria '{}' for module '{}'.", criteria,
 					moduleDescriptor.getModuleName());
 		}
-		return distributeForRequestedCount(candidates, deploymentProperties.getCount());
+		return distributeForRequestedCount(results, deploymentProperties.getCount());
+	}
+
+	/**
+	 * Apply all the available {@link ContainerFilter}s.
+	 *
+	 * @param moduleDescriptor the module descriptor for the module
+	 * @param candidates the collection of available containers that match the selection criteria
+	 * @return the container candidates after applying the {@link ContainerFilter}s
+	 */
+	private Collection<Container> applyFilters(ModuleDescriptor moduleDescriptor, Collection<Container> candidates) {
+		for (ContainerFilter containerFilter : containerFilters) {
+			candidates = containerFilter.filterContainers(moduleDescriptor, candidates);
+		}
+		return candidates;
 	}
 
 	/**
 	 * Select a subset of containers to satisfy the requested number of module instances using a round robin
 	 * distribution for successive calls. A count of 0 means all members that matched the criteria expression. count >=
 	 * candidates means each of the candidates should host a module.
-	 * 
+	 *
 	 * @param candidates the list of available containers that match the selection criteria
 	 * @param count the requested number of module instances to deploy
 	 * @return a subset of candidates <= count
@@ -166,7 +210,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	/**
 	 * Evaluate the criteria expression against the attributes of the provided container to see if it is a candidate for
 	 * module deployment.
-	 * 
+	 *
 	 * @param container the container instance whose attributes should be considered
 	 * @param criteria the criteria expression to evaluate against the container attributes
 	 * @return whether the container is a candidate
@@ -190,7 +234,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 
 	/**
 	 * Rotate the cached index over the number of available containers.
-	 * 
+	 *
 	 * @param availableContainerCount the number of available containers
 	 * @return the current count before rotating
 	 */

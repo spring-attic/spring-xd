@@ -103,9 +103,9 @@ ext {
 	kafkaVersion = '0.8.1.1'
 	springShellVersion = '1.1.0.RELEASE'
 	zookeeperVersion = '3.4.6'
-	sparkVersion = '1.1.0'
+	sparkVersion = '1.2.0'
+	sparkScalaVersion = '2.10'
 	sqoopVersion = '1.4.5'
-
 
 	// Also in IO
 	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4
@@ -443,7 +443,9 @@ project('spring-xd-dirt') {
 		runtime "org.postgresql:postgresql:$postgresqlVersion"
 		runtime "mysql:mysql-connector-java"
 
-		testCompile "org.apache.kafka:kafka_2.10:${kafkaVersion}:test"
+		testCompile("org.apache.kafka:kafka_2.10:${kafkaVersion}:test") {
+			exclude group: "log4j", module: "log4j"
+		}
 		testCompile "org.apache.curator:curator-test:${curatorVersion}"
 
 		compile project(':spring-xd-batch')
@@ -828,6 +830,7 @@ project('spring-xd-module') {
 		compile "org.springframework.boot:spring-boot-loader"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile project(':spring-xd-module-spi')
+		compile project(':spring-xd-spark-streaming')
 	}
 }
 
@@ -837,6 +840,32 @@ project('spring-xd-module-spi') {
 		compile "org.hibernate:hibernate-validator"
 		compile "org.apache.tomcat.embed:tomcat-embed-el"
 		compile "org.springframework:spring-web"
+	}
+}
+
+project('spring-xd-spark-streaming') {
+	description = 'Spring XD spark streaming module'
+	dependencies {
+		compile("org.apache.spark:spark-streaming_$sparkScalaVersion:$sparkVersion") {
+			exclude group: 'hsqldb'
+		}
+		compile "org.springframework.integration:spring-integration-core"
+		compile project(":spring-xd-module-spi")
+	}
+}
+
+project('spring-xd-spark-streaming-tests') {
+	description = 'Tests for Spring XD spark streaming module'
+	dependencies {
+		testCompile (project(':spring-xd-shell')) {
+			exclude group: 'com.google.guava'
+		}
+		testCompile (project(path: ':spring-xd-shell', configuration: 'tests')) {
+			exclude group: 'com.google.guava'
+		}
+		testCompile project(":spring-xd-dirt")
+		testCompile project(":spring-xd-extension-http")
+		testCompile project(":spring-xd-test-fixtures")
 	}
 }
 
@@ -1056,6 +1085,19 @@ project('spring-xd-shell') {
                 }
 	    }
         }
+
+	task testJar(type: Jar, dependsOn: testClasses) {
+		baseName = "test-${project.archivesBaseName}"
+		from sourceSets.test.output
+	}
+
+	configurations {
+		tests
+	}
+
+	artifacts {
+		tests testJar
+	}
 
 	test {
 		include '**/*TestSuite*'

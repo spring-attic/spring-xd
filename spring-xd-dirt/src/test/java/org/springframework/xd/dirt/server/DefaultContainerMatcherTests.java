@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.cluster;
+package org.springframework.xd.dirt.server;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -32,7 +32,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.server.ContainerMatcher;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
@@ -41,7 +43,7 @@ import org.springframework.xd.module.ModuleType;
 
 
 /**
- * Tests for {@link DefaultContainerMatcher}
+ * Tests for {@link ContainerMatcher}
  *
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
@@ -52,7 +54,7 @@ public class DefaultContainerMatcherTests {
 	@Mock
 	private ContainerRepository containerRepository;
 
-	private DefaultContainerMatcher containerMatcher = new DefaultContainerMatcher();
+	private ContainerMatcher containerMatcher = new ContainerMatcher();
 
 	private List<Container> containers = new ArrayList<Container>();
 

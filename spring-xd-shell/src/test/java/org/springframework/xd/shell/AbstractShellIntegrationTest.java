@@ -16,7 +16,8 @@
 
 package org.springframework.xd.shell;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,7 +71,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
 
-	private static SingleNodeApplication application;
+	protected static SingleNodeApplication application;
 
 	private static JLineShellComponent shell;
 
@@ -98,6 +99,7 @@ public abstract class AbstractShellIntegrationTest {
 		}
 		if (!shell.isRunning()) {
 			shell.start();
+
 		}
 	}
 

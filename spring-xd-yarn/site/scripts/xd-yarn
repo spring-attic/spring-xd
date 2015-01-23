@@ -16,7 +16,7 @@ COMMANDS:
     xd-yarn submit [OPTIONS]                 Submit a new application instance
     xd-yarn submitted [OPTIONS]              List status of submitted instances
     xd-yarn kill [OPTIONS]                   Kill an running instance
-    xd-yarn admininfo                        List http host and port info for the admin servers
+    xd-yarn admininfo [OPTIONS]              List http host and port info for the admin servers
     xd-yarn clustersinfo [OPTIONS]           List instance container clusters info
     xd-yarn clustercreate [OPTIONS]          Create a new container cluster
     xd-yarn clusterdestroy [OPTIONS]         Destroy a existing container cluster

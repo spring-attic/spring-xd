@@ -18,26 +18,33 @@
 
 package org.springframework.xd.dirt.module;
 
-import static org.hamcrest.Matchers.contains;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.xd.module.ModuleType.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
-import org.hamcrest.Matchers;
-import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
- * Tests for ArchiveModuleRegistry.
+ * Tests for ResourceModuleRegistry implementation logic.
  *
  * @author Eric Bottard
  */
-public class ArchiveModuleRegistryTests {
+public class WritableResourceModuleRegistryLogicTests {
 
-	private ArchiveModuleRegistry registry = new ArchiveModuleRegistry("file:src/test/resources/ArchiveModuleRegistryTests-modules/");
+	private ModuleRegistry registry = new ResourceModuleRegistry("file:src/test/resources/ResourceModuleRegistryLogicTests-modules/");
+
+	@Rule
+	public TemporaryFolder temp = new TemporaryFolder();
 
 	@Test(expected = IllegalStateException.class)
 	public void cantHaveBothJarFileAndDir() {
@@ -47,12 +54,27 @@ public class ArchiveModuleRegistryTests {
 	@Test
 	public void jarFilesModulesDontIncludeExtensionInTheirName() {
 		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.sink);
+		assertThat(definitions, not(contains(ResourceModuleRegistryTests.hasName("module-zipped.jar"))));
 		assertThat(definitions, contains(ResourceModuleRegistryTests.hasName("module-zipped")));
 	}
 
 	@Test
-	public void beingADirHasPriorityOverEndingInDotJar() {
+	public void beingAJarHasPriorityOverBeingADir() {
 		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.source);
-		assertThat(definitions, contains(ResourceModuleRegistryTests.hasName("i-am-a-valid-module.jar")));
+		assertThat(definitions, contains(ResourceModuleRegistryTests.hasName("i-am-a-valid-module")));
+	}
+
+	@Test
+	public void testDeleteAsJarFile() throws IOException {
+		WritableModuleRegistry writableModuleRegistry = new WritableResourceModuleRegistry(tempPath());
+		File processors = temp.newFolder("processor");
+		org.springframework.util.Assert.isTrue(new File(processors, "foo.jar").createNewFile(), "could not create dummy file");
+
+
+		org.springframework.util.Assert.isTrue(writableModuleRegistry.delete(ModuleDefinitions.dummy("foo", processor)));
+	}
+
+	private String tempPath() {
+		return "file:" + temp.getRoot().getAbsolutePath();
 	}
 }

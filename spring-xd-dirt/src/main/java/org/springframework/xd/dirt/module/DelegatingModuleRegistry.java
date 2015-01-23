@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Glenn Renfro
  * @author David Turanski
  */
-public class DelegatingModuleRegistry implements WriteableModuleRegistry {
+public class DelegatingModuleRegistry implements WritableModuleRegistry {
 
 	private final List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
 
@@ -108,9 +108,9 @@ public class DelegatingModuleRegistry implements WriteableModuleRegistry {
 	@Override
 	public boolean delete(ModuleDefinition definition) {
 		for (ModuleRegistry delegate : delegates) {
-			if (delegate instanceof WriteableModuleRegistry) {
-				WriteableModuleRegistry writeableModuleRegistry = (WriteableModuleRegistry) delegate;
-				if (writeableModuleRegistry.delete(definition)) {
+			if (delegate instanceof WritableModuleRegistry) {
+				WritableModuleRegistry writableModuleRegistry = (WritableModuleRegistry) delegate;
+				if (writableModuleRegistry.delete(definition)) {
 					return true;
 				}
 			}
@@ -121,9 +121,9 @@ public class DelegatingModuleRegistry implements WriteableModuleRegistry {
 	@Override
 	public boolean registerNew(ModuleDefinition definition) {
 		for (ModuleRegistry delegate : delegates) {
-			if (delegate instanceof WriteableModuleRegistry) {
-				WriteableModuleRegistry writeableModuleRegistry = (WriteableModuleRegistry) delegate;
-				if (writeableModuleRegistry.registerNew(definition)) {
+			if (delegate instanceof WritableModuleRegistry) {
+				WritableModuleRegistry writableModuleRegistry = (WritableModuleRegistry) delegate;
+				if (writableModuleRegistry.registerNew(definition)) {
 					return true;
 				}
 			}

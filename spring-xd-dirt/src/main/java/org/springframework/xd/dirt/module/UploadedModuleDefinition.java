@@ -18,6 +18,9 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -28,11 +31,15 @@ import org.springframework.xd.module.ModuleType;
  */
 public class UploadedModuleDefinition extends ModuleDefinition {
 
-	private final byte[] bytes;
+	private final InputStream inputStream;
 
 	public UploadedModuleDefinition(String name, ModuleType type, byte[] bytes) {
-		super(name, type);
-		this.bytes = bytes;
+		this(name, type, new ByteArrayInputStream(bytes));
+	}
+
+	public UploadedModuleDefinition(String name, ModuleType moduleType, InputStream is) {
+		super(name, moduleType);
+		this.inputStream = is;
 	}
 
 	@Override
@@ -40,12 +47,12 @@ public class UploadedModuleDefinition extends ModuleDefinition {
 		return false;
 	}
 
-	public byte[] getBytes() {
-		return bytes;
+	public InputStream getInputStream() {
+		return inputStream;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("Uploaded module '%s:%s' (%d bytes)", getType(), getName(), bytes.length);
+		return String.format("Uploaded module '%s:%s'", getType(), getName());
 	}
 }

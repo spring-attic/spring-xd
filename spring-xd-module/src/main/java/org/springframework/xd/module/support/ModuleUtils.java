@@ -76,7 +76,7 @@ public class ModuleUtils {
 			return new ParentLastURLClassLoader(urls, parent);
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Exception creating module classloader for " + moduleLocation, e);
 		}
 	}
 

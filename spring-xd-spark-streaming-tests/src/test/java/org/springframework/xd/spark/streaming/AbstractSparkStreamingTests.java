@@ -33,7 +33,7 @@ import org.junit.rules.TestName;
 
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.dirt.module.ArchiveModuleRegistry;
+import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.shell.command.StreamCommandTemplate;
@@ -76,7 +76,7 @@ public abstract class AbstractSparkStreamingTests {
 		RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
 		singleNodeApplication = new SingleNodeApplication().run("--transport", this.transport, "--analytics", "redis");
 		integrationTestSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
-		integrationTestSupport.addModuleRegistry(new ArchiveModuleRegistry("classpath:/spring-xd/xd/modules"));
+		integrationTestSupport.addModuleRegistry(new ResourceModuleRegistry("classpath:/spring-xd/xd/modules"));
 		Bootstrap bootstrap = new Bootstrap(new String[] {"--port", randomConfigSupport.getAdminServerPort()});
 		shell = bootstrap.getJLineShellComponent();
 		if (!shell.isRunning()) {

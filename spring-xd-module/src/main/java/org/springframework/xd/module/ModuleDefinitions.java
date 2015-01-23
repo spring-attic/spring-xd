@@ -46,7 +46,7 @@ public class ModuleDefinitions {
 	 * @param type the type of the module
 	 * @param location where the 'code' for the module can be found
 	 */
-	public static ModuleDefinition simple(String name, ModuleType type, String location) {
+	public static SimpleModuleDefinition simple(String name, ModuleType type, String location) {
 		return new SimpleModuleDefinition(name, type, location);
 	}
 
@@ -59,7 +59,7 @@ public class ModuleDefinitions {
 	 * @param dslDefinition the definition that was used to create the module, in Spring XD DSL
 	 * @param children information about the child modules that make up the composed module
 	 */
-	public static ModuleDefinition composed(String name, ModuleType type, String dslDefinition, List<ModuleDefinition> children) {
+	public static CompositeModuleDefinition composed(String name, ModuleType type, String dslDefinition, List<ModuleDefinition> children) {
 		return new CompositeModuleDefinition(name, type, dslDefinition, children);
 	}
 

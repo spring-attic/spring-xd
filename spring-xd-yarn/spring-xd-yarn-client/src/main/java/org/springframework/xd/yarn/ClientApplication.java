@@ -63,12 +63,13 @@ public class ClientApplication extends AbstractCli {
 		cmdCommands.add(new YarnClusterDestroyCommand());		
 		app.registerCommands(cmdCommands);
 
-		// shell commands, push and admininfo not supported in shell
+		// shell commands, push not supported in shell
 		List<Command> shellCommands = new ArrayList<Command>();
 		shellCommands.add(new YarnPushedCommand());
 		shellCommands.add(new YarnSubmitCommand());
 		shellCommands.add(new YarnSubmittedCommand(new SubmittedOptionHandler("XD")));
 		shellCommands.add(new YarnKillCommand());
+		shellCommands.add(new XdYarnAdminInfoCommand());
 		shellCommands.add(new YarnClustersInfoCommand());
 		shellCommands.add(new YarnClusterInfoCommand());
 		shellCommands.add(new XdYarnClusterCreateCommand());

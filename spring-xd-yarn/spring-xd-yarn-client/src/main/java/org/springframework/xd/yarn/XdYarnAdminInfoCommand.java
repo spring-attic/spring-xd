@@ -111,13 +111,14 @@ public class XdYarnAdminInfoCommand extends AbstractCommand {
 			if (stat != null) {
 				List<String> admins = zk.getChildren(adminsPath, false);
 				for (String admin : admins) {
-					Stat dataStat = new Stat();
-					byte[] data = zk.getData(adminsPath + "/" + admin, false, dataStat);
+					byte[] data = zk.getData(adminsPath + "/" + admin, false, null);
 					try {
 						HashMap<String,Object> dataValues =
 								new ObjectMapper().readValue(new String(data), HashMap.class);
 						results.add("http://" + dataValues.get("host") + ":" + dataValues.get("port"));
-					} catch (IOException e) {}
+					} catch (IOException e) {
+						Log.error("IOException while retrieving data for " + admin + ": " + e.getMessage());
+					}
 				}
 			}
 		} catch (InterruptedException ignore) {}

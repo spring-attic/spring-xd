@@ -46,6 +46,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
+ * @author Patrick Peralta
  */
 @Configuration
 @EnableIntegration
@@ -119,6 +120,18 @@ public class SharedServerContextConfiguration {
 		@Value("${zk.namespace:}")
 		protected String zkNamespace;
 
+		@Value("${zk.client.sessionTimeout:" + ZooKeeperConnection.DEFAULT_SESSION_TIMEOUT + "}")
+		protected int zkSessionTimeout;
+
+		@Value("${zk.client.connectionTimeout:"+ ZooKeeperConnection.DEFAULT_CONNECTION_TIMEOUT +"}")
+		protected int zkConnectionTimeout;
+
+		@Value("${zk.client.initialRetryWait:" + ZooKeeperConnection.DEFAULT_INITIAL_RETRY_WAIT + "}")
+		protected int zkRetryWait;
+
+		@Value("${zk.client.retryMaxAttempts:"+ ZooKeeperConnection.DEFAULT_MAX_RETRY_ATTEMPTS +"}")
+		protected int zkRetryMaxAttempts;
+
 		// TODO: Consider a way to not require this property
 		/*
 		 * This is a flag optionally passed as a system property indicating the intention to inject some custom
@@ -147,7 +160,8 @@ public class SharedServerContextConfiguration {
 			}
 			this.environment.getPropertySources().addFirst(
 					new PropertiesPropertySource(ZK_PROPERTIES_SOURCE, zkProperties));
-			ZooKeeperConnection zooKeeperConnection = new ZooKeeperConnection(zkClientConnect, zkNamespace);
+			ZooKeeperConnection zooKeeperConnection = new ZooKeeperConnection(zkClientConnect, zkNamespace,
+					zkSessionTimeout, zkConnectionTimeout, zkRetryWait, zkRetryMaxAttempts);
 
 			zooKeeperConnection.setAutoStartup(!zkConnectionConfigured);
 

@@ -129,15 +129,18 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 */
 	public String receive() {
 		Assert.isTrue(isRunning(), "Shell process is not started.");
-		String data;
-		try {
-			byte[] buffer = serializer.deserialize(stdout);
-			data = new String(buffer, charset);
+		synchronized (process) {
+			String data;
+			try {
+				byte[] buffer = serializer.deserialize(stdout);
+				data = new String(buffer, charset);
+			}
+			catch (IOException e) {
+				throw new RuntimeException(e.getMessage(), e);
+			}
+
+			return data == null ? null : data.trim();
 		}
-		catch (IOException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-		return data == null ? null : data.trim();
 	}
 
 	/**
@@ -145,12 +148,15 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * @param data the data
 	 */
 	public void send(String data) {
-		try {
-			serializer.serialize(data.getBytes(charset), stdin);
-		}
-		catch (IOException e) {
-			log.error(e.getMessage(), e);
-			throw new RuntimeException(e.getMessage(), e);
+		Assert.isTrue(isRunning(), "Shell process is not started.");
+		synchronized (process) {
+			try {
+				serializer.serialize(data.getBytes(charset), stdin);
+			}
+			catch (IOException e) {
+				log.error(e.getMessage(), e);
+				throw new RuntimeException(e.getMessage(), e);
+			}
 		}
 	}
 
@@ -161,8 +167,10 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 */
 	public String sendAndReceive(String data) {
 		Assert.isTrue(isRunning(), "Shell process is not started");
-		send(data);
-		return receive();
+		synchronized (process) {
+			send(data);
+			return receive();
+		}
 	}
 
 	/**

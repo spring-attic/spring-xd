@@ -1,0 +1,59 @@
+<div class="modal-header">
+    <h4 class="modal-title">Scheduling job {{jobScheduleRequest.jobName}}</h4>
+</div>
+<div class="modal-body">
+    <form class="form-horizontal" role="form" name="jobScheduler">
+
+        <div class="form-group">
+            <div class="col-xs-5">
+                <label>Scheduler (Stream) Name</label>
+                <input class="form-control" type="text" required ng-model="jobScheduleRequest.schedulerName"><span
+                   class="label label-warning" ng-show="!jobScheduleRequest.schedulerName">Required</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="radio">
+                <div class="col-xs-4">
+                    <input type="radio" ng-model="jobScheduleRequest.triggerType" value="fixed-delay"
+                           ng-checked="true">
+                    Fixed delay
+                    <input name="fixedDelay" class="form-control" type="number" min="1"
+                           ng-model="jobScheduleRequest.fixedDelay"
+                           ng-show="isFixedDelay()" placeholder="in SECONDS"><span
+                        class="label label-warning" ng-show="jobScheduler.fixedDelay.$error.min">Invalid Number</span>
+                </div>
+            </label>
+        </div>
+        <div class="form-group">
+            <label class="radio">
+                <div class="col-xs-5">
+                    <input type="radio" ng-model="jobScheduleRequest.triggerType"
+                           value="date"> Date
+                    <input class="form-control" type="datetime-local"
+                           ng-required='jobScheduleRequest.triggerType === "date"'
+                           ng-model="jobScheduleRequest.date"
+                           ng-show="isDate()" placeholder="MM/dd/yy HH:mm:ss">
+                    <p class="help-block" ng-show="isDate()">Date is interpreted using the Server Timezone.</p>
+                </div>
+            </label>
+        </div>
+        <div class="form-group">
+            <label class="radio">
+                <div class="col-xs-5">
+                    <input type="radio" ng-model="jobScheduleRequest.triggerType" value="cron"> Cron
+                    <input class="form-control" type="text" ng-model="jobScheduleRequest.cron"
+                           ng-show="isCron()" placeholder="Cron Expression">
+                    <p class="help-block" ng-show="isCron()">Cron Expressions are interpreted using the Server Timezone.</p>
+                </div>
+            </label>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" ng-click="cancelJobSchedule()">Close</button>
+    <button type="button" class="btn btn-primary schedule-job" ng-click="scheduleJob(jobScheduleRequest)"
+            ng-disabled="jobScheduler.$invalid">Schedule
+        Job <span class="glyphicon glyphicon-play"></span></button>
+</div>

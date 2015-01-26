@@ -456,7 +456,7 @@ project('spring-xd-dirt') {
 		outputs.dir scripts
 	}
 
-	tasks["installApp"].dependsOn(":spring-xd-ui:setupUI")
+	//tasks["installApp"].dependsOn(":spring-xd-ui:setupUI")
 
 	applicationDistribution.from(configFiles) { into "config" }
 

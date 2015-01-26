@@ -1,0 +1,47 @@
+<div class="modal-header">
+	<h4 class="modal-title" id="job-launch-label">Launch - Job Parameters for {{jobLaunchRequest.jobName}}</h4>
+</div>
+<div class="modal-body" id="job-params-form">
+	<form class="form-horizontal" role="form">
+		<fieldset id="jobParameters" ng-repeat="jobParam in jobLaunchRequest.jobParameters" ng-if="jobLaunchRequest.jobParameters.length">
+			<div class="row">
+				<div class="col-xs-2">
+					<button data-id="" type="button" class="btn btn-warning" data-dismiss="modal" ng-click="removeParameter(jobParam)"><span class="glyphicon glyphicon-remove"></span></button>
+				</div>
+				<div class="col-xs-10">
+					<div class="form-group">
+						<div class="col-xs-10 col-sm-5">
+							<input type="text" name="key" class="form-control" placeholder="Parameter Key" ng-model="jobParam.key">
+						</div>
+						<div class="col-xs-10 col-sm-5">
+							<input type="text" name="value" class="form-control" placeholder="Parameter Value" ng-model="jobParam.value">
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-xs-5 job-params">
+							<select name="type" class="form-control" ng-model="jobParam.type"
+								ng-options="dataType.key as dataType.name for dataType in dataTypes">
+							</select>
+						</div>
+						<div class="col-xs-5">
+							<div class="checkbox">
+								<label><input type="checkbox" name="isIdentifying" ng-model="jobParam.isIdentifying">Identifying</label>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+		<fieldset id="jobParameters3" ng-if="!jobLaunchRequest.jobParameters.length">
+			<div class="row">No parameters added. If needed, please add a job parameter before launching the job.</div>
+		</fieldset>
+	</form>
+</div>
+<div class="modal-footer">
+	<div class="pull-left">
+		<button type="button" class="btn btn-default add-job-param" ng-click="addParameter()">
+		<span class="glyphicon glyphicon-plus"></span> Param</button>
+	</div>
+	<button type="button" class="btn btn-default" ng-click="cancelJobLaunch(jobLaunchRequest)">Close</button>
+	<button type="button" class="btn btn-primary launch-job" ng-click="launchJob(jobLaunchRequest)">Launch Job <span class="glyphicon glyphicon-play"></span></button>
+</div>

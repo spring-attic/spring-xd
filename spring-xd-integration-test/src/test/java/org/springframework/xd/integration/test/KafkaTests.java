@@ -16,10 +16,13 @@
 
 package org.springframework.xd.integration.test;
 
+import kafka.admin.AdminUtils;
+import org.I0Itec.zkclient.ZkClient;
 import org.junit.Test;
 import org.springframework.xd.test.fixtures.KafkaSink;
 import org.springframework.xd.test.fixtures.KafkaSource;
 
+import java.util.Properties;
 import java.util.UUID;
 
 /**
@@ -35,10 +38,13 @@ public class KafkaTests extends AbstractIntegrationTest {
 	@Test
 	public void kafkaSourceSinkTest() {
 		String data = UUID.randomUUID().toString();
-		String topic = UUID.randomUUID().toString();
+		String topicToUse = UUID.randomUUID().toString();
+		ZkClient zkClient = sources.getKafkaZkClient();
+		AdminUtils.createTopic(zkClient, topicToUse, 1, 1, new Properties());
+
 		String sinkStreamName = "ks" + UUID.randomUUID().toString();
-		KafkaSource source = sources.kafkaSource().topic(topic).ensureReady();
-		KafkaSink sink = sinks.kafkaSink().topic(topic).ensureReady();
+		KafkaSource source = sources.kafkaSource().topic(topicToUse).ensureReady();
+		KafkaSink sink = sinks.kafkaSink().topic(topicToUse).ensureReady();
 
 		stream(source + XD_DELIMITER + sinks.file());
 		stream(sinkStreamName, sources.http() + XD_DELIMITER + sink);
@@ -46,4 +52,5 @@ public class KafkaTests extends AbstractIntegrationTest {
 		assertFileContains(data);
 		assertReceived(1);
 	}
+
 }

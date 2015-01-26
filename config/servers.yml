@@ -293,7 +293,7 @@ endpoints:
 # xd:
 #  admin:
 #    quietPeriod: 15000
---
+---
 # User Extensions: Where XD scans the classpath to discover extended container configuration to add beans to the Plugins context.
 # Each property may be a comma delimited string. 'basepackages' refers to package names used for
 # annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing XML or Groovy configuration.

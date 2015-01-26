@@ -37,6 +37,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author David Turanski
+ * @author Patrick Peralta
  */
 public class ZooKeeperConnection implements SmartLifecycle {
 
@@ -51,6 +52,27 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	public static final String DEFAULT_CLIENT_CONNECT_STRING = "localhost:2181";
 
 	/**
+	 * The default ZooKeeper session timeout in milliseconds.
+	 */
+	public static final int DEFAULT_SESSION_TIMEOUT = 60000;
+
+	/**
+	 * The default ZooKeeper connection timeout in milliseconds.
+	 */
+	public static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
+
+	/**
+	 * The default initial number of milliseconds between connection retries.
+	 */
+	public static final int DEFAULT_INITIAL_RETRY_WAIT = 1000;
+
+	/**
+	 * The default number of connection attempts that will be made after
+	 * a failed connection attempt.
+	 */
+	public static final int DEFAULT_MAX_RETRY_ATTEMPTS = 3;
+
+	/**
 	 * The underlying {@link CuratorFramework} instance.
 	 */
 	private volatile CuratorFramework curatorFramework;
@@ -58,7 +80,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	/**
 	 * Curator client retry policy.
 	 */
-	private volatile RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+	private volatile RetryPolicy retryPolicy;
 
 	/**
 	 * Connection listener for Curator {@link ConnectionState} events.
@@ -96,6 +118,16 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	private final String namespace;
 
 	/**
+	 * ZooKeeper session timeout in milliseconds.
+	 */
+	private final int sessionTimeout;
+
+	/**
+	 * ZooKeeper connection timeout in milliseconds.
+	 */
+	private final int connectionTimeout;
+
+	/**
 	 * Establish a ZooKeeper connection with the default client connect string: {@value #DEFAULT_CLIENT_CONNECT_STRING}
 	 */
 	public ZooKeeperConnection() {
@@ -118,9 +150,29 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	 * @param namespace the root path namespace in ZooKeeper (or default namespace if null)
 	 */
 	public ZooKeeperConnection(String clientConnectString, String namespace) {
+		this(clientConnectString, namespace, DEFAULT_SESSION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT,
+				DEFAULT_INITIAL_RETRY_WAIT, DEFAULT_MAX_RETRY_ATTEMPTS);
+	}
+
+	/**
+	 * Establish a ZooKeeper connection with the provided client connect string, namespace,
+	 * and timing values.
+	 *
+	 * @param clientConnectString one or more {@code host:port} strings, comma-delimited if more than one
+	 * @param namespace the root path namespace in ZooKeeper (or default namespace if null)
+	 * @param sessionTimeout ZooKeeper session timeout in milliseconds
+	 * @param connectionTimeout ZooKeeper connection timeout in milliseconds
+	 * @param retryWait milliseconds between connection retries
+	 * @param retryMaxAttempts number of connection attempts that will be made after a failed connection attempt
+	 */
+	public ZooKeeperConnection(String clientConnectString, String namespace, int sessionTimeout,
+			int connectionTimeout, int retryWait, int retryMaxAttempts) {
 		Assert.hasText(clientConnectString, "clientConnectString is required");
 		this.clientConnectString = clientConnectString;
 		this.namespace = StringUtils.hasText(namespace) ? namespace : Paths.XD_NAMESPACE;
+		this.sessionTimeout = sessionTimeout;
+		this.connectionTimeout = connectionTimeout;
+		this.retryPolicy = new ExponentialBackoffRetry(retryWait, retryMaxAttempts);
 	}
 
 	/**
@@ -229,6 +281,8 @@ public class ZooKeeperConnection implements SmartLifecycle {
 					.namespace(namespace)
 					.retryPolicy(this.retryPolicy)
 					.connectString(this.clientConnectString)
+					.sessionTimeoutMs(sessionTimeout)
+					.connectionTimeoutMs(connectionTimeout)
 					.build();
 			this.curatorFramework.getConnectionStateListenable().addListener(connectionListener);
 			curatorFramework.start();

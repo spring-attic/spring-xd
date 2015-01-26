@@ -51,16 +51,16 @@ public class AvailableSocketPorts {
 	}
 
 	/**
-	 * Verifies that the port to the broker is available. If not throws an IllegalStateException.
+	 * Verifies that the port to the broker is listening. If not throws an IllegalStateException.
 	 *
-	 * @param fixture WThe module fixture is calling this method, used in case of exception
+	 * @param fixtureName WThe module fixture is calling this method, used in case of exception
 	 * @param host the host to connect to
 	 * @param port the port to connect to
 	 * @param timeout The max time to try to get the connection to the broker in milliseconds
 	 *
 	 * @throws IllegalStateException if can not connect in the specified timeout.
 	 */
-	public static void ensureReady(AbstractModuleFixture<?> fixture, String host, int port, int timeout) {
+	public static void ensureReady(String fixtureName, String host, int port, int timeout) {
 		long giveUpAt = System.currentTimeMillis() + timeout;
 		while (System.currentTimeMillis() < giveUpAt) {
 			try {
@@ -78,7 +78,7 @@ public class AvailableSocketPorts {
 			}
 		}
 		throw new IllegalStateException(String.format(
-				"Module [%s] does not seem to be listening after waiting for %dms", fixture, timeout));
+				"Module [%s] does not seem to be listening after waiting for %dms", fixtureName, timeout));
 	}
 
 }

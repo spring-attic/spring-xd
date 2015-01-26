@@ -17,7 +17,7 @@ package org.springframework.xd.test.fixtures;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
+import org.springframework.xd.test.fixtures.util.KafkaUtils;
 
 
 /**
@@ -30,17 +30,17 @@ public class KafkaSink extends AbstractModuleFixture<KafkaSink> {
 
 	public static final String DEFAULT_BROKER_LIST = "localhost:9092";
 	public static final String DEFAULT_TOPIC = "mytopic";
-	private String brokerList;
+	private String zkConnect;
 	private String topic = DEFAULT_TOPIC;
 
 	/**
 	 * Initializes a Sink fixture;
 	 *
-	 * @param brokerList The list of brokers to connect.
+	 * @param zkConnect The list of brokers to connect.
 	 */
-	public KafkaSink(String brokerList) {
-		Assert.hasText(brokerList, "brokerList must not be empty nor null");
-		this.brokerList = brokerList;
+	public KafkaSink(String zkConnect) {
+		Assert.hasText(zkConnect, "brokerList must not be empty nor null");
+		this.zkConnect = zkConnect;
 	}
 
 	/**
@@ -54,18 +54,18 @@ public class KafkaSink extends AbstractModuleFixture<KafkaSink> {
 
 	@Override
 	protected String toDSL() {
-		return String.format("kafka --brokerList=%s --topic=%s", brokerList, topic);
+		return String.format("kafka --brokerList=%s --topic=%s", zkConnect, topic);
 	}
 
 	/**
 	 * Set the brokerList for the sink
 	 *
-	 * @param brokerList A list of brokers that the sink can connect
+	 * @param zkConnect A list of brokers that the sink can connect
 	 * @return instance of Kafka sink
 	 */
-	public KafkaSink brokerList(String brokerList) {
-		Assert.hasText(brokerList, "brokerList must not be empty nor null");
-		this.brokerList = brokerList;
+	public KafkaSink brokerList(String zkConnect) {
+		Assert.hasText(zkConnect, "brokerList must not be empty nor null");
+		this.zkConnect = zkConnect;
 		return this;
 	}
 
@@ -88,15 +88,7 @@ public class KafkaSink extends AbstractModuleFixture<KafkaSink> {
 	 * @throws IllegalStateException if can not connect in 2 seconds.
 	 */
 	public KafkaSink ensureReady() {
-		String[] addressArray = StringUtils.commaDelimitedListToStringArray(brokerList);
-		for (String address : addressArray) {
-			String[] brokerListArray = StringUtils.delimitedListToStringArray(address, ":");
-			Assert.isTrue(brokerListArray.length == 2,
-					"brokerList data was not properly formatted");
-			String host = brokerListArray[0];
-			int port = Integer.valueOf(brokerListArray[1]);
-			AvailableSocketPorts.ensureReady(this, host, port, 2000);
-		}
+		KafkaUtils.ensureReady(this.toString(), this.zkConnect, this.topic);
 		return this;
 	}
 

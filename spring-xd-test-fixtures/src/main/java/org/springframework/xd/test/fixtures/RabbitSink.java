@@ -88,7 +88,7 @@ public class RabbitSink extends AbstractModuleFixture<RabbitSink> {
 		try {
 			for (String address : addressArray) {
 				URI uri = new URI(address);
-				AvailableSocketPorts.ensureReady(this, uri.getHost(), uri.getPort(), 2000);
+				AvailableSocketPorts.ensureReady(this.getClass().getName(), uri.getHost(), uri.getPort(), 2000);
 			}
 		}
 		catch (URISyntaxException uriSyntaxException) {

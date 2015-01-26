@@ -99,7 +99,7 @@ public class TcpSource extends AbstractModuleFixture<TcpSource> {
 	 * @throws IllegalStateException if can not connect in 2 seconds.
 	 */
 	public TcpSource ensureReady() {
-		AvailableSocketPorts.ensureReady(this, host, port, 2000);
+		AvailableSocketPorts.ensureReady(this.getClass().getName(), host, port, 2000);
 		return this;
 	}
 

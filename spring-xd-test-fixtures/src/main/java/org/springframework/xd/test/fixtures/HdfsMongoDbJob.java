@@ -188,7 +188,7 @@ public class HdfsMongoDbJob extends AbstractModuleFixture<HdfsMongoDbJob> {
 	 * @throws IllegalStateException if can not connect in the specified timeout.
 	 */
 	public void isReady() {
-		AvailableSocketPorts.ensureReady(this, host, port, 2000);
+		AvailableSocketPorts.ensureReady(this.getClass().getName(), host, port, 2000);
 	}
 
 	/**

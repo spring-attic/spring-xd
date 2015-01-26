@@ -38,7 +38,7 @@ public class KafkaTests extends AbstractIntegrationTest {
 		String topic = UUID.randomUUID().toString();
 		String sinkStreamName = "ks" + UUID.randomUUID().toString();
 		KafkaSource source = sources.kafkaSource().topic(topic).ensureReady();
-		KafkaSink sink = sinks.kafkaSink().topic(topic).ensureReady();
+		KafkaSink sink = sinks.kafkaSink().topic(topic);
 
 		stream(source + XD_DELIMITER + sinks.file());
 		stream(sinkStreamName, sources.http() + XD_DELIMITER + sink);

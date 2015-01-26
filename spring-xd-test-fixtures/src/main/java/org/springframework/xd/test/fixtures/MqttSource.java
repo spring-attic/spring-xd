@@ -59,7 +59,7 @@ public class MqttSource extends AbstractModuleFixture<MqttSource> {
 	 * @throws IllegalStateException if can not connect in 2 seconds.
 	 */
 	public MqttSource ensureReady() {
-		AvailableSocketPorts.ensureReady(this, host, port, 2000);
+		AvailableSocketPorts.ensureReady(this.getClass().getName(), host, port, 2000);
 		return this;
 	}
 

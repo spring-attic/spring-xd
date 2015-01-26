@@ -80,7 +80,7 @@ public class RabbitSource extends AbstractModuleFixture<RabbitSource> {
 	 * @throws IllegalStateException if can not connect in 2 seconds.
 	 */
 	public RabbitSource ensureReady() {
-		AvailableSocketPorts.ensureReady(this, connectionFactory.getHost(), connectionFactory.getPort(),
+		AvailableSocketPorts.ensureReady(this.getClass().getName(), connectionFactory.getHost(), connectionFactory.getPort(),
 				2000);
 		return this;
 	}

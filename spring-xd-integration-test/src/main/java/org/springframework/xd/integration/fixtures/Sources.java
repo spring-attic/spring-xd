@@ -16,6 +16,8 @@
 
 package org.springframework.xd.integration.fixtures;
 
+import kafka.utils.ZKStringSerializer$;
+import org.I0Itec.zkclient.ZkClient;
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.GemFireCQSource;
@@ -341,6 +343,16 @@ public class Sources extends ModuleFixture {
 	 */
 	public TcpClientSource tcpClientSource() {
 		return new TcpClientSource(xdEnvironment.getTcpClientHost(), xdEnvironment.getTcpClientPort());
+	}
+
+	/**
+	 * Creates a ZkClient connected to the Zookeeper that the kafka is associated.
+	 * @return zkClient instance that is connected to the kafka's zookeeper
+	 */
+	public ZkClient getKafkaZkClient(){
+		int zkConnectionTimeout = 6000;
+		int zkSessionTimeout = 6000;
+		return new ZkClient(xdEnvironment.getKafkaZkConnect(), 6000, 6000, ZKStringSerializer$.MODULE$);
 	}
 
 }

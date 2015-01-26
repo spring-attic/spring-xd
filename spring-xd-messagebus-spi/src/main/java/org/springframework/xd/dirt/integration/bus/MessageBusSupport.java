@@ -13,7 +13,11 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import static org.springframework.util.MimeTypeUtils.*;
+import static org.springframework.util.MimeTypeUtils.ALL;
+import static org.springframework.util.MimeTypeUtils.APPLICATION_OCTET_STREAM;
+import static org.springframework.util.MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
+import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN;
+import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -88,8 +92,6 @@ public abstract class MessageBusSupport
 	private final ContentTypeResolver contentTypeResolver = new StringConvertingContentTypeResolver();
 
 	private final ThreadLocal<Boolean> revertingDirectBinding = new ThreadLocal<Boolean>();
-
-	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
 
 	protected static final List<MimeType> MEDIATYPES_MEDIATYPE_ALL = Collections.singletonList(ALL);
 
@@ -518,7 +520,7 @@ public abstract class MessageBusSupport
 					.copyHeaders(message.getHeaders())
 					.setHeader(MessageHeaders.CONTENT_TYPE, contentType);
 			if (originalContentType != null) {
-				messageBuilder.setHeader(ORIGINAL_CONTENT_TYPE_HEADER, originalContentType);
+				messageBuilder.setHeader(XdHeaders.XD_ORIGINAL_CONTENT_TYPE, originalContentType);
 			}
 			return messageBuilder.build();
 		}
@@ -554,9 +556,9 @@ public abstract class MessageBusSupport
 		Object payload = deserializePayload(originalPayload, contentType);
 		if (payload != null) {
 			MessageBuilder<Object> transformed = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders());
-			Object originalContentType = message.getHeaders().get(ORIGINAL_CONTENT_TYPE_HEADER);
+			Object originalContentType = message.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE);
 			transformed.setHeader(MessageHeaders.CONTENT_TYPE, originalContentType);
-			transformed.setHeader(ORIGINAL_CONTENT_TYPE_HEADER, null);
+			transformed.setHeader(XdHeaders.XD_ORIGINAL_CONTENT_TYPE, null);
 			messageToSend = transformed.build();
 		}
 		return messageToSend;

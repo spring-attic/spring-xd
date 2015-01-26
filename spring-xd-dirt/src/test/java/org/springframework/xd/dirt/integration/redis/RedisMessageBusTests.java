@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -49,6 +48,7 @@ import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndp
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
 import org.springframework.xd.dirt.integration.bus.RedisTestMessageBus;
@@ -63,6 +63,9 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	private RedisTemplate<String, Object> redisTemplate;
+
+	private static final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter =
+			new EmbeddedHeadersMessageConverter();
 
 	@Override
 	protected MessageBus getMessageBus() {
@@ -341,7 +344,7 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 	public void testMoreHeaders() {
 		RedisMessageBus bus = new RedisMessageBus(mock(RedisConnectionFactory.class), getCodec(), "foo", "bar");
 		Collection<String> headers = Arrays.asList(TestUtils.getPropertyValue(bus, "headersToMap", String[].class));
-		assertEquals(9, headers.size());
+		assertEquals(10, headers.size());
 		assertTrue(headers.contains("foo"));
 		assertTrue(headers.contains("bar"));
 	}
@@ -380,15 +383,8 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 				if (bytes == null) {
 					return null;
 				}
-				ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-				int headerCount = byteBuffer.get();
-				for (int i = 0; i < headerCount; i++) {
-					int len = byteBuffer.get();
-					byteBuffer.position(byteBuffer.position() + len);
-					len = byteBuffer.get();
-					byteBuffer.position(byteBuffer.position() + len);
-				}
-				return new String(bytes, byteBuffer.position(), byteBuffer.remaining(), "UTF-8");
+				bytes = embeddedHeadersMessageConverter.extractHeaders(new GenericMessage<byte[]>(bytes)).getPayload();
+				return new String(bytes, "UTF-8");
 			}
 
 		};

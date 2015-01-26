@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -38,6 +38,7 @@ import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
@@ -49,6 +50,7 @@ import org.springframework.xd.dirt.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
+import org.springframework.xd.module.ModuleDeploymentProperties;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +61,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 
 /**
@@ -296,7 +299,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 				"topic:foo > queue:bar2");
 		assertEquals(0, integrationSupport.streamRepository().count());
 		integrationSupport.streamDeployer().save(bar1Definition);
-		integrationSupport.deployStream(bar1Definition);
+		integrationSupport.deployStream(bar1Definition,
+				Collections.singletonMap("module.*." + ModuleDeploymentProperties.TRACK_HISTORY_KEY, "true"));
 
 		integrationSupport.streamDeployer().save(bar2Definition);
 		integrationSupport.deployStream(bar2Definition);
@@ -313,8 +317,16 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		source.sendPayload("hello");
 
-		final Object bar1 = bar1sink.receivePayload(10000);
-		final Object bar2 = bar2sink.receivePayload(10000);
+		final Message<Object> bar1Message = (Message<Object>) bar1sink.receive(10000);
+		assertNotNull(bar1Message);
+		Object history = bar1Message.getHeaders().get(XdHeaders.XD_HISTORY);
+		assertNotNull(history);
+		assertThat(history, instanceOf(List.class));
+		final Object bar1 = bar1Message.getPayload();
+		final Message<Object> bar2Message = (Message<Object>) bar2sink.receive(10000);
+		assertNotNull(bar2Message);
+		assertNull(bar2Message.getHeaders().get(XdHeaders.XD_HISTORY));
+		final Object bar2 = bar2Message.getPayload();
 		assertEquals("hello", bar1);
 		assertEquals("hello", bar2);
 

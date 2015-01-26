@@ -44,9 +44,11 @@ import kafka.serializer.Decoder;
 import kafka.serializer.DefaultDecoder;
 import kafka.serializer.DefaultEncoder;
 import kafka.utils.ZkUtils;
+
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
+
 import scala.collection.Seq;
 
 import org.springframework.context.Lifecycle;
@@ -89,6 +91,7 @@ import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
 /**
@@ -181,25 +184,11 @@ public class KafkaMessageBus extends MessageBusSupport {
 					KafkaMessageBus.COMPRESSION_CODEC,
 			}));
 
-	private static final String XD_REPLY_CHANNEL = "xdReplyChannel";
-
 	/**
 	 * The consumer group to use when achieving point to point semantics (that
 	 * consumer group name is static and hence shared by all containers).
 	 */
 	private static final String POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP = "springXD";
-
-	/**
-	 * The headers that will be propagated, by default.
-	 */
-	private static final String[] STANDARD_HEADERS = new String[] {
-			IntegrationMessageHeaderAccessor.CORRELATION_ID,
-			IntegrationMessageHeaderAccessor.SEQUENCE_SIZE,
-			IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
-			MessageHeaders.CONTENT_TYPE,
-			ORIGINAL_CONTENT_TYPE_HEADER,
-			XD_REPLY_CHANNEL
-	};
 
 	/**
 	 * Basic + concurrency + partitioning.
@@ -266,12 +255,14 @@ public class KafkaMessageBus extends MessageBusSupport {
 		setCodec(codec);
 		if (headersToMap.length > 0) {
 			String[] combinedHeadersToMap =
-					Arrays.copyOfRange(STANDARD_HEADERS, 0, STANDARD_HEADERS.length + headersToMap.length);
-			System.arraycopy(headersToMap, 0, combinedHeadersToMap, STANDARD_HEADERS.length, headersToMap.length);
+					Arrays.copyOfRange(XdHeaders.STANDARD_HEADERS, 0, XdHeaders.STANDARD_HEADERS.length + headersToMap
+							.length);
+			System.arraycopy(headersToMap, 0, combinedHeadersToMap, XdHeaders.STANDARD_HEADERS.length, headersToMap
+					.length);
 			this.headersToMap = combinedHeadersToMap;
 		}
 		else {
-			this.headersToMap = STANDARD_HEADERS;
+			this.headersToMap = XdHeaders.STANDARD_HEADERS;
 		}
 
 	}
@@ -696,8 +687,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 			try {
 				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
 			}
-			catch (UnsupportedEncodingException e) {
-				logger.error("Could not convert message", e);
+			catch (Exception e) {
+				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);
 			}
 			return deserializePayloadIfNecessary(theRequestMessage);
 		}

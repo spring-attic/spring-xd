@@ -93,7 +93,7 @@ public abstract class AbstractMessageBusTests {
 		Message<?> inbound = moduleInputChannel.receive(5000);
 		assertNotNull(inbound);
 		assertEquals("foo", inbound.getPayload());
-		assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+		assertNull(inbound.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 		assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		messageBus.unbindProducers("foo.0");
 		messageBus.unbindConsumers("foo.0");
@@ -113,7 +113,7 @@ public abstract class AbstractMessageBusTests {
 		Message<?> inbound = moduleInputChannel.receive(5000);
 		assertNotNull(inbound);
 		assertEquals("foo", inbound.getPayload());
-		assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+		assertNull(inbound.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 		assertNull(inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		messageBus.unbindProducers("bar.0");
 		messageBus.unbindConsumers("bar.0");
@@ -144,7 +144,7 @@ public abstract class AbstractMessageBusTests {
 			Message<?> inbound = moduleInputChannel.receive(5000);
 			assertNotNull(inbound);
 			assertEquals("foo", inbound.getPayload());
-			assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(inbound.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 			assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			Message<?> tapped1 = module2InputChannel.receive(5000);
 			Message<?> tapped2 = module3InputChannel.receive(5000);
@@ -156,10 +156,10 @@ public abstract class AbstractMessageBusTests {
 			}
 			success = true;
 			assertEquals("foo", tapped1.getPayload());
-			assertNull(tapped1.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped1.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 			assertEquals("foo/bar", tapped1.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			assertEquals("foo", tapped2.getPayload());
-			assertNull(tapped2.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped2.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 			assertEquals("foo/bar", tapped2.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		}
 		// delete one tap stream is deleted
@@ -211,7 +211,7 @@ public abstract class AbstractMessageBusTests {
 			Message<?> inbound = moduleInputChannel.receive(5000);
 			assertNotNull(inbound);
 			assertEquals("foo", inbound.getPayload());
-			assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(inbound.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 			assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			Message<?> tapped1 = module2InputChannel.receive(5000);
 			Message<?> tapped2 = module3InputChannel.receive(5000);
@@ -223,10 +223,10 @@ public abstract class AbstractMessageBusTests {
 			}
 			success = true;
 			assertEquals("foo", tapped1.getPayload());
-			assertNull(tapped1.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped1.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 			assertEquals("foo/bar", tapped1.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			assertEquals("foo", tapped2.getPayload());
-			assertNull(tapped2.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped2.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 			assertEquals("foo/bar", tapped2.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		}
 		// delete one tap stream is deleted

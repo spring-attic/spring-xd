@@ -928,6 +928,7 @@ project('spring-xd-messagebus-spi') {
 		compile "org.springframework:spring-messaging"
 		compile "org.springframework.retry:spring-retry"
 		compile "org.springframework.integration:spring-integration-core"
+		compile "com.fasterxml.jackson.core:jackson-databind"
 	}
 }
 

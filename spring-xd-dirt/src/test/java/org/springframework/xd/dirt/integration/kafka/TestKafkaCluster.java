@@ -30,9 +30,10 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.retry.RetryUntilElapsed;
-import org.apache.curator.test.InstanceSpec;
 import org.apache.curator.test.TestingServer;
+
 import org.springframework.util.Assert;
+import org.springframework.util.SocketUtils;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -46,132 +47,124 @@ import java.util.Properties;
  */
 public class TestKafkaCluster {
 
-    private KafkaServerStartable kafkaServer;
+	private KafkaServerStartable kafkaServer;
 
-    private TestingServer zkServer;
+	private TestingServer zkServer;
 
-    public TestKafkaCluster() {
-        try {
-            // Use very short ticktime so that disconnects are picked up quickly
-            // and rebalances go through
-//            int tickTime = 100;
-//            InstanceSpec spec = new InstanceSpec(null, -1, -1, -1, true, -1, tickTime, -1);
-//            zkServer = new TestingServer(spec, true);
-            zkServer = new TestingServer();
+	public TestKafkaCluster() {
+		try {
+			zkServer = new TestingServer(SocketUtils.findAvailableTcpPort());
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+		KafkaConfig config = getKafkaConfig(zkServer.getConnectString());
+		kafkaServer = new KafkaServerStartable(config);
+		kafkaServer.startup();
+	}
 
+	private static KafkaConfig getKafkaConfig(final String zkConnectString) {
+		scala.collection.Iterator<Properties> propsI =
+				TestUtils.createBrokerConfigs(1).iterator();
+		assert propsI.hasNext();
+		Properties props = propsI.next();
+		assert props.containsKey("zookeeper.connect");
+		props.put("zookeeper.connect", zkConnectString);
+		return new KafkaConfig(props);
+	}
 
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-        KafkaConfig config = getKafkaConfig(zkServer.getConnectString());
-        kafkaServer = new KafkaServerStartable(config);
-        kafkaServer.startup();
-    }
+	public String getKafkaBrokerString() {
+		return String.format("localhost:%d",
+				kafkaServer.serverConfig().port());
+	}
 
-    private static KafkaConfig getKafkaConfig(final String zkConnectString) {
-        scala.collection.Iterator<Properties> propsI =
-                TestUtils.createBrokerConfigs(1).iterator();
-        assert propsI.hasNext();
-        Properties props = propsI.next();
-        assert props.containsKey("zookeeper.connect");
-        props.put("zookeeper.connect", zkConnectString);
-        return new KafkaConfig(props);
-    }
-
-    public String getKafkaBrokerString() {
-        return String.format("localhost:%d",
-                kafkaServer.serverConfig().port());
-    }
-
-    public void stop() throws IOException {
-        kafkaServer.shutdown();
-        zkServer.stop();
-    }
+	public void stop() throws IOException {
+		kafkaServer.shutdown();
+		zkServer.stop();
+	}
 
 
-    /**
-     * See XD-2293. This is used to reproduce Kafka rebalance issues.
-     */
-    public static void main(String[] args) throws Exception {
-        TestKafkaCluster cluster = new TestKafkaCluster();
-        ZkClient client = new ZkClient(cluster.getZkConnectString(), 10000, 10000, KafkaMessageBus.utf8Serializer);
-        int partitions = 5;
-        int replication = 1;
-        AdminUtils.createTopic(client, "mytopic", partitions, replication, new Properties());
+	/**
+	 * See XD-2293. This is used to reproduce Kafka rebalance issues.
+	 */
+	public static void main(String[] args) throws Exception {
+		TestKafkaCluster cluster = new TestKafkaCluster();
+		ZkClient client = new ZkClient(cluster.getZkConnectString(), 10000, 10000, KafkaMessageBus.utf8Serializer);
+		int partitions = 5;
+		int replication = 1;
+		AdminUtils.createTopic(client, "mytopic", partitions, replication, new Properties());
 
-        Properties props = new Properties();
-        props.put("zookeeper.connect", cluster.getZkConnectString());
-        props.put("group.id", "foo");
-        props.put("rebalance.backoff.ms", "2000");
-        props.put("rebalance.max.retries", "2000");
-        ConsumerConfig config = new ConsumerConfig(props);
-
-
-        CuratorFramework curator = CuratorFrameworkFactory.newClient(cluster.getZkConnectString(), new RetryUntilElapsed(1000, 100));
-        curator.start();
-
-        RebalanceListener listener = null;
-        for (int i = 0; i < 5; i++) {
-            System.out.format("%nCreating consumer #%d%n", i + 1);
-            ConsumerConnector connector = Consumer.createJavaConsumerConnector(config);
-            connector.createMessageStreams(Collections.singletonMap("mytopic", 1));
-            if (i == 0) {
-                PathChildrenCache cache = new PathChildrenCache(curator, "/consumers/foo/owners/mytopic", true);
-                listener = new RebalanceListener(5);
-                cache.getListenable().addListener(listener);
-                cache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
-            }
-
-            synchronized (listener) {
-                System.out.println("******** Waiting for rebalance...");
-                listener.wait();
-            }
+		Properties props = new Properties();
+		props.put("zookeeper.connect", cluster.getZkConnectString());
+		props.put("group.id", "foo");
+		props.put("rebalance.backoff.ms", "2000");
+		props.put("rebalance.max.retries", "2000");
+		ConsumerConfig config = new ConsumerConfig(props);
 
 
-        }
+		CuratorFramework curator = CuratorFrameworkFactory.newClient(cluster.getZkConnectString(), new RetryUntilElapsed(1000, 100));
+		curator.start();
 
-        System.out.println();
+		RebalanceListener listener = null;
+		for (int i = 0; i < 5; i++) {
+			System.out.format("%nCreating consumer #%d%n", i + 1);
+			ConsumerConnector connector = Consumer.createJavaConsumerConnector(config);
+			connector.createMessageStreams(Collections.singletonMap("mytopic", 1));
+			if (i == 0) {
+				PathChildrenCache cache = new PathChildrenCache(curator, "/consumers/foo/owners/mytopic", true);
+				listener = new RebalanceListener(5);
+				cache.getListenable().addListener(listener);
+				cache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+			}
 
-    }
+			synchronized (listener) {
+				System.out.println("******** Waiting for rebalance...");
+				listener.wait();
+			}
 
-    public String getZkConnectString() {
-        return zkServer.getConnectString();
-    }
+		}
 
-    private static class RebalanceListener implements PathChildrenCacheListener {
+		System.out.println();
 
-        private int expected;
+	}
 
-        private int actual;
+	public String getZkConnectString() {
+		return zkServer.getConnectString();
+	}
 
-        private boolean ready;
+	private static class RebalanceListener implements PathChildrenCacheListener {
 
-        public RebalanceListener(int expected) {
-            this.expected = expected;
-        }
+		private int expected;
 
-        @Override
-        public synchronized void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-            System.out.println(event);
-            System.out.println(event.getData() != null ? new String(event.getData().getData()) : "no data");
-            switch (event.getType()) {
-                case CHILD_ADDED:
-                    actual++;
-                    if (ready && actual == expected) {
-                        System.out.println("*** Moving on... ");
-                        this.notify();
-                    }
-                    break;
-                case CHILD_REMOVED:
-                    actual--;
-                    break;
-                case INITIALIZED:
-                    Assert.isTrue(actual == expected);
-                    ready = true;
-                    this.notify();
-                    break;
-            }
-//            System.out.println("" + actual + "/" + expected);
-        }
-    }
+		private int actual;
+
+		private boolean ready;
+
+		public RebalanceListener(int expected) {
+			this.expected = expected;
+		}
+
+		@Override
+		public synchronized void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+			System.out.println(event);
+			System.out.println(event.getData() != null ? new String(event.getData().getData()) : "no data");
+			switch (event.getType()) {
+				case CHILD_ADDED:
+					actual++;
+					if (ready && actual == expected) {
+						System.out.println("*** Moving on... ");
+						this.notify();
+					}
+					break;
+				case CHILD_REMOVED:
+					actual--;
+					break;
+				case INITIALIZED:
+					Assert.isTrue(actual == expected);
+					ready = true;
+					this.notify();
+					break;
+			}
+		}
+	}
 }

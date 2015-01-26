@@ -67,8 +67,8 @@
 		register-url-handler="false"
 		properties-location="${xd.config.home}/hadoop.properties"
 		security-method="${hadoop.security.authentication:}"
-		user-keytab="${spring.hadoop.userKeytab:}"
-		user-principal="${spring.hadoop.userPrincipal:}"
+		user-keytab="${spring.hadoop.security.userKeytab:}"
+		user-principal="${spring.hadoop.security.userPrincipal:}"
 		namenode-principal="${dfs.namenode.kerberos.principal:}"
 		rm-manager-principal="${yarn.resourcemanager.principal:}">
 		fs.defaultFS=${fsUri}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,7 @@
  */
 
 /*
- * Spring XD Starters projects, supporting starter poms for modules, etc.
+ * Spring XD Gradle plugin projects, supporting builds for modules, etc.
 */
 
 buildscript {
@@ -27,21 +27,18 @@ buildscript {
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
 	}
 }
-project('spring-xd-module-parent') {
-    description = 'Spring XD parent POM for a Module'
-	apply plugin: 'spring-boot'
-	apply plugin: 'propdeps'
-	apply plugin: 'propdeps-maven'
-	apply plugin: 'propdeps-idea'
-	apply from: 'publish-maven.gradle'
-
-
+project('spring-xd-module-plugin') {
+	apply plugin: 'maven'
+    description = 'Gradle plugin to build a Spring XD Module'
 	dependencies {
-		compile project(':spring-xd-dirt')
-	}
-
-	bootRepackage {
- 	   enabled = false
+ 		compile gradleApi()
+ 		compile localGroovy()
+ 		runtime "org.springframework.boot:spring-boot-gradle-plugin:1.2.1.RELEASE"
+ 		runtime "org.springframework.build.gradle:propdeps-plugin:0.0.7"
+ 	}
+ 	compileGroovy {
+		sourceCompatibility = 1.6
+		targetCompatibility = 1.6
 	}
 }
 

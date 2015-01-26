@@ -65,9 +65,17 @@ new File(rootDir, 'extensions').eachDir { dir ->
 // This prevents the detection of the spring-xd-starters/ directory itself
 // as a project (which it is not) and avoids manual listing of projects
 new File(rootDir, 'spring-xd-starters').eachDir { dir ->
-		if (new File(dir, 'publish-maven.gradle').exists()) {
-			include ":${dir.name}"
-			project(":${dir.name}").projectDir = dir
-		}
+	if (new File(dir, 'publish-maven.gradle').exists()) {
+		include ":${dir.name}"
+		project(":${dir.name}").projectDir = dir
+	}
+}
+
+// For projects living in spring-xd-gradle-plugins/ directory:
+// This prevents the detection of the spring-xd-gradle-plugins/ directory itself
+// as a project (which it is not) and avoids manual listing of projects
+new File(rootDir, 'spring-xd-gradle-plugins').eachDir { dir ->
+	include ":${dir.name}"
+	project(":${dir.name}").projectDir = dir
 }
 

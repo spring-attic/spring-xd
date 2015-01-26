@@ -128,7 +128,8 @@ apply from: 'gradle/build-common.gradle'
 configure(javaProjects) { subproject ->
 
 	apply plugin: 'groovy'
-	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters')) {
+	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters') 
+		&& !subproject.projectDir.absolutePath.contains('spring-xd-gradle-plugins')) {
 		apply from: "${rootProject.projectDir}/publish-maven.gradle"
 		apply plugin: 'eclipse'
 		apply plugin: 'idea'
@@ -308,6 +309,7 @@ configure(javaProjects) { subproject ->
 apply from: 'gradle/build-modules.gradle'
 apply from: 'gradle/build-messagebuses.gradle'
 apply from: 'gradle/build-starters.gradle'
+apply from: 'gradle/build-gradle-plugins.gradle'
 
 project('spring-xd-analytics') {
 	description = 'Spring XD Anayltics'

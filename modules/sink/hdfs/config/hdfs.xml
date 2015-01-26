@@ -22,11 +22,11 @@
 	<hdp:configuration
 		register-url-handler="false"
 		properties-location="${xd.config.home}/hadoop.properties"
-		security-method="${hadoop.security.authentication:}"
+		security-method="${spring.hadoop.security.authMethod:}"
 		user-keytab="${spring.hadoop.security.userKeytab:}"
 		user-principal="${spring.hadoop.security.userPrincipal:}"
-		namenode-principal="${dfs.namenode.kerberos.principal:}"
-		rm-manager-principal="${yarn.resourcemanager.principal:}">
+		namenode-principal="${spring.hadoop.security.namenodePrincipal:}"
+		rm-manager-principal="${spring.hadoop.security.rmManagerPrincipal:}">
 		fs.defaultFS=${fsUri}
 	</hdp:configuration>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,8 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 	private static final String REPLY_TO = "replyTo";
 
+	private static final String XD_HISTORY = "xdHistory";
+
 	/**
 	 * The headers that will be propagated, by default.
 	 */
@@ -85,7 +87,8 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		XD_REPLY_CHANNEL,
 		MessageHeaders.CONTENT_TYPE,
 		ORIGINAL_CONTENT_TYPE_HEADER,
-		REPLY_TO
+		REPLY_TO,
+		XD_HISTORY
 	};
 
 	private static final SpelExpressionParser parser = new SpelExpressionParser();
@@ -478,7 +481,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			try {
 				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
 			}
-			catch (UnsupportedEncodingException e) {
+			catch (Exception e) {
 				logger.error("Could not convert message", e);
 			}
 			return deserializePayloadIfNecessary(theRequestMessage);

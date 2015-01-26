@@ -46,7 +46,7 @@ import org.springframework.xd.test.rabbit.RabbitTestSupport;
  * @author Gary Russell
  */
 public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
-AbstractDistributedTransportSingleNodeStreamDeploymentIntegrationTests {
+		AbstractDistributedTransportSingleNodeStreamDeploymentIntegrationTests {
 
 	@ClassRule
 	public static RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();

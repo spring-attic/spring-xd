@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,43 +23,59 @@ import java.util.Map;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
 
 /**
- * Encodes requested headers into payload.
+ * Encodes requested headers into payload with format
+ * {@code 0xff, n(1), [ [lenHdr(1), hdr, lenValue(4), value] ... ]}.
+ * The 0xff indicates this new format; n is number of headers (max 255); for
+ * each header, the name length (1 byte) is followed by the name, followed by
+ * the value length (int) followed by the value (json).
+ * <p>
+ * Previously, there was no leading 0xff; the value length was 1 byte and only
+ * String header values were supported (no JSON conversion).
  *
  * @author Eric Bottard
+ * @author Gary Russell
  */
 public class EmbeddedHeadersMessageConverter {
+
+	private final Jackson2JsonObjectMapper objectMapper = new Jackson2JsonObjectMapper();
 
 	/**
 	 * Return a new message where some of the original headers of {@code original}
 	 * have been embedded into the new message payload.
 	 */
-	public Message<byte[]> embedHeaders(Message<byte[]> original, String... headers)
-			throws UnsupportedEncodingException {
-		String[] headerValues = new String[headers.length];
+	public Message<byte[]> embedHeaders(Message<byte[]> original, String... headers) throws Exception {
+		byte[][] headerValues = new byte[headers.length][];
 		int n = 0;
 		int headerCount = 0;
 		int headersLength = 0;
 		for (String header : headers) {
-			String value = original.getHeaders().get(header) == null ? null
-					: original.getHeaders().get(header).toString();
-			headerValues[n++] = value;
+			Object value = original.getHeaders().get(header) == null ? null
+					: original.getHeaders().get(header);
 			if (value != null) {
+				String json = this.objectMapper.toJson(value);
+				headerValues[n++] = json.getBytes("UTF-8");
 				headerCount++;
-				headersLength += header.length() + value.length();
+				headersLength += header.length() + json.length();
+			}
+			else {
+				headerValues[n++] = null;
 			}
 		}
-		byte[] newPayload = new byte[original.getPayload().length + headersLength + headerCount * 2 + 1];
+		// 0xff, n(1), [ [lenHdr(1), hdr, lenValue(4), value] ... ]
+		byte[] newPayload = new byte[original.getPayload().length + headersLength + headerCount * 5 + 2];
 		ByteBuffer byteBuffer = ByteBuffer.wrap(newPayload);
+		byteBuffer.put((byte) 0xff); // signal new format
 		byteBuffer.put((byte) headerCount);
 		for (int i = 0; i < headers.length; i++) {
 			if (headerValues[i] != null) {
 				byteBuffer.put((byte) headers[i].length());
 				byteBuffer.put(headers[i].getBytes("UTF-8"));
-				byteBuffer.put((byte) headerValues[i].length());
-				byteBuffer.put(headerValues[i].getBytes("UTF-8"));
+				byteBuffer.putInt(headerValues[i].length);
+				byteBuffer.put(headerValues[i]);
 			}
 		}
 		byteBuffer.put(original.getPayload());
@@ -70,16 +86,40 @@ public class EmbeddedHeadersMessageConverter {
 	 * Return a message where headers, that were originally embedded into the payload, have been promoted
 	 * back to actual headers. The new payload is now the original payload.
 	 */
-	public Message<byte[]> extractHeaders(Message<byte[]> message) throws UnsupportedEncodingException {
+	public Message<byte[]> extractHeaders(Message<byte[]> message) throws Exception {
 		byte[] bytes = message.getPayload();
 		ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-		int headerCount = byteBuffer.get();
+		int headerCount = byteBuffer.get() & 0xff;
+		if (headerCount < 255) {
+			return oldExtractHeaders(byteBuffer, bytes, headerCount);
+		}
+		else {
+			headerCount = byteBuffer.get() & 0xff;
+			Map<String, Object> headers = new HashMap<String, Object>();
+			for (int i = 0; i < headerCount; i++) {
+				int len = byteBuffer.get() & 0xff;
+				String headerName = new String(bytes, byteBuffer.position(), len, "UTF-8");
+				byteBuffer.position(byteBuffer.position() + len);
+				len = byteBuffer.getInt();
+				String headerValue = new String(bytes, byteBuffer.position(), len, "UTF-8");
+				Object headerContent = this.objectMapper.fromJson(headerValue, Object.class);
+				headers.put(headerName, headerContent);
+				byteBuffer.position(byteBuffer.position() + len);
+			}
+			byte[] newPayload = new byte[byteBuffer.remaining()];
+			byteBuffer.get(newPayload);
+			return MessageBuilder.withPayload(newPayload).copyHeaders(headers).build();
+		}
+	}
+
+	private Message<byte[]> oldExtractHeaders(ByteBuffer byteBuffer, byte[] bytes, int headerCount)
+			throws UnsupportedEncodingException {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		for (int i = 0; i < headerCount; i++) {
 			int len = byteBuffer.get();
 			String headerName = new String(bytes, byteBuffer.position(), len, "UTF-8");
 			byteBuffer.position(byteBuffer.position() + len);
-			len = byteBuffer.get();
+			len = byteBuffer.get() & 0xff;
 			String headerValue = new String(bytes, byteBuffer.position(), len, "UTF-8");
 			byteBuffer.position(byteBuffer.position() + len);
 			if (IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER.equals(headerName)

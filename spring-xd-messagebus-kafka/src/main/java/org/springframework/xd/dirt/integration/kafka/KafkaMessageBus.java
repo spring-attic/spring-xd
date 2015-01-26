@@ -183,6 +183,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private static final String XD_REPLY_CHANNEL = "xdReplyChannel";
 
+	private static final String XD_HISTORY = "xdHistory";
+
 	/**
 	 * The consumer group to use when achieving point to point semantics (that
 	 * consumer group name is static and hence shared by all containers).
@@ -198,7 +200,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 			IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
 			MessageHeaders.CONTENT_TYPE,
 			ORIGINAL_CONTENT_TYPE_HEADER,
-			XD_REPLY_CHANNEL
+			XD_REPLY_CHANNEL,
+			XD_HISTORY
 	};
 
 	/**
@@ -696,7 +699,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 			try {
 				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
 			}
-			catch (UnsupportedEncodingException e) {
+			catch (Exception e) {
 				logger.error("Could not convert message", e);
 			}
 			return deserializePayloadIfNecessary(theRequestMessage);

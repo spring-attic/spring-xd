@@ -17,6 +17,7 @@ package org.springframework.xd.test.fixtures;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.test.fixtures.util.KafkaUtils;
 
 
 /**
@@ -95,21 +96,14 @@ public class KafkaSource extends AbstractModuleFixture<KafkaSource> {
 	}
 
 	/**
-	 * Ensure that the zookeeper  socket is available by polling it for up to 2 seconds
+	 * Ensure that the zookeeper  socket is available by polling it for up to 2 seconds and creates the topic
+	 * required by this source.
 	 *
 	 * @return instance of the kafka source
 	 * @throws IllegalStateException if can not connect in 2 seconds.
 	 */
 	public KafkaSource ensureReady() {
-		String[] addressArray = StringUtils.commaDelimitedListToStringArray(zkConnect);
-		for (String address : addressArray) {
-			String[] zkAddressArray = StringUtils.delimitedListToStringArray(address, ":");
-			Assert.isTrue(zkAddressArray.length == 2,
-					"zkConnect data was not properly formatted");
-			String host = zkAddressArray[0];
-			int port = Integer.valueOf(zkAddressArray[1]);
-			AvailableSocketPorts.ensureReady(this, host, port, 2000);
-		}
+		KafkaUtils.ensureReady(this.toString(), this.zkConnect, this.topic);
 		return this;
 	}
 

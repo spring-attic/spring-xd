@@ -20,17 +20,20 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.Copy
 
 /**
- * Gradle plugin to support module projects
+ * Gradle plugin to support building module projects. This wraps the 'spring-boot' gradle plugin to build and package a 
+ * module uber-jar using the 'bootRepackage' task.
+ *
  * @author David Turanski
  * @since 1.1
  */
 class ModulePlugin implements Plugin<Project> {
 
 	/**
-	 * *
-	 * @param project
-	 * @param dependency
-	 * @return
+	 * Recursively exclude provided dependencies from the exported (module lib) scope.
+	 *
+	 * @param project the root project
+	 * @param dependency the dependency
+	 * @return ignored
 	 */
 	def excludeTransitiveDependencies(Project project, dependency) {
 		project.configurations.exported.exclude group: dependency.moduleGroup, module: dependency.moduleName
@@ -40,10 +43,7 @@ class ModulePlugin implements Plugin<Project> {
 		}
 	}
 
-	/**
-	 * *
-	 * @param project
-	 */
+	@Override
 	void apply(Project project) {
 		project.apply plugin: 'spring-boot'
 		project.apply plugin: 'propdeps'
@@ -76,7 +76,6 @@ class ModulePlugin implements Plugin<Project> {
 				exclude group: 'javax.servlet'
 			}
 		}
-
 
 		project.springBoot {
 			layout = 'MODULE'

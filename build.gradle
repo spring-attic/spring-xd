@@ -9,7 +9,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.0.RELEASE")
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.1.RELEASE")
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
 		classpath 'com.moowork.gradle:gradle-grunt-plugin:0.6'
 		classpath 'com.moowork.gradle:gradle-node-plugin:0.7'
@@ -128,17 +128,28 @@ apply from: 'gradle/build-common.gradle'
 configure(javaProjects) { subproject ->
 
 	apply plugin: 'groovy'
+	apply plugin: 'spring-boot'
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+	apply plugin: 'propdeps'
+	apply plugin: 'propdeps-maven'
+	apply plugin: 'propdeps-idea'
+	apply plugin: 'propdeps-eclipse'
+
+	dependencies {
+		versionManagement files(rootProject.file('dependencies.properties'))
+	}
+
+	bootRepackage {
+		enabled = false
+	}
+
 	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters') 
 		&& !subproject.projectDir.absolutePath.contains('spring-xd-gradle-plugins')) {
 		apply from: "${rootProject.projectDir}/publish-maven.gradle"
 		apply plugin: 'eclipse'
 		apply plugin: 'idea'
 		apply plugin: 'javadocHotfix'
-		apply plugin: 'spring-boot'
-		apply plugin: 'propdeps'
-		apply plugin: 'propdeps-maven'
-		apply plugin: 'propdeps-idea'
-		apply plugin: 'propdeps-eclipse'
 		apply plugin: 'license'
 
 		license {
@@ -150,10 +161,6 @@ configure(javaProjects) { subproject ->
 			}
 			includes(['**/*.java'])
 			excludes(['**/package-info.java'])
-		}
-
-		bootRepackage {
-			enabled = false
 		}
 
 		compileJava {
@@ -226,7 +233,6 @@ configure(javaProjects) { subproject ->
 		}
 		// dependencies that are common across all java projects
 		dependencies {
-			versionManagement files(rootProject.file('dependencies.properties'))
 			testCompile "org.springframework.boot:spring-boot-starter-test"
 			testCompile "org.codehaus.groovy:groovy-all"
 		}

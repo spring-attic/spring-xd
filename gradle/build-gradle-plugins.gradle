@@ -17,28 +17,26 @@
  * Spring XD Gradle plugin projects, supporting builds for modules, etc.
 */
 
-buildscript {
-	repositories {
-		maven { url 'http://repo.spring.io/plugins-release' }
-		jcenter()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.1.RELEASE")
-		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
-	}
+def versions = new Properties()
+def propertiesFile = rootProject.file('dependencies.properties')
+propertiesFile.withInputStream {
+	versions.load(it)
 }
+
 project('spring-xd-module-plugin') {
 	apply plugin: 'maven'
     description = 'Gradle plugin to build a Spring XD Module'
 	dependencies {
  		compile gradleApi()
  		compile localGroovy()
- 		runtime "org.springframework.boot:spring-boot-gradle-plugin:1.2.1.RELEASE"
- 		runtime "org.springframework.build.gradle:propdeps-plugin:0.0.7"
+		//Version required for the generated maven pom even though this build resolves versions via 'dependencies.properties'
+ 		runtime "org.springframework.boot:spring-boot-gradle-plugin:${versions['org.springframework.boot:spring-boot-gradle-plugin']}"
+ 		runtime "org.springframework.build.gradle:propdeps-plugin:${versions['org.springframework.build.gradle:propdeps-plugin']}"
  	}
  	compileGroovy {
 		sourceCompatibility = 1.6
 		targetCompatibility = 1.6
 	}
 }
+
 

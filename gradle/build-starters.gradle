@@ -17,24 +17,9 @@
  * Spring XD Starters projects, supporting starter poms for modules, etc.
 */
 
-buildscript {
-	repositories {
-		maven { url 'http://repo.spring.io/plugins-release' }
-		jcenter()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.1.RELEASE")
-		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.7")
-	}
-}
 project('spring-xd-module-parent') {
     description = 'Spring XD parent POM for a Module'
-	apply plugin: 'spring-boot'
-	apply plugin: 'propdeps'
-	apply plugin: 'propdeps-maven'
-	apply plugin: 'propdeps-idea'
 	apply from: 'publish-maven.gradle'
-
 
 	dependencies {
 		compile project(':spring-xd-dirt')

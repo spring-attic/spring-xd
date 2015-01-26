@@ -3,7 +3,7 @@ beans {
 	gfe.'client-cache'(id: 'client-cache', 'use-bean-factory-locator': false, close: false)
 
 	subscriptionEnabled Boolean, true
-	def xdhome = environment.getProperty('xd.home')
+	def xdhome = environment.getProperty('XD_HOME')
 	importBeans "file:${xdhome}/modules/common/gemfire-connection.groovy"
 
 	si.channel(id: 'output')

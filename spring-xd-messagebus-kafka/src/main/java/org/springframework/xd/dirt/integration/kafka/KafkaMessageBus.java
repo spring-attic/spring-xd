@@ -295,7 +295,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * value of the byte(s) needed to represent an illegal char in utf8.
 	 */
 	/*default*/
-	static String escapeTopicName(String original) {
+	public static String escapeTopicName(String original) {
 		StringBuilder result = new StringBuilder(original.length());
 		try {
 			byte[] utf8 = original.getBytes("UTF-8");
@@ -329,15 +329,19 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	@Override
 	public void bindConsumer(String name, final MessageChannel moduleInputChannel, Properties properties) {
-		createKafkaConsumer(name, moduleInputChannel, properties, POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP);
+		// Point-to-point consumers reset at the earliest time, which allows them to catch up with all messages
+		createKafkaConsumer(name, moduleInputChannel, properties, POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP,
+				OffsetRequest.EarliestTime());
 		bindExistingProducerDirectlyIfPossible(name, moduleInputChannel);
 	}
 
 	@Override
 	public void bindPubSubConsumer(String name, MessageChannel inputChannel, Properties properties) {
 		// Usage of a different consumer group each time achieves pub-sub
+		// PubSub consumers reset at the latest time, which allows them to receive only messages sent after
+		// they've been bound
 		String group = UUID.randomUUID().toString();
-		createKafkaConsumer(name, inputChannel, properties, group);
+		createKafkaConsumer(name, inputChannel, properties, group, OffsetRequest.LatestTime());
 	}
 
 	@Override
@@ -503,7 +507,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 	}
 
-	private void createKafkaConsumer(String name, final MessageChannel moduleInputChannel, Properties properties, String group) {
+	private void createKafkaConsumer(String name, final MessageChannel moduleInputChannel, Properties properties,
+			String group, long referencePoint) {
 
 		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)) {
 			validateConsumerProperties(name, properties, SUPPORTED_NAMED_CONSUMER_PROPERTIES);
@@ -560,7 +565,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		final DirectChannel bridge = new DirectChannel();
 
 		KafkaMessageListenerContainer messageListenerContainer =
-				createMessageListenerContainer(group, numThreads, listenedPartitions);
+				createMessageListenerContainer(group, numThreads, listenedPartitions, referencePoint);
 
 		KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter =
 				new KafkaMessageDrivenChannelAdapter(messageListenerContainer);
@@ -582,17 +587,18 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	}
 
-	public KafkaMessageListenerContainer createMessageListenerContainer(String group, int numThreads, String topic) {
-		return createMessageListenerContainer(group, numThreads, topic, null);
+	public KafkaMessageListenerContainer createMessageListenerContainer(String group, int numThreads, String topic,
+			long referencePoint) {
+		return createMessageListenerContainer(group, numThreads, topic, null, referencePoint);
 	}
 
 	public KafkaMessageListenerContainer createMessageListenerContainer(String group, int numThreads,
-			Collection<Partition> listenedPartitions) {
-		return createMessageListenerContainer(group, numThreads, null, listenedPartitions);
+			Collection<Partition> listenedPartitions, long referencePoint) {
+		return createMessageListenerContainer(group, numThreads, null, listenedPartitions, referencePoint);
 	}
 
 	private KafkaMessageListenerContainer createMessageListenerContainer(String group, int numThreads, String topic,
-			Collection<Partition> listenedPartitions) {
+			Collection<Partition> listenedPartitions, long referencePoint) {
 		Assert.isTrue(StringUtils.hasText(topic) ^ !CollectionUtils.isEmpty(listenedPartitions),
 				"Exactly one of topic or a list of listened partitions must be provided");
 		KafkaMessageListenerContainer messageListenerContainer;
@@ -618,7 +624,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		MetadataStoreOffsetManager offsetManager = new MetadataStoreOffsetManager(connectionFactory);
 		offsetManager.setMetadataStore(springXDOffsets);
 		offsetManager.setConsumerId(group);
-		offsetManager.setReferenceTimestamp(OffsetRequest.EarliestTime());
+		offsetManager.setReferenceTimestamp(referencePoint);
 		messageListenerContainer.setOffsetManager(offsetManager);
 		return messageListenerContainer;
 	}

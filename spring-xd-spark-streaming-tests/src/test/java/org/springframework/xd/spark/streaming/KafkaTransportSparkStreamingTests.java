@@ -21,7 +21,6 @@ import java.util.Properties;
 import kafka.utils.TestUtils;
 
 import org.junit.ClassRule;
-import org.junit.Ignore;
 
 import org.springframework.xd.dirt.integration.bus.KafkaConnectionPropertyNames;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
@@ -29,7 +28,6 @@ import org.springframework.xd.test.kafka.KafkaTestSupport;
 /**
  * @author Ilayaperumal Gopinathan
  */
-@Ignore
 public class KafkaTransportSparkStreamingTests extends AbstractSparkStreamingTests {
 
 	@ClassRule

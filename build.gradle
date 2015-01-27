@@ -147,8 +147,6 @@ configure(javaProjects) { subproject ->
 	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters') 
 		&& !subproject.projectDir.absolutePath.contains('spring-xd-gradle-plugins')) {
 		apply from: "${rootProject.projectDir}/publish-maven.gradle"
-		apply plugin: 'eclipse'
-		apply plugin: 'idea'
 		apply plugin: 'javadocHotfix'
 		apply plugin: 'license'
 

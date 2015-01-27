@@ -17,7 +17,7 @@
 
 package org.springframework.integration.x.kafka;
 
-import static org.apache.curator.framework.imps.CuratorFrameworkState.*;
+import static org.apache.curator.framework.imps.CuratorFrameworkState.STARTED;
 
 import java.io.IOException;
 import java.util.ArrayList;

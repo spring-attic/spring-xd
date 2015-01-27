@@ -16,7 +16,8 @@
 
 package org.springframework.xd.dirt.integration.kafka;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
 import java.util.Properties;

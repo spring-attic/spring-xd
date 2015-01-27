@@ -24,7 +24,6 @@ import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
 import org.junit.Rule;
 
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
@@ -58,7 +57,7 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 		this.brokerConfig = brokerConfig;
 	}
 
-	public String getZkconnectstring() {
+	public String getZkConnectString() {
 		return zookeeper.getConnectString();
 	}
 
@@ -91,7 +90,7 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 		try {
 			int zkConnectionTimeout = 6000;
 			int zkSessionTimeout = 6000;
-			zkClient = new ZkClient(getZkconnectstring(), zkSessionTimeout, zkConnectionTimeout, ZKStringSerializer$.MODULE$);
+			zkClient = new ZkClient(getZkConnectString(), zkSessionTimeout, zkConnectionTimeout, ZKStringSerializer$.MODULE$);
 		}
 		catch (Exception e) {
 			zookeeper.shutdown();

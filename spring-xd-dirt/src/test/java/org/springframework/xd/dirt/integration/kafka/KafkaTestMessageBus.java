@@ -49,10 +49,10 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 
 		try {
 			ZookeeperConnect zookeeperConnect = new ZookeeperConnect();
-			zookeeperConnect.setZkConnect(kafkaTestSupport.getZkconnectstring());
+			zookeeperConnect.setZkConnect(kafkaTestSupport.getZkConnectString());
 			KafkaMessageBus messageBus = new KafkaMessageBus(zookeeperConnect,
 					kafkaTestSupport.getBrokerAddress(),
-					kafkaTestSupport.getZkconnectstring(), codec);
+					kafkaTestSupport.getZkConnectString(), codec);
 			messageBus.afterPropertiesSet();
 			GenericApplicationContext context = new GenericApplicationContext();
 			context.refresh();

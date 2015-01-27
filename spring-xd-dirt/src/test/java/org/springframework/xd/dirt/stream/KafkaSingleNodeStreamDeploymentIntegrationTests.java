@@ -16,7 +16,8 @@
 
 package org.springframework.xd.dirt.stream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 
@@ -36,7 +37,6 @@ import org.springframework.integration.kafka.serializer.common.StringDecoder;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.integration.kafka.util.MessageUtils;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.dirt.integration.bus.RedisTestMessageBus;
 import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 import org.springframework.xd.dirt.integration.kafka.KafkaTestMessageBus;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
@@ -54,7 +54,7 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 	public static ExternalResource initializeKafkaMessageBus = new ExternalResource() {
 		@Override
 		protected void before() {
-			if (testMessageBus == null || !(testMessageBus instanceof RedisTestMessageBus)) {
+			if (testMessageBus == null || !(testMessageBus instanceof KafkaTestMessageBus)) {
 				testMessageBus = new KafkaTestMessageBus(kafkaTestSupport);
 			}
 		}
@@ -62,7 +62,7 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 
 	@BeforeClass
 	public static void setUpAll() {
-		System.setProperty("xd.messagebus.kafka.zkAddress", kafkaTestSupport.getZkconnectstring());
+		System.setProperty("xd.messagebus.kafka.zkAddress", kafkaTestSupport.getZkConnectString());
 		System.setProperty("xd.messagebus.kafka.brokers", kafkaTestSupport.getBrokerAddress());
 		setUp("kafka");
 	}
@@ -76,7 +76,7 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 	@Override
 	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {
 		ZookeeperConnect zookeeperConnect = new ZookeeperConnect();
-		zookeeperConnect.setZkConnect(kafkaTestSupport.getZkconnectstring());
+		zookeeperConnect.setZkConnect(kafkaTestSupport.getZkConnectString());
 		ZookeeperConfiguration configuration = new ZookeeperConfiguration(zookeeperConnect);
 		DefaultConnectionFactory connectionFactory = new DefaultConnectionFactory(configuration);
 		try {

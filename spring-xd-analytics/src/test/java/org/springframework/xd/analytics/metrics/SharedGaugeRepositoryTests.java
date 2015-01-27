@@ -54,6 +54,7 @@ public abstract class SharedGaugeRepositoryTests {
 		gaugeRepository.findOne(null);
 	}
 
+	@Test
 	public void setValueAndResetWorkAsExpected() {
 		String gaugeName = "simpleGauge";
 		gaugeRepository.setValue(gaugeName, 1);

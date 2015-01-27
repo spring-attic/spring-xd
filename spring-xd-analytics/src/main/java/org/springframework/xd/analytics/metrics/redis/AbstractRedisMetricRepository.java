@@ -54,12 +54,10 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 	private final RedisOperations<String, V> redisOperations;
 
 	@SuppressWarnings("unchecked")
-	AbstractRedisMetricRepository(RedisConnectionFactory connectionFactory, String metricPrefix) {
+	AbstractRedisMetricRepository(RedisConnectionFactory connectionFactory, String metricPrefix, Class<V> valueClass) {
 		Assert.notNull(connectionFactory);
 		Assert.hasText(metricPrefix, "metric prefix cannot be empty");
 		this.metricPrefix = metricPrefix;
-		ParameterizedType parameterizedType = (ParameterizedType) getClass().getGenericSuperclass();
-		Class<V> valueClass = (Class<V>) parameterizedType.getActualTypeArguments()[1];
 		this.redisOperations = RedisUtils.createRedisTemplate(connectionFactory, valueClass);
 		this.valueOperations = redisOperations.opsForValue();
 	}

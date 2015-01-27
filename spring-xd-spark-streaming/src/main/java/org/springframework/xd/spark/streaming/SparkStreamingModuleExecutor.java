@@ -40,7 +40,7 @@ import org.springframework.messaging.support.MessageBuilder;
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes", "serial"})
 public class SparkStreamingModuleExecutor implements Serializable {
 
 	private static SparkMessageSender messageSender;
@@ -50,6 +50,7 @@ public class SparkStreamingModuleExecutor implements Serializable {
 	// todo: allow this to be overridden for any Spark Streaming Processor
 	private final MessageConverter converter = new DefaultSparkStreamingMessageConverter();
 
+	@SuppressWarnings("rawtypes")
 	public void execute(JavaDStream input, Processor processor, final SparkMessageSender sender) {
 		JavaDStreamLike output = processor.process(input);
 		if (output != null) {

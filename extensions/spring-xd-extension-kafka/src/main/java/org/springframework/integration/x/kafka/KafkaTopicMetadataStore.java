@@ -70,6 +70,7 @@ import org.springframework.retry.support.RetryTemplate;
  *
  * @author Marius Bogoevici
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class KafkaTopicMetadataStore implements InitializingBean, MetadataStore, Closeable {
 
 	private static final Log log = LogFactory.getLog(KafkaTopicMetadataStore.class);
@@ -283,7 +284,7 @@ public class KafkaTopicMetadataStore implements InitializingBean, MetadataStore,
 	private void addMessageToOffsets(KafkaMessage kafkaMessage) {
 		String key = kafkaMessage.getMessage() != null && kafkaMessage.getMessage().key() != null ?
 				DECODER.fromBytes(Utils$.MODULE$.readBytes(kafkaMessage.getMessage().key())) : null;
-		String value = kafkaMessage.getMessage() != null && kafkaMessage.getMessage().payload() != null?
+		String value = kafkaMessage.getMessage() != null && kafkaMessage.getMessage().payload() != null ?
 				DECODER.fromBytes(Utils$.MODULE$.readBytes(kafkaMessage.getMessage().payload())) : null;
 		// empty valued strings are in fact non-values. We can't delete records from the Kafka topic
 		// so we mark them as such

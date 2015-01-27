@@ -15,8 +15,15 @@
  */
 package org.springframework.xd.rxjava;
 
+import java.lang.reflect.Method;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
@@ -31,18 +38,13 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
+
 import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
-
-import java.lang.reflect.Method;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -65,6 +67,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Mark Pollack
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class MultipleSubjectMessageHandler extends AbstractMessageProducingHandler implements DisposableBean,
         IntegrationEvaluationContextAware {
 

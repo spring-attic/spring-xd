@@ -67,6 +67,7 @@ import org.springframework.xd.spark.streaming.SparkStreamingModuleExecutor;
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
+@SuppressWarnings("rawtypes")
 public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 
 	private static final String SPARK_STREAMING_BATCH_INTERVAL = "2000";

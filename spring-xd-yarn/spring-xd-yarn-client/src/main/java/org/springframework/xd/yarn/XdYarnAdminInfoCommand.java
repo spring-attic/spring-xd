@@ -16,29 +16,31 @@
 
 package org.springframework.xd.yarn;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.Stat;
-import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
-import org.springframework.boot.cli.command.AbstractCommand;
-import org.springframework.boot.cli.command.status.ExitStatus;
-import org.springframework.boot.cli.util.Log;
-import org.springframework.core.io.FileSystemResource;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
+
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.boot.cli.command.AbstractCommand;
+import org.springframework.boot.cli.command.status.ExitStatus;
+import org.springframework.boot.cli.util.Log;
+import org.springframework.core.io.FileSystemResource;
+
 /**
  * A custom command for listing the http ports used by admin servers.
  *
  * @author Thomas Risberg
  */
+@SuppressWarnings("unchecked")
 public class XdYarnAdminInfoCommand extends AbstractCommand {
 
 	private static final String XD_YARN_ADMIN_INFO_COMMAND_NAME = "admininfo";

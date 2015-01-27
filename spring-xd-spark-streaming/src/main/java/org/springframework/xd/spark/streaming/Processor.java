@@ -25,6 +25,7 @@ import org.apache.spark.streaming.api.java.JavaDStreamLike;
  *
  * @author Mark Fisher
  */
+@SuppressWarnings("rawtypes")
 public interface Processor extends Serializable {
 
 	public static final String SPARK_MASTER_URL_PROP = "spark.master";

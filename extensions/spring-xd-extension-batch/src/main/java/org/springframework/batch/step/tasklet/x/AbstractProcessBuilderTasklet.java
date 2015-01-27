@@ -16,20 +16,6 @@
 
 package org.springframework.batch.step.tasklet.x;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.StepContribution;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.StepExecutionListener;
-import org.springframework.batch.core.explore.JobExplorer;
-import org.springframework.batch.core.scope.context.ChunkContext;
-import org.springframework.batch.core.step.tasklet.SimpleSystemProcessExitCodeMapper;
-import org.springframework.batch.core.step.tasklet.SystemProcessExitCodeMapper;
-import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.repeat.RepeatStatus;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,6 +28,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.tasklet.SimpleSystemProcessExitCodeMapper;
+import org.springframework.batch.core.step.tasklet.SystemProcessExitCodeMapper;
+import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.repeat.RepeatStatus;
+
 /**
  * Abstract tasklet for running code in a separate process and capturing the log output. The step execution
  * context will be updated with some runtime information as well as with the log output.
@@ -51,6 +52,7 @@ import java.util.Map;
  * @since 1.1
  * @author Thomas Rrisberg
  */
+@SuppressWarnings("rawtypes")
 public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExecutionListener {
 
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -111,7 +113,8 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExec
 				try {
 					exitCode = p.exitValue();
 					complete = true;
-				} catch (IllegalThreadStateException e) {
+				}
+				catch (IllegalThreadStateException e) {
 					if (stopped) {
 						p.destroy();
 						p = null;
@@ -127,7 +130,8 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExec
 
 						if (jobExecution.isStopping()) {
 							stopped = true;
-						} else if (chunkContext.getStepContext().getStepExecution().isTerminateOnly()) {
+						}
+						else if (chunkContext.getStepContext().getStepExecution().isTerminateOnly()) {
 							stopped = true;
 						}
 					}
@@ -283,7 +287,8 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExec
 		FileInputStream in;
 		try {
 			in = new FileInputStream(f);
-		} catch (FileNotFoundException e) {
+		}
+		catch (FileNotFoundException e) {
 			lines.add("Failed to read log output due to " + e.getClass().getName());
 			lines.add(e.getMessage());
 			return lines;
@@ -308,7 +313,8 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExec
 		finally {
 			try {
 				reader.close();
-			} catch (IOException ignore) {}
+			}
+			catch (IOException ignore) {}
 		}
 		return lines;
 	}

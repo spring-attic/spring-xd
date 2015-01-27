@@ -848,6 +848,7 @@ project('spring-xd-spark-streaming') {
 	dependencies {
 		compile("org.apache.spark:spark-streaming_$sparkScalaVersion:$sparkVersion") {
 			exclude group: 'hsqldb'
+			exclude group: 'com.esotericsoftware.kryo', module: 'kryo'
 		}
 		compile "org.springframework.integration:spring-integration-core"
 		compile project(":spring-xd-module-spi")

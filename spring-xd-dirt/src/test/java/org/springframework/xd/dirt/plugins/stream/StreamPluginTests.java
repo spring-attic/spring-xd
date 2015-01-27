@@ -56,7 +56,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.validation.BindException;
-import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
@@ -88,8 +87,6 @@ public class StreamPluginTests {
 	private MessageChannel output = new DirectChannel();
 
 	private ZooKeeperConnection zkConnection;
-
-	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
 
 	@Before
 	public void setup() throws BindException {
@@ -260,6 +257,7 @@ public class StreamPluginTests {
 		plugin.postProcessModule(module);
 		input.send(new GenericMessage<String>("foo"));
 		assertNotNull(messageReceived.get());
+		@SuppressWarnings("unchecked")
 		Collection<Map<String, Object>> xdHistory =
 				(Collection<Map<String, Object>>) messageReceived.get().getHeaders().get("xdHistory");
 		assertTrue(xdHistory != null);

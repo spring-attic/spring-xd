@@ -207,6 +207,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 	private static final Set<Object> SUPPORTED_CONSUMER_PROPERTIES = new SetBuilder()
 			.addAll(CONSUMER_STANDARD_PROPERTIES)
 			.add(BusProperties.PARTITION_INDEX) // Not actually used
+			.add(BusProperties.COUNT) // Not actually used
 			.add(BusProperties.CONCURRENCY)
 			.build();
 
@@ -518,10 +519,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 		KafkaPropertiesAccessor accessor = new KafkaPropertiesAccessor(properties);
 
-		int numThreads = accessor.getConcurrency(defaultConcurrency);
+		int concurrency = accessor.getConcurrency(defaultConcurrency);
 		String topic = escapeTopicName(name);
 
-		ensureTopicCreated(topic, accessor.getCount() * numThreads, defaultReplicationFactor);
+		ensureTopicCreated(topic, accessor.getCount() * concurrency, defaultReplicationFactor);
 
 		Decoder<byte[]> valueDecoder = new DefaultDecoder(null);
 		Decoder<Integer> keyDecoder = new IntegerEncoderDecoder();
@@ -539,8 +540,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 			listenedPartitions = new ArrayList<Partition>();
 			for (Partition partition : allPartitions) {
 				// divide partitions across modules
-				if (new PartitioningMetadata(accessor).isPartitionedModule()) {
-					if ((partition.getId() % accessor.getPartitionCount()) == accessor.getPartitionIndex()) {
+				if (accessor.getPartitionIndex() != -1) {
+					if ((partition.getId() % moduleCount) == accessor.getPartitionIndex()) {
 						listenedPartitions.add(partition);
 					}
 				}
@@ -565,7 +566,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		final DirectChannel bridge = new DirectChannel();
 
 		KafkaMessageListenerContainer messageListenerContainer =
-				createMessageListenerContainer(group, numThreads, listenedPartitions, referencePoint);
+				createMessageListenerContainer(group, concurrency, listenedPartitions,
+						referencePoint);
 
 		KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter =
 				new KafkaMessageDrivenChannelAdapter(messageListenerContainer);
@@ -612,7 +614,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Listening to topic " + topic);
 		}
-		messageListenerContainer.setConcurrency(numThreads);
+		// if we have less target partitions than target concurrency, adjust accordingly
+		messageListenerContainer.setConcurrency(Math.min(numThreads, listenedPartitions.size()));
 		KafkaTopicMetadataStore springXDOffsets =
 				new KafkaTopicMetadataStore(zookeeperConnect, connectionFactory, offsetStoreTopic);
 		try {

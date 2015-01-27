@@ -136,18 +136,6 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 	}
 
 	@Test
-	@Ignore("XD-2293 Revisit later")
-	public void testPartitionedModuleSpEL() throws Exception {
-
-	}
-
-	@Test
-	@Ignore("XD-2293 Revisit later")
-	public void testPartitionedModuleJava() throws Exception {
-
-	}
-
-	@Test
 	@Ignore("Kafka message bus does not support direct binding")
 	@Override
 	public void testDirectBinding() throws Exception {

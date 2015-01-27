@@ -105,6 +105,7 @@ abstract public class PartitionCapableBusTests extends BrokerBusTests {
 		properties.clear();
 		properties.put("concurrency", "2");
 		properties.put("partitionIndex", "0");
+		properties.put("count","3");
 		QueueChannel input0 = new QueueChannel();
 		input0.setBeanName("test.input0S");
 		bus.bindConsumer("part.0", input0, properties);
@@ -200,6 +201,7 @@ abstract public class PartitionCapableBusTests extends BrokerBusTests {
 
 		properties.clear();
 		properties.put("concurrency", "2");
+		properties.put("count","3");
 		properties.put("partitionIndex", "0");
 		QueueChannel input0 = new QueueChannel();
 		input0.setBeanName("test.input0J");

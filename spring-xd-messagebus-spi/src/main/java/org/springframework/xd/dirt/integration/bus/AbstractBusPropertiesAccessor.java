@@ -255,6 +255,24 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 	}
 
 	/**
+	 * The sequence number for this module.
+	 *
+	 * @return the sequence number.
+	 */
+	public int getSequence() {
+		return getProperty(SEQUENCE, 1);
+	}
+
+	/**
+	 * The module count.
+	 *
+	 * @return the module count.
+	 */
+	public int getCount() {
+		return getProperty(COUNT, 1);
+	}
+
+	/**
 	 * The number of partitions for this module.
 	 * @return The count.
 	 */

@@ -89,7 +89,7 @@ public class KafkaTopicMetadataStoreTest {
 
 	private KafkaTopicMetadataStore createKafkaTopicMetadataStore() throws Exception {
 		ZookeeperConnect zookeeperConnect = new ZookeeperConnect();
-		zookeeperConnect.setZkConnect(kafkaTestSupport.getZkconnectstring());
+		zookeeperConnect.setZkConnect(kafkaTestSupport.getZkConnectString());
 		DefaultConnectionFactory connectionFactory =
 				new DefaultConnectionFactory(new ZookeeperConfiguration(zookeeperConnect));
 		connectionFactory.afterPropertiesSet();

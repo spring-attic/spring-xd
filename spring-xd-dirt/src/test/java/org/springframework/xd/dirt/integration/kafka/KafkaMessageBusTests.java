@@ -17,52 +17,44 @@
 package org.springframework.xd.dirt.integration.kafka;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
+import kafka.api.OffsetRequest;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.kafka.core.KafkaMessage;
+import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.integration.kafka.listener.MessageListener;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
+import org.springframework.xd.test.kafka.KafkaTestSupport;
 
 
 /**
  * Integration tests for the {@link KafkaMessageBus}.
  *
  * @author Eric Bottard
+ * @author Marius Bogoevici
  */
 public class KafkaMessageBusTests extends PartitionCapableBusTests {
 
 	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
 
-	private static ExecutorService executorService = Executors.newCachedThreadPool();
+	@Rule
+	public KafkaTestSupport kafkaTestSupport = new KafkaTestSupport();
 
 	private KafkaTestMessageBus messageBus;
 
@@ -74,7 +66,7 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 	@Override
 	protected MessageBus getMessageBus() {
 		if (messageBus == null) {
-			messageBus = new KafkaTestMessageBus(getCodec());
+			messageBus = new KafkaTestMessageBus(kafkaTestSupport, getCodec());
 		}
 		return messageBus;
 	}
@@ -88,48 +80,27 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 	public Spy spyOn(final String name) {
 		String topic = KafkaMessageBus.escapeTopicName(name);
 
-		Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-		int numThreads = 1;
-		topicCountMap.put(topic, numThreads);
-
-
-		Decoder<byte[]> valueDecoder = new DefaultDecoder(null);
-		Decoder<Integer> keyDecoder = new IntegerEncoderDecoder();
-
 		KafkaTestMessageBus busWrapper = (KafkaTestMessageBus) getMessageBus();
 		// Rewind offset, as tests will have typically already sent the messages we're trying to consume
-		ConsumerConnector connector = busWrapper.getCoreMessageBus().createConsumerConnector(
-				UUID.randomUUID().toString(), "auto.offset.reset", "smallest");
 
-		Map<String, List<KafkaStream<Integer, byte[]>>> map = connector.createMessageStreams(
-				topicCountMap, keyDecoder, valueDecoder);
+		KafkaMessageListenerContainer messageListenerContainer =
+				busWrapper.getCoreMessageBus().createMessageListenerContainer(UUID.randomUUID().toString(), 1, topic,
+						OffsetRequest.EarliestTime());
 
-		final ConsumerIterator<Integer, byte[]> iterator = map.get(topic).iterator().next().iterator();
+		final BlockingQueue<KafkaMessage> messages = new ArrayBlockingQueue<KafkaMessage>(10);
+
+		messageListenerContainer.setMessageListener(new MessageListener() {
+			@Override
+			public void onMessage(KafkaMessage message) {
+				messages.offer(message);
+			}
+		});
 
 
 		return new Spy() {
-
 			@Override
 			public Object receive(boolean expectNull) throws Exception {
-				final Future<String> submit = executorService.submit(new Callable<String>() {
-
-					@Override
-					public String call() throws Exception {
-						iterator.hasNext();
-						byte[] raw = iterator.next().message();
-						Message<byte[]> theRequestMessage = embeddedHeadersMessageConverter.extractHeaders(MessageBuilder.withPayload(
-								raw).build());
-
-						return new String(theRequestMessage.getPayload(), "UTF-8");
-					}
-
-				});
-				try {
-					return submit.get(expectNull ? 50 : 5000, TimeUnit.MILLISECONDS);
-				}
-				catch (TimeoutException e) {
-					return null;
-				}
+				return messages.poll(expectNull ? 50 : 5000, TimeUnit.MILLISECONDS);
 			}
 		};
 
@@ -159,23 +130,15 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 			Message<?> inbound = moduleInputChannel.receive(2000);
 			assertNotNull(inbound);
 			assertArrayEquals(ratherBigPayload, (byte[]) inbound.getPayload());
-			messageBus.unbindProducers("foo.0");
-			messageBus.unbindConsumers("foo.0");
+			messageBus.unbindProducers("fooCompression"+codec+".0");
+			messageBus.unbindConsumers("fooCompression"+codec+".0");
 		}
 	}
 
 	@Test
-	@Ignore("XD-2293 Revisit later")
-	public void testPartitionedModuleSpEL() throws Exception {
+	@Ignore("Kafka message bus does not support direct binding")
+	@Override
+	public void testDirectBinding() throws Exception {
 
 	}
-
-	@Test
-	@Ignore("XD-2293 Revisit later")
-	public void testPartitionedModuleJava() throws Exception {
-
-	}
-
-
-
-	}
+}

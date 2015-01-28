@@ -295,8 +295,8 @@ endpoints:
 #    quietPeriod: 15000
 ---
 # Module deployment timeout
-# The module deployment timeout is the amount of time the Module deployment writer
-# waits to get the deployment status after writing the ZK deployment requests' paths
+# The module deployment timeout is the number of milliseconds the admin server
+# will wait for a response to a module deployment request to a container.
 #xd:
 #  admin:
 #    deploymentTimeout: 30000

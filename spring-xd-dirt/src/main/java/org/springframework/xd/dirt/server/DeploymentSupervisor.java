@@ -181,7 +181,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	 * Amount of time to wait for a status to be written to all module
 	 * deployment request paths.
 	 */
-	private final AtomicLong deploymentTimeout = new AtomicLong(30000);
+	private long deploymentTimeout = 30000;
 
 	/**
 	 * Property for specifying the {@link #deploymentTimeout deployment timeout}.
@@ -247,7 +247,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			}
 			String timeout = this.applicationContext.getEnvironment().getProperty(DEPLOYMENT_TIMEOUT_PROPERTY);
 			if (StringUtils.hasText(timeout)) {
-				deploymentTimeout.set(Long.parseLong(timeout));
+				deploymentTimeout = Long.parseLong(timeout);
 			}
 			if (this.zkConnection.isConnected()) {
 				if (this.applicationContext.equals(((ContextRefreshedEvent) event).getApplicationContext())) {

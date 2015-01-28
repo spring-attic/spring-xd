@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.curator.framework.api.CuratorWatcher;
 import org.apache.zookeeper.KeeperException;
@@ -79,7 +78,7 @@ public class ModuleDeploymentWriter {
 	 * deployment request paths.
 	 *
 	 */
-	private final AtomicLong deploymentTimeout;
+	private final long deploymentTimeout;
 
 	/**
 	 * Construct a {@code ModuleDeploymentWriter}.
@@ -87,7 +86,7 @@ public class ModuleDeploymentWriter {
 	 * @param zkConnection         ZooKeeper connection
 	 * @param deploymentTimeout    Deployment timeout to wait for status
 	 */
-	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection, AtomicLong deploymentTimeout) {
+	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection, long deploymentTimeout) {
 		this.zkConnection = zkConnection;
 		this.deploymentTimeout = deploymentTimeout;
 	}
@@ -467,7 +466,7 @@ public class ModuleDeploymentWriter {
 		 */
 		public synchronized Collection<ModuleDeploymentStatus> getResults() throws InterruptedException {
 			long now = System.currentTimeMillis();
-			long expiryTime = now + deploymentTimeout.get();
+			long expiryTime = now + deploymentTimeout;
 			while (pending.size() > 0 && now < expiryTime) {
 				wait(expiryTime - now);
 				now = System.currentTimeMillis();

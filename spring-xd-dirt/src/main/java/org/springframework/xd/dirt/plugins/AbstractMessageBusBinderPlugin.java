@@ -44,6 +44,7 @@ import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
@@ -187,7 +188,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 				public Message<?> preSend(Message<?> message, MessageChannel channel) {
 					@SuppressWarnings("unchecked")
 					Collection<Map<String, Object>> history =
-							(Collection<Map<String, Object>>) message.getHeaders().get("xdHistory");
+							(Collection<Map<String, Object>>) message.getHeaders().get(XdHeaders.XD_HISTORY);
 					if (history == null) {
 						history = new ArrayList<Map<String, Object>>(1);
 					}
@@ -200,7 +201,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 					history.add(map);
 					Message<?> out = messageBuilderFactory
 										.fromMessage(message)
-										.setHeader("xdHistory", history)
+										.setHeader(XdHeaders.XD_HISTORY, history)
 										.build();
 					return out;
 				}

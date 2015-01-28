@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.integration.redis;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,7 +28,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -42,7 +40,6 @@ import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelA
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
@@ -57,6 +54,7 @@ import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
 /**
@@ -70,26 +68,6 @@ import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 public class RedisMessageBus extends MessageBusSupport implements DisposableBean {
 
 	private static final String ERROR_HEADER = "errorKey";
-
-	private static final String XD_REPLY_CHANNEL = "xdReplyChannel";
-
-	private static final String REPLY_TO = "replyTo";
-
-	private static final String XD_HISTORY = "xdHistory";
-
-	/**
-	 * The headers that will be propagated, by default.
-	 */
-	private static final String[] STANDARD_HEADERS = new String[] {
-		IntegrationMessageHeaderAccessor.CORRELATION_ID,
-		IntegrationMessageHeaderAccessor.SEQUENCE_SIZE,
-		IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER,
-		XD_REPLY_CHANNEL,
-		MessageHeaders.CONTENT_TYPE,
-		ORIGINAL_CONTENT_TYPE_HEADER,
-		REPLY_TO,
-		XD_HISTORY
-	};
 
 	private static final SpelExpressionParser parser = new SpelExpressionParser();
 
@@ -178,12 +156,12 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 				parser.parseExpression("headers['" + ERROR_HEADER + "']"), connectionFactory);
 		if (headersToMap != null && headersToMap.length > 0) {
 			String[] combinedHeadersToMap =
-					Arrays.copyOfRange(STANDARD_HEADERS, 0, STANDARD_HEADERS.length + headersToMap.length);
-			System.arraycopy(headersToMap, 0, combinedHeadersToMap, STANDARD_HEADERS.length, headersToMap.length);
+					Arrays.copyOfRange(XdHeaders.STANDARD_HEADERS, 0, XdHeaders.STANDARD_HEADERS.length + headersToMap.length);
+			System.arraycopy(headersToMap, 0, combinedHeadersToMap, XdHeaders.STANDARD_HEADERS.length, headersToMap.length);
 			this.headersToMap = combinedHeadersToMap;
 		}
 		else {
-			this.headersToMap = STANDARD_HEADERS;
+			this.headersToMap = XdHeaders.STANDARD_HEADERS;
 		}
 	}
 
@@ -409,7 +387,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		this.doRegisterConsumer(name, name, requests, adapter, accessor);
 
 		RedisQueueOutboundChannelAdapter replyQueue = new RedisQueueOutboundChannelAdapter(
-				RedisMessageBus.parser.parseExpression("headers['" + REPLY_TO + "']"),
+				RedisMessageBus.parser.parseExpression("headers['" + XdHeaders.REPLY_TO + "']"),
 				this.connectionFactory);
 		replyQueue.setBeanFactory(this.getBeanFactory());
 		replyQueue.setIntegrationEvaluationContext(this.evaluationContext);
@@ -446,7 +424,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			Map<String, Object> additionalHeaders = null;
 			if (replyTo != null) {
 				additionalHeaders = new HashMap<String, Object>();
-				additionalHeaders.put(REPLY_TO, this.replyTo);
+				additionalHeaders.put(XdHeaders.REPLY_TO, this.replyTo);
 			}
 			if (this.partitioningMetadata.isPartitionedModule()) {
 				if (additionalHeaders == null) {
@@ -482,7 +460,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
 			}
 			catch (Exception e) {
-				logger.error("Could not convert message", e);
+				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);
 			}
 			return deserializePayloadIfNecessary(theRequestMessage);
 		}
@@ -501,6 +479,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 	}
 
+	@Override
 	public String[] getMessageBusSpecificProperties() {
 		RedisPropertiesAccessor propertiesAccessor = new RedisPropertiesAccessor(null);
 		return propertiesAccessor.getDefaultProperties();

@@ -57,6 +57,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -259,7 +260,7 @@ public class StreamPluginTests {
 		assertNotNull(messageReceived.get());
 		@SuppressWarnings("unchecked")
 		Collection<Map<String, Object>> xdHistory =
-				(Collection<Map<String, Object>>) messageReceived.get().getHeaders().get("xdHistory");
+				(Collection<Map<String, Object>>) messageReceived.get().getHeaders().get(XdHeaders.XD_HISTORY);
 		assertTrue(xdHistory != null);
 		assertEquals("testing", xdHistory.iterator().next().get("module"));
 	}

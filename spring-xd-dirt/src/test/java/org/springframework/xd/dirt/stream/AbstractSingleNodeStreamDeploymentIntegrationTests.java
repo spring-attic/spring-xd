@@ -38,6 +38,7 @@ import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
@@ -318,13 +319,13 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		final Message<Object> bar1Message = (Message<Object>) bar1sink.receive(10000);
 		assertNotNull(bar1Message);
-		Object history = bar1Message.getHeaders().get("xdHistory");
+		Object history = bar1Message.getHeaders().get(XdHeaders.XD_HISTORY);
 		assertNotNull(history);
 		assertThat(history, instanceOf(List.class));
 		final Object bar1 = bar1Message.getPayload();
 		final Message<Object> bar2Message = (Message<Object>) bar2sink.receive(10000);
 		assertNotNull(bar2Message);
-		assertNull(bar2Message.getHeaders().get("xdHistory"));
+		assertNull(bar2Message.getHeaders().get(XdHeaders.XD_HISTORY));
 		final Object bar2 = bar2Message.getPayload();
 		assertEquals("hello", bar1);
 		assertEquals("hello", bar2);

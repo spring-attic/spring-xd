@@ -21,6 +21,8 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.DatatypeConverter;
+
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
@@ -42,6 +44,11 @@ import org.springframework.messaging.Message;
 public class EmbeddedHeadersMessageConverter {
 
 	private final Jackson2JsonObjectMapper objectMapper = new Jackson2JsonObjectMapper();
+
+	public static String decodeExceptionMessage(Message<?> requestMessage) {
+		return "Could not convert message: " + DatatypeConverter.printHexBinary((byte[]) requestMessage.getPayload());
+	}
+
 
 	/**
 	 * Return a new message where some of the original headers of {@code original}

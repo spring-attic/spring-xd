@@ -76,7 +76,7 @@ public class MessageBusSupportTests {
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
-		assertNull(reconstructed.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+		assertNull(reconstructed.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 	}
 
 	@Test
@@ -95,7 +95,7 @@ public class MessageBusSupportTests {
 		assertSame(converted.getPayload(), payload);
 		assertEquals(MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE,
 				reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		assertNull(reconstructed.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+		assertNull(reconstructed.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 	}
 
 	@Test
@@ -121,7 +121,7 @@ public class MessageBusSupportTests {
 		assertEquals(MimeTypeUtils.TEXT_PLAIN,
 				contentTypeResolver.resolve(converted.getHeaders()));
 		assertEquals(MimeTypeUtils.APPLICATION_JSON,
-				converted.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+				converted.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		assertEquals("{\"foo\":\"foo\"}", reconstructed.getPayload());
 		assertEquals(MimeTypeUtils.APPLICATION_JSON, reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));

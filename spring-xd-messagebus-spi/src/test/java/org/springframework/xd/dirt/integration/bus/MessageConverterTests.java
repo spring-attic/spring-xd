@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.redis;
+package org.springframework.xd.dirt.integration.bus;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 
 /**
  * @author Gary Russell
  * @since 1.0
- * 
+ *
  */
 public class MessageConverterTests {
 
@@ -71,6 +74,23 @@ public class MessageConverterTests {
 		assertEquals("Hello", new String(converted.getPayload()));
 		assertEquals("bar", converted.getHeaders().get("foo"));
 		assertEquals("quxx", converted.getHeaders().get("baz"));
+	}
+
+	@Test
+	public void testBadDecode() throws Exception {
+		EmbeddedHeadersMessageConverter converter = new EmbeddedHeadersMessageConverter();
+		byte[] bytes = "\u0002\u0003foo\u0020bar\u0003baz\u0004quxxHello".getBytes("UTF-8");
+		Message<byte[]> message = new GenericMessage<byte[]>(bytes);
+		try {
+			converter.extractHeaders(message);
+			Assert.fail("Exception expected");
+		}
+		catch (Exception e) {
+			String s = EmbeddedHeadersMessageConverter.decodeExceptionMessage(message);
+			assertThat(e, instanceOf(StringIndexOutOfBoundsException.class));
+			assertThat(s, startsWith("Could not convert message: 0203666F6F"));
+		}
+
 	}
 
 }

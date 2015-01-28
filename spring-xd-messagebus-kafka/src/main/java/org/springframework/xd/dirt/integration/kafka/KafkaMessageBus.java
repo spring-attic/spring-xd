@@ -40,9 +40,11 @@ import kafka.common.ErrorMapping;
 import kafka.javaapi.PartitionMetadata;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.DefaultPartitioner;
+import kafka.producer.KeyedMessage;
 import kafka.serializer.Decoder;
 import kafka.serializer.DefaultDecoder;
 import kafka.serializer.DefaultEncoder;
+import kafka.serializer.StringEncoder;
 import kafka.utils.ZkUtils;
 
 import org.I0Itec.zkclient.ZkClient;
@@ -358,12 +360,12 @@ public class KafkaMessageBus extends MessageBusSupport {
 			TopicMetadata targetTopicMetadata = ensureTopicCreated(topicName, numPartitions, defaultReplicationFactor);
 
 
-			ProducerMetadata<Integer, byte[]> producerMetadata = new ProducerMetadata<Integer, byte[]>(
+			ProducerMetadata<String, byte[]> producerMetadata = new ProducerMetadata<String, byte[]>(
 					topicName);
 			producerMetadata.setValueEncoder(new DefaultEncoder(null));
 			producerMetadata.setValueClassType(byte[].class);
-			producerMetadata.setKeyEncoder(new IntegerEncoderDecoder(null));
-			producerMetadata.setKeyClassType(Integer.class);
+			producerMetadata.setKeyEncoder(new StringEncoder(null));
+			producerMetadata.setKeyClassType(String.class);
 			producerMetadata.setCompressionCodec(accessor.getCompressionCodec(this.defaultCompressionCodec));
 			producerMetadata.setPartitioner(new DefaultPartitioner(null));
 
@@ -375,20 +377,23 @@ public class KafkaMessageBus extends MessageBusSupport {
 				additionalProps.put("queue.buffering.max.ms", String.valueOf(accessor.getBatchTimeout(this.defaultBatchTimeout)));
 			}
 
-			ProducerFactoryBean<Integer, byte[]> producerFB = new ProducerFactoryBean<Integer, byte[]>(producerMetadata, brokers, additionalProps);
+			ProducerFactoryBean<String, byte[]> producerFB =
+					new ProducerFactoryBean<String, byte[]>(producerMetadata, brokers,	additionalProps);
 
 			try {
-				final Producer<Integer, byte[]> producer = producerFB.getObject();
+				final Producer<String, byte[]> producer = producerFB.getObject();
 
 
-				final ProducerConfiguration<Integer, byte[]> producerConfiguration = new ProducerConfiguration<Integer, byte[]>(
-						producerMetadata, producer);
+				final ProducerConfiguration<String, byte[]> producerConfiguration
+						= new ProducerConfiguration<String, byte[]>(producerMetadata, producer);
 
 				MessageHandler messageHandler = new AbstractMessageHandler() {
 
 					@Override
 					protected void handleMessageInternal(Message<?> message) throws Exception {
-						producerConfiguration.send(topicName, message.getHeaders().get("messageKey"), message);
+						// strip off the message key used internally by the bus and use a partitioning key for partitioning
+						producerConfiguration.getProducer()
+								.send(new KeyedMessage<String, byte[]>(topicName, null, message.getHeaders().get("messageKey",Integer.class), (byte[])message.getPayload()));
 					}
 				};
 

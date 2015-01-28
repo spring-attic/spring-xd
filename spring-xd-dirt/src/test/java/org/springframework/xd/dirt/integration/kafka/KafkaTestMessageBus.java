@@ -69,6 +69,7 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 		// do nothing - the rule will take care of that
 	}
 
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private static MultiTypeCodec<Object> getCodec() {
 		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
 		codecs.put(Tuple.class, new TupleCodec());

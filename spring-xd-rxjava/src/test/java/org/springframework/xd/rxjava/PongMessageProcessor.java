@@ -26,6 +26,7 @@ import rx.functions.Func1;
  *
  * @author Mark Pollack
  */
+@SuppressWarnings("rawtypes")
 public class PongMessageProcessor implements Processor<Message, Message> {
 
     @Override

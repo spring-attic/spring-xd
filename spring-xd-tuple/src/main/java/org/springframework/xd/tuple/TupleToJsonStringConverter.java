@@ -47,17 +47,13 @@ public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 			Object value = source.getValues().get(i);
 			String name = source.getFieldNames().get(i);
 			if (value != null) {
-				// System.out.print("parsing " + name + " as ");
 				if (value instanceof Tuple) {
-					// System.out.println("tuple");
-					root.put(name, toObjectNode((Tuple) value));
+					root.putPOJO(name, toObjectNode((Tuple) value));
 				}
 				else if (!value.getClass().isPrimitive()) {
-					// System.out.println("pojo " + value.getClass().getName());
-					root.put(name, root.pojoNode(value));
+					root.putPOJO(name, root.pojoNode(value));
 				}
 				else {
-					// System.out.println("primitive");
 					root.put(name, value.toString());
 				}
 			}

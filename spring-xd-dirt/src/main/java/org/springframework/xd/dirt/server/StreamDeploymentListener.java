@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,14 +73,17 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 	 * @param containerRepository repository to obtain container data
 	 * @param streamFactory factory to construct {@link Stream}
 	 * @param containerMatcher matches modules to containers
+	 * @param moduleDeploymentWriter utility that writes deployment requests to zk path
 	 * @param stateCalculator calculator for stream state
 	 */
 	public StreamDeploymentListener(ZooKeeperConnection zkConnection,
 			PathChildrenCache moduleDeploymentRequests,
 			ContainerRepository containerRepository,
 			StreamFactory streamFactory,
-			ContainerMatcher containerMatcher, DeploymentUnitStateCalculator stateCalculator) {
-		super(zkConnection, moduleDeploymentRequests, containerRepository, containerMatcher, stateCalculator);
+			ContainerMatcher containerMatcher, ModuleDeploymentWriter moduleDeploymentWriter,
+			DeploymentUnitStateCalculator stateCalculator) {
+		super(zkConnection, moduleDeploymentRequests, containerRepository, containerMatcher, moduleDeploymentWriter,
+				stateCalculator);
 		this.streamFactory = streamFactory;
 	}
 

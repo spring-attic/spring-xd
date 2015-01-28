@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,15 +66,16 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 	 * @param jobFactory factory to construct {@link Job}
 	 * @param moduleDeploymentRequests cache of children for requested module deployments path
 	 * @param containerMatcher matches modules to containers
+	 * @param moduleDeploymentWriter utility that writes deployment requests to zk path
 	 * @param stateCalculator calculator for stream/job state
 	 */
 	public DepartingContainerModuleRedeployer(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository,
 			StreamFactory streamFactory, JobFactory jobFactory,
 			PathChildrenCache moduleDeploymentRequests, ContainerMatcher containerMatcher,
-			DeploymentUnitStateCalculator stateCalculator) {
+			ModuleDeploymentWriter moduleDeploymentWriter, DeploymentUnitStateCalculator stateCalculator) {
 		super(zkConnection, containerRepository, streamFactory, jobFactory, moduleDeploymentRequests, containerMatcher,
-				stateCalculator);
+				moduleDeploymentWriter, stateCalculator);
 	}
 
 	/**

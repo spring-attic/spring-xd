@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,16 +44,13 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 /**
  * Utility class to write module deployment requests under {@code /xd/deployments/modules}.
  * There are several {@code writeDeployment} methods that allow for targeting
- * a deployment to a specific container or to a collection of containers indicated
- * by the {@link org.springframework.xd.dirt.server.ContainerMatcher} passed into
- * the constructor.
+ * a deployment to a specific container or a collection of containers.
  * <p/>
  * General usage is to invoke {@code writeDeployment} and examine the {@link ModuleDeploymentStatus}
  * object that is returned. This invocation will block until:
  * <ul>
  *     <li>all containers have "responded" by updating the ZooKeeper nodes</li>
- *     <li>the timeout period elapses without all containers responding
- *         (default value is {@link #DEFAULT_TIMEOUT}.</li>
+ *     <li>the timeout period elapses without all containers responding.</li>
  *     <li>the waiting thread is interrupted</li>
  * </ul>
  * The results may be examined to obtain detailed information about each deployment
@@ -72,13 +69,6 @@ public class ModuleDeploymentWriter {
 	private static final Logger logger = LoggerFactory.getLogger(ModuleDeploymentWriter.class);
 
 	/**
-	 * Default timeout in milliseconds.
-	 *
-	 * @see #timeout
-	 */
-	private final static long DEFAULT_TIMEOUT = 30000;
-
-	/**
 	 * ZooKeeper connection.
 	 */
 	private final ZooKeeperConnection zkConnection;
@@ -86,32 +76,19 @@ public class ModuleDeploymentWriter {
 	/**
 	 * Amount of time to wait for a status to be written to all module
 	 * deployment request paths.
-	 */
-	private final long timeout;
-
-
-	/**
-	 * Construct a {@code ModuleDeploymentWriter} with the default timeout
-	 * value indicated by {@link #DEFAULT_TIMEOUT}.
 	 *
-	 * @param zkConnection         ZooKeeper connection
-	 * @param containerMatcher     matcher for modules to containers
 	 */
-	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection, ContainerMatcher containerMatcher) {
-		this(zkConnection, containerMatcher, DEFAULT_TIMEOUT);
-	}
+	private final long deploymentTimeout;
 
 	/**
 	 * Construct a {@code ModuleDeploymentWriter}.
 	 *
 	 * @param zkConnection         ZooKeeper connection
-	 * @param containerMatcher     matcher for modules to containers
-	 * @param timeout    amount of time to wait for module deployments
+	 * @param deploymentTimeout    Deployment timeout to wait for status
 	 */
-	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection, ContainerMatcher containerMatcher,
-			long timeout) {
+	public ModuleDeploymentWriter(ZooKeeperConnection zkConnection, long deploymentTimeout) {
 		this.zkConnection = zkConnection;
-		this.timeout = timeout;
+		this.deploymentTimeout = deploymentTimeout;
 	}
 
 
@@ -489,7 +466,7 @@ public class ModuleDeploymentWriter {
 		 */
 		public synchronized Collection<ModuleDeploymentStatus> getResults() throws InterruptedException {
 			long now = System.currentTimeMillis();
-			long expiryTime = now + timeout;
+			long expiryTime = now + deploymentTimeout;
 			while (pending.size() > 0 && now < expiryTime) {
 				wait(expiryTime - now);
 				now = System.currentTimeMillis();
@@ -504,7 +481,7 @@ public class ModuleDeploymentWriter {
 								key.moduleDescriptorKey,
 								ModuleDeploymentStatus.State.failed,
 								String.format("Deployment of module '%s' to container '%s' timed out after %d ms",
-										key.moduleDescriptorKey, key.container, timeout)));
+										key.moduleDescriptorKey, key.container, deploymentTimeout)));
 			}
 			return results.values();
 		}

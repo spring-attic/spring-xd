@@ -290,9 +290,16 @@ endpoints:
 #
 # The default value for this property is 15000 ms.
 #
-# xd:
+#xd:
 #  admin:
 #    quietPeriod: 15000
+---
+# Module deployment timeout
+# The module deployment timeout is the number of milliseconds the admin server
+# will wait for a response to a module deployment request to a container.
+#xd:
+#  admin:
+#    deploymentTimeout: 30000
 ---
 # User Extensions: Where XD scans the classpath to discover extended container configuration to add beans to the Plugins context.
 # Each property may be a comma delimited string. 'basepackages' refers to package names used for

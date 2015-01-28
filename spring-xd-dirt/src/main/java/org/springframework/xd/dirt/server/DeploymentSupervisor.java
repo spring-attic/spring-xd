@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,6 +178,17 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	public static final String QUIET_PERIOD_PROPERTY = "xd.admin.quietPeriod";
 
 	/**
+	 * Amount of time to wait for a status to be written to all module
+	 * deployment request paths.
+	 */
+	private volatile long deploymentTimeout = 30000;
+
+	/**
+	 * Property for specifying the {@link #deploymentTimeout deployment timeout}.
+	 */
+	public static final String DEPLOYMENT_TIMEOUT_PROPERTY = "xd.admin.deploymentTimeout";
+
+	/**
 	 * Construct a {@code DeploymentSupervisor}.
 	 *
 	 * @param zkConnection ZooKeeper connection
@@ -234,7 +245,10 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				quietPeriod.set(Long.parseLong(delay));
 				logger.info("Set container quiet period to {} ms", delay);
 			}
-
+			String timeout = this.applicationContext.getEnvironment().getProperty(DEPLOYMENT_TIMEOUT_PROPERTY);
+			if (StringUtils.hasText(timeout)) {
+				deploymentTimeout = Long.parseLong(timeout);
+			}
 			if (this.zkConnection.isConnected()) {
 				if (this.applicationContext.equals(((ContextRefreshedEvent) event).getApplicationContext())) {
 					// initial registration, we don't yet have a port info
@@ -464,8 +478,10 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			StreamDeploymentListener streamDeploymentListener;
 			JobDeploymentListener jobDeploymentListener;
 			ContainerListener containerListener;
+			ModuleDeploymentWriter moduleDeploymentWriter;
 
 			try {
+				moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection, deploymentTimeout);
 				StreamFactory streamFactory = new StreamFactory(streamDefinitionRepository, moduleRegistry,
 						moduleOptionsMetadataResolver);
 
@@ -484,6 +500,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 						containerRepository,
 						streamFactory,
 						containerMatcher,
+						moduleDeploymentWriter,
 						stateCalculator);
 
 				streamDeployments = instantiatePathChildrenCache(client, Paths.STREAM_DEPLOYMENTS);
@@ -500,6 +517,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 						containerRepository,
 						jobFactory,
 						containerMatcher,
+						moduleDeploymentWriter,
 						stateCalculator);
 
 				jobDeployments = instantiatePathChildrenCache(client, Paths.JOB_DEPLOYMENTS);
@@ -515,6 +533,7 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 						jobDeployments,
 						moduleDeploymentRequests,
 						containerMatcher,
+						moduleDeploymentWriter,
 						stateCalculator,
 						executorService,
 						quietPeriod);

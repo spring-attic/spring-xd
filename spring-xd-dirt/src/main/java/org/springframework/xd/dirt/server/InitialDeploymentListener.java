@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,16 +79,18 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 	 * @param moduleDeploymentRequests the requested module deployments
 	 * @param containerRepository repository to obtain container data
 	 * @param containerMatcher matches modules to containers
+	 * @param moduleDeploymentWriter utility that writes deployment requests to zk path
 	 * @param stateCalculator calculator for stream state
 	 */
 	public InitialDeploymentListener(ZooKeeperConnection zkConnection,
 			PathChildrenCache moduleDeploymentRequests,
 			ContainerRepository containerRepository,
-			ContainerMatcher containerMatcher, DeploymentUnitStateCalculator stateCalculator) {
+			ContainerMatcher containerMatcher, ModuleDeploymentWriter moduleDeploymentWriter,
+			DeploymentUnitStateCalculator stateCalculator) {
 		this.moduleDeploymentRequests = moduleDeploymentRequests;
 		this.containerMatcher = containerMatcher;
 		this.containerRepository = containerRepository;
-		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection, containerMatcher);
+		this.moduleDeploymentWriter = moduleDeploymentWriter;
 		this.stateCalculator = stateCalculator;
 	}
 

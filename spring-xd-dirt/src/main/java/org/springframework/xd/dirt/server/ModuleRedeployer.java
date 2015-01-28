@@ -120,16 +120,17 @@ public abstract class ModuleRedeployer {
 	 * @param jobFactory factory to construct {@link Job}
 	 * @param moduleDeploymentRequests cache of children for requested module deployments path
 	 * @param containerMatcher matches modules to containers
+	 * @param moduleDeploymentWriter utility that writes deployment requests to zk path
 	 * @param stateCalculator calculator for stream/job state
 	 */
 	public ModuleRedeployer(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository, StreamFactory streamFactory, JobFactory jobFactory,
 			PathChildrenCache moduleDeploymentRequests, ContainerMatcher containerMatcher,
-			DeploymentUnitStateCalculator stateCalculator) {
+			ModuleDeploymentWriter moduleDeploymentWriter, DeploymentUnitStateCalculator stateCalculator) {
 		this.zkConnection = zkConnection;
 		this.containerRepository = containerRepository;
 		this.containerMatcher = containerMatcher;
-		this.moduleDeploymentWriter = new ModuleDeploymentWriter(zkConnection, containerMatcher);
+		this.moduleDeploymentWriter = moduleDeploymentWriter;
 		this.moduleDeploymentRequests = moduleDeploymentRequests;
 		this.streamFactory = streamFactory;
 		this.jobFactory = jobFactory;

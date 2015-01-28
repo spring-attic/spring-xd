@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,6 +97,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param jobDeployments cache of children for job deployments path
 	 * @param moduleDeploymentRequests cache of children for requested module deployments path
 	 * @param containerMatcher matches modules to containers
+	 * @param moduleDeploymentWriter utility that writes deployment requests to zk path
 	 * @param stateCalculator calculator for stream/job state
 	 * @param quietPeriod AtomicLong indicating quiet period for new container module deployments
 	 */
@@ -105,14 +106,14 @@ public class ContainerListener implements PathChildrenCacheListener {
 			StreamFactory streamFactory, JobFactory jobFactory,
 			PathChildrenCache streamDeployments, PathChildrenCache jobDeployments,
 			PathChildrenCache moduleDeploymentRequests, ContainerMatcher containerMatcher,
-			DeploymentUnitStateCalculator stateCalculator,
+			ModuleDeploymentWriter moduleDeploymentWriter, DeploymentUnitStateCalculator stateCalculator,
 			ScheduledExecutorService executorService, AtomicLong quietPeriod) {
 		this.containerMatchingModuleRedeployer = new ContainerMatchingModuleRedeployer(zkConnection,
 				containerRepository, streamFactory, jobFactory, streamDeployments, jobDeployments,
-				moduleDeploymentRequests, containerMatcher, stateCalculator);
+				moduleDeploymentRequests, containerMatcher, moduleDeploymentWriter, stateCalculator);
 		this.departingContainerModuleRedeployer = new DepartingContainerModuleRedeployer(zkConnection,
 				containerRepository, streamFactory, jobFactory, moduleDeploymentRequests, containerMatcher,
-				stateCalculator);
+				moduleDeploymentWriter, stateCalculator);
 		this.quietPeriod = quietPeriod;
 		this.executorService = executorService;
 	}

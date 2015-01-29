@@ -25,7 +25,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import com.rabbitmq.client.Channel;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,6 +58,9 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -94,6 +96,7 @@ import com.rabbitmq.client.Envelope;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Jennifer Hickey
+ * @author Gunnar Hillert
  */
 public class RabbitMessageBus extends MessageBusSupport implements DisposableBean {
 
@@ -111,9 +114,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private static final int DEFAULT_TX_SIZE = 1;
 
-	private static final String[] DEFAULT_REQUEST_HEADER_PATTERNS = new String[] {"STANDARD_REQUEST_HEADERS", "*"};
+	private static final String[] DEFAULT_REQUEST_HEADER_PATTERNS = new String[] { "STANDARD_REQUEST_HEADERS", "*" };
 
-	private static final String[] DEFAULT_REPLY_HEADER_PATTERNS = new String[] {"STANDARD_REPLY_HEADERS", "*"};
+	private static final String[] DEFAULT_REPLY_HEADER_PATTERNS = new String[] { "STANDARD_REPLY_HEADERS", "*" };
 
 	private static final Set<Object> RABBIT_CONSUMER_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
 			BusProperties.MAX_CONCURRENCY,
@@ -263,6 +266,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private volatile boolean defaultAutoBindDLQ = false;
 
+	private static final ExpressionParser expressionParser =
+			new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -493,7 +498,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			queue.setRoutingKey(queueName); // uses default exchange
 		}
 		else {
-			queue.setRoutingKeyExpression(buildPartitionRoutingExpression(queueName));
+			queue.setExpressionRoutingKey(expressionParser.parseExpression(buildPartitionRoutingExpression(queueName)));
 			for (int i = 0; i < properties.getPartitionCount(); i++) {
 				this.rabbitAdmin.declareQueue(new Queue(queueName + "-" + i));
 			}
@@ -604,7 +609,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.doRegisterConsumer(name, requests, requestQueue, accessor, false);
 
 		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
-		replyQueue.setRoutingKeyExpression("headers['" + AmqpHeaders.REPLY_TO + "']");
+		replyQueue.setExpressionRoutingKey(expressionParser.parseExpression("headers['" + AmqpHeaders.REPLY_TO + "']"));
 		configureOutboundHandler(replyQueue, accessor);
 		doRegisterProducer(name, replies, replyQueue, accessor);
 	}
@@ -755,6 +760,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 
+	@Override
 	public String[] getMessageBusSpecificProperties() {
 		RabbitPropertiesAccessor propertiesAccessor = new RabbitPropertiesAccessor(null);
 		return propertiesAccessor.getDefaultProperties();
@@ -821,16 +827,16 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 
 		public static final String[] RABBIT_PROPERTIES = new String[] {
-				ACK_MODE,
-				DELIVERY_MODE,
-				PREFETCH,
-				PREFIX,
-				REPLY_HEADER_PATTERNS,
-				REQUEST_HEADER_PATTERNS,
-				REQUEUE,
-				TRANSACTED,
-				TX_SIZE,
-				AUTO_BIND_DLQ
+			ACK_MODE,
+			DELIVERY_MODE,
+			PREFETCH,
+			PREFIX,
+			REPLY_HEADER_PATTERNS,
+			REQUEST_HEADER_PATTERNS,
+			REQUEUE,
+			TRANSACTED,
+			TX_SIZE,
+			AUTO_BIND_DLQ
 		};
 
 		public String[] getDefaultProperties() {

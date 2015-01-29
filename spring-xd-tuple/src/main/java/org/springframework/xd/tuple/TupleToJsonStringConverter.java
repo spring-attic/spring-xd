@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,7 +20,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author David Turanski
- * 
+ * @author Gunnar Hillert
+ *
  */
 public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 
@@ -50,11 +51,11 @@ public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 				// System.out.print("parsing " + name + " as ");
 				if (value instanceof Tuple) {
 					// System.out.println("tuple");
-					root.put(name, toObjectNode((Tuple) value));
+					root.set(name, toObjectNode((Tuple) value));
 				}
 				else if (!value.getClass().isPrimitive()) {
 					// System.out.println("pojo " + value.getClass().getName());
-					root.put(name, root.pojoNode(value));
+					root.set(name, root.pojoNode(value));
 				}
 				else {
 					// System.out.println("primitive");

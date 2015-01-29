@@ -50,7 +50,7 @@ public class SqoopRunner {
 			throw new IllegalArgumentException("Missing arguments and/or configuration options for Sqoop");
 		}
 
-		String jarPath = com.cloudera.sqoop.util.Jars.getJarPathForClass(JobConf.class);
+		String jarPath = org.apache.sqoop.util.Jars.getJarPathForClass(JobConf.class);
 		String hadoopMapredHome = jarPath.substring(0, jarPath.lastIndexOf(File.separator));
 
 		String command = args[0];

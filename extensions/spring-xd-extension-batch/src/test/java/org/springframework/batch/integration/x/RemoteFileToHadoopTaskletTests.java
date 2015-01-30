@@ -28,6 +28,7 @@ import java.io.File;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,16 +47,21 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.test.HostNotWindowsRule;
 
 
 /**
  *
  * @author Gary Russell
+ * @author David Turanski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader = HadoopDelegatingSmartContextLoader.class, classes = RemoteFileToHadoopTaskletTests.EmptyConfig.class)
 @MiniHadoopCluster
 public class RemoteFileToHadoopTaskletTests {
+
+	@ClassRule
+	public static HostNotWindowsRule hostNotWindowsRule = new HostNotWindowsRule();
 
 	private static final String tmpDir = System.getProperty("java.io.tmpdir");
 
@@ -111,5 +117,4 @@ public class RemoteFileToHadoopTaskletTests {
 	@Configuration
 	static class EmptyConfig {
 	}
-
 }

@@ -32,6 +32,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -54,6 +55,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
+import org.springframework.xd.test.HostNotWindowsRule;
 
 
 /**
@@ -64,6 +66,9 @@ import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 @ContextConfiguration(loader = HadoopDelegatingSmartContextLoader.class, classes = RemoteFileToHadoopTests.EmptyConfig.class)
 @MiniHadoopCluster
 public class RemoteFileToHadoopTests {
+
+	@ClassRule
+	public static HostNotWindowsRule hostNotWindowsRule = new HostNotWindowsRule();
 
 	@Autowired
 	private ApplicationContext context;

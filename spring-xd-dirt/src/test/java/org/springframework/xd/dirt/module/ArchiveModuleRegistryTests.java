@@ -37,7 +37,7 @@ import org.springframework.xd.module.ModuleType;
  */
 public class ArchiveModuleRegistryTests {
 
-	private ArchiveModuleRegistry registry = new ArchiveModuleRegistry("file:src/test/resources/ArchiveModuleRegistryTests-modules/");
+	private ModuleRegistry registry = new ResourceModuleRegistry("file:src/test/resources/ArchiveModuleRegistryTests-modules/");
 
 	@Test(expected = IllegalStateException.class)
 	public void cantHaveBothJarFileAndDir() {
@@ -51,8 +51,8 @@ public class ArchiveModuleRegistryTests {
 	}
 
 	@Test
-	public void beingADirHasPriorityOverEndingInDotJar() {
+	public void beingAJarHasPriorityOverBeingADir() {
 		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.source);
-		assertThat(definitions, contains(ResourceModuleRegistryTests.hasName("i-am-a-valid-module.jar")));
+		assertThat(definitions, contains(ResourceModuleRegistryTests.hasName("i-am-a-valid-module")));
 	}
 }

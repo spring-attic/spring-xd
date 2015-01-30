@@ -74,7 +74,6 @@ allprojects {
 		maven { url 'http://repo.spring.io/plugins-release' }
 		maven { url 'https://repo.eclipse.org/content/repositories/paho-releases' }
 	}
-
 }
 
 ext {
@@ -142,7 +141,7 @@ configure(javaProjects) { subproject ->
 		enabled = false
 	}
 
-	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters') 
+	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters')
 		&& !subproject.projectDir.absolutePath.contains('spring-xd-gradle-plugins')) {
 		apply from: "${rootProject.projectDir}/publish-maven.gradle"
 		apply plugin: 'javadocHotfix'
@@ -1274,6 +1273,7 @@ project('spring-xd-integration-test') {
 		compile project(":spring-xd-test-fixtures")
 		compile project(":spring-xd-test")
 		compile project(":spring-xd-rest-client")
+		compile project(":spring-xd-integration-test:acceptance-test-sparkapp")
 		compile "org.apache.jclouds.provider:aws-sts:$jcloudsVersion"
 		compile "org.apache.jclouds.provider:aws-ec2:$jcloudsVersion"
 		compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"
@@ -1304,6 +1304,13 @@ project('spring-xd-integration-test') {
 		testCompile("org.apache.ftpserver:ftpserver-core:${apacheFtpServerVersion}")
 	}
 
+}
+
+// Integration Tests
+project(':spring-xd-integration-test:acceptance-test-sparkapp') {
+	dependencies{
+		compile "org.apache.spark:spark-core_2.10:$sparkVersion"
+	}
 }
 
 // Distributed (multi container) tests

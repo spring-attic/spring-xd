@@ -341,6 +341,13 @@ public abstract class AbstractIntegrationTest {
 		}
 	}
 
+	/**
+	 * Copies files to the specified target on the local machine or to a remote machine via
+	 * ssh.
+	 * @param baseUri Target location
+	 * @param files The list of files to copy.
+	 * @param host the host (if on remote machine) to target the file copy.
+	 */
 	private void copyFilesToTarget(URI baseUri, List<File> files, String host) {
 		for (File file : files) {
 			URI targetUri;
@@ -362,6 +369,23 @@ public abstract class AbstractIntegrationTest {
 					throw new IllegalStateException("copying job files to XD failed", e);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Copies the files required for a test to the admin server and its containers.
+	 * @param baseUri The directory to write the files.
+	 * @param files The files to be copied to the cluster.
+	 */
+	protected void copyFileToCluster(URI baseUri, List<File> files) {
+		Assert.notNull(baseUri, "baseUri must not be null");
+		Assert.notNull(files, "files must not be null");
+		Assert.isTrue(files.size()>0,
+				"files must have at least 1 file enumerated in the list");
+		copyFilesToTarget(baseUri,files, adminServer.getHost());
+		Map<String, String> containerMap = getAvailableContainers(adminServer);
+		for (String containerHost : containerMap.values()) {
+			copyFilesToTarget(baseUri, files, containerHost);
 		}
 	}
 

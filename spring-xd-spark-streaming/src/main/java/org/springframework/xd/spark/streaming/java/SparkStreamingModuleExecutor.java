@@ -14,28 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.spark.streaming;
+package org.springframework.xd.spark.streaming.java;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDDLike;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.VoidFunction;
-import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaDStreamLike;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.xd.spark.streaming.SparkMessageSender;
 
 /**
- * Invokes the process method of a {@link Processor} and handles the output DStream if present.
+ * Invokes the process method of a {@link org.springframework.xd.spark.streaming.java.Processor} and handles the output DStream if present.
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
@@ -45,13 +39,8 @@ public class SparkStreamingModuleExecutor implements Serializable {
 
 	private static SparkMessageSender messageSender;
 
-	private static final String HEADER_PREFIX = "spark.";
-
-	// todo: allow this to be overridden for any Spark Streaming Processor
-	private final MessageConverter converter = new DefaultSparkStreamingMessageConverter();
-
 	@SuppressWarnings("rawtypes")
-	public void execute(JavaDStream input, Processor processor, final SparkMessageSender sender) {
+	public void execute(JavaDStreamLike input, Processor processor, final SparkMessageSender sender) {
 		JavaDStreamLike output = processor.process(input);
 		if (output != null) {
 			output.foreachRDD(new Function<JavaRDDLike, Void>() {
@@ -80,7 +69,7 @@ public class SparkStreamingModuleExecutor implements Serializable {
 									}
 								}
 								while (results.hasNext()) {
-									messageSender.send(converter.toMessage(results.next(), populateHeaders(rdd)));
+									messageSender.send(MessageBuilder.withPayload(results.next().toString()).build());
 								}
 							}
 							sender.stop();
@@ -89,36 +78,6 @@ public class SparkStreamingModuleExecutor implements Serializable {
 					return null;
 				}
 			});
-		}
-	}
-
-	private MessageHeaders populateHeaders(JavaRDDLike rdd) {
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put(HEADER_PREFIX + "rdd.id", rdd.id());
-		headers.put(HEADER_PREFIX + "rdd.name", rdd.name());
-		SparkContext context = rdd.context();
-		if (context != null) {
-			headers.put(HEADER_PREFIX + "app.id", context.applicationId());
-			headers.put(HEADER_PREFIX + "app.name", context.appName());
-		}
-		return new MessageHeaders(headers);
-	}
-
-
-	private static class DefaultSparkStreamingMessageConverter implements MessageConverter, Serializable {
-
-		@Override
-		public Object fromMessage(Message<?> message, Class<?> targetClass) {
-			throw new UnsupportedOperationException("converter only used for creating Messages");
-		}
-
-		@Override
-		public Message<?> toMessage(Object payload, MessageHeaders headers) {
-			Class<?> clazz = payload.getClass();
-			if (!(clazz.isPrimitive() || clazz.getName().startsWith("java."))) {
-				payload = payload.toString();
-			}
-			return MessageBuilder.withPayload(payload).build();
 		}
 	}
 

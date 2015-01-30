@@ -24,6 +24,7 @@ import java.util.Properties;
 
 import org.apache.spark.storage.StorageLevel;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -40,7 +41,7 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.ModuleFactory;
 import org.springframework.xd.module.spark.streaming.SparkStreamingDriverModule;
-import org.springframework.xd.spark.streaming.Processor;
+import org.springframework.xd.spark.streaming.SparkStreamingSupport;
 
 /**
  * Plugin for Spark Streaming support. This plugin sets up the necessary beans for the spark streaming module
@@ -62,7 +63,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 	@Override
 	public boolean supports(Module module) {
 		String moduleExecutionFramework = module.getProperties().getProperty(ModuleFactory.MODULE_EXECUTION_FRAMEWORK_KEY);
-		return (Processor.MODULE_EXECUTION_FRAMEWORK.equals(moduleExecutionFramework));
+		return (SparkStreamingSupport.MODULE_EXECUTION_FRAMEWORK.equals(moduleExecutionFramework));
 	}
 
 	@Override
@@ -73,19 +74,28 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 		Properties messageBusProperties = getMessageBusProperties(module, transport);
 		Properties inboundModuleProperties = this.extractConsumerProducerProperties(module)[0];
 		Properties outboundModuleProperties = this.extractConsumerProducerProperties(module)[1];
-		String defaultStorageLevel = env.getProperty(Processor.SPARK_STORAGE_LEVEL_PROP);
+		String defaultStorageLevel = env.getProperty(SparkStreamingSupport.SPARK_STORAGE_LEVEL_PROP);
 		StorageLevel configuredStorageLevel = StorageLevel.fromString(StringUtils.hasText(defaultStorageLevel) ?
 				defaultStorageLevel : DEFAULT_STORAGE_LEVEL);
-		String storageLevelFromModule = module.getProperties().getProperty(Processor.SPARK_STORAGE_LEVEL_MODULE_OPTION);
+		String storageLevelFromModule = module.getProperties().getProperty(SparkStreamingSupport.SPARK_STORAGE_LEVEL_MODULE_OPTION);
 		StorageLevel storageLevel = StringUtils.hasText(storageLevelFromModule) ?
 				StorageLevel.fromString(storageLevelFromModule) : configuredStorageLevel;
 		MessageBusReceiver receiver = null;
 		if (transport.equals("local")) {
-			final Processor sparkModule = module.getComponent(Processor.class);
-			Properties sparkConfigs = SparkStreamingDriverModule.getSparkModuleProperties(sparkModule);
-			String sparkMasterUrl = env.getProperty(Processor.SPARK_MASTER_URL_PROP);
-			if (sparkConfigs != null && StringUtils.hasText(sparkConfigs.getProperty(Processor.SPARK_MASTER_URL_PROP))) {
-				sparkMasterUrl = sparkConfigs.getProperty(Processor.SPARK_MASTER_URL_PROP);
+			SparkStreamingSupport processor;
+			Properties sparkConfigs = null;
+			try {
+				processor = module.getComponent(SparkStreamingSupport.class);
+				if (processor != null) {
+					sparkConfigs = SparkStreamingDriverModule.getSparkModuleProperties(processor);
+				}
+			}
+			catch (NoSuchBeanDefinitionException e) {
+				throw new RuntimeException("Either java or scala module should be present.");
+			}
+			String sparkMasterUrl = env.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP);
+			if (sparkConfigs != null && StringUtils.hasText(sparkConfigs.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP))) {
+				sparkMasterUrl = sparkConfigs.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP);
 			}
 			Assert.notNull(sparkMasterUrl, "Spark Master URL must be set.");
 			if (!sparkMasterUrl.startsWith("local")) {

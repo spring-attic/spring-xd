@@ -19,8 +19,6 @@ package org.springframework.xd.dirt.spark;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.Lists;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.cluster.Container;
@@ -32,7 +30,9 @@ import org.springframework.xd.module.core.ModuleFactory;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
-import org.springframework.xd.spark.streaming.Processor;
+import org.springframework.xd.spark.streaming.SparkStreamingSupport;
+
+import com.google.common.collect.Lists;
 
 /**
  * A {@link org.springframework.xd.dirt.cluster.ContainerFilter} which filters out the containers that have a spark
@@ -65,14 +65,14 @@ public class SparkStreamingContainerFilter implements ContainerFilter {
 		try {
 			options = optionsMetadata.interpolate(moduleDescriptor.getParameters());
 			String name = (String) options.asPropertySource().getProperty(ModuleFactory.MODULE_EXECUTION_FRAMEWORK_KEY);
-			if (Processor.MODULE_EXECUTION_FRAMEWORK.equals(name)) {
+			if (SparkStreamingSupport.MODULE_EXECUTION_FRAMEWORK.equals(name)) {
 				Iterable<ModuleMetadata> deployedModules = moduleMetadataRepository.findAll();
 				List<ModuleMetadata> sparkModules = new ArrayList<ModuleMetadata>();
 				for (ModuleMetadata moduleMetadata : deployedModules) {
 					String moduleExecutionFramework =
 							moduleMetadata.getModuleOptions().getProperty(ModuleFactory.MODULE_EXECUTION_FRAMEWORK_KEY);
 					if (moduleExecutionFramework != null &&
-							(moduleExecutionFramework.equals(Processor.MODULE_EXECUTION_FRAMEWORK))) {
+							(moduleExecutionFramework.equals(SparkStreamingSupport.MODULE_EXECUTION_FRAMEWORK))) {
 						sparkModules.add(moduleMetadata);
 					}
 				}

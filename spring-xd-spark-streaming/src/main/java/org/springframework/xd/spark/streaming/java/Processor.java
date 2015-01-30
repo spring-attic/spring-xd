@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.spark.streaming;
-
-import java.io.Serializable;
+package org.springframework.xd.spark.streaming.java;
 
 import org.apache.spark.streaming.api.java.JavaDStreamLike;
+
+import org.springframework.xd.spark.streaming.SparkStreamingSupport;
 
 /**
  * Interface for modules using the Spark Streaming API to process messages from the Message Bus.
@@ -26,21 +26,7 @@ import org.apache.spark.streaming.api.java.JavaDStreamLike;
  * @author Mark Fisher
  */
 @SuppressWarnings("rawtypes")
-public interface Processor extends Serializable {
-
-	public static final String SPARK_MASTER_URL_PROP = "spark.master";
-
-	public static final String SPARK_STORAGE_LEVEL_PROP = "spark.storageLevel";
-
-	public static final String SPARK_STORAGE_LEVEL_MODULE_OPTION = "storageLevel";
-
-	/**
-	 * The module execution framework is used by XD runtime to determine the module as
-	 * the spark streaming module.
-	 */
-	public static final String MODULE_EXECUTION_FRAMEWORK = "spark";
-
-	public static final String SPARK_DEFAULT_MASTER_URL = "spark://localhost:7077";
+public interface Processor extends SparkStreamingSupport {
 
 	/**
 	 * Processes the input DStream and optionally returns an output DStream.

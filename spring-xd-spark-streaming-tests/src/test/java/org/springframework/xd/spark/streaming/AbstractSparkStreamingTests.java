@@ -91,7 +91,24 @@ public abstract class AbstractSparkStreamingTests {
 		try {
 			String stream = String.format("%s | spark-word-count | %s", source, sink);
 			streamOps.create(streamName, stream);
-			source.ensureReady().postData("foo foo foo");
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			sink.cleanup();
+		}
+	}
+
+	@Test
+	public void testSparkScalaProcessor() throws Exception {
+		HttpSource source = new HttpSource(shell);
+		String streamName =  "SparkScalaProcessorModuleTest" + new Random().nextInt();
+		FileSink sink = new FileSink().binary(true);
+		try {
+			String stream = String.format("%s | spark-scala-word-count | %s", source, sink);
+			streamOps.create(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
 		}
 		finally {
@@ -108,6 +125,26 @@ public abstract class AbstractSparkStreamingTests {
 		try {
 			final HttpSource source = new HttpSource(shell);
 			final String stream = String.format("%s | spark-log --filePath=%s", source, fileName);
+			streamOps.create(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			if (file.exists()) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test
+	public void testSparkScalaLog() throws Exception {
+		String streamName = "SparkScalaLogModuleTest" + new Random().nextInt();
+		String fileName = streamName + ".txt";
+		File file = new File(fileName);
+		try {
+			final HttpSource source = new HttpSource(shell);
+			final String stream = String.format("%s | spark-scala-log --filePath=%s", source, fileName);
 			streamOps.create(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));

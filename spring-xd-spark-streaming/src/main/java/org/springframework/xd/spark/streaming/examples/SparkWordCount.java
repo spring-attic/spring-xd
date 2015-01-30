@@ -25,10 +25,11 @@ import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaDStreamLike;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
-import scala.Tuple2;
 
-import org.springframework.xd.spark.streaming.Processor;
+import org.springframework.xd.spark.streaming.java.Processor;
 import org.springframework.xd.spark.streaming.SparkConfig;
+
+import scala.Tuple2;
 
 /**
  * @author Mark Fisher
@@ -64,7 +65,7 @@ public class SparkWordCount implements Processor {
 	@SparkConfig
 	public Properties getSparkConfigProperties() {
 		Properties props = new Properties();
-		props.setProperty("spark.master", "local[4]");
+		props.setProperty(SPARK_MASTER_URL_PROP, "local[4]");
 		return props;
 	}
 }

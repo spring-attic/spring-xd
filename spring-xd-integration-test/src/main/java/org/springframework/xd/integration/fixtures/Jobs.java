@@ -18,13 +18,7 @@ package org.springframework.xd.integration.fixtures;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.integration.util.XdEnvironment;
-import org.springframework.xd.test.fixtures.FileJdbcJob;
-import org.springframework.xd.test.fixtures.FilePollHdfsJob;
-import org.springframework.xd.test.fixtures.FtpHdfsJob;
-import org.springframework.xd.test.fixtures.HdfsJdbcJob;
-import org.springframework.xd.test.fixtures.HdfsMongoDbJob;
-import org.springframework.xd.test.fixtures.JdbcHdfsJob;
-import org.springframework.xd.test.fixtures.PartitionedJdbcHdfsJob;
+import org.springframework.xd.test.fixtures.*;
 
 
 /**
@@ -114,11 +108,22 @@ public class Jobs {
 	}
 
 	/**
-	 * 
+	 * Create a FtpHdfsJob Fixture using defaults.
 	 * @return a FtpHdfsJob instance
 	 */
 	public FtpHdfsJob ftpHdfsJob() {
 		FtpHdfsJob ftpHdfsJob = FtpHdfsJob.withDefaults();
 		return ftpHdfsJob;
+	}
+
+	/**
+	 * Create a new SparkAppJob fixture instance that is configured via property files
+	 * or environment variables.
+	 * @return SparkAppJob instance
+	 */
+	public SparkAppJob sparkAppJob() {
+		SparkAppJob sparkAppJob =  new SparkAppJob(environment.getSparkAppName(), environment.getSparkAppJar(),
+				environment.getSparkAppMainClass(),environment.getSparkMaster());
+		return sparkAppJob.sparkAppJarSource(environment.getSparkAppJarSource());
 	}
 }

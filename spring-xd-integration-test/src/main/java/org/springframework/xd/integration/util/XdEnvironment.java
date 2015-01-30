@@ -161,6 +161,21 @@ public class XdEnvironment implements BeanClassLoaderAware {
 	@Value("${tcp.client.port}")
 	private int tcpClientPort;
 
+	@Value("${spark.app.name}")
+	private String sparkAppName;
+
+	@Value("${spark.app.jar}")
+	private String sparkAppJar;
+
+	@Value("${spark.app.jar.source}")
+	private String sparkAppJarSource;
+
+	@Value("${spark.master}")
+	private String sparkMaster;
+
+	@Value("${spark.app.main.class}")
+	private String sparkAppMainClass;
+
 	private Properties artifactProperties;
 
 	/**
@@ -411,4 +426,43 @@ public class XdEnvironment implements BeanClassLoaderAware {
 		return tcpClientHost;
 	}
 
+	/**
+	 * Retrieves the name associated with the Spark App
+	 * @return string containing the spark app name
+	 */
+	public String getSparkAppName() {
+		return sparkAppName;
+	}
+
+	/**
+	 * Retrieves the location of the SparkApp Jar
+	 * @return the location of the spark app jar.
+	 */
+	public String getSparkAppJar() {
+		return sparkAppJar;
+	}
+
+	/**
+	 * Retrieves URI (spark://host:port or the local setting (local[x]) for the spark master
+	 * @return the spark master to be used by the test.
+	 */
+	public String getSparkMaster() {
+		return sparkMaster;
+	}
+
+	/**
+	 * Retrieves the package.class of the Spark App
+	 * @return package and class of the spark app
+	 */
+	public String getSparkAppMainClass() {
+		return sparkAppMainClass;
+	}
+
+	/**
+	 * Retrieves the location of the spark app jar to be used for the test.
+	 * @return The location of the spark app jar to be used for the test.
+	 */
+	public String getSparkAppJarSource() {
+		return sparkAppJarSource;
+	}
 }

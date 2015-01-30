@@ -23,6 +23,7 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.integration.fixtures.Jobs;
 import org.springframework.xd.integration.fixtures.ModuleType;
 import org.springframework.xd.integration.util.StreamUtils;
@@ -176,29 +177,45 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 				&& jobDefinition.equals(resource.getDefinition());
 	}
 
-    /**
-     * Wait until the job is complete. If multiple job executions have been executed using this jobName,
-     * the method will only check the first job execution it retrieves from the datastore.  Hint: use a unique jobName,
-     * to guarantee that you will get zero or one jobExecution.
-     * @param jobName The name of the job to evaluate.
-     */
-    protected boolean waitForJobToComplete(String jobName) {
-        Assert.hasText(jobName, "The job name must be specified.");
+	/**
+	 * Wait until the job is complete. If multiple job executions have been executed using
+	 * this jobName, the method will only check the first job execution it retrieves from
+	 * the datastore.  Hint: use a unique jobName, to guarantee that you will get zero or
+	 * one jobExecution.
+	 *
+	 * @param jobName  The name of the job to evaluate.
+	 * @param waitTime The milliseconds that the method should wait for the job execution to complete.
+	 */
+	protected boolean waitForJobToComplete(String jobName, long waitTime) {
+		Assert.hasText(jobName, "The job name must be specified.");
 
-        boolean isJobComplete = isJobComplete(jobName);
-        long timeout = System.currentTimeMillis() + WAIT_TIME;
-        while (!isJobComplete && System.currentTimeMillis() < timeout) {
-            try {
-                Thread.sleep(1000);
-            }
-            catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IllegalStateException(e.getMessage(), e);
-            }
-            isJobComplete = isJobComplete(jobName);
-        }
-        return isJobComplete;
-    }
+		boolean isJobComplete = isJobComplete(jobName);
+		long timeout = System.currentTimeMillis() + waitTime;
+		while (!isJobComplete && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			isJobComplete = isJobComplete(jobName);
+		}
+		return isJobComplete;
+	}
+
+
+	/**
+	 * Wait until the job is complete up to default WAIT_TIME. If multiple job executions
+	 * have been executed using this jobName,
+	 * the method will only check the first job execution it retrieves from the datastore.
+	 * Hint: use a unique jobName, to guarantee that you will get zero or one jobExecution.
+	 *
+	 * @param jobName The name of the job to evaluate.
+	 */
+	protected boolean waitForJobToComplete(String jobName) {
+		Assert.hasText(jobName, "The job name must be specified.");
+		return waitForJobToComplete(jobName, WAIT_TIME);
+	}
 
     /**
      * Checks to see if the execution for the job is complete.
@@ -434,6 +451,19 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 		return results.get(0).getJobExecution().getStatus();
 	}
 
+	/**
+	 * Requests the steps execution details for a specific step from the admin server.
+	 * @param jobExecutionId The job execution id of the step to be interrogated.
+	 * @param stepExecutionId The step execution id of the step that will be interrogated.
+	 * @return The JSon Returned from the step execution request.
+	 */
+	protected String getStepResultJson(long jobExecutionId, long stepExecutionId){
+		RestTemplate restTemplate = new RestTemplate();
+		return  restTemplate.getForObject(
+				"{server}/jobs/executions/{jobexecutionid}/steps/{stepExecutionID}",
+				String.class, getEnvironment().getAdminServerUrl(), jobExecutionId,
+				stepExecutionId);
 
+	}
 
 }

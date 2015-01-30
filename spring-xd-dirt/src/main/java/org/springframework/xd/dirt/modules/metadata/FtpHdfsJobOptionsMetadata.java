@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.modules.metadata;
 
 import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
 import org.springframework.xd.module.options.mixins.HadoopConfigurationMixin;
+import org.springframework.xd.module.options.mixins.BatchJobSinglestepPartitionSupportOptionMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.types.Password;
@@ -29,7 +30,7 @@ import org.springframework.xd.module.options.types.Password;
  * @author Gary Russell
  * @author Thomas Risberg
  */
-@Mixin({BatchJobRestartableOptionMixin.class, HadoopConfigurationMixin.class })
+@Mixin({BatchJobRestartableOptionMixin.class, HadoopConfigurationMixin.class, BatchJobSinglestepPartitionSupportOptionMixin.class })
 public class FtpHdfsJobOptionsMetadata {
 
 	private String host;
@@ -39,9 +40,6 @@ public class FtpHdfsJobOptionsMetadata {
 	private String username;
 
 	private Password password;
-
-	private long partitionResultsTimeout = 300000;
-
 
 	public String getHost() {
 		return host;
@@ -77,15 +75,6 @@ public class FtpHdfsJobOptionsMetadata {
 	@ModuleOption("the password for the FTP connection")
 	public void setPassword(Password password) {
 		this.password = password;
-	}
-
-	public long getPartitionResultsTimeout() {
-		return partitionResultsTimeout;
-	}
-
-	@ModuleOption("time (ms) that the partition handler will wait for results")
-	public void setPartitionResultsTimeout(long partitionResultsTimeout) {
-		this.partitionResultsTimeout = partitionResultsTimeout;
 	}
 
 }

@@ -17,6 +17,7 @@
 package org.springframework.xd.jdbc;
 
 import org.springframework.xd.module.options.mixins.BatchJobDeleteFilesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobSinglestepPartitionSupportOptionMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 
 
@@ -29,7 +30,7 @@ import org.springframework.xd.module.options.spi.Mixin;
  * Note: Similar to ResourcesIntoJdbcJobModuleOptionsMetadata but adds deletion support, as the source is
  * file based.
  */
-@Mixin({ BatchJobDeleteFilesOptionMixin.class, ResourcesIntoJdbcJobModuleOptionsMetadata.class })
+@Mixin({ BatchJobDeleteFilesOptionMixin.class, ResourcesIntoJdbcJobModuleOptionsMetadata.class, BatchJobSinglestepPartitionSupportOptionMixin.class })
 public class FileJdbcJobOptionsMetadata {
 
 }

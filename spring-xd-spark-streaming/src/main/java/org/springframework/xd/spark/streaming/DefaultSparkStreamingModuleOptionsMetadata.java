@@ -23,13 +23,14 @@ import org.apache.spark.storage.StorageLevel;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
- * Default module options for {@link Processor}.
+ * Default module options for {@link org.springframework.xd.spark.streaming.SparkStreamingSupport}.
+ * Both the java and scala based implementations can extend this.
  *
  * @author Ilayaperumal Gopinathan
  */
 public class DefaultSparkStreamingModuleOptionsMetadata {
 
-	private String moduleExecutionFramework = Processor.MODULE_EXECUTION_FRAMEWORK;
+	private String moduleExecutionFramework = SparkStreamingSupport.MODULE_EXECUTION_FRAMEWORK;
 
 	private String batchInterval;
 

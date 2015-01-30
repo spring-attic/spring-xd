@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.spark.streaming.examples;
+package org.springframework.xd.spark.streaming.examples.java;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.spark.streaming.DefaultSparkStreamingModuleOptionsMetadata;
@@ -22,7 +22,7 @@ import org.springframework.xd.spark.streaming.DefaultSparkStreamingModuleOptions
 /**
  * @author Ilayaperumal Gopinathan
  */
-public class SparkLogModuleOptionsMetadata extends DefaultSparkStreamingModuleOptionsMetadata {
+public class LoggerModuleOptionsMetadata extends DefaultSparkStreamingModuleOptionsMetadata {
 
 	private String filePath;
 

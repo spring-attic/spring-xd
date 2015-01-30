@@ -850,6 +850,8 @@ project('spring-xd-module-spi') {
 
 project('spring-xd-spark-streaming') {
 	description = 'Spring XD spark streaming module'
+	apply plugin: 'scala'
+	tasks.withType(ScalaCompile) { scalaCompileOptions.useAnt = false }
 	dependencies {
 		compile("org.apache.spark:spark-streaming_$sparkScalaVersion:$sparkVersion") {
 			exclude group: 'hsqldb'

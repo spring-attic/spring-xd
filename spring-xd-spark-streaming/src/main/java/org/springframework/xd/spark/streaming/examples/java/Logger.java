@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.spark.streaming.examples;
+package org.springframework.xd.spark.streaming.examples.java;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -28,7 +28,7 @@ import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.api.java.JavaDStreamLike;
 
-import org.springframework.xd.spark.streaming.Processor;
+import org.springframework.xd.spark.streaming.java.Processor;
 import org.springframework.xd.spark.streaming.SparkConfig;
 
 /**
@@ -36,7 +36,7 @@ import org.springframework.xd.spark.streaming.SparkConfig;
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "serial" })
-public class SparkLog implements Processor {
+public class Logger implements Processor {
 
 	private static File file;
 
@@ -69,16 +69,22 @@ public class SparkLog implements Processor {
 
 					@Override
 					public void call(Iterator<?> items) throws Exception {
+						FileWriter fw;
+						BufferedWriter bw = null;
 						try {
-							FileWriter fw = new FileWriter(file.getAbsoluteFile());
-							final BufferedWriter bw = new BufferedWriter(fw);
+							fw = new FileWriter(file.getAbsoluteFile());
+							bw = new BufferedWriter(fw);
 							while (items.hasNext()) {
 								bw.append(items.next() + System.lineSeparator());
 							}
-							bw.close();
 						}
 						catch (IOException ioe) {
 							throw new RuntimeException(ioe);
+						}
+						finally {
+							if (bw != null) {
+								bw.close();
+							}
 						}
 					}
 				});

@@ -42,7 +42,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
 import org.springframework.xd.module.spark.streaming.SparkStreamingDriverModule;
 import org.springframework.xd.module.support.ModuleUtils;
-import org.springframework.xd.spark.streaming.Processor;
+import org.springframework.xd.spark.streaming.SparkStreamingSupport;
 
 /**
  * Determines the type of {@link Module} to create from the Module's metadata and creates a module instance. Also,
@@ -139,7 +139,7 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition,
 			ClassLoader moduleClassLoader, ModuleOptions moduleOptions) {
 		String name = (String) moduleOptions.asPropertySource().getProperty(MODULE_EXECUTION_FRAMEWORK_KEY);
-		if (Processor.MODULE_EXECUTION_FRAMEWORK.equals(name)) {
+		if (SparkStreamingSupport.MODULE_EXECUTION_FRAMEWORK.equals(name)) {
 			return SparkStreamingDriverModule.class;
 		}
 		else if (ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition, moduleClassLoader) != null) {

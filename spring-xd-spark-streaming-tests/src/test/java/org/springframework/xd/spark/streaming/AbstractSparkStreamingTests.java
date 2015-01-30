@@ -22,10 +22,13 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventuall
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.fileContent;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.Bootstrap;
@@ -55,7 +58,7 @@ public abstract class AbstractSparkStreamingTests {
 
 	private JLineShellComponent shell;
 
-	private StreamCommandTemplate streamOps;
+	protected StreamCommandTemplate streamOps;
 
 	private final String transport;
 
@@ -83,6 +86,10 @@ public abstract class AbstractSparkStreamingTests {
 		shell.stop();
 	}
 
+	protected void createStream(String streamName, String stream) {
+		streamOps.create(streamName, stream);
+	}
+
 	@Test
 	public void testSparkProcessor() throws Exception {
 		HttpSource source = new HttpSource(shell);
@@ -90,8 +97,25 @@ public abstract class AbstractSparkStreamingTests {
 		FileSink sink = new FileSink().binary(true);
 		try {
 			String stream = String.format("%s | spark-word-count | %s", source, sink);
-			streamOps.create(streamName, stream);
-			source.ensureReady().postData("foo foo foo");
+			createStream(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			sink.cleanup();
+		}
+	}
+
+	@Test
+	public void testSparkScalaProcessor() throws Exception {
+		HttpSource source = new HttpSource(shell);
+		String streamName =  "SparkScalaProcessorModuleTest" + new Random().nextInt();
+		FileSink sink = new FileSink().binary(true);
+		try {
+			String stream = String.format("%s | spark-scala-word-count | %s", source, sink);
+			createStream(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
 		}
 		finally {
@@ -108,7 +132,27 @@ public abstract class AbstractSparkStreamingTests {
 		try {
 			final HttpSource source = new HttpSource(shell);
 			final String stream = String.format("%s | spark-log --filePath=%s", source, fileName);
-			streamOps.create(streamName, stream);
+			createStream(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			if (file.exists()) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test
+	public void testSparkScalaLog() throws Exception {
+		String streamName = "SparkScalaLogModuleTest" + new Random().nextInt();
+		String fileName = streamName + ".txt";
+		File file = new File(fileName);
+		try {
+			final HttpSource source = new HttpSource(shell);
+			final String stream = String.format("%s | spark-scala-log --filePath=%s", source, fileName);
+			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
 		}

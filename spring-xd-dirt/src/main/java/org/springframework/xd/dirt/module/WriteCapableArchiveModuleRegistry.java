@@ -42,13 +42,13 @@ public class WriteCapableArchiveModuleRegistry extends ArchiveModuleRegistry imp
 	@Override
 	public boolean delete(ModuleDefinition definition) {
 		try {
-			File module = targetModuleLocation(definition);
-			boolean wasFile = module.exists() && !module.isDirectory() && module.delete();
-			if (wasFile) {
-				return true;
-			} else {
-				String filename = module.getName();
-				File asDir = new File(module.getParentFile(), filename.substring(0, filename.lastIndexOf('.')));
+			File moduleJarFile = targetModuleLocation(definition);
+			if (moduleJarFile.exists()) {
+				return moduleJarFile.delete();
+			}
+			else {
+				String filename = moduleJarFile.getName();
+				File asDir = new File(moduleJarFile.getParentFile(), filename.substring(0, filename.lastIndexOf('.')));
 				return asDir.exists() && asDir.isDirectory() && FileSystemUtils.deleteRecursively(asDir);
 			}
 		}
@@ -63,7 +63,8 @@ public class WriteCapableArchiveModuleRegistry extends ArchiveModuleRegistry imp
 			UploadedModuleDefinition uploadedModuleDefinition = (UploadedModuleDefinition) definition;
 			try {
 				File jar = targetModuleLocation(definition);
-				Assert.isTrue(!jar.exists(), "Could not install " + uploadedModuleDefinition + " at location " + jar + " as that file already exists");
+				Assert.isTrue(!jar.exists(), "Could not install " + uploadedModuleDefinition + " at location " + jar
+						+ " as that file already exists");
 				FileCopyUtils.copy(uploadedModuleDefinition.getBytes(), jar);
 				return true;
 			}

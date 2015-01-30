@@ -37,12 +37,10 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
 /**
- * An implementation of {@code WriteableModuleRegistry} dedicated to {@code CompositeModuleDefinition}s and that
- * uses ZooKeeper as storage mechanism.
- *
- * <p>Writes each definition to a node, such as:
- * {@code /xd/modules/[moduletype]/[modulename]} with the node data being a JSON representation of the module
- * definition.</p>
+ * An implementation of {@code WriteableModuleRegistry} dedicated to {@code CompositeModuleDefinition}s and that uses
+ * ZooKeeper as storage mechanism.
+ * <p>Writes each definition to a node, such as: {@code /xd/modules/[moduletype]/[modulename]} with the node data being
+ * a JSON representation of the module definition.</p>
  *
  * @author Mark Fisher
  * @author David Turanski
@@ -69,6 +67,10 @@ public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModul
 
 	@Override
 	public boolean delete(ModuleDefinition definition) {
+		Assert.notNull(definition, "'definition' cannot be null.");
+		if (!definition.isComposed()) {
+			return false;
+		}
 		String path = Paths.build(Paths.MODULES, definition.getType().toString(), definition.getName());
 		try {
 			// Delete actual definition
@@ -82,11 +84,11 @@ public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModul
 			}
 		}
 		catch (KeeperException.NoNodeException ignore) {
-			// Were not responsible for this definition
+			// We are not responsible for this definition
 			return false;
 		}
 		catch (Exception e) {
-			ZooKeeperUtils.wrapThrowable(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return true;
 	}
@@ -168,7 +170,7 @@ public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModul
 			}
 		}
 		catch (Exception e) {
-			ZooKeeperUtils.wrapThrowable(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 		return results;
 	}

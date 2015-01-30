@@ -25,8 +25,10 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.hadoop.test.context.HadoopDelegatingSmartContextLoader;
@@ -35,6 +37,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TestFtpServer;
+import org.springframework.xd.test.HostNotWindowsRule;
 
 
 /**
@@ -42,9 +45,12 @@ import org.springframework.xd.shell.util.TestFtpServer;
  * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(loader=HadoopDelegatingSmartContextLoader.class, classes = JobCommandWithHadoopTests.EmptyConfig.class)
+@ContextConfiguration(loader = HadoopDelegatingSmartContextLoader.class, classes = JobCommandWithHadoopTests.EmptyConfig.class)
 @MiniHadoopCluster
 public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
+
+	@ClassRule
+	public static HostNotWindowsRule hostNotWindowsRule = new HostNotWindowsRule();
 
 	private static final Log logger = LogFactory.getLog(JobCommandWithHadoopTests.class);
 
@@ -69,8 +75,10 @@ public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
 
 		try {
 			int port = server.getPort();
-			executeJobCreate("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port + " --fsUri=" + fs.getUri().toString());
-			checkForJobInList("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port + " --fsUri=" + fs.getUri().toString(), true);
+			executeJobCreate("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port + " --fsUri="
+					+ fs.getUri().toString());
+			checkForJobInList("myftphdfs", "ftphdfs --partitionResultsTimeout=120000 --port=" + port + " --fsUri="
+					+ fs.getUri().toString(), true);
 			executeJobLaunch("myftphdfs", "{\"-remoteDirectory\":\"ftpSource\",\"hdfsDirectory\":\"foo\"}");
 
 			Table jobExecutions = listJobExecutions();

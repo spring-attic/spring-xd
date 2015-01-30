@@ -16,6 +16,8 @@
 
 package org.springframework.xd.module.core;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -44,7 +47,6 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
-import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.SimpleModuleDefinition;
@@ -112,7 +114,7 @@ public abstract class SimpleModule extends AbstractModule {
 
 	/**
 	 * Subclasses implement this method to configure the application context from sources contained in the
-     * {@link org.springframework.xd.module.ModuleDefinition}
+	 * {@link org.springframework.xd.module.ModuleDefinition}
 	 */
 	protected abstract void configureModuleApplicationContext(SimpleModuleDefinition moduleDefinition);
 
@@ -154,6 +156,7 @@ public abstract class SimpleModule extends AbstractModule {
 		return this.properties;
 	}
 
+	@Override
 	public ConfigurableApplicationContext getApplicationContext() {
 		return this.context;
 	}
@@ -163,11 +166,11 @@ public abstract class SimpleModule extends AbstractModule {
 		return (this.context.isActive()) ? this.context.getBean(requiredType) : null;
 	}
 
-    public ClassLoader getClassLoader() {
-        return classLoader;
-    }
+	public ClassLoader getClassLoader() {
+		return classLoader;
+	}
 
-    @Override
+	@Override
 	public <T> T getComponent(String componentName, Class<T> requiredType) {
 		if (this.context.isActive() && this.context.containsBean(componentName)) {
 			return context.getBean(componentName, requiredType);
@@ -261,6 +264,13 @@ public abstract class SimpleModule extends AbstractModule {
 				throw new IllegalStateException(e);
 			}
 		}
+		if (ClassUtils.isAssignable(classLoader.getClass(), Closeable.class)) {
+			try {
+				((Closeable) classLoader).close();
+			}
+			catch (IOException e) {
+			}
+		}
 	}
 
 	private static ModuleOptions defaultModuleOptions() {
@@ -281,7 +291,7 @@ public abstract class SimpleModule extends AbstractModule {
 	 * @author Eric Bottard
 	 */
 	private static final class ModuleParentContextCloserApplicationListener extends
-			ParentContextCloserApplicationListener {
+	ParentContextCloserApplicationListener {
 
 		private final int index;
 

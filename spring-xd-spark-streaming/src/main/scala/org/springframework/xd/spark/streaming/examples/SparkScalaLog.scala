@@ -51,25 +51,29 @@ class SparkScalaLog extends Processor[String, String] {
   }
 
   def process(input: ReceiverInputDStream[String]): DStream[String] = {
-    if (input != null) {
       input.foreachRDD(rdd => {
         rdd.foreachPartition(partition => {
+          var fw: FileWriter = null
+          var bw: BufferedWriter = null
           try {
-            val fw: FileWriter = new FileWriter(file.getAbsoluteFile)
-            val bw: BufferedWriter = new BufferedWriter(fw)
+            fw = new FileWriter(file.getAbsoluteFile)
+            bw = new BufferedWriter(fw)
             while (partition.hasNext) {
               bw.append(partition.next.toString + System.lineSeparator)
             }
-            bw.close
           }
           catch {
             case ioe: IOException => {
               throw new RuntimeException(ioe)
             }
           }
+          finally {
+            if (bw != null) {
+              bw.close
+            }
+          }
         })
       })
-    }
     null
   }
 }

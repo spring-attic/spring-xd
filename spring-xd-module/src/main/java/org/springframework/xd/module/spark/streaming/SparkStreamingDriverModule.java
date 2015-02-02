@@ -291,25 +291,25 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 			//if (file.endsWith(".jar")) {
 			if (file.endsWith(".jar") && (// Add spark jars
 					file.contains("spark") ||
-							// Add SpringXD dependencies
-							file.contains("spring-xd-") ||
-							// Add Spring dependencies
-							file.contains("spring-core") ||
-							file.contains("spring-integration-core") ||
-							file.contains("spring-beans") ||
-							file.contains("spring-context") ||
-							file.contains("spring-boot") ||
-							file.contains("spring-aop") ||
-							file.contains("spring-expression") ||
-							file.contains("spring-messaging") ||
-							file.contains("spring-retry") ||
-							file.contains("spring-tx") ||
-							file.contains("spring-data-commons") ||
-							file.contains("spring-data-redis") ||
-							file.contains("commons-pool") ||
-							file.contains("jedis") ||
-							// Add codec dependency
-							file.contains("kryo"))) {
+					// Add SpringXD dependencies
+					file.contains("spring-xd-") ||
+					// Add Spring dependencies
+					file.contains("spring-core") ||
+					file.contains("spring-integration-core") ||
+					file.contains("spring-beans") ||
+					file.contains("spring-context") ||
+					file.contains("spring-boot") ||
+					file.contains("spring-aop") ||
+					file.contains("spring-expression") ||
+					file.contains("spring-messaging") ||
+					file.contains("spring-retry") ||
+					file.contains("spring-tx") ||
+					file.contains("spring-data-commons") ||
+					file.contains("spring-data-redis") ||
+					file.contains("commons-pool") ||
+					file.contains("jedis") ||
+					// Add codec dependency
+					file.contains("kryo"))) {
 				jars.add(file);
 			}
 		}

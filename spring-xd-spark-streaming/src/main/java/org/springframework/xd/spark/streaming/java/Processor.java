@@ -21,7 +21,7 @@ import org.apache.spark.streaming.api.java.JavaDStreamLike;
 import org.springframework.xd.spark.streaming.SparkStreamingSupport;
 
 /**
- * Interface for modules using the Spark Streaming API to process messages from the Message Bus.
+ * Interface for the Java based modules using the Spark Streaming API to process messages from the Message Bus.
  *
  * @author Mark Fisher
  */

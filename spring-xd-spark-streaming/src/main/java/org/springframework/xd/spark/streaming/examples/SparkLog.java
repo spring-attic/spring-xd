@@ -69,16 +69,22 @@ public class SparkLog implements Processor {
 
 					@Override
 					public void call(Iterator<?> items) throws Exception {
+						FileWriter fw;
+						BufferedWriter bw = null;
 						try {
-							FileWriter fw = new FileWriter(file.getAbsoluteFile());
-							final BufferedWriter bw = new BufferedWriter(fw);
+							fw = new FileWriter(file.getAbsoluteFile());
+							bw = new BufferedWriter(fw);
 							while (items.hasNext()) {
 								bw.append(items.next() + System.lineSeparator());
 							}
-							bw.close();
 						}
 						catch (IOException ioe) {
 							throw new RuntimeException(ioe);
+						}
+						finally {
+							if (bw != null) {
+								bw.close();
+							}
 						}
 					}
 				});

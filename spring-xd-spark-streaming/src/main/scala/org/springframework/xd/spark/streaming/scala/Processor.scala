@@ -20,6 +20,8 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport
 
 /**
  * Trait for scala modules using the Spark Streaming API to process messages from the Message Bus.
+ * @tparam A the type of the object received in the stream
+ * @tparam B the type of the object returned after the computation
  *
  * @author Ilayaperumal Gopinathan
  */

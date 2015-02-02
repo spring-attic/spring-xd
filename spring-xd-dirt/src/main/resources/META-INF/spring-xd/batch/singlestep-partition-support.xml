@@ -92,7 +92,7 @@
 	</bean>
 
 	<bean id="replyChannelRegistry" class="org.springframework.integration.channel.DefaultHeaderChannelRegistry">
-		<constructor-arg value="${partitionResultsTimeout}" />
+		<constructor-arg value="${partitionResultsTimeout:3600000}" />
 	</bean>
 
 </beans>

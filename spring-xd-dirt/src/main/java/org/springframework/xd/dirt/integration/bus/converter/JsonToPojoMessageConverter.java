@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 
 /**
- * 
+ *
  * @author David Turanski
  */
 public class JsonToPojoMessageConverter extends AbstractFromMessageConverter {
@@ -38,7 +38,7 @@ public class JsonToPojoMessageConverter extends AbstractFromMessageConverter {
 
 	@Override
 	protected Class<?>[] supportedPayloadTypes() {
-		return new Class<?>[] { String.class, byte[].class };
+		return new Class<?>[] {String.class, byte[].class};
 	}
 
 	@Override

@@ -56,7 +56,7 @@ class ModuleExecutor extends SparkStreamingModuleExecutor[ReceiverInputDStream[A
             }
           }
           if (partition.hasNext) {
-            messageSender.send(MessageBuilder.withPayload(partition.next().toString()).build())
+            messageSender.send(MessageBuilder.withPayload(partition.next()).build())
           }
         })
       })

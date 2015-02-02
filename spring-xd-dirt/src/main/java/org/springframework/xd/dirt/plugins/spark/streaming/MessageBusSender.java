@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.messaging.Message;
+import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.spark.streaming.SparkMessageSender;
 
@@ -53,19 +55,30 @@ class MessageBusSender extends SparkMessageSender {
 
 	private boolean running = false;
 
-	public MessageBusSender(String outputChannelName, Properties messageBusProperties, Properties moduleProducerProperties) {
-		this(null, outputChannelName, messageBusProperties, moduleProducerProperties);
+	private static final String OUTPUT = "output";
+
+	private final MimeType contentType;
+
+	private final SparkStreamingChannel outputChannel;
+
+	public MessageBusSender(String outputChannelName, Properties messageBusProperties,
+			Properties moduleProducerProperties, MimeType contentType) {
+		this(null, outputChannelName, messageBusProperties, moduleProducerProperties, contentType);
 	}
 
-	public MessageBusSender(LocalMessageBusHolder messageBusHolder, String outputChannelName, Properties messageBusProperties, Properties moduleProducerProperties) {
+	public MessageBusSender(LocalMessageBusHolder messageBusHolder, String outputChannelName,
+			Properties messageBusProperties, Properties moduleProducerProperties, MimeType contentType) {
 		this.messageBusHolder = messageBusHolder;
 		this.outputChannelName = outputChannelName;
 		this.messageBusProperties = messageBusProperties;
 		this.moduleProducerProperties = moduleProducerProperties;
+		this.contentType = contentType;
+		this.outputChannel = new SparkStreamingChannel();
 	}
 
 	@Override
 	public synchronized void start() {
+		outputChannel.setBeanName(OUTPUT);
 		if (messageBus == null) {
 			logger.info("starting MessageBusSender");
 			if (messageBusHolder != null) {
@@ -75,16 +88,24 @@ class MessageBusSender extends SparkMessageSender {
 				applicationContext = MessageBusConfiguration.createApplicationContext(messageBusProperties);
 				messageBus = applicationContext.getBean(MessageBus.class);
 			}
-			messageBus.bindProducer(outputChannelName, this, moduleProducerProperties);
+			if (contentType != null) {
+				outputChannel.configureMessageConverter(contentType);
+			}
+			messageBus.bindProducer(outputChannelName, outputChannel, moduleProducerProperties);
 		}
 		this.running = true;
+	}
+
+	@Override
+	public synchronized void send(Message message) {
+		this.outputChannel.send(message);
 	}
 
 	@Override
 	public synchronized void stop() {
 		if (this.isRunning() && messageBus != null) {
 			logger.info("stopping MessageBusSender");
-			messageBus.unbindProducer(outputChannelName, this);
+			messageBus.unbindProducer(outputChannelName, outputChannel);
 			if (applicationContext != null) {
 				applicationContext.close();
 				applicationContext = null;
@@ -98,5 +119,4 @@ class MessageBusSender extends SparkMessageSender {
 	public synchronized boolean isRunning() {
 		return this.running;
 	}
-
 }

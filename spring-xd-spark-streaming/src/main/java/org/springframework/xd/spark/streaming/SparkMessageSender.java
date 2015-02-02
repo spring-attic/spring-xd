@@ -18,21 +18,37 @@ package org.springframework.xd.spark.streaming;
 
 import java.io.Serializable;
 
-import org.springframework.integration.channel.DirectChannel;
+import org.springframework.messaging.Message;
 
 /**
- * Abstract serializable channel that sends Spark RDD items to the XD MessageBus.
+ * Abstract class that defines abstract methods to support sending the computed messages out of Spark cluster
+ * to XD MessageBus etc.
  *
  * @author Ilayaperumal Gopinathan
  */
-public abstract class SparkMessageSender extends DirectChannel implements Serializable {
+public abstract class SparkMessageSender implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-
+	/**
+	 * Start the message sender
+	 */
 	public abstract void start();
 
+	/**
+	 * Stop the message sender
+	 */
 	public abstract void stop();
 
+	/**
+	 * Check if the message sender is running
+	 * @return boolean true if the sender is running
+	 */
 	public abstract boolean isRunning();
+
+	/**
+	 * Send a message out of Spark cluster.
+	 *
+	 * @param message the message to send
+	 */
+	public abstract void send(Message message);
 
 }

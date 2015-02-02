@@ -22,14 +22,13 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventuall
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.fileContent;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
@@ -66,6 +65,9 @@ public abstract class AbstractSparkStreamingTests {
 		this.transport = transport;
 	}
 
+	@Rule
+	public TestName testName = new TestName();
+
 	@Before
 	public void setup() throws Exception {
 		RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
@@ -93,13 +95,48 @@ public abstract class AbstractSparkStreamingTests {
 	@Test
 	public void testSparkProcessor() throws Exception {
 		HttpSource source = new HttpSource(shell);
-		String streamName =  "SparkProcessorModuleTest" + new Random().nextInt();
+		String streamName =  testName.getMethodName() + new Random().nextInt();
 		FileSink sink = new FileSink().binary(true);
 		try {
-			String stream = String.format("%s | spark-word-count | %s", source, sink);
+			String stream = String.format("%s | spark-word-count | %s --inputType=text/plain", source, sink);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			sink.cleanup();
+		}
+	}
+
+	@Test
+	public void testSparkProcessorWithInputType() throws Exception {
+		HttpSource source = new HttpSource(shell);
+		String streamName =  testName.getMethodName()  + new Random().nextInt();
+		FileSink sink = new FileSink().binary(true);
+		try {
+			String stream = String.format("%s | spark-word-count --inputType=text/plain | %s " +
+					"--inputType=text/plain", source, sink);
+			createStream(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			sink.cleanup();
+		}
+	}
+
+	@Test
+	public void testSparkProcessorWithOutputType() throws Exception {
+		HttpSource source = new HttpSource(shell);
+		String streamName =  testName.getMethodName()  + new Random().nextInt();
+		FileSink sink = new FileSink().binary(true);
+		try {
+			String stream = String.format("%s | spark-word-count --outputType=application/json | %s", source, sink);
+			createStream(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("{\"_1\":\"foo\",\"_2\":3}"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);
@@ -110,10 +147,10 @@ public abstract class AbstractSparkStreamingTests {
 	@Test
 	public void testSparkScalaProcessor() throws Exception {
 		HttpSource source = new HttpSource(shell);
-		String streamName =  "SparkScalaProcessorModuleTest" + new Random().nextInt();
+		String streamName =  testName.getMethodName()  + new Random().nextInt();
 		FileSink sink = new FileSink().binary(true);
 		try {
-			String stream = String.format("%s | spark-scala-word-count | %s", source, sink);
+			String stream = String.format("%s | spark-scala-word-count | %s --inputType=text/plain", source, sink);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
@@ -125,8 +162,43 @@ public abstract class AbstractSparkStreamingTests {
 	}
 
 	@Test
+	public void testSparkScalaProcessorWithInputType() throws Exception {
+		HttpSource source = new HttpSource(shell);
+		String streamName =  testName.getMethodName()  + new Random().nextInt();
+		FileSink sink = new FileSink().binary(true);
+		try {
+			String stream = String.format("%s | spark-scala-word-count --inputType=text/plain | " +
+					"%s --inputType=text/plain", source, sink);
+			createStream(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			sink.cleanup();
+		}
+	}
+
+	@Test
+	public void testSparkScalaProcessorWithOutputType() throws Exception {
+		HttpSource source = new HttpSource(shell);
+		String streamName =  testName.getMethodName()  + new Random().nextInt();
+		FileSink sink = new FileSink().binary(true);
+		try {
+			String stream = String.format("%s | spark-scala-word-count --outputType=application/json | %s", source, sink);
+			createStream(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("{\"_1\":\"foo\",\"_2\":3}"))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			sink.cleanup();
+		}
+	}
+
+	@Test
 	public void testSparkLog() throws Exception {
-		String streamName = "SparkLogModuleTest" + new Random().nextInt();
+		String streamName = testName.getMethodName()  + new Random().nextInt();
 		String fileName = streamName + ".txt";
 		File file = new File(fileName);
 		try {
@@ -145,13 +217,53 @@ public abstract class AbstractSparkStreamingTests {
 	}
 
 	@Test
+	public void testSparkLogWithInputType() throws Exception {
+		String streamName = testName.getMethodName() + new Random().nextInt();
+		String fileName = streamName + ".txt";
+		File file = new File(fileName);
+		try {
+			final HttpSource source = new HttpSource(shell);
+			final String stream = String.format("%s | spark-log --filePath=%s --inputType=text/plain", source, fileName);
+			createStream(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			if (file.exists()) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test
 	public void testSparkScalaLog() throws Exception {
-		String streamName = "SparkScalaLogModuleTest" + new Random().nextInt();
+		String streamName = testName.getMethodName()  + new Random().nextInt();
 		String fileName = streamName + ".txt";
 		File file = new File(fileName);
 		try {
 			final HttpSource source = new HttpSource(shell);
 			final String stream = String.format("%s | spark-scala-log --filePath=%s", source, fileName);
+			createStream(streamName, stream);
+			source.ensureReady().postData(TEST_MESSAGE);
+			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			if (file.exists()) {
+				file.delete();
+			}
+		}
+	}
+
+	@Test
+	public void testSparkScalaLogWithInputType() throws Exception {
+		String streamName = testName.getMethodName()  + new Random().nextInt();
+		String fileName = streamName + ".txt";
+		File file = new File(fileName);
+		try {
+			final HttpSource source = new HttpSource(shell);
+			final String stream = String.format("%s | spark-scala-log --filePath=%s --inputType=text/plain", source, fileName);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));

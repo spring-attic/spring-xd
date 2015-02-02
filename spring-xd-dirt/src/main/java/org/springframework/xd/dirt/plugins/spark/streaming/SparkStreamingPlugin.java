@@ -36,6 +36,7 @@ import org.springframework.xd.dirt.integration.bus.ConnectionPropertyNames;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
+import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionSupport;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
@@ -91,7 +92,8 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 				throw new IllegalStateException("Either java or scala module should be present.");
 			}
 			String sparkMasterUrl = env.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP);
-			if (sparkConfigs != null && StringUtils.hasText(sparkConfigs.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP))) {
+			if (sparkConfigs != null &&
+					StringUtils.hasText(sparkConfigs.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP))) {
 				sparkMasterUrl = sparkConfigs.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP);
 			}
 			Assert.notNull(sparkMasterUrl, "Spark Master URL must be set.");
@@ -100,20 +102,24 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 			}
 			LocalMessageBusHolder messageBusHolder = new LocalMessageBusHolder();
 			messageBusHolder.set(module.getComponent(MessageBus.class));
-			receiver = new MessageBusReceiver(messageBusHolder, storageLevel, messageBusProperties, inboundModuleProperties);
+			receiver = new MessageBusReceiver(messageBusHolder, storageLevel, messageBusProperties,
+					inboundModuleProperties, ModuleTypeConversionSupport.getInputMimeType(module));
 			if (module.getType().equals(ModuleType.processor)) {
+				MessageBusSender sender = new MessageBusSender(messageBusHolder, getOutputChannelName(module),
+						messageBusProperties, outboundModuleProperties,
+						ModuleTypeConversionSupport.getOutputMimeType(module));
 				ConfigurableBeanFactory beanFactory = module.getApplicationContext().getBeanFactory();
-				MessageBusSender sender = new MessageBusSender(messageBusHolder,
-						getOutputChannelName(module), messageBusProperties, outboundModuleProperties);
 				beanFactory.registerSingleton("messageBusSender", sender);
 			}
 		}
 		else {
-			receiver = new MessageBusReceiver(storageLevel, messageBusProperties, inboundModuleProperties);
+			receiver = new MessageBusReceiver(storageLevel, messageBusProperties, inboundModuleProperties,
+					ModuleTypeConversionSupport.getInputMimeType(module));
 			if (module.getType().equals(ModuleType.processor)) {
 				ConfigurableBeanFactory beanFactory = module.getApplicationContext().getBeanFactory();
 				MessageBusSender sender = new MessageBusSender(getOutputChannelName(module),
-						messageBusProperties, outboundModuleProperties);
+						messageBusProperties, outboundModuleProperties,
+						ModuleTypeConversionSupport.getOutputMimeType(module));
 				beanFactory.registerSingleton("messageBusSender", sender);
 			}
 		}

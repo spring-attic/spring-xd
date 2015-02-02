@@ -21,7 +21,7 @@ package org.springframework.xd.dirt.module.store;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.ClassUtils;
 import org.apache.zookeeper.KeeperException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +35,8 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * An implementation of {@code WriteableModuleRegistry} dedicated to {@code CompositeModuleDefinition}s and that
@@ -69,6 +71,10 @@ public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModul
 
 	@Override
 	public boolean delete(ModuleDefinition definition) {
+		Assert.notNull(definition, "'definition' cannot be null.");
+		if (!ClassUtils.isAssignable(definition.getClass(), CompositeModuleDefinition.class)) {
+			return false;
+		}
 		String path = Paths.build(Paths.MODULES, definition.getType().toString(), definition.getName());
 		try {
 			// Delete actual definition
@@ -82,11 +88,11 @@ public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModul
 			}
 		}
 		catch (KeeperException.NoNodeException ignore) {
-			// Were not responsible for this definition
+			// We are not responsible for this definition
 			return false;
 		}
 		catch (Exception e) {
-			ZooKeeperUtils.wrapThrowable(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return true;
 	}
@@ -168,7 +174,7 @@ public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModul
 			}
 		}
 		catch (Exception e) {
-			ZooKeeperUtils.wrapThrowable(e);
+			throw ZooKeeperUtils.wrapThrowable(e);
 		}
 		return results;
 	}

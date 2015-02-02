@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<bean id="moduleTypeConversionPlugin" class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin">
+		<constructor-arg name="converters" ref="xd.messageConverters"/>
+		<constructor-arg name="customConverters" ref="customMessageConverters"/>
+	</bean>
+	
+	<util:list id="xd.messageConverters">
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.JsonToTupleMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.JsonToPojoMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.TupleToJsonMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.PojoToJsonMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.ByteArrayToStringMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.StringToByteArrayMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.PojoToStringMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.JavaToSerializedMessageConverter"/>
+			<bean class="org.springframework.xd.dirt.integration.bus.converter.SerializedToJavaMessageConverter"/>
+	</util:list>
+
+	<!-- Users can override this to add converters.-->
+	<util:list id="customMessageConverters"/>
+
+</beans>

@@ -71,7 +71,7 @@ public class ModuleExecutor implements SparkStreamingModuleExecutor<JavaDStreamL
 									}
 								}
 								while (results.hasNext()) {
-									messageSender.send(MessageBuilder.withPayload(results.next().toString()).build());
+									messageSender.send(MessageBuilder.withPayload(results.next()).build());
 								}
 							}
 							sender.stop();

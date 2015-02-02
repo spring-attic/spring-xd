@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.plugins.spark.streaming;
 
-import java.io.Serializable;
 import java.util.Properties;
 
 import org.apache.spark.storage.StorageLevel;
@@ -27,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
+import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 /**
@@ -57,16 +57,20 @@ class MessageBusReceiver extends Receiver {
 
 	private final Properties moduleConsumerProperties;
 
-	public MessageBusReceiver(StorageLevel storageLevel, Properties messageBusProperties, Properties moduleConsumerProperties) {
-		this(null, storageLevel, messageBusProperties, moduleConsumerProperties);
+	private final MimeType contentType;
+
+	public MessageBusReceiver(StorageLevel storageLevel, Properties messageBusProperties,
+			Properties moduleConsumerProperties, MimeType contentType) {
+		this(null, storageLevel, messageBusProperties, moduleConsumerProperties, contentType);
 	}
 
 	public MessageBusReceiver(LocalMessageBusHolder messageBusHolder, StorageLevel storageLevel,
-			Properties messageBusProperties, Properties moduleConsumerProperties) {
+			Properties messageBusProperties, Properties moduleConsumerProperties, MimeType contentType) {
 		super(storageLevel);
 		this.messageBusHolder = messageBusHolder;
 		this.messageBusProperties = messageBusProperties;
 		this.moduleConsumerProperties = moduleConsumerProperties;
+		this.contentType = contentType;
 	}
 
 	public void setInputChannelName(String channelName) {
@@ -76,6 +80,10 @@ class MessageBusReceiver extends Receiver {
 	@Override
 	public void onStart() {
 		logger.info("starting MessageBusReceiver");
+		final MessageStoringChannel messageStoringChannel = new MessageStoringChannel();
+		if (contentType != null) {
+			messageStoringChannel.configureMessageConverter(contentType);
+		}
 		MessageBus messageBus;
 		if (messageBusHolder != null) {
 			messageBus = messageBusHolder.get();
@@ -84,7 +92,7 @@ class MessageBusReceiver extends Receiver {
 			applicationContext = MessageBusConfiguration.createApplicationContext(messageBusProperties);
 			messageBus = applicationContext.getBean(MessageBus.class);
 		}
-		messageBus.bindConsumer(channelName, new MessageStoringChannel(), moduleConsumerProperties);
+		messageBus.bindConsumer(channelName, messageStoringChannel, moduleConsumerProperties);
 	}
 
 	@Override
@@ -96,13 +104,16 @@ class MessageBusReceiver extends Receiver {
 		}
 	}
 
-
 	/**
 	 * The {@link DirectChannel} that stores the received messages into Spark's memory.
 	 */
-	private class MessageStoringChannel extends DirectChannel implements Serializable {
+	private class MessageStoringChannel extends SparkStreamingChannel {
 
-		private static final long serialVersionUID = 1L;
+		private static final String INPUT = "input";
+
+		public MessageStoringChannel() {
+			this.setBeanName(INPUT);
+		}
 
 		@Override
 		protected boolean doSend(Message<?> message, long timeout) {

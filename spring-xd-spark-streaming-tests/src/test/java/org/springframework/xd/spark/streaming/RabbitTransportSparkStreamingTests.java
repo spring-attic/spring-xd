@@ -19,7 +19,7 @@ package org.springframework.xd.spark.streaming;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -34,9 +34,9 @@ public class RabbitTransportSparkStreamingTests extends AbstractSparkStreamingTe
 	@ClassRule
 	public static RabbitTestSupport rabbitTestSupport = new RabbitTestSupport();
 
-	protected List<String> queueNames = new ArrayList<String>();
+	protected static final List<String> queueNames = new ArrayList<String>();
 
-	private final RabbitAdmin rabbitAdmin;
+	private static RabbitAdmin rabbitAdmin;
 
 	public RabbitTransportSparkStreamingTests() {
 		super("rabbit");
@@ -49,9 +49,9 @@ public class RabbitTransportSparkStreamingTests extends AbstractSparkStreamingTe
 		addQueueNames(streamName, stream);
 	}
 
-	@After
-	public void cleanupRabbitQueues() {
-		super.tearDown();
+
+	@AfterClass
+	public static void cleanupRabbitQueues() {
 		for (String queueName: queueNames) {
 			rabbitAdmin.deleteQueue(queueName);
 		}

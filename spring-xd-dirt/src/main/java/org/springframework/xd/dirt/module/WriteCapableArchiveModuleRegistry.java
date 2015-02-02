@@ -42,17 +42,13 @@ public class WriteCapableArchiveModuleRegistry extends ArchiveModuleRegistry imp
 	@Override
 	public boolean delete(ModuleDefinition definition) {
 		try {
-			File moduleFile = targetModuleLocation(definition);
-			if (!moduleFile.exists()) {
-				return false;
-			}
-			boolean isArchive = !moduleFile.isDirectory();
-			if (isArchive) {
-				return moduleFile.delete();
+			File moduleJarFile = targetModuleLocation(definition);
+			if (moduleJarFile.exists()) {
+				return moduleJarFile.delete();
 			}
 			else {
-				String filename = moduleFile.getName();
-				File asDir = new File(moduleFile.getParentFile(), filename.substring(0, filename.lastIndexOf('.')));
+				String filename = moduleJarFile.getName();
+				File asDir = new File(moduleJarFile.getParentFile(), filename.substring(0, filename.lastIndexOf('.')));
 				return asDir.exists() && asDir.isDirectory() && FileSystemUtils.deleteRecursively(asDir);
 			}
 		}

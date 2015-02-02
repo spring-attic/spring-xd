@@ -405,6 +405,8 @@ project('spring-xd-dirt') {
 		compile("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
 			exclude group: 'jline', module: 'jline'
 		}
+		// Remove transitive dependency on jline
+		configurations.compile.exclude(group: 'jline', module: 'jline')
 		compile("org.apache.curator:curator-recipes:$curatorVersion") {
 			exclude group: 'org.apache.zookeeper', module: 'zookeeper'
 			exclude group: 'org.jboss.netty', module: 'netty'

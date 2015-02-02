@@ -174,8 +174,8 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 		mockMvc.perform(
 				get("/jobs/executions/2/steps/1/progress").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[*].stepExecution.id", Matchers.is(1)))
-				.andExpect(jsonPath("$[*].percentageComplete", Matchers.is(0.5)));
+				.andExpect(jsonPath("$.stepExecution.id", Matchers.is(1)))
+				.andExpect(jsonPath("$.percentageComplete", Matchers.is(0.5)));
 	}
 
 	@Test

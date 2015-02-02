@@ -199,18 +199,18 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 				.andExpect(jsonPath("$", Matchers.hasSize(1)))
 				.andExpect(jsonPath("$[0].executionId").value(3))
 				.andExpect(jsonPath("$[0].jobId").value(2))
-				.andExpect(jsonPath("$[0].jobExecution[*].id").value(3))
+				.andExpect(jsonPath("$[0].jobExecution.id").value(3))
 				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.value").value("test"))
+						jsonPath("$[0].jobExecution.jobParameters.parameters.param1.value").value("test"))
 				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.type").value("STRING"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.identifying").value(
+						jsonPath("$[0].jobExecution.jobParameters.parameters.param1.type").value("STRING"))
+				.andExpect(jsonPath("$[0].jobExecution.jobParameters.parameters.param1.identifying").value(
 						true))
 				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.value").value(123))
+						jsonPath("$[0].jobExecution.jobParameters.parameters.param2.value").value(123))
 				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.type").value("LONG"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.identifying").value(
+						jsonPath("$[0].jobExecution.jobParameters.parameters.param2.type").value("LONG"))
+				.andExpect(jsonPath("$[0].jobExecution.jobParameters.parameters.param2.identifying").value(
 						false));
 	}
 
@@ -218,18 +218,19 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	public void testGetBatchJobExecutions() throws Exception {
 		mockMvc.perform(
 				get("/jobs/executions").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
-				jsonPath("$.content[*]", Matchers.hasSize(2))).andExpect(jsonPath("$.content[*].executionId", contains(0, 3))).andExpect(
-				jsonPath("$.content[*].jobExecution[*].stepExecutions", Matchers.hasSize(2))).andExpect(
+						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(
+						jsonPath("$.content", Matchers.hasSize(2))).andExpect(jsonPath("$.content[*].executionId", contains(0, 3))).andExpect(
+				jsonPath("$.content[*].jobExecution.stepExecutions[*]", Matchers.hasSize(3))).andExpect(
 				jsonPath("$.content[*].jobId", contains(0, 2))).andExpect(jsonPath("$.content[*].deleted", contains(true, true))).andExpect(
 				jsonPath("$.content[*].deployed", contains(false, false))).andExpect(
-				jsonPath("$.content[*].jobExecution[*].id", contains(0, 3))).andExpect(
-				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param1.value", contains("test", "test"))).andExpect(
-				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param1.type", contains("STRING", "STRING"))).andExpect(
-				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param1.identifying", contains(true, true))).andExpect(
-				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param2.value", contains(123, 123))).andExpect(
-				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param2.type", contains("LONG", "LONG"))).andExpect(
-				jsonPath("$.content[*].jobExecution[*].jobParameters.parameters.param2.identifying", contains(false, false)));
+				jsonPath("$.content[*].jobExecution.id", contains(0, 3))).andExpect(
+				jsonPath("$.content[*].jobExecution.jobParameters.parameters.param1.value", contains("test", "test"))).andExpect(
+				jsonPath("$.content[*].jobExecution.jobParameters.parameters.param1.type", contains("STRING", "STRING"))).andExpect(
+				jsonPath("$.content[*].jobExecution.jobParameters.parameters.param1.identifying", contains(true, true))).andExpect(
+				jsonPath("$.content[*].jobExecution.jobParameters.parameters.param2.value", contains(123, 123))).andExpect(
+				jsonPath("$.content[*].jobExecution.jobParameters.parameters.param2.type", contains("LONG", "LONG"))).andExpect(
+				jsonPath("$.content[*].jobExecution.jobParameters.parameters.param2.identifying", contains(false, false)));
 	}
 
 	@Test

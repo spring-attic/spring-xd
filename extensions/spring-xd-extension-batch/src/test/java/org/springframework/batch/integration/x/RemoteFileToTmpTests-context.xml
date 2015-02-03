@@ -19,6 +19,7 @@
 
 	<util:properties id="props">
 		<prop key="restartable">false</prop>
+		<prop key="partitionResultsTimeout">3600000</prop>
 	</util:properties>
 
 	<bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">

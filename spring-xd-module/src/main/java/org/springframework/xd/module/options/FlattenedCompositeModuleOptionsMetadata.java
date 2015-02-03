@@ -61,13 +61,15 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 			Set<String> optionNames = new HashSet<String>();
 			momToSupportedOptions.put(delegate, optionNames);
 			for (ModuleOption option : delegate) {
-				if (options.get(option.getName()) != null) {
+				ModuleOption alreadyThere = options.get(option.getName());
+				// It's ok to have the exact "same" option in several delegates, e.g. via Mixin Diamond inheritance
+				if (alreadyThere != null && !alreadyThere.equals(option)) {
 					/*
 					 * XD-1472: InputType treated as a special case. If the module defines a default, do not replace it
 					 * with a null value (the global default)
 					 */
 					if (option.getName().equals(INPUT_TYPE)) {
-						inputType = options.get(option.getName());
+						inputType = alreadyThere;
 					}
 					else {
 						reportOptionCollision(delegates, option.getName());
@@ -87,12 +89,11 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 			for (ModuleOption option : delegate) {
 				if (option.getName().equals(optionName)) {
 					offenders.add(delegate);
-					break;
 				}
 			}
 		}
 		throw new IllegalArgumentException(String.format(
-				"Module option named '%s' is present in several delegates: %s",
+				"Module option named '%s' is present in several delegates, with different attributes: %s",
 				optionName, offenders));
 	}
 

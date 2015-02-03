@@ -18,6 +18,7 @@
 	<util:properties id="props">
 		<prop key="restartable">false</prop>
 		<prop key="xd.config.home">file:../../config</prop>
+		<prop key="partitionResultsTimeout">3600000</prop>
 	</util:properties>
 
 	<import resource="file:../../modules/job/ftphdfs/config/ftphdfs.xml" />

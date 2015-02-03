@@ -18,6 +18,7 @@
 
 package org.springframework.xd.module.options.mixins;
 
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
@@ -25,6 +26,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  *
  * @author Eric Bottard
  */
+@Mixin(BatchJobRestartableOptionMixin.class)
 public class BatchJobSinglestepPartitionSupportOptionMixin {
 
 	private long partitionResultsTimeout = 300000;

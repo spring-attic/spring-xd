@@ -260,6 +260,7 @@ configure(javaProjects) { subproject ->
 					events 'started'
 				}
 			}
+			
 			environment 'SI_FATAL_WHEN_NO_BEANFACTORY', 'true'
 		}
 
@@ -873,6 +874,18 @@ project('spring-xd-spark-streaming-tests') {
 		testCompile project(":spring-xd-dirt")
 		testCompile project(":spring-xd-extension-http")
 		testCompile project(":spring-xd-test-fixtures")
+	}
+
+	test {
+		forkEvery=1
+		if (System.getProperty('os.name').startsWith('Windows')) {
+			if (project.hasProperty('hadoop.home.dir')) {
+				systemProperty "hadoop.home.dir", getProperty('hadoop.home.dir')
+			} 
+			else {
+				println "WARNING - `hadoop.home.dir` is not set. Use -Phadoop.home.dir=[].\n see https://github.com/spring-projects/spring-hadoop/wiki/Using-a-Windows-client-together-with-a-Linux-cluster"
+			}
+		}
 	}
 }
 

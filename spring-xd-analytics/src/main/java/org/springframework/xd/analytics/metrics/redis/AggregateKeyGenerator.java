@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * <li>One hash per day with a field per hour</li>
  * <li>One hash per hour with a field per minute</li>
  * </ol>
- * 
+ *
  * @author Mark Pollack
  * @author Luke Taylor
  */

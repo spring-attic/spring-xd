@@ -1,28 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
-	<context:property-placeholder />
+	<context:property-placeholder/>
 
-	<int:channel id="input" />
+	<int:channel id="input"/>
 
 	<int:chain input-channel="input">
-		<int:transformer expression="${valueExpression:payload}" />
-		<int:service-activator ref="handler" />
+		<int:transformer expression="${valueExpression:payload}"/>
+		<int:service-activator ref="handler"/>
 	</int:chain>
 
 	<bean id="handler"
-		class="org.springframework.xd.analytics.metrics.integration.GaugeHandler">
-		<constructor-arg ref="repository" />
-		<constructor-arg value="'test'" />
+		  class="org.springframework.xd.analytics.metrics.integration.GaugeHandler">
+		<constructor-arg ref="repository"/>
+		<constructor-arg value="'test'"/>
 	</bean>
 
 	<bean id="repository"
-		class="org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository">
-		<constructor-arg ref="connectionFactory" />
+		  class="org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository">
+		<constructor-arg ref="connectionFactory"/>
+		<constructor-arg>
+			<null/>
+		</constructor-arg>
 	</bean>
 
 </beans>

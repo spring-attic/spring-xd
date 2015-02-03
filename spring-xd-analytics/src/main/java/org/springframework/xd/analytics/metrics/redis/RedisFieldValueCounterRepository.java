@@ -16,6 +16,14 @@
 
 package org.springframework.xd.analytics.metrics.redis;
 
+import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.retry.RetryOperations;
+import org.springframework.util.Assert;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,34 +31,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
-import org.springframework.util.Assert;
-import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
-import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
-
 public class RedisFieldValueCounterRepository implements FieldValueCounterRepository {
 
 	private final String metricPrefix;
 
-	private final StringRedisTemplate redisTemplate;
+	private final StringRedisRetryTemplate redisTemplate;
 
 	private static final String MARKER = "_marker_";
 
-	public RedisFieldValueCounterRepository(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, "fieldvaluecounters.");
+	public RedisFieldValueCounterRepository(RedisConnectionFactory connectionFactory, RetryOperations retryOperations) {
+		this(connectionFactory, "fieldvaluecounters.", retryOperations);
 	}
 
-	public RedisFieldValueCounterRepository(RedisConnectionFactory connectionFactory, String metricPrefix) {
+	public RedisFieldValueCounterRepository(RedisConnectionFactory connectionFactory, String metricPrefix,
+											RetryOperations retryOperations) {
 		Assert.notNull(connectionFactory);
 		Assert.hasText(metricPrefix, "metric prefix cannot be empty");
 		this.metricPrefix = metricPrefix;
-		redisTemplate = new StringRedisTemplate();
+		redisTemplate = new StringRedisRetryTemplate(connectionFactory, retryOperations);
 		// avoids proxy
 		redisTemplate.setExposeConnection(true);
-		redisTemplate.setConnectionFactory(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 	}
 

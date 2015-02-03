@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- 
+  Empty configuration file. Apache Pig requires this file or core-site.xml to be 
+  on the classpath, so we include this empty file. All Hadoop configuration is 
+  done using settings in Spring XD's servers.yml
+-->
+
+<configuration>
+</configuration>

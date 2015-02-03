@@ -64,7 +64,7 @@ public class RedisRichGaugeRepositoryTests extends AbstractRichGaugeRepositoryTe
 
 	@Test
 	public void testAtomicity() throws Exception {
-		RedisRichGaugeRepository modified = new RedisRichGaugeRepository(connectionFactory) {
+		RedisRichGaugeRepository modified = new RedisRichGaugeRepository(connectionFactory, null) {
 			/*
 			 * Use a modified version of the repo that introduces a pause in the atomic unit, so that we can
 			 * interfere from another thread.

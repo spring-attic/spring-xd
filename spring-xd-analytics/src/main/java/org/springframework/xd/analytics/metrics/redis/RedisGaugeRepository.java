@@ -17,6 +17,7 @@
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.retry.RetryOperations;
 import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 
@@ -29,14 +30,15 @@ import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 public class RedisGaugeRepository extends AbstractRedisMetricRepository<Gauge, Long>
 		implements GaugeRepository {
 
-	public RedisGaugeRepository(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, "gauges.");
+	public RedisGaugeRepository(RedisConnectionFactory connectionFactory, RetryOperations retryOperations) {
+		this(connectionFactory, "gauges.", retryOperations);
 	}
 
 	public RedisGaugeRepository(RedisConnectionFactory connectionFactory,
-			String gaugePrefix) {
-		super(connectionFactory, gaugePrefix, Long.class);
+								String gaugePrefix, RetryOperations retryOperations) {
+		super(connectionFactory, gaugePrefix, Long.class, retryOperations);
 	}
+
 
 	@Override
 	Gauge create(String name, Long value) {

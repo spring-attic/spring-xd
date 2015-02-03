@@ -17,18 +17,30 @@
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.retry.RetryOperations;
 
 /**
- * 
+ * Utility to create a RedisRetryTemplate instance property configured for use with XD analytical operations
+ *
  * @author Luke Taylor
  */
 class RedisUtils {
 
-	static <K, V> RedisTemplate<K, V> createRedisTemplate(RedisConnectionFactory connectionFactory, Class<V> valueClass) {
-		RedisTemplate<K, V> redisTemplate = new RedisTemplate<K, V>();
+	/**
+	 * Create a RedisRetryTemplate for a specific value class and serializer options.
+	 * @param connectionFactory the connection factory to use
+	 * @param valueClass the class to use for the {@link org.springframework.data.redis.serializer.RedisSerializer}
+	 *                   for values.
+	 * @param retryOperations
+	 * @param <K> the Redis key type against which the template works (usually a String)
+	 * @param <V> the Redis value type against which the template works
+	 * @return a newly instantiated RedisRetryTemplate
+	 */
+	static <K, V> RedisRetryTemplate<K, V> createRedisRetryTemplate(RedisConnectionFactory connectionFactory, Class<V> valueClass,
+															   RetryOperations retryOperations) {
+		RedisRetryTemplate<K, V> redisTemplate = new RedisRetryTemplate<K, V>();
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new GenericToStringSerializer<V>(valueClass));
 
@@ -36,6 +48,8 @@ class RedisUtils {
 		redisTemplate.setExposeConnection(true);
 
 		redisTemplate.setConnectionFactory(connectionFactory);
+		redisTemplate.setRetryOperations(retryOperations);
+
 		redisTemplate.afterPropertiesSet();
 		return redisTemplate;
 	}

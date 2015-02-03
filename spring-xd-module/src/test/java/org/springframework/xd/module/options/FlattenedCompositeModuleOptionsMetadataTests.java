@@ -22,8 +22,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.springframework.xd.module.options.ModuleOptionMatchers.moduleOptionNamed;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Rule;
@@ -132,16 +134,30 @@ public class FlattenedCompositeModuleOptionsMetadataTests {
 	}
 
 	@Test
-	public void testDuplicateOption() {
-		thrown.expect(IllegalArgumentException.class);
-		thrown.expectMessage("foo");
-		thrown.expectMessage("OverlappingPojo");
-		thrown.expectMessage("BackingPojo");
-
-		new FlattenedCompositeModuleOptionsMetadata(
+	public void testExactDuplicateOptionOverlap() {
+		FlattenedCompositeModuleOptionsMetadata metadata = new FlattenedCompositeModuleOptionsMetadata(
 				Arrays.asList(
 						new PojoModuleOptionsMetadata(BackingPojo.class),
 						new PojoModuleOptionsMetadata(OverlappingPojo.class)));
+		List<String> names = new ArrayList<String>();
+		for (ModuleOption moduleOption : metadata) {
+			names.add(moduleOption.getName());
+		}
+		assertThat(names.size(), equalTo(2));
+		assertThat(names.toArray(new String[0]), arrayContainingInAnyOrder("bar", "foo"));
+	}
+
+	@Test
+	public void testSlightlyDifferentOptionOverlap() {
+		thrown.expect(IllegalArgumentException.class);
+		thrown.expectMessage("foo");
+		thrown.expectMessage("AlmostOverlappingPojo");
+		thrown.expectMessage("BackingPojo");
+
+		FlattenedCompositeModuleOptionsMetadata metadata = new FlattenedCompositeModuleOptionsMetadata(
+				Arrays.asList(
+						new PojoModuleOptionsMetadata(BackingPojo.class),
+						new PojoModuleOptionsMetadata(AlmostOverlappingPojo.class)));
 	}
 
 }

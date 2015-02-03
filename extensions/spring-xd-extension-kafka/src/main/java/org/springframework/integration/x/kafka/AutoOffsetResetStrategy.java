@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-
 package org.springframework.integration.x.kafka;
 
-import org.springframework.integration.kafka.core.Partition;
-import org.springframework.integration.kafka.listener.OffsetManager;
+import kafka.api.OffsetRequest;
 
 /**
- * An {@link OffsetManager} with the ability of deleting entries
- *
- * To be refactored once https://jira.spring.io/browse/INTEXT-131 is fixed
+ * The possible values for automatically resetting the offset of Kafka client
  *
  * @author Marius Bogoevici
  */
-public interface DeletableOffsetManager extends OffsetManager {
+public enum AutoOffsetResetStrategy {
 
-	/**
-	 * Removes the offset for a given {@link Partition}.
-	 *
-	 * @param partition
-	 */
-	void deleteOffset(Partition partition);
+	smallest(OffsetRequest.EarliestTime()),
+	largest(OffsetRequest.LatestTime());
 
+	private long code;
+
+	AutoOffsetResetStrategy(long code) {
+		this.code = code;
+	}
+
+	public long code() {
+		return code;
+	}
 }

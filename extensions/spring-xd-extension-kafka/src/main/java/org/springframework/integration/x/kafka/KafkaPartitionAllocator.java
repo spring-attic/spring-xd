@@ -48,6 +48,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.integration.kafka.core.BrokerAddress;
 import org.springframework.integration.kafka.core.ConnectionFactory;
 import org.springframework.integration.kafka.core.Partition;
+import org.springframework.integration.kafka.listener.OffsetManager;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -91,7 +92,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 
 	private final CuratorFramework client;
 
-	private final DeletableOffsetManager offsetManager;
+	private final OffsetManager offsetManager;
 
 	private final String moduleName;
 
@@ -107,7 +108,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 
 	public KafkaPartitionAllocator(CuratorFramework client, ConnectionFactory connectionFactory, String moduleName,
 			String streamName, String topic, String partitionList, int sequence, int count,
-			DeletableOffsetManager offsetMetadataStore) {
+			OffsetManager offsetManager) {
 		Assert.notNull(connectionFactory, "cannot be null");
 		Assert.hasText(moduleName, "cannot be empty");
 		Assert.hasText(streamName, "cannot be empty");
@@ -123,7 +124,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 		this.partitionList = partitionList;
 		this.sequence = sequence;
 		this.count = count;
-		this.offsetManager = offsetMetadataStore;
+		this.offsetManager = offsetManager;
 		this.partitionDataPath = String.format("/sources/%s/%s", this.streamName, this.moduleName);
 	}
 

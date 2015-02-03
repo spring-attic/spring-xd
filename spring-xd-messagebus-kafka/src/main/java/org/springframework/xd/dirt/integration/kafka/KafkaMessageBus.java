@@ -46,15 +46,13 @@ import kafka.serializer.DefaultDecoder;
 import kafka.serializer.DefaultEncoder;
 import kafka.serializer.StringEncoder;
 import kafka.utils.ZkUtils;
-
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
-
 import scala.collection.Seq;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -65,16 +63,15 @@ import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.core.ZookeeperConfiguration;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.integration.kafka.listener.MetadataStoreOffsetManager;
+import org.springframework.integration.kafka.listener.KafkaTopicOffsetManager;
+import org.springframework.integration.kafka.listener.OffsetManager;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerFactoryBean;
 import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
-import org.springframework.integration.x.kafka.KafkaTopicMetadataStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
@@ -378,7 +375,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 			}
 
 			ProducerFactoryBean<String, byte[]> producerFB =
-					new ProducerFactoryBean<String, byte[]>(producerMetadata, brokers,	additionalProps);
+					new ProducerFactoryBean<String, byte[]>(producerMetadata, brokers, additionalProps);
 
 			try {
 				final Producer<String, byte[]> producer = producerFB.getObject();
@@ -393,7 +390,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 					protected void handleMessageInternal(Message<?> message) throws Exception {
 						// strip off the message key used internally by the bus and use a partitioning key for partitioning
 						producerConfiguration.getProducer()
-								.send(new KeyedMessage<String, byte[]>(topicName, null, message.getHeaders().get("messageKey",Integer.class), (byte[])message.getPayload()));
+								.send(new KeyedMessage<String, byte[]>(topicName, null, message.getHeaders().get("messageKey", Integer.class), (byte[]) message.getPayload()));
 					}
 				};
 
@@ -489,7 +486,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 					}
 				});
 				// work around an issue in Spring
-				this.connectionFactory.refreshLeaders(Collections.<String>emptySet());
+				this.connectionFactory.refreshMetadata(Collections.<String>emptySet());
 
 				return topicMetadata;
 			}
@@ -519,6 +516,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		String topic = escapeTopicName(name);
 
 		ensureTopicCreated(topic, accessor.getCount() * concurrency, defaultReplicationFactor);
+
+		connectionFactory.refreshMetadata(Collections.singleton(topic));
 
 		Decoder<byte[]> valueDecoder = new DefaultDecoder(null);
 		Decoder<Integer> keyDecoder = new IntegerEncoderDecoder();
@@ -574,7 +573,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
-		ReceivingHandler rh = new ReceivingHandler(kafkaMessageDrivenChannelAdapter);
+		ReceivingHandler rh = new ReceivingHandler(kafkaMessageDrivenChannelAdapter,
+				messageListenerContainer.getOffsetManager());
 		rh.setOutputChannel(moduleInputChannel);
 		EventDrivenConsumer edc = new EventDrivenConsumer(bridge, rh);
 		edc.setBeanName("inbound." + name);
@@ -612,18 +612,16 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 		// if we have less target partitions than target concurrency, adjust accordingly
 		messageListenerContainer.setConcurrency(Math.min(numThreads, listenedPartitions.size()));
-		KafkaTopicMetadataStore springXDOffsets =
-				new KafkaTopicMetadataStore(zookeeperConnect, connectionFactory, offsetStoreTopic);
+		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
+				Collections.<Partition, Long>emptyMap());
+		offsetManager.setConsumerId(group);
+		offsetManager.setReferenceTimestamp(referencePoint);
 		try {
-			springXDOffsets.afterPropertiesSet();
+			offsetManager.afterPropertiesSet();
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		MetadataStoreOffsetManager offsetManager = new MetadataStoreOffsetManager(connectionFactory);
-		offsetManager.setMetadataStore(springXDOffsets);
-		offsetManager.setConsumerId(group);
-		offsetManager.setReferenceTimestamp(referencePoint);
 		messageListenerContainer.setOffsetManager(offsetManager);
 		return messageListenerContainer;
 	}
@@ -680,8 +678,12 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		private KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter;
 
-		public ReceivingHandler(KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter) {
+		private OffsetManager offsetManager;
+
+		public ReceivingHandler(KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter,
+				OffsetManager offsetManager) {
 			this.kafkaMessageDrivenChannelAdapter = kafkaMessageDrivenChannelAdapter;
+			this.offsetManager = offsetManager;
 			this.setBeanFactory(KafkaMessageBus.this.getBeanFactory());
 		}
 
@@ -704,6 +706,14 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		@Override
 		public void stop() {
+			if (offsetManager instanceof DisposableBean) {
+				try {
+					((DisposableBean) offsetManager).destroy();
+				}
+				catch (Exception e) {
+					logger.error("Error while closing the offset manager", e);
+				}
+			}
 			kafkaMessageDrivenChannelAdapter.stop();
 		}
 
@@ -758,7 +768,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 				int springXdPartition = determinePartition(message, partitioningMetadata);
 				// in order to do so, we will generate a number whose modulus when applied to total partition count
 				// is equal to springXdPartition
-				partition = (roundRobin()%factor) * partitioningMetadata.getPartitionCount() + springXdPartition;
+				partition = (roundRobin() % factor) * partitioningMetadata.getPartitionCount() + springXdPartition;
 			}
 			else {
 				// The value will be modulo-ed by numPartitions by Kafka itself

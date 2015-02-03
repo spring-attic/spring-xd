@@ -16,7 +16,9 @@
 
 package org.springframework.integration.x.kafka;
 
-import javax.validation.constraints.AssertTrue;
+import static org.springframework.integration.x.kafka.AutoOffsetResetStrategy.smallest;
+
+import javax.validation.constraints.NotNull;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 
@@ -25,6 +27,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Module options for Kafka consumer configuration.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Marius Bogoevici
  */
 public class KafkaConsumerOptionsMixin {
 
@@ -38,7 +41,7 @@ public class KafkaConsumerOptionsMixin {
 
 	private int fetchMaxWait = 100;
 
-	private String autoOffsetReset = "smallest";
+	private AutoOffsetResetStrategy autoOffsetReset = smallest;
 
 	public int getSocketTimeout() {
 		return socketTimeout;
@@ -85,17 +88,18 @@ public class KafkaConsumerOptionsMixin {
 		this.fetchMaxWait = fetchMaxWait;
 	}
 
-	public String getAutoOffsetReset() {
+	@NotNull(message = "AutoOffset Reset must either be 'smallest' or 'largest'")
+	public AutoOffsetResetStrategy getAutoOffsetReset() {
 		return autoOffsetReset;
 	}
 
 	@ModuleOption("strategy to reset the offset when there is no initial offset in ZK or if an offset is out of range")
-	public void setAutoOffsetReset(String autoOffsetReset) {
+	public void setAutoOffsetReset(AutoOffsetResetStrategy autoOffsetReset) {
 		this.autoOffsetReset = autoOffsetReset;
 	}
 
-	@AssertTrue(message = "AutoOffset Reset can either be 'smallest' or 'largest'")
-	public boolean isValidAutoOffsetReset() {
-		return (this.autoOffsetReset.equals("smallest") || this.autoOffsetReset.equals("largest"));
+	public long getAutoOffsetResetValue() {
+		return autoOffsetReset.code();
 	}
+
 }

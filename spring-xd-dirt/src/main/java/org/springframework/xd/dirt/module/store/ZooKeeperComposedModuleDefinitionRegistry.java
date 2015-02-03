@@ -174,7 +174,7 @@ public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModul
 			}
 		}
 		catch (Exception e) {
-			throw ZooKeeperUtils.wrapThrowable(e);
+			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NoNodeException.class);
 		}
 		return results;
 	}

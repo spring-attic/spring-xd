@@ -61,10 +61,19 @@ public class DefaultModuleOptionsMetadataResolverTests {
 						moduleOptionNamed("optionDefinedHere")));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
 	public void testMixinOverlap() {
 		String resource = "classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module3/";
 		ModuleDefinition definition = ModuleDefinitions.simple("module3", source, resource);
+		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
+		assertThat(
+				metadata,
+				containsInAnyOrder(moduleOptionNamed("bar"), moduleOptionNamed("bar")));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testMixinAlmostOverlap() {
+		String resource = "classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module4/";
+		ModuleDefinition definition = ModuleDefinitions.simple("module4", source, resource);
 		metadataResolver.resolve(definition);
 	}
 }

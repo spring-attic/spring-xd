@@ -299,7 +299,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 				"%s | transform --expression='#jsonPath(payload, \"$.foo.bar\")' | %s",
 				source, sink);
 		source.ensureReady().postData("{\"foo\":{\"bar\":\"123\"}}");
-		assertThat(sink, eventually(hasContentsThat(equalTo("123"))));
+		assertThat(sink, eventually(40, 100, hasContentsThat(equalTo("123"))));
 	}
 
 	@Test

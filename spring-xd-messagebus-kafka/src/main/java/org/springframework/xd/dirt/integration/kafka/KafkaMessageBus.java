@@ -46,15 +46,13 @@ import kafka.serializer.DefaultDecoder;
 import kafka.serializer.DefaultEncoder;
 import kafka.serializer.StringEncoder;
 import kafka.utils.ZkUtils;
-
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
-
 import scala.collection.Seq;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.IntegrationMessageHeaderAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -65,24 +63,21 @@ import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.core.ZookeeperConfiguration;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.integration.kafka.listener.MetadataStoreOffsetManager;
+import org.springframework.integration.kafka.listener.KafkaTopicOffsetManager;
+import org.springframework.integration.kafka.listener.OffsetManager;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerFactoryBean;
 import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
-import org.springframework.integration.x.kafka.KafkaTopicMetadataStore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryPolicy;
+import org.springframework.retry.RetryOperations;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.policy.CompositeRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.policy.TimeoutRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -127,11 +122,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private final AtomicInteger correlationIdCounter = new AtomicInteger(new Random().nextInt());
 
-	public static final int METADATA_VERIFICATION_TIMEOUT = 5000;
-
 	public static final int METADATA_VERIFICATION_RETRY_ATTEMPTS = 10;
 
-	public static final double METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER = 1.5;
+	public static final double METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER = 2;
 
 	public static final int METADATA_VERIFICATION_RETRY_INITIAL_INTERVAL = 100;
 
@@ -154,6 +147,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	private static final String DEFAULT_COMPRESSION_CODEC = "default";
 
 	private static final int DEFAULT_REQUIRED_ACKS = 1;
+
+	private RetryOperations retryOperations;
 
 	/**
 	 * Used when writing directly to ZK. This is what Kafka expects.
@@ -273,6 +268,15 @@ public class KafkaMessageBus extends MessageBusSupport {
 		this.offsetStoreTopic = offsetStoreTopic;
 	}
 
+	/**
+	 * Retry configuration for operations such as validating topic creation
+	 *
+	 * @param retryOperations
+	 */
+	public void setRetryOperations(RetryOperations retryOperations) {
+		this.retryOperations = retryOperations;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// we instantiate the connection factory here due to https://jira.spring.io/browse/XD-2647
@@ -280,7 +284,20 @@ public class KafkaMessageBus extends MessageBusSupport {
 				new DefaultConnectionFactory(new ZookeeperConfiguration(this.zookeeperConnect));
 		defaultConnectionFactory.afterPropertiesSet();
 		this.connectionFactory = defaultConnectionFactory;
+		if (retryOperations == null) {
+			RetryTemplate retryTemplate = new RetryTemplate();
 
+			SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy();
+			simpleRetryPolicy.setMaxAttempts(METADATA_VERIFICATION_RETRY_ATTEMPTS);
+			retryTemplate.setRetryPolicy(simpleRetryPolicy);
+
+			ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+			backOffPolicy.setInitialInterval(METADATA_VERIFICATION_RETRY_INITIAL_INTERVAL);
+			backOffPolicy.setMultiplier(METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER);
+			backOffPolicy.setMaxInterval(METADATA_VERIFICATION_MAX_INTERVAL);
+			retryTemplate.setBackOffPolicy(backOffPolicy);
+			retryOperations = retryTemplate;
+		}
 	}
 
 	/**
@@ -378,7 +395,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 			}
 
 			ProducerFactoryBean<String, byte[]> producerFB =
-					new ProducerFactoryBean<String, byte[]>(producerMetadata, brokers,	additionalProps);
+					new ProducerFactoryBean<String, byte[]>(producerMetadata, brokers, additionalProps);
 
 			try {
 				final Producer<String, byte[]> producer = producerFB.getObject();
@@ -393,7 +410,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 					protected void handleMessageInternal(Message<?> message) throws Exception {
 						// strip off the message key used internally by the bus and use a partitioning key for partitioning
 						producerConfiguration.getProducer()
-								.send(new KeyedMessage<String, byte[]>(topicName, null, message.getHeaders().get("messageKey",Integer.class), (byte[])message.getPayload()));
+								.send(new KeyedMessage<String, byte[]>(topicName, null, message.getHeaders().get("messageKey", Integer.class), (byte[]) message.getPayload()));
 					}
 				};
 
@@ -450,24 +467,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 			AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment, topicConfig,
 					true);
 
-			RetryTemplate retryTemplate = new RetryTemplate();
-
-			CompositeRetryPolicy policy = new CompositeRetryPolicy();
-			TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
-			timeoutRetryPolicy.setTimeout(METADATA_VERIFICATION_TIMEOUT);
-			SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy();
-			simpleRetryPolicy.setMaxAttempts(METADATA_VERIFICATION_RETRY_ATTEMPTS);
-			policy.setPolicies(new RetryPolicy[] {timeoutRetryPolicy, simpleRetryPolicy});
-			retryTemplate.setRetryPolicy(policy);
-
-			ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
-			backOffPolicy.setInitialInterval(METADATA_VERIFICATION_RETRY_INITIAL_INTERVAL);
-			backOffPolicy.setMultiplier(METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER);
-			backOffPolicy.setMaxInterval(METADATA_VERIFICATION_MAX_INTERVAL);
-			retryTemplate.setBackOffPolicy(backOffPolicy);
 
 			try {
-				TopicMetadata topicMetadata = retryTemplate.execute(new RetryCallback<TopicMetadata, Exception>() {
+				TopicMetadata topicMetadata = retryOperations.execute(new RetryCallback<TopicMetadata, Exception>() {
 					@Override
 					public TopicMetadata doWithRetry(RetryContext context) throws Exception {
 						TopicMetadata topicMetadata = AdminUtils.fetchTopicMetadataFromZk(topicName, zkClient);
@@ -489,7 +491,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 					}
 				});
 				// work around an issue in Spring
-				this.connectionFactory.refreshLeaders(Collections.<String>emptySet());
+				this.connectionFactory.refreshMetadata(Collections.<String>emptySet());
 
 				return topicMetadata;
 			}
@@ -519,6 +521,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		String topic = escapeTopicName(name);
 
 		ensureTopicCreated(topic, accessor.getCount() * concurrency, defaultReplicationFactor);
+
+		connectionFactory.refreshMetadata(Collections.singleton(topic));
 
 		Decoder<byte[]> valueDecoder = new DefaultDecoder(null);
 		Decoder<Integer> keyDecoder = new IntegerEncoderDecoder();
@@ -574,7 +578,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
-		ReceivingHandler rh = new ReceivingHandler(kafkaMessageDrivenChannelAdapter);
+		ReceivingHandler rh = new ReceivingHandler(kafkaMessageDrivenChannelAdapter,
+				messageListenerContainer.getOffsetManager());
 		rh.setOutputChannel(moduleInputChannel);
 		EventDrivenConsumer edc = new EventDrivenConsumer(bridge, rh);
 		edc.setBeanName("inbound." + name);
@@ -612,18 +617,16 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 		// if we have less target partitions than target concurrency, adjust accordingly
 		messageListenerContainer.setConcurrency(Math.min(numThreads, listenedPartitions.size()));
-		KafkaTopicMetadataStore springXDOffsets =
-				new KafkaTopicMetadataStore(zookeeperConnect, connectionFactory, offsetStoreTopic);
+		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
+				Collections.<Partition, Long>emptyMap());
+		offsetManager.setConsumerId(group);
+		offsetManager.setReferenceTimestamp(referencePoint);
 		try {
-			springXDOffsets.afterPropertiesSet();
+			offsetManager.afterPropertiesSet();
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		MetadataStoreOffsetManager offsetManager = new MetadataStoreOffsetManager(connectionFactory);
-		offsetManager.setMetadataStore(springXDOffsets);
-		offsetManager.setConsumerId(group);
-		offsetManager.setReferenceTimestamp(referencePoint);
 		messageListenerContainer.setOffsetManager(offsetManager);
 		return messageListenerContainer;
 	}
@@ -680,8 +683,12 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		private KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter;
 
-		public ReceivingHandler(KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter) {
+		private OffsetManager offsetManager;
+
+		public ReceivingHandler(KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter,
+				OffsetManager offsetManager) {
 			this.kafkaMessageDrivenChannelAdapter = kafkaMessageDrivenChannelAdapter;
+			this.offsetManager = offsetManager;
 			this.setBeanFactory(KafkaMessageBus.this.getBeanFactory());
 		}
 
@@ -704,6 +711,14 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		@Override
 		public void stop() {
+			if (offsetManager instanceof DisposableBean) {
+				try {
+					((DisposableBean) offsetManager).destroy();
+				}
+				catch (Exception e) {
+					logger.error("Error while closing the offset manager", e);
+				}
+			}
 			kafkaMessageDrivenChannelAdapter.stop();
 		}
 
@@ -758,7 +773,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 				int springXdPartition = determinePartition(message, partitioningMetadata);
 				// in order to do so, we will generate a number whose modulus when applied to total partition count
 				// is equal to springXdPartition
-				partition = (roundRobin()%factor) * partitioningMetadata.getPartitionCount() + springXdPartition;
+				partition = (roundRobin() % factor) * partitioningMetadata.getPartitionCount() + springXdPartition;
 			}
 			else {
 				// The value will be modulo-ed by numPartitions by Kafka itself

@@ -1,46 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			 xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
-			 xmlns:int="http://www.springframework.org/schema/integration"
-			 xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/kafka http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd">
 
 	<int:channel id="output"/>
 
 	<int-kafka:zookeeper-connect id="kafkaSourceZookeeperConnect" zk-connect="${zkconnect}"
-															 zk-connection-timeout="${zkconnectionTimeout}"
-															 zk-session-timeout="${zksessionTimeout}"
-															 zk-sync-time="${zksyncTime}"/>
+								 zk-connection-timeout="${zkconnectionTimeout}"
+								 zk-session-timeout="${zksessionTimeout}"
+								 zk-sync-time="${zksyncTime}"/>
 
 	<bean id="kafkaConfiguration" class="org.springframework.integration.kafka.core.ZookeeperConfiguration">
 		<constructor-arg index="0" ref="kafkaSourceZookeeperConnect"/>
-	</bean>
-
-	<bean id="connectionFactory" class="org.springframework.integration.kafka.core.DefaultConnectionFactory">
-		<constructor-arg index="0" ref="kafkaConfiguration"/>
 		<property name="minBytes" value="${fetchMinBytes}"/>
 		<property name="maxWait" value="${fetchMaxWait}"/>
 		<property name="bufferSize" value="${socketBufferBytes}"/>
 		<property name="socketTimeout" value="${socketTimeout}"/>
 	</bean>
 
-	<!-- enriches the behaviour of the MetadataStore, adding a distinct namespace to the keys -->
-	<bean id="namespaceMetadataStore"
-				class="org.springframework.integration.x.kafka.NamespaceDelegatingMetadataStore">
-		<constructor-arg index="0" ref="metadataStore"/>
-		<constructor-arg index="1" value="xd:${xd.stream.name}:${xd.module.name}"/>
+	<bean id="connectionFactory" class="org.springframework.integration.kafka.core.DefaultConnectionFactory">
+		<constructor-arg index="0" ref="kafkaConfiguration"/>
 	</bean>
 
-	<bean id="offsetManager" class="org.springframework.integration.x.kafka.SpringXdOffsetManager">
-		<constructor-arg index="0" ref="connectionFactory"/>
-		<constructor-arg index="1" value="${topic}"/>
-		<constructor-arg index="2" value="${initialOffsets}"/>
-		<property name="consumerId" value="${groupId}"/>
-		<property name="metadataStore" ref="namespaceMetadataStore"/>
-		<property name="autoOffsetReset" value="${autoOffsetReset}"/>
-	</bean>
 
 	<bean id="partitions" class="org.springframework.integration.x.kafka.KafkaPartitionAllocator">
 		<constructor-arg index="0" ref="xd.zookeeper.client"/>
@@ -54,8 +39,13 @@
 		<constructor-arg index="8" ref="offsetManager"/>
 	</bean>
 
+	<bean id="initialOffsetsMap" class="org.springframework.integration.x.kafka.InitialOffsetsFactoryBean">
+		<constructor-arg index="0" value="${topic}"/>
+		<constructor-arg index="1" value="${initialOffsets}"/>
+	</bean>
+
 	<bean id="kafkaMessageListenerContainer"
-				class="org.springframework.integration.kafka.listener.KafkaMessageListenerContainer">
+		  class="org.springframework.integration.kafka.listener.KafkaMessageListenerContainer">
 		<constructor-arg index="0" ref="connectionFactory"/>
 		<constructor-arg index="1" ref="partitions"/>
 		<property name="maxFetch" value="${fetchMaxBytes}"/>
@@ -68,23 +58,42 @@
 	</bean>
 
 	<bean id="kafkaInboundChannelAdapter"
-				class="org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter">
+		  class="org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter">
 		<constructor-arg index="0" ref="kafkaMessageListenerContainer"/>
 		<property name="outputChannel" ref="output"/>
 		<property name="keyDecoder" ref="stringDecoder"/>
 		<property name="payloadDecoder" ref="stringDecoder"/>
 	</bean>
 
-	<beans profile="inmemory-metadata-store">
+
+	<beans profile="inmemory-offset-manager,redis-offset-manager">
+		<!-- enriches the behaviour of the MetadataStore, adding a distinct namespace to the keys -->
+		<bean id="namespaceMetadataStore"
+			  class="org.springframework.integration.x.kafka.NamespaceDelegatingMetadataStore">
+			<constructor-arg index="0" ref="metadataStore"/>
+			<constructor-arg index="1" value="xd:${xd.stream.name}:${xd.module.name}"/>
+		</bean>
+
+		<bean id="offsetManager" class="org.springframework.integration.kafka.listener.MetadataStoreOffsetManager">
+			<constructor-arg index="0" ref="connectionFactory"/>
+			<constructor-arg index="1" value="${topic}"/>
+			<constructor-arg index="2" ref="initialOffsetsMap"/>
+			<property name="consumerId" value="${groupId}"/>
+			<property name="metadataStore" ref="namespaceMetadataStore"/>
+			<property name="referenceTimestamp" value="#{autoOffsetReset.code}"/>
+		</bean>
+	</beans>
+
+	<beans profile="inmemory-offset-manager">
 
 		<bean id="metadataStore" class="org.springframework.integration.metadata.SimpleMetadataStore"/>
 
 	</beans>
 
-	<beans profile="redis-metadata-store">
+	<beans profile="redis-offset-manager">
 
 		<bean id="redisConnectionFactory"
-					class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+			  class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
 			<property name="hostName" value="${spring.redis.host}"/>
 			<property name="port" value="${spring.redis.port}"/>
 			<property name="password" value="${spring.redis.password:#{null}}"/>
@@ -96,11 +105,13 @@
 
 	</beans>
 
-	<beans profile="kafka-metadata-store">
-		<bean id="metadataStore" class="org.springframework.integration.x.kafka.KafkaTopicMetadataStore">
-			<constructor-arg ref="kafkaSourceZookeeperConnect"/>
-			<constructor-arg ref="connectionFactory"/>
-			<constructor-arg value="${xd.stream.name}-${xd.module.name}-offsets"/>
+	<beans profile="kafka-offset-manager">
+		<bean id="offsetManager" class="org.springframework.integration.kafka.listener.KafkaTopicOffsetManager">
+			<constructor-arg index="0" ref="kafkaSourceZookeeperConnect"/>
+			<constructor-arg index="1" value="${xd.stream.name}-${xd.module.name}-offsets"/>
+			<constructor-arg index="2" ref="initialOffsetsMap"/>
+			<property name="consumerId" value="${groupId}"/>
+			<property name="referenceTimestamp" value="${autoOffsetResetValue}"/>
 		</bean>
 	</beans>
 

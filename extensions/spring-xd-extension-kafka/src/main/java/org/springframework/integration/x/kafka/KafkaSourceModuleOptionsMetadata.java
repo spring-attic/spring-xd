@@ -16,8 +16,6 @@
 
 package org.springframework.integration.x.kafka;
 
-import org.apache.commons.lang.ArrayUtils;
-
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
@@ -60,7 +58,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 		return partitions;
 	}
 
-	@ModuleOption("kafka partitions")
+	@ModuleOption("comma separated list of partition IDs to listen on")
 	public void setPartitions(String partitions) {
 		this.partitions = partitions;
 	}
@@ -69,7 +67,8 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 		return initialOffsets;
 	}
 
-	@ModuleOption("initial offsets")
+	@ModuleOption("comma separated list of <partition>@<offset> pairs indicating where the source should" +
+			" start consuming from")
 	public void setInitialOffsets(String initialOffsets) {
 		this.initialOffsets = initialOffsets;
 	}
@@ -78,7 +77,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 		return offsetStorage;
 	}
 
-	@ModuleOption("offset storage strategy")
+	@ModuleOption("strategy for persisting offset values")
 	public void setOffsetStorage(OffsetStorageStrategy offsetStorage) {
 		this.offsetStorage = offsetStorage;
 	}
@@ -119,7 +118,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 	@Override
 	public String[] profilesToActivate() {
 		if (offsetStorage != null) {
-			return new String[] {String.format("%s-metadata-store", offsetStorage)};
+			return new String[] {String.format("%s-offset-manager", offsetStorage)};
 		} else {
 			throw new IllegalStateException("An offset storage strategy must be configured");
 		}

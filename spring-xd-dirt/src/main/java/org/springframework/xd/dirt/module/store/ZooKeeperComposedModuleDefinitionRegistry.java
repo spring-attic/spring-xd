@@ -21,7 +21,7 @@ package org.springframework.xd.dirt.module.store;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.ClassUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.zookeeper.KeeperException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,15 +36,11 @@ import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * An implementation of {@code WriteableModuleRegistry} dedicated to {@code CompositeModuleDefinition}s and that
- * uses ZooKeeper as storage mechanism.
- *
- * <p>Writes each definition to a node, such as:
- * {@code /xd/modules/[moduletype]/[modulename]} with the node data being a JSON representation of the module
- * definition.</p>
+ * An implementation of {@code WriteableModuleRegistry} dedicated to {@code CompositeModuleDefinition}s and that uses
+ * ZooKeeper as storage mechanism.
+ * <p>Writes each definition to a node, such as: {@code /xd/modules/[moduletype]/[modulename]} with the node data being
+ * a JSON representation of the module definition.</p>
  *
  * @author Mark Fisher
  * @author David Turanski
@@ -72,7 +68,7 @@ public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModul
 	@Override
 	public boolean delete(ModuleDefinition definition) {
 		Assert.notNull(definition, "'definition' cannot be null.");
-		if (!ClassUtils.isAssignable(definition.getClass(), CompositeModuleDefinition.class)) {
+		if (!definition.isComposed()) {
 			return false;
 		}
 		String path = Paths.build(Paths.MODULES, definition.getType().toString(), definition.getName());

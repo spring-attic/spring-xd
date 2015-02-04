@@ -61,15 +61,24 @@ public class DefaultModuleOptionsMetadataResolverTests {
 						moduleOptionNamed("optionDefinedHere")));
 	}
 
+	/**
+	 * This test has the "foo" option *exactly* overlapping from different mixins: this is ok, and only one copy is
+	 * visible.
+	 */
+	@Test
 	public void testMixinOverlap() {
 		String resource = "classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module3/";
 		ModuleDefinition definition = ModuleDefinitions.simple("module3", source, resource);
 		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
 		assertThat(
 				metadata,
-				containsInAnyOrder(moduleOptionNamed("bar"), moduleOptionNamed("bar")));
+				containsInAnyOrder(moduleOptionNamed("foo"), moduleOptionNamed("bar")));
 	}
 
+	/**
+	 * This test has the "foo" option almost overlapping: for the same name "foo", two options exist with slightly
+	 * different attributes, this is an error.
+	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testMixinAlmostOverlap() {
 		String resource = "classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module4/";

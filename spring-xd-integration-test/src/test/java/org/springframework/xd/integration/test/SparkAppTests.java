@@ -41,8 +41,6 @@ import java.util.UUID;
  */
 public class SparkAppTests extends AbstractJobTest {
 
-	public static final long WAIT_TIME_FOR_SPARK_SERVER = 20000;
-
 	SparkAppJob sparkAppJob;
 	String jobName;
 
@@ -70,14 +68,6 @@ public class SparkAppTests extends AbstractJobTest {
 		verifySparkAppResults(jobName);
 	}
 
-	@Test
-	public void sparkAppTest() {
-		job(jobName, sparkAppJob.toDSL(), true);
-		jobLaunch(jobName);
-
-		waitForJobToComplete(jobName, WAIT_TIME_FOR_SPARK_SERVER);
-		verifySparkAppResults(jobName);
-	}
 
 	private void verifySparkAppResults(String jobName) {
 		List<JobExecutionInfoResource> jobList = this.getJobExecInfoByName(jobName);

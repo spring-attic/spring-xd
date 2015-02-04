@@ -32,3 +32,4 @@ spring-xd-ui/xd-ui.sublime-workspace
 !scripts/zookeeper/bin
 lib
 !/spring-xd-module/src/test/resources/ModuleFactoryTests/modules/processor/xmlModule/lib/
+spring-xd-spark-streaming/.cache

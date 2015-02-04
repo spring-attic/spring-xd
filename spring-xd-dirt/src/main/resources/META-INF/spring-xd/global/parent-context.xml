@@ -12,4 +12,8 @@
 		<bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor"/>
 	</int:spel-property-accessors>
 
+	<!-- This is a workaround until SI supports newer JsonPath. See INT-3624-->
+	<int:spel-function id="jsonPath" class="org.springframework.xd.dirt.integration.json.NewJsonPathUtils"
+					   method="evaluate(java.lang.Object, java.lang.String, com.jayway.jsonpath.Predicate[])" />
+
 </beans>

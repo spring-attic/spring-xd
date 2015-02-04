@@ -56,7 +56,7 @@ def customizePom(pom, gradleProject) {
 			properties {
 				'project.build.sourceEncoding' 'UTF-8'
 				'java.source.version' '1.7'
-				'java.target.version' '1.6'
+				'java.target.version' '1.7'
 				'resource.delimiter' '@'
 				'project.reporting.outputEncoding' 'UTF-8'
 				'maven.compiler.source' '${java.source.version}'
@@ -163,7 +163,7 @@ def customizePom(pom, gradleProject) {
 				dependency {
 					groupId 'org.apache.hadoop'
 					artifactId 'hadoop-common'
-					version '2.3.0'
+					version '2.6.0'
 					scope 'provided'
 				}
 			}

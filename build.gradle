@@ -160,7 +160,7 @@ configure(javaProjects) { subproject ->
 
 		compileJava {
 			sourceCompatibility = 1.7
-			targetCompatibility = 1.6
+			targetCompatibility = 1.7
 			options.fork = true
 			options.forkOptions.with {
 				memoryMaximumSize = "512m"

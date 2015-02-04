@@ -22,6 +22,8 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventuall
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.fileContent;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.After;
@@ -59,6 +61,8 @@ public abstract class AbstractSparkStreamingTests {
 
 	private final String transport;
 
+	protected List<String> queueNames = new ArrayList<String>();
+
 	public AbstractSparkStreamingTests(String transport) {
 		this.transport = transport;
 	}
@@ -83,6 +87,13 @@ public abstract class AbstractSparkStreamingTests {
 		shell.stop();
 	}
 
+	private void addQueueNames(String streamName, boolean isProcessor) {
+		if (isProcessor) {
+			queueNames.add("xdbus." + streamName + ".1");
+		}
+		queueNames.add("xdbus." + streamName + ".0");
+	}
+
 	@Test
 	public void testSparkProcessor() throws Exception {
 		HttpSource source = new HttpSource(shell);
@@ -91,6 +102,7 @@ public abstract class AbstractSparkStreamingTests {
 		try {
 			String stream = String.format("%s | spark-word-count | %s", source, sink);
 			streamOps.create(streamName, stream);
+			addQueueNames(streamName, true);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
 		}
@@ -108,6 +120,7 @@ public abstract class AbstractSparkStreamingTests {
 		try {
 			String stream = String.format("%s | spark-scala-word-count | %s", source, sink);
 			streamOps.create(streamName, stream);
+			addQueueNames(streamName, true);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
 		}
@@ -126,6 +139,7 @@ public abstract class AbstractSparkStreamingTests {
 			final HttpSource source = new HttpSource(shell);
 			final String stream = String.format("%s | spark-log --filePath=%s", source, fileName);
 			streamOps.create(streamName, stream);
+			addQueueNames(streamName, false);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
 		}
@@ -146,6 +160,7 @@ public abstract class AbstractSparkStreamingTests {
 			final HttpSource source = new HttpSource(shell);
 			final String stream = String.format("%s | spark-scala-log --filePath=%s", source, fileName);
 			streamOps.create(streamName, stream);
+			addQueueNames(streamName, false);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
 		}

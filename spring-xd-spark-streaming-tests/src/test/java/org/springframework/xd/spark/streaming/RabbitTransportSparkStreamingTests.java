@@ -16,8 +16,11 @@
 
 package org.springframework.xd.spark.streaming;
 
+import org.junit.After;
 import org.junit.ClassRule;
 
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
@@ -28,7 +31,17 @@ public class RabbitTransportSparkStreamingTests extends AbstractSparkStreamingTe
 	@ClassRule
 	public static RabbitTestSupport rabbitTestSupport = new RabbitTestSupport();
 
-	public RabbitTransportSparkStreamingTests(){
+	public RabbitTransportSparkStreamingTests() {
 		super("rabbit");
+	}
+
+	@After
+	public void cleanupRabbitQueues() {
+		super.tearDown();
+		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
+		RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+		for (String queueName: queueNames) {
+			rabbitAdmin.deleteQueue(queueName);
+		}
 	}
 }

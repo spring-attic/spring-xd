@@ -883,7 +883,8 @@ project('spring-xd-spark-streaming-tests') {
 				systemProperty "hadoop.home.dir", getProperty('hadoop.home.dir')
 			} 
 			else {
-				println "WARNING - `hadoop.home.dir` is not set. Use -Phadoop.home.dir=[].\n see https://github.com/spring-projects/spring-hadoop/wiki/Using-a-Windows-client-together-with-a-Linux-cluster"
+				throw new RuntimeException("ERROR-'hadoop.home.dir' is not set. Use -Phadoop.home.dir=[].\n see https://github.com/spring-projects/spring-hadoop/wiki/Using-a-Windows-client-together-with-a-Linux-cluster")
+				//System.exit(1)
 			}
 		}
 	}

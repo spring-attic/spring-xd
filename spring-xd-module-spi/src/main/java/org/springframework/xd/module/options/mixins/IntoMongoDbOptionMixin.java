@@ -38,6 +38,10 @@ public abstract class IntoMongoDbOptionMixin {
 
 	private String collectionName;
 
+	private String username = "";
+
+	private String password = "";
+
 	/**
 	 * Has {@code collectionName} default to ${xd.job.name}.  
 	 */
@@ -75,14 +79,32 @@ public abstract class IntoMongoDbOptionMixin {
 		this.databaseName = databaseName;
 	}
 
-	@ModuleOption("the MongoDB host")
+	@ModuleOption("the MongoDB host to connect to")
 	public void setHost(String host) {
 		this.host = host;
 	}
 
-	@ModuleOption("the MongoDB port")
+	@ModuleOption("the MongoDB port to connect to")
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	@ModuleOption("the MongoDB password used for connecting")
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	@ModuleOption("the MongoDB username used for connecting")
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public String getUsername() {
+		return username;
 	}
 
 	// @NotBlank

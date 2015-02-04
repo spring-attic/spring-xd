@@ -53,8 +53,6 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport;
 @SuppressWarnings("rawtypes")
 public class SparkStreamingPlugin extends AbstractStreamPlugin {
 
-	private static final String DEFAULT_STORAGE_LEVEL = "MEMORY_ONLY";
-
 	@Autowired
 	public SparkStreamingPlugin(MessageBus messageBus, ZooKeeperConnection zkConnection) {
 		super(messageBus, zkConnection);
@@ -76,7 +74,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 		Properties outboundModuleProperties = this.extractConsumerProducerProperties(module)[1];
 		String defaultStorageLevel = env.getProperty(SparkStreamingSupport.SPARK_STORAGE_LEVEL_PROP);
 		StorageLevel configuredStorageLevel = StorageLevel.fromString(StringUtils.hasText(defaultStorageLevel) ?
-				defaultStorageLevel : DEFAULT_STORAGE_LEVEL);
+				defaultStorageLevel : SparkStreamingSupport.SPARK_DEFAULT_STORAGE_LEVEL);
 		String storageLevelFromModule = module.getProperties().getProperty(SparkStreamingSupport.SPARK_STORAGE_LEVEL_MODULE_OPTION);
 		StorageLevel storageLevel = StringUtils.hasText(storageLevelFromModule) ?
 				StorageLevel.fromString(storageLevelFromModule) : configuredStorageLevel;
@@ -90,7 +88,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 				sparkConfigs = SparkStreamingDriverModule.getSparkModuleProperties(processor);
 			}
 			catch (NoSuchBeanDefinitionException e) {
-				throw new RuntimeException("Either java or scala module should be present.");
+				throw new IllegalStateException("Either java or scala module should be present.");
 			}
 			String sparkMasterUrl = env.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP);
 			if (sparkConfigs != null && StringUtils.hasText(sparkConfigs.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP))) {

@@ -27,15 +27,17 @@ import org.apache.spark.streaming.api.java.JavaDStreamLike;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.xd.spark.streaming.SparkMessageSender;
+import org.springframework.xd.spark.streaming.SparkStreamingModuleExecutor;
 
 /**
- * Invokes the process method of a {@link org.springframework.xd.spark.streaming.java.Processor} and handles the output DStream if present.
+ * Invokes the process method of a {@link org.springframework.xd.spark.streaming.java.Processor}
+ * and handles the output DStream if present.
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
 @SuppressWarnings({"unchecked", "rawtypes", "serial"})
-public class SparkStreamingModuleExecutor implements Serializable {
+public class ModuleExecutor implements SparkStreamingModuleExecutor<JavaDStreamLike, Processor> , Serializable {
 
 	private static SparkMessageSender messageSender;
 

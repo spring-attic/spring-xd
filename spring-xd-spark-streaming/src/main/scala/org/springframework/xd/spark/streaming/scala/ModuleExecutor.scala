@@ -18,7 +18,7 @@ package org.springframework.xd.spark.streaming.scala
 import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.integration.support.MessageBuilder
-import org.springframework.xd.spark.streaming.SparkMessageSender
+import org.springframework.xd.spark.streaming.{SparkMessageSender, SparkStreamingModuleExecutor}
 
 /**
  * Invokes the process method of a {@link org.springframework.xd.spark.streaming.scala.Processor}
@@ -26,10 +26,13 @@ import org.springframework.xd.spark.streaming.SparkMessageSender
  *
  * @author Ilayaperumal Gopinathan
  */
-class SparkStreamingModuleExecutor extends Serializable {
+class ModuleExecutor extends SparkStreamingModuleExecutor[ReceiverInputDStream[Any],
+  org.springframework.xd.spark.streaming.scala.Processor[Any, Any]] with Serializable {
   private var messageSender: SparkMessageSender = null
 
-  def execute(input: ReceiverInputDStream[Any], processor: org.springframework.xd.spark.streaming.scala.Processor[Any, Any], sender: SparkMessageSender) {
+  def execute(input: ReceiverInputDStream[Any],
+              processor: org.springframework.xd.spark.streaming.scala.Processor[Any, Any],
+              sender: SparkMessageSender) {
     val output: DStream[Any] = processor.process(input)
     if (output != null) {
       output.foreachRDD(rdd => {

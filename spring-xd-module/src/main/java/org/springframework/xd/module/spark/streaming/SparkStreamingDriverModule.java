@@ -52,6 +52,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.util.Assert;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.ModuleDeploymentProperties;
@@ -59,14 +60,15 @@ import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.ResourceConfiguredModule;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.spark.streaming.java.ModuleExecutor;
 import org.springframework.xd.spark.streaming.java.Processor;
 import org.springframework.xd.spark.streaming.SparkConfig;
 import org.springframework.xd.spark.streaming.SparkMessageSender;
-import org.springframework.xd.spark.streaming.java.SparkStreamingModuleExecutor;
 import org.springframework.xd.spark.streaming.SparkStreamingSupport;
 
 /**
- * The driver that adapts an implementation of {@link org.springframework.xd.spark.streaming.java.Processor} to be executed as an XD module.
+ * The driver that adapts an implementation of either {@link org.springframework.xd.spark.streaming.java.Processor}
+ * or {@link org.springframework.xd.spark.streaming.scala.Processor} to be executed as an XD module.
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
@@ -117,12 +119,11 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 		Properties sparkConfigs = null;
 		try {
 			processor = getComponent(SparkStreamingSupport.class);
-			if (processor != null) {
-				sparkConfigs = getSparkModuleProperties(processor);
-			}
+			Assert.notNull(processor, "Problem getting the spark streaming module. Is the module context active?");
+			sparkConfigs = getSparkModuleProperties(processor);
 		}
 		catch (NoSuchBeanDefinitionException e) {
-			throw new RuntimeException("Either java or scala module should be present.");
+			throw new IllegalStateException("Either java or scala module should be present.");
 		}
 		startSparkStreamingContext(sparkConfigs, processor);
 	}
@@ -140,8 +141,9 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 		String masterURL = env.getProperty(SparkStreamingSupport.SPARK_MASTER_URL_PROP,
 				SparkStreamingSupport.SPARK_DEFAULT_MASTER_URL);
 		final SparkConf sparkConf = setupSparkConf(masterURL, sparkConfigs);
-		final String batchInterval = env.getProperty("batchInterval",
-				env.getProperty("spark.streaming.batchInterval", SPARK_STREAMING_BATCH_INTERVAL));
+		final String batchInterval = env.getProperty(SparkStreamingSupport.SPARK_STREAMING_BATCH_INTERVAL_MODULE_OPTION,
+				env.getProperty(SparkStreamingSupport.SPARK_STREAMING_BATCH_INTERVAL_PROP,
+						SparkStreamingSupport.SPARK_STREAMING_BATCH_INTERVAL));
 		final SparkStreamingListener streamingListener = new SparkStreamingListener();
 
 		final SparkMessageSender sender =
@@ -156,11 +158,11 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 					if (sparkStreamingSupport instanceof Processor) {
 						javaStreamingContext = new JavaStreamingContext(streamingContext);
 						JavaDStreamLike input = javaStreamingContext.receiverStream(receiver);
-						new SparkStreamingModuleExecutor().execute(input, (Processor) sparkStreamingSupport, sender);
+						new ModuleExecutor().execute(input, (Processor) sparkStreamingSupport, sender);
 					}
 					if (sparkStreamingSupport instanceof org.springframework.xd.spark.streaming.scala.Processor) {
 						ReceiverInputDStream input = streamingContext.receiverStream(receiver, null);
-						new org.springframework.xd.spark.streaming.scala.SparkStreamingModuleExecutor().execute(input,
+						new org.springframework.xd.spark.streaming.scala.ModuleExecutor().execute(input,
 								(org.springframework.xd.spark.streaming.scala.Processor) sparkStreamingSupport, sender);
 					}
 					streamingContext.start();

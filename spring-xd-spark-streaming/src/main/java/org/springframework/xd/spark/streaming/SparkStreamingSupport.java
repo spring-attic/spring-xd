@@ -26,11 +26,19 @@ public interface SparkStreamingSupport extends Serializable {
 
 	public static final String SPARK_MASTER_URL_PROP = "spark.master";
 
+	public static final String SPARK_DEFAULT_MASTER_URL = "spark://localhost:7077";
+
 	public static final String SPARK_STORAGE_LEVEL_PROP = "spark.storageLevel";
 
 	public static final String SPARK_STORAGE_LEVEL_MODULE_OPTION = "storageLevel";
 
-	public static final String SPARK_DEFAULT_MASTER_URL = "spark://localhost:7077";
+	public static final String SPARK_DEFAULT_STORAGE_LEVEL = "MEMORY_ONLY";
+
+	public static final String SPARK_STREAMING_BATCH_INTERVAL_PROP = "spark.streaming.batchInterval";
+
+	public static final String SPARK_STREAMING_BATCH_INTERVAL_MODULE_OPTION = "batchInterval";
+
+	public static final String SPARK_STREAMING_BATCH_INTERVAL = "2000";
 
 	/**
 	 * The module execution framework is used by XD runtime to determine the module as

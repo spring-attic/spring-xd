@@ -898,7 +898,11 @@ public abstract class MessageBusSupport
 
 		@Override
 		public int selectPartition(Object key, int partitionCount) {
-			return Math.abs(key.hashCode()) % partitionCount;
+			int hashCode = key.hashCode();
+			if (hashCode == Integer.MIN_VALUE) {
+				hashCode = 0;
+			}
+			return Math.abs(hashCode) % partitionCount;
 		}
 
 	}

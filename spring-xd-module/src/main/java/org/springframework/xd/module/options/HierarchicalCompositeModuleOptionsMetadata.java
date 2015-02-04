@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.xd.module.core.CompositeModule;
  * that will appear in a hierarchy. Used to represent options to a composite module.
  * 
  * @author Eric Bottard
+ * @author Gary Russell
  */
 public class HierarchicalCompositeModuleOptionsMetadata implements ModuleOptionsMetadata {
 
@@ -51,9 +52,9 @@ public class HierarchicalCompositeModuleOptionsMetadata implements ModuleOptions
 
 	public HierarchicalCompositeModuleOptionsMetadata(Map<String, ModuleOptionsMetadata> hierarchy) {
 		this.composedModuleDefinitions = hierarchy;
-		for (String key : hierarchy.keySet()) {
-			for (ModuleOption option : hierarchy.get(key)) {
-				ModuleOption mo = new ModuleOption(key + OPTION_SEPARATOR + option.getName(),
+		for (Entry<String, ModuleOptionsMetadata> entry : hierarchy.entrySet()) {
+			for (ModuleOption option : entry.getValue()) {
+				ModuleOption mo = new ModuleOption(entry.getKey() + OPTION_SEPARATOR + option.getName(),
 						option.getDescription());
 				mo.withDefaultValue(option.getDefaultValue()).withType(option.getType());
 				options.add(mo);
@@ -78,7 +79,8 @@ public class HierarchicalCompositeModuleOptionsMetadata implements ModuleOptions
 		BindingResult bindingResult = new BeanPropertyBindingResult(this, "options");
 
 
-		for (String key : raw.keySet()) {
+		for (Entry<String, String> entry : raw.entrySet()) {
+			String key = entry.getKey();
 			int separator = key.indexOf(OPTION_SEPARATOR);
 			if (separator == -1) {
 				bindingResult.addError(new FieldError("options", key, String.format("unsupported option '%s'", key)));
@@ -91,7 +93,7 @@ public class HierarchicalCompositeModuleOptionsMetadata implements ModuleOptions
 				bindingResult.addError(new FieldError("options", key, String.format("unsupported option '%s'", key)));
 				continue;
 			}
-			map.put(suffix, raw.get(key));
+			map.put(suffix, entry.getValue());
 		}
 
 		if (bindingResult.hasErrors()) {

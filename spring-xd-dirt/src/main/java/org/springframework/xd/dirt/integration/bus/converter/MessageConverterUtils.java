@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.xd.tuple.DefaultTuple;
  * Message conversion utility methods.
  *
  * @author David Turanski
+ * @author Gary Russell
  */
 public class MessageConverterUtils {
 
@@ -65,8 +66,8 @@ public class MessageConverterUtils {
 				try {
 					return ClassUtils.forName(contentType.getParameter("type"), classLoader);
 				}
-				catch (Throwable t) {
-					throw new ConversionException(t.getMessage(), t);
+				catch (Exception e) {
+					throw new ConversionException(e.getMessage(), e);
 				}
 			}
 			else {

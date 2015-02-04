@@ -50,7 +50,7 @@ public class ModuleUtils {
 			Archive moduleArchive = moduleFile.isDirectory() ? new ExplodedArchive(moduleFile) : new JarFileArchive
 					(moduleFile);
 
-			List<Archive> nestedArchives = nestedArchives = new ArrayList<Archive>();
+			List<Archive> nestedArchives = new ArrayList<Archive>();
 			if (includeNestedJars) {
 				nestedArchives = moduleArchive.getNestedArchives(new Archive.EntryFilter() {
 					@Override

@@ -38,7 +38,7 @@ import org.springframework.xd.spark.streaming.SparkConfig;
 @SuppressWarnings({ "unchecked", "rawtypes", "serial" })
 public class Logger implements Processor {
 
-	private static File file;
+	private File file;
 
 	public void setFilePath(String filePath) {
 		file = new File(filePath);
@@ -93,4 +93,5 @@ public class Logger implements Processor {
 		});
 		return null;
 	}
+
 }

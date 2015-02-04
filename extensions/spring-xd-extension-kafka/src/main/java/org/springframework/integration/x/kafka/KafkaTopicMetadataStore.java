@@ -322,6 +322,7 @@ public class KafkaTopicMetadataStore implements InitializingBean, MetadataStore,
 		ProducerFactoryBean<String, String> producerFB
 				= new ProducerFactoryBean<String, String>(producerMetadata, leader.toString(), additionalProps);
 
+		// ignore sonar's complaint about this not being synchronized
 		producer = producerFB.getObject();
 	}
 

@@ -16,13 +16,10 @@
 
 package org.springframework.xd.module;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-import org.springframework.util.Assert;
 
 /**
  * An instance of ModuleDefinition reflects the fact that a given module (identified by its type and name) is
@@ -76,21 +73,37 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 	}
 
 	@Override
-	public final boolean equals(Object o) {
-		if (this == o) return true;
-
-		ModuleDefinition that = (ModuleDefinition) o;
-
-		if (!name.equals(that.name)) return false;
-		if (type != that.type) return false;
-
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ModuleDefinition other = (ModuleDefinition) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		}
+		else if (!name.equals(other.name)) {
+			return false;
+		}
+		if (type != other.type) {
+			return false;
+		}
 		return true;
 	}
 
 	@Override
-	public final int hashCode() {
-		int result = name.hashCode();
-		result = 31 * result + type.hashCode();
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
+
 }

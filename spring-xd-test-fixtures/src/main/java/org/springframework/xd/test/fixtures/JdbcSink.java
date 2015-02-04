@@ -71,11 +71,22 @@ public class JdbcSink extends AbstractModuleFixture<JdbcSink> implements Disposa
 	@Override
 	protected String toDSL() {
 		StringBuilder dsl = new StringBuilder();
+		Connection connection = null;
 		try {
-			dsl.append("jdbc --initializeDatabase="+initializeDB+" --url=" + dataSource.getConnection().getMetaData().getURL());
+			connection = dataSource.getConnection();
+			dsl.append("jdbc --initializeDatabase="+initializeDB+" --url=" + connection.getMetaData().getURL());
 		}
 		catch (SQLException e) {
 			throw new IllegalStateException("Could not get URL from connection metadata", e);
+		}
+		finally {
+			if (connection != null) {
+				try {
+					connection.close();
+				}
+				catch (SQLException e) {
+				}
+			}
 		}
 		if (tableName != null) {
 			dsl.append(" --tableName=" + tableName);

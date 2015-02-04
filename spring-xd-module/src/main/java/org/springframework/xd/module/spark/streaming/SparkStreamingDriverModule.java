@@ -76,8 +76,6 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport;
 @SuppressWarnings("rawtypes")
 public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 
-	private static final String SPARK_STREAMING_BATCH_INTERVAL = "2000";
-
 	public static final String MESSAGE_BUS_JARS_LOCATION = "file:${XD_HOME}/lib/messagebus/${XD_TRANSPORT}/*.jar";
 
 	/**

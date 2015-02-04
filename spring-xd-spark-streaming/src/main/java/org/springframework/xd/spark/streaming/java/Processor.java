@@ -26,7 +26,7 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport;
  * @author Mark Fisher
  */
 @SuppressWarnings("rawtypes")
-public interface Processor extends SparkStreamingSupport {
+public interface Processor<I extends JavaDStreamLike, O extends JavaDStreamLike> extends SparkStreamingSupport {
 
 	/**
 	 * Processes the input DStream and optionally returns an output DStream.
@@ -34,5 +34,5 @@ public interface Processor extends SparkStreamingSupport {
 	 * @param input the input DStream
 	 * @return output DStream (optional, may be null)
 	 */
-	JavaDStreamLike process(JavaDStreamLike input);
+	O process(I input);
 }

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:hdp="http://www.springframework.org/schema/hadoop"
-	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-	xmlns:batch="http://www.springframework.org/schema/batch"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:hdp="http://www.springframework.org/schema/hadoop"
+	   xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	   xmlns:batch="http://www.springframework.org/schema/batch"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
@@ -27,7 +27,7 @@
 			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
 				<property name="lineTokenizer">
 					<bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
-						<property name="names" value="${names}" />
+						<property name="names" value="${names}"/>
 						<property name="delimiter" value="${delimiter}"/>
 					</bean>
 				</property>
@@ -41,11 +41,11 @@
 	<bean id="itemWriter" class="org.springframework.batch.item.data.MongoItemWriter">
 		<property name="template">
 			<bean class="org.springframework.data.mongodb.core.MongoTemplate">
-				<constructor-arg ref="mongoDbFactory" />
+				<constructor-arg ref="mongoDbFactory"/>
 				<constructor-arg ref="mappingConverter"/>
 			</bean>
 		</property>
-		<property name="collection" value="${collectionName}" />
+		<property name="collection" value="${collectionName}"/>
 	</bean>
 
 	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
@@ -56,7 +56,10 @@
 		fs.defaultFS=${fsUri}
 	</hdp:configuration>
 	<hdp:resource-loader id="hadoopResourceLoader"/>
-	<mongo:db-factory dbname="${databaseName}" host="${host}" port="${port}"/>
+	<mongo:db-factory dbname="${databaseName}" host="${host}" port="${port}"
+					  username="${username}" password="${password}"
+					  authentication-dbname="${authenticationDatabaseName}"
+					  write-concern="${writeConcern}"/>
 
 	<mongo:mapping-converter>
 		<mongo:custom-converters>

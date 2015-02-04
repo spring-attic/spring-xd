@@ -16,6 +16,8 @@
 
 package org.springframework.xd.module.options.mixins;
 
+import javax.validation.constraints.NotNull;
+
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.Range;
 
@@ -25,7 +27,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
 /**
  * An option class to mix-in when writing to MongoDB. 
- * 
+ *
  * @author Eric Bottard
  */
 public abstract class IntoMongoDbOptionMixin {
@@ -37,6 +39,14 @@ public abstract class IntoMongoDbOptionMixin {
 	private int port = 27017;
 
 	private String collectionName;
+
+	private String username = "";
+
+	private String password = "";
+
+	private String authenticationDatabaseName = "";
+
+	private WriteConcern writeConcern = WriteConcern.SAFE;
 
 	/**
 	 * Has {@code collectionName} default to ${xd.job.name}.  
@@ -75,14 +85,51 @@ public abstract class IntoMongoDbOptionMixin {
 		this.databaseName = databaseName;
 	}
 
-	@ModuleOption("the MongoDB host")
+	@ModuleOption("the MongoDB host to connect to")
 	public void setHost(String host) {
 		this.host = host;
 	}
 
-	@ModuleOption("the MongoDB port")
+	@ModuleOption("the MongoDB port to connect to")
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	@ModuleOption("the MongoDB password used for connecting")
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	@ModuleOption("the MongoDB username used for connecting")
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	@ModuleOption("the MongoDB authentication database used for connecting")
+	public void setAuthenticationDatabaseName(String authenticationDatabaseName) {
+		this.authenticationDatabaseName = authenticationDatabaseName;
+	}
+
+	@ModuleOption("the default MongoDB write concern to use")
+	public void setWriteConcern(WriteConcern writeConcern) {
+		this.writeConcern = writeConcern;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public String getAuthenticationDatabaseName() {
+		return authenticationDatabaseName;
+	}
+
+	@NotNull
+	public WriteConcern getWriteConcern() {
+		return writeConcern;
 	}
 
 	// @NotBlank
@@ -103,6 +150,11 @@ public abstract class IntoMongoDbOptionMixin {
 	@Range(min = 0, max = 65535)
 	public int getPort() {
 		return this.port;
+	}
+
+	public static enum WriteConcern {
+		NONE, NORMAL, SAFE, FSYNC_SAFE, REPLICAS_SAFE, JOURNAL_SAFE, MAJORITY;
+
 	}
 
 }

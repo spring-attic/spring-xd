@@ -1,19 +1,23 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
-	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans 				http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-   						http://www.springframework.org/schema/data/mongo 			http://www.springframework.org/schema/data/mongo/spring-mongo-1.3.xsd
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:int-mongodb="http://www.springframework.org/schema/integration/mongodb"
+			 xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans 				http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+   						http://www.springframework.org/schema/data/mongo 			http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
                     	http://www.springframework.org/schema/integration       	http://www.springframework.org/schema/integration/spring-integration.xsd
                     	http://www.springframework.org/schema/integration/mongodb  	http://www.springframework.org/schema/integration/mongodb/spring-integration-mongodb.xsd">
 
-	<channel id="input" />
+	<channel id="input"/>
 
 	<int-mongodb:outbound-channel-adapter
-		id="input" collection-name="${collectionName}" mongodb-factory="mongoDbFactory" />
+			id="input" collection-name="${collectionName}" mongodb-factory="mongoDbFactory"/>
 
-	<mongo:mongo host="${host}" port="${port}" />
+	<mongo:mongo host="${host}" port="${port}"/>
 
-	<mongo:db-factory dbname="${databaseName}" mongo-ref="mongo" />
+	<mongo:db-factory dbname="${databaseName}" mongo-ref="mongo"
+					  username="${username}" password="${password}"
+					  authentication-dbname="${authenticationDatabaseName}"
+					  write-concern="${writeConcern}"/>
 
 </beans:beans>

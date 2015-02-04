@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.spark.streaming.examples;
+package org.springframework.xd.spark.streaming.examples.java;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -36,7 +36,7 @@ import org.springframework.xd.spark.streaming.SparkConfig;
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "serial" })
-public class SparkLog implements Processor {
+public class Logger implements Processor {
 
 	private static File file;
 

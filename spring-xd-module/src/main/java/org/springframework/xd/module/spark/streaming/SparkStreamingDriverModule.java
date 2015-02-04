@@ -141,7 +141,7 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 		final SparkConf sparkConf = setupSparkConf(masterURL, sparkConfigs);
 		final String batchInterval = env.getProperty(SparkStreamingSupport.SPARK_STREAMING_BATCH_INTERVAL_MODULE_OPTION,
 				env.getProperty(SparkStreamingSupport.SPARK_STREAMING_BATCH_INTERVAL_PROP,
-						SparkStreamingSupport.SPARK_STREAMING_BATCH_INTERVAL));
+						SparkStreamingSupport.SPARK_STREAMING_DEFAULT_BATCH_INTERVAL));
 		final SparkStreamingListener streamingListener = new SparkStreamingListener();
 
 		final SparkMessageSender sender =

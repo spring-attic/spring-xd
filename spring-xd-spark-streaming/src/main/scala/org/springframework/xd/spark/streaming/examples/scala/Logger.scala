@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.spark.streaming.examples
+package org.springframework.xd.spark.streaming.examples.scala
 
 import java.io.{BufferedWriter, File, FileWriter, IOException}
 import java.util.Properties
@@ -26,7 +26,7 @@ import org.springframework.xd.spark.streaming.scala.Processor
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-class SparkScalaLog extends Processor[String, String] {
+class Logger extends Processor[String, String] {
 
   var file: File = null
 

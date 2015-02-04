@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.spark.streaming.examples
+package org.springframework.xd.spark.streaming.examples.scala
 
 import java.util.Properties
-import java.lang.String
 
 import org.apache.spark.streaming.StreamingContext._
 import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
@@ -26,7 +25,7 @@ import org.springframework.xd.spark.streaming.scala.Processor
 /**
  * @author Ilayaperumal Gopinathan
  */
-class SparkScalaWordCount extends Processor[String, (String, Int)] {
+class WordCount extends Processor[String, (String, Int)] {
 
   def process(input: ReceiverInputDStream[String]): DStream[(String, Int)] = {
       val words = input.flatMap(_.split(" "))

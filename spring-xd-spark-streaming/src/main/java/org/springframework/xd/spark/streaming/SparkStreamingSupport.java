@@ -38,7 +38,7 @@ public interface SparkStreamingSupport extends Serializable {
 
 	public static final String SPARK_STREAMING_BATCH_INTERVAL_MODULE_OPTION = "batchInterval";
 
-	public static final String SPARK_STREAMING_BATCH_INTERVAL = "2000";
+	public static final String SPARK_STREAMING_DEFAULT_BATCH_INTERVAL = "2000";
 
 	/**
 	 * The module execution framework is used by XD runtime to determine the module as

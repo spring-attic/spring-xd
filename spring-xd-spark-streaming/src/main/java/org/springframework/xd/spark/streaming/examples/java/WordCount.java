@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.spark.streaming.examples;
+package org.springframework.xd.spark.streaming.examples.java;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -35,7 +35,7 @@ import scala.Tuple2;
  * @author Mark Fisher
  */
 @SuppressWarnings({ "serial", "rawtypes", "unchecked" })
-public class SparkWordCount implements Processor {
+public class WordCount implements Processor {
 
 	@Override
 	public JavaDStreamLike process(JavaDStreamLike input) {

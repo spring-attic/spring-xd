@@ -20,12 +20,12 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport
 
 /**
  * Trait for scala modules using the Spark Streaming API to process messages from the Message Bus.
- * @tparam A the type of the object received in the stream
- * @tparam B the type of the object returned after the computation
+ * @tparam I the type of the object received in the stream
+ * @tparam O the type of the object returned after the computation
  *
  * @author Ilayaperumal Gopinathan
  */
-trait Processor[A, B] extends SparkStreamingSupport {
+trait Processor[I, O] extends SparkStreamingSupport {
 
   /**
    * Processes the input DStream and optionally returns an output DStream.
@@ -33,6 +33,6 @@ trait Processor[A, B] extends SparkStreamingSupport {
    * @param input the input DStream from the receiver
    * @return output DStream (optional, may be null)
    */
-  def process(input: ReceiverInputDStream[A]): DStream[B]
+  def process(input: ReceiverInputDStream[I]): DStream[O]
 
 }

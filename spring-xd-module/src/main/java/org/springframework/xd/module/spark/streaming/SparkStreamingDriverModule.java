@@ -196,7 +196,7 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 		SparkConf sparkConf = new SparkConf()
 				// Set spark UI port to random available port to support multiple spark modules on the same host.
 				.set("spark.ui.port", String.valueOf(SocketUtils.findAvailableTcpPort()))
-						// Set the cores max so that multiple (at least a few) spark modules can be deployed on the same host.
+				// Set the cores max so that multiple (at least a few) spark modules can be deployed on the same host.
 				.set("spark.cores.max", "3")
 				.setMaster(masterURL)
 				.setAppName(getDescriptor().getGroup() + "-" + getDescriptor().getModuleLabel());
@@ -229,7 +229,7 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 	 * @param processor the spark streaming processor
 	 * @return the spark configuration properties (if defined) or empty properties
 	 */
-	public static Properties getSparkModuleProperties(Object processor) {
+	public static Properties getSparkModuleProperties(SparkStreamingSupport processor) {
 		Properties sparkConfigs = new Properties();
 		Method[] methods = processor.getClass().getDeclaredMethods();
 		for (Method method : methods) {

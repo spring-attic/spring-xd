@@ -86,12 +86,8 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 			Properties sparkConfigs = null;
 			try {
 				processor = module.getComponent(SparkStreamingSupport.class);
-				if (processor != null) {
-					sparkConfigs = SparkStreamingDriverModule.getSparkModuleProperties(processor);
-				}
-				else {
-					throw new RuntimeException("Either java or scala module should be present.");
-				}
+				Assert.notNull(processor, "Problem getting the spark streaming module. Is the module context active?");
+				sparkConfigs = SparkStreamingDriverModule.getSparkModuleProperties(processor);
 			}
 			catch (NoSuchBeanDefinitionException e) {
 				throw new RuntimeException("Either java or scala module should be present.");

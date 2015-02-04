@@ -321,7 +321,7 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 		logger.info("stopping SparkDriver");
 		try {
 			// todo: when possible (spark 1.3.0), change to streamingContext.stop(true, true) without the cancel and
-			// todo: graceful shutdown.
+			// todo: abrupt shutdown.
 			if (streamingContext != null) {
 				streamingContext.sc().cancelAllJobs();
 				streamingContext.stop(true, false);

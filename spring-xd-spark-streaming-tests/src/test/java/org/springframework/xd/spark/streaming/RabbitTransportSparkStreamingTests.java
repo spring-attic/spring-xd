@@ -16,11 +16,15 @@
 
 package org.springframework.xd.spark.streaming;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.ClassRule;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
@@ -31,8 +35,16 @@ public class RabbitTransportSparkStreamingTests extends AbstractSparkStreamingTe
 	@ClassRule
 	public static RabbitTestSupport rabbitTestSupport = new RabbitTestSupport();
 
+	protected List<String> queueNames = new ArrayList<String>();
+
 	public RabbitTransportSparkStreamingTests() {
 		super("rabbit");
+	}
+
+	@Override
+	protected void createStream(String streamName, String stream) {
+		streamOps.create(streamName, stream);
+		addQueueNames(streamName, stream);
 	}
 
 	@After
@@ -42,6 +54,13 @@ public class RabbitTransportSparkStreamingTests extends AbstractSparkStreamingTe
 		RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
 		for (String queueName: queueNames) {
 			rabbitAdmin.deleteQueue(queueName);
+		}
+	}
+
+	private void addQueueNames(String streamName, String stream) {
+		int numPipes = StringUtils.countOccurrencesOf(stream, "|");
+		for (int i = 0; i < numPipes; i++) {
+			queueNames.add("xdbus." + streamName + "."+ i);
 		}
 	}
 }

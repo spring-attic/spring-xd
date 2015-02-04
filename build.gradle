@@ -159,7 +159,7 @@ configure(javaProjects) { subproject ->
 		}
 
 		compileJava {
-			sourceCompatibility = 1.6
+			sourceCompatibility = 1.7
 			targetCompatibility = 1.6
 			options.fork = true
 			options.forkOptions.with {

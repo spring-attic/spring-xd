@@ -55,13 +55,14 @@ def customizePom(pom, gradleProject) {
 
 			properties {
 				'project.build.sourceEncoding' 'UTF-8'
-				'java.version' '1.6'
+				'java.source.version' '1.7'
+				'java.target.version' '1.6'
 				'resource.delimiter' '@'
 				'project.reporting.outputEncoding' 'UTF-8'
-				'maven.compiler.source' '${java.version}'
-				'maven.compiler.target' '${java.version}'
+				'maven.compiler.source' '${java.source.version}'
+				'maven.compiler.target' '${java.target.version}'
 				'spring.xd.version'  version
-				'spring.boot.version' '1.2.0.RELEASE'
+				'spring.boot.version' '1.2.1.RELEASE'
 			}
 			
 	 

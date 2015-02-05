@@ -22,7 +22,6 @@ import java.util.List;
 import org.junit.After;
 import org.junit.ClassRule;
 
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
@@ -37,8 +36,11 @@ public class RabbitTransportSparkStreamingTests extends AbstractSparkStreamingTe
 
 	protected List<String> queueNames = new ArrayList<String>();
 
+	private final RabbitAdmin rabbitAdmin;
+
 	public RabbitTransportSparkStreamingTests() {
 		super("rabbit");
+		rabbitAdmin = new RabbitAdmin(rabbitTestSupport.getResource());
 	}
 
 	@Override
@@ -50,8 +52,6 @@ public class RabbitTransportSparkStreamingTests extends AbstractSparkStreamingTe
 	@After
 	public void cleanupRabbitQueues() {
 		super.tearDown();
-		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
-		RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
 		for (String queueName: queueNames) {
 			rabbitAdmin.deleteQueue(queueName);
 		}

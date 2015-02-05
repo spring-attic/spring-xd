@@ -57,6 +57,7 @@ spring:
     fsUri: hdfs://localhost:8020
     resourceManagerHost: localhost
     resourceManagerPort: 8032
+    yarnApplicationClasspath:
 
 endpoints:
   jolokia:

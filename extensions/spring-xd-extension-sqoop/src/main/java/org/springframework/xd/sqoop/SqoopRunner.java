@@ -23,6 +23,7 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.sqoop.Sqoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -115,6 +116,11 @@ public class SqoopRunner {
 				configOptions.get(YarnConfiguration.RM_ADDRESS) != null) {
 			configuration.set(YarnConfiguration.RM_ADDRESS,
 					configOptions.get(YarnConfiguration.RM_ADDRESS));
+		}
+		if (configOptions.containsKey(YarnConfiguration.YARN_APPLICATION_CLASSPATH) &&
+				StringUtils.hasText(configOptions.get(YarnConfiguration.YARN_APPLICATION_CLASSPATH))) {
+			configuration.set(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
+					configOptions.get(YarnConfiguration.YARN_APPLICATION_CLASSPATH));
 		}
 		configuration.set("mapreduce.framework.name", "yarn");
 		return configuration;

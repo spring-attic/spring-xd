@@ -248,10 +248,10 @@ endpoints:
 # Hadoop properties
 #spring:
 #  hadoop:
-#   fsUri: hdfs://localhost:8020
-#   resourceManagerHost: localhost
-#   resourceManagerPort: 8032
-
+#    fsUri: hdfs://localhost:8020
+#    resourceManagerHost: localhost
+#    resourceManagerPort: 8032
+#    yarnApplicationClasspath:
 ---
 # Zookeeper properties
 # namespace is the path under the root where XD's top level nodes will be created

@@ -478,6 +478,13 @@ project('spring-xd-dirt') {
 		// are loaded by RestTemplate and RestTemplate is in Dirt
 		runtime "org.codehaus.jackson:jackson-mapper-asl"
 
+
+		// The following are optional dependencies of Spring Batch/Spring Batch Infrastructure
+		// Adding them is solving classloading issues such as https://jira.spring.io/browse/XD-2578
+		runtime ("org.springframework:spring-oxm") {
+			exclude group: "commons-lang", module: "commons-lang"
+		}
+
 		// ************* Test
 		testCompile project(":spring-xd-test")
 		testCompile "org.springframework.integration:spring-integration-test"
@@ -491,6 +498,7 @@ project('spring-xd-dirt') {
 		testCompile "org.springframework:spring-jms"
 		testCompile "org.apache.httpcomponents:httpclient"
 		testCompile 'org.apache.directory.server:apacheds-server-jndi:1.5.7'
+
 	}
 
 	// skip the startScripts task to avoid default start script generation

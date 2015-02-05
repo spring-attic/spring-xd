@@ -36,6 +36,7 @@ import org.springframework.xd.module.core.Plugin;
  * which may be provided by end users.
  * 
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
 public class ModuleTypeConversionPlugin extends AbstractPlugin {
@@ -62,7 +63,7 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin {
 	/**
 	 * Get the underlying {@link org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionSupport} which could be
 	 * further used by any other plugin that requires to apply module type conversion explicitly.
-	 * See {@link org.springframework.xd.dirt.plugins.spark.streaming.SparkStreamingMessageConverterSupport}
+	 * See {@link org.springframework.xd.dirt.plugins.spark.streaming.SparkStreamingChannel}
 	 *
 	 * @return return the underlying module type-conversion support object
 	 */
@@ -73,10 +74,10 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin {
 	@Override
 	public void postProcessModule(Module module) {
 		if (module.getType() == ModuleType.source || module.getType() == ModuleType.processor) {
-			moduleTypeConversionSupport.configureModuleMessageConverters(module, false);
+			moduleTypeConversionSupport.configureModuleOutputChannelMessageConverters(module);
 		}
 		if (module.getType() == ModuleType.sink || module.getType() == ModuleType.processor) {
-			moduleTypeConversionSupport.configureModuleMessageConverters(module, true);
+			moduleTypeConversionSupport.configureModuleInputChannelMessageConverters(module);
 		}
 	}
 

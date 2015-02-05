@@ -21,7 +21,7 @@ import java.io.Serializable;
 import org.springframework.messaging.Message;
 
 /**
- * Abstract class that defines abstract methods to support sending the computed messages out of spark cluster
+ * Abstract class that defines abstract methods to support sending the computed messages out of Spark cluster
  * to XD MessageBus etc.
  *
  * @author Ilayaperumal Gopinathan
@@ -45,7 +45,8 @@ public abstract class SparkMessageSender implements Serializable {
 	public abstract boolean isRunning();
 
 	/**
-	 * Send the messages out of spark cluster
+	 * Send a message out of Spark cluster.
+	 *
 	 * @param message the message to send
 	 */
 	public abstract void send(Message message);

@@ -22,6 +22,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MimeType;
 import org.springframework.util.StringUtils;
@@ -96,26 +97,45 @@ public class ModuleTypeConversionSupport {
 
 
 	/**
-	 * Configure message converters for the given module.
+	 * Configure message converters for the given module's input channel.
 	 *
 	 * @param module the underlying module
-	 * @param isInput boolean to specify if the message converter is for input/output channel
 	 */
-	protected void configureModuleMessageConverters(Module module, boolean isInput) {
-		MimeType contentType = null;
-		if (isInput) {
-			contentType = getInputMimeType(module);
-		}
-		else {
-			contentType = getOutputMimeType(module);
-		}
+	protected void configureModuleInputChannelMessageConverters(Module module) {
+		MimeType contentType = getInputMimeType(module);
 		if (contentType != null) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("module " + (isInput ? "input" : "output") + "Type is " + contentType);
+				logger.debug("configuring message converters for module " + module.getName() + "'s input channel.  " +
+						"Type is " + contentType);
+			}
+			Assert.isTrue((module instanceof SimpleModule), "Module should be an instance of " +
+					SimpleModule.class.getName());
+			SimpleModule sm = (SimpleModule) module;
+			try {
+				AbstractMessageChannel channel = getChannel(module, true);
+				configureMessageConverters(channel, contentType, sm.getApplicationContext().getClassLoader());
+			}
+			catch (Exception e) {
+				throw new ModuleConfigurationException(e.getMessage(), e);
+			}
+		}
+	}
+
+	/**
+	 * Configure message converters for the given module's output channel.
+	 *
+	 * @param module the underlying module
+	 */
+	protected void configureModuleOutputChannelMessageConverters(Module module) {
+		MimeType contentType = getOutputMimeType(module);
+		if (contentType != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("configuring message converters for module " + module.getName() + "'s output channel.  " +
+						"Type is " + contentType);
 			}
 			SimpleModule sm = (SimpleModule) module;
 			try {
-				AbstractMessageChannel channel = getChannel(module, isInput);
+				AbstractMessageChannel channel = getChannel(module, false);
 				configureMessageConverters(channel, contentType, sm.getApplicationContext().getClassLoader());
 			}
 			catch (Exception e) {
@@ -187,6 +207,8 @@ public class ModuleTypeConversionSupport {
 	}
 
 	private static Class<?> resolveJavaType(String type, Module module) throws ClassNotFoundException, LinkageError {
+		Assert.isTrue((module instanceof SimpleModule), "Module should be an instance of " +
+				SimpleModule.class.getName());
 		SimpleModule sm = (SimpleModule) module;
 		return ClassUtils.forName(type, sm.getApplicationContext().getClassLoader());
 	}

@@ -215,8 +215,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * @param charset the charset name
 	 */
 	public void setCharset(String charset) {
-		// ignore sonar's complaint about this not being synchronized
-		this.charset = charset;
+		this.charset = charset;//NOSONAR
 	}
 
 	@Override

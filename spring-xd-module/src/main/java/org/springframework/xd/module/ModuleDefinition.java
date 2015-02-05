@@ -73,37 +73,31 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	public final boolean equals(Object o) {
+		if (this == o) {
 			return true;
 		}
-		if (obj == null) {
+
+		if (!(o instanceof ModuleDefinition)) {
 			return false;
 		}
-		if (getClass() != obj.getClass()) {
+
+		ModuleDefinition that = (ModuleDefinition) o;
+
+		if (!name.equals(that.name)) {
 			return false;
 		}
-		ModuleDefinition other = (ModuleDefinition) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		}
-		else if (!name.equals(other.name)) {
+		if (type != that.type) {
 			return false;
 		}
-		if (type != other.type) {
-			return false;
-		}
+
 		return true;
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
+	public final int hashCode() {
+		int result = name.hashCode();
+		result = 31 * result + type.hashCode();
 		return result;
 	}
-
 }

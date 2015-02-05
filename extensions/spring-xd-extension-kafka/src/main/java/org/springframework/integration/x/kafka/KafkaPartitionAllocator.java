@@ -132,8 +132,7 @@ public class KafkaPartitionAllocator implements InitializingBean, FactoryBean<Pa
 		if (STARTED.equals(this.client.getState())) {
 			EnsurePath ensurePath = new EnsurePath(partitionDataPath);
 			ensurePath.ensure(client.getZookeeperClient());
-			// ignore sonar's complaint about this not being synchronized
-			this.partitionDataMutex = new InterProcessMutex(client, partitionDataPath);
+			this.partitionDataMutex = new InterProcessMutex(client, partitionDataPath);//NOSONAR
 		}
 		else {
 			throw new BeanInitializationException("Cannot connect to ZooKeeper, client state is " + client.getState());

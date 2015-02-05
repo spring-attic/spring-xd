@@ -26,6 +26,7 @@
 				<value>jdbc.password=${password}</value>
 				<value>fs.defaultFS=${fsUri}</value>
 				<value>yarn.resourcemanager.address=${resourceManagerHost}:${resourceManagerPort}</value>
+				<value>yarn.application.classpath=${spring.hadoop.yarnApplicationClasspath}</value>
 			</list>
 		</property>
 	</bean>

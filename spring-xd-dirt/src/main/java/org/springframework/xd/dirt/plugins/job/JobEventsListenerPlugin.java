@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.xd.module.core.Module;
  * Plugin to enable the registration of out of the box job listeners.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  * @since 1.0
  */
 public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobListenerConstants {
@@ -45,10 +46,10 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 	public void postProcessModule(Module module) {
 		boolean disableListeners = true;
 		Map<String, String> eventChannels = getEventListenerChannels(module);
-		for (String publisherChannelName : eventChannels.keySet()) {
-			MessageChannel eventChannel = module.getComponent(publisherChannelName, SubscribableChannel.class);
+		for (Map.Entry<String, String> entry : eventChannels.entrySet()) {
+			MessageChannel eventChannel = module.getComponent(entry.getKey(), SubscribableChannel.class);
 			if (eventChannel != null) {
-				messageBus.bindPubSubProducer(eventChannels.get(publisherChannelName), eventChannel, null);
+				messageBus.bindPubSubProducer(entry.getValue(), eventChannel, null);
 				disableListeners = false;
 			}
 		}

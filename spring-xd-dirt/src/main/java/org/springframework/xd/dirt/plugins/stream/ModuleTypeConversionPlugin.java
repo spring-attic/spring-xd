@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.xd.module.core.SimpleModule;
  * which may be provided by end users.
  * 
  * @author David Turanski
+ * @author Gary Russell
  * @since 1.0
  */
 public class ModuleTypeConversionPlugin extends AbstractPlugin {
@@ -117,8 +118,8 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin {
 			}
 
 		}
-		catch (Throwable t) {
-			throw new ModuleConfigurationException(t.getMessage(), t);
+		catch (Exception e) {
+			throw new ModuleConfigurationException(e.getMessage(), e);
 		}
 	}
 

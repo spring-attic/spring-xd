@@ -16,13 +16,10 @@
 
 package org.springframework.xd.module;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
-import org.springframework.util.Assert;
 
 /**
  * An instance of ModuleDefinition reflects the fact that a given module (identified by its type and name) is
@@ -77,12 +74,22 @@ public abstract class ModuleDefinition implements Comparable<ModuleDefinition> {
 
 	@Override
 	public final boolean equals(Object o) {
-		if (this == o) return true;
+		if (this == o) {
+			return true;
+		}
+
+		if (!(o instanceof ModuleDefinition)) {
+			return false;
+		}
 
 		ModuleDefinition that = (ModuleDefinition) o;
 
-		if (!name.equals(that.name)) return false;
-		if (type != that.type) return false;
+		if (!name.equals(that.name)) {
+			return false;
+		}
+		if (type != that.type) {
+			return false;
+		}
 
 		return true;
 	}

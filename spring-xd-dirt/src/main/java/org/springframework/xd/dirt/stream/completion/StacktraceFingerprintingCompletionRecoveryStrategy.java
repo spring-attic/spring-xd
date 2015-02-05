@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.xd.rest.domain.CompletionKind;
  * encounters the ill formed input. Multiple fingerprints are supported, as the control flow in the parser code may be
  * different depending on the form of the expression. For example, for the rule {@code stream = module (| module)* },
  * the pseudo code for the parser may look like
- * 
+ *
  * <pre>
  * <code>
  * stream() {
@@ -44,11 +44,12 @@ import org.springframework.xd.rest.domain.CompletionKind;
  * }
  * </code>
  * </pre>
- * 
+ *
  * In that setup, whether we're dealing with the first module, or a subsequent module, stack frames would be different
  * (see (1) and (2)).
- * 
+ *
  * @author Eric Bottard
+ * @author Gary Russell
  */
 public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E extends Exception> implements
 		CompletionRecoveryStrategy<E> {
@@ -64,7 +65,7 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 	/**
 	 * Construct a new StacktraceFingerprintingCompletionRecoveryStrategy given the parser, and the expected exception
 	 * class to be thrown for sample fragments of a stream definition that is to be parsed.
-	 * 
+	 *
 	 * @param parser the parser used to parse the sample fragment stream definitions.
 	 * @param exceptionClass the expected exception that results from parsing the sample fragment stream definitions.
 	 *        Stack frames from the thrown exception are used to store the fingerprint of this exception thrown by the
@@ -90,15 +91,12 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 					// not influenced by the kind of parse. Use stream for now
 					this.parser.parse("__dummy", sample, ParsingContext.partial_stream);
 				}
-				catch (Exception exception) {
+				catch (RuntimeException exception) {
 					if (this.exceptionClass.isAssignableFrom(exception.getClass())) {
 						computeFingerprint((E) exception);
 					}
-					else if (exception instanceof RuntimeException) {
-						throw (RuntimeException) exception;
-					}
 					else {
-						throw new RuntimeException(exception);
+						throw exception;
 					}
 				}
 			}

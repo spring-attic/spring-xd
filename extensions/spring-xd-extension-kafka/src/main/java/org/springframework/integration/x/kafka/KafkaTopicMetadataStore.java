@@ -322,7 +322,7 @@ public class KafkaTopicMetadataStore implements InitializingBean, MetadataStore,
 		ProducerFactoryBean<String, String> producerFB
 				= new ProducerFactoryBean<String, String>(producerMetadata, leader.toString(), additionalProps);
 
-		producer = producerFB.getObject();
+		producer = producerFB.getObject();//NOSONAR
 	}
 
 	@Override

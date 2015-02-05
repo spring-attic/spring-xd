@@ -635,10 +635,8 @@ public abstract class MessageBusSupport
 		else {
 			partition = this.partitionSelector.selectPartition(key, meta.partitionCount);
 		}
-		if (partition >= meta.partitionCount) {
-			partition = partition % meta.partitionCount;
-		}
-		if (partition < 0) {
+		partition = partition % meta.partitionCount;
+		if (partition < 0) { // protection in case a user selector returns a negative.
 			partition = Math.abs(partition);
 		}
 		return partition;
@@ -893,12 +891,17 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Default partition strategy; only works on keys with "real" hash codes, such as String.
+	 * Caller now always applies modulo so no need to do so here.
 	 */
 	private class DefaultPartitionSelector implements PartitionSelectorStrategy {
 
 		@Override
 		public int selectPartition(Object key, int partitionCount) {
-			return Math.abs(key.hashCode()) % partitionCount;
+			int hashCode = key.hashCode();
+			if (hashCode == Integer.MIN_VALUE) {
+				hashCode = 0;
+			}
+			return Math.abs(hashCode);
 		}
 
 	}

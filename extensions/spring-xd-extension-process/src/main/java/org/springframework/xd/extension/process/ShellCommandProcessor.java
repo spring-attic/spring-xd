@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
  * Creates a process to run a shell command and communicate with it using String payloads over stdin and stdout.
  *
  * @author David Turanski
+ * @author Gary Russell
  */
 public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 
@@ -138,7 +139,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 			throw new RuntimeException(e.getMessage(), e);
 		}
 
-		return data == null ? null : data.trim();
+		return data.trim();
 	}
 
 	/**
@@ -214,7 +215,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * @param charset the charset name
 	 */
 	public void setCharset(String charset) {
-		this.charset = charset;
+		this.charset = charset;//NOSONAR
 	}
 
 	@Override

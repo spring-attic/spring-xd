@@ -31,7 +31,7 @@ class LocalMessageBusHolder implements Serializable {
 
 	private static MessageBus BUS;
 
-	public void set(MessageBus messageBus) {
+	public static void set(MessageBus messageBus) {
 		BUS = messageBus;
 	}
 

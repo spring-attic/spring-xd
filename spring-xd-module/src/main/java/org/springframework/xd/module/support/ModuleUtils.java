@@ -37,7 +37,11 @@ import org.springframework.xd.module.SimpleModuleDefinition;
  */
 public class ModuleUtils {
 
-	private static final AsciiBytes LIB = new AsciiBytes("lib/");
+	private static final String LIB = "lib/";
+
+	public static final String DOT_JAR = ".jar";
+
+	public static final String DOT_ZIP = ".zip";
 
 	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent) {
 		return createModuleClassLoader(moduleLocation, parent, true);
@@ -55,7 +59,9 @@ public class ModuleUtils {
 				nestedArchives = moduleArchive.getNestedArchives(new Archive.EntryFilter() {
 					@Override
 					public boolean matches(Archive.Entry entry) {
-						return !entry.isDirectory() && entry.getName().startsWith(LIB);
+						String name = entry.getName().toString().toLowerCase();
+						return !entry.isDirectory() && name.startsWith(LIB) && 
+								(name.endsWith(DOT_JAR) || name.endsWith(DOT_ZIP));
 					}
 				});
 			}

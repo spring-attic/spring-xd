@@ -75,11 +75,9 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryPolicy;
+import org.springframework.retry.RetryOperations;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.policy.CompositeRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.policy.TimeoutRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -124,11 +122,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private final AtomicInteger correlationIdCounter = new AtomicInteger(new Random().nextInt());
 
-	public static final int METADATA_VERIFICATION_TIMEOUT = 5000;
-
 	public static final int METADATA_VERIFICATION_RETRY_ATTEMPTS = 10;
 
-	public static final double METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER = 1.5;
+	public static final double METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER = 2;
 
 	public static final int METADATA_VERIFICATION_RETRY_INITIAL_INTERVAL = 100;
 
@@ -151,6 +147,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	private static final String DEFAULT_COMPRESSION_CODEC = "default";
 
 	private static final int DEFAULT_REQUIRED_ACKS = 1;
+
+	private RetryOperations retryOperations;
 
 	/**
 	 * Used when writing directly to ZK. This is what Kafka expects.
@@ -270,6 +268,15 @@ public class KafkaMessageBus extends MessageBusSupport {
 		this.offsetStoreTopic = offsetStoreTopic;
 	}
 
+	/**
+	 * Retry configuration for operations such as validating topic creation
+	 *
+	 * @param retryOperations
+	 */
+	public void setRetryOperations(RetryOperations retryOperations) {
+		this.retryOperations = retryOperations;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// we instantiate the connection factory here due to https://jira.spring.io/browse/XD-2647
@@ -277,7 +284,20 @@ public class KafkaMessageBus extends MessageBusSupport {
 				new DefaultConnectionFactory(new ZookeeperConfiguration(this.zookeeperConnect));
 		defaultConnectionFactory.afterPropertiesSet();
 		this.connectionFactory = defaultConnectionFactory;
+		if (retryOperations == null) {
+			RetryTemplate retryTemplate = new RetryTemplate();
 
+			SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy();
+			simpleRetryPolicy.setMaxAttempts(METADATA_VERIFICATION_RETRY_ATTEMPTS);
+			retryTemplate.setRetryPolicy(simpleRetryPolicy);
+
+			ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+			backOffPolicy.setInitialInterval(METADATA_VERIFICATION_RETRY_INITIAL_INTERVAL);
+			backOffPolicy.setMultiplier(METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER);
+			backOffPolicy.setMaxInterval(METADATA_VERIFICATION_MAX_INTERVAL);
+			retryTemplate.setBackOffPolicy(backOffPolicy);
+			retryOperations = retryTemplate;
+		}
 	}
 
 	/**
@@ -447,24 +467,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 			AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment, topicConfig,
 					true);
 
-			RetryTemplate retryTemplate = new RetryTemplate();
-
-			CompositeRetryPolicy policy = new CompositeRetryPolicy();
-			TimeoutRetryPolicy timeoutRetryPolicy = new TimeoutRetryPolicy();
-			timeoutRetryPolicy.setTimeout(METADATA_VERIFICATION_TIMEOUT);
-			SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy();
-			simpleRetryPolicy.setMaxAttempts(METADATA_VERIFICATION_RETRY_ATTEMPTS);
-			policy.setPolicies(new RetryPolicy[] {timeoutRetryPolicy, simpleRetryPolicy});
-			retryTemplate.setRetryPolicy(policy);
-
-			ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
-			backOffPolicy.setInitialInterval(METADATA_VERIFICATION_RETRY_INITIAL_INTERVAL);
-			backOffPolicy.setMultiplier(METADATA_VERIFICATION_RETRY_BACKOFF_MULTIPLIER);
-			backOffPolicy.setMaxInterval(METADATA_VERIFICATION_MAX_INTERVAL);
-			retryTemplate.setBackOffPolicy(backOffPolicy);
 
 			try {
-				TopicMetadata topicMetadata = retryTemplate.execute(new RetryCallback<TopicMetadata, Exception>() {
+				TopicMetadata topicMetadata = retryOperations.execute(new RetryCallback<TopicMetadata, Exception>() {
 					@Override
 					public TopicMetadata doWithRetry(RetryContext context) throws Exception {
 						TopicMetadata topicMetadata = AdminUtils.fetchTopicMetadataFromZk(topicName, zkClient);

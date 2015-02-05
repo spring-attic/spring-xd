@@ -107,6 +107,7 @@ ext {
 	// Also in IO
 	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4
 	hadoopGuavaVersion = '11.0.2' // This is only used by the mini cluster in the spring-xd-batch-extension tests
+	cdh5GuavaVersion = '14.0.1' // This is only used by the CDH 5 module for the xd/lib/cdh5 classpath jars
 	oldGuavaVersion = '15.0'  // This is only used by spring-xd-integration-test, IO uses version 17.0
 	guavaVersion = '16.0.1'
 

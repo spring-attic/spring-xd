@@ -110,6 +110,16 @@ project('spring-xd-hadoop:hadoop26') {
 
 project('spring-xd-hadoop:cdh5') {
 	description = 'Cloudera CDH 5 dependencies'
+	configurations.all {
+		resolutionStrategy {
+			eachDependency { DependencyResolveDetails details ->
+				//Force version of Guava
+				if (details.requested.group == 'com.google.guava') {
+					details.useVersion "$cdh5GuavaVersion"
+				}
+			}
+		}
+	}
 	dependencies {
 		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-cdh5") {
 			exclude group: 'org.apache.hadoop'
@@ -139,6 +149,8 @@ project('spring-xd-hadoop:cdh5') {
 		include 'jetty-util-*'
 		include 'jersey-core-*'
 		include 'jersey-server-*'
+		// CDH5 needs an older Guava version (pre 15.0 - XD has 16.0.1)
+		include 'guava-*'
 		// Pig dependencies
 		include 'pig-*'
 		include 'automaton-*'

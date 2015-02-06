@@ -16,6 +16,8 @@
 
 package org.springframework.xd.module.options.mixins;
 
+import javax.validation.constraints.NotNull;
+
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.Range;
 
@@ -41,6 +43,8 @@ public abstract class IntoMongoDbOptionMixin {
 	private String username = "";
 
 	private String password = "";
+
+	private WriteConcern writeConcern = WriteConcern.SAFE;
 
 	/**
 	 * Has {@code collectionName} default to ${xd.job.name}.  
@@ -99,6 +103,16 @@ public abstract class IntoMongoDbOptionMixin {
 		this.username = username;
 	}
 
+	@NotNull
+	public WriteConcern getWriteConcern() {
+		return writeConcern;
+	}
+
+	@ModuleOption("the default MongoDB write concern to use")
+	public void setWriteConcern(WriteConcern writeConcern) {
+		this.writeConcern = writeConcern;
+	}
+
 	public String getPassword() {
 		return password;
 	}
@@ -125,6 +139,11 @@ public abstract class IntoMongoDbOptionMixin {
 	@Range(min = 0, max = 65535)
 	public int getPort() {
 		return this.port;
+	}
+
+	public static enum WriteConcern {
+		NONE, NORMAL, SAFE, FSYNC_SAFE, REPLICAS_SAFE, JOURNAL_SAFE, MAJORITY;
+
 	}
 
 }

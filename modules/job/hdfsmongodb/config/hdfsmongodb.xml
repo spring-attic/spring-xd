@@ -56,7 +56,7 @@
 		fs.defaultFS=${fsUri}
 	</hdp:configuration>
 	<hdp:resource-loader id="hadoopResourceLoader"/>
-	<mongo:db-factory dbname="${databaseName}" host="${host}" port="${port}" username="${username}" password="${password}"/>
+	<mongo:db-factory dbname="${databaseName}" host="${host}" port="${port}" username="${username}" password="${password}" write-concern="${writeConcern}"/>
 
 	<mongo:mapping-converter>
 		<mongo:custom-converters>

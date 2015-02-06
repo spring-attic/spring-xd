@@ -16,9 +16,24 @@
 
 package org.springframework.xd.integration.reactor;
 
+import static org.junit.Assert.assertTrue;
+
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import reactor.core.Environment;
+import reactor.core.Reactor;
+import reactor.core.spec.Reactors;
+import reactor.spring.context.config.EnableReactor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
@@ -31,23 +46,6 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
-import reactor.Environment;
-import reactor.bus.EventBus;
-
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
-import java.nio.channels.DatagramChannel;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertTrue;
-
-//import reactor.core.Environment;
-//import reactor.core.Reactor;
-//import reactor.core.spec.Reactors;
-//import reactor.spring.context.config.EnableReactor;
 
 /**
  * @author Jon Brisbin
@@ -126,7 +124,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 	}
 
 	@Configuration
-	//@EnableReactor
+	@EnableReactor
 	static class TestConfiguration {
 
 		static
@@ -139,18 +137,13 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		String transport;
 
 		@Bean
-		public EventBus reactor(Environment env) {
-			return EventBus.create(env);
+		public Reactor reactor(Environment env) {
+			return Reactors.reactor().env(env).get();
 		}
 
 		@Bean
 		public DirectChannel output() {
 			return new DirectChannel();
-		}
-
-		@Bean
-		public Environment environment() {
-			return Environment.initializeIfEmpty();
 		}
 
 		@Bean

@@ -16,7 +16,6 @@
 package org.springframework.xd.test.fixtures;
 
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.xd.test.fixtures.util.KafkaUtils;
 
 

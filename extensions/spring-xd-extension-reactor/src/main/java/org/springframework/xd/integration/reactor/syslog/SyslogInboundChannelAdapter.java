@@ -19,22 +19,22 @@ package org.springframework.xd.integration.reactor.syslog;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import reactor.Environment;
-import reactor.core.dispatch.SynchronousDispatcher;
-import reactor.fn.Consumer;
-import reactor.fn.Function;
-import reactor.io.buffer.Buffer;
-import reactor.io.codec.DelimitedCodec;
-import reactor.io.codec.StandardCodecs;
-import reactor.io.net.NetChannel;
-import reactor.io.net.NetServer;
-import reactor.io.net.codec.syslog.SyslogCodec;
-import reactor.io.net.codec.syslog.SyslogMessage;
-import reactor.io.net.netty.tcp.NettyTcpServer;
-import reactor.io.net.netty.udp.NettyDatagramServer;
-import reactor.io.net.spec.NetServerSpec;
-import reactor.io.net.tcp.spec.TcpServerSpec;
-import reactor.io.net.udp.spec.DatagramServerSpec;
+import reactor.core.Environment;
+import reactor.event.dispatch.SynchronousDispatcher;
+import reactor.function.Consumer;
+import reactor.function.Function;
+import reactor.io.Buffer;
+import reactor.io.encoding.DelimitedCodec;
+import reactor.io.encoding.StandardCodecs;
+import reactor.net.NetChannel;
+import reactor.net.NetServer;
+import reactor.net.encoding.syslog.SyslogCodec;
+import reactor.net.encoding.syslog.SyslogMessage;
+import reactor.net.netty.tcp.NettyTcpServer;
+import reactor.net.netty.udp.NettyDatagramServer;
+import reactor.net.spec.NetServerSpec;
+import reactor.net.tcp.spec.TcpServerSpec;
+import reactor.net.udp.spec.DatagramServerSpec;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
@@ -105,10 +105,10 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 		NetServerSpec<Buffer, Buffer, ? extends NetServerSpec<Buffer, Buffer, ?, ?>, ? extends NetServer<Buffer,
 				Buffer>> spec;
 		if ("udp".equals(transport)) {
-			spec = new DatagramServerSpec<Buffer, Buffer>(NettyDatagramServer.class);
+			spec = new DatagramServerSpec<>(NettyDatagramServer.class);
 		}
 		else {
-			spec = new TcpServerSpec<Buffer, Buffer>(NettyTcpServer.class);
+			spec = new TcpServerSpec<>(NettyTcpServer.class);
 		}
 
 		// this is faster than putting the codec directly on the server
@@ -135,7 +135,7 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 				// safest guess of Dispatcher since we don't know what's happening downstream
 				.dispatcher(new SynchronousDispatcher())
 						// optimize for massive throughput by using lightweight codec in server
-				.codec(new DelimitedCodec<Buffer, Buffer>(false, StandardCodecs.PASS_THROUGH_CODEC))
+				.codec(new DelimitedCodec<>(false, StandardCodecs.PASS_THROUGH_CODEC))
 				.listen(host, port)
 				.consume(new Consumer<NetChannel<Buffer, Buffer>>() {
 					@Override

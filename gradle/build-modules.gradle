@@ -93,6 +93,13 @@ project('modules.source.mail') {
     }
 }
 
+project('modules.sink.redis') {
+    dependencies {
+        runtime project(":spring-xd-extension-redis")
+    }
+}
+
+
 project('modules.source.file') {
     dependencies { runtime	"org.springframework.integration:spring-integration-file" }
 }

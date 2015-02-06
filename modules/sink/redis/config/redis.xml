@@ -11,12 +11,8 @@
 
 	<channel id="input" />
 
-	<beans:bean id="redisConnectionFactory"
-		class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-		<beans:property name="hostName" value="${hostname}" />
-		<beans:property name="port" value="${port}" />
-		<beans:property name="password" value="${password}" />
-	</beans:bean>
+	<!-- creates the redisConnectionFactory -->
+	<beans:bean name="redisSinkConfiguration" class="org.springframework.xd.redis.RedisSinkConfiguration"/>
 
 	<beans:beans profile="use-topic-expression">
 		<redis:outbound-channel-adapter

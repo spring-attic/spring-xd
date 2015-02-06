@@ -96,14 +96,9 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 	@Override
 	protected void obtainResource() throws Exception {
 		if (embedded) {
-			try {
-				log.debug("Starting Zookeeper");
-				zookeeper = new EmbeddedZookeeper(TestZKUtils.zookeeperConnect());
-				log.debug("Started Zookeeper at " + zookeeper.getConnectString());
-			}
-			catch (Exception e) {
-				throw new RuntimeException("Issues creating the ZK server", e);
-			}
+			log.debug("Starting Zookeeper");
+			zookeeper = new EmbeddedZookeeper(TestZKUtils.zookeeperConnect());
+			log.debug("Started Zookeeper at " + zookeeper.getConnectString());
 			try {
 				int zkConnectionTimeout = 6000;
 				int zkSessionTimeout = 6000;
@@ -111,7 +106,7 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 			}
 			catch (Exception e) {
 				zookeeper.shutdown();
-				throw new RuntimeException("Issues creating the ZK client", e);
+				throw e;
 			}
 			try {
 				log.debug("Creating Kafka server");
@@ -122,18 +117,13 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 			catch (Exception e) {
 				zookeeper.shutdown();
 				zkClient.close();
-				throw new RuntimeException("Issues creating the Kafka server", e);
+				throw e;
 			}
 		}
 		else {
-			try {
-				this.zkClient = new ZkClient(DEFAULT_ZOOKEEPER_CONNECT, 5000, 5000, ZKStringSerializer$.MODULE$);
-				if (ZkUtils.getAllBrokersInCluster(zkClient).size() == 0) {
-					throw new RuntimeException("Kafka server not available on localhost");
-				}
-			}
-			catch (Exception e) {
-				throw new RuntimeException("Issues connecting to ZK server");
+			this.zkClient = new ZkClient(DEFAULT_ZOOKEEPER_CONNECT, 5000, 5000, ZKStringSerializer$.MODULE$);
+			if (ZkUtils.getAllBrokersInCluster(zkClient).size() == 0) {
+				throw new RuntimeException("Kafka server not available");
 			}
 		}
 	}

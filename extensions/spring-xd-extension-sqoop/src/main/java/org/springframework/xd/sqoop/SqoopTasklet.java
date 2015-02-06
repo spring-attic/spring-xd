@@ -18,9 +18,12 @@ package org.springframework.xd.sqoop;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.batch.step.tasklet.x.AbstractProcessBuilderTasklet;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -34,6 +37,8 @@ import java.util.List;
 public class SqoopTasklet extends AbstractProcessBuilderTasklet implements InitializingBean {
 
 	private static final String SQOOP_RUNNER_CLASS = "org.springframework.xd.sqoop.SqoopRunner";
+
+	private static final String SPRING_HADOOP_CONFIG_PREFIX = "spring.hadoop.config";
 
 	private String[] arguments;
 
@@ -57,6 +62,17 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 		command.add("java");
 		command.add(SQOOP_RUNNER_CLASS);
 		command.addAll(Arrays.asList(arguments));
+		Iterator<PropertySource<?>> i = environment.getPropertySources().iterator();
+		while (i.hasNext()) {
+			PropertySource<?> p = i.next();
+			if (p instanceof EnumerablePropertySource) {
+				for (String name : ((EnumerablePropertySource)p).getPropertyNames()) {
+					if(name.startsWith(SPRING_HADOOP_CONFIG_PREFIX)) {
+						command.add(name + "=" + environment.getProperty(name));
+					}
+				}
+			}
+		}
 		return command;
 	}
 

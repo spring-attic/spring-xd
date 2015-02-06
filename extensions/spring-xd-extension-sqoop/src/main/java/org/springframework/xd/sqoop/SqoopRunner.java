@@ -44,6 +44,7 @@ public class SqoopRunner {
 	private static final String JDBC_USERNAME_KEY = "jdbc.username";
 	private static final String JDBC_PASSWORD_KEY = "jdbc.password";
 	private static final String JDBC_URL_KEY = "jdbc.url";
+	private static final String SPRING_HADOOP_CONFIG_PREFIX = "spring.hadoop.config";
 
 	public static void main(String[] args) {
 
@@ -60,11 +61,9 @@ public class SqoopRunner {
 		List<String> sqoopArguments = new ArrayList<String>();
 		boolean connectProvided = parseSqoopArguments(sqoopArgumentSource, sqoopArguments);
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Sqoop command: " + command);
-			logger.debug("Using args: " + sqoopArguments);
-			logger.debug("Mapreduce home: " + hadoopMapredHome);
-		}
+		logger.info("Sqoop command: " + command);
+		logger.info("Using args: " + sqoopArguments);
+		logger.info("Mapreduce home: " + hadoopMapredHome);
 
 		Map<String, String> configOptions = new HashMap<String, String>();
 		parseConfigOptions(args, configOptions);
@@ -73,10 +72,6 @@ public class SqoopRunner {
 
 		List<String> finalArguments = new ArrayList<String>();
 		createFinalArguments(hadoopMapredHome, command, sqoopArguments, connectProvided, configOptions, finalArguments);
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Final args: " + finalArguments);
-		}
 
 		final int ret = Sqoop.runTool(finalArguments.toArray(new String[finalArguments.size()]), configuration);
 
@@ -107,23 +102,27 @@ public class SqoopRunner {
 
 	protected static Configuration createConfiguration(Map<String, String> configOptions) {
 		Configuration configuration = new Configuration();
-		if (configOptions.containsKey(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY) &&
-				configOptions.get(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY) != null) {
-			configuration.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY,
-					configOptions.get(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY));
+		setConfigurationProperty(configOptions, configuration, CommonConfigurationKeys.FS_DEFAULT_NAME_KEY);
+		setConfigurationProperty(configOptions, configuration, YarnConfiguration.RM_ADDRESS);
+		setConfigurationProperty(configOptions, configuration, YarnConfiguration.YARN_APPLICATION_CLASSPATH);
+		setConfigurationProperty(configOptions, configuration, "mapreduce.framework.name");
+		for (String key : configOptions.keySet()) {
+			if (key.startsWith(SPRING_HADOOP_CONFIG_PREFIX + ".")) {
+				String prop = key.substring(SPRING_HADOOP_CONFIG_PREFIX.length() + 1);
+				String value = configOptions.get(key);
+				logger.info("Setting configuration property: " + prop + "=" + value);
+				configuration.set(prop, value);
+			}
 		}
-		if (configOptions.containsKey(YarnConfiguration.RM_ADDRESS) &&
-				configOptions.get(YarnConfiguration.RM_ADDRESS) != null) {
-			configuration.set(YarnConfiguration.RM_ADDRESS,
-					configOptions.get(YarnConfiguration.RM_ADDRESS));
-		}
-		if (configOptions.containsKey(YarnConfiguration.YARN_APPLICATION_CLASSPATH) &&
-				StringUtils.hasText(configOptions.get(YarnConfiguration.YARN_APPLICATION_CLASSPATH))) {
-			configuration.set(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
-					configOptions.get(YarnConfiguration.YARN_APPLICATION_CLASSPATH));
-		}
-		configuration.set("mapreduce.framework.name", "yarn");
 		return configuration;
+	}
+
+	private static void setConfigurationProperty(Map<String, String> configOptions, Configuration configuration, String key) {
+		if (configOptions.containsKey(key) && StringUtils.hasText(configOptions.get(key))) {
+			String value = configOptions.get(key);
+			logger.info("Setting configuration property: " + key + "=" + value);
+			configuration.set(key, value);
+		}
 	}
 
 	protected static void parseConfigOptions(String[] args, Map<String, String> configOptions) {
@@ -133,7 +132,16 @@ public class SqoopRunner {
 				throw new IllegalArgumentException("Invalid config option provided: " + option);
 			}
 			String[] optionParts = option.split("=");
-			configOptions.put(optionParts[0], optionParts.length > 1 ? optionParts[1] : null);
+			StringBuilder value = new StringBuilder();
+			if (optionParts.length > 1) {
+				for (int j = 1; j < optionParts.length; j++) {
+					if (j > 1) {
+						value.append("=");
+					}
+					value.append(optionParts[j]);
+				}
+			}
+			configOptions.put(optionParts[0], value.length() > 1 ? value.toString() : null);
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("Config options: " + configOptions);

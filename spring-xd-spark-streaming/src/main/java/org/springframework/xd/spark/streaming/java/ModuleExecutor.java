@@ -35,6 +35,7 @@ import org.springframework.xd.spark.streaming.SparkStreamingModuleExecutor;
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @since 1.1
  */
 @SuppressWarnings({"unchecked", "rawtypes", "serial"})
 public class ModuleExecutor implements SparkStreamingModuleExecutor<JavaDStreamLike, Processor> , Serializable {

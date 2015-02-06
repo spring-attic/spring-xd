@@ -25,6 +25,7 @@ import org.springframework.xd.dirt.integration.bus.MessageBus;
  * Spark executors in local mode. This makes it possible to use the same message bus object used by the container.
  *
  * @author Mark Fisher
+ * @since 1.1
  */
 @SuppressWarnings("serial")
 class LocalMessageBusHolder implements Serializable {

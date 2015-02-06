@@ -50,6 +50,7 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport;
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @since 1.1
  */
 @SuppressWarnings("rawtypes")
 public class SparkStreamingPlugin extends AbstractStreamPlugin {

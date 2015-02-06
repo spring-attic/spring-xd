@@ -33,6 +33,7 @@ import scala.Tuple2;
 
 /**
  * @author Mark Fisher
+ * @since 1.1
  */
 @SuppressWarnings({ "serial", "rawtypes", "unchecked" })
 public class WordCount implements Processor {

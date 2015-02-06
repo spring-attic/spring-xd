@@ -25,6 +25,7 @@ import org.springframework.xd.spark.streaming.{SparkMessageSender, SparkStreamin
  * and handles the output DStream if present.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 class ModuleExecutor extends SparkStreamingModuleExecutor[ReceiverInputDStream[Any],
   org.springframework.xd.spark.streaming.scala.Processor[Any, Any]] with Serializable {

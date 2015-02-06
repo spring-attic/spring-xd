@@ -21,17 +21,18 @@ import org.springframework.xd.spark.streaming.DefaultSparkStreamingModuleOptions
 
 /**
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
-public class LoggerModuleOptionsMetadata extends DefaultSparkStreamingModuleOptionsMetadata {
+public class FileLoggerModuleOptionsMetadata extends DefaultSparkStreamingModuleOptionsMetadata {
 
-	private String filePath;
+	private String path;
 
-	@ModuleOption("the file path for the log module")
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
+	@ModuleOption("the file path for the file logger module")
+	public void setPath(String path) {
+		this.path = path;
 	}
 
-	public String getFilePath() {
-		return this.filePath;
+	public String getPath() {
+		return this.path;
 	}
 }

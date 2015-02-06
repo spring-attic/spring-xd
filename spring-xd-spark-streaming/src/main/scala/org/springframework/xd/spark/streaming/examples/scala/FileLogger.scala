@@ -26,11 +26,11 @@ import org.springframework.xd.spark.streaming.scala.Processor
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-class Logger extends Processor[String, String] {
+class FileLogger extends Processor[String, String] {
 
   var file: File = null
 
-  def setFilePath(filePath: String) {
+  def setPath(filePath: String) {
     file = new File(filePath)
     if (!file.exists) {
       try {

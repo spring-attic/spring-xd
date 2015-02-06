@@ -34,6 +34,7 @@ import org.springframework.xd.dirt.integration.bus.MessageBus;
  *
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 class MessageBusReceiver extends Receiver {

@@ -21,6 +21,7 @@ import java.io.Serializable;
  * Base interface for spring XD and spark streaming integration.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 public interface SparkStreamingSupport extends Serializable {
 

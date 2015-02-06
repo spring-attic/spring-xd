@@ -20,6 +20,7 @@ package org.springframework.xd.spark.streaming;
  * and send the output via ${@link SparkMessageSender}.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 public interface SparkStreamingModuleExecutor<I, P extends SparkStreamingSupport> {
 

@@ -64,17 +64,18 @@ class ModulePlugin implements Plugin<Project> {
 		project.dependencies {
 			provided("org.springframework.xd:spring-xd-dirt:${project.springXdVersion}") {
 				exclude group: 'org.springframework.xd', module: 'spring-xd-hadoop'
+				exclude group: 'org.springframework.xd', module: 'spring-xd-spark-streaming'
 			}
 
 			testCompile("org.springframework.xd:spring-xd-test:${project.springXdVersion}") {
 				exclude group: 'org.springframework.xd', module: 'spring-xd-hadoop'
+				exclude group: 'org.springframework.data', module: 'spring-data-hadoop'
+				exclude group: 'org.springframework.data', module: 'spring-data-hadoop-test'
+				exclude group: 'org.springframework.xd', module: 'spring-xd-spark-streaming'
 			}
 
 			messageBus("org.springframework.xd:spring-xd-messagebus-local:${project.springXdVersion}")
 
-			provided("org.apache.hadoop:hadoop-common:2.6.0") {
-				exclude group: 'javax.servlet'
-			}
 		}
 
 		project.springBoot {

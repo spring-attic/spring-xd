@@ -146,6 +146,10 @@ def customizePom(pom, gradleProject) {
 							groupId 'org.springframework.xd'
 							artifactId 'spring-xd-hadoop'
 						}
+						exclusion {
+							groupId 'org.springframework.xd'
+							artifactId 'spring-xd-spark-streaming'
+						}
 					}
 				}
 				dependency {
@@ -158,13 +162,15 @@ def customizePom(pom, gradleProject) {
 							groupId 'org.springframework.xd'
 							artifactId 'spring-xd-hadoop'
 						}
+						exclusion {
+							groupId 'org.springframework.data'
+							artifactId 'spring-data-hadoop-test'
+						}
+						exclusion {
+							groupId 'org.springframework.data'
+							artifactId 'spring-data-hadoop'
+						}
 					}
-				}
-				dependency {
-					groupId 'org.apache.hadoop'
-					artifactId 'hadoop-common'
-					version '2.6.0'
-					scope 'provided'
 				}
 			}
 

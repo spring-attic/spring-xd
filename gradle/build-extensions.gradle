@@ -10,6 +10,15 @@ project('spring-xd-extension-mail') {
     }
 }
 
+project('spring-xd-extension-redis') {
+    description = 'Spring XD Redis'
+    dependencies {
+        compile("org.springframework.data:spring-data-redis")
+        compile("redis.clients:jedis")
+        //compile project(":spring-xd-module-spi")
+    }
+}
+
 project('spring-xd-extension-http') {
     description = 'Spring XD HTTP'
     dependencies {

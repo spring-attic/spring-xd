@@ -26,7 +26,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  */
 public class PluginsInitializer extends AbstractResourceBeanDefinitionProvider {
 
-	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/";
+	private static final String CONTEXT_CONFIG_ROOT = "classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "plugins/";
 
 	@Override
 	public int getOrder() {

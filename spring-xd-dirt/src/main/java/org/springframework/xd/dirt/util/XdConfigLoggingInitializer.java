@@ -31,6 +31,7 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
@@ -113,7 +114,12 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	private void logHadoopDistro() {
 		String hadoopDistro = environment.resolvePlaceholders(HADOOP_DISTRO_OPTION);
 		logger.info("Hadoop Distro: " + hadoopDistro);
-		logger.info("Hadoop version detected from classpath: " + org.apache.hadoop.util.VersionInfo.getVersion());
+		if (ClassUtils.isPresent("org.apache.hadoop.util.VersionInfo", this.getClass().getClassLoader())) {
+			logger.info("Hadoop version detected from classpath " + org.apache.hadoop.util.VersionInfo.getVersion());
+		}
+		else {
+			logger.info("Hadoop version not detected from classpath");
+		}
 	}
 
 	private void logContainerInfo() {

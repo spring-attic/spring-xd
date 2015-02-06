@@ -448,6 +448,7 @@ project('spring-xd-dirt') {
 		runtime "org.yaml:snakeyaml"
 		runtime "org.postgresql:postgresql:$postgresqlVersion"
 		runtime "mysql:mysql-connector-java"
+		
 
 		testCompile("org.apache.kafka:kafka_2.10:${kafkaVersion}:test") {
 			exclude group: "log4j", module: "log4j"

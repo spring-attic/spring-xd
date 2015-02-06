@@ -1,11 +1,5 @@
 apply plugin: 'maven'
 
-ext.optionalDeps = []
-ext.providedDeps = []
-
-ext.optional = { optionalDeps << it }
-ext.provided = { providedDeps << it }
-
 // exclude hadoop install sub projects
 def hadoopInstalls = ['cdh5', 'hadoop25', 'hadoop26', 'hdp22', 'phd21']
 if (hadoopInstalls.contains(project.name)) {
@@ -24,10 +18,10 @@ install {
 def customizePom(pom, gradleProject) {
 	pom.whenConfigured { generatedPom ->
 		// respect 'optional' and 'provided' dependencies
-		gradleProject.optionalDeps.each { dep ->
-			generatedPom.dependencies.find { it.artifactId == dep.name }?.optional = true
+		gradleProject.configurations.optional.each { dep ->
+			generatedPom.dependencies.find { it.artifactId == dep.name }?.optional = 'true'
 		}
-		gradleProject.providedDeps.each { dep ->
+		gradleProject.configurations.provided.each { dep ->
 			generatedPom.dependencies.find { it.artifactId == dep.name }?.scope = 'provided'
 		}
 

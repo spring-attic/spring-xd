@@ -16,17 +16,17 @@
 
 package org.springframework.xd.analytics.metrics.redis;
 
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.retry.RetryOperations;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.Metric;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Common base functionality for Redis implementations.
@@ -55,12 +55,20 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 
 	@SuppressWarnings("unchecked")
 	AbstractRedisMetricRepository(RedisConnectionFactory connectionFactory, String metricPrefix, Class<V> valueClass) {
+		this(connectionFactory, metricPrefix, valueClass, null);
+	}
+
+	@SuppressWarnings("unchecked")
+	AbstractRedisMetricRepository(RedisConnectionFactory connectionFactory, String metricPrefix, Class<V> valueClass,
+								  RetryOperations retryOperations) {
 		Assert.notNull(connectionFactory);
 		Assert.hasText(metricPrefix, "metric prefix cannot be empty");
 		this.metricPrefix = metricPrefix;
-		this.redisOperations = RedisUtils.createRedisTemplate(connectionFactory, valueClass);
+		this.redisOperations = RedisUtils.createRedisRetryTemplate(connectionFactory, valueClass, retryOperations);
 		this.valueOperations = redisOperations.opsForValue();
 	}
+
+
 
 	@Override
 	public void deleteAll() {

@@ -16,11 +16,6 @@
 
 package org.springframework.xd.analytics.metrics.redis;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -30,19 +25,23 @@ import org.joda.time.Months;
 import org.joda.time.MutableDateTime;
 import org.joda.time.ReadableDateTime;
 import org.joda.time.Years;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.retry.RetryOperations;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Redis implementation of {@link AggregateCounterRepository}. Subclasses and intercepts calls to
@@ -58,17 +57,15 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 
 	protected SetOperations<String, String> setOperations;
 
-	/**
-	 * @param redisConnectionFactory
-	 */
-	public RedisAggregateCounterRepository(RedisConnectionFactory redisConnectionFactory) {
-		super("aggregatecounters", redisConnectionFactory);
-		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
+	public RedisAggregateCounterRepository(RedisConnectionFactory redisConnectionFactory, RetryOperations retryOperations) {
+		super("aggregatecounters", redisConnectionFactory, retryOperations);
+		RedisRetryTemplate<String, String> redisTemplate = new RedisRetryTemplate<String, String>();
 		redisTemplate.setConnectionFactory(redisConnectionFactory);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setValueSerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		redisTemplate.setRetryOperations(retryOperations);
 		redisTemplate.afterPropertiesSet();
 		hashOperations = redisTemplate.opsForHash();
 		setOperations = redisTemplate.opsForSet();

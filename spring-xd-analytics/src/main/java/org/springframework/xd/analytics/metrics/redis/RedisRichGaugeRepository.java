@@ -16,9 +16,6 @@
 
 package org.springframework.xd.analytics.metrics.redis;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -26,6 +23,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryOperations;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -33,6 +31,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Repository for rich-gauges backed by Redis.
@@ -47,8 +48,8 @@ public class RedisRichGaugeRepository extends
 
 	private RetryTemplate retryTemplate;
 
-	public RedisRichGaugeRepository(RedisConnectionFactory connectionFactory) {
-		super(connectionFactory, "richgauges.", String.class);
+	public RedisRichGaugeRepository(RedisConnectionFactory connectionFactory, RetryOperations retryOperations) {
+		super(connectionFactory, "richgauges.", String.class, retryOperations);
 
 		// In case of concurrent access on same key, retry a bit before giving up eventually
 		retryTemplate = new RetryTemplate();

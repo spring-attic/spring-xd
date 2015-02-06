@@ -1,31 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<!-- The redisConnectionFactory bean comes from Spring Boot autoconfiguration based on the
+		 property values in spring.redis.* -->
 
 	<bean id="counterRepository"
 		class="org.springframework.xd.analytics.metrics.redis.RedisCounterRepository">
 		<constructor-arg ref="redisConnectionFactory" />
+		<constructor-arg ref="retryTemplate"/>
 	</bean>
 
 	<bean id="fieldValueCounterRepository"
 		class="org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository">
 		<constructor-arg ref="redisConnectionFactory" />
+		<constructor-arg ref="retryTemplate"/>
 	</bean>
 
 	<bean id="gaugeRepository"
 		class="org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository">
 		<constructor-arg ref="redisConnectionFactory" />
+		<constructor-arg ref="retryTemplate"/>
 	</bean>
 
 	<bean id="richGaugeRepository"
 		class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository">
 		<constructor-arg ref="redisConnectionFactory" />
+		<constructor-arg ref="retryTemplate"/>
 	</bean>
 
 	<bean id="aggregateCounterRepository"
 		class="org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterRepository">
 		<constructor-arg ref="redisConnectionFactory" />
+		<constructor-arg ref="retryTemplate"/>
 	</bean>
+
+	<bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
+		<property name="retryPolicy" ref="retryPolicy"/>
+		<property name="backOffPolicy" ref="backOffPolicy"/>
+	</bean>
+
+	<bean id="backOffPolicy" class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+		<property name="initialInterval" value="${xd.analytics.redis.backOffInitialInterval:1000}"/>
+		<property name="maxInterval" value="${xd.analytics.redis.backOffMaxInterval:10000}"/>
+		<property name="multiplier" value="${xd.analytics.redis.backOffMultiplier:2}"/>
+	</bean>
+
+	<bean id="retryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
+		<constructor-arg index="0" value="${xd.analytics.redis.maxAttempts:5}"/>
+		<constructor-arg index="1" ref="retryableExceptions"/>
+	</bean>
+
+	<util:map id="retryableExceptions">
+		<entry key="#{T(org.springframework.data.redis.RedisConnectionFailureException)}" value="true"/>
+	</util:map>
 
 </beans>

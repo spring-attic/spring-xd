@@ -28,11 +28,17 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.retry.RetryOperations;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
+
+import java.util.Collections;
 
 /**
  * Provides Redis backed repositories, to be tested one by one in Redis variant of tests.
@@ -47,28 +53,28 @@ public class RedisRepositoriesConfig {
 
 	@Bean
 	public RedisFieldValueCounterRepository redisFieldValueCounterRepository() {
-		return new RedisFieldValueCounterRepository(redisConnectionFactory());
+		return new RedisFieldValueCounterRepository(redisConnectionFactory(), retryOperations());
 	}
 
 	@Bean
 	public RedisRichGaugeRepository redisRichGaugeRepository() {
-		return new RedisRichGaugeRepository(redisConnectionFactory());
+		return new RedisRichGaugeRepository(redisConnectionFactory(), retryOperations());
 	}
 
 	@Bean
 	public RedisGaugeRepository redisGaugeRepository() {
-		return new RedisGaugeRepository(redisConnectionFactory());
+		return new RedisGaugeRepository(redisConnectionFactory(), retryOperations());
 	}
 
 	@Bean
 	@Qualifier("simple")
 	public RedisCounterRepository redisCounterRepository() {
-		return new RedisCounterRepository(redisConnectionFactory());
+		return new RedisCounterRepository(redisConnectionFactory(), retryOperations());
 	}
 
 	@Bean
 	public RedisAggregateCounterRepository redisAggregateCounterRepository() {
-		return new RedisAggregateCounterRepository(redisConnectionFactory());
+		return new RedisAggregateCounterRepository(redisConnectionFactory(), retryOperations());
 	}
 
 	@Bean
@@ -81,6 +87,18 @@ public class RedisRepositoriesConfig {
 		RedisTemplate<String, Long> result = new RedisTemplate<String, Long>();
 		result.setConnectionFactory(redisConnectionFactory());
 		return result;
+	}
+
+	@Bean
+	public RetryOperations retryOperations() {
+		RetryTemplate retryTemplate = new RetryTemplate();
+		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(3, Collections.<Class<? extends Throwable>, Boolean> singletonMap(RedisConnectionFailureException.class, true)));
+		ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
+		backOffPolicy.setInitialInterval(1000L);
+		backOffPolicy.setMaxInterval(1000L);
+		backOffPolicy.setMultiplier(2);
+		retryTemplate.setBackOffPolicy(backOffPolicy);
+		return retryTemplate;
 	}
 
 	@Bean

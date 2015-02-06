@@ -18,10 +18,9 @@ package org.springframework.xd.analytics.metrics.redis;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.retry.RetryOperations;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
@@ -36,19 +35,16 @@ public class RedisCounterRepository extends AbstractRedisRepository<Counter, Str
 
 	protected ValueOperations<String, Long> longOperations;
 
-	public RedisCounterRepository(RedisConnectionFactory redisConnectionFactory) {
-		this("counters", redisConnectionFactory);
+	public RedisCounterRepository(RedisConnectionFactory redisConnectionFactory, RetryOperations retryOperations) {
+		this("counters", redisConnectionFactory, retryOperations);
 	}
 
-	public RedisCounterRepository(String repoPrefix, RedisConnectionFactory redisConnectionFactory) {
-		super(repoPrefix, stringTemplate(redisConnectionFactory));
-		RedisTemplate<String, Long> longRedisTemplate = RedisUtils.createRedisTemplate(redisConnectionFactory,
-				Long.class);
+	public RedisCounterRepository(String repoPrefix, RedisConnectionFactory redisConnectionFactory,
+								  RetryOperations retryOperations) {
+		super(repoPrefix, new StringRedisRetryTemplate(redisConnectionFactory, retryOperations));
+		RedisTemplate<String, Long> longRedisTemplate = RedisUtils.createRedisRetryTemplate(redisConnectionFactory,
+				Long.class, retryOperations);
 		this.longOperations = longRedisTemplate.opsForValue();
-	}
-
-	private static RedisOperations<String, String> stringTemplate(RedisConnectionFactory redisConnectionFactory) {
-		return new StringRedisTemplate(redisConnectionFactory);
 	}
 
 	@Override

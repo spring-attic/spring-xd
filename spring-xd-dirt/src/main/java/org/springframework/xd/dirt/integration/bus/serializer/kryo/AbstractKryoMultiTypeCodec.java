@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,4 @@ abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implem
 
 	protected abstract T doDeserialize(Kryo kryo, Input input, Class<? extends T> type);
 
-	protected T doDeserialize(Kryo kryo, InputStream input, Class<?> type) {
-		return doDeserialize(kryo, new Input(input), type);
-	}
 }

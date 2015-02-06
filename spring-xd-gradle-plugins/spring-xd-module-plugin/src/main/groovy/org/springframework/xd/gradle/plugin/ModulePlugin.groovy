@@ -60,7 +60,7 @@ class ModulePlugin implements Plugin<Project> {
 
 		project.configurations.provided.transitive = true
 		project.configurations.messageBus.transitive = false
-		
+
 		project.dependencies {
 			provided("org.springframework.xd:spring-xd-dirt:${project.springXdVersion}") {
 				exclude group: 'org.springframework.xd', module: 'spring-xd-hadoop'

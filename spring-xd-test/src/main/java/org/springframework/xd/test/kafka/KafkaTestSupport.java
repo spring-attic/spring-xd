@@ -17,9 +17,16 @@
 package org.springframework.xd.test.kafka;
 
 
+import java.util.Properties;
+
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
-import kafka.utils.*;
+import kafka.utils.SystemTime$;
+import kafka.utils.TestUtils;
+import kafka.utils.TestZKUtils;
+import kafka.utils.Utils;
+import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
 import org.apache.commons.logging.Log;
@@ -27,8 +34,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Rule;
 
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
-
-import java.util.Properties;
 
 /**
  * JUnit {@link Rule} that starts an embedded Kafka server (with an associated Zookeeper)
@@ -39,7 +44,15 @@ import java.util.Properties;
  */
 public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String> {
 
-	private Log log = LogFactory.getLog(KafkaTestSupport.class);
+	private static final Log log = LogFactory.getLog(KafkaTestSupport.class);
+
+	private static final String XD_KAFKA_TEST_EMBEDDED = "XD_KAFKA_TEST_EMBEDDED";
+
+	public static final boolean embedded;
+
+	private static final String DEFAULT_ZOOKEEPER_CONNECT = "localhost:2181";
+
+	private static final String DEFAULT_KAFKA_CONNECT = "localhost:9092";
 
 	private ZkClient zkClient;
 
@@ -49,81 +62,89 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 
 	private Properties brokerConfig = TestUtils.createBrokerConfig(0, TestUtils.choosePort());
 
+	static {
+		embedded = "true".equals(System.getProperty(XD_KAFKA_TEST_EMBEDDED));
+		log.info(String.format("Testing with %s Kafka broker", embedded ? "embedded" : "external"));
+	}
+
 	public KafkaTestSupport() {
 		super("KAFKA");
 	}
 
-	public void setBrokerConfig(Properties brokerConfig) {
-		this.brokerConfig = brokerConfig;
-	}
-
 	public String getZkConnectString() {
-		return zookeeper.getConnectString();
+		if (embedded) {
+			return zookeeper.getConnectString();
+		}
+		else {
+			return DEFAULT_ZOOKEEPER_CONNECT;
+		}
 	}
 
 	public ZkClient getZkClient() {
 		return this.zkClient;
 	}
 
-	public EmbeddedZookeeper getZookeeper() {
-		return zookeeper;
-	}
-
-	public KafkaServer getKafkaServer() {
-		return kafkaServer;
-	}
-
 	public String getBrokerAddress() {
-		return getKafkaServer().config().hostName() + ":" + getKafkaServer().config().port();
+		if (embedded) {
+			return kafkaServer.config().hostName() + ":" + kafkaServer.config().port();
+		}
+		else {
+			return DEFAULT_KAFKA_CONNECT;
+		}
 	}
 
 	@Override
 	protected void obtainResource() throws Exception {
-		try {
+		if (embedded) {
 			log.debug("Starting Zookeeper");
 			zookeeper = new EmbeddedZookeeper(TestZKUtils.zookeeperConnect());
 			log.debug("Started Zookeeper at " + zookeeper.getConnectString());
+			try {
+				int zkConnectionTimeout = 6000;
+				int zkSessionTimeout = 6000;
+				zkClient = new ZkClient(getZkConnectString(), zkSessionTimeout, zkConnectionTimeout, ZKStringSerializer$.MODULE$);
+			}
+			catch (Exception e) {
+				zookeeper.shutdown();
+				throw e;
+			}
+			try {
+				log.debug("Creating Kafka server");
+				Properties brokerConfigProperties = brokerConfig;
+				kafkaServer = TestUtils.createServer(new KafkaConfig(brokerConfigProperties), SystemTime$.MODULE$);
+				log.debug("Created Kafka server at " + kafkaServer.config().hostName() + ":" + kafkaServer.config().port());
+			}
+			catch (Exception e) {
+				zookeeper.shutdown();
+				zkClient.close();
+				throw e;
+			}
 		}
-		catch (Exception e) {
-			throw new RuntimeException("Issues creating the ZK server", e);
-		}
-		try {
-			int zkConnectionTimeout = 6000;
-			int zkSessionTimeout = 6000;
-			zkClient = new ZkClient(getZkConnectString(), zkSessionTimeout, zkConnectionTimeout, ZKStringSerializer$.MODULE$);
-		}
-		catch (Exception e) {
-			zookeeper.shutdown();
-			throw new RuntimeException("Issues creating the ZK client", e);
-		}
-		try {
-			log.debug("Creating Kafka server");
-			Properties brokerConfigProperties = brokerConfig;
-			kafkaServer = TestUtils.createServer(new KafkaConfig(brokerConfigProperties), SystemTime$.MODULE$);
-			log.debug("Created Kafka server at " + kafkaServer.config().hostName() + ":" + kafkaServer.config().port());
-		}
-		catch (Exception e) {
-			zookeeper.shutdown();
-			zkClient.close();
-			throw new RuntimeException("Issues creating the Kafka server", e);
+		else {
+			this.zkClient = new ZkClient(DEFAULT_ZOOKEEPER_CONNECT, 5000, 5000, ZKStringSerializer$.MODULE$);
+			if (ZkUtils.getAllBrokersInCluster(zkClient).size() == 0) {
+				throw new RuntimeException("Kafka server not available");
+			}
 		}
 	}
 
 	@Override
 	protected void cleanupResource() throws Exception {
-		try {
-			kafkaServer.shutdown();
-		}
-		catch (Exception e) {
-			// ignore errors on shutdown
-			log.error(e);
-		}
-		try {
-			Utils.rm(kafkaServer.config().logDirs());
-		}
-		catch (Exception e) {
-			// ignore errors on shutdown
-			log.error(e);
+		if (embedded) {
+			try {
+				kafkaServer.shutdown();
+			}
+			catch (Exception e) {
+				// ignore errors on shutdown
+				log.error(e);
+			}
+			try {
+				Utils.rm(kafkaServer.config().logDirs());
+			}
+			catch (Exception e) {
+				// ignore errors on shutdown
+				log.error(e);
+			}
 		}
 		try {
 			zkClient.close();
@@ -132,12 +153,14 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 			// ignore errors on shutdown
 			log.error(e);
 		}
-		try {
-			zookeeper.shutdown();
-		}
-		catch (Exception e) {
-			// ignore errors on shutdown
-			log.error(e);
+		if (embedded) {
+			try {
+				zookeeper.shutdown();
+			}
+			catch (Exception e) {
+				// ignore errors on shutdown
+				log.error(e);
+			}
 		}
 	}
 

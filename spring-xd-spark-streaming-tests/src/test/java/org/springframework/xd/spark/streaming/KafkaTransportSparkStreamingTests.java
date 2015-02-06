@@ -16,10 +16,8 @@
 
 package org.springframework.xd.spark.streaming;
 
-import java.util.Properties;
-
-import kafka.utils.TestUtils;
-
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 import org.springframework.xd.dirt.integration.bus.KafkaConnectionPropertyNames;
@@ -31,16 +29,34 @@ import org.springframework.xd.test.kafka.KafkaTestSupport;
 public class KafkaTransportSparkStreamingTests extends AbstractSparkStreamingTests {
 
 	@ClassRule
-	public static KafkaTestSupport kafkaTestSupport;
+	public static final KafkaTestSupport kafkaTestSupport = new KafkaTestSupport();
 
-	static {
-		kafkaTestSupport = new KafkaTestSupport();
-		Properties brokerConfigProperties = TestUtils.createBrokerConfig(0, TestUtils.choosePort());
-		kafkaTestSupport.setBrokerConfig(brokerConfigProperties);
-		System.setProperty(KafkaConnectionPropertyNames.KAFKA_BROKERS,
-				brokerConfigProperties.getProperty("host.name") + ":" + brokerConfigProperties.getProperty("port"));
-		System.setProperty(KafkaConnectionPropertyNames.KAFKA_ZK_ADDRESS,
-				brokerConfigProperties.getProperty("zookeeper.connect"));
+	private static String originalKafkaBrokers = null;
+
+	private static String originalKafkaZkAddress = null;
+
+	@BeforeClass
+	public static void setUpClass() {
+		originalKafkaBrokers = System.getProperty(KafkaConnectionPropertyNames.KAFKA_BROKERS);
+		originalKafkaZkAddress = System.getProperty(KafkaConnectionPropertyNames.KAFKA_ZK_ADDRESS);
+		System.setProperty(KafkaConnectionPropertyNames.KAFKA_BROKERS, kafkaTestSupport.getBrokerAddress());
+		System.setProperty(KafkaConnectionPropertyNames.KAFKA_ZK_ADDRESS, kafkaTestSupport.getZkConnectString());
+	}
+
+	@AfterClass
+	public static void tearDownClass() {
+		if (originalKafkaBrokers == null) {
+			System.clearProperty(KafkaConnectionPropertyNames.KAFKA_BROKERS);
+		}
+		else {
+			System.setProperty(KafkaConnectionPropertyNames.KAFKA_BROKERS, originalKafkaBrokers);
+		}
+		if (originalKafkaZkAddress == null) {
+			System.clearProperty(KafkaConnectionPropertyNames.KAFKA_ZK_ADDRESS);
+		}
+		else {
+			System.setProperty(KafkaConnectionPropertyNames.KAFKA_ZK_ADDRESS, originalKafkaZkAddress);
+		}
 	}
 
 	public KafkaTransportSparkStreamingTests() {

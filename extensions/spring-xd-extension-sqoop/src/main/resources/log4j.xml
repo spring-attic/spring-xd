@@ -23,6 +23,11 @@
 		<level value="info" />
 	</logger>
 
+	<!-- Supress configuration warnings -->
+	<logger name="org.apache.hadoop.conf.Configuration">
+		<level value="error" />
+	</logger>
+
 	<!-- Root Logger -->
 	<root>
 		<priority value="info" />

@@ -27,6 +27,7 @@
 				<value>fs.defaultFS=${fsUri}</value>
 				<value>yarn.resourcemanager.address=${resourceManagerHost}:${resourceManagerPort}</value>
 				<value>yarn.application.classpath=${spring.hadoop.yarnApplicationClasspath}</value>
+				<value>mapreduce.framework.name=yarn</value>
 			</list>
 		</property>
 	</bean>

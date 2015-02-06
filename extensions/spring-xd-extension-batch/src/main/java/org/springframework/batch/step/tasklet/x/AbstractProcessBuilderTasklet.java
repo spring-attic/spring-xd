@@ -42,6 +42,10 @@ import org.springframework.batch.core.step.tasklet.SimpleSystemProcessExitCodeMa
 import org.springframework.batch.core.step.tasklet.SystemProcessExitCodeMapper;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
 
 /**
  * Abstract tasklet for running code in a separate process and capturing the log output. The step execution
@@ -53,9 +57,13 @@ import org.springframework.batch.repeat.RepeatStatus;
  * @author Thomas Rrisberg
  */
 @SuppressWarnings("rawtypes")
-public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExecutionListener {
+public abstract class AbstractProcessBuilderTasklet implements Tasklet, EnvironmentAware, StepExecutionListener {
 
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	private static final String XD_CONFIG_HOME = "xd.config.home";
+
+	protected ConfigurableEnvironment environment;
 
 	/**
 	 * Exit code of job
@@ -76,6 +84,10 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExec
 
 	private SystemProcessExitCodeMapper systemProcessExitCodeMapper = new SimpleSystemProcessExitCodeMapper();
 
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = (ConfigurableEnvironment) environment;
+	}
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
@@ -256,6 +268,10 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, StepExec
 			throw new IllegalStateException("Unable to access Context ClassLoader.");
 		}
 		List<String> classPath = new ArrayList<String>();
+		String configHome = environment.getProperty(XD_CONFIG_HOME);
+		if (StringUtils.hasText(configHome)) {
+			classPath.add(configHome);
+		}
 		for (URL url : serverClassLoader.getURLs()) {
 			String file = url.getFile().split("\\!/", 2)[0];
 			if (file.endsWith(".jar")) {

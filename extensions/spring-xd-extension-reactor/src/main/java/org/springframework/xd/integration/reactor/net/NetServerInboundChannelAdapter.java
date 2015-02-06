@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.xd.integration.reactor.net;
 
-import reactor.fn.Consumer;
-import reactor.io.net.NetServer;
-import reactor.io.net.spec.NetServerSpec;
+import reactor.function.Consumer;
+import reactor.net.NetServer;
+import reactor.net.spec.NetServerSpec;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.messaging.support.GenericMessage;

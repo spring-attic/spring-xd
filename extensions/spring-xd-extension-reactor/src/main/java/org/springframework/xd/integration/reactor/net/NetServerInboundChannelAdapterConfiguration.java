@@ -18,9 +18,10 @@ package org.springframework.xd.integration.reactor.net;
 
 import java.util.Map;
 
-import reactor.Environment;
-import reactor.io.codec.Codec;
-import reactor.io.net.spec.NetServerSpec;
+import reactor.core.Environment;
+import reactor.io.encoding.Codec;
+import reactor.net.spec.NetServerSpec;
+import reactor.spring.context.config.EnableReactor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ import org.springframework.messaging.MessageChannel;
  * @author Jon Brisbin
  */
 @Configuration
+@EnableReactor
 @SuppressWarnings({"rawtypes"})
 public class NetServerInboundChannelAdapterConfiguration {
 
@@ -77,10 +79,4 @@ public class NetServerInboundChannelAdapterConfiguration {
 		adapter.setOutputChannel(output);
 		return adapter;
 	}
-
-	@Bean
-	public Environment environment() {
-		return Environment.initializeIfEmpty();
-	}
-
 }

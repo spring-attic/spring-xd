@@ -65,7 +65,7 @@ project('spring-xd-extension-batch') {
     dependencies {
         compile "org.springframework.integration:spring-integration-file"
         runtime "org.springframework.integration:spring-integration-ftp"
-        runtime "org.projectreactor:reactor-core:${reactor11xVersion}"
+        runtime "org.projectreactor:reactor-core"
         provided "org.springframework.batch:spring-batch-core"
         provided "org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}"
         testCompile project(':spring-xd-test')
@@ -167,7 +167,7 @@ project('spring-xd-extension-reactor') {
     description = 'Spring XD Reactor'
     dependencies {
         compile project(':spring-xd-module-spi'),
-                "io.projectreactor:reactor-net",
+                "org.projectreactor.spring:reactor-spring-messaging",
                 "org.springframework.integration:spring-integration-core",
                 "javax.validation:validation-api"
 

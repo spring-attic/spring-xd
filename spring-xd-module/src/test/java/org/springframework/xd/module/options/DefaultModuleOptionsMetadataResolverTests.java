@@ -66,6 +66,7 @@ public class DefaultModuleOptionsMetadataResolverTests {
 	 * visible.
 	 */
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMixinOverlap() {
 		String resource = "classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module3/";
 		ModuleDefinition definition = ModuleDefinitions.simple("module3", source, resource);

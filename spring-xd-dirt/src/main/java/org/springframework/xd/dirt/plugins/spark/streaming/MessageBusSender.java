@@ -97,6 +97,7 @@ class MessageBusSender extends SparkMessageSender {
 	}
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public synchronized void send(Message message) {
 		this.outputChannel.send(message);
 	}

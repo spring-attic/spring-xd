@@ -31,7 +31,7 @@ import org.springframework.xd.dirt.integration.bus.MessageBus;
 
 /**
  * Spark {@link Receiver} implementation that binds to the MessageBus as a consumer.
- * 
+ *
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
@@ -108,6 +108,8 @@ class MessageBusReceiver extends Receiver {
 	 * The {@link DirectChannel} that stores the received messages into Spark's memory.
 	 */
 	private class MessageStoringChannel extends SparkStreamingChannel {
+
+		private static final long serialVersionUID = 1L;
 
 		private static final String INPUT = "input";
 

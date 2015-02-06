@@ -28,6 +28,8 @@ import org.springframework.messaging.Message;
  */
 public abstract class SparkMessageSender implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * Start the message sender
 	 */
@@ -49,6 +51,7 @@ public abstract class SparkMessageSender implements Serializable {
 	 *
 	 * @param message the message to send
 	 */
+	@SuppressWarnings("rawtypes")
 	public abstract void send(Message message);
 
 }

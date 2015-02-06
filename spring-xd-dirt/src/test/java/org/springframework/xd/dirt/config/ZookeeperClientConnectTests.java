@@ -81,7 +81,7 @@ public class ZookeeperClientConnectTests {
 	 */
 	@Test
 	public void testZooKeeperClientConnectString() {
-		String zkClientConnect = "localhost:2181,localhost:2182,localhost:2183";
+		String zkClientConnect = "localhost:3181,localhost:3182,localhost:3183";
 
 		setUp(zkClientConnect, null, true);
 

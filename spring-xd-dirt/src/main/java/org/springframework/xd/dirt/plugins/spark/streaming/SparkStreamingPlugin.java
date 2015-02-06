@@ -101,7 +101,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 				throw new IllegalStateException("Spark cluster mode must be 'local' for 'local' XD transport.");
 			}
 			LocalMessageBusHolder messageBusHolder = new LocalMessageBusHolder();
-			messageBusHolder.set(module.getComponent(MessageBus.class));
+			LocalMessageBusHolder.set(module.getComponent(MessageBus.class));
 			receiver = new MessageBusReceiver(messageBusHolder, storageLevel, messageBusProperties,
 					inboundModuleProperties, ModuleTypeConversionSupport.getInputMimeType(module));
 			if (module.getType().equals(ModuleType.processor)) {

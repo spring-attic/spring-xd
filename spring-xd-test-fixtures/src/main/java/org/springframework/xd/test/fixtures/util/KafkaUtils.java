@@ -41,6 +41,7 @@ import java.util.Properties;
  * {@link org.springframework.xd.test.fixtures.KafkaSink}
  *
  * @author Mark Pollack
+ * @author Gary Russell
  */
 public class KafkaUtils {
 
@@ -91,9 +92,9 @@ public class KafkaUtils {
 		retryTemplate.setBackOffPolicy(backOffPolicy);
 
 		try {
-			TopicMetadata topicMetadata = retryTemplate.execute(new RetryCallback<TopicMetadata, Exception>() {
+			retryTemplate.execute(new RetryCallback<Void, Exception>() {
 				@Override
-				public TopicMetadata doWithRetry(RetryContext context) throws Exception {
+				public Void doWithRetry(RetryContext context) throws Exception {
 					TopicMetadata topicMetadata = AdminUtils.fetchTopicMetadataFromZk(topic, zkClient);
 					if (topicMetadata.errorCode() != ErrorMapping.NoError() || !topic.equals(topicMetadata.topic())) {
 						// downcast to Exception because that's what the error throws
@@ -105,10 +106,11 @@ public class KafkaUtils {
 							throw (Error) ErrorMapping.exceptionFor(partitionMetadata.errorCode());
 						}
 					}
-					return topicMetadata;
+					return null;
 				}
 			});
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new IllegalStateException("Unable to create topic for kafka", e);
 		}
 	}

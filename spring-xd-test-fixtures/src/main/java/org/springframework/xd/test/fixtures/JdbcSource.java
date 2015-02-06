@@ -19,6 +19,8 @@ package org.springframework.xd.test.fixtures;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+
+import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
@@ -48,10 +50,22 @@ public class JdbcSource extends AbstractModuleFixture<JdbcSink> implements Dispo
 	@Override
 	protected String toDSL() {
 		String result = null;
+		Connection connection = null;
 		try {
-			result = String.format("jdbc --query='%s' --url=%s --fixedDelay=%d", shellEscape(query), dataSource.getConnection().getMetaData().getURL(), fixedDelay);
-		} catch (SQLException e) {
+			connection = dataSource.getConnection();
+			result = String.format("jdbc --query='%s' --url=%s --fixedDelay=%d", shellEscape(query), connection.getMetaData().getURL(), fixedDelay);
+		}
+		catch (SQLException e) {
 			throw new IllegalStateException(e);
+		}
+		finally {
+			if (connection != null) {
+				try {
+					connection.close();
+				}
+				catch (SQLException e) {
+				}
+			}
 		}
 		if (update != null) {
 			result += String.format(" --update='%s'", shellEscape(update));

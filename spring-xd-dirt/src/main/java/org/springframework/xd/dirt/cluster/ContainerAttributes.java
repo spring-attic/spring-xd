@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 public class ContainerAttributes implements Map<String, String>, Comparable<ContainerAttributes> {
 
@@ -111,7 +112,7 @@ public class ContainerAttributes implements Map<String, String>, Comparable<Cont
 	}
 
 	public Set<String> getGroups() {
-		Set<String> groupSet = new HashSet<String>();
+		Set<String> groupSet;
 		String groups = this.get(GROUPS_KEY);
 		groupSet = StringUtils.hasText(groups) ? StringUtils.commaDelimitedListToSet(groups) : new HashSet<String>();
 		return Collections.unmodifiableSet(groupSet);

@@ -51,6 +51,7 @@ import org.springframework.xd.module.ModuleType;
  *
  * @author Ilayaperumal Gopinathan
  * @author David Turanski
+ * @author Gary Russell
  */
 public class ZooKeeperModuleMetadataRepository implements ModuleMetadataRepository {
 
@@ -187,8 +188,9 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	 */
 	private Properties getResolvedModuleOptions(Map<String, String> metadataMap) {
 		Map<String, String> optionsMap = new HashMap<String, String>();
-		for (String propertyKey : metadataMap.keySet()) {
-			String propertyValue = metadataMap.get(propertyKey);
+		for (Map.Entry<String, String> entry : metadataMap.entrySet()) {
+			String propertyKey = entry.getKey();
+			String propertyValue = entry.getValue();
 			if (!propertyKey.startsWith(XD_MODULE_PROPERTIES_PREFIX)
 					&& !StringUtils.isEmpty(propertyValue)) {
 				if (propertyValue.startsWith(PlaceholderConfigurerSupport.DEFAULT_PLACEHOLDER_PREFIX) &&

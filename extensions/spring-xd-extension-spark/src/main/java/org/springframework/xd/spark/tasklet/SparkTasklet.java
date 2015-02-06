@@ -345,6 +345,13 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 		}
 		catch (IOException ignore) {
 		}
+		finally {
+			try {
+				reader.close();
+			}
+			catch (IOException e) {
+			}
+		}
 		return lines;
 	}
 

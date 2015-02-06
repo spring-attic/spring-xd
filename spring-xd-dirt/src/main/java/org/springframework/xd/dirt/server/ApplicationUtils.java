@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,10 +67,10 @@ public abstract class ApplicationUtils {
 	 * @param containerContext
 	 */
 	public static void dumpContainerApplicationContextConfiguration(ApplicationContext containerContext) {
-		Map<String, Object> containerBeans = new HashMap<String, Object>();
-		Map<String, Object> pluginBeans = new HashMap<String, Object>();
-		Map<String, Object> globalBeans = new HashMap<String, Object>();
-		Map<String, Object> sharedServerBeans = new HashMap<String, Object>();
+		Map<String, Object> containerBeans;
+		Map<String, Object> pluginBeans;
+		Map<String, Object> globalBeans;
+		Map<String, Object> sharedServerBeans;
 
 		globalBeans = containerContext.getParent().getParent().getParent().getBeansOfType(Object.class);
 		sharedServerBeans = containerContext.getParent().getParent().getBeansOfType(Object.class);

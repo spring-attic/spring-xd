@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
  * {@link UserInput} that uses Standard in and out.
  * 
  * @author Eric Bottard
+ * @author Gary Russell
  */
 @Component
 public class ConsoleUserInput implements UserInput {
@@ -64,20 +65,19 @@ public class ConsoleUserInput implements UserInput {
 	 *  @param echo    whether the input should be echoed (e.g. false for passwords, other sensitive data)
    */
 	private String read(InputStreamReader console, boolean echo) {
-		String answer;
-		answer = "";
+		StringBuilder builder = new StringBuilder();
 		try {
 			for (char c = (char) console.read(); !(c == '\n' || c == '\r'); c = (char) console.read()) {
 				if (echo) {
 					System.out.print(c);
 				}
-				answer += c;
+				builder.append((char) c);
 			}
 			System.out.println();
 		}
 		catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
-		return answer;
+		return builder.toString();
 	}
 }

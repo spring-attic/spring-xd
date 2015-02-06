@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 			switch (kind) {
 				case module:
 					// Add processors
-					addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), processor);
+					addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), processor);//NOSONAR
 					// FALL THRU as composed modules can be either
 					// source | processors - or -
 					// processors | sink

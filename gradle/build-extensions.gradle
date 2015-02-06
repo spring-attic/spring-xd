@@ -15,7 +15,6 @@ project('spring-xd-extension-redis') {
     dependencies {
         compile("org.springframework.data:spring-data-redis")
         compile("redis.clients:jedis")
-        //compile project(":spring-xd-module-spi")
     }
 }
 

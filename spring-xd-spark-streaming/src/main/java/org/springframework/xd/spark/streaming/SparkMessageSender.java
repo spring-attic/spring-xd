@@ -25,6 +25,7 @@ import org.springframework.messaging.Message;
  * to XD MessageBus etc.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 public abstract class SparkMessageSender implements Serializable {
 

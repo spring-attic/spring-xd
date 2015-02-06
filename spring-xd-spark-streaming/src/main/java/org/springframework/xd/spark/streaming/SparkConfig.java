@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
  * Marker Annotation for providing spark configuration as properties.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})

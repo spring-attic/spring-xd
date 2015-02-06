@@ -24,6 +24,7 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport
  * @tparam O the type of the object returned after the computation
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 trait Processor[I, O] extends SparkStreamingSupport {
 

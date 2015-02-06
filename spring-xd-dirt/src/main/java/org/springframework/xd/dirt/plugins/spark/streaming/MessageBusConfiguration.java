@@ -35,6 +35,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * Configuration for the MessageBus used by the {@link MessageBusReceiver} and {@link MessageBusSender}.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 @Configuration
 @Import(PropertyPlaceholderAutoConfiguration.class)

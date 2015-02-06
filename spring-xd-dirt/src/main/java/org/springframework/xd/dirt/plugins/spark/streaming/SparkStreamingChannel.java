@@ -30,6 +30,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  * spark streaming configurations.
  *
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 public class SparkStreamingChannel extends DirectChannel implements Serializable {
 

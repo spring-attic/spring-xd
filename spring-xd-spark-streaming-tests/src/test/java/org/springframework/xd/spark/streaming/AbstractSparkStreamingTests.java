@@ -197,13 +197,13 @@ public abstract class AbstractSparkStreamingTests {
 	}
 
 	@Test
-	public void testSparkLog() throws Exception {
+	public void testSparkFileLogger() throws Exception {
 		String streamName = testName.getMethodName()  + new Random().nextInt();
 		String fileName = streamName + ".txt";
 		File file = new File(fileName);
 		try {
 			final HttpSource source = new HttpSource(shell);
-			final String stream = String.format("%s | spark-log --filePath=%s", source, fileName);
+			final String stream = String.format("%s | file-logger --path=%s", source, fileName);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
@@ -217,13 +217,13 @@ public abstract class AbstractSparkStreamingTests {
 	}
 
 	@Test
-	public void testSparkLogWithInputType() throws Exception {
+	public void testSparkFileLoggerWithInputType() throws Exception {
 		String streamName = testName.getMethodName() + new Random().nextInt();
 		String fileName = streamName + ".txt";
 		File file = new File(fileName);
 		try {
 			final HttpSource source = new HttpSource(shell);
-			final String stream = String.format("%s | spark-log --filePath=%s --inputType=text/plain", source, fileName);
+			final String stream = String.format("%s | file-logger --path=%s --inputType=text/plain", source, fileName);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
@@ -237,13 +237,13 @@ public abstract class AbstractSparkStreamingTests {
 	}
 
 	@Test
-	public void testSparkScalaLog() throws Exception {
+	public void testSparkScalaFileLogger() throws Exception {
 		String streamName = testName.getMethodName()  + new Random().nextInt();
 		String fileName = streamName + ".txt";
 		File file = new File(fileName);
 		try {
 			final HttpSource source = new HttpSource(shell);
-			final String stream = String.format("%s | spark-scala-log --filePath=%s", source, fileName);
+			final String stream = String.format("%s | file-logger-scala --path=%s", source, fileName);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));
@@ -257,13 +257,13 @@ public abstract class AbstractSparkStreamingTests {
 	}
 
 	@Test
-	public void testSparkScalaLogWithInputType() throws Exception {
+	public void testSparkScalaFileLoggerWithInputType() throws Exception {
 		String streamName = testName.getMethodName()  + new Random().nextInt();
 		String fileName = streamName + ".txt";
 		File file = new File(fileName);
 		try {
 			final HttpSource source = new HttpSource(shell);
-			final String stream = String.format("%s | spark-scala-log --filePath=%s --inputType=text/plain", source, fileName);
+			final String stream = String.format("%s | file-logger-scala --path=%s --inputType=text/plain", source, fileName);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
 			assertThat(file, eventually(50, 100, fileContent(endsWith(TEST_MESSAGE + System.lineSeparator()))));

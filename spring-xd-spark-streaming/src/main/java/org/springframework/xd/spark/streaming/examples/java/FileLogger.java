@@ -34,13 +34,14 @@ import org.springframework.xd.spark.streaming.SparkConfig;
 /**
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
+ * @since 1.1
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "serial" })
-public class Logger implements Processor {
+public class FileLogger implements Processor {
 
 	private File file;
 
-	public void setFilePath(String filePath) {
+	public void setPath(String filePath) {
 		file = new File(filePath);
 		if (!file.exists()) {
 			try {

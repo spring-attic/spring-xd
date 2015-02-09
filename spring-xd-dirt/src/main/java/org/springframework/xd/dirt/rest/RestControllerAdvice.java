@@ -141,7 +141,7 @@ public class RestControllerAdvice {
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public VndErrors onInvalidDefintion(StreamDefinitionException e) {
+	public VndErrors onInvalidDefinition(StreamDefinitionException e) {
 		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}

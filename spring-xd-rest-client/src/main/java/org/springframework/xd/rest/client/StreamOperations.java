@@ -30,7 +30,7 @@ public interface StreamOperations extends ResourceOperations {
 	/**
 	 * Create a new Stream, optionally deploying it.
 	 */
-	public StreamDefinitionResource createStream(String name, String defintion, boolean deploy);
+	public StreamDefinitionResource createStream(String name, String definition, boolean deploy);
 
 	/**
 	 * List streams known to the system.

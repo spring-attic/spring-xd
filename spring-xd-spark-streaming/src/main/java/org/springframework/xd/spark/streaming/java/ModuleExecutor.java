@@ -25,6 +25,7 @@ import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.api.java.JavaDStreamLike;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.xd.spark.streaming.SparkMessageSender;
 import org.springframework.xd.spark.streaming.SparkStreamingModuleExecutor;
@@ -72,7 +73,10 @@ public class ModuleExecutor implements SparkStreamingModuleExecutor<JavaDStreamL
 									}
 								}
 								while (results.hasNext()) {
-									messageSender.send(MessageBuilder.withPayload(results.next()).build());
+									Object next = results.next();
+									Message message = (next instanceof Message) ? (Message) next :
+											MessageBuilder.withPayload(next).build();
+									messageSender.send(message);
 								}
 							}
 							sender.stop();

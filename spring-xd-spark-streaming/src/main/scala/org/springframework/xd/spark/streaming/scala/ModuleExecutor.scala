@@ -18,6 +18,7 @@ package org.springframework.xd.spark.streaming.scala
 import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.integration.support.MessageBuilder
+import org.springframework.messaging.Message
 import org.springframework.xd.spark.streaming.{SparkMessageSender, SparkStreamingModuleExecutor}
 
 /**
@@ -57,7 +58,13 @@ class ModuleExecutor extends SparkStreamingModuleExecutor[ReceiverInputDStream[A
             }
           }
           if (partition.hasNext) {
-            messageSender.send(MessageBuilder.withPayload(partition.next()).build())
+            var message = partition.next()
+            if (message.isInstanceOf[Message[_]]) {
+              messageSender.send(message.asInstanceOf[Message[_]])
+            }
+            else {
+              messageSender.send(MessageBuilder.withPayload(message).build())
+            }
           }
         })
       })

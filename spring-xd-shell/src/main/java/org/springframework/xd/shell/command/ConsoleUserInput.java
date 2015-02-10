@@ -58,12 +58,12 @@ public class ConsoleUserInput implements UserInput {
 		return "".equals(answer) ? defaultValue : answer;
 	}
 
-  /**
+	/**
 	 *  Reads a single line of input from the console.
 	 *
 	 *  @param console input
 	 *  @param echo    whether the input should be echoed (e.g. false for passwords, other sensitive data)
-   */
+	 */
 	private String read(InputStreamReader console, boolean echo) {
 		StringBuilder builder = new StringBuilder();
 		try {
@@ -71,7 +71,7 @@ public class ConsoleUserInput implements UserInput {
 				if (echo) {
 					System.out.print(c);
 				}
-				builder.append((char) c);
+				builder.append(c);
 			}
 			System.out.println();
 		}

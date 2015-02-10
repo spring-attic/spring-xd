@@ -85,7 +85,6 @@ class MessageBusReceiver extends Receiver {
 		if (contentType != null) {
 			messageStoringChannel.configureMessageConverter(contentType);
 		}
-		MessageBus messageBus;
 		if (messageBusHolder != null) {
 			messageBus = messageBusHolder.get();
 		}
@@ -99,7 +98,9 @@ class MessageBusReceiver extends Receiver {
 	@Override
 	public void onStop() {
 		logger.info("stopping MessageBusReceiver");
-		messageBus.unbindConsumers(channelName);
+		if (messageBus != null) {
+			messageBus.unbindConsumers(channelName);
+		}
 		if (applicationContext != null) {
 			applicationContext.close();
 		}

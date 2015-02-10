@@ -26,18 +26,18 @@ import java.util.Properties;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.VoidFunction;
-import org.apache.spark.streaming.api.java.JavaDStreamLike;
+import org.apache.spark.streaming.api.java.JavaDStream;
 
-import org.springframework.xd.spark.streaming.java.Processor;
 import org.springframework.xd.spark.streaming.SparkConfig;
+import org.springframework.xd.spark.streaming.java.Processor;
 
 /**
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  * @since 1.1
  */
-@SuppressWarnings({ "unchecked", "rawtypes", "serial" })
-public class FileLogger implements Processor {
+@SuppressWarnings({ "serial" })
+public class FileLogger implements Processor<JavaDStream<String>, JavaDStream<String>> {
 
 	private File file;
 
@@ -61,15 +61,15 @@ public class FileLogger implements Processor {
 	}
 
 	@Override
-	public JavaDStreamLike process(JavaDStreamLike input) {
-		input.foreachRDD(new Function<JavaRDD, Void>() {
+	public JavaDStream<String> process(JavaDStream<String> input) {
+		input.foreachRDD(new Function<JavaRDD<String>, Void>() {
 
 			@Override
-			public Void call(JavaRDD rdd) {
-				rdd.foreachPartition(new VoidFunction<Iterator<?>>() {
+			public Void call(JavaRDD<String> rdd) {
+				rdd.foreachPartition(new VoidFunction<Iterator<String>>() {
 
 					@Override
-					public void call(Iterator<?> items) throws Exception {
+					public void call(Iterator<String> items) throws Exception {
 						FileWriter fw;
 						BufferedWriter bw = null;
 						try {

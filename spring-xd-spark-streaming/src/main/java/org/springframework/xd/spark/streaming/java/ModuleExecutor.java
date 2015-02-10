@@ -23,6 +23,7 @@ import org.apache.spark.api.java.JavaRDDLike;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.api.java.JavaDStreamLike;
+import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.messaging.Message;
@@ -39,12 +40,12 @@ import org.springframework.xd.spark.streaming.SparkStreamingModuleExecutor;
  * @since 1.1
  */
 @SuppressWarnings({"unchecked", "rawtypes", "serial"})
-public class ModuleExecutor implements SparkStreamingModuleExecutor<JavaDStreamLike, Processor> , Serializable {
+public class ModuleExecutor implements SparkStreamingModuleExecutor<JavaReceiverInputDStream, Processor> , Serializable {
 
 	private static SparkMessageSender messageSender;
 
 	@SuppressWarnings("rawtypes")
-	public void execute(JavaDStreamLike input, Processor processor, final SparkMessageSender sender) {
+	public void execute(JavaReceiverInputDStream input, Processor processor, final SparkMessageSender sender) {
 		JavaDStreamLike output = processor.process(input);
 		if (output != null) {
 			output.foreachRDD(new Function<JavaRDDLike, Void>() {

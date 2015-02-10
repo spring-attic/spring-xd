@@ -79,22 +79,24 @@ class MessageBusSender extends SparkMessageSender {
 
 	@Override
 	public synchronized void start() {
-		outputChannel.setBeanName(OUTPUT);
-		if (messageBus == null) {
+		if (!this.isRunning()) {
+			outputChannel.setBeanName(OUTPUT);
 			logger.info("starting MessageBusSender");
-			if (messageBusHolder != null) {
-				messageBus = messageBusHolder.get();
+			if (messageBus == null) {
+				if (messageBusHolder != null) {
+					messageBus = messageBusHolder.get();
+				}
+				else {
+					applicationContext = MessageBusConfiguration.createApplicationContext(messageBusProperties);
+					messageBus = applicationContext.getBean(MessageBus.class);
+				}
+				if (contentType != null) {
+					outputChannel.configureMessageConverter(contentType);
+				}
+				messageBus.bindProducer(outputChannelName, outputChannel, moduleProducerProperties);
 			}
-			else {
-				applicationContext = MessageBusConfiguration.createApplicationContext(messageBusProperties);
-				messageBus = applicationContext.getBean(MessageBus.class);
-			}
-			if (contentType != null) {
-				outputChannel.configureMessageConverter(contentType);
-			}
-			messageBus.bindProducer(outputChannelName, outputChannel, moduleProducerProperties);
+			this.running = true;
 		}
-		this.running = true;
 	}
 
 	@Override
@@ -108,11 +110,11 @@ class MessageBusSender extends SparkMessageSender {
 		if (this.isRunning() && messageBus != null) {
 			logger.info("stopping MessageBusSender");
 			messageBus.unbindProducer(outputChannelName, outputChannel);
-			if (applicationContext != null) {
-				applicationContext.close();
-				applicationContext = null;
-			}
 			messageBus = null;
+		}
+		if (applicationContext != null) {
+			applicationContext.close();
+			applicationContext = null;
 		}
 		this.running = false;
 	}

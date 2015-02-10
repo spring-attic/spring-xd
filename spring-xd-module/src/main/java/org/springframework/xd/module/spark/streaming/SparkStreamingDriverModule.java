@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.spark.SparkConf;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.StreamingContext;
-import org.apache.spark.streaming.api.java.JavaDStreamLike;
+import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.dstream.ReceiverInputDStream;
 import org.apache.spark.streaming.receiver.Receiver;
@@ -60,11 +60,11 @@ import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.ResourceConfiguredModule;
 import org.springframework.xd.module.options.ModuleOptions;
-import org.springframework.xd.spark.streaming.java.ModuleExecutor;
-import org.springframework.xd.spark.streaming.java.Processor;
 import org.springframework.xd.spark.streaming.SparkConfig;
 import org.springframework.xd.spark.streaming.SparkMessageSender;
 import org.springframework.xd.spark.streaming.SparkStreamingSupport;
+import org.springframework.xd.spark.streaming.java.ModuleExecutor;
+import org.springframework.xd.spark.streaming.java.Processor;
 
 /**
  * The driver that adapts an implementation of either {@link org.springframework.xd.spark.streaming.java.Processor}
@@ -87,10 +87,7 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 
 	private JavaStreamingContext javaStreamingContext;
 
-	private StreamingContext streamingContext;
-
-	//TODO: SPARK-4803: there are duplicate receiver start events fired. hence count is 2.
-	private final CountDownLatch receiverStartLatch = new CountDownLatch(2);
+	private final CountDownLatch receiverStartLatch = new CountDownLatch(1);
 
 	private final AtomicBoolean receiverStartSuccess = new AtomicBoolean();
 
@@ -146,28 +143,28 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 
 		final SparkMessageSender sender =
 				(this.getType().equals(ModuleType.processor)) ? getComponent(SparkMessageSender.class) : null;
-		streamingContext = new StreamingContext(sparkConf, new Duration(Long.valueOf(batchInterval)));
+		final StreamingContext streamingContext = new StreamingContext(sparkConf, new Duration(Long.valueOf(batchInterval)));
 		streamingContext.addStreamingListener(streamingListener);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			@Override
 			@SuppressWarnings("unchecked")
 			public void run() {
 				try {
+					javaStreamingContext = new JavaStreamingContext(streamingContext);
+					JavaReceiverInputDStream javaInputDStream = javaStreamingContext.receiverStream(receiver);
 					if (sparkStreamingSupport instanceof Processor) {
-						javaStreamingContext = new JavaStreamingContext(streamingContext);
-						JavaDStreamLike input = javaStreamingContext.receiverStream(receiver);
-						new ModuleExecutor().execute(input, (Processor) sparkStreamingSupport, sender);
+						new ModuleExecutor().execute(javaInputDStream, (Processor) sparkStreamingSupport, sender);
 					}
 					if (sparkStreamingSupport instanceof org.springframework.xd.spark.streaming.scala.Processor) {
-						ReceiverInputDStream input = streamingContext.receiverStream(receiver, null);
-						new org.springframework.xd.spark.streaming.scala.ModuleExecutor().execute(input,
+						ReceiverInputDStream receiverInput = javaInputDStream.receiverInputDStream();
+						new org.springframework.xd.spark.streaming.scala.ModuleExecutor().execute(receiverInput,
 								(org.springframework.xd.spark.streaming.scala.Processor) sparkStreamingSupport, sender);
 					}
-					streamingContext.start();
-					streamingContext.awaitTermination();
+					javaStreamingContext.start();
+					javaStreamingContext.awaitTermination();
 				}
 				catch (Exception e) {
-					throw new RuntimeException("Exception when running Spark Streaming application.", e);
+					throw new IllegalStateException("Exception when running Spark Streaming application.", e);
 				}
 			}
 		});
@@ -320,10 +317,13 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 	public void stop() {
 		logger.info("stopping SparkDriver");
 		try {
-			// todo: when possible (spark 1.3.0), change to streamingContext.stop(true, true) without the cancel
-			if (streamingContext != null) {
-				streamingContext.sc().cancelAllJobs();
-				streamingContext.stop(true, false);
+			if (javaStreamingContext != null) {
+				try {
+					javaStreamingContext.stop(true, false);
+				}
+				catch(Exception e) {
+					logger.warn("Error while stopping streaming context "+ e);
+				}
 			}
 			super.stop();
 		}

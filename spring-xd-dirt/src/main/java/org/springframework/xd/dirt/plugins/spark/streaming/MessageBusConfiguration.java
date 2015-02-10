@@ -64,7 +64,8 @@ class MessageBusConfiguration {
 								new PropertiesPropertySource("executorEnvironment", properties));
 					}
 				})
-				.web(false);
+				.web(false)
+				.showBanner(false);
 		if (transport.equals("rabbit")) {
 			application.sources(RabbitAutoConfiguration.class);
 		}

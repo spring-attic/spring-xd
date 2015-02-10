@@ -23,11 +23,10 @@ import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaDStreamLike;
 import org.apache.spark.streaming.api.java.JavaPairDStream;
 
-import org.springframework.xd.spark.streaming.java.Processor;
 import org.springframework.xd.spark.streaming.SparkConfig;
+import org.springframework.xd.spark.streaming.java.Processor;
 
 import scala.Tuple2;
 
@@ -35,11 +34,11 @@ import scala.Tuple2;
  * @author Mark Fisher
  * @since 1.1
  */
-@SuppressWarnings({ "serial", "rawtypes", "unchecked" })
-public class WordCount implements Processor {
+@SuppressWarnings({ "serial" })
+public class WordCount implements Processor<JavaDStream<String>, JavaPairDStream<String, Integer>> {
 
 	@Override
-	public JavaDStreamLike process(JavaDStreamLike input) {
+	public JavaPairDStream<String, Integer> process(JavaDStream<String> input) {
 		JavaDStream<String> words = input.flatMap(new FlatMapFunction<String, String>() {
 
 			@Override

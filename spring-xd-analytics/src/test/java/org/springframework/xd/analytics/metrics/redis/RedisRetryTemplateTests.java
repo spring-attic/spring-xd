@@ -65,6 +65,7 @@ public class RedisRetryTemplateTests {
 	RecoveryCallback<?> recoveryCallback;
 
 	@Before
+	@SuppressWarnings("unchecked")
 	public void setUp() throws Exception {
 		template = new RedisRetryTemplate<String, String>();
 		template.setConnectionFactory(connectionFactoryMock);
@@ -78,6 +79,7 @@ public class RedisRetryTemplateTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void shouldRetryAndRecoverAfter2FailedAttempts() {
 		RetryTemplate retry = new RetryTemplate();
 		retry.setListeners(new RetryListener[] {retryListenerMock});
@@ -94,6 +96,7 @@ public class RedisRetryTemplateTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void shouldRetryAndRecoverAfter3FailedAttemptsByCallingRecoveryCallback() throws Exception {
 		RetryTemplate retry = new RetryTemplate();
 		retry.setListeners(new RetryListener[] {retryListenerMock});

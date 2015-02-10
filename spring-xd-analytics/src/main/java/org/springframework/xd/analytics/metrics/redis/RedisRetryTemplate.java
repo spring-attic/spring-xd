@@ -57,6 +57,7 @@ public class RedisRetryTemplate<K, V> extends RedisTemplate<K, V> {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T execute(final RedisCallback<T> action, final boolean exposeConnection, final boolean pipeline) {
 		if (this.retryOperations != null) {
 			try {

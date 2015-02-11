@@ -119,15 +119,15 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private static final String[] DEFAULT_REPLY_HEADER_PATTERNS = new String[] { "STANDARD_REPLY_HEADERS", "*" };
 
 	private static final Set<Object> RABBIT_CONSUMER_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
-			BusProperties.MAX_CONCURRENCY,
-			RabbitPropertiesAccessor.ACK_MODE,
-			RabbitPropertiesAccessor.PREFETCH,
-			RabbitPropertiesAccessor.PREFIX,
-			RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS,
-			RabbitPropertiesAccessor.REQUEUE,
-			RabbitPropertiesAccessor.TRANSACTED,
-			RabbitPropertiesAccessor.TX_SIZE,
-			RabbitPropertiesAccessor.AUTO_BIND_DLQ
+		BusProperties.MAX_CONCURRENCY,
+		RabbitPropertiesAccessor.ACK_MODE,
+		RabbitPropertiesAccessor.PREFETCH,
+		RabbitPropertiesAccessor.PREFIX,
+		RabbitPropertiesAccessor.REQUEST_HEADER_PATTERNS,
+		RabbitPropertiesAccessor.REQUEUE,
+		RabbitPropertiesAccessor.TRANSACTED,
+		RabbitPropertiesAccessor.TX_SIZE,
+		RabbitPropertiesAccessor.AUTO_BIND_DLQ
 	}));
 
 	/**

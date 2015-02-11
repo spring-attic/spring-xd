@@ -16,6 +16,8 @@ package org.springframework.xd.dirt.stream;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -58,7 +60,7 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends
 	}
 
 	@Override
-	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {
+	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3, Map<String, Object> initialTransportState) {
 		StringRedisTemplate template = new StringRedisTemplate(redisAvailableRule.getResource());
 		String y = template.boundListOps("queue.queue:y").rightPop();
 		assertNotNull(y);

@@ -20,17 +20,22 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
+import kafka.api.OffsetRequest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
 
+import org.springframework.integration.kafka.core.BrokerAddress;
 import org.springframework.integration.kafka.core.DefaultConnectionFactory;
 import org.springframework.integration.kafka.core.FetchRequest;
 import org.springframework.integration.kafka.core.KafkaMessageBatch;
 import org.springframework.integration.kafka.core.KafkaTemplate;
 import org.springframework.integration.kafka.core.Partition;
+import org.springframework.integration.kafka.core.PartitionNotFoundException;
 import org.springframework.integration.kafka.core.Result;
 import org.springframework.integration.kafka.core.ZookeeperConfiguration;
 import org.springframework.integration.kafka.serializer.common.StringDecoder;
@@ -73,8 +78,25 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 		System.clearProperty("xd.messagebus.kafka.brokers");
 	}
 
+
 	@Override
-	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {
+	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3, Map<String, Object> initialTransportState) {
+		DefaultConnectionFactory defaultConnectionFactory = getDefaultConnectionFactory();
+		KafkaTemplate template = new KafkaTemplate(defaultConnectionFactory);
+		String y = receiveFromTopicForQueue(template, "queue:y", initialTransportState);
+		assertTrue(y.endsWith("y")); // bus headers
+		String z = receiveFromTopicForQueue(template, "queue:z", initialTransportState);
+		assertNotNull(z);
+		assertTrue(z.endsWith("z")); // bus headers
+		try {
+			defaultConnectionFactory.destroy();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private DefaultConnectionFactory getDefaultConnectionFactory() {
 		ZookeeperConnect zookeeperConnect = new ZookeeperConnect();
 		zookeeperConnect.setZkConnect(kafkaTestSupport.getZkConnectString());
 		ZookeeperConfiguration configuration = new ZookeeperConfiguration(zookeeperConnect);
@@ -85,18 +107,46 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		KafkaTemplate template = new KafkaTemplate(connectionFactory);
-		String y = receiveFromTopicForQueue(template, "queue:y");
-		assertTrue(y.endsWith("y")); // bus headers
-		String z = receiveFromTopicForQueue(template, "queue:z");
-		assertNotNull(z);
-		assertTrue(z.endsWith("z")); // bus headers
+		return connectionFactory;
 	}
 
-	private String receiveFromTopicForQueue(KafkaTemplate template, String topicName) {
-		Partition partition = new Partition(KafkaMessageBus.escapeTopicName(topicName), 0);
-		Result<KafkaMessageBatch> receive = template.receive(Collections.singleton(new FetchRequest(partition, 0, 1000)));
+	@Override
+	protected Map<String, Object> readInitialQueueState(String... queueNames) {
+		DefaultConnectionFactory defaultConnectionFactory = getDefaultConnectionFactory();
+		KafkaTemplate template = new KafkaTemplate(getDefaultConnectionFactory());
+		Map<String, Object> initialOffsets = new HashMap<String, Object>();
+		for (String queueName : queueNames) {
+			String escapedTopicName = KafkaMessageBus.escapeTopicName(queueName);
+			initialOffsets.put(escapedTopicName, getInitialOffset(template, escapedTopicName));
+		}
+		try {
+			defaultConnectionFactory.destroy();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return initialOffsets;
+	}
+
+	private String receiveFromTopicForQueue(KafkaTemplate template, String topicName,
+			Map<String, Object> initialTransportState) {
+		String escapedTopicName = KafkaMessageBus.escapeTopicName(topicName);
+		Partition partition = new Partition(escapedTopicName, 0);
+		Result<KafkaMessageBatch> receive = template.receive(Collections.singleton(new FetchRequest(partition,
+				(Long) initialTransportState.get(escapedTopicName), 1000)));
 		return MessageUtils.decodePayload(receive.getResult(partition).getMessages().get(0), new StringDecoder());
+	}
+
+	private long getInitialOffset(KafkaTemplate template, String topicName) {
+		try {
+			Partition partition = new Partition(KafkaMessageBus.escapeTopicName(topicName), 0);
+			BrokerAddress leader = template.getConnectionFactory().getLeader(partition);
+			return template.getConnectionFactory().connect(leader)
+					.fetchInitialOffset(OffsetRequest.LatestTime()).getResult(partition);
+		}
+		catch (PartitionNotFoundException e) {
+			return 0;
+		}
 	}
 
 }

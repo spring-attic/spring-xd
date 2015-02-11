@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -68,7 +69,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-
 
 
 /**
@@ -265,7 +265,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		StreamDefinition streamDefinition = new StreamDefinition(
 				"mystream",
 				"queue:source >  transform --expression=payload.toUpperCase() > queue:sink"
-				);
+		);
 		StreamDefinition tapDefinition = new StreamDefinition("mytap",
 				"tap:stream:mystream > transform --expression=payload.replaceAll('A','.') > queue:tap");
 		tapTest(streamDefinition, tapDefinition);
@@ -277,7 +277,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		StreamDefinition streamDefinition = new StreamDefinition(
 				"streamWithLabels",
 				"queue:source > flibble: transform --expression=payload.toUpperCase() > queue:sink"
-				);
+		);
 
 		StreamDefinition tapDefinition = new StreamDefinition("tapWithLabels",
 				"tap:stream:streamWithLabels.flibble > transform --expression=payload.replaceAll('A','.') > queue:tap");
@@ -291,7 +291,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		StreamDefinition streamDefinition = new StreamDefinition(
 				"streamWithMultipleTransformers",
 				"queue:source > flibble: transform --expression=payload.toUpperCase() | transform --expression=payload.toUpperCase() > queue:sink"
-				);
+		);
 
 		StreamDefinition tapDefinition = new StreamDefinition("tapWithLabels",
 				"tap:stream:streamWithMultipleTransformers.flibble > transform --expression=payload.replaceAll('A','.') > queue:tap");
@@ -359,13 +359,13 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 					integrationSupport.deployStream(definition));
 			assertEquals(1, integrationSupport.streamRepository().count());
 			assertTrue(integrationSupport.streamRepository().exists("test" + i));
-			assertEquals(DeploymentUnitStatus.State.deployed,integrationSupport.streamRepository()
-					.getDeploymentStatus( "test" +i ).getState());
+			assertEquals(DeploymentUnitStatus.State.deployed, integrationSupport.streamRepository()
+					.getDeploymentStatus("test" + i).getState());
 			assertTrue("stream not undeployed", integrationSupport.undeployStream(definition));
 			assertEquals(0, integrationSupport.streamRepository().count());
 			assertFalse(integrationSupport.streamRepository().exists("test" + i));
-			assertEquals(DeploymentUnitStatus.State.undeployed,integrationSupport.streamRepository()
-					.getDeploymentStatus( "test" +i ).getState());
+			assertEquals(DeploymentUnitStatus.State.undeployed, integrationSupport.streamRepository()
+					.getDeploymentStatus("test" + i).getState());
 			// Deploys in reverse order
 			assertModuleRequest(streamName, "log", false);
 			assertModuleRequest(streamName, "filter", false);
@@ -413,6 +413,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:y"));
 		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:z"));
 
+		Map<String, Object> initialQueueState = readInitialQueueState("queue:y","queue:z");
 
 		DirectChannel testChannel = new DirectChannel();
 		bus.bindProducer("queue:x", testChannel, null);
@@ -431,11 +432,21 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		verifyDynamicProperties(bus, "queue");
 
-		verifyOnDemandQueues(y3, z3);
+		verifyOnDemandQueues(y3, z3, initialQueueState);
 
 		bus.unbindProducer("queue:x", testChannel);
 		bus.unbindConsumer("queue:y", y3);
 		bus.unbindConsumer("queue:z", z3);
+	}
+
+	/**
+	 * Required for Kafka testing, where target topics may exist already. In that case, it is important to know the
+	 * initial offsets on the topics, so we can check that the writing has been correct
+	 * @return
+	 */
+	protected Map<String, Object> readInitialQueueState(String... queueNames) {
+		// No-op
+		return Collections.emptyMap();
 	}
 
 	protected void verifyDynamicProperties(MessageBus bus, String string) {
@@ -445,7 +456,14 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		return Collections.emptyMap();
 	}
 
-	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {
+	/**
+	 * Verifies the content of the queues
+	 *
+	 * @param y3 the channel where the y's are sent
+	 * @param z3 the channel where the z's are sent
+	 * @param initialTransportState the initial state of the transport (can be ignored except for Kafka)
+	 */
+	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3, Map<String, Object> initialTransportState) {
 		QueueChannel y3q = (QueueChannel) y3;
 		assertEquals(1, y3q.getQueueSize());
 		QueueChannel z3q = (QueueChannel) z3;

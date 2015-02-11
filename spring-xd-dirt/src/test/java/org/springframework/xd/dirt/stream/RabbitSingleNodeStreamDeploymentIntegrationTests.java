@@ -115,7 +115,7 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 	}
 
 	@Override
-	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3) {
+	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3, Map<String, Object> initialTransportState) {
 		RabbitTemplate template = new RabbitTemplate(rabbitAvailableRule.getResource());
 		Object y = template.receiveAndConvert("xdbus.queue:y");
 		assertNotNull(y);

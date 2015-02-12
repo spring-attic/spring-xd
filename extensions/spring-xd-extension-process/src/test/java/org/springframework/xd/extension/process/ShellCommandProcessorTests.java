@@ -70,6 +70,15 @@ public class ShellCommandProcessorTests {
 		latch.await();
 	}
 
+    @Test
+    public void quotedStringTest() throws Exception {
+        scp = new ShellCommandProcessor(serializer, "bash -c 'while read LINE ; do echo $LINE ; done'");
+        scp.afterPropertiesSet();
+        scp.start();
+
+        assertEquals("Test Message", scp.sendAndReceive("Test Message"));
+    }
+
 	static class ShellRunner implements Runnable {
 		private final String message;
 

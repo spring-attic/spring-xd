@@ -19,6 +19,9 @@ package org.springframework.xd.dirt.module;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +38,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.data.hadoop.configuration.ConfigurationFactoryBean;
 import org.springframework.data.hadoop.fs.HdfsResourceLoader;
 import org.springframework.util.Assert;
+import org.springframework.util.Base64Utils;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.RuntimeIOException;
@@ -64,7 +68,14 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 	 */
 	public static final String ARCHIVE_AS_FILE_EXTENSION = ".jar";
 
+	/**
+	 * The extension to use for storing an uploaded module hash.
+	 */
+	public static final String HASH_EXTENSION = ".md5";
+
 	private final static String[] SUFFIXES = new String[] {"", ARCHIVE_AS_FILE_EXTENSION};
+
+	final protected static byte[] hexArray = "0123456789ABCDEF".getBytes();
 
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
@@ -85,16 +96,26 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 		if (definition instanceof UploadedModuleDefinition) {
 			UploadedModuleDefinition uploadedModuleDefinition = (UploadedModuleDefinition) definition;
 			try {
-				WritableResource writableResource = (WritableResource) getResources(definition.getType().name(), definition.getName(), ".jar").iterator().next();
+				WritableResource writableResource = (WritableResource) getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
 				Assert.isTrue(!writableResource.exists(), "Could not install " + uploadedModuleDefinition + " at location " + writableResource + " as that file already exists");
-				FileCopyUtils.copy(uploadedModuleDefinition.getInputStream(), writableResource.getOutputStream());
+
+				MessageDigest md = MessageDigest.getInstance("MD5");
+				DigestInputStream dis = new DigestInputStream(uploadedModuleDefinition.getInputStream(), md);
+				FileCopyUtils.copy(dis, writableResource.getOutputStream());
+				WritableResource hashResource = hashResource(writableResource);
+				FileCopyUtils.copy(bytesToHex(md.digest()), hashResource.getOutputStream());
+
 				return true;
 			}
-			catch (IOException e) {
-				throw new RuntimeIOException("Error trying to save " + uploadedModuleDefinition, e);
+			catch (IOException | NoSuchAlgorithmException e) {
+				throw new RuntimeException("Error trying to save " + uploadedModuleDefinition, e);
 			}
 		}
 		return false;
+	}
+
+	private WritableResource hashResource(WritableResource moduleResource) throws IOException {
+		return  (WritableResource) moduleResource.createRelative(moduleResource.getFilename() + HASH_EXTENSION);
 	}
 
 	@Override
@@ -184,6 +205,9 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 		}
 
 		String path = resource.getURL().getPath();
+		if (path.endsWith(HASH_EXTENSION)) {
+			return;
+		}
 		// URL paths for directories include an extra slash, strip it for now
 		if (path.endsWith("/")) {
 			path = path.substring(0, path.length() - 1);
@@ -230,6 +254,16 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 			resourceLoader = new HdfsResourceLoader(configurationFactoryBean.getObject());
 		}
 		this.resolver = new PathMatchingResourcePatternResolver(resourceLoader);
+	}
+
+	private byte[] bytesToHex(byte[] bytes) {
+		byte[] hexChars = new byte[bytes.length * 2];
+		for ( int j = 0; j < bytes.length; j++ ) {
+			int v = bytes[j] & 0xFF;
+			hexChars[j * 2] = hexArray[v >>> 4];
+			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+		}
+		return hexChars;
 	}
 
 

@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -69,6 +68,8 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 
 	private final static Log log = LogFactory.getLog(ShellCommandProcessor.class);
 
+    private final ShellWordsParser shellWordsParser = new ShellWordsParser();
+
 	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
 	private final String command;
@@ -84,7 +85,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 		Assert.hasLength(command, "A shell command is required");
 		Assert.notNull(serializer, "'serializer' cannot be null");
 		this.command = command;
-		List<String> commandPlusArgs = parse(command);
+		List<String> commandPlusArgs = this.shellWordsParser.parse(command);
 		Assert.notEmpty(commandPlusArgs, "The shell command is invalid: '" + command + "'");
 		this.serializer = serializer;
 		processBuilder = new ProcessBuilder(commandPlusArgs);
@@ -228,19 +229,6 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 		if (!CollectionUtils.isEmpty(environment)) {
 			processBuilder.environment().putAll(environment);
 		}
-	}
-
-	/**
-	 * Handle extra white space between arguments
-	 */
-	private List<String> parse(String command) {
-		List<String> result = new ArrayList<String>();
-		for (String token : StringUtils.delimitedListToStringArray(command, " ")) {
-			if (token.trim().length() > 0) {
-				result.add(token);
-			}
-		}
-		return result;
 	}
 
 	/**

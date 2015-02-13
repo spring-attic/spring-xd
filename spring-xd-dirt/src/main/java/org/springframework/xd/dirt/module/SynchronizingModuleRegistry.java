@@ -33,16 +33,19 @@ import org.springframework.xd.module.SimpleModuleDefinition;
 
 /**
  * A ModuleRegistry that is configured with two delegates: a source and a target registry. This registry will return
- * results from the target registry but will keep it in synch with the source registry. This is useful as reading
+ * results that exist in the source registry but will synchronize them with the target registry. Results returned are always
+ * from the <em>target</em> registry (unless composed). Mutative operations go through to the source repository though.
+ *
+ * <p>This is useful as reading
  * Boot uber-jars requires local {@code java.io.File} access, but modules may reside in a remote registry (<i>e.g.</i>
  * backed by HDFS). For such a case, simply use this registry as the main registry, configuring it with the {@code hdfs://} registry as
- * its source and the {@code file://} one as its target.
+ * its source and the {@code file://} one as its target.</p>
  *
  * @author Eric Bottard
  */
-public class SynchronizingModuleRegistry implements ModuleRegistry {
+public class SynchronizingModuleRegistry implements WriteableModuleRegistry {
 
-	private final ModuleRegistry sourceRegistry;
+	private final WriteableModuleRegistry sourceRegistry;
 
 	private final WriteableModuleRegistry targetRegistry;
 
@@ -50,7 +53,7 @@ public class SynchronizingModuleRegistry implements ModuleRegistry {
 
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
-	public SynchronizingModuleRegistry(ModuleRegistry sourceRegistry, WriteableModuleRegistry targetRegistry) {
+	public SynchronizingModuleRegistry(WriteableModuleRegistry sourceRegistry, WriteableModuleRegistry targetRegistry) {
 		Assert.notNull(sourceRegistry, "sourceRegistry cannot be null");
 		Assert.notNull(targetRegistry, "targetRegistry cannot be null");
 		this.sourceRegistry = sourceRegistry;
@@ -136,4 +139,13 @@ public class SynchronizingModuleRegistry implements ModuleRegistry {
 	}
 
 
+	@Override
+	public boolean delete(ModuleDefinition definition) {
+		return sourceRegistry.delete(definition);
+	}
+
+	@Override
+	public boolean registerNew(ModuleDefinition definition) {
+		return sourceRegistry.registerNew(definition);
+	}
 }

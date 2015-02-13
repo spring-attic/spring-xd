@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.module;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -27,18 +25,13 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.WritableResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.data.hadoop.configuration.ConfigurationFactoryBean;
-import org.springframework.data.hadoop.fs.HdfsResourceLoader;
 import org.springframework.util.Assert;
-import org.springframework.util.Base64Utils;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.RuntimeIOException;
@@ -77,6 +70,17 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 
 	final protected static byte[] hexArray = "0123456789ABCDEF".getBytes();
 
+	/**
+	 * Whether to require the presence of a hash file for archives. Helps preventing half-uploaded archives from
+	 * being picked up.
+	 */
+	private boolean requireHashFiles = false;
+
+	/**
+	 * Whether to attempt to create the directory structure at startup (disable for read-only implementations).
+	 */
+	private boolean createDirectoryStructure = false;
+
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
 	private String root;
@@ -87,8 +91,23 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 
 	@Override
 	public boolean delete(ModuleDefinition definition) {
+		try {
+			Resource archive = getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
+			if (archive instanceof WritableResource) {
+				WritableResource writableResource = (WritableResource) archive;
+				WritableResource hashResource = (WritableResource) hashResource(writableResource);
+				// Delete hash first
+				ExtendedResource.wrap(hashResource).delete();
+				return ExtendedResource.wrap(writableResource).delete();
+			}
+			else {
+				return false;
+			}
+		}
+		catch (IOException e) {
+			throw new RuntimeIOException("Exception while trying to delete module " + definition, e);
+		}
 
-		return false;
 	}
 
 	@Override
@@ -96,16 +115,23 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 		if (definition instanceof UploadedModuleDefinition) {
 			UploadedModuleDefinition uploadedModuleDefinition = (UploadedModuleDefinition) definition;
 			try {
-				WritableResource writableResource = (WritableResource) getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
-				Assert.isTrue(!writableResource.exists(), "Could not install " + uploadedModuleDefinition + " at location " + writableResource + " as that file already exists");
+				Resource archive = getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
+				if (archive instanceof WritableResource) {
+					WritableResource writableResource = (WritableResource) archive;
+					Assert.isTrue(!writableResource.exists(), "Could not install " + uploadedModuleDefinition + " at location " + writableResource + " as that file already exists");
 
-				MessageDigest md = MessageDigest.getInstance("MD5");
-				DigestInputStream dis = new DigestInputStream(uploadedModuleDefinition.getInputStream(), md);
-				FileCopyUtils.copy(dis, writableResource.getOutputStream());
-				WritableResource hashResource = hashResource(writableResource);
-				FileCopyUtils.copy(bytesToHex(md.digest()), hashResource.getOutputStream());
+					MessageDigest md = MessageDigest.getInstance("MD5");
+					DigestInputStream dis = new DigestInputStream(uploadedModuleDefinition.getInputStream(), md);
+					FileCopyUtils.copy(dis, writableResource.getOutputStream());
+					WritableResource hashResource = (WritableResource) hashResource(writableResource);
+					// Write hash last
+					FileCopyUtils.copy(bytesToHex(md.digest()), hashResource.getOutputStream());
 
-				return true;
+					return true;
+				}
+				else {
+					return false;
+				}
 			}
 			catch (IOException | NoSuchAlgorithmException e) {
 				throw new RuntimeException("Error trying to save " + uploadedModuleDefinition, e);
@@ -114,8 +140,8 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 		return false;
 	}
 
-	private WritableResource hashResource(WritableResource moduleResource) throws IOException {
-		return  (WritableResource) moduleResource.createRelative(moduleResource.getFilename() + HASH_EXTENSION);
+	private Resource hashResource(Resource moduleResource) throws IOException {
+		return moduleResource.createRelative(moduleResource.getFilename() + HASH_EXTENSION);
 	}
 
 	@Override
@@ -188,9 +214,9 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 		List<Resource> filtered = new ArrayList<>();
 		for (Resource resource : resources) {
 			// Sanitize file paths (and force use of FSR, which is WritableResource)
-			if(resource instanceof UrlResource && resource.getURL().getProtocol().equals("file")
-					|| resource instanceof  FileSystemResource) {
-				resource =  new FileSystemResource(resource.getFile().getCanonicalFile());
+			if (resource instanceof UrlResource && resource.getURL().getProtocol().equals("file")
+					|| resource instanceof FileSystemResource) {
+				resource = new FileSystemResource(resource.getFile().getCanonicalFile());
 			}
 			filtered.add(resource);
 		}
@@ -206,6 +232,9 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 
 		String path = resource.getURL().getPath();
 		if (path.endsWith(HASH_EXTENSION)) {
+			return;
+		}
+		else if (path.endsWith(ARCHIVE_AS_FILE_EXTENSION) && requireHashFiles && !hashResource(resource).exists()) {
 			return;
 		}
 		// URL paths for directories include an extra slash, strip it for now
@@ -246,25 +275,35 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		ResourceLoader resourceLoader = new DefaultResourceLoader();
-		if (root.startsWith("hdfs:")) {
-			ConfigurationFactoryBean configurationFactoryBean = new ConfigurationFactoryBean();
-			configurationFactoryBean.setFileSystemUri("hdfs://localhost:9000");
-			configurationFactoryBean.afterPropertiesSet();
-			resourceLoader = new HdfsResourceLoader(configurationFactoryBean.getObject());
+		if (createDirectoryStructure) {
+			// Create intermediary folders
+			for (ModuleType type : ModuleType.values()) {
+				Resource folder = getResources(type.name(), "", "").iterator().next();
+				if (!folder.exists()) {
+					ExtendedResource.wrap(folder).mkdirs();
+				}
+			}
 		}
-		this.resolver = new PathMatchingResourcePatternResolver(resourceLoader);
+
 	}
+
+	public void setRequireHashFiles(boolean requireHashFiles) {
+		this.requireHashFiles = requireHashFiles;
+	}
+
+	public void setCreateDirectoryStructure(boolean createDirectoryStructure) {
+		this.createDirectoryStructure = createDirectoryStructure;
+	}
+
 
 	private byte[] bytesToHex(byte[] bytes) {
 		byte[] hexChars = new byte[bytes.length * 2];
-		for ( int j = 0; j < bytes.length; j++ ) {
+		for (int j = 0; j < bytes.length; j++) {
 			int v = bytes[j] & 0xFF;
 			hexChars[j * 2] = hexArray[v >>> 4];
 			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
 		}
 		return hexChars;
 	}
-
 
 }

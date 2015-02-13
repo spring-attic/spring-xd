@@ -19,6 +19,7 @@
 package org.springframework.xd.dirt.module;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
@@ -47,6 +48,7 @@ public class ArchiveModuleRegistryTests {
 	@Test
 	public void jarFilesModulesDontIncludeExtensionInTheirName() {
 		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.sink);
+		assertThat(definitions, not(contains(ResourceModuleRegistryTests.hasName("module-zipped.jar"))));
 		assertThat(definitions, contains(ResourceModuleRegistryTests.hasName("module-zipped")));
 	}
 

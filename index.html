@@ -39,49 +39,76 @@ Spring XD is a unified, distributed, and extensible system for data ingestion, r
 {% endcapture %}
 
 {% capture main_content %}
-## Introduction
-Spring XD is a unified, distributed, and extensible runtime for data ingestion, real time analytics, batch processing, and data export. The project's goal is to simplify the development of big data applications.
 
-Big data applications share many characteristics with Enterprise Integration and Batch applications. Spring has provided proven solutions for building integration and batch applications for more than 8 years now via the Spring Integration and Spring Batch projects. Spring XD builds upon this foundation and provides a scalable, fault-tolerant runtime environment that is easily configured and assembled via a simple DSL. Application developers can focus on business logic as the developer friendly fixtures promote productivity and the DevOps can operationalize seamlessly as the orchestration is handled out-of-the-box.
+<h2 id="toc_0">Benefits</h2>
 
-The Spring ecosystem of projects provides an excellent foundation for building big data applications. The Spring XD project aims to build upon this foundation and provide a one stop shop solution for data-driven use-cases. This is in contrast to many other offerings that are more siloed and fragmented. One of the primary features is an out-of-the-box server that provides a consistent configuration model and runtime that spans traditional enterprise to big data use-cases.
+<div class="row" style="margin-left: 0">
+	<div class="span4">
+		<h3>Unified Platform</h3>
+		<p>Spring XD is a unified platform for a fragmented Hadoop ecosystem.  It&rsquo;s built on top of battle-tested open source projects, and  dramatically simplifies orchestration of Big Data workloads and data pipelines.</p>
+	</div>
+	<div class="span4">
+		<h3>Open and Extensible</h3>
+		<p>Spring XD is built to be adapted from the ground up to suit your enterprise&rsquo;s unique needs, not dictate your technology choices for you.  Extend in any direction with open plug-in points for your existing technology investments, implemented with simple Java classes.</p>
+	</div>
+	<div class="span4">
+		<h3>Developer Productivity</h3>
+		<p>Developers new to Big Data can use a no-coding, configuration driven tool to develop Spring XD applications. Java developers can also easily extend the platform or the DSL with familiar extensibility, testing, and automation tools inherited directly from <a href="http://projects.spring.io/spring-batch/">Spring Batch</a> &amp; <a href="http://projects.spring.io/spring-integration/">Integration</a>.</p>
+	</div>
+</div>
 
-You don't need to code anything up to get going: no build scripts, no IDE, no maven coordinates, no bundling or packaging. You can use a high level configuration DSL that will allow you to hit your head against the keyboard and get started quickly. However, if you choose to extend the platform (and we hope you will), Spring provides the foundation for extensibility.
+<h2 id="toc_1">Features</h2>
 
-Spring XD is designed with the goal to adapt to frameworks, standards and patterns that matter the most for enterprises. Adapting to Spring’s philosophy, Spring XD follows the mantra _“simple things should be simple, complex things should be possible”_.
+<div class="row" style="margin-left: 0">
+	<div class="span4">
+		<h3>Data from anywhere, to anywhere</h3>
+		<p>Data-driven apps require refined and consolidated data at scale. Spring XD&rsquo;s stream and batch workflow lets you build pipelines to consume data from various endpoints and consolidate them in Hadoop, in-memory data grids such as <a href="http://redis.io/">Redis</a> or <a href="http://pivotal.io/big-data/pivotal-gemfire">GemFire</a>, and virtually any data store.</p>
+	</div>
+	<div class="span4">
+		<h3>Rock-solid distributed runtime</h3>
+		<p>Spring XD provides PMML model scoring to compute predictions in real-time. Apache Spark Streaming is an out-of-the-box processor module in Spring XD, and can be plugged in to perform online machine learning with the help of MLLib algorithms.</p>
+	</div>
+	<div class="span4">
+		<h3>Deep Analytics</h3>
+		<p>Developers new to Big Data can use a no-coding, configuration driven tool to develop Spring XD applications. Java developers can also easily extend the platform or the DSL with familiar extensibility, testing, and automation tools inherited directly from Spring Batch &amp; Integration.</p>
+	</div>
+</div>
+<div class="row" style="margin-left: 0">
+	<div class="span4">
+		<h3>Developer Friendly</h3>
+		<p>It&rsquo;s easy to integrate data with Hadoop and any data store - like Greenplum Database, HAWQ or GemFire.  No coding is required to use the DSL (Domain Specific Language) and interacting with the server is done via REST, in any programming language.</p>
+	</div>
+	<div class="span4">
+		<h3>Monitoring and Management</h3>
+		<p>Remote monitoring and management of the runtime components are supported via JMX endpoints. A built-in Admin UI allows visualization and remote management of containers in the distributed setup.</p>
+	</div>
+	<div class="span4">
+		<h3>Portable and Extensible Runtime</h3>
+		<p>Spring XD runs anywhere Java does - on-prem, Pivotal Cloud Foundry, YARN, EC2, Mesos, Docker, etc. A plug-in based architecture allows Java/Hadoop experts to extend the runtime components, allowing DSL (Domain Specific Language) users to leverage the extensions immediately.</p>
+	</div>
+	</div>
+<h2 id="toc_0">Use-Cases</h2>
 
-For the curious, XD is an abbreviation for eXtreme Data.
-
-## Features
-
-* Easy to adapt linux style pipe-and-filter semantics
-* Unified platform - Stream Processing and Batch Jobs
- * Off-Hadoop Batch Jobs
- * Hadoop Batch workflow orchestration
- * NoSQL Analytics
- * Scoring of Machine Learning algorithms
-* Runtime that provides critical non-functional requirements
- * Scalable, distributed, Fault-Tolerant
- * Portable runtime that runs where there is JVM. On prem DIY cluster, YARN, EC2, Mesos, Docker, Pivotal Cloud Foundry (coming soon)
-* Responsive UI
- * Stream and Batch Job listing
- * Create and deploy Batch Jobs
- * Historical snapshot of Batch Job executions
- * Container cluster view and management
- * Visualize pipeline message rates
-* Rich integration options
- * Functional programming model with Reactor, RxJava, and Spark Streaming
- * Kafka source, sink, and as message bus
- * Sqoop job
- * Spark job
-* Secured runtime for data pipelines
- * LDAP integration
- * File based security Auth
- * HTTPS/Basic Auth support
- * Kerberos support for HDFS sink
- * Role based access control (RBAC) 
-* Easy to extend and integrate other technologies
-* No vendor lock-in
+<div class="row" style="margin-left: 0">
+	<div class="span6">
+		<h3>Closed-loop Analytics</h3>
+		<p>Spring XD orchestrates the entire analytics loop - gathering data from any source, triggering actions, handling feedback loops from machine learning models, and computing real-time predictions.</p>
+	</div>
+	<div class="span6">
+		<h3>Internet of Things</h3>
+		<p>Enable predictive analytics in-real time over large amounts of machine data, driving business and operation improvements in real-time. Spring XD&rsquo;s data-integration adapters connect with various data-producing devices, and can be extended to meet any unique device or protocol.</p>
+	</div>
+</div>
+<div class="row" style="margin-left: 0">
+	<div class="span6">
+		<h3>Batch Workflow Orchestration</h3>
+		<p>Traditional enterprise “Big Data” was often done with batch processing.  Get productive by using out-of-the-box jobs as templates - avoiding  the need to write code.  The infrastructure, environment specifics and automation is handled by Spring XD, allowing the enterprise to solely focus on business logic.</p>
+	</div>
+	<div class="span6">
+		<h3>Complex Event Processing</h3>
+		<p>Spring XD provides integration with Project Reactor Streams, RxJava Observables, and Spark Streaming. Creating a data stream processor in XD allows you to use a functional programming model to filter, transform and aggregate data in a very concise and performant way. By working with events as you would with collections, Spring XD&rsquo;s reactive-stream integration allows you to build complex event processors to respond to events in real-time.</p>
+	</div>
+</div>
 
 <span id="quick-start"></span>
 ## Quick Start
@@ -121,17 +148,25 @@ $ cd spring-xd-1.0.3.RELEASE
 
 ### Blogs and Articles
 
+* [Develop powerful Big Data Applications easily with Spring XD](http://spring.io/blog/2014/12/09/springone2gx-2014-replay-develop-powerful-big-data-applications-easily-with-spring-xd)
 * [InfoQ Article](http://www.infoq.com/articles/introducing-spring-xd)
 * [Zero to Stream Processing in 7 minutes]({{site.main_site_url}}/blog/2014/05/19/demo-zero-to-stream-processing-in-7-minutes-with-spring-xd/)
 * [Spring XD for Real Time Analytics](http://blog.gopivotal.com/pivotal/products/spring-xd-for-real-time-analytics/)
 * [Adding New Modules to Spring XD Part 1](http://glenn-renfro-dev.blogspot.com/2013/09/adding-new-modules-to-spring-xd-part-1.html)
 
+### Case Study
+
+* [Mobile Video Big Data Architecture with Spring XD](http://blog.pivotal.io/pivotal/case-studies-2/mobile-video-big-data-architecture-with-spring-xdhadoophawqredis-measuring-live-usage)
 
 ### Videos
 
+* [Demo: Zero to Stream processing in 7 minutes with Spring XD](https://www.youtube.com/watch?v=nOfzrQ6CdKI)
+* [Spring XD - A Guided Tour](https://www.youtube.com/watch?v=lteee9N816k)
+* [IoT Realized with Spring XD - The Connected Car](https://www.youtube.com/watch?v=qkm2GV57hzY)
+* [Spring XD - Tackling Big Data Complexity](https://vimeo.com/114862687) (German)
 * [Spring XD Meetup 6/2014](http://bit.ly/POSHyt0005)
 * [Spring XD Demo Walk Thru](http://www.youtube.com/watch?v=vADPV9UJ9H0)
-* [Building Big Data Applications with Hadoop & Spring](http://www.youtube.com/watch?v=41sIhawjHE0)
+* [Building Big Data Applications with Hadoop &amp; Spring](http://www.youtube.com/watch?v=41sIhawjHE0)
 * [QCon SF 2013: Introducing Spring XD](https://www.youtube.com/watch?v=3Wycvyqn0n4)
 
 {% endcapture %}

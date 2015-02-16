@@ -16,10 +16,7 @@
 
 package org.springframework.xd.dirt.plugins.spark.streaming;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Properties;
 
 import org.apache.spark.storage.StorageLevel;
@@ -29,12 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.integration.bus.BusProperties;
-import org.springframework.xd.dirt.integration.bus.ConnectionPropertyNames;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionSupport;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -55,6 +51,12 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport;
 @SuppressWarnings("rawtypes")
 public class SparkStreamingPlugin extends AbstractStreamPlugin {
 
+	private static final String REDIS_CONNECTION_PROPERTY_PREFIX = "spring.redis";
+
+	private static final String RABBIT_CONNECTION_PROPERTY_PREFIX = "spring.rabbitmq";
+
+	private static final String MESSAGE_BUS_PROPERTY_PREFIX = "xd.messagebus.";
+
 	@Autowired
 	public SparkStreamingPlugin(MessageBus messageBus, ZooKeeperConnection zkConnection) {
 		super(messageBus, zkConnection);
@@ -71,7 +73,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 		ConfigurableApplicationContext moduleContext = module.getApplicationContext();
 		ConfigurableEnvironment env = moduleContext.getEnvironment();
 		String transport = env.getProperty("XD_TRANSPORT");
-		Properties messageBusProperties = getMessageBusProperties(module, transport);
+		Properties messageBusProperties = getMessageBusProperties(module);
 		Properties inboundModuleProperties = this.extractConsumerProducerProperties(module)[0];
 		Properties outboundModuleProperties = this.extractConsumerProducerProperties(module)[1];
 		String defaultStorageLevel = env.getProperty(SparkStreamingSupport.SPARK_STORAGE_LEVEL_PROP);
@@ -130,49 +132,23 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 	/**
 	 * Get the configured message bus properties for the given transport.
 	 * @param module
-	 * @param transport
 	 * @return the message bus properties for the spark streaming module.
 	 */
-	private Properties getMessageBusProperties(Module module, String transport) {
+	private Properties getMessageBusProperties(Module module) {
 		ConfigurableEnvironment env = module.getApplicationContext().getEnvironment();
 		Properties busProperties = new Properties();
-		busProperties.put("XD_TRANSPORT", transport);
-		if (!transport.equals("local")) {
-			List<String> messageBusConnectionProperties = new ArrayList<String>();
-			String connectionPropertiesClassName = transport.substring(0, 1).toUpperCase() + transport.substring(1) +
-					ConnectionPropertyNames.class.getSimpleName();
-			try {
-				Class connectionPropertyNames = Class.forName(ConnectionPropertyNames.PACKAGE_NAME + connectionPropertiesClassName);
-				messageBusConnectionProperties.addAll(Arrays.asList(((ConnectionPropertyNames) connectionPropertyNames.newInstance()).get()));
-			}
-			catch (ClassNotFoundException cnfe) {
-				throw new RuntimeException(String.format("The transport %s must provide class %s", transport, connectionPropertiesClassName));
-			}
-			catch (ReflectiveOperationException roe) {
-				throw new RuntimeException(roe);
-			}
-			for (String propertyKey : messageBusConnectionProperties) {
-				String resolvedValue = env.resolvePlaceholders("${" + propertyKey + "}");
-				busProperties.put(propertyKey, resolvedValue);
-			}
-		}
-		List<String> messageBusPropertyKeys = new ArrayList<String>();
-		Field[] propertyFields = BusProperties.class.getFields();
-		for (Field f : propertyFields) {
-			try {
-				messageBusPropertyKeys.add((String) f.get(null));
-			}
-			catch (IllegalAccessException e) {
-				// ignore the exception.
-			}
-		}
-		String[] properties = ((MessageBusSupport) messageBus).getMessageBusSpecificProperties();
-		messageBusPropertyKeys.addAll(Arrays.asList(properties));
-		for (String key : messageBusPropertyKeys) {
-			String propertyName = "xd.messagebus." + transport + ".default." + key;
-			String resolvedValue = env.resolvePlaceholders("${" + propertyName + "}");
-			if (!resolvedValue.contains("${")) {
-				busProperties.put(propertyName, resolvedValue);
+		busProperties.put("XD_TRANSPORT", env.getProperty("XD_TRANSPORT"));
+		Iterator<PropertySource<?>> i = env.getPropertySources().iterator();
+		while (i.hasNext()) {
+			PropertySource<?> p = i.next();
+			if (p instanceof EnumerablePropertySource) {
+				for (String name : ((EnumerablePropertySource) p).getPropertyNames()) {
+					if ((name.startsWith(REDIS_CONNECTION_PROPERTY_PREFIX)) ||
+							name.startsWith(RABBIT_CONNECTION_PROPERTY_PREFIX) ||
+							name.startsWith(MESSAGE_BUS_PROPERTY_PREFIX)) {
+						busProperties.put(name, env.getProperty(name));
+					}
+				}
 			}
 		}
 		return busProperties;
@@ -183,6 +159,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 	 * @param receiver the message bus receiver
 	 * @param module the spark streaming module
 	 */
+
 	private void registerMessageBusReceiver(MessageBusReceiver receiver, Module module) {
 		receiver.setInputChannelName(getInputChannelName(module));
 		ConfigurableBeanFactory beanFactory = module.getApplicationContext().getBeanFactory();

@@ -759,13 +759,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	}
 
-
-	@Override
-	public String[] getMessageBusSpecificProperties() {
-		RabbitPropertiesAccessor propertiesAccessor = new RabbitPropertiesAccessor(null);
-		return propertiesAccessor.getDefaultProperties();
-	}
-
 	/**
 	 * Property accessor for the RabbitMessageBus. Refer to the Spring-AMQP
 	 * documentation for information on the specific properties.
@@ -824,23 +817,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		public RabbitPropertiesAccessor(Properties properties) {
 			super(properties);
-		}
-
-		public static final String[] RABBIT_PROPERTIES = new String[] {
-			ACK_MODE,
-			DELIVERY_MODE,
-			PREFETCH,
-			PREFIX,
-			REPLY_HEADER_PATTERNS,
-			REQUEST_HEADER_PATTERNS,
-			REQUEUE,
-			TRANSACTED,
-			TX_SIZE,
-			AUTO_BIND_DLQ
-		};
-
-		public String[] getDefaultProperties() {
-			return RABBIT_PROPERTIES;
 		}
 
 		public AcknowledgeMode getAcknowledgeMode(AcknowledgeMode defaultValue) {

@@ -473,16 +473,6 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			super(properties);
 		}
 
-		public String[] getDefaultProperties() {
-			return new String[0];
-		}
-
-	}
-
-	@Override
-	public String[] getMessageBusSpecificProperties() {
-		RedisPropertiesAccessor propertiesAccessor = new RedisPropertiesAccessor(null);
-		return propertiesAccessor.getDefaultProperties();
 	}
 
 	/**

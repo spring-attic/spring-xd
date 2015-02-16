@@ -14,7 +14,6 @@
 package org.springframework.xd.dirt.integration.bus.local;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -100,11 +99,6 @@ public class LocalMessageBus extends MessageBusSupport {
 	 */
 	public void setQueueSize(int queueSize) {
 		this.queueSize = queueSize;
-	}
-
-	public String[] getMessageBusSpecificProperties() {
-		LocalBusPropertiesAccessor propertiesAccessor = new LocalBusPropertiesAccessor(null);
-		return propertiesAccessor.getDefaultProperties();
 	}
 
 	/**
@@ -320,10 +314,6 @@ public class LocalMessageBus extends MessageBusSupport {
 
 		public LocalBusPropertiesAccessor(Properties properties) {
 			super(properties);
-		}
-
-		public String[] getDefaultProperties() {
-			return new String[0];
 		}
 
 	}

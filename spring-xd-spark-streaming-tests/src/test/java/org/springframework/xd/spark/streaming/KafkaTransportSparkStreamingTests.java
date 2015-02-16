@@ -20,7 +20,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
-import org.springframework.xd.dirt.integration.bus.KafkaConnectionPropertyNames;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
 
 /**
@@ -31,31 +30,35 @@ public class KafkaTransportSparkStreamingTests extends AbstractSparkStreamingTes
 	@ClassRule
 	public static final KafkaTestSupport kafkaTestSupport = new KafkaTestSupport();
 
+	private static final String KAFKA_BROKERS = "xd.messagebus.kafka.brokers";
+
+	private static final String KAFKA_ZK_ADDRESS = "xd.messagebus.kafka.zkAddress";
+
 	private static String originalKafkaBrokers = null;
 
 	private static String originalKafkaZkAddress = null;
 
 	@BeforeClass
 	public static void setUpClass() {
-		originalKafkaBrokers = System.getProperty(KafkaConnectionPropertyNames.KAFKA_BROKERS);
-		originalKafkaZkAddress = System.getProperty(KafkaConnectionPropertyNames.KAFKA_ZK_ADDRESS);
-		System.setProperty(KafkaConnectionPropertyNames.KAFKA_BROKERS, kafkaTestSupport.getBrokerAddress());
-		System.setProperty(KafkaConnectionPropertyNames.KAFKA_ZK_ADDRESS, kafkaTestSupport.getZkConnectString());
+		originalKafkaBrokers = System.getProperty(KAFKA_BROKERS);
+		originalKafkaZkAddress = System.getProperty(KAFKA_ZK_ADDRESS);
+		System.setProperty(KAFKA_BROKERS, kafkaTestSupport.getBrokerAddress());
+		System.setProperty(KAFKA_ZK_ADDRESS, kafkaTestSupport.getZkConnectString());
 	}
 
 	@AfterClass
 	public static void tearDownClass() {
 		if (originalKafkaBrokers == null) {
-			System.clearProperty(KafkaConnectionPropertyNames.KAFKA_BROKERS);
+			System.clearProperty(KAFKA_BROKERS);
 		}
 		else {
-			System.setProperty(KafkaConnectionPropertyNames.KAFKA_BROKERS, originalKafkaBrokers);
+			System.setProperty(KAFKA_BROKERS, originalKafkaBrokers);
 		}
 		if (originalKafkaZkAddress == null) {
-			System.clearProperty(KafkaConnectionPropertyNames.KAFKA_ZK_ADDRESS);
+			System.clearProperty(KAFKA_ZK_ADDRESS);
 		}
 		else {
-			System.setProperty(KafkaConnectionPropertyNames.KAFKA_ZK_ADDRESS, originalKafkaZkAddress);
+			System.setProperty(KAFKA_ZK_ADDRESS, originalKafkaZkAddress);
 		}
 	}
 

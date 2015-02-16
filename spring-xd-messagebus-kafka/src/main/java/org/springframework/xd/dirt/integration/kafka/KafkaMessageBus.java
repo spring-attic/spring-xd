@@ -33,23 +33,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import kafka.admin.AdminUtils;
-import kafka.api.OffsetRequest;
-import kafka.api.TopicMetadata;
-import kafka.common.ErrorMapping;
-import kafka.javaapi.PartitionMetadata;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.DefaultPartitioner;
-import kafka.producer.KeyedMessage;
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
-import kafka.serializer.DefaultEncoder;
-import kafka.serializer.StringEncoder;
-import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
-import scala.collection.Seq;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
@@ -90,6 +76,21 @@ import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConvert
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+
+import kafka.admin.AdminUtils;
+import kafka.api.OffsetRequest;
+import kafka.api.TopicMetadata;
+import kafka.common.ErrorMapping;
+import kafka.javaapi.PartitionMetadata;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.DefaultPartitioner;
+import kafka.producer.KeyedMessage;
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
+import kafka.serializer.DefaultEncoder;
+import kafka.serializer.StringEncoder;
+import kafka.utils.ZkUtils;
+import scala.collection.Seq;
 
 /**
  * A message bus that uses Kafka as the underlying middleware.
@@ -633,16 +634,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private class KafkaPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
-		private final String[] KAFKA_PROPERTIES = new String[] {
-				BATCHING_ENABLED,
-				BATCH_SIZE,
-				BATCH_TIMEOUT,
-				CONCURRENCY,
-				REPLICATION_FACTOR,
-				COMPRESSION_CODEC,
-				REQUIRED_ACKS
-		};
-
 		public KafkaPropertiesAccessor(Properties properties) {
 			super(properties);
 		}
@@ -669,14 +660,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 			return getProperty(REQUIRED_ACKS, defaultRequiredAcks);
 		}
 
-		public String[] getDefaultProperties() {
-			return KAFKA_PROPERTIES;
-		}
-	}
-
-	public String[] getMessageBusSpecificProperties() {
-		KafkaPropertiesAccessor propertiesAccessor = new KafkaPropertiesAccessor(null);
-		return propertiesAccessor.getDefaultProperties();
 	}
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {

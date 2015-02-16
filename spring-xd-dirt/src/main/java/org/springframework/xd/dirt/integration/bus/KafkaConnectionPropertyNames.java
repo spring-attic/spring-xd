@@ -29,9 +29,11 @@ public class KafkaConnectionPropertyNames implements ConnectionPropertyNames {
 	public static final String KAFKA_NUM_PARTITIONS_FOR_COUNT_EQUALS_ZERO =
 			"xd.messagebus.kafka.numOfKafkaPartitionsForCountEqualsZero";
 
+	public static final String KAFKA_OFFSET_STORE_TOPIC = "xd.messagebus.kafka.offsetStoreTopic";
+
 	public String[] get() {
 		return new String[] {
-			KAFKA_BROKERS, KAFKA_ZK_ADDRESS, KAFKA_NUM_PARTITIONS_FOR_COUNT_EQUALS_ZERO
+			KAFKA_BROKERS, KAFKA_ZK_ADDRESS, KAFKA_NUM_PARTITIONS_FOR_COUNT_EQUALS_ZERO, KAFKA_OFFSET_STORE_TOPIC
 		};
 	}
 }

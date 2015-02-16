@@ -306,7 +306,8 @@ public class SparkStreamingDriverModule extends ResourceConfiguredModule {
 					file.contains("commons-pool") ||
 					file.contains("jedis") ||
 					// Add codec dependency
-					file.contains("kryo"))) {
+					file.contains("kryo") ||
+					file.contains("gs-collections"))) {
 				jars.add(file);
 			}
 		}

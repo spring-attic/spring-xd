@@ -379,12 +379,15 @@ project('spring-xd-dirt') {
 		compile "org.springframework.boot:spring-boot-actuator"
 		compile("org.springframework.boot:spring-boot-starter-security") {
 			exclude group: 'org.springframework.boot', module: "spring-boot-starter-logging"
+                        exclude module: 'log4j-over-slf4j'
 		}
 		compile("org.springframework.security:spring-security-ldap") {
 			exclude group: 'org.springframework', module: 'spring-beans'
 			exclude group: 'org.springframework', module: 'spring-core'
 		}
-		compile project(":spring-xd-ui")
+		compile(project(":spring-xd-ui")) {
+                        exclude module: 'log4j-over-slf4j'
+                }
 		compile("org.springframework.data:spring-data-redis") {
 			exclude group: 'org.springframework', module: 'spring-core'
 		}
@@ -592,7 +595,11 @@ project('spring-xd-exec') {
 		into('.') { from '../spring-xd-dirt/src/main/resources/log4j.properties' }
 		into('modules') { from '../modules' }
 		into('config') { from '../config' }
+                into('lib/messagebus') { from '../lib/messagebus' }
 	}
+        bootRepackage {
+                enabled = true
+        }
 	moduleProjects.each { moduleProject ->
 		project.jar.dependsOn moduleProject.copyLibs
 	}
@@ -983,6 +990,7 @@ project('spring-xd-messagebus-kafka') {
 	description = 'Spring XD MessageBus (Kafka implementation)'
 	dependencies {
 		compile project(':spring-xd-messagebus-spi')
+                compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
 		compile("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
 			exclude group: 'org.apache.velocity', module: 'velocity'
 		}

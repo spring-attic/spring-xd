@@ -68,7 +68,7 @@ endpoints:
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${xd.transport:${transport:redis}}
-XD_HOME: ${xdHomeDir:..}
+XD_HOME: ${xdHomeDir:.}
 XD_JMX_ENABLED: true
 
 xd:

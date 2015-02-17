@@ -25,7 +25,6 @@ import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.streaming.api.java.JavaDStreamLike;
 import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.xd.spark.streaming.SparkMessageSender;
@@ -40,7 +39,7 @@ import org.springframework.xd.spark.streaming.SparkStreamingModuleExecutor;
  * @since 1.1
  */
 @SuppressWarnings({"unchecked", "rawtypes", "serial"})
-public class ModuleExecutor implements SparkStreamingModuleExecutor<JavaReceiverInputDStream, Processor> , Serializable {
+public class ModuleExecutor implements SparkStreamingModuleExecutor<JavaReceiverInputDStream, Processor>, Serializable {
 
 	private static SparkMessageSender messageSender;
 
@@ -49,43 +48,30 @@ public class ModuleExecutor implements SparkStreamingModuleExecutor<JavaReceiver
 		JavaDStreamLike output = processor.process(input);
 		if (output != null) {
 			output.foreachRDD(new Function<JavaRDDLike, Void>() {
-
 				@Override
 				public Void call(final JavaRDDLike rdd) {
 					rdd.foreachPartition(new VoidFunction<Iterator<?>>() {
-
 						@Override
 						public void call(Iterator<?> results) throws Exception {
-							if (results.hasNext()) {
-								if (messageSender == null) {
-									messageSender = sender;
-								}
-								try {
-									messageSender.start();
-								}
-								catch (NoSuchBeanDefinitionException e) {
-									// ignore for the first time.
-								}
-								finally {
-									if (sender != null && !sender.isRunning()) {
-										messageSender.stop();
-										messageSender = sender;
-										messageSender.start();
-									}
-								}
-								while (results.hasNext()) {
-									Object next = results.next();
-									Message message = (next instanceof Message) ? (Message) next :
-											MessageBuilder.withPayload(next).build();
-									messageSender.send(message);
-								}
+							if (messageSender == null) {
+								messageSender = sender;
+								messageSender.start();
 							}
-							sender.stop();
+							while (results.hasNext()) {
+								Object next = results.next();
+								Message message = (next instanceof Message) ? (Message) next :
+										MessageBuilder.withPayload(next).build();
+								messageSender.send(message);
+							}
 						}
 					});
 					return null;
 				}
 			});
+			if (messageSender != null) {
+				messageSender.stop();
+				messageSender = null;
+			}
 		}
 	}
 

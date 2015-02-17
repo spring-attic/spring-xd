@@ -41,21 +41,7 @@ class ModuleExecutor extends SparkStreamingModuleExecutor[ReceiverInputDStream[A
         rdd.foreachPartition(partition => {
           if (messageSender == null) {
             messageSender = sender
-          }
-          try {
-            messageSender.start
-          }
-          catch {
-            case e: NoSuchBeanDefinitionException => {
-              //ignore
-            }
-          }
-          finally {
-            if (sender != null && !sender.isRunning) {
-              messageSender.stop
-              messageSender = sender
-              messageSender.start
-            }
+            messageSender.start()
           }
           if (partition.hasNext) {
             val message = partition.next()
@@ -68,6 +54,10 @@ class ModuleExecutor extends SparkStreamingModuleExecutor[ReceiverInputDStream[A
           }
         })
       })
+      if (messageSender != null) {
+        messageSender.stop
+        messageSender = null
+      }
     }
   }
 }

@@ -13,6 +13,9 @@
 #  transport: rabbit
 
 #  messagebus:
+#    local:
+#      queueSize:                   2147483647
+#      polling:                     1000
 #    rabbit:
 #      compressionLevel:            1
             # bus-level property, applies only when 'compress=true' for a stream module

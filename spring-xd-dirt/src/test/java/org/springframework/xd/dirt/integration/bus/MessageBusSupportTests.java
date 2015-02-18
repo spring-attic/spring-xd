@@ -293,11 +293,6 @@ public class MessageBusSupportTests {
 		public void bindReplier(String name, MessageChannel requests, MessageChannel replies,
 				Properties properties) {
 		}
-
-		@Override
-		public String[] getMessageBusSpecificProperties() {
-			return new String[0];
-		}
 	}
 
 }

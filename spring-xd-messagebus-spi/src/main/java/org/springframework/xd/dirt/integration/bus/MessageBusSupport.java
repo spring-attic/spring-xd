@@ -333,8 +333,6 @@ public abstract class MessageBusSupport
 
 	protected void onInit() {
 	}
-
-	public abstract String[] getMessageBusSpecificProperties();
 	/**
 	 * Dynamically create a producer for the named channel.
 	 * @param name The name.

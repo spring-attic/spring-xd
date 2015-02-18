@@ -93,6 +93,8 @@ xd:
   messageRateMonitoring:
     enabled: false
   messagebus:
+    local:
+      polling:                     1000
     rabbit:
       compressionLevel:            1
             # bus-level property, applies only when 'compress=true' for a stream module

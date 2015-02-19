@@ -31,7 +31,18 @@ badges:
 
 <!DOCTYPE HTML>
 <html lang="en-US">
-
+<head>
+	<style type="text/css">
+		.styled-image {
+			border-radius: 4px;
+			-moz-border-radius: 4px;
+			-webkit-border-radius: 4px;
+			-webkit-box-shadow: 1px 1px 2px 0px rgba(50, 50, 50, 0.55);
+			-moz-box-shadow:    1px 1px 2px 0px rgba(50, 50, 50, 0.55);
+			box-shadow:         1px 1px 2px 0px rgba(50, 50, 50, 0.55);
+		}
+	</style>
+</head>
 {% capture billboard_description %}
 
 Spring XD is a unified, distributed, and extensible system for data ingestion, real time analytics, batch processing, and data export. The project's goal is to simplify the development of big data applications.
@@ -56,7 +67,7 @@ Spring XD is a unified, distributed, and extensible system for data ingestion, r
 		<p>Developers new to Big Data can use a no-coding, configuration driven tool to develop Spring XD applications. Java developers can also easily extend the platform or the DSL with familiar extensibility, testing, and automation tools inherited directly from <a href="http://projects.spring.io/spring-batch/">Spring Batch</a> &amp; <a href="http://projects.spring.io/spring-integration/">Integration</a>.</p>
 	</div>
 </div>
-<img src="img/spring-xd-unified-platform-for-big-data.png" alt="The unified platform for big data" title="The unified platform for big data"/>
+<img class="styled-image" src="img/spring-xd-unified-platform-for-big-data.png" alt="The unified platform for big data" title="The unified platform for big data"/>
 <h2 id="toc_1">Features</h2>
 
 <div class="row" style="margin-left: 0">

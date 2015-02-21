@@ -65,25 +65,37 @@ Spring XD provides fixtures for real-time predictions based on usage patterns an
 
 ## Music Services
 
-### Use Case
-Growing music delivery platforms and trendy wearables are disrupting the way we consume music. At the same time, it creates room for more innovation. 
+### Purpose
+Growing music delivery platforms and trendy wearables are disrupting the way we consume music. At the same time, it creates room for more innovation.
+
+### Use case
+Music streaming providers would like to create a data-centric platform to engage consumers through persona and context specifics.  
 
 ### Problem
-Attracting customers to a music platform by itself is one big challenge; retaining and engaging them with personalized services can get very complicated.
+Attracting customers to a music platform by itself is one big challenge; retaining and engaging them with personalized services can get even more challenging.
 
 ### Solution
-Contexts derived from user preferences, interests and recommendations play a significant role in customer satisfaction. Continuous and consistent data analysis using Spring XD's stream pipelines could compute individual data-centric contexts; a context can be past listening trends, favorite music artist, rating on a album/song or it can be as simple as counter on song hit. Computations (contexts) are be persisted and reused inside and outside the platform through REST APIs thus allowing external interfaces such as wearables feeding into individual characteristics.
+Individual persona characteristics can be derived from preferences, interests and recommendations. Contexts can be past listening trends, favorite music artist, rating on a album/song. It can also be a counter on number of times a song was played - it’s another data point. Using Spring XD, real-time pipelines can be created to compute taste and preferences to deliver real-time recommendations. Spring XD’s REST APIs can be leveraged to seamlessly interface with wearables to publish and listen to data events.
+
+### Outcome
+The out of the box adapters in Spring XD allows seamless interaction with ‘connected devices’.
 
 ## Agriculture Services
 
-### Use Case
+### Purpose
 Better crop quality and optimized yields lead to sustainable energy and stronger economy.
 
+### Use Case
+Agribusiness providers would like to have a common data-exchange platform so that they can be connected with various service providers (ex: weather station, seed and fertilizer suppliers, machinery providers, and laboratories) to efficiently manage supply and demand.
+
 ### Problem
-Requires a single data-exchange platform that interconnects weather stations, seed and fertilizer suppliers, machinery providers, and laboratories.
+Agribusiness providers run their own supply and demand workflows. It’s often handled manually and it’s error prone. Interconnection between providers require everyone connected to a common platform in order to automate workflows. However, there exist numerous challenges to build one-stop-shop for all the data that can be accessible at anytime from anywhere.
 
 ### Solution
-Creating a data-exchange platform in Spring XD is straightforward. A data-pipeline for each of the interlinked data-enabler allows easy subscription and collection of varied data sources. Allowing the pipelines to route the data into Hadoop and creating data 'mashup' for coherent predictive modeling and data analytics would enhance the overall agribusiness value chain.
+A data-pipeline for each interconnected data producing agents (ex: weather units, laboratories), enables easy collection of varied data sources. Spring XD covers both structured and unstructured data fragments. Once the data is in the pipeline, the out of the box analytics methods can be applied to compute predictions. The predictive models can be used for forecasting to enhance the overall agribusiness value chain.
+
+### Outcome
+Creating a data-exchange platform in Spring XD is straightforward. The ability to rapidly operationalize reliable data pipelines contributes to efficient data analysis and in turn better supply and demand management.
 
 ## Airline Services
 

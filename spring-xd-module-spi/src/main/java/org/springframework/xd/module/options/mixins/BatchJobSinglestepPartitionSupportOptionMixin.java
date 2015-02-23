@@ -29,7 +29,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 @Mixin(BatchJobRestartableOptionMixin.class)
 public class BatchJobSinglestepPartitionSupportOptionMixin {
 
-	private long partitionResultsTimeout = 300000;
+	private long partitionResultsTimeout = 3_600_000; // 1 hour
 
 	public long getPartitionResultsTimeout() {
 		return partitionResultsTimeout;

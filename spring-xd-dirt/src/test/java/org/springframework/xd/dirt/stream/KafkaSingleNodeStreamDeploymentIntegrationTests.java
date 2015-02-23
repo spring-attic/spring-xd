@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import kafka.api.OffsetRequest;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -42,8 +43,8 @@ import org.springframework.integration.kafka.serializer.common.StringDecoder;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.integration.kafka.util.MessageUtils;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.xd.dirt.integration.bus.kafka.KafkaTestMessageBus;
 import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
-import org.springframework.xd.dirt.integration.kafka.KafkaTestMessageBus;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
 
 /**

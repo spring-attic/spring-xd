@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus;
+package org.springframework.xd.dirt.integration.bus.redis;
 
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -24,6 +24,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.redis.RedisMessageBus;
 

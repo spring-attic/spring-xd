@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +39,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ResourceDeployer;
+import org.springframework.xd.dirt.integration.bus.rabbit.NothingToDeleteException;
+import org.springframework.xd.dirt.integration.bus.rabbit.RabbitBusCleaner;
 import org.springframework.xd.dirt.stream.AbstractDeployer;
 import org.springframework.xd.dirt.stream.AbstractInstancePersistingDeployer;
 import org.springframework.xd.dirt.stream.BaseInstance;
@@ -64,6 +67,8 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	private ResourceDeployer<D> deployer;
 
 	private A resourceAssemblerSupport;
+
+	private final RabbitBusCleaner busCleaner = new RabbitBusCleaner();
 
 	/**
 	 * Data holder class for controlling how the list methods should behave.
@@ -254,5 +259,13 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 
 	protected abstract D createDefinition(String name, String definition);
 
+	protected Map<String, List<String>> cleanRabbitBus(String stream, String adminUri, String user, String pw,
+			String vhost, String busPrefix, boolean isJob) {
+		Map<String, List<String>> results = busCleaner.clean(adminUri, user, pw, vhost, busPrefix, stream, isJob);
+		if (results == null || results.size() == 0) {
+			throw new NothingToDeleteException("Nothing to delete for stream " + stream);
+		}
+		return results;
+	}
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.kafka;
+package org.springframework.xd.dirt.integration.bus.kafka;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,6 +27,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import kafka.api.OffsetRequest;
+
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,6 +41,7 @@ import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
+import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
 
 

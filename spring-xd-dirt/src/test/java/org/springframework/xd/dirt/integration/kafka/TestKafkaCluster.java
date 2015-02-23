@@ -23,6 +23,7 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServerStartable;
 import kafka.utils.TestUtils;
+
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -34,6 +35,7 @@ import org.apache.curator.test.TestingServer;
 
 import org.springframework.util.Assert;
 import org.springframework.util.SocketUtils;
+import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 
 import java.io.IOException;
 import java.util.Collections;

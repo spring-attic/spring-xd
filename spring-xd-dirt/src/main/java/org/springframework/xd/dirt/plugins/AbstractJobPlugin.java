@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.xd.module.core.Module;
  * job plugins.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 public class AbstractJobPlugin extends AbstractMessageBusBinderPlugin {
 
@@ -33,9 +34,14 @@ public class AbstractJobPlugin extends AbstractMessageBusBinderPlugin {
 		super(messageBus);
 	}
 
+	public static String getJobChannelName(String jobName) {
+		return JOB_CHANNEL_PREFIX + jobName;
+	}
+
 	@Override
 	protected String getInputChannelName(Module module) {
-		return JOB_CHANNEL_PREFIX + module.getDescriptor().getGroup();
+		String group = module.getDescriptor().getGroup();
+		return getJobChannelName(group);
 	}
 
 	@Override

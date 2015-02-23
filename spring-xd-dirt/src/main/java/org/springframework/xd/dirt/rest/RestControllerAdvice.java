@@ -31,6 +31,8 @@ import org.springframework.xd.dirt.analytics.NoSuchMetricException;
 import org.springframework.xd.dirt.cluster.ContainerShutdownException;
 import org.springframework.xd.dirt.cluster.ModuleMessageRateNotFoundException;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
+import org.springframework.xd.dirt.integration.bus.rabbit.NothingToDeleteException;
+import org.springframework.xd.dirt.integration.bus.rabbit.RabbitAdminException;
 import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
 import org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException;
 import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
@@ -298,6 +300,22 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchPageException(PageNotFoundException e) {
+		String logref = logDebug(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public VndErrors onNothingToDeleteException(NothingToDeleteException e) {
+		String logref = logDebug(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onRabbitAdminException(RabbitAdminException e) {
 		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}

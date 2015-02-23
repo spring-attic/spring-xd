@@ -45,7 +45,7 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 	@Override
 	public void postProcessModule(Module module) {
 		boolean disableListeners = true;
-		Map<String, String> eventChannels = getEventListenerChannels(module);
+		Map<String, String> eventChannels = getEventListenerChannels(module.getDescriptor().getGroup());
 		for (Map.Entry<String, String> entry : eventChannels.entrySet()) {
 			MessageChannel eventChannel = module.getComponent(entry.getKey(), SubscribableChannel.class);
 			if (eventChannel != null) {
@@ -60,13 +60,12 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 	}
 
 	/**
-	 * @param module
+	 * @param jobName the job name.
 	 * @return the map containing the entries for the channels used by the job listeners with bean name of the channel
 	 *         as the key and channel name as the value.
 	 */
-	private Map<String, String> getEventListenerChannels(Module module) {
+	public static Map<String, String> getEventListenerChannels(String jobName) {
 		Map<String, String> eventListenerChannels = new HashMap<String, String>();
-		String jobName = module.getDescriptor().getGroup();
 		Assert.notNull(jobName, "Job name should not be null");
 		eventListenerChannels.put(XD_JOB_EXECUTION_EVENTS_CHANNEL,
 				getEventListenerChannelName(jobName, JOB_EXECUTION_EVENTS_SUFFIX));
@@ -79,11 +78,15 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 	}
 
 
-	private String getEventListenerChannelName(String jobName, String channelNameSuffix) {
+	private static String getEventListenerChannelName(String jobName, String channelNameSuffix) {
 		return String.format("%s%s.%s", JOB_TAP_CHANNEL_PREFIX, jobName, channelNameSuffix);
 	}
 
-	private String getEventListenerChannelName(String jobName) {
+	/**
+	 * @param jobName the job name.
+	 * @return the aggregated event channel name.
+	 */
+	public static String getEventListenerChannelName(String jobName) {
 		return String.format("%s%s", JOB_TAP_CHANNEL_PREFIX, jobName);
 	}
 
@@ -97,7 +100,7 @@ public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobL
 
 	@Override
 	public void removeModule(Module module) {
-		Map<String, String> eventListenerChannels = getEventListenerChannels(module);
+		Map<String, String> eventListenerChannels = getEventListenerChannels(module.getDescriptor().getGroup());
 		for (Map.Entry<String, String> channelEntry : eventListenerChannels.entrySet()) {
 			messageBus.unbindProducers(channelEntry.getValue());
 		}

@@ -25,7 +25,7 @@ import org.junit.rules.ExternalResource;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.dirt.integration.bus.RedisTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.redis.RedisTestMessageBus;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**

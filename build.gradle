@@ -377,6 +377,7 @@ project('spring-xd-dirt') {
 		compile "org.springframework.cloud:spring-cloud-cloudfoundry-connector"
 		compile "org.springframework.boot:spring-boot-autoconfigure"
 		compile "org.springframework.boot:spring-boot-actuator"
+		compile "org.springframework:spring-web"
 		compile("org.springframework.boot:spring-boot-starter-security") {
 			exclude group: 'org.springframework.boot', module: "spring-boot-starter-logging"
 		}

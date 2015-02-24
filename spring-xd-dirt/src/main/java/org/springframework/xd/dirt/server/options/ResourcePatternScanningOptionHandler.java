@@ -47,7 +47,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
  */
 public abstract class ResourcePatternScanningOptionHandler extends OptionHandler<String> {
 
-	private final Set<String> possibleValues = new HashSet<String>();
+	protected final Set<String> possibleValues = new HashSet<String>();
 
 	private final Set<String> excluded = new HashSet<String>();
 

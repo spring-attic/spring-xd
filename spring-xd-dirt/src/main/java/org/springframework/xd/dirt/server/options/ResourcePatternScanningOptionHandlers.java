@@ -32,6 +32,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  *
  * @author Eric Bottard
  * @author Gary Russell
+ * @author David Turanski
  */
 public final class ResourcePatternScanningOptionHandlers {
 
@@ -49,6 +50,7 @@ public final class ResourcePatternScanningOptionHandlers {
 		public SingleNodeDataTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, resolveMessageBusPath());
+			possibleValues.add("local");
 		}
 
 		private static String resolveMessageBusPath() {

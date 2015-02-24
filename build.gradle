@@ -36,27 +36,27 @@ ext {
 	]
 	moduleProjects = subprojects.findAll { project -> project.path.startsWith(':modules') }
 	javaProjects = subprojects - (moduleProjects + nonJavaProjects)
-	messagebusProjects = subprojects.findAll { project -> project.path.startsWith(':spring-xd-messagebus-') } - project(':spring-xd-messagebus-spi')
+	messagebusProjects = subprojects.findAll { project -> project.path.startsWith(':spring-xd-messagebus-') } - project(':spring-xd-messagebus-spi') - project(':spring-xd-messagebus-local')
+
 	coverageProjects = [
-		'spring-xd-dirt',
-		'spring-xd-analytics',
-		'spring-xd-analytics-ml',
-		'spring-xd-rxjava',
-		'spring-xd-tuple',
-		'spring-xd-module',
-		'spring-xd-rest-client',
-		'spring-xd-rest-domain',
-		'spring-xd-shell',
-		'spring-xd-hadoop',
-		'spring-xd-extension-http',
-		'spring-xd-extension-jdbc',
-		'spring-xd-extension-reactor',
-		'spring-xd-extension-gemfire',
-		'spring-xd-extension-kafka',
-		'spring-xd-messagebus-spi',
-		'spring-xd-spi-common'
-	].collect { p -> project(p) } +
-			messagebusProjects
+			'spring-xd-dirt',
+			'spring-xd-analytics',
+			'spring-xd-analytics-ml',
+			'spring-xd-rxjava',
+			'spring-xd-tuple',
+			'spring-xd-module',
+			'spring-xd-rest-client',
+			'spring-xd-rest-domain',
+			'spring-xd-shell',
+			'spring-xd-hadoop',
+			'spring-xd-extension-http',
+			'spring-xd-extension-jdbc',
+			'spring-xd-extension-reactor',
+			'spring-xd-extension-gemfire',
+			'spring-xd-extension-kafka',
+			'spring-xd-messagebus-spi',
+			'spring-xd-spi-common'
+	].collect { p -> project(p) } + messagebusProjects
 }
 
 // custom class to store the SingleNode server process
@@ -142,7 +142,7 @@ configure(javaProjects) { subproject ->
 	}
 
 	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters')
-		&& !subproject.projectDir.absolutePath.contains('spring-xd-gradle-plugins')) {
+			&& !subproject.projectDir.absolutePath.contains('spring-xd-gradle-plugins')) {
 		apply from: "${rootProject.projectDir}/publish-maven.gradle"
 		apply plugin: 'javadocHotfix'
 		apply plugin: 'license'
@@ -257,7 +257,7 @@ configure(javaProjects) { subproject ->
 					events 'started'
 				}
 			}
-			
+
 			environment 'SI_FATAL_WHEN_NO_BEANFACTORY', 'true'
 		}
 
@@ -365,10 +365,11 @@ project('spring-xd-dirt') {
 		compile "org.springframework:spring-aop"
 		compile project(":spring-xd-analytics")
 		compile project(":spring-xd-messagebus-spi")
+		compile project(":spring-xd-messagebus-local")
 
 		// The following bus projects jars are loaded by a custom ClassLoader
 		// in normal operation mode. Tests need them visible, this is how it is achieved (for now)
-		testCompile project(":spring-xd-messagebus-local")
+
 		testCompile project(":spring-xd-messagebus-kafka")
 		testCompile project(":spring-xd-messagebus-redis")
 		testCompile project(":spring-xd-messagebus-rabbit")
@@ -479,10 +480,9 @@ project('spring-xd-dirt') {
 		// are loaded by RestTemplate and RestTemplate is in Dirt
 		runtime "org.codehaus.jackson:jackson-mapper-asl"
 
-
 		// The following are optional dependencies of Spring Batch/Spring Batch Infrastructure
 		// Adding them is solving classloading issues such as https://jira.spring.io/browse/XD-2578
-		runtime ("org.springframework:spring-oxm") {
+		runtime("org.springframework:spring-oxm") {
 			exclude group: "commons-lang", module: "commons-lang"
 		}
 
@@ -874,10 +874,10 @@ project('spring-xd-spark-streaming') {
 project('spring-xd-spark-streaming-tests') {
 	description = 'Tests for Spring XD spark streaming module'
 	dependencies {
-		testCompile (project(':spring-xd-shell')) {
+		testCompile(project(':spring-xd-shell')) {
 			exclude group: 'com.google.guava'
 		}
-		testCompile (project(path: ':spring-xd-shell', configuration: 'tests')) {
+		testCompile(project(path: ':spring-xd-shell', configuration: 'tests')) {
 			exclude group: 'com.google.guava'
 		}
 		testCompile project(":spring-xd-dirt")
@@ -886,12 +886,11 @@ project('spring-xd-spark-streaming-tests') {
 	}
 
 	test {
-		forkEvery=1
+		forkEvery = 1
 		if (System.getProperty('os.name').startsWith('Windows')) {
 			if (project.hasProperty('hadoop.home.dir')) {
 				systemProperty "hadoop.home.dir", getProperty('hadoop.home.dir')
-			} 
-			else {
+			} else {
 				throw new RuntimeException("ERROR-'hadoop.home.dir' is not set. Use -Phadoop.home.dir=[].\n see https://github.com/spring-projects/spring-hadoop/wiki/Using-a-Windows-client-together-with-a-Linux-cluster")
 				//System.exit(1)
 			}
@@ -1107,15 +1106,15 @@ project('spring-xd-shell') {
 	run { standardInput = System.in }
 
 	configurations.all {
-	    resolutionStrategy {
-                eachDependency { DependencyResolveDetails details ->
-                    //Force version of Guava
-                    if (details.requested.group == 'com.google.guava') {
-                        details.useVersion "$hadoopGuavaVersion"
-                    }
-                }
-	    }
-        }
+		resolutionStrategy {
+			eachDependency { DependencyResolveDetails details ->
+				//Force version of Guava
+				if (details.requested.group == 'com.google.guava') {
+					details.useVersion "$hadoopGuavaVersion"
+				}
+			}
+		}
+	}
 
 	task testJar(type: Jar, dependsOn: testClasses) {
 		baseName = "test-${project.archivesBaseName}"
@@ -1169,7 +1168,6 @@ project('spring-xd-shell') {
 		runtime "log4j:log4j"
 		testCompile project(":spring-xd-test-fixtures")
 		testCompile project(":spring-xd-dirt")
-		testCompile project(":spring-xd-messagebus-local")
 		testCompile "uk.co.modular-it:hamcrest-date:${hamcrestDateVersion}"
 		testCompile "org.springframework.integration:spring-integration-ftp"
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
@@ -1308,7 +1306,7 @@ project('spring-xd-integration-test') {
 
 // Integration Tests
 project(':spring-xd-integration-test:acceptance-test-sparkapp') {
-	dependencies{
+	dependencies {
 		compile "org.apache.spark:spark-core_2.10:$sparkVersion"
 	}
 }
@@ -1383,7 +1381,7 @@ apply from: 'gradle/build-dist.gradle'
 task wrapper(type: Wrapper) {
 	description = "Generates build_xd[.bat] scripts"
 	gradleVersion = "1.12"
-	scriptFile= "gradle/build_xd"
+	scriptFile = "gradle/build_xd"
 }
 
 apply plugin: 'jacoco'

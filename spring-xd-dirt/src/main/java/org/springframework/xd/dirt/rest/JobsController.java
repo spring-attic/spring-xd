@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -99,6 +101,18 @@ public class JobsController extends
 
 		return new PagedResources<JobDefinitionResource>(maskedContents, pagedResources.getMetadata(),
 				pagedResources.getLinks());
+	}
+
+	@ResponseBody
+	@RequestMapping(value = "/clean/rabbit/{job}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public Map<String, List<String>> clean(@PathVariable String job,
+			@RequestParam(required = false) String adminUri,
+			@RequestParam(required = false) String user,
+			@RequestParam(required = false) String pw,
+			@RequestParam(required = false) String vhost,
+			@RequestParam(required = false) String busPrefix) {
+		return cleanRabbitBus(job, adminUri, user, pw, vhost, busPrefix, true);
 	}
 
 	@Override

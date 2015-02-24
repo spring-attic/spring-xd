@@ -29,10 +29,11 @@ import java.util.Map;
 public interface BusCleaner {
 
 	/**
-	 * Clean up all resources for the supplied stream.
-	 * @param stream The stream.
-	 * @return A map of lists of resources removed.
+	 * Clean up all resources for the supplied stream/job.
+	 * @param entity the stream or job.
+	 * @param isJob true if the entity is a job.
+	 * @return a map of lists of resources removed.
 	 */
-	Map<String, List<String>> clean(String stream);
+	Map<String, List<String>> clean(String entity, boolean isJob);
 
 }

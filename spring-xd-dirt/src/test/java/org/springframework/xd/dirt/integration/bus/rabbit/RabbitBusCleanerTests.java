@@ -24,8 +24,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Rule;
@@ -41,7 +43,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
 import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
+import org.springframework.xd.dirt.plugins.job.JobEventsListenerPlugin;
 import org.springframework.xd.test.rabbit.RabbitAdminTestSupport;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
@@ -62,7 +66,7 @@ public class RabbitBusCleanerTests {
 	public RabbitTestSupport test = new RabbitTestSupport();
 
 	@Test
-	public void testClean() {
+	public void testCleanStream() {
 		final RabbitBusCleaner cleaner = new RabbitBusCleaner();
 		final RestTemplate template = RabbitBusCleaner.buildRestTemplate("http://localhost:15672", "guest", "guest");
 		final String uuid = UUID.randomUUID().toString();
@@ -99,7 +103,7 @@ public class RabbitBusCleanerTests {
 				String consumerTag = channel.basicConsume(queueName, new DefaultConsumer(channel));
 				try {
 					waitForConsumerStateNot(queueName, 0);
-					cleaner.clean(uuid);
+					cleaner.clean(uuid, false);
 					fail("Expected exception");
 				}
 				catch (RabbitAdminException e) {
@@ -108,7 +112,7 @@ public class RabbitBusCleanerTests {
 				channel.basicCancel(consumerTag);
 				waitForConsumerStateNot(queueName, 1);
 				try {
-					cleaner.clean(uuid);
+					cleaner.clean(uuid, false);
 					fail("Expected exception");
 				}
 				catch (RabbitAdminException e) {
@@ -138,7 +142,7 @@ public class RabbitBusCleanerTests {
 		rabbitAdmin.deleteExchange(fanout.getName()); // easier than deleting the binding
 		rabbitAdmin.declareExchange(fanout);
 		connectionFactory.destroy();
-		Map<String, List<String>> cleanedMap = cleaner.clean(uuid);
+		Map<String, List<String>> cleanedMap = cleaner.clean(uuid, false);
 		assertEquals(2, cleanedMap.size());
 		List<String> cleanedQueues = cleanedMap.get("queues");
 		assertEquals(10, cleanedQueues.size());
@@ -149,6 +153,29 @@ public class RabbitBusCleanerTests {
 		List<String> cleanedExchanges = cleanedMap.get("exchanges");
 		assertEquals(1, cleanedExchanges.size());
 		assertEquals(fanout.getName(), cleanedExchanges.get(0));
+	}
+
+	@Test
+	public void testCleanJob() {
+		final RabbitBusCleaner cleaner = new RabbitBusCleaner();
+		final String uuid = UUID.randomUUID().toString();
+		Set<String> jobExchanges = new HashSet<>(JobEventsListenerPlugin.getEventListenerChannels(uuid).values());
+		jobExchanges.add(JobEventsListenerPlugin.getEventListenerChannelName(uuid));
+		CachingConnectionFactory connectionFactory = test.getResource();
+		RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+		for (String exchange : jobExchanges) {
+			FanoutExchange fanout = new FanoutExchange(
+					MessageBusSupport.applyPrefix("xdbus.", MessageBusSupport.applyPubSub(exchange)));
+			rabbitAdmin.declareExchange(fanout);
+		}
+		rabbitAdmin.declareQueue(new Queue(MessageBusSupport.applyPrefix("xdbus.",
+				AbstractJobPlugin.getJobChannelName(uuid))));
+		Map<String, List<String>> cleanedMap = cleaner.clean(uuid, true);
+		assertEquals(2, cleanedMap.size());
+		List<String> cleanedQueues = cleanedMap.get("queues");
+		assertEquals(1, cleanedQueues.size());
+		List<String> cleanedExchanges = cleanedMap.get("exchanges");
+		assertEquals(6, cleanedExchanges.size());
 	}
 
 	public static class AmqpQueue {

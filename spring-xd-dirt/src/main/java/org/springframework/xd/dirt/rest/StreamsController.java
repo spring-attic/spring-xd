@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.integration.bus.rabbit.NothingToDeleteException;
-import org.springframework.xd.dirt.integration.bus.rabbit.RabbitBusCleaner;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
@@ -54,8 +52,6 @@ import org.springframework.xd.rest.domain.StreamDefinitionResource;
 @ExposesResourceFor(StreamDefinitionResource.class)
 public class StreamsController extends
 		XDController<StreamDefinition, StreamDefinitionResourceAssembler, StreamDefinitionResource> {
-
-	private final RabbitBusCleaner busCleaner = new RabbitBusCleaner();
 
 	@Autowired
 	public StreamsController(StreamDeployer streamDeployer, StreamDefinitionRepository streamDefinitionRepository) {
@@ -87,11 +83,7 @@ public class StreamsController extends
 			@RequestParam(required = false) String pw,
 			@RequestParam(required = false) String vhost,
 			@RequestParam(required = false) String busPrefix) {
-		Map<String, List<String>> results = busCleaner.clean(adminUri, user, pw, vhost, busPrefix, stream);
-		if (results == null || results.size() == 0) {
-			throw new NothingToDeleteException("Nothing to delete for stream " + stream);
-		}
-		return results;
+		return cleanRabbitBus(stream, adminUri, user, pw, vhost, busPrefix, false);
 	}
 
 }

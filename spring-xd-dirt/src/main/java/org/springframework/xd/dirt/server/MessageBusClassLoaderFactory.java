@@ -24,6 +24,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -37,6 +38,7 @@ import org.springframework.util.Assert;
  * <p>Make sure that this listener is triggered before the created ClassLoader is used.</p>
  *
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class MessageBusClassLoaderFactory implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
@@ -67,9 +69,13 @@ public class MessageBusClassLoaderFactory implements ApplicationListener<Applica
 
 	@Override
 	public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
-		String jarsLocation = event.getEnvironment().resolvePlaceholders(MESSAGE_BUS_JARS_LOCATION);
 
-		((DefaultResourceLoader) resolver.getResourceLoader()).setClassLoader(makeClassLoader(jarsLocation));
+		String transport = event.getEnvironment().resolvePlaceholders("${XD_TRANSPORT}");
+		if (!"local".equals(transport)) {
+			String jarsLocation = event.getEnvironment().resolvePlaceholders(MESSAGE_BUS_JARS_LOCATION);
+
+			((DefaultResourceLoader) resolver.getResourceLoader()).setClassLoader(makeClassLoader(jarsLocation));
+		}
 	}
 
 	private ClassLoader makeClassLoader(String jarsLocation) {

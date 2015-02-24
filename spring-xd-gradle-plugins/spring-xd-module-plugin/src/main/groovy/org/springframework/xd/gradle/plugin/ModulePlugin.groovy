@@ -93,13 +93,6 @@ class ModulePlugin implements Plugin<Project> {
 			}
 		}
 
-		project.task('copyLocalMessageBus', type: Copy) {
-			from project.configurations.messageBus
-			into project.file('lib/messagebus/local')
-		}
-
-		project.processTestResources.dependsOn 'copyLocalMessageBus'
-
 		project.bootRepackage.dependsOn 'configureModule'
 
 	}

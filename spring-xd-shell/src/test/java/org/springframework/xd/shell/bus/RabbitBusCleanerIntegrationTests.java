@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ import static org.junit.Assert.assertEquals;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.http.HttpMethod;
@@ -52,28 +54,37 @@ public class RabbitBusCleanerIntegrationTests extends AbstractShellIntegrationTe
 	@Rule
 	public RabbitTestSupport test = new RabbitTestSupport();
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testClean() throws Exception {
 		RabbitAdmin admin = new RabbitAdmin(test.getResource());
 		final String uuid = UUID.randomUUID().toString();
-		String queueName = MessageBusSupport.constructPipeName("xdbus.",
+		String queueName = MessageBusSupport.applyPrefix("xdbus.",
 				AbstractStreamPlugin.constructPipeName(uuid, 0));
 		admin.declareQueue(new Queue(queueName));
+		final FanoutExchange fanout = new FanoutExchange(
+				MessageBusSupport.applyPrefix("xdbus.", MessageBusSupport.applyPubSub(
+						AbstractStreamPlugin.constructTapPrefix(uuid) + ".foo.bar")));
+		admin.declareExchange(fanout);
 		RestTemplate template = new RestTemplate();
 		URI uri = new URI("http://localhost:" + adminPort + "/streams/clean/rabbit/" + queueName.substring(6));
 		RequestEntity<String> request = new RequestEntity<>(HttpMethod.DELETE, uri);
 		HttpStatus status = HttpStatus.NO_CONTENT;
-		ResponseEntity<List> reply = null;
+		ResponseEntity<?> reply = null;
 		int n = 0;
 		while (n++ < 100 && !status.equals(HttpStatus.OK)) {
-			reply = template.exchange(request, List.class);
+			reply = template.exchange(request, Map.class);
 			status = reply.getStatusCode();
 			Thread.sleep(100);
 		}
 		assertEquals("Didn't get OK after 10 seconds", HttpStatus.OK, reply.getStatusCode());
-		assertEquals(1, reply.getBody().size());
-		assertEquals(queueName, reply.getBody().get(0));
-		reply = template.exchange(request, List.class);
+		Map<String, List<String>> body = (Map<String, List<String>>) reply.getBody();
+		assertEquals(2, body.size());
+		List<String> queues = body.get("queues");
+		assertEquals(queueName, queues.get(0));
+		List<String> exchanges = body.get("exchanges");
+		assertEquals(fanout.getName(), exchanges.get(0));
+		reply = template.exchange(request, Map.class);
 		assertEquals(HttpStatus.NO_CONTENT, reply.getStatusCode());
 	}
 

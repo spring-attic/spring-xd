@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.rest;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -80,13 +81,13 @@ public class StreamsController extends
 	@ResponseBody
 	@RequestMapping(value = "/clean/rabbit/{stream}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
-	public List<String> clean(@PathVariable String stream,
+	public Map<String, List<String>> clean(@PathVariable String stream,
 			@RequestParam(required = false) String adminUri,
 			@RequestParam(required = false) String user,
 			@RequestParam(required = false) String pw,
 			@RequestParam(required = false) String vhost,
 			@RequestParam(required = false) String busPrefix) {
-		List<String> results = busCleaner.clean(adminUri, user, pw, vhost, busPrefix, stream);
+		Map<String, List<String>> results = busCleaner.clean(adminUri, user, pw, vhost, busPrefix, stream);
 		if (results == null || results.size() == 0) {
 			throw new NothingToDeleteException("Nothing to delete for stream " + stream);
 		}

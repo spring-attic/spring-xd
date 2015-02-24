@@ -198,19 +198,32 @@ public abstract class MessageBusSupport
 	protected volatile boolean defaultCompress = false;
 
 	/**
-	 * For bus implementations that support a prefix, create the name of the underlying
-	 * entity that will represent the pipe ('|') between modules.
+	 * For bus implementations that support a prefix, apply the prefix
+	 * to the name.
+	 * @param prefix the prefix.
+	 * @param name the name.
 	 */
-	public static String constructPipeName(String prefix, String name) {
+	public static String applyPrefix(String prefix, String name) {
 		return prefix + name;
+	}
+
+	/**
+	 * For bus implementations that include a pub/sub component in identifiers,
+	 * construct the name.
+	 * @param prefix the prefix.
+	 * @param name the name.
+	 */
+	public static String applyPubSub(String name) {
+		return "topic." + name;
 	}
 
 	/**
 	 * For bus implementations that support dead lettering, construct the name of the
 	 * dead letter entity for the underlying pipe name.
+	 * @param name the name.
 	 */
-	public static String constructDLQName(String pipeName) {
-		return pipeName + ".dlq";
+	public static String constructDLQName(String name) {
+		return name + ".dlq";
 	}
 
 	@Override

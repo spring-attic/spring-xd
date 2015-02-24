@@ -25,6 +25,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author Gary Russell
  * @since 1.2
  */
+@SuppressWarnings("serial")
 public class RabbitAdminException extends XDRuntimeException {
 
 	public RabbitAdminException(String message, Throwable cause) {

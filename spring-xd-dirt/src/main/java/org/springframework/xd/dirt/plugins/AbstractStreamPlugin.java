@@ -52,6 +52,10 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 		return group + "." + index;
 	}
 
+	public static String constructTapPrefix(String group) {
+		return TAP_CHANNEL_PREFIX + "stream:" + group;
+	}
+
 	@Override
 	protected String getInputChannelName(Module module) {
 		ModuleDescriptor descriptor = module.getDescriptor();
@@ -75,7 +79,7 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 		Assert.isTrue(module.getType() != ModuleType.job, "Job module type not supported.");
 		ModuleDescriptor descriptor = module.getDescriptor();
 		// for Stream return channel name with indexed elements
-		return String.format("%s%s%s.%s.%s", TAP_CHANNEL_PREFIX, "stream:", descriptor.getGroup(),
+		return String.format("%s.%s.%s", constructTapPrefix(descriptor.getGroup()),
 				module.getName(), descriptor.getIndex());
 	}
 

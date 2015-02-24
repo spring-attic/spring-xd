@@ -17,7 +17,9 @@
 package org.springframework.xd.dirt.integration.bus.rabbit;
 
 
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -29,8 +31,12 @@ import java.util.UUID;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.ChannelCallback;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -60,25 +66,35 @@ public class RabbitBusCleanerTests {
 		final RabbitBusCleaner cleaner = new RabbitBusCleaner();
 		final RestTemplate template = RabbitBusCleaner.buildRestTemplate("http://localhost:15672", "guest", "guest");
 		final String uuid = UUID.randomUUID().toString();
+		String firstQueue = null;
 		for (int i = 0; i < 5; i++) {
-			String queueName = MessageBusSupport.constructPipeName("xdbus.",
+			String queueName = MessageBusSupport.applyPrefix("xdbus.",
 					AbstractStreamPlugin.constructPipeName(uuid, i));
+			if (firstQueue == null) {
+				firstQueue = queueName;
+			}
 			URI uri = UriComponentsBuilder.fromUriString("http://localhost:15672/api/queues")
 					.pathSegment("{vhost}", "{queue}")
 					.buildAndExpand("/", queueName)
 					.encode().toUri();
-			template.put(uri, new Queue(false, true));
+			template.put(uri, new AmqpQueue(false, true));
 			uri = UriComponentsBuilder.fromUriString("http://localhost:15672/api/queues")
 					.pathSegment("{vhost}", "{queue}")
 					.buildAndExpand("/", MessageBusSupport.constructDLQName(queueName)).encode().toUri();
-			template.put(uri, new Queue(false, true));
+			template.put(uri, new AmqpQueue(false, true));
 		}
-		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
+		CachingConnectionFactory connectionFactory = test.getResource();
+		RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
+		final FanoutExchange fanout = new FanoutExchange(
+				MessageBusSupport.applyPrefix("xdbus.", MessageBusSupport.applyPubSub(
+						AbstractStreamPlugin.constructTapPrefix(uuid) + ".foo.bar")));
+		rabbitAdmin.declareExchange(fanout);
+		rabbitAdmin.declareBinding(BindingBuilder.bind(new Queue(firstQueue)).to(fanout));
 		new RabbitTemplate(connectionFactory).execute(new ChannelCallback<Void>() {
 
 			@Override
 			public Void doInRabbit(Channel channel) throws Exception {
-				String queueName = MessageBusSupport.constructPipeName("xdbus.",
+				String queueName = MessageBusSupport.applyPrefix("xdbus.",
 						AbstractStreamPlugin.constructPipeName(uuid, 4));
 				String consumerTag = channel.basicConsume(queueName, new DefaultConsumer(channel));
 				try {
@@ -91,6 +107,14 @@ public class RabbitBusCleanerTests {
 				}
 				channel.basicCancel(consumerTag);
 				waitForConsumerStateNot(queueName, 1);
+				try {
+					cleaner.clean(uuid);
+					fail("Expected exception");
+				}
+				catch (RabbitAdminException e) {
+					assertThat(e.getMessage(), startsWith("Cannot delete exchange " +
+							fanout.getName() + "; it has bindings:"));
+				}
 				return null;
 			}
 
@@ -111,22 +135,29 @@ public class RabbitBusCleanerTests {
 			}
 
 		});
+		rabbitAdmin.deleteExchange(fanout.getName()); // easier than deleting the binding
+		rabbitAdmin.declareExchange(fanout);
 		connectionFactory.destroy();
-		List<String> cleaned = cleaner.clean(uuid);
-		assertEquals(10, cleaned.size());
+		Map<String, List<String>> cleanedMap = cleaner.clean(uuid);
+		assertEquals(2, cleanedMap.size());
+		List<String> cleanedQueues = cleanedMap.get("queues");
+		assertEquals(10, cleanedQueues.size());
 		for (int i = 0; i < 5; i++) {
-			assertEquals("xdbus." + uuid + "." + i, cleaned.get(i * 2));
-			assertEquals("xdbus." + uuid + "." + i + ".dlq", cleaned.get(i * 2 + 1));
+			assertEquals("xdbus." + uuid + "." + i, cleanedQueues.get(i * 2));
+			assertEquals("xdbus." + uuid + "." + i + ".dlq", cleanedQueues.get(i * 2 + 1));
 		}
+		List<String> cleanedExchanges = cleanedMap.get("exchanges");
+		assertEquals(1, cleanedExchanges.size());
+		assertEquals(fanout.getName(), cleanedExchanges.get(0));
 	}
 
-	public static class Queue {
+	public static class AmqpQueue {
 
 		private boolean autoDelete;
 
 		private boolean durable;
 
-		public Queue(boolean autoDelete, boolean durable) {
+		public AmqpQueue(boolean autoDelete, boolean durable) {
 			this.autoDelete = autoDelete;
 			this.durable = durable;
 		}

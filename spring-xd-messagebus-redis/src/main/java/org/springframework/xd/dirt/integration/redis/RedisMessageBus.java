@@ -156,8 +156,10 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 				parser.parseExpression("headers['" + ERROR_HEADER + "']"), connectionFactory);
 		if (headersToMap != null && headersToMap.length > 0) {
 			String[] combinedHeadersToMap =
-					Arrays.copyOfRange(XdHeaders.STANDARD_HEADERS, 0, XdHeaders.STANDARD_HEADERS.length + headersToMap.length);
-			System.arraycopy(headersToMap, 0, combinedHeadersToMap, XdHeaders.STANDARD_HEADERS.length, headersToMap.length);
+					Arrays.copyOfRange(XdHeaders.STANDARD_HEADERS, 0, XdHeaders.STANDARD_HEADERS.length
+							+ headersToMap.length);
+			System.arraycopy(headersToMap, 0, combinedHeadersToMap, XdHeaders.STANDARD_HEADERS.length,
+					headersToMap.length);
 			this.headersToMap = combinedHeadersToMap;
 		}
 		else {
@@ -217,7 +219,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.connectionFactory);
 		adapter.setBeanFactory(this.getBeanFactory());
 		adapter.setSerializer(null);
-		adapter.setTopics("topic." + name);
+		adapter.setTopics(applyPubSub(name));
 		doRegisterConsumer(name, name, moduleInputChannel, adapter, new RedisPropertiesAccessor(properties));
 	}
 
@@ -333,7 +335,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		validateProducerProperties(name, properties, SUPPORTED_PUBSUB_PRODUCER_PROPERTIES);
 		RedisPublishingMessageHandler topic = new RedisPublishingMessageHandler(connectionFactory);
 		topic.setBeanFactory(this.getBeanFactory());
-		topic.setTopic("topic." + name);
+		topic.setTopic(applyPubSub(name));
 		topic.afterPropertiesSet();
 		doRegisterProducer(name, moduleOutputChannel, topic, new RedisPropertiesAccessor(properties));
 	}

@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.integration.bus;
 
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -30,8 +31,8 @@ public interface BusCleaner {
 	/**
 	 * Clean up all resources for the supplied stream.
 	 * @param stream The stream.
-	 * @return A list of resources removed.
+	 * @return A map of lists of resources removed.
 	 */
-	List<String> clean(String stream);
+	Map<String, List<String>> clean(String stream);
 
 }

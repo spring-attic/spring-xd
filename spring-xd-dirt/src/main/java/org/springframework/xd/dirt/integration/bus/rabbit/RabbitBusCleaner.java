@@ -20,6 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -63,11 +64,11 @@ public class RabbitBusCleaner implements BusCleaner {
 	private final static Log logger = LogFactory.getLog(RabbitBusCleaner.class);
 
 	@Override
-	public List<String> clean(String stream) {
+	public Map<String, List<String>> clean(String stream) {
 		return clean("http://localhost:15672", "guest", "guest", "/", "xdbus.", stream);
 	}
 
-	public List<String> clean(String adminUri, String user, String pw, String vhost,
+	public Map<String, List<String>> clean(String adminUri, String user, String pw, String vhost,
 			String busPrefix, String stream) {
 		return doClean(
 				adminUri == null ? "http://localhost:15672" : adminUri,
@@ -78,14 +79,50 @@ public class RabbitBusCleaner implements BusCleaner {
 				stream);
 	}
 
-	@SuppressWarnings("unchecked")
-	private List<String> doClean(String adminUri, String user, String pw, String vhost,
+	private Map<String, List<String>> doClean(String adminUri, String user, String pw, String vhost,
 			String busPrefix, String stream) {
-		List<String> results = new ArrayList<>();
 		RestTemplate restTemplate = buildRestTemplate(adminUri, user, pw);
+		List<String> removedQueues = findQueues(adminUri, vhost, busPrefix, stream, restTemplate);
+		List<String> removedExchanges = findExchanges(adminUri, vhost, busPrefix, stream, restTemplate);
+		// Delete the queues in reverse order to enable re-running after a partial success.
+		// The queue search above starts with 0 and terminates on a not found.
+		for (int i = removedQueues.size() - 1; i >= 0; i--) {
+			String queueName = removedQueues.get(i);
+			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+					.pathSegment("queues", "{vhost}", "{stream}")
+					.buildAndExpand(vhost, queueName).encode().toUri();
+			restTemplate.delete(uri);
+			if (logger.isDebugEnabled()) {
+				logger.debug("deleted queue: " + queueName);
+			}
+		}
+		Map<String, List<String>> results = new HashMap<>();
+		if (removedQueues.size() > 0) {
+			results.put("queues", removedQueues);
+		}
+		// Fanout exchanges for taps
+		for (String exchange : removedExchanges) {
+			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+					.pathSegment("exchanges", "{vhost}", "{name}")
+					.buildAndExpand(vhost, exchange).encode().toUri();
+			restTemplate.delete(uri);
+			if (logger.isDebugEnabled()) {
+				logger.debug("deleted exchange: " + exchange);
+			}
+		}
+		if (removedExchanges.size() > 0) {
+			results.put("exchanges", removedExchanges);
+		}
+		return results;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<String> findQueues(String adminUri, String vhost, String busPrefix, String stream,
+			RestTemplate restTemplate) {
+		List<String> removedQueues = new ArrayList<>();
 		int n = 0;
 		while (true) { // exits when no queue found
-			String queueName = MessageBusSupport.constructPipeName(busPrefix,
+			String queueName = MessageBusSupport.applyPrefix(busPrefix,
 					AbstractStreamPlugin.constructPipeName(stream, n++));
 			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
 					.pathSegment("queues", "{vhost}", "{stream}")
@@ -95,7 +132,7 @@ public class RabbitBusCleaner implements BusCleaner {
 				if (queue.get("consumers") != Integer.valueOf(0)) {
 					throw new RabbitAdminException("Queue " + queueName + " is in use");
 				}
-				results.add(queueName);
+				removedQueues.add(queueName);
 				queueName = MessageBusSupport.constructDLQName(queueName);
 				uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
 						.pathSegment("queues", "{vhost}", "{stream}")
@@ -105,7 +142,7 @@ public class RabbitBusCleaner implements BusCleaner {
 					if (queue.get("consumers") != Integer.valueOf(0)) {
 						throw new RabbitAdminException("Queue " + queueName + " is in use");
 					}
-					results.add(queueName);
+					removedQueues.add(queueName);
 				}
 				catch (HttpClientErrorException e) {
 					if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
@@ -121,19 +158,46 @@ public class RabbitBusCleaner implements BusCleaner {
 				throw new RabbitAdminException("Failed to lookup queue", e);
 			}
 		}
-		// Delete them in reverse order to enable re-running after a partial success.
-		// The queue search above starts with 0 and terminates on a not found.
-		for (int i = results.size() - 1; i >= 0; i--) {
-			String queueName = results.get(i);
-			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
-					.pathSegment("queues", "{vhost}", "{stream}")
-					.buildAndExpand(vhost, queueName).encode().toUri();
-			restTemplate.delete(uri);
-			if (logger.isDebugEnabled()) {
-				logger.debug("deleted queue: " + queueName);
+		return removedQueues;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<String> findExchanges(String adminUri, String vhost, String busPrefix, String stream,
+			RestTemplate restTemplate) {
+		List<String> removedExchanges = new ArrayList<>();
+		URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+				.pathSegment("exchanges", "{vhost}")
+				.buildAndExpand(vhost).encode().toUri();
+		List<Map<String, Object>> exchanges = restTemplate.getForObject(uri, List.class);
+		String tapPrefix = MessageBusSupport.applyPrefix(busPrefix,
+				MessageBusSupport.applyPubSub(AbstractStreamPlugin.constructTapPrefix(stream)));
+		for (Map<String, Object> exchange : exchanges) {
+			String exchangeName = (String) exchange.get("name");
+			if (exchangeName.startsWith(tapPrefix)) {
+				uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+						.pathSegment("exchanges", "{vhost}", "{name}", "bindings", "source")
+						.buildAndExpand(vhost, exchangeName).encode().toUri();
+				List<Map<String, Object>> bindings = restTemplate.getForObject(uri, List.class);
+				if (bindings.size() == 0) {
+					uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+							.pathSegment("exchanges", "{vhost}", "{name}", "bindings", "destination")
+							.buildAndExpand(vhost, exchangeName).encode().toUri();
+					bindings = restTemplate.getForObject(uri, List.class);
+					if (bindings.size() == 0) {
+						removedExchanges.add((String) exchange.get("name"));
+					}
+					else {
+						throw new RabbitAdminException("Cannot delete exchange " + exchangeName
+								+ "; it is a destination: " + bindings);
+					}
+				}
+				else {
+					throw new RabbitAdminException("Cannot delete exchange " + exchangeName + "; it has bindings: "
+							+ bindings);
+				}
 			}
 		}
-		return results;
+		return removedExchanges;
 	}
 
 	@VisibleForTesting

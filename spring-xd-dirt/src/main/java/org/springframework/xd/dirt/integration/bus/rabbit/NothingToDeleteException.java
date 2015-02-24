@@ -23,6 +23,7 @@ package org.springframework.xd.dirt.integration.bus.rabbit;
  * @author Gary Russell
  * @since 1.2
  */
+@SuppressWarnings("serial")
 public class NothingToDeleteException extends RabbitAdminException {
 
 	public NothingToDeleteException(String message) {

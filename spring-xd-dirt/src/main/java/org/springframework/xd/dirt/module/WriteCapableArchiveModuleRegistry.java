@@ -34,7 +34,7 @@ import org.springframework.xd.module.ModuleDefinition;
  *
  * @author Eric Bottard
  */
-public class WriteCapableArchiveModuleRegistry extends ArchiveModuleRegistry implements WriteableModuleRegistry {
+public class WriteCapableArchiveModuleRegistry extends ArchiveModuleRegistry implements WritableModuleRegistry {
 
 	public WriteCapableArchiveModuleRegistry(String root) {
 		super(root);

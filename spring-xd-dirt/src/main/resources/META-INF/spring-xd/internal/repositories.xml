@@ -17,7 +17,7 @@
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
 					<constructor-arg value="${xd.module.home}" />
 				</bean>
-				<bean class="org.springframework.xd.dirt.module.WriteCapableArchiveModuleRegistry">
+				<bean class="org.springframework.xd.dirt.module.CustomModuleRegistryFactoryBean">
 					<constructor-arg value="${xd.customModule.home}" />
 				</bean>
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
@@ -29,7 +29,7 @@
 		</constructor-arg>
 	</bean>
 
-<!-- The order of delegates matters here. The ModuleTypeConversionPluginMetadataResolver can override the default value of inputType if 
+<!-- The order of delegates matters here. The ModuleTypeConversionPluginMetadataResolver can override the default value of inputType if
 explicitly set as a module option.
  -->
 	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.EnvironmentAwareModuleOptionsMetadataResolver">

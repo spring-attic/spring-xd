@@ -43,17 +43,17 @@ import org.springframework.xd.module.SimpleModuleDefinition;
  *
  * @author Eric Bottard
  */
-public class SynchronizingModuleRegistry implements WriteableModuleRegistry {
+public class SynchronizingModuleRegistry implements WritableModuleRegistry {
 
-	private final WriteableModuleRegistry sourceRegistry;
+	private final WritableModuleRegistry sourceRegistry;
 
-	private final WriteableModuleRegistry targetRegistry;
+	private final WritableModuleRegistry targetRegistry;
 
 	private final StalenessCheck staleness = new MD5StalenessCheck();
 
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
-	public SynchronizingModuleRegistry(WriteableModuleRegistry sourceRegistry, WriteableModuleRegistry targetRegistry) {
+	public SynchronizingModuleRegistry(WritableModuleRegistry sourceRegistry, WritableModuleRegistry targetRegistry) {
 		Assert.notNull(sourceRegistry, "sourceRegistry cannot be null");
 		Assert.notNull(targetRegistry, "targetRegistry cannot be null");
 		this.sourceRegistry = sourceRegistry;

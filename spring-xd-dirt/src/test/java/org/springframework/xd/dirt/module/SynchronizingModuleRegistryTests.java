@@ -75,16 +75,12 @@ public class SynchronizingModuleRegistryTests {
 
 	@Before
 	public void setup() throws Exception {
-		sourceRegistry1 = new ResourceModuleRegistry(sourceRoot.getRoot().toURI().toString());
-		sourceRegistry2 = new ResourceModuleRegistry(sourceRoot.getRoot().toURI().toString());
+		sourceRegistry1 = new ResourceModuleRegistry(sourceRoot.getRoot().toURI().toString(), true);
+		sourceRegistry2 = new ResourceModuleRegistry(sourceRoot.getRoot().toURI().toString(), true);
 
-		targetRegistry1 = new ResourceModuleRegistry(targetARoot.getRoot().toURI().toString());
-		targetRegistry2 = new ResourceModuleRegistry(targetBRoot.getRoot().toURI().toString());
+		targetRegistry1 = new ResourceModuleRegistry(targetARoot.getRoot().toURI().toString(), true);
+		targetRegistry2 = new ResourceModuleRegistry(targetBRoot.getRoot().toURI().toString(), true);
 
-		sourceRegistry1.setCreateDirectoryStructure(true);
-		sourceRegistry2.setCreateDirectoryStructure(true);
-		targetRegistry1.setCreateDirectoryStructure(true);
-		targetRegistry2.setCreateDirectoryStructure(true);
 		sourceRegistry1.afterPropertiesSet();
 		sourceRegistry2.afterPropertiesSet();
 		targetRegistry1.afterPropertiesSet();

@@ -45,7 +45,7 @@ import org.springframework.xd.module.ModuleType;
  */
 public class ModuleDefinitionService {
 
-	private final WriteableModuleRegistry registry;
+	private final WritableModuleRegistry registry;
 
 	private final XDStreamParser parser;
 
@@ -54,7 +54,7 @@ public class ModuleDefinitionService {
 	private final PagingUtility<ModuleDefinition> pagingUtility = new PagingUtility<ModuleDefinition>();
 
 	@Autowired
-	public ModuleDefinitionService(WriteableModuleRegistry registry, XDStreamParser parser, ModuleDependencyRepository dependencyRepository) {
+	public ModuleDefinitionService(WritableModuleRegistry registry, XDStreamParser parser, ModuleDependencyRepository dependencyRepository) {
 		this.registry = registry;
 		this.parser = parser;
 		this.dependencyRepository = dependencyRepository;

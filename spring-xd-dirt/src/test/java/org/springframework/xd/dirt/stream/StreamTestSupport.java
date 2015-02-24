@@ -31,7 +31,7 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ArchiveModuleRegistry;
-import org.springframework.xd.dirt.module.WriteableModuleRegistry;
+import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
@@ -44,7 +44,7 @@ import org.springframework.xd.module.core.Module;
  */
 public class StreamTestSupport {
 
-	private static WriteableModuleRegistry moduleRegistry;
+	private static WritableModuleRegistry moduleRegistry;
 
 	private static SingleNodeApplication application;
 
@@ -58,7 +58,7 @@ public class StreamTestSupport {
 		// Explicitly set this to true since RandomConfigurationSupport disables JMX by default.
 		System.setProperty("XD_JMX_ENABLED", "true");
 		adminContext = application.adminContext();
-		moduleRegistry = adminContext.getBean(WriteableModuleRegistry.class);
+		moduleRegistry = adminContext.getBean(WritableModuleRegistry.class);
 		integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
 		integrationTestSupport.addModuleRegistry(new ArchiveModuleRegistry("classpath:/testmodules/"));
 	}
@@ -121,7 +121,7 @@ public class StreamTestSupport {
 		return adminContext;
 	}
 
-	protected static WriteableModuleRegistry getModuleRegistry() {
+	protected static WritableModuleRegistry getModuleRegistry() {
 		return moduleRegistry;
 	}
 

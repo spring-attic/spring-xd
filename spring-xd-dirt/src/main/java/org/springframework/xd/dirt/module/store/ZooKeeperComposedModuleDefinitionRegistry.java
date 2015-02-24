@@ -27,7 +27,7 @@ import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
-import org.springframework.xd.dirt.module.WriteableModuleRegistry;
+import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.dirt.module.support.ModuleDefinitionRepositoryUtils;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -46,7 +46,7 @@ import org.springframework.xd.module.ModuleType;
  * @author David Turanski
  * @author Eric Bottard
  */
-public class ZooKeeperComposedModuleDefinitionRegistry implements WriteableModuleRegistry {
+public class ZooKeeperComposedModuleDefinitionRegistry implements WritableModuleRegistry {
 
 	private final ModuleDependencyRepository moduleDependencyRepository;
 

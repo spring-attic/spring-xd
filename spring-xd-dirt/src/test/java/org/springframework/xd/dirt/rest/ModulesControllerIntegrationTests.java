@@ -40,7 +40,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDefinitionService;
-import org.springframework.xd.dirt.module.WriteableModuleRegistry;
+import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
@@ -62,7 +62,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 	@Autowired
-	private WriteableModuleRegistry moduleRegistry;
+	private WritableModuleRegistry moduleRegistry;
 
 	@Autowired
 	private ModuleDefinitionService moduleDefinitionService;

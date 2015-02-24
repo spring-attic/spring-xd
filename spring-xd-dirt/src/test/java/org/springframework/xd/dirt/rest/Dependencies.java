@@ -47,7 +47,7 @@ import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.module.ModuleDefinitionService;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
-import org.springframework.xd.dirt.module.WriteableModuleRegistry;
+import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
 import org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
@@ -95,8 +95,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public WriteableModuleRegistry moduleRegistry() {
-		return mock(WriteableModuleRegistry.class);
+	public WritableModuleRegistry moduleRegistry() {
+		return mock(WritableModuleRegistry.class);
 	}
 
 	@Bean

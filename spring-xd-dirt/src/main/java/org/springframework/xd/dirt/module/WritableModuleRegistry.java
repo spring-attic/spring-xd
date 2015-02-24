@@ -25,7 +25,7 @@ import org.springframework.xd.module.ModuleDefinition;
  *
  * @author Eric Bottard
  */
-public interface WriteableModuleRegistry extends ModuleRegistry {
+public interface WritableModuleRegistry extends ModuleRegistry {
 
 	/**
 	 * Attempt to delete the given definition, if that registry is responsible for it.

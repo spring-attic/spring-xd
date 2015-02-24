@@ -31,6 +31,8 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.WritableResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.data.hadoop.configuration.ConfigurationFactoryBean;
+import org.springframework.data.hadoop.fs.HdfsResourceLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
@@ -41,20 +43,14 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModuleDefinition;
 
 /**
- * {@link Resource} based implementation of {@link ModuleRegistry} that supports two kinds of modules:
- * <ul>
- * <li>the "simple" case is a sole xml file, located in a "directory" named after the module type, <i>e.g.</i>
- * {@code source/time.xml}</li>
- * <li>the "enhanced" case is made up of a directory, where the application context file lives in a config sub-directory
- * <i>e.g.</i> {@code source/time/config/time.xml} and extra classpath is loaded from jars in a lib subdirectory
- * <i>e.g.</i> {@code source/time/lib/*.jar}</li>
- * </ul>
+ * {@link Resource} based implementation of {@link ModuleRegistry} that supports mutative operations as well.
  *
- * @author Mark Fisher
- * @author Glenn Renfro
+ * <p>Will generate MD5 hash files for written modules. Also, while not being coupled to {@code java.io.File} access,
+ * will try to sanitize file paths as much as possible.</p>
+ *
  * @author Eric Bottard
  */
-public class ResourceModuleRegistry implements WriteableModuleRegistry, InitializingBean {
+public class ResourceModuleRegistry implements WritableModuleRegistry, InitializingBean {
 
 	/**
 	 * The extension the module 'File' must have if it's not in exploded dir format.
@@ -70,27 +66,37 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 
 	final protected static byte[] hexArray = "0123456789ABCDEF".getBytes();
 
+	private boolean allowWrite;
+
 	/**
 	 * Whether to require the presence of a hash file for archives. Helps preventing half-uploaded archives from
 	 * being picked up.
 	 */
-	private boolean requireHashFiles = false;
+	private boolean requireHashFiles;
 
 	/**
 	 * Whether to attempt to create the directory structure at startup (disable for read-only implementations).
 	 */
-	private boolean createDirectoryStructure = false;
+	private boolean createDirectoryStructure;
 
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
 	private String root;
 
 	public ResourceModuleRegistry(String root) {
+		this(root, false);
+	}
+
+	public ResourceModuleRegistry(String root, boolean allowWrite) {
+		this.allowWrite = this.createDirectoryStructure = this.requireHashFiles = allowWrite;
 		this.root = StringUtils.trimTrailingCharacter(root, '/');
 	}
 
 	@Override
 	public boolean delete(ModuleDefinition definition) {
+		if (!allowWrite) {
+			return false;
+		}
 		try {
 			Resource archive = getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
 			if (archive instanceof WritableResource) {
@@ -112,36 +118,38 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 
 	@Override
 	public boolean registerNew(ModuleDefinition definition) {
-		if (definition instanceof UploadedModuleDefinition) {
-			UploadedModuleDefinition uploadedModuleDefinition = (UploadedModuleDefinition) definition;
-			try {
-				Resource archive = getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
-				if (archive instanceof WritableResource) {
-					WritableResource writableResource = (WritableResource) archive;
-					Assert.isTrue(!writableResource.exists(), "Could not install " + uploadedModuleDefinition + " at location " + writableResource + " as that file already exists");
+		if (!allowWrite || !(definition instanceof UploadedModuleDefinition)) {
+			return false;
+		}
+		UploadedModuleDefinition uploadedModuleDefinition = (UploadedModuleDefinition) definition;
+		try {
+			Resource archive = getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
+			if (archive instanceof WritableResource) {
+				WritableResource writableResource = (WritableResource) archive;
+				Assert.isTrue(!writableResource.exists(), "Could not install " + uploadedModuleDefinition + " at location " + writableResource + " as that file already exists");
 
-					MessageDigest md = MessageDigest.getInstance("MD5");
-					DigestInputStream dis = new DigestInputStream(uploadedModuleDefinition.getInputStream(), md);
-					FileCopyUtils.copy(dis, writableResource.getOutputStream());
-					WritableResource hashResource = (WritableResource) hashResource(writableResource);
-					// Write hash last
-					FileCopyUtils.copy(bytesToHex(md.digest()), hashResource.getOutputStream());
+				MessageDigest md = MessageDigest.getInstance("MD5");
+				DigestInputStream dis = new DigestInputStream(uploadedModuleDefinition.getInputStream(), md);
+				FileCopyUtils.copy(dis, writableResource.getOutputStream());
+				WritableResource hashResource = (WritableResource) hashResource(writableResource);
+				// Write hash last
+				FileCopyUtils.copy(bytesToHex(md.digest()), hashResource.getOutputStream());
 
-					return true;
-				}
-				else {
-					return false;
-				}
+				return true;
 			}
-			catch (IOException | NoSuchAlgorithmException e) {
-				throw new RuntimeException("Error trying to save " + uploadedModuleDefinition, e);
+			else {
+				return false;
 			}
 		}
-		return false;
+		catch (IOException | NoSuchAlgorithmException e) {
+			throw new RuntimeException("Error trying to save " + uploadedModuleDefinition, e);
+		}
 	}
 
 	private Resource hashResource(Resource moduleResource) throws IOException {
-		return moduleResource.createRelative(moduleResource.getFilename() + HASH_EXTENSION);
+		// Yes, we'd like to use Resource.createRelative() but they don't all behave in the same way...
+		String location = moduleResource.getURI().toString() + HASH_EXTENSION;
+		return sanitize(resolver.getResources(location)).iterator().next();
 	}
 
 	@Override
@@ -211,6 +219,12 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 			String moduleName, String suffix) throws IOException {
 		String path = String.format("%s/%s/%s%s", this.root, moduleType, moduleName, suffix);
 		Resource[] resources = this.resolver.getResources(path);
+		List<Resource> filtered = sanitize(resources);
+
+		return filtered;
+	}
+
+	private List<Resource> sanitize(Resource[] resources) throws IOException {
 		List<Resource> filtered = new ArrayList<>();
 		for (Resource resource : resources) {
 			// Sanitize file paths (and force use of FSR, which is WritableResource)
@@ -220,7 +234,6 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 			}
 			filtered.add(resource);
 		}
-
 		return filtered;
 	}
 
@@ -230,14 +243,14 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 			return;
 		}
 
-		String path = resource.getURL().getPath();
+		String path = resource.getURI().toString();
 		if (path.endsWith(HASH_EXTENSION)) {
 			return;
 		}
 		else if (path.endsWith(ARCHIVE_AS_FILE_EXTENSION) && requireHashFiles && !hashResource(resource).exists()) {
 			return;
 		}
-		// URL paths for directories include an extra slash, strip it for now
+		// URI paths for directories include an extra slash, strip it for now
 		if (path.endsWith("/")) {
 			path = path.substring(0, path.length() - 1);
 		}
@@ -275,6 +288,15 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		if (root.startsWith("hdfs:")) {
+			ConfigurationFactoryBean configurationFactoryBean = new ConfigurationFactoryBean();
+			configurationFactoryBean.setRegisterUrlHandler(true);
+			configurationFactoryBean.setFileSystemUri(root);
+			configurationFactoryBean.afterPropertiesSet();
+
+			this.resolver = new HdfsResourceLoader(configurationFactoryBean.getObject());
+		}
+
 		if (createDirectoryStructure) {
 			// Create intermediary folders
 			for (ModuleType type : ModuleType.values()) {
@@ -295,6 +317,9 @@ public class ResourceModuleRegistry implements WriteableModuleRegistry, Initiali
 		this.createDirectoryStructure = createDirectoryStructure;
 	}
 
+	public void setAllowWrite(boolean allowWrite) {
+		this.allowWrite = allowWrite;
+	}
 
 	private byte[] bytesToHex(byte[] bytes) {
 		byte[] hexChars = new byte[bytes.length * 2];

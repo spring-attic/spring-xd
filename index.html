@@ -124,26 +124,42 @@ Spring XD is a unified, distributed, and extensible system for data ingestion, r
 <span id="quick-start"></span>
 ## Quick Start
 
-### Requirements
+To get started, make sure your system has as a minimum Java JDK 7 or newer
+installed:
 
-* To get started, make sure your system has as a minimum Java JDK 7 or newer installed.
+```
+$ java -version
+```
+Download
+[spring-xd-1.1.0.RELEASE.zip](http://repo.spring.io/release/org/springframework/xd/spring-xd/1.1.0.RELEASE/spring-xd-1.1.0.RELEASE-dist.zip)
+and unzip the distribution:
 
-### Manual Installation
+```
+$ jar xvf ./spring-xd-1.1.0.RELEASE-dist.zip
+```
 
-* Download [spring-xd-1.1.0.RELEASE.zip](http://repo.spring.io/release/org/springframework/xd/spring-xd/1.1.0.RELEASE/spring-xd-1.1.0.RELEASE-dist.zip)
-* Unzip the distribution. This will yield the installation directory spring-xd-1.1.0.RELEASE. All the commands below are executed from this directory, so change into it before proceeding
+Set the environment variable **XD_HOME** to `xd` within the installation directory:
+
+```
+$ export XD_HOME="`pwd`/spring-xd-1.1.0.RELEASE/xd"
+```
+Change into the installation directory:
 
 ```
 $ cd spring-xd-1.1.0.RELEASE
 ```
+Start the Spring XD single-node runtime:
 
-* Set the environment variable **XD_HOME** to the installation directory `<root-install-dir>\spring-xd\xd`
+```
+$ ./xd/bin/xd-singlenode
+```
+In another console, start the Spring XD Shell and create your first stream
+within the shell:
 
-### Create a stream
-
-* Start-up the runtime: The single node option is the easiest to get started with. It runs everything you need in a single process. To start it, you just need to cd to the xd directory and run the following command: `xd/bin>$ ./xd-singlenode`
-* Start XD Shell:  `./xd-shell`
-* Create your first stream by typing: `xd:> stream create --definition "time | log" --name ticktock --deploy`
+```
+$ ./shell/bin/xd-shell
+xd:> stream create --definition "time | log" --name ticktock --deploy
+```
 
 {% endcapture %}
 

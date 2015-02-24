@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.rabbit;
+package org.springframework.xd.dirt.integration.bus.rabbit;
 
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
@@ -69,7 +69,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
-import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**

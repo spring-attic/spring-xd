@@ -197,6 +197,22 @@ public abstract class MessageBusSupport
 
 	protected volatile boolean defaultCompress = false;
 
+	/**
+	 * For bus implementations that support a prefix, create the name of the underlying
+	 * entity that will represent the pipe ('|') between modules.
+	 */
+	public static String constructPipeName(String prefix, String name) {
+		return prefix + name;
+	}
+
+	/**
+	 * For bus implementations that support dead lettering, construct the name of the
+	 * dead letter entity for the underlying pipe name.
+	 */
+	public static String constructDLQName(String pipeName) {
+		return pipeName + ".dlq";
+	}
+
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		Assert.isInstanceOf(AbstractApplicationContext.class, applicationContext);
@@ -333,6 +349,7 @@ public abstract class MessageBusSupport
 
 	protected void onInit() {
 	}
+
 	/**
 	 * Dynamically create a producer for the named channel.
 	 * @param name The name.

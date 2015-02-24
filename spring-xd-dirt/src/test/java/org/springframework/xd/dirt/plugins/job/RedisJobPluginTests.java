@@ -27,7 +27,7 @@ import org.junit.Rule;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.bus.RedisTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.redis.RedisTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;

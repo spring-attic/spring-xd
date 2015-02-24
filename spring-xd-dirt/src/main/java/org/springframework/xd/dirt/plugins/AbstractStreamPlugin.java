@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.xd.module.core.Module;
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugin {
 
@@ -41,18 +42,32 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 		super(messageBus, zkConnection);
 	}
 
+	/**
+	 * Construct a pipe name from the group and index.
+	 * @param group the group.
+	 * @param index the index.
+	 * @return the name.
+	 */
+	public static String constructPipeName(String group, int index) {
+		return group + "." + index;
+	}
+
 	@Override
 	protected String getInputChannelName(Module module) {
 		ModuleDescriptor descriptor = module.getDescriptor();
 		String sourceChannel = descriptor.getSourceChannelName();
-		return (sourceChannel != null) ? sourceChannel : descriptor.getGroup() + "." + (descriptor.getIndex() - 1);
+		return (sourceChannel != null)
+				? sourceChannel
+				: constructPipeName(descriptor.getGroup(), descriptor.getIndex() - 1);
 	}
 
 	@Override
 	protected String getOutputChannelName(Module module) {
 		ModuleDescriptor descriptor = module.getDescriptor();
 		String sinkChannel = descriptor.getSinkChannelName();
-		return (sinkChannel != null) ? sinkChannel : descriptor.getGroup() + "." + descriptor.getIndex();
+		return (sinkChannel != null)
+				? sinkChannel
+				: constructPipeName(descriptor.getGroup(), descriptor.getIndex());
 	}
 
 	@Override
@@ -67,7 +82,7 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 	@Override
 	public boolean supports(Module module) {
 		ModuleType moduleType = module.getType();
-		return (module.shouldBind() &&
-				(moduleType == ModuleType.source || moduleType == ModuleType.processor || moduleType == ModuleType.sink));
+		return (module.shouldBind() && (moduleType == ModuleType.source || moduleType == ModuleType.processor || moduleType == ModuleType.sink));
 	}
+
 }

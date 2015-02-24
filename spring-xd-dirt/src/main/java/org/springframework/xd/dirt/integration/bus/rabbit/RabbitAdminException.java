@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus;
+package org.springframework.xd.dirt.integration.bus.rabbit;
 
 import org.springframework.xd.dirt.XDRuntimeException;
 
 
 /**
+ * Exceptions thrown while interfacing with the RabbitMQ admin plugin.
  *
  * @author Gary Russell
+ * @since 1.2
  */
 public class RabbitAdminException extends XDRuntimeException {
 

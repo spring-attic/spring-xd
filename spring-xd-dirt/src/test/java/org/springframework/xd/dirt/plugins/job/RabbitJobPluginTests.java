@@ -26,7 +26,7 @@ import org.junit.Rule;
 
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.rabbit.RabbitTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;

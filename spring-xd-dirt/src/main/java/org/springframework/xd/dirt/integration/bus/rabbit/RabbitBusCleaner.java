@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus;
+package org.springframework.xd.dirt.integration.bus.rabbit;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,30 +45,50 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.xd.dirt.integration.bus.BusCleaner;
+import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
+
+import com.google.common.annotations.VisibleForTesting;
 
 
 /**
+ * Implementation of {@link BusCleaner} for the {@code RabbitMessageBus}.
  *
  * @author Gary Russell
+ * @since 1.2
  */
 public class RabbitBusCleaner implements BusCleaner {
 
-	final static Log logger = LogFactory.getLog(RabbitBusCleaner.class);
+	private final static Log logger = LogFactory.getLog(RabbitBusCleaner.class);
 
 	@Override
 	public List<String> clean(String stream) {
 		return clean("http://localhost:15672", "guest", "guest", "/", "xdbus.", stream);
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<String> clean(String adminUri, String user, String pw, String vhost,
+			String busPrefix, String stream) {
+		return doClean(
+				adminUri == null ? "http://localhost:15672" : adminUri,
+				user == null ? "guest" : user,
+				pw == null ? "guest" : pw,
+				vhost == null ? "/" : vhost,
+				busPrefix == null ? "xdbus." : busPrefix,
+				stream);
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<String> doClean(String adminUri, String user, String pw, String vhost,
 			String busPrefix, String stream) {
 		List<String> results = new ArrayList<>();
 		RestTemplate restTemplate = buildRestTemplate(adminUri, user, pw);
 		int n = 0;
-		while (true) {
-			String queueName = busPrefix + stream + "." + n++;
-			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api").pathSegment("queues", "{vhost}", "{stream}")
+		while (true) { // exits when no queue found
+			String queueName = MessageBusSupport.constructPipeName(busPrefix,
+					AbstractStreamPlugin.constructPipeName(stream, n++));
+			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+					.pathSegment("queues", "{vhost}", "{stream}")
 					.buildAndExpand(vhost, queueName).encode().toUri();
 			try {
 				Map<String, Object> queue = restTemplate.getForObject(uri, Map.class);
@@ -76,8 +96,9 @@ public class RabbitBusCleaner implements BusCleaner {
 					throw new RabbitAdminException("Queue " + queueName + " is in use");
 				}
 				results.add(queueName);
-				queueName += ".dlq";
-				uri = UriComponentsBuilder.fromUriString(adminUri + "/api").pathSegment("queues", "{vhost}", "{stream}")
+				queueName = MessageBusSupport.constructDLQName(queueName);
+				uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+						.pathSegment("queues", "{vhost}", "{stream}")
 						.buildAndExpand(vhost, queueName).encode().toUri();
 				try {
 					queue = restTemplate.getForObject(uri, Map.class);
@@ -100,8 +121,12 @@ public class RabbitBusCleaner implements BusCleaner {
 				throw new RabbitAdminException("Failed to lookup queue", e);
 			}
 		}
-		for (String queueName : results) {
-			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api").pathSegment("queues", "{vhost}", "{stream}")
+		// Delete them in reverse order to enable re-running after a partial success.
+		// The queue search above starts with 0 and terminates on a not found.
+		for (int i = results.size() - 1; i >= 0; i--) {
+			String queueName = results.get(i);
+			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+					.pathSegment("queues", "{vhost}", "{stream}")
 					.buildAndExpand(vhost, queueName).encode().toUri();
 			restTemplate.delete(uri);
 			if (logger.isDebugEnabled()) {
@@ -111,7 +136,8 @@ public class RabbitBusCleaner implements BusCleaner {
 		return results;
 	}
 
-	public static RestTemplate buildRestTemplate(String adminUri, String user, String password) {
+	@VisibleForTesting
+	static RestTemplate buildRestTemplate(String adminUri, String user, String password) {
 		BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
 		credsProvider.setCredentials(
 				new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT),

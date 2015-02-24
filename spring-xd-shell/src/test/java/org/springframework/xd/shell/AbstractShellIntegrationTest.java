@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * @author Kashyap Parikh
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 public abstract class AbstractShellIntegrationTest {
 
@@ -81,6 +82,8 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected Random random = new Random();
 
+	protected static int adminPort;
+
 	/**
 	 * Used to capture currently executing test method.
 	 */
@@ -94,7 +97,9 @@ public abstract class AbstractShellIntegrationTest {
 			application = new SingleNodeApplication().run("--transport", "local", "--analytics", "redis");
 			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
 			integrationTestSupport.addModuleRegistry(new ArchiveModuleRegistry("classpath:/spring-xd/xd/modules"));
-			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
+			String adminServerPort = randomConfigSupport.getAdminServerPort();
+			adminPort = Integer.valueOf(adminServerPort);
+			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", adminServerPort });
 			shell = bootstrap.getJLineShellComponent();
 		}
 		if (!shell.isRunning()) {
@@ -185,4 +190,3 @@ public abstract class AbstractShellIntegrationTest {
 	}
 
 }
-

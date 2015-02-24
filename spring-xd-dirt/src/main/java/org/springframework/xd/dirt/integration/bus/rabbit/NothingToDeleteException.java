@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus;
-
-import java.util.List;
+package org.springframework.xd.dirt.integration.bus.rabbit;
 
 
 /**
- * Interface for implementations that perform cleanup for message buses.
+ * Thrown when a delete operation has nothing to delete.
  *
  * @author Gary Russell
  * @since 1.2
  */
-public interface BusCleaner {
+public class NothingToDeleteException extends RabbitAdminException {
 
-	/**
-	 * Clean up all resources for the supplied stream.
-	 * @param stream The stream.
-	 * @return A list of resources removed.
-	 */
-	List<String> clean(String stream);
+	public NothingToDeleteException(String message) {
+		super(message);
+	}
 
 }

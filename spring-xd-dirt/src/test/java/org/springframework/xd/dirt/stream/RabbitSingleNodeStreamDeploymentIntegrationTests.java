@@ -33,7 +33,7 @@ import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.bus.RabbitTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.rabbit.RabbitTestMessageBus;
 import org.springframework.xd.dirt.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.test.source.NamedChannelSource;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.kafka;
+package org.springframework.xd.dirt.integration.bus.kafka;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +27,8 @@ import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
+import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
+import org.springframework.xd.dirt.integration.kafka.TestKafkaCluster;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
 import org.springframework.xd.tuple.Tuple;
 

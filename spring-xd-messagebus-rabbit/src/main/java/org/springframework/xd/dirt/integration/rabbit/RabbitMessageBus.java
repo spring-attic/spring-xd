@@ -364,7 +364,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			validateConsumerProperties(name, properties, SUPPORTED_CONSUMER_PROPERTIES);
 		}
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
-		String queueName = accessor.getPrefix(this.defaultPrefix) + name;
+		String queueName = constructPipeName(accessor.getPrefix(this.defaultPrefix), name);
 		int partitionIndex = accessor.getPartitionIndex();
 		if (partitionIndex >= 0) {
 			queueName += "-" + partitionIndex;
@@ -489,7 +489,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name, RabbitPropertiesAccessor properties,
 			RabbitTemplate rabbitTemplate) {
-		String queueName = properties.getPrefix(this.defaultPrefix) + name;
+		String queueName = constructPipeName(properties.getPrefix(this.defaultPrefix), name);
 		String partitionKeyExtractorClass = properties.getPartitionKeyExtractorClass();
 		Expression partitionKeyExpression = properties.getPartitionKeyExpression();
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
@@ -657,13 +657,14 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private void autoBindDLQ(final String name, RabbitPropertiesAccessor properties) {
 		if (properties.getAutoBindDLQ(this.defaultAutoBindDLQ)) {
 			String prefix = properties.getPrefix(this.defaultPrefix);
-			String dlqName = prefix + name + ".dlq";
+			String queueName = constructPipeName(prefix, name);
+			String dlqName = constructDLQName(queueName);
 			Queue dlq = new Queue(dlqName);
 			declareQueueIfNotPresent(dlq);
-			final String dlxName = properties.getPrefix(this.defaultPrefix) + "DLX";
+			final String dlxName = prefix + "DLX";
 			final DirectExchange dlx = new DirectExchange(dlxName);
 			declareExchangeIfNotPresent(dlx);
-			this.rabbitAdmin.declareBinding(BindingBuilder.bind(dlq).to(dlx).with(prefix + name));
+			this.rabbitAdmin.declareBinding(BindingBuilder.bind(dlq).to(dlx).with(queueName));
 		}
 	}
 

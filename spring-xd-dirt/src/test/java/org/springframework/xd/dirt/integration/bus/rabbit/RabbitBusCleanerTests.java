@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.bus;
+package org.springframework.xd.dirt.integration.bus.rabbit;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -32,34 +34,43 @@ import org.springframework.amqp.rabbit.core.ChannelCallback;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.xd.dirt.integration.bus.RabbitAdminException;
-import org.springframework.xd.dirt.integration.bus.RabbitBusCleaner;
+import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
+import org.springframework.xd.test.rabbit.RabbitAdminTestSupport;
+import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 
 /**
- *
  * @author Gary Russell
+ * @since 1.2
  */
 public class RabbitBusCleanerTests {
 
+	@Rule
+	public RabbitAdminTestSupport adminTest = new RabbitAdminTestSupport();
+
+	@Rule
+	public RabbitTestSupport test = new RabbitTestSupport();
+
 	@Test
-	@Ignore
-	// requires the rabbit admin plugin
 	public void testClean() {
 		final RabbitBusCleaner cleaner = new RabbitBusCleaner();
-		RestTemplate template = RabbitBusCleaner.buildRestTemplate("http://localhost:15672", "guest", "guest");
+		final RestTemplate template = RabbitBusCleaner.buildRestTemplate("http://localhost:15672", "guest", "guest");
 		final String uuid = UUID.randomUUID().toString();
 		for (int i = 0; i < 5; i++) {
-			URI uri = UriComponentsBuilder.fromUriString("http://localhost:15672/api/queues").pathSegment("{vhost}",
-					"{queue}")
-					.buildAndExpand("/", "xdbus." + uuid + "." + i).encode().toUri();
+			String queueName = MessageBusSupport.constructPipeName("xdbus.",
+					AbstractStreamPlugin.constructPipeName(uuid, i));
+			URI uri = UriComponentsBuilder.fromUriString("http://localhost:15672/api/queues")
+					.pathSegment("{vhost}", "{queue}")
+					.buildAndExpand("/", queueName)
+					.encode().toUri();
 			template.put(uri, new Queue(false, true));
-			uri = UriComponentsBuilder.fromUriString("http://localhost:15672/api/queues").pathSegment("{vhost}",
-					"{queue}")
-					.buildAndExpand("/", "xdbus." + uuid + "." + i + ".dlq").encode().toUri();
+			uri = UriComponentsBuilder.fromUriString("http://localhost:15672/api/queues")
+					.pathSegment("{vhost}", "{queue}")
+					.buildAndExpand("/", MessageBusSupport.constructDLQName(queueName)).encode().toUri();
 			template.put(uri, new Queue(false, true));
 		}
 		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
@@ -67,18 +78,36 @@ public class RabbitBusCleanerTests {
 
 			@Override
 			public Void doInRabbit(Channel channel) throws Exception {
-				String consumerTag = channel.basicConsume("xdbus." + uuid + ".4", new DefaultConsumer(channel));
+				String queueName = MessageBusSupport.constructPipeName("xdbus.",
+						AbstractStreamPlugin.constructPipeName(uuid, 4));
+				String consumerTag = channel.basicConsume(queueName, new DefaultConsumer(channel));
 				try {
-					Thread.sleep(5000); // wait for consumer to show up in rest API
+					waitForConsumerStateNot(queueName, 0);
 					cleaner.clean(uuid);
 					fail("Expected exception");
 				}
 				catch (RabbitAdminException e) {
-					assertEquals("Queue xdbus." + uuid + ".4 is in use", e.getMessage());
+					assertEquals("Queue " + queueName + " is in use", e.getMessage());
 				}
 				channel.basicCancel(consumerTag);
-				Thread.sleep(5000); // wait for consumer to go away in rest API
+				waitForConsumerStateNot(queueName, 1);
 				return null;
+			}
+
+			private void waitForConsumerStateNot(String queueName, int state) throws InterruptedException {
+				int n = 0;
+				URI uri = UriComponentsBuilder.fromUriString("http://localhost:15672/api/queues").pathSegment(
+						"{vhost}", "{queue}")
+						.buildAndExpand("/", queueName).encode().toUri();
+				while (n++ < 100) {
+					@SuppressWarnings("unchecked")
+					Map<String, Object> queueInfo = template.getForObject(uri, Map.class);
+					if (!queueInfo.get("consumers").equals(Integer.valueOf(state))) {
+						break;
+					}
+					Thread.sleep(100);
+				}
+				assertTrue("Consumer state remained at " + state + " after 10 seconds", n < 100);
 			}
 
 		});
@@ -91,7 +120,7 @@ public class RabbitBusCleanerTests {
 		}
 	}
 
-	public class Queue {
+	public static class Queue {
 
 		private boolean autoDelete;
 
@@ -124,4 +153,5 @@ public class RabbitBusCleanerTests {
 		}
 
 	}
+
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.redis;
+package org.springframework.xd.dirt.integration.bus.redis;
 
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
@@ -51,7 +51,7 @@ import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
-import org.springframework.xd.dirt.integration.bus.RedisTestMessageBus;
+import org.springframework.xd.dirt.integration.redis.RedisMessageBus;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**

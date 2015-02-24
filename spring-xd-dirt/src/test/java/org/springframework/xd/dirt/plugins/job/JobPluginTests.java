@@ -57,6 +57,7 @@ import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -108,7 +109,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void setUp() throws Exception {
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class, HsqlDatasourceConfiguration.class,
 				HsqlServerApplication.class)
-				.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE)
+				.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
 				.web(false).run();
 		messageBus = sharedContext.getBean(LocalMessageBus.class);
 		jobPlugin = new JobPlugin(messageBus);

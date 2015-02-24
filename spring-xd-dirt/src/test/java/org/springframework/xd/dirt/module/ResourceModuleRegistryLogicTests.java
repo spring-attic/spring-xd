@@ -18,27 +18,33 @@
 
 package org.springframework.xd.dirt.module;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.xd.module.ModuleType.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
-import org.hamcrest.Matchers;
-import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 
 /**
- * Tests for ArchiveModuleRegistry.
+ * Tests for ResourceModuleRegistry implementation logic.
  *
  * @author Eric Bottard
  */
-public class ArchiveModuleRegistryTests {
+public class ResourceModuleRegistryLogicTests {
 
-	private ModuleRegistry registry = new ResourceModuleRegistry("file:src/test/resources/ArchiveModuleRegistryTests-modules/");
+	private WritableModuleRegistry registry = new ResourceModuleRegistry("file:src/test/resources/ResourceModuleRegistryLogicTests-modules/");
+
+	@Rule
+	public TemporaryFolder temp = new TemporaryFolder();
 
 	@Test(expected = IllegalStateException.class)
 	public void cantHaveBothJarFileAndDir() {
@@ -56,5 +62,19 @@ public class ArchiveModuleRegistryTests {
 	public void beingAJarHasPriorityOverBeingADir() {
 		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.source);
 		assertThat(definitions, contains(ResourceModuleRegistryTests.hasName("i-am-a-valid-module")));
+	}
+
+	@Test
+	public void testDeleteAsJarFile() throws IOException {
+		registry = new ResourceModuleRegistry(tempPath(), true);
+		File processors = temp.newFolder("processor");
+		org.springframework.util.Assert.isTrue(new File(processors, "foo.jar").createNewFile(), "could not create dummy file");
+
+
+		org.springframework.util.Assert.isTrue(registry.delete(ModuleDefinitions.dummy("foo", processor)));
+	}
+
+	private String tempPath() {
+		return "file:" + temp.getRoot().getAbsolutePath();
 	}
 }

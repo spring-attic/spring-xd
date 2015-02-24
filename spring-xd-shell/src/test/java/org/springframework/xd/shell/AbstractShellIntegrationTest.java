@@ -40,7 +40,7 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.module.ArchiveModuleRegistry;
+import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.test.RandomConfigurationSupport;
@@ -96,7 +96,7 @@ public abstract class AbstractShellIntegrationTest {
 		if (application == null) {
 			application = new SingleNodeApplication().run("--transport", "local", "--analytics", "redis");
 			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
-			integrationTestSupport.addModuleRegistry(new ArchiveModuleRegistry("classpath:/spring-xd/xd/modules"));
+			integrationTestSupport.addModuleRegistry(new ResourceModuleRegistry("classpath:/spring-xd/xd/modules"));
 			String adminServerPort = randomConfigSupport.getAdminServerPort();
 			adminPort = Integer.valueOf(adminServerPort);
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", adminServerPort });

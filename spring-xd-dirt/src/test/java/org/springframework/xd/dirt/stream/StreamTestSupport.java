@@ -30,7 +30,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.module.ArchiveModuleRegistry;
+import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
@@ -60,7 +60,7 @@ public class StreamTestSupport {
 		adminContext = application.adminContext();
 		moduleRegistry = adminContext.getBean(WritableModuleRegistry.class);
 		integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
-		integrationTestSupport.addModuleRegistry(new ArchiveModuleRegistry("classpath:/testmodules/"));
+		integrationTestSupport.addModuleRegistry(new ResourceModuleRegistry("classpath:/testmodules/"));
 	}
 
 	protected static boolean deployStream(String name, String config) {

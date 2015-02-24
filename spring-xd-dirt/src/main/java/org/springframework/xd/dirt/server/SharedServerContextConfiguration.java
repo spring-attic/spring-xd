@@ -52,7 +52,8 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 @EnableIntegration
 @Import(PropertyPlaceholderAutoConfiguration.class)
 @ImportResource({
-	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "bus/*.xml",
+	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "bus/${XD_TRANSPORT}-bus.xml",
+	ConfigLocations.XD_CONFIG_ROOT + "bus/codec.xml",
 	ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
 	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml"
 })

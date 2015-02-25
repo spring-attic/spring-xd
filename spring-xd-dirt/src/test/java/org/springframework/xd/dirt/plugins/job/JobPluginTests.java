@@ -109,7 +109,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void setUp() throws Exception {
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class, HsqlDatasourceConfiguration.class,
 				HsqlServerApplication.class)
-				.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
+				.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE)
 				.web(false).run();
 		messageBus = sharedContext.getBean(LocalMessageBus.class);
 		jobPlugin = new JobPlugin(messageBus);

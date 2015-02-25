@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
+import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
@@ -41,9 +42,9 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.xd.dirt.integration.bus.AbstractMessageBusTests;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 
 /**
  * @author Gary Russell
@@ -61,8 +62,22 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 				new DefaultMessageBuilderFactory());
 		applicationContext.refresh();
 		bus.setApplicationContext(applicationContext);
+		bus.setExecutorCorePoolSize(2);
+		bus.setExecutorMaxPoolSize(10);
+		bus.setExecutorKeepAliveSeconds(59);
+		bus.setExecutorQueueSize(Integer.MAX_VALUE - 1);
 		bus.afterPropertiesSet();
 		return bus;
+	}
+
+	@Test
+	public void testProps() throws Exception {
+		LocalMessageBus bus = (LocalMessageBus) getMessageBus();
+		ThreadPoolTaskExecutor exec = TestUtils.getPropertyValue(bus, "executor", ThreadPoolTaskExecutor.class);
+		assertEquals(2, exec.getCorePoolSize());
+		assertEquals(10, exec.getMaxPoolSize());
+		assertEquals(59, exec.getKeepAliveSeconds());
+		assertEquals(Integer.MAX_VALUE - 1, TestUtils.getPropertyValue(exec, "queueCapacity"));
 	}
 
 	@Test

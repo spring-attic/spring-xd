@@ -24,6 +24,7 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.fileConte
 import java.io.File;
 import java.util.Random;
 
+import org.hamcrest.core.StringContains;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,7 +50,9 @@ import org.springframework.xd.test.fixtures.FileSink;
  */
 public abstract class AbstractSparkStreamingTests {
 
-	protected static final String TEST_MESSAGE = "foo foo foo";
+	private static final String TEST_MESSAGE = "foo foo foo";
+
+	protected static final String TEST_LONG_MESSAGE = "foo foo foo foo bar bar bar foo bar bar test1 test1 test2 foo";
 
 	private SingleNodeApplication singleNodeApplication;
 
@@ -100,8 +103,11 @@ public abstract class AbstractSparkStreamingTests {
 		try {
 			String stream = String.format("%s | spark-word-count | %s --inputType=text/plain", source, sink);
 			createStream(streamName, stream);
-			source.ensureReady().postData(TEST_MESSAGE);
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
+			source.ensureReady().postData(TEST_LONG_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(foo,6)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(bar,5)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test1,2)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test2,1)"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);
@@ -152,8 +158,11 @@ public abstract class AbstractSparkStreamingTests {
 		try {
 			String stream = String.format("%s | spark-scala-word-count | %s --inputType=text/plain", source, sink);
 			createStream(streamName, stream);
-			source.ensureReady().postData(TEST_MESSAGE);
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
+			source.ensureReady().postData(TEST_LONG_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(foo,6)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(bar,5)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test1,2)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test2,1)"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);

@@ -43,7 +43,7 @@ class ModuleExecutor extends SparkStreamingModuleExecutor[ReceiverInputDStream[A
             messageSender = sender
             messageSender.start()
           }
-          if (partition.hasNext) {
+          while (partition.hasNext) {
             val message = partition.next()
             if (message.isInstanceOf[Message[_]]) {
               messageSender.send(message.asInstanceOf[Message[_]])

@@ -91,7 +91,7 @@ ext {
 	jcloudsVersion = '1.7.0'
 	oracleToolsVersion = '1.2.2'
 	platformVersion = '1.0.1.RELEASE'
-	postgresqlVersion = '9.2-1002-jdbc4'
+	postgresqlVersion = '9.4-1201-jdbc41'
 	splunkVersion = '1.3.0'
 	springBatchAdminMgrVersion = '1.3.0.RELEASE'
 	springIntegrationSplunkVersion = '1.1.0.RELEASE'

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.xd.rest.domain.StepExecutionInfoResource;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -148,7 +149,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	 */
 	public void deployJob(String jobName) {
 		Assert.hasText(jobName, "jobName must not be empty nor null");
-		springXDTemplate.jobOperations().deploy(jobName, "");
+		springXDTemplate.jobOperations().deploy(jobName, Collections.<String, String>emptyMap());
 	}
 
 	/**

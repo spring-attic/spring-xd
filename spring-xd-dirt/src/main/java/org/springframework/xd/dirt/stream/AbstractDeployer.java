@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +37,13 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ResourceDeployer;
-import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDescriptor;
+import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 /**
  * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides
@@ -211,7 +211,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		try {
 			String deploymentPath = getDeploymentPath(definition);
 			String statusPath = Paths.build(deploymentPath, Paths.STATUS);
-			byte[] propertyBytes = DeploymentPropertiesUtility.formatDeploymentProperties(properties).getBytes("UTF-8");
+			byte[] propertyBytes = DeploymentPropertiesFormat.formatDeploymentProperties(properties).getBytes("UTF-8");
 			byte[] statusBytes = ZooKeeperUtils.mapToBytes(
 					new DeploymentUnitStatus(DeploymentUnitStatus.State.deploying).toMap());
 

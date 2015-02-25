@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 package org.springframework.xd.rest.client.impl;
 
 import java.util.Collections;
+import java.util.Map;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
+import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 /**
  * Implementation of the Stream-related part of the API.
@@ -57,15 +59,13 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	}
 
 	@Override
-	public void deploy(String name, String properties) {
+	public void deploy(String name, Map<String, String> properties) {
 		// TODO: discover link by some other means (search by exact name on
 		// /streams??)
 		String uriTemplate = resources.get("streams/deployments").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		if (properties != null) {
-			values.add("properties", properties);
-		}
-		//TODO: Do we need StreamDeploymentResource? 
+		values.add("properties", DeploymentPropertiesFormat.formatDeploymentProperties(properties));
+		//TODO: Do we need StreamDeploymentResource?
 		restTemplate.postForObject(uriTemplate, values, Object.class, name);
 	}
 

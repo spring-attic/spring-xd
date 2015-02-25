@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,14 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.springframework.xd.shell.command.DeploymentOptionKeys.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Properties;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -25,7 +33,9 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
+import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.util.Assertions;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 
@@ -91,8 +101,28 @@ public class StreamCommands implements CommandMarker {
 	@CliCommand(value = DEPLOY_STREAM, help = "Deploy a previously created stream")
 	public String deployStream(
 			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", mandatory = true, optionContext = "existing-stream undeployed disable-string-converter") String name,
-			@CliOption(key = { "properties" }, help = "the properties for this deployment", mandatory = false) String properties) {
-		streamOperations().deploy(name, properties);
+			@CliOption(key = { PROPERTIES_OPTION }, help = "the properties for this deployment", mandatory = false) String properties,
+			@CliOption(key = { PROPERTIES_FILE_OPTION }, help = "the properties for this deployment (as a File)", mandatory = false) File propertiesFile
+	) throws IOException {
+
+		int which = Assertions.atMostOneOf(PROPERTIES_OPTION, properties, PROPERTIES_FILE_OPTION, propertiesFile);
+		Map<String, String> propertiesToUse;
+		switch (which) {
+			case 0:
+				propertiesToUse = DeploymentPropertiesFormat.parseDeploymentProperties(properties);
+				break;
+			case 1:
+				Properties props = new Properties();
+				try (FileInputStream fis = new FileInputStream(propertiesFile)) {
+					props.load(fis);
+				}
+				propertiesToUse = DeploymentPropertiesFormat.convert(props);
+				break;
+			default:
+				throw new AssertionError();
+		}
+
+		streamOperations().deploy(name, propertiesToUse);
 		return String.format("Deployed stream '%s'", name);
 	}
 
@@ -136,7 +166,7 @@ public class StreamCommands implements CommandMarker {
 		return table;
 	}
 
-	private StreamOperations streamOperations() {
+	/*default*/ StreamOperations streamOperations() {
 		return xdShell.getSpringXDOperations().streamOperations();
 	}
 }

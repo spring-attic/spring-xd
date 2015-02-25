@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDStreamParser;
-import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 /**
  * Factory class that builds {@link Job} instances.
@@ -86,7 +86,7 @@ public class JobFactory {
 		return new Job.Builder()
 				.setName(name)
 				.setDeploymentProperties(
-						DeploymentPropertiesUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
+						DeploymentPropertiesFormat.parseDeploymentProperties(properties.get("deploymentProperties")))
 				.setModuleDescriptor(descriptors.get(0)).build();
 	}
 

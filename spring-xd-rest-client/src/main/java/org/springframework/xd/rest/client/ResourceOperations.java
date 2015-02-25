@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2014 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.xd.rest.client;
 
+import java.util.Map;
+
 /**
  * Operations common to resources like Stream and Job.
  *
@@ -24,10 +26,9 @@ package org.springframework.xd.rest.client;
 public interface ResourceOperations {
 
 	/**
-	 * Deploy an already created resource. Optionally providing deployment properties,
-	 * as a comma-delimited list of key=value pairs.
+	 * Deploy an already created resource.
 	 */
-	public void deploy(String name, String properties);
+	public void deploy(String name, Map<String, String> properties);
 
 	/**
 	 * Undeploy a deployed resource, retaining its definition.

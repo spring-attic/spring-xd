@@ -16,6 +16,11 @@
 #    local:
 #      queueSize:                   2147483647
 #      polling:                     1000
+#      executor:
+#        corePoolSize:              0
+#        maxPoolSize:               200
+#        queueSize:                 2147483647
+#        keepAliveSeconds:          60
 #    rabbit:
 #      compressionLevel:            1
             # bus-level property, applies only when 'compress=true' for a stream module

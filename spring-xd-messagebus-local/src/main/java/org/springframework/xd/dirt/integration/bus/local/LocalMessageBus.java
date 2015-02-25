@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,8 +17,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
@@ -34,6 +32,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
@@ -55,11 +54,27 @@ import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
  */
 public class LocalMessageBus extends MessageBusSupport {
 
+	private static final int DEFAULT_EXECUTOR_CORE_POOL_SIZE = 0;
+
+	private static final int DEFAULT_EXECUTOR_MAX_POOL_SIZE = 200;
+
+	private static final int DEFAULT_EXECUTOR_QUEUE_SIZE = Integer.MAX_VALUE;
+
+	private static final int DEFAULT_EXECUTOR_KEEPALIVE_SECONDS = 60;
+
 	private volatile PollerMetadata poller;
 
 	private final Map<String, ExecutorChannel> requestReplyChannels = new HashMap<String, ExecutorChannel>();
 
-	private final ExecutorService executor = Executors.newCachedThreadPool();
+	private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+	private volatile int executorCorePoolSize = DEFAULT_EXECUTOR_CORE_POOL_SIZE;
+
+	private volatile int executorMaxPoolSize = DEFAULT_EXECUTOR_MAX_POOL_SIZE;
+
+	private volatile int executorQueueSize = DEFAULT_EXECUTOR_QUEUE_SIZE;
+
+	private volatile int executorKeepAliveSeconds = DEFAULT_EXECUTOR_KEEPALIVE_SECONDS;
 
 	private volatile int queueSize = Integer.MAX_VALUE;
 
@@ -99,6 +114,55 @@ public class LocalMessageBus extends MessageBusSupport {
 	 */
 	public void setQueueSize(int queueSize) {
 		this.queueSize = queueSize;
+	}
+
+	/**
+	 * Set the {@link ThreadPoolTaskExecutor}} core pool size to limit the number of concurrent
+	 * threads. The executor is used for PubSub operations and for request/reply processing.
+	 * Default: 0 (threads created on demand until maxPoolSize).
+	 * @param executorCorePoolSize the pool size.
+	 */
+	public void setExecutorCorePoolSize(int executorCorePoolSize) {
+		this.executorCorePoolSize = executorCorePoolSize;
+	}
+
+	/**
+	 * Set the {@link ThreadPoolTaskExecutor}} max pool size to limit the number of concurrent
+	 * threads. The executor is used for PubSub operations and for request/reply processing.
+	 * Default: 200.
+	 * @param executorMaxPoolSize the pool size.
+	 */
+	public void setExecutorMaxPoolSize(int executorMaxPoolSize) {
+		this.executorMaxPoolSize = executorMaxPoolSize;
+	}
+
+	/**
+	 * Set the {@link ThreadPoolTaskExecutor}} queue size to limit the number of concurrent
+	 * threads. The executor is used for PubSub operations and for request/reply processing.
+	 * Default: {@link Integer#MAX_VALUE}.
+	 * @param executorCorePoolSize the queue size.
+	 */
+	public void setExecutorQueueSize(int executorQueueSize) {
+		this.executorQueueSize = executorQueueSize;
+	}
+
+	/**
+	 * Set the {@link ThreadPoolTaskExecutor}} keep alive seconds.
+	 * The executor is used for PubSub operations and for request/reply processing.
+	 * @param executorKeepAliveSeconds the keep alive seconds.
+	 */
+	public void setExecutorKeepAliveSeconds(int executorKeepAliveSeconds) {
+		this.executorKeepAliveSeconds = executorKeepAliveSeconds;
+	}
+
+	@Override
+	protected void onInit() {
+		this.executor.setCorePoolSize(this.executorCorePoolSize);
+		this.executor.setMaxPoolSize(this.executorMaxPoolSize);
+		this.executor.setQueueCapacity(this.executorQueueSize);
+		this.executor.setKeepAliveSeconds(this.executorKeepAliveSeconds);
+		this.executor.setThreadNamePrefix("xd.localbus-");
+		this.executor.initialize();
 	}
 
 	/**

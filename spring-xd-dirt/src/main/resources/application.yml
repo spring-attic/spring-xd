@@ -95,6 +95,11 @@ xd:
   messagebus:
     local:
       polling:                     1000
+      executor:
+        corePoolSize:              0
+        maxPoolSize:               200
+#       queueSize:                 # defaults to Integer.MAX_VALUE
+        keepAliveSeconds:          60
     rabbit:
       compressionLevel:            1
             # bus-level property, applies only when 'compress=true' for a stream module

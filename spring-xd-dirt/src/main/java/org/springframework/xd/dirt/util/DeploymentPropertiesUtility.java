@@ -38,15 +38,10 @@ import org.springframework.xd.module.ModuleDescriptor;
  */
 public class DeploymentPropertiesUtility {
 
-	/**
-	 * Pattern used for parsing a String of comma-delimited key=value pairs.
-	 */
-	private static final Pattern DEPLOYMENT_PROPERTIES_PATTERN = Pattern.compile(",\\s*module\\.[^\\.]+\\.[^=]+=");
-
 
 	/**
 	 * Based on the deployment properties for a {@link Stream}/{@link Job}, create an instance of
-	 * {@link org.springframework.xd.dirt.core.ModuleDeploymentProperties} for a specific module
+	 * {@link org.springframework.xd.module.ModuleDeploymentProperties} for a specific module
 	 * in the {@link Stream}/{@link Job}.
 	 *
 	 * @param deploymentProperties deployment properties for a stream/job
@@ -73,59 +68,6 @@ public class DeploymentPropertiesUtility {
 			}
 		}
 		return moduleDeploymentProperties;
-	}
-
-	/**
-	 * Parses a String comprised of 0 or more comma-delimited key=value pairs where
-	 * each key has the format:
-	 * {@code module.[modulename].[key]}.
-	 * Values may themselves contain commas, since the split points will be based upon the key pattern.
-	 *
-	 * @param s the string to parse
-	 * @return the Map of parsed key value pairs
-	 */
-	public static Map<String, String> parseDeploymentProperties(String s) {
-		Map<String, String> deploymentProperties = new HashMap<String, String>();
-		if (!StringUtils.isEmpty(s)) {
-			Matcher matcher = DEPLOYMENT_PROPERTIES_PATTERN.matcher(s);
-			int start = 0;
-			while (matcher.find()) {
-				addKeyValuePairAsProperty(s.substring(start, matcher.start()), deploymentProperties);
-				start = matcher.start() + 1;
-			}
-			addKeyValuePairAsProperty(s.substring(start), deploymentProperties);
-		}
-		return deploymentProperties;
-	}
-
-	/**
-	 * Returns a String representation of deployment properties as a comma separated list of key=value pairs.
-	 * @param properties the properties to format
-	 * @return the properties formatted as a String
-	 */
-	public static String formatDeploymentProperties(Map<String, String> properties) {
-		StringBuilder sb = new StringBuilder(15 * properties.size());
-		for (Map.Entry<String, String> pair : properties.entrySet()) {
-			if (sb.length() > 0) {
-				sb.append(",");
-			}
-			sb.append(pair.getKey()).append("=").append(pair.getValue());
-		}
-		return sb.toString();
-	}
-
-	/**
-	 * Adds a String of format key=value to the provided Map as a key/value pair.
-	 *
-	 * @param pair the String representation
-	 * @param properties the Map to which the key/value pair should be added
-	 */
-	private static void addKeyValuePairAsProperty(String pair, Map<String, String> properties) {
-		int firstEquals = pair.indexOf('=');
-		if (firstEquals != -1) {
-			// todo: should key only be a "flag" as in: put(key, true)?
-			properties.put(pair.substring(0, firstEquals).trim(), pair.substring(firstEquals + 1).trim());
-		}
 	}
 
 }

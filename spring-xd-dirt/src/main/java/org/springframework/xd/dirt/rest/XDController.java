@@ -45,9 +45,9 @@ import org.springframework.xd.dirt.stream.AbstractDeployer;
 import org.springframework.xd.dirt.stream.AbstractInstancePersistingDeployer;
 import org.springframework.xd.dirt.stream.BaseInstance;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
-import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.rest.domain.DeployableResource;
 import org.springframework.xd.rest.domain.NamedResource;
+import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 /**
  * Base Class for XD Controllers.
@@ -153,7 +153,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
 	public void deploy(@PathVariable("name") String name, @RequestParam(required = false) String properties) {
-		deployer.deploy(name, DeploymentPropertiesUtility.parseDeploymentProperties(properties));
+		deployer.deploy(name, DeploymentPropertiesFormat.parseDeploymentProperties(properties));
 	}
 
 	/**

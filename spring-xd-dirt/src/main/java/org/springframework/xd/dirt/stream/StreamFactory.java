@@ -23,9 +23,9 @@ import java.util.Map;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.util.DeploymentPropertiesUtility;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 /**
  * Factory class that builds {@link Stream} instances.
@@ -87,7 +87,7 @@ public class StreamFactory {
 
 		return new Stream.Builder()
 				.setName(name)
-				.setDeploymentProperties(DeploymentPropertiesUtility.parseDeploymentProperties(properties.get("deploymentProperties")))
+				.setDeploymentProperties(DeploymentPropertiesFormat.parseDeploymentProperties(properties.get("deploymentProperties")))
 				.setModuleDescriptors(descriptors).build();
 	}
 

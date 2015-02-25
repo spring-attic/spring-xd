@@ -16,9 +16,15 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.springframework.xd.shell.command.DeploymentOptionKeys.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.springframework.batch.core.JobParameter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +40,11 @@ import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.domain.JobInstanceInfoResource;
 import org.springframework.xd.rest.domain.StepExecutionInfoResource;
 import org.springframework.xd.rest.domain.StepExecutionProgressInfoResource;
+import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 import org.springframework.xd.shell.Configuration;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.command.support.JobCommandsUtils;
+import org.springframework.xd.shell.util.Assertions;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
@@ -333,9 +341,29 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")
 	public String deployJob(
 			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job undeployed disable-string-converter") String name,
-			@CliOption(key = { "properties" }, help = "the properties for this deployment", mandatory = false) String properties) {
-		jobOperations().deploy(name, properties);
-		return String.format("Deployed job '%s'", name);
+			@CliOption(key = { PROPERTIES_OPTION }, help = "the properties for this deployment", mandatory = false) String properties,
+			@CliOption(key = { PROPERTIES_FILE_OPTION }, help = "the properties for this deployment (as a File)", mandatory = false) File propertiesFile
+	) throws IOException {
+
+		int which = Assertions.atMostOneOf(PROPERTIES_OPTION, properties, PROPERTIES_FILE_OPTION, propertiesFile);
+		Map<String, String> propertiesToUse;
+		switch (which) {
+			case 0:
+				propertiesToUse = DeploymentPropertiesFormat.parseDeploymentProperties(properties);
+				break;
+			case 1:
+				Properties props = new Properties();
+				try (FileInputStream fis = new FileInputStream(propertiesFile)) {
+					props.load(fis);
+				}
+				propertiesToUse = DeploymentPropertiesFormat.convert(props);
+				break;
+			default:
+				throw new AssertionError();
+		}
+
+		jobOperations().deploy(name, propertiesToUse);
+		return String.format("Deployed stream '%s'", name);
 	}
 
 	@CliCommand(value = LAUNCH_JOB, help = "Launch previously deployed job")

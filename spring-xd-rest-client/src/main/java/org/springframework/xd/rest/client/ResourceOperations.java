@@ -16,6 +16,8 @@
 
 package org.springframework.xd.rest.client;
 
+import java.util.Map;
+
 /**
  * Operations common to resources like Stream and Job.
  *
@@ -24,10 +26,9 @@ package org.springframework.xd.rest.client;
 public interface ResourceOperations {
 
 	/**
-	 * Deploy an already created resource. Optionally providing deployment properties,
-	 * as a comma-delimited list of key=value pairs.
+	 * Deploy an already created resource.
 	 */
-	public void deploy(String name, String properties);
+	public void deploy(String name, Map<String, String> properties);
 
 	/**
 	 * Undeploy a deployed resource, retaining its definition.

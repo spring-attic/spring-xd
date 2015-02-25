@@ -18,6 +18,7 @@ package org.springframework.xd.rest.domain.support;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,5 +91,17 @@ public class DeploymentPropertiesFormat {
 			// todo: should key only be a "flag" as in: put(key, true)?
 			properties.put(pair.substring(0, firstEquals).trim(), pair.substring(firstEquals + 1).trim());
 		}
+	}
+
+	/**
+	 * Convert a Properties to a Map with String keys and values. Entries whose key or value were not Strings are
+	 * omitted.
+	 */
+	public static Map<String, String> convert(Properties properties) {
+		Map<String, String> result  = new HashMap<>(properties.size());
+		for (String key : properties.stringPropertyNames()) {
+			result.put(key, properties.getProperty(key));
+		}
+		return result;
 	}
 }

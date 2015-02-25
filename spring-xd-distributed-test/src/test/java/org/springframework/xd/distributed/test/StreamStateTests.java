@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 /**
  * Set of tests to verify that deployed streams are reporting the correct
@@ -65,7 +66,7 @@ public class StreamStateTests extends AbstractDistributedTests {
 		template.streamOperations().createStream(streamName, "time|log", false);
 		verifyStreamCreated(streamName);
 
-		template.streamOperations().deploy(streamName, "module.log.count=2");
+		template.streamOperations().deploy(streamName, DeploymentPropertiesFormat.parseDeploymentProperties("module.log.count=2"));
 		verifyStreamDeployed(streamName);
 
 		ModuleRuntimeContainers moduleContainers = retrieveModuleRuntimeContainers(streamName);

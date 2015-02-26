@@ -26,17 +26,20 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.container.initializer.AbstractResourceBeanDefinitionProvider;
 import org.springframework.xd.dirt.integration.bus.converter.CompositeMessageConverterFactory;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoClassListRegistrar;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
+import org.springframework.xd.extensions.test.Bar;
+import org.springframework.xd.extensions.test.Foo;
 import org.springframework.xd.extensions.test.StubPojoToStringConverter;
-
 
 /**
  * @author David Turanski
@@ -79,7 +82,6 @@ public class ExtensionsTests {
 		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.locations");
 		assertEquals("META-INF/spring-xd/ext/test,META-INF/spring-xd/ext/test2",
 				extensionsLocation);
-
 	}
 
 	@Test
@@ -111,6 +113,17 @@ public class ExtensionsTests {
 		beanDefinitionProvider = new TestResourceBeanDefinitionProvider("classpath*:foo/");
 		resolvedLocations = beanDefinitionProvider.resolveLocations();
 		assertEquals("classpath*:foo/**/*.*", resolvedLocations[0]);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void kryoClassListRegistrar() {
+		KryoRegistrar registrar = context.getBean(KryoClassListRegistrar.class);
+		List<Class<?>> classes = (List<Class<?>>) TestUtils.getPropertyValue(registrar, "registeredClasses");
+		assertEquals(2, classes.size());
+
+		assertEquals(Foo.class, classes.get(0));
+		assertEquals(Bar.class, classes.get(1));
 	}
 
 	@AfterClass

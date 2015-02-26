@@ -1,5 +1,7 @@
+spring:
+  profiles:
+    active: default,kryo-test
 xd:
    extensions:
         basepackages: org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2
         locations: META-INF/spring-xd/ext/test,META-INF/spring-xd/ext/test2
-        

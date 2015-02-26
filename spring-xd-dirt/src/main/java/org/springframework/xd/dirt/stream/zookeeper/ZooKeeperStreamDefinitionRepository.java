@@ -21,6 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundPathAndBytesable;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -42,6 +46,7 @@ import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
+import org.springframework.xd.module.ModuleDefinition;
 
 /**
  * @author Mark Fisher
@@ -49,6 +54,18 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 // todo: the StreamDefinitionRepository abstraction can be removed once we are fully zk-enabled since we do not need to
 // support multiple impls at that point
 public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepository, InitializingBean {
+
+	/**
+	 * The key used in serialized properties to hold the raw definition of a stream.
+	 */
+	private static final String DEFINITION_KEY = "definition";
+
+	/**
+	 * The key used in serialized properties to hold the parsed module definitions that make up a stream.
+	 */
+	private static final String MODULE_DEFINITIONS_KEY = "moduleDefinitions";
+
+	private final static TypeReference<List<ModuleDefinition>> MODULE_DEFINITIONS_LIST = new TypeReference<List<ModuleDefinition>>() {};
 
 	private final Logger logger = LoggerFactory.getLogger(ZooKeeperStreamDefinitionRepository.class);
 
@@ -59,6 +76,10 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 	private final PagingUtility<StreamDefinition> pagingUtility = new PagingUtility<StreamDefinition>();
 
 	private final RepositoryConnectionListener connectionListener = new RepositoryConnectionListener();
+
+	private final ObjectWriter objectWriter = new ObjectMapper().writerWithType(MODULE_DEFINITIONS_LIST);
+
+	private final ObjectReader objectReader = new ObjectMapper().reader(MODULE_DEFINITIONS_LIST);
 
 	@Autowired
 	public ZooKeeperStreamDefinitionRepository(ZooKeeperConnection zkConnection,
@@ -98,8 +119,10 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 	@Override
 	public <S extends StreamDefinition> S save(S entity) {
 		try {
-			Map<String, String> map = new HashMap<String, String>();
-			map.put("definition", entity.getDefinition());
+			Map<String, String> map = new HashMap<>();
+			map.put(DEFINITION_KEY, entity.getDefinition());
+
+			map.put(MODULE_DEFINITIONS_KEY, objectWriter.writeValueAsString(entity.getModuleDefinitions()));
 
 			CuratorFramework client = zkConnection.getClient();
 			String path = Paths.build(Paths.STREAMS, entity.getName());
@@ -130,7 +153,10 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 				return null;
 			}
 			Map<String, String> map = ZooKeeperUtils.bytesToMap(bytes);
-			return new StreamDefinition(id, map.get("definition"));
+			StreamDefinition streamDefinition = new StreamDefinition(id, map.get(DEFINITION_KEY));
+			List<ModuleDefinition> moduleDefinitions = objectReader.readValue(map.get(MODULE_DEFINITIONS_KEY));
+			streamDefinition.setModuleDefinitions(moduleDefinitions);
+			return streamDefinition;
 		}
 		catch (Exception e) {
 			//NoNodeException - the definition does not exist

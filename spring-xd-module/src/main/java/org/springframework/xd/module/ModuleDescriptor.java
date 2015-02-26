@@ -575,10 +575,6 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		}
 
 		public ModuleDefinition getModuleDefinition() {
-			// todo: setName and setType on this builder should be removed
-			if (moduleDefinition == null) {
-				moduleDefinition = ModuleDefinitions.dummy(moduleName, type);
-			}
 			return moduleDefinition;
 		}
 	}

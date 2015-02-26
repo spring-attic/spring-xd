@@ -52,6 +52,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.dirt.integration.bus.BusCleaner;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
+import org.springframework.xd.dirt.plugins.AbstractMessageBusBinderPlugin;
 import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
 import org.springframework.xd.dirt.plugins.job.JobEventsListenerPlugin;
 
@@ -158,7 +159,7 @@ public class RabbitBusCleaner implements BusCleaner {
 		int n = 0;
 		while (true) { // exits when no queue found
 			String queueName = MessageBusSupport.applyPrefix(busPrefix,
-					AbstractStreamPlugin.constructPipeName(stream, n++));
+					AbstractMessageBusBinderPlugin.constructPipeName(stream, n++));
 			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
 					.pathSegment("queues", "{vhost}", "{stream}")
 					.buildAndExpand(vhost, queueName).encode().toUri();
@@ -195,7 +196,7 @@ public class RabbitBusCleaner implements BusCleaner {
 		List<String> removedQueues = new ArrayList<>();
 		String jobQueueName = MessageBusSupport.applyPrefix(busPrefix, AbstractJobPlugin.getJobChannelName(job));
 		URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
-				.pathSegment("queues", "{vhost}", "{stream}")
+				.pathSegment("queues", "{vhost}", "{job}")
 				.buildAndExpand(vhost, jobQueueName).encode().toUri();
 		try {
 			getQueueDetails(restTemplate, jobQueueName, uri);
@@ -204,6 +205,21 @@ public class RabbitBusCleaner implements BusCleaner {
 		catch (HttpClientErrorException e) {
 			if (!e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
 				throw new RabbitAdminException("Failed to lookup queue " + jobQueueName, e);
+			}
+		}
+		String jobRequestsQueueName = MessageBusSupport.applyPrefix(busPrefix,
+				MessageBusSupport.applyRequests(AbstractMessageBusBinderPlugin.constructPipeName(
+						AbstractJobPlugin.getJobChannelName(job), 0)));
+		uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+				.pathSegment("queues", "{vhost}", "{job}")
+				.buildAndExpand(vhost, jobRequestsQueueName).encode().toUri();
+		try {
+			getQueueDetails(restTemplate, jobRequestsQueueName, uri);
+			removedQueues.add(jobRequestsQueueName);
+		}
+		catch (HttpClientErrorException e) {
+			if (!e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+				throw new RabbitAdminException("Failed to lookup queue " + jobRequestsQueueName, e);
 			}
 		}
 		return removedQueues;

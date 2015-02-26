@@ -366,7 +366,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		}
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		validateProducerProperties(name, properties, SUPPORTED_REQUESTING_PRODUCER_PROPERTIES);
-		RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name + ".requests",
+		RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + applyRequests(name),
 				this.connectionFactory);
 		queue.setBeanFactory(this.getBeanFactory());
 		queue.afterPropertiesSet();
@@ -385,7 +385,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		}
 		validateConsumerProperties(name, properties, SUPPORTED_REPLYING_CONSUMER_PROPERTIES);
 		RedisPropertiesAccessor accessor = new RedisPropertiesAccessor(properties);
-		MessageProducerSupport adapter = createInboundAdapter(accessor, "queue." + name + ".requests");
+		MessageProducerSupport adapter = createInboundAdapter(accessor, "queue." + applyRequests(name));
 		this.doRegisterConsumer(name, name, requests, adapter, accessor);
 
 		RedisQueueOutboundChannelAdapter replyQueue = new RedisQueueOutboundChannelAdapter(

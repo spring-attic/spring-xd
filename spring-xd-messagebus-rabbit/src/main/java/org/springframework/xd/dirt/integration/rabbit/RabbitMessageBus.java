@@ -582,7 +582,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		validateProducerProperties(name, properties, SUPPORTED_REQUESTING_PRODUCER_PROPERTIES);
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
-		String queueName = name + ".requests";
+		String queueName = applyRequests(name);
 		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(queueName, accessor, this.rabbitTemplate);
 		queue.setBeanFactory(this.getBeanFactory());
 
@@ -604,7 +604,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		validateConsumerProperties(name, properties, SUPPORTED_REPLYING_CONSUMER_PROPERTIES);
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
-		Queue requestQueue = new Queue(accessor.getPrefix(this.defaultPrefix) + name + ".requests");
+		Queue requestQueue = new Queue(applyPrefix(accessor.getPrefix(this.defaultPrefix), applyRequests(name)));
 		declareQueueIfNotPresent(requestQueue);
 		this.doRegisterConsumer(name, requests, requestQueue, accessor, false);
 

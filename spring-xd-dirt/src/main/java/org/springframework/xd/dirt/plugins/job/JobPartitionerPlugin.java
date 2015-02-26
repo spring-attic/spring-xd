@@ -65,7 +65,7 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
 		Assert.notNull(partitionsIn, "Partitioned jobs must have a " + JOB_PARTIONER_REPLY_CHANNEL);
 		ModuleDescriptor descriptor = module.getDescriptor();
-		String name = descriptor.getGroup() + "." + descriptor.getIndex();
+		String name = getJobChannelName(constructPipeName(descriptor.getGroup(), descriptor.getIndex()));
 		messageBus.bindRequestor(name, partitionsOut, partitionsIn, properties[0]);
 
 		MessageChannel stepExecutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
@@ -82,7 +82,7 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 		}
 		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
 		ModuleDescriptor descriptor = module.getDescriptor();
-		String name = descriptor.getGroup() + "." + descriptor.getIndex();
+		String name = getJobChannelName(constructPipeName(descriptor.getGroup(), descriptor.getIndex()));
 		if (partitionsOut != null) {
 			messageBus.unbindProducer(name, partitionsOut);
 		}

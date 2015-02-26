@@ -110,6 +110,16 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		}
 	}
 
+	/**
+	 * Construct a pipe name from the group and index.
+	 * @param group the group.
+	 * @param index the index.
+	 * @return the name.
+	 */
+	public static String constructPipeName(String group, int index) {
+		return group + "." + index;
+	}
+
 	private void startTapListener(CuratorFramework client) {
 		String tapPath = Paths.build(Paths.TAPS);
 		Paths.ensurePath(client, tapPath);
@@ -175,11 +185,11 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 
 	private void track(final Module module, MessageChannel channel, final Map<String, Object> historyProps) {
 		final MessageBuilderFactory messageBuilderFactory = module.getComponent(
-					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
-						MessageBuilderFactory.class) == null
+				IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+				MessageBuilderFactory.class) == null
 				? new DefaultMessageBuilderFactory()
 				: module.getComponent(
-					IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+						IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
 						MessageBuilderFactory.class);
 		if (channel instanceof ChannelInterceptorAware) {
 			((ChannelInterceptorAware) channel).addInterceptor(new ChannelInterceptorAdapter() {
@@ -200,9 +210,9 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 					map.put("thread", Thread.currentThread().getName());
 					history.add(map);
 					Message<?> out = messageBuilderFactory
-										.fromMessage(message)
-										.setHeader(XdHeaders.XD_HISTORY, history)
-										.build();
+							.fromMessage(message)
+							.setHeader(XdHeaders.XD_HISTORY, history)
+							.build();
 					return out;
 				}
 			});

@@ -42,16 +42,6 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 		super(messageBus, zkConnection);
 	}
 
-	/**
-	 * Construct a pipe name from the group and index.
-	 * @param group the group.
-	 * @param index the index.
-	 * @return the name.
-	 */
-	public static String constructPipeName(String group, int index) {
-		return group + "." + index;
-	}
-
 	public static String constructTapPrefix(String group) {
 		return TAP_CHANNEL_PREFIX + "stream:" + group;
 	}

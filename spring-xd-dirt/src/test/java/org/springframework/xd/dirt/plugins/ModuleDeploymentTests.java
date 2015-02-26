@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.plugins;
 
+import static org.springframework.xd.module.ModuleType.*;
+
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +28,7 @@ import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelA
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.integration.bus.BusTestUtils;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.test.redis.RedisTestSupport;
@@ -53,8 +56,7 @@ public class ModuleDeploymentTests {
 		adapter.afterPropertiesSet();
 		ModuleDescriptor request = new ModuleDescriptor.Builder()
 				.setGroup("test")
-				.setType(ModuleType.processor)
-				.setModuleName("filter")
+				.setModuleDefinition(ModuleDefinitions.dummy("filter", processor))
 				.setIndex(0)
 				.build();
 		Message<?> message = MessageBuilder.withPayload(request.toString()).build();
@@ -71,16 +73,14 @@ public class ModuleDeploymentTests {
 		adapter.afterPropertiesSet();
 		ModuleDescriptor sinkRequest = new ModuleDescriptor.Builder()
 				.setGroup("teststream")
-				.setType(ModuleType.sink)
-				.setModuleName("log")
+				.setModuleDefinition(ModuleDefinitions.dummy("log", sink))
 				.setIndex(1)
 				.build();
 		Message<?> sinkMessage = MessageBuilder.withPayload(sinkRequest.toString()).build();
 		adapter.handleMessage(sinkMessage);
 		ModuleDescriptor sourceRequest = new ModuleDescriptor.Builder()
 				.setGroup("teststream")
-				.setType(ModuleType.source)
-				.setModuleName("time")
+				.setModuleDefinition(ModuleDefinitions.dummy("time", source))
 				.setIndex(0)
 				.build();
 		Message<?> sourceMessage = MessageBuilder.withPayload(sourceRequest.toString()).build();

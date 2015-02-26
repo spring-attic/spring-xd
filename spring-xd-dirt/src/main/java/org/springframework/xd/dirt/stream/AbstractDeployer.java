@@ -114,9 +114,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	private List<ModuleDefinition> createModuleDefinitions(List<ModuleDescriptor> moduleDescriptors) {
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDescriptors.size());
 		for (ModuleDescriptor moduleDescriptor : moduleDescriptors) {
-			ModuleDefinition moduleDefinition = ModuleDefinitions.dummy(moduleDescriptor.getModuleName(),
-					moduleDescriptor.getType());
-			moduleDefinitions.add(moduleDefinition);
+			moduleDefinitions.add(moduleDescriptor.getModuleDefinition());
 		}
 		return moduleDefinitions;
 	}

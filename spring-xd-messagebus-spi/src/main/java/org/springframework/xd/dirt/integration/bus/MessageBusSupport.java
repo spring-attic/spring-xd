@@ -218,6 +218,15 @@ public abstract class MessageBusSupport
 	}
 
 	/**
+	 * Build the requests entity name.
+	 * @param name the name.
+	 * @return the request entity name.
+	 */
+	public static String applyRequests(String name) {
+		return name + ".requests";
+	}
+
+	/**
 	 * For bus implementations that support dead lettering, construct the name of the
 	 * dead letter entity for the underlying pipe name.
 	 * @param name the name.

@@ -72,6 +72,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 import org.springframework.scheduling.TaskScheduler;
@@ -97,6 +98,7 @@ import com.rabbitmq.client.Envelope;
  * @author Gary Russell
  * @author Jennifer Hickey
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 public class RabbitMessageBus extends MessageBusSupport implements DisposableBean {
 
@@ -268,6 +270,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private static final ExpressionParser expressionParser =
 			new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
+	private Map<Channel, Integer> channelsForManualAck = new HashMap<Channel, Integer>();
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -872,6 +876,32 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			return getProperty(AUTO_BIND_DLQ, defaultValue);
 		}
 
+	}
+
+	@Override
+	public void storeForManualAck(MessageHeaders headers) {
+		if (headers.containsKey("amqp_channel")) {
+			Channel channel = (com.rabbitmq.client.Channel) headers.get("amqp_channel");
+			if (!channelsForManualAck.containsKey(channel)) {
+				channelsForManualAck.put(channel, 1);
+			}
+			else {
+				channelsForManualAck.put(channel, channelsForManualAck.get(channel) + 1);
+			}
+		}
+	}
+
+	@Override
+	public void doManualAck() {
+		for (final com.rabbitmq.client.Channel channel : channelsForManualAck.keySet()) {
+			try {
+				channel.basicAck(channelsForManualAck.get(channel), true);
+			}
+			catch (IOException e) {
+				logger.error("Exception while manually acknowledging " + e);
+			}
+		}
+		channelsForManualAck.clear();
 	}
 
 }

@@ -43,6 +43,8 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 		ConfigLocations.XD_CONFIG_ROOT + "bus/codec.xml"})
 class MessageBusConfiguration {
 
+	private static final String RABBIT_ACKMODE_PROPERTY = "xd.messagebus.rabbit.default.ackMode";
+
 	/**
 	 * This method called by {@link MessageBusReceiver} and {@link MessageBusSender} to setup
 	 * message bus configuration at the spark module executor process. This configuration
@@ -54,6 +56,10 @@ class MessageBusConfiguration {
 	 */
 	static ConfigurableApplicationContext createApplicationContext(final Properties properties) {
 		String transport = properties.getProperty("XD_TRANSPORT");
+		if (properties.getProperty(RABBIT_ACKMODE_PROPERTY) != null) {
+			properties.setProperty(RABBIT_ACKMODE_PROPERTY, "MANUAL");
+		}
+		properties.setProperty("isKafkaAutoCommitEnabled", "false");
 		SpringApplicationBuilder application = new SpringApplicationBuilder()
 				.sources(MessageBusConfiguration.class)
 				// ensure the properties are added at the first precedence level

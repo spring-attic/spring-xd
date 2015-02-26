@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -71,6 +71,7 @@ import org.springframework.xd.dirt.integration.bus.serializer.SerializationExcep
 /**
  * @author David Turanski
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  */
 public abstract class MessageBusSupport
 		implements MessageBus, ApplicationContextAware, InitializingBean, IntegrationEvaluationContextAware {
@@ -122,7 +123,7 @@ public abstract class MessageBusSupport
 
 	protected static final Set<Object> PRODUCER_STANDARD_PROPERTIES = new HashSet<Object>(Arrays.asList(
 			BusProperties.NEXT_MODULE_COUNT
-			));
+	));
 
 
 	protected static final Set<Object> CONSUMER_RETRY_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
@@ -1101,6 +1102,21 @@ public abstract class MessageBusSupport
 			this.outputChannel.send(message);
 		}
 
+	}
+
+	/**
+	 * No op method that can be implemented by specific message bus to store message headers to acknowledge
+	 * the messages manually later.
+	 *
+	 * @param messageHeaders the message headers
+	 */
+	public void storeForManualAck(MessageHeaders messageHeaders) {
+	}
+
+	/**
+	 * Perform manual acknowledgement based on the metadata stored in message bus.
+	 */
+	public void doManualAck() {
 	}
 
 }

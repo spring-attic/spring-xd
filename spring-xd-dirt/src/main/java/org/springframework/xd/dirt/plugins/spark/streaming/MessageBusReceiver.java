@@ -18,7 +18,11 @@ package org.springframework.xd.dirt.plugins.spark.streaming;
 
 import java.util.Properties;
 
+import org.apache.spark.SparkConf;
 import org.apache.spark.storage.StorageLevel;
+import org.apache.spark.storage.StreamBlockId;
+import org.apache.spark.streaming.receiver.BlockGenerator;
+import org.apache.spark.streaming.receiver.BlockGeneratorListener;
 import org.apache.spark.streaming.receiver.Receiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +32,9 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+
+import scala.collection.mutable.ArrayBuffer;
 
 /**
  * Spark {@link Receiver} implementation that binds to the MessageBus as a consumer.
@@ -60,6 +67,9 @@ class MessageBusReceiver extends Receiver {
 
 	private final MimeType contentType;
 
+	private BlockGenerator blockGenerator = null;
+
+
 	public MessageBusReceiver(StorageLevel storageLevel, Properties messageBusProperties,
 			Properties moduleConsumerProperties, MimeType contentType) {
 		this(null, storageLevel, messageBusProperties, moduleConsumerProperties, contentType);
@@ -82,6 +92,8 @@ class MessageBusReceiver extends Receiver {
 	public void onStart() {
 		logger.info("starting MessageBusReceiver");
 		final MessageStoringChannel messageStoringChannel = new MessageStoringChannel();
+		blockGenerator = new BlockGenerator(new GeneratedBlockHandler(), 0, new SparkConf());
+		blockGenerator.start();
 		if (contentType != null) {
 			messageStoringChannel.configureMessageConverter(contentType);
 		}
@@ -98,11 +110,36 @@ class MessageBusReceiver extends Receiver {
 	@Override
 	public void onStop() {
 		logger.info("stopping MessageBusReceiver");
+		blockGenerator.stop();
 		if (messageBus != null) {
 			messageBus.unbindConsumers(channelName);
 		}
 		if (applicationContext != null) {
 			applicationContext.close();
+		}
+	}
+
+	/**
+	 * A {@link org.apache.spark.streaming.receiver.BlockGeneratorListener} that handles the notification
+	 * events from spark streaming {@Link BlockGenerator}.
+	 */
+	private class GeneratedBlockHandler implements BlockGeneratorListener {
+
+		public void onAddData(Object data, Object metadata) {
+			logger.debug("Adding data to block generator buffer");
+		}
+
+		public void onError(String data, Throwable t) {
+			reportError(data, t);
+		}
+
+		public void onPushBlock(StreamBlockId streamBlockId, ArrayBuffer<?> dataBuffer) {
+			store(dataBuffer);
+			((MessageBusSupport) messageBus).doManualAck();
+		}
+
+		public void onGenerateBlock(StreamBlockId blockId) {
+			logger.debug("Generated block "+ blockId);
 		}
 	}
 
@@ -121,7 +158,8 @@ class MessageBusReceiver extends Receiver {
 
 		@Override
 		protected boolean doSend(Message<?> message, long timeout) {
-			store(message.getPayload());
+			blockGenerator.addDataWithCallback(message.getPayload(), message.getHeaders());
+			((MessageBusSupport) messageBus).storeForManualAck(message.getHeaders());
 			return true;
 		}
 	}

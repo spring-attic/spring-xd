@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAd
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.integration.kafka.listener.KafkaTopicOffsetManager;
 import org.springframework.integration.kafka.listener.OffsetManager;
+import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerFactoryBean;
 import org.springframework.integration.kafka.support.ProducerMetadata;
@@ -58,6 +59,7 @@ import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
@@ -118,6 +120,7 @@ import scala.collection.Seq;
  *
  * @author Eric Bottard
  * @author Marius Bogoevici
+ * @author Ilayaperumal Gopinathan
  */
 public class KafkaMessageBus extends MessageBusSupport {
 
@@ -150,6 +153,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	private static final int DEFAULT_REQUIRED_ACKS = 1;
 
 	private RetryOperations retryOperations;
+
+	private Map<String, Map<Partition, Long>> messagesForManualAck = new HashMap<String, Map<Partition, Long>>();
 
 	/**
 	 * Used when writing directly to ZK. This is what Kafka expects.
@@ -618,8 +623,20 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 		// if we have less target partitions than target concurrency, adjust accordingly
 		messageListenerContainer.setConcurrency(Math.min(numThreads, listenedPartitions.size()));
-		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
-				Collections.<Partition, Long>emptyMap());
+		KafkaTopicOffsetManager offsetManager;
+		// TODO: replace this logic with a flag enable/disable auto commit offset in kafka mesage listener container.
+		if (getApplicationContext().getEnvironment().getProperty("isKafkaAutoCommitEnabled", "true").equals("false")) {
+			offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
+					Collections.<Partition, Long>emptyMap()) {
+				@Override
+				public void doUpdateOffset(Partition partition, long offset) {
+				}
+			};
+		}
+		else {
+			offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
+					Collections.<Partition, Long>emptyMap());
+		}
 		offsetManager.setConsumerId(group);
 		offsetManager.setReferenceTimestamp(referencePoint);
 		try {
@@ -787,6 +804,45 @@ public class KafkaMessageBus extends MessageBusSupport {
 			return result;
 		}
 
+	}
+
+	@Override
+	public void storeForManualAck(MessageHeaders headers) {
+		String topic = (String) headers.get(KafkaHeaders.TOPIC);
+		Partition partition = new Partition(topic, (int) headers.get(KafkaHeaders.PARTITION_ID));
+		Long offset = (Long) headers.get(KafkaHeaders.OFFSET);
+		Map<Partition, Long> currentTopicData = messagesForManualAck.get(topic);
+		if (currentTopicData == null) {
+			Map<Partition, Long> mapData = new HashMap<Partition, Long>();
+			mapData.put(partition, offset);
+			messagesForManualAck.put(topic, mapData);
+		}
+		// There is a caveat here. If the offset for the current message is greater than any of the
+		// unacknowledged messages then, we would incorrectly update the offset and there by missing those messages.
+		// But, as long as we maintain the strict ordering of receiving/processing messages from each partition, this
+		// situation can be avoided.
+		else if (currentTopicData != null && currentTopicData.get(partition) < offset) {
+			currentTopicData.put(partition, offset);
+		}
+		// do nothing if the existing offset is already greater than current offset
+	}
+
+	@Override
+	public void doManualAck() {
+		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
+				Collections.<Partition, Long>emptyMap());
+		try {
+			offsetManager.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		for (Map<Partition, Long> topicData : messagesForManualAck.values()) {
+			for (Partition partition : topicData.keySet()) {
+				offsetManager.updateOffset(partition, topicData.get(partition));
+			}
+			messagesForManualAck.clear();
+		}
 	}
 
 }

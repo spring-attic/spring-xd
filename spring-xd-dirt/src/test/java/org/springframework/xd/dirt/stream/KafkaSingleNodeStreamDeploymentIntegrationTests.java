@@ -143,7 +143,7 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 			Partition partition = new Partition(KafkaMessageBus.escapeTopicName(topicName), 0);
 			BrokerAddress leader = template.getConnectionFactory().getLeader(partition);
 			return template.getConnectionFactory().connect(leader)
-					.fetchInitialOffset(OffsetRequest.LatestTime()).getResult(partition);
+					.fetchInitialOffset(OffsetRequest.LatestTime(), partition).getResult(partition);
 		}
 		catch (PartitionNotFoundException e) {
 			return 0;

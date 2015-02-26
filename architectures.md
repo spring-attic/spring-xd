@@ -1,14 +1,39 @@
 ---
 layout: documentation_page
 ---
+
+<style type="text/css">
+	.header-item {
+		background-color: #34302d;
+	}
+	.header-item {
+		padding: 10px 10px 10px 10px;
+		min-height: 0 !important;
+		
+		border-radius: 4px;
+		-moz-border-radius: 4px;
+		-webkit-border-radius: 4px;
+		-webkit-box-shadow: 1px 1px 2px 0px rgba(50, 50, 50, 0.55);
+		-moz-box-shadow:    1px 1px 2px 0px rgba(50, 50, 50, 0.55);
+		box-shadow:         1px 1px 2px 0px rgba(50, 50, 50, 0.55);
+	}
+	.header-item  i {
+		margin-right: 15px;
+	}
+</style>
+
 # Spring XD Architectures and Use Cases
 
-* [Telco Services](#toc_1)
-* [Health Care Services](#toc_7)
-* [Energy Services](#toc_12)
-* [Music Services](#toc_16)
-* [Agriculture Services](#toc_20)
-* [Airline Services](#toc_24)
+<div class="row" style="margin-left: 0; margin-bottom: 15px;">
+	<div class="span4 header-item"><a href="#toc_1"><i class="fa fa-phone fa-fw"></i>Telco Services</a></div>
+	<div class="span4 header-item"><a href="#toc_7"><i class="fa fa-heart fa-fw"></i>Health Care Services</a></div>
+	<div class="span4 header-item"><a href="#toc_13"><i class="fa fa-bolt fa-fw"></i>Energy Services</a></div>
+</div>
+<div class="row" style="margin-left: 0;">
+	<div class="span4 header-item"><a href="#toc_19"><i class="fa fa-music fa-fw"></i>Music Services</a></div>
+	<div class="span4 header-item"><a href="#toc_25"><i class="fa fa-sun-o fa-fw"></i>Agriculture Services</a></div>
+	<div class="span4 header-item"><a href="#toc_31"><i class="fa fa-plane fa-fw"></i>Airline Services</a></div>
+</div>
 
 ## Telco Services
 
@@ -59,6 +84,14 @@ Consuming data from various data devices is challenging and equally cumbersome i
 
 ### Solution
 Spring XD provides out of the box data integration adapters to connect with data producing “things”. As the data is in the pipeline, Spring XD also provides fixtures for data wrangling so that the data can be cleansed, transformed and analyzed. Energy services providers are now equipped with rich platform to handle both online and offline data that can be used for data mining to produce predictive analytics models. The models can be introduced back in the data pipeline using workflows to perform real-time predictions.
+
+**Sample**
+
+Spring XD provides a [sample](https://github.com/spring-projects/spring-xd-samples/tree/master/smartgrid-prediction) illustrating a solution approach in the context of electricity metering and production.
+
+<img src="img/arch.png"/>
+
+In this sample smart plugs are used to measure power consumption and reporting those metrics to the system. A use-case-specific UI provides simple dashboarding capabilities.  
 
 ### Outcome
 Spring XD provides fixtures for real-time predictions based on usage patterns and historical trends. Given the unified approach towards handling and analyzing data, Spring XD automates workflows to reduce manual intervention.

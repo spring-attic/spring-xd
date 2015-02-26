@@ -73,6 +73,7 @@
 #        batchingEnabled:           false
 #        batchSize:                 200
 #        batchTimeout:              5000
+#        autoCommitEnabled:         true
 
 #Disable batch database initialization
 #spring:

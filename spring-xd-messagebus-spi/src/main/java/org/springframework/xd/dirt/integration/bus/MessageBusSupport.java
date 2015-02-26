@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -71,6 +73,7 @@ import org.springframework.xd.dirt.integration.bus.serializer.SerializationExcep
 /**
  * @author David Turanski
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  */
 public abstract class MessageBusSupport
 		implements MessageBus, ApplicationContextAware, InitializingBean, IntegrationEvaluationContextAware {
@@ -122,7 +125,7 @@ public abstract class MessageBusSupport
 
 	protected static final Set<Object> PRODUCER_STANDARD_PROPERTIES = new HashSet<Object>(Arrays.asList(
 			BusProperties.NEXT_MODULE_COUNT
-			));
+	));
 
 
 	protected static final Set<Object> CONSUMER_RETRY_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
@@ -1101,6 +1104,12 @@ public abstract class MessageBusSupport
 			this.outputChannel.send(message);
 		}
 
+	}
+
+	/**
+	 * Perform manual acknowledgement based on the metadata stored in message bus.
+	 */
+	public void doManualAck(LinkedList<MessageHeaders> messageHeaders) {
 	}
 
 }

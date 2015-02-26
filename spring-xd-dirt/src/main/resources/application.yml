@@ -155,6 +155,7 @@ xd:
         concurrency:               1
         requiredAcks:              1
         compressionCodec:          default
+        autoCommitEnabled:         true
   security:
     authorization:
       rules:

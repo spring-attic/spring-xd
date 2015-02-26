@@ -17,14 +17,14 @@
 package org.springframework.xd.test.rabbit;
 
 
+import java.util.Map;
+
 import org.junit.Rule;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
-
-import com.sun.javafx.collections.MappingChange.Map;
 
 /**
  * JUnit {@link Rule} that detects the fact that RabbitMQ is available on localhost with

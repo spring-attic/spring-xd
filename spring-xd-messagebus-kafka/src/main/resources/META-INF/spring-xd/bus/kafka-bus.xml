@@ -25,6 +25,7 @@
 		<property name="defaultConcurrency" value="${xd.messagebus.kafka.default.concurrency}"/>
 		<property name="defaultRequiredAcks" value="${xd.messagebus.kafka.default.requiredAcks}"/>
 		<property name="defaultCompressionCodec" value="${xd.messagebus.kafka.default.compressionCodec}"/>
+		<property name="defaultAutoCommitEnabled" value="${xd.messagebus.kafka.default.autoCommitEnabled}"/>
 		<property name="offsetStoreTopic" value="${xd.messagebus.kafka.offsetStoreTopic}"/>
 	</bean>
 

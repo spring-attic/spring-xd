@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -72,6 +75,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 import org.springframework.scheduling.TaskScheduler;
@@ -97,6 +101,7 @@ import com.rabbitmq.client.Envelope;
  * @author Gary Russell
  * @author Jennifer Hickey
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 public class RabbitMessageBus extends MessageBusSupport implements DisposableBean {
 
@@ -268,6 +273,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private static final ExpressionParser expressionParser =
 			new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
+	private LinkedHashMap<Object, Long> channelsForManualAck = new LinkedHashMap<Object, Long>();
+
+	private long manualAckMessageIndex = 0;
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -670,6 +679,28 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	@Override
 	public void destroy() {
 		stopBindings();
+	}
+
+	@Override
+	public void doManualAck(LinkedList<MessageHeaders> messageHeadersList) {
+		Iterator<MessageHeaders> iterator = messageHeadersList.iterator();
+		Map<Object, Long> channelsToAck = new HashMap<Object, Long>();
+		while(iterator.hasNext()) {
+			MessageHeaders messageHeaders = iterator.next();
+			if (messageHeaders.containsKey(AmqpHeaders.CHANNEL)) {
+				Channel channel = (com.rabbitmq.client.Channel) messageHeaders.get(AmqpHeaders.CHANNEL);
+				Long deliveryTag = (Long) messageHeaders.get(AmqpHeaders.DELIVERY_TAG);
+				channelsToAck.put(channel, deliveryTag);
+			}
+		}
+		for (Map.Entry<Object, Long> entry : channelsToAck.entrySet()) {
+			try {
+				((Channel) entry.getKey()).basicAck(entry.getValue(), true);
+			}
+			catch (IOException e) {
+				logger.error("Exception while manually acknowledging " + e);
+			}
+		}
 	}
 
 	private class SendingHandler extends AbstractMessageHandler implements Lifecycle {

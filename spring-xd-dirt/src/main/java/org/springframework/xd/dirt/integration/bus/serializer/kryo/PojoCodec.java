@@ -28,16 +28,39 @@ import com.esotericsoftware.kryo.io.Output;
  * @since 1.0
  */
 public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
+	private final KryoRegistrar kryoRegistrar;
+
+	public PojoCodec() {
+		kryoRegistrar = null;
+	}
+
+	/**
+	 * Use this constructor to register known domain classes to Kryo using a {@link
+	 * org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar}. This constructor is used in XDs
+	 * Spring configuration. Null by defaults, users must register a bean of this type to take advantage of this
+	 * feature.
+	 *
+	 * @param kryoRegistrar
+	 */
+	public PojoCodec(KryoRegistrar kryoRegistrar) {
+		this.kryoRegistrar = kryoRegistrar;
+	}
 
 	@Override
 	protected void doSerialize(Kryo kryo, Object object, Output output) {
-		kryo.register(object.getClass());
 		kryo.writeObject(output, object);
 	}
 
 	@Override
 	protected Object doDeserialize(Kryo kryo, Input input, Class<? extends Object> type) {
-		kryo.register(type);
 		return kryo.readObject(input, type);
+	}
+
+	@Override
+	protected void configureKryoInstance(Kryo kryo) {
+		super.configureKryoInstance(kryo);
+		if (kryoRegistrar != null) {
+			kryoRegistrar.registerTypes(kryo);
+		}
 	}
 }

@@ -313,7 +313,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 			byte[] utf8 = original.getBytes("UTF-8");
 			for (byte b : utf8) {
 				if ((b >= 'a') && (b <= 'z') || (b >= 'A') && (b <= 'Z') || (b >= '0') && (b <= '9') || (b == '.')
-						|| (b == '-')) {
+						|| (b == '-') || (b == '_')) {
 					result.append((char) b);
 				}
 				else {

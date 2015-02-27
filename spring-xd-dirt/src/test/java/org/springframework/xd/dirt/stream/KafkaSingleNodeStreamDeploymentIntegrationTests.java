@@ -18,13 +18,13 @@ package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.xd.dirt.integration.kafka.KafkaMessageBus.escapeTopicName;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import kafka.api.OffsetRequest;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -44,7 +44,6 @@ import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.integration.kafka.util.MessageUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.kafka.KafkaTestMessageBus;
-import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
 
 /**
@@ -84,9 +83,9 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3, Map<String, Object> initialTransportState) {
 		DefaultConnectionFactory defaultConnectionFactory = getDefaultConnectionFactory();
 		KafkaTemplate template = new KafkaTemplate(defaultConnectionFactory);
-		String y = receiveFromTopicForQueue(template, "queue:y", initialTransportState);
+		String y = receiveFromTopicForQueue(template, escapeTopicName("queue:y"), initialTransportState);
 		assertTrue(y.endsWith("y")); // bus headers
-		String z = receiveFromTopicForQueue(template, "queue:z", initialTransportState);
+		String z = receiveFromTopicForQueue(template, escapeTopicName("queue:z"), initialTransportState);
 		assertNotNull(z);
 		assertTrue(z.endsWith("z")); // bus headers
 		try {
@@ -117,7 +116,7 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 		KafkaTemplate template = new KafkaTemplate(getDefaultConnectionFactory());
 		Map<String, Object> initialOffsets = new HashMap<String, Object>();
 		for (String queueName : queueNames) {
-			String escapedTopicName = KafkaMessageBus.escapeTopicName(queueName);
+			String escapedTopicName = escapeTopicName(queueName);
 			initialOffsets.put(escapedTopicName, getInitialOffset(template, escapedTopicName));
 		}
 		try {
@@ -131,16 +130,15 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 
 	private String receiveFromTopicForQueue(KafkaTemplate template, String topicName,
 			Map<String, Object> initialTransportState) {
-		String escapedTopicName = KafkaMessageBus.escapeTopicName(topicName);
-		Partition partition = new Partition(escapedTopicName, 0);
+		Partition partition = new Partition(topicName, 0);
 		Result<KafkaMessageBatch> receive = template.receive(Collections.singleton(new FetchRequest(partition,
-				(Long) initialTransportState.get(escapedTopicName), 1000)));
+				(Long) initialTransportState.get(topicName), 1000)));
 		return MessageUtils.decodePayload(receive.getResult(partition).getMessages().get(0), new StringDecoder());
 	}
 
 	private long getInitialOffset(KafkaTemplate template, String topicName) {
 		try {
-			Partition partition = new Partition(KafkaMessageBus.escapeTopicName(topicName), 0);
+			Partition partition = new Partition(topicName, 0);
 			BrokerAddress leader = template.getConnectionFactory().getLeader(partition);
 			return template.getConnectionFactory().connect(leader)
 					.fetchInitialOffset(OffsetRequest.LatestTime(), partition).getResult(partition);

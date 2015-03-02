@@ -64,7 +64,7 @@ public class ResourceModuleRegistry implements WritableModuleRegistry, Initializ
 
 	private final static String[] SUFFIXES = new String[] {"", ARCHIVE_AS_FILE_EXTENSION};
 
-	final protected static byte[] hexArray = "0123456789ABCDEF".getBytes();
+	final protected static byte[] HEX_DIGITS = "0123456789ABCDEF".getBytes();
 
 	private boolean allowWrite;
 
@@ -325,8 +325,8 @@ public class ResourceModuleRegistry implements WritableModuleRegistry, Initializ
 		byte[] hexChars = new byte[bytes.length * 2];
 		for (int j = 0; j < bytes.length; j++) {
 			int v = bytes[j] & 0xFF;
-			hexChars[j * 2] = hexArray[v >>> 4];
-			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+			hexChars[j * 2] = HEX_DIGITS[v >>> 4];
+			hexChars[j * 2 + 1] = HEX_DIGITS[v & 0x0F];
 		}
 		return hexChars;
 	}

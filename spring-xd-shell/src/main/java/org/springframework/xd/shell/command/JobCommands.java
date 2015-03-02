@@ -363,7 +363,7 @@ public class JobCommands implements CommandMarker {
 		}
 
 		jobOperations().deploy(name, propertiesToUse);
-		return String.format("Deployed stream '%s'", name);
+		return String.format("Deployed job '%s'", name);
 	}
 
 	@CliCommand(value = LAUNCH_JOB, help = "Launch previously deployed job")

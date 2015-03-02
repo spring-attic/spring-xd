@@ -24,6 +24,7 @@ import org.springframework.xd.module.SimpleModuleDefinition;
  * A strategy interface for deciding whether a target definition is stale compared to a source definition.
  *
  * @see org.springframework.xd.dirt.module.SynchronizingModuleRegistry
+ * @since 1.2
  * @author Eric Bottard
  */
 public interface StalenessCheck {

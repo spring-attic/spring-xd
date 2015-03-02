@@ -32,6 +32,7 @@ import org.springframework.xd.module.SimpleModuleDefinition;
  * module archive and returns true if the computed hashes differ.
  *
  * @see org.springframework.xd.dirt.module.ResourceModuleRegistry
+ * @since 1.2
  * @author Eric Bottard
  */
 public class MD5StalenessCheck implements StalenessCheck {

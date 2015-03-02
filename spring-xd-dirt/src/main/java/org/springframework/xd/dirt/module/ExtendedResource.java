@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * A wrapper around a Resource that adds capabilities lacking in the original interface.
  *
+ * @since 1.2
  * @author Eric Bottard
  */
 public abstract class ExtendedResource {
@@ -41,7 +42,7 @@ public abstract class ExtendedResource {
 			HDFS_RESOURCE = Class.forName("org.springframework.data.hadoop.fs.HdfsResource");
 		}
 		catch (ClassNotFoundException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalStateException("Spring Data Hadoop not found on the classpath, but was expected", e);
 		}
 	}
 

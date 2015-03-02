@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2011-2014 the original author or authors.
+ *  * Copyright 2015 the original author or authors.
  *  *
  *  * Licensed under the Apache License, Version 2.0 (the "License");
  *  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.xd.module.SimpleModuleDefinition;
  * backed by HDFS). For such a case, simply use this registry as the main registry, configuring it with the {@code hdfs://} registry as
  * its source and the {@code file://} one as its target.</p>
  *
+ * @since 1.2
  * @author Eric Bottard
  */
 public class SynchronizingModuleRegistry implements WritableModuleRegistry {
@@ -125,9 +126,9 @@ public class SynchronizingModuleRegistry implements WritableModuleRegistry {
 			catch (IOException e) {
 				throw new RuntimeIOException("Error while copying module", e);
 			}
-			UploadedModuleDefinition vehicle = new UploadedModuleDefinition(remoteDefinition.getName(), remoteDefinition.getType(), is);
-			targetRegistry.delete(vehicle);
-			targetRegistry.registerNew(vehicle);
+			targetRegistry.delete(remoteDefinition);
+			UploadedModuleDefinition definitionToInstall = new UploadedModuleDefinition(remoteDefinition.getName(), remoteDefinition.getType(), is);
+			targetRegistry.registerNew(definitionToInstall);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,10 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
+ * Will create a {@link SynchronizingModuleRegistry} for hosting custom modules if necessary, depending on the
+ * protocol scheme (using a synchronizing registry for everything but {@code file://} protocol).
  *
- * 
+ * @since 1.2
  * @author Eric Bottard
  */
 public class CustomModuleRegistryFactoryBean implements FactoryBean<WritableModuleRegistry>, InitializingBean{
@@ -67,7 +69,8 @@ public class CustomModuleRegistryFactoryBean implements FactoryBean<WritableModu
 			registry = new ResourceModuleRegistry(root, true);
 			((ResourceModuleRegistry)registry).afterPropertiesSet();
 			logger.info("Custom modules will be written directly to {}", root);
-		} else {
+		}
+		else {
 			String localRoot = "file:" + Files.createTempDirectory("spring-xd-custom-modules");
 			ResourceModuleRegistry local = new ResourceModuleRegistry(localRoot, true);
 			local.afterPropertiesSet();

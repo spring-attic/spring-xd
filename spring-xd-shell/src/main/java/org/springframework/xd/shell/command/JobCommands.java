@@ -21,7 +21,9 @@ import static org.springframework.xd.shell.command.DeploymentOptionKeys.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -357,6 +359,9 @@ public class JobCommands implements CommandMarker {
 					props.load(fis);
 				}
 				propertiesToUse = DeploymentPropertiesFormat.convert(props);
+				break;
+			case -1: // Neither option specified
+				propertiesToUse = Collections.EMPTY_MAP;
 				break;
 			default:
 				throw new AssertionError();

@@ -21,6 +21,7 @@ import static org.springframework.xd.shell.command.DeploymentOptionKeys.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
@@ -117,6 +118,9 @@ public class StreamCommands implements CommandMarker {
 					props.load(fis);
 				}
 				propertiesToUse = DeploymentPropertiesFormat.convert(props);
+				break;
+			case -1:
+				propertiesToUse = Collections.EMPTY_MAP;
 				break;
 			default:
 				throw new AssertionError();

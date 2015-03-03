@@ -16,11 +16,13 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.springframework.xd.shell.command.DeploymentOptionKeys.*;
+import static org.springframework.xd.shell.command.DeploymentOptionKeys.PROPERTIES_FILE_OPTION;
+import static org.springframework.xd.shell.command.DeploymentOptionKeys.PROPERTIES_OPTION;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
@@ -103,7 +105,7 @@ public class StreamCommands implements CommandMarker {
 			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", mandatory = true, optionContext = "existing-stream undeployed disable-string-converter") String name,
 			@CliOption(key = { PROPERTIES_OPTION }, help = "the properties for this deployment", mandatory = false) String properties,
 			@CliOption(key = { PROPERTIES_FILE_OPTION }, help = "the properties for this deployment (as a File)", mandatory = false) File propertiesFile
-	) throws IOException {
+			) throws IOException {
 
 		int which = Assertions.atMostOneOf(PROPERTIES_OPTION, properties, PROPERTIES_FILE_OPTION, propertiesFile);
 		Map<String, String> propertiesToUse;
@@ -117,6 +119,9 @@ public class StreamCommands implements CommandMarker {
 					props.load(fis);
 				}
 				propertiesToUse = DeploymentPropertiesFormat.convert(props);
+				break;
+			case -1: // Neither option specified
+				propertiesToUse = Collections.<String, String> emptyMap();
 				break;
 			default:
 				throw new AssertionError();

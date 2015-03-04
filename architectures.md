@@ -45,6 +45,8 @@ Telco service providers would like to be equipped with data platform to learn fr
 
 <img src="img/architectures-telco.png"/>
 
+<img src="img/architectures-telco2.png"/>
+
 ### Problem
 Growing addition to network protocols, data formats, and the need to generate context specific customer outcomes in real-time is very challenging.
 

@@ -271,7 +271,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private static final ExpressionParser expressionParser =
 			new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
-	private Map<Channel, Integer> channelsForManualAck = new HashMap<Channel, Integer>();
+	private Map<Object, Long> channelsForManualAck = new HashMap<Object, Long>();
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -677,6 +677,34 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		stopBindings();
 	}
 
+	@Override
+	public void storeForManualAck(MessageHeaders headers) {
+		if (headers.containsKey(AmqpHeaders.CHANNEL)) {
+			Channel channel = (com.rabbitmq.client.Channel) headers.get(AmqpHeaders.CHANNEL);
+			Long deliveryTag = (Long) headers.get(AmqpHeaders.DELIVERY_TAG);
+			if (channelsForManualAck.containsKey(channel) && (channelsForManualAck.get(channel) < deliveryTag)) {
+				channelsForManualAck.put(channel, deliveryTag);
+			}
+			else {
+				channelsForManualAck.put(channel, deliveryTag);
+			}
+		}
+	}
+
+	@Override
+	public void doManualAck() {
+		for (Map.Entry<Object, Long> entry : channelsForManualAck.entrySet()) {
+			try {
+				Channel channel = (Channel) entry.getKey();
+				channel.basicAck(entry.getValue(), true);
+			}
+			catch (IOException e) {
+				logger.error("Exception while manually acknowledging " + e);
+			}
+		}
+		channelsForManualAck.clear();
+	}
+
 	private class SendingHandler extends AbstractMessageHandler implements Lifecycle {
 
 		private final MessageHandler delegate;
@@ -876,32 +904,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			return getProperty(AUTO_BIND_DLQ, defaultValue);
 		}
 
-	}
-
-	@Override
-	public void storeForManualAck(MessageHeaders headers) {
-		if (headers.containsKey("amqp_channel")) {
-			Channel channel = (com.rabbitmq.client.Channel) headers.get("amqp_channel");
-			if (!channelsForManualAck.containsKey(channel)) {
-				channelsForManualAck.put(channel, 1);
-			}
-			else {
-				channelsForManualAck.put(channel, channelsForManualAck.get(channel) + 1);
-			}
-		}
-	}
-
-	@Override
-	public void doManualAck() {
-		for (final com.rabbitmq.client.Channel channel : channelsForManualAck.keySet()) {
-			try {
-				channel.basicAck(channelsForManualAck.get(channel), true);
-			}
-			catch (IOException e) {
-				logger.error("Exception while manually acknowledging " + e);
-			}
-		}
-		channelsForManualAck.clear();
 	}
 
 }

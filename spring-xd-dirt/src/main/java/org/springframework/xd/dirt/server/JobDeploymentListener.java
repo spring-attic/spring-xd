@@ -118,33 +118,27 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 			// ephemeral nodes exists. The presence of this path is assumed
 			// by the supervisor when it calculates stream state when it is
 			// assigned leadership. See XD-2170 for details.
+			String jobDeploymentPath = Paths.build(Paths.JOB_DEPLOYMENTS, job.getName());
 			try {
-				client.create().creatingParentsIfNeeded().forPath(Paths.build(
-						Paths.JOB_DEPLOYMENTS, job.getName(), Paths.MODULES));
+				client.create().creatingParentsIfNeeded().forPath(Paths.build(jobDeploymentPath, Paths.MODULES));
 			}
 			catch (Exception e) {
 				ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NodeExistsException.class);
 			}
 
-			String statusPath = Paths.build(Paths.JOB_DEPLOYMENTS, job.getName(), Paths.STATUS);
-
+			String statusPath = Paths.build(jobDeploymentPath, Paths.STATUS);
+			List<String> moduleDeploymentRequestPaths = new ArrayList<String>();
 			DeploymentUnitStatus deployingStatus = null;
 			try {
 				deployingStatus = new DeploymentUnitStatus(ZooKeeperUtils.bytesToMap(
 						client.getData().forPath(statusPath)));
-			}
-			catch (Exception e) {
-				// an exception indicates that the status has not been set
-			}
-			Assert.state(deployingStatus != null
-					&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
-					String.format("Expected 'deploying' status for job '%s'; current status: %s",
-							job.getName(), deployingStatus));
+				Assert.state(deployingStatus != null
+								&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
+						String.format("Expected 'deploying' status for job '%s'; current status: %s",
+								job.getName(), deployingStatus));
 
-			ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> provider =
-					new DefaultModuleDeploymentPropertiesProvider(job);
-
-			try {
+				ModuleDeploymentPropertiesProvider<ModuleDeploymentProperties> provider =
+						new DefaultModuleDeploymentPropertiesProvider(job);
 				Collection<ModuleDeploymentStatus> deploymentStatuses = new ArrayList<ModuleDeploymentStatus>();
 				for (ModuleDescriptor descriptor : job.getModuleDescriptors()) {
 					RuntimeModuleDeploymentProperties deploymentProperties = new RuntimeModuleDeploymentProperties();
@@ -155,13 +149,15 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 					// Modules count == 0
 					if (deploymentProperties.getCount() == 0) {
 						deploymentProperties.setSequence(0);
-						createModuleDeploymentRequestsPath(client, descriptor, deploymentProperties);
+						moduleDeploymentRequestPaths.add(
+								createModuleDeploymentRequestsPath(client, descriptor, deploymentProperties));
 					}
 					// Modules count > 0
 					else {
 						for (int i = 1; i <= deploymentProperties.getCount(); i++) {
 							deploymentProperties.setSequence(i);
-							createModuleDeploymentRequestsPath(client, descriptor, deploymentProperties);
+							moduleDeploymentRequestPaths.add(
+									createModuleDeploymentRequestsPath(client, descriptor, deploymentProperties));
 						}
 					}
 					RuntimeModuleDeploymentPropertiesProvider deploymentRuntimeProvider =
@@ -176,14 +172,19 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 					}
 
 					DeploymentUnitStatus status = stateCalculator.calculate(job, provider, deploymentStatuses);
-
 					logger.info("Deployment status for job '{}': {}", job.getName(), status);
-
 					client.setData().forPath(statusPath, ZooKeeperUtils.mapToBytes(status.toMap()));
 				}
 			}
 			catch (InterruptedException e) {
 				throw e;
+			}
+			// NoNodeException here means the job deployment status path is deleted as part of
+			// job un-deploy. Since the job un-deploy has already happened, it is ok to delete all the job
+			// deployment requests.
+			catch (KeeperException.NoNodeException e) {
+				logger.warn("The job seems to have already been un-deployed. Exiting the current deployment");
+				cleanupModuleDeploymentRequests(jobDeploymentPath, moduleDeploymentRequestPaths);
 			}
 			catch (Exception e) {
 				throw ZooKeeperUtils.wrapThrowable(e);
@@ -202,7 +203,7 @@ public class JobDeploymentListener extends InitialDeploymentListener {
 	 */
 	public void recalculateJobStates(CuratorFramework client, PathChildrenCache jobDeployments) throws Exception {
 		for (Iterator<String> iterator = new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter,
-				jobDeployments); iterator.hasNext();) {
+				jobDeployments); iterator.hasNext(); ) {
 			String jobName = iterator.next();
 			Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
 			if (job != null) {

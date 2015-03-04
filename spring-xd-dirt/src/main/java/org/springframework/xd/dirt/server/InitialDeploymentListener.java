@@ -16,11 +16,14 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.List;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +74,11 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 	 */
 	protected final DeploymentUnitStateCalculator stateCalculator;
 
+	/**
+	 * ZooKeeper connection
+	 */
+	private final ZooKeeperConnection zkConnection;
+
 
 	/**
 	 * Construct a {@code PrimaryDeploymentListener}.
@@ -92,6 +100,7 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 		this.containerRepository = containerRepository;
 		this.moduleDeploymentWriter = moduleDeploymentWriter;
 		this.stateCalculator = stateCalculator;
+		this.zkConnection = zkConnection;
 	}
 
 	/**
@@ -149,7 +158,7 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 	 * @param descriptor the module descriptor
 	 * @param deploymentProperties the runtime deployment properties
 	 */
-	protected void createModuleDeploymentRequestsPath(CuratorFramework client, ModuleDescriptor descriptor,
+	protected String createModuleDeploymentRequestsPath(CuratorFramework client, ModuleDescriptor descriptor,
 			RuntimeModuleDeploymentProperties deploymentProperties) {
 		// Create and set the data for the requested modules path
 		String requestedModulesPath = new ModuleDeploymentRequestsPath()
@@ -161,9 +170,35 @@ public abstract class InitialDeploymentListener implements PathChildrenCacheList
 		try {
 			client.create().creatingParentsIfNeeded().forPath(requestedModulesPath,
 					ZooKeeperUtils.mapToBytes(deploymentProperties));
+			return requestedModulesPath;
 		}
 		catch (Exception e) {
 			throw ZooKeeperUtils.wrapThrowable(e);
+		}
+	}
+
+	protected final void cleanupModuleDeploymentRequests(String deploymentPath, List<String> moduleDeploymentRequestPaths) {
+		// delete the stream/job deployments path that has just been created with this method.
+		try {
+			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(deploymentPath);
+		}
+		catch (KeeperException.NoNodeException e) {
+			//ignore
+		}
+		catch (Exception e1) {
+			throw ZooKeeperUtils.wrapThrowable(e1);
+		}
+		// delete all the module deployment request paths that were just added while the stream/job is un-deployed.
+		try {
+			for (String pathToDelete : moduleDeploymentRequestPaths) {
+				zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(pathToDelete);
+			}
+		}
+		catch (KeeperException.NoNodeException e) {
+			//ignore
+		}
+		catch (Exception e1) {
+			throw ZooKeeperUtils.wrapThrowable(e1);
 		}
 	}
 

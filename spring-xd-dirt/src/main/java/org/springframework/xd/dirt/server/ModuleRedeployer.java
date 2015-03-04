@@ -496,12 +496,13 @@ public abstract class ModuleRedeployer {
 
 
 	/**
-	 * Predicate used to determine if a container should be returned by {@link #match}.
+	 * Predicate used to determine if a container should be returned by {@link #containerMatcher}.
 	 */
 	private class MatchingPredicate implements Predicate<Container> {
 
 		/**
-		 * Set of container names that should <b>not</b> be returned by {@link #filterContainers}.
+		 * Set of container names that should <b>not</b> be returned by
+		 * {@link #apply(org.springframework.xd.dirt.cluster.Container)}.
 		 */
 		private final Set<String> exclusions;
 

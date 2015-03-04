@@ -117,35 +117,29 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 		// ephemeral nodes exists. The presence of this path is assumed
 		// by the supervisor when it calculates stream state when it is
 		// assigned leadership. See XD-2170 for details.
+		String streamDeploymentPath = Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName());
 		try {
-			client.create().creatingParentsIfNeeded().forPath(
-					Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.MODULES));
+			client.create().creatingParentsIfNeeded().forPath(Paths.build(streamDeploymentPath, Paths.MODULES));
 		}
 		catch (Exception e) {
 			ZooKeeperUtils.wrapAndThrowIgnoring(e, KeeperException.NodeExistsException.class);
 		}
+		String statusPath = Paths.build(streamDeploymentPath, Paths.STATUS);
 
-		String statusPath = Paths.build(Paths.STREAM_DEPLOYMENTS, stream.getName(), Paths.STATUS);
-
+		List<String> moduleDeploymentRequestPaths = new ArrayList<String>();
 		// assert that the deployment status has been correctly set to "deploying"
 		DeploymentUnitStatus deployingStatus = null;
 		try {
 			deployingStatus = new DeploymentUnitStatus(ZooKeeperUtils.bytesToMap(
 					client.getData().forPath(statusPath)));
-		}
-		catch (Exception e) {
-			// an exception indicates that the status has not been set
-		}
-		Assert.state(deployingStatus != null
-				&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
-				String.format("Expected 'deploying' status for stream '%s'; current status: %s",
-						stream.getName(), deployingStatus));
-
-		try {
+			Assert.state(deployingStatus != null
+							&& deployingStatus.getState() == DeploymentUnitStatus.State.deploying,
+					String.format("Expected 'deploying' status for stream '%s'; current status: %s",
+							stream.getName(), deployingStatus));
 			Collection<ModuleDeploymentStatus> deploymentStatuses = new ArrayList<ModuleDeploymentStatus>();
 			DefaultModuleDeploymentPropertiesProvider deploymentPropertiesProvider =
 					new DefaultModuleDeploymentPropertiesProvider(stream);
-			for (Iterator<ModuleDescriptor> descriptors = stream.getDeploymentOrderIterator(); descriptors.hasNext();) {
+			for (Iterator<ModuleDescriptor> descriptors = stream.getDeploymentOrderIterator(); descriptors.hasNext(); ) {
 				ModuleDescriptor descriptor = descriptors.next();
 				ModuleDeploymentProperties deploymentProperties = deploymentPropertiesProvider.propertiesForDescriptor(descriptor);
 
@@ -156,13 +150,13 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 						new StreamRuntimePropertiesProvider(stream, deploymentPropertiesProvider);
 				int moduleCount = deploymentProperties.getCount();
 				if (moduleCount == 0) {
-					createModuleDeploymentRequestsPath(client, descriptor,
-							partitionPropertiesProvider.propertiesForDescriptor(descriptor));
+					moduleDeploymentRequestPaths.add(createModuleDeploymentRequestsPath(client, descriptor,
+							partitionPropertiesProvider.propertiesForDescriptor(descriptor)));
 				}
 				else {
 					for (int i = 0; i < moduleCount; i++) {
-						createModuleDeploymentRequestsPath(client, descriptor,
-								partitionPropertiesProvider.propertiesForDescriptor(descriptor));
+						moduleDeploymentRequestPaths.add(createModuleDeploymentRequestsPath(client, descriptor,
+								partitionPropertiesProvider.propertiesForDescriptor(descriptor)));
 					}
 				}
 
@@ -192,6 +186,13 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 
 			client.setData().forPath(statusPath, ZooKeeperUtils.mapToBytes(status.toMap()));
 		}
+		// NoNodeException here means the stream deployment status path is deleted as part of
+		// stream un-deploy. Since the stream un-deploy has already happened, it is ok to delete all the stream
+		// deployment requests.
+		catch (KeeperException.NoNodeException e) {
+			logger.warn("The stream seems to have already been un-deployed. Exiting the current deployment");
+			cleanupModuleDeploymentRequests(streamDeploymentPath, moduleDeploymentRequestPaths);
+		}
 		catch (InterruptedException e) {
 			throw e;
 		}
@@ -210,9 +211,10 @@ public class StreamDeploymentListener extends InitialDeploymentListener {
 	 * @param streamDeployments  curator cache of stream deployments
 	 * @throws Exception
 	 */
+
 	public void recalculateStreamStates(CuratorFramework client, PathChildrenCache streamDeployments) throws Exception {
 		for (Iterator<String> iterator =
-				new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter, streamDeployments); iterator.hasNext();) {
+					 new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter, streamDeployments); iterator.hasNext(); ) {
 			String streamName = iterator.next();
 			String definitionPath = Paths.build(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
 			Stream stream = DeploymentLoader.loadStream(client, streamName, streamFactory);

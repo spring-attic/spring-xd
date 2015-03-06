@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,14 +43,13 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModuleDefinition;
 
 /**
- * {@link Resource} based implementation of {@link ModuleRegistry} that supports mutative operations as well.
+ * {@link Resource} based implementation of {@link ModuleRegistry}.
  *
- * <p>Will generate MD5 hash files for written modules. Also, while not being coupled to {@code java.io.File} access,
- * will try to sanitize file paths as much as possible.</p>
+ * <p>While not being coupled to {@code java.io.File} access, will try to sanitize file paths as much as possible.</p>
  *
  * @author Eric Bottard
  */
-public class ResourceModuleRegistry implements WritableModuleRegistry, InitializingBean {
+public class ResourceModuleRegistry implements ModuleRegistry {
 
 	/**
 	 * The extension the module 'File' must have if it's not in exploded dir format.
@@ -64,89 +63,21 @@ public class ResourceModuleRegistry implements WritableModuleRegistry, Initializ
 
 	private final static String[] SUFFIXES = new String[] {"", ARCHIVE_AS_FILE_EXTENSION};
 
-	final protected static byte[] HEX_DIGITS = "0123456789ABCDEF".getBytes();
-
-	private boolean allowWrite;
-
 	/**
 	 * Whether to require the presence of a hash file for archives. Helps preventing half-uploaded archives from
 	 * being picked up.
 	 */
 	private boolean requireHashFiles;
 
-	/**
-	 * Whether to attempt to create the directory structure at startup (disable for read-only implementations).
-	 */
-	private boolean createDirectoryStructure;
+	protected ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
-	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-
-	private String root;
+	protected String root;
 
 	public ResourceModuleRegistry(String root) {
-		this(root, false);
-	}
-
-	public ResourceModuleRegistry(String root, boolean allowWrite) {
-		this.allowWrite = this.createDirectoryStructure = this.requireHashFiles = allowWrite;
 		this.root = StringUtils.trimTrailingCharacter(root, '/');
 	}
 
-	@Override
-	public boolean delete(ModuleDefinition definition) {
-		if (!allowWrite) {
-			return false;
-		}
-		try {
-			Resource archive = getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
-			if (archive instanceof WritableResource) {
-				WritableResource writableResource = (WritableResource) archive;
-				WritableResource hashResource = (WritableResource) hashResource(writableResource);
-				// Delete hash first
-				ExtendedResource.wrap(hashResource).delete();
-				return ExtendedResource.wrap(writableResource).delete();
-			}
-			else {
-				return false;
-			}
-		}
-		catch (IOException e) {
-			throw new RuntimeIOException("Exception while trying to delete module " + definition, e);
-		}
-
-	}
-
-	@Override
-	public boolean registerNew(ModuleDefinition definition) {
-		if (!allowWrite || !(definition instanceof UploadedModuleDefinition)) {
-			return false;
-		}
-		UploadedModuleDefinition uploadedModuleDefinition = (UploadedModuleDefinition) definition;
-		try {
-			Resource archive = getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
-			if (archive instanceof WritableResource) {
-				WritableResource writableResource = (WritableResource) archive;
-				Assert.isTrue(!writableResource.exists(), "Could not install " + uploadedModuleDefinition + " at location " + writableResource + " as that file already exists");
-
-				MessageDigest md = MessageDigest.getInstance("MD5");
-				DigestInputStream dis = new DigestInputStream(uploadedModuleDefinition.getInputStream(), md);
-				FileCopyUtils.copy(dis, writableResource.getOutputStream());
-				WritableResource hashResource = (WritableResource) hashResource(writableResource);
-				// Write hash last
-				FileCopyUtils.copy(bytesToHex(md.digest()), hashResource.getOutputStream());
-
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-		catch (IOException | NoSuchAlgorithmException e) {
-			throw new RuntimeException("Error trying to save " + uploadedModuleDefinition, e);
-		}
-	}
-
-	private Resource hashResource(Resource moduleResource) throws IOException {
+	protected Resource hashResource(Resource moduleResource) throws IOException {
 		// Yes, we'd like to use Resource.createRelative() but they don't all behave in the same way...
 		String location = moduleResource.getURI().toString() + HASH_EXTENSION;
 		return sanitize(resolver.getResources(location)).iterator().next();
@@ -286,49 +217,11 @@ public class ResourceModuleRegistry implements WritableModuleRegistry, Initializ
 		}
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		if (root.startsWith("hdfs:")) {
-			ConfigurationFactoryBean configurationFactoryBean = new ConfigurationFactoryBean();
-			configurationFactoryBean.setRegisterUrlHandler(true);
-			configurationFactoryBean.setFileSystemUri(root);
-			configurationFactoryBean.afterPropertiesSet();
 
-			this.resolver = new HdfsResourceLoader(configurationFactoryBean.getObject());
-		}
-
-		if (createDirectoryStructure) {
-			// Create intermediary folders
-			for (ModuleType type : ModuleType.values()) {
-				Resource folder = getResources(type.name(), "", "").iterator().next();
-				if (!folder.exists()) {
-					ExtendedResource.wrap(folder).mkdirs();
-				}
-			}
-		}
-
-	}
 
 	public void setRequireHashFiles(boolean requireHashFiles) {
 		this.requireHashFiles = requireHashFiles;
 	}
 
-	public void setCreateDirectoryStructure(boolean createDirectoryStructure) {
-		this.createDirectoryStructure = createDirectoryStructure;
-	}
-
-	public void setAllowWrite(boolean allowWrite) {
-		this.allowWrite = allowWrite;
-	}
-
-	private byte[] bytesToHex(byte[] bytes) {
-		byte[] hexChars = new byte[bytes.length * 2];
-		for (int j = 0; j < bytes.length; j++) {
-			int v = bytes[j] & 0xFF;
-			hexChars[j * 2] = HEX_DIGITS[v >>> 4];
-			hexChars[j * 2 + 1] = HEX_DIGITS[v & 0x0F];
-		}
-		return hexChars;
-	}
 
 }

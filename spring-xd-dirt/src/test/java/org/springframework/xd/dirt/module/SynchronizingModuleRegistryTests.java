@@ -56,14 +56,14 @@ public class SynchronizingModuleRegistryTests {
 	@Rule
 	public TemporaryFolder targetBRoot = new TemporaryFolder();
 
-	private ResourceModuleRegistry sourceRegistry1;
+	private WritableResourceModuleRegistry sourceRegistry1;
 
 	// A "source" registry that will point to the same FS (simulates shared FS)
-	private ResourceModuleRegistry sourceRegistry2;
+	private WritableResourceModuleRegistry sourceRegistry2;
 
 	// Two target registries using different FS (simulates two different nodes)
-	private ResourceModuleRegistry targetRegistry1;
-	private ResourceModuleRegistry targetRegistry2;
+	private WritableResourceModuleRegistry targetRegistry1;
+	private WritableResourceModuleRegistry targetRegistry2;
 
 
 	private SynchronizingModuleRegistry synch1;
@@ -74,11 +74,11 @@ public class SynchronizingModuleRegistryTests {
 
 	@Before
 	public void setup() throws Exception {
-		sourceRegistry1 = new ResourceModuleRegistry(sourceRoot.getRoot().toURI().toString(), true);
-		sourceRegistry2 = new ResourceModuleRegistry(sourceRoot.getRoot().toURI().toString(), true);
+		sourceRegistry1 = new WritableResourceModuleRegistry(sourceRoot.getRoot().toURI().toString());
+		sourceRegistry2 = new WritableResourceModuleRegistry(sourceRoot.getRoot().toURI().toString());
 
-		targetRegistry1 = new ResourceModuleRegistry(targetARoot.getRoot().toURI().toString(), true);
-		targetRegistry2 = new ResourceModuleRegistry(targetBRoot.getRoot().toURI().toString(), true);
+		targetRegistry1 = new WritableResourceModuleRegistry(targetARoot.getRoot().toURI().toString());
+		targetRegistry2 = new WritableResourceModuleRegistry(targetBRoot.getRoot().toURI().toString());
 
 		sourceRegistry1.afterPropertiesSet();
 		sourceRegistry2.afterPropertiesSet();

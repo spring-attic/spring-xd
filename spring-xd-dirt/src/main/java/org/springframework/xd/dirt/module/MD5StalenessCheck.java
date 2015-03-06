@@ -31,7 +31,7 @@ import org.springframework.xd.module.SimpleModuleDefinition;
  * A {@link org.springframework.xd.dirt.module.StalenessCheck} that expects to find a {@code .md5} file next to a
  * module archive and returns true if the computed hashes differ.
  *
- * @see org.springframework.xd.dirt.module.ResourceModuleRegistry
+ * @see WritableResourceModuleRegistry
  * @since 1.2
  * @author Eric Bottard
  */

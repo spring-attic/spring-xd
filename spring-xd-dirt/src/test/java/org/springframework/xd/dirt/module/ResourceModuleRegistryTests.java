@@ -40,7 +40,7 @@ import org.springframework.xd.module.ModuleType;
 
 
 /**
- * Tests that {@link ResourceModuleRegistry} behaves as expected with well known {@link Resource} abstractions.
+ * Tests that {@link WritableResourceModuleRegistry} behaves as expected with well known {@link Resource} abstractions.
  * 
  * @author Eric Bottard
  */

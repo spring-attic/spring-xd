@@ -39,9 +39,9 @@ import org.springframework.xd.module.ModuleType;
  *
  * @author Eric Bottard
  */
-public class ResourceModuleRegistryLogicTests {
+public class WritableResourceModuleRegistryLogicTests {
 
-	private WritableModuleRegistry registry = new ResourceModuleRegistry("file:src/test/resources/ResourceModuleRegistryLogicTests-modules/");
+	private ModuleRegistry registry = new ResourceModuleRegistry("file:src/test/resources/ResourceModuleRegistryLogicTests-modules/");
 
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
@@ -66,12 +66,12 @@ public class ResourceModuleRegistryLogicTests {
 
 	@Test
 	public void testDeleteAsJarFile() throws IOException {
-		registry = new ResourceModuleRegistry(tempPath(), true);
+		WritableModuleRegistry writableModuleRegistry = new WritableResourceModuleRegistry(tempPath());
 		File processors = temp.newFolder("processor");
 		org.springframework.util.Assert.isTrue(new File(processors, "foo.jar").createNewFile(), "could not create dummy file");
 
 
-		org.springframework.util.Assert.isTrue(registry.delete(ModuleDefinitions.dummy("foo", processor)));
+		org.springframework.util.Assert.isTrue(writableModuleRegistry.delete(ModuleDefinitions.dummy("foo", processor)));
 	}
 
 	private String tempPath() {

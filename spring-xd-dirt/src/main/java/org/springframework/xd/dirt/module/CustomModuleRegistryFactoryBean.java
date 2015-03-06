@@ -66,16 +66,16 @@ public class CustomModuleRegistryFactoryBean implements FactoryBean<WritableModu
 	public void afterPropertiesSet() throws Exception {
 		Matcher matcher = NO_SYNCHRONIZATION_PATTERN.matcher(root);
 		if (matcher.matches()) {
-			registry = new ResourceModuleRegistry(root, true);
-			((ResourceModuleRegistry)registry).afterPropertiesSet();
+			registry = new WritableResourceModuleRegistry(root);
+			((WritableResourceModuleRegistry)registry).afterPropertiesSet();
 			logger.info("Custom modules will be written directly to {}", root);
 		}
 		else {
 			String localRoot = "file:" + Files.createTempDirectory("spring-xd-custom-modules");
-			ResourceModuleRegistry local = new ResourceModuleRegistry(localRoot, true);
+			WritableResourceModuleRegistry local = new WritableResourceModuleRegistry(localRoot);
 			local.afterPropertiesSet();
 
-			ResourceModuleRegistry remote = new ResourceModuleRegistry(root, true);
+			WritableResourceModuleRegistry remote = new WritableResourceModuleRegistry(root);
 			remote.afterPropertiesSet();
 
 			registry = new SynchronizingModuleRegistry(remote, local);

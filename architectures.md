@@ -45,7 +45,7 @@ Telco service providers would like to be equipped with data platform to learn fr
 
 <img src="img/architectures-telco.png"/>
 
-<img src="img/architectures-telco2.png"/>
+<img src="img/architectures-telco-v3.png"/>
 
 ### Problem
 Growing addition to network protocols, data formats, and the need to generate context specific customer outcomes in real-time is very challenging.
@@ -67,7 +67,7 @@ Medical professionals would like to get access to historical data in order to co
 ### Problem
 Digital collection, storing and analysis of health records are cumbersome and equally challenging is protecting patient health records.
 
-<img src="img/architectures-healthcare-v2.png"/>
+<img src="img/architectures-healthcare-v3.png"/>
 
 ### Solution
 Data pipelines in Spring XD are designed to isolate data movement and at the same time protect the information through enterprise-grade security features such as SSL handshakes, LDAP and Kerberos. Spring XD can be used to collate data from various client endpoints (ex: medical implants, hospital devices, HL7 standards, clinical equipment), store them in easily accessible data-marts, and run analytics to compute real-time predictions.

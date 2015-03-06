@@ -696,8 +696,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		for (Map.Entry<Object, Long> entry : channelsToAck.entrySet()) {
 			try {
-				Channel channel = (Channel) entry.getKey();
-				channel.basicAck(entry.getValue(), true);
+				((Channel) entry.getKey()).basicAck(entry.getValue(), true);
 			}
 			catch (IOException e) {
 				logger.error("Exception while manually acknowledging " + e);

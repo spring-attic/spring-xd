@@ -145,7 +145,7 @@ class MessageBusReceiver extends Receiver {
 					headersListToAck.add(headersList.take());
 				}
 				catch (InterruptedException ie) {
-					logger.error("Interrupted exception while getting message headers from the local blocking queue.");
+					Thread.currentThread().interrupt();
 				}
 			}
 			((MessageBusSupport) messageBus).doManualAck(headersListToAck);
@@ -175,7 +175,7 @@ class MessageBusReceiver extends Receiver {
 				headersList.put(message.getHeaders());
 			}
 			catch (InterruptedException ie) {
-				logger.error("Interrupted exception while adding message headers to local blocking queue.");
+				Thread.currentThread().interrupt();
 			}
 			blockGenerator.addDataWithCallback(message.getPayload(), message.getHeaders());
 			return true;

@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -153,8 +155,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 	private static final int DEFAULT_REQUIRED_ACKS = 1;
 
 	private RetryOperations retryOperations;
-
-	private Map<String, Map<Partition, Long>> messagesForManualAck = new HashMap<String, Map<Partition, Long>>();
 
 	/**
 	 * Used when writing directly to ZK. This is what Kafka expects.
@@ -649,6 +649,45 @@ public class KafkaMessageBus extends MessageBusSupport {
 		return messageListenerContainer;
 	}
 
+	@Override
+	public void doManualAck(LinkedList<MessageHeaders> messageHeadersList) {
+		Iterator<MessageHeaders> iterator = messageHeadersList.iterator();
+		Map<String, Map<Partition, Long>> messagesForManualAck = new HashMap<String, Map<Partition, Long>>();
+		while(iterator.hasNext()) {
+			MessageHeaders headers = iterator.next();
+			String topic = (String) headers.get(KafkaHeaders.TOPIC);
+			Partition partition = new Partition(topic, (int) headers.get(KafkaHeaders.PARTITION_ID));
+			Long offset = (Long) headers.get(KafkaHeaders.OFFSET);
+			Map<Partition, Long> currentTopicData = messagesForManualAck.get(topic);
+			if (currentTopicData == null) {
+				Map<Partition, Long> mapData = new HashMap<Partition, Long>();
+				mapData.put(partition, offset);
+				messagesForManualAck.put(topic, mapData);
+			}
+			// There is a caveat here. If the offset for the current message is greater than any of the
+			// unacknowledged messages then, we would incorrectly update the offset and there by missing those messages.
+			// But, as long as we maintain the strict ordering of receiving/processing messages from each partition, this
+			// situation can be avoided.
+			else if (currentTopicData != null && currentTopicData.get(partition) < offset) {
+				currentTopicData.put(partition, offset);
+			}
+		}
+		// do nothing if the existing offset is already greater than current offset
+		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
+				Collections.<Partition, Long>emptyMap());
+		try {
+			offsetManager.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		for (Map.Entry<String, Map<Partition, Long>> mapEntry : messagesForManualAck.entrySet()) {
+			for (Map.Entry<Partition, Long> topicData: mapEntry.getValue().entrySet()) {
+				offsetManager.updateOffset(topicData.getKey(), topicData.getValue());
+			}
+		}
+	}
+
 	private class KafkaPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
 		public KafkaPropertiesAccessor(Properties properties) {
@@ -804,45 +843,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 			return result;
 		}
 
-	}
-
-	@Override
-	public void storeForManualAck(MessageHeaders headers) {
-		String topic = (String) headers.get(KafkaHeaders.TOPIC);
-		Partition partition = new Partition(topic, (int) headers.get(KafkaHeaders.PARTITION_ID));
-		Long offset = (Long) headers.get(KafkaHeaders.OFFSET);
-		Map<Partition, Long> currentTopicData = messagesForManualAck.get(topic);
-		if (currentTopicData == null) {
-			Map<Partition, Long> mapData = new HashMap<Partition, Long>();
-			mapData.put(partition, offset);
-			messagesForManualAck.put(topic, mapData);
-		}
-		// There is a caveat here. If the offset for the current message is greater than any of the
-		// unacknowledged messages then, we would incorrectly update the offset and there by missing those messages.
-		// But, as long as we maintain the strict ordering of receiving/processing messages from each partition, this
-		// situation can be avoided.
-		else if (currentTopicData != null && currentTopicData.get(partition) < offset) {
-			currentTopicData.put(partition, offset);
-		}
-		// do nothing if the existing offset is already greater than current offset
-	}
-
-	@Override
-	public void doManualAck() {
-		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
-				Collections.<Partition, Long>emptyMap());
-		try {
-			offsetManager.afterPropertiesSet();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		for (Map<Partition, Long> topicData : messagesForManualAck.values()) {
-			for (Partition partition : topicData.keySet()) {
-				offsetManager.updateOffset(partition, topicData.get(partition));
-			}
-			messagesForManualAck.clear();
-		}
 	}
 
 }

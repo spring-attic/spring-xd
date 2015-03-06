@@ -56,9 +56,8 @@ class MessageBusConfiguration {
 	 */
 	static ConfigurableApplicationContext createApplicationContext(final Properties properties) {
 		String transport = properties.getProperty("XD_TRANSPORT");
-		if (properties.getProperty(RABBIT_ACKMODE_PROPERTY) != null) {
-			properties.setProperty(RABBIT_ACKMODE_PROPERTY, "MANUAL");
-		}
+		// Set Rabbit message bus acknowledgement mode to 'MANUAL'
+		properties.setProperty(RABBIT_ACKMODE_PROPERTY, "MANUAL");
 		properties.setProperty("isKafkaAutoCommitEnabled", "false");
 		SpringApplicationBuilder application = new SpringApplicationBuilder()
 				.sources(MessageBusConfiguration.class)

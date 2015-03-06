@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -271,7 +274,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private static final ExpressionParser expressionParser =
 			new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
-	private Map<Object, Long> channelsForManualAck = new HashMap<Object, Long>();
+	private LinkedHashMap<Object, Long> channelsForManualAck = new LinkedHashMap<Object, Long>();
+
+	private long manualAckMessageIndex = 0;
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -678,22 +683,20 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
-	public void storeForManualAck(MessageHeaders headers) {
-		if (headers.containsKey(AmqpHeaders.CHANNEL)) {
-			Channel channel = (com.rabbitmq.client.Channel) headers.get(AmqpHeaders.CHANNEL);
-			Long deliveryTag = (Long) headers.get(AmqpHeaders.DELIVERY_TAG);
-			if (channelsForManualAck.containsKey(channel) && (channelsForManualAck.get(channel) < deliveryTag)) {
-				channelsForManualAck.put(channel, deliveryTag);
-			}
-			else {
-				channelsForManualAck.put(channel, deliveryTag);
+	public void doManualAck(LinkedList<MessageHeaders> messageHeadersList) {
+		Iterator<MessageHeaders> iterator = messageHeadersList.iterator();
+		Map<Object, Long> channelsToAck = new HashMap<Object, Long>();
+		while(iterator.hasNext()) {
+			MessageHeaders messageHeaders = iterator.next();
+			if (messageHeaders.containsKey(AmqpHeaders.CHANNEL)) {
+				Channel channel = (com.rabbitmq.client.Channel) messageHeaders.get(AmqpHeaders.CHANNEL);
+				Long deliveryTag = (Long) messageHeaders.get(AmqpHeaders.DELIVERY_TAG);
+				// todo: If the order of messages isn't preserved in spite of storing the incoming
+				// todo: messages into LinkedList, how do we handle the deliveryTag?
+				channelsToAck.put(channel, deliveryTag);
 			}
 		}
-	}
-
-	@Override
-	public void doManualAck() {
-		for (Map.Entry<Object, Long> entry : channelsForManualAck.entrySet()) {
+		for (Map.Entry<Object, Long> entry : channelsToAck.entrySet()) {
 			try {
 				Channel channel = (Channel) entry.getKey();
 				channel.basicAck(entry.getValue(), true);
@@ -702,7 +705,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				logger.error("Exception while manually acknowledging " + e);
 			}
 		}
-		channelsForManualAck.clear();
 	}
 
 	private class SendingHandler extends AbstractMessageHandler implements Lifecycle {

@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.plugins.spark.streaming;
 
+import java.util.LinkedList;
 import java.util.Properties;
 
 import org.apache.spark.SparkConf;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
@@ -69,6 +71,7 @@ class MessageBusReceiver extends Receiver {
 
 	private BlockGenerator blockGenerator = null;
 
+	private LinkedList<MessageHeaders> headersList = new LinkedList<MessageHeaders>();
 
 	public MessageBusReceiver(StorageLevel storageLevel, Properties messageBusProperties,
 			Properties moduleConsumerProperties, MimeType contentType) {
@@ -135,11 +138,15 @@ class MessageBusReceiver extends Receiver {
 
 		public void onPushBlock(StreamBlockId streamBlockId, ArrayBuffer<?> dataBuffer) {
 			store(dataBuffer);
-			((MessageBusSupport) messageBus).doManualAck();
+			LinkedList<MessageHeaders> headersListToAck = new LinkedList<MessageHeaders>();
+			for (int i = 0; i < dataBuffer.size(); i++) {
+				headersListToAck.add(headersList.pop());
+			}
+			((MessageBusSupport) messageBus).doManualAck(headersListToAck);
 		}
 
 		public void onGenerateBlock(StreamBlockId blockId) {
-			logger.debug("Generated block "+ blockId);
+			logger.debug("Generated block " + blockId);
 		}
 	}
 
@@ -159,7 +166,7 @@ class MessageBusReceiver extends Receiver {
 		@Override
 		protected boolean doSend(Message<?> message, long timeout) {
 			blockGenerator.addDataWithCallback(message.getPayload(), message.getHeaders());
-			((MessageBusSupport) messageBus).storeForManualAck(message.getHeaders());
+			headersList.add(message.getHeaders());
 			return true;
 		}
 	}

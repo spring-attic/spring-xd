@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -1105,18 +1107,9 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * No op method that can be implemented by specific message bus to store message headers to acknowledge
-	 * the messages manually later.
-	 *
-	 * @param messageHeaders the message headers
-	 */
-	public void storeForManualAck(MessageHeaders messageHeaders) {
-	}
-
-	/**
 	 * Perform manual acknowledgement based on the metadata stored in message bus.
 	 */
-	public void doManualAck() {
+	public void doManualAck(LinkedList<MessageHeaders> messageHeaders) {
 	}
 
 }

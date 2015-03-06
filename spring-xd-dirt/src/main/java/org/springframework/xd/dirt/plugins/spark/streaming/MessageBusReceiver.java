@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.plugins.spark.streaming;
 
 import java.util.LinkedList;
 import java.util.Properties;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.storage.StorageLevel;
@@ -71,7 +72,7 @@ class MessageBusReceiver extends Receiver {
 
 	private BlockGenerator blockGenerator = null;
 
-	private LinkedList<MessageHeaders> headersList = new LinkedList<MessageHeaders>();
+	private LinkedBlockingQueue<MessageHeaders> headersList = new LinkedBlockingQueue<MessageHeaders>();
 
 	public MessageBusReceiver(StorageLevel storageLevel, Properties messageBusProperties,
 			Properties moduleConsumerProperties, MimeType contentType) {
@@ -140,7 +141,12 @@ class MessageBusReceiver extends Receiver {
 			store(dataBuffer);
 			LinkedList<MessageHeaders> headersListToAck = new LinkedList<MessageHeaders>();
 			for (int i = 0; i < dataBuffer.size(); i++) {
-				headersListToAck.add(headersList.pop());
+				try {
+					headersListToAck.add(headersList.take());
+				}
+				catch (InterruptedException ie) {
+					logger.error("Interrupted exception while getting message headers from the local blocking queue.");
+				}
 			}
 			((MessageBusSupport) messageBus).doManualAck(headersListToAck);
 		}
@@ -164,9 +170,14 @@ class MessageBusReceiver extends Receiver {
 		}
 
 		@Override
-		protected boolean doSend(Message<?> message, long timeout) {
+		protected synchronized boolean doSend(Message<?> message, long timeout) {
+			try {
+				headersList.put(message.getHeaders());
+			}
+			catch (InterruptedException ie) {
+				logger.error("Interrupted exception while adding message headers to local blocking queue.");
+			}
 			blockGenerator.addDataWithCallback(message.getPayload(), message.getHeaders());
-			headersList.add(message.getHeaders());
 			return true;
 		}
 	}

@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.server;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -32,7 +31,7 @@ import org.springframework.util.Assert;
  */
 public abstract class ApplicationUtils {
 
-	static ApplicationListener<?>[] mergeApplicationListeners(ApplicationListener<?> applicationListener,
+	public static ApplicationListener<?>[] mergeApplicationListeners(ApplicationListener<?> applicationListener,
 			ApplicationListener<?>[] applicationListeners) {
 		Assert.notEmpty(applicationListeners, "applicationListeners[] must contain at least one item");
 		int newLength = applicationListeners.length + 1;

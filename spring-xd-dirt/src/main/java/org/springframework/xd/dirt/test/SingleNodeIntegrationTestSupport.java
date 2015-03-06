@@ -32,7 +32,7 @@ import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.StreamDeployer;
+import org.springframework.xd.dirt.stream.ZKStreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -61,7 +61,7 @@ public class SingleNodeIntegrationTestSupport {
 
 	private final JobRepository jobRepository;
 
-	private final StreamDeployer streamDeployer;
+	private final ZKStreamDeployer streamDeployer;
 
 	private final MessageBusSupport messageBus;
 
@@ -92,7 +92,7 @@ public class SingleNodeIntegrationTestSupport {
 		jobRepository = application.pluginContext().getBean(JobRepository.class);
 		streamResourceStateVerifier = new ResourceStateVerifier(streamRepository, streamDefinitionRepository);
 		jobResourceStateVerifier = new ResourceStateVerifier(jobRepository, jobDefinitionRepository);
-		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
+		streamDeployer = application.adminContext().getBean(ZKStreamDeployer.class);
 		messageBus = application.pluginContext().getBean(MessageBusSupport.class);
 		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
 		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
@@ -116,7 +116,7 @@ public class SingleNodeIntegrationTestSupport {
 		return moduleDeployer.getDeployedModules();
 	}
 
-	public final StreamDeployer streamDeployer() {
+	public final ZKStreamDeployer streamDeployer() {
 		return streamDeployer;
 	}
 

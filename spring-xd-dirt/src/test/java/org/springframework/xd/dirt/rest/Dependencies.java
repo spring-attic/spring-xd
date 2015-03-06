@@ -43,8 +43,8 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
-import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.module.ModuleDefinitionService;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.WritableModuleRegistry;
@@ -52,10 +52,14 @@ import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
 import org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentHandler;
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentMessage;
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentMessagePublisher;
+import org.springframework.xd.dirt.server.admin.deployment.zk.DeploymentMessageConsumer;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
-import org.springframework.xd.dirt.stream.JobDeployer;
+import org.springframework.xd.dirt.stream.ZKJobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.StreamDeployer;
+import org.springframework.xd.dirt.stream.ZKStreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobDefinitionRepository;
@@ -140,9 +144,9 @@ public class Dependencies {
 	}
 
 	@Bean
-	public JobDeployer jobDeployer() {
-		return new JobDeployer(zooKeeperConnection(), jobDefinitionRepository(), xdJobRepository(), parser(),
-				messageBus());
+	public ZKJobDeployer jobDeployer() {
+		return new ZKJobDeployer(zooKeeperConnection(), jobDefinitionRepository(), xdJobRepository(), parser(),
+				messageBus(), deploymentHandler());
 	}
 
 	@Bean
@@ -173,8 +177,9 @@ public class Dependencies {
 	}
 
 	@Bean
-	public StreamDeployer streamDeployer() {
-		return new StreamDeployer(zooKeeperConnection(), streamDefinitionRepository(), streamRepository(), parser());
+	public ZKStreamDeployer streamDeployer() {
+		return new ZKStreamDeployer(zooKeeperConnection(), streamDefinitionRepository(), streamRepository(), parser(),
+				deploymentHandler());
 	}
 
 	@Bean
@@ -240,5 +245,37 @@ public class Dependencies {
 	@Bean
 	public ExecutionContextDao executionContextDao() {
 		return mock(JdbcExecutionContextDao.class);
+	}
+
+	@Bean
+	public DeploymentMessagePublisher DeploymentMessageProducer() {
+		return new DeploymentMessagePublisher() {
+
+			DeploymentMessageConsumer consumer = new DeploymentMessageConsumer();
+			@Override
+			public void publishDeploymentMessage(DeploymentMessage deploymentMessage) {
+				try {
+					consumer.consumeMessage(deploymentMessage, streamDeployer(), jobDeployer());
+				}
+				catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		};
+	}
+
+	@Bean
+	public DeploymentHandler deploymentHandler() {
+		return new DeploymentHandler() {
+			@Override
+			public void deploy(String deploymentUnitName) throws Exception {
+
+			}
+
+			@Override
+			public void undeploy(String deploymentUnitName) throws Exception {
+
+			}
+		};
 	}
 }

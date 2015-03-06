@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
+import org.springframework.xd.dirt.server.container.ContainerServerApplication;
 import org.springframework.xd.dirt.util.RuntimeUtils;
 
 

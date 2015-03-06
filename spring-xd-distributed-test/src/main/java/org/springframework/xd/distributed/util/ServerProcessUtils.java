@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
-import org.springframework.xd.dirt.server.AdminServerApplication;
-import org.springframework.xd.dirt.server.ContainerServerApplication;
+import org.springframework.xd.dirt.server.admin.AdminServerApplication;
+import org.springframework.xd.dirt.server.container.ContainerServerApplication;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.DetailedContainerResource;
 

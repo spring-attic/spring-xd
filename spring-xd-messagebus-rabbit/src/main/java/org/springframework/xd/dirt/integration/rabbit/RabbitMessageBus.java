@@ -691,8 +691,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			if (messageHeaders.containsKey(AmqpHeaders.CHANNEL)) {
 				Channel channel = (com.rabbitmq.client.Channel) messageHeaders.get(AmqpHeaders.CHANNEL);
 				Long deliveryTag = (Long) messageHeaders.get(AmqpHeaders.DELIVERY_TAG);
-				// todo: If the order of messages isn't preserved in spite of storing the incoming
-				// todo: messages into LinkedList, how do we handle the deliveryTag?
 				channelsToAck.put(channel, deliveryTag);
 			}
 		}

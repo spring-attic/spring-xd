@@ -108,6 +108,11 @@ public class Paths {
 	public static final String STATUS = "status";
 
 	/**
+	 * Name of the queue node.
+	 */
+	public static final String QUEUE = "queue";
+
+	/**
 	 * Name of module deployments node. Module deployment requests for
 	 * individual containers are written as children of this node.
 	 */
@@ -124,6 +129,11 @@ public class Paths {
 	 * as children of this node.
 	 */
 	public static final String JOB_DEPLOYMENTS = DEPLOYMENTS + '/' + JOBS;
+
+	/**
+	 * Name of the stream deployment queue path.
+	 */
+	public static final String DEPLOYMENT_QUEUE = QUEUE  + '/' + DEPLOYMENTS;
 
 	/**
 	 * Strip path information from a string. For example, given an input of

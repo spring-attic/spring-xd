@@ -26,6 +26,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentHandler;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -45,9 +46,9 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 	private final ConcurrentMap<String, MessageChannel> jobChannels = new ConcurrentHashMap<String, MessageChannel>();
 
 	public JobDeployer(ZooKeeperConnection zkConnection, JobDefinitionRepository definitionRepository,
-			JobRepository instanceRepository,
-			XDParser parser, MessageBus messageBus) {
-		super(zkConnection, definitionRepository, instanceRepository, parser, job);
+			JobRepository instanceRepository, XDParser parser, MessageBus messageBus,
+			DeploymentHandler deploymentHandler) {
+		super(zkConnection, definitionRepository, instanceRepository, parser, deploymentHandler, job);
 		Assert.notNull(messageBus, "MessageBus must not be null");
 		this.messageBus = messageBus;
 	}

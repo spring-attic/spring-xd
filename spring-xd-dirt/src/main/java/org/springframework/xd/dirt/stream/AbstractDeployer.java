@@ -36,12 +36,12 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.dirt.core.DeploymentValidator;
 import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
@@ -55,7 +55,7 @@ import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
  * @author Andy Clement
  * @author David Turanski
  */
-public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
+public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D>, DeploymentValidator {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
 
@@ -103,6 +103,18 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 		D savedDefinition = repository.save(definition);
 		return afterSave(savedDefinition);
+	}
+
+
+	@Override
+	public void validateBeforeSave(String name, String definition) {
+		Assert.hasText(name, "name cannot be blank or null");
+		D definitionFromRepo = getDefinitionRepository().findOne(name);
+		if (definitionFromRepo != null) {
+			throwDefinitionAlreadyExistsException(definitionFromRepo);
+		}
+		Assert.notNull(definition, "Definition may not be null");
+		parser.parse(name, definition, definitionKind);
 	}
 
 	/**
@@ -260,6 +272,14 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	protected abstract String getDeploymentPath(D definition);
 
 	@Override
+	public void validateBeforeDelete(String name) {
+		D def = getDefinitionRepository().findOne(name);
+		if (def == null) {
+			throwNoSuchDefinitionException(name);
+		}
+	}
+
+	@Override
 	public void delete(String name) {
 		D def = getDefinitionRepository().findOne(name);
 		if (def == null) {
@@ -274,5 +294,4 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 */
 	protected void beforeDelete(D definition) {
 	}
-
 }

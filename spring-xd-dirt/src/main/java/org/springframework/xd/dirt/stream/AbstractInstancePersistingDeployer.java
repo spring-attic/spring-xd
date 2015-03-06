@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentException;
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentHandler;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.store.DomainRepository;
 
@@ -42,14 +44,17 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractInstancePersistingDeployer.class);
 
-	protected DomainRepository<I, String> instanceRepository;
+	protected final DomainRepository<I, String> instanceRepository;
+
+	protected final DeploymentHandler deploymentHandler;
 
 	protected AbstractInstancePersistingDeployer(ZooKeeperConnection zkConnection,
 			PagingAndSortingRepository<D, String> definitionRespository,
 			DomainRepository<I, String> instanceRepository, XDParser parser,
-			ParsingContext definitionKind) {
+			DeploymentHandler deploymentHandler, ParsingContext definitionKind) {
 		super(zkConnection, definitionRespository, parser, definitionKind);
 		this.instanceRepository = instanceRepository;
+		this.deploymentHandler = deploymentHandler;
 	}
 
 	@Override
@@ -75,7 +80,7 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 		}
 
 		instanceRepository.delete(instance);
-
+		undeployResource(name);
 	}
 
 	@Override
@@ -92,6 +97,7 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 
 		final I instance = makeInstance(definition);
 		instanceRepository.save(instance);
+		deployResource(name);
 	}
 
 	@Override
@@ -130,5 +136,61 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 	 * Create an running instance out of the given definition;
 	 */
 	protected abstract I makeInstance(D definition);
+
+	/**
+	 * Deploy the deployment unit with the given name.
+	 *
+	 * @param deploymentUnitName the deployment unit name
+	 */
+	protected final void deployResource(String deploymentUnitName) {
+		try {
+			deploymentHandler.deploy(deploymentUnitName);
+		}
+		catch (Exception e) {
+			throw new DeploymentException(deploymentUnitName, e);
+		}
+	}
+
+	/**
+	 * Un-deploy the deployment unit with the given name
+	 *
+	 * @param deploymentUnitName the deployment unit name
+	 */
+	protected final void undeployResource(String deploymentUnitName) {
+		try {
+			deploymentHandler.undeploy(deploymentUnitName);
+		}
+		catch (Exception e) {
+			throw new DeploymentException(deploymentUnitName, e);
+		}
+	}
+
+	@Override
+	public void validateBeforeUndeploy(String name) {
+		Assert.hasText(name, "name cannot be blank or null");
+
+		D definition = getDefinitionRepository().findOne(name);
+		if (definition == null) {
+			throwNoSuchDefinitionException(name);
+		}
+
+		final I instance = instanceRepository.findOne(name);
+		if (instance == null) {
+			throwNotDeployedException(name);
+		}
+	}
+
+	@Override
+	public void validateBeforeDeploy(String name, Map<String, String> properties) {
+		Assert.hasText(name, "name cannot be blank or null");
+		Assert.notNull(properties, "properties cannot be null");
+		D definition = getDefinitionRepository().findOne(name);
+		if (definition == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		if (instanceRepository.exists(name)) {
+			throwAlreadyDeployedException(name);
+		}
+	}
 
 }

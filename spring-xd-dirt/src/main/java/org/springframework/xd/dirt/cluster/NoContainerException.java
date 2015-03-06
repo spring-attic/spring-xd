@@ -21,7 +21,7 @@ package org.springframework.xd.dirt.cluster;
  * Exception thrown when there are no containers available
  * for module deployment.
  *
- * @see org.springframework.xd.dirt.server.ModuleDeploymentWriter
+ * @see org.springframework.xd.dirt.server.admin.deployment.zk.ModuleDeploymentWriter
  *
  * @author Patrick Peralta
  */

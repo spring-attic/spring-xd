@@ -29,7 +29,7 @@ import org.springframework.xd.dirt.cluster.AdminAttributes;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.ApplicationUtils;
-import org.springframework.xd.dirt.server.ContainerRegistrar;
+import org.springframework.xd.dirt.server.container.ContainerRegistrar;
 import org.springframework.xd.dirt.util.RuntimeUtils;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.core.Plugin;

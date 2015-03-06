@@ -140,12 +140,12 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	public void testDeleteComposedModuleUsedByStream() {
+	public void testDeleteComposedModuleUsedByStream() throws Exception {
 		module().compose("myhttp", "http | filter");
-		executeCommand("stream create foo --definition \"myhttp | log\" --deploy false");
+		stream().createDontDeploy("foo", "myhttp | log");
 		assertFalse(module().delete("myhttp", ModuleType.source));
 		// Now deleting blocking stream
-		executeCommand("stream destroy foo");
+		stream().destroyStream("foo");
 		assertTrue(module().delete("myhttp", ModuleType.source));
 	}
 

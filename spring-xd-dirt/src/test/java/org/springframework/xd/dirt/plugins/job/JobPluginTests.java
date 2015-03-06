@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +16,14 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.integration.test.matcher.PayloadMatcher.*;
-import static org.springframework.xd.module.options.spi.ModulePlaceholders.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME_KEY;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,9 +59,8 @@ import org.springframework.validation.BindException;
 import org.springframework.xd.batch.hsqldb.server.HsqlDatasourceConfiguration;
 import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
-import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.util.XdProfiles;
+import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;

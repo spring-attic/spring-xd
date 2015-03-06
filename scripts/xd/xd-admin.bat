@@ -114,7 +114,7 @@ set SPRING_XD_OPTS=%SPRING_XD_OPTS% -Dxd.module.config.location=%XD_MODULE_CONFI
 set XD_HOME=%XD_HOME:"=%
 
 @rem Execute xd-admin
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_OPTS% -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.AdminServerApplication %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_OPTS% -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.admin.AdminServerApplication %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

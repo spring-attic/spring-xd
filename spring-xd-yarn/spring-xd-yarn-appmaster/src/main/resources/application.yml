@@ -29,7 +29,7 @@ spring:
                             memory: "${xd.adminMemory:512M}"
                             virtualCores: 1
                         launchcontext:
-                            runnerClass: org.springframework.xd.dirt.server.AdminServerApplication
+                            runnerClass: org.springframework.xd.dirt.server.admin.AdminServerApplication
                             locality: "${xd.adminLocality:false}"
                             useYarnAppClasspath: true
                             useMapreduceAppClasspath: true
@@ -55,7 +55,7 @@ spring:
                             memory: "${xd.containerMemory:512M}"
                             virtualCores: 1
                         launchcontext:
-                            runnerClass: org.springframework.xd.dirt.server.ContainerServerApplication
+                            runnerClass: org.springframework.xd.dirt.server.container.ContainerServerApplication
                             locality: "${xd.containerLocality:false}"
                             useYarnAppClasspath: true
                             useMapreduceAppClasspath: true
@@ -80,7 +80,7 @@ spring:
                             memory: "${xd.adminMemory:512M}"
                             virtualCores: 1
                         launchcontext:
-                            runnerClass: org.springframework.xd.dirt.server.AdminServerApplication
+                            runnerClass: org.springframework.xd.dirt.server.admin.AdminServerApplication
                             locality: false
                             useYarnAppClasspath: true
                             useMapreduceAppClasspath: true
@@ -102,7 +102,7 @@ spring:
                             memory: "${xd.adminMemory:512M}"
                             virtualCores: 1
                         launchcontext:
-                            runnerClass: org.springframework.xd.dirt.server.AdminServerApplication
+                            runnerClass: org.springframework.xd.dirt.server.admin.AdminServerApplication
                             locality: true
                             useYarnAppClasspath: true
                             useMapreduceAppClasspath: true
@@ -124,7 +124,7 @@ spring:
                             memory: "${xd.containerMemory:512M}"
                             virtualCores: 1
                         launchcontext:
-                            runnerClass: org.springframework.xd.dirt.server.ContainerServerApplication
+                            runnerClass: org.springframework.xd.dirt.server.container.ContainerServerApplication
                             locality: false
                             useYarnAppClasspath: true
                             useMapreduceAppClasspath: true
@@ -149,7 +149,7 @@ spring:
                             memory: "${xd.containerMemory:512M}"
                             virtualCores: 1
                         launchcontext:
-                            runnerClass: org.springframework.xd.dirt.server.ContainerServerApplication
+                            runnerClass: org.springframework.xd.dirt.server.container.ContainerServerApplication
                             locality: true
                             useYarnAppClasspath: true
                             useMapreduceAppClasspath: true

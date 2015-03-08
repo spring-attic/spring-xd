@@ -76,11 +76,10 @@
 
 		<bean id="offsetManager" class="org.springframework.integration.kafka.listener.MetadataStoreOffsetManager">
 			<constructor-arg index="0" ref="connectionFactory"/>
-			<constructor-arg index="1" value="${topic}"/>
-			<constructor-arg index="2" ref="initialOffsetsMap"/>
+			<constructor-arg index="1" ref="initialOffsetsMap"/>
 			<property name="consumerId" value="${groupId}"/>
 			<property name="metadataStore" ref="namespaceMetadataStore"/>
-			<property name="referenceTimestamp" value="#{autoOffsetReset.code}"/>
+			<property name="referenceTimestamp" value="${autoOffsetResetValue}"/>
 		</bean>
 	</beans>
 

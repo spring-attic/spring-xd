@@ -13,6 +13,7 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,7 +39,6 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
@@ -61,8 +61,8 @@ import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
-import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
+import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -329,9 +329,12 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		final Message<Object> bar1Message = (Message<Object>) bar1sink.receive(10000);
 		assertNotNull(bar1Message);
-		Object history = bar1Message.getHeaders().get(XdHeaders.XD_HISTORY);
-		assertNotNull(history);
-		assertThat(history, instanceOf(List.class));
+		Object historyObject = bar1Message.getHeaders().get(XdHeaders.XD_HISTORY);
+		assertNotNull(historyObject);
+		assertThat(historyObject, instanceOf(List.class));
+		List<Map<String, Object>> history = (List<Map<String, Object>>) historyObject;
+		assertThat(history.size(), greaterThan(0));
+		assertNotNull(history.get(0).get("timestamp"));
 		final Object bar1 = bar1Message.getPayload();
 		final Message<Object> bar2Message = (Message<Object>) bar2sink.receive(10000);
 		assertNotNull(bar2Message);

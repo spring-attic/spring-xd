@@ -201,6 +201,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 							.fromMessage(message)
 							.setHeader(XdHeaders.XD_HISTORY, history)
 							.build();
+					map.put("timestamp", out.getHeaders().getTimestamp());
 					return out;
 				}
 			});

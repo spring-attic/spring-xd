@@ -45,6 +45,8 @@ class MessageBusConfiguration {
 
 	private static final String RABBIT_ACKMODE_PROPERTY = "xd.messagebus.rabbit.default.ackMode";
 
+	private static final String KAFKA_AUTOCOMMIT_PROPERTY = "xd.messagebus.kafka.default.autoCommitEnabled";
+
 	/**
 	 * This method called by {@link MessageBusReceiver} and {@link MessageBusSender} to setup
 	 * message bus configuration at the spark module executor process. This configuration
@@ -58,7 +60,7 @@ class MessageBusConfiguration {
 		String transport = properties.getProperty("XD_TRANSPORT");
 		// Set Rabbit message bus acknowledgement mode to 'MANUAL'
 		properties.setProperty(RABBIT_ACKMODE_PROPERTY, "MANUAL");
-		properties.setProperty("isKafkaAutoCommitEnabled", "false");
+		properties.setProperty(KAFKA_AUTOCOMMIT_PROPERTY, "false");
 		SpringApplicationBuilder application = new SpringApplicationBuilder()
 				.sources(MessageBusConfiguration.class)
 				// ensure the properties are added at the first precedence level

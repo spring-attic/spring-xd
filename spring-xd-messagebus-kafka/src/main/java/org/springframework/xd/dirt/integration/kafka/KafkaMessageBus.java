@@ -50,6 +50,7 @@ import org.springframework.integration.kafka.core.DefaultConnectionFactory;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.core.ZookeeperConfiguration;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
+import org.springframework.integration.kafka.listener.Acknowledgment;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.integration.kafka.listener.KafkaTopicOffsetManager;
 import org.springframework.integration.kafka.listener.OffsetManager;
@@ -150,9 +151,13 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	public static final String COMPRESSION_CODEC = "compressionCodec";
 
+	public static final String AUTO_COMMIT_ENABLED = "autoCommitEnabled";
+
 	private static final String DEFAULT_COMPRESSION_CODEC = "default";
 
 	private static final int DEFAULT_REQUIRED_ACKS = 1;
+
+	private static final boolean DEFAULT_AUTO_COMMIT_ENABLED = true;
 
 	private RetryOperations retryOperations;
 
@@ -249,6 +254,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private String offsetStoreTopic = "SpringXdOffsets";
 
+	// auto commit property
+
+	private boolean defaultAutoCommitEnabled = DEFAULT_AUTO_COMMIT_ENABLED;
+
 
 	public KafkaMessageBus(ZookeeperConnect zookeeperConnect, String brokers, String zkAddress,
 			MultiTypeCodec<Object> codec, String... headersToMap) {
@@ -343,6 +352,16 @@ public class KafkaMessageBus extends MessageBusSupport {
 	public void setDefaultRequiredAcks(int defaultRequiredAcks) {
 		this.defaultRequiredAcks = defaultRequiredAcks;
 	}
+
+	/**
+	 * Set the default auto commit enabled property; This is used to
+	 * commit the offset either automatically or manually.
+	 * @param defaultAutoCommitEnabled
+	 */
+	public void setDefaultAutoCommitEnabled(boolean defaultAutoCommitEnabled) {
+		this.defaultAutoCommitEnabled = defaultAutoCommitEnabled;
+	}
+
 
 	@Override
 	public void bindConsumer(String name, final MessageChannel moduleInputChannel, Properties properties) {
@@ -581,6 +600,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.setKeyDecoder(keyDecoder);
 		kafkaMessageDrivenChannelAdapter.setPayloadDecoder(valueDecoder);
 		kafkaMessageDrivenChannelAdapter.setOutputChannel(bridge);
+		kafkaMessageDrivenChannelAdapter.setAutoCommitOffset(accessor.getDefaultAutoCommitEnabled(this.defaultAutoCommitEnabled));
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
@@ -623,20 +643,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 		// if we have less target partitions than target concurrency, adjust accordingly
 		messageListenerContainer.setConcurrency(Math.min(numThreads, listenedPartitions.size()));
-		KafkaTopicOffsetManager offsetManager;
-		// TODO: replace this logic with a flag enable/disable auto commit offset in kafka mesage listener container.
-		if (getApplicationContext().getEnvironment().getProperty("isKafkaAutoCommitEnabled", "true").equals("false")) {
-			offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
-					Collections.<Partition, Long>emptyMap()) {
-				@Override
-				public void doUpdateOffset(Partition partition, long offset) {
-				}
-			};
-		}
-		else {
-			offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
+		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
 					Collections.<Partition, Long>emptyMap());
-		}
 		offsetManager.setConsumerId(group);
 		offsetManager.setReferenceTimestamp(referencePoint);
 		try {
@@ -652,39 +660,11 @@ public class KafkaMessageBus extends MessageBusSupport {
 	@Override
 	public void doManualAck(LinkedList<MessageHeaders> messageHeadersList) {
 		Iterator<MessageHeaders> iterator = messageHeadersList.iterator();
-		Map<String, Map<Partition, Long>> messagesForManualAck = new HashMap<String, Map<Partition, Long>>();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			MessageHeaders headers = iterator.next();
-			String topic = (String) headers.get(KafkaHeaders.TOPIC);
-			Partition partition = new Partition(topic, (int) headers.get(KafkaHeaders.PARTITION_ID));
-			Long offset = (Long) headers.get(KafkaHeaders.OFFSET);
-			Map<Partition, Long> currentTopicData = messagesForManualAck.get(topic);
-			if (currentTopicData == null) {
-				Map<Partition, Long> mapData = new HashMap<Partition, Long>();
-				mapData.put(partition, offset);
-				messagesForManualAck.put(topic, mapData);
-			}
-			// There is a caveat here. If the offset for the current message is greater than any of the
-			// unacknowledged messages then, we would incorrectly update the offset and there by missing those messages.
-			// But, as long as we maintain the strict ordering of receiving/processing messages from each partition, this
-			// situation can be avoided.
-			else if (currentTopicData != null && currentTopicData.get(partition) < offset) {
-				currentTopicData.put(partition, offset);
-			}
-		}
-		// do nothing if the existing offset is already greater than current offset
-		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
-				Collections.<Partition, Long>emptyMap());
-		try {
-			offsetManager.afterPropertiesSet();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		for (Map.Entry<String, Map<Partition, Long>> mapEntry : messagesForManualAck.entrySet()) {
-			for (Map.Entry<Partition, Long> topicData: mapEntry.getValue().entrySet()) {
-				offsetManager.updateOffset(topicData.getKey(), topicData.getValue());
-			}
+			Acknowledgment acknowledgment = (Acknowledgment) headers.get(KafkaHeaders.ACKNOWLEDGMENT);
+			Assert.notNull(acknowledgment, "Acknowledgement shouldn't be null when acknowledging kafka message manually.");
+			acknowledgment.acknowledge();
 		}
 	}
 
@@ -714,6 +694,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		public int getRequiredAcks(int defaultRequiredAcks) {
 			return getProperty(REQUIRED_ACKS, defaultRequiredAcks);
+		}
+
+		public boolean getDefaultAutoCommitEnabled(boolean defaultAutoCommitEnabled) {
+			return getProperty(AUTO_COMMIT_ENABLED, defaultAutoCommitEnabled);
 		}
 
 	}

@@ -132,8 +132,8 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 			Message<?> inbound = moduleInputChannel.receive(2000);
 			assertNotNull(inbound);
 			assertArrayEquals(ratherBigPayload, (byte[]) inbound.getPayload());
-			messageBus.unbindProducers("fooCompression"+codec+".0");
-			messageBus.unbindConsumers("fooCompression"+codec+".0");
+			messageBus.unbindProducers("foo.0");
+			messageBus.unbindConsumers("foo.0");
 		}
 	}
 

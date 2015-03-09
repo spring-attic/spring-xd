@@ -331,6 +331,11 @@ public class LocalMessageBus extends MessageBusSupport {
 		BridgeHandler handler = new BridgeHandler() {
 
 			@Override
+			protected boolean shouldCopyRequestHeaders() {
+				return false;
+			}
+
+			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				return requestMessage;
 			}

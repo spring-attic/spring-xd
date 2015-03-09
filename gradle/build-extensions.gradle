@@ -50,6 +50,8 @@ project('spring-xd-extension-kafka') {
         }
         provided( "com.fasterxml.jackson.core:jackson-databind")
         provided("org.apache.zookeeper:zookeeper:$zookeeperVersion")
+		compile "io.reactivex:rxjava"
+		compile "io.reactivex:rxjava-math:1.0.0"
         compile project(':spring-xd-module-spi')
         testCompile project(':spring-xd-test')
         compile "javax.validation:validation-api"

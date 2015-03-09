@@ -55,6 +55,7 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 			KafkaMessageBus messageBus = new KafkaMessageBus(zookeeperConnect,
 					kafkaTestSupport.getBrokerAddress(),
 					kafkaTestSupport.getZkConnectString(), codec);
+			messageBus.setDefaultBatchingEnabled(false);
 			messageBus.afterPropertiesSet();
 			GenericApplicationContext context = new GenericApplicationContext();
 			context.refresh();

@@ -86,7 +86,7 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 				httpSource, topicToUse, kafkaTestSupport.getBrokerAddress());
 		// create stream with kafka source
 		final CounterSink counter = metrics().newCounterSink();
-		stream().create(generateStreamName(), "kafka --topic='%s' --zkconnect=%s | " +
+		stream().create(generateStreamName(), "kafka --topic='%s' --zkconnect=%s --outputType=text/plain | " +
 				"filter --expression=payload.toString().contains('%s') | %s",
 				topicToUse, kafkaTestSupport.getZkConnectString(), stringToPost, counter );
 		httpSource.ensureReady().postData(stringToPost);

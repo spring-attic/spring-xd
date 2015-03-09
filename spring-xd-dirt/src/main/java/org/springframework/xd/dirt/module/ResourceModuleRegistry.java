@@ -17,24 +17,15 @@
 package org.springframework.xd.dirt.module;
 
 import java.io.IOException;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.core.io.WritableResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.data.hadoop.configuration.ConfigurationFactoryBean;
-import org.springframework.data.hadoop.fs.HdfsResourceLoader;
-import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.RuntimeIOException;
 import org.springframework.xd.module.ModuleDefinition;
@@ -204,13 +195,12 @@ public class ResourceModuleRegistry implements ModuleRegistry {
 		}
 		String locationToUse = resource.getURL().toString();
 
-		ModuleDefinition found = ModuleDefinitions.simple(name, type, locationToUse);
+		SimpleModuleDefinition found = ModuleDefinitions.simple(name, type, locationToUse);
 
 		if (holder.contains(found)) {
-			SimpleModuleDefinition one = (SimpleModuleDefinition) found;
-			SimpleModuleDefinition two = (SimpleModuleDefinition) holder.get(holder.indexOf(found));
+			SimpleModuleDefinition other = (SimpleModuleDefinition) holder.get(holder.indexOf(found));
 			throw new IllegalStateException(String.format("Duplicate module definitions for '%s:%s' found at '%s' and '%s'",
-					found.getType(), found.getName(), one.getLocation(), two.getLocation()));
+					found.getType(), found.getName(), found.getLocation(), other.getLocation()));
 		}
 		else {
 			holder.add(found);
@@ -218,10 +208,8 @@ public class ResourceModuleRegistry implements ModuleRegistry {
 	}
 
 
-
 	public void setRequireHashFiles(boolean requireHashFiles) {
 		this.requireHashFiles = requireHashFiles;
 	}
-
 
 }

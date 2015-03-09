@@ -32,9 +32,9 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModuleDefinition;
 
 /**
- * A ModuleRegistry that is configured with two delegates: a source and a target registry. This registry will return
- * results that exist in the source registry but will synchronize them with the target registry. Results returned are always
- * from the <em>target</em> registry (unless composed). Mutative operations go through to the source repository though.
+ * A ModuleRegistry that is configured with two delegates: a remote (source) and a local (target) registry. This registry will return
+ * results that exist in the remote registry but will synchronize them with the local registry. Results returned are always
+ * from the <em>local</em> registry (unless composed). Mutative operations go through to the remote repository though.
  *
  * <p>This is useful as reading
  * Boot uber-jars requires local {@code java.io.File} access, but modules may reside in a remote registry (<i>e.g.</i>
@@ -46,48 +46,48 @@ import org.springframework.xd.module.SimpleModuleDefinition;
  */
 public class SynchronizingModuleRegistry implements WritableModuleRegistry {
 
-	private final WritableModuleRegistry sourceRegistry;
+	private final WritableModuleRegistry remoteRegistry;
 
-	private final WritableModuleRegistry targetRegistry;
+	private final WritableModuleRegistry localRegistry;
 
 	private final StalenessCheck staleness = new MD5StalenessCheck();
 
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
-	public SynchronizingModuleRegistry(WritableModuleRegistry sourceRegistry, WritableModuleRegistry targetRegistry) {
-		Assert.notNull(sourceRegistry, "sourceRegistry cannot be null");
-		Assert.notNull(targetRegistry, "targetRegistry cannot be null");
-		this.sourceRegistry = sourceRegistry;
-		this.targetRegistry = targetRegistry;
+	public SynchronizingModuleRegistry(WritableModuleRegistry remoteRegistry, WritableModuleRegistry localRegistry) {
+		Assert.notNull(remoteRegistry, "remoteRegistry cannot be null");
+		Assert.notNull(localRegistry, "localRegistry cannot be null");
+		this.remoteRegistry = remoteRegistry;
+		this.localRegistry = localRegistry;
 	}
 
 
 	@Override
 	public ModuleDefinition findDefinition(String name, ModuleType moduleType) {
-		ModuleDefinition remoteDefinition = sourceRegistry.findDefinition(name, moduleType);
+		ModuleDefinition remoteDefinition = remoteRegistry.findDefinition(name, moduleType);
 		if (remoteDefinition == null || remoteDefinition.isComposed()) {
 			return remoteDefinition;
 		}
 
-		copyIfStale(remoteDefinition);
-		return currentTargetDefinition(remoteDefinition);
+		copyIfStale((SimpleModuleDefinition) remoteDefinition);
+		return currentLocalDefinition(remoteDefinition);
 	}
 
 	@Override
 	public List<ModuleDefinition> findDefinitions(String name) {
-		List<ModuleDefinition> remoteDefinitions = sourceRegistry.findDefinitions(name);
+		List<ModuleDefinition> remoteDefinitions = remoteRegistry.findDefinitions(name);
 		return refresh(remoteDefinitions);
 	}
 
 	@Override
 	public List<ModuleDefinition> findDefinitions(ModuleType type) {
-		List<ModuleDefinition> remoteDefinitions = sourceRegistry.findDefinitions(type);
+		List<ModuleDefinition> remoteDefinitions = remoteRegistry.findDefinitions(type);
 		return refresh(remoteDefinitions);
 	}
 
 	@Override
 	public List<ModuleDefinition> findDefinitions() {
-		List<ModuleDefinition> remoteDefinitions = sourceRegistry.findDefinitions();
+		List<ModuleDefinition> remoteDefinitions = remoteRegistry.findDefinitions();
 		return refresh(remoteDefinitions);
 	}
 
@@ -101,8 +101,8 @@ public class SynchronizingModuleRegistry implements WritableModuleRegistry {
 				result.add(remoteDefinition);
 			}
 			else {
-				copyIfStale(remoteDefinition);
-				result.add(currentTargetDefinition(remoteDefinition));
+				copyIfStale((SimpleModuleDefinition) remoteDefinition);
+				result.add(currentLocalDefinition(remoteDefinition));
 			}
 		}
 
@@ -114,39 +114,38 @@ public class SynchronizingModuleRegistry implements WritableModuleRegistry {
 	 * Checks whether the target version of the definition is stale, and if it is, triggers an update (as a deletion then
 	 * new registration).
 	 */
-	private synchronized void copyIfStale(ModuleDefinition remoteDefinition) {
-		SimpleModuleDefinition simpleRemoteDefinition = (SimpleModuleDefinition) remoteDefinition;
-		ModuleDefinition currentTargetDefinition = currentTargetDefinition(remoteDefinition);
+	private synchronized void copyIfStale(SimpleModuleDefinition remoteDefinition) {
+		ModuleDefinition currentTargetDefinition = currentLocalDefinition(remoteDefinition);
 		SimpleModuleDefinition targetDefinition = (SimpleModuleDefinition) currentTargetDefinition;
-		if (staleness.isStale(targetDefinition, simpleRemoteDefinition)) {
+		if (staleness.isStale(targetDefinition, remoteDefinition)) {
 			InputStream is = null;
 			try {
-				is = resolver.getResource(simpleRemoteDefinition.getLocation()).getInputStream();
+				is = resolver.getResource(remoteDefinition.getLocation()).getInputStream();
 			}
 			catch (IOException e) {
 				throw new RuntimeIOException("Error while copying module", e);
 			}
-			targetRegistry.delete(remoteDefinition);
+			localRegistry.delete(remoteDefinition);
 			UploadedModuleDefinition definitionToInstall = new UploadedModuleDefinition(remoteDefinition.getName(), remoteDefinition.getType(), is);
-			targetRegistry.registerNew(definitionToInstall);
+			localRegistry.registerNew(definitionToInstall);
 		}
 	}
 
 	/**
-	 * Returns the current version corresponding to a given module definition, as seen by the target registry.
+	 * Returns the current version corresponding to a given module definition, as seen by the local registry.
 	 */
-	private ModuleDefinition currentTargetDefinition(ModuleDefinition remoteDefinition) {
-		return targetRegistry.findDefinition(remoteDefinition.getName(), remoteDefinition.getType());
+	private ModuleDefinition currentLocalDefinition(ModuleDefinition remoteDefinition) {
+		return localRegistry.findDefinition(remoteDefinition.getName(), remoteDefinition.getType());
 	}
 
 
 	@Override
 	public boolean delete(ModuleDefinition definition) {
-		return sourceRegistry.delete(definition);
+		return remoteRegistry.delete(definition);
 	}
 
 	@Override
 	public boolean registerNew(ModuleDefinition definition) {
-		return sourceRegistry.registerNew(definition);
+		return remoteRegistry.registerNew(definition);
 	}
 }

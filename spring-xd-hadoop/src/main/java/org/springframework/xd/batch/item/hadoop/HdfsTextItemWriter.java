@@ -25,9 +25,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.WriteFailedException;
 import org.springframework.batch.item.file.transform.LineAggregator;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.data.hadoop.store.StoreException;
 import org.springframework.util.Assert;
 
 /**
@@ -123,6 +125,19 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 	}
 
 	@Override
+	public void update(ExecutionContext executionContext) {
+		super.update(executionContext);
+		logger.debug("Flushing output stream");
+		if (fsDataOutputStream != null) {
+			try {
+				fsDataOutputStream.hflush();
+			} catch (IOException e) {
+				throw new StoreException("Error while flushing stream", e);
+			}
+		}
+	}
+
+	@Override
 	public void close() {
 		logger.debug("Closing item writer");
 		closeStream();
@@ -132,7 +147,12 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 	private void closeStream() {
 		logger.debug("Closing output stream");
 		if (fsDataOutputStream != null) {
-			IOUtils.closeStream(fsDataOutputStream);
+			try {
+				fsDataOutputStream.close();
+			} catch (IOException e) {
+				IOUtils.closeStream(fsDataOutputStream);
+				throw new StoreException("Error while closing stream", e);
+			}
 		}
 	}
 

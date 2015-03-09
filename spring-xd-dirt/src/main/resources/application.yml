@@ -146,7 +146,18 @@ xd:
       brokers:                                 localhost:9092
       zkAddress:                               localhost:2181
       numOfKafkaPartitionsForCountEqualsZero:  10
+      socketBufferSize:                        2097152
       offsetStoreTopic:                        SpringXdOffsets
+      offsetStoreSegmentSize:                  25000000
+      offsetStoreRetentionTime:                60000
+      offsetStoreRequiredAcks:                 1
+      offsetStoreMaxFetchSize:                 1048576
+      offsetStoreBatchSize:                    200
+      offsetStoreBatchEnabled:                 false
+      offsetStoreBatchTime:                    1000
+      offsetUpdateTimeWindow:                  10000
+      offsetUpdateCount:                       0
+      offsetUpdateShutdownTimeout:             2000
       default:
         batchingEnabled:           false
         batchSize:                 200
@@ -156,6 +167,7 @@ xd:
         requiredAcks:              1
         compressionCodec:          default
         autoCommitEnabled:         true
+        queueSize:                 1000
   security:
     authorization:
       rules:

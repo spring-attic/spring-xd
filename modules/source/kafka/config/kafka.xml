@@ -49,12 +49,20 @@
 		<constructor-arg index="0" ref="connectionFactory"/>
 		<constructor-arg index="1" ref="partitions"/>
 		<property name="maxFetch" value="${fetchMaxBytes}"/>
-		<property name="offsetManager" ref="offsetManager"/>
+		<property name="offsetManager">
+			<bean class="org.springframework.integration.x.kafka.WindowingOffsetManager">
+				<constructor-arg ref="offsetManager"/>
+				<property name="timespan" value="${offsetUpdateTimeWindow}"/>
+				<property name="count" value="${offsetUpdateCount}"/>
+				<property name="shutdownTimeout" value="${offsetUpdateShutdownTimeout}" />
+			</bean>
+		</property>
 		<property name="concurrency" value="${streams}"/>
+		<property name="queueSize" value="${queueSize}"/>
 	</bean>
 
-	<bean id="stringDecoder" class="org.springframework.integration.kafka.serializer.common.StringDecoder">
-		<constructor-arg index="0" value="${encoding}"/>
+	<bean id="stringDecoder" class="kafka.serializer.DefaultDecoder">
+		<constructor-arg index="0" value="#{null}"/>
 	</bean>
 
 	<bean id="kafkaInboundChannelAdapter"
@@ -107,8 +115,15 @@
 	<beans profile="kafka-offset-manager">
 		<bean id="offsetManager" class="org.springframework.integration.kafka.listener.KafkaTopicOffsetManager">
 			<constructor-arg index="0" ref="kafkaSourceZookeeperConnect"/>
-			<constructor-arg index="1" value="${xd.stream.name}-${xd.module.name}-offsets"/>
+			<constructor-arg index="1" value="${kafkaOffsetTopicName}"/>
 			<constructor-arg index="2" ref="initialOffsetsMap"/>
+			<property name="segmentSize" value="${kafkaOffsetTopicSegmentSize}"/>
+			<property name="retentionTime" value="${kafkaOffsetTopicRetentionTime}"/>
+			<property name="batchWrites" value="${kafkaOffsetTopicBatchingEnabled}"/>
+			<property name="maxSize" value="${kafkaOffsetTopicMaxSize}"/>
+			<property name="maxBatchSize" value="${kafkaOffsetTopicBatchSize}"/>
+			<property name="maxQueueBufferingTime" value="${kafkaOffsetTopicBatchTime}"/>
+			<property name="requiredAcks" value="${kafkaOffsetTopicRequiredAcks}"/>
 			<property name="consumerId" value="${groupId}"/>
 			<property name="referenceTimestamp" value="${autoOffsetResetValue}"/>
 		</bean>

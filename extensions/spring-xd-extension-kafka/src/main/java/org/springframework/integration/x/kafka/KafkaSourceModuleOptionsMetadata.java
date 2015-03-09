@@ -28,7 +28,7 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * @author Ilayaperumal Gopinathan
  * @author Marius Bogoevici
  */
-@Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class})
+@Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class, KafkaOffsetTopicOptionsMixin.class})
 public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private String topic = ModulePlaceholders.XD_STREAM_NAME;
@@ -44,6 +44,14 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 	private String groupId = ModulePlaceholders.XD_STREAM_NAME;
 
 	private String encoding = "UTF8";
+
+	private int offsetUpdateTimeWindow = 10000;
+
+	private int offsetUpdateCount = 0;
+
+	private int offsetUpdateShutdownTimeout = 2000;
+
+	private int queueSize = 1000;
 
 	@ModuleOption("kafka topic name")
 	public void setTopic(String topic) {
@@ -109,6 +117,45 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 		return this.encoding;
 	}
 
+	@ModuleOption("frequency (in milliseconds) with which offsets are persisted " +
+			"mutually exclusive with the count-based offset update option (use 0 to disable either)")
+	public void setOffsetUpdateTimeWindow(int offsetUpdateTimeWindow) {
+		this.offsetUpdateTimeWindow = offsetUpdateTimeWindow;
+	}
+
+	public int getOffsetUpdateTimeWindow() {
+		return offsetUpdateTimeWindow;
+	}
+
+	@ModuleOption("frequency, in number of messages, with which offsets are persisted, per concurrent processor, " +
+			"mutually exclusive with the time-based offset update option (use 0 to disable either)")
+	public void setOffsetUpdateCount(int offsetUpdateCount) {
+		this.offsetUpdateCount = offsetUpdateCount;
+	}
+
+	public int getOffsetUpdateCount() {
+		return offsetUpdateCount;
+	}
+
+	@ModuleOption(value = "timeout for ensuring that all offsets have been written, on shutdown", hidden = true)
+	public void setOffsetUpdateShutdownTimeout(int offsetUpdateShutdownTimeout) {
+		this.offsetUpdateShutdownTimeout = offsetUpdateShutdownTimeout;
+	}
+
+	public int getOffsetUpdateShutdownTimeout() {
+		return offsetUpdateShutdownTimeout;
+	}
+
+	@ModuleOption(value = "the maximum number of messages held internally and waiting for processing, " +
+			"per concurrent handler")
+	public void setQueueSize(int queueSize) {
+		this.queueSize = queueSize;
+	}
+
+	public int getQueueSize() {
+		return queueSize;
+	}
+
 	public enum OffsetStorageStrategy {
 		inmemory,
 		redis,
@@ -119,8 +166,9 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 	public String[] profilesToActivate() {
 		if (offsetStorage != null) {
 			return new String[] {String.format("%s-offset-manager", offsetStorage)};
-		} else {
+		}
+		else {
 			throw new IllegalStateException("An offset storage strategy must be configured");
 		}
- 	}
+	}
 }

@@ -20,6 +20,9 @@ import static org.springframework.integration.x.kafka.AutoOffsetResetStrategy.sm
 
 import javax.validation.constraints.NotNull;
 
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 
@@ -33,9 +36,9 @@ public class KafkaConsumerOptionsMixin {
 
 	private int socketTimeout = 30000;
 
-	private int socketBufferBytes = 64 * 1024;
+	private int socketBufferBytes = 2 * 1024 * 1024;
 
-	private int fetchMaxBytes = 300 * 1024;
+	private int fetchMaxBytes = 1024 * 1024;
 
 	private int fetchMinBytes = 1;
 

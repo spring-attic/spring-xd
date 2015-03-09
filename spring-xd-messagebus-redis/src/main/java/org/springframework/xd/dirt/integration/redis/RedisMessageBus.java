@@ -467,6 +467,11 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			return deserializePayloadIfNecessary(theRequestMessage);
 		}
 
+		@Override
+		protected boolean shouldCopyRequestHeaders() {
+			// prevent returned message from being copied in superclass
+			return false;
+		}
 	}
 
 	private static class RedisPropertiesAccessor extends AbstractBusPropertiesAccessor {

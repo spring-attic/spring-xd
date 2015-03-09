@@ -59,6 +59,7 @@ import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerFactoryBean;
 import org.springframework.integration.kafka.support.ProducerMetadata;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
+import org.springframework.integration.x.kafka.WindowingOffsetManager;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -250,6 +251,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private int defaultRequiredAcks = DEFAULT_REQUIRED_ACKS;
 
+	private int defaultQueueSize = 1000;
+
 	private ConnectionFactory connectionFactory;
 
 	private String offsetStoreTopic = "SpringXdOffsets";
@@ -258,6 +261,27 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private boolean defaultAutoCommitEnabled = DEFAULT_AUTO_COMMIT_ENABLED;
 
+	private int socketBufferSize = 2097152;
+
+	private int offsetStoreSegmentSize = 250 * 1024 * 1024;
+
+	private int offsetStoreRetentionTime = 60000;
+
+	private int offsetStoreRequiredAcks = 1;
+
+	private int offsetStoreMaxFetchSize = 1048576;
+
+	private boolean offsetStoreBatchEnabled = false;
+
+	private int offsetStoreBatchSize = 200;
+
+	private int offsetStoreBatchTime = 1000;
+
+	private int offsetUpdateTimeWindow = 10000;
+
+	private int offsetUpdateCount = 0;
+
+	private int offsetUpdateShutdownTimeout = 2000;
 
 	public KafkaMessageBus(ZookeeperConnect zookeeperConnect, String brokers, String zkAddress,
 			MultiTypeCodec<Object> codec, String... headersToMap) {
@@ -283,6 +307,51 @@ public class KafkaMessageBus extends MessageBusSupport {
 		this.offsetStoreTopic = offsetStoreTopic;
 	}
 
+	public void setOffsetStoreSegmentSize(int offsetStoreSegmentSize) {
+		this.offsetStoreSegmentSize = offsetStoreSegmentSize;
+	}
+
+	public void setOffsetStoreRetentionTime(int offsetStoreRetentionTime) {
+		this.offsetStoreRetentionTime = offsetStoreRetentionTime;
+	}
+
+	public void setSocketBufferSize(int socketBufferSize) {
+		this.socketBufferSize = socketBufferSize;
+	}
+
+	public void setOffsetStoreRequiredAcks(int offsetStoreRequiredAcks) {
+		this.offsetStoreRequiredAcks = offsetStoreRequiredAcks;
+	}
+
+	public void setOffsetStoreMaxFetchSize(int offsetStoreMaxFetchSize) {
+		this.offsetStoreMaxFetchSize = offsetStoreMaxFetchSize;
+	}
+
+
+	public void setOffsetUpdateTimeWindow(int offsetUpdateTimeWindow) {
+		this.offsetUpdateTimeWindow = offsetUpdateTimeWindow;
+	}
+
+	public void setOffsetUpdateCount(int offsetUpdateCount) {
+		this.offsetUpdateCount = offsetUpdateCount;
+	}
+
+	public void setOffsetUpdateShutdownTimeout(int offsetUpdateShutdownTimeout) {
+		this.offsetUpdateShutdownTimeout = offsetUpdateShutdownTimeout;
+	}
+
+	public void setOffsetStoreBatchEnabled(boolean offsetStoreBatchEnabled) {
+		this.offsetStoreBatchEnabled = offsetStoreBatchEnabled;
+	}
+
+	public void setOffsetStoreBatchSize(int offsetStoreBatchSize) {
+		this.offsetStoreBatchSize = offsetStoreBatchSize;
+	}
+
+	public void setOffsetStoreBatchTime(int offsetStoreBatchTime) {
+		this.offsetStoreBatchTime = offsetStoreBatchTime;
+	}
+
 	/**
 	 * Retry configuration for operations such as validating topic creation
 	 *
@@ -295,8 +364,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// we instantiate the connection factory here due to https://jira.spring.io/browse/XD-2647
+		ZookeeperConfiguration configuration = new ZookeeperConfiguration(this.zookeeperConnect);
+		configuration.setBufferSize(socketBufferSize);
 		DefaultConnectionFactory defaultConnectionFactory =
-				new DefaultConnectionFactory(new ZookeeperConfiguration(this.zookeeperConnect));
+				new DefaultConnectionFactory(configuration);
 		defaultConnectionFactory.afterPropertiesSet();
 		this.connectionFactory = defaultConnectionFactory;
 		if (retryOperations == null) {
@@ -362,6 +433,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 		this.defaultAutoCommitEnabled = defaultAutoCommitEnabled;
 	}
 
+	public void setDefaultQueueSize(int defaultQueueSize) {
+		this.defaultQueueSize = defaultQueueSize;
+	}
 
 	@Override
 	public void bindConsumer(String name, final MessageChannel moduleInputChannel, Properties properties) {
@@ -643,18 +717,39 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 		// if we have less target partitions than target concurrency, adjust accordingly
 		messageListenerContainer.setConcurrency(Math.min(numThreads, listenedPartitions.size()));
-		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
-					Collections.<Partition, Long>emptyMap());
-		offsetManager.setConsumerId(group);
-		offsetManager.setReferenceTimestamp(referencePoint);
+		OffsetManager offsetManager = createOffsetManager(group, referencePoint);
+		messageListenerContainer.setOffsetManager(offsetManager);
+		messageListenerContainer.setQueueSize(defaultQueueSize);
+		return messageListenerContainer;
+	}
+
+	private OffsetManager createOffsetManager(String group, long referencePoint) {
 		try {
-			offsetManager.afterPropertiesSet();
+			KafkaTopicOffsetManager kafkaOffsetManager =
+					new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic, Collections.<Partition, Long>emptyMap());
+			kafkaOffsetManager.setConsumerId(group);
+			kafkaOffsetManager.setReferenceTimestamp(referencePoint);
+			kafkaOffsetManager.setSegmentSize(offsetStoreSegmentSize);
+			kafkaOffsetManager.setRetentionTime(offsetStoreRetentionTime);
+			kafkaOffsetManager.setRequiredAcks(offsetStoreRequiredAcks);
+			kafkaOffsetManager.setMaxSize(offsetStoreMaxFetchSize);
+			kafkaOffsetManager.setBatchWrites(offsetStoreBatchEnabled);
+			kafkaOffsetManager.setMaxBatchSize(offsetStoreBatchSize);
+			kafkaOffsetManager.setMaxQueueBufferingTime(offsetStoreBatchTime);
+
+			kafkaOffsetManager.afterPropertiesSet();
+
+			WindowingOffsetManager windowingOffsetManager = new WindowingOffsetManager(kafkaOffsetManager);
+			windowingOffsetManager.setTimespan(offsetUpdateTimeWindow);
+			windowingOffsetManager.setCount(offsetUpdateCount);
+			windowingOffsetManager.setShutdownTimeout(offsetUpdateShutdownTimeout);
+
+			windowingOffsetManager.afterPropertiesSet();
+			return windowingOffsetManager;
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		messageListenerContainer.setOffsetManager(offsetManager);
-		return messageListenerContainer;
 	}
 
 	@Override
@@ -750,6 +845,11 @@ public class KafkaMessageBus extends MessageBusSupport {
 			return true;
 		}
 
+		@Override
+		protected boolean shouldCopyRequestHeaders() {
+			// prevent the message from being copied again in superclass
+			return false;
+		}
 	}
 
 	private class SendingHandler extends AbstractMessageHandler {

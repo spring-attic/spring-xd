@@ -153,7 +153,7 @@ task docsZip(type: Zip) {
 	from ("$buildDir/html") { into "reference/html" }
 }
 
-task distZip(type: Zip, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
+task distZip(type: Zip, dependsOn: [asciidoctor, copyInstall], overwrite: true) {
 	group = 'Application'
 	classifier = 'dist'
 	description = "Bundles the XD project and associated installs with libs and OS specific scripts as a zip file."
@@ -165,7 +165,7 @@ task distZip(type: Zip, dependsOn: [asciidoctorHtml, copyInstall], overwrite: tr
 	from ("$buildDir/html") { into "${baseDir}/docs" }
 }
 
-task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
+task distTar(type: Tar, dependsOn: [asciidoctor, copyInstall], overwrite: true) {
 	group = 'Application'
 	classifier = ''
 	description = "Bundles the XD project and associated installs with libs and OS specific scripts as a tar file."

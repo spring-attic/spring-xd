@@ -19,6 +19,11 @@ buildscript {
 	}
 }
 
+task version << {
+	println "Gradle version: " + project.getGradle().getGradleVersion()
+	println "Groovy version: " + GroovySystem.getVersion()
+}
+
 ext {
 	linkHomepage = 'https://github.com/spring-projects/spring-xd'
 	linkCi = 'https://build.spring.io/browse/XD'

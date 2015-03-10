@@ -48,7 +48,7 @@ public class AsciidocLinkChecker {
 
 	private static final Pattern ANCHOR_PATTERN = Pattern.compile("^\\[\\[([a-zA-Z_0-9\\-]+)\\]\\]");
 
-	private static final Pattern LINK_PATTERN = Pattern.compile("link:([a-zA-Z_0-9\\-]+)#([a-zA-Z_0-9\\-]+)");
+	private static final Pattern LINK_PATTERN = Pattern.compile("xref:([a-zA-Z_0-9\\-]+)#([a-zA-Z_0-9\\-]+)");
 
 	private Set<Link> links = new HashSet<AsciidocLinkChecker.Link>();
 

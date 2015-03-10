@@ -110,7 +110,7 @@ ext {
 	oldGuavaVersion = '15.0'  // This is only used by spring-xd-integration-test, IO uses version 17.0
 	guavaVersion = '16.0.1'
 
-	springDataHadoopBase = '2.1.0.RELEASE'
+	springDataHadoopBase = '2.1.1.RELEASE'
 
 //	//Reactor 1.1 is used in spring-xd-extension-batch transitively though spring integration
 //	reactor11xVersion = '1.1.5.RELEASE'

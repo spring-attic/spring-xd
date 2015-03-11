@@ -16,12 +16,8 @@
 
 package org.springframework.xd.dirt.util;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.module.ModuleDeploymentProperties;
@@ -60,7 +56,7 @@ public class DeploymentPropertiesUtility {
 			}
 		}
 		// now add properties that are designated for this module explicitly
-		String modulePrefix = String.format("module.%s.", descriptor.getModuleName());
+		String modulePrefix = String.format("module.%s.", descriptor.getModuleLabel());
 		for (Map.Entry<String, String> prop : deploymentProperties.entrySet()) {
 			String key = prop.getKey();
 			if (key.startsWith(modulePrefix)) {

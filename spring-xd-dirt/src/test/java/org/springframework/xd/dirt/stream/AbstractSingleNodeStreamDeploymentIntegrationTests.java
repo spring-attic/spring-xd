@@ -13,6 +13,24 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
@@ -52,23 +70,7 @@ import org.springframework.xd.dirt.test.source.SingleNodeNamedChannelSourceFacto
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDeploymentProperties;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import org.springframework.xd.module.core.Module;
 
 
 /**
@@ -96,7 +98,7 @@ import static org.junit.Assert.assertTrue;
  * @author Gary Russell
  * @author Patrick Peralta
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	/**
@@ -238,7 +240,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		return String.format("http --port=%s | log", SocketUtils.findAvailableServerSocket());
 	}
 
-	@SuppressWarnings("unchecked")
 	private List<Binding> getMessageBusBindings() {
 		MessageBus bus = testMessageBus != null ? testMessageBus.getMessageBus() : integrationSupport.messageBus();
 		DirectFieldAccessor accessor = new DirectFieldAccessor(bus);
@@ -265,7 +266,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		StreamDefinition streamDefinition = new StreamDefinition(
 				"mystream",
 				"queue:source >  transform --expression=payload.toUpperCase() > queue:sink"
-		);
+				);
 		StreamDefinition tapDefinition = new StreamDefinition("mytap",
 				"tap:stream:mystream > transform --expression=payload.replaceAll('A','.') > queue:tap");
 		tapTest(streamDefinition, tapDefinition);
@@ -277,7 +278,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		StreamDefinition streamDefinition = new StreamDefinition(
 				"streamWithLabels",
 				"queue:source > flibble: transform --expression=payload.toUpperCase() > queue:sink"
-		);
+				);
 
 		StreamDefinition tapDefinition = new StreamDefinition("tapWithLabels",
 				"tap:stream:streamWithLabels.flibble > transform --expression=payload.replaceAll('A','.') > queue:tap");
@@ -291,7 +292,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		StreamDefinition streamDefinition = new StreamDefinition(
 				"streamWithMultipleTransformers",
 				"queue:source > flibble: transform --expression=payload.toUpperCase() | transform --expression=payload.toUpperCase() > queue:sink"
-		);
+				);
 
 		StreamDefinition tapDefinition = new StreamDefinition("tapWithLabels",
 				"tap:stream:streamWithMultipleTransformers.flibble > transform --expression=payload.replaceAll('A','.') > queue:tap");
@@ -399,6 +400,47 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	}
 
 	@Test
+	public void moduleDeploymentPropertiesForModuleName() throws InterruptedException {
+		String streamName = "moduleDeploymentPropertiesForModuleName";
+		StreamDefinition definition = new StreamDefinition(streamName, getHttpLogStream());
+		integrationSupport.streamDeployer().save(definition);
+		Map<String, String> props = new HashMap<String, String>();
+		props.put("module.log.prop1", "0");
+		props.put("module.log.foo", "bar");
+		assertTrue("Timeout waiting for stream deployment", integrationSupport.deployStream(definition, props));
+		Module module = integrationSupport.getModule(streamName, "log", 1);
+		ModuleDeploymentProperties actualProps = module.getDeploymentProperties();
+		assertEquals("0", actualProps.get("prop1"));
+		assertEquals("bar", actualProps.get("foo"));
+		integrationSupport.undeployAndDestroyStream(definition);
+		Thread.sleep(2000); // todo: we need waitForDestroy within the previous method
+	}
+
+	@Test
+	public void moduleDeploymentPropertiesForModuleLabel() throws InterruptedException {
+		String streamName = "moduleDeploymentPropertiesForModuleLabel";
+		String dsl = String.format("http --port=%s | t1: transform | t2: transform | log",
+				SocketUtils.findAvailableServerSocket());
+		StreamDefinition definition = new StreamDefinition(streamName, dsl);
+		integrationSupport.streamDeployer().save(definition);
+		Map<String, String> props = new HashMap<String, String>();
+		props.put("module.t1.prop1", "0");
+		props.put("module.t1.other", "foo");
+		props.put("module.t2.other", "bar");
+		assertTrue("Timeout waiting for stream deployment", integrationSupport.deployStream(definition, props));
+		Module t1 = integrationSupport.getModule(streamName, "t1", 1);
+		ModuleDeploymentProperties t1Props = t1.getDeploymentProperties();
+		assertEquals("0", t1Props.get("prop1"));
+		assertEquals("foo", t1Props.get("other"));
+		Module t2 = integrationSupport.getModule(streamName, "t2", 2);
+		ModuleDeploymentProperties t2Props = t2.getDeploymentProperties();
+		assertEquals("1", t2Props.get("count"));
+		assertEquals("bar", t2Props.get("other"));
+		integrationSupport.undeployAndDestroyStream(definition);
+		Thread.sleep(2000); // todo: we need waitForDestroy within the previous method
+	}
+
+	@Test
 	public void verifyQueueChannelsRegisteredOnDemand() throws InterruptedException {
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
 				"queue:x > router --expression=payload.contains('y')?'queue:y':'queue:z'");
@@ -413,7 +455,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:y"));
 		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:z"));
 
-		Map<String, Object> initialQueueState = readInitialQueueState("queue:y","queue:z");
+		Map<String, Object> initialQueueState = readInitialQueueState("queue:y", "queue:z");
 
 		DirectChannel testChannel = new DirectChannel();
 		bus.bindProducer("queue:x", testChannel, null);

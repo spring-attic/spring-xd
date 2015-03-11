@@ -46,7 +46,7 @@ public class DeploymentPropertiesUtility {
 
 	/**
 	 * Based on the deployment properties for a {@link Stream}/{@link Job}, create an instance of
-	 * {@link org.springframework.xd.dirt.core.ModuleDeploymentProperties} for a specific module
+	 * {@link org.springframework.xd.module.ModuleDeploymentProperties} for a specific module
 	 * in the {@link Stream}/{@link Job}.
 	 *
 	 * @param deploymentProperties deployment properties for a stream/job
@@ -65,7 +65,7 @@ public class DeploymentPropertiesUtility {
 			}
 		}
 		// now add properties that are designated for this module explicitly
-		String modulePrefix = String.format("module.%s.", descriptor.getModuleName());
+		String modulePrefix = String.format("module.%s.", descriptor.getModuleLabel());
 		for (Map.Entry<String, String> prop : deploymentProperties.entrySet()) {
 			String key = prop.getKey();
 			if (key.startsWith(modulePrefix)) {

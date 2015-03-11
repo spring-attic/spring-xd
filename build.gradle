@@ -1042,17 +1042,16 @@ project('spring-xd-ui') {
 	task setupUI(dependsOn: ['grunt_build', 'build']) { description = "Build the Admin UI using Grunt" }
 
 	tasks['build'].shouldRunAfter 'grunt_build'
-	tasks['compileJava'].dependsOn(['clean'])
 	grunt_build.shouldRunAfter 'installGrunt'
 	grunt_teste2e.shouldRunAfter 'installGrunt'
 	installGrunt.shouldRunAfter 'npmInstall'
 
 	task cleanUI(dependsOn: [
-			'clean',
 			'cleanDist',
 			'cleanNodeModules',
 			'cleanBowerFiles'
 	]) { description = "Clean the Admin UI dist, node modules and bower files" }
+	tasks['clean'].dependsOn(['cleanUI'])
 
 }
 

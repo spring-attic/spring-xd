@@ -77,14 +77,6 @@ task moduleFiles {
     outputs.dir modules
 }
 
-// Module definition projects (for projects w/ classpath)
-
-project('modules') {
-    description = 'Spring XD Modules'
-    dependencies { compile project(':spring-xd-dirt') }
-    task build(overwrite: true) {}
-}
-
 // ================ M O D U L E S : S O U R C E S ======================
 
 project('modules.source.mail') {

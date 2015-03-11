@@ -451,9 +451,6 @@ project('spring-xd-dirt') {
 		runtime "org.postgresql:postgresql:$postgresqlVersion"
 		runtime "mysql:mysql-connector-java"
 
-		testCompile("org.apache.kafka:kafka_2.10:${kafkaVersion}:test") {
-			exclude group: "log4j", module: "log4j"
-		}
 		testCompile "org.apache.curator:curator-test:${curatorVersion}"
 
 		compile project(':spring-xd-batch')
@@ -575,31 +572,6 @@ project('spring-xd-dirt') {
 		}
 	}
 }
-
-project('spring-xd-exec') {
-	description = 'Packaging for single uberjar for deployment on PCF'
-	dependencies { compile project(':spring-xd-dirt') }
-	apply plugin: "spring-boot"
-	springBoot {
-		mainClass = 'org.springframework.xd.dirt.server.SingleNodeApplication'
-		layout = 'ZIP'
-	}
-	jar {
-		exclude 'build'
-		exclude 'target'
-		// FIXME: unhack this
-		exclude '**/gemfire-*.jar'
-		exclude '**/aspectweaver-*.jar'
-		into('.') { from '../spring-xd-dirt/src/main/resources/log4j.properties' }
-		into('modules') { from '../modules' }
-		into('config') { from '../config' }
-	}
-	moduleProjects.each { moduleProject ->
-		project.jar.dependsOn moduleProject.copyLibs
-	}
-}
-
-
 
 project('spring-xd-hadoop') {
 	description = 'Spring XD Hadoop'
@@ -1051,7 +1023,8 @@ project('spring-xd-ui') {
 			'cleanNodeModules',
 			'cleanBowerFiles'
 	]) { description = "Clean the Admin UI dist, node modules and bower files" }
-	tasks['clean'].dependsOn(['cleanUI'])
+	
+	//tasks['clean'].dependsOn(['cleanUI']) // 'dist' files are checked into VCS for now, don't clean
 
 }
 

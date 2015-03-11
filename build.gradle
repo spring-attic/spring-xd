@@ -504,23 +504,6 @@ project('spring-xd-dirt') {
 	startScripts.setEnabled(false)
 	mainClassName = "org.springframework.xd.dirt.server.SingleNodeApplication"
 
-	task('execJar', type: Jar, dependsOn: 'jar') {
-		baseName = 'spring-xd-dirt'
-		version = project.version
-		classifier = 'exec'
-		from sourceSets.main.output
-	}
-
-	springBoot {
-		layout = 'ZIP'
-	}
-
-	bootRepackage {
-		withJarTask = tasks['execJar']
-		classifier = 'exec'
-		enabled = true
-	}
-
 	test {
 		systemProperties["xd.home"] = "${rootProject.projectDir}"
 		forkEvery = 40

@@ -397,3 +397,9 @@ project('modules.job.sqoop') {
         runtime(project(":spring-xd-extension-sqoop"))
     }
 }
+
+project('modules.job.gpload') {
+    dependencies {
+        runtime(project(":spring-xd-extension-gpload"))
+    }
+}

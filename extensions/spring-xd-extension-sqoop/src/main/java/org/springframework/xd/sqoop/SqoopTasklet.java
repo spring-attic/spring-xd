@@ -16,6 +16,7 @@
 
 package org.springframework.xd.sqoop;
 
+import org.springframework.batch.step.tasklet.x.ClasspathEnvironmentProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.batch.step.tasklet.x.AbstractProcessBuilderTasklet;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -101,5 +102,6 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 		if (arguments == null || arguments.length < 1) {
 			throw new IllegalArgumentException("Missing arguments and/or configuration options for Sqoop");
 		}
+		addEnvironmentProvider(new ClasspathEnvironmentProvider(environment, this.getClass()));
 	}
 }

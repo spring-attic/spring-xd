@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<!--  required to access #{jobParameters['...']} -->
+	<bean class="org.springframework.batch.core.scope.StepScope">
+		<property name="proxyTargetClass" value="true"/>
+	</bean>
+
+	<batch:job id="gploadJob">
+		<batch:step id="tasklet">
+			<batch:tasklet ref="gploadTasklet" />
+		</batch:step>
+	</batch:job>
+
+	<bean id="gploadTasklet" class="org.springframework.xd.gpload.GploadTasklet" scope="step">
+		<property name="gploadHome" value="${gploadHome}"/>
+		<property name="controlFile" value="${controlFile}"/>
+		<property name="options" value="${options:#{null}}"/>
+		<property name="inputSourceFile" value="#{jobParameters['input.source.file']}"/>
+		<property name="database" value="${database:#{null}}"/>
+		<property name="host" value="${host:#{null}}"/>
+		<property name="port" value="${port:#{null}}"/>
+		<property name="username" value="${username:#{null}}"/>
+		<property name="password" value="${password:#{null}}"/>
+		<property name="passwordFile" value="${passwordFile:#{null}}"/>
+	</bean>
+
+</beans>

@@ -61,8 +61,6 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, Environm
 
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	private static final String XD_CONFIG_HOME = "xd.config.home";
-
 	protected ConfigurableEnvironment environment;
 
 	/**
@@ -84,9 +82,15 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, Environm
 
 	private SystemProcessExitCodeMapper systemProcessExitCodeMapper = new SimpleSystemProcessExitCodeMapper();
 
+	private List<EnvironmentProvider> environmentProviders = new ArrayList<EnvironmentProvider>();
+
 	@Override
 	public void setEnvironment(Environment environment) {
 		this.environment = (ConfigurableEnvironment) environment;
+	}
+
+	public void addEnvironmentProvider(EnvironmentProvider environmentProvider) {
+		this.environmentProviders.add(environmentProvider);
 	}
 
 	@Override
@@ -102,8 +106,6 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, Environm
 
 		List<String> command = createCommand();
 
-		String commandClassPath = createClassPath(this.getClass());
-
 		File out = File.createTempFile(commandName + "-", ".out");
 		stepExecution.getExecutionContext().putString(commandName.toLowerCase() + ".system.out", out.getAbsolutePath());
 		logger.info(commandName + " system.out: " + out.getAbsolutePath());
@@ -111,7 +113,9 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, Environm
 		stepExecution.getExecutionContext().putString(commandName.toLowerCase() + ".system.err", err.getAbsolutePath());
 		ProcessBuilder pb = new ProcessBuilder(command).redirectOutput(out).redirectError(err);
 		Map<String, String> env = pb.environment();
-		env.put("CLASSPATH", commandClassPath);
+		for (EnvironmentProvider envProvider : environmentProviders) {
+			envProvider.setEnvironment(env);
+		}
 		String msg = commandDescription + " is being launched";
 		stepExecution.getExecutionContext().putString(commandName.toLowerCase() + ".command", commandDisplayString.trim());
 		List<String> commandOut = new ArrayList<String>();
@@ -243,57 +247,13 @@ public abstract class AbstractProcessBuilderTasklet implements Tasklet, Environm
 
 	protected abstract boolean isStoppable();
 
-	protected abstract List<String> createCommand();
+	protected abstract List<String> createCommand() throws Exception;
 
 	protected abstract String getCommandDisplayString();
 
 	protected abstract String getCommandName();
 
 	protected abstract String getCommandDescription();
-
-	protected String createClassPath(Class taskletClass) {
-		URLClassLoader serverClassLoader;
-		URLClassLoader taskletClassLoader;
-		try {
-			serverClassLoader = (URLClassLoader) Class.forName("org.springframework.xd.dirt.core.Job").getClassLoader();
-			taskletClassLoader = (URLClassLoader) taskletClass.getClassLoader();
-		}
-		catch (Exception e) {
-			throw new IllegalStateException("Unable to determine classpath from ClassLoader.", e);
-		}
-		if (serverClassLoader == null) {
-			throw new IllegalStateException("Unable to access ClassLoader for " + taskletClass + ".");
-		}
-		if (taskletClassLoader == null) {
-			throw new IllegalStateException("Unable to access Context ClassLoader.");
-		}
-		List<String> classPath = new ArrayList<String>();
-		String configHome = environment.getProperty(XD_CONFIG_HOME);
-		if (StringUtils.hasText(configHome)) {
-			classPath.add(configHome);
-		}
-		for (URL url : serverClassLoader.getURLs()) {
-			String file = url.getFile().split("\\!/", 2)[0];
-			if (file.endsWith(".jar")) {
-				classPath.add(file);
-			}
-		}
-		for (URL url : taskletClassLoader.getURLs()) {
-			String file = url.getFile().split("\\!/", 2)[0];
-			if (file.endsWith(".jar") && !classPath.contains(file)) {
-				classPath.add(file);
-			}
-		}
-		StringBuilder classPathBuilder = new StringBuilder();
-		String separator = System.getProperty("path.separator");
-		for (String url : classPath) {
-			if (classPathBuilder.length() > 0) {
-				classPathBuilder.append(separator);
-			}
-			classPathBuilder.append(url);
-		}
-		return classPathBuilder.toString();
-	}
 
 	protected List<String> getProcessOutput(File f) {
 		List<String> lines = new ArrayList<String>();

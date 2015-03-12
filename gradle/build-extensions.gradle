@@ -239,3 +239,14 @@ project('spring-xd-extension-sqoop') {
         provided "org.springframework.data:spring-data-hadoop-batch:${springDataHadoopBase}"
     }
 }
+
+project('spring-xd-extension-gpload') {
+    description = 'Spring XD GPLoad extension'
+    dependencies {
+        compile project(':spring-xd-module-spi')
+        compile project(':spring-xd-extension-batch')
+        compile project(':spring-xd-extension-jdbc')
+        provided "org.springframework.batch:spring-batch-core"
+        compile "org.yaml:snakeyaml"
+    }
+}

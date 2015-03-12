@@ -72,8 +72,6 @@ apply from: 'gradle/build-extensions.gradle'
 
 task moduleFiles {
     def modules = fileTree("$rootDir/modules")
-    modules.exclude 'lib'
-    modules.exclude 'build'
     outputs.dir modules
 }
 

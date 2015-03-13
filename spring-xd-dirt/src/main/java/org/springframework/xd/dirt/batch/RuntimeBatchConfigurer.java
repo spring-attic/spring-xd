@@ -28,11 +28,14 @@ import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
+import org.springframework.batch.core.repository.support.SimpleJobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.plugins.job.support.JobLaunchingJobRepository;
+import org.springframework.xd.dirt.plugins.job.support.JobLaunchingJobRepositoryFactoryBean;
 
 /**
  * Spring XD runtime specific {@link BatchConfigurer}.
@@ -124,9 +127,28 @@ public class RuntimeBatchConfigurer implements BatchConfigurer {
 
 	private JobLauncher createJobLauncher() throws Exception {
 		SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
-		jobLauncher.setJobRepository(jobRepository);
+		jobLauncher.setJobRepository(createLaunchingJobRepository());
 		jobLauncher.afterPropertiesSet();
 		return jobLauncher;
+	}
+
+	private JobRepository createLaunchingJobRepository() throws Exception {
+		JobLaunchingJobRepositoryFactoryBean factory = new JobLaunchingJobRepositoryFactoryBean();
+		factory.setDataSource(dataSource);
+		if (dbType != null) {
+			factory.setDatabaseType(dbType);
+		}
+		if (clobType != null) {
+			factory.setClobType(clobType);
+		}
+		factory.setTransactionManager(transactionManager);
+		factory.setIsolationLevelForCreate(isolationLevel);
+		factory.setMaxVarCharLength(maxVarCharLength);
+		factory.setTablePrefix(tablePrefix);
+		factory.setValidateTransactionState(validateTransactionState);
+		factory.afterPropertiesSet();
+
+		return factory.getObject();
 	}
 
 	protected JobRepository createJobRepository() throws Exception {

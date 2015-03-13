@@ -63,7 +63,7 @@ public class SingletonModuleRegistry implements ModuleRegistry {
 	@Override
 	public List<ModuleDefinition> findDefinitions(String name) {
 		if (moduleName.equals(name)) {
-			return Collections.singletonList(ModuleDefinitions.simple(moduleName, moduleType, location));
+			return Collections.singletonList((ModuleDefinition)ModuleDefinitions.simple(moduleName, moduleType, location));
 		}
 		else {
 			return Collections.emptyList();
@@ -73,7 +73,7 @@ public class SingletonModuleRegistry implements ModuleRegistry {
 	@Override
 	public List<ModuleDefinition> findDefinitions(ModuleType type) {
 		if (type == moduleType) {
-			return Collections.singletonList(ModuleDefinitions.simple(moduleName, moduleType, location));
+			return Collections.singletonList((ModuleDefinition)ModuleDefinitions.simple(moduleName, moduleType, location));
 		}
 		else {
 			return Collections.emptyList();
@@ -82,6 +82,6 @@ public class SingletonModuleRegistry implements ModuleRegistry {
 
 	@Override
 	public List<ModuleDefinition> findDefinitions() {
-		return Collections.singletonList(ModuleDefinitions.simple(moduleName, moduleType, location));
+		return Collections.singletonList((ModuleDefinition)ModuleDefinitions.simple(moduleName, moduleType, location));
 	}
 }

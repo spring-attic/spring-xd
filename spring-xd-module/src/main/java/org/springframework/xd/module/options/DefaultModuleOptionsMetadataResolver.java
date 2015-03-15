@@ -136,7 +136,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 				String type = props.getProperty(String.format("options.%s.type", optionName));
 				Class<?> clazz = null;
 				if (type != null) {
-                    String typeTrimmed = type.trim();
+					String typeTrimmed = type.trim();
 					if (SHORT_CLASSNAMES.containsKey(typeTrimmed)) {
 						clazz = SHORT_CLASSNAMES.get(typeTrimmed);
 					}

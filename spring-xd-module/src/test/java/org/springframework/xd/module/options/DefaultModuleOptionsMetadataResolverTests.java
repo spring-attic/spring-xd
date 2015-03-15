@@ -45,7 +45,6 @@ public class DefaultModuleOptionsMetadataResolverTests {
 		assertThat(
 				metadata,
 				containsInAnyOrder(moduleOptionNamed("bar"), moduleOptionNamed("foo")));
-
 	}
 
 	@Test
@@ -86,4 +85,27 @@ public class DefaultModuleOptionsMetadataResolverTests {
 		ModuleDefinition definition = ModuleDefinitions.simple("module4", source, resource);
 		metadataResolver.resolve(definition);
 	}
+
+	@Test
+	public void testNormalMetadataTypeValueTrimmed() {
+		String resource = "classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module5/";
+		ModuleDefinition definition = ModuleDefinitions.simple("module5", source, resource);
+		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
+		assertThat(metadata, hasItem(moduleOptionNamed("foo")));
+
+		ModuleOption foo = metadata.iterator().next();
+		assertThat(foo.getType(), equalTo((Class) String.class));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testOptionClassValueTrimmed() {
+		String resource = "classpath:/DefaultModuleOptionsMetadataResolverTests-modules/source/module6/";
+		ModuleDefinition definition = ModuleDefinitions.simple("module6", source, resource);
+		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
+		assertThat(
+				metadata,
+				containsInAnyOrder(moduleOptionNamed("bar"), moduleOptionNamed("foo")));
+	}
+
 }

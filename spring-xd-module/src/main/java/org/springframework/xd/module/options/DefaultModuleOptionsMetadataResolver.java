@@ -136,17 +136,18 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 				String type = props.getProperty(String.format("options.%s.type", optionName));
 				Class<?> clazz = null;
 				if (type != null) {
-					if (SHORT_CLASSNAMES.containsKey(type)) {
-						clazz = SHORT_CLASSNAMES.get(type);
+                    String typeTrimmed = type.trim();
+					if (SHORT_CLASSNAMES.containsKey(typeTrimmed)) {
+						clazz = SHORT_CLASSNAMES.get(typeTrimmed);
 					}
 					else {
 						try {
-							clazz = Class.forName(type);
+							clazz = Class.forName(typeTrimmed);
 						}
 						catch (ClassNotFoundException e) {
 							throw new IllegalStateException("Can't find class used for type of option '"
 									+ optionName
-									+ "': " + type);
+									+ "': " + typeTrimmed);
 						}
 					}
 				}
@@ -195,7 +196,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 				String pojoClass = props.getProperty(OPTIONS_CLASS);
 				if (pojoClass != null) {
 					List<ModuleOptionsMetadata> mixins = new ArrayList<ModuleOptionsMetadata>();
-					createPojoOptionsMetadata(classLoaderToUse, pojoClass, mixins);
+					createPojoOptionsMetadata(classLoaderToUse, pojoClass.trim(), mixins);
 					return mixins.size() == 1 ? mixins.get(0) : new FlattenedCompositeModuleOptionsMetadata(mixins);
 				}
 				else {

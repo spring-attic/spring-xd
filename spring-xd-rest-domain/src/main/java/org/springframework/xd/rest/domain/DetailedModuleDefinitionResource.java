@@ -33,6 +33,8 @@ import org.springframework.hateoas.PagedResources;
 @XmlRootElement
 public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 
+	private String shortDescription;
+
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
@@ -51,6 +53,14 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 			options = new ArrayList<Option>();
 		}
 		options.add(option);
+	}
+
+	public void setShortDescription(String shortDescription) {
+		this.shortDescription = shortDescription;
+	}
+
+	public String getShortDescription() {
+		return shortDescription;
 	}
 
 	public static class Option {

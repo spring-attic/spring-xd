@@ -48,4 +48,12 @@ explicitly set as a module option.
 		</property>
 	</bean>
 
+	<bean id="moduleInformationResolver" class="org.springframework.xd.module.info.DelegatingModuleInformationResolver">
+		<property name="delegates">
+			<list>
+				<bean class="org.springframework.xd.module.info.DefaultSimpleModuleInformationResolver" />
+			</list>
+		</property>
+	</bean>
+
 </beans>

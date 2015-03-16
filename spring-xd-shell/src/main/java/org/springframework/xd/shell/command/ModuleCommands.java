@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,10 @@ public class ModuleCommands implements CommandMarker {
 		StringBuilder result = new StringBuilder();
 		result.append("Information about ").append(module.type.name()).append(" module '").append(module.name).append(
 				"':\n\n");
+
+		if (info.getShortDescription() != null) {
+			result.append(info.getShortDescription()).append("\n\n");
+		}
 		if (options == null) {
 			result.append("Module options metadata is not available");
 		}

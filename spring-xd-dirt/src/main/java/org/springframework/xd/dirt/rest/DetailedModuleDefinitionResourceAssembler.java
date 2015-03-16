@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.info.ModuleInformation;
+import org.springframework.xd.module.info.ModuleInformationResolver;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
@@ -39,10 +41,13 @@ ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
 
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
+	private ModuleInformationResolver moduleInformationResolver;
+
 	@Autowired
-	public DetailedModuleDefinitionResourceAssembler(ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
+	public DetailedModuleDefinitionResourceAssembler(ModuleOptionsMetadataResolver moduleOptionsMetadataResolver, ModuleInformationResolver moduleInformationResolver) {
 		super(ModulesController.class, DetailedModuleDefinitionResource.class);
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
+		this.moduleInformationResolver = moduleInformationResolver;
 	}
 
 	@Override
@@ -54,8 +59,8 @@ ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
 	protected DetailedModuleDefinitionResource instantiateResource(ModuleDefinition entity) {
 		DetailedModuleDefinitionResource result = new DetailedModuleDefinitionResource(entity.getName(),
 				entity.getType().name(), entity.isComposed());
-		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(entity);
 
+		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(entity);
 		if (!(moduleOptionsMetadata instanceof PassthruModuleOptionsMetadata)) {
 			for (ModuleOption option : moduleOptionsMetadata) {
 				Object defaultValue = option.getDefaultValue();
@@ -77,6 +82,11 @@ ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
 						type == null ? null : type.getSimpleName(), option.getDescription(),
 								defaultValueAsString, option.isHidden()));
 			}
+		}
+
+		ModuleInformation moduleInformation = moduleInformationResolver.resolve(entity);
+		if (moduleInformation != null) {
+			result.setShortDescription(moduleInformation.getShortDescription());
 		}
 		return result;
 	}

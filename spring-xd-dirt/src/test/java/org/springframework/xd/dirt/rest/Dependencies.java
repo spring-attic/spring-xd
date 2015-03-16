@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,8 @@ import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRep
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.module.info.DefaultSimpleModuleInformationResolver;
+import org.springframework.xd.module.info.ModuleInformationResolver;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -103,6 +105,12 @@ public class Dependencies {
 	public ModuleOptionsMetadataResolver moduleOptionsMetadataResolver() {
 		return new DefaultModuleOptionsMetadataResolver();
 	}
+
+	@Bean
+	public ModuleInformationResolver moduleInformationResolver() {
+		return new DefaultSimpleModuleInformationResolver();
+	}
+
 
 	@Bean
 	public RichGaugeRepository richGaugeRepository() {

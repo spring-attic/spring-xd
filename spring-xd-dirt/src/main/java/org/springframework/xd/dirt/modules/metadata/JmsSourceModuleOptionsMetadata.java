@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,19 @@ package org.springframework.xd.dirt.modules.metadata;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**
  * Captures options for the {@code jms} source module.
- * 
- * @author Eric Bottard 
+ *
+ * @author Eric Bottard
+ * @author Gary Russell
  */
-public class JmsSourceModuleOptionsMetadata {
+public class JmsSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private String provider = "activemq";
 
@@ -41,6 +44,8 @@ public class JmsSourceModuleOptionsMetadata {
 	private String subscriptionName = null;
 
 	private String clientId = null;
+
+	private String acknowledge = "auto";
 
 	@NotNull
 	public String getProvider() {
@@ -70,6 +75,13 @@ public class JmsSourceModuleOptionsMetadata {
 
 	public String getClientId() {
 		return clientId;
+	}
+
+	@NotNull
+	@Pattern(regexp = "(auto|transacted|dups-ok|client)", flags = Pattern.Flag.CASE_INSENSITIVE,
+	message = "must be one of 'auto', 'transacted', 'dups-ok' or 'client'")
+	public String getAcknowledge() {
+		return acknowledge;
 	}
 
 	@ModuleOption("the JMS provider")
@@ -102,5 +114,19 @@ public class JmsSourceModuleOptionsMetadata {
 		this.clientId = clientId;
 	}
 
+	@ModuleOption("the session acknowledge mode")
+	public void setAcknowledge(String acknowledge) {
+		this.acknowledge = acknowledge.toLowerCase();
+	}
+
+	@Override
+	public String[] profilesToActivate() {
+		if ("transacted".equals(this.acknowledge)) {
+			return new String[] { "dmlc" };
+		}
+		else {
+			return new String[] { "smlc" };
+		}
+	}
 
 }

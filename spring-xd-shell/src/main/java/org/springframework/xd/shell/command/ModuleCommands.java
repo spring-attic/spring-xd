@@ -80,6 +80,10 @@ public class ModuleCommands implements CommandMarker {
 		StringBuilder result = new StringBuilder();
 		result.append("Information about ").append(module.type.name()).append(" module '").append(module.name).append(
 				"':\n\n");
+
+		if (info.getShortDescription() != null) {
+			result.append(info.getShortDescription()).append("\n\n");
+		}
 		if (options == null) {
 			result.append("Module options metadata is not available");
 		}

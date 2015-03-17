@@ -16,16 +16,29 @@
 
 package org.springframework.xd.dirt.module;
 
-import static org.junit.Assert.*;
-import static org.springframework.xd.module.ModuleType.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.xd.module.ModuleType.processor;
+import static org.springframework.xd.module.ModuleType.sink;
+import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -62,12 +75,9 @@ public class CompositeModuleTests {
 
 	private volatile ModuleDefinition sinkDefinition;
 
-	private ModuleFactory moduleFactory = new ModuleFactory(new ModuleOptionsMetadataResolver() {
-		@Override
-		public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {
-			return new PassthruModuleOptionsMetadata();
-		}
-	});
+	private ApplicationContext context = new AnnotationConfigApplicationContext(ModuleFactoryConfiguration.class);
+
+	private ModuleFactory moduleFactory = context.getBean(ModuleFactory.class);
 
 
 	@Before
@@ -184,4 +194,65 @@ public class CompositeModuleTests {
 		assertEquals(sink, module.getType());
 	}
 
+	@Test
+	public void testCompositeModuleInheritsParentEnvironment() {
+		ModuleDescriptor processor1Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor1Definition)
+				.setGroup("compositesinkgroup")
+				.build();
+		ModuleDescriptor processor2Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor2Definition)
+				.setGroup("compositesinkgroup")
+				.build();
+		ModuleDescriptor sinkDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(sinkDefinition)
+				.setGroup("compositesinkgroup")
+				.build();
+
+
+		ModuleDefinition composed = ModuleDefinitions.composed("compositesink", ModuleType.sink,
+				"processor1 | processor2 | sink",
+				Arrays.asList(processor1Definition, processor2Definition, sinkDefinition));
+
+		//parser results being reversed, we emulate here
+		List<ModuleDescriptor> children = Arrays.asList(sinkDescriptor, processor2Descriptor, processor1Descriptor);
+		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(composed)
+				.setGroup("compositesinkgroup")
+				.addChildren(children)
+				.setIndex(2)
+				.build();
+
+
+		Module module = moduleFactory.createModule(compositeDescriptor, deploymentProperties);
+		assertTrue(module instanceof CompositeModule);
+		assertEquals(sink, module.getType());
+
+		ConfigurableApplicationContext moduleContext = module.getApplicationContext();
+		module.setParentContext(context);
+
+		assertEquals("foo", moduleContext.getEnvironment().getProperty("foo"));
+	}
+
+	@Configuration
+	static class ModuleFactoryConfiguration {
+		@Autowired
+		ConfigurableEnvironment env;
+
+		@Bean
+		ModuleFactory moduleFactory() {
+			Properties properties = new Properties();
+			properties.setProperty("foo", "foo");
+			PropertiesPropertySource propertiesPropertySource = new PropertiesPropertySource("props",
+					properties);
+			env.getPropertySources().addLast(propertiesPropertySource);
+			return new ModuleFactory(new ModuleOptionsMetadataResolver() {
+				@Override
+				public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {
+					return new PassthruModuleOptionsMetadata();
+				}
+			});
+		}
+	}
 }
+

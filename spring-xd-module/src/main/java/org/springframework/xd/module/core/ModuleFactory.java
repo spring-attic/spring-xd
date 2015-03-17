@@ -25,7 +25,10 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -51,7 +54,7 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport;
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware {
+public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware, ApplicationContextAware {
 
 	private static Log log = LogFactory.getLog(ModuleFactory.class);
 
@@ -66,6 +69,8 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 	 * deploying it.
 	 */
 	public static final String MODULE_EXECUTION_FRAMEWORK_KEY = "moduleExecutionFramework";
+
+	private  ApplicationContext applicationContext;
 
 	/**
 	 * @param moduleOptionsMetadataResolver Used to bind configured {@link ModuleOptions} to {@link Module} instances
@@ -90,7 +95,6 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 		Module module = createAndConfigureModuleInstance(moduleDescriptor, moduleOptions, deploymentProperties);
 		return module;
 	}
-
 
 	/**
 	 * Creates and configures a {@link org.springframework.xd.module.core.Module} after resolving {@link
@@ -178,7 +182,9 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 			childrenModules
 					.add(0, createAndConfigureModuleInstance(moduleDescriptor, moduleOptions, deploymentProperties));
 		}
-		return new CompositeModule(compositeDescriptor, deploymentProperties, childrenModules);
+		CompositeModule compositeModule = new CompositeModule(compositeDescriptor, deploymentProperties, childrenModules);
+		compositeModule.setParentContext(this.applicationContext);
+		return compositeModule;
 	}
 
 	/**
@@ -209,6 +215,11 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 		this.resourceLoader = (ResourcePatternResolver) resourceLoader;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 	}
 
 	static class SimpleModuleCreator {

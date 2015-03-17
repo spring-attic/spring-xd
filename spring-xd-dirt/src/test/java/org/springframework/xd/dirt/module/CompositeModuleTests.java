@@ -16,16 +16,32 @@
 
 package org.springframework.xd.dirt.module;
 
-import static org.junit.Assert.*;
-import static org.springframework.xd.module.ModuleType.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.xd.module.ModuleType.processor;
+import static org.springframework.xd.module.ModuleType.sink;
+import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -184,4 +200,71 @@ public class CompositeModuleTests {
 		assertEquals(sink, module.getType());
 	}
 
+	@Test
+	public void testCompositeModuleInheritsModuleFactoryEnvironment() {
+		ModuleDescriptor processor1Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor1Definition)
+				.setGroup("compositesinkgroup")
+				.build();
+		ModuleDescriptor processor2Descriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(processor2Definition)
+				.setGroup("compositesinkgroup")
+				.build();
+		ModuleDescriptor sinkDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(sinkDefinition)
+				.setGroup("compositesinkgroup")
+				.build();
+		
+
+		ModuleDefinition composed = ModuleDefinitions.composed("compositesink", ModuleType.sink,
+				"processor1 | processor2 | sink",
+				Arrays.asList(processor1Definition, processor2Definition, sinkDefinition));
+
+		//parser results being reversed, we emulate here
+		List<ModuleDescriptor> children = Arrays.asList(sinkDescriptor, processor2Descriptor, processor1Descriptor);
+		ModuleDescriptor compositeDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(composed)
+				.setGroup("compositesinkgroup")
+				.addChildren(children)
+				.setIndex(2)
+				.build();
+
+		ApplicationContext context = new AnnotationConfigApplicationContext(ModuleFactoryConfiguration.class);
+		ModuleFactory moduleFactory1 = context.getBean(ModuleFactory.class);
+		
+		
+		Module module = moduleFactory1.createModule(compositeDescriptor, deploymentProperties);
+		assertTrue(module instanceof CompositeModule);
+		assertEquals(sink, module.getType());
+
+		ConfigurableApplicationContext moduleContext = (ConfigurableApplicationContext)module.getApplicationContext();
+		ConfigurableApplicationContext moduleParentContext = (ConfigurableApplicationContext)moduleContext.getParent();
+
+		assertNotNull("parent context can't be null", moduleParentContext);
+		ConfigurableEnvironment parentEnvironment = moduleParentContext.getEnvironment();
+		ConfigurableEnvironment moduleEnvironment = moduleContext.getEnvironment();
+		assertEquals("foo/bar", moduleEnvironment.getProperty("xd.home"));
+	}
+
+	@Configuration
+	static class ModuleFactoryConfiguration {
+		@Autowired
+		ConfigurableEnvironment env;
+		
+		@Bean
+		ModuleFactory moduleFactory() {
+			Properties properties = new Properties();
+			properties.setProperty("xd.home","foo/bar");
+			PropertiesPropertySource propertiesPropertySource = new PropertiesPropertySource("props",
+					properties);
+			env.getPropertySources().addFirst(propertiesPropertySource);
+			return new ModuleFactory(new ModuleOptionsMetadataResolver() {
+				@Override
+				public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {
+					return new PassthruModuleOptionsMetadata();
+				}
+			});
+		}
+	}
 }
+

@@ -1,0 +1,183 @@
+[[adminui]]
+ifndef::env-github[]
+== Admin UI 
+endif::[]
+
+=== Introduction
+
+Spring XD provides a browser-based GUI which currently has 2 sections allowing you to
+
+* perform Batch Job related tasks
+* deploy/undeploy Stream Definitions
+
+Upon starting Spring XD, the Admin UI is available at:
+
+"http://<adminHost>:<adminPort>/admin-ui" 
+
+For example: http://localhost:9393/admin-ui
+
+If you have enabled https, then it will be located at https://localhost:9393/admin-ui
+
+If you have enabled security, a login form is available at http://localhost:9393/admin-ui/login
+
+**Note**: Default admin server port is 9393
+
+.The Spring XD Admin UI
+image::images/spring-xd-admin-ui-about.png[The Spring XD Admin UI, width=500]
+
+
+[[admin-ui-containers]]
+=== Containers
+The _Containers_ section of the admin UI shows the containers that are in the XD cluster.  For each container the group properties and deployed modules are shown.  More information on the container (hostname, pid, ip address) and for the module (module options and deployment properties) is available by clicking on the respective links.  You can also shutdown a container (in distributed mode) by clicking on the shutdown button.  You will be asked for confirmation if you select to shutdown.
+
+.List of Containers
+image::images/spring-xd-admin-ui-containers.png[List of Containers, width=500]
+
+
+[[admin-ui-streams]]
+=== Streams
+
+The _Streams_ section of the admin UI provides the _Definitions_ tab that provides a listing of Stream definitions. There you have the option to *deploy* or *undeploy* those streams. Additionally you can remove the definition by clicking on *destroy*.
+
+.List of Stream Definitions
+image::images/spring-xd-admin-ui-streams-list-definitions.png[List of Stream Definitions, width=500]
+
+=== Jobs
+
+The _Jobs_ section of the admin UI currently has four tabs specific for *Batch Jobs*
+
+* Modules
+* Definitions
+* Deployments
+* Executions
+
+[[admin-ui-modules]]
+==== Modules
+
+_Modules_ encapsulate a unit of work into a reusable component. Within the XD runtime environment Modules allow users to create definitions for _Streams_ as well as _Batch Jobs_. Consequently, the _Modules_ tab within the _Jobs_ section allows users to create _Batch Job_ definitions. In order to learn more about _Modules_, please see the chapter on xref:Modules#modules[Modules].
+
+===== List available batch job modules
+
+This page lists the available batch job modules.
+
+.List Job Modules
+image::images/spring-xd-admin-ui-list-modules.png[List Job Modules, width=500]
+
+On this screen you can perform the following actions:
+
+[cols=".^1,.^4"]
+|===
+|image:images/spring-xd-admin-ui-jobs-view-module-details-button.png[View Details, 42, 36, title="View Details"]
+|View details such as the job module options.
+
+|image:images/spring-xd-admin-ui-jobs-create-definition-button.png[Create Definition, 42, 36, title="Create Definition"]
+|Create a Job Definition from the respective Module.
+|===
+
+===== Create a Job Definition from a selected Job Module
+
+On this screen you can create a new Job Definition. As a minimum you must provide a name for the new definition. Optionally you can select wether the new definition shall be automatically deployed. Depending on the selected module, you will also have the option to specify various parameters that are used during the deployment of the definition.
+
+.Create a Job Definition
+image::images/spring-xd-admin-ui-jobs-create-job-definition.png[Create a Job Definition, width=500]
+
+===== View Job Module Details
+
+.View Job Module Details
+image::images/spring-xd-admin-ui-jobs-view-module-details.png[View Job Module Details, width=500]
+
+On this page you can view the details of a selected job module. The pages lists the available options (properties) of the modules.
+
+==== List job definitions
+
+This page lists the XD batch job definitions and provides actions to *deploy*, *un-deploy* or *destroy* those jobs.
+
+.List Job Definitions
+image::images/spring-xd-admin-ui-definitions.png[List Job Definitions, width=500]
+
+==== List job deployments
+
+This page lists all the deployed jobs and provides option to *launch* or *schedule* the deployed job.
+
+.List Job Deployments
+image::images/spring-xd-admin-ui-deployments.png[List Job Deployments, width=500]
+
+===== Launching a batch Job
+
+Once the job is deployed, they can be launched through the Admin UI as well. Navigate to the *Deployments* tab. Select the job you want to launch and press `Launch`. The following modal dialog should appear:
+
+.Launch a Batch Job with parameters
+image::images/spring-xd-admin-ui-launch-job.png[Launch a Batch Job with parameters, width=500]
+
+Using this screen, you can define one or more job parameters. Job parameters can be typed and the following data types are available:
+
+* String (The default)
+* Date (The default date format is: _yyyy/MM/dd_)
+* Long
+* Double
+
+===== Schedule Batch Job Execution
+
+.Schedule a Batch Job
+image::images/spring-xd-admin-ui-schedule-job.png[Schedule a Batch Job, width=500]
+
+When clicking on *Schedule*, you have the option to run the job:
+
+* using a fixed delay interval (specified in seconds)
+* on a specific data/time
+* using a valid CRON expression
+
+==== Job Deployment Details
+
+On this screen, you can view additional deployment details. Besides viewing the stream definition, the available Module Metadata is shown as well, e.g. on which Container the definition has been deployed to.
+
+.Job Deployment Details
+image::images/spring-xd-admin-ui-jobs-deployment-details.png[Job Deployment Details, width=500]
+
+==== List job executions
+
+This page lists the batch job executions and provides option to *restart* specific job executions, provided the batch job is restartable and stopped/failed.
+
+.List Job Executions
+image::images/spring-xd-admin-ui-executions.png[List Job Executions, width=500]
+
+Furthermore, you have the option to view the Job execution details.
+
+===== Job execution details
+
+.Job Execution Details
+image::images/spring-xd-admin-ui-jobs-job-execution-details.png[Job Execution Details, width=500]
+
+The same screen also contains a list of the executed steps:
+
+.Job Execution Details - Steps
+image::images/spring-xd-admin-ui-jobs-job-execution-details-steps.png[Job Execution Details - Steps, width=500]
+
+From there you can drill deeper into the _Step Execution Details_.
+
+===== Step execution details
+
+On the top of the page, you will see progress indicator the respective step, with the option to refresh the indicator. Furthermore, a link is provided to view the _step execution history_.
+
+.Step Execution Details
+image::images/spring-xd-admin-ui-jobs-step-execution-details.png[Step Execution Details, width=500]
+
+The Step Execution details screen provides a complete list of all Step Execution Context key/value pairs. For example, the _Spring for Apache Hadoop_ steps provides exhaustive detail information.
+
+.Step Execution Context
+image::images/spring-xd-admin-ui-jobs-step-execution-context.png[Step Execution Context, width=500]
+
+This includes a link back to the _Job History UI_ of the Hadoop Cluster.
+
+.Job History UI
+image::images/spring-xd-admin-ui-jobs-step-execution-context-hadoop-link.png[Job History UI, width=500]
+
+IMPORTANT: In case of exceptions, the _Exit Description_ field will contain additional error information. Please be aware, though, that this field can only have a maximum of *2500 characters*. Therefore, in case of long exception stacktraces, trimming of error messages may occur. In that case, please refer to the server log files for further details. 
+
+===== Step execution history
+
+.Step Execution History
+image::images/spring-xd-admin-ui-jobs-step-execution-history.png[Step Execution History, width=500]
+
+On this screen, you can view various metrics associated with the selected step such as *duration*, *read counts*, *write counts* etc.
+

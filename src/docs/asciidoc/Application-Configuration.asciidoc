@@ -1,0 +1,724 @@
+[[application-configuration]]
+ifndef::env-github[]
+== Application Configuration
+endif::[]
+
+=== Introduction
+
+There are two main parts of Spring XD that can be configured, servers and modules.  
+
+The servers (`xd-singlenode`, `xd-admin`, `xd-container`) are http://projects.spring.io/spring-boot/[Spring Boot] applications and are configured as described in the http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/[Spring Boot Reference documentation].  In the most simple case this means editing values in the YAML based configuration file `servers.yml`.  The values in this configuration file will overwrite the values in the default https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/application.yml[application.yml] file that is embedded in the XD jar.
+
+NOTE: The use of YAML is an alternative to using property files. YAML is a superset of JSON, and as such is a very convenient format for specifying hierarchical configuration data.
+
+For modules, each module has its own configuration file located in its own directory, for example `source/http/http.properties`.  Shared configuration values for modules can be placed in a common `modules.yml` file.  
+
+For both server and module configuration, you can have environment specific settings through the use of application profiles and the ability to override values in files by setting OS environment variables.  
+
+In this section we will walk though how to configure servers and modules.
+
+=== Server Configuration
+
+The startup scripts for `xd-singlenode`, `xd-admin`, and `xd-container` will by default look for the file `$XD_HOME\config\servers.yml` as a source of externalized configuration information.  
+
+The location and name of this resourse can be changed by using the environment variables `XD_CONFIG_LOCATION` and `XD_CONFIG_NAME`.  The start up script takes the value of these environment variables to set the Spring Boot properties `spring.config.location` and `spring.config.name`.  Note, that for `XD_CONFIG_LOCATION` you can reference any http://docs.spring.io/spring/docs/4.0.3.RELEASE/spring-framework-reference/htmlsingle/#resources[Spring Resource] implementation, most commonly denoted using the prefixes `classpath:`, `file:` and `http:`.
+
+It is common to keep your server configuration separate form the installation directory of XD itself.  To do this, here is an example environment variable setting 
+
+[source,bash]
+----
+export XD_CONFIG_LOCATION=file:/xd/config/
+export XD_CONFIG_NAME=region1-servers
+----
+**Note**: the file path separator ("/") at the end of XD_CONFIG_LOCATION is **necessary**.
+
+==== Profile support
+
+Profiles provide a way to segregate parts of your application configuration and change their availability and/or values based on the environment.  This lets you have different configuration settings for `qa` and `prod` environments and to easily switch between them.
+
+To activate a profile, set the OS environment variable `SPRING_PROFILES_ACTIVE` to a comma delimited list of profile names.  The server looks to load profile specific variants of the `servers.yml` file based on the naming convention `servers-{profile}.yml`.  For example, if `SPRING_PROFILES_ACTIVE=prod` the following files would be searched for in the following order.
+
+. `XD_CONFIG_LOCATION/servers-prod.yml`
+. `XD_CONFIG_LOCATION/servers.yml`
+
+You may also put multiple profile specific configuration in a single `servers.yml` file by using the key `spring.profiles` in different sections of the configuration file.  See http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#boot-features-external-config-multi-profile-yaml[Multi-profile YAML documents] for more information.
+
+==== Database Configuration
+
+Spring XD saves the state of the batch job workflows in a relational database.  When running `xd-singlenode` a embedded HSQLDB database is run.  When running in distributed mode a standalone HSQLDB instance can be used, the startup script `hsqldb-server` is in is provided the installation directory under the folder 'hsqldb/bin'.  It is recommended to use HSQLDB only for development and learning. 
+
+When deploying in a production environment, you will need to select another database.  Spring XD is actively tested on MySql (Version: 5.1.23) and Postgres (Version 9.2-1002).  All batch workflow tables are automatically created, if they do not exist, for HSQLDB, MySQL and Postgres.  The JDBC driver jars for the HSQLDB, MySql, and Postgres are already on the XD classpath.
+
+The provided configuration file `servers.yml` located in `$XD_HOME\config` has commented out configuration for some commonly used databases.  You can use these as a basis to support your database environment. XD also utilizes the Tomcat jdbc connection pool and these settings can be configured in the `servers.yml`.  
+
+NOTE: Until full schema support is added for Oracle, Sybase and other database, you will need to put a .jar file in the `xd/lib` directory that contains the equivalent functionality as these https://github.com/spring-projects/spring-xd/tree/master/spring-xd-batch/src/main/resources/org/springframework/xd/batch/schema[DDL scripts].  
+
+NOTE: There was a schema change in version 1.0 RC1.  Use or adapt the the https://gist.github.com/ilayaperumalg/3f379eb7f4527f6f6da4[sample migration class] to update your schema.
+
+
+===== HSQLDB 
+
+When in distributed mode and you want to use HSQLDB, you need to change the value of `spring.datasource` properties.  As an example, 
+
+[source,yaml]
+----
+hsql:
+ server:
+   host: localhost
+   port: 9102
+   dbname: xdjob
+spring:
+   datasource:
+   url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+   username: sa
+   password:
+   driverClassName: org.hsqldb.jdbc.JDBCDriver
+----
+
+The properties under `hsql.server` are substituted in the `spring.datasource.url` property value.  This lets you create short variants of existing Spring Boot properties.  Using this style, you can override the value of these configuration variables by setting an OS environment variable, such as `xd_server_host`.  Alternatively, you can not use any placeholders and set `spring.datasource.url` directly to known values. 
+
+===== MySQL
+
+When in distributed mode and you want to use MySQL, you need to change the value of `spring.datasource.*` properties.  As an example, 
+
+[source,yaml]
+----
+spring:
+ datasource:
+ url: jdbc:mysql://yourDBhost:3306/yourDB
+ username: yourUsername
+ password: yourPassword
+ driverClassName: com.mysql.jdbc.Driver
+----
+
+To override these settings set an OS environment variable such as `spring_datasource_url` to the value you require.
+
+
+===== PostgreSQL
+
+When in distributed mode and you want to use PostgreSQL, you need to change the value of `spring.datasource.*` properties.  As an example, 
+
+[source,yaml]
+----
+spring:
+  datasource:
+    url: jdbc:postgresql://yourDBhost:5432/yourDB
+    username: yourUsername
+    password: yourPassword
+    driverClassName: org.postgresql.Driver
+----
+
+To override these settings set an OS environment variable such as `spring_datasource_url` to the value you require.
+
+==== Redis
+
+If you want to use Redis for analytics or data transport you should set the host and port of the Redis server.
+
+[source,yaml]
+----
+spring:
+  redis:
+   port: 6379
+   host: localhost
+----
+
+To override these settings set an OS environment variable such as `spring_redis_port` to the value you require.
+
+You can also configure redis to use Sentinel.
+
+[source,yaml]
+----
+spring:
+  redis:
+   port: 6379
+   host: host1
+   sentinel:
+     master: mymaster
+     nodes: host2:26379,host3:26380,host4:26381
+----
+
+[[redisBusProps]]
+In addition, the following default settings for the rabbit message bus can be modified in `servers.yml`...
+
+[source,yaml]
+----
+    redis:
+      headers:				 # <1>
+      default:				 
+        backOffInitialInterval:    1000  # <2>
+        backOffMaxInterval:        10000 # <3>
+        backOffMultiplier:         2.0   # <4>
+        concurrency:               1     # <5>
+        maxAttempts:               32    # <6>
+----
+<1> comma-delimited list of additional (string-valued) header names to transport
+
+<2> The time in milliseconds before retrying a failed message delivery
+
+<3> The maximum time (ms) to wait between retries
+
+<4> The back off multiplier (previous interval x multiplier = next interval)
+
+<5> The minimum number of consumer threads receiving messages for a module
+
+<6> The maximum number of delivery attempts
+
+[[rabbitmq-configuration]]
+==== RabbitMQ
+[[rabbitConfig]]
+If you want to use RabbitMQ as a data transport use the following configuration setting
+
+[source,yaml]
+----
+spring:
+  rabbitmq:
+   addresses: localhost:5672
+   username: guest
+   password: guest
+   virtual_host: /
+   useSSL: false
+   sslProperties:
+----
+
+To override these settings set an OS environment variable such as `spring_rabbitmq_host` to the value you require.
+
+See xref:MessageBus#rabbitssl[Message Bus] regarding SSL configuration.
+
+[[rabbitBusProps]]
+In addition, the following default settings for the rabbit message bus can be modified in `servers.yml`...
+
+[source,yaml]
+----
+  messagebus:
+    rabbit:
+      compressionLevel             1     # <1>
+      default:
+        ackMode:                   AUTO  # <2>
+        autoBindDLQ:               false # <3>
+        backOffInitialInterval:    1000  # <4>
+        backOffMaxInterval:        10000 # <5>
+        backOffMultiplier:         2.0   # <6>
+        batchBufferLimit:          10000 # <7>
+        batchingEnabled:           false # <8>
+        batchSize:                 100   # <9>
+        batchTimeout:              5000  # <10>
+        compress:                  false # <11>
+        concurrency:               1     # <12>
+        maxAttempts:               3     # <13>
+        maxConcurrency:            1     # <14>
+        prefix:                    xdbus. # <15>
+        prefetch:                  1     # <16>
+        replyHeaderPatterns:       STANDARD_REPLY_HEADERS,*   # <17>
+        requestHeaderPatterns:     STANDARD_REQUEST_HEADERS,* # <18>
+        requeue:                   true  # <19>
+        transacted:                false # <20>
+        txSize:                    1     # <21>
+----
+<1> When the bus (or a stream module deployment) is configured to compress messages, specifies the compression level. See _java.uti.zip.Deflater_ for available values; defaults to 1 (BEST_SPEED)
+
+<2> AUTO (container acks), NONE (broker acks), MANUAL (consumer acks). Upper case only. Note: MANUAL requires specialized code in the consuming module and is unlikely to be used in an XD application. For more information, see http://docs.spring.io/spring-integration/reference/html/amqp.html#amqp-inbound-ack
+
+<3> When true, the bus will automatically declare dead letter queues and binding for each bus queue. The user is responsible for setting a policy on the broker to enable dead-lettering; see xref:MessageBus#error-handling-message-delivery-failures[Message Bus Configuration] for more information.
+
+<4> The time in milliseconds before retrying a failed message delivery
+
+<5> The maximum time (ms) to wait between retries
+
+<6> The back off multiplier (previous interval x multiplier = next interval)
+
+<7> When batching is enabled, the size of the buffer that will cause a batch to be released (overrides _batchSize_)
+
+<8> True to enable message batching by producers
+
+<9> The number of messages in a batch (may be preempted by _batchBufferLimit_ or _batchTimeout_)
+
+<10> The idle time to wait before sending a partial batch
+
+<11> True to enable message compression - also see (1. bus _compressionLevel_)
+
+<12> The minimum number of consumer threads receiving messages for a module
+
+<13> The maximum number of delivery attempts
+
+<14> The maximum number of consumer threads receiving messages for a module
+
+<15> A prefix applied to all queues, exchanges so that policies (HA etc) can be applied
+
+<16> The number of messages to prefetch for each consumer
+
+<17> Determines which reply headers will be transported
+
+<18> Determines which request headers will be transported
+
+<19> Whether rejected messages will be requeued by default
+
+<20> Whether the channel is to be transacted
+
+<21> The number of messages to process between acks (when ack mode is AUTO).
+
+[[kafka-configuration]]
+==== Kafka
+[[kafkaConfig]]
+
+If you want to use Kafka as a data transport, the following connection settings, as well as defaults for the kafka
+message bus can be modified in `servers.yml`.
+
+NOTE: To ensure the proper functioning of the Kafka Message Bus, you must eanble log cleaning in your Kafka configuration.  This is set using the configuration variable `log.cleaner.enable=true`.  See the https://cwiki.apache.org/confluence/display/KAFKA/Log+Compaction[Kafka documentation] for additional configuration options for log cleaning.
+
+NOTE: At this time, the Kafka message bus does not support job processing. This feature will be available in a future release. 
+
+[source,yaml]
+----
+  messagebus:
+    kafka:
+      brokers:                                localhost:9092  # <1>
+      zkAddress:                              localhost:2181  # <2>
+      default:
+        batchingEnabled:           false      # <3>
+        batchSize:                 200        # <4>
+        batchTimeout:              5000       # <5>
+        replicationFactor:         1          # <6>
+        concurrency:               1          # <7>
+        requiredAcks:              1          # <8>
+        compressionCodec:          default    # <9>
+        offsetStoreTopic:          SpringXdOffsets   # <10>
+----
+
+<1> A list of Kafka broker addresses, for sending messages
+
+<2> A list of ZooKeeper addresses, for receiving messages
+
+<3> True to enable message batching by producers by default
+
+<4> The number of messages in a batch (may be preempted by _batchTimeout_)
+
+<5> The idle time to wait before sending a partial batch
+
+<6> The replication factor of the topics created by the message bus. At least as many brokers must be in the cluster
+when the topic is being created.
+
+<7> The maximum number of consumer threads receiving messages for a module. The total number of threads actively
+consuming partitions across all the instances of a specific module cannot be larger than the partition count of a
+transport topic - therefore, if such a situation occurs, some modules instances will, in fact, use less consumer
+threads.
+
+<8> The number of required acks when producing messages, i.e. how many brokers have committed data to the logs and
+acknowledged this to the leader. Special values are `-1`, meaning all in-sync replicas, and `0` indicating that no
+acks are necessary.
+
+<9> Enables compression for the bus and sets the compression codec.
+
+<10> The name of the topic that will be used to store client offset values.
+==== Admin Server HTTP Port
+
+The default HTTP port of the `xd-admin` server is 9393.  To change the value use the following configuration setting
+
+[source,yaml]
+----
+server:
+  port: 9876
+----
+
+==== Management Port
+
+The XD servers provide general http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-endpoints[health] and JMX exported http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-jolokia[management] endpoints via Jolokia.
+
+By default the management and health endpoints are available on port 9393.  To change the value of the port use the following configuration setting to `servers.yml`.
+
+[source,yaml]
+----
+management:
+  port: 9876
+----
+
+You can also disable http management endpoints by setting the port value to -1.
+
+By default JMX MBeans are exported.  You can disable JMX by setting `spring.jmx.enabled=false`.
+
+The section on http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[Monitoring and management over HTTP] provides details on how to configure these endpoint.
+
+==== Admin Server Security
+
+By default, the Spring XD admin server is unsecured and runs on an unencrypted HTTP connection. You can secure your administration REST endpoints, as well as the Admin UI by enabling HTTPS and requiring clients to authenticate.
+
+[[enabling-https]]
+===== Enabling HTTPS
+
+By default, the administration, management, and health endpoints, as well as the Admin UI use HTTP as a transport. You can switch to HTTPS easily, by adding a certificate to your configuration in `servers.yml`
+
+[source,yaml]
+----
+spring:
+  profiles: admin                                    # <1>
+server:
+  ssl:
+    key-alias: yourKeyAlias                          # <2>
+    key-store: path/to/keystore                      # <3>
+    key-store-password: yourKeyStorePassword         # <4>
+    key-password: yourKeyPassword                    # <5>
+    trust-store: path/to/trust-store                 # <6>
+    trust-store-password: yourTrustStorePassword     # <7>
+----
+
+<1> The settings are applicable only to the admin server (regardless whether it's started in single-node mode or as a separate instance).
+
+<2> The alias (or name) under which the key is stored in the keystore.
+
+<3> The path to the keystore file. Classpath resources may also be specified, by using the classpath prefix: `classpath:path/to/keystore`
+
+<4> The password of the keystore.
+
+<5> The password of the key.
+
+<6> The path to the truststore file. Classpath resources may also be specified, by using the classpath prefix: `classpath:path/to/trust-store`
+
+<7> The password of the trust store.
+
+NOTE: If HTTPS is enabled, it will completely replace HTTP as the protocol over which the REST endpoints and the Admin UI interact. Plain HTTP requests
+will fail - therefore, make sure that you configure your Shell accordingly.
+
+[[enabling-authentication]]
+===== Enabling authentication
+
+By default, the REST endpoints (administration, management and health), as well as the Admin UI do not require authenticated access. By turning on authentication on the admin server:
+
+* the REST endpoints will require Basic authentication for access;
+* the Admin UI will be accessible after signing in through a web form.
+
+NOTE: When authentication is set up, it is strongly recommended to enable HTTPS as well, especially in production environments.
+
+You can turn on authentication by adding the following to the configuration in `servers.yml`:
+
+[source,yaml]
+----
+spring:
+  profiles: admin                                                     # <1>
+security:
+  basic:
+    enabled: true                                                     # <2>
+    realm: SpringXD                                                   # <3>
+----
+
+<1> The settings are applicable only to the admin server (regardless whether it's started in single node mode or as a separate instance).
+
+<2> Must be set to `true` for security to be enabled.
+
+<3> (Optional) The realm for Basic authentication. Will default to `SpringXD` if not explicitly set.
+
+Additionally, you must specify an authentication method, out of the following that Spring XD supports:
+
+* single user mode (the default made available by Spring Boot)
+* integration with an existing LDAP server
+* file based configuration
+
+The options above are mutually exclusive, and they are described below.
+
+[[enabling-default-boot-authentication]]
+====== Single user authentication
+
+This option uses a single username/password pair is created for the server. This option is turned on by default, if security is enabled and LDAP is not configured.
+
+You can configure this option by adding the following to the configuration in `servers.yml`, once security is enabled.
+
+[source,yaml]
+----
+spring:
+  profiles: admin
+security:
+  basic:
+    enabled: true
+    realm: SpringXD
+  user:
+    name: yourAdminUsername                                           # <1>
+    password: yourAdminPassword                                       # <2>
+----
+
+<1> The username for authentication (must be used by REST clients and in the Admin UI). Will default to `user` if not explicitly set.
+
+<2> The password for authentication (must be used by REST clients and in the Admin UI). If not explicitly set, it will be auto-generated, as described in the http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#boot-features-security[Spring Boot] documentation.
+
+[[enabling-ldap-authentication]]
+====== LDAP authentication
+
+Spring XD also supports authentication against an LDAP server, in both direct bind and "search and bind" modes. When the LDAP authentication option is activated, the default single user mode is turned off.
+
+In direct bind mode, a pattern is defined for the user's distinguished name (DN), using a placeholder for the username.
+The authentication process derive the distinguished name of the user by replacing the placeholder and use it to authenticate a user against the LDAP server, along with the supplied password.
+You can set up LDAP direct bind as follows:
+
+[source,yaml]
+----
+spring:
+  profiles: admin
+security:
+  basic:
+    enabled: true
+    realm: SpringXD
+xd:
+  security:
+    authentication:
+      ldap:
+        enabled: true                                        <1>
+        url: ldap://ldap.example.com:3309                    <2>
+        userDnPattern: uid={0},ou=people,dc=example,dc=com   <3>
+----
+
+<1> Enables LDAP integration
+<2> The URL for the LDAP server
+<3> The distinguished name (DN) pattern for authenticating against the server.
+
+The "search and bind" mode involves connecting to an LDAP server, either anonymously or with a fixed account, and searching
+for the distinguished name of the authenticating user based on its username, and then using the resulting value and the supplied password for binding to the LDAP server.
+This option is configured as follows:
+
+[source,yaml]
+----
+spring:
+  profiles: admin
+security:
+  basic:
+    enabled: true
+    realm: SpringXD
+xd:
+  security:
+    authentication:
+      ldap:
+        enabled: true                                         <1>
+        url: ldap://ldap.example.com:3309                     <2>
+        managerDn: uid=bob,ou=managers,dc=example,dc=com      <3>
+        managerPassword: managerPassword                      <4>
+        userSearchBase: ou=otherpeople,dc=example,dc=com      <5>
+        userSearchFilter: uid={0}                             <6>
+----
+<1> Enables LDAP integration
+<2> The URL of the LDAP server
+<3> A DN for to authenticate to the LDAP server, if anonymous searches are not supported (optional, required together with next option)
+<4> A password to authenticate to the LDAP server, if anonymous searches are not supported (optional, required together with previous option)
+<5> The base for searching the DN of the authenticating user (serves to restrict the scope of the search)
+<6> The search filter for the DN of the authenticating user
+
+[[enabling-filebased-authentication]]
+====== File based authentication
+Spring XD supports listing users in a configuration file, as described below. Each user must be assigned a password
+and one or more roles:
+
+[source,yaml]
+----
+spring:
+  profiles: admin
+security:
+  basic:
+    enabled: true
+    realm: SpringXD
+xd:
+  security:
+    authentication:
+      file:
+        enabled: true                    <1>
+        users:                           <2>
+          bob: bobspassword, ROLE_VIEW   <3>
+          alice: alicepwd, ROLE_ADMIN
+----
+
+<1> Enables file based integration
+<2> This is a yaml map of username to (password and roles)
+<3> Each map "value" is made of a password and one or more roles, comma separated
+
+[[customizing-authorization]]
+===== Customizing authorization
+All of the above deals with authentication, _i.e._ how to assess the identity of the user. Irrespective of the option chosen, you can
+also customize *authorization* _i.e._ who can do what.
+
+The default scheme uses three roles to protect the xref:REST-API#REST-API[REST endpoints] that Spring XD exposes:
+
+* *ROLE_VIEW* for anything that relates to retrieving state
+* *ROLE_CREATE* for anything that involves creating, deleting or mutating the state of the system
+* *ROLE_ADMIN* for boot management endpoints.
+
+All of those defaults are written out in `application.yml`, which you can choose to override _via_ `servers.yml`. This takes the form
+of a YAML *list* (as some rules may have precedence over others) and so you'll need to copy/paste the whole list and tailor it to your needs (as there is no way to merge lists). Always refer to your version of `application.yml`, as the snippet reproduced below may be outdated. The default rules are as such:
+
+[source,yaml]
+----
+  security:
+    authorization:
+      rules:
+        # Streams
+        - GET    /streams/definitions            => hasRole('ROLE_VIEW')
+        - DELETE /streams/definitions            => hasRole('ROLE_CREATE')
+        - GET    /streams/definitions/*          => hasRole('ROLE_VIEW')
+        - POST   /streams/definitions            => hasRole('ROLE_CREATE')
+        - DELETE /streams/definitions/*          => hasRole('ROLE_CREATE')
+        # Stream Deployments
+        - GET    /streams/deployments/           => hasRole('ROLE_VIEW')
+        - DELETE /streams/deployments/           => hasRole('ROLE_CREATE')
+        - GET    /streams/deployments/*          => hasRole('ROLE_VIEW')
+        - POST   /streams/deployments/*          => hasRole('ROLE_CREATE')
+        - DELETE /streams/deployments/*          => hasRole('ROLE_CREATE')
+        # Job Definitions
+        - GET    /jobs/definitions               => hasRole('ROLE_VIEW')
+        - DELETE /jobs/definitions               => hasRole('ROLE_CREATE')
+        - GET    /jobs/definitions/*             => hasRole('ROLE_VIEW')
+        - POST   /jobs/definitions               => hasRole('ROLE_CREATE')
+        - DELETE /jobs/definitions/*             => hasRole('ROLE_CREATE')
+        # Job Deployments
+        - GET    /jobs/deployments/              => hasRole('ROLE_VIEW')
+        - DELETE /jobs/deployments/              => hasRole('ROLE_CREATE')
+        - GET    /jobs/deployments/*             => hasRole('ROLE_VIEW')
+        - POST   /jobs/deployments/*             => hasRole('ROLE_CREATE')
+        - DELETE /jobs/deployments/*             => hasRole('ROLE_CREATE')
+        # Batch Job Configurations
+        - GET    /jobs/configurations            => hasRole('ROLE_VIEW')
+        - GET    /jobs/configurations/*          => hasRole('ROLE_VIEW')
+        # Batch Job Executions
+        - GET    /jobs/executions                => hasRole('ROLE_VIEW')
+        - PUT    /jobs/executions?stop=true      => hasRole('ROLE_CREATE')
+        - GET    /jobs/executions?jobname=*      => hasRole('ROLE_VIEW')
+        - POST   /jobs/executions?jobname=*      => hasRole('ROLE_CREATE')
+        - GET    /jobs/executions/*              => hasRole('ROLE_VIEW')
+        - PUT    /jobs/executions/*?restart=true => hasRole('ROLE_CREATE')
+        - PUT    /jobs/executions/*?stop=true    => hasRole('ROLE_CREATE')
+        - GET    /jobs/executions/*/steps        => hasRole('ROLE_VIEW')
+        - GET    /jobs/executions/*/steps/*      => hasRole('ROLE_VIEW')
+        - GET    /jobs/executions/*/steps/*/progress => hasRole('ROLE_VIEW')
+        # Batch Job Instances
+        - GET    /jobs/instances?jobname=*       => hasRole('ROLE_VIEW')
+        - GET    /jobs/instances/*               => hasRole('ROLE_VIEW')
+        # Module Definitions
+        - GET    /modules                        => hasRole('ROLE_VIEW')
+        - POST   /modules                        => hasRole('ROLE_CREATE')
+        - GET    /modules/*/*                    => hasRole('ROLE_VIEW')
+        - DELETE /modules/*/*                    => hasRole('ROLE_CREATE')
+        # Deployed Modules
+        - GET    /runtime/modules                => hasRole('ROLE_VIEW')
+        # Containers
+        - GET    /runtime/containers             => hasRole('ROLE_VIEW')
+        # Counters
+        - GET    /metrics/counters               => hasRole('ROLE_VIEW')
+        - GET    /metrics/counters/*             => hasRole('ROLE_VIEW')
+        - DELETE /metrics/counters/*             => hasRole('ROLE_CREATE')
+        # Field Value Counters
+        - GET    /metrics/field-value-counters   => hasRole('ROLE_VIEW')
+        - GET    /metrics/field-value-counters/* => hasRole('ROLE_VIEW')
+        - DELETE /metrics/field-value-counters/* => hasRole('ROLE_CREATE')
+        # Aggregate Counters
+        - GET    /metrics/aggregate-counters     => hasRole('ROLE_VIEW')
+        - GET    /metrics/aggregate-counters/*   => hasRole('ROLE_VIEW')
+        - DELETE /metrics/aggregate-counters/*   => hasRole('ROLE_CREATE')
+        # Gauges
+        - GET    /metrics/gauges                 => hasRole('ROLE_VIEW')
+        - GET    /metrics/gauges/*               => hasRole('ROLE_VIEW')
+        - DELETE /metrics/gauges/*               => hasRole('ROLE_CREATE')
+        # Rich Gauges
+        - GET    /metrics/rich-gauges            => hasRole('ROLE_VIEW')
+        - GET    /metrics/rich-gauges/*          => hasRole('ROLE_VIEW')
+        - DELETE /metrics/rich-gauges/*          => hasRole('ROLE_CREATE')
+        # Tab Completions
+        - GET    /completions/stream?start=*     => hasRole('ROLE_VIEW')
+        - GET    /completions/job?start=*        => hasRole('ROLE_VIEW')
+        - GET    /completions/module?start=*     => hasRole('ROLE_VIEW')
+        # Boot Endpoints
+        - GET    /management/**                  => hasRole('ROLE_ADMIN')
+----
+
+The format of each line is the following:
+----
+HTTP_METHOD URL_PATTERN '=>' SECURITY_ATTRIBUTE
+----
+
+where 
+
+* HTTP_METHOD is one http method, capital case
+* URL_PATTERN is an Ant style URL pattern
+* SECURITY_ATTRIBUTE is a SpEL expression (see http://docs.spring.io/spring-security/site/docs/4.0.0.M2/reference/htmlsingle/#el-access)
+* each of those separated by one or several blank characters (spaces, tabs, _etc._)
+
+Be mindful that the above is indeed a YAML list, not a map (thus the use of '-' dashes at the start of each line) that lives under the `security.authorization.rules` key.
+
+==== Local transport
+
+Local transport uses a http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/channel/QueueChannel.html[QueueChannel] to pass data between modules.  There are a few properties you can configure on the QueueChannel
+
+* `xd.local.transport.named.queueSize` - The capacity of the queue, the default value is `Integer.MAX_VALUE`
+* `xd.local.transport.named.polling` - Messages that are buffered in a QueueChannel need to be polled to be consumed.  This property controls the fixed rate at which polling occurs.  The default value is 1000 ms.
+
+=== Module Configuration
+
+Modules are configured by placing property files in a nested directory structure based on their type and name.  The root of the nested directory structure is by default `XD_HOME/config/modules`.  This location can be customized by setting the OS environment variable `XD_MODULE_CONFIG_LOCATION`, similar to how the environment variable `XD_CONFIG_LOCATION` is used for configuring the server. If `XD_MODULE_CONFIG_LOCATION` is set explicitly, then it is **necessary** to add the file path separator ("/") at the end of the path.
+
+NOTE: If `XD_MODULE_CONFIG_LOCATION` is set to use explicit location, make sure to copy entire directory structure from the default module config location `xd/config/modules` into the new module config location. The `XD_MODULE_CONFIG_LOCATION` can reference any http://docs.spring.io/spring/docs/4.0.3.RELEASE/spring-framework-reference/htmlsingle/#resources[Spring Resource] implementation, most commonly denoted using the prefixes `classpath:`, `file:` and `http:`.
+
+As an example, if you wanted to configure the twittersearch module, you would create a file 
+----
+XD_MODULE_CONFIG_LOCATION\source\twittersearch\twittersearch.properties
+----
+
+and the contents of that file would be property names such as `consumerKey` and `consumerSecret`.
+
+NOTE: You *do not* need to prefix these property names with a `source.twittersearch` prefix.
+
+You can override the values in the module property file in various ways.  The following sources of properties are considered in the following order.
+
+. Properties specified in the stream or job `DSL` definition
+. Java System Properties (e.g. source.http.port=9454)
+. OS environment variables. (e.g. source_http_port=9454)
+. `XD_MODULE_CONFIG_LOCATION\<type>\<name>\<name>.properties` (including profile variants)
+. Default values specified in module metadata (if available).
+
+Values in `XD_MODULE_CONFIG_LOCATION\<type>\<name>\<name>.properties` can be property placeholder references to keys defined in another resource location.  By default the resource is the file `XD_MODULE_CONFIG_LOCATION\modules.yml`.  You can customize the name of the resource by using setting the OS environment variable `XD_MODULE_CONFIG_NAME` before running a server startup script.
+
+The `modules.yml` file can be used to specify the values of keys that should be shared across different modules.  For example, it is common to use the same twitter developer credentials in both the twittersearch and twitterstream modules.  To avoid repeating the same credentials in two property files, you can use the following setup.
+
+`modules.yml` contains
+
+[source,yaml]
+----
+sharedConsumerKey: alsdjfqwopieur
+sharedConsumerSecret: pqwieouralsdjkqwpo
+sharedAccessToken: llixzchvpiawued
+sharedAccessTokenSecret: ewoqirudhdsldke
+----
+
+and `XD_MODULE_CONFIG_LOCATION\source\twitterstream\twitterstream.properties` contains
+
+----
+consumerKey=${sharedConsumerKey}
+consumerSecret=${sharedConsumerSecret}
+accessToken=${sharedAccessToken}
+accessTokenSecret=${sharedAccessTokenSecret}
+----
+
+and `XD_MODULE_CONFIG_LOCATION\source\twittersearch\twittersearch.properties` contains
+----
+consumerKey=${sharedConsumerKey}
+consumerSecret=${sharedConsumerSecret}
+----
+
+==== Profiles
+
+When resolving property file names, the server will look to load profile specific variants based on the naming convention `<name>-{profile}.properties`.  For example, if given the OS environment variable `spring_profiles_active=default,qa` the following configuration file names for the twittersearch module would be searched in this order
+
+. `XD_MODULE_CONFIG_LOCATION\source\twittersearch\twittersearch.properties`
+. `XD_MODULE_CONFIG_LOCATION\source\twittersearch\twittersearch-default.properties`
+. `XD_MODULE_CONFIG_LOCATION\source\twittersearch\twittersearch-qa.properties`
+
+Also, the shared module configuration file is refernced using profile variants, so given the OS environment variable `spring_profiles_active=default,qa` the following shared module configuration files would be searched for in this order
+
+. `XD_MODULE_CONFIG_LOCATION\modules.yml`
+. `XD_MODULE_CONFIG_LOCATION\modules-default.yml`
+. `XD_MODULE_CONFIG_LOCATION\modules-qa.yml`
+
+==== Batch Jobs or modules accessing JDBC
+
+Another common case is access to a relational database from a job or the JDBC Sink module.
+
+As an example, to provide the properties for the batch job `jdbchdfs` the file `XD_MODULE_CONFIG_LOCATION\job\jdbchdfs\jdbchdfs.properites` should contain
+----
+driverClass=org.hsqldb.jdbc.JDBCDriver
+url=jdbc:hsqldb:mem:xd
+username=sa
+password=
+----
+
+A property file with the same keys, but likely different values would be located in `XD_MODULE_CONFIG_LOCATION\sink\jdbc\jdbc.properites`.
+

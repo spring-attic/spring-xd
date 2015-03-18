@@ -1,0 +1,65 @@
+[[building-spring-xd]]
+ifndef::env-github[]
+== Building Spring XD 
+endif::[]
+
+=== Instructions
+
+Here are some useful steps to build and run Spring XD.
+
+[WARNING]
+====
+Please ensure that you provide as a minimum _6GB of available RAM_ for a full build. The executed integration tests use several embedded services such as http://kafka.apache.org/[Apache Kafka], http://zookeeper.apache.org/[Apache ZooKeeper] and http://hadoop.apache.org/[Apache Hadoop] which contribute to the high resource usage.
+====
+
+To build all sub-projects and run tests for Spring XD (please note tests require a running http://redis.io/[Redis] instance):
+
+----
+./gradlew build
+----
+
+To build and bundle the distribution of Spring XD
+
+----
+./gradlew dist
+----
+
+The above gradle task creates spring-xd-<version>.zip binary distribution archive and spring-xd-<version>-docs.zip documentation archive files under 'build/distributions'. This will also create a 'build/dist/spring-xd' directory which is the expanded version of the binary distribution archive.
+
+To just create the Spring XD expanded binary distribution directory
+
+----
+./gradlew copyInstall
+----
+
+The above gradle task creates the distribution directory under 'build/dist/spring-xd'.
+
+Once the binary distribution directory is created, please refer to link:https://github.com/SpringSource/spring-xd/wiki/Getting-Started[Getting Started] on how to run Spring XD.
+
+=== IDE support
+
+If you would like to work with the Spring XD code in your IDE, please use the following project generation depending on the IDE you use:
+
+For Eclipse/Spring Tool Suite
+
+----
+./gradlew eclipse
+----
+
+For IntelliJ IDEA
+----
+./gradlew idea
+----
+
+Then just import the project as an existing project.
+
+=== Running script tests
+
+Apart from the unit and integration tests, the directory `src/test/scripts` contains set of scripts that run end-to-end tests on XD runtime. Please see the instructions to setup and run:
+
+* Once XD is built (with copyInstall), from the distribution directory: `build/dist/spring-xd/xd/bin/xd/bin/xd-singlenode(.bat)`
+* Setup XD_HOME environment variable that points to `build/dist/spring-xd/xd`
+* From the directory `src/test/scripts`, run `basic_stream_tests`
+* For the `jdbc_tests`, we need to run `install_sqlite_jar` first that installs sqlite jar into `$XD_HOME/lib`
+* For the `hdfs_import_export_tests`, make sure you have setup hadoop environment and have the `xd-singlenode` started with appropriate hadoopDistro option and hadoop lib jars for the version chosen
+* For `tweet_tests`, make sure you have the twitter properties updated before running the tests

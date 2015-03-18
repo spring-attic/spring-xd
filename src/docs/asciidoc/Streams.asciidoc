@@ -1,0 +1,123 @@
+[[streams]]
+ifndef::env-github[]
+== Streams
+endif::[]
+
+=== Introduction
+
+
+In Spring XD, a basic stream defines the ingestion of event driven data from a _source_ to a _sink_ that passes through any number of _processors_.  Stream processing is performed inside the XD Containers and the deployment of stream definitions to containers is done via the XD Admin Server.  The xref:Getting-Started#getting-started[Getting Started] section shows you how to start these servers and how to start and use the Spring XD shell
+
+Sources, sinks and processors are predefined configurations of a _module_.  Module definitions are found in the `xd/modules` directory.  footnote:[Using the filesystem is just one possible way of storing module defintions.  Other backends will be supported in the future, e.g. Redis.].  Modules definitions are standard Spring configuration files that use existing Spring classes, such as http://static.springsource.org/spring-integration/reference/htmlsingle/#spring-integration-adapters[Input/Output adapters] and http://static.springsource.org/spring-integration/reference/htmlsingle/#transformer[Transformers] from Spring Integration that support general http://www.eaipatterns.com/[Enterprise Integration Patterns].
+
+A high level DSL is used to create stream definitions. The DSL to define a stream that has an http source and a file sink (with no processors) is shown below
+
+     http | file
+
+The DSL mimics a UNIX pipes and filters syntax. Default values for ports and filenames are used in this example but can be overriden using `--` options, such as 
+
+     http --port=8091 | file --dir=/tmp/httpdata/
+
+To create these stream definitions you make an HTTP POST request to the XD Admin Server.  More details can be found in the sections below.
+
+=== Creating a Simple Stream
+
+The XD Admin server footnote:[The server is implemented by the `AdminMain` class in the `spring-xd-dirt` subproject] exposes a full RESTful API for managing the lifecycle of stream definitions, but the easiest way to use the XD shell. Start the shell as described in the xref:Getting-Started#getting-started[Getting Started] section 
+
+New streams are created by posting stream definitions.  The definitions are built from a simple DSL. For example, let's walk through what happens if we execute the following shell command:
+
+    xd:> stream create --definition "time | log" --name ticktock
+  
+
+This defines a stream named `ticktock` based off the DSL expression `time | log`.  The DSL uses the "pipe" symbol `|`, to connect a source to a sink.
+
+Then to deploy the stream execute the following shell command (or alternatively add the `--deploy` flag when creating the stream so that this step is not needed):
+
+    xd:> stream deploy --name ticktock
+
+The stream server finds the `time` and `log` definitions in the modules directory and uses them to setup the stream.  In this simple example, the time source simply sends the current time as a message each second, and the log sink outputs it using the logging framework.
+
+  processing module 'Module [name=log, type=sink]' from group 'ticktock' with index: 1
+  processing module 'Module [name=time, type=source]' from group 'ticktock' with index: 0
+  17:26:18,774  WARN ThreadPoolTaskScheduler-1 logger.ticktock:141 - Thu May 23 17:26:18 EDT 2013
+
+If you would like to have multiple instances of a module in the stream, you can include a property with the deploy command:
+
+    xd:> stream deploy --name ticktock --properties "module.time.count=3"
+
+You can also include a http://docs.spring.io/spring/docs/4.0.x/spring-framework-reference/htmlsingle/#expressions[SpEL Expression] as a `criteria` property for any module. That will be evaluated against the attributes of each currently available Container. Instances of the module will only be deployed to Containers for which the expression evaluates to true.
+
+    xd:> stream deploy --name ticktock --properties "module.time.count=3,module.log.criteria=groups.contains('x')"
+
+=== Deleting a Stream
+
+You can delete a stream by issuing the `stream destroy` command from the shell:
+  
+    xd:> stream destroy --name ticktock
+
+=== Deploying and Undeploying Streams
+
+Often you will want to stop a stream, but retain the name and definition for future use. In that case you can `undeploy` the stream by name and issue the `deploy` command at a later time to restart it.
+
+    xd:> stream undeploy --name ticktock
+    xd:> stream deploy --name ticktock
+
+
+=== Other Source and Sink Types
+
+Let's try something a bit more complicated and swap out the `time` source for something else. Another supported source type is `http`, which accepts data for ingestion over HTTP POSTs. Note that the `http` source accepts data on a different port (default 9000) from the Admin Server (default 8080).
+
+To create a stream using an `http` source, but still using the same `log` sink, we would change the original command above to
+
+    xd:> stream create --definition "http | log" --name myhttpstream --deploy
+
+which will produce the following output from the server
+
+  processing module 'Module [name=log, type=sink]' from group 'myhttpstream' with index: 1
+  processing module 'Module [name=http, type=source]' from group 'myhttpstream' with index: 0
+
+Note that we don't see any other output this time until we actually post some data (using shell command)
+
+  xd:> http post --target http://localhost:9000 --data "hello"
+  xd:> http post --target http://localhost:9000 --data "goodbye"
+
+and the stream will then funnel the data from the http source to the output log implemented by the log sink
+
+  15:08:01,676  WARN ThreadPoolTaskScheduler-1 logger.myhttpstream:141 - hello
+  15:08:12,520  WARN ThreadPoolTaskScheduler-1 logger.myhttpstream:141 - goodbye
+
+Of course, we could also change the sink implementation. You could pipe the output to a file (`file`), to hadoop (`hdfs`) or to any of the other sink modules which are provided. You can also define your own xref:Modules#modules[modules].
+
+=== Simple Stream Processing
+
+As an example of a simple processing step, we can transform the payload of the HTTP posted data to upper case using the stream definitions
+
+    http | transform --expression=payload.toUpperCase() | log
+
+To create this stream enter the following command in the shell
+
+    xd:> stream create --definition "http | transform --expression=payload.toUpperCase() | log" --name myprocstrem --deploy
+
+Posting some data (using shell command)
+
+  xd:> http post --target http://localhost:9000 --data "hello"
+
+Will result in an uppercased 'hello' in the log
+
+  15:18:21,345  WARN ThreadPoolTaskScheduler-1 logger.myprocstream:141 - HELLO
+
+See the xref:Processors#processors[Processors] section for more information.
+
+=== DSL Syntax
+
+In the examples above, we connected a source to a sink using the pipe symbol `|`. You can also pass parameters to the source and sink configurations. The parameter names will depend on the individual module implementations, but as an example, the `http` source module exposes a `port` setting which allows you to change the data ingestion port from the default value. To create the stream using port 8000, we would use 
+
+    xd:> stream create --definition "http --port=8000 | log" --name myhttpstream
+
+If you know a bit about Spring configuration files, you can inspect the module definition to see which properties it exposes. Alternatively, you can read more in the xref:Sources#sources[source] and xref:Sinks#sinks[sink] documentation.
+
+=== Advanced Features
+
+In the examples above, simple module definitions are used to construct each stream. However, modules may be grouped together in order to avoid duplication and/or reduce the amount of chattiness over the messaging middleware. To learn more about that feature, refer to the xref:Modules#composing-modules[Composing Modules] section.
+
+If directed graphs are needed instead of the simple linear streams described above, two features are relevant. First, named channels may be used as a way to combine multiple flows upstream and/or downstream from the channel. The behavior of that channel may either be queue-based or topic-based depending on what prefix is used ("queue:myqueue" or "topic:mytopic", respectively). To learn more, refer to the xref:DSL-Reference#named-channels[Named Channels] section. Second, you may need to determine the output channel of a stream based on some information that is only known at runtime. To learn about such content-based routing, refer to the xref:Sinks#dynamic-router[Dynamic Router] section.

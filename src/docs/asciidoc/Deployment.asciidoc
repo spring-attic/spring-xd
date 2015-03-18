@@ -1,0 +1,407 @@
+[[deployment]]
+ifndef::env-github[]
+== Deployment
+endif::[]
+
+=== Introduction
+
+This section covers topics related to deployment, including:
+
+* <<deployment-manifest,The Deployment Manifest>>
+* <<deployment-states, Deployment States>>
+* <<container-attributes, Container Attributes>>
+* <<stream-partitioning,Stream Partitioning>>
+* <<direct-binding,Direct Binding>>
+* <<troubleshooting,Troubleshooting>>
+
+
+When you deploy a xref:Streams[Stream] or xref:Jobs[Job], the Spring XD Runtime performs the following steps:
+
+ * parse the stream or job definition (xref:DSL-Reference#dsl-guide[DSL Guide]) to resolve each Module reference along with its options 
+ * set option values assigned to each component xref:Modules[Module]
+ * parse and store the deployment request including the <<deployment-manifest,Deployment Manifest>>
+ * allocate each Module to an available Container instance in accordance with the Deployment Manifest
+ * binding Module channel(s), either to the xref:MessageBus[MessageBus] or directly using <<direct-binding,Direct Binding>>
+ * track the state of each deployed module
+ * track the overall stream or job's <<deployment-states,Deployment State>>
+
+[[deployment-manifest]]
+=== Deployment Manifest
+
+A stream is composed of modules. Each module is deployed to one or more Container instance(s). In this way, stream processing is distributed among multiple containers. By default, deploying a stream to a distributed runtime configuration uses simple round robin logic. For example if there are three containers and three modules in a stream definition,  `s1= m1 | m2 | m3`, then Spring XD will attempt to distribute the work load evenly among each container. This is a very simplistic strategy and does not take into account things like:
+
+* server load - how many modules are already deployed to a container? What is the current memory and CPU utilization?
+* server affinity - some containers may have external software installed and specific modules will benefit from co-location. For example, an hdfs sink might be deployed only to hosts running Hadoop. Or perhaps a file sink should be deployed to hosts configured with extra disk space.
+* scalability - Suppose the stream s1, above, can achieve higher throughput with multiple instances of m2 running, so we want to deploy m2 to every available container.
+* fault tolerance - the ability to target physical servers on redundant networks, routers, racks, etc.
+
+Generally, more complex deployment strategies are needed to tune and operate XD. Additionally, we must consider various features and constraints when deploying to a PaaS, Yarn or some other cluster manager. Additionally, Spring XD allows supports <<stream-partitioning, Stream Partitioning>> and <<direct-binding, Direct Binding>>. 
+
+To address such deployment concerns, Spring XD provides a _Deployment Manifest_ which is submitted with the deployment request, in the form of in-line deployment properties (or potentially a reference to a separate document containing deployment properties). 
+
+[[deployment-properties]]
+==== Deployment Properties
+
+When you execute the `stream deploy` shell command, you can optionally provide a `properties` parameter which is a comma delimited list of key=value pairs. Examples for the key include *module.[modulename].count* and *module.[modulename].criteria* (for a full list of properties, see below). The value for the count is a positive integer, and the value for criteria is a valid SpEL expression. The Spring XD runtime matches an  available container for each module according to the deployment manifest. 
+
+The deployment properties allow you to specify deployment instructions for each module. Currently this includes:
+
+* The number of module instances
+* A target server or server group
+* MessageBus attributes required for a specific module
+* Stream Partitioning
+* Direct Binding
+* History Tracking
+
+===== General Properties
+
+NOTE: You can apply criteria to all modules in the stream by using the wildcard _*_ for [modulename]
+
+module.[modulename].count:: The number of module instances (see above).
+module.[modulename].criteria:: A boolean SpEL expression using the <<container-attributes, Container Attributes>> as an evaluation context.
+module.[modulename].trackHistory:: A boolean value indicating whether history should be tracked in a message header for this module. Usually used during stream development or for debugging, with `module.*.trackHistory=true` to track all modules. The `xdHistory` message header contains an entry for each module that processes the message; each entry includes useful information including the stream name, module label, host, container id, thread name, etc. This enables the determination of exactly how a message was processed through the stream(s).
+
+Example:
+
+----
+xd:>stream deploy --name test1 --properties "module.transform.count=3,module.log.criteria=groups.contains('group1')"
+----
+
+===== Bus Properties
+
+====== Common Bus Properties
+
+NOTE: The following properties are only allowed when using a _RabbitMessageBus_ or a _RedisMessageBus_; the _LocalMessageBus_ does not support properties.
+
+module.[modulename].consumer.backOffInitialInterval:: The number of milliseconds to wait for the first delivery retry *(default 1000)*
+module.[modulename].consumer.backOffMaxInterval:: The maximum number of milliseconds to wait between retries *(default 10000)*
+module.[modulename].consumer.backOffMultiplier:: The previous retry interval is multiplied by this to determine the current interval (but see _backOffMaxInterval_) *(default 2.0)*
+module.[modulename].consumer.concurrency:: The number of concurrent consumers for the module *(default 1)*.
+module.[modulename].consumer.maxAttempts:: The maximum number of attempts to make a delivery when a failure occurs *(default 3)*
+
+====== RabbitMQ Bus Properties
+
+NOTE: The following properties are only allowed when using a _RabbitMessageBus_.
+
+See the Spring AMQP reference documentation for information about the RabbitMQ-specific attributes.
+
+module.[modulename].consumer.ackMode:: Controls message acknowledgements *(default AUTO)*
+module.[modulename].consumer.maxConcurrency:: The maximum number of concurrent consumers for the module *(default 1)*.
+module.[modulename].consumer.prefetch:: The number of messages prefetched from the RabbitMQ broker *(default 1)*
+module.[modulename].consumer.prefix:: A prefix applied to all queues/exchanges that are declared by the bus - allows policies to be applied *(default 'xdbus.')*
+module.[modulename].consumer.requestHeaderPatterns:: Controls which message headers are passed between modules **(default 'STANDARD_REQUEST_HEADERS,*')**
+module.[modulename].consumer.replyHeaderPatterns:: Controls which message headers are passed between modules (only used in partitioned jobs) **(default 'STANDARD_REPLY_HEADERS,*')**
+module.[modulename].consumer.requeue:: Whether messages will be requeued (and retried) on failure *(default true)*
+module.[modulename].consumer.transacted:: Whether consumers use transacted channels *(default false)*
+module.[modulename].consumer.txSize:: The number of delivered messages between acknowledgements (when _ackMode=AUTO_) *(default 1)*
+module.[modulename].producer.deliveryMode:: The delivery mode of messages sent to RabbitMQ (_PERSISTENT_ or _NON_PERSISTENT_) *(default PERSISTENT)*
+module.[modulename].producer.requestHeaderPatterns:: Controls which message headers are passed between modules **(default 'STANDARD_REQUEST_HEADERS,*')**
+module.[modulename].producer.replyHeaderPatterns:: Controls which message headers are passed between modules (only used in partitioned jobs) **(default 'STANDARD_REPLY_HEADERS,*')**
+
+module.[modulename].producer.batchingEnbled:: Batch messages sent to the bus *(default false)*
+module.[modulename].producer.batchSize:: The normal batch size, may be preempted by _batchBufferLimit_ or _batchTimeout_ *(default 100)*
+module.[modulename].producer.batchBufferLimit:: If a batch will exceed this limit, the batch will be sent prematurely *(default 10000)*
+module.[modulename].producer.batchTimeout:: If no messages are received in this time (ms), the batch will be sent *(default 5000)*
+
+module.[modulename].producer.compress:: When _true_, compress the message before sending to rabbit; *(default false)* see xref:Application-Configuration#rabbitBusProps[RabbitMQ Message Bus Properties] for information about the compression level
+
+[[stream-partitioning]]
+===== Stream Partitioning
+
+NOTE: Partitioning is only allowed when using a _RabbitMessageBus_ or a _RedisMessageBus_. 
+
+A common pattern in stream processing is to partition the data as it is streamed. This entails deploying multiple instances of a message consuming module and using content-based routing so that messages containing the identical data value(s) are always routed to the same module instance. You can use the Deployment Manifest to declaratively configure a partitioning strategy to route each message to a specific consumer instance. 
+
+[[partition-properties]]
+====== Partition Properties
+
+See below for examples of deploying <<partitioned-stream-deployment-examples, partitioned streams>>.
+
+module.[modulename].producer.partitionKeyExtractorClass:: The class name of a _PartitionKeyExtractorStrategy_ *(default null)*
+module.[modulename].producer.partitionKeyExpression:: A _SpEL_ expression, evaluated against the message, to determine the partition key; only applies if _partitionKeyExtractorClass_ is null. If both are null, the module is not partitioned *(default null)*
+module.[modulename].producer.partitionSelectorClass:: The class name of a _PartitionSelectorStrategy_ *(default null)*
+module.[modulename].producer.partitionSelectorExpression:: A _SpEL_ expression, evaluated against the partition key, to determine the partition index to which the message will be routed. The final partition index will be the return value (an integer) modulo _[nextModule].count_ If both the class and expression are null, the bus's default _PartitionSelectorStrategy_ will be applied to the key *(default null)* 
+
+In summary, a module is partitioned if its _count_ is > 1 and the previous module has a _partitionKeyExtractorClass_ or _partitionKeyExpression_ (class takes precedence). When a partition key is extracted, the partitioned module instance is determined by invoking the _partitionSelectorClass_, if present, or the _partitionSelectorExpression % count_. If neither is present the result is _key.hashCode() % count_.
+
+[[direct-binding]]
+===== Direct Binding
+
+Sometimes it is desirable to allow co-located, contiguous modules to communicate directly, rather than using the configured remote transport, to eliminate network latency. Spring XD creates direct bindings by default only in cases where every "pair" of producer and consumer (modules bound on either side of a pipe) are guaranteed to be co-located. 
+
+Currently Spring XD implements no conditional logic to force modules to be co-located. The only way to guarantee that every producer-consumer pair is co-located is to specify that the pair be deployed to every available container instance, in other words, the module counts must be 0. The figure below illustrates this concept. In the first hypothetical case, we deploy one instance (the default)of producer m1, and two instances of the consumer m2. In this case, enabling direct binding would isolate one of the consumer instances. Spring XD will not create direct bindings in this case. The second case guarantees co-location of the pairs and will result in direct binding. 
+
+image::images/direct-binding.png[Direct Binding, width=500]
+
+In addition, direct binding requires that the producer is not configured for <<partition-properties,partitioning>> since partitioning is *implemented* by the Message Bus.
+
+Using _module.\*.count=0_ is the most straightforward way to enable direct binding. Direct binding may be disabled for the stream using _module.*.producer.directBindingAllowed=false_. Additional <<direct-binding-deployment-examples, direct binding deployment examples>> are shown below.
+
+[[deployment-states]]
+=== Deployment States
+
+The ability to specify criteria to match container instances and deploy multiple instances for each module leads to one of several possible deployment states for the stream as a whole. Consider a stream in an initial _undeployed_ state. 
+
+image::images/deploy_states.png[Deploy States, width=500]
+
+After executing the stream deployment request, the stream will be one of the following states:
+
+* *Deployed* - All modules deployed successfully as specified in the deployment manifest.
+* *Incomplete* - One of the requested module instances could not be deployed, but at least one instance of each module definition was successfully deployed. The stream is operational and can process messages end-to-end but the deployment manifest was not completely satisfied.
+* *Failed* - At least one of the module definitions was not deployed. The stream is not operational.
+
+NOTE: The state diagram above represents these states as final. This is an over-simplification since these states are affected by container arrivals and departures that occur during or after the execution of a deployment request. Such transitions have been omitted intentionally but are worth considering. Also, there is an analogous state machine for undeploying a stream, initially in any of these states, which is left as an exercise for the reader.
+
+==== Example
+----
+xd:>stream create test1 --definition "http | transform --expression=payload.toUpperCase() | log"
+Created new stream 'test1' 
+----
+
+Next, deploy it requesting three transformer instances:
+
+----
+xd:>stream deploy --name test1 --properties "module.transform.count=3"
+Deployed stream 'test1'
+
+xd:>stream list
+  Stream Name  Stream Definition                                          Status
+  -----------  ---------------------------------------------------------  ----------
+  test1        http | transform --expression=payload.toUpperCase() | log  incomplete
+----
+
+If there are only two container instances available, only two instances of _transform_ will be deployed. The stream deployment state is _incomplete_ and the stream is functional. However the unfulfilled deployment request remains active and the third instance will be deployed if a new container comes on line that matches the criteria.
+
+[[container-attributes]]
+=== Container Attributes
+
+The SpEL context (root object) for module.[modulename].criteria is ContainerAttributes, basically a map derivative that contains some standard attributes:
+
+ * *id* - the generated container ID
+ * *pid* - the process ID of the container instance
+ * *host* - the host name of the machine running the container instance
+ * *ip* -- the IP address of the machine running the container instance
+
+ContainerAttributes also includes any user-defined attribute values configured for the container. These attributes are configured by editing _xd/config/servers.yml_ the file included in the XD distribution contains some commented out sections as examples. In this case, the container attributes configuration looks something like:
+
+[source, yaml]
+----
+xd:
+  container:
+      groups: group2
+      color: red
+----
+
+==== Groups
+
+Groups may be assigned to a container via the optional command line argument _--groups_ or by setting the environment variable _XD_CONTAINER_GROUPS_. As the property name suggests, a container may belong to more than one group, represented as comma-delimited string. The concept of server groups is considered an especially useful convention for targeting groups of servers for deployment to support many common scenarios, so it enjoys special status. Internally, _groups_ is simply a user defined attribute.
+
+==== IP Address
+
+The IP address of the container can also be optionally set via the command argument _--containerIp_ or by setting the environment variable _XD_CONTAINER_IP_. If not specified, the IP address will be automatically set. Please be aware of the limitations, though, particularly in cases where the physically machine has multiple IP addresses assigned.
+
+For the automatic assignment of the IP address, XD internally loops through the available network interfaces and assigned IP addresses and will pick the first available IPv4 address that is not a loopback address.
+
+Depending on your underlying server or network infrastructure, you may prefer specifying the IP address explicitly.
+
+==== Hostname
+
+The hostname of the container can be optionally set as well via the command argument _--containerHostname_ or by setting the environment variable _XD_CONTAINER_HOSTNAME_. If not specified, the hostname will be automatically set. Please be aware of the http://stackoverflow.com/questions/7348711/recommended-way-to-get-hostname-in-java/7800008#7800008[limitations], though. You may prefer specifying the hostname address explicitly.
+
+TIP: While there is no command line option to set the container hostname and IP address when running in Single Node mode, you can still specify the values via environment variables or by customizing the respective settings in _application.yml_ 
+
+=== Stream Deployment Examples 
+
+To Illustrate how to use the Deployment Manifest, We will use a runtime configuration with 3 container instances, as displayed in the XD shell:
+
+----
+xd:>runtime containers
+  Container Id                          Host              IP Address     PID   Groups  Custom Attributes
+  ------------------------------------  ----------------  -------------  ----  ------  -----------------
+  bc624816-f8a8-4f35-83f6-a125ed147b7c  ip-10-110-18-10   10.110.18.10   1708  group2  {color=red}
+  018b7c8d-6fa9-4759-8471-76899766f892  ip-10-139-36-168  10.139.36.168  1852  group2  {color=blue}
+  afc3741c-217a-415a-9d86-a1f62de03613  ip-10-139-17-116  10.139.17.116  1861  group1  {color=green} 
+----
+
+Each of the three containers is running on a different host and has configured Groups and Custom Attributes as shown.
+
+First, create a stream:
+
+----
+xd:>stream create test1 --definition "http | transform --expression=payload.toUpperCase() | log"
+Created new stream 'test1' 
+----
+
+Next, deploy it using a manifest:
+
+----
+xd:>stream deploy --name test1 --properties "module.transform.count=3,module.log.criteria=groups.contains('group1')"
+Deployed stream 'test1'
+----
+
+Verify the deployment:
+
+----
+xd:>runtime modules
+  Module                       Container Id                          Options                                         Deployment Properties
+  ---------------------------  ------------------------------------  ----------------------------------------------  ---------------------------------------------------------
+  test1.processor.transform.1  bc624816-f8a8-4f35-83f6-a125ed147b7c  {valid=true, expression=payload.toUpperCase()}  {count=3, sequence=1}
+  test1.processor.transform.2  018b7c8d-6fa9-4759-8471-76899766f892  {valid=true, expression=payload.toUpperCase()}  {count=3, sequence=2}
+  test1.processor.transform.3  afc3741c-217a-415a-9d86-a1f62de03613  {valid=true, expression=payload.toUpperCase()}  {count=3, sequence=3}
+  test1.sink.log.1             afc3741c-217a-415a-9d86-a1f62de03613  {name=test1, expression=payload, level=INFO}    {count=1, sequence=1, criteria=groups.contains('group1')}
+  test1.source.http.1          bc624816-f8a8-4f35-83f6-a125ed147b7c  {port=9000}                                     {count=1, sequence=1}
+----
+
+We can see that three instances of the _transform_ processor have been deployed, one to each container instance. Also the log module has been deployed to the container assigned to _group1_. Now we can undeploy and deploy the stream using a different manifest:
+
+----
+xd:>stream undeploy test1
+Un-deployed stream 'test1'
+xd:>runtime modules
+  Module  Container Id  Properties
+  ------  ------------  ----------
+
+xd:>stream deploy --name test1 --properties "module.log.count=3,module.log.criteria=!groups.contains('group1')"
+Deployed stream 'test1'
+
+xd:>stream list
+  Stream Name  Stream Definition                                          Status
+  -----------  ---------------------------------------------------------  ----------
+  test1        http | transform --expression=payload.toUpperCase() | log  incomplete
+
+xd:>runtime modules
+  Module                       Container Id                          Options                                         Deployment Properties
+  ---------------------------  ------------------------------------  ----------------------------------------------  ----------------------------------------------------------
+  test1.processor.transform.1  018b7c8d-6fa9-4759-8471-76899766f892  {valid=true, expression=payload.toUpperCase()}  {count=1, sequence=1}
+  test1.sink.log.1             bc624816-f8a8-4f35-83f6-a125ed147b7c  {name=test1, expression=payload, level=INFO}    {count=3, sequence=1, criteria=!groups.contains('group1')}
+  test1.sink.log.2             018b7c8d-6fa9-4759-8471-76899766f892  {name=test1, expression=payload, level=INFO}    {count=3, sequence=2, criteria=!groups.contains('group1')}
+  test1.source.http.1          afc3741c-217a-415a-9d86-a1f62de03613  {port=9000}                                     {count=1, sequence=1}
+
+
+----
+
+Now there are only two instances of the _log_ module deployed. We asked for three however the deployment criteria specifies only containers not in _group1_ are eligible. The _log_ module is deployed only to the two containers matching the criteria. The deployment status of stream _test1_ is shown as _incomplete_. The stream is functional even though the deployment manifest is not completely satisfied. If we fire up a new container not in _group1_, the DeploymentSupervisor will handle any outstanding deployment requests by comparing _xd/deployments/modules/requested_ to _xd/deployments/modules/allocated_, and will deploy the third _log_ instance and update the stream state to _deployed_. 
+
+[[partitioned-stream-deployment-examples]]
+=== Partitioned Stream Deployment Examples
+
+==== Using SpEL Expressions
+
+First, create a stream:
+
+----
+xd:>stream create --name partitioned --definition "jms | transform --expression=#expensiveTransformation(payload) | log"
+
+Created new stream 'partitioned'
+----
+
+The hypothetical SpEL function 'expensiveTransformation' represents a resource intensive processor which we want to load balance by running on multiple containers. In this case, we also want to partition the stream so that payloads containing the same _customerId_ are always routed to the same processor instance. Perhaps the processor aggregates data by customerId and this step needs to run using co-located resources.
+
+Next, deploy it using a manifest:
+
+----
+xd:>stream deploy --name partitioned --properties "module.jms.producer.partitionKeyExpression=payload.customerId,module.transform.count=3"
+
+Deployed stream 'partitioned'
+----
+
+In this example three instances of the transformer will be created (with partition index of 0, 1, and 2). When the jms module sends a message it will take the _customerId_ property on the message payload, invoke its _hashCode()_ method and apply the modulo function with the divisor being the _transform.count_ property to determine which instance of the transform will process the message (*payload.getCustomerId().hashCode() % 3*). Messages with the same _customerId_ will always be processed by the same instance.
+
+[[direct-binding-deployment-examples]]
+=== Direct Binding Deployment Examples
+
+In the simplest case, we enforce direct binding by setting the instance count to 0 for all modules in the stream. A count of 0 means deploy the module to all available containers:
+
+----
+xd:>runtime containers
+  Container Id                          Host            IP Address    PID    Groups  Custom Attributes
+  ------------------------------------  --------------  ------------  -----  ------  -----------------
+  8e814924-15de-4ca1-82d3-ddfe851668ab  ultrafox.local  192.168.1.18  81532
+  a2b89274-2d40-46e4-afc5-4988bea28a16  ultrafox.local  192.168.1.9   4605   group1
+----
+
+We start with two container instances. One belongs to the group _group1_.
+
+----
+xd:>stream create direct --definition "time | log"
+Created new stream 'direct'
+xd:>stream deploy direct --properties module.*.count=0
+Deployed stream 'direct'
+xd:>runtime modules
+  Module                Container Id                          Options                                        Deployment Properties
+  --------------------  ------------------------------------  ---------------------------------------------  ---------------------------------------------------------
+  direct.sink.log.0     a2b89274-2d40-46e4-afc5-4988bea28a16  {name=direct, expression=payload, level=INFO}  {count=0, sequence=0}
+  direct.sink.log.0     8e814924-15de-4ca1-82d3-ddfe851668ab  {name=direct, expression=payload, level=INFO}  {count=0, sequence=0}
+  direct.source.time.0  a2b89274-2d40-46e4-afc5-4988bea28a16  {fixedDelay=1, format=yyyy-MM-dd HH:mm:ss}     {producer.directBindingAllowed=true, count=0, sequence=0}
+  direct.source.time.0  8e814924-15de-4ca1-82d3-ddfe851668ab  {fixedDelay=1, format=yyyy-MM-dd HH:mm:ss}     {producer.directBindingAllowed=true, count=0, sequence=0}
+----
+
+Note that we have two containers and two instances of each module deployed to each. Spring XD automatically sets the bus properties needed to allow direct binding, _producer.directBindingAllowed=true_ on the _time_ module. 
+
+Suppose we only want one instance of this stream and we want it to use direct binding. Here we can add deployment criteria to restrict the available containers to _group1_.
+
+----
+xd:>stream undeploy direct
+Un-deployed stream 'direct'
+xd:>stream deploy direct --properties "module.*.count=0, module.*.criteria=groups.contains('group1')"
+Deployed stream 'direct'
+xd:>runtime modules
+  Module                Container Id                          Options                                        Deployment Properties
+  --------------------  ------------------------------------  ---------------------------------------------  ---------------------------------------------------------------------------------------------
+  direct.sink.log.0     a2b89274-2d40-46e4-afc5-4988bea28a16  {name=direct, expression=payload, level=INFO}  {count=0, sequence=0, criteria=groups.contains('group1')}
+  direct.source.time.0  a2b89274-2d40-46e4-afc5-4988bea28a16  {fixedDelay=1, format=yyyy-MM-dd HH:mm:ss}     {producer.directBindingAllowed=true, count=0, sequence=0, criteria=groups.contains('group1')}
+----
+
+Direct binding eliminates latency between modules but sacrifices some of the resiliency provided by the messaging middleware. In the scenario above, if we lose one of the containers, we lose messages. To disable direct binding when module counts are set to 0, set _module.*.producer.directBindingAllowed=false_. 
+
+----
+xd:>stream undeploy direct
+Un-deployed stream 'direct'
+xd:>stream deploy direct --properties "module.*.count=0, module.*.producer.directBindingAllowed=false"
+Deployed stream 'direct'
+xd:>runtime modules
+  Module                Container Id                          Options                                        Deployment Properties
+  --------------------  ------------------------------------  ---------------------------------------------  ----------------------------------------------------------
+  direct.sink.log.0     a2b89274-2d40-46e4-afc5-4988bea28a16  {name=direct, expression=payload, level=INFO}  {producer.directBindingAllowed=false, count=0, sequence=0}
+  direct.sink.log.0     8e814924-15de-4ca1-82d3-ddfe851668ab  {name=direct, expression=payload, level=INFO}  {producer.directBindingAllowed=false, count=0, sequence=0}
+  direct.source.time.0  a2b89274-2d40-46e4-afc5-4988bea28a16  {fixedDelay=1, format=yyyy-MM-dd HH:mm:ss}     {producer.directBindingAllowed=false, count=0, sequence=0}
+  direct.source.time.0  8e814924-15de-4ca1-82d3-ddfe851668ab  {fixedDelay=1, format=yyyy-MM-dd HH:mm:ss}     {producer.directBindingAllowed=false, count=0, sequence=0}
+----
+
+Finally, we can still have the best of both worlds by enabling guaranteed delivery at one point in the stream, usually the source. If the tail of the stream is co-located and the source uses the message bus, the message bus may be configured so that if a container instance goes down, any unacknowledged messages will be retried until the container comes back or its modules are redeployed.
+
+TDB: A realistic example
+
+An alternate scenario with similar characteristics would be if the stream uses a _rabbit_ or _jms_ source. In this case, guaranteed delivery would be configured in the external messaging system instead of the Spring XD transport. 
+
+[[troubleshooting]]
+=== Troubleshooting
+
+Debugging a distributed system to diagnose problems can be challenging. While using Spring XD, if you encounter
+
+[[zookeeper-disconnects]]
+==== ZooKeeper disconnects
+
+Problem: Spring XD processes disconnecting from ZooKeeper
+
+Recommendation: Depending on your setup, modify either `xd-singlenode` or `xd-container` scripts by setting the environment variable `export JAVA_OPTS=-verbose:gc` before launching them. 
+
+Reason: ZooKeeper requires a heartbeat at a regular interval to test liveness of connected processes. Full "stop the world" GCs can result in connection and session timeouts from ZooKeeper. While verbose, GC logs are helpful for diagnosing this and other performance issues.
+
+[[debugging-slowness]]
+==== Debugging Slowness
+
+Problem: Slow or unresponsive application
+
+Recommendation: Capture multiple thread dumps several seconds apart using jstack.
+
+Reason: Examination of thread dumps can reveal stuck or slow moving threads. This data is useful for determining the root cause of a slow or unresponsive application.
+
+[[file-descriptor-limit]]
+==== File Descriptors and limit violation
+
+Problem: java.io.FileNotFoundException: (Too many open files)
+
+Recommendation: Default `ulimit` setting in most UNIX based operating systems is 1024. Raise `ulimit` setting to at least 10000.
+
+Reason: Stream and job modules in Spring XD are loaded and unloaded dynamically on demand. When a module is unloaded, the associated class loaders may not be garbage collected right away, resulting in open file handles for the jar files used by the module. Depending on the number of modules in use, the file handle limit of 1024 may be exceeded. 

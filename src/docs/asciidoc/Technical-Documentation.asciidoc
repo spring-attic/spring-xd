@@ -1,0 +1,6 @@
+This document describes the runtime architecture of Spring XD and the core components and used for processing data.
+
+Use the sidebar to navigate the various sections of the documentation.
+
+The documentation on the wiki reflects the state of the master branch and the latest released version it applies to is 1.1.M2
+

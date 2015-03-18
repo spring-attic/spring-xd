@@ -1,0 +1,733 @@
+[[analytics]]
+ifndef::env-github[]
+== Analytics
+endif::[]
+
+=== Introduction
+
+Spring XD provides support for the real-time evaluation of various machine learning scoring algorithms as well simple real-time data analytics using various types of counters and gauges. The analytics functionality is provided via modules that can be added to a stream. In that sense, real-time analytics is accomplished via the same exact model as data-ingestion. It's possible that the primary role of a stream is to perform real-time analytics, but it's quite common to add a xref:Taps#taps[tap] to initiate a secondary stream where analytics, e.g. a field-value-counter, is applied to the same data being ingested through a primary stream. You will see both approaches in the examples below.
+
+=== Predictive analytics
+
+Spring XD's support for implementing predictive analytics by scoring analytical models that leverage machine learning algorithms begins with an extensible class library foundation upon which implementations can be built, such as the https://github.com/spring-projects/spring-xd-modules/tree/master/analytics-ml-pmml[PMML Module] that we describe here.
+
+That module integrates with the https://github.com/jpmml/jpmml-evaluator[JPMML-Evaluator] library that provides support for a wide range of https://github.com/jpmml/jpmml-evaluator#features[model types] and is interoperable with models exported from http://www.r-project.org/[R], http://rattle.togaware.com/[Rattle], http://www.knime.org/[KNIME], and http://rapid-i.com/content/view/181/190/[RapidMiner].  For counter and gauge analytics, in-memory and http://redis.io/[Redis] implementations are provided.
+
+Incorporating the evaluation of machine learning algorithms into stream processing is as easy as using any other processing module.  Here is a simple example
+
+----
+http --outputType=application/x-xd-tuple | analytic-pmml
+     --location=/models/iris-flower-naive-bayes.pmml.xml
+     --inputFieldMapping=
+       'sepalLength:Sepal.Length,
+        sepalWidth:Sepal.Width,
+        petalLength:Petal.Length,
+        petalWidth:Petal.Width'
+     --outputFieldMapping='Predicted_Species:predictedSpecies' | log"
+----
+
+The `http` source converts posted data to a Tuple.  The `analytic-pmml` processor loads the model from the specifed file and creates two mappings so that fields from the Tuple can be mapped into the input and output model names.  The `log` sink writes the payload of the event message to the log file of the XD container.
+
+Posting the following JSON data to the http source
+[source,json]
+----
+{ 
+  "sepalLength": "6.4", 
+  "sepalWidth":  "3.2", 
+  "petalLength": "4.5", 
+  "petalWidth":  "1.5" 
+}
+----
+
+will produce output in the log file as shown below.
+[source,json]
+----
+{
+   "id":"1722ec00-baad-11e3-b988-005056c00008",
+   "timestamp":1396473833152,
+   "sepalLength":"6.4",
+   "sepalWidth":"3.2",
+   "petalLength":"4.5",
+   "petalWidth":"1.5",
+   "predictedSpecies":"versicolor"
+}
+----
+
+The next section on analytical models goes into more detail on the general infrastructure 
+
+=== Analytical Models
+
+We provide some core abstractions for implementing analytical models in stream processing applications.
+The main interface for integrating analytical models is *Analytic*. Some analytical
+models need to adjust the domain input and the model output in some way, therefore we provide a special base class *MappedAnalytic*
+which has core abstractions for implementing that mapping via *InputMapper* and *OutputMapper*.
+
+Since *Spring XD 1.0.0.M6* we support the integration of analytical models, also called statistical models or mining models, that are defined via http://en.wikipedia.org/wiki/Predictive_Model_Markup_Language[*PMML*].
+*PMML* is the abbreviation for *Predictive Model Markup Language* and is a standard XML representation that allows specifications of different mining models, their ensembles, and associated preprocessing. 
+
+[NOTE]
+=====================================================================
+*PMML* is maintained by the *Data Mining Group* (*DMG*) and supported by several state-of-the-art statistics and data mining software tools such as InfoSphere Warehouse, R / Rattle, SAS Enterprise Miner, SPSS®, and Weka. 
+The current version of the *PMML* specification is http://www.dmg.org/v4-2/GeneralStructure.html[*4.2*] at the time of this writing.
+Applications can produce and consume *PMML* models, thus allowing an analytical model created in one application to be implemented and used for scoring or prediction in another.
+=====================================================================
+
+*PMML* is just one of many other technologies that one can integrate to implement analytics with, more will follow in upcoming releases.
+
+==== Modeling and Evaluation
+Analytical models are usually defined by a statistician _aka_ data scientist or quant by using some statistical tool to analyze the data and build an appropriate model.
+In order to implement those models in a business application they are usually transformed and exported in some way (_e.g._ in the form of a *PMML* definition).
+This model is then loaded into the application which then evaluates it against a given input (event, tuple, example).
+
+==== Modeling
+Analytical models can be defined in various ways. For the sake of brevity we use *R* from the http://www.r-project.org[*r-project*] to demonstrate
+how easy it is to export an analytical model to *PMML* and use it later in stream processing.
+
+For our example we use the http://en.wikipedia.org/wiki/Iris_flower_data_set[*iris*] example dataset in *R* to generate a classifier for iris flower species by applying the http://en.wikipedia.org/wiki/Naive_Bayes_classifier[*Naive Bayes*] algorithm.
+
+[source,r]
+----
+library(e1071) # Load library with the naive bayes algorithm support.
+
+library(pmml) # Load library with PMML export support.
+
+data(iris) # Load the IRIS example dataset
+
+#Helper function to split the given dataset into a dataset used for training (trainset) and (testset) used for evaulation.
+splitDataFrame <- function(dataframe, seed = NULL, n = trainSize) {
+
+   if (!is.null(seed)){
+      set.seed(seed)
+   }
+
+   index <- 1:nrow(dataframe)
+   trainindex <- sample(index, n)
+   trainset <- dataframe[trainindex, ]
+   testset <- dataframe[-trainindex, ]
+
+   list(trainset = trainset, testset = testset)
+}
+
+#We want to use 95% of the IRIS data as training data and 5% as test data for evaluation.
+datasets <- splitDataFrame(iris, seed = 1337, n= round(0.95 * nrow(iris)))
+
+#Create a naive Bayes classifier to predict iris flower species (iris[,5]) from [,1:4] = Sepal.Length Sepal.Width Petal.Length Petal.Width
+model <- naiveBayes(datasets$trainset[,1:4], datasets$trainset[,5])
+
+#The name of the model and it's externalId could be used to uniquely identify this version of the model.
+modelName = "iris-flower-classifier"
+externalId = 42
+
+#Convert the given model into a PMML model definition
+pmmlDefinition = pmml.naiveBayes(model,model.name=paste(modelName,externalId,sep = ";"), predictedField='Species')
+
+#Print the PMML definition to stdout
+cat(toString(pmmlDefinition))
+----
+
+The r script above should produce the following *PMML* document that contains the abstract definition of the naive bayes classifier that we derived
+from the training dataset of the IRIS dataset.
+[source, xml]
+----
+<PMML version="4.1" xmlns="http://www.dmg.org/PMML-4_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dmg.org/PMML-4_1 http://www.dmg.org/v4-1/pmml-4-1.xsd">
+<Header copyright="Copyright (c) 2014 tom" description="NaiveBayes Model">
+ <Extension name="user" value="tom" extender="Rattle/PMML"/>
+ <Application name="Rattle/PMML" version="1.4"/>
+ <Timestamp>2014-04-02 13:22:15</Timestamp>
+</Header>
+<DataDictionary numberOfFields="6">
+ <DataField name="Species" optype="categorical" dataType="string">
+  <Value value="setosa"/>
+  <Value value="versicolor"/>
+  <Value value="virginica"/>
+ </DataField>
+ <DataField name="Sepal.Length" optype="continuous" dataType="double"/>
+ <DataField name="Sepal.Width"  optype="continuous" dataType="double"/>
+ <DataField name="Petal.Length" optype="continuous" dataType="double"/>
+ <DataField name="Petal.Width"  optype="continuous" dataType="double"/>
+ <DataField name="DiscretePlaceHolder" optype="categorical" dataType="string">
+  <Value value="pseudoValue"/>
+ </DataField>
+</DataDictionary>
+<NaiveBayesModel modelName="iris-flower-classifier;42"
+                 functionName="classification" threshold="0.001">
+ <MiningSchema>
+  <MiningField name="Species"      usageType="predicted"/>
+  <MiningField name="Sepal.Length" usageType="active"/>
+  <MiningField name="Sepal.Width"  usageType="active"/>
+  <MiningField name="Petal.Length" usageType="active"/>
+  <MiningField name="Petal.Width"  usageType="active"/>
+  <MiningField name="DiscretePlaceHolder" usageType="active"
+               missingValueReplacement="pseudoValue"/>
+ </MiningSchema>
+ <Output>
+  <OutputField name="Predicted_Species" feature="predictedValue"/>
+  <OutputField name="Probability_setosa" optype="continuous"
+               dataType="double" feature="probability" value="setosa"/>
+  <OutputField name="Probability_versicolor" optype="continuous"
+               dataType="double" feature="probability" value="versicolor"/>
+  <OutputField name="Probability_virginica" optype="continuous"
+               dataType="double" feature="probability" value="virginica"/>
+ </Output>
+ <BayesInputs>
+  <Extension>
+   <BayesInput fieldName="Sepal.Length">
+    <TargetValueStats>
+     <TargetValueStat value="setosa">
+      <GaussianDistribution mean="5.006" variance="0.124248979591837"/>
+     </TargetValueStat>
+     <TargetValueStat value="versicolor">
+      <GaussianDistribution mean="5.8953488372093" variance="0.283311184939092"/>
+     </TargetValueStat>
+     <TargetValueStat value="virginica">
+      <GaussianDistribution mean="6.58163265306122" variance="0.410697278911565"/>
+     </TargetValueStat>
+    </TargetValueStats>
+   </BayesInput>
+  </Extension>
+  <Extension>
+   <BayesInput fieldName="Sepal.Width">
+    <TargetValueStats>
+     <TargetValueStat value="setosa">
+...
+----
+[source, xml]
+----
+...
+      <GaussianDistribution mean="3.428" variance="0.143689795918367"/>
+     </TargetValueStat>
+     <TargetValueStat value="versicolor">
+      <GaussianDistribution mean="2.76279069767442" variance="0.0966777408637874"/>
+     </TargetValueStat>
+     <TargetValueStat value="virginica">
+      <GaussianDistribution mean="2.97142857142857" variance="0.105833333333333"/>
+     </TargetValueStat>
+    </TargetValueStats>
+   </BayesInput>
+  </Extension>
+  <Extension>
+   <BayesInput fieldName="Petal.Length">
+    <TargetValueStats>
+     <TargetValueStat value="setosa">
+      <GaussianDistribution mean="1.462" variance="0.0301591836734694"/>
+     </TargetValueStat>
+     <TargetValueStat value="versicolor">
+      <GaussianDistribution mean="4.21627906976744" variance="0.236633444075305"/>
+     </TargetValueStat>
+     <TargetValueStat value="virginica">
+      <GaussianDistribution mean="5.55510204081633" variance="0.310442176870748"/>
+     </TargetValueStat>
+    </TargetValueStats>
+   </BayesInput>
+  </Extension>
+  <Extension>
+   <BayesInput fieldName="Petal.Width">
+    <TargetValueStats>
+     <TargetValueStat value="setosa">
+      <GaussianDistribution mean="0.246" variance="0.0111061224489796"/>
+     </TargetValueStat>
+     <TargetValueStat value="versicolor">
+      <GaussianDistribution mean="1.30697674418605" variance="0.042093023255814"/>
+     </TargetValueStat>
+     <TargetValueStat value="virginica">
+      <GaussianDistribution mean="2.02448979591837" variance="0.0768877551020408"/>
+     </TargetValueStat>
+    </TargetValueStats>
+   </BayesInput>
+  </Extension>
+  <BayesInput fieldName="DiscretePlaceHolder">
+   <PairCounts value="pseudoValue">
+    <TargetValueCounts>
+     <TargetValueCount value="setosa" count="50"/>
+     <TargetValueCount value="versicolor" count="43"/>
+     <TargetValueCount value="virginica" count="49"/>
+    </TargetValueCounts>
+   </PairCounts>
+  </BayesInput>
+ </BayesInputs>
+ <BayesOutput fieldName="Species">
+  <TargetValueCounts>
+   <TargetValueCount value="setosa" count="50"/>
+   <TargetValueCount value="versicolor" count="43"/>
+   <TargetValueCount value="virginica" count="49"/>
+  </TargetValueCounts>
+ </BayesOutput>
+</NaiveBayesModel>
+</PMML>
+----
+
+==== Evaluation
+
+The above defined *PMML* model can be evaluated in a Spring XD stream definition by using the *analytic-pmml* module as a processor
+in your stream definition. The actual evaluation of the *PMML* is performed via the *PmmlAnalytic* which uses the https://github.com/jpmml/jpmml-evaluator[*jpmml-evaluator*] library.
+
+==== Model Selection
+
+The PMML standard allows multiple models to be defined within a single PMML document.
+The model to be used can be configured through the *modelName* option.
+
+*NOTE* The PMML standard also supports other ways for selection models, _e.g._ based on a predicate. This is currently not supported.
+
+In order to perform the evaluation in Spring XD you need to save the generated PMML document to some folder, typically the with the extension "pmml.xml".
+For this example we save the PMML document under the name *iris-flower-classification-naive-bayes-1.pmml.xml*.
+
+In the following example we set up a stream definition with an `http` source that produces iris-flower-records
+that are piped to the `analytic-pmml` module which applies our iris flower classifier to predict the species of a given flower record.
+The result of that is a new record extended by a new attribute *predictedSpecies* which simply sent to a `log` sink.
+
+The definition of the stream, which we call *iris-flower-classification*, looks as follows:
+
+----
+xd:>stream create --name iris-flower-classification
+  --definition "http --outputType=application/x-xd-tuple | analytic-pmml
+  --location=/models/iris-flower-classification-naive-bayes-1.pmml.xml
+  --inputFieldMapping='sepalLength:Sepal.Length,
+                       sepalWidth:Sepal.Width,
+                       petalLength:Petal.Length,
+                       petalWidth:Petal.Width'
+  --outputFieldMapping='Predicted_Species:predictedSpecies' | log" --deploy
+----
+
+* The *location* parameter can be used to specify the exact location of the pmml document. The value must be a valid spring http://www.springindepth.com/2.5.x/0.10/ch05.html[*resource*] location
+* The *inputFieldMapping* parameter defines a mapping of domain input fields to model input fields. It is just a list of fields or optional field:alias mappings to control which fields and how they are going to end up in the model-input. If no inputFieldMapping is defined then all domain input fields are used as model input. +
+* The *outputFieldMapping* parameter defines a mapping of model output fields to domain output fields with semantics analog to the inputFieldMapping. +
+* The optional *modelName* parameter of the analytic-pmml module can be used to refer to a particular named model within the PMML definition. If modelName is not defined the first model is selected by default. +
+
+*NOTE* Some analytical models like for instance *association rules* require a different typ of mapping. You can implement your own custom mapping strategies by implementing a custom *InputMapper* and *OutputMapper*
+and defining a new *PmmlAnalytic* or *TuplePmmlAnalytic* bean that uses your custom mappers.
+
+After the stream has been successfully deployed to *Spring XD* we can eventually start to throw some data at it by issuing the following http request via the *XD-Shell* (or `curl`, or any other tool):
+
+*Note* that our example record contains no information about which species the example belongs to - this will be added by our classifier.
+
+----
+xd:>http post --target http://localhost:9000 --contentType application/json --data "{ \"sepalLength\": 6.4, \"sepalWidth\": 3.2, \"petalLength\":4.5, \"petalWidth\":1.5 }"
+----
+
+After posting the above json document to the stream we should see the following output in the console:
+[source, json]
+----
+   {
+     "id":"1722ec00-baad-11e3-b988-005056c00008"
+   , "timestamp":1396473833152
+   , "sepalLength":"6.4"
+   , "sepalWidth":"3.2"
+   , "petalLength":"4.5"
+   , "petalWidth":"1.5"
+   , "predictedSpecies":"versicolor"
+   }
+----
+
+*NOTE* the generated field *predictedSpecies* which now identifies our input as belonging to the iris species *versicolor*.
+
+We verify that the generated *PMML* classifier produces the same result as *R* by executing the issuing the following commands in *rproject*:
+[source,r]
+----
+datasets$testset[,1:4][1,]
+# This is the first example record that we sent via the http post.
+   Sepal.Length Sepal.Width Petal.Length Petal.Width
+52          6.4         3.2          4.5         1.5
+
+#Predict the class for the example record by using our naiveBayes model.
+> predict(model, datasets$testset[,1:4][1,])
+[1] versicolor
+----
+
+
+
+=== Counters and Gauges
+Counter and Gauges are analytical data structures collectively referred to as metrics.  Metrics can be used directly in place of a sink just as if you were creating any other xref:Streams#streams[stream], but you can also analyze data from an existing stream using a xref:Taps#taps[tap]. We'll look at some examples of using metrics with taps in the following sections. As a prerequisite start the XD Container as instructed in the xref:Getting-Started#getting-started[Getting Started] page. 
+
+The 1.0 release provides the following types of metrics
+
+* <<counter,Counter>>
+* <<field-value-counter,Field Value Counter>>
+* <<aggregate-counter, Aggregate Counter>>
+* <<gauge,Gauge>>
+* <<rich-gauge,Rich Gauge>>
+
+
+Spring XD supports these metrics and analytical data structures as a general purpose class library that works with several backend storage technologies.  The 1.0 release provides in memory and Redis implementations.
+
+
+[[counter]]
+==== Counter
+
+A counter is a Metric that associates a unique name with a long value. It is primarily used for counting events triggered by incoming messages on a target stream. You create a counter with a unique name and optionally an initial value then set its value in response to incoming messages. The most straightforward use for counter is simply to count messages coming into the target stream. That is, its value is incremented on every message. This is exactly what the _counter_ module provided by Spring XD does. 
+
+Here's an example:
+
+Start by creating a data ingestion stream. Something like:
+
+   xd:> stream create --name springtweets --definition "twittersearch --consumerKey=<your_key> --consumerSecret=<your_secret> --query=spring | file --dir=/tweets/" --deploy
+
+Next, create a tap on the _springtweets_ stream that sets a message counter named _tweetcount_
+
+   xd:> stream create --name tweettap --definition "tap:stream:springtweets > counter --name=tweetcount" --deploy
+
+To retrieve the count:
+
+[source,bash]
+----
+xd:>counter display tweetcount
+----
+
+//^sink.counter
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$sink.counter' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$counter$$** $$sink$$ has the following options:
+
+$$name$$:: $$the name of the metric to contribute to (will be created if necessary)$$ *($$String$$, default: `<stream name>`)*
+$$nameExpression$$:: $$a SpEL expression to compute the name of the metric to contribute to$$ *($$String$$, no default)*
+//$sink.counter
+
+[[field-value-counter]]
+==== Field Value Counter
+
+A field value counter is a Metric used for counting occurrences of unique values for a named field in a message payload. XD Supports the following payload types out of the box:
+
+* POJO (Java bean)
+* Tuple
+* JSON String
+
+For example suppose a message source produces a payload with a field named _user_ :
+
+[source,java]
+class Foo {
+   String user;
+   public Foo(String user) {
+       this.user = user;
+   }
+}
+
+If the stream source produces messages with the following objects:
+
+[source, java]
+   new Foo("fred")
+   new Foo("sue")
+   new Foo("dave")
+   new Foo("sue")
+
+The field value counter on the field _user_ will contain:
+
+    fred:1, sue:2, dave:1 
+
+Multi-value fields are also supported. For example, if a field contains a list, each value will be counted once:
+    
+     users:["dave","fred","sue"]
+     users:["sue","jon"]
+
+The field value counter on the field _users_ will contain:
+
+    dave:1, fred:1, sue:2, jon:1
+
+//^sink.field-value-counter
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$sink.field-value-counter' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$field-value-counter$$** $$sink$$ has the following options:
+
+$$fieldName$$:: $$the name of the field for which values are counted$$ *($$String$$, no default)*
+$$name$$:: $$the name of the metric to contribute to (will be created if necessary)$$ *($$String$$, default: `<stream name>`)*
+$$nameExpression$$:: $$a SpEL expression to compute the name of the metric to contribute to$$ *($$String$$, no default)*
+//$sink.field-value-counter
+
+To try this out, create a stream to ingest twitter feeds containing the word _spring_ and output to a file:
+
+   xd:> stream create --name springtweets --definition "twittersearch --consumerKey=<your_key> --consumerSecret=<your_secret> --query=spring | file" --deploy
+
+Now create a tap for a field value counter:
+
+   xd:> stream create --name fromUserCount --definition "tap:stream:springtweets > field-value-counter --fieldName=user.screen_name" --deploy
+
+The _twittersearch_ source produces JSON strings which contain the user id of the tweeter in the _fromUser_ field. The _field_value_counter_ sink parses the tweet and updates a field value counter named _fromUserCount_ in Redis. To view the counts:
+
+[source,bash]
+----
+From xd-shell,
+  xd:> field-value-counter display fromUserCount
+----
+
+[[aggregate-counter]]
+==== Aggregate Counter
+
+The aggregate counter differs from a simple counter in that it not only keeps a total value for the count, but also retains the total count values for each minute, hour day and month of the period for which it is run. The data can then be queried by supplying a start and end date and the resolution at which the data should be returned. 
+
+Creating an aggregate counter is very similar to a simple counter. For example, to obtain an aggregate count for our spring tweets stream:
+   
+    xd:> stream create --name springtweets --definition "twittersearch --query=spring | file" --deploy
+
+you'd simply create a tap which pipes the input to `aggregate-counter`:
+
+   xd:> stream create --name tweettap --definition "tap:stream:springtweets > aggregate-counter --name=tweetcount" --deploy
+
+From the XD shell:
+   
+   xd:> aggregate-counter display tweettap
+
+Note: you can also use some criteria to filter out aggregate counter display values. Please refer to Shell documentation for aggregate counter for more details.
+ 
+
+//^sink.aggregate-counter
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$sink.aggregate-counter' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$aggregate-counter$$** $$sink$$ has the following options:
+
+$$dateFormat$$:: $$a pattern (as in SimpleDateFormat) for parsing/formatting dates and timestamps$$ *($$String$$, default: `yyyy-MM-dd'T'HH:mm:ss.SSS'Z'`)*
+$$incrementExpression$$:: $$how much to increment each bucket, as a SpEL against the message$$ *($$String$$, default: `1`)*
+$$name$$:: $$the name of the metric to contribute to (will be created if necessary)$$ *($$String$$, default: `<stream name>`)*
+$$nameExpression$$:: $$a SpEL expression to compute the name of the metric to contribute to$$ *($$String$$, no default)*
+$$timeField$$:: $$name of a field in the message that contains the timestamp to contribute to$$ *($$String$$, default: `null`)*
+//$sink.aggregate-counter
+
+[[gauge]]
+==== Gauge
+
+A gauge is a Metric, similar to a counter in that it holds a single long value associated with a unique name. In this case the value can represent any numeric value defined by the application. 
+
+The _gauge_ sink provided with XD stores expects a numeric value as a payload, typically this would be a decimal formatted string.
+
+//^sink.gauge
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$sink.gauge' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$gauge$$** $$sink$$ has the following options:
+
+$$name$$:: $$the name of the metric to contribute to (will be created if necessary)$$ *($$String$$, default: `<stream name>`)*
+$$nameExpression$$:: $$a SpEL expression to compute the name of the metric to contribute to$$ *($$String$$, no default)*
+//$sink.gauge
+
+Here is an example of creating a tap for a gauge:
+
+===== Simple Tap Example
+
+Create an ingest stream
+
+    xd:> stream create --name test --definition "http --port=9090 | file" --deploy
+
+Next create the tap:
+
+    xd:> stream create --name simplegauge --definition "tap:stream:test > gauge" --deploy
+
+Now Post a message to the ingest stream:
+
+    xd:> http post --target http://localhost:9090 --data "10"
+
+Check the gauge:
+
+[source,bash]
+----
+xd:>gauge display --name simplegauge
+----
+
+[[rich-gauge]]
+==== Rich Gauge
+
+A rich gauge is a Metric that holds a double value associated with a unique name. In addition to the value, the rich gauge keeps a running average, along with the minimum and maximum values and the sample count.
+
+The _rich-gauge_ sink provided with XD expects a numeric value as a payload, typically this would be a decimal formatted string, and keeps its value in a store.
+
+//^sink.rich-gauge
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$sink.rich-gauge' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$rich-gauge$$** $$sink$$ has the following options:
+
+$$alpha$$:: $$smoothing constant, or -1 to use arithmetic mean$$ *($$double$$, default: `-1.0`)*
+$$name$$:: $$the name of the metric to contribute to (will be created if necessary)$$ *($$String$$, default: `<stream name>`)*
+$$nameExpression$$:: $$a SpEL expression to compute the name of the metric to contribute to$$ *($$String$$, no default)*
+//$sink.rich-gauge
+
+NOTE: The smoothing factor behaves as an http://en.wikipedia.org/wiki/Exponential_smoothing[exponential moving average]. The default value does no smoothing.
+
+Here are some examples of creating a tap for a rich gauge:
+
+===== Simple Tap Example
+
+Create an ingest stream
+
+      xd:> stream create --name test --definition "http --port=9090 | file" --deploy
+
+Next create the tap:
+
+      xd:> stream create --name testgauge --definition "tap:stream:test > rich-gauge" --deploy
+
+Now Post some messages to the ingest stream:
+
+    xd:> http post --target http://localhost:9090 --data "10"
+    xd:> http post --target http://localhost:9090 --data "13"
+    xd:> http post --target http://localhost:9090 --data "16"
+
+Check the gauge:
+
+[source,bash]
+----
+xd:>rich-gauge display testgauge
+----
+
+===== Stock Price Example
+
+In this example, we will track stock prices, which is a more practical example. The data is ingested as JSON strings like 
+
+    {"symbol":"VMW","price":72.04}
+
+
+Create an ingest stream
+
+     xd:> stream create --name stocks --definition "http --port=9090 | file"
+
+Next create the tap, using the transform module to extract the stock price from the payload: 
+
+     xd:> stream create --name stockprice --definition "tap:stream:stocks > transform --expression=#jsonPath(payload,'$.price') | rich-gauge"
+
+Now Post some messages to the ingest stream:
+
+    xd:> http post --target http://localhost:9090 --data {"symbol":"VMW","price":72.04}
+    xd:> http post --target http://localhost:9090 --data {"symbol":"VMW","price":72.06}
+    xd:> http post --target http://localhost:9090 --data {"symbol":"VMW","price":72.08}
+
+Note: JSON fields should be separated by a comma without any spaces. Alternatively, enclose the whole argument to `--data` with quotes and escape inner quotes with a backslash.
+
+Check the gauge:
+
+[source,bash]
+----
+xd:>rich-gauge display stockprice
+----
+
+===== Improved Stock Price Example
+
+In this example, we will track stock prices for selected stocks. The data is ingested as JSON strings like 
+
+    {"symbol":"VMW","price":72.04}
+    {"symbol":"EMC","price":24.92}
+
+The previous example would feed these prices to a single gauge. What we really want is to create a separate tap for each ticker symbol in which we are interested:
+
+Create an ingest stream
+
+     xd:> stream create --name stocks --definition "http --port=9090 | file"
+
+Next create the tap, using the transform module to extract the stock price from the payload: 
+
+     xd:> stream create --name vmwprice --definition "tap:stream:stocks > filter --expression=#jsonPath(payload,'$.symbol')==VMW | transform --expression=#jsonPath(payload,'$.price') | rich-gauge" --deploy
+     xd:> stream create --name emcprice --definition "tap:stream:stocks > filter --expression=#jsonPath(payload,'$.symbol')==EMC | transform --expression=#jsonPath(payload,'$.price') | rich-gauge" --deploy
+
+Now Post some messages to the ingest stream:
+
+    xd:> http post --target http://localhost:9090 --data {"symbol":"VMW","price":72.04}
+    xd:> http post --target http://localhost:9090 --data {"symbol":"VMW","price":72.06}
+    xd:> http post --target http://localhost:9090 --data {"symbol":"VMW","price":72.08}
+
+    xd:> http post --target http://localhost:9090 --data {"symbol":"EMC","price":24.92}
+    xd:> http post --target http://localhost:9090 --data {"symbol":"EMC","price":24.90}
+    xd:> http post --target http://localhost:9090 --data {"symbol":"EMC","price":24.96}
+
+Check the gauge:
+
+[source,bash]
+----
+xd:>rich-gauge display emcprice
+xd:>rich-gauge display vmwprice
+----
+
+==== Accessing Analytics Data over the RESTful API
+
+Spring XD has a discoverable RESTful API based on the Spring HATEAOS library.  You can discover the resources available by making a GET request on the root resource of the Admin server.  Here is an example where navigate down to find the data for a counter named 'httptap' that was created by these commands
+
+
+[source,bash]
+----
+xd:>stream create --name httpStream --definition "http | file" --deploy
+xd:>stream create --name httptap --definition "tap:stream:httpStream > counter" --deploy
+xd:>http post --target http://localhost:9000 --data "helloworld"
+----
+
+The root resource returns 
+[source,bash]
+----
+xd:>! wget  -q -S -O - http://localhost:9393/
+{
+  "links":[
+    {},
+    {
+      "rel":"jobs",
+      "href":"http://localhost:9393/jobs"
+    },
+    {
+      "rel":"modules",
+      "href":"http://localhost:9393/modules"
+    },
+    {
+      "rel":"runtime/modules",
+      "href":"http://localhost:9393/runtime/modules"
+    },
+    {
+      "rel":"runtime/containers",
+      "href":"http://localhost:9393/runtime/containers"
+    },
+    {
+      "rel":"counters",
+      "href":"http://localhost:9393/metrics/counters"
+    },
+    {
+      "rel":"field-value-counters",
+      "href":"http://localhost:9393/metrics/field-value-counters"
+    },
+    {
+      "rel":"aggregate-counters",
+      "href":"http://localhost:9393/metrics/aggregate-counters"
+    },
+    {
+      "rel":"gauges",
+      "href":"http://localhost:9393/metrics/gauges"
+    },
+    {
+      "rel":"rich-gauges",
+      "href":"http://localhost:9393/metrics/rich-gauges"
+    }
+  ]
+}
+----
+
+Following the resource location for the counter
+
+[source,bash]
+----
+xd:>! wget  -q -S -O - http://localhost:9393/metrics/counters
+{
+  "links":[
+
+  ],
+  "content":[
+    {
+      "links":[
+        {
+          "rel":"self",
+          "href":"http://localhost:9393/metrics/counters/httptap"
+        }
+      ],
+      "name":"httptap"
+    }
+  ],
+  "page":{
+    "size":0,
+    "totalElements":1,
+    "totalPages":1,
+    "number":0
+  }
+}
+----
+
+And then the data for the counter itself
+[source,bash]
+----
+xd:>! wget  -q -S -O - http://localhost:9393/metrics/counters/httptap
+{
+  "links":[
+    {
+      "rel":"self",
+      "href":"http://localhost:9393/metrics/counters/httptap"
+    }
+  ],
+  "name":"httptap",
+  "value":2
+}
+----

@@ -1,0 +1,178 @@
+[[module-options-metadata]]
+ifndef::env-github[]
+== Providing Module Options Metadata
+endif::[]
+
+=== Introduction
+Each available module can expose metadata about the options it accepts. This is useful to enhance the user experience, and is the foundation to advanced features like contextual help and code completion.
+the
+For example, provided that the file source module has been enriched with options metadata (and it has), one can use the `module info` command in the shell to get information about the module:
+
+----
+xd:> module info source:file
+Information about source module 'file':
+
+  Option Name        Description                                                                  Default  Type
+  -----------------  ---------------------------------------------------------------------------  -------  ---------
+  dir                the absolute path to the directory to monitor for files                      <none>   String
+  pattern            a filter expression (Ant style) to accept only files that match the pattern  *        String
+  outputType         how this module should emit messages it produces                             <none>   MediaType
+  preventDuplicates  whether to prevent the same file from being processed twice                  true     boolean
+  ref                set to true to output the File object itself                                 false    boolean
+  fixedDelay         the fixed delay polling interval specified in seconds                        5        int
+----
+
+For this to be available, module authors have to provide a little bit of extra information, known as "Module Options Metadata". That metadata can take two forms, depending on the needs of the module: one can either use the "simple" approach, or the "POJO" approach. If one does not need advanced features like profile activation, validation or options encapsulation, then the "simple" approach is sufficient.
+
+=== Using the "Simple" approach
+To use the simple approach, simply create a file named `<module>.properties` right next to the `<module>.xml` file for your module.
+
+==== Declaring and documenting an option
+In that file, each option `<option>` is declared by adding a line of the form
+----
+options.<option>.description = the description
+----
+
+The description for the option is the only required part, and is a very important piece of information for the end user, so pay special attention to it (see also xref:ModuleOptionsMetadata#options_metadata_style[Style remarks])
+
+That sole line in the properties file makes a `--<option>=` construct available in the definition of a stream using your module.
+
+[NOTE]
+.About plugin provided options metadata
+====
+Some options are automatically added to a module, depending on its type. For example, every source module automatically inherits a `outputType` option, that controls the xref:Type-Conversion[type conversion] feature between modules. You don't have to do anything for that to happen.
+
+Similarly, every job module benefits from a handful of xref:Batch-Jobs#job_options[job specific options].
+
+Here is a recap of those automatically provided options:
+
+|===
+|Module Type|Options 
+
+|Source
+|outputType
+
+|Processor
+|outputType, inputType
+
+|Sink
+|inputType
+
+|Job
+|makeUnique, numberFormat, dateFormat
+|===
+====
+
+==== Advertising default values
+In addition to this, one can also provide a default value for the option, using
+----
+options.<option>.default = SomeDefault
+----
+
+Doing this, the default value should **not** be used in the placeholder syntax in the xml file. Assuming this is the contents of `foo.properties`:
+
+----
+options.bar.description = a very useful option
+options.bar.default = 5
+----
+
+then in `foo.xml`:
+[source, xml]
+----
+<!-- this is correct -->
+<feature the-bar="${bar}"" />
+
+<!-- this is incorrect/not needed -->
+<feature the-bar="${bar:5}" />
+----
+
+==== Exposing the option type
+Lastly, one can document the option type using a construct like
+----
+options.<option>.type = fully.qualified.class.Name
+----
+For simple "primitive" types, one can use short names, like so:
+----
+options.<option>.type = String
+or
+options.<option>.type = boolean
+or
+options.<option>.type = Integer
+----
+
+Note that there is support for both wrapper types (_e.g._ Integer) and primitive types (_e.g._ int). Although this is used for documentation purposes only, the primitive type would typically be used to indicate a **required** option (`null` being prohibited).
+
+[[using-the-pojo-approach]]
+=== Using the "POJO" approach
+To use advanced features such as profile activation driven by the values provided by the end user, one would need to leverage the "POJO" approach.
+
+Instead of writing a properties file, you will need to write a custom java class that will hold the values at runtime. That class is also introspected to derive metadata about your module.
+
+==== Declaring options to the module
+For the simplest cases, the class you need to write does not need to implement or inherit from anything. The only thing you need to do is to reference it in a properties file named after your module (the same file location you would have used had you been leveraging the "simple" approach):
+----
+options_class = fully.qualified.name.of.your.Pojo
+----
+**Note** that the key is `options_class`, with an 's' and an underscore (not to be confused with `option.<optionname>` that is used in the "simple" approach)
+
+For each option you want available using the `--<option>=` syntax, you must write a public setter annotated with `@ModuleOption`, providing the option description in the annotation.
+
+The type accepted by that setter will be used as the documented type.
+
+That setter will typically be used to store the value in a private field. How the module application can get ahold of the value is the topic of the next section.
+
+==== Exposing values to the context
+For a provided value to be used in the module definition (using the `${foo}` syntax), your POJO class needs to expose a `getFoo()` getter.
+
+At runtime, an instance of the POJO class will be created (it requires a no-arg constructor, by the way) and values given by the user will be bound (using setters). The POJO class thus acts as an intermediate `PropertySource` to provide values to `${foo}` constructs.
+
+==== Providing defaults
+To provide default values, one would most certainly simply store a default value in the backing field of a getter/setter pair. That value (actually, the result of invoking the matching getter to a setter on a newly instanciated object) is what is advertised as the default.
+
+==== Encapsulating options
+Although one would typically use the combination of a `foo` field and a `getFoo(), setFoo(x)` pair, one does not have to.
+
+In particular, if your module definition requires some "complex" (all things being relative here) value to be computed from "simpler" ones (_e.g._ a 'suffix' value would be computed from an 'extension' option, that would take care of adding a dot, depending on whether it is blank or not), then you'd simply do the following:
+[source, java, numbered]
+----
+public class MyOptions {
+	private String extension;
+
+	@ModuleOption("the file extension to use")
+	public void setExtension(String extension) {
+	    this.extension = extension;
+	}
+
+	public String getSuffix() {
+	    return extension == null ? null : "." + extension;
+	}
+}
+----
+
+This would expose a `--extension=` option, being surfaced as a `${suffix}` placeholder construct.
+
+The astute reader will have realized that the default can not be computed then, because there is no `getExtension()` (and there should not be, as this could be mistakenly used in `${extension}`). To provide the default value, you should use the `defaultValue` attribute of the `@ModuleOption` annotation.
+
+==== Using profiles
+The real benefit of using a POJO class for options metadata comes with advanced features though, one of which is dynamic profile activation.
+
+If the set of beans (or xml namespaced elements) you would define in the module definition file depends on the value that the user provided for one or several options, then you can make your POJO class implement `ProfileNamesProvider`. That interface brings one contract method, `profilesToActivate()` that you must implement, returning the names of the profiles you want to use (this method is invoked **after** user option values have been bound, so you can use any logic involving those to compute the list of profile names).
+
+As an example of this feature, see _e.g._ `TriggerSourceOptionsMetadata`.
+
+==== Using validation
+Your POJO class can optionally bear JSR303 annotations. If it does, then validation will occur after values have been successfully bound (understand that injection can fail early due to type incoherence by the way. This comes for free and does not require JSR303 annotations).
+
+This can be used to validate a set of options passed in (some are often mutually exclusive) or to catch misconfiguration earlier than deployment time (_e.g._ a port number cannot be negative).
+
+[[options_metadata_style]]
+=== Metadata style remarks
+To provide a uniform user experience, it is better if your options metadata information adheres to the following style:
+
+- option names should follow the `camelCase` syntax, as this is easier with the POJO approach. If we later decide to switch to a more `unix-style`, this will be taken care of by XD itself, with no change to the metadata artifacts described here
+- description sentences should be concise
+- descriptions should start with a **lowercase** letter and should **not** end with a dot
+- use primitive types for required numbers
+- descriptions should mention the unit for numbers (_e.g_ ms)
+- descriptions should **not** describe the default value, to the best extent possible (this is surfaced thru the actual _default_ metadata awareness)
+- options metadata should know about the default, rather than relying on the `${foo:default}` construct

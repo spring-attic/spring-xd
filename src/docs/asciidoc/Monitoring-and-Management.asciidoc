@@ -1,0 +1,107 @@
+[[monitoring-management]]
+ifndef::env-github[]
+== Monitoring and Management
+endif::[]
+
+Spring XD uses Spring Boot's monitoring and management support over http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[HTTP] and http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-jmx[JMX] along with Spring Integration's http://docs.spring.io/spring-integration/docs/4.0.0.M4/reference/htmlsingle/#jmx-mbean-exporter[MBean Exporters]
+
+=== Monitoring XD Admin, Container and Single-node servers
+
+Following are available by **default**
+
+JMX is enabled `XD_JMX_ENABLED=true`
+
+The spring boot management endpoints are exposed over `HTTP` and since JMX is enabled these endpoints are exposed over `JMX` 
+
+Spring integration components are exposed over `JMX` using `IntegrationMBeanExporter`
+
+All the availble MBeans can be accessed over `HTTP` using `Jolokia`
+
+==== To enable boot provided management endpoints over HTTP
+
+When starting admin, container or singlenode server, the command-line option `--mgmtPort` can be specified to use an explicit port for management server. With the given valid management port, the management endpoints can be accessed from that port. Please refer Spring Boot document http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-endpoints[here] for more details on the endpoints.
+
+
+For instance, once XD admin is started on localhost and the management port set to use the admin port (9393)
+----
+http://localhost:9393/management/health
+http://localhost:9393/management/env
+http://localhost:9393/management/beans
+
+etc..
+----
+
+==== To enable the container shutdown operation in the UI 
+Add the following configuration to config/servers.yml. This configuration is available as a commented section in config/servers.yml.
+----
+---
+spring:
+  profiles: container
+management:
+  port: 0
+----
+
+
+
+==== To disable boot endpoints over HTTP
+
+Set `management.port=-1` for both default and container profiles in config/servers.yml
+
+=== Management over JMX
+
+All the boot endpoints are exposed over JMX with the domain name `org.springframework.boot` 
+The MBeans that are exposed within XD admin, container server level are available with the domain names `xd.admin` (for XD admin), `xd.container` (for XD container),  `xd.shared.server` and `xd.parent` representing the application contexts common to both XD admin and container. Singlenode server will have all these domain names exposed.
+When the stream/job gets deployed into the XD container, the stream/job MBeans are exposed with specific domain/object naming strategy.
+
+==== To disable management over JMX
+
+Set `XD_JMX_ENABLED=false` in config/servers.yml or set it as an environment variable to disable the management over JMX
+
+
+==== Monitoring deployed modules in XD container
+
+When a module is deployed (with JMX is enabled on the XD container), the **IntegrationMBeanExporter** is injected into module's context via MBeanExportingPlugin and this exposes all the spring integration components inside the module. For the given module, the IntegrationMBeanExporter uses a specific object naming strategy that assigns domain name as `xd.<stream/job name>` and, object name as `<module name>.<module index>`. 
+
+==== Streams
+For a stream name `mystream` with DSL `http | log` will have
+
+MBeans with domain name `xd.mystream` with two objects `http.0` and `log.1`
+
+Source, processor, and sink modules will generally have the following attributes and operations 
+
+[width="50%",frame="topbot",options="header"]
+|======================
+|Module Type | Attributes and Operations
+|Source      |http://docs.spring.io/spring-integration/docs/current/api/org/springframework/integration/monitor/LifecycleMessageSourceMetrics.html[MessageSourceMetrics]
+|Processor,Sink   |http://docs.spring.io/spring-integration/docs/current/api/org/springframework/integration/monitor/LifecycleMessageHandlerMetrics.html[MessageHandlerMetrics]
+|======================
+
+
+In addition, each module has channel attributes and operations defined by http://docs.spring.io/spring-integration/docs/current/api/org/springframework/integration/monitor/MessageChannelMetrics.html[MessageChannelMetrics].
+
+==== Jobs
+
+For a job name `myjob` with DSL `jdbchdfs` will have
+
+MBeans with domain name `xd.myjob` with an object `jdbchdfs.0`
+
+You can also obtain monitoring information for Jobs using the UI or accessing the Job management REST API.  Documentation for the Job Management REST API is forthcoming, but until then please reference the request mappings in https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/java/org/springframework/xd/dirt/rest/BatchJobsController.java[BatchJobsController], 
+https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/java/org/springframework/xd/dirt/rest/BatchJobExecutionsController.java[BatchJobExecutionsController],
+https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/java/org/springframework/xd/dirt/rest/BatchStepExecutionsController.java[BatchStepExecutionsController], and
+https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/java/org/springframework/xd/dirt/rest/BatchJobInstancesController.java[BatchJobInstancesController]. 
+
+
+
+=== Using Jolokia to access JMX over http
+
+When JMX is enabled (which is **default** via `XD_JMX_ENABLED` property), Jolokia is auto-configured to expose the XD admin, container and singenode server MBeans.
+
+For example, with XD singlenode running management port 9080
+
+ http://localhost:9393/management/jolokia/search/xd*:*,component=MessageChannel
+
+ 
+will list all the MessageChannel MBeans exposed in XD container.
+Apart from this, other available domain and types can be accessed via Jolokia.
+
+

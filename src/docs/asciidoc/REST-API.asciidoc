@@ -1,0 +1,461 @@
+[[REST-API]]
+ifndef::env-github[]
+== REST API
+endif::[]
+
+=== Introduction
+The Spring XD Administrator process (Admin) provides a REST API to access various Spring XD resources such as streams, jobs, metrics, modules, Spring batch resources, and container runtime information. The REST API is used internally by the XD Shell and Admin UI and can support any custom client application that requires interaction with XD. 
+
+The HTTP port is configurable and may be set as a command line argument when starting the Admin server, or set in $XD_HOME/config/servers.yml. The default port is 9393:
+
+----
+> $XD_HOME/bin/xd-admin --httpPort <port>
+----
+
+The Admin server also exposes runtime management resources enabled by Spring Boot under the `/management` context path, e.g., http://localhost:9393/management/metrics[]. These resources are covered in the http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[Spring Boot] documentation.
+
+NOTE: There is also a `mgmtPort` command line argument which assigns a separate port for management services. Normally the same port is used for everything.
+
+=== XD Resources
+
+.Table XD REST endpoints
+[cols="2*"]
+|===
+|stream definitions     
+|<<stream-definitions,/streams/definitions>>         
+
+|stream deployments     
+|<<stream-deployments,/streams/deployments>>         
+
+|job definitions
+|<<job-definitions,/jobs/definitions>>         
+
+|job deployments
+|<<job-deployments,/jobs/deployments>>
+
+|batch job configurations
+|<<batch-jobs,/jobs/configurations>>         
+
+|batch job executions
+|<<batch-executions,/jobs/executions>>            
+
+|batch job instances
+|<<job-instances,/jobs/instances>>          
+
+|module definitions       
+|<<module-definitions,/modules>>                      
+
+|deployed modules
+|<<deployed-modules,/runtime/modules>>              
+
+|containers               
+|<<containers,/runtime/containers>>
+
+|counters
+|<<counters,/metrics/counters>>
+
+|field value counters
+|<<field-value-counters,/metrics/field-value-counters>>
+
+|aggregate counters
+|<<aggregate-counters,/metrics/aggregate-counters>>
+
+|gauges
+|<<gauges,/metrics/gauges>>
+
+|rich-gauges
+|<<rich-gauges,/metrics/rich-gauges>>
+
+|completions
+|<<completions,/completions>>
+|===
+
+[[stream-definitions]]
+=== Stream Definitions
+
+.Table Stream Definitions
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/streams/definitions
+|GET
+|list defined streams along with deployment state
+
+|/streams/definitions
+|DELETE
+|delete all stream definitions, undeploying deployed streams
+
+|/streams/definitions/\{name\}
+|GET
+|get a stream definition (currently no deployment information is included)
+
+|/streams/definitions
+|POST
+|create a new stream, optionally deploying it if `deploy=true`(default). The request body is application/x-www-form-urlencoded and requires two parameters, `name` and `definition` (DSL)
+
+|/streams/definitions/\{name\}
+|DELETE
+|delete a stream, undeploying if deployed.
+|===
+
+[[stream-deployments]]
+=== Stream Deployments
+
+.Table Stream Deployments
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/streams/deployments/
+|GET
+|get detailed deployment state for all streams (TBD)
+
+|/streams/deployments
+|DELETE
+|undeploy all streams
+
+|/streams/deployments/\{name\}
+|GET
+|get detailed deployment state for a stream (TBD)
+
+|/streams/deployments/\{name\}
+|POST
+|deploy a stream, where the request body contains the deployment properties application/x-www-form-urlencoded
+
+|/streams/deployments/\{name\}
+|DELETE
+|undeploy a stream
+|===
+
+[[job-definitions]]
+=== Job Definitions
+
+.Table Job Definitions
+[cols="3*",  options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/jobs/definitions
+|GET
+|list defined jobs along with deployment state
+
+|/jobs/definitions
+|DELETE
+|delete all job definitions, undeploying deployed jobs
+
+|/jobs/definitions/\{name\}
+|GET
+|get a job definition
+
+|/jobs/definitions
+|POST
+|create a new job, where the The request body is application/x-www-form-urlencoded and requires two parameters, `name` and `definition` (DSL)
+
+|/jobs/definitions/\{name\}
+|DELETE
+|delete a job, undeploying if deployed
+|===
+
+[[job-deployments]]
+=== Job Deployments
+
+.Table Job Deployments
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/jobs/deployments/
+|GET
+|get detailed deployment state for all jobs (TBD)
+
+|/jobs/deployments
+|DELETE
+|undeploy all jobs
+
+|/jobs/deployments/\{name\}
+|GET
+|get detailed deployment state for a job (TBD. Probably not in 1.0)
+
+|/jobs/deployments/\{name\}
+|POST
+|deploy a job, where the request body contains the deployment properties
+
+|/jobs/deployments/\{name\}
+|DELETE
+|undeploy a job
+|===
+
+[[batch-jobs]]
+=== Batch Job Configurations
+Spring Batch configured jobs stored in the Spring Batch Repository 
+
+.Table Batch Jobs
+[cols="3*",  options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/jobs/configurations
+|GET
+|get configuration information about all batch jobs
+
+|/jobs/configurations/\{jobName\}
+|GET
+|get configuration information about a batch job
+|===
+
+[[batch-executions]]
+=== Batch Job Executions
+
+.Table Batch Executions
+[cols="3*",  options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/jobs/executions
+|GET
+|list all job executions
+(Only 'application/json' mediatype supported)
+
+|/jobs/executions?stop=true
+|PUT
+|stop all jobs
+
+|/jobs/executions?jobname=\{jobName\}
+|GET
+|get information about all executions of a job
+(Only 'application/json' accept header is supported)
+
+|/jobs/executions?jobname=\{jobName\}
+|POST
+|request the launch of a job
+
+|/jobs/executions/\{jobExecutionId\}
+|GET
+|get information about a particular execution of a job
+
+|/jobs/executions/\{jobExecutionId\}?restart=true
+|PUT
+|restart a job
+
+|/jobs/executions/\{jobExecutionId\}?stop=true
+|PUT
+|stop a job
+
+|/jobs/executions/\{jobExecutionId\}/steps
+|GET
+|list the steps for a job execution
+(Only 'application/json' accept header is supported)
+
+|/jobs/executions/\{jobExecutionId\}/steps/\{stepExecutionId\}
+|GET
+|get a step execution
+
+|/jobs/executions/\{jobExecutionId\}/steps/\{stepExecutionId\}/progress
+|GET
+|get the step execution progress
+|===
+
+
+[[job-instances]]
+=== Batch Job Instances
+
+.Table Batch Job Instances
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/jobs/instances?jobname=\{jobName\}
+|GET
+|get information about all instances of a job
+
+|/jobs/instances/\{instanceId\}
+|GET
+|get information about a batch job instance
+|===
+
+For both the GET endpoints **only** 'application/json' accept header is supported.
+
+[[module-definitions]]
+=== Module Definitions
+
+.Table Module Definitions
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/modules
+|GET
+|list all registered modules
+
+|/modules
+|POST
+|create a composite module, where The request body is application/x-www-form-urlencoded and requires two parameters, `name` and `definition` (DSL). The module type is derived from the definition.
+
+|/modules/\{type\}/\{name\}
+|POST
+|upload a module archive (uber jar), where The content type is application/octect-stream and the request body contains the binary archive contents
+
+|/modules/\{type\}/\{name\}
+|GET
+|list a module along with options metadata, where type is `source`,`processor`,`sink`, or `job`
+
+|/modules/\{type\}/\{name\}
+|DELETE
+|delete a composed or uploaded module
+|===
+
+[[deployed-modules]]
+=== Deployed Modules
+
+.Table Deployed Modules
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/runtime/modules
+|GET
+|display runtime module option values and deployment information for deployed modules, optional parameters are `moduleId` (<stream>.<type>.<moduleName>,`containerId`,`jobname` 
+|===
+
+[[cluster-containers]]
+=== Containers
+
+.Table Containers
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/runtime/containers
+|GET
+|display all available containers along with runtime and user-defined container attributes
+|===
+
+[[counters]]
+=== Counters
+
+.Table Counters
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/metrics/counters/
+|GET
+|list all the known counters
+
+|/metrics/counters/\{name\}
+|GET
+|get the current metric value
+
+|/metrics/counters/\{name\}
+|DELETE
+|delete the metric
+|===
+
+[[field-value-counters]]
+=== Field Value Counters
+
+.Table Field Value Counters
+[cols="3*",  options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/metrics/field-value-counters/
+|GET
+|list all the known field value counters
+
+|/metrics/field-value-counters/\{name\}
+|GET
+|get the current metric values
+
+|/metrics/field-value-counters/\{name\}
+|DELETE
+|delete the metric
+|===
+
+[[aggregate-counters]]
+=== Aggregate Counters
+
+.Table Aggregate Counters
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/metrics/aggregate-counters/
+|GET
+|list all the known aggregate counters
+
+|/metrics/aggregate-counters/\{name\}
+|GET
+|get the current metric values
+
+|/metrics/aggregate-counters/\{name\}
+|DELETE
+|delete the metric
+|===
+
+[[gauges]]
+=== Gauges
+
+.Table Gauges
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/metrics/gauges/
+|GET
+|list all the known gauges
+
+|/metrics/gauges/\{name\}
+|GET
+|get the current metric values
+
+|/metrics/gauges/\{name\}
+|DELETE
+|delete the metric
+|===
+
+[[rich-gauges]]
+=== Rich Gauges
+
+.Table Rich Gauges
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/metrics/rich-gauges/
+|GET
+|list all the known rich gauges
+
+|/metrics/rich-gauges/\{name\}
+|GET
+|get the current metric values
+
+|/metrics/rich-gauges/\{name\}
+|DELETE
+|delete the metric
+|===
+
+[[completions]]
+=== Tab Completions
+Used to support DSL tab completion for the XD Shell. All requests require the `start` parameter which contains the incomplete definition.
+
+.Table Tab Completions
+[cols="3*", options="header"]
+|===
+|Resource URL | Request Method | Description
+
+|/completions/stream?start=\{start\}
+|GET
+|retrieve valid choices to complete a stream definition
+
+|/completions/job?start=\{start\}
+|GET
+|retrieve valid choices to complete a job definition
+
+|/completions/module?start=\{start\}
+|GET
+|retrieve valid choices to complete a module definition
+|===
+
+   

@@ -1,0 +1,137 @@
+[[type-conversion]]
+ifndef::env-github[]
+== Type Conversion
+endif::[]
+
+=== Introduction
+
+Spring XD allows you to declaratively configure type conversion in stream definitions using the _inputType_ and _outputType_ module options. Note that general type conversion may also be accomplished easily within a transformer or a custom module. Currently, Spring XD natively supports the following type conversions commonly used in streams: 
+
+* *JSON* to/from *POJO* 
+* *JSON* to/from https://github.com/spring-projects/spring-xd/blob/master/spring-xd-tuple/src/main/java/org/springframework/xd/tuple/Tuple.java[org.springframework.xd.tuple.Tuple]
+* *Object* to/from *byte[]* : Either the raw bytes serialized for remote transport, bytes emitted by a module, or converted to bytes using Java serialization(requires the object to be Serializable)
+* *String* to/from *byte[]*
+* *Object* to *plain text* (invokes the object's _toString()_ method)
+
+Where _JSON_ represents either a byte array or String payload containing JSON. Currently, Objects may be converted from a JSON byte array or String. Converting to JSON always produces a String. Registration of custom type converters is covered xref:Extending-XD#Providing-a-New-Type-Converter[in this section].
+
+
+[[mime-types]]
+=== MIME types
+_inputType_ and _outputType_ values are parsed as media types, e.g., `application/json` or `text/plain;charset=UTF-8`. MIME types are especially useful for indicating how to convert to String or byte[] content. Spring XD also uses MIME type format to represent Java types, using the general type `application/x-java-object` with a `type` parameter. For example, `application/x-java-object;type=java.util.Map` or `application/x-java-object;type=com.bar.Foo` . For convenience, you can use the class name by itself and Spring XD will translate a valid class name to the corresponding MIME type. In addition, Spring XD provides custom MIME types, notably, `application/x-xd-tuple` to specify a Tuple. 
+
+[[stream-definition-examples]]
+=== Stream Definition Examples
+
+=== POJO to JSON
+
+Type conversion will likely come up when implementing a custom module which produces or consumes a custom domain object. For example, you want to create a stream that integrates with a legacy system that includes custom domain types in its API. To process custom domain types directly minimally requires these types to be defined in Spring XD's class path. This approach will be cumbersome to maintain when the domain model changes. The recommended approach is to convert such types to JSON at the source, or back to POJO at the sink. You can do this by declaring the required conversions in the stream definition:
+
+----
+customPojoSource --outputType=application/json |p1 | p2 | ... | customPojoSink --inputType=application/x-java-object;type=com.acme.MyDomainType
+----
+
+Note that the sink above does require the declared type to be in the module's classpath to perform the JSON to POJO conversion. Generally, POJO to JSON does not require the Java class. Once the payload is converted to JSON, Spring XD provided transformers and filters (p1, p2, etc.) can evaluate the payload contents using http://docs.spring.io/spring-integration/reference/html/spel.html[JsonPath functions in SpEL expressions]. Alternately, you can convert the JSON to a Tuple, as shown in the following example.
+
+==== JSON to Tuple
+Sometimes it is convenient to convert JSON content to a Tuple in order to evaluate and access individual field values. 
+
+----
+xd:> stream create tuple --definition "http | filter --inputType=application/x-xd-tuple --expression=payload.hasFieldName('hello') | transform --expression=payload.getString('hello').toUpperCase() |  log" --deploy
+Created and deployed new stream 'tuple'
+----
+
+Note _inputType=application/x-xd-tuple_ on the filter module will cause the payload to be converted to a Tuple at the filter's input channel. Thus, subsequent expressions are evaluated on a Tuple object. Here we invoke the Tuple methods `hasFieldName('hello')` on the filter and `getString('hello')` on the transformer. The output of the http source is expected to be JSON in this case. We set the _Content-Type_ header to tell Spring XD that the payload is JSON.
+
+----
+xd:>http post --data {"hello":"world","foo":"bar"} --contentType application/json --target http://localhost:9000
+> POST (application/json;charset=UTF-8) http://localhost:9000 {"hello":"world","foo":"bar"}
+> 200 OK
+----  
+
+In the Spring XD console log, you should see something like:
+
+----
+13:19:45,054  INFO pool-42-thread-4 sink.tuple - WORLD
+----
+
+
+==== Java Serialization
+
+The following serializes a java.io.Serializable object to a file.  Presumably the _foo_ module outputs a Serializable type. If not, this will result in an exception. If remote transport is configured, the output of _foo_ will be marshalled using Spring XD's internal serialization. The object will be unmarshalled in the _file_ module and then converted to a byte array using Java serialization.
+
+----
+foo  | --inputType=application/x-java-serialized-object file
+----
+
+[[mime-types-and-java-types]]
+=== MIME types and Java types
+
+Internally, Spring XD implements type conversion using Spring Integration's http://docs.spring.io/spring-integration/docs/latest-ga/reference/htmlsingle/#channel-configuration[data type channels]. The data type channel converts payloads to the configured data type using Spring's http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/converter/MessageConverter.html[MessageConverter]. 
+
+NOTE: The use of _MessageCoverter_ for data type channels was introduced in Spring Integration 4 to pass the Message to the converter method to allow it to access the Message's _content-type_ header. This provides greater flexibility. For example, it is now possible to support multiple strategies for converting a String or byte array to a POJO, based on the content-type header.
+
+When Spring XD deploys a module with a declared type conversion, it modifies the module's input and/or output channel definition to set the required Java type and registers MessageConverters associated with the target MIME type and Java type to the channel. The type conversions Spring XD provides out of the box are summarized in the following table:
+
+|===
+|Source Payload |Target Payload |content-type header | outputType/inputType | Comments
+
+|POJO
+|JSON String
+|ignored
+|application/json
+|
+
+|Tuple
+|JSON String
+|ignored
+|application/json
+|JSON is tailored for Tuple
+
+|POJO
+|String (toString())
+|ignored
+|text/plain, java.lang.String
+|
+
+|POJO
+|byte[] (java.io serialized)
+|ignored
+|application/x-java-serialized-object
+|
+
+|JSON byte[] or String
+|POJO
+|application/json (or none)
+|application/x-java-object
+|
+
+|byte[] or String
+|Serializable
+|application/x-java-serialized-object
+|application/x-java-object
+|
+
+|JSON byte[] or String
+|Tuple
+|application/json (or none)
+|application/x-xd-tuple
+|
+
+|byte[]
+|String
+|any
+|text/plain, java.lang.String
+|will apply any Charset specified in the content-type header
+
+|String
+|byte[]
+|any
+|application/octet-stream
+|will apply any Charset specified in the content-type header
+
+|===
+
+[[Caveats]]
+==== Caveats
+Note that that inputType and outputType parameters only apply to payloads that require type conversion. For example, if a module produces an XML string with outputType=application/json, the payload will not be converted from XML to JSON. This is because the payload at the module's output channel is already a String so no conversion will be applied at runtime.

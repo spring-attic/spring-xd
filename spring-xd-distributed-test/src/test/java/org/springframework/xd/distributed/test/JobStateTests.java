@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -80,7 +81,7 @@ public class JobStateTests extends AbstractDistributedTests {
 			verifyJobCreated(jobName);
 			verifyJobState(jobName, DeploymentUnitStatus.State.undeployed);
 
-			template.jobOperations().deploy(jobName, null);
+			template.jobOperations().deploy(jobName, Collections.<String, String>emptyMap());
 			verifyJobState(jobName, DeploymentUnitStatus.State.failed);
 
 			startContainer();

@@ -18,6 +18,7 @@ package org.springframework.xd.distributed.test;
 
 import static org.junit.Assert.*;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +61,7 @@ public class ContainerRedeploymentTests extends AbstractDistributedTests {
 				false);
 		verifyStreamCreated(streamName);
 
-		template.streamOperations().deploy(streamName, null);
+		template.streamOperations().deploy(streamName, Collections.<String, String> emptyMap());
 		verifyStreamState(streamName, DeploymentUnitStatus.State.failed);
 
 		for (int i = 0; i < 3; i++) {

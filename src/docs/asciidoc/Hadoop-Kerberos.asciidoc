@@ -1,0 +1,22 @@
+=== Connecting to Kerberized Hadoop
+
+If you have enabled Kerberos security in your Hadoop cluster it is possible to connect XD Shell, hdfs and hdfs-dataset sinks to it.
+
+`hadoop.properties`
+[source,text]
+----
+hadoop.security.authorization=true
+spring.hadoop.security.authMethod=kerberos
+spring.hadoop.security.userKeytab=/path/to/user.keytab
+spring.hadoop.security.userPrincipal=user/host
+spring.hadoop.security.namenodePrincipal=hdfs/host@DOMAIN
+spring.hadoop.security.rmManagerPrincipal=yarn/host@DOMAIN
+----
+
+For both XD Container and XD Shell the config file is `config/hadoop.properties`. 
+
+==== Setting Principals
+Principals for `spring.hadoop.security.namenodePrincipal` and `spring.hadoop.security.rmManagerPrincipal` would equal what are in use in Hadoop cluster. 
+
+==== Automatic Login
+If you want to avoid running kerberos login commands manually, use `spring.hadoop.security.userKeytab` and `spring.hadoop.security.userPrincipal` propertys respectively. Path to your kerberos keytab file needs to be a fully qualified path in your file system. Essentially this is a model used by internal Hadoop components to do automatic Kerberos logins.

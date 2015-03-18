@@ -1,0 +1,532 @@
+[[creating-a-data-stream-processor-module]]
+ifndef::env-github[]
+== Creating a Data Stream Processor
+endif::[]
+
+=== Introduction
+This section covers how to create a processor module that uses stream processing libraries and runtimes.module. Spring XD 1.1 provides integration with Project Reactor Stream, RxJava Observables, and Spark Streaming. Creating a data stream processor in XD allows you to use a functional programming model to filter, transform and aggregate data in a very concise and performant way.  This section walks through implementing a custom processor module using each of these libraries.
+
+[[reactor-streams]]
+=== Reactor Streams
+https://github.com/reactor/reactor[Project Reactor] provides a https://reactor.github.io/docs/api/2.0.0.M2/reactor/rx/Stream.html[Stream API] that is based on the http://www.reactive-streams.org/[Reactive Streams specification]. The specification was jointly developed by twenty people from a dozen companies (Pivotal included) and has the goal of creating a standard for asynchronous stream processing with non-blocking back pressure on the JVM.  
+
+To implement a Stream based processor module you need to implement the interface `org.springframework.xd.reactor.Processor`
+
+[source,java]
+----
+public interface Processor<I, O> {
+
+    /**
+     * Process a stream of messages and return an output stream.  The input
+     * and output stream will be mapped onto receive/send operations on the message bus.
+     *
+     * @param inputStream Input stream the receives messages from the message bus
+     * @return Output stream of messages sent to the message bus
+     */
+    Stream<O> process(Stream<I> inputStream);
+
+}
+----
+
+Messages that are delivered on the Message Bus are accessed from the input Stream.  The return value is the output Stream that is the result of applying various operations to the input stream.  The content of the output Stream is sent to the message bus for consumption by other processors or sinks.
+
+Examples of operations you can perform on the Stream are map, flatMap, buffer, window, and reduce.  The parameterized data type can be a `org.springframework.messaging.Message`, `org.springframework.xd.tuple.Tuple`, `java.lang.Map` or any other POJO.  The following example uses the `Tuple` object to compute the average value of a measurement from a sample size of 5.
+
+[source,java]
+----
+import org.springframework.xd.reactor.Processor;
+import org.springframework.xd.tuple.Tuple;
+import reactor.rx.Stream;
+
+import static com.acme.Math.avg;
+import static org.springframework.xd.tuple.TupleBuilder.tuple;
+
+public class MovingAverage implements Processor<Tuple, Tuple> {
+    @Override
+    public Stream<Tuple> process(Stream<Tuple> inputStream) {
+        return inputStream.map(tuple -> tuple.getDouble("measurement"))
+                .buffer(5)
+                .map(data -> tuple().of("average", avg(data)));
+    }
+}
+----
+
+You can now create unit tests for the Processor module just as you would for any other Java class.  The module application context file can be in XML or in Java using a @Configuration class.  The XML version is shown below.
+
+[source,xml]
+----
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/integration 
+         http://www.springframework.org/schema/integration/spring-integration.xsd
+         http://www.springframework.org/schema/beans 
+	 http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <bean id="messageProcessor" class="com.acme.MovingAverage"/>
+
+
+    <!-- The following configuration uses the SyncDispatcherMessageHandler -->
+
+    <int:channel id="input"/>
+
+    <bean name="messageHandler" class="org.springframework.xd.reactor.SynchronousDispatcherMessageHandler">
+        <constructor-arg ref="messageProcessor"/>
+    </bean>
+
+
+    <int:service-activator input-channel="input" ref="messageHandler"
+                           output-channel="output"/>
+
+    <int:channel id="output"/>
+
+</beans>
+----
+
+Examples of unit and integration testing a module are available in the https://github.com/spring-projects/spring-xd-samples/tree/master/reactor-moving-average[reactor sample project].  The sample project also shows how you can https://github.com/spring-projects/spring-xd/wiki/Modules#module-packaging[package] your module into a single jar and https://github.com/spring-projects/spring-xd/wiki/Creating-a-Processor-Module#register-the-module[upload] it to the admin server.
+
+[[rxjava-streams]]
+=== RxJava Streams
+RxJava provides the http://reactivex.io/RxJava/javadoc/rx/Observable.html[Observable API] that is based on the http://msdn.microsoft.com/en-us/data/gg577609.aspx[Reactive Extensions .NET library].
+
+To implement a Observable based XD processor module you need to implement the interface `org.springframework.xd.rxjava.Processor`
+
+[source,java]
+----
+public interface Processor<I,O> {
+
+    /**
+     * Process a stream of messages and return an output stream.  The input
+     * and output stream will be mapped onto receive/send operations on the message bus.
+     *
+     * @param inputStream Input stream the receives messages from the message bus
+     * @return Output stream of messages sent to the message bus
+     */
+    Observable<O> process(Observable<I> inputStream);
+}
+----
+
+Messages that are delivered on the Message Bus are accessed from the Observable input stream.  The return value is the Observable output stream that contains the results of applying various operation to the input stream.  The content of the output stream is sent to the message bus for consumption by other processors or sinks.
+
+Examples of operations you can perform on the Stream are map, flatMap, buffer, window, and reduce.  The parameterized data type can be a `org.springframework.messaging.Message`, `org.springframework.xd.tuple.Tuple`, `java.lang.Map` or any other POJO.  
+
+When used in combination with Data Partitioning on the Message Bus, this allows you to create an streaming application where Stream state is calculated based on those partitions where necessary.
+
+image::images/rxjava-partitioning-1.png[Spring XD stream deployment with RxJava processing modules and data partitioning, width=500]
+
+In this deployment the data that is sent to the RxJava processing modules from the HTTP sources is partitioned such that the 'red' data always goes to the 'red' stream processing module and so on for the other colors.  The next hop of processing, where writing to HDFS occurs, does not require data partitioning, so the message load can be shared across the HDFS sink instances.
+
+There can be as many layers of RxJava Stream processing as you require, allowing you to collocate specific functional operations as you see fit within a single JVM or to distribute across multiple JVMs.
+
+image::images/rxjava-partitioning-2.png[Spring XD stream deployment with multiple layers of RxJava processing modules, width=500]
+
+The following example uses the `Tuple` object to compute the average value of a measurement from a sample size of 5.
+
+[source,java]
+----
+import org.springframework.xd.rxjava.Processor;
+import org.springframework.xd.tuple.Tuple;
+import rx.Observable;
+
+import static com.acme.Math.avg;
+import static org.springframework.xd.tuple.TupleBuilder.tuple;
+
+public class MovingAverage implements Processor<Tuple, Tuple> {
+
+    @Override
+    public Observable<Tuple> process(Observable<Tuple> inputStream) {
+        return inputStream.map(tuple -> tuple.getDouble("measurement"))
+                .buffer(5)
+                .map(data -> tuple().of("average", avg(data)));
+    }
+}
+----
+You can now create unit tests for the Processor module as you would for any other Java class.  The module application context file can be in XML or in Java using a @Configuration class.  The XML version is shown below.
+
+[source,xml]
+----
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/integration 
+         http://www.springframework.org/schema/integration/spring-integration.xsd
+         http://www.springframework.org/schema/beans 
+	 http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <bean id="messageProcessor" class="com.acme.MovingAverage"/>
+
+
+    <!-- Using a SubjectMessageHandler to share Observerable state across threads -->
+
+    <int:channel id="input"/>
+
+    <bean name="messageHandler" class="org.springframework.xd.rxjava.SubjectMessageHandler">
+        <constructor-arg ref="messageProcessor"/>
+    </bean>
+
+
+    <int:service-activator input-channel="input" ref="messageHandler"
+                           output-channel="output"/>
+
+    <int:channel id="output"/>
+
+</beans>
+----
+
+Examples of unit and integration testing a module are available in the https://github.com/spring-projects/spring-xd-samples/tree/master/rxjava-moving-average[reactor sample project].  The sample project also shows how you can https://github.com/spring-projects/spring-xd/wiki/Modules#module-packaging[package] your module into a single jar and https://github.com/spring-projects/spring-xd/wiki/Creating-a-Processor-Module#register-the-module[upload] it to the admin server.
+
+==== Scheduling
+There are two `MessageHandler` implementations that you can choose from, `SubjectMessageHandler` and `MultipleSubjectMessageHandler`.  
+
+`SubjectMessageHandler` uses a single `SerializedSubject` to process messages that were received from the Message Bus.  This subject, downcast to Observable, is what is passed into the process method.  Using `SubjectMessageHandler` has the advantage that the state of the Observabale input stream can be shared across all the Message Bus dispatcher threads that are invoking `onNext`.  It has the disadvantage that the processing and consumption of the Observable output stream (that sends messages to the Message Bus) will execute serially on one of the dispatcher threads.  Note you can modify what thread the Observable output stream will use by calling `observeOn` before returning the output stream from your processor.
+
+`MultipleSubjectMessageHandler` uses multiple Subjects to perform processing.  A Spring Expression Language (SpEL) expression is used to map the incoming message to a specific Subject to use for processing.  Using `MultipleSubjectMessageHandler` has the advantage that it can use all Message Bus dispatcher threads.  It has the disadvantage in that each Observable input stream has its own state, which may not be desirable for certain types of aggregate calculations that should see all of the data.  A common partition expression to use is `T(java.lang.Thread).currentThread().getId()` so that a Subject will be created per thread.  
+
+[source,xml]
+----
+
+    <bean name="messageHandler" class="org.springframework.xd.rxjava.MultipleSubjectMessageHandler">
+        <constructor-arg ref="messageProcessor"/>
+        <constructor-arg value="T(java.lang.Thread).currentThread().getId()"/>
+    </bean>
+
+----
+
+The satisfies the contract to have single threaded access to a Subject.  Another interesting partition expression to use in the case of the Kafka Message Bus is `header['kafka_partition_id']`.  This will create a Subject per Kafka partition that represents an ordered sequence of events.  The XD Kafka Message Bus statically maps partitions to dispatcher threads to there is only single threaded access toa Subject.
+
+[[spark-streaming]]
+=== Spark streaming
+
+Spring XD integrates with Spark streaming so that the streaming data computation logic can be run on a **spark cluster**. Spring XD runs the `Spark Driver` as an XD module (processor or sink) in the XD container while the `spark streaming receiver` and the data computation is done at the `Spark Cluster`.
+
+This provides advantage over connecting to various streaming sources while running the computation logic on spark cluster. Running the spark driver on the XD container also provides automatic failover capabilities in case of driver failure. 
+
+With Spark Streaming, events are processed at the `micro batch level` via DStreams, which represent a continuous flow of partitioned RDDs. Setting up a Spark Streaming module within XD can be beneficial when adding streaming data computation logic for a `tapped` XD stream. While the primary stream processes events one at a time (through the regular XD modules), the tapped stream will become a `source` for the Spark Streaming module.
+
+Lets discuss a real world scenario of data collection and doing some analytics on it.
+
+```
+stream create mainstream --definition "mqtt | filter1: <some filtering> | hdfs"  
+stream create sparkstream1 --definition "tap:mainstream:filter1 > spark-streaming-processor-module1 | <some XD sink>"
+stream create sparkstream2 --definition "tap:mainstream:filter1 > spark-streaming-processor-module2 | spark-streaming-sinkmodule1"
+stream create sparkstream3 --definition "tap:mainstream:filter1 > spark-streaming-sinkmodule2"
+```
+In the above set of streams, consider a primary stream that collects data `one at a time` from various sensors and stores that `raw` data into HDFS, after only same basic filtering. At the same time, there are a few other streams that perform analytics on the data being collected at `micro-batch level`. Here, the tapped stream’s source can be reliable or durable based on the `messagebus` implementation, and this data is processed (at the micro batch level) by the Spark Streaming module. This allows the developer to choose the stream data processing based on the use case.
+
+==== Writing a spark streaming module
+
+Spring XD provides **Java** and **Scala** based interfaces which expose a `process` method that the spark streaming developer would implement. This method processes the input DStream received by the spark streaming `receiver`. In case of XD processor module this method would return an output DStream. In case of XD sink module, it would write the computed data into file system, HDFS etc., (for example saveAsTextFiles(), saveAsHadoopFiles() using Spark APIs).
+
+For **Java** based implementation, the interface `org.springframework.xd.spark.streaming.java.Processor` is defined
+
+[source,java]
+----
+       public interface Processor<I extends JavaDStreamLike, O extends JavaDStreamLike> extends SparkStreamingSupport {
+
+	/**
+	 * Processes the input DStream and optionally returns an output DStream.
+	 *
+	 * @param input the input DStream
+	 * @return output DStream (optional, may be null)
+	 */
+	O process(I input);
+}
+----
+It is recommended to write the implementation in https://databricks.com/blog/2014/04/14/spark-with-java-8.html[Java 8].
+
+For **Scala** based implementation, the trait `org.springframework.xd.spark.streaming.scala.Processor` is defined
+
+[source,scala]
+----
+trait Processor[I, O] extends SparkStreamingSupport {
+
+  /**
+   * Processes the input DStream and optionally returns an output DStream.
+   *
+   * @param input the input DStream from the receiver
+   * @return output DStream (optional, may be null)
+   */
+  def process(input: ReceiverInputDStream[I]): DStream[O]
+----
+
+When creating an XD processor/sink module, developer would implement this interface and make the module archive (along with its dependencies) available in the modules registry.
+
+To set the Spark configuration properties when developing spark streaming module, the developer can use `org.springframework.xd.spark.streaming.SparkConfig` annotation on the method that returns type `java.util.Properties`.
+
+To add default spark streaming command line options for the spark streaming module and to let XD admin know this is spark streaming module, following entry should be added in module registry module config properties (for example: modules/processor/spark-wordcount/config/spark-wordcount.properties):
+
+```
+options_class=org.springframework.xd.spark.streaming.DefaultSparkStreamingModuleOptionsMetadata
+```
+Developer can extend this to provide more custom command line options. By default, the following module options are supported for the spark streaming module:
+
+* batchInterval (the time interval in millis for batching the stream events)
+* storageLevel (the streaming data persistence storage level)
+  
+**Note**
+
+If you are using **Java7** to run Spring XD, then make sure to set the **JAVA_OPTS** to increase `-XX:MaxPermSize` to avoid `PermGen` issue on the XD container where the spark driver would be running.
+
+==== How this works
+
+When a spark streaming processor (a processor or a sink) that implements `Processor` interface above is deployed, the `SparkDriver` sets up the streaming context and runs as an XD module inside the **XD container**. 
+
+This sets up Spark streaming receiver (in case of processor and sink) in spark cluster that connects to XD upstream module's output channel in the message bus. This `MessageBusReceiver` makes the incoming messages available for the computation in spark cluster as DStreams. If the streaming module is of XD processor type then the computed messages are pushed to the downstream module by `MessageBusSender`. The MessageBusSender binds to the downstream module's input channel which subsequently connects to any of the XD processor or sink modules. 
+
+It is important to note that the MessageBusReceiver, streaming processor computation and the MessageBusSender run on **Spark cluster**.
+
+image::images/sparkstreaming.png[Spring XD spark streaming modules and data partitioning, width=500]
+
+==== Data loss and recovery
+
+The current implementation of the spark streaming supports `automatic failover` capability on `spark driver failure` by re-deploying the spark streaming module but the streaming receiver (MessageBus receiver)  implementation `isn't reliable` yet. (There could be data loss in case of receiver worker node failure). In the upcoming release, we will have a reliable receiver https://jira.spring.io/browse/XD-2748[implementation].
+
+==== Module Type Conversion
+
+Spark streaming modules avail the out of the box module type conversion support from Spring XD. A spark streaming processor module can specify `inputType` and `outputType` while a spark streaming sink module can specify `inputType` to denote the `contentType` of the incoming/outgoing messages before they get ingested into/written out of spark streaming module.
+
+```
+stream create mainstream --definition "mqtt | filter1: <some filtering> | hdfs"  
+stream create sparkstream1 --definition "tap:mainstream:filter1 > spark-streaming-processor-module1 --inputType=application/json --outputType=application/x-xd-tuple | <some XD sink>"
+stream create sparkstream2 --definition "tap:mainstream:filter1 > spark-streaming-processor-module2 | spark-streaming-sinkmodule1"
+stream create sparkstream3 --definition "tap:mainstream:filter1 > spark-streaming-sinkmodule2 --inputType=text/plain"
+```
+For info on module type conversion, please refer https://github.com/spring-projects/spring-xd/wiki/Type-conversion[here]
+
+==== XD processor module examples
+
+Java based implementation
+
+[source,java]
+----
+import java.util.Arrays;
+import java.util.Properties;
+
+import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.streaming.api.java.JavaDStream;
+import org.apache.spark.streaming.api.java.JavaPairDStream;
+
+import org.springframework.xd.spark.streaming.SparkConfig;
+import org.springframework.xd.spark.streaming.java.Processor;
+
+import scala.Tuple2;
+
+@SuppressWarnings({ "serial" })
+public class WordCount implements Processor<JavaDStream<String>, JavaPairDStream<String, Integer>> {
+
+	@Override
+	public JavaPairDStream<String, Integer> process(JavaDStream<String> input) {
+		JavaDStream<String> words = input.flatMap(new FlatMapFunction<String, String>() {
+
+			@Override
+			public Iterable<String> call(String x) {
+				return Arrays.asList(x.split(" "));
+			}
+		});
+		JavaPairDStream<String, Integer> wordCounts = words.mapToPair(new PairFunction<String, String, Integer>() {
+
+			@Override
+			public Tuple2<String, Integer> call(String s) {
+				return new Tuple2<String, Integer>(s, 1);
+			}
+		}).reduceByKey(new Function2<Integer, Integer, Integer>() {
+
+			@Override
+			public Integer call(Integer i1, Integer i2) {
+				return i1 + i2;
+			}
+		});
+		return wordCounts;
+	}
+
+	@SparkConfig
+	public Properties getSparkConfigProperties() {
+		Properties props = new Properties();
+		props.setProperty(SPARK_MASTER_URL_PROP, "local[4]");
+		return props;
+	}
+}
+
+----
+
+Scala based implementation
+
+[source,scala]
+----
+import java.util.Properties
+
+import org.apache.spark.streaming.StreamingContext._
+import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
+import org.springframework.xd.spark.streaming.SparkConfig
+import org.springframework.xd.spark.streaming.scala.Processor
+
+class WordCount extends Processor[String, (String, Int)] {
+
+  def process(input: ReceiverInputDStream[String]): DStream[(String, Int)] = {
+      val words = input.flatMap(_.split(" "))
+      val pairs = words.map(word => (word, 1))
+      val wordCounts = pairs.reduceByKey(_ + _)
+      wordCounts
+  }
+
+  @SparkConfig
+  def properties : Properties = {
+    val props = new Properties()
+    props.setProperty("spark.master", "local[4]")
+    props
+  }
+
+}
+----
+
+== XD sink module example
+
+Java based implementation
+
+[source,java]
+----
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Properties;
+
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.streaming.api.java.JavaDStream;
+
+import org.springframework.xd.spark.streaming.SparkConfig;
+import org.springframework.xd.spark.streaming.java.Processor;
+
+@SuppressWarnings({ "serial" })
+public class FileLogger implements Processor<JavaDStream<String>, JavaDStream<String>> {
+
+	private File file;
+
+	public void setPath(String filePath) {
+		file = new File(filePath);
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+			}
+			catch (IOException ioe) {
+				throw new RuntimeException(ioe);
+			}
+		}
+	}
+
+	@SparkConfig
+	public Properties getSparkConfigProperties() {
+		Properties props = new Properties();
+		props.setProperty("spark.master", "local[4]");
+		return props;
+	}
+
+	@Override
+	public JavaDStream<String> process(JavaDStream<String> input) {
+		input.foreachRDD(new Function<JavaRDD<String>, Void>() {
+
+			@Override
+			public Void call(JavaRDD<String> rdd) {
+				rdd.foreachPartition(new VoidFunction<Iterator<String>>() {
+
+					@Override
+					public void call(Iterator<String> items) throws Exception {
+						FileWriter fw;
+						BufferedWriter bw = null;
+						try {
+							fw = new FileWriter(file.getAbsoluteFile());
+							bw = new BufferedWriter(fw);
+							while (items.hasNext()) {
+								bw.append(items.next() + System.lineSeparator());
+							}
+						}
+						catch (IOException ioe) {
+							throw new RuntimeException(ioe);
+						}
+						finally {
+							if (bw != null) {
+								bw.close();
+							}
+						}
+					}
+				});
+				return null;
+			}
+		});
+		return null;
+	}
+
+}
+----
+
+Scala based implementation
+
+[source,scala]
+----
+import java.io.{BufferedWriter, File, FileWriter, IOException}
+import java.util.Properties
+
+import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
+import org.springframework.xd.spark.streaming.SparkConfig
+import org.springframework.xd.spark.streaming.scala.Processor
+
+class FileLogger extends Processor[String, String] {
+
+  var file: File = null
+
+  def setPath(filePath: String) {
+    file = new File(filePath)
+    if (!file.exists) {
+      try {
+        file.createNewFile
+      }
+      catch {
+        case ioe: IOException => {
+          throw new RuntimeException(ioe)
+        }
+      }
+    }
+  }
+
+  @SparkConfig def getSparkConfigProperties: Properties = {
+    val props: Properties = new Properties
+    props.setProperty("spark.master", "local[4]")
+    return props
+  }
+
+  def process(input: ReceiverInputDStream[String]): DStream[String] = {
+      input.foreachRDD(rdd => {
+        rdd.foreachPartition(partition => {
+          var fw: FileWriter = null
+          var bw: BufferedWriter = null
+          try {
+            fw = new FileWriter(file.getAbsoluteFile)
+            bw = new BufferedWriter(fw)
+            while (partition.hasNext) {
+              bw.append(partition.next.toString + System.lineSeparator)
+            }
+          }
+          catch {
+            case ioe: IOException => {
+              throw new RuntimeException(ioe)
+            }
+          }
+          finally {
+            if (bw != null) {
+              bw.close
+            }
+          }
+        })
+      })
+    null
+  }
+}
+----
+Checkout some https://github.com/spring-projects/spring-xd/tree/master/spring-xd-spark-streaming/src/main/java/org/springframework/xd/spark/streaming/examples[examples], https://github.com/spring-projects/spring-xd/tree/master/spring-xd-spark-streaming-tests/src/test/resources/spring-xd/xd/modules[module configurations] and https://github.com/spring-projects/spring-xd/tree/master/spring-xd-spark-streaming-tests/src/test/java/org/springframework/xd/spark/streaming[tests]

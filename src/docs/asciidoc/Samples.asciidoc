@@ -1,0 +1,59 @@
+[[samples]]
+ifndef::env-github[]
+== Samples 
+endif::[]
+
+We have a number of sample projects in the https://github.com/spring-projects/spring-xd-samples[Spring XD Samples GitHub repository]. Below are some additional examples for ingesting syslog data to HDFS.
+
+
+=== Syslog ingestion into HDFS
+
+In this section we will show a simple example on how to setup syslog ingestion from multiple hosts into HDFS.
+
+Create the streams with syslog as source and HDFS as sink (Please refer to xref:Sources#sources[source] and xref:Sinks#sinks[sink])
+
+If you're using syslog over TCP and need the highest throughput, use the Reactor-backed syslog module.
+
+  xd:> stream create --definition "reactor-syslog --port=<tcp-port> | hdfs" --name <stream-name>
+
+The `reactor-syslog` module doesn't yet support UDP (though it soon will), so if you're using syslog over UDP you'll want to use the standard syslog module.
+
+  xd:> stream create --definition "syslog-udp --port=<udp-port> | hdfs" --name <stream-name>
+
+  xd:> stream create --definition "syslog-tcp --port=<tcp-port> | hdfs" --name <stream-name>
+
+Please note for hdfs sink, set `rollover` parameter to a smaller value to avoid buffering and to see the data has made to HDFS (incase of smaller volume of log).
+
+Configure the external hosts’ syslog daemons forward their messages to the xd-container host’s UDP/TCP port (where the syslog-udp/syslog-tcp source module is deployed).
+
+==== A sample configuration using syslog-ng
+
+Edit syslog-ng configuration (for example: /etc/syslog-ng/syslog-ng.conf):
+
+1) Add destination
+ 
+  destination <destinationName> {
+        tcp("<host>" port("<tcp-port>"));
+  };
+
+or,
+
+  destination <destinationName> {
+        udp("<host>" port("<udp-port>"));
+  };
+
+where "host" is the container(launcher) host where the syslog module is deployed.
+
+2) Add log rule to log message sources:
+
+  log {
+    source(<message_source>); destination(<destinationName>);
+  };
+
+3) Make sure to restart the service after the change:
+
+  sudo service syslog-ng restart
+
+Now, the syslog messages from the syslog message sources are written into HDFS /xd/<stream-name>/
+
+

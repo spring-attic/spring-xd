@@ -1,0 +1,81 @@
+// Main entry point for docbook generation.
+// This should mirror the _Sidebar file, used for
+// viewing online on github. 
+
+= Spring XD Guide
+Mark Fisher; Mark Pollack; David Turanski; Gunnar Hillert; Eric Bottard; Patrick Peralta, Gary Russell; Ilayaperumal Gopinathan; Jennifer Hickey; Michael Minella; Luke Taylor; Thomas Risberg; Glenn Renfro; Janne Valkealahti; Thomas Darimont; Dave Syer; Jon Brisbin; Andy Clement; Marius Bogoevici;
+:appversion: 1.0 (wiki)
+ifndef::host-github[:ext-relative: {outfilesuffix}]
+{appversion}
+:doctype: book
+
+= Reference Guide
+include::Introduction.asciidoc[]
+include::Getting-Started.asciidoc[]
+include::Running-Distributed-Mode.asciidoc[]
+include::Running-on-YARN.asciidoc[]
+include::Application-Configuration.asciidoc[]
+include::DSL-Reference.asciidoc[]
+include::Shell.asciidoc[Interactive Shell][]
+include::AdminUI.asciidoc[]
+include::Architecture.asciidoc[]
+include::XD-Distributed-Runtime.asciidoc[]
+include::Batch-Jobs.asciidoc[]
+include::Streams.asciidoc[]
+include::Modules.asciidoc[]
+include::Sources.asciidoc[]
+include::Processors.asciidoc[]
+include::Sinks.asciidoc[]
+include::Taps.asciidoc[]
+include::Analytics.asciidoc[]
+include::Tuples.asciidoc[]
+include::Type-conversion.asciidoc[]
+
+[[developing-modules-and-extensions]]
+= Developing Modules and Extensions
+include::Creating-a-Source-Module.asciidoc[]
+include::Creating-a-Data-Stream-Processor-Module.asciidoc[]
+include::Creating-a-Processor-Module.asciidoc[]
+include::Creating-a-Sink-Module.asciidoc[]
+include::Creating-a-Job-Module.asciidoc[]
+include::Creating-a-Python-Module.asciidoc[]
+include::ModuleOptionsMetadata.asciidoc[]
+include::Extending-XD.asciidoc[Extending Spring XD][]
+include::Samples.asciidoc[]
+
+[[configuration-guidelines]]
+= Configuration Guidelines
+include::Configuration-Guidelines-Overview.asciidoc[]
+include::Deployment.asciidoc[]
+include::MessageBus.asciidoc[]
+
+= Administration
+include::Monitoring-and-Management.asciidoc[]
+include::REST-API.asciidoc[]
+include::Java-API.asciidoc[]
+
+= Appendices
+[appendix]
+include::Hadoop-Installation.asciidoc[]
+
+[appendix]
+include::Building-Spring-XD.asciidoc[]
+
+[appendix]
+include::Using-MQTT-On-XD.asciidoc[]
+
+// The following is generated at release-time
+[appendix]
+include::ShellReference.asciidoc[]
+
+[appendix]
+include::Hadoop-Kerberos.asciidoc[]
+
+[appendix]
+include::Module-Project-Migration.asciidoc[]
+
+
+
+
+
+

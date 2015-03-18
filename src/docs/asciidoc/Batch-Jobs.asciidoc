@@ -1,0 +1,740 @@
+[[batch]]
+ifndef::env-github[]
+== Batch Jobs
+endif::[]
+
+=== Introduction
+
+One of the features that XD offers is the ability to launch and monitor batch jobs based on http://www.springsource.org/spring-batch[Spring Batch].  The Spring Batch project was started in 2007 as a collaboration between SpringSource and Accenture to provide a comprehensive framework to support the development of robust batch applications.  Batch jobs have their own set of best practices and domain concepts which have been incorporated into Spring Batch building upon Accenture's consulting business.  Since then Spring Batch has been used in thousands of enterprise applications and is the basis for the recent JSR standardization of batch processing, https://jcp.org/en/jsr/detail?id=352[JSR-352].
+
+Spring XD builds upon Spring Batch to simplify creating batch workflow solutions that span traditional use-cases such as moving data between flat files and relational databases as well as Hadoop use-cases where analysis logic is broken up into several steps that run on a Hadoop cluster.  Steps specific to Hadoop in a workflow can be MapReduce jobs, executing Hive/Pig scripts or HDFS operations.
+
+=== Workflow
+
+The concept of a workflow translates to a Job, not to be confused with a MapReduce job. A Job is a directed graph, each node of the graph is a processing Step. Steps can be executed sequentially or in parallel, depending on the configuration. Jobs can be started, stopped, and restarted. Restarting
+jobs is possible since the progress of executed steps in a Job is persisted in a database via a JobRepository.  The following figures shows the basic components of a workflow.
+
+image::images/batch-overview.png[The Spring XD Workflow overview, width=500]
+
+A Job that has steps specific to Hadoop is shown below.
+
+image::images/batch-hadoop-overview.png[Steps in a workflow that execute Hadoop HDFS operations and run Pig, MapReduce and Hive jobs, width=200]
+
+A JobLauncher is responsible for starting a job and is often triggered via a scheduler.  Other options to launch a job are through Spring XD's RESTful administration API, the XD web application, or in response to an external event from and XD stream definition, _e.g._ file polling using the file source.
+
+=== Features
+
+Spring XD allows you to create and launch jobs.  The launching of a job can be triggered using a cron expression or in reaction to data on a stream. When jobs are executing, they are also a source of event data that can be subscribed to by a stream.  There are several type of events sent during a job's execution, the most common being the status of the job and the steps taken within the job.  This bi-direction communication between stream processing and batch processing allows for more complex chains of processing to be developed.
+
+As a starting point, jobs for the following cases are provided to use out of the box
+
+* Poll a Directory and import CSV files to HDFS
+* Import CSV files to JDBC
+* HDFS to JDBC Export
+* JDBC to HDFS Import
+* HDFS to MongoDB Export
+
+These are described in the section below.  
+
+The purpose of this section is to show you how to create, schedule and monitor a job.
+
+=== The Lifecycle of a Job in Spring XD
+
+Before we dive deeper into the details of creating batch jobs with Spring XD, we need to understand the typical lifecycle for batch jobs in the context of _Spring XD_:
+
+ . Register a Job Module
+ . Create a Job Definition
+ . Deploy a Job
+ . Launch a Job
+ . Job Execution
+ . Un-deploy a Job 
+ . Destroy a Job Definition
+
+==== Register a Job Module
+
+Register a *Job Module* with the _Module Registry_ by putting XML and/or jar files into the +$XD_HOME/modules/jobs+ directory.
+
+==== Create a Job Definition
+
+Create a *Job Definition* from a _Job Module_ by providing a definition name as well as properties that apply to all _Job Instances_. At this point the job is not deployed, yet.
+
+==== Deploy the Job
+
+Deploy the *Job Definition* to one or more _Spring XD_ containers. This will initialize the _Job Definitions_ on those containers. The jobs are now "live" and a job can be created by sending a message to a job queue that contains optional runtime *http://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobParameters[Job Parameters]*.
+
+==== Launch a Job
+
+Launch a job by sending a message to the job queue with *http://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobParameters[Job Parameters]*. A *http://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobInstance[Job Instance]* is created, representing a specific run of the job. A *Job Instance* is the *Job Definition* plus the runtime *Job Parameters*. You can query for the *Job Instances* associated with a given job name.
+
+==== Job Execution
+
+The job is executed creating a *http://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobExecution[Job Execution]* object that captures the success or failure of the job. You can query for *Job Executions* associated with a given job name.
+
+==== Un-deploy a Job
+
+This removes the job from the _Spring XD_ container(s) preventing the launching of any new _Job Instances_. For reporting purposes, you will still be able to view historic _Job Executions_ associated with the the job.
+
+==== Destroy a Job Definition
+
+Destroying a *Job Definition* will not only un-deploy any still deployed _Job Definitions_ but will also remove the _Job Definition_ itself.
+
+[[job_options]]
+==== Creating Jobs - Additional Options
+
+When creating jobs, the following options are available to all job definitions:
+
+dateFormat:: The optional date format for job parameters *(default: `yyyy-MM-dd`)*
+numberFormat:: Defines the number format when parsing numeric parameters *(default: `NumberFormat.getInstance(Locale.US)`)*
+makeUnique:: Shall job parameters be made unique? *(default: `true`)*
+
+Also, similar to the `stream create` command, the `job create` command has an optional `--deploy` option to create the job definition and deploy it. `--deploy` option is false by default.
+
+Below is an example of some of these options combined:
+
+----
+job create myjob --definition "fooJob --makeUnique=false"
+----
+
+Remember that you can always find out about available options for a job by using the xref:Modules.asciidoc#module_info[`module info`] command.
+
+=== Deployment manifest support for job
+
+When deploying batch job you can provide a xref:Deployment#deployment-manifest[deployment manifest]. Deployment manifest properties for jobs are the same as for streams, you can declare
+
+* The number of job modules to deploy
+* The criteria expression to use for matching the job to available containers
+
+For example,
+
+----
+job create myjob --definition "fooJob --makeUnique=false"
+
+job deploy myjob --properties "module.fooJob.count=3,module.fooJob.criteria=groups.contains('hdfs-containers-group')"
+----
+
+The above deployment manifest would deploy 3 number of `fooJob` modules into containers whose group name matches "hdfs-containers-group".
+
+When a batch job is launched/scheduled, the job module that picks up the job launching request message executes the batch job.  To support partitioning of the job across multiple containers, the job definition needs to define how the job will be partitioned.  The type of partitioning depends on the type of the job, for example a job reading from JDBC would partition the data in a table by dividing up the number of rows and a job reading files form a directory would partition on the number of files available.  
+
+The FTP to HDFS and FILE to JDBC jobs support for partitioning.  To add partitioning support for your own jobs you should import https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/META-INF/spring-xd/batch/singlestep-partition-support.xml[singlestep-partition-support.xml] in your job definition.  This provides the infrastructure so that the job module that processes the launch request can communicate as the master with the other job modules that have been deployed.  You will also need to provide an implementation of the http://docs.spring.io/spring-batch/apidocs/org/springframework/batch/core/partition/support/Partitioner.html[Partitioner] interface.
+
+For more information on the deployment manifest, please refer https://github.com/spring-projects/spring-xd/wiki/XD-Distributed-Runtime#deployment-manifest[here]
+
+=== Launching a job
+XD uses triggers as well as regular event flow to launch the batch jobs.  So in this section we will cover how to:
+
+* Launch the Batch Job Ad-hoc
+* Launch the Batch Job using a named Cron-Trigger
+* Launch the Batch Job as sink.
+
+==== Ad-hoc
+To launch a job one time, use the launch option of the job command.  So going back to our example above, we've created a job module instance named helloSpringXD.  Launching that Job Module Instance would look like:
+----
+xd:> job launch helloSpringXD
+----
+In the logging output of the XDContainer you should see the following
+----
+16:45:40,127  INFO http-bio-9393-exec-1 job.JobPlugin:98 - Configuring module with the following properties: {numberFormat=, dateFormat=, makeUnique=true, xd.job.name=myjob}
+16:45:40,185  INFO http-bio-9393-exec-1 module.SimpleModule:140 - initialized module: SimpleModule [name=job, type=job, group=myjob, index=0 @3a9ecb9d]
+16:45:40,198  INFO http-bio-9393-exec-1 module.SimpleModule:161 - started module: SimpleModule [name=job, type=job, group=myjob, index=0 @3a9ecb9d]
+16:45:40,199  INFO http-bio-9393-exec-1 module.ModuleDeployer:161 - deployed SimpleModule [name=job, type=job, group=myjob, index=0 @3a9ecb9d]
+Hello Spring XD!
+----
+To re-launch the job just execute the launch command.
+For example:
+----
+xd:> job launch helloSpringXD
+----
+==== Launch the Batch using Cron-Trigger
+To launch a batch job based on a cron scheduler is done by creating a stream using the trigger source.
+
+----
+xd:> stream create --name cronStream --definition "trigger --cron='0/5 * * * * *'  > queue:job:myCronJob" --deploy
+
+----
+A batch job can receive parameters from a source (in this case a trigger) or process. A trigger uses the --payload expression to declare its payload.
+----
+xd:> stream create --name cronStream --definition "trigger --cron='0/5 * * * * *'  --payload={\"param1\":\"Kenny\"} > queue:job:myCronJob" --deploy
+----
+NOTE: The payload content must be in a JSON-based map representation.
+
+To pause/stop future scheduled jobs from running for this stream, the stream must be undeployed for example:
+----
+xd:> stream undeploy --name cronStream
+----
+==== Launch the Batch using a Fixed-Delay-Trigger
+A fixed-delay-trigger is used to launch a Job on a regular interval.  Using the --fixedDelay parameter you can set up the number of seconds between executions.  In the example below we are running myXDJob every 10 seconds and passing it a payload containing a single attribute.
+----
+xd:> stream create --name fdStream --definition "trigger --payload={\"param1\":\"fixedDelayKenny\"} --fixedDelay=5 > queue:job:myXDJob" --deploy
+----
+To pause/stop future scheduled jobs from running for this stream, you must undeploy the stream for example:
+----
+xd:> stream undeploy --name fdStream 
+----
+==== Launch job as a part of event flow
+A batch job is always used as a sink, with that being said it can receive messages from sources (other than triggers) and processors. In the case below we see that the user has created an http source (http source receives http posts and passes the payload of the http message to the next module in the stream) that will pass the http payload to the "myHttpJob".
+
+----
+ stream create --name jobStream --definition "http > queue:job:myHttpJob" --deploy
+----
+To test the stream you can execute a http post, like the following:
+----
+xd:> http post --target http://localhost:9000 --data "{\"param1\":\"fixedDelayKenny\"}"
+----
+=== Retrieve job notifications
+
+Spring XD offers the facilities to capture the notifications that are sent from the job as it is executing.
+When a batch job is deployed, by default it registers the following listeners along with pub/sub channels that these listeners send messages to.
+
+* Job Execution Listener
+* Chunk Listener
+* Item Listener
+* Step Execution Listener
+* Skip Listener
+
+Along with the pub/sub channels for each of these listeners, there will also be a pub/sub channel that the aggregated events from all these listeners are published to.
+
+In the following example, we setup a Batch Job called _myHttpJob_. Afterwards we create a stream that will tap into the pub/sub channels that were implicitly generated when the _myHttpJob_ job was deployed. 
+
+==== To receive aggregated events
+
+The stream receives aggregated event messages from all the default batch job listeners and sends those messages to the log.
+----
+xd>job create --name myHttpJob --definition "httpJob" --deploy
+xd>stream create --name aggregatedEvents --definition "tap:job:myHttpJob >log" --deploy
+xd>job launch myHttpJob
+----
+
+**Note:** The syntax for the tap that receives the aggregated events is: `tap:job:<job-name>`
+
+
+In the logging output of the container you should see something like the following when the job completes (with the aggregated events 
+----
+09:55:53,532  WARN SimpleAsyncTaskExecutor-1 logger.aggregatedEvents:150 - JobExecution: id=2, version=1, startTime=Sat Apr 12 09:55:53 PDT 2014, endTime=null, lastUpdated=Sat Apr 12 09:55:53 PDT 2014, status=STARTED, exitStatus=exitCode=UNKNOWN;exitDescription=, job=[JobInstance: id=2, version=0, Job=[myHttpJob]], jobParameters=[{random=0.07002785662707867}]
+09:55:53,554  WARN SimpleAsyncTaskExecutor-1 logger.aggregatedEvents:150 - StepExecution: id=2, version=1, name=step1, status=STARTED, exitStatus=EXECUTING, readCount=0, filterCount=0, writeCount=0 readSkipCount=0, writeSkipCount=0, processSkipCount=0, commitCount=0, rollbackCount=0, exitDescription=
+09:55:53,561  WARN SimpleAsyncTaskExecutor-1 logger.aggregatedEvents:150 - XdChunkContextInfo [complete=false, stepExecution=StepExecution: id=2, version=1, name=step1, status=STARTED, exitStatus=EXECUTING, readCount=0, filterCount=0, writeCount=0 readSkipCount=0, writeSkipCount=0, processSkipCount=0, commitCount=0, rollbackCount=0, exitDescription=, attributes={}]
+09:55:53,567  WARN SimpleAsyncTaskExecutor-1 logger.aggregatedEvents:150 - XdChunkContextInfo [complete=false, stepExecution=StepExecution: id=2, version=2, name=step1, status=STARTED, exitStatus=EXECUTING, readCount=0, filterCount=0, writeCount=0 readSkipCount=0, writeSkipCount=0, processSkipCount=0, commitCount=1, rollbackCount=0, exitDescription=, attributes={}]
+09:55:53,573  WARN SimpleAsyncTaskExecutor-1 logger.aggregatedEvents:150 - StepExecution: id=2, version=2, name=step1, status=COMPLETED, exitStatus=COMPLETED, readCount=0, filterCount=0, writeCount=0 readSkipCount=0, writeSkipCount=0, processSkipCount=0, commitCount=1, rollbackCount=0, exitDescription=
+09:55:53,580  WARN SimpleAsyncTaskExecutor-1 logger.aggregatedEvents:150 - JobExecution: id=2, version=1, startTime=Sat Apr 12 09:55:53 PDT 2014, endTime=Sat Apr 12 09:55:53 PDT 2014, lastUpdated=Sat Apr 12 09:55:53 PDT 2014, status=COMPLETED, exitStatus=exitCode=COMPLETED;exitDescription=, job=[JobInstance: id=2, version=0, Job=[myHttpJob]], jobParameters=[{random=0.07002785662707867}]
+----
+
+==== To receive job execution events
+
+----
+xd>job create --name myHttpJob --definition "httpJob" --deploy
+xd>stream create --name jobExecutionEvents --definition "tap:job:myHttpJob.job >log" --deploy
+xd>job launch myHttpJob
+----
+
+**Note:** The syntax for the tap that receives the job execution events is: `tap:job:<job-name>.job`
+
+In the logging output of the container you should see something like the following when the job completes
+----
+10:06:41,579  WARN SimpleAsyncTaskExecutor-1 logger.jobExecutionEvents:150 - JobExecution: id=3, version=1, startTime=Sat Apr 12 10:06:41 PDT 2014, endTime=null, lastUpdated=Sat Apr 12 10:06:41 PDT 2014, status=STARTED, exitStatus=exitCode=UNKNOWN;exitDescription=, job=[JobInstance: id=3, version=0, Job=[myHttpJob]], jobParameters=[{random=0.3774227747555795}]
+10:06:41,626  INFO SimpleAsyncTaskExecutor-1 support.SimpleJobLauncher:136 - Job: [FlowJob: [name=myHttpJob]] completed with the following parameters: [{random=0.3774227747555795}] and the following status: [COMPLETED]
+10:06:41,626  WARN SimpleAsyncTaskExecutor-1 logger.jobExecutionEvents:150 - JobExecution: id=3, version=1, startTime=Sat Apr 12 10:06:41 PDT 2014, endTime=Sat Apr 12 10:06:41 PDT 2014, lastUpdated=Sat Apr 12 10:06:41 PDT 2014, status=COMPLETED, exitStatus=exitCode=COMPLETED;exitDescription=, job=[JobInstance: id=3, version=0, Job=[myHttpJob]], jobParameters=[{random=0.3774227747555795}]
+
+----
+
+==== To receive step execution events
+
+----
+xd>job create --name myHttpJob --definition "httpJob" --deploy
+xd>stream create --name stepExecutionEvents --definition "tap:job:myHttpJob.step >log" --deploy
+xd>job launch myHttpJob
+----
+
+**Note:** The syntax for the tap that receives the step execution events is: `tap:job:<job-name>.step`
+
+In the logging output of the container you should see something like the following when the job completes
+----
+
+10:13:16,072  WARN SimpleAsyncTaskExecutor-1 logger.stepExecutionEvents:150 - StepExecution: id=6, version=1, name=step1, status=STARTED, exitStatus=EXECUTING, readCount=0, filterCount=0, writeCount=0 readSkipCount=0, writeSkipCount=0, processSkipCount=0, commitCount=0, rollbackCount=0, exitDescription=
+10:13:16,092  WARN SimpleAsyncTaskExecutor-1 logger.stepExecutionEvents:150 - StepExecution: id=6, version=2, name=step1, status=COMPLETED, exitStatus=COMPLETED, readCount=0, filterCount=0, writeCount=0 readSkipCount=0, writeSkipCount=0, processSkipCount=0, commitCount=1, rollbackCount=0, exitDescription=
+
+----
+
+==== To receive item, skip and chunk events
+
+----
+xd>job create --name myHttpJob --definition "httpJob" --deploy
+
+xd>stream create --name itemEvents --definition "tap:job:myHttpJob.item >log" --deploy
+xd>stream create --name skipEvents --definition "tap:job:myHttpJob.skip >log" --deploy 
+xd>stream create --name chunkEvents --definition "tap:job:myHttpJob.chunk >log" --deploy
+
+xd>job launch myHttpJob
+
+----
+
+**Note:** The syntax for the tap that receives the item events: `tap:job:<job-name>.item`,for skip events: `tap:job:<job-name>.skip` and for chunk events: `tap:job:<job-name>.chunk`
+
+==== To disable the default listeners
+
+----
+xd>job create --name myHttpJob --definition "httpJob --listeners=disable" --deploy
+----
+
+==== To select specific listeners
+
+To select specific listeners, specify comma separated list in `--listeners` option. 
+Following example illustrates the selection of job and step execution listeners only:
+
+----
+xd>job create --name myHttpJob --definition "httpJob --listeners=job,step" --deploy
+
+----
+**Note:** 
+List of options are: job, step, item, chunk and skip
+The aggregated channel is registered if at least one of these default listeners are enabled.
+
+For a complete example, please see the https://github.com/spring-projects/spring-xd-samples/tree/master/batch-notifications[Batch Notifications Sample] which is part of the https://github.com/spring-projects/spring-xd-samples[Spring XD Samples] repository.
+
+=== Removing Batch Jobs
+
+Batch Jobs can be deleted by executing:
+
+----
+xd:> job destroy helloSpringXD
+----
+
+Alternatively, one can just undeploy the job, keeping its definition for a future redeployment:
+
+----
+xd:> job undeploy helloSpringXD
+----
+
+
+=== Pre-Packaged Batch Jobs
+
+Spring XD comes with several batch import and export modules. You can run them out of the box or use them as a basis for building your own custom modules.
+
+==== Note regarding HDFS Configuration
+
+To use the hdfs based jobs below, XD needs to have append enabled for hdfs.
+Update the hdfs-site.xml with the following settings:
+
+[source,xml]
+----
+    <property>
+        <name>dfs.support.append</name>
+        <value>true</value>
+    </property>
+----
+
+==== Poll a Directory and Import CSV Files to HDFS (`filepollhdfs`)
+
+This module is designed to be driven by a stream polling a directory. It imports data from CSV files and requires that you supply a list of named columns for the data using the `names` parameter. For example:
+
+----
+xd:> job create myjob --definition "filepollhdfs --names=forename,surname,address" --deploy
+----
+
+You would then use a stream with a file source to scan a directory for files and drive the job. A separate job will be started for each file found:
+
+----
+xd:> stream create csvStream --definition "file --ref=true --dir=/mycsvdir --pattern=*.csv > queue:job:myjob" --deploy
+
+----
+
+//^job.filepollhdfs
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.filepollhdfs' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$filepollhdfs$$** $$job$$ has the following options:
+
+$$commitInterval$$:: $$the commit interval to be used for the step$$ *($$int$$, default: `1000`)*
+$$deleteFiles$$:: $$whether to delete files after successful import$$ *($$boolean$$, default: `false`)*
+$$directory$$:: $$the directory to write the file(s) to in HDFS$$ *($$String$$, default: `/xd/<job name>`)*
+$$fileExtension$$:: $$the file extension to use$$ *($$String$$, default: `csv`)*
+$$fileName$$:: $$the filename to use in HDFS$$ *($$String$$, default: `<job name>`)*
+$$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
+$$names$$:: $$the field names in the CSV file$$ *($$String$$, no default)*
+$$restartable$$:: $$whether the job should be restartable or not in case of failure$$ *($$boolean$$, default: `false`)*
+$$rollover$$:: $$the number of bytes to write before creating a new file in HDFS$$ *($$int$$, default: `1000000`)*
+//$job.filepollhdfs
+
+==== Import CSV Files to JDBC (`filejdbc`)
+
+A module which loads CSV files into a JDBC table using a single batch job. By default it uses the internal HSQL DB which is used by Spring Batch. Refer to xref:Modules#module_values[how module options are resolved] for further details on how to change defaults (one can of course always use `--foo=bar` notation in the job definition to achieve the same effect). 
+
+//^job.filejdbc
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.filejdbc' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$filejdbc$$** $$job$$ has the following options:
+
+$$abandonWhenPercentageFull$$:: $$connections that have timed out wont get closed and reported up unless the number of connections in use are above the percentage$$ *($$int$$, default: `0`)*
+$$alternateUsernameAllowed$$:: $$uses an alternate user name if connection fails$$ *($$boolean$$, default: `false`)*
+$$commitInterval$$:: $$the commit interval to be used for the step$$ *($$int$$, default: `1000`)*
+$$connectionProperties$$:: $$connection properties that will be sent to our JDBC driver when establishing new connections$$ *($$String$$, no default)*
+$$deleteFiles$$:: $$whether to delete files after successful import$$ *($$boolean$$, default: `false`)*
+$$delimiter$$:: $$the delimiter for the delimited file$$ *($$String$$, default: `,`)*
+$$driverClassName$$:: $$the JDBC driver to use$$ *($$String$$, no default)*
+$$fairQueue$$:: $$set to true if you wish that calls to getConnection should be treated fairly in a true FIFO fashion$$ *($$boolean$$, default: `true`)*
+$$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
+$$initSQL$$:: $$custom query to be run when a connection is first created$$ *($$String$$, no default)*
+$$initialSize$$:: $$initial number of connections that are created when the pool is started$$ *($$int$$, default: `0`)*
+$$initializeDatabase$$:: $$whether the database initialization script should be run$$ *($$boolean$$, default: `false`)*
+$$initializerScript$$:: $$the name of the SQL script (in /config) to run if 'initializeDatabase' is set$$ *($$String$$, default: `init_batch_import.sql`)*
+$$jdbcInterceptors$$:: $$semicolon separated list of classnames extending org.apache.tomcat.jdbc.pool.JdbcInterceptor$$ *($$String$$, no default)*
+$$jmxEnabled$$:: $$register the pool with JMX or not$$ *($$boolean$$, default: `true`)*
+$$logAbandoned$$:: $$flag to log stack traces for application code which abandoned a Connection$$ *($$boolean$$, default: `false`)*
+$$maxActive$$:: $$maximum number of active connections that can be allocated from this pool at the same time$$ *($$int$$, default: `100`)*
+$$maxAge$$:: $$time in milliseconds to keep this connection$$ *($$int$$, default: `0`)*
+$$maxIdle$$:: $$maximum number of connections that should be kept in the pool at all times$$ *($$int$$, default: `100`)*
+$$maxWait$$:: $$maximum number of milliseconds that the pool will wait for a connection$$ *($$int$$, default: `30000`)*
+$$minEvictableIdleTimeMillis$$:: $$minimum amount of time an object may sit idle in the pool before it is eligible for eviction$$ *($$int$$, default: `60000`)*
+$$minIdle$$:: $$minimum number of established connections that should be kept in the pool at all times$$ *($$int$$, default: `10`)*
+$$names$$:: $$the field names in the CSV file$$ *($$String$$, no default)*
+$$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `300000`)*
+$$password$$:: $$the JDBC password$$ *($$Password$$, no default)*
+$$removeAbandoned$$:: $$flag to remove abandoned connections if they exceed the removeAbandonedTimout$$ *($$boolean$$, default: `false`)*
+$$removeAbandonedTimeout$$:: $$timeout in seconds before an abandoned connection can be removed$$ *($$int$$, default: `60`)*
+$$resources$$:: $$the list of paths to import (Spring resources)$$ *($$String$$, no default)*
+$$restartable$$:: $$whether the job should be restartable or not in case of failure$$ *($$boolean$$, default: `false`)*
+$$suspectTimeout$$:: $$this simply logs the warning after timeout, connection remains$$ *($$int$$, default: `0`)*
+$$tableName$$:: $$the database table to which the data will be written$$ *($$String$$, default: `<job name>`)*
+$$testOnBorrow$$:: $$indication of whether objects will be validated before being borrowed from the pool$$ *($$boolean$$, default: `false`)*
+$$testOnReturn$$:: $$indication of whether objects will be validated before being returned to the pool$$ *($$boolean$$, default: `false`)*
+$$testWhileIdle$$:: $$indication of whether objects will be validated by the idle object evictor$$ *($$boolean$$, default: `false`)*
+$$timeBetweenEvictionRunsMillis$$:: $$number of milliseconds to sleep between runs of the idle connection validation/cleaner thread$$ *($$int$$, default: `5000`)*
+$$url$$:: $$the JDBC URL for the database$$ *($$String$$, no default)*
+$$useEquals$$:: $$true if you wish the ProxyConnection class to use String.equals$$ *($$boolean$$, default: `true`)*
+$$username$$:: $$the JDBC username$$ *($$String$$, no default)*
+$$validationInterval$$:: $$avoid excess validation, only run validation at most at this frequency - time in milliseconds$$ *($$long$$, default: `30000`)*
+$$validationQuery$$:: $$sql query that will be used to validate connections from this pool$$ *($$String$$, no default)*
+$$validatorClassName$$:: $$name of a class which implements the org.apache.tomcat.jdbc.pool.Validator$$ *($$String$$, no default)*
+//$job.filejdbc
+
+The job should be defined with the `resources` parameter defining the files which should be loaded. It also requires a `names` parameter (for the CSV field names) and these should match the database column names into which the data should be stored. You can either pre-create the database table or the module will create it for you if you use `--initializeDatabase=true` when the job is created. The table initialization is configured in a similar way to the JDBC sink and uses the same parameters. The default table name is the job name and can be customized by setting the `tableName` parameter. As an example, if you run the command
+
+----
+xd:> job create myjob --definition "filejdbc --resources=file:///mycsvdir/*.csv --names=forename,surname,address --tableName=people --initializeDatabase=true" --deploy
+----
+
+it will create the table "people" in the database with three varchar columns called "forename", "surname" and "address". When you launch the job it will load the files matching the resources pattern and write the data to this table. As with the `filepollhdfs` job, this module also supports the `deleteFiles` parameter which will remove the files defined by the `resources` parameter on successful completion of the job.
+
+Launch the job using:
+
+----
+xd:> job launch myjob
+----
+
+TIP: The connection pool settings for xd are located in servers.yml (i.e. `spring.datasource.*` )
+
+==== HDFS to JDBC Export (`hdfsjdbc`)
+
+This module functions very similarly to the `filejdbc` one except that the resources you specify should actually be in HDFS, rather than the OS filesystem. 
+
+----
+xd:> job create myjob --definition "hdfsjdbc --resources=/xd/data/*.csv --names=forename,surname,address --tableName=people --initializeDatabase=true" --deploy
+----
+
+Launch the job using:
+
+----
+xd:> job launch myjob
+----
+
+//^job.hdfsjdbc
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.hdfsjdbc' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$hdfsjdbc$$** $$job$$ has the following options:
+
+$$abandonWhenPercentageFull$$:: $$connections that have timed out wont get closed and reported up unless the number of connections in use are above the percentage$$ *($$int$$, default: `0`)*
+$$alternateUsernameAllowed$$:: $$uses an alternate user name if connection fails$$ *($$boolean$$, default: `false`)*
+$$commitInterval$$:: $$the commit interval to be used for the step$$ *($$int$$, default: `1000`)*
+$$connectionProperties$$:: $$connection properties that will be sent to our JDBC driver when establishing new connections$$ *($$String$$, no default)*
+$$delimiter$$:: $$the delimiter for the delimited file$$ *($$String$$, default: `,`)*
+$$driverClassName$$:: $$the JDBC driver to use$$ *($$String$$, no default)*
+$$fairQueue$$:: $$set to true if you wish that calls to getConnection should be treated fairly in a true FIFO fashion$$ *($$boolean$$, default: `true`)*
+$$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
+$$initSQL$$:: $$custom query to be run when a connection is first created$$ *($$String$$, no default)*
+$$initialSize$$:: $$initial number of connections that are created when the pool is started$$ *($$int$$, default: `0`)*
+$$initializeDatabase$$:: $$whether the database initialization script should be run$$ *($$boolean$$, default: `false`)*
+$$initializerScript$$:: $$the name of the SQL script (in /config) to run if 'initializeDatabase' is set$$ *($$String$$, default: `init_batch_import.sql`)*
+$$jdbcInterceptors$$:: $$semicolon separated list of classnames extending org.apache.tomcat.jdbc.pool.JdbcInterceptor$$ *($$String$$, no default)*
+$$jmxEnabled$$:: $$register the pool with JMX or not$$ *($$boolean$$, default: `true`)*
+$$logAbandoned$$:: $$flag to log stack traces for application code which abandoned a Connection$$ *($$boolean$$, default: `false`)*
+$$maxActive$$:: $$maximum number of active connections that can be allocated from this pool at the same time$$ *($$int$$, default: `100`)*
+$$maxAge$$:: $$time in milliseconds to keep this connection$$ *($$int$$, default: `0`)*
+$$maxIdle$$:: $$maximum number of connections that should be kept in the pool at all times$$ *($$int$$, default: `100`)*
+$$maxWait$$:: $$maximum number of milliseconds that the pool will wait for a connection$$ *($$int$$, default: `30000`)*
+$$minEvictableIdleTimeMillis$$:: $$minimum amount of time an object may sit idle in the pool before it is eligible for eviction$$ *($$int$$, default: `60000`)*
+$$minIdle$$:: $$minimum number of established connections that should be kept in the pool at all times$$ *($$int$$, default: `10`)*
+$$names$$:: $$the field names in the CSV file$$ *($$String$$, no default)*
+$$password$$:: $$the JDBC password$$ *($$Password$$, no default)*
+$$removeAbandoned$$:: $$flag to remove abandoned connections if they exceed the removeAbandonedTimout$$ *($$boolean$$, default: `false`)*
+$$removeAbandonedTimeout$$:: $$timeout in seconds before an abandoned connection can be removed$$ *($$int$$, default: `60`)*
+$$resources$$:: $$the list of paths to import (Spring resources)$$ *($$String$$, no default)*
+$$restartable$$:: $$whether the job should be restartable or not in case of failure$$ *($$boolean$$, default: `false`)*
+$$suspectTimeout$$:: $$this simply logs the warning after timeout, connection remains$$ *($$int$$, default: `0`)*
+$$tableName$$:: $$the database table to which the data will be written$$ *($$String$$, default: `<job name>`)*
+$$testOnBorrow$$:: $$indication of whether objects will be validated before being borrowed from the pool$$ *($$boolean$$, default: `false`)*
+$$testOnReturn$$:: $$indication of whether objects will be validated before being returned to the pool$$ *($$boolean$$, default: `false`)*
+$$testWhileIdle$$:: $$indication of whether objects will be validated by the idle object evictor$$ *($$boolean$$, default: `false`)*
+$$timeBetweenEvictionRunsMillis$$:: $$number of milliseconds to sleep between runs of the idle connection validation/cleaner thread$$ *($$int$$, default: `5000`)*
+$$url$$:: $$the JDBC URL for the database$$ *($$String$$, no default)*
+$$useEquals$$:: $$true if you wish the ProxyConnection class to use String.equals$$ *($$boolean$$, default: `true`)*
+$$username$$:: $$the JDBC username$$ *($$String$$, no default)*
+$$validationInterval$$:: $$avoid excess validation, only run validation at most at this frequency - time in milliseconds$$ *($$long$$, default: `30000`)*
+$$validationQuery$$:: $$sql query that will be used to validate connections from this pool$$ *($$String$$, no default)*
+$$validatorClassName$$:: $$name of a class which implements the org.apache.tomcat.jdbc.pool.Validator$$ *($$String$$, no default)*
+//$job.hdfsjdbc
+
+TIP: The connection pool settings for xd are located in servers.yml (i.e. `spring.datasource.*` )
+
+==== JDBC to HDFS Import (`jdbchdfs`)
+
+Performs the reverse of the previous module. The database configuration is the same as for `filejdbc` but without the initialization options since you need to already have the data to import into HDFS. When creating the job, you must either supply the select statement by setting the `sql` parameter, or you can supply both `tableName` and `columns` options (which will be used to build the SQL statement).
+
+To import data from the database table `some_table`, you could use
+
+----
+xd:> job create myjob --definition "jdbchdfs --sql='select col1,col2,col3 from some_table'" --deploy
+----
+
+You can customize how the data is written to HDFS by supplying the options `directory` (defaults to `/xd/(job name)`), `fileName` (defaults to job name), `rollover` (in bytes, default 1000000) and `fileExtension` (defaults to 'csv').
+
+Launch the job using:
+
+----
+xd:> job launch myjob
+----
+
+If you want to partition your job across multiple XD containers you can provide the `partitionColumn` and `partitions` option. When the job is launched the partitioner will query the database for the range of values and evenly divie the load between the partitions. This assumes that there is an even distribution of column values in the table. When using the partitioning support you must also use the `tableName` and `columns` options instead of the `sql` option. This is so the partitioner can construct the queries with the appropriate where clauses for the different partitions.
+
+An example of a partitioned job could look like this:
+
+----
+xd:> job create partitionedJob --definition "jdbchdfs --columns='id,col1,col2' --tableName=some_table --partitionColumn=id --partitions=4" --deploy
+----
+
+NOTE: When using the partitioning support you can not use the `sql` option. Use `tableName` and `columns` instead.
+
+//^job.jdbchdfs
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.jdbchdfs' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$jdbchdfs$$** $$job$$ has the following options:
+
+$$abandonWhenPercentageFull$$:: $$connections that have timed out wont get closed and reported up unless the number of connections in use are above the percentage$$ *($$int$$, default: `0`)*
+$$alternateUsernameAllowed$$:: $$uses an alternate user name if connection fails$$ *($$boolean$$, default: `false`)*
+$$columns$$:: $$the column names to read from the supplied table$$ *($$String$$, default: ``)*
+$$commitInterval$$:: $$the commit interval to be used for the step$$ *($$int$$, default: `1000`)*
+$$connectionProperties$$:: $$connection properties that will be sent to our JDBC driver when establishing new connections$$ *($$String$$, no default)*
+$$delimiter$$:: $$the delimiter for the delimited file$$ *($$String$$, default: `,`)*
+$$directory$$:: $$the directory to write the file(s) to in HDFS$$ *($$String$$, default: `/xd/<job name>`)*
+$$driverClassName$$:: $$the JDBC driver to use$$ *($$String$$, no default)*
+$$fairQueue$$:: $$set to true if you wish that calls to getConnection should be treated fairly in a true FIFO fashion$$ *($$boolean$$, default: `true`)*
+$$fileExtension$$:: $$the file extension to use$$ *($$String$$, default: `csv`)*
+$$fileName$$:: $$the filename to use in HDFS$$ *($$String$$, default: `<job name>`)*
+$$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
+$$initSQL$$:: $$custom query to be run when a connection is first created$$ *($$String$$, no default)*
+$$initialSize$$:: $$initial number of connections that are created when the pool is started$$ *($$int$$, default: `0`)*
+$$jdbcInterceptors$$:: $$semicolon separated list of classnames extending org.apache.tomcat.jdbc.pool.JdbcInterceptor$$ *($$String$$, no default)*
+$$jmxEnabled$$:: $$register the pool with JMX or not$$ *($$boolean$$, default: `true`)*
+$$logAbandoned$$:: $$flag to log stack traces for application code which abandoned a Connection$$ *($$boolean$$, default: `false`)*
+$$maxActive$$:: $$maximum number of active connections that can be allocated from this pool at the same time$$ *($$int$$, default: `100`)*
+$$maxAge$$:: $$time in milliseconds to keep this connection$$ *($$int$$, default: `0`)*
+$$maxIdle$$:: $$maximum number of connections that should be kept in the pool at all times$$ *($$int$$, default: `100`)*
+$$maxWait$$:: $$maximum number of milliseconds that the pool will wait for a connection$$ *($$int$$, default: `30000`)*
+$$minEvictableIdleTimeMillis$$:: $$minimum amount of time an object may sit idle in the pool before it is eligible for eviction$$ *($$int$$, default: `60000`)*
+$$minIdle$$:: $$minimum number of established connections that should be kept in the pool at all times$$ *($$int$$, default: `10`)*
+$$partitionColumn$$:: $$the column to use for partitioning, should be numeric and uniformly distributed$$ *($$String$$, default: ``)*
+$$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `300000`)*
+$$partitions$$:: $$the number of partitions$$ *($$int$$, default: `1`)*
+$$password$$:: $$the JDBC password$$ *($$Password$$, no default)*
+$$removeAbandoned$$:: $$flag to remove abandoned connections if they exceed the removeAbandonedTimout$$ *($$boolean$$, default: `false`)*
+$$removeAbandonedTimeout$$:: $$timeout in seconds before an abandoned connection can be removed$$ *($$int$$, default: `60`)*
+$$restartable$$:: $$whether the job should be restartable or not in case of failure$$ *($$boolean$$, default: `false`)*
+$$rollover$$:: $$the number of bytes to write before creating a new file in HDFS$$ *($$int$$, default: `1000000`)*
+$$sql$$:: $$the SQL to use to extract data$$ *($$String$$, default: ``)*
+$$suspectTimeout$$:: $$this simply logs the warning after timeout, connection remains$$ *($$int$$, default: `0`)*
+$$tableName$$:: $$the table to read data from$$ *($$String$$, default: ``)*
+$$testOnBorrow$$:: $$indication of whether objects will be validated before being borrowed from the pool$$ *($$boolean$$, default: `false`)*
+$$testOnReturn$$:: $$indication of whether objects will be validated before being returned to the pool$$ *($$boolean$$, default: `false`)*
+$$testWhileIdle$$:: $$indication of whether objects will be validated by the idle object evictor$$ *($$boolean$$, default: `false`)*
+$$timeBetweenEvictionRunsMillis$$:: $$number of milliseconds to sleep between runs of the idle connection validation/cleaner thread$$ *($$int$$, default: `5000`)*
+$$url$$:: $$the JDBC URL for the database$$ *($$String$$, no default)*
+$$useEquals$$:: $$true if you wish the ProxyConnection class to use String.equals$$ *($$boolean$$, default: `true`)*
+$$username$$:: $$the JDBC username$$ *($$String$$, no default)*
+$$validationInterval$$:: $$avoid excess validation, only run validation at most at this frequency - time in milliseconds$$ *($$long$$, default: `30000`)*
+$$validationQuery$$:: $$sql query that will be used to validate connections from this pool$$ *($$String$$, no default)*
+$$validatorClassName$$:: $$name of a class which implements the org.apache.tomcat.jdbc.pool.Validator$$ *($$String$$, no default)*
+//$job.jdbchdfs
+
+TIP: The connection pool settings for xd are located in servers.yml (i.e. `spring.datasource.*` )
+
+==== HDFS to MongoDB Export (`hdfsmongodb`)
+
+Exports CSV data from HDFS and stores it in a MongoDB collection which defaults to the job name. This can be overridden with the `collectionName` parameter. Once again, the field names should be defined by supplying the `names` parameter. The data is converted internally to a Spring XD `Tuple` and the collection items will have an `id` matching the tuple's UUID. You can override this by setting the `idField` parameter to one of the field names if desired.
+
+An example:
+
+----
+xd:> job create myjob --definition "hdfsmongodb --resources=/data/*.log --names=employeeId,forename,surname,address --idField=employeeId --collectionName=people" --deploy
+----
+
+//^job.hdfsmongodb
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.hdfsmongodb' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$hdfsmongodb$$** $$job$$ has the following options:
+
+$$authenticationDatabaseName$$:: $$the MongoDB authentication database used for connecting$$ *($$String$$, default: ``)*
+$$collectionName$$:: $$the MongoDB collection to store$$ *($$String$$, default: `<job name>`)*
+$$commitInterval$$:: $$the commit interval to be used for the step$$ *($$int$$, default: `1000`)*
+$$databaseName$$:: $$the MongoDB database name$$ *($$String$$, default: `xd`)*
+$$delimiter$$:: $$the delimiter for the delimited file$$ *($$String$$, default: `,`)*
+$$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
+$$host$$:: $$the MongoDB host to connect to$$ *($$String$$, default: `localhost`)*
+$$idField$$:: $$the name of the field to use as the identity in MongoDB$$ *($$String$$, no default)*
+$$names$$:: $$the field names in the CSV file$$ *($$String$$, no default)*
+$$password$$:: $$the MongoDB password used for connecting$$ *($$String$$, default: ``)*
+$$port$$:: $$the MongoDB port to connect to$$ *($$int$$, default: `27017`)*
+$$resources$$:: $$the list of paths to import (Spring resources)$$ *($$String$$, no default)*
+$$restartable$$:: $$whether the job should be restartable or not in case of failure$$ *($$boolean$$, default: `false`)*
+$$username$$:: $$the MongoDB username used for connecting$$ *($$String$$, default: ``)*
+$$writeConcern$$:: $$the default MongoDB write concern to use$$ *($$WriteConcern$$, default: `SAFE`, possible values: `NONE,NORMAL,SAFE,FSYNC_SAFE,REPLICAS_SAFE,JOURNAL_SAFE,MAJORITY`)*
+//$job.hdfsmongodb
+
+==== FTP to HDFS Export (`ftphdfs`)
+
+Copies files from FTP directory into HDFS. Job is partitioned in a way that each
+separate file copy is executed on its own partitioned step.
+
+An example which copies files:
+----
+job create --name ftphdfsjob --definition "ftphdfs --host=ftp.example.com --port=21" --deploy
+job launch --name ftphdfsjob --params {"remoteDirectory":"/pub/files","hdfsDirectory":"/ftp"}
+----
+
+Full path is preserved so that above command would result files in HDFS shown below:
+----
+/ftp/pub/files
+/ftp/pub/files/file1.txt
+/ftp/pub/files/file2.txt
+----
+
+//^job.ftphdfs
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.ftphdfs' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$ftphdfs$$** $$job$$ has the following options:
+
+$$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
+$$host$$:: $$the host name for the FTP server$$ *($$String$$, no default)*
+$$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `300000`)*
+$$password$$:: $$the password for the FTP connection$$ *($$Password$$, no default)*
+$$port$$:: $$the port for the FTP server$$ *($$int$$, default: `21`)*
+$$restartable$$:: $$whether the job should be restartable or not in case of failure$$ *($$boolean$$, default: `false`)*
+$$username$$:: $$the username for the FTP connection$$ *($$String$$, no default)*
+//$job.ftphdfs
+
+==== Running Spark Application as a batch job (`sparkapp`)
+A Spark Application can be deployed and launched from Spring XD as a batch job. SparkTasklet submits the Spark application into Spark cluster manager using **org.apache.spark.deploy.SparkSubmit**. Through this approach, you can also launch a Spark application with specific criteria via Spring XD stream (for instance: A real time scoring algorithm through MLlib spark job can be triggered based on the streaming data events). To get started, please refer to Spark examples here: https://spark.apache.org/examples.html.
+
+NOTE: The current Spark release that is supported is Spark 1.2.1
+
+Lets run some Spark examples as Spring XD batch jobs:
+----
+xd:>job create SparkPiExample --definition "sparkapp --appJar=<the location of spark-examples-1.2.1 jar> --name=MyApp --master=<spark master url or local> --mainClass=org.apache.spark.examples.SparkPi" --deploy
+xd:>job launch SparkPiExample
+----
+----
+xd:>job create JavaWordCountExample --definition "sparkapp --appJar=<the location of spark-examples-1.2.1 jar> --name=MyApp --master=<spark master url or local> --mainClass=org.apache.spark.examples.JavaWordCount --programArgs=<location of the file to count the words>" --deploy
+xd>job launch JavaWordCountExample
+----
+
+Once the job is launched, go to Spring XD admin-ui to verify the job results. 
+Jobs → Executions → Select the job to verify that execution context holds the log for Spark application results. If you launch the Spark application through Spark Master, then the results and application status can be verified from SparkUI as well.
+
+//^job.sparkapp
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.sparkapp' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$sparkapp$$** $$job$$ has the following options:
+
+$$appJar$$:: $$path to a bundled jar that includes your application and its dependencies - excluding spark$$ *($$String$$, no default)*
+$$conf$$:: $$comma seperated list of key value pairs as config properties$$ *($$String$$, default: ``)*
+$$files$$:: $$comma separated list of files to be placed in the working directory of each executor$$ *($$String$$, default: ``)*
+$$mainClass$$:: $$the main class for Spark application$$ *($$String$$, no default)*
+$$master$$:: $$the master URL for Spark$$ *($$String$$, default: `local`)*
+$$name$$:: $$the name of the Spark application$$ *($$String$$, default: ``)*
+$$programArgs$$:: $$program arguments for the application main class$$ *($$String$$, default: ``)*
+//$job.sparkapp
+
+==== Running Sqoop as a batch job (`sqoop`)
+A Sqoop job can be deployed and launched from Spring XD as a batch job. The Sqoop job uses a `SqoopTasklet` and a `SqoopRunner` that submits a Sqoop job using **org.apache.sqoop.Sqoop.runTool**. The Spring XD Sqoop batch job aims to support most of the Sqoop functionality, but at this point we have tested a limited subset:
+
+* import
+* export
+* list-tables
+
+NOTE: The current release supports Sqoop 1.4.5
+
+The intention is to eventually support all features of the Sqoop tool including running Sqoop jobs saved in the Sqoop metastore. See http://sqoop.apache.org/docs/1.4.5/SqoopUserGuide.html[Sqoop User Guide] for full documentation of the Sqoop features.
+
+We can test the Sqoop job by just listing the tables in the database:
+
+----
+xd:>job create sqoopListTables --definition "sqoop --command=list-tables" --deploy
+xd:>job launch --name sqoopListTables
+----
+
+The definition contains the name of the provided job as `sqoop` and the `--command` option names the Sqoop command we want to run, which in this case is "list-tables".
+
+Once the job is launched, go to Spring XD admin-ui to verify the job results. 
+Jobs → Executions → Select the job to verify that step execution context holds the log for Sqoop Tool execution results. You should see some tables listed there. Since we didn't provide any connection arguments Spring XD will by default use the batch respoitory database for the Sqoop Tool execution. We could provide options specifying a different database using the `--url`, `--username` and `--password` options for the job:
+
+----
+xd:>job create sqoopListTables2 --definition "sqoop --command=import --url=jdbc:mysql://localhost:3306/test --username=myuser --password=mypasswd" --deploy
+xd:>job launch --name sqoopListTables2
+----
+
+Here we connect to a local MySQL database. It's important to note that you need to provide the MySQL JDBC driver jar in the Spring XD lib directory for this to work.
+
+There also is an option to specify connection arguments using the `--args` option. This allows you to use the same arguments that you are used to provide on the command line when running the Sqoop Tool directly. To connect to the same MySQL database as above using `--args` we would use:
+
+----
+xd:>job create sqoopListTables3 --definition "sqoop --command=list-tables --connect=jdbc:mysql://localhost:3306/test --username=myuser --password=mypasswd" --deploy
+xd:>job launch --name sqoopListTables3
+----
+
+When importing data, you simply use "import" as the command to run. Here is an example:
+
+----
+xd:>job create sqoopImport1 --definition "sqoop --command=import --args='--table=MYTABLE' --url=jdbc:mysql://localhost:3306/test --username=myuser --password=mypasswd" --deploy
+xd:>job launch --name sqoopImport1
+----
+
+In this example we provided the connection arguments using the `-args` option. We could also have used `--url`, `--username` and `--password` options like we did above for the "list-tables" example. The "import" command will use the `spring.hadoop.fsUri` that is specified when Spring XD starts up. You can override this by providing the `--fsUri` option when defining the job. The same is true for `spring.hadoop.resourceManagerHost` and `spring.hadoop.resourceManagerPort`. You can override the Spring XD configured values with `--resourceManagerHost` and `--resourceManagerPort` options.
+
+For exports we use the "export" command. Here is an example:
+
+----
+xd:>job create sqoopExport1 --definition "sqoop --command=export --args='--table=NEWTABLE --export-dir=/user/xduser/MYTABLE'" --deploy
+xd:>job launch --name sqoopExport1
+----
+
+Here we rely on the connection options to default to the same database used for the batch repository. Note that Sqoop requires that the table to export data into must already exist.
+
+NOTE: If your Sqoop args are more complex, as is the case when you provide a query expression or a where clause, then you will need to use escaping for double quotes used within the `--args` option. A quick example of using a where clause:
+
+----
+job create sqoopComplexArgs1 --definition "sqoop --command=import --args='--table MYFILES --where \"ID < 390000\" --target-dir /user/xduser/TEST --split-by ID'"
+----
+
+(For this example we have omitted the equal sign for the individual Sqoop arguments within the `--args` option. Either style works fine.)
+
+//^job.sqoop
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.sqoop' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$sqoop$$** $$job$$ has the following options:
+
+$$args$$:: $$the arguments for the Sqoop command$$ *($$String$$, default: ``)*
+$$command$$:: $$the Sqoop command to run$$ *($$String$$, default: ``)*
+$$driverClassName$$:: $$the JDBC driver to use$$ *($$String$$, no default)*
+$$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
+$$password$$:: $$the JDBC password$$ *($$Password$$, no default)*
+$$resourceManagerHost$$:: $$the Host for Hadoop's ResourceManager$$ *($$String$$, default: `${spring.hadoop.resourceManagerHost}`)*
+$$resourceManagerPort$$:: $$the Port for Hadoop's ResourceManager$$ *($$String$$, default: `${spring.hadoop.resourceManagerPort}`)*
+$$url$$:: $$the JDBC URL for the database$$ *($$String$$, no default)*
+$$username$$:: $$the JDBC username$$ *($$String$$, no default)*
+//$job.sqoop

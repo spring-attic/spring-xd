@@ -1,0 +1,139 @@
+[[using-mqtt-modules]]
+ifndef::env-github[]
+== Using MQTT Modules
+endif::[]
+
+=== Introduction
+MQTT(MQ for telemetry transport) is a machine to machine connectivity protocol. It is a lightweight pub/sub protocol for devices where bandwidth and battery power are at a premium.  This purpose of this document is to show you how to: enable the RabbitMQ MQTT plugin, setup a Spring XD MQTT source and Spring MQTT sink. 
+
+NOTE:  This document assumes that you have a RabbitMQ installed and running.  If you don’t have RabbitMQ available already you can download it from http://www.rabbitmq.com/download.html.   
+
+==== Setting up MQTT on RabbitMQ
+If you are using RabbitMQ 3.3.4 or above then the MQTT plugin is already included with your deployment, however it is inactive.  
+To Activate:
+
+1. Shutdown the Rabbit MQ instance
+2. $RABBIT_HOME/sbin/rabbitmq-plugins list
+ 
+  ...
+  [ ] rabbitmq_federation_management    3.3.4
+  [E] rabbitmq_management               3.3.4
+  [e] rabbitmq_management_agent         3.3.4
+  [ ] rabbitmq_management_visualiser    3.3.4
+  [ ] rabbitmq_mqtt                     3.3.4
+  [ ] rabbitmq_shovel                   3.3.4
+  [ ] rabbitmq_shovel_management        3.3.4
+  …
+   
+3.  We see that the rabitt_mqtt does not have a [E] denoted next to it.  Thus it is not enabled.  
+Note: if you do see the [E] next to the rabbitmq_mqtt then your plugin is enabled and all you need to do is restart your RabbitMQ.
+4. Now enable rabbit_mqtt plugin
+  a. Run: $RABBIT_HOME/sbin/rabbitmq-plugins enable rabbitmq_mqtt
+  b. Run: $RABBIT_HOME/sbin/rabbitmq-plugins list
+ 
+  ...
+  [ ] rabbitmq_federation_management    3.3.4
+  [E] rabbitmq_management               3.3.4
+  [e] rabbitmq_management_agent         3.3.4
+  [ ] rabbitmq_management_visualiser    3.3.4
+  [E] rabbitmq_mqtt                     3.3.4
+  [ ] rabbitmq_shovel                   3.3.4
+  [ ] rabbitmq_shovel_management        3.3.4
+  ...
+
+   c. Now we see that the rabbitmq_mqtt plugin is now active.
+   d. Restart your RabbitMQ.
+   
+==== Rabbit MQTT Plugin settings
+The MQTT plugin can be can be configured via the rabbitmq.config file and this is covered here: http://www.rabbitmq.com/mqtt.html.  
+The settings for the MQTT plugin that Spring XD are concerned about are as follows:
+
+1. allow_anonymous  Determines if the user must supply a user name or password.  If true then the plugin will use the default_user and default password enumerated below.  If false the Spring XD source or sink must provide the username and password  Default: true
+2. default_user  If allow_anonymous is set to true then this will set the user for anonymous clients.  Default: guest
+3. default_password If allow_anonymous is set to true then this will set the password for anonymous clients.  Default: guest 
+4. exchange - The name of the exchange that will route all MQTT messages to a the  queues. Default: amq.topic
+5. tcp_listeners - host and port that rabbit will monitor for MQTT messages. Default: 1883
+
+Out of the box the Spring XD MQTT source and sink currently works with the MQTT plugin defaults without any configuration.     
+   
+==== MQTT Source
+When Spring XD deploys the  MQTT source module, a message queue is created along with the necessary binding on RabbitMQ.  The message queue that is created will have the name structure `[mqtt-subscription-][client_id][srcqos1]`. 
+* mqtt-subscription- Queues created for MQTT subscribers will have names starting with mqtt-subscription.
+* client-id is the client-id specified by the MQTT source module, the default is `xd.mqtt.client.id`
+* srcqos1 - The QoS level for the queue.
+
+The MQTT source module also generates the binding from the amq.topic to the message queue via the routing key (topic).  The default topic for the MQTT source module is `xd.mqtt.test`.
+
+===== Example 1: Using defaults
+To show this in detail let us create the following stream: `stream create mqtt-in --definition “mqtt|log” --deploy`.  In this example the stream will retrieve MQTT messages from RabbitMQ and write the content to Spring XD’s log.  So on RabbitMQ a message queue named `mqtt-subscription-xd.mqtt.client.id.srcqos1` and a binding for the topic (routing key) `xd.mqtt.test` will be created.  
+
+image::images/mqtt_samp_1.png[MQTT Sample 1, width=500]
+
+Thus any message published with the topic, `xd.mqtt.test` will be sent to the `mqtt-subscription-xd.mqtt.client.id.srcqos1` message queue and thus picked up by the Spring XD MQTT module and then written to log.  
+So to exercise the stream created we can write the following:
+
+----
+stream create --name rabbittest --definition "http|rabbit --exchange='amq.topic' --routingKey='''xd.mqtt.test'''" --deploy
+http post --data 'hello world'
+----
+
+In the log you should see:
+
+[source,bash]
+----
+09:53:34,487  INFO MQTT Call: xd.mqtt.client.id.src sink.mqtt-in - hello world
+----
+
+===== Example 2: Monitoring different topics. 
+In this scenario we want to setup a MQTT Source Module to retrieve messages that may come in from different topics.  So lets pretend that we want to monitor all the infusion machines at a medical facility.  Our monitor wants to log all messages that notify us that a machine has completed its task or if a machine in need of  maintenance.  
+
+image::images/mqtt_samp_2.png[MQTT Sample 2, width=500]
+
+In this case it would look like this:
+
+----
+#Create a simulated device that will dispatch a patient alert message
+stream create --name patientAlert --definition "http|rabbit --exchange='amq.topic' --routingKey='''patient.alert'''" --deploy
+#Create a simulated device that will dispatch a patient notification message
+stream create --name patientNotification --definition "http --port=9005|rabbit --exchange='amq.topic' --routingKey='''patient.notification'''" --deploy
+# create our monitor that will capture the mqtt traffic.
+stream create --name patientMonitor --definition "mqtt --topics=patient.alert,patient.notification |log" --deploy
+----
+
+Now lets dispatch messages to both topics:
+
+----
+http post --target http://localhost:9005  --data 'infusion complete'
+http post --data 'pump failure'
+----
+
+In the log you should see:
+
+[source,bash]
+----
+10:25:21,403  INFO MQTT Call: xd.mqtt.client.id.src sink.patientMonitor - infusion complete
+10:25:46,226  INFO MQTT Call: xd.mqtt.client.id.src sink.patientMonitor - pump failure
+----
+   
+==== MQTT Sink
+The MQTT sink module will publish messages for a topic to the broker for a specific topic.  
+
+===== Example 1: Using defaults
+In this example we will create a stream that will publish a message to topic using the defaults: 
+
+----
+stream create mqtt-out --definition “http|mqtt” --deploy
+stream create mqtt-in --definition”mqtt|log” 
+----
+
+This mqtt-out stream will receive http messages to port 9000 on localhost and then the mqtt will publish the information to a rabbit instance on the localhost.  The message will be routed to the queue (mqtt-subscription-xd.mqtt.client.id.srcqos1) that was created by MQTT source module and then, the message will be delivered to the MQTT source module.
+
+image::images/mqtt_samp_3.png[MQTT Sample 3, width=500]
+
+So the output will look something like this, if you execute a `http post --data ‘hello world’`
+
+[source,bash]
+----
+14:03:57,340  INFO MQTT Call: xd.mqtt.client.id.src sink.mqtt-in - hello world
+----
+  

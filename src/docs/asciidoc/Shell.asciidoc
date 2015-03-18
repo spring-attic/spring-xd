@@ -1,0 +1,159 @@
+[[interactive-shell]]
+ifndef::env-github[]
+== Interactive Shell 
+endif::[]
+
+=== Introduction
+Spring XD includes an interactive shell that you can use create, deploy, destroy and query streams and jobs.  There are also commands to help with common tasks such as interacting with HDFS, the UNIX shell, and sending HTTP requests.  In this section we will introduce the main commands and features of the shell.  
+
+==== Using the Shell
+When you start the shell you can type 'help' to show all the commands that are available.  Note, that since the XD shell is based on https://github.com/spring-projects/spring-shell[Spring Shell] you can contribute you own commands into the shell.  The general groups of commands are related to the management of 
+
+* Modules
+* Streams
+* Jobs
+* Analytics (Counters, Aggregate Counters, Gauges, etc.)
+* HDFS
+
+For example to see what modules are available issue the command
+[source]
+----
+xd:>module list
+----
+
+[TIP]
+====
+The list of all Spring XD specific commands can be found in the xref:ShellReference#shell-command-reference[Shell Reference]
+====
+The shell also provides extensive command completion capabilities.  For example, if you type 'mod' and hit TAB, you will be presented with all the matching commands. 
+[source]
+----
+xd:>module 
+module compose    module delete     module display    module info       
+module list  
+----
+
+NOTE: Tab completion works for module options as well as for the DSL used within the `--definition` option for stream and module commands.
+
+The command `module list` shows all the modules available
+[source]
+----
+xd:>module list
+      Source              Processor           Sink                     Job
+  ------------------  ------------------  -----------------------  ----------------
+      gemfire-cq          aggregator          counter                  hdfsjdbc
+      post                http-client         log                      jdbchdfs
+      twitterstream       splitter            field-value-counter      hdfsmongodb
+      http                filter              rich-gauge               filejdbc
+      reactor-syslog      json-to-tuple       mqtt                     ftphdfs
+      reactor-ip          transform           file                     filepollhdfs
+      jms                 bridge              splunk
+      tcp-client          object-to-json      mail
+      mqtt                script              tcp
+      file                                    hdfs
+      twittersearch                           gauge
+      gemfire                                 jdbc
+      mail                                    gemfire-server
+      trigger                                 throughput-sampler
+      tcp                                     gemfire-json-server
+      tail                                    router
+      syslog-tcp                              aggregate-counter
+      syslog-udp                              rabbit
+      rabbit                                  hdfs-dataset
+      time
+----
+
+Suppose we want to create a stream that uses the `http` source and `file` sink.  How do we know what options are available to use?  There are two ways to find out.  The first is to use the command `module info`.  Pressing `TAB` after typiing `moudle info` will complete the command with the `--name` option and then present all the modules prefixed by their type.
+[source]
+----
+xd:>module info --name 
+job:filejdbc                job:filepollhdfs            job:ftphdfs                 
+job:hdfsjdbc                job:hdfsmongodb             job:jdbchdfs                
+processor:aggregator        processor:bridge            processor:filter            
+processor:http-client       processor:json-to-tuple     processor:object-to-json    
+processor:script            processor:splitter          processor:transform         
+sink:aggregate-counter      sink:counter                sink:field-value-counter    
+sink:file                   sink:gauge                  sink:gemfire-json-server    
+sink:gemfire-server         sink:hdfs                   sink:hdfs-dataset           
+sink:jdbc                   sink:log                    sink:mail                   
+sink:mqtt                   sink:rabbit                 sink:rich-gauge             
+sink:router                 sink:splunk                 sink:tcp                    
+sink:throughput-sampler     source:file                 source:gemfire              
+source:gemfire-cq           source:http                 source:jms                  
+source:mail                 source:mqtt                 source:post                 
+source:rabbit               source:reactor-ip           source:reactor-syslog       
+source:syslog-tcp           source:syslog-udp           source:tail                 
+source:tcp                  source:tcp-client           source:time                 
+source:trigger              source:twittersearch        source:twitterstream        
+xd:>module info --name 
+----
+
+The `module info` command for the http source shows the option names, a brief description, and default values.
+
+[source]
+----
+xd:>module info --name source:http 
+Information about source module 'http':
+
+  Option Name  Description                                       Default  Type
+  -----------  ------------------------------------------------  -------  --------
+  port         the port to listen to                             9000     int
+  outputType   how this module should emit messages it produces  <none>   MimeType
+----
+
+For the `file` sink the options are
+
+[source]
+----
+xd:>module info --name sink:file
+Information about sink module 'file':
+
+  Option Name  Description                                                        Default            Type
+  -----------  -----------------------------------------------------------------  -----------------  --------
+  binary       if false, will append a newline character at the end of each line  false              boolean
+  charset      the charset to use when writing a String payload                   UTF-8              String
+  dir          the directory in which files will be created                       /tmp/xd/output/    String
+  mode         what to do if the file already exists                              APPEND             Mode
+  name         filename pattern to use                                            ${xd.stream.name}  String
+  suffix       filename extension to use                                          <none>             String
+  inputType    how this module should interpret messages it consumes              <none>             MimeType
+----
+
+Note that the default value `${xd.stream.name}` will be resolved to the name of the stream that contains the module. 
+
+==== Tab completion for Job and Stream DSL definitions
+
+When creating a stream defintion tab completion after `--definition` will enable you to see all the options that are available for a given module as well as a list of candidate modules for the subsequent module in the stream.  For example, hitting `TAB` after `http` as shown below
+
+[source]
+----
+xd:>stream create --name test --definition "http 
+http --outputType=           http --port=                 http | aggregate-counter     http | aggregator            
+http | bridge                http | counter               http | field-value-counter   http | file                  
+http | filter                http | gauge                 http | gemfire-json-server   http | gemfire-server        
+http | hdfs                  http | hdfs-dataset          http | http-client           http | jdbc                  
+http | json-to-tuple         http | log                   http | mail                  http | mqtt                  
+http | object-to-json        http | rabbit                http | rich-gauge            http | router                
+http | script                http | splitter              http | splunk                http | tcp                   
+http | throughput-sampler    http | transform             
+----
+
+shows the options `outputType` and `port` in addition to any processors and sinks.  Hitting `TAB` after entering `--` after the http module will provide a list of only the http options
+
+[source]
+----
+xd:>stream create --name test --definition "http --
+http --outputType=   http --port=         
+----
+
+Entering the port number and also the pipel `|` symbol and hitting tab will show completions for candidate processor and sink modules.  The same process of tab completion for module options applies to each module in the chain.
+
+==== Executing a script
+You can execute a script by either passing in the `--cmdfile` argument when starting the shell or by executing the `script` command inside the shell.  When using scripts it is common to add comments using either `//` or `;` characters at the start of the line for one line comments or use `/*` and `*/` for multiline comments
+
+==== Single quotes, Double quotes, Escaping
+There are often three layers of parsing when passing entering commands to the shell.  The shell parses the command to recognize `--` options, inside the body of a stream/job definition the values are parsed until the first space character, and inside some command options SpEL is used (e.g. router).  Understanding the interaction between these layers can cause some confusion. The DSL Guide section xref:DSL-Reference#dsl-quotes-escaping[on quotes and escaping] will help you if you run into any issues.
+
+
+
+

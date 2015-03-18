@@ -1,0 +1,42 @@
+=== Creating an http | gemfire Stream
+
+Currently XD supports GemFire's client-server topology. This requires a GemFire cache server to be running as a separate process. The XD distribution includes a GemFire server suitable for development purposes. It is available under GemFire's development license which is limited to 3 nodes. Streams that write to GemFire create a client cache and client region. No data is cached on the client; all entries are cached on the Server. This example requires a cache server to be running and its host and port must be known (NOTE: GemFire locators are not supported yet). 
+
+==== Launching the XD GemFire Server
+
+The GemFire Server provided by XD is a simple Java class that runs with a Spring configured cache server. The configuration is passed as a command line argument to the server's main method. The configuration includes a cache server port and one or more configured region. XD includes a sample cache configuration called  https://github.com/SpringSource/spring-xd/blob/master/spring-xd-gemfire-server/config/cq-demo.xml[cq-demo]. This starts a server on port 40404 and creates a region named _Stocks_. A Logging cache listener is configured  for the region to log region events.
+
+==== Creating the Stream
+
+Using the http source requires no configuration unless another instance is already running. The http port must be unique for each instance and is associated with the stream. There are 2 implementation of the gemfire sink: gemfire-server and gemfire-json-server. They are identical except the latter convert JSON string payloads to a JSON document type proprietary to GemFire. This allows the contents to be parsed so that a simple SpEL expression can be defined to extract one or more input fields to use as a cache key. GemFire's JSON representation also allows the cached content to be queried.  If this functionality is not needed, the gemfire-server module will write the payload directly to the configured region. As this discussion suggests, either gemfire module requires some configuration. The following parameters must be provided:
+
+* _regionName_ - the name of the GemFire region. The actual region must be configured on the cache server. This module creates a client region, or proxy to the region. The default value is the stream name.
+* _keyExpression_ - e SpEL expression which is evaluated to create a cache key. Typically, the key is derived from the payload itself so that multiple entries may be written to the cache. By default the cache key is the stream name, which will overwrite the value for every message received on the stream. 
+
+For the example, suppose the JSON content looks like:
+
+      {"symbol":"VMW", "price":73} 
+
+We want this content to be cached under the stock symbol. So the stream specification is:
+
+     http | gemfire-json-server --regionName=Stocks --keyExpression=payload.getField('VMW')
+
+The keyExpression depends on the payload type. In this case, com.gemstone.org.json.JSONObject. JSONObject defines the _getField_ method.  Here's another example:
+
+Suppose we have a Person object and a corresponding region configured:
+
+[source, java]
+class Person {
+   String firstName;
+   String lastName;
+}
+---
+
+We could ingest Person objects into GemFire using:
+
+    gemfire-server --regionName=Person --keyExpression=payload.firstName
+
+In this case a processor module would need to precede the gemfire-server module in the stream to map the http source input to a Person:
+
+    http | someObjectMapper --type=my.example.Person | gemfire-server --regionName=Person --keyExpression=payload.firstName
+

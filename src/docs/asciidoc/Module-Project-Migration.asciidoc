@@ -1,0 +1,316 @@
+[[module-project-migration]]
+ifndef::env-github[]
+== Modules-Project-Migration
+endif::[]
+
+=== Introduction
+
+With the release of Spring XD 1.1.0, creating and deploying a module has been greatly 
+simplified. Features such as simplified pom (using the spring-xd-module-parent) or
+simplified build.gradle (using the spring-xd-module plugin) mean simpler dependency 
+management and smaller build scripts to manage.  Another new feature is that a user
+can execute the module upload command via the XD shell to register a custom module on
+the fly, vs. having to copy it to the modules subdirectory.  The purpose of this appendix 
+is to show how to  upgrade an the existing 1.0.x style module project to a 1.1.0 style module 
+project. 
+
+[NOTE]
+====
+If you are currently using the 1.0.x style of deploying modules, the format of deployment 
+is still supported by 1.1.0.  
+====
+
+==== Updating your Maven Project
+===== Cleaning up
+If you are using an assembly file for your POM, go ahead and remove it now.  
+For example (From your project directory):
+[source,bash]
+----
+rm -rf src/assembly
+----
+===== Updating your POM file
+Since we are using the XD Module Parent you can remove any XD dependencies as well as
+some of the boiler plate configurations.
+For example we can take the following pom.xml from a 1.0.x style module project:
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.springframework.xd.samples</groupId>
+  <artifactId>payload-conversion</artifactId>
+  <version>1.0.0.BUILD-SNAPSHOT</version>
+  <name>Spring XD Sample - Payload type conversion example with a custom module</name>
+  <packaging>jar</packaging>
+
+  <prerequisites>
+    <maven>2.2.1</maven>
+  </prerequisites>
+
+  <parent>
+    <groupId>io.spring.platform</groupId>
+    <artifactId>platform-bom</artifactId>
+    <version>1.0.1.RELEASE</version>
+    <relativePath/>
+  </parent>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <spring.xd.version>1.1.0.RELEASE</spring.xd.version>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>spring-milestone</id>
+      <url>http://repo.springsource.org/libs-milestone</url>
+    </repository>
+     <repository>
+      <id>spring-release</id>
+      <url>http://repo.springsource.org/libs-milestone</url>
+    </repository>
+  </repositories>
+ 
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.xd</groupId>
+      <artifactId>spring-xd-tuple</artifactId>
+      <version>${spring.xd.version}</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+----
+and now replace it with a pom.xml that uses  spring-xd-module-parent.
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.springframework.xd.samples</groupId>
+  <artifactId>payload-conversion</artifactId>
+  <version>1.0.0.BUILD-SNAPSHOT</version>
+  <name>Spring XD Sample - Payload type conversion example with a custom module</name>
+
+    <parent>
+        <groupId>org.springframework.xd</groupId>
+        <artifactId>spring-xd-module-parent</artifactId>
+        <version>1.1.0.RELEASE</version>
+    </parent>
+
+    <repositories>
+        <repository>
+            <id>spring-io-release</id>
+            <url>http://repo.spring.io/release</url>
+        </repository>
+        <repository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
+</project>
+----
+If there is a dependency that your project needs and is not included in the XD 
+dependencies you can add the dependencies as you normally would.
+For example if we needed the feed adapter from Spring Integration for a source module,
+we would need to add the following to our pom.xml file:
+[source,xml]
+----
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-feed</artifactId>
+			<version>4.1.2.RELEASE</version> 
+		</dependency>
+	</dependencies>
+----
+
+==== Updating your Gradle Project 
+Since we can now use the spring-xd-module plugin you can remove any XD dependencies from
+the build.gradle.
+For example we can take the following build.gradle from a 1.0.x style module project:
+
+[source,groovy]
+----
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'io.spring.dependency-management'
+
+repositories{
+	maven { url 'http://repo.spring.io/libs-milestone' }
+}
+
+dependencyManagement {
+     imports {
+          mavenBom 'io.spring.platform:platform-bom:1.0.1.RELEASE'
+     }
+}
+
+ext {
+	springXdVersion ='1.1.0.RELEASE'
+}
+
+dependencies{
+		compile "org.springframework.xd:spring-xd-tuple:$springXdVersion"
+		runtime "org.slf4j:jcl-over-slf4j"
+		runtime "org.slf4j:slf4j-log4j12"
+		runtime "log4j:log4j"
+		testCompile "junit:junit"
+}
+
+task dist(type: Copy) {
+	destinationDir = file("${buildDir}")
+	from { project.jar } {
+		into 'dist/modules/processor/myTupleProcessor/lib/'
+	}
+	from { 'modules/' } {
+		into 'dist/modules'
+	}
+}
+
+buildscript {
+    repositories {
+        maven { url 'http://repo.spring.io/plugins-snapshot'}
+    }
+    dependencies {
+        classpath 'io.spring.gradle:dependency-management-plugin:0.1.0.RELEASE'
+    }
+}
+
+task wrapper(type: Wrapper) {
+	description = 'Generates gradlew[.bat] scripts'
+	gradleVersion = '1.11'
+}
+----
+and replace it with the a build.gradle that uses the spring-xd-module plugin.
+[source,groovy]
+----
+buildscript {
+    repositories {
+        maven { url "http://repo.spring.io/plugins-snapshot" }
+        maven { url "http://repo.spring.io/release" }
+        jcenter()
+        maven { url "http://repo.spring.io/snapshot" }
+        maven { url "http://repo.spring.io/milestone" }
+    }
+    dependencies {
+        classpath("org.springframework.xd:spring-xd-module-plugin:1.1.0.RELEASE")
+    }
+}
+
+ext {
+    springXdVersion = '1.1.0.RELEASE'
+    springIntegrationVersion = '4.1.2.RELEASE'
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'spring-xd-module'
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.12'
+}
+
+group = 'org.springframework.xd.samples'
+version = '1.0.0.BUILD-SNAPSHOT'
+
+description = "Spring XD processor module "
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    maven { url "http://repo.spring.io/release" }
+    mavenCentral()
+    jcenter()
+    maven { url "http://repo.spring.io/snapshot" }
+    maven { url "http://repo.spring.io/milestone" }
+}
+----
+If there is a dependency that your project needs and is not included in the XD 
+dependencies you can add the dependencies as you normally would.
+For example if we needed the feed adapter from Spring Integration for a source module,
+we would need to add the following to our build.gradle file:
+[source,groovy]
+----
+dependencies {
+    compile "org.springframework.integration:spring-integration-feed:$springIntegrationVersion"
+}
+----
+
+==== Building the Module Project
+===== Maven
+[source,bash]
+----
+mvn clean package
+----
+===== Gradle
+[source,bash]
+----
+./gradlew clean test bootRepackage
+----
+==== Updating Configurations
+Within your project the bean definition and property files in your resources directory
+will need to be moved to the resources/config directory.  i.e.
+[source,bash]
+----
+mkdir src/resources/config
+mv src/resources/module.xml src/resources/config
+mv src/resources/module.properties src/resources/config
+----
+If you have more than one bean definition file you will need to consolidate it to one
+bean definition file. You may import other bean definition files, but only the main one can be in the top level `config` directory. The same applies if you have more than one properties file, you
+will need to consolidate them to one properties file.  
+
+==== Registering the module
+In XD 1.1.x there is no need for explicit copying of your module into the modules 
+directory. You can register your module from the XD Shell by executing the module upload
+command as shown below:
+[source,bash]
+----
+xd:>module upload --file [path-to]/payload-conversion-1.0.0.BUILD-SNAPSHOT.jar --name mymodule --type processor
+---- 
+The example above will upload the payload-conversion-1.0.0.BUILD-SNAPSHOT.jar
+that was created after building the project.  The module will be placed in the 
+${xd.customModule.home}/processor/mymodule subdirectory.  To verify that the module
+was successfully registered, in the shell execute a module info type:module_name command.
+For example:
+[source,bash]
+----
+xd:>module info processor:mymodule
+Information about processor module 'mymodule':
+
+  Option Name  Description                                            Default  Type
+  -----------  -----------------------------------------------------  -------  --------
+  outputType   how this module should emit messages it produces       <none>   MimeType
+  inputType    how this module should interpret messages it consumes  <none>   MimeType
+----
+[NOTE]
+====
+The uploaded module will be deployed to the xd.customModule.home directory of the admin
+server. If the XD deployment has containers that are not on the same machine as the admin
+server, they will not have access to it.  The recommended workaround is to have the 
+xd.customModule.home be a mounted directory that is shared between the machines.
+==== 
+
+
+To do a deeper dive on Module Project Development refer to 
+xref:Modules#creating-a-module-project[Creating a Module Project]
+ 

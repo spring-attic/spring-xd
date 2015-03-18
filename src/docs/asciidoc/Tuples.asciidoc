@@ -1,0 +1,167 @@
+[[tuples]]
+ifndef::env-github[]
+== Tuples
+endif::[]
+
+=== Introduction
+
+The Tuple class is a central data structure in Spring XD.  It is an ordered list of values that can be retrieved by name or by index.  Tuples are created by a TupleBuilder and are immutable.  The values that are stored can be of any type and null values are allowed.  
+
+The underlying Message class that moves data from one processing step to the next can have an arbitrary data type as its payload.  Instead of creating a custom Java class that encapsulates the properties of what is read or set in each processing step, the Tuple class can be used instead.  Processing steps can be developed that read data from specific named values and write data to specific named values.
+
+There are accessor methods that perform type conversion to the basic primitive types as well as BigDecimal and Date.  This avoids you from having to cast the values to specific types.  Instead you can rely on the Tuple's type conversion infastructure to perform the conversion.   
+
+The Tuple's types conversion is performed by Spring's http://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert[Type Conversion Infrastructure] which supports commonly encountered type conversions and is extensible.  
+
+There are several overloads for getters that let you provide default values for primitive types should the field you are looking for not be found.  Date format patterns and Locale aware NumberFormat conversion are also supported.  A best effort has been made to preserve the functionality available in Spring Batch's http://static.springsource.org/spring-batch/2.1.x/apidocs/org/springframework/batch/item/file/transform/FieldSet.html[`FieldSet`] class that has been extensively used for parsing String based data in files.
+
+==== Creating a Tuple
+
+The `TupleBuilder` class is how you create new `Tuple` instances.  The most basic case is
+
+[source,java]
+----
+Tuple tuple = TupleBuilder.tuple().of("foo", "bar");
+----
+
+This creates a Tuple with a single entry, a key of 'foo' with a value of 'bar'.  You can also use a static import to shorten the syntax.
+
+[source,java]
+----
+import static org.springframework.xd.tuple.TupleBuilder.tuple;
+
+Tuple tuple = tuple().of("foo", "bar");
+----
+
+You can use the `of` method to create a Tuple with up to 4 key-value pairs.
+
+[source,java]
+----
+Tuple tuple2 = tuple().of("up", 1, "down", 2); 
+Tuple tuple3 = tuple().of("up", 1, "down", 2, "charm", 3 );
+Tuple tuple4 = tuple().of("up", 1, "down", 2, "charm", 3, "strange", 4);
+----
+
+To create a Tuple with more then 4 entries use the fluent API that strings together the `put` method and terminates with the `build` method
+
+[source,java]
+----
+Tuple tuple6 = tuple().put("up", 1)
+      	              .put("down", 2)
+		      .put("charm", 3)
+		      .put("strange", 4)
+		      .put("bottom", 5)
+		      .put("top", 6)
+		      .build();
+----
+
+To customize the underlying type conversion system you can specify the `DateFormat` to use for converting `String` to `Date` as well as the `NumberFormat` to use based on a `Locale`.  For more advanced customization of the type conversion system you can register an instance of a `FormattingConversionService`.  Use the appropriate setter methods on `TupleBuilder` to make these customizations.
+
+You can also create a Tuple from a list of `String` field names and a List of `Object` values.
+
+[source,java]
+----
+Object[] tokens = new String[] { "TestString", "true", "C", "10", "-472", "354224", "543", "124.3", "424.3", "1,3245",
+				null, "2007-10-12", "12-10-2007", "" };
+String[] nameArray = new String[] { "String", "Boolean", "Char", "Byte", "Short", "Integer", "Long", "Float", "Double",
+				"BigDecimal", "Null", "Date", "DatePattern", "BlankInput" };
+
+List<String> names = Arrays.asList(nameArray);
+List<Object> values = Arrays.asList(tokens);
+tuple = tuple().ofNamesAndValues(names, values);
+----
+
+==== Getting Tuple values
+
+There are getters for all the primitive types and also for BigDecimal and Date. The primitive types are
+
+* `Boolean`
+* `Byte`
+* `Char`
+* `Double`
+* `Float`
+* `Int`
+* `Long`
+* `Short`
+* `String`
+
+Each getter has an overload for providing a default value.  You can access the values either by field name or by index.
+
+The overloaded methods for asking for a value to be converted into an integer are
+
+* `int getInt(int index)`
+* `int getInt(String name)`
+* `int getInt(int index, int defaultValue)`
+* `int getInt(String name, int defaultValue)`
+
+There are similar methods for other primitive types.  For `Boolean` there is a special case of providing the `String` value that represents a `trueValue`.  
+
+* `boolean getBoolean(int index, String trueValue)`
+* `boolean getBoolean(String name, String trueValue)`
+
+If the value that is stored for a given field or index is null and you ask for a primitive type, the standard Java defalt value for that type is returned.
+
+The `getString` method will remove and leading and trailing whitespace.  If you want to get the String and preserve whitespace use the methods `getRawString`
+
+There is extra functionality for getting `Date`s.  The are overloaded getters that take a String based date format
+
+* `Date getDateWithPattern(int index, String pattern)`
+* `Date getDateWithPattern(int index, String pattern, Date defaultValue)`
+* `Date getDateWithPattern(String name, String pattern)`
+* `Date getDateWithPattern(String name, String pattern, Date defaultValue)`
+
+There are a few other more generic methods available.  Their functionality should be obvious from their names
+
+* `size()`
+* `getFieldCount()`
+* `getFieldNames()`
+* `getFieldTypes()`
+* `getTimestamp()` - the time the tuple was created - milliseconds since epoch
+* `getId()` - the UUID of the tuple
+* `Object getValue(int index)`
+* `Object getValue(String name)`
+* `T getValue(int index, Class<T> valueClass)`
+* `T getValue(String name, Class<T> valueClass)`
+* `List<Object> getValues()`
+* `List<String> getFieldNames()`
+* `boolean hasFieldName(String name)`
+
+
+==== Using SpEL expressions to filter a tuple
+
+SpEL provides support to transform a source collection into another by selecting from its entries.  We make use of this functionalty to select a elements of a the tuple into a new one.
+
+[source,java]
+----
+Tuple tuple = tuple().put("red", "rot")
+                     .put("brown", "braun")
+		     .put("blue", "blau")
+		     .put("yellow", "gelb")
+		     .put("beige", "beige")
+		     .build();
+
+Tuple selectedTuple = tuple.select("?[key.startsWith('b')]");
+assertThat(selectedTuple.size(), equalTo(3));
+----
+
+To select the first match use the `^` operator
+
+----
+selectedTuple = tuple.select("^[key.startsWith('b')]");
+
+assertThat(selectedTuple.size(), equalTo(1));
+assertThat(selectedTuple.getFieldNames().get(0), equalTo("brown"));
+assertThat(selectedTuple.getString(0), equalTo("braun"));
+----
+
+==== Gradle Dependencies
+If you wish to use Spring XD Tuples in you project add the following dependencies:
+[source,groovy]
+[subs="attributes"]
+----
+//Add this repo to your repositories if it does not already exist.
+maven { url "http://repo.spring.io/libs-snapshot"}
+
+//Add this dependency
+compile 'org.springframework.xd:spring-xd-tuple:{appversion}'
+----

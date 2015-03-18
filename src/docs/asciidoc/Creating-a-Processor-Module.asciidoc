@@ -1,0 +1,234 @@
+[[creating-a-processor-module]]
+ifndef::env-github[]
+== Creating a Processor Module
+endif::[]
+
+=== Introduction
+
+As outlined in the xref:Modules#modules[modules] document, Spring XD currently supports four types of modules: source, sink, and processor for stream processing and job for batch processing.  This document walks through implementing a custom processor module.
+
+One or more processors can be included in a xref:Streams#streams[stream] definition to modify the data as it passes on its way from the source to the sink. The xref:Architecture#architecture[architecture] section covers the basics of stream processing. Processor modules provided out of the box are covered in the xref:Processors#processors[processors] section.
+
+Here we'll look at how to create a simple processor module from scratch. This module will extract the `text` field from input messages from from a `twittersearch` source. The steps are essentially the same regardless of the module's functionality. Note that Spring XD can perform this type of transformation without requiring a custom module. Rather than using the built-in functionality, we will implement a custom processor and wire it up with Spring Integration. The complete code for this example is https://github.com/spring-projects/spring-xd-samples/tree/master/tweet-transformer-processor[here].
+
+=== Write the Transformer Code
+
+The tweet messages from `twittersearch` contain quite a lot of data (id, author, time, hash tags, and so on). The transformer we'll write extracts the text of each tweet and outputs this as a string. The output messages from the `twittersearch` source are also strings, rendering the tweet data as JSON. We first load this into a map using Jackson library code, then extract the `text` field from the map.
+
+[source,java]
+----
+
+package my.custom.transformer;
+
+import java.io.IOException;
+import java.util.Map;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
+import org.springframework.integration.transformer.MessageTransformationException;
+
+public class TweetTransformer {
+  private ObjectMapper mapper = new ObjectMapper();
+
+  public String transform(String payload) {
+    try {
+      Map<String, Object> tweet = mapper.readValue(payload, new TypeReference<Map<String, Object>>() {});
+      return tweet.get("text").toString();
+    } catch (IOException e) {
+      throw new MessageTransformationException("Unable to transform tweet: " + e.getMessage(), e);
+    }
+  }
+}
+
+----
+
+=== Create the module Application Context File
+
+Create the following file as _spring-module.xml_ in the `config` resource directory:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:beans="http://www.springframework.org/schema/beans"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration.xsd">
+  <channel id="input"/>
+
+  <transformer input-channel="input" output-channel="output">
+    <beans:bean class="my.custom.transformer.TweetTransformer" />
+  </transformer>
+
+  <channel id="output"/>
+</beans:beans>
+----
+
+Alternately, you can create the application context using an @Configuration class. In the example below, we've combined the configuration and the transformer into a single Java file for simplicity. Note that `TweetTransformer` now includes Spring Integration annotations: 
+
+[source, java]
+----
+package my.custom.transformer;
+
+import java.io.IOException;
+import java.util.Map;
+
+import my.custom.transformer.TweetTransformer;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.messaging.MessageChannel;
+
+@Configuration
+@EnableIntegration
+public class ModuleConfiguration {
+  @Autowired
+  TweetTransformer transformer;
+
+  @Bean
+  public MessageChannel input() {
+    return new DirectChannel();
+  }
+
+  @Bean
+  MessageChannel output() {
+    return new DirectChannel();
+  }
+}
+
+@MessageEndpoint
+class TweetTransformer {
+  private ObjectMapper mapper = new ObjectMapper();
+
+  @Transformer(inputChannel = "input", outputChannel = "output")
+  public String transform(String payload) {
+    try {
+      Map<String, Object> tweet = mapper.readValue(payload, new TypeReference<Map<String, Object>>() {
+      });
+      return tweet.get("text").toString();
+    }
+    catch (IOException e) {
+      throw new MessageTransformationException("Unable to transform tweet: " + e.getMessage(), e);
+    }
+  }
+}
+----
+
+To use @Configuration, you must also tell Spring which packages to scan in the module's properties file `spring-module.properties`:
+
+----
+base_packages=my.custom.transformer
+----
+
+=== Write a Test
+
+Writing a test to deploy the module in an embedded single node container requires the `spring-xd-dirt` and `spring-xd-test` libraries and a few other things. See the project https://github.com/spring-projects/spring-xd-samples/blob/master/tweet-transformer-processor/pom.xml[pom] or the https://github.com/spring-projects/spring-xd-samples/blob/master/tweet-transformer-processor/build.gradle[gradle] build script for details. The following code snippets are from https://github.com/spring-projects/spring-xd-samples/blob/master/tweet-transformer-processor/src/test/java/my/custom/transformer/TweetTransformerIntegrationTest.java[TweetTransformerIntegrationTest] 
+
+[NOTE]
+====
+See xref:Modules#testing-a-module[test a module] for some important tips abouts regarding in-container testing.
+====
+
+First we start the SingleNodeApplication and register the module under test by adding a `SingletonModuleRegistry` providing the module name and type. This looks in the root classpath by default, so will find the module configuration in https://github.com/spring-projects/spring-xd-samples/tree/master/tweet-transformer-processor/src/main/resources/config[src/main/resources/config]. `SingleNodeIntegrationTestSupport` provides programmatic access to major beans in the Admin and Container application contexts, as well as the contexts themselves.
+
+[source, java]
+----
+/**
+ * Unit tests a module deployed to an XD single node container.
+ */
+public class TweetTransformerIntegrationTest {
+
+  private static SingleNodeApplication application;
+
+  private static int RECEIVE_TIMEOUT = 5000;
+
+  private static String moduleName = "tweet-transformer";
+
+  /**
+   * Start the single node container, binding random unused ports, etc. to not conflict with any other instances
+   * running on this host. Configure the ModuleRegistry to include the project module.
+   */
+  @BeforeClass
+  public static void setUp() {
+    RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
+    application = new SingleNodeApplication().run();
+    SingleNodeIntegrationTestSupport singleNodeIntegrationTestSupport = new SingleNodeIntegrationTestSupport
+        (application);
+    singleNodeIntegrationTestSupport.addModuleRegistry(new SingletonModuleRegistry(ModuleType.processor,
+        moduleName));
+
+  }
+----
+
+To implement ths test, we will use the `SingleNodeProcessingChain` test fixture. The chain is a partial stream definition, represented as Spring XD DSL, which may be a single module, a chain of processors separated by '|'. In this case we are testing a single module. The chain binds local message handlers that act as source and sink to complete the stream. Thus we can deploy the stream and send messages directly to the source and receive messages directly from the sink:
+
+We could, in theory, test against the actual twittersearch source, but this is not advised because it would depend on connecting to Twitter, providing credentials, etc. So we will save that for when the module is actually installed to the target Spring XD runtime. Instead, we can simply send a message with a sample tweet and verify that we get the content of the text property as output, as expected.
+
+[source, java]
+----
+
+  /**
+   * This test creates a stream with the module under test, or in general a "chain" of processors. The
+   * SingleNodeProcessingChain is a test fixture that allows the test to send and receive messages to verify each
+   * message is processed as expected. 
+   */
+  @Test
+  public void test() {
+    String streamName = "tweetTest";
+    String tweet = "..." //JSON omitted here for clarity
+
+    String processingChainUnderTest = moduleName;
+
+    SingleNodeProcessingChain chain = chain(application, streamName, processingChainUnderTest);
+
+    chain.sendPayload(tweet);
+
+    String result = (String) chain.receivePayload(RECEIVE_TIMEOUT);
+
+    assertEquals("Aggressive Ponytail #freebandnames", result);
+
+    //Unbind the source and sink channels from the message bus
+    chain.destroy();
+  }
+----
+
+=== Register the Module
+
+Since the module requires no external dependencies in this case, we can build the project as a simple jar file and install it using the `module upload` shell command:
+
+----
+xd:>module upload --file [path-to]/tweet-transformer-1.0.0.BUILD-SNAPSHOT.jar --name tweet-transformer --type processor
+Successfully uploaded module 'processor:tweet-transformer'
+----
+
+If you make changes and need to re-install, you must first delete the existing module:
+
+----
+xd:>module delete processor:tweet-transformer
+----
+
+[NOTE] 
+====
+A simple jar file works in this case because the module requires no additional library dependencies since the Spring XD class path already includes Jackson and Spring Integration. See xref:Modules#module-packaging[Module Packaging] for more details. 
+====
+
+=== Test the custom module in the Spring XD runtime: 
+
+Start the Spring XD runtime and try creating a stream to test your processor:
+
+  xd:> stream create --name javatweets --definition "twittersearch --query=java --consumerKey=<your_key> --consumerSecret=<your_secret> | tweet-transformer | file" --deploy
+
+If you haven't already used `twittersearch`, read the xref:Sources#sources[sources] section for more details. This command should stream tweets to the file `/tmp/xd/output/javatweets` but, unlike the normal `twittersearch` output, you should just see the text of the tweet rather than the full JSON document.
+
+Also see https://github.com/spring-projects/spring-xd-samples/tree/master/si-dsl-module[si-dsl-module example] for a more complex example of a processor module.

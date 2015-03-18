@@ -1,0 +1,145 @@
+[[getting-started]]
+ifndef::env-github[]
+== Getting Started
+endif::[]
+=== Requirements
+
+To get started, make sure your system has as a minimum  http://www.oracle.com/technetwork/java/javase/downloads/[*Java JDK 7*] or newer installed. *Java JDK 7* is recommended.
+
+=== Download Spring XD
+To download the current release, you can download the distribution http://repo.spring.io/libs-release/org/springframework/xd/spring-xd/1.1.0.RELEASE/spring-xd-1.1.0.RELEASE-dist.zip[*spring-xd-1.1.0.RELEASE-dist.zip*] and http://repo.spring.io/libs-release/org/springframework/xd/spring-xd/1.1.0.RELEASE/spring-xd-1.1.0.RELEASE-docs.zip[its accompanying documentation]. 
+
+If you want to try out the latest build of Spring XD, You can download the snapshot distribution from http://repo.spring.io/libs-snapshot/org/springframework/xd/spring-xd/1.2.0.BUILD-SNAPSHOT[the spring snapshots repository]. You can also xref:Building-Spring-XD#building-spring-xd[build the project from source] if you wish. The wiki content should also be kept up to date with the current snapshot so if you are reading this on the github website, things may have changed since the last stable release.
+
+Unzip the distribution which will unpack to a single installation directory. All the commands below are executed from this directory, so change into it before proceeding.
+
+[source,bash]
+[subs="attributes"]
+----
+$ cd spring-xd-{appversion}
+----
+
+=== Install Spring XD
+
+Spring XD can be run in two different modes. There's a single-node runtime option for testing and development, and there's a distributed runtime which supports distribution of processing tasks across multiple nodes. This document will get you up and running quickly with a single-node runtime. See xref:Running-Distributed-Mode#running-distributed-mode[Running Distributed Mode] for details on setting up a distributed runtime.
+
+You can also install Spring XD using xref:Getting-Started#osx-homebrew-installation[homebrew] on OSX and xref:Getting-Started#redhatcentos-installation[yum] on RedHat/CentOS.
+
+=== Start the Runtime and the XD Shell
+
+The single node option is the easiest to get started with. It runs everything you need in a single process. To start it, you just need to `cd` to the `xd` directory and run the following command
+
+[source,bash]
+----
+xd/bin>$ ./xd-singlenode
+----
+
+In a separate terminal, `cd` into the `shell` directory and start the XD shell, which you can use to issue commands.
+
+[source]
+[subs="attributes"]
+----
+shell/bin>$ ./xd-shell
+ _____                           __   _______
+/  ___|          (-)             \ \ / /  _  \
+\ `--. _ __  _ __ _ _ __   __ _   \ V /| | | |
+ `--. \ '_ \| '__| | '_ \ / _` |  / ^ \| | | |
+/\__/ / |_) | |  | | | | | (_| | / / \ \ |/ /
+\____/| .__/|_|  |_|_| |_|\__, | \/   \/___/
+      | |                  __/ |
+      |_|                 |___/
+eXtreme Data
+{appversion} | Admin Server Target: http://localhost:9393
+Welcome to the Spring XD shell. For assistance hit TAB or type "help".
+xd:>
+----
+
+The shell is a more user-friendly front end to the REST API which Spring XD exposes to clients. The URL of the currently targeted Spring XD server is shown at startup. 
+
+[NOTE]
+====
+If the server could not be reached, the prompt will read
+
+----
+server-unknown:>
+----
+
+You can then use the `admin config server <url>` to attempt to reconnect to the admin REST endpoint once you've figured out what went wrong:
+----
+admin config server http://localhost:9393
+----
+====
+
+You should now be able to start using Spring XD.
+
+[TIP]
+====
+Spring XD uses ZooKeeper internally which typically runs as an external process. XD singlenode runs with an embedded ZooKeeper server and assigns a random available port. This keeps things very simple. However if you already have a ZooKeeper ensemble set up and want to connect to it, you can edit `xd/config/servers.yml`:
+
+----
+#Zookeeper properties
+# client connect string: host1:port1,host2:port2,...,hostN:portN
+zk:
+  client:
+     connect: localhost:2181
+----
+
+Also, sometimes it is useful in troubleshooting to connect the ZooKeeper CLI to the embedded server. The assigned server port is listed in the console log, but you can also set the port directly by setting the property `zk.embedded.server.port` in `servers.yml` or set `JAVA_OPTS` before starting xd-singlenode.
+----
+$export JAVA_OPTS=-Dzk.embedded.server.port=<port>
+----
+====
+
+=== Create a Stream
+
+In Spring XD, a basic stream defines the ingestion of event driven data from a source to a sink that passes through any number of processors. You can create a new stream by issuing a `stream create` command from the XD shell.  Stream definitions are built from a simple DSL. For example, execute:
+
+  xd:> stream create --name ticktock --definition "time | log" --deploy
+
+This defines a stream named `ticktock` based off the DSL expression `time | log`.  The DSL uses the "pipe" symbol `|`, to connect a source to a sink. The stream server finds the `time` and `log` definitions in the modules directory and uses them to setup the stream.  In this simple example, the time source simply sends the current time as a message each second, and the log sink outputs it using the logging framework at the WARN logging level.  Since the `--deploy` flag was provided, this stream will be deployed immediately. In the console where you started the server, you will see log output similar to that listed below
+
+  13:09:53,812  INFO http-bio-8080-exec-1 module.SimpleModule:109 - started module: Module [name=log, type=sink]
+  13:09:53,813  INFO http-bio-8080-exec-1 module.ModuleDeployer:111 - launched sink module: ticktock:log:1
+  13:09:53,911  INFO http-bio-8080-exec-1 module.SimpleModule:109 - started module: Module [name=time, type=source]
+  13:09:53,912  INFO http-bio-8080-exec-1 module.ModuleDeployer:111 - launched source module: ticktock:time:0
+  13:09:53,945  WARN task-scheduler-1 logger.ticktock:141 - 2013-06-11 13:09:53
+  13:09:54,948  WARN task-scheduler-1 logger.ticktock:141 - 2013-06-11 13:09:54
+  13:09:55,949  WARN task-scheduler-2 logger.ticktock:141 - 2013-06-11 13:09:55
+
+To stop the stream, and remove the definition completely, you can use the `stream destroy` command:
+
+  xd:>stream destroy --name ticktock
+
+It is also possible to stop and restart the stream instead, using the `undeploy` and `deploy` commands. The shell supports command completion so you can hit the `tab` key to see which commands and options are available.
+
+=== Explore Spring XD
+Learn about the modules available in Spring XD in the xref:Sources#sources[Sources], xref:Processors#processors[Processors], and xref:Sinks#sinks[Sinks] sections of the documentation. 
+
+Don't see what you're looking for? Create a custom module: xref:Creating-a-Source-Module#creating-a-source-module[source], xref:Creating-a-Processor-Module#creating-a-processor-module[processor] or xref:Creating-a-Sink-Module#creating-a-sink-module[sink] (and then consider link:https://github.com/SpringSource/spring-xd/wiki/Contribute[contributing] it back to Spring XD). 
+
+Want to add some analytics to your stream? Check out the xref:Taps#taps[Taps] and xref:Analytics#analytics[Analytics] sections.
+
+[[osx-homebrew-installation]]
+=== OSX Homebrew installation
+
+If you are on a Mac and using http://brew.sh/[homebrew], all you need to do to install _Spring XD_ is:
+
+[source,bash]
+----
+$ brew tap pivotal/tap
+$ brew install springxd
+----
+
+Homebrew will install `springxd` to `/usr/local/bin`. Now you can jump straight into using *Spring XD*:
+
+[source,bash]
+----
+$ xd-singlenode
+----
+
+Brew install also allows you to run _Spring XD_ in distributed mode on you OSx. See xref:Running-Distributed-Mode#running-distributed-mode[Running Distributed Mode] for details on setting up a distributed runtime. 
+
+[[redhatcentos-installation]]
+=== RedHat/CentOS Installation
+
+If you are using RHEL or CentOS v. 6.x you can install _Spring XD_ using our RPM package. See the https://github.com/spring-projects/spring-xd/wiki/Installing-Spring-XD-using-RPM-on-RHEL-CentOS-v.-6.x[wiki page] for instructions.

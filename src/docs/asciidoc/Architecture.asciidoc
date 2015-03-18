@@ -1,0 +1,157 @@
+[[architecture]]
+ifndef::env-github[]
+== Architecture
+endif::[]
+
+=== Introduction
+
+Spring XD is a unified, distributed, and extensible service for data ingestion, real time analytics, batch processing, and data export.  The foundations of XD’s architecture are based on the over 100+ man years of work that have gone into the Spring Batch, Integration and Data projects. Building upon these projects, Spring XD provides servers and a configuration DSL that you can immediately use to start processing data.  You do not need to build an application yourself from a collection of jars to start using Spring XD.
+
+Spring XD has two modes of operation - single and multi-node. The first is a single process that is responsible for all processing and administration. This mode helps you get started easily and simplifies the development and testing of your application. The second is a distributed mode, where processing tasks can be spread across a cluster of machines and an administrative server reacts to user commands and runtime events managed within a shared runtime state to coordinate processing tasks executing on the cluster. 
+
+==== Runtime Architecture
+
+The key components in Spring XD are the XD Admin and XD Container Servers. Using a high-level DSL, you post the description of the required processing tasks to the Admin server over HTTP. The Admin server then maps the processing tasks into processing modules. A module is a unit of execution and is implemented as a Spring ApplicationContext. A distributed runtime is provided that will assign modules to execute across multiple XD Container servers. A single XD Container server can run multiple modules. When using the single node runtime, all modules are run in a single XD Container and the XD Admin server is run in the same process. 
+
+===== DIRT Runtime
+
+A distributed runtime, called Distributed Integration Runtime, aka DIRT, will distribute the processing tasks across multiple XD Container instances.  The XD Admin server breaks up a processing task into individual module definitions and assigns each module to a container instance using ZooKeeper (see xref:XD-Distributed-Runtime#xd-distributed-runtime[XD Distributed Runtime]).  Each container listens for module definitions to which it has been assigned and deploys the module, creating a Spring ApplicationContext to run it.
+
+Modules share data by passing messages using a configured messaging middleware (Rabbit, Redis, or Local for single node). To reduce the number of hops across messaging middleware between them, multiple modules may be composed into larger deployment units that act as a single module. To learn more about that feature, refer to the xref:Modules#composing-modules[Composing Modules] section.
+
+[[simple-distributed-runtime]]
+.The XD Admin Server sending module definitions to each XD Container
+image::images/distributed-node.png[width=500]
+
+How the processing task is broken down into modules is discussed in the section xref:Architecture#container-server-arch[Container Server Architecture].
+
+===== Support for other distributed runtimes
+
+In the 1.0 release, You can run Spring XD natively, in which case you are responsible for starting up the XD Admin and XD Container instances. Alternately you can run Spring XD on Hadoop's YARN, see xref:Running-on-YARN[Running XD on YARN]. Pivotal Cloud Foundry support is planned for a future release. If you are feeling a adventurous, you can also take a look at our scripts for https://github.com/spring-projects/spring-xd-ec2[deploying Spring XD to EC2].  These are used as part of our https://build.spring.io/browse/XD-ATEC2[system integration tests].
+
+[[single-node-runtime]]
+==== Single Node Runtime
+
+A single node runtime is provided that runs the Admin and Container servers, ZooKeeper, and HSQLDB in the same process. the single node runtime is primarily intended for testing and development purposes but it may also appropriate to use in small production use-cases.  The communication to the XD Admin server is over HTTP and the XD Admin server communicates to an in-process XD Container using an embedded ZooKeeper server.
+
+.Single Node Runtime
+image::images/local-mode.png[width=500]
+
+[[admin-server-arch]]
+==== Admin Server Architecture
+
+The Admin Server uses an embedded servlet container and exposes REST endpoints for creating, deploying, undeploying, and destroying streams and jobs, querying runtime state, analytics, and the like. The Admin Server is implemented using Spring's MVC framework and the https://github.com/SpringSource/spring-hateoas[Spring HATEOAS] library to create REST representations that follow the http://en.wikipedia.org/wiki/HATEOAS[HATEOAS] principle. The Admin Server and Container Servers monitor and update runtime state using ZooKeeper (see xref:XD-Distributed-Runtime#xd-distributed-runtime[XD Distributed Runtime]).
+
+
+[[container-server-arch]]
+==== Container Server Architecture
+
+The key components of data processing in Spring XD are
+
+* Streams
+* Jobs
+* Taps
+
+
+Streams define how event driven data is collected, processed, and stored or forwarded. For example, a stream might collect syslog data, filter, and store it in HDFS. 
+
+Jobs define how coarse grained and time consuming batch processing steps are orchestrated, for example a job could be be defined to coordinate performing HDFS operations and the subsequent execution of multiple MapReduce processing tasks. 
+
+Taps are used to process data in a non-invasive way as data is being processed by a Stream or a Job.  Much like wiretaps used on telephones, a Tap on a Stream lets you consume data at any point along the Stream’s processing pipeline. The behavior of the original stream is unaffected by the presence of the Tap. 
+
+[[taps-jobs-streams]]
+.Taps, Jobs, and Streams
+image::images/tap-jobs-streams.png[width=500]
+
+[[architecture_streams]]
+==== Streams
+
+The programming model for processing event streams in Spring XD is based on the well known http://www.eaipatterns.com/[Enterprise Integration Patterns] as implemented by components in the http://www.springsource.org/spring-integration[Spring Integration] project.  The programming model was designed so that it is easy to test components.
+
+A Stream consist of the following types of modules:
+* An Input source
+* Processing steps
+* An Output sink
+
+An Input source produces messages from an external source. XD supports a variety of sources, e.g. syslog, tcp, http. The output from a module is a Spring Message containing a payload of data and a collection of key-value headers. Messages flow through message channels from the source, through optional processing steps, to the output sink. The output sink delivers the message to an external resource. For example, it is common to write the message to a file system, such as HDFS, but you may also configure the sink to forward the message over tcp, http, or another type of middleware, or route the message to another stream.
+
+A stream that consists of a input source and a output sink is shown below
+
+[[source-sinkl]]
+.Foundational components of the Stream processing model
+image::images/SourceSinkMessageChannel.png[width=500]
+
+A stream that incorporates processing steps is shown below
+
+[[source-sink]]
+.Stream processing with multiple steps
+image::images/MultipleProcessingSteps.png[width=500]
+
+For simple linear processing streams, an analogy can be made with the UNIX pipes and filters model. Filters represent any component that produces, processes or consumes events. This corresponds to the modules (source, processing steps, and sink) in a stream. Pipes represent the way data is transported between the Filters. This corresponds to the Message Channel that moves data through a stream.
+
+A simple stream definition using UNIX pipes and filters syntax that takes data sent via a HTTP post and writes it to a file (with no processing done in between) can be expressed as
+
+----
+http | file
+----
+
+The pipe symbol represents a message channel that passes data from the HTTP source to the File sink. The message channel implementation can either be backed with a local in-memory transport, Redis queues, or RabbitMQ.  The message channel abstraction and the XD architecture are designed to support a pluggable data transport. Future releases will support other transports such as JMS.
+
+Note that the UNIX pipes and filter syntax is the basis for the DSL that Spring XD uses to describe simple linear flows. Non-linear processing is partially supported using named channels which can be combined with a router sink to effectively split a single stream into multiple streams (see xref:Sinks#dynamic-router[Dynamic Router Sink]). Additional capabilities for non-linear processing are planned for future releases.
+
+The programming model for processing steps in a stream originates from the Spring Integration project and is included in the core Spring Framework as of version 4. The central concept is one of a Message Handler class, which relies on simple coding conventions to Map incoming messages to processing methods.  For example, using an http source you can process the body of an HTTP POST request using the following class
+
+[source,java]
+----
+public class SimpleProcessor {
+
+  public String process(String payload) {
+    return payload.toUpperCase();
+  }
+
+}
+----
+
+The payload of the incoming Message is passed as a string to the method `process`.  The contents of the payload is the body of the http request as we are using a http source.  The non-void return value is used as the payload of the Message passed to the next step.  These programming conventions make it very easy to test your Processor component in isolation.  There are several processing components provided in Spring XD that do not require you to write any code, such as a filter and transformer that use the Spring Expression Language or Groovy. For example, adding a processing step, such as a transformer, in a stream processing definition can be as simple as
+
+----
+http | transformer --expression=payload.toUpperCase() | file
+----
+
+For more information on processing modules, refer to the xref:Processors#processors[Processors] section.
+
+==== Stream Deployment
+
+The Container Server listens for module deployment events initiated from the Admin Server via ZooKeeper. When the container node handles a module deployment event, it connects the module's input and output channels to the data bus used to transport messages during stream processing.  In a single node configuration, the data bus uses in-memory direct channels. In a distributed configuration, the data bus communications are backed by the configured transport middleware. Redis and Rabbit are both provided with the Spring XD distribution, but other transports are envisioned for future releases. 
+
+.A Stream Deployed in a single node server
+image::images/anatomyOfAStreamSingleNode.jpg[width=500]
+
+
+.A Stream Deployed in a distributed runtime 
+image::images/anatomyOfAStreamV3.jpg[width=500]
+
+In the `http | file` example, the Admin assigns each module to a separate Container instance, provided there are at least two Containers available. The `file` module is deployed to one container and the `http` module to another.  The definition of a module is stored in a Module Registry. A module definition consists of a Spring XML configuration file, some classes used to validate and handle options defined by the module, and dependent jars.  The module definition contains variable placeholders, corresponding to DSL parameters (called _options_) that allow you to customize the behavior of the module. For example, setting the http listening port would be done by passing in the option `--port`, e.g. `http --port=8090 | file`, which is in turn used to substitute a placeholder value in the module definition. 
+
+The Module Registry is backed by the filesystem and corresponds to the directory `<xd-install-directory>/modules`.  When a module deployment is handled by the Container, the module definition is loaded from the registry and a new Spring ApplicationContext is created in the Container process to run the module. Dependent classes are loaded via the Module Classloader which first looks at jars in the modules /lib directory before delegating to the parent classloader.
+
+Using the DIRT runtime, the http | file example would map onto the following runtime architecture
+
+[[http-to-file]]
+.Distributed HTTP to File Stream 
+image::images/http2file.png[width=500]
+
+Data produced by the HTTP module is sent over a Redis Queue and is consumed by the File module. If there was a filter processing module in the stream definition, e.g `http | filter | file` that would map onto the following DIRT runtime architecture.
+
+[[http-to-filter-to-file]]
+.Distributed HTTP to Filter to File Stream 
+image::images/http2filter2file.png[width=500]
+
+=== Jobs
+
+The creation and execution of Batch jobs builds upon the functionality available in the Spring Batch and Spring for Apache Hadoop projects.  See the xref:Batch-Jobs#batch[Batch Jobs] section for more information.
+
+=== Taps
+
+Taps provide a non-invasive way to consume the data that is being processed by either a Stream or a Job, much like a real time telephone wire tap lets you eavesdrop on telephone conversations. Taps are recommended as way to collect metrics and perform analytics on a Stream of data. See the section xref:Taps#taps[Taps] for more information.
+

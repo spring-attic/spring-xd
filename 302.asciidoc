@@ -1,8 +1,0 @@
-This wiki has moved!
-
-The documentation for Spring XD is now managed in the main git repository.
-
-To read the latest version online, browse to http://docs.spring.io/spring-xd/docs/current-SNAPSHOT/reference/html/
-
-If you'd like to contribute to the documentation (even fixing a minor typo), just issue a regular PR against the main repository.
-The documentation sources are written in Asciidoc and reside https://github.com/spring-projects/spring-xd/tree/master/src/docs/asciidoc[here].

@@ -32,15 +32,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -78,12 +75,9 @@ public class CompositeModuleTests {
 
 	private volatile ModuleDefinition sinkDefinition;
 
-	private ModuleFactory moduleFactory = new ModuleFactory(new ModuleOptionsMetadataResolver() {
-		@Override
-		public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {
-			return new PassthruModuleOptionsMetadata();
-		}
-	});
+	private ApplicationContext context = new AnnotationConfigApplicationContext(ModuleFactoryConfiguration.class);
+
+	private ModuleFactory moduleFactory = context.getBean(ModuleFactory.class);
 
 
 	@Before
@@ -201,7 +195,7 @@ public class CompositeModuleTests {
 	}
 
 	@Test
-	public void testCompositeModuleInheritsModuleFactoryEnvironment() {
+	public void testCompositeModuleInheritsParentEnvironment() {
 		ModuleDescriptor processor1Descriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(processor1Definition)
 				.setGroup("compositesinkgroup")
@@ -214,7 +208,7 @@ public class CompositeModuleTests {
 				.setModuleDefinition(sinkDefinition)
 				.setGroup("compositesinkgroup")
 				.build();
-		
+
 
 		ModuleDefinition composed = ModuleDefinitions.composed("compositesink", ModuleType.sink,
 				"processor1 | processor2 | sink",
@@ -229,35 +223,29 @@ public class CompositeModuleTests {
 				.setIndex(2)
 				.build();
 
-		ApplicationContext context = new AnnotationConfigApplicationContext(ModuleFactoryConfiguration.class);
-		ModuleFactory moduleFactory1 = context.getBean(ModuleFactory.class);
-		
-		
-		Module module = moduleFactory1.createModule(compositeDescriptor, deploymentProperties);
+
+		Module module = moduleFactory.createModule(compositeDescriptor, deploymentProperties);
 		assertTrue(module instanceof CompositeModule);
 		assertEquals(sink, module.getType());
 
-		ConfigurableApplicationContext moduleContext = (ConfigurableApplicationContext)module.getApplicationContext();
-		ConfigurableApplicationContext moduleParentContext = (ConfigurableApplicationContext)moduleContext.getParent();
+		ConfigurableApplicationContext moduleContext = module.getApplicationContext();
+		module.setParentContext(context);
 
-		assertNotNull("parent context can't be null", moduleParentContext);
-		ConfigurableEnvironment parentEnvironment = moduleParentContext.getEnvironment();
-		ConfigurableEnvironment moduleEnvironment = moduleContext.getEnvironment();
-		assertEquals("foo/bar", moduleEnvironment.getProperty("xd.home"));
+		assertEquals("foo", moduleContext.getEnvironment().getProperty("foo"));
 	}
 
 	@Configuration
 	static class ModuleFactoryConfiguration {
 		@Autowired
 		ConfigurableEnvironment env;
-		
+
 		@Bean
 		ModuleFactory moduleFactory() {
 			Properties properties = new Properties();
-			properties.setProperty("xd.home","foo/bar");
+			properties.setProperty("foo", "foo");
 			PropertiesPropertySource propertiesPropertySource = new PropertiesPropertySource("props",
 					properties);
-			env.getPropertySources().addFirst(propertiesPropertySource);
+			env.getPropertySources().addLast(propertiesPropertySource);
 			return new ModuleFactory(new ModuleOptionsMetadataResolver() {
 				@Override
 				public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {

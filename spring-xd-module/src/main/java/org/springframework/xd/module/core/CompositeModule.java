@@ -32,6 +32,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
@@ -182,6 +183,9 @@ public class CompositeModule extends AbstractModule {
 	@Override
 	public void setParentContext(ApplicationContext parentContext) {
 		this.context.setParent(parentContext);
+		for (Module module : modules) {
+			module.setParentContext(parentContext);
+		}
 	}
 
 	@Override

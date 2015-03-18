@@ -34,11 +34,11 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModuleDefinition;
 
 /**
- * {@link Resource} based implementation of {@link ModuleRegistry}.
- *
- * <p>While not being coupled to {@code java.io.File} access, will try to sanitize file paths as much as possible.</p>
+ * {@link Resource} based implementation of {@link ModuleRegistry}. <p>While not being coupled to {@code java.io.File}
+ * access, will try to sanitize file paths as much as possible.</p>
  *
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class ResourceModuleRegistry implements ModuleRegistry {
 
@@ -55,8 +55,8 @@ public class ResourceModuleRegistry implements ModuleRegistry {
 	private final static String[] SUFFIXES = new String[] {"", ARCHIVE_AS_FILE_EXTENSION};
 
 	/**
-	 * Whether to require the presence of a hash file for archives. Helps preventing half-uploaded archives from
-	 * being picked up.
+	 * Whether to require the presence of a hash file for archives. Helps preventing half-uploaded archives from being
+	 * picked up.
 	 */
 	private boolean requireHashFiles;
 
@@ -148,13 +148,18 @@ public class ResourceModuleRegistry implements ModuleRegistry {
 
 	private List<Resource> sanitize(Resource[] resources) throws IOException {
 		List<Resource> filtered = new ArrayList<>();
+
 		for (Resource resource : resources) {
 			// Sanitize file paths (and force use of FSR, which is WritableResource)
 			if (resource instanceof UrlResource && resource.getURL().getProtocol().equals("file")
 					|| resource instanceof FileSystemResource) {
 				resource = new FileSystemResource(resource.getFile().getCanonicalFile());
 			}
-			filtered.add(resource);
+			
+			//Filter hidden files
+			if (!(resource.getFilename().startsWith("."))) {
+				filtered.add(resource);
+			}
 		}
 		return filtered;
 	}
@@ -199,7 +204,9 @@ public class ResourceModuleRegistry implements ModuleRegistry {
 
 		if (holder.contains(found)) {
 			SimpleModuleDefinition other = (SimpleModuleDefinition) holder.get(holder.indexOf(found));
-			throw new IllegalStateException(String.format("Duplicate module definitions for '%s:%s' found at '%s' and '%s'",
+			throw new IllegalStateException(String.format("Duplicate module definitions for '%s:%s' found at '%s' and" +
+							" " +
+							"'%s'",
 					found.getType(), found.getName(), found.getLocation(), other.getLocation()));
 		}
 		else {

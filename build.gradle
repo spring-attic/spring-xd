@@ -503,7 +503,7 @@ project('spring-xd-dirt') {
 			exclude group: 'org.fusesource.fuse-extra'
 		}
 		testCompile "org.springframework:spring-jms"
-		testCompile "org.apache.httpcomponents:httpclient"
+		runtime "org.apache.httpcomponents:httpclient"
 		testCompile 'org.apache.directory.server:apacheds-server-jndi:1.5.7'
 
 	}

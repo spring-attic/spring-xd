@@ -21,6 +21,8 @@ import java.lang.reflect.Field;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -32,17 +34,20 @@ import org.springframework.util.ReflectionUtils;
  *
  * @since 1.2
  * @author Eric Bottard
+ * @author David Turanski
  */
 public abstract class ExtendedResource {
 
-	private static final Class<?> HDFS_RESOURCE;
+	private static final Logger log = LoggerFactory.getLogger(ExtendedResource.class);
+	
+	private static Class<?> HDFS_RESOURCE;
 
 	static {
 		try {
 			HDFS_RESOURCE = Class.forName("org.springframework.data.hadoop.fs.HdfsResource");
 		}
 		catch (ClassNotFoundException e) {
-			throw new IllegalStateException("Spring Data Hadoop not found on the classpath, but was expected", e);
+			log.warn("Spring Data Hadoop is required on the classpath to register modules to HDFS. This feature is disabled.");
 		}
 	}
 

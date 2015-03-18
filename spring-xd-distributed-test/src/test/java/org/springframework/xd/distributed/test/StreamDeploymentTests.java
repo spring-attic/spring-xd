@@ -21,6 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Test;
@@ -58,7 +59,7 @@ public class StreamDeploymentTests extends AbstractDistributedTests {
 		template.streamOperations().createStream(streamName, "time|log", false);
 		verifyStreamCreated(streamName);
 
-		template.streamOperations().deploy(streamName, null);
+		template.streamOperations().deploy(streamName, Collections.<String, String> emptyMap());
 		verifyStreamDeployed(streamName);
 
 		ModuleRuntimeContainers moduleContainers = retrieveModuleRuntimeContainers(streamName);

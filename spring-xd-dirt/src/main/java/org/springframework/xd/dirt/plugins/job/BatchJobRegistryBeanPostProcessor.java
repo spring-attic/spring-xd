@@ -16,8 +16,13 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.StepListener;
@@ -25,17 +30,13 @@ import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.configuration.xml.JobParserJobFactoryBean;
 import org.springframework.batch.core.configuration.xml.StepParserStepFactoryBean;
-import org.springframework.batch.core.job.flow.FlowJob;
+import org.springframework.batch.core.job.AbstractJob;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.plugins.job.support.listener.XDJobListenerConstants;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -45,7 +46,7 @@ import java.util.Map;
  * @author Michael Minella
  */
 public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProcessor implements BeanFactoryAware,
-XDJobListenerConstants {
+		XDJobListenerConstants {
 
 	private static final Logger logger = LoggerFactory.getLogger(BatchJobRegistryBeanPostProcessor.class);
 
@@ -88,31 +89,25 @@ XDJobListenerConstants {
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) {
-		if (bean instanceof JobParserJobFactoryBean) {
-			addJobExecutionListener();
-			if (!this.jobExecutionListeners.isEmpty()) {
-				// Add the job execution listeners to the job parser factory bean
-				((JobParserJobFactoryBean) bean).setJobExecutionListeners(this.jobExecutionListeners.toArray(new
-						JobExecutionListener[this.jobExecutionListeners.size()]));
-			}
-		}
-		else if (bean instanceof StepParserStepFactoryBean<?, ?>) {
+		if (bean instanceof StepParserStepFactoryBean<?, ?>) {
 			addStepListeners();
 			if (!stepListeners.isEmpty()) {
 				// Add the step listeners to the step parser factory bean
-				((StepParserStepFactoryBean) bean).setListeners(this.stepListeners.toArray(new StepListener[this.stepListeners.size()]));
+				((StepParserStepFactoryBean) bean).setListeners(this.stepListeners.toArray(new StepListener[this
+						.stepListeners.size()]));
 			}
 		}
-		else if (bean instanceof FlowJob) {
+		else if (bean instanceof Job) {
 			if (!jobRegistry.getJobNames().contains(groupName)) {
 				String[] beansOfType = beanFactory.getBeanNamesForType(Job.class);
 
-				if(beansOfType.length > 1) {
-					if(beanName.equalsIgnoreCase(JOB)) {
+				if (beansOfType.length > 1) {
+					if (beanName.equalsIgnoreCase(JOB)) {
 						postProcessJob(bean, beanName);
 					}
 					else {
-						logger.debug(beanName + " was not registered as a job since the context has more than one job defined and it's id is not 'job'");
+						logger.debug(beanName + " was not registered as a job since the context has more than one job " +
+								"defined and it's id is not 'job'");
 					}
 				}
 				else {
@@ -127,8 +122,14 @@ XDJobListenerConstants {
 	}
 
 	private void postProcessJob(Object bean, String beanName) {
-		FlowJob job = (FlowJob) bean;
+		AbstractJob job = (AbstractJob) bean;
 		job.setName(this.groupName);
+		addJobExecutionListener();
+		if (!this.jobExecutionListeners.isEmpty()) {
+			// Add the job execution listeners to the job parser factory bean
+			job.setJobExecutionListeners(this.jobExecutionListeners.toArray(new
+					JobExecutionListener[this.jobExecutionListeners.size()]));
+		}
 		// Add the job name, job parameters incrementer and job restartable flag to {@link DistributedJobLocator}
 		// Since, the Spring batch doesn't have persistent JobRegistry, the {@link DistributedJobLocator}
 		// acts as the store to have jobName , job parameter incrementer and restartable flag to be

@@ -555,5 +555,13 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertFalse(duration.isEmpty());
 		assertNotEquals(duration, "N/A");
 	}
+	
+	@Test
+	public void testJavaConfigJob() {
+		final String jobName = generateJobName();
+		executeJobCreate(jobName, JAVA_CONFIG_JOB_DESCRIPTOR);
+		checkForJobInList(jobName, JAVA_CONFIG_JOB_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+	}
 
 }

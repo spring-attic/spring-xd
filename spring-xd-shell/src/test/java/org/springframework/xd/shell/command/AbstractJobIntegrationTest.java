@@ -65,6 +65,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	public static final String NESTED_JOB_DESCRIPTOR = "nestedJob";
 
+	public static final String JAVA_CONFIG_JOB_DESCRIPTOR = "customJob";
+
 	private static final String NESTED_JOB_TASKLET = "nestedJob.xml";
 
 	public static final String INVALID_NESTED_JOB_DESCRIPTOR = "invalidJob";

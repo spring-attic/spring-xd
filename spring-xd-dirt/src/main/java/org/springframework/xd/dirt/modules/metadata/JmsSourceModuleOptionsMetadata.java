@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.modules.metadata;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
@@ -76,6 +77,7 @@ public class JmsSourceModuleOptionsMetadata implements ProfileNamesProvider {
 		return clientId;
 	}
 
+	@Pattern(regexp = "(auto|transacted|dups-ok|client)")
 	public String getAcknowledge() {
 		return acknowledge;
 	}

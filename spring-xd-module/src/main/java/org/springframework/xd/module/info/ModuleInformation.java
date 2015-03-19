@@ -27,7 +27,7 @@ import javax.validation.constraints.Size;
 public class ModuleInformation {
 
 	@Size(max = 80)
-	@Pattern(regexp = "^[A-Z].*\\.$", message = "Short description must start with a capital letter and end with a dot")
+	@Pattern(regexp = "^\\p{IsUppercase}.*\\.$", message = "Short description must start with a capital letter and end with a dot")
 	private String shortDescription;
 
 	public String getShortDescription() {

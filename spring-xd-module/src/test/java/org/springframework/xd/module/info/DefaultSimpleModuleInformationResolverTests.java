@@ -73,5 +73,4 @@ public class DefaultSimpleModuleInformationResolverTests {
 		return ModuleDefinitions.simple(name, type, location);
 	}
 
-
 }

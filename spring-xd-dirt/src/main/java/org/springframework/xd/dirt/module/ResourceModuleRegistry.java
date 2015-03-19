@@ -155,9 +155,12 @@ public class ResourceModuleRegistry implements ModuleRegistry {
 					|| resource instanceof FileSystemResource) {
 				resource = new FileSystemResource(resource.getFile().getCanonicalFile());
 			}
-			
-			//Filter hidden files
-			if (!(resource.getFilename().startsWith("."))) {
+
+			String fileName = resource.getFilename();
+			if (!fileName.startsWith(".") &&
+					(!fileName.contains(".") ||
+							fileName.endsWith(ARCHIVE_AS_FILE_EXTENSION) ||
+							fileName.endsWith(HASH_EXTENSION))) {
 				filtered.add(resource);
 			}
 		}

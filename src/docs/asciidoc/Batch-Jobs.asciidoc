@@ -385,7 +385,7 @@ $$maxWait$$:: $$maximum number of milliseconds that the pool will wait for a con
 $$minEvictableIdleTimeMillis$$:: $$minimum amount of time an object may sit idle in the pool before it is eligible for eviction$$ *($$int$$, default: `60000`)*
 $$minIdle$$:: $$minimum number of established connections that should be kept in the pool at all times$$ *($$int$$, default: `10`)*
 $$names$$:: $$the field names in the CSV file$$ *($$String$$, no default)*
-$$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `300000`)*
+$$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `3600000`)*
 $$password$$:: $$the JDBC password$$ *($$Password$$, no default)*
 $$removeAbandoned$$:: $$flag to remove abandoned connections if they exceed the removeAbandonedTimout$$ *($$boolean$$, default: `false`)*
 $$removeAbandonedTimeout$$:: $$timeout in seconds before an abandoned connection can be removed$$ *($$int$$, default: `60`)*
@@ -540,7 +540,7 @@ $$maxWait$$:: $$maximum number of milliseconds that the pool will wait for a con
 $$minEvictableIdleTimeMillis$$:: $$minimum amount of time an object may sit idle in the pool before it is eligible for eviction$$ *($$int$$, default: `60000`)*
 $$minIdle$$:: $$minimum number of established connections that should be kept in the pool at all times$$ *($$int$$, default: `10`)*
 $$partitionColumn$$:: $$the column to use for partitioning, should be numeric and uniformly distributed$$ *($$String$$, default: ``)*
-$$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `300000`)*
+$$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `3600000`)*
 $$partitions$$:: $$the number of partitions$$ *($$int$$, default: `1`)*
 $$password$$:: $$the JDBC password$$ *($$Password$$, no default)*
 $$removeAbandoned$$:: $$flag to remove abandoned connections if they exceed the removeAbandonedTimout$$ *($$boolean$$, default: `false`)*
@@ -621,7 +621,7 @@ The **$$ftphdfs$$** $$job$$ has the following options:
 
 $$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
 $$host$$:: $$the host name for the FTP server$$ *($$String$$, no default)*
-$$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `300000`)*
+$$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `3600000`)*
 $$password$$:: $$the password for the FTP connection$$ *($$Password$$, no default)*
 $$port$$:: $$the port for the FTP server$$ *($$int$$, default: `21`)*
 $$restartable$$:: $$whether the job should be restartable or not in case of failure$$ *($$boolean$$, default: `false`)*

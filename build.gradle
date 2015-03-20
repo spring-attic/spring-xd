@@ -1011,6 +1011,8 @@ project('spring-xd-ui') {
 			'cleanNodeModules',
 			'cleanBowerFiles'
 	]) { description = "Clean the Admin UI dist, node modules and bower files" }
+	
+	//tasks['clean'].dependsOn(['cleanUI']) // 'dist' files are checked into VCS for now, don't clean
 
 	//tasks['clean'].dependsOn(['cleanUI']) // 'dist' files are checked into VCS for now, don't clean
 

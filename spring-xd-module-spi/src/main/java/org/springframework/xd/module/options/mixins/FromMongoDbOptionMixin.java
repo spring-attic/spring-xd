@@ -24,6 +24,7 @@ import org.hibernate.validator.constraints.Range;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**
@@ -31,7 +32,11 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  *
  * @author Abhinav Gandhi
  */
-public abstract class FromMongoDbOptionMixin {
+public abstract class FromMongoDbOptionMixin implements ProfileNamesProvider {
+
+	private static final String[] USE_SPLITTER = new String[]{"use-splitter"};
+	private static final String[] DONT_USE_SPLITTER = new String[]{"dont-use-splitter"};
+
 
 	private String query = "{}";
 
@@ -40,7 +45,10 @@ public abstract class FromMongoDbOptionMixin {
 	private int pollRate = 1000;
 	
 	private int maxMessages = 1;
-	
+
+	private boolean split = true;
+
+
 	/**
 	 * Has {@code collectionName} default to ${xd.job.name}.  
 	 */
@@ -70,7 +78,7 @@ public abstract class FromMongoDbOptionMixin {
 		this.collectionName = collectionName;
 	}
 
-	@ModuleOption("the MongoDB collection to store")
+	@ModuleOption("the MongoDB collection to read from")
 	public void setCollectionName(String collectionName) {
 		this.collectionName = collectionName;
 	}
@@ -106,5 +114,20 @@ public abstract class FromMongoDbOptionMixin {
 	public String getQuery() {
 		return this.query;
 	}
+
+	public boolean isSplit() {
+		return split;
+	}
+
+	@ModuleOption("whether to split the SQL result as individual messages")
+	public void setSplit(boolean split) {
+		this.split = split;
+	}
+
+	@Override
+	public String[] profilesToActivate() {
+		return split ? USE_SPLITTER : DONT_USE_SPLITTER;
+	}
+
 
 }

@@ -11,16 +11,36 @@
 
 	<import resource="../../../common/jms-${provider}-infrastructure-context.xml"/>
 
-	<int-jms:message-driven-channel-adapter id="jmsSource"
-		auto-startup="false"
-		destination-name="${destination}"
-		pub-sub-domain="${pubSub}"
-		subscription-durable="${durableSubscription}"
-		durable-subscription-name="${subscriptionName:#{null}}"
-		client-id="${clientId:#{null}}"
-		channel="output"
-		connection-factory="connectionFactory"/>
-
 	<int:channel id="output"/>
+
+	<!-- profiles required because container-class cannot be variable; see INT-3677/SPR-12817 -->
+
+	<beans profile="dmlc">
+		<int-jms:message-driven-channel-adapter id="jmsSource"
+			auto-startup="false"
+			destination-name="${destination}"
+			pub-sub-domain="${pubSub}"
+			subscription-durable="${durableSubscription}"
+			durable-subscription-name="${subscriptionName:#{null}}"
+			client-id="${clientId:#{null}}"
+			channel="output"
+			acknowledge="${acknowledge}"
+			container-class="org.springframework.jms.listener.DefaultMessageListenerContainer"
+			connection-factory="connectionFactory"/>
+	</beans>
+
+	<beans profile="smlc">
+		<int-jms:message-driven-channel-adapter id="jmsSource"
+			auto-startup="false"
+			destination-name="${destination}"
+			pub-sub-domain="${pubSub}"
+			subscription-durable="${durableSubscription}"
+			durable-subscription-name="${subscriptionName:#{null}}"
+			client-id="${clientId:#{null}}"
+			channel="output"
+			acknowledge="${acknowledge}"
+			container-class="org.springframework.jms.listener.SimpleMessageListenerContainer"
+			connection-factory="connectionFactory"/>
+	</beans>
 
 </beans>

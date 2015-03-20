@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
@@ -48,7 +49,7 @@ public class TimeSourceOptionsMetadata {
 	}
 
 
-	@ModuleOption("how often to emit a message, expressed in seconds")
+	@ModuleOption("time delay between messages, expressed in TimeUnits (seconds by default)")
 	public void setFixedDelay(int fixedDelay) {
 		this.fixedDelay = fixedDelay;
 	}

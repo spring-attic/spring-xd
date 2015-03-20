@@ -25,6 +25,7 @@ import javax.validation.constraints.NotNull;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
@@ -72,7 +73,7 @@ public class TriggerSourceOptionsMetadata implements ProfileNamesProvider {
 		return !(fixedDelay != null && cron != null);
 	}
 
-	@ModuleOption("number of seconds between executions, expressed in TimeUnits (seconds by default)")
+	@ModuleOption("time delay between executions, expressed in TimeUnits (seconds by default)")
 	public void setFixedDelay(Integer fixedDelay) {
 		this.fixedDelay = fixedDelay;
 	}

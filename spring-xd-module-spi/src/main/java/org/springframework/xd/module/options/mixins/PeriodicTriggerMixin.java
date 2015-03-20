@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.modules.metadata;
+package org.springframework.xd.module.options.mixins;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
@@ -31,17 +31,17 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class PeriodicTriggerMixin {
 
-	private Integer initialDelay = 0;
+	private int initialDelay = 0;
 
 	private String timeUnit = "SECONDS";
 
 	@Min(0)
-	public Integer getInitialDelay() {
+	public int getInitialDelay() {
 		return initialDelay;
 	}
 
 	@ModuleOption("an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)")
-	public void setInitialDelay(Integer initialDelay) {
+	public void setInitialDelay(int initialDelay) {
 		this.initialDelay = initialDelay;
 	}
 
@@ -51,7 +51,7 @@ public class PeriodicTriggerMixin {
 		return timeUnit;
 	}
 
-	@ModuleOption("the time unit for the fixed delay")
+	@ModuleOption("the time unit for the fixed and initial delays")
 	public void setTimeUnit(String timeUnit) {
 		this.timeUnit = timeUnit.toUpperCase();
 	}

@@ -17,9 +17,7 @@
 package org.springframework.xd.distributed.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -257,17 +255,30 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 *
 	 * @param streamName  name of stream to verify
 	 */
-	protected void verifyStreamCreated(String streamName) {
+	protected void verifyStreamCreated(String streamName) throws InterruptedException {
+		long expiry = System.currentTimeMillis() + STATE_TRANSITION_TIMEOUT;
+		while (!streamExists(streamName) && System.currentTimeMillis() < expiry) {
+			Thread.sleep(500);
+		}
+		assertTrue(streamExists(streamName));
+	}
+
+	/**
+	 * Check if the stream exists.
+	 *
+	 * @param streamName stream name
+	 * @return boolean true if the stream exists.
+	 */
+	private boolean streamExists(String streamName) {
 		PagedResources<StreamDefinitionResource> list = distributedTestSupport.ensureTemplate()
 				.streamOperations().list();
 
 		for (StreamDefinitionResource stream : list) {
 			if (stream.getName().equals(streamName)) {
-				return;
+				return true;
 			}
 		}
-
-		fail(String.format("Stream %s was not found", streamName));
+		return false;
 	}
 
 	/**
@@ -275,8 +286,30 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 *
 	 * @param jobName  name of job to verify
 	 */
-	protected void verifyJobCreated(String jobName) {
-		assertNotNull(String.format("Job %s was not found", jobName), getJob(jobName));
+	protected void verifyJobCreated(String jobName) throws InterruptedException {
+		long expiry = System.currentTimeMillis() + STATE_TRANSITION_TIMEOUT;
+		while (!streamExists(jobName) && System.currentTimeMillis() < expiry) {
+			Thread.sleep(500);
+		}
+		assertTrue(jobExists(jobName));
+	}
+
+	/**
+	 * Check if the job exists.
+	 *
+	 * @param jobName job name
+	 * @return boolean true if the stream exists.
+	 */
+	private boolean jobExists(String jobName) {
+		PagedResources<JobDefinitionResource> list = distributedTestSupport.ensureTemplate()
+				.jobOperations().list();
+
+		for (JobDefinitionResource job : list) {
+			if (job.getName().equals(jobName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -319,7 +352,7 @@ public abstract class AbstractDistributedTests implements DistributedTestSupport
 	 *
 	 * @param streamName name of stream to verify
 	 * @param expected   the expected state of the stream
-	 * @throws InterruptedExceptionå
+	 * @throws InterruptedException
 	 * @see #STATE_TRANSITION_TIMEOUT
 	 */
 	protected void verifyStreamState(String streamName, DeploymentUnitStatus.State expected)

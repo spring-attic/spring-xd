@@ -70,15 +70,45 @@ set CMD_LINE_ARGS=%$
 @rem Setup the command line
 
 @echo off
+set HADOOP_DISTRO=hadoop26
+set found=0
+set NEW_CMD_LINE_ARGS=
+for %%a in (%CMD_LINE_ARGS%) do (
+    setLocal EnableDelayedExpansion
+    if "%%a"=="--hadoopDistro" (
+        set found=1
+    ) else (
+        if !found!==1 (
+            if not "%%a"=="hadoop25" if not "%%a"=="hadoop26" if not "%%a"=="cdh5" if not "%%a"=="hdp22" if not "%%a"=="phd21" (
+                echo ERROR: %%a is not a valid Hadoop distro - valid distros are hadoop25, hadoop26, cdh5, hdp22 and phd21
+                goto fail
+            )
+            set HADOOP_DISTRO=%%a
+            set found=0
+        ) else (
+            set NEW_CMD_LINE_ARGS=!NEW_CMD_LINE_ARGS! %%a
+        )
+    )
+)
+set CMD_LINE_ARGS=!NEW_CMD_LINE_ARGS!
 set APP_HOME_LIB=%APP_HOME%\lib
+
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config;%APP_HOME%
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
-    set HADOOP_LIB=%APP_HOME%\lib\hadoop26
-    if exist "!HADOOP_LIB!" (
-        set CLASSPATH=!CLASSPATH!;!HADOOP_LIB!\spring-data-hadoop-*
-    )
+)
+
+@rem add xd/lib lib/hadoop libs to CLASSPATH
+set XD_LIB=%APP_HOME%\..\xd\lib
+if exist "%XD_LIB%" (
+    set CLASSPATH=!CLASSPATH!;%XD_LIB%\*
+    set HADOOP_LIB=%XD_LIB%\!HADOOP_DISTRO!
+) else (
+    set HADOOP_LIB=%APP_HOME_LIB%\!HADOOP_DISTRO!
+)
+if exist "!HADOOP_LIB!" (
+    set CLASSPATH=!CLASSPATH!;!HADOOP_LIB!\*
 )
 
 @rem Set XD_HOME to APP_HOME if XD_HOME is not defined yet

@@ -55,9 +55,9 @@ import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
  * @author Andy Clement
  * @author David Turanski
  */
-public abstract class AbstractZKDeployer<D extends BaseDefinition> implements ResourceDeployer<D>, DeploymentValidator {
+public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D>, DeploymentValidator {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractZKDeployer.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
 
 	/**
 	 * Pattern used for parsing a single deployment property key. Group 1 is the module name, Group 2 is the 
@@ -76,7 +76,7 @@ public abstract class AbstractZKDeployer<D extends BaseDefinition> implements Re
 	 */
 	protected final ParsingContext definitionKind;
 
-	protected AbstractZKDeployer(ZooKeeperConnection zkConnection, PagingAndSortingRepository<D, String> repository,
+	protected AbstractDeployer(ZooKeeperConnection zkConnection, PagingAndSortingRepository<D, String> repository,
 			XDParser parser, ParsingContext parsingContext) {
 		Assert.notNull(zkConnection, "ZooKeeper connection cannot be null");
 		Assert.notNull(repository, "Repository cannot be null");

@@ -29,10 +29,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.cluster.Container;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.core.Job;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Stream;
+import org.springframework.xd.dirt.job.JobFactory;
+import org.springframework.xd.dirt.server.admin.deployment.ContainerMatcher;
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentUnitStateCalculator;
+import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
@@ -56,10 +62,22 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 	/**
 	 * Constructs {@code DepartingContainerModuleRedeployer}
 	 *
+	 * @param zkConnection ZooKeeper connection
+	 * @param containerRepository the repository to find the containers
+	 * @param streamFactory factory to construct {@link Stream}
+	 * @param jobFactory factory to construct {@link Job}
 	 * @param moduleDeploymentRequests cache of children for requested module deployments path
+	 * @param containerMatcher matches modules to containers
+	 * @param moduleDeploymentWriter utility that writes deployment requests to zk path
+	 * @param stateCalculator calculator for stream/job state
 	 */
-	public DepartingContainerModuleRedeployer(PathChildrenCache moduleDeploymentRequests) {
-		super(moduleDeploymentRequests);
+	public DepartingContainerModuleRedeployer(ZooKeeperConnection zkConnection,
+			ContainerRepository containerRepository,
+			StreamFactory streamFactory, JobFactory jobFactory,
+			PathChildrenCache moduleDeploymentRequests, ContainerMatcher containerMatcher,
+			ModuleDeploymentWriter moduleDeploymentWriter, DeploymentUnitStateCalculator stateCalculator) {
+		super(zkConnection, containerRepository, streamFactory, jobFactory, moduleDeploymentRequests, containerMatcher,
+				moduleDeploymentWriter, stateCalculator);
 	}
 
 	/**

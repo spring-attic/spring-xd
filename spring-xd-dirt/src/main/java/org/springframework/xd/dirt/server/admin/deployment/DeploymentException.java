@@ -30,4 +30,8 @@ public class DeploymentException extends XDRuntimeException {
 		super(message);
 	}
 
+	public DeploymentException(String message, Exception e){
+		super(message, e);
+	}
+
 }

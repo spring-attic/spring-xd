@@ -29,9 +29,9 @@ import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentAction;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentMessage;
 import org.springframework.xd.dirt.stream.JobDefinition;
-import org.springframework.xd.dirt.stream.ZKJobDeployer;
+import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinition;
-import org.springframework.xd.dirt.stream.ZKStreamDeployer;
+import org.springframework.xd.dirt.stream.StreamDeployer;
 
 /**
  * Consumer for {@link org.springframework.xd.dirt.server.admin.deployment.DeploymentMessage}
@@ -45,13 +45,13 @@ public class DeploymentMessageConsumer implements QueueConsumer<DeploymentMessag
 	private static final Log logger = LogFactory.getLog(DeploymentMessageConsumer.class);
 
 	@Autowired
-	private ZKStreamDeployer streamDeployer;
+	private StreamDeployer streamDeployer;
 
 	@Autowired
-	private ZKJobDeployer jobDeployer;
+	private JobDeployer jobDeployer;
 
 	// for testing only
-	public void consumeMessage(DeploymentMessage message, ZKStreamDeployer streamDeployer, ZKJobDeployer jobDeployer) throws Exception {
+	public void consumeMessage(DeploymentMessage message, StreamDeployer streamDeployer, JobDeployer jobDeployer) throws Exception {
 		this.streamDeployer = streamDeployer;
 		this.jobDeployer = jobDeployer;
 		this.consumeMessage(message);
@@ -88,10 +88,10 @@ public class DeploymentMessageConsumer implements QueueConsumer<DeploymentMessag
 		switch (deploymentAction) {
 			case create:
 			case createAndDeploy: {
-				if (deployer instanceof ZKStreamDeployer) {
+				if (deployer instanceof StreamDeployer) {
 					deployer.save(new StreamDefinition(name, deploymentMessage.getDefinition()));
 				}
-				else if (deployer instanceof ZKJobDeployer) {
+				else if (deployer instanceof JobDeployer) {
 					deployer.save(new JobDefinition(name, deploymentMessage.getDefinition()));
 				}
 				if (DeploymentAction.createAndDeploy.equals(deploymentAction)) {

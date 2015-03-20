@@ -50,7 +50,7 @@ import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
 import org.springframework.xd.dirt.stream.JobDefinition;
-import org.springframework.xd.dirt.stream.ZKJobDeployer;
+import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 
 /**
@@ -67,7 +67,7 @@ import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 public class BatchJobExecutionsController extends AbstractBatchJobsController {
 
 	@Autowired
-	private ZKJobDeployer jobDeployer;
+	private JobDeployer jobDeployer;
 
 	@Autowired
 	private DistributedJobLocator jobLocator;

@@ -39,16 +39,16 @@ import org.springframework.xd.store.DomainRepository;
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
-public abstract class AbstractInstancePersistingZKDeployer<D extends BaseDefinition, I extends BaseInstance<D>> extends
-		AbstractZKDeployer<D> {
+public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinition, I extends BaseInstance<D>> extends
+		AbstractDeployer<D> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractInstancePersistingZKDeployer.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractInstancePersistingDeployer.class);
 
 	protected final DomainRepository<I, String> instanceRepository;
 
 	protected final DeploymentHandler deploymentHandler;
 
-	protected AbstractInstancePersistingZKDeployer(ZooKeeperConnection zkConnection,
+	protected AbstractInstancePersistingDeployer(ZooKeeperConnection zkConnection,
 			PagingAndSortingRepository<D, String> definitionRespository,
 			DomainRepository<I, String> instanceRepository, XDParser parser,
 			DeploymentHandler deploymentHandler, ParsingContext definitionKind) {
@@ -147,7 +147,7 @@ public abstract class AbstractInstancePersistingZKDeployer<D extends BaseDefinit
 			deploymentHandler.deploy(deploymentUnitName);
 		}
 		catch (Exception e) {
-			throw new DeploymentException(deploymentUnitName);
+			throw new DeploymentException(deploymentUnitName, e);
 		}
 	}
 
@@ -161,7 +161,7 @@ public abstract class AbstractInstancePersistingZKDeployer<D extends BaseDefinit
 			deploymentHandler.undeploy(deploymentUnitName);
 		}
 		catch (Exception e) {
-			throw new DeploymentException(deploymentUnitName);
+			throw new DeploymentException(deploymentUnitName, e);
 		}
 	}
 

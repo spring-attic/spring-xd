@@ -41,10 +41,10 @@ import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
 import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest.LegacyMvcConfiguration;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
-import org.springframework.xd.dirt.stream.ZKJobDeployer;
+import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.ZKStreamDeployer;
+import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperAccessException;
 
@@ -78,10 +78,10 @@ public class AbstractControllerIntegrationTest {
 
 	// Deployers
 	@Autowired
-	protected ZKStreamDeployer streamDeployer;
+	protected StreamDeployer streamDeployer;
 
 	@Autowired
-	protected ZKJobDeployer jobDeployer;
+	protected JobDeployer jobDeployer;
 
 	// Definition Repositories
 	@Autowired

@@ -57,9 +57,9 @@ import org.springframework.xd.dirt.server.admin.deployment.DeploymentMessage;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentMessagePublisher;
 import org.springframework.xd.dirt.server.admin.deployment.zk.DeploymentMessageConsumer;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
-import org.springframework.xd.dirt.stream.ZKJobDeployer;
+import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.ZKStreamDeployer;
+import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobDefinitionRepository;
@@ -144,8 +144,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public ZKJobDeployer jobDeployer() {
-		return new ZKJobDeployer(zooKeeperConnection(), jobDefinitionRepository(), xdJobRepository(), parser(),
+	public JobDeployer jobDeployer() {
+		return new JobDeployer(zooKeeperConnection(), jobDefinitionRepository(), xdJobRepository(), parser(),
 				messageBus(), deploymentHandler());
 	}
 
@@ -177,8 +177,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public ZKStreamDeployer streamDeployer() {
-		return new ZKStreamDeployer(zooKeeperConnection(), streamDefinitionRepository(), streamRepository(), parser(),
+	public StreamDeployer streamDeployer() {
+		return new StreamDeployer(zooKeeperConnection(), streamDefinitionRepository(), streamRepository(), parser(),
 				deploymentHandler());
 	}
 

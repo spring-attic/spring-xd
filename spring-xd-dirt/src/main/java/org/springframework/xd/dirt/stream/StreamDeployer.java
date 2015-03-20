@@ -23,7 +23,7 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
- * Default implementation of {@link ZKStreamDeployer} that uses provided
+ * Default implementation of {@link StreamDeployer} that uses provided
  * {@link StreamDefinitionRepository} and {@link StreamRepository} to
  * persist stream deployment and undeployment requests.
  *
@@ -34,7 +34,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  * @author Gunnar Hillert
  * @author Patrick Peralta
  */
-public class ZKStreamDeployer extends AbstractInstancePersistingZKDeployer<StreamDefinition, Stream> {
+public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDefinition, Stream> {
 
 	/**
 	 * Stream definition parser.
@@ -49,7 +49,7 @@ public class ZKStreamDeployer extends AbstractInstancePersistingZKDeployer<Strea
 	 * @param streamRepository   repository for stream instances
 	 * @param parser             stream definition parser
 	 */
-	public ZKStreamDeployer(ZooKeeperConnection zkConnection, StreamDefinitionRepository repository,
+	public StreamDeployer(ZooKeeperConnection zkConnection, StreamDefinitionRepository repository,
 			StreamRepository streamRepository, XDParser parser, DeploymentHandler deploymentHandler) {
 		super(zkConnection, repository, streamRepository, parser, deploymentHandler, stream);
 		this.parser = parser;

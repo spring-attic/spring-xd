@@ -31,7 +31,6 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.Container;
@@ -77,63 +76,70 @@ public abstract class ModuleRedeployer {
 	private final Logger logger = LoggerFactory.getLogger(ModuleRedeployer.class);
 
 	/**
-	 * ZooKeeper connection
+	 * The ZooKeeper connection.
 	 */
-	@Autowired
-	protected ZooKeeperConnection zkConnection;
+	private final ZooKeeperConnection zkConnection;
 
 	/**
-	 * Factory to construct {@link org.springframework.xd.dirt.core.Stream} instance
+	 * Repository from which to obtain containers in the cluster.
 	 */
-	@Autowired
-	protected StreamFactory streamFactory;
+	private final ContainerRepository containerRepository;
 
 	/**
-	 * Factory to construct {@link org.springframework.xd.dirt.core.Job} instance
+	 * Container matcher for matching modules to containers.
 	 */
-	@Autowired
-	protected JobFactory jobFactory;
+	private final ContainerMatcher containerMatcher;
 
 	/**
-	 * Matcher that applies container matching criteria
+	 * Utility for writing module deployment requests to ZooKeeper.
 	 */
-	@Autowired
-	protected ContainerMatcher containerMatcher;
-
-	/**
-	 * Repository for the containers
-	 */
-	@Autowired
-	protected ContainerRepository containerRepository;
-
-	/**
-	 * Utility that writes module deployment requests to ZK path
-	 */
-	@Autowired
-	protected ModuleDeploymentWriter moduleDeploymentWriter;
-
-	/**
-	 * Deployment unit state calculator
-	 */
-	@Autowired
-	protected DeploymentUnitStateCalculator stateCalculator;
-
+	private final ModuleDeploymentWriter moduleDeploymentWriter;
 
 	/**
 	 * Cache of children under the module deployment requests path.
 	 */
 	protected final PathChildrenCache moduleDeploymentRequests;
 
+	/**
+	 * Stream factory.
+	 */
+	protected final StreamFactory streamFactory;
+
+	/**
+	 * Job factory.
+	 */
+	protected final JobFactory jobFactory;
+
+	/**
+	 * State calculator for stream/job state.
+	 */
+	private final DeploymentUnitStateCalculator stateCalculator;
 
 	/**
 	 * Constructs {@code ModuleRedeployer}
 	 *
+	 * @param zkConnection ZooKeeper connection
+	 * @param containerRepository the repository to find the containers
+	 * @param streamFactory factory to construct {@link Stream}
+	 * @param jobFactory factory to construct {@link Job}
 	 * @param moduleDeploymentRequests cache of children for requested module deployments path
+	 * @param containerMatcher matches modules to containers
+	 * @param moduleDeploymentWriter utility that writes deployment requests to zk path
+	 * @param stateCalculator calculator for stream/job state
 	 */
-	public ModuleRedeployer(PathChildrenCache moduleDeploymentRequests) {
+	public ModuleRedeployer(ZooKeeperConnection zkConnection,
+			ContainerRepository containerRepository, StreamFactory streamFactory, JobFactory jobFactory,
+			PathChildrenCache moduleDeploymentRequests, ContainerMatcher containerMatcher,
+			ModuleDeploymentWriter moduleDeploymentWriter, DeploymentUnitStateCalculator stateCalculator) {
+		this.zkConnection = zkConnection;
+		this.containerRepository = containerRepository;
+		this.containerMatcher = containerMatcher;
+		this.moduleDeploymentWriter = moduleDeploymentWriter;
 		this.moduleDeploymentRequests = moduleDeploymentRequests;
+		this.streamFactory = streamFactory;
+		this.jobFactory = jobFactory;
+		this.stateCalculator = stateCalculator;
 	}
-
 	/**
 	 * Deploy unallocated/orphaned modules.
 	 *

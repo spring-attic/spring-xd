@@ -49,6 +49,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.Admin;
 import org.springframework.xd.dirt.cluster.AdminAttributes;
 import org.springframework.xd.dirt.container.store.AdminRepository;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.job.JobFactory;
+import org.springframework.xd.dirt.server.admin.deployment.ContainerMatcher;
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentUnitStateCalculator;
+import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
@@ -90,6 +95,42 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	 */
 	@Autowired
 	private DeploymentMessageConsumer deploymentMessageConsumer;
+
+	/**
+	 * Factory to construct {@link org.springframework.xd.dirt.core.Stream} instance
+	 */
+	@Autowired
+	private StreamFactory streamFactory;
+
+	/**
+	 * Factory to construct {@link org.springframework.xd.dirt.core.Job} instance
+	 */
+	@Autowired
+	private JobFactory jobFactory;
+
+	/**
+	 * Matcher that applies container matching criteria
+	 */
+	@Autowired
+	private ContainerMatcher containerMatcher;
+
+	/**
+	 * Repository for the containers
+	 */
+	@Autowired
+	private ContainerRepository containerRepository;
+
+	/**
+	 * Utility that writes module deployment requests to ZK path
+	 */
+	@Autowired
+	private ModuleDeploymentWriter moduleDeploymentWriter;
+
+	/**
+	 * Deployment unit state calculator
+	 */
+	@Autowired
+	private DeploymentUnitStateCalculator stateCalculator;
 
 	/**
 	 * Attributes for admin stored in admin repository.
@@ -427,9 +468,16 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 					entry.getValue().onSupervisorElected(supervisorElectedEvent);
 				}
 
-				containerListener = new ContainerListener(streamDeployments,
+				containerListener = new ContainerListener(zkConnection,
+						containerRepository,
+						streamFactory,
+						jobFactory,
+						streamDeployments,
 						jobDeployments,
 						moduleDeploymentRequests,
+						containerMatcher,
+						moduleDeploymentWriter,
+						stateCalculator,
 						executorService,
 						quietPeriod);
 

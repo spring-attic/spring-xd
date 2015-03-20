@@ -38,7 +38,7 @@ import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentUnitType;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.dirt.stream.JobDefinition;
-import org.springframework.xd.dirt.stream.ZKJobDeployer;
+import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
 
 /**
@@ -59,14 +59,13 @@ public class JobsController extends
 	private DistributedJobLocator distributedJobLocator;
 
 	@Autowired
-	public JobsController(ZKJobDeployer jobDeployer) {
+	public JobsController(JobDeployer jobDeployer) {
 		super(jobDeployer, new JobDefinitionResourceAssembler(), DeploymentUnitType.Job);
 	}
 
 	@Override
 	@RequestMapping(value = "/definitions", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
-	@ResponseBody
 	public void save(@RequestParam("name") String name, @RequestParam("definition") String definition,
 			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) throws Exception {
 		// Verify if the batch job repository already has the job with the same name.

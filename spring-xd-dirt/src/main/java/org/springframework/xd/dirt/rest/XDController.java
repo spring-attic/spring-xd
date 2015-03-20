@@ -38,13 +38,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
+import org.springframework.xd.dirt.core.DeploymentValidator;
 import org.springframework.xd.dirt.integration.bus.rabbit.NothingToDeleteException;
 import org.springframework.xd.dirt.integration.bus.rabbit.RabbitBusCleaner;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentAction;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentMessage;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentMessagePublisher;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentUnitType;
-import org.springframework.xd.dirt.stream.AbstractInstancePersistingZKDeployer;
+import org.springframework.xd.dirt.stream.AbstractInstancePersistingDeployer;
 import org.springframework.xd.dirt.stream.BaseInstance;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.rest.domain.DeployableResource;
@@ -67,7 +68,9 @@ import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 public abstract class XDController<D extends BaseDefinition, A extends
 		ResourceAssemblerSupport<D, R>, R extends NamedResource, I extends BaseInstance<D>> {
 
-	private AbstractInstancePersistingZKDeployer<D, I> deployer;
+	private final AbstractInstancePersistingDeployer<D, I> deployer;
+
+	private final DeploymentValidator validator;
 
 	private A resourceAssemblerSupport;
 
@@ -101,8 +104,9 @@ public abstract class XDController<D extends BaseDefinition, A extends
 		}
 	}
 
-	protected XDController( AbstractInstancePersistingZKDeployer<D, I> deployer, A resourceAssemblerSupport, DeploymentUnitType deploymentUnitType) {
+	protected XDController( AbstractInstancePersistingDeployer<D, I> deployer, A resourceAssemblerSupport, DeploymentUnitType deploymentUnitType) {
 		this.deployer = deployer;
+		this.validator = deployer;
 		this.resourceAssemblerSupport = resourceAssemblerSupport;
 		this.deploymentUnitType = deploymentUnitType;
 	}
@@ -115,7 +119,7 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	@RequestMapping(value = "/definitions/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void delete(@PathVariable("name") String name) throws Exception {
-		deployer.validateBeforeDelete(name);
+		validator.validateBeforeDelete(name);
 		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
 				.setUnitName(name)
 				.setDeploymentAction(DeploymentAction.destroy));
@@ -139,7 +143,7 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	@RequestMapping(value = "/deployments/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void undeploy(@PathVariable("name") String name) throws Exception {
-		deployer.validateBeforeUndeploy(name);
+		validator.validateBeforeUndeploy(name);
 		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
 				.setUnitName(name)
 				.setDeploymentAction(DeploymentAction.undeploy));
@@ -164,10 +168,9 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	 */
 	@RequestMapping(value = "/deployments/{name}", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
-	@ResponseBody
 	public void deploy(@PathVariable("name") String name, @RequestParam(required = false) String properties) throws Exception {
 		Map<String, String> deploymentProperties = DeploymentPropertiesFormat.parseDeploymentProperties(properties);
-		deployer.validateBeforeDeploy(name, deploymentProperties);
+		validator.validateBeforeDeploy(name, deploymentProperties);
 		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
 				.setUnitName(name)
 				.setDeploymentAction(DeploymentAction.deploy)
@@ -211,9 +214,9 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	 * the operation is not supported.
 	 */
 	private void enhanceWithDeployments(Page<D> page, PagedResources<R> result) {
-		if (deployer instanceof AbstractInstancePersistingZKDeployer) {
+		if (deployer instanceof AbstractInstancePersistingDeployer) {
 			@SuppressWarnings("unchecked")
-			AbstractInstancePersistingZKDeployer<D, BaseInstance<D>> ipDeployer = (AbstractInstancePersistingZKDeployer<D, BaseInstance<D>>) deployer;
+			AbstractInstancePersistingDeployer<D, BaseInstance<D>> ipDeployer = (AbstractInstancePersistingDeployer<D, BaseInstance<D>>) deployer;
 			D first = page.getContent().get(0);
 			D last = page.getContent().get(page.getNumberOfElements() - 1);
 			Iterator<BaseInstance<D>> deployedInstances = ipDeployer.deploymentInfo(first.getName(), last.getName()).iterator();
@@ -251,11 +254,10 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	 */
 	@RequestMapping(value = "/definitions", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
-	@ResponseBody
 	public void save(@RequestParam("name") String name, @RequestParam("definition") String definition,
 			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) throws Exception {
 		DeploymentAction deploymentAction = (deploy) ? DeploymentAction.createAndDeploy : DeploymentAction.create;
-		deployer.validateBeforeSave(name, definition);
+		validator.validateBeforeSave(name, definition);
 		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
 				.setUnitName(name)
 				.setDeploymentAction(deploymentAction)
@@ -263,9 +265,9 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	}
 
 	private ResourceSupport enhanceWithDeployment(D definition, R resource) {
-		if (deployer instanceof AbstractInstancePersistingZKDeployer) {
+		if (deployer instanceof AbstractInstancePersistingDeployer) {
 			@SuppressWarnings("unchecked")
-			AbstractInstancePersistingZKDeployer<D, BaseInstance<D>> ipDeployer = (AbstractInstancePersistingZKDeployer<D, BaseInstance<D>>) deployer;
+			AbstractInstancePersistingDeployer<D, BaseInstance<D>> ipDeployer = (AbstractInstancePersistingDeployer<D, BaseInstance<D>>) deployer;
 			BaseInstance<D> deployedInstance = ipDeployer.deploymentInfo(definition.getName());
 			String status = (deployedInstance != null) ? deployedInstance.getStatus().getState().toString()
 					: DeploymentUnitStatus.State.undeployed.toString();

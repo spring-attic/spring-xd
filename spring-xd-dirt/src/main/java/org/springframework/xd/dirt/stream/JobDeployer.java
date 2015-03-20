@@ -37,7 +37,7 @@ import org.springframework.xd.module.ModuleDescriptor;
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
  */
-public class ZKJobDeployer extends AbstractInstancePersistingZKDeployer<JobDefinition, Job> implements DisposableBean {
+public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinition, Job> implements DisposableBean {
 
 	private final String JOB_CHANNEL_PREFIX = "job:";
 
@@ -45,7 +45,7 @@ public class ZKJobDeployer extends AbstractInstancePersistingZKDeployer<JobDefin
 
 	private final ConcurrentMap<String, MessageChannel> jobChannels = new ConcurrentHashMap<String, MessageChannel>();
 
-	public ZKJobDeployer(ZooKeeperConnection zkConnection, JobDefinitionRepository definitionRepository,
+	public JobDeployer(ZooKeeperConnection zkConnection, JobDefinitionRepository definitionRepository,
 			JobRepository instanceRepository, XDParser parser, MessageBus messageBus,
 			DeploymentHandler deploymentHandler) {
 		super(zkConnection, definitionRepository, instanceRepository, parser, deploymentHandler, job);

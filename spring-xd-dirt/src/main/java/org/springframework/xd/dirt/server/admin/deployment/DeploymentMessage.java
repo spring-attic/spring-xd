@@ -28,14 +28,29 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY)
 public class DeploymentMessage {
 
+	/**
+	 * Deployment unit type for the unit
+	 */
 	private DeploymentUnitType deploymentUnitType;
 
+	/**
+	 * Deployment unit name
+	 */
 	private String unitName;
 
+	/**
+	 * The (Stream/Job) definition
+	 */
 	private String definition;
 
+	/**
+	 * Deployment action to perform for this deployment request
+	 */
 	private DeploymentAction deploymentAction;
 
+	/**
+	 * Deployment properties to use while deploying the unit
+	 */
 	private Map<String, String> deploymentProperties;
 
 	// for serialization

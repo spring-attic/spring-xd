@@ -36,7 +36,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.StreamDefinition;
-import org.springframework.xd.dirt.stream.ZKStreamDeployer;
+import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository;
@@ -63,7 +63,7 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 	protected StreamRepository streamRepository;
 
 	@Autowired
-	private ZKStreamDeployer deployer;
+	private StreamDeployer deployer;
 
 	@Autowired
 	private ModuleRegistry moduleRegistry;

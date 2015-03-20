@@ -24,6 +24,27 @@ task version << {
 	println "Groovy version: " + GroovySystem.getVersion()
 }
 
+task checkProjectDescriptions {
+	description = "Verify that all projects have a description"
+	doLast {
+		def projectsWithoutDescription = []
+		allprojects.each { prj ->
+			logger.info "Project: ${prj.name}, Description: ${prj.description ? prj.description : 'N/A'}"
+			if(!prj.description) {
+				projectsWithoutDescription.add(prj.name)
+			}
+		}
+		if (!projectsWithoutDescription.empty) {
+			throw new InvalidUserDataException(
+				"${projectsWithoutDescription.size} out of ${allprojects.size()} projects " +
+				"have missing project descriptions:\n ${projectsWithoutDescription.join(", ")}"
+			)
+		}
+	}
+}
+
+task build (dependsOn: checkProjectDescriptions) { }
+
 ext {
 	linkHomepage = 'https://github.com/spring-projects/spring-xd'
 	linkCi = 'https://build.spring.io/browse/XD'
@@ -320,7 +341,7 @@ apply from: 'gradle/build-starters.gradle'
 apply from: 'gradle/build-gradle-plugins.gradle'
 
 project('spring-xd-analytics') {
-	description = 'Spring XD Anayltics'
+	description = 'Spring XD Analytics'
 	dependencies {
 		compile project(":spring-xd-tuple")
 		compile "org.springframework:spring-core"
@@ -667,6 +688,10 @@ project('spring-xd-hadoop') {
 }
 
 apply from: 'gradle/build-hadoop-distros.gradle'
+
+project('spring-xd-yarn') {
+	description = 'Spring XD on YARN'
+}
 
 project('spring-xd-yarn:spring-xd-yarn-client') {
 	description = 'Spring XD YARN Client App'
@@ -1312,6 +1337,7 @@ project('spring-xd-integration-test') {
 
 // Integration Tests
 project(':spring-xd-integration-test:acceptance-test-sparkapp') {
+	description = 'Helper project for doing acceptance testing with Apache Spark'
 	dependencies {
 		compile "org.apache.spark:spark-core_2.10:$sparkVersion"
 	}
@@ -1418,3 +1444,4 @@ idea.project.ipr {
 		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
 	}
 }
+

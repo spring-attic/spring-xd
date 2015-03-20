@@ -6,7 +6,10 @@ apply from: 'gradle/build-common.gradle'
 
 configure(moduleProjects) { moduleProject ->
 
-    // We only apply the java plugin b/c the eclipse/idea plugins
+	description = (moduleProject.getName() =~ /^modules\.(.+)\.(.+)$/).replaceFirst('Home of module $1:$2')
+
+
+	// We only apply the java plugin b/c the eclipse/idea plugins
     // require it to emit e.g. a .classpath file. Those projects don't actually
     // contain java code, so reset everything (prevents creation of
     // the 'build' directory, etc)

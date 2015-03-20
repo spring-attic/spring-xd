@@ -24,6 +24,26 @@ task version << {
 	println "Groovy version: " + GroovySystem.getVersion()
 }
 
+task checkProjectDescriptions {
+	description = "Verify that all projects have a description"
+	doLast {
+		println "Checking descriptions for ${allprojects.size()} projects (root + sub)"
+		def projectsWithoutDescription = []
+		allprojects.each { prj ->
+			logger.info "Project: ${prj.name}, Description: ${prj.description ? prj.description : 'N/A'}"
+			if(!prj.description) {
+				projectsWithoutDescription.add(prj.name)
+			}
+		}
+		if (!projectsWithoutDescription.empty) {
+			throw new InvalidUserDataException(
+				"${projectsWithoutDescription.size} out of ${allprojects.size()} projects " +
+				"have missing project descriptions:\n ${projectsWithoutDescription.join(", ")}"
+			)
+		}
+	}
+}
+
 ext {
 	linkHomepage = 'https://github.com/spring-projects/spring-xd'
 	linkCi = 'https://build.spring.io/browse/XD'

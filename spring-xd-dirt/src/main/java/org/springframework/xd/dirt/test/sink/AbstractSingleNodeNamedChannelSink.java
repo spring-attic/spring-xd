@@ -23,7 +23,6 @@ import org.springframework.xd.dirt.test.AbstractSingleNodeNamedChannelModule;
  * Base class for SingleNode named channel sink types.
  * 
  * @author David Turanski
- * 
  */
 public abstract class AbstractSingleNodeNamedChannelSink extends AbstractSingleNodeNamedChannelModule<QueueChannel>
 		implements NamedChannelSink {
@@ -34,28 +33,29 @@ public abstract class AbstractSingleNodeNamedChannelSink extends AbstractSingleN
 
 	@Override
 	public Message<?> receive() {
-		return this.receive(0);
+		return messageChannel.receive();
 	}
 
 	@Override
 	public Message<?> receive(int timeout) {
-		return this.messageChannel.receive(timeout);
+		return messageChannel.receive(timeout);
 	}
 
 	@Override
 	public Object receivePayload() {
-		return this.receivePayload(0);
+        Message<?> message = receive();
+        return message == null ? null : message.getPayload();
 	}
 
 	@Override
 	public Object receivePayload(int timeout) {
-		Message<?> message = this.messageChannel.receive(timeout);
+		Message<?> message = receive(timeout);
 		return message == null ? null : message.getPayload();
 	}
 
 	@Override
 	public void unbind() {
-		this.messageBus.unbindConsumer(this.sharedChannelName, this.messageChannel);
+		messageBus.unbindConsumer(sharedChannelName, messageChannel);
 	}
 
 }

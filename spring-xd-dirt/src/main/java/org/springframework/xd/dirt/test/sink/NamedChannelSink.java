@@ -32,8 +32,7 @@ public interface NamedChannelSink extends NamedChannelModule {
 	 * <p>
 	 * If the sink contains no messages, this method will block.
 	 *
-	 * @return the first available message or <code>null</code> if the receiving
-	 * thread is interrupted.
+	 * @return the first available message or <code>null</code> if the receiving thread is interrupted.
 	 */
 	Message<?> receive();
 
@@ -56,8 +55,7 @@ public interface NamedChannelSink extends NamedChannelModule {
 	 * <p>
 	 * If the sink contains no messages, this method will block.
 	 *
-	 * @return the first available payload or <code>null</code> if the receiving
-	 * thread is interrupted.
+	 * @return the first available payload or <code>null</code> if the receiving thread is interrupted.
 	 */
 	Object receivePayload();
 
@@ -70,7 +68,7 @@ public interface NamedChannelSink extends NamedChannelModule {
 	 *
 	 * @param timeout the timeout in milliseconds
 	 *
-	 * @return the first available message or <code>null</code> if no message is available within the
+	 * @return the first available payload or <code>null</code> if no message is available within the
 	 * allotted time or the receiving thread is interrupted.
 	 */
 	Object receivePayload(int timeout);

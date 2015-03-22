@@ -28,11 +28,9 @@ public class SingleNodeNamedQueueSink extends AbstractSingleNodeNamedChannelSink
 		super(messageBus, sharedChannelName);
 	}
 
-
 	@Override
 	protected void bind() {
 		this.messageBus.bindConsumer(this.sharedChannelName, this.messageChannel, null);
 	}
-
 
 }

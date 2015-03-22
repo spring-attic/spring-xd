@@ -57,7 +57,6 @@ public class SingleNodeProcessingChain extends AbstractSingleNodeProcessingChain
 		return sink.receivePayload(timeout);
 	}
 
-
 	@Override
 	public void send(Message<?> message) {
 		source.send(message);
@@ -77,4 +76,5 @@ public class SingleNodeProcessingChain extends AbstractSingleNodeProcessingChain
 	protected boolean createSource() {
 		return true;
 	}
+
 }

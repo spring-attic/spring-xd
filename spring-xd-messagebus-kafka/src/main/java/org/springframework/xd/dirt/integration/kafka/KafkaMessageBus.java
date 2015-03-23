@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -48,9 +50,11 @@ import org.springframework.integration.kafka.core.DefaultConnectionFactory;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.core.ZookeeperConfiguration;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
+import org.springframework.integration.kafka.listener.Acknowledgment;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.integration.kafka.listener.KafkaTopicOffsetManager;
 import org.springframework.integration.kafka.listener.OffsetManager;
+import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.kafka.support.ProducerFactoryBean;
 import org.springframework.integration.kafka.support.ProducerMetadata;
@@ -58,6 +62,7 @@ import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
@@ -118,6 +123,7 @@ import scala.collection.Seq;
  *
  * @author Eric Bottard
  * @author Marius Bogoevici
+ * @author Ilayaperumal Gopinathan
  */
 public class KafkaMessageBus extends MessageBusSupport {
 
@@ -145,9 +151,13 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	public static final String COMPRESSION_CODEC = "compressionCodec";
 
+	public static final String AUTO_COMMIT_ENABLED = "autoCommitEnabled";
+
 	private static final String DEFAULT_COMPRESSION_CODEC = "default";
 
 	private static final int DEFAULT_REQUIRED_ACKS = 1;
+
+	private static final boolean DEFAULT_AUTO_COMMIT_ENABLED = true;
 
 	private RetryOperations retryOperations;
 
@@ -244,6 +254,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private String offsetStoreTopic = "SpringXdOffsets";
 
+	// auto commit property
+
+	private boolean defaultAutoCommitEnabled = DEFAULT_AUTO_COMMIT_ENABLED;
+
 
 	public KafkaMessageBus(ZookeeperConnect zookeeperConnect, String brokers, String zkAddress,
 			MultiTypeCodec<Object> codec, String... headersToMap) {
@@ -338,6 +352,16 @@ public class KafkaMessageBus extends MessageBusSupport {
 	public void setDefaultRequiredAcks(int defaultRequiredAcks) {
 		this.defaultRequiredAcks = defaultRequiredAcks;
 	}
+
+	/**
+	 * Set the default auto commit enabled property; This is used to
+	 * commit the offset either automatically or manually.
+	 * @param defaultAutoCommitEnabled
+	 */
+	public void setDefaultAutoCommitEnabled(boolean defaultAutoCommitEnabled) {
+		this.defaultAutoCommitEnabled = defaultAutoCommitEnabled;
+	}
+
 
 	@Override
 	public void bindConsumer(String name, final MessageChannel moduleInputChannel, Properties properties) {
@@ -576,6 +600,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.setKeyDecoder(keyDecoder);
 		kafkaMessageDrivenChannelAdapter.setPayloadDecoder(valueDecoder);
 		kafkaMessageDrivenChannelAdapter.setOutputChannel(bridge);
+		kafkaMessageDrivenChannelAdapter.setAutoCommitOffset(accessor.getDefaultAutoCommitEnabled(this.defaultAutoCommitEnabled));
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
@@ -619,7 +644,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		// if we have less target partitions than target concurrency, adjust accordingly
 		messageListenerContainer.setConcurrency(Math.min(numThreads, listenedPartitions.size()));
 		KafkaTopicOffsetManager offsetManager = new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic,
-				Collections.<Partition, Long>emptyMap());
+					Collections.<Partition, Long>emptyMap());
 		offsetManager.setConsumerId(group);
 		offsetManager.setReferenceTimestamp(referencePoint);
 		try {
@@ -630,6 +655,17 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 		messageListenerContainer.setOffsetManager(offsetManager);
 		return messageListenerContainer;
+	}
+
+	@Override
+	public void doManualAck(LinkedList<MessageHeaders> messageHeadersList) {
+		Iterator<MessageHeaders> iterator = messageHeadersList.iterator();
+		while (iterator.hasNext()) {
+			MessageHeaders headers = iterator.next();
+			Acknowledgment acknowledgment = (Acknowledgment) headers.get(KafkaHeaders.ACKNOWLEDGMENT);
+			Assert.notNull(acknowledgment, "Acknowledgement shouldn't be null when acknowledging kafka message manually.");
+			acknowledgment.acknowledge();
+		}
 	}
 
 	private class KafkaPropertiesAccessor extends AbstractBusPropertiesAccessor {
@@ -658,6 +694,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		public int getRequiredAcks(int defaultRequiredAcks) {
 			return getProperty(REQUIRED_ACKS, defaultRequiredAcks);
+		}
+
+		public boolean getDefaultAutoCommitEnabled(boolean defaultAutoCommitEnabled) {
+			return getProperty(AUTO_COMMIT_ENABLED, defaultAutoCommitEnabled);
 		}
 
 	}

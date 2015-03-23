@@ -114,7 +114,7 @@ public abstract class FromMongoDbOptionMixin implements ProfileNamesProvider {
 		return split;
 	}
 
-	@ModuleOption("whether to split the SQL result as individual messages")
+	@ModuleOption("whether to split the query result as individual messages")
 	public void setSplit(boolean split) {
 		this.split = split;
 	}

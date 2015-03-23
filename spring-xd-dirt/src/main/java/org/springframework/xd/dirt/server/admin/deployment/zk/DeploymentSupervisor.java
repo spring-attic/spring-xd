@@ -433,9 +433,6 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 		public void takeLeadership(CuratorFramework client) throws Exception {
 			logger.info("Leader Admin {} is watching for stream/job deployment requests.", getId());
 			cleanupDeployments(client);
-			deploymentQueueForConsumer = new DeploymentQueue(client, deploymentMessageConsumer, Paths.DEPLOYMENT_QUEUE,
-					executorService);
-			deploymentQueueForConsumer.start();
 			PathChildrenCache containers = null;
 			PathChildrenCache streamDeployments = null;
 			PathChildrenCache jobDeployments = null;
@@ -459,6 +456,9 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				jobDeployments = instantiatePathChildrenCache(client, Paths.JOB_DEPLOYMENTS);
 				jobDeployments.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
 
+				deploymentQueueForConsumer = new DeploymentQueue(client, deploymentMessageConsumer, Paths.DEPLOYMENT_QUEUE,
+						executorService);
+				deploymentQueueForConsumer.start();
 				SupervisorElectedEvent supervisorElectedEvent = new SupervisorElectedEvent(moduleDeploymentRequests,
 						streamDeployments, jobDeployments);
 

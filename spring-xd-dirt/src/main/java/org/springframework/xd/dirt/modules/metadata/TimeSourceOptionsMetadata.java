@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 

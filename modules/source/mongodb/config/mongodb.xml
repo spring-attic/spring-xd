@@ -20,8 +20,14 @@
 
 	<int-mongodb:inbound-channel-adapter
 		id="inbound" channel="aggregates" query="${query}" collection-name="${collectionName}">
-		<int:poller fixed-rate="${pollRate}" max-messages-per-poll="${maxMessages}" />
+		<int:poller trigger="trigger" max-messages-per-poll="${maxMessages}" />
 	</int-mongodb:inbound-channel-adapter>
+
+	<bean id="trigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+		<constructor-arg value="${fixedDelay}" />
+		<constructor-arg value="${timeUnit}" />
+		<property name="initialDelay" value="${initialDelay} "/>
+	</bean>
 
 	<beans profile="use-splitter">
 		<int:splitter input-channel="aggregates" output-channel="output"/>

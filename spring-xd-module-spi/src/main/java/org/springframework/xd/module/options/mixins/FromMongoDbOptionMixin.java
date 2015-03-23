@@ -16,11 +16,6 @@
 
 package org.springframework.xd.module.options.mixins;
 
-import javax.validation.constraints.NotNull;
-
-import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.Range;
-
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
@@ -42,7 +37,7 @@ public abstract class FromMongoDbOptionMixin implements ProfileNamesProvider {
 
 	private String collectionName;
 
-	private int pollRate = 1000;
+	private int fixedDelay = 1000;
 	
 	private int maxMessages = 1;
 
@@ -52,7 +47,7 @@ public abstract class FromMongoDbOptionMixin implements ProfileNamesProvider {
 	/**
 	 * Has {@code collectionName} default to ${xd.job.name}.  
 	 */
-	@Mixin(MongoDbConnectionMixin.class)
+	@Mixin({MongoDbConnectionMixin.class, PeriodicTriggerMixin.class})
 	public static class Job extends FromMongoDbOptionMixin {
 
 		public Job() {
@@ -63,7 +58,7 @@ public abstract class FromMongoDbOptionMixin implements ProfileNamesProvider {
 	/**
 	 * Has {@code collectionName} default to ${xd.stream.name}.  
 	 */
-	@Mixin(MongoDbConnectionMixin.class)
+	@Mixin({MongoDbConnectionMixin.class, PeriodicTriggerMixin.class})
 	public static class Stream extends FromMongoDbOptionMixin {
 
 		public Stream() {
@@ -84,8 +79,8 @@ public abstract class FromMongoDbOptionMixin implements ProfileNamesProvider {
 	}
 
 	@ModuleOption("the rate at which to poll for data")
-	public void setPollRate(int pollRate) {
-		this.pollRate = pollRate;
+	public void setFixedDelay(int fixedDelay) {
+		this.fixedDelay = fixedDelay;
 	}
 	
 	@ModuleOption("the maximum number of messages to get at a time")
@@ -103,8 +98,8 @@ public abstract class FromMongoDbOptionMixin implements ProfileNamesProvider {
 		return this.collectionName;
 	}
 
-	public int getPollRate() {
-		return this.pollRate;
+	public int getFixedDelay() {
+		return this.fixedDelay;
 	}
 	
 	public int getMaxMessages() {

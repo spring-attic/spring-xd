@@ -644,6 +644,10 @@ project('spring-xd-hadoop') {
 
 apply from: 'gradle/build-hadoop-distros.gradle'
 
+project('spring-xd-yarn') {
+	description = 'Spring XD on YARN'
+}
+
 project('spring-xd-yarn:spring-xd-yarn-client') {
 	description = 'Spring XD YARN Client App'
 
@@ -1289,6 +1293,7 @@ project('spring-xd-integration-test') {
 
 // Integration Tests
 project(':spring-xd-integration-test:acceptance-test-sparkapp') {
+	description = 'Helper project for doing acceptance testing with Apache Spark'
 	dependencies {
 		compile "org.apache.spark:spark-core_2.10:$sparkVersion"
 	}

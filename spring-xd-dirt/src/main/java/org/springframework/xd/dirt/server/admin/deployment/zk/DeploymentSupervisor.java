@@ -456,9 +456,6 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				jobDeployments = instantiatePathChildrenCache(client, Paths.JOB_DEPLOYMENTS);
 				jobDeployments.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
 
-				deploymentQueueForConsumer = new DeploymentQueue(client, deploymentMessageConsumer, Paths.DEPLOYMENT_QUEUE,
-						executorService);
-				deploymentQueueForConsumer.start();
 				SupervisorElectedEvent supervisorElectedEvent = new SupervisorElectedEvent(moduleDeploymentRequests,
 						streamDeployments, jobDeployments);
 
@@ -484,6 +481,10 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				containers = instantiatePathChildrenCache(client, Paths.CONTAINERS);
 				containers.getListenable().addListener(containerListener);
 				containers.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+
+				deploymentQueueForConsumer = new DeploymentQueue(client, deploymentMessageConsumer, Paths.DEPLOYMENT_QUEUE,
+						executorService);
+				deploymentQueueForConsumer.start();
 
 				Thread.sleep(Long.MAX_VALUE);
 			}

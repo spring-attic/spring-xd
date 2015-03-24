@@ -21,10 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundPathAndBytesable;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -47,6 +43,11 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDefinition;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * @author Mark Fisher
@@ -154,8 +155,10 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			}
 			Map<String, String> map = ZooKeeperUtils.bytesToMap(bytes);
 			StreamDefinition streamDefinition = new StreamDefinition(id, map.get(DEFINITION_KEY));
-			List<ModuleDefinition> moduleDefinitions = objectReader.readValue(map.get(MODULE_DEFINITIONS_KEY));
-			streamDefinition.setModuleDefinitions(moduleDefinitions);
+			if (map.get(MODULE_DEFINITIONS_KEY) != null) {
+				List<ModuleDefinition> moduleDefinitions = objectReader.readValue(map.get(MODULE_DEFINITIONS_KEY));
+				streamDefinition.setModuleDefinitions(moduleDefinitions);
+			}
 			return streamDefinition;
 		}
 		catch (Exception e) {

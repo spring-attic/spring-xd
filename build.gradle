@@ -43,6 +43,8 @@ task checkProjectDescriptions {
 	}
 }
 
+task build (dependsOn: checkProjectDescriptions) { }
+
 ext {
 	linkHomepage = 'https://github.com/spring-projects/spring-xd'
 	linkCi = 'https://build.spring.io/browse/XD'
@@ -1400,4 +1402,3 @@ idea.project.ipr {
 	}
 }
 
-tasks['checkProjectDescriptions'].execute()

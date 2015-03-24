@@ -179,8 +179,7 @@ public class ShellReferenceDoc {
 			}
 		};
 
-		final Map<Class<? extends CommandMarker>, Map<CliCommand, List<CliOption>>> plugins = new TreeMap<Class<? extends CommandMarker>, Map<CliCommand, List<CliOption>>>(
-				comparator);
+		final Map<Class<? extends CommandMarker>, Map<CliCommand, List<CliOption>>> plugins = new TreeMap<>(comparator);
 
 		Map<String, CommandMarker> beans = BeanFactoryUtils.beansOfTypeIncludingAncestors(ctx, CommandMarker.class);
 		final MethodFilter filter = new MethodFilter() {
@@ -191,8 +190,10 @@ public class ShellReferenceDoc {
 			}
 		};
 
+		CommandComparator commandComparator = new CommandComparator();
+
 		for (CommandMarker plugin : beans.values()) {
-			LinkedHashMap<CliCommand, List<CliOption>> commands = new LinkedHashMap<CliCommand, List<CliOption>>();
+			Map<CliCommand, List<CliOption>> commands = new TreeMap<>(commandComparator);
 			plugins.put(plugin.getClass(), commands);
 			ReflectionUtils.doWithMethods(plugin.getClass(), new CommandsCollector(commands), filter);
 		}
@@ -308,5 +309,16 @@ public class ShellReferenceDoc {
 			}
 		}
 		throw new IllegalStateException("Option should have a non empty key: " + option.help());
+	}
+
+	/**
+	 * A comparator that will order commands in alphabetical order.
+	 */
+	public static class CommandComparator implements Comparator<CliCommand> {
+
+		@Override
+		public int compare(CliCommand o1, CliCommand o2) {
+			return o1.value()[0].compareTo(o2.value()[0]);
+		}
 	}
 }

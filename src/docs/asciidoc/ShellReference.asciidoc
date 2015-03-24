@@ -3,6 +3,12 @@
 Below is a reference list of all Spring XD specific commands you can use in the link:Shell#interactive-shell[XD Shell].
 
 === Configuration Commands
+==== $$admin config info$$
+$$Show the XD admin server being used$$.
+
+    admin config info
+
+
 ==== $$admin config server$$
 $$Configure the XD admin server to use$$.
 
@@ -12,24 +18,18 @@ $$Configure the XD admin server to use$$.
 *$$username$$*:: $$the username for authenticated access to the Admin REST endpoint$$. *(default: ``)*
 *$$password$$*:: $$the password for authenticated access to the Admin REST endpoint (valid only with a username)$$.
 
+==== $$admin config timezone list$$
+$$List all timezones$$.
+
+    admin config timezone list
+
+
 ==== $$admin config timezone set$$
 $$Set the timezone of the Spring XD Shell (Not persisted)$$.
 
     admin config timezone set [--timeZone] <timeZone>
 
 *$$timeZone$$*:: $$the id of the timezone, You can obtain a list of timezone ids using 'admin config timezone list', If an invalid timezone id is provided, then 'Greenwich Mean Time' is being used$$. *(required)*
-
-==== $$admin config info$$
-$$Show the XD admin server being used$$.
-
-    admin config info
-
-
-==== $$admin config timezone list$$
-$$List all timezones$$.
-
-    admin config timezone list
-
 
 
 === Runtime Commands
@@ -49,6 +49,20 @@ $$List runtime modules$$.
 
 
 === Stream Commands
+==== $$stream all destroy$$
+$$Destroy all existing streams$$.
+
+    stream all destroy [--force [<force>]]
+
+*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
+
+==== $$stream all undeploy$$
+$$Un-deploy all previously deployed stream$$.
+
+    stream all undeploy [--force [<force>]]
+
+*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
+
 ==== $$stream create$$
 $$Create a new stream definition$$.
 
@@ -57,20 +71,6 @@ $$Create a new stream definition$$.
 *$$name$$*:: $$the name to give to the stream$$. *(required)*
 *$$definition$$*:: $$a stream definition, using XD DSL (e.g. "http --port=9000 | hdfs")$$. *(required)*
 *$$deploy$$*:: $$whether to deploy the stream immediately$$. *(default: `false`, or `true` if +--deploy+ is specified without a value)*
-
-==== $$stream destroy$$
-$$Destroy an existing stream$$.
-
-    stream destroy [--name] <name>
-
-*$$name$$*:: $$the name of the stream to destroy$$. *(required)*
-
-==== $$stream all destroy$$
-$$Destroy all existing streams$$.
-
-    stream all destroy [--force [<force>]]
-
-*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
 
 ==== $$stream deploy$$
 $$Deploy a previously created stream$$.
@@ -81,19 +81,12 @@ $$Deploy a previously created stream$$.
 *$$properties$$*:: $$the properties for this deployment$$.
 *$$propertiesFile$$*:: $$the properties for this deployment (as a File)$$.
 
-==== $$stream undeploy$$
-$$Un-deploy a previously deployed stream$$.
+==== $$stream destroy$$
+$$Destroy an existing stream$$.
 
-    stream undeploy [--name] <name>
+    stream destroy [--name] <name>
 
-*$$name$$*:: $$the name of the stream to un-deploy$$. *(required)*
-
-==== $$stream all undeploy$$
-$$Un-deploy all previously deployed stream$$.
-
-    stream all undeploy [--force [<force>]]
-
-*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
+*$$name$$*:: $$the name of the stream to destroy$$. *(required)*
 
 ==== $$stream list$$
 $$List created streams$$.
@@ -101,8 +94,29 @@ $$List created streams$$.
     stream list
 
 
+==== $$stream undeploy$$
+$$Un-deploy a previously deployed stream$$.
+
+    stream undeploy [--name] <name>
+
+*$$name$$*:: $$the name of the stream to un-deploy$$. *(required)*
+
 
 === Job Commands
+==== $$job all destroy$$
+$$Destroy all existing jobs$$.
+
+    job all destroy [--force [<force>]]
+
+*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
+
+==== $$job all undeploy$$
+$$Un-deploy all existing jobs$$.
+
+    job all undeploy [--force [<force>]]
+
+*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
+
 ==== $$job create$$
 $$Create a job$$.
 
@@ -112,17 +126,56 @@ $$Create a job$$.
 *$$definition$$*:: $$job definition using xd dsl $$. *(required)*
 *$$deploy$$*:: $$whether to deploy the job immediately$$. *(default: `false`, or `true` if +--deploy+ is specified without a value)*
 
-==== $$job list$$
-$$List all jobs$$.
+==== $$job deploy$$
+$$Deploy a previously created job$$.
 
-    job list
+    job deploy [--name] <name> [--properties <properties>] [--propertiesFile <propertiesFile>]
 
+*$$name$$*:: $$the name of the job to deploy$$. *(required)*
+*$$properties$$*:: $$the properties for this deployment$$.
+*$$propertiesFile$$*:: $$the properties for this deployment (as a File)$$.
+
+==== $$job destroy$$
+$$Destroy an existing job$$.
+
+    job destroy [--name] <name>
+
+*$$name$$*:: $$the name of the job to destroy$$. *(required)*
+
+==== $$job execution all stop$$
+$$Stop all the job executions that are running$$.
+
+    job execution all stop [--force [<force>]]
+
+*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
+
+==== $$job execution display$$
+$$Display the details of a Job Execution$$.
+
+    job execution display [--id] <id>
+
+*$$id$$*:: $$the id of the job execution$$. *(required)*
 
 ==== $$job execution list$$
 $$List all job executions$$.
 
     job execution list
 
+
+==== $$job execution restart$$
+$$Restart a job that failed or interrupted previously$$.
+
+    job execution restart [--id] <id>
+
+*$$id$$*:: $$the id of the job execution that failed or interrupted$$. *(required)*
+
+==== $$job execution step display$$
+$$Display the details of a Step Execution$$.
+
+    job execution step display [--id] <id> --jobExecutionId <jobExecutionId>
+
+*$$id$$*:: $$the id of the step execution$$. *(required)*
+*$$jobExecutionId$$*:: $$the job execution id$$. *(required)*
 
 ==== $$job execution step list$$
 $$List all step executions for the provided job execution id$$.
@@ -139,28 +192,6 @@ $$Get the progress info for the given step execution$$.
 *$$id$$*:: $$the id of the step execution$$. *(required)*
 *$$jobExecutionId$$*:: $$the job execution id$$. *(required)*
 
-==== $$job execution step display$$
-$$Display the details of a Step Execution$$.
-
-    job execution step display [--id] <id> --jobExecutionId <jobExecutionId>
-
-*$$id$$*:: $$the id of the step execution$$. *(required)*
-*$$jobExecutionId$$*:: $$the job execution id$$. *(required)*
-
-==== $$job execution display$$
-$$Display the details of a Job Execution$$.
-
-    job execution display [--id] <id>
-
-*$$id$$*:: $$the id of the job execution$$. *(required)*
-
-==== $$job execution all stop$$
-$$Stop all the job executions that are running$$.
-
-    job execution all stop [--force [<force>]]
-
-*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
-
 ==== $$job execution stop$$
 $$Stop a job execution that is running$$.
 
@@ -168,21 +199,12 @@ $$Stop a job execution that is running$$.
 
 *$$id$$*:: $$the id of the job execution$$. *(required)*
 
-==== $$job execution restart$$
-$$Restart a job that failed or interrupted previously$$.
+==== $$job instance display$$
+$$Display information about a given job instance$$.
 
-    job execution restart [--id] <id>
+    job instance display [[--id] <id>]
 
-*$$id$$*:: $$the id of the job execution that failed or interrupted$$. *(required)*
-
-==== $$job deploy$$
-$$Deploy a previously created job$$.
-
-    job deploy [--name] <name> [--properties <properties>] [--propertiesFile <propertiesFile>]
-
-*$$name$$*:: $$the name of the job to deploy$$. *(required)*
-*$$properties$$*:: $$the properties for this deployment$$.
-*$$propertiesFile$$*:: $$the properties for this deployment (as a File)$$.
+*$$id$$*:: $$the id of the job instance to retrieve$$.
 
 ==== $$job launch$$
 $$Launch previously deployed job$$.
@@ -192,6 +214,12 @@ $$Launch previously deployed job$$.
 *$$name$$*:: $$the name of the job to deploy$$.
 *$$params$$*:: $$the parameters for the job$$. *(default: ``)*
 
+==== $$job list$$
+$$List all jobs$$.
+
+    job list
+
+
 ==== $$job undeploy$$
 $$Un-deploy an existing job$$.
 
@@ -199,36 +227,23 @@ $$Un-deploy an existing job$$.
 
 *$$name$$*:: $$the name of the job to un-deploy$$. *(required)*
 
-==== $$job all undeploy$$
-$$Un-deploy all existing jobs$$.
-
-    job all undeploy [--force [<force>]]
-
-*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
-
-==== $$job instance display$$
-$$Display information about a given job instance$$.
-
-    job instance display [[--id] <id>]
-
-*$$id$$*:: $$the id of the job instance to retrieve$$.
-
-==== $$job destroy$$
-$$Destroy an existing job$$.
-
-    job destroy [--name] <name>
-
-*$$name$$*:: $$the name of the job to destroy$$. *(required)*
-
-==== $$job all destroy$$
-$$Destroy all existing jobs$$.
-
-    job all destroy [--force [<force>]]
-
-*$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
-
 
 === Module Commands
+==== $$module compose$$
+$$Create a virtual module$$.
+
+    module compose [--name] <name> --definition <definition>
+
+*$$name$$*:: $$the name to give to the module$$. *(required)*
+*$$definition$$*:: $$module definition using xd dsl$$. *(required)*
+
+==== $$module delete$$
+$$Delete a virtual module$$.
+
+    module delete [--name] <name>
+
+*$$name$$*:: $$name of the module to delete, in the form 'type:name'$$. *(required)*
+
 ==== $$module info$$
 $$Get information about a module$$.
 
@@ -237,13 +252,11 @@ $$Get information about a module$$.
 *$$name$$*:: $$name of the module to query, in the form 'type:name'$$. *(required)*
 *$$hidden$$*:: $$whether to show 'hidden' options$$. *(default: `false`, or `true` if +--hidden+ is specified without a value)*
 
-==== $$module compose$$
-$$Create a virtual module$$.
+==== $$module list$$
+$$List all modules$$.
 
-    module compose [--name] <name> --definition <definition>
+    module list
 
-*$$name$$*:: $$the name to give to the module$$. *(required)*
-*$$definition$$*:: $$module definition using xd dsl$$. *(required)*
 
 ==== $$module upload$$
 $$Upload a new module$$.
@@ -254,19 +267,6 @@ $$Upload a new module$$.
 *$$name$$*:: $$the name for the uploaded module$$. *(required)*
 *$$file$$*:: $$path to the module archive$$. *(required)*
 
-==== $$module delete$$
-$$Delete a virtual module$$.
-
-    module delete [--name] <name>
-
-*$$name$$*:: $$name of the module to delete, in the form 'type:name'$$. *(required)*
-
-==== $$module list$$
-$$List all modules$$.
-
-    module list
-
-
 
 === Metrics Commands
 ==== $$counter delete$$
@@ -276,12 +276,6 @@ $$Delete the counter with the given name$$.
 
 *$$name$$*:: $$the name of the counter to delete$$. *(required)*
 
-==== $$counter list$$
-$$List all available counter names$$.
-
-    counter list
-
-
 ==== $$counter display$$
 $$Display the value of a counter$$.
 
@@ -290,6 +284,12 @@ $$Display the value of a counter$$.
 *$$name$$*:: $$the name of the counter to display$$. *(required)*
 *$$pattern$$*:: $$the pattern used to format the value (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
+==== $$counter list$$
+$$List all available counter names$$.
+
+    counter list
+
+
 
 ==== $$field-value-counter delete$$
 $$Delete the field-value-counter with the given name$$.
@@ -297,12 +297,6 @@ $$Delete the field-value-counter with the given name$$.
     field-value-counter delete [--name] <name>
 
 *$$name$$*:: $$the name of the field-value-counter to delete$$. *(required)*
-
-==== $$field-value-counter list$$
-$$List all available field-value-counter names$$.
-
-    field-value-counter list
-
 
 ==== $$field-value-counter display$$
 $$Display the value of a field-value-counter$$.
@@ -313,6 +307,12 @@ $$Display the value of a field-value-counter$$.
 *$$pattern$$*:: $$the pattern used to format the field-value-counter's field count (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 *$$size$$*:: $$the number of values to display$$. *(default: `25`)*
 
+==== $$field-value-counter list$$
+$$List all available field-value-counter names$$.
+
+    field-value-counter list
+
+
 
 ==== $$aggregate-counter delete$$
 $$Delete an aggregate counter$$.
@@ -320,12 +320,6 @@ $$Delete an aggregate counter$$.
     aggregate-counter delete [--name] <name>
 
 *$$name$$*:: $$the name of the aggregate counter to delete$$. *(required)*
-
-==== $$aggregate-counter list$$
-$$List all available aggregate counter names$$.
-
-    aggregate-counter list
-
 
 ==== $$aggregate-counter display$$
 $$Display aggregate counter values by chosen interval and resolution(minute, hour)$$.
@@ -340,6 +334,12 @@ $$Display aggregate counter values by chosen interval and resolution(minute, hou
 *$$resolution$$*:: $$the size of the bucket to aggregate (minute, hour, day, month)$$. *(default: `hour`)*
 *$$pattern$$*:: $$the pattern used to format the count values (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
+==== $$aggregate-counter list$$
+$$List all available aggregate counter names$$.
+
+    aggregate-counter list
+
+
 
 ==== $$gauge delete$$
 $$Delete a gauge$$.
@@ -347,12 +347,6 @@ $$Delete a gauge$$.
     gauge delete [--name] <name>
 
 *$$name$$*:: $$the name of the gauge to delete$$. *(required)*
-
-==== $$gauge list$$
-$$List all available gauge names$$.
-
-    gauge list
-
 
 ==== $$gauge display$$
 $$Display the value of a gauge$$.
@@ -362,6 +356,12 @@ $$Display the value of a gauge$$.
 *$$name$$*:: $$the name of the gauge to display$$. *(required)*
 *$$pattern$$*:: $$the pattern used to format the value (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
+==== $$gauge list$$
+$$List all available gauge names$$.
+
+    gauge list
+
+
 
 ==== $$rich-gauge delete$$
 $$Delete the richgauge$$.
@@ -369,12 +369,6 @@ $$Delete the richgauge$$.
     rich-gauge delete [--name] <name>
 
 *$$name$$*:: $$the name of the richgauge to delete$$. *(required)*
-
-==== $$rich-gauge list$$
-$$List all available richgauge names$$.
-
-    rich-gauge list
-
 
 ==== $$rich-gauge display$$
 $$Display Rich Gauge value$$.
@@ -384,8 +378,21 @@ $$Display Rich Gauge value$$.
 *$$name$$*:: $$the name of the richgauge to display value$$. *(required)*
 *$$pattern$$*:: $$the pattern used to format the richgauge value (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
+==== $$rich-gauge list$$
+$$List all available richgauge names$$.
+
+    rich-gauge list
+
+
 
 === Http Commands
+==== $$http get$$
+$$Make GET request to http endpoint$$.
+
+    http get [[--target] <target>]
+
+*$$target$$*:: $$the URL to make the request to$$. *(default: `http://localhost:9393`)*
+
 ==== $$http post$$
 $$POST data to http endpoint$$.
 
@@ -396,42 +403,8 @@ $$POST data to http endpoint$$.
 *$$file$$*:: $$filename to read data from. exclusive with data$$.
 *$$contentType$$*:: $$the content-type to use. file is also read using the specified charset$$. *(default: `text/plain; Charset=UTF-8`)*
 
-==== $$http get$$
-$$Make GET request to http endpoint$$.
-
-    http get [[--target] <target>]
-
-*$$target$$*:: $$the URL to make the request to$$. *(default: `http://localhost:9393`)*
-
 
 === Hadoop Configuration Commands
-==== $$hadoop config props set$$
-$$Sets the value for the given Hadoop property$$.
-
-    hadoop config props set [--property] <property>
-
-*$$property$$*:: $$what to set, in the form <name=value>$$. *(required)*
-
-==== $$hadoop config props get$$
-$$Returns the value of the given Hadoop property$$.
-
-    hadoop config props get [--key] <key>
-
-*$$key$$*:: $$property name$$. *(required)*
-
-==== $$hadoop config load$$
-$$Loads the Hadoop configuration from the given resource$$.
-
-    hadoop config load [--location] <location>
-
-*$$location$$*:: $$configuration location (can be a URL)$$. *(required)*
-
-==== $$hadoop config props list$$
-$$Returns (all) the Hadoop properties$$.
-
-    hadoop config props list
-
-
 ==== $$hadoop config fs$$
 $$Sets the Hadoop namenode$$.
 
@@ -445,57 +418,35 @@ $$Returns basic info about the Hadoop configuration$$.
     hadoop config info
 
 
+==== $$hadoop config load$$
+$$Loads the Hadoop configuration from the given resource$$.
+
+    hadoop config load [--location] <location>
+
+*$$location$$*:: $$configuration location (can be a URL)$$. *(required)*
+
+==== $$hadoop config props get$$
+$$Returns the value of the given Hadoop property$$.
+
+    hadoop config props get [--key] <key>
+
+*$$key$$*:: $$property name$$. *(required)*
+
+==== $$hadoop config props list$$
+$$Returns (all) the Hadoop properties$$.
+
+    hadoop config props list
+
+
+==== $$hadoop config props set$$
+$$Sets the value for the given Hadoop property$$.
+
+    hadoop config props set [--property] <property>
+
+*$$property$$*:: $$what to set, in the form <name=value>$$. *(required)*
+
 
 === Hadoop FileSystem Commands
-==== $$hadoop fs get$$
-$$Copy files to the local file system$$.
-
-    hadoop fs get --from <from> --to <to> [--ignoreCrc [<ignoreCrc>]] [--crc [<crc>]]
-
-*$$from$$*:: $$source file names$$. *(required)*
-*$$to$$*:: $$destination path name$$. *(required)*
-*$$ignoreCrc$$*:: $$whether ignore CRC$$. *(default: `false`, or `true` if +--ignoreCrc+ is specified without a value)*
-*$$crc$$*:: $$whether copy CRC$$. *(default: `false`, or `true` if +--crc+ is specified without a value)*
-
-==== $$hadoop fs put$$
-$$Copy single src, or multiple srcs from local file system to the destination file system$$.
-
-    hadoop fs put --from <from> --to <to>
-
-*$$from$$*:: $$source file names$$. *(required)*
-*$$to$$*:: $$destination path name$$. *(required)*
-
-==== $$hadoop fs count$$
-$$Count the number of directories, files, bytes, quota, and remaining quota$$.
-
-    hadoop fs count [--quota [<quota>]] --path <path>
-
-*$$quota$$*:: $$whether with quta information$$. *(default: `false`, or `true` if +--quota+ is specified without a value)*
-*$$path$$*:: $$path name$$. *(required)*
-
-==== $$hadoop fs mkdir$$
-$$Create a new directory$$.
-
-    hadoop fs mkdir [--dir] <dir>
-
-*$$dir$$*:: $$directory name$$. *(required)*
-
-==== $$hadoop fs tail$$
-$$Display last kilobyte of the file to stdout$$.
-
-    hadoop fs tail [--file] <file> [--follow [<follow>]]
-
-*$$file$$*:: $$file to be tailed$$. *(required)*
-*$$follow$$*:: $$whether show content while file grow$$. *(default: `false`, or `true` if +--follow+ is specified without a value)*
-
-==== $$hadoop fs ls$$
-$$List files in the directory$$.
-
-    hadoop fs ls [[--dir] <dir>] [--recursive [<recursive>]]
-
-*$$dir$$*:: $$directory to be listed$$. *(default: `.`)*
-*$$recursive$$*:: $$whether with recursion$$. *(default: `false`, or `true` if +--recursive+ is specified without a value)*
-
 ==== $$hadoop fs cat$$
 $$Copy source paths to stdout$$.
 
@@ -512,15 +463,6 @@ $$Change group association of files$$.
 *$$group$$*:: $$group name$$. *(required)*
 *$$path$$*:: $$path of the file whose group will be changed$$. *(required)*
 
-==== $$hadoop fs chown$$
-$$Change the owner of files$$.
-
-    hadoop fs chown [--recursive [<recursive>]] --owner <owner> [--path] <path>
-
-*$$recursive$$*:: $$whether with recursion$$. *(default: `false`, or `true` if +--recursive+ is specified without a value)*
-*$$owner$$*:: $$owner name$$. *(required)*
-*$$path$$*:: $$path of the file whose ownership will be changed$$. *(required)*
-
 ==== $$hadoop fs chmod$$
 $$Change the permissions of files$$.
 
@@ -530,6 +472,15 @@ $$Change the permissions of files$$.
 *$$mode$$*:: $$permission mode$$. *(required)*
 *$$path$$*:: $$path of the file whose permissions will be changed$$. *(required)*
 
+==== $$hadoop fs chown$$
+$$Change the owner of files$$.
+
+    hadoop fs chown [--recursive [<recursive>]] --owner <owner> [--path] <path>
+
+*$$recursive$$*:: $$whether with recursion$$. *(default: `false`, or `true` if +--recursive+ is specified without a value)*
+*$$owner$$*:: $$owner name$$. *(required)*
+*$$path$$*:: $$path of the file whose ownership will be changed$$. *(required)*
+
 ==== $$hadoop fs copyFromLocal$$
 $$Copy single src, or multiple srcs from local file system to the destination file system. Same as put$$.
 
@@ -538,13 +489,14 @@ $$Copy single src, or multiple srcs from local file system to the destination fi
 *$$from$$*:: $$source file names$$. *(required)*
 *$$to$$*:: $$destination path name$$. *(required)*
 
-==== $$hadoop fs moveFromLocal$$
-$$Similar to put command, except that the source localsrc is deleted after it's copied$$.
+==== $$hadoop fs copyMergeToLocal$$
+$$Takes a source directory and a destination file as input and concatenates files in src into the destination local file$$.
 
-    hadoop fs moveFromLocal --from <from> --to <to>
+    hadoop fs copyMergeToLocal --from <from> --to <to> [--endline [<endline>]]
 
 *$$from$$*:: $$source file names$$. *(required)*
 *$$to$$*:: $$destination path name$$. *(required)*
+*$$endline$$*:: $$whether add a newline character at the end of each file$$. *(default: `false`, or `true` if +--endline+ is specified without a value)*
 
 ==== $$hadoop fs copyToLocal$$
 $$Copy files to the local file system. Same as get$$.
@@ -556,27 +508,18 @@ $$Copy files to the local file system. Same as get$$.
 *$$ignoreCrc$$*:: $$whether ignore CRC$$. *(default: `false`, or `true` if +--ignoreCrc+ is specified without a value)*
 *$$crc$$*:: $$whether copy CRC$$. *(default: `false`, or `true` if +--crc+ is specified without a value)*
 
-==== $$hadoop fs copyMergeToLocal$$
-$$Takes a source directory and a destination file as input and concatenates files in src into the destination local file$$.
+==== $$hadoop fs count$$
+$$Count the number of directories, files, bytes, quota, and remaining quota$$.
 
-    hadoop fs copyMergeToLocal --from <from> --to <to> [--endline [<endline>]]
+    hadoop fs count [--quota [<quota>]] --path <path>
 
-*$$from$$*:: $$source file names$$. *(required)*
-*$$to$$*:: $$destination path name$$. *(required)*
-*$$endline$$*:: $$whether add a newline character at the end of each file$$. *(default: `false`, or `true` if +--endline+ is specified without a value)*
+*$$quota$$*:: $$whether with quta information$$. *(default: `false`, or `true` if +--quota+ is specified without a value)*
+*$$path$$*:: $$path name$$. *(required)*
 
 ==== $$hadoop fs cp$$
 $$Copy files from source to destination. This command allows multiple sources as well in which case the destination must be a directory$$.
 
     hadoop fs cp --from <from> --to <to>
-
-*$$from$$*:: $$source file names$$. *(required)*
-*$$to$$*:: $$destination path name$$. *(required)*
-
-==== $$hadoop fs mv$$
-$$Move source files to destination in the HDFS$$.
-
-    hadoop fs mv --from <from> --to <to>
 
 *$$from$$*:: $$source file names$$. *(required)*
 *$$to$$*:: $$destination path name$$. *(required)*
@@ -594,6 +537,55 @@ $$Empty the trash$$.
 
     hadoop fs expunge
 
+
+==== $$hadoop fs get$$
+$$Copy files to the local file system$$.
+
+    hadoop fs get --from <from> --to <to> [--ignoreCrc [<ignoreCrc>]] [--crc [<crc>]]
+
+*$$from$$*:: $$source file names$$. *(required)*
+*$$to$$*:: $$destination path name$$. *(required)*
+*$$ignoreCrc$$*:: $$whether ignore CRC$$. *(default: `false`, or `true` if +--ignoreCrc+ is specified without a value)*
+*$$crc$$*:: $$whether copy CRC$$. *(default: `false`, or `true` if +--crc+ is specified without a value)*
+
+==== $$hadoop fs ls$$
+$$List files in the directory$$.
+
+    hadoop fs ls [[--dir] <dir>] [--recursive [<recursive>]]
+
+*$$dir$$*:: $$directory to be listed$$. *(default: `.`)*
+*$$recursive$$*:: $$whether with recursion$$. *(default: `false`, or `true` if +--recursive+ is specified without a value)*
+
+==== $$hadoop fs mkdir$$
+$$Create a new directory$$.
+
+    hadoop fs mkdir [--dir] <dir>
+
+*$$dir$$*:: $$directory name$$. *(required)*
+
+==== $$hadoop fs moveFromLocal$$
+$$Similar to put command, except that the source localsrc is deleted after it's copied$$.
+
+    hadoop fs moveFromLocal --from <from> --to <to>
+
+*$$from$$*:: $$source file names$$. *(required)*
+*$$to$$*:: $$destination path name$$. *(required)*
+
+==== $$hadoop fs mv$$
+$$Move source files to destination in the HDFS$$.
+
+    hadoop fs mv --from <from> --to <to>
+
+*$$from$$*:: $$source file names$$. *(required)*
+*$$to$$*:: $$destination path name$$. *(required)*
+
+==== $$hadoop fs put$$
+$$Copy single src, or multiple srcs from local file system to the destination file system$$.
+
+    hadoop fs put --from <from> --to <to>
+
+*$$from$$*:: $$source file names$$. *(required)*
+*$$to$$*:: $$destination path name$$. *(required)*
 
 ==== $$hadoop fs rm$$
 $$Remove files in the HDFS$$.
@@ -613,6 +605,14 @@ $$Change the replication factor of a file$$.
 *$$replica$$*:: $$source file names$$. *(required)*
 *$$recursive$$*:: $$whether with recursion$$. *(default: `false`, or `true` if +--recursive+ is specified without a value)*
 *$$waiting$$*:: $$whether wait for the replic number is eqal to the number$$. *(default: `false`, or `true` if +--waiting+ is specified without a value)*
+
+==== $$hadoop fs tail$$
+$$Display last kilobyte of the file to stdout$$.
+
+    hadoop fs tail [--file] <file> [--follow [<follow>]]
+
+*$$file$$*:: $$file to be tailed$$. *(required)*
+*$$follow$$*:: $$whether show content while file grow$$. *(default: `false`, or `true` if +--follow+ is specified without a value)*
 
 ==== $$hadoop fs text$$
 $$Take a source file and output the file in text format$$.

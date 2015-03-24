@@ -93,6 +93,7 @@ allprojects {
 
 	repositories {
 		mavenCentral()
+		mavenLocal()
 		maven { url 'http://repo.spring.io/milestone' }
 		maven { url 'http://repo.spring.io/libs-milestone' }
 		maven { url 'http://repo.spring.io/libs-snapshot' }
@@ -545,8 +546,6 @@ project('spring-xd-dirt') {
 		outputs.dir scripts
 	}
 
-	//tasks["installApp"].dependsOn(":spring-xd-ui:setupUI")
-
 	applicationDistribution.from(configFiles) { into "config" }
 
 	applicationDistribution.from(scriptFiles) { into "bin" }
@@ -977,68 +976,14 @@ project('spring-xd-messagebus-kafka') {
 
 project('spring-xd-ui') {
 	description = 'Spring XD UI'
-	apply plugin: 'grunt'
 
 	dependencies {
 		compile "org.springframework.boot:spring-boot-starter-thymeleaf"
 		compile "org.springframework.boot:spring-boot-starter-security"
+		compile "org.springframework.xd:spring-xd-ui-client:1.2.0.BUILD-SNAPSHOT"
 		compile "log4j:log4j"
 		runtime "org.slf4j:slf4j-log4j12"
 	}
-
-	node {
-		version = '0.10.34'
-		download = true
-		//npmVersion = '2.1.18'
-	}
-
-	task cleanDist(type: Delete) {
-		description = "Remove the 'dist' directory"
-		delete 'src/main/resources/public/admin-ui'
-	}
-
-	task cleanNodeModules(type: Delete) {
-		description = "Remove the 'node_modules' directory"
-		delete 'node_modules'
-	}
-
-	task cleanBowerFiles(type: Delete) {
-		description = "Remove Bower directories"
-		delete '.bower_cache'
-		delete 'bower_components'
-		delete 'app/lib'
-	}
-
-	tasks['grunt_build'].dependsOn(['npmSetup', 'npmInstall', 'installGrunt']);
-	tasks['grunt_teste2e'].dependsOn(['grunt_build']);
-
-	task ui_test(dependsOn: ['grunt_teste2e', ':spring-xd-dirt:backgroundAdminServer']) {
-
-		description = "E2E-test the Admin UI using Grunt"
-
-		doLast {
-			def singleNodeServerProcess = project(':spring-xd-dirt').singleNodeServerProcess
-			if (singleNodeServerProcess != null && singleNodeServerProcess.process != null) {
-				singleNodeServerProcess.process.destroy()
-				println("Stopped the SingleNode server.")
-			}
-		}
-	}
-
-	task setupUI(dependsOn: ['grunt_build', 'build']) { description = "Build the Admin UI using Grunt" }
-
-	tasks['build'].shouldRunAfter 'grunt_build'
-	grunt_build.shouldRunAfter 'installGrunt'
-	grunt_teste2e.shouldRunAfter 'installGrunt'
-	installGrunt.shouldRunAfter 'npmInstall'
-
-	task cleanUI(dependsOn: [
-			'cleanDist',
-			'cleanNodeModules',
-			'cleanBowerFiles'
-	]) { description = "Clean the Admin UI dist, node modules and bower files" }
-
-	//tasks['clean'].dependsOn(['cleanUI']) // 'dist' files are checked into VCS for now, don't clean
 
 }
 

@@ -122,7 +122,18 @@ task copyYarnInstallMessageBusLibs(type: Copy, dependsOn: ["copyYarnInstallDirt"
   into "$buildDir/dist/spring-xd-yarn/xd-yarn/lib/messagebus"
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyXDInstall", "copyGemfireInstall", "copyBatchInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstallDirt", "copyYarnInstallMessageBusLibs", "copyZookeeperInstall", "copyPythonInstall", "copyMessageBusLibs"]) {
+task copyInstall (type: Copy, dependsOn: ["build",
+										  "copyRedisInstall",
+										  "copyXDInstall",
+										  "copyGemfireInstall",
+										  "copyBatchInstall",
+										  "copyHadoopLibs",
+										  "copyXDShellInstall",
+										  "copyYarnInstallDirt",
+										  "copyYarnInstallMessageBusLibs",
+										  "copyZookeeperInstall",
+										  "copyPythonInstall",
+										  "copyMessageBusLibs"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"

@@ -43,8 +43,6 @@ task checkProjectDescriptions {
 	}
 }
 
-task build (dependsOn: checkProjectDescriptions) { }
-
 ext {
 	linkHomepage = 'https://github.com/spring-projects/spring-xd'
 	linkCi = 'https://build.spring.io/browse/XD'
@@ -1334,14 +1332,6 @@ project('spring-xd-distributed-test') {
 
 }
 
-project('documentation-toolchain') {
-	description = 'Utilities for generating/verifying documentation'
-	dependencies {
-		compile "org.springframework:spring-core"
-	}
-}
-
-
 apply plugin: 'sonar-runner'
 
 sonarRunner {
@@ -1402,3 +1392,4 @@ idea.project.ipr {
 	}
 }
 
+task build(dependsOn: [':documentation-toolchain:checkDocsLinks', checkProjectDescriptions]) {}

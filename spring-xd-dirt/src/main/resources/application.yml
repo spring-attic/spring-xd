@@ -169,6 +169,7 @@ xd:
         autoCommitEnabled:         true
         queueSize:                 1000
         fetchSize:                 1048576
+        minPartitionCount:         1
   security:
     authorization:
       rules:

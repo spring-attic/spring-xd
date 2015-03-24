@@ -43,8 +43,6 @@ task checkProjectDescriptions {
 	}
 }
 
-task build (dependsOn: checkProjectDescriptions) { }
-
 ext {
 	linkHomepage = 'https://github.com/spring-projects/spring-xd'
 	linkCi = 'https://build.spring.io/browse/XD'
@@ -1393,4 +1391,6 @@ idea.project.ipr {
 		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
 	}
 }
+
+task build(dependsOn: [':documentation-toolchain:checkDocsLinks', checkProjectDescriptions]) {}
 

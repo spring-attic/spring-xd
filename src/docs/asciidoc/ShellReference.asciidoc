@@ -1,8 +1,6 @@
 [[shell-command-reference]]
-ifndef::env-github[]
 == XD Shell Command Reference
-endif::[]
-Below is a reference list of all Spring XD specific commands you can use in the xref:Shell#interactive-shell[XD Shell].
+Below is a reference list of all Spring XD specific commands you can use in the link:Shell#interactive-shell[XD Shell].
 
 === Configuration Commands
 ==== $$admin config server$$
@@ -77,10 +75,11 @@ $$Destroy all existing streams$$.
 ==== $$stream deploy$$
 $$Deploy a previously created stream$$.
 
-    stream deploy [--name] <name> [--properties <properties>]
+    stream deploy [--name] <name> [--properties <properties>] [--propertiesFile <propertiesFile>]
 
 *$$name$$*:: $$the name of the stream to deploy$$. *(required)*
 *$$properties$$*:: $$the properties for this deployment$$.
+*$$propertiesFile$$*:: $$the properties for this deployment (as a File)$$.
 
 ==== $$stream undeploy$$
 $$Un-deploy a previously deployed stream$$.
@@ -104,12 +103,6 @@ $$List created streams$$.
 
 
 === Job Commands
-==== $$job list$$
-$$List all jobs$$.
-
-    job list
-
-
 ==== $$job create$$
 $$Create a job$$.
 
@@ -118,6 +111,12 @@ $$Create a job$$.
 *$$name$$*:: $$the name to give to the job$$. *(required)*
 *$$definition$$*:: $$job definition using xd dsl $$. *(required)*
 *$$deploy$$*:: $$whether to deploy the job immediately$$. *(default: `false`, or `true` if +--deploy+ is specified without a value)*
+
+==== $$job list$$
+$$List all jobs$$.
+
+    job list
+
 
 ==== $$job execution list$$
 $$List all job executions$$.
@@ -179,10 +178,11 @@ $$Restart a job that failed or interrupted previously$$.
 ==== $$job deploy$$
 $$Deploy a previously created job$$.
 
-    job deploy [--name] <name> [--properties <properties>]
+    job deploy [--name] <name> [--properties <properties>] [--propertiesFile <propertiesFile>]
 
 *$$name$$*:: $$the name of the job to deploy$$. *(required)*
 *$$properties$$*:: $$the properties for this deployment$$.
+*$$propertiesFile$$*:: $$the properties for this deployment (as a File)$$.
 
 ==== $$job launch$$
 $$Launch previously deployed job$$.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.util;
+package org.springframework.xd.documentation;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -64,7 +64,7 @@ import org.springframework.xd.shell.hadoop.FsShellCommands;
  * @author Gunnar Hillert
  *
  */
-public class ReferenceDoc {
+public class ShellReferenceDoc {
 
 	private final static Pattern COMMAND_FORMAT = Pattern.compile("[a-z][a-zA-Z \\-]+");
 
@@ -95,7 +95,7 @@ public class ReferenceDoc {
 
 	}
 
-	public ReferenceDoc() {
+	public ShellReferenceDoc() {
 		/*
 		 * Set titles for commands. Please note that insertion order matters!
 		 */
@@ -148,7 +148,7 @@ public class ReferenceDoc {
 	}
 
 	public static void main(String[] args) throws Exception {
-		ReferenceDoc doc = new ReferenceDoc();
+		ShellReferenceDoc doc = new ShellReferenceDoc();
 		doc.out = args.length == 1 ? new PrintStream(args[0]) : System.out;
 
 		doc.doIt();
@@ -158,9 +158,7 @@ public class ReferenceDoc {
 	@Test
 	public void doIt() {
 		out.println("[[shell-command-reference]]");
-		out.println("ifndef::env-github[]");
 		out.println("== XD Shell Command Reference");
-		out.println("endif::[]");
 		out.println("Below is a reference list of all Spring XD specific commands you can use in the link:Shell#interactive-shell[XD Shell].\n");
 
 

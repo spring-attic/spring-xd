@@ -14,35 +14,50 @@ buildscript {
 
 }
 
-def docsDir = 'src/docs/asciidoc' // Will be default with newer asciidoctor plugin
+def docsDir = rootProject.file('src/docs/asciidoc') // Will be default with newer asciidoctor plugin
 
-task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-dirt:build", ":spring-xd-shell:compileTestJava"]) {
-	classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath
-	main = 'org.springframework.xd.shell.util.ModuleOptionsReferenceDoc'
-	args = [
-		"$docsDir/Sources.asciidoc",
-		"$docsDir/Processors.asciidoc",
-		"$docsDir/Sinks.asciidoc",
-		"$docsDir/Batch-Jobs.asciidoc",
-		"$docsDir/Analytics.asciidoc",
-	]
+project('documentation-toolchain') {
+	description = 'Utilities for generating/verifying documentation'
+	dependencies {
+		compile project(':spring-xd-dirt')
+		testCompile project(':spring-xd-shell')
+	}
+
+	task shellReferenceDoc(type: JavaExec) {
+		classpath = sourceSets.test.runtimeClasspath
+		main = 'org.springframework.xd.documentation.ShellReferenceDoc'
+		workingDir = rootProject.file('.')
+		args = [
+				"$docsDir/ShellReference.asciidoc"
+		]
+	}
+
+	task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: [':spring-xd-dirt:build', ":spring-xd-shell:compileTestJava"]) {
+		classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath
+		main = 'org.springframework.xd.shell.util.ModuleOptionsReferenceDoc'
+		workingDir = rootProject.file('.')
+		args = [
+				"$docsDir/Sources.asciidoc",
+				"$docsDir/Processors.asciidoc",
+				"$docsDir/Sinks.asciidoc",
+				"$docsDir/Batch-Jobs.asciidoc",
+				"$docsDir/Analytics.asciidoc",
+		]
+	}
+	task checkDocsLinks(type: JavaExec, dependsOn: [compileJava, shellReferenceDoc, moduleOptionsReferenceDoc]) {
+		classpath = sourceSets.main.runtimeClasspath
+		main = 'org.springframework.xd.documentation.AsciidocLinkChecker'
+		args = [
+				"file:$docsDir/*.asciidoc"
+		]
+	}
+
+
 }
 
-task shellReferenceDoc(type: JavaExec, dependsOn: [":spring-xd-shell:compileTestJava"]) {
-	classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath
-	main = 'org.springframework.xd.shell.util.ReferenceDoc'
-	args = [
-		"$docsDir/ShellReference.asciidoc"
-	]
-}
 
-task checkDocsLinks(type: JavaExec, dependsOn: [":documentation-toolchain:compileJava", shellReferenceDoc, moduleOptionsReferenceDoc]) {
-	classpath = project(':documentation-toolchain').sourceSets.main.runtimeClasspath
-	main = 'org.springframework.xd.documentation.AsciidocLinkChecker'
-	args = [
-		"file:$docsDir/*.asciidoc"
-	]
-}
+
+
 
 
 apply plugin: org.asciidoctor.gradle.AsciidoctorPlugin
@@ -68,7 +83,7 @@ asciidoctor {
 	]
 }
 
-asciidoctor.dependsOn ([checkDocsLinks, shellReferenceDoc, moduleOptionsReferenceDoc])
+asciidoctor.dependsOn ([':documentation-toolchain:checkDocsLinks', ':documentation-toolchain:shellReferenceDoc', ':documentation-toolchain:moduleOptionsReferenceDoc'])
 
 apply plugin: DocbookReferencePlugin
 

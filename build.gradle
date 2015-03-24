@@ -1334,14 +1334,6 @@ project('spring-xd-distributed-test') {
 
 }
 
-project('documentation-toolchain') {
-	description = 'Utilities for generating/verifying documentation'
-	dependencies {
-		compile "org.springframework:spring-core"
-	}
-}
-
-
 apply plugin: 'sonar-runner'
 
 sonarRunner {

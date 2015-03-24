@@ -16,10 +16,13 @@
 
 package org.springframework.xd.dirt.integration.bus.kafka;
 
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -28,16 +31,20 @@ import java.util.concurrent.TimeUnit;
 
 import kafka.api.OffsetRequest;
 
+import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.kafka.core.BrokerAddress;
 import org.springframework.integration.kafka.core.KafkaMessage;
+import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.integration.kafka.listener.MessageListener;
 import org.springframework.messaging.Message;
+import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
@@ -134,6 +141,92 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 			messageBus.unbindProducers("foo.0");
 			messageBus.unbindConsumers("foo.0");
 		}
+	}
+
+	@Test
+	public void testCustomPartitionCountOverridesDefaultIfLarger() throws Exception {
+
+		byte[] ratherBigPayload = new byte[2048];
+		Arrays.fill(ratherBigPayload, (byte) 65);
+		KafkaTestMessageBus messageBus = (KafkaTestMessageBus) getMessageBus();
+
+
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		Properties props = new Properties();
+		props.put(KafkaMessageBus.KAFKA_MIN_PARTITION_COUNT, "10");
+		long uniqueBindingId = System.currentTimeMillis();
+		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, props);
+		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, null);
+		Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
+		// Let the consumer actually bind to the producer before sending a msg
+		busBindUnbindLatency();
+		moduleOutputChannel.send(message);
+		Message<?> inbound = moduleInputChannel.receive(2000);
+		assertNotNull(inbound);
+		assertArrayEquals(ratherBigPayload, (byte[]) inbound.getPayload());
+		Collection<Partition> partitions = messageBus.getCoreMessageBus().getConnectionFactory().getPartitions("foo" + uniqueBindingId + ".0");
+		assertThat(partitions, hasSize(10));
+		messageBus.unbindProducers("foo" + uniqueBindingId + ".0");
+		messageBus.unbindConsumers("foo" + uniqueBindingId + ".0");
+	}
+
+	@Test
+	public void testCustomPartitionCountDoesNotOverrideModuleCountAndConcurrency() throws Exception {
+
+		byte[] ratherBigPayload = new byte[2048];
+		Arrays.fill(ratherBigPayload, (byte) 65);
+		KafkaTestMessageBus messageBus = (KafkaTestMessageBus) getMessageBus();
+
+
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		Properties props = new Properties();
+		props.put(KafkaMessageBus.KAFKA_MIN_PARTITION_COUNT, "5");
+		props.put(BusProperties.NEXT_MODULE_COUNT,"6");
+		long uniqueBindingId = System.currentTimeMillis();
+		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, props);
+		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, null);
+		Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
+		// Let the consumer actually bind to the producer before sending a msg
+		busBindUnbindLatency();
+		moduleOutputChannel.send(message);
+		Message<?> inbound = moduleInputChannel.receive(2000);
+		assertNotNull(inbound);
+		assertArrayEquals(ratherBigPayload, (byte[]) inbound.getPayload());
+		Collection<Partition> partitions = messageBus.getCoreMessageBus().getConnectionFactory().getPartitions("foo" + uniqueBindingId + ".0");
+		assertThat(partitions, hasSize(6));
+		messageBus.unbindProducers("foo" + uniqueBindingId + ".0");
+		messageBus.unbindConsumers("foo" + uniqueBindingId + ".0");
+	}
+
+	@Test
+	public void testCustomPartitionCountDoesNotOverridePartitioning() throws Exception {
+
+		byte[] ratherBigPayload = new byte[2048];
+		Arrays.fill(ratherBigPayload, (byte) 65);
+		KafkaTestMessageBus messageBus = (KafkaTestMessageBus) getMessageBus();
+
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		Properties props = new Properties();
+		props.put(KafkaMessageBus.KAFKA_MIN_PARTITION_COUNT, "3");
+		props.put(BusProperties.PARTITION_COUNT,"5");
+		props.put(BusProperties.PARTITION_KEY_EXPRESSION,"payload");
+		long uniqueBindingId = System.currentTimeMillis();
+		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, props);
+		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, null);
+		Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
+		// Let the consumer actually bind to the producer before sending a msg
+		busBindUnbindLatency();
+		moduleOutputChannel.send(message);
+		Message<?> inbound = moduleInputChannel.receive(2000);
+		assertNotNull(inbound);
+		assertArrayEquals(ratherBigPayload, (byte[]) inbound.getPayload());
+		Collection<Partition> partitions = messageBus.getCoreMessageBus().getConnectionFactory().getPartitions("foo" + uniqueBindingId + ".0");
+		assertThat(partitions, hasSize(5));
+		messageBus.unbindProducers("foo" + uniqueBindingId + ".0");
+		messageBus.unbindConsumers("foo" + uniqueBindingId + ".0");
 	}
 
 	@Test

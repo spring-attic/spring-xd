@@ -27,7 +27,6 @@ task version << {
 task checkProjectDescriptions {
 	description = "Verify that all projects have a description"
 	doLast {
-		println "Checking descriptions for ${allprojects.size()} projects (root + sub)"
 		def projectsWithoutDescription = []
 		allprojects.each { prj ->
 			logger.info "Project: ${prj.name}, Description: ${prj.description ? prj.description : 'N/A'}"
@@ -340,7 +339,7 @@ apply from: 'gradle/build-starters.gradle'
 apply from: 'gradle/build-gradle-plugins.gradle'
 
 project('spring-xd-analytics') {
-	description = 'Spring XD Anayltics'
+	description = 'Spring XD Analytics'
 	dependencies {
 		compile project(":spring-xd-tuple")
 		compile "org.springframework:spring-core"
@@ -1400,3 +1399,5 @@ idea.project.ipr {
 		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
 	}
 }
+
+tasks['checkProjectDescriptions'].execute()

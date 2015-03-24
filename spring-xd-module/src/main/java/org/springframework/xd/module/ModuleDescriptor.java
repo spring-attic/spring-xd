@@ -575,6 +575,9 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		}
 
 		public ModuleDefinition getModuleDefinition() {
+			if (moduleDefinition == null) {
+				moduleDefinition = ModuleDefinitions.dummy(moduleName, type);
+			}
 			return moduleDefinition;
 		}
 	}

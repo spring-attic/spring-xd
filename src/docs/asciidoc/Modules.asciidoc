@@ -91,7 +91,7 @@ Start by setting the parent to `spring-xd-module-parent` in your `pom.xml`:
 <parent>
   <groupId>org.springframework.xd</groupId>
   <artifactId>spring-xd-module-parent</artifactId>
-  <version>1.1.0.RELEASE</version>
+  <version>1.1.1.RELEASE</version>
 </parent>
 ----
 
@@ -107,13 +107,13 @@ buildscript {
     }
     // Add the path of the Spring XD Module plugin 
     dependencies {
-      classpath("org.springframework.xd:spring-xd-module-plugin:1.1.0.RELEASE") //or a later release of the plugin
+      classpath("org.springframework.xd:spring-xd-module-plugin:1.1.1.RELEASE") //or a later release of the plugin
     }
 }
 
 //The Spring XD version is required by the plugin to pull in order to configure dependent libraries that your module project will likely need. 
 ext {
-  springXdVersion = '1.1.0.RELEASE' //or a later release of Spring XD
+  springXdVersion = '1.1.1.RELEASE' //or a later release of Spring XD
 }
 
 apply plugin: 'spring-xd-module'

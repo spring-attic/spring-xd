@@ -1,4 +1,4 @@
-v1.1.0.RELEASE/*
+/*
  * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,8 @@ import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundPathAndBytesable;
@@ -78,7 +80,6 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 		super(zkConnection, repository, streamRepository, parser, stream);
 		this.zkConnection = zkConnection;
 		this.parser = parser;
-		updateModuleDefinitions();
 	}
 
 	/**
@@ -110,13 +111,15 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 	 * The following method will update the module definitions for those stream definitions.
 	 * See https://jira.spring.io/browse/XD-2854
 	 */
+	@PostConstruct
 	private void updateModuleDefinitions() {
 		if (this.parser != null && this.zkConnection != null && this.zkConnection.getClient() != null) {
 			try {
-				CuratorFramework client =  this.zkConnection.getClient();
+				CuratorFramework client = this.zkConnection.getClient();
 				if (client.checkExists().forPath(Paths.STREAMS) != null) {
 					ObjectWriter objectWriter =
-							new ObjectMapper().writerWithType(new TypeReference<List<ModuleDefinition>>() {});
+							new ObjectMapper().writerWithType(new TypeReference<List<ModuleDefinition>>() {
+							});
 					Iterable<StreamDefinition> streamDefinitions = findAll();
 					for (StreamDefinition definition : streamDefinitions) {
 						String streamName = definition.getName();
@@ -134,29 +137,29 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 										try {
 											map.put(MODULE_DEFINITIONS_KEY,
 													objectWriter.writeValueAsString(moduleDefinitions));
+											byte[] binary = ZooKeeperUtils.mapToBytes(map);
+											BackgroundPathAndBytesable<?> op = client.checkExists().forPath(path) == null
+													? client.create() : client.setData();
+											op.forPath(path, binary);
 										}
 										catch (JsonProcessingException jpe) {
-											logger.error("Error writing module definitions " + moduleDefinitions +
-													" for the stream " + streamName + " " + jpe);
+											logger.error("Exception writing module definitions " + moduleDefinitions +
+													" for the stream " + streamName + " with the following error " + jpe);
 										}
-										byte[] binary = ZooKeeperUtils.mapToBytes(map);
-										BackgroundPathAndBytesable<?> op = client.checkExists().forPath(path) == null
-												? client.create() : client.setData();
-										op.forPath(path, binary);
 									}
 								}
 							}
 						}
-						catch(Exception e) {
+						catch (Exception e) {
 							logger.error("Exception when updating module definitions for the stream "
-									+ streamName + " "+ e);
+									+ streamName + " with the following error " + e);
 						}
 					}
 				}
 			}
 			catch (Exception e) {
-				logger.error("Error migrating stream definitions. This migration is done when the existing " +
-						"stream definitions that don't have module definitions set." + e);
+				logger.error("Exception migrating stream definitions. This migration is done when the existing " +
+						"stream definitions that don't have module definitions set. " + e);
 			}
 		}
 	}

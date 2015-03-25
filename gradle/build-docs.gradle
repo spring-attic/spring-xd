@@ -32,7 +32,7 @@ project('documentation-toolchain') {
 		]
 	}
 
-	task moduleOptionsReferenceDoc(type: JavaExec) {
+	task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: ':spring-xd-dirt:build') {
 		classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath
 		main = 'org.springframework.xd.shell.util.ModuleOptionsReferenceDoc'
 		workingDir = rootProject.file('.')

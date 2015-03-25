@@ -164,8 +164,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private static final boolean DEFAULT_AUTO_COMMIT_ENABLED = true;
 
-	private final KafkaPropertiesAccessor emptyAccessor = new KafkaPropertiesAccessor(new Properties());
-
 	private RetryOperations retryOperations;
 
 	/**
@@ -703,13 +701,12 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	}
 
-	public KafkaMessageListenerContainer createMessageListenerContainer(KafkaPropertiesAccessor accessor,
-			String group, int numThreads, String topic,
-			long referencePoint) {
-		return createMessageListenerContainer(accessor != null ? accessor : emptyAccessor, group, numThreads, topic, null, referencePoint);
+	public KafkaMessageListenerContainer createMessageListenerContainer(Properties properties, String group, int numThreads,
+			String topic, long referencePoint) {
+		return createMessageListenerContainer(new KafkaPropertiesAccessor(properties), group, numThreads, topic, null, referencePoint);
 	}
 
-	public KafkaMessageListenerContainer createMessageListenerContainer(KafkaPropertiesAccessor accessor,
+	private KafkaMessageListenerContainer createMessageListenerContainer(KafkaPropertiesAccessor accessor,
 			String group, int numThreads, Collection<Partition> listenedPartitions, long referencePoint) {
 		return createMessageListenerContainer(accessor, group, numThreads, null, listenedPartitions, referencePoint);
 	}

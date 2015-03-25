@@ -15,7 +15,9 @@
 
 package org.springframework.xd.module.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -49,47 +51,70 @@ public class ModuleFactoryTests {
 		assertTrue(module instanceof JavaConfiguredModule);
 		module.initialize();
 		module.getComponent("input", MessageChannel.class);
-		module.getComponent("output",MessageChannel.class);
-		module.getComponent("transformer",Object.class);
+		module.getComponent("output", MessageChannel.class);
+		module.getComponent("transformer", Object.class);
+	}
+
+	@Test
+	public void invalidJavaConfiguredModuleShouldThrowException() {
+		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("badModule", ModuleType.processor,
+				"classpath:/ModuleFactoryTests/modules/processor/badModule.jar");
+		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
+				.setModuleDefinition(moduleDefinition)
+				.setModuleName("badModule")
+				.setGroup("group")
+				.setModuleDefinition(moduleDefinition)
+				.setParameter("prefix", "foo")
+				.build();
+
+		Module module = moduleFactory.createModule(moduleDescriptor, new ModuleDeploymentProperties());
+		try {
+			module.initialize();
+			fail("should throw exception");
+		}
+		catch (RuntimeException e) {
+			assertEquals("Unable to find a module @Configuration class in base_packages: foooo.com.acme for module " +
+					"badModule:processor", e.getMessage());
+		}
 	}
 
 	@Test
 	public void createXmlModule() {
-		createResourceConfiguredModule("xmlModule",ModuleType.processor);
+		createResourceConfiguredModule("xmlModule", ModuleType.processor);
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void multipleXmlConfigThrowsException() {
-		createResourceConfiguredModule("invalid",ModuleType.processor);
+		createResourceConfiguredModule("invalid", ModuleType.processor);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void missingConfigThrowsException() {
 		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("missing", ModuleType.processor,
 				"classpath:/ModuleFactoryTests/modules/processor/missing");
-		createResourceConfiguredModule("missing",ModuleType.processor);
+		createResourceConfiguredModule("missing", ModuleType.processor);
 	}
 
 
 	@Test
 	public void createGroovyModule() {
-		createResourceConfiguredModule("groovyModule",ModuleType.processor);
+		createResourceConfiguredModule("groovyModule", ModuleType.processor);
 	}
 
 	private void createResourceConfiguredModule(String moduleName, ModuleType moduleType) {
-		ModuleDefinition moduleDefinition = ModuleDefinitions.simple(moduleName,moduleType,
+		ModuleDefinition moduleDefinition = ModuleDefinitions.simple(moduleName, moduleType,
 				"classpath:/ModuleFactoryTests/modules/" + moduleType + "/" + moduleName + "/");
 		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
 				.setModuleDefinition(moduleDefinition)
 				.setModuleName(moduleName)
 				.setGroup("group")
-				.setParameter("bar","hello")
+				.setParameter("bar", "hello")
 				.build();
 
 		Module module = moduleFactory.createModule(moduleDescriptor, new ModuleDeploymentProperties());
 		assertTrue(module instanceof ResourceConfiguredModule);
 		module.initialize();
-		assertEquals("foo",module.getComponent("foo", String.class));
-		assertEquals("hello",module.getComponent("bar", String.class));
+		assertEquals("foo", module.getComponent("foo", String.class));
+		assertEquals("hello", module.getComponent("bar", String.class));
 	}
 }

@@ -16,14 +16,20 @@
 package org.springframework.xd.module.core;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.SimpleModuleDefinition;
@@ -32,6 +38,8 @@ import org.springframework.xd.module.support.ModuleUtils;
 
 /**
  * A {@link SimpleModule} configured by an @Configuration class.
+ *
+ * @author David Turanski
  */
 public class JavaConfiguredModule extends SimpleModule {
 
@@ -54,6 +62,8 @@ public class JavaConfiguredModule extends SimpleModule {
 				"module" +
 				" %s.", BASE_PACKAGES, moduleDefinition.toString()));
 		addListener(new JavaConfigModuleListener(basePackages));
+		addListener(new JavaConfigValidationListener(moduleDefinition, basePackages));
+
 	}
 
 	public static String[] basePackages(SimpleModuleDefinition moduleDefinition, ClassLoader moduleClassLoader) {
@@ -90,6 +100,45 @@ public class JavaConfiguredModule extends SimpleModule {
 			AnnotationConfigApplicationContext context = (AnnotationConfigApplicationContext) event
 					.getApplicationContext();
 			context.scan(basePackages);
+
+		}
+	}
+
+	static class JavaConfigValidationListener implements ApplicationListener<ContextRefreshedEvent> {
+
+		private final ModuleDefinition moduleDefinition;
+
+		private final String[] basePackages;
+
+		public JavaConfigValidationListener(SimpleModuleDefinition moduleDefinition, String[] basePackages) {
+			this.basePackages = basePackages;
+			this.moduleDefinition = moduleDefinition;
+		}
+
+		@Override
+		public void onApplicationEvent(ContextRefreshedEvent event) {
+			ApplicationContext context = event.getApplicationContext();
+			Map<String, Object> moduleConfiguration = context.getBeansWithAnnotation(Configuration.class);
+			boolean found = false;
+			if (!CollectionUtils.isEmpty(moduleConfiguration)) {
+				for (String pkg : basePackages) {
+					if (found) {
+						break;
+					}
+					for (Object obj : moduleConfiguration.values()) {
+						if (obj.getClass().getName().startsWith(pkg)) {
+							found = true;
+						}
+					}
+				}
+			}
+			if (!found) {
+				throw new RuntimeException(String.format(
+						"Unable to find a module @Configuration class in base_packages: %s for module %s:%s",
+						StringUtils.arrayToCommaDelimitedString(basePackages),
+						moduleDefinition.getName(), moduleDefinition.getType()
+				));
+			}
 		}
 	}
 }

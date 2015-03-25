@@ -56,8 +56,8 @@ import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.TestModuleDefinitions;
 
 /**
  * Tests REST compliance of {@link BatchJobExecutionsController} endpoints.
@@ -87,7 +87,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@SuppressWarnings("unchecked")
 	@Before
 	public void before() throws Exception {
-		ModuleDefinition moduleJobDefinition = ModuleDefinitions.dummy("job", ModuleType.job);
+		ModuleDefinition moduleJobDefinition = TestModuleDefinitions.dummy("job", ModuleType.job);
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		moduleDefinitions.add(moduleJobDefinition);
 		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);

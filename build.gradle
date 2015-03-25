@@ -1082,6 +1082,7 @@ project('spring-xd-test') {
 		compile "org.apache.kafka:kafka_2.10:${kafkaVersion}"
 		compile "org.apache.kafka:kafka_2.10:${kafkaVersion}:test"
 		compile "org.apache.curator:curator-test:${curatorVersion}"
+		compile project(':spring-xd-module')
 	}
 }
 

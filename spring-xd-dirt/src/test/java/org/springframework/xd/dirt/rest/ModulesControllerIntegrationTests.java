@@ -44,6 +44,7 @@ import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.TestModuleDefinitions;
 
 /**
  * Tests REST compliance of module-related endpoints.
@@ -84,19 +85,19 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 		for (int moduleCount = 0; moduleCount < 3; moduleCount++) {
 
-			ModuleDefinition moduleDefinition = ModuleDefinitions.dummy("job_" + moduleCount, ModuleType.job);
+			ModuleDefinition moduleDefinition = TestModuleDefinitions.dummy("job_" + moduleCount, ModuleType.job);
 			moduleDefinitions.add(moduleDefinition);
 			jobDefinitions.add(moduleDefinition);
 
-			moduleDefinition = ModuleDefinitions.dummy("source_" + moduleCount, ModuleType.source);
+			moduleDefinition = TestModuleDefinitions.dummy("source_" + moduleCount, ModuleType.source);
 			moduleDefinitions.add(moduleDefinition);
 			sourceDefinitions.add(moduleDefinition);
 
-			moduleDefinition = ModuleDefinitions.dummy("sink_" + moduleCount, ModuleType.sink);
+			moduleDefinition = TestModuleDefinitions.dummy("sink_" + moduleCount, ModuleType.sink);
 			moduleDefinitions.add(moduleDefinition);
 			sinkDefinitions.add(moduleDefinition);
 
-			moduleDefinition = ModuleDefinitions.dummy("processor_" + moduleCount, ModuleType.processor);
+			moduleDefinition = TestModuleDefinitions.dummy("processor_" + moduleCount, ModuleType.processor);
 			moduleDefinitions.add(moduleDefinition);
 			processorDefinitions.add(moduleDefinition);
 		}

@@ -63,22 +63,4 @@ public class ModuleDefinitions {
 		return new CompositeModuleDefinition(name, type, dslDefinition, children);
 	}
 
-	/**
-	 * Create a new definition for a dummy module, for testing purposes only. The resulting module is of the same kind
-	 * as returned by {@link #simple(String, ModuleType, String)} but the 'location' must not be relied upon.
-	 * @param name the name of the module
-	 * @param type the type of the module
-	 */
-	public static ModuleDefinition dummy(String name, ModuleType type) {
-		try {
-			File location = File.createTempFile("dummy-module", type + name);
-			Assert.isTrue(location.delete(), "could not delete temp file");
-			Assert.isTrue(location.mkdirs(), "could not re-create file as a dir");
-			location.deleteOnExit();
-			return new SimpleModuleDefinition(name, type, "file:" + location.getAbsolutePath());
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
 }

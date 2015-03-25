@@ -43,8 +43,8 @@ import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.TestModuleDefinitions;
 
 /**
  * Tests REST compliance of jobs-related endpoints.
@@ -75,7 +75,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Before
 	public void before() {
-		ModuleDefinition moduleJobDefinition = ModuleDefinitions.dummy("job", ModuleType.job);
+		ModuleDefinition moduleJobDefinition = TestModuleDefinitions.dummy("job", ModuleType.job);
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		moduleDefinitions.add(moduleJobDefinition);
 		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);

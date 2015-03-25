@@ -31,8 +31,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.TestModuleDefinitions;
 
 /**
  * Tests for ResourceModuleRegistry implementation logic.
@@ -71,7 +71,7 @@ public class WritableResourceModuleRegistryLogicTests {
 		org.springframework.util.Assert.isTrue(new File(processors, "foo.jar").createNewFile(), "could not create dummy file");
 
 
-		org.springframework.util.Assert.isTrue(writableModuleRegistry.delete(ModuleDefinitions.dummy("foo", processor)));
+		org.springframework.util.Assert.isTrue(writableModuleRegistry.delete(TestModuleDefinitions.dummy("foo", processor)));
 	}
 
 	private String tempPath() {

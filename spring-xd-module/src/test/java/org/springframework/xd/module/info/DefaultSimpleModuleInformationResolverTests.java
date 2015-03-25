@@ -22,16 +22,14 @@ import static org.junit.Assert.*;
 import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SimpleModuleDefinition;
+import org.springframework.xd.module.TestModuleDefinitions;
 
 /**
  * Unit tests for DefaultSimpleModuleInformationResolver.
@@ -43,8 +41,8 @@ public class DefaultSimpleModuleInformationResolverTests {
 	@Test
 	public void doesNotSupportComposedModules() {
 		DefaultSimpleModuleInformationResolver resolver = new DefaultSimpleModuleInformationResolver();
-		ModuleDefinition filter = ModuleDefinitions.dummy("filter", ModuleType.processor);
-		ModuleDefinition transform = ModuleDefinitions.dummy("transform", ModuleType.processor);
+		ModuleDefinition filter = TestModuleDefinitions.dummy("filter", ModuleType.processor);
+		ModuleDefinition transform = TestModuleDefinitions.dummy("transform", ModuleType.processor);
 		ModuleInformation result = resolver.resolve(ModuleDefinitions.composed("foo", ModuleType.processor, "filter | transform", Arrays.asList(filter, transform)));
 
 		assertThat(result, CoreMatchers.nullValue());

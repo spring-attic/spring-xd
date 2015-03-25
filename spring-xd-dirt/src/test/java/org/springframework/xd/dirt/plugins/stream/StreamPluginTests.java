@@ -63,10 +63,10 @@ import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.TestModuleDefinitions;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.ResourceConfiguredModule;
 
@@ -117,7 +117,7 @@ public class StreamPluginTests {
 	@Test
 	public void streamPropertiesAdded() {
 		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(ModuleDefinitions.dummy("testsource", ModuleType.source))
+				.setModuleDefinition(TestModuleDefinitions.dummy("testsource", ModuleType.source))
 				.setGroup("foo")
 				.setIndex(0)
 				.build();
@@ -133,7 +133,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamChannelTests() throws InterruptedException {
-		ModuleDefinition moduleDefinition = ModuleDefinitions.dummy("testing", ModuleType.processor);
+		ModuleDefinition moduleDefinition = TestModuleDefinitions.dummy("testing", ModuleType.processor);
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
@@ -158,7 +158,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void testTapOnProxy() throws Exception {
-		ModuleDefinition moduleDefinition = ModuleDefinitions.dummy("testing", ModuleType.processor);
+		ModuleDefinition moduleDefinition = TestModuleDefinitions.dummy("testing", ModuleType.processor);
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")
@@ -186,7 +186,7 @@ public class StreamPluginTests {
 	@Test
 	// XD 2429
 	public void testBindOrder() {
-		ModuleDefinition moduleDefinition = ModuleDefinitions.dummy("testing", ModuleType.processor);
+		ModuleDefinition moduleDefinition = TestModuleDefinitions.dummy("testing", ModuleType.processor);
 		Module module = mock(Module.class);
 		when(module.getDescriptor()).thenReturn(new ModuleDescriptor.Builder()
 				.setGroup("foo")

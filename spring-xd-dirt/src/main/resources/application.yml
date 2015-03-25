@@ -168,6 +168,7 @@ xd:
         compressionCodec:          default
         autoCommitEnabled:         true
         queueSize:                 1000
+        fetchSize:                 1048576
   security:
     authorization:
       rules:

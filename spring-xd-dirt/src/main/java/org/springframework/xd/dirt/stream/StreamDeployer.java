@@ -1,4 +1,4 @@
-/*
+v1.1.0.RELEASE/*
  * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -137,7 +137,7 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 										}
 										catch (JsonProcessingException jpe) {
 											logger.error("Error writing module definitions " + moduleDefinitions +
-													" for the stream " + streamName);
+													" for the stream " + streamName + " " + jpe);
 										}
 										byte[] binary = ZooKeeperUtils.mapToBytes(map);
 										BackgroundPathAndBytesable<?> op = client.checkExists().forPath(path) == null
@@ -148,14 +148,15 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 							}
 						}
 						catch(Exception e) {
-							logger.error("Exception when updating module definitions for the stream " + streamName );
+							logger.error("Exception when updating module definitions for the stream "
+									+ streamName + " "+ e);
 						}
 					}
 				}
 			}
 			catch (Exception e) {
 				logger.error("Error migrating stream definitions. This migration is done when the existing " +
-						"stream definitions that don't have module definitions set (XD-2854)." + e);
+						"stream definitions that don't have module definitions set." + e);
 			}
 		}
 	}

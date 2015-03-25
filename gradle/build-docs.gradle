@@ -23,6 +23,8 @@ project('documentation-toolchain') {
 		testCompile project(':spring-xd-shell')
 	}
 
+	tasks['findMainClass'].enabled = false
+
 	task shellReferenceDoc(type: JavaExec) {
 		classpath = sourceSets.test.runtimeClasspath
 		main = 'org.springframework.xd.documentation.ShellReferenceDoc'
@@ -33,8 +35,8 @@ project('documentation-toolchain') {
 	}
 
 	task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: ':spring-xd-dirt:build') {
-		classpath = project(':spring-xd-shell').sourceSets.test.runtimeClasspath
-		main = 'org.springframework.xd.shell.util.ModuleOptionsReferenceDoc'
+		classpath = sourceSets.main.runtimeClasspath
+		main = 'org.springframework.xd.documentation.ModuleOptionsReferenceDoc'
 		workingDir = rootProject.file('.')
 		args = [
 				"$docsDir/Sources.asciidoc",

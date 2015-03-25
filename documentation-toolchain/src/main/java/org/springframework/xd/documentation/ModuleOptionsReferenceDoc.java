@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.util;
+package org.springframework.xd.documentation;
 
 import java.io.BufferedReader;
 import java.io.File;

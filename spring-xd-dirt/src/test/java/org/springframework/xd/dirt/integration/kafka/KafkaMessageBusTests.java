@@ -84,7 +84,7 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		// Rewind offset, as tests will have typically already sent the messages we're trying to consume
 
 		KafkaMessageListenerContainer messageListenerContainer =
-				busWrapper.getCoreMessageBus().createMessageListenerContainer(UUID.randomUUID().toString(), 1, topic,
+				busWrapper.getCoreMessageBus().createMessageListenerContainer(null, UUID.randomUUID().toString(), 1, topic,
 						OffsetRequest.EarliestTime());
 
 		final BlockingQueue<KafkaMessage> messages = new ArrayBlockingQueue<KafkaMessage>(10);

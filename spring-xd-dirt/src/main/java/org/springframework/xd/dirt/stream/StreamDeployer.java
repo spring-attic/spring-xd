@@ -32,6 +32,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDescriptor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -111,35 +112,50 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 	 */
 	private void updateModuleDefinitions() {
 		if (this.parser != null && this.zkConnection != null && this.zkConnection.getClient() != null) {
-			ObjectWriter objectWriter = new ObjectMapper().writerWithType(new TypeReference<List<ModuleDefinition>>() {});
 			try {
 				CuratorFramework client =  this.zkConnection.getClient();
 				if (client.checkExists().forPath(Paths.STREAMS) != null) {
+					ObjectWriter objectWriter =
+							new ObjectMapper().writerWithType(new TypeReference<List<ModuleDefinition>>() {});
 					Iterable<StreamDefinition> streamDefinitions = findAll();
 					for (StreamDefinition definition : streamDefinitions) {
-						String path = Paths.build(Paths.STREAMS, definition.getName());
-						byte[] bytes = client.getData().forPath(path);
-						if (bytes != null) {
-							Map<String, String> map = ZooKeeperUtils.bytesToMap(bytes);
-							if (map.get(MODULE_DEFINITIONS_KEY) == null) {
-								List<ModuleDescriptor> moduleDescriptors = this.parser.parse(definition.getName(),
-										definition.getDefinition(), definitionKind);
-								List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
-								if (!moduleDefinitions.isEmpty()) {
-									map.put(DEFINITION_KEY, definition.getDefinition());
-									map.put(MODULE_DEFINITIONS_KEY, objectWriter.writeValueAsString(moduleDefinitions));
-									byte[] binary = ZooKeeperUtils.mapToBytes(map);
-									BackgroundPathAndBytesable<?> op = client.checkExists().forPath(path) == null
-											? client.create() : client.setData();
-									op.forPath(path, binary);
+						String streamName = definition.getName();
+						String path = Paths.build(Paths.STREAMS, streamName);
+						try {
+							byte[] bytes = client.getData().forPath(path);
+							if (bytes != null) {
+								Map<String, String> map = ZooKeeperUtils.bytesToMap(bytes);
+								if (map.get(MODULE_DEFINITIONS_KEY) == null) {
+									List<ModuleDescriptor> moduleDescriptors = this.parser.parse(streamName,
+											definition.getDefinition(), definitionKind);
+									List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
+									if (!moduleDefinitions.isEmpty()) {
+										map.put(DEFINITION_KEY, definition.getDefinition());
+										try {
+											map.put(MODULE_DEFINITIONS_KEY,
+													objectWriter.writeValueAsString(moduleDefinitions));
+										}
+										catch (JsonProcessingException jpe) {
+											logger.error("Error writing module definitions " + moduleDefinitions +
+													" for the stream " + streamName);
+										}
+										byte[] binary = ZooKeeperUtils.mapToBytes(map);
+										BackgroundPathAndBytesable<?> op = client.checkExists().forPath(path) == null
+												? client.create() : client.setData();
+										op.forPath(path, binary);
+									}
 								}
 							}
+						}
+						catch(Exception e) {
+							logger.error("Exception when updating module definitions for the stream " + streamName );
 						}
 					}
 				}
 			}
 			catch (Exception e) {
-				logger.error("Error migrating stream definitions. This migration is done as part of XD-2854." + e);
+				logger.error("Error migrating stream definitions. This migration is done when the existing " +
+						"stream definitions that don't have module definitions set (XD-2854)." + e);
 			}
 		}
 	}

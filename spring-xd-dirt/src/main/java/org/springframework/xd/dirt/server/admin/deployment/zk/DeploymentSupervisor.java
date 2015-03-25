@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
+import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -206,20 +207,27 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ContextRefreshedEvent) {
-			this.applicationContext = ((ContextRefreshedEvent) event).getApplicationContext();
-			String delay = this.applicationContext.getEnvironment().getProperty(QUIET_PERIOD_PROPERTY);
-			if (StringUtils.hasText(delay)) {
-				quietPeriod.set(Long.parseLong(delay));
-				logger.info("Set container quiet period to {} ms", delay);
-			}
-			if (this.zkConnection.isConnected()) {
-				if (this.applicationContext.equals(((ContextRefreshedEvent) event).getApplicationContext())) {
+			String namespace = ((EmbeddedWebApplicationContext) event.getSource()).getNamespace();
+
+			// If a custom management port is selected, a child application context
+			// for management will be created (see EndpointWebMvcAutoConfiguration
+			// in Spring Boot). Since the management context does not contain ZooKeeper
+			// beans, ZooKeeper related initialization should not take place.
+			// See https://jira.spring.io/browse/XD-2861.
+			if (!MGMT_CONTEXT_NAMESPACE.equals(namespace)) {
+				this.applicationContext = ((ContextRefreshedEvent) event).getApplicationContext();
+				String delay = this.applicationContext.getEnvironment().getProperty(QUIET_PERIOD_PROPERTY);
+				if (StringUtils.hasText(delay)) {
+					quietPeriod.set(Long.parseLong(delay));
+					logger.info("Set container quiet period to {} ms", delay);
+				}
+				if (this.zkConnection.isConnected()) {
 					// initial registration, we don't yet have a port info
 					registerWithZooKeeper(zkConnection.getClient());
+					requestLeadership(this.zkConnection.getClient());
 				}
-				requestLeadership(this.zkConnection.getClient());
+				this.zkConnection.addListener(connectionListener);
 			}
-			this.zkConnection.addListener(connectionListener);
 		}
 		else if (event instanceof ContextStoppedEvent) {
 			if (this.leaderSelector != null) {

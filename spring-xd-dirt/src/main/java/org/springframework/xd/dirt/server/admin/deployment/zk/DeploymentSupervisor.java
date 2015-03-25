@@ -216,10 +216,8 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 					logger.info("Set container quiet period to {} ms", delay);
 				}
 				if (this.zkConnection.isConnected()) {
-					if (this.applicationContext.equals(((ContextRefreshedEvent) event).getApplicationContext())) {
-						// initial registration, we don't yet have a port info
-						registerWithZooKeeper(zkConnection.getClient());
-					}
+					// initial registration, we don't yet have a port info
+					registerWithZooKeeper(zkConnection.getClient());
 					requestLeadership(this.zkConnection.getClient());
 				}
 				this.zkConnection.addListener(connectionListener);
@@ -467,7 +465,6 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 						applicationContext.getBeansOfType(SupervisorElectionListener.class);
 				System.out.println("listenersMap ***** "+ listenersMap);
 				for (Map.Entry<String, SupervisorElectionListener> entry : listenersMap.entrySet()) {
-					System.out.println("firing supervisorElectedEvent ***** "+ entry.getValue());
 					entry.getValue().onSupervisorElected(supervisorElectedEvent);
 				}
 

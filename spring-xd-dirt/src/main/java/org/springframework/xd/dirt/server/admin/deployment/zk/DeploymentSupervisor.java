@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
+import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -206,20 +207,23 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ContextRefreshedEvent) {
-			this.applicationContext = ((ContextRefreshedEvent) event).getApplicationContext();
-			String delay = this.applicationContext.getEnvironment().getProperty(QUIET_PERIOD_PROPERTY);
-			if (StringUtils.hasText(delay)) {
-				quietPeriod.set(Long.parseLong(delay));
-				logger.info("Set container quiet period to {} ms", delay);
-			}
-			if (this.zkConnection.isConnected()) {
-				if (this.applicationContext.equals(((ContextRefreshedEvent) event).getApplicationContext())) {
-					// initial registration, we don't yet have a port info
-					registerWithZooKeeper(zkConnection.getClient());
+			String namespace = ((EmbeddedWebApplicationContext) event.getSource()).getNamespace();
+			if (!MGMT_CONTEXT_NAMESPACE.equals(namespace)) {
+				this.applicationContext = ((ContextRefreshedEvent) event).getApplicationContext();
+				String delay = this.applicationContext.getEnvironment().getProperty(QUIET_PERIOD_PROPERTY);
+				if (StringUtils.hasText(delay)) {
+					quietPeriod.set(Long.parseLong(delay));
+					logger.info("Set container quiet period to {} ms", delay);
 				}
-				requestLeadership(this.zkConnection.getClient());
+				if (this.zkConnection.isConnected()) {
+					if (this.applicationContext.equals(((ContextRefreshedEvent) event).getApplicationContext())) {
+						// initial registration, we don't yet have a port info
+						registerWithZooKeeper(zkConnection.getClient());
+					}
+					requestLeadership(this.zkConnection.getClient());
+				}
+				this.zkConnection.addListener(connectionListener);
 			}
-			this.zkConnection.addListener(connectionListener);
 		}
 		else if (event instanceof ContextStoppedEvent) {
 			if (this.leaderSelector != null) {
@@ -461,7 +465,9 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 
 				Map<String, SupervisorElectionListener> listenersMap =
 						applicationContext.getBeansOfType(SupervisorElectionListener.class);
+				System.out.println("listenersMap ***** "+ listenersMap);
 				for (Map.Entry<String, SupervisorElectionListener> entry : listenersMap.entrySet()) {
+					System.out.println("firing supervisorElectedEvent ***** "+ entry.getValue());
 					entry.getValue().onSupervisorElected(supervisorElectedEvent);
 				}
 

@@ -112,10 +112,10 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		this.index = index;
 		this.moduleDefinition = moduleDefinition;
 		this.parameters = parameters == null
-				? Collections.<String, String> emptyMap()
+				? Collections.<String, String>emptyMap()
 				: Collections.unmodifiableMap(new HashMap<String, String>(parameters));
 		this.children = children == null
-				? Collections.<ModuleDescriptor> emptyList()
+				? Collections.<ModuleDescriptor>emptyList()
 				: Collections.unmodifiableList(new ArrayList<ModuleDescriptor>(children));
 	}
 

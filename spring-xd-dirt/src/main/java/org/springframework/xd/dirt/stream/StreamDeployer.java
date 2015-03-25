@@ -18,16 +18,26 @@ package org.springframework.xd.dirt.stream;
 
 import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
-import org.springframework.xd.dirt.stream.dsl.XDDSLMessages;
+import javax.annotation.PostConstruct;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.BackgroundPathAndBytesable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDescriptor;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * Default implementation of {@link StreamDeployer} that uses provided
@@ -40,8 +50,17 @@ import org.springframework.xd.module.ModuleDescriptor;
  * @author Eric Bottard
  * @author Gunnar Hillert
  * @author Patrick Peralta
+ * @author Ilayaperumal Gopinathan
  */
 public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDefinition, Stream> {
+
+	private static final Logger logger = LoggerFactory.getLogger(StreamDeployer.class);
+
+	private static final String DEFINITION_KEY = "definition";
+
+	private static final String MODULE_DEFINITIONS_KEY = "moduleDefinitions";
+
+	private final ZooKeeperConnection zkConnection;
 
 	/**
 	 * Stream definition parser.
@@ -59,6 +78,7 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 	public StreamDeployer(ZooKeeperConnection zkConnection, StreamDefinitionRepository repository,
 			StreamRepository streamRepository, XDParser parser) {
 		super(zkConnection, repository, streamRepository, parser, stream);
+		this.zkConnection = zkConnection;
 		this.parser = parser;
 	}
 
@@ -84,6 +104,64 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 	@Override
 	protected String getDeploymentPath(StreamDefinition definition) {
 		return Paths.build(Paths.STREAM_DEPLOYMENTS, definition.getName());
+	}
+
+	/**
+	 * The migration code to run against existing stream definitions that don't have module definitions set already.
+	 * The following method will update the module definitions for those stream definitions.
+	 * See https://jira.spring.io/browse/XD-2854
+	 */
+	@PostConstruct
+	private void updateModuleDefinitions() {
+		if (this.parser != null && this.zkConnection != null && this.zkConnection.getClient() != null) {
+			try {
+				CuratorFramework client = this.zkConnection.getClient();
+				if (client.checkExists().forPath(Paths.STREAMS) != null) {
+					ObjectWriter objectWriter =
+							new ObjectMapper().writerWithType(new TypeReference<List<ModuleDefinition>>() {
+							});
+					Iterable<StreamDefinition> streamDefinitions = findAll();
+					for (StreamDefinition definition : streamDefinitions) {
+						String streamName = definition.getName();
+						String path = Paths.build(Paths.STREAMS, streamName);
+						try {
+							byte[] bytes = client.getData().forPath(path);
+							if (bytes != null) {
+								Map<String, String> map = ZooKeeperUtils.bytesToMap(bytes);
+								if (map.get(MODULE_DEFINITIONS_KEY) == null) {
+									List<ModuleDescriptor> moduleDescriptors = this.parser.parse(streamName,
+											definition.getDefinition(), definitionKind);
+									List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
+									if (!moduleDefinitions.isEmpty()) {
+										map.put(DEFINITION_KEY, definition.getDefinition());
+										try {
+											map.put(MODULE_DEFINITIONS_KEY,
+													objectWriter.writeValueAsString(moduleDefinitions));
+											byte[] binary = ZooKeeperUtils.mapToBytes(map);
+											BackgroundPathAndBytesable<?> op = client.checkExists().forPath(path) == null
+													? client.create() : client.setData();
+											op.forPath(path, binary);
+										}
+										catch (JsonProcessingException jpe) {
+											logger.error("Exception writing module definitions " + moduleDefinitions +
+													" for the stream " + streamName + " with the following error " + jpe);
+										}
+									}
+								}
+							}
+						}
+						catch (Exception e) {
+							logger.error("Exception when updating module definitions for the stream "
+									+ streamName + " with the following error " + e);
+						}
+					}
+				}
+			}
+			catch (Exception e) {
+				logger.error("Exception migrating stream definitions. This migration is done when the existing " +
+						"stream definitions that don't have module definitions set. " + e);
+			}
+		}
 	}
 
 }

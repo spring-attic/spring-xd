@@ -575,14 +575,6 @@ public class ModuleDescriptor implements Comparable<ModuleDescriptor> {
 		}
 
 		public ModuleDefinition getModuleDefinition() {
-			if (moduleDefinition == null) {
-				moduleDefinition = new ModuleDefinition(moduleName, type) {
-					@Override
-					public boolean isComposed() {
-						return false;
-					}
-				};
-			}
 			return moduleDefinition;
 		}
 	}

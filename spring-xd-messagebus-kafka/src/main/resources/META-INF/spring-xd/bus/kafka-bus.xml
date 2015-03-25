@@ -27,6 +27,7 @@
 		<property name="defaultQueueSize" value="${xd.messagebus.kafka.default.queueSize}"/>
 		<property name="defaultCompressionCodec" value="${xd.messagebus.kafka.default.compressionCodec}"/>
 		<property name="defaultAutoCommitEnabled" value="${xd.messagebus.kafka.default.autoCommitEnabled}"/>
+		<property name="defaultFetchSize" value="${xd.messagebus.kafka.default.fetchSize}"/>
 		<property name="offsetStoreTopic" value="${xd.messagebus.kafka.offsetStoreTopic}"/>
 		<property name="offsetStoreSegmentSize" value="${xd.messagebus.kafka.offsetStoreSegmentSize}"/>
 		<property name="offsetStoreRetentionTime" value="${xd.messagebus.kafka.offsetStoreRetentionTime}"/>

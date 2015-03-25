@@ -148,6 +148,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	public static final String CONCURRENCY = "concurrency";
 
+	public static final String FETCH_SIZE = "fetchSize";
+
+	public static final String QUEUE_SIZE = "fetchSize";
+
 	public static final String REQUIRED_ACKS = "requiredAcks";
 
 	public static final String COMPRESSION_CODEC = "compressionCodec";
@@ -207,6 +211,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 			.add(BusProperties.PARTITION_INDEX) // Not actually used
 			.add(BusProperties.COUNT) // Not actually used
 			.add(BusProperties.CONCURRENCY)
+			.add(FETCH_SIZE)
 			.build();
 
 	/**
@@ -252,6 +257,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	private int defaultRequiredAcks = DEFAULT_REQUIRED_ACKS;
 
 	private int defaultQueueSize = 1000;
+
+	private int defaultFetchSize = 1024*1024;
 
 	private ConnectionFactory connectionFactory;
 
@@ -435,6 +442,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	public void setDefaultQueueSize(int defaultQueueSize) {
 		this.defaultQueueSize = defaultQueueSize;
+	}
+
+	public void setDefaultFetchSize(int defaultFetchSize) {
+		this.defaultFetchSize = defaultFetchSize;
 	}
 
 	@Override
@@ -665,7 +676,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		final DirectChannel bridge = new DirectChannel();
 
 		KafkaMessageListenerContainer messageListenerContainer =
-				createMessageListenerContainer(group, concurrency, listenedPartitions,
+				createMessageListenerContainer(accessor, group, concurrency, listenedPartitions,
 						referencePoint);
 
 		KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter =
@@ -690,17 +701,18 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	}
 
-	public KafkaMessageListenerContainer createMessageListenerContainer(String group, int numThreads, String topic,
-			long referencePoint) {
-		return createMessageListenerContainer(group, numThreads, topic, null, referencePoint);
+	public KafkaMessageListenerContainer createMessageListenerContainer(Properties properties, String group, int numThreads,
+			String topic, long referencePoint) {
+		return createMessageListenerContainer(new KafkaPropertiesAccessor(properties), group, numThreads, topic, null, referencePoint);
 	}
 
-	public KafkaMessageListenerContainer createMessageListenerContainer(String group, int numThreads,
-			Collection<Partition> listenedPartitions, long referencePoint) {
-		return createMessageListenerContainer(group, numThreads, null, listenedPartitions, referencePoint);
+	private KafkaMessageListenerContainer createMessageListenerContainer(KafkaPropertiesAccessor accessor,
+			String group, int numThreads, Collection<Partition> listenedPartitions, long referencePoint) {
+		return createMessageListenerContainer(accessor, group, numThreads, null, listenedPartitions, referencePoint);
 	}
 
-	private KafkaMessageListenerContainer createMessageListenerContainer(String group, int numThreads, String topic,
+	private KafkaMessageListenerContainer createMessageListenerContainer(KafkaPropertiesAccessor accessor,
+			String group, int numThreads, String topic,
 			Collection<Partition> listenedPartitions, long referencePoint) {
 		Assert.isTrue(StringUtils.hasText(topic) ^ !CollectionUtils.isEmpty(listenedPartitions),
 				"Exactly one of topic or a list of listened partitions must be provided");
@@ -719,7 +731,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		messageListenerContainer.setConcurrency(Math.min(numThreads, listenedPartitions.size()));
 		OffsetManager offsetManager = createOffsetManager(group, referencePoint);
 		messageListenerContainer.setOffsetManager(offsetManager);
-		messageListenerContainer.setQueueSize(defaultQueueSize);
+		messageListenerContainer.setQueueSize(accessor.getProperty(QUEUE_SIZE, defaultQueueSize));
+		messageListenerContainer.setMaxFetch(accessor.getProperty(FETCH_SIZE, defaultFetchSize));
 		return messageListenerContainer;
 	}
 

@@ -674,12 +674,13 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 
 		final DirectChannel bridge = new DirectChannel();
+		bridge.setBeanName("bridge." + name);
 
-		KafkaMessageListenerContainer messageListenerContainer =
+		final KafkaMessageListenerContainer messageListenerContainer =
 				createMessageListenerContainer(accessor, group, concurrency, listenedPartitions,
 						referencePoint);
 
-		KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter =
+		final KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter =
 				new KafkaMessageDrivenChannelAdapter(messageListenerContainer);
 		kafkaMessageDrivenChannelAdapter.setBeanFactory(this.getBeanFactory());
 		kafkaMessageDrivenChannelAdapter.setKeyDecoder(keyDecoder);
@@ -692,7 +693,23 @@ public class KafkaMessageBus extends MessageBusSupport {
 		ReceivingHandler rh = new ReceivingHandler(kafkaMessageDrivenChannelAdapter,
 				messageListenerContainer.getOffsetManager());
 		rh.setOutputChannel(moduleInputChannel);
-		EventDrivenConsumer edc = new EventDrivenConsumer(bridge, rh);
+		EventDrivenConsumer edc = new EventDrivenConsumer(bridge, rh) {
+			@Override
+			protected void doStop() {
+				// stop the offset manager and the channel adapter before unbinding
+				// this means that the upstream channel adapter has a chance to stop
+				kafkaMessageDrivenChannelAdapter.stop();
+				if (messageListenerContainer.getOffsetManager() instanceof DisposableBean) {
+					try {
+						((DisposableBean) messageListenerContainer.getOffsetManager()).destroy();
+					}
+					catch (Exception e) {
+						logger.error("Error while closing the offset manager", e);
+					}
+				}
+				super.doStop();
+			}
+		};
 		edc.setBeanName("inbound." + name);
 
 		Binding consumerBinding = Binding.forConsumer(name, edc, moduleInputChannel, accessor);
@@ -810,7 +827,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	}
 
-	private class ReceivingHandler extends AbstractReplyProducingMessageHandler implements Lifecycle {
+	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {
 
 		private KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter;
 
@@ -834,28 +851,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);
 			}
 			return deserializePayloadIfNecessary(theRequestMessage);
-		}
-
-		@Override
-		public void start() {
-		}
-
-		@Override
-		public void stop() {
-			if (offsetManager instanceof DisposableBean) {
-				try {
-					((DisposableBean) offsetManager).destroy();
-				}
-				catch (Exception e) {
-					logger.error("Error while closing the offset manager", e);
-				}
-			}
-			kafkaMessageDrivenChannelAdapter.stop();
-		}
-
-		@Override
-		public boolean isRunning() {
-			return true;
 		}
 
 		@Override

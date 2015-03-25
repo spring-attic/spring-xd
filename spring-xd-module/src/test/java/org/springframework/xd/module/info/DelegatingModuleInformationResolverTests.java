@@ -22,12 +22,11 @@ import java.util.Arrays;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.TestModuleDefinitions;
 
 /**
  * Unit tests for DelegatingModuleInformationResolver.
@@ -48,7 +47,7 @@ public class DelegatingModuleInformationResolverTests {
 		DelegatingModuleInformationResolver resolver = new DelegatingModuleInformationResolver();
 		resolver.setDelegates(Arrays.asList(resolver1, resolver2));
 
-		ModuleInformation result = resolver.resolve(ModuleDefinitions.dummy("foo", ModuleType.processor));
+		ModuleInformation result = resolver.resolve(TestModuleDefinitions.dummy("foo", ModuleType.processor));
 		assertThat(result, CoreMatchers.equalTo(info1));
 
 	}
@@ -58,14 +57,14 @@ public class DelegatingModuleInformationResolverTests {
 		ModuleInformation info1 = new ModuleInformation();
 		ModuleInformation info2 = new ModuleInformation();
 		ModuleInformationResolver resolver1 = Mockito.mock(ModuleInformationResolver.class);
-		Mockito.when(resolver1.resolve(ModuleDefinitions.dummy("bar", ModuleType.processor))).thenReturn(info1);
+		Mockito.when(resolver1.resolve(TestModuleDefinitions.dummy("bar", ModuleType.processor))).thenReturn(info1);
 		ModuleInformationResolver resolver2 = Mockito.mock(ModuleInformationResolver.class);
-		Mockito.when(resolver2.resolve(ModuleDefinitions.dummy("wizz", ModuleType.processor))).thenReturn(info2);
+		Mockito.when(resolver2.resolve(TestModuleDefinitions.dummy("wizz", ModuleType.processor))).thenReturn(info2);
 
 		DelegatingModuleInformationResolver resolver = new DelegatingModuleInformationResolver();
 		resolver.setDelegates(Arrays.asList(resolver1, resolver2));
 
-		ModuleInformation result = resolver.resolve(ModuleDefinitions.dummy("foo", ModuleType.processor));
+		ModuleInformation result = resolver.resolve(TestModuleDefinitions.dummy("foo", ModuleType.processor));
 		assertThat(result, CoreMatchers.nullValue());
 
 	}

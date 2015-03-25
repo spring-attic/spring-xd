@@ -41,8 +41,8 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.TestModuleDefinitions;
 
 /**
  * Tests REST compliance of streams-related end-points. Unlike {@link StreamsControllerIntegrationTests}, instead of
@@ -70,23 +70,23 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 
 	@Before
 	public void before() {
-		ModuleDefinition sinkDefinition = ModuleDefinitions.dummy("sink", ModuleType.sink);
-		ModuleDefinition sourceDefinition = ModuleDefinitions.dummy("source", ModuleType.source);
+		ModuleDefinition sinkDefinition = TestModuleDefinitions.dummy("sink", ModuleType.sink);
+		ModuleDefinition sourceDefinition = TestModuleDefinitions.dummy("source", ModuleType.source);
 
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinitions.dummy("source", ModuleType.source));
+		definitions.add(TestModuleDefinitions.dummy("source", ModuleType.source));
 		when(moduleRegistry.findDefinitions("source")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("time")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("time", ModuleType.source)).thenReturn(sourceDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinitions.dummy("sink", ModuleType.sink));
+		definitions.add(TestModuleDefinitions.dummy("sink", ModuleType.sink));
 		when(moduleRegistry.findDefinitions("sink")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
 		when(moduleRegistry.findDefinition("log", ModuleType.sink)).thenReturn(sinkDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(ModuleDefinitions.dummy("processor", ModuleType.processor));
+		definitions.add(TestModuleDefinitions.dummy("processor", ModuleType.processor));
 		when(moduleRegistry.findDefinitions("processor")).thenReturn(definitions);
 	}
 

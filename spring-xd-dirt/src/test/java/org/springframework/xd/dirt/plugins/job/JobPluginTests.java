@@ -61,10 +61,10 @@ import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
-import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.TestModuleDefinitions;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.ResourceConfiguredModule;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
@@ -122,7 +122,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	@Test
 	public void streamNameAdded() {
 		ModuleDescriptor descriptor = new ModuleDescriptor.Builder()
-		.setModuleDefinition(ModuleDefinitions.dummy("testJob", ModuleType.job))
+		.setModuleDefinition(TestModuleDefinitions.dummy("testJob", ModuleType.job))
 		.setGroup("foo")
 		.setIndex(0)
 		.build();
@@ -140,7 +140,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	@Test
 	public void jobOptionsDefaults() throws BindException {
-		ModuleOptionsMetadata metadata = new JobPluginMetadataResolver().resolve(ModuleDefinitions.dummy("foo",
+		ModuleOptionsMetadata metadata = new JobPluginMetadataResolver().resolve(TestModuleDefinitions.dummy("foo",
 				ModuleType.job));
 
 		Map<String, String> emptyMap = Collections.emptyMap();
@@ -161,7 +161,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		when(module.getProperties()).thenReturn(properties);
 		when(module.getDescriptor()).thenReturn(
 				new ModuleDescriptor.Builder().setGroup(moduleGroupName).setIndex(moduleIndex).setModuleDefinition(
-						ModuleDefinitions.dummy("testjob", ModuleType.job)).build());
+						TestModuleDefinitions.dummy("testjob", ModuleType.job)).build());
 
 		MessageChannel stepsOut = new DirectChannel();
 		when(module.getComponent("stepExecutionRequests.output", MessageChannel.class)).thenReturn(stepsOut);
@@ -206,7 +206,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		Mockito.when(module.getProperties()).thenReturn(properties);
 		Mockito.when(module.getDescriptor()).thenReturn(
 				new ModuleDescriptor.Builder().setGroup("job").setIndex(0).setModuleDefinition(
-						ModuleDefinitions.dummy("testjob", ModuleType.job)).build());
+						TestModuleDefinitions.dummy("testjob", ModuleType.job)).build());
 
 		jobPlugin.preProcessModule(module);
 		Mockito.verify(module).addSource(Matchers.any(Resource.class));
@@ -225,7 +225,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void testThatInputOutputChannelsAreBound() {
 
 		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(ModuleDefinitions.dummy("myjob", ModuleType.job))
+				.setModuleDefinition(TestModuleDefinitions.dummy("myjob", ModuleType.job))
 				.setGroup("myjob")
 				.setIndex(0)
 				.build();
@@ -256,7 +256,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	public void testThatJobEventsChannelsAreBound() {
 
 		ModuleDescriptor moduleDescriptor = new ModuleDescriptor.Builder()
-				.setModuleDefinition(ModuleDefinitions.dummy("myjob", ModuleType.job))
+				.setModuleDefinition(TestModuleDefinitions.dummy("myjob", ModuleType.job))
 				.setGroup("myjob")
 				.setIndex(0)
 				.build();

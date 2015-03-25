@@ -18,6 +18,7 @@ package org.springframework.xd.module.support;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,26 +38,33 @@ import org.springframework.xd.module.SimpleModuleDefinition;
  */
 public class ModuleUtils {
 
-	private static final String LIB = "lib/";
+	public static final String DEFAULT_EXTRA_LIBS_JAR = "/lib/*.jar";
 
-	public static final String DOT_JAR = ".jar";
-
-	public static final String DOT_ZIP = ".zip";
+	public static final String DEFAULT_EXTRA_LIBS_ZIP = "/lib/*.zip";
 
 	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent) {
 		return createModuleClassLoader(moduleLocation, parent, true);
 	}
 
+
+
+	/**
+	 * Create a classloader for a given module, possibly taking into account any extra libraries as set in the
+	 * {@code module.classloader} properties setting. The default for this option if not set is to add all jars (and zips)
+	 * found in the inner "lib/" folder to the module classpath.
+	 *
+	 * <p></p>
+	 */
 	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent,
-			boolean includeNestedJars) {
+			boolean includeExtraLibraries) {
 		try {
 			File moduleFile = moduleLocation.getFile();
 			Archive moduleArchive = moduleFile.isDirectory() ? new ExplodedArchive(moduleFile) : new JarFileArchive
 					(moduleFile);
 
 			List<URL> urls = new ArrayList<URL>();
-			if (includeNestedJars) {
-				String[] patterns = new String[] {"/lib/*.jar", "/lib/*.zip"};
+			if (includeExtraLibraries) {
+				String[] patterns = new String[] {DEFAULT_EXTRA_LIBS_JAR, DEFAULT_EXTRA_LIBS_ZIP};
 
 				ResourcePatternResolver resolver = new ArchiveResourceLoader(moduleArchive);
 
@@ -86,7 +94,8 @@ public class ModuleUtils {
 
 	/**
 	 * Return an expected module resource given a file extension. Will throw an exception if more than one such
-	 * resource exists.
+	 * resource exists. The resource is searched using an insulated module ClassLoader that only knows about the flat
+	 * contents of the module archive (does not search any parent classloader, nor any additional module library).
 	 */
 	public static Resource locateModuleResource(SimpleModuleDefinition definition, ClassLoader moduleClassLoader,
 			String extension) {
@@ -94,26 +103,30 @@ public class ModuleUtils {
 		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(moduleClassLoader);
 		Resource moduleLocation = resolver.getResource(definition.getLocation());
 		Assert.isTrue(moduleLocation.exists(), "module resource " + definition.getLocation() + " does not exist");
-		ClassLoader parentClassloader = moduleClassLoader == null? null : moduleClassLoader.getParent();
-		PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver
-				(createModuleClassLoader(moduleLocation, parentClassloader, false));
 
-		Resource result = null;
 		String ext = extension.startsWith(".") ? extension : "." + extension;
-		try {
-			Resource[] resources = moduleResolver.getResources("classpath:/config/*" + ext);
-			if (resources.length > 1) {
-				throw new IllegalStateException("Multiple top level module resources found :" + StringUtils
-						.arrayToCommaDelimitedString(resources));
-			}
-			else if (resources.length == 1) {
-				result = resources[0];
-			}
-		}
-		catch (IOException e) {
-			return null;
-		}
 
-		return result;
+		try (
+			URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[]{moduleLocation.getURL()}, NullClassLoader.NO_PARENT)
+		) {
+			PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver(insulatedClassLoader);
+
+			try {
+				Resource[] resources = moduleResolver.getResources("classpath:/config/*" + ext);
+				if (resources.length > 1) {
+					throw new IllegalStateException("Multiple top level module resources found :" + StringUtils
+							.arrayToCommaDelimitedString(resources));
+				}
+				else if (resources.length == 1) {
+					return resources[0];
+				}
+			}
+			catch (IOException e) {
+				return null;
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Exception creating module classloader for " + moduleLocation, e);
+		}
+		return null;
 	}
 }

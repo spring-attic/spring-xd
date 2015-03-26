@@ -107,7 +107,7 @@ public class ModuleUtils {
 		String ext = extension.startsWith(".") ? extension : "." + extension;
 
 		try (
-			URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[]{moduleLocation.getURL()}, NullClassLoader.NO_PARENT)
+			URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[]{moduleLocation.getURL()}, NullClassLoader.NO_PARENT, true);
 		) {
 			PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver(insulatedClassLoader);
 

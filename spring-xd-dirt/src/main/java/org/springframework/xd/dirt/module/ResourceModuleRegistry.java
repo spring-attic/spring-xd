@@ -202,6 +202,9 @@ public class ResourceModuleRegistry implements ModuleRegistry {
 			return;
 		}
 		String locationToUse = resource.getURL().toString();
+		if (!locationToUse.endsWith(ARCHIVE_AS_FILE_EXTENSION) && !locationToUse.endsWith("/")) {
+			locationToUse += "/";
+		}
 
 		SimpleModuleDefinition found = ModuleDefinitions.simple(name, type, locationToUse);
 

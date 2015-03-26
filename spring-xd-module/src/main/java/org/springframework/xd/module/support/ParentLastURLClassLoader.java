@@ -42,7 +42,13 @@ public class ParentLastURLClassLoader extends URLClassLoader {
 
 	private static final String[] SPECIAL_CASES = new String[] { "META-INF/spring.handlers", "META-INF/spring.schemas" };
 
+	private boolean byPassSystemClassLoaderForResources = false;
+
 	public ParentLastURLClassLoader(URL[] classpath, ClassLoader parent) {
+		this(classpath, parent, false);
+	}
+
+	public ParentLastURLClassLoader(URL[] classpath, ClassLoader parent, boolean byPassSystemClassLoaderForResources) {
 		super(wrapNull(classpath), parent);
 		ClassLoader sys = getSystemClassLoader();
 
@@ -51,6 +57,7 @@ public class ParentLastURLClassLoader extends URLClassLoader {
 		}
 
 		system = sys;
+		this.byPassSystemClassLoaderForResources = byPassSystemClassLoaderForResources;
 	}
 
 	private static URL[] wrapNull(URL[] classpath) {
@@ -91,7 +98,7 @@ public class ParentLastURLClassLoader extends URLClassLoader {
 	public URL getResource(String name) {
 		// same delegation as with load class
 		URL url = null;
-		if (system != null) {
+		if (system != null && !byPassSystemClassLoaderForResources) {
 			url = system.getResource(name);
 		}
 		if (url == null) {
@@ -126,6 +133,10 @@ public class ParentLastURLClassLoader extends URLClassLoader {
 		}
 
 		return Collections.enumeration(urls);
+	}
+
+	public void setByPassSystemClassLoaderForResources(boolean byPassSystemClassLoaderForResources) {
+		this.byPassSystemClassLoaderForResources = byPassSystemClassLoaderForResources;
 	}
 
 	/**

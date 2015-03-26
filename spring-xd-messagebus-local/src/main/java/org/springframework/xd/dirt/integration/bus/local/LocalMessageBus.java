@@ -17,6 +17,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
@@ -37,6 +39,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 
 /**
@@ -62,6 +65,13 @@ public class LocalMessageBus extends MessageBusSupport {
 
 	private static final int DEFAULT_EXECUTOR_KEEPALIVE_SECONDS = 60;
 
+	private static final int DEFAULT_REQ_REPLY_CONCURRENCY = 1;
+
+	protected static final Set<Object> CONSUMER_REQUEST_REPLY_PROPERTIES = new SetBuilder()
+			.addAll(CONSUMER_STANDARD_PROPERTIES)
+			.add(BusProperties.CONCURRENCY)
+			.build();
+
 	private volatile PollerMetadata poller;
 
 	private final Map<String, ExecutorChannel> requestReplyChannels = new HashMap<String, ExecutorChannel>();
@@ -77,6 +87,8 @@ public class LocalMessageBus extends MessageBusSupport {
 	private volatile int executorKeepAliveSeconds = DEFAULT_EXECUTOR_KEEPALIVE_SECONDS;
 
 	private volatile int queueSize = Integer.MAX_VALUE;
+
+	private final Map<String, ThreadPoolTaskExecutor> reqRepExecutors = new ConcurrentHashMap<>();
 
 	/**
 	 * Used to create and customize {@link QueueChannel}s when the binding operation involves aliased names.
@@ -118,7 +130,7 @@ public class LocalMessageBus extends MessageBusSupport {
 
 	/**
 	 * Set the {@link ThreadPoolTaskExecutor}} core pool size to limit the number of concurrent
-	 * threads. The executor is used for PubSub operations and for request/reply processing.
+	 * threads. The executor is used for PubSub operations.
 	 * Default: 0 (threads created on demand until maxPoolSize).
 	 * @param executorCorePoolSize the pool size.
 	 */
@@ -128,7 +140,7 @@ public class LocalMessageBus extends MessageBusSupport {
 
 	/**
 	 * Set the {@link ThreadPoolTaskExecutor}} max pool size to limit the number of concurrent
-	 * threads. The executor is used for PubSub operations and for request/reply processing.
+	 * threads. The executor is used for PubSub operations.
 	 * Default: 200.
 	 * @param executorMaxPoolSize the pool size.
 	 */
@@ -138,7 +150,7 @@ public class LocalMessageBus extends MessageBusSupport {
 
 	/**
 	 * Set the {@link ThreadPoolTaskExecutor}} queue size to limit the number of concurrent
-	 * threads. The executor is used for PubSub operations and for request/reply processing.
+	 * threads. The executor is used for PubSub operations.
 	 * Default: {@link Integer#MAX_VALUE}.
 	 * @param executorCorePoolSize the queue size.
 	 */
@@ -148,7 +160,7 @@ public class LocalMessageBus extends MessageBusSupport {
 
 	/**
 	 * Set the {@link ThreadPoolTaskExecutor}} keep alive seconds.
-	 * The executor is used for PubSub operations and for request/reply processing.
+	 * The executor is used for PubSub operations.
 	 * @param executorKeepAliveSeconds the keep alive seconds.
 	 */
 	public void setExecutorKeepAliveSeconds(int executorKeepAliveSeconds) {
@@ -251,8 +263,8 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public void bindRequestor(final String name, MessageChannel requests, final MessageChannel replies,
 			Properties properties) {
-		validateConsumerProperties(name, properties, CONSUMER_STANDARD_PROPERTIES);
-		final MessageChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
+		validateConsumerProperties(name, properties, CONSUMER_REQUEST_REPLY_PROPERTIES);
+		final MessageChannel requestChannel = this.findOrCreateRequestReplyChannel(name, "requestor.", properties);
 		// TODO: handle Pollable ?
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		((SubscribableChannel) requests).subscribe(new MessageHandler() {
@@ -263,7 +275,7 @@ public class LocalMessageBus extends MessageBusSupport {
 			}
 		});
 
-		ExecutorChannel replyChannel = this.findOrCreateRequestReplyChannel("replier." + name);
+		ExecutorChannel replyChannel = this.findOrCreateRequestReplyChannel(name, "replier.", properties);
 		replyChannel.subscribe(new MessageHandler() {
 
 			@Override
@@ -276,8 +288,8 @@ public class LocalMessageBus extends MessageBusSupport {
 	@Override
 	public void bindReplier(String name, final MessageChannel requests, MessageChannel replies,
 			Properties properties) {
-		validateConsumerProperties(name, properties, CONSUMER_STANDARD_PROPERTIES);
-		SubscribableChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
+		validateConsumerProperties(name, properties, CONSUMER_REQUEST_REPLY_PROPERTIES);
+		SubscribableChannel requestChannel = this.findOrCreateRequestReplyChannel(name, "requestor.", properties);
 		requestChannel.subscribe(new MessageHandler() {
 
 			@Override
@@ -288,7 +300,7 @@ public class LocalMessageBus extends MessageBusSupport {
 
 		// TODO: handle Pollable ?
 		Assert.isInstanceOf(SubscribableChannel.class, replies);
-		final SubscribableChannel replyChannel = this.findOrCreateRequestReplyChannel("replier." + name);
+		final SubscribableChannel replyChannel = this.findOrCreateRequestReplyChannel(name, "replier.", properties);
 		((SubscribableChannel) replies).subscribe(new MessageHandler() {
 
 			@Override
@@ -298,14 +310,26 @@ public class LocalMessageBus extends MessageBusSupport {
 		});
 	}
 
-	private synchronized ExecutorChannel findOrCreateRequestReplyChannel(String name) {
-		ExecutorChannel channel = this.requestReplyChannels.get(name);
+	private synchronized ExecutorChannel findOrCreateRequestReplyChannel(String name, String prefix,
+			Properties properties) {
+		String channelName = prefix + name;
+		ExecutorChannel channel = this.requestReplyChannels.get(channelName);
 		if (channel == null) {
-			channel = new ExecutorChannel(this.executor);
+			ThreadPoolTaskExecutor executor = createRequestReplyExecutor(name, properties);
+			channel = new ExecutorChannel(executor);
 			channel.setBeanFactory(getBeanFactory());
-			this.requestReplyChannels.put(name, channel);
+			this.requestReplyChannels.put(channelName, channel);
+			this.reqRepExecutors.put(name, executor);
 		}
 		return channel;
+	}
+
+	private ThreadPoolTaskExecutor createRequestReplyExecutor(String name, Properties properties) {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(new LocalBusPropertiesAccessor(properties).getConcurrency(DEFAULT_REQ_REPLY_CONCURRENCY));
+		executor.setThreadNamePrefix("xd.localBus." + name + "-");
+		executor.initialize();
+		return executor;
 	}
 
 	@Override
@@ -314,6 +338,10 @@ public class LocalMessageBus extends MessageBusSupport {
 		MessageChannel requestChannel = this.requestReplyChannels.remove("requestor." + name);
 		if (requestChannel == null) {
 			super.unbindProducer(name, channel);
+		}
+		ThreadPoolTaskExecutor executor = this.reqRepExecutors.remove(name);
+		if (executor != null) {
+			executor.shutdown();
 		}
 	}
 

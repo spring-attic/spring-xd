@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
+import static org.hamcrest.Matchers.anyOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -27,9 +28,11 @@ import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JO
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -52,6 +55,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -91,8 +96,6 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	private LocalMessageBus messageBus;
 
-	private final ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
-
 	@After
 	public void tearDown() {
 		if (sharedContext != null) {
@@ -122,11 +125,10 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	@Test
 	public void streamNameAdded() {
 		ModuleDescriptor descriptor = new ModuleDescriptor.Builder()
-		.setModuleDefinition(TestModuleDefinitions.dummy("testJob", ModuleType.job))
-		.setGroup("foo")
-		.setIndex(0)
-		.build();
-
+				.setModuleDefinition(TestModuleDefinitions.dummy("testJob", ModuleType.job))
+				.setGroup("foo")
+				.setIndex(0)
+				.build();
 		Module module = new ResourceConfiguredModule(descriptor,
 				new ModuleDeploymentProperties());
 
@@ -150,7 +152,6 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		assertEquals("", ps.getProperty("numberFormat"));
 	}
 
-
 	@Test
 	public void partitionedJob() {
 		String moduleGroupName = "partitionedJob";
@@ -159,6 +160,9 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		when(module.getType()).thenReturn(ModuleType.job);
 		Properties properties = new Properties();
 		when(module.getProperties()).thenReturn(properties);
+		ModuleDeploymentProperties deploymentProperties = new ModuleDeploymentProperties();
+		deploymentProperties.put("consumer.concurrency", "2");
+		when(module.getDeploymentProperties()).thenReturn(deploymentProperties);
 		when(module.getDescriptor()).thenReturn(
 				new ModuleDescriptor.Builder().setGroup(moduleGroupName).setIndex(moduleIndex).setModuleDefinition(
 						TestModuleDefinitions.dummy("testjob", ModuleType.job)).build());
@@ -167,22 +171,51 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		when(module.getComponent("stepExecutionRequests.output", MessageChannel.class)).thenReturn(stepsOut);
 		PollableChannel stepResultsIn = new QueueChannel();
 		when(module.getComponent("stepExecutionReplies.input", MessageChannel.class)).thenReturn(stepResultsIn);
-		PollableChannel stepsIn = new QueueChannel();
-		when(module.getComponent("stepExecutionRequests.input", MessageChannel.class)).thenReturn(stepsIn);
+		final PollableChannel stepsIn = new QueueChannel();
+		DirectChannel boundStepsIn = new DirectChannel();
+		boundStepsIn.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				try {
+					Thread.sleep(100);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				stepsIn.send(MessageBuilder.fromMessage(message)
+						.setHeader("thread", Thread.currentThread().getName())
+						.build());
+			}
+		});
+		when(module.getComponent("stepExecutionRequests.input", MessageChannel.class)).thenReturn(boundStepsIn);
 		MessageChannel stepResultsOut = new DirectChannel();
 		when(module.getComponent("stepExecutionReplies.output", MessageChannel.class)).thenReturn(stepResultsOut);
 		jobPartitionerPlugin.preProcessModule(module);
 		jobPartitionerPlugin.postProcessModule(module);
 		checkBusBound(messageBus);
-		stepsOut.send(new GenericMessage<String>("foo"));
-		Message<?> stepExecutionRequest = stepsIn.receive(10000);
-		assertThat(stepExecutionRequest, hasPayload("foo"));
-		stepResultsOut.send(MessageBuilder.withPayload("bar")
-				.copyHeaders(stepExecutionRequest.getHeaders()) // replyTo
+		assertEquals(1, TestUtils.getPropertyValue(messageBus, "reqRepExecutors", Map.class).size());
+		stepsOut.send(new GenericMessage<String>("foo1"));
+		stepsOut.send(new GenericMessage<String>("foo2"));
+		Message<?> stepExecutionRequest1 = stepsIn.receive(10000);
+		Message<?> stepExecutionRequest2 = stepsIn.receive(10000);
+		assertThat(stepExecutionRequest1, anyOf(hasPayload("foo1"), hasPayload("foo2")));
+		assertThat(stepExecutionRequest2, anyOf(hasPayload("foo1"), hasPayload("foo2")));
+		stepResultsOut.send(MessageBuilder.withPayload("bar1")
+				.copyHeaders(stepExecutionRequest1.getHeaders()) // replyTo
 				.build());
-		assertThat(stepResultsIn.receive(10000), hasPayload("bar"));
+		stepResultsOut.send(MessageBuilder.withPayload("bar2")
+				.copyHeaders(stepExecutionRequest1.getHeaders()) // replyTo
+				.build());
+		assertThat(stepResultsIn.receive(10000), anyOf(hasPayload("bar1"), hasPayload("bar2")));
+		assertThat(stepResultsIn.receive(10000), anyOf(hasPayload("bar1"), hasPayload("bar2")));
+		Set<String> threads = new HashSet<String>();
+		threads.add((String) stepExecutionRequest1.getHeaders().get("thread"));
+		threads.add((String) stepExecutionRequest2.getHeaders().get("thread"));
+		assertEquals(2, threads.size());
 		jobPartitionerPlugin.removeModule(module);
 		checkBusUnbound(messageBus);
+		assertEquals(0, TestUtils.getPropertyValue(messageBus, "reqRepExecutors", Map.class).size());
 	}
 
 	protected MessageBus getMessageBus() {

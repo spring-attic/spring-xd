@@ -416,6 +416,7 @@ project('spring-xd-dirt') {
 			exclude group: 'org.springframework', module: 'spring-core'
 		}
 		compile "org.springframework.integration:spring-integration-event"
+		compile "org.springframework.integration:spring-integration-xml"
 		//compile "org.springframework.integration:spring-integration-http"
 		// TODO: Investigate why spring-integration-http's optional dependency xerces becomes transitive dependency
 		configurations.compile.exclude(group: "xerces")

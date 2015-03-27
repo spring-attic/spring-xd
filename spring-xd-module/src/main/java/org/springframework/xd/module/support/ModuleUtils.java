@@ -21,64 +21,91 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.ExplodedArchive;
 import org.springframework.boot.loader.archive.JarFileArchive;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.PropertyResolver;
+import org.springframework.core.env.PropertySources;
+import org.springframework.core.env.PropertySourcesPropertyResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.SimpleModuleDefinition;
+import org.springframework.xd.module.options.ModuleOptions;
 
 /**
+ * Contains utility methods for accessing a module's properties and dealing with ClassLoaders.
+ *
  * @author Eric Bottard
  * @author David Turanski
  */
 public class ModuleUtils {
 
-	public static final String DEFAULT_EXTRA_LIBS_JAR = "/lib/*.jar";
+	private static final List<String> DEFAULT_EXTRA_LIBS = Arrays.asList("/lib/*.jar", "/lib/*.zip");
 
-	public static final String DEFAULT_EXTRA_LIBS_ZIP = "/lib/*.zip";
+	private static final String MODULE_CLASSPATH_KEY = "module.classpath";
 
 	/**
 	 * Used to resolve the module 'location'. Always a file: location at the time of writing.
 	 */
 	private static final PathMatchingResourcePatternResolver simpleResourceResolver = new PathMatchingResourcePatternResolver();
 
-	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent) {
-		return createModuleClassLoader(moduleLocation, parent, true);
+	/**
+	 * Create a ClassLoader suitable for running a module. Extra libraries can come from paths that are derived from
+	 * module options.
+	 */
+	public static ClassLoader createModuleRuntimeClassLoader(SimpleModuleDefinition definition, ModuleOptions moduleOptions, ClassLoader parent) {
+		Resource moduleLocation = simpleResourceResolver.getResource(definition.getLocation());
+
+		Properties moduleProperties = loadModuleProperties(definition);
+		moduleProperties = moduleProperties == null ? new Properties() : moduleProperties;
+		String extraLibsCSV = moduleProperties.getProperty(MODULE_CLASSPATH_KEY, StringUtils.collectionToCommaDelimitedString(DEFAULT_EXTRA_LIBS));
+		List<String> extraLibs = new ArrayList<>();
+		String[] paths = extraLibsCSV.split("\\s*,\\s*");
+		MutablePropertySources propertySources = new MutablePropertySources();
+		propertySources.addFirst(moduleOptions.asPropertySource());
+		PropertyResolver placeHolderResolver = new PropertySourcesPropertyResolver(propertySources);
+		for (String path : paths) {
+			try {
+				extraLibs.add(placeHolderResolver.resolveRequiredPlaceholders(path));
+			} catch (IllegalArgumentException ignored) {
+			}
+		}
+
+		return createModuleClassLoader(moduleLocation, parent, extraLibs);
+	}
+
+	/**
+	 * Create a "simple" ClassLoader for a module, suitable for early discovery phase, before module options are known.
+	 * Only the default library paths are used.
+	 */
+	public static ClassLoader createModuleDiscoveryClassLoader(Resource moduleLocation, ClassLoader parent) {
+		return createModuleClassLoader(moduleLocation, parent, DEFAULT_EXTRA_LIBS);
 	}
 
 
 
-	/**
-	 * Create a classloader for a given module, possibly taking into account any extra libraries as set in the
-	 * {@code module.classloader} properties setting. The default for this option if not set is to add all jars (and zips)
-	 * found in the inner "lib/" folder to the module classpath.
-	 *
-	 * <p></p>
-	 */
-	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent,
-			boolean includeExtraLibraries) {
+	private static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent,
+			Iterable<String> patterns) {
 		try {
 			File moduleFile = moduleLocation.getFile();
 			Archive moduleArchive = moduleFile.isDirectory() ? new ExplodedArchive(moduleFile) : new JarFileArchive
 					(moduleFile);
 
-			List<URL> urls = new ArrayList<URL>();
-			if (includeExtraLibraries) {
-				String[] patterns = new String[] {DEFAULT_EXTRA_LIBS_JAR, DEFAULT_EXTRA_LIBS_ZIP};
+			List<URL> urls = new ArrayList<>();
 
-				ResourcePatternResolver resolver = new ArchiveResourceLoader(moduleArchive);
+			ResourcePatternResolver resolver = new ArchiveResourceLoader(moduleArchive);
 
-				for (String pattern : patterns) {
-					for (Resource jar : resolver.getResources(pattern)) {
-						urls.add(jar.getURL());
-					}
+			for (String pattern : patterns) {
+				for (Resource jar : resolver.getResources(pattern)) {
+					urls.add(jar.getURL());
 				}
 			}
 

@@ -51,15 +51,13 @@ import org.springframework.xd.spark.streaming.SparkStreamingSupport;
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware {
+public class ModuleFactory implements BeanClassLoaderAware {
 
 	private static Log log = LogFactory.getLog(ModuleFactory.class);
 
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
 	private volatile ClassLoader parentClassLoader = ModuleFactory.class.getClassLoader();
-
-	private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
 
 	/**
 	 * This key is used by the module to define the execution framework(spark streaming, reactor etc.,) to be used when
@@ -124,8 +122,7 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 			log.info("creating simple module " + moduleDescriptor);
 		}
 		SimpleModuleDefinition definition = (SimpleModuleDefinition) moduleDescriptor.getModuleDefinition();
-		Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
-		ClassLoader moduleClassLoader = ModuleUtils.createModuleClassLoader(moduleLocation, this.parentClassLoader);
+		ClassLoader moduleClassLoader = ModuleUtils.createModuleRuntimeClassLoader(definition, moduleOptions, this.parentClassLoader);
 
 		Class<? extends SimpleModule> moduleClass = determineModuleClass((SimpleModuleDefinition) moduleDescriptor.getModuleDefinition(),
 				moduleOptions);
@@ -204,11 +201,6 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.parentClassLoader = classLoader;
-	}
-
-	@Override
-	public void setResourceLoader(ResourceLoader resourceLoader) {
-		this.resourceLoader = (ResourcePatternResolver) resourceLoader;
 	}
 
 	static class SimpleModuleCreator {

@@ -183,7 +183,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	private ModuleOptionsMetadata resolveNormalMetadata(SimpleModuleDefinition definition) {
 
 		Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
-		ClassLoader classLoaderToUse = ModuleUtils.createModuleClassLoader(moduleLocation, ModuleOptionsMetadataResolver.class.getClassLoader());
+		ClassLoader classLoaderToUse = ModuleUtils.createModuleDiscoveryClassLoader(moduleLocation, ModuleOptionsMetadataResolver.class.getClassLoader());
 
 		Properties props = ModuleUtils.loadModuleProperties(definition);
 		if (props == null) {

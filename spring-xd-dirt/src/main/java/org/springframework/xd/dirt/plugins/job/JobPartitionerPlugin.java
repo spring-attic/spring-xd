@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
 				MessageChannel.class);
 		Assert.notNull(stepExecutionResultsOut, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REPLY_CHANNEL);
-		messageBus.bindReplier(name, stepExecutionsIn, stepExecutionResultsOut, properties[1]);
+		messageBus.bindReplier(name, stepExecutionsIn, stepExecutionResultsOut, properties[0]);
 	}
 
 	private void unbindPartitionedJob(Module module) {

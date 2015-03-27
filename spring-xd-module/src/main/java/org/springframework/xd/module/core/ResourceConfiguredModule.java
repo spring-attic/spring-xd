@@ -48,10 +48,9 @@ public class ResourceConfiguredModule extends SimpleModule {
 	 *
 	 * @throws java.lang.IllegalStateException if both a .xml and .groovy file are present
 	 */
-	public static Resource resourceBasedConfigurationFile(SimpleModuleDefinition moduleDefinition,
-			ClassLoader moduleClassLoader) {
-		Resource xml = ModuleUtils.locateModuleResource(moduleDefinition, moduleClassLoader, ".xml");
-		Resource groovy = ModuleUtils.locateModuleResource(moduleDefinition, moduleClassLoader, ".groovy");
+	public static Resource resourceBasedConfigurationFile(SimpleModuleDefinition moduleDefinition) {
+		Resource xml = ModuleUtils.locateModuleResource(moduleDefinition, ".xml");
+		Resource groovy = ModuleUtils.locateModuleResource(moduleDefinition, ".groovy");
 		boolean xmlExists = xml != null;
 		boolean groovyExists = groovy != null;
 		if (xmlExists && groovyExists) {
@@ -72,7 +71,7 @@ public class ResourceConfiguredModule extends SimpleModule {
 
 	@Override
 	protected void configureModuleApplicationContext(SimpleModuleDefinition moduleDefinition) {
-		Resource source = resourceBasedConfigurationFile(moduleDefinition, getClassLoader());
+		Resource source = resourceBasedConfigurationFile(moduleDefinition);
 		if (source != null) {
 			addSource(source);
 		}

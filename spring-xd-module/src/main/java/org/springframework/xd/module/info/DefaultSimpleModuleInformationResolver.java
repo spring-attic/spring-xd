@@ -40,8 +40,6 @@ import org.springframework.xd.module.support.ModuleUtils;
  */
 public class DefaultSimpleModuleInformationResolver implements ModuleInformationResolver {
 
-	private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
-
 	private CustomValidatorBean validator = new CustomValidatorBean();
 
 	public DefaultSimpleModuleInformationResolver() {
@@ -55,17 +53,12 @@ public class DefaultSimpleModuleInformationResolver implements ModuleInformation
 		}
 		SimpleModuleDefinition simpleModuleDefinition = (SimpleModuleDefinition) definition;
 
-		Resource moduleLocation = resourceLoader.getResource(simpleModuleDefinition.getLocation());
-		ClassLoader classLoaderToUse = ModuleUtils.createModuleClassLoader(moduleLocation, ModuleOptionsMetadataResolver.class.getClassLoader());
-
-		Resource propertiesResource = ModuleUtils.modulePropertiesFile(simpleModuleDefinition, classLoaderToUse);
-		if (propertiesResource == null) {
+		Properties props = ModuleUtils.loadModuleProperties(simpleModuleDefinition);
+		if (props == null) {
 			return null;
 		}
 		else {
-			Properties props = new Properties();
-			try (InputStream is = propertiesResource.getInputStream()) {
-				props.load(is);
+			try {
 				ModuleInformation result = new ModuleInformation();
 				PropertiesConfigurationFactory<ModuleInformation> factory = new PropertiesConfigurationFactory<>(result);
 				factory.setProperties(props);
@@ -73,9 +66,6 @@ public class DefaultSimpleModuleInformationResolver implements ModuleInformation
 				factory.setValidator(validator);
 				factory.bindPropertiesToTarget();
 				return result;
-			}
-			catch (IOException e) {
-				throw new RuntimeException("Exception occurred trying to read properties file for " + definition, e);
 			}
 			catch (BindException e) {
 				throw new RuntimeException("Exception occurred trying to set values from properties file for " + definition + "\n" + e.getMessage(), e);

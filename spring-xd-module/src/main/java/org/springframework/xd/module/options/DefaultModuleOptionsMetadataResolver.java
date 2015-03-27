@@ -181,31 +181,24 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	}
 
 	private ModuleOptionsMetadata resolveNormalMetadata(SimpleModuleDefinition definition) {
-		try {
 
-			Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
-			ClassLoader classLoaderToUse = ModuleUtils.createModuleClassLoader(moduleLocation, ModuleOptionsMetadataResolver.class.getClassLoader());
+		Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
+		ClassLoader classLoaderToUse = ModuleUtils.createModuleClassLoader(moduleLocation, ModuleOptionsMetadataResolver.class.getClassLoader());
 
-            Resource propertiesResource = ModuleUtils.modulePropertiesFile(definition, classLoaderToUse);
-			if (propertiesResource == null) {
-				return inferModuleOptionsMetadata(definition, classLoaderToUse);
+		Properties props = ModuleUtils.loadModuleProperties(definition);
+		if (props == null) {
+			return inferModuleOptionsMetadata(definition, classLoaderToUse);
+		}
+		else {
+			String pojoClass = props.getProperty(OPTIONS_CLASS);
+			if (pojoClass != null) {
+				List<ModuleOptionsMetadata> mixins = new ArrayList<ModuleOptionsMetadata>();
+				createPojoOptionsMetadata(classLoaderToUse, pojoClass.trim(), mixins);
+				return mixins.size() == 1 ? mixins.get(0) : new FlattenedCompositeModuleOptionsMetadata(mixins);
 			}
 			else {
-				Properties props = new Properties();
-				props.load(propertiesResource.getInputStream());
-				String pojoClass = props.getProperty(OPTIONS_CLASS);
-				if (pojoClass != null) {
-					List<ModuleOptionsMetadata> mixins = new ArrayList<ModuleOptionsMetadata>();
-					createPojoOptionsMetadata(classLoaderToUse, pojoClass.trim(), mixins);
-					return mixins.size() == 1 ? mixins.get(0) : new FlattenedCompositeModuleOptionsMetadata(mixins);
-				}
-				else {
-					return makeSimpleModuleOptions(props);
-				}
+				return makeSimpleModuleOptions(props);
 			}
-		}
-		catch (IOException e) {
-			return new PassthruModuleOptionsMetadata();
 		}
 	}
 
@@ -241,7 +234,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	private ModuleOptionsMetadata inferModuleOptionsMetadata(SimpleModuleDefinition definition, ClassLoader classLoaderToUse) {
 		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-		Resource source = ResourceConfiguredModule.resourceBasedConfigurationFile(definition, classLoaderToUse);
+		Resource source = ResourceConfiguredModule.resourceBasedConfigurationFile(definition);
 		if (source == null) {
 			return new PassthruModuleOptionsMetadata();
 		}

@@ -142,10 +142,10 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 		if (SparkStreamingSupport.MODULE_EXECUTION_FRAMEWORK.equals(name)) {
 			return SparkStreamingDriverModule.class;
 		}
-		else if (ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition, moduleClassLoader) != null) {
+		else if (ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition) != null) {
 			return ResourceConfiguredModule.class;
 		}
-		else if (JavaConfiguredModule.basePackages(moduleDefinition, moduleClassLoader).length > 0) {
+		else if (JavaConfiguredModule.basePackages(moduleDefinition).length > 0) {
 			return JavaConfiguredModule.class;
 		}
 		return null;

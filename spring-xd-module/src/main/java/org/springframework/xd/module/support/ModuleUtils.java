@@ -17,10 +17,12 @@ package org.springframework.xd.module.support;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.springframework.boot.loader.archive.Archive;
 import org.springframework.boot.loader.archive.ExplodedArchive;
@@ -41,6 +43,11 @@ public class ModuleUtils {
 	public static final String DEFAULT_EXTRA_LIBS_JAR = "/lib/*.jar";
 
 	public static final String DEFAULT_EXTRA_LIBS_ZIP = "/lib/*.zip";
+
+	/**
+	 * Used to resolve the module 'location'. Always a file: location at the time of writing.
+	 */
+	private static final PathMatchingResourcePatternResolver simpleResourceResolver = new PathMatchingResourcePatternResolver();
 
 	public static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent) {
 		return createModuleClassLoader(moduleLocation, parent, true);
@@ -88,8 +95,28 @@ public class ModuleUtils {
 	 * Return a resource that can be used to load the module '.properties' file (containing <i>e.g.</i> information
 	 * about module options, or null if no such file exists.
 	 */
-	public static Resource modulePropertiesFile(SimpleModuleDefinition definition, ClassLoader moduleClassLoader) {
-		return ModuleUtils.locateModuleResource(definition, moduleClassLoader, ".properties");
+	public static Resource modulePropertiesFile(SimpleModuleDefinition definition) {
+		return ModuleUtils.locateModuleResource(definition, ".properties");
+	}
+
+	/**
+	 * Locate the module '.properties' file and load it as a {@link java.util.Properties} object.
+	 * @return {@code null} if no properties file exists
+	 */
+	public static Properties loadModuleProperties(SimpleModuleDefinition moduleDefinition) {
+		Resource resource = modulePropertiesFile(moduleDefinition);
+		if (resource == null) {
+			return null;
+		}
+		Properties properties = new Properties();
+		try (InputStream inputStream = resource.getInputStream()) {
+			properties.load(inputStream);
+			return properties;
+		}
+		catch (IOException e) {
+			throw new RuntimeException(String.format("Unable to read module properties for %s:%s",
+					moduleDefinition.getName(), moduleDefinition.getType()), e);
+		}
 	}
 
 	/**
@@ -97,11 +124,9 @@ public class ModuleUtils {
 	 * resource exists. The resource is searched using an insulated module ClassLoader that only knows about the flat
 	 * contents of the module archive (does not search any parent classloader, nor any additional module library).
 	 */
-	public static Resource locateModuleResource(SimpleModuleDefinition definition, ClassLoader moduleClassLoader,
-			String extension) {
+	public static Resource locateModuleResource(SimpleModuleDefinition definition, String extension) {
 
-		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(moduleClassLoader);
-		Resource moduleLocation = resolver.getResource(definition.getLocation());
+		Resource moduleLocation = simpleResourceResolver.getResource(definition.getLocation());
 		Assert.isTrue(moduleLocation.exists(), "module resource " + definition.getLocation() + " does not exist");
 
 		String ext = extension.startsWith(".") ? extension : "." + extension;

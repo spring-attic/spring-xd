@@ -142,39 +142,5 @@ Brew install also allows you to run _Spring XD_ in distributed mode on you OSx. 
 [[redhatcentos-installation]]
 === RedHat/CentOS Installation
 
-If you are using RHEL or CentOS you can install _Spring XD_ using our yum repository. 
-
-[source,bash]
-----
-wget -q -O - http://packages.gopivotal.com/pub/rpm/rhel5/app-suite/app-suite-installer | sh
-yum install spring-xd
-----
-
-[source,bash]
-----
-wget -q -O - http://packages.gopivotal.com/pub/rpm/rhel6/app-suite/app-suite-installer | sh
-yum install spring-xd
-----
-
-This installs _Spring XD_ and init.d services for managing Admin Server and Container runtimes. Before you can run Admin Server and Container you will need to install and start distributed components. See xref:Running-Distributed-Mode#running-distributed-mode[Running Distributed Mode] for details on setting up a distributed runtime. After distributed component are configured, Admin Server and Container can be started as follows:
-
-[source,bash]
-----
-service spring-xd-admin start
-service spring-xd-container start
-----
-
-You can configure arguments to spring-xd-admin and spring-xd-container scripts by setting them in /etc/sysconfig/spring-xd. For example to run spring-xd-container with transport=RabbitMQ update this property in /etc/sysconfig/spring-xd:
-
-[source,bash]
-----
-TRANSPORT=rabbit
-----
-
-To stop _Spring XD_
-[source,bash]
-----
-service spring-xd-admin stop
-service spring-xd-container stop
-----
+If you are using RHEL or CentOS v. 6.x you can install _Spring XD_ using our RPM package. See the https://github.com/spring-projects/spring-xd/wiki/Installing-Spring-XD-using-RPM-on-RHEL-CentOS-v.-6.x[wiki page] for instructions.
 

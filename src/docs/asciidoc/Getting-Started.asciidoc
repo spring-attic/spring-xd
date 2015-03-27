@@ -23,7 +23,7 @@ $ cd spring-xd-{appversion}
 
 Spring XD can be run in two different modes. There's a single-node runtime option for testing and development, and there's a distributed runtime which supports distribution of processing tasks across multiple nodes. This document will get you up and running quickly with a single-node runtime. See xref:Running-Distributed-Mode#running-distributed-mode[Running Distributed Mode] for details on setting up a distributed runtime.
 
-You can also install Spring XD using xref:Getting-Started#osx-homebrew-installation[homebrew] on OSX and xref:Getting-Started#redhatcentos-installation[yum] on RedHat/CentOS.
+You can also install Spring XD using xref:Getting-Started#osx-homebrew-installation[homebrew] on OSX and xref:Getting-Started#redhatcentos-installation[RPM] on RedHat/CentOS.
 
 === Start the Runtime and the XD Shell
 

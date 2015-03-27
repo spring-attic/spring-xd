@@ -128,7 +128,7 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 		ClassLoader moduleClassLoader = ModuleUtils.createModuleClassLoader(moduleLocation, this.parentClassLoader);
 
 		Class<? extends SimpleModule> moduleClass = determineModuleClass((SimpleModuleDefinition) moduleDescriptor.getModuleDefinition(),
-				moduleClassLoader, moduleOptions);
+				moduleOptions);
 		Assert.notNull(moduleClass,
 				String.format("Required module artifacts are either missing or invalid. Unable to determine module type for module definition: '%s:%s'.",
 						moduleDescriptor.getType(), moduleDescriptor.getModuleName()));
@@ -137,7 +137,7 @@ public class ModuleFactory implements BeanClassLoaderAware, ResourceLoaderAware 
 	}
 
 	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition,
-			ClassLoader moduleClassLoader, ModuleOptions moduleOptions) {
+			ModuleOptions moduleOptions) {
 		String name = (String) moduleOptions.asPropertySource().getProperty(MODULE_EXECUTION_FRAMEWORK_KEY);
 		if (SparkStreamingSupport.MODULE_EXECUTION_FRAMEWORK.equals(name)) {
 			return SparkStreamingDriverModule.class;

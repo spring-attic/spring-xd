@@ -17,7 +17,7 @@ A stream that involves some processing:
 
   http | filter | transform | file
 
-The modules in a stream definition are connected together using the pipe symbol `|`.  
+The modules in a stream definition are connected together using the pipe symbol `|`.
 
 === Module parameters
 
@@ -38,16 +38,16 @@ If the parameter value needs to embed a single quote, use two single quotes:
 === Named channels
 
 Instead of a source or sink it is possible to use a named channel. Normally the modules in a stream are connected
-by anonymous internal channels (represented by the pipes), but by using explicitly named channels it becomes 
+by anonymous internal channels (represented by the pipes), but by using explicitly named channels it becomes
 possible to construct more sophisticated flows. In keeping with the unix theme, sourcing/sinking data from/to a particular channel uses the `>` character. A named channel is specified by using a channel type, followed by a `:` followed by a name. The channel types available are:
 
   queue - this type of channel has point-to-point (p2p) semantics
 
   topic - this type of channel has pub/sub semantics
 
-Here is an example that shows how you can use a named channel to share a data pipeline driven by different input sources.  
+Here is an example that shows how you can use a named channel to share a data pipeline driven by different input sources.
 
-  queue:foo > file 
+  queue:foo > file
 
   http > queue:foo
 
@@ -58,23 +58,24 @@ Now if you post data to the http source, you will see that data intermingled wit
 
 The opposite case, the fanout of a message to multiple streams, is planned for a future release. However, xref:Taps#taps[taps] are a specialization of named channels that do allow publishing data to multiple sinks. For example:
 
-  tap:stream:mystream > file 
+  tap:stream:mystream > file
 
   tap:stream:mystream > log
 
-Once data is received on `mystream`, it will be written to both file and log. 
+Once data is received on `mystream`, it will be written to both file and log.
 
 Support for routing messages to different streams based on message content is also planned for a future release.
 
+[[labels]]
 === Labels
 
 Labels provide a means to alias or group modules.  Labels are simply a name followed by a `:`
-When used as an alias a label can provide a more descriptive name for a 
+When used as an alias a label can provide a more descriptive name for a
 particular configuration of a module and possibly something easier to refer to in other streams.
 
   mystream = http | obfuscator: transform --expression=payload.replaceAll('password','*') | file
 
-Labels are especially useful for disambiguating when multiple modules of the same name are used:
+Labels are especially useful (and required) for disambiguating when multiple modules of the same name are used:
 
   mystream = http | uppercaser: transform --expression=payload.toUpperCase() | exclaimer: transform --expression=payload+'!' | file
 
@@ -185,4 +186,3 @@ stream create foo --definition "http | transform --expression=\"'hello world'\" 
 
 <1> This uses single quotes around the string (at the XD parser level), but they need to be doubled because we're inside a string literal (very first single quote after the equals sign)
 <2> use single and double quotes respectively to encompass the whole string at the XD parser level. Hence, the other kind of quote can be used inside the string. The whole thing is inside the `--definition` argument to the shell though, which uses double quotes. So double quotes are escaped (at the shell level)
-

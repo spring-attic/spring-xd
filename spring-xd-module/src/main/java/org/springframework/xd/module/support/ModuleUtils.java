@@ -30,7 +30,6 @@ import org.springframework.boot.loader.archive.ExplodedArchive;
 import org.springframework.boot.loader.archive.JarFileArchive;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertyResolver;
-import org.springframework.core.env.PropertySources;
 import org.springframework.core.env.PropertySourcesPropertyResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -59,7 +58,8 @@ public class ModuleUtils {
 
 	/**
 	 * Create a ClassLoader suitable for running a module. Extra libraries can come from paths that are derived from
-	 * module options.
+	 * module options. Any path that starts with a slash will be assumed to be an in-Archive entry, whereas any other
+	 * path (including those starting with a protocol) will be dealt with by a classical resource pattern resolver.
 	 */
 	public static ClassLoader createModuleRuntimeClassLoader(SimpleModuleDefinition definition, ModuleOptions moduleOptions, ClassLoader parent) {
 		Resource moduleLocation = simpleResourceResolver.getResource(definition.getLocation());
@@ -75,7 +75,8 @@ public class ModuleUtils {
 		for (String path : paths) {
 			try {
 				extraLibs.add(placeHolderResolver.resolveRequiredPlaceholders(path));
-			} catch (IllegalArgumentException ignored) {
+			}
+			catch (IllegalArgumentException ignored) {
 			}
 		}
 
@@ -89,7 +90,6 @@ public class ModuleUtils {
 	public static ClassLoader createModuleDiscoveryClassLoader(Resource moduleLocation, ClassLoader parent) {
 		return createModuleClassLoader(moduleLocation, parent, DEFAULT_EXTRA_LIBS);
 	}
-
 
 
 	private static ClassLoader createModuleClassLoader(Resource moduleLocation, ClassLoader parent,
@@ -159,7 +159,7 @@ public class ModuleUtils {
 		String ext = extension.startsWith(".") ? extension : "." + extension;
 
 		try (
-			URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[]{moduleLocation.getURL()}, NullClassLoader.NO_PARENT, true);
+				URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[] {moduleLocation.getURL()}, NullClassLoader.NO_PARENT, true);
 		) {
 			PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver(insulatedClassLoader);
 
@@ -176,7 +176,8 @@ public class ModuleUtils {
 			catch (IOException e) {
 				return null;
 			}
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new RuntimeException("Exception creating module classloader for " + moduleLocation, e);
 		}
 		return null;

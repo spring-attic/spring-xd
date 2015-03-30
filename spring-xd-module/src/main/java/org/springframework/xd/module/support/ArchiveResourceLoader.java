@@ -31,6 +31,8 @@ import org.springframework.util.PathMatcher;
 
 /**
  * Spring ResourceLoader that can locate nested boot archives inside a root archive.
+ *
+ * @author Eric Bottard
  */
 public class ArchiveResourceLoader extends DefaultResourceLoader implements ResourcePatternResolver {
 

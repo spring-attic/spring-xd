@@ -12,15 +12,15 @@
 	</int:inbound-channel-adapter>
 
 	<beans profile="use-date">
-        <bean id="df" class="java.text.SimpleDateFormat">
-            <constructor-arg value="${dateFormat}" />
-        </bean>
-        <bean id="trigger" class="org.springframework.xd.module.support.DateTrigger">
-            <constructor-arg>
-                <bean factory-bean="df" factory-method="parse">
-                    <constructor-arg value="${date}" />
-                </bean>
-            </constructor-arg>
+		<bean id="df" class="java.text.SimpleDateFormat">
+			<constructor-arg value="${dateFormat}" />
+		</bean>
+		<bean id="trigger" class="org.springframework.xd.module.support.DateTrigger">
+			<constructor-arg>
+				<bean factory-bean="df" factory-method="parse">
+					<constructor-arg value="#{'${date}' == 'The current time' ? new java.text.SimpleDateFormat('${dateFormat}').format(new java.util.Date()) : '${date}'}" />
+				</bean>
+			</constructor-arg>
 		</bean>
 	</beans>
 

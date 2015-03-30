@@ -19,9 +19,9 @@ The Sources covered are
 * <<gemfire-source, Gemfire Source>>
 * <<gemfire-continuous-query,Gemfire CQ>>
 * <<syslog, Syslog>>
-* <<tcp, TCP>> 
-* <<tcp-client, TCP Client>> 
-* <<reactor-ip, Reactor IP>> 
+* <<tcp, TCP>>
+* <<tcp-client, TCP Client>>
+* <<reactor-ip, Reactor IP>>
 * <<jms, JMS>>
 * <<rabbit, RabbitMQ>>
 * <<time, Time>>
@@ -30,6 +30,7 @@ The Sources covered are
 * <<kafka, Kafka>>
 * <<jdbc-source, JDBC>>
 * <<mongodb-source, MongoDB>>
+* <<trigger-source, Trigger>>
 
 Future releases will provide support for other currently available Spring Integration Adapters.  For information on how to adapt an existing Spring Integration Adapter for use in Spring XD see the section xref:Creating-a-Source-Module#creating-a-source-module[Creating a Source Module].
 
@@ -72,7 +73,7 @@ $$port$$:: $$the port to listen to$$ *($$int$$, default: `9000`)*
 $$sslPropertiesLocation$$:: $$location (resource) of properties containing the location of the pkcs12 keyStore and pass phrase$$ *($$String$$, default: `classpath:httpSSL.properties`)*
 //$source.http
 
-Here is an example 
+Here is an example
 
     xd:> stream create --name httptest9020 --definition "http --port=9020 | file" --deploy
 
@@ -142,14 +143,14 @@ Create an empty file to tail (this is not needed on some platforms such as Linux
 
 [source,bash]
 ----
-$ touch /tmp/xd/input/tailtest  
+$ touch /tmp/xd/input/tailtest
 ----
 
 To create a stream definition using the XD shell
 
     xd:> stream create --name tailtest --definition "tail | file" --deploy
 
-Send some text into the file being monitored 
+Send some text into the file being monitored
 
 [source,bash]
 ----
@@ -178,7 +179,7 @@ $$nativeOptions$$:: $$options for a native tail command; do not set and use 'end
 $$reOpen$$:: $$whether to reopen the file each time it is polled (forces use of the Apache Tailer, requires nativeOptions='')$$ *($$boolean$$, no default)*
 //$source.tail
 
-Here is an example 
+Here is an example
 
      xd:> stream create --name tailtest --definition "tail --name=/tmp/foo | file --name=bar" --deploy
 
@@ -201,7 +202,7 @@ Some platforms, such as linux, send status messages to `stderr`. The tail module
 [[file]]
 === File
 
-The file source provides the contents of a File as a byte array by default but may be configured to provide the file reference itself.    
+The file source provides the contents of a File as a byte array by default but may be configured to provide the file reference itself.
 
 To log the contents of a file create a stream definition using the XD shell
 
@@ -209,7 +210,7 @@ To log the contents of a file create a stream definition using the XD shell
 
 The file source by default will look into a directory named after the stream, in this case /tmp/xd/input/filetest
 
-Note the above will log the raw bytes. For text files, it is normally desirable to output the contents as plain text. To do this, set the _outputType_ parameter: 
+Note the above will log the raw bytes. For text files, it is normally desirable to output the contents as plain text. To do this, set the _outputType_ parameter:
 
     xd:> stream create --name filetest --definition "file --outputType=text/plain | log" --deploy
 
@@ -304,16 +305,16 @@ Let the twittersearch run for a little while and then check to see if some data 
 [source,bash]
 ----
 $ cat /tmp/xd/output/springone2gx
----- 
+----
 
-NOTE: Both `twittersearch` and `twitterstream` emit JSON in the https://dev.twitter.com/docs/platform-objects/tweets[native Twitter format]. 
+NOTE: Both `twittersearch` and `twitterstream` emit JSON in the https://dev.twitter.com/docs/platform-objects/tweets[native Twitter format].
 
 [[twitter-stream]]
 === Twitter Stream
 
 This source ingests data from Twitter's https://dev.twitter.com/docs/streaming-apis/streams/public[streaming API v1.1]. It uses the https://dev.twitter.com/docs/streaming-apis/streams/public[sample and filter] stream endpoints rather than the full "firehose" which needs special access. The endpoint used will depend on the parameters you supply in the stream definition (some are specific to the filter endpoint).
 
-You need to supply all keys and secrets (both consumer and accessToken) to authenticate for this source, so it is easiest if you just add these to  `XD_HOME/config/modules/modules.yml` or `XD_HOME/config/modules/source/twitterstream/twitterstream.properties` file. 
+You need to supply all keys and secrets (both consumer and accessToken) to authenticate for this source, so it is easiest if you just add these to  `XD_HOME/config/modules/modules.yml` or `XD_HOME/config/modules/source/twitterstream/twitterstream.properties` file.
 
 Stream creation is then straightforward:
 
@@ -343,11 +344,11 @@ $$track$$:: $$comma delimited set of terms to include in the stream$$ *($$String
 Note: The options available are pretty much the same as those listed in the https://dev.twitter.com/docs/streaming-apis/parameters[Twitter API docs] and unless otherwise stated, the accepted formats are the same.
 
 
-NOTE: Both `twittersearch` and `twitterstream` emit JSON in the https://dev.twitter.com/docs/platform-objects/tweets[native Twitter format].  
+NOTE: Both `twittersearch` and `twitterstream` emit JSON in the https://dev.twitter.com/docs/platform-objects/tweets[native Twitter format].
 
 [[gemfire-source]]
 === GemFire Source
-This source configures a client cache and client region, along with the necessary subscriptions enabled, in the XD container process along with a Spring Integration GemFire inbound channel adapter, backed by a CacheListener that outputs messages triggered by an external entry event on the region. By default the payload contains the updated entry value, but may be controlled by passing in a SpEL expression that uses the http://gemfire.docs.pivotal.io/latest/javadocs/japi/com/gemstone/gemfire/cache/EntryEvent.html[EntryEvent] as the evaluation context. 
+This source configures a client cache and client region, along with the necessary subscriptions enabled, in the XD container process along with a Spring Integration GemFire inbound channel adapter, backed by a CacheListener that outputs messages triggered by an external entry event on the region. By default the payload contains the updated entry value, but may be controlled by passing in a SpEL expression that uses the http://gemfire.docs.pivotal.io/latest/javadocs/japi/com/gemstone/gemfire/cache/EntryEvent.html[EntryEvent] as the evaluation context.
 
 ==== Options
 
@@ -364,7 +365,7 @@ $$useLocator$$:: $$indicates whether a locator is used to access the cache serve
 //$source.gemfire
 
 ==== Example
-Use of the gemfire source requires an external process (or a separate stream) that creates or updates entries in a GemFire region configured for a cache server. Such events may feed a Spring XD stream. To support such a stream, the Spring XD container must join a GemFire distributed client-server grid as a client, creating a client region corresponding to an existing region on a cache server. The client region registers a cache listener via the Spring Integration GemFire inbound channel adapter. The client region and pool are configured for a subscription on all keys in the region.  
+Use of the gemfire source requires an external process (or a separate stream) that creates or updates entries in a GemFire region configured for a cache server. Such events may feed a Spring XD stream. To support such a stream, the Spring XD container must join a GemFire distributed client-server grid as a client, creating a client region corresponding to an existing region on a cache server. The client region registers a cache listener via the Spring Integration GemFire inbound channel adapter. The client region and pool are configured for a subscription on all keys in the region.
 
 The following example creates two streams: One to write http messages to a Gemfire region named _Stocks_, and another to listen for cache events and record the updates to a file. This works with the Cache Server and sample configuration included with the Spring XD distribution:
 
@@ -405,10 +406,10 @@ NOTE: You may also configure default Gemfire connection settings for all gemfire
        host: myhost1,myhost2
        port: 10334
 
-TIP: If you are deploying on Java 7 or earlier and need to deploy more than 4 Gemfire modules be sure to increase the permsize of the singlenode or container.  i.e. JAVA_OPTS="-XX:PermSize=256m"  
+TIP: If you are deploying on Java 7 or earlier and need to deploy more than 4 Gemfire modules be sure to increase the permsize of the singlenode or container.  i.e. JAVA_OPTS="-XX:PermSize=256m"
 
 ==== Launching the XD GemFire Server
-This source requires a cache server to be running in a separate process and its host and port, or a locator host and port must be configured. The XD distribution includes a GemFire server executable suitable for development and test purposes. This is a Java main class that runs with a Spring configured cache server. The configuration is passed as a command line argument to the server's main method. The configuration includes a cache server port and one or more configured region. XD includes a sample cache configuration called  https://github.com/SpringSource/spring-xd/blob/master/spring-xd-gemfire-server/config/cq-demo.xml[cq-demo]. This starts a server on port 40404 and creates a region named _Stocks_. A Logging cache listener is configured  for the region to log region events.  
+This source requires a cache server to be running in a separate process and its host and port, or a locator host and port must be configured. The XD distribution includes a GemFire server executable suitable for development and test purposes. This is a Java main class that runs with a Spring configured cache server. The configuration is passed as a command line argument to the server's main method. The configuration includes a cache server port and one or more configured region. XD includes a sample cache configuration called  https://github.com/SpringSource/spring-xd/blob/master/spring-xd-gemfire-server/config/cq-demo.xml[cq-demo]. This starts a server on port 40404 and creates a region named _Stocks_. A Logging cache listener is configured  for the region to log region events.
 
 Run Gemfire cache server by changing to the gemfire/bin directory and execute
 
@@ -421,7 +422,7 @@ $ ./gemfire-server ../config/cq-demo.xml
 
 [[gemfire-continuous-query]]
 === GemFire Continuous Query
-Continuous query allows client applications to create a GemFire query using Object Query Language(OQL) and register a CQ listener which subscribes to the query and is notified every time the query's result set changes. The _gemfire_cq_ source registers a CQ which will post CQEvent messages to the stream. 
+Continuous query allows client applications to create a GemFire query using Object Query Language(OQL) and register a CQ listener which subscribes to the query and is notified every time the query's result set changes. The _gemfire_cq_ source registers a CQ which will post CQEvent messages to the stream.
 
 ==== Options
 
@@ -436,7 +437,7 @@ $$query$$:: $$the query string in Object Query Language (OQL)$$ *($$String$$, no
 $$useLocator$$:: $$indicates whether a locator is used to access the cache server$$ *($$boolean$$, default: `false`)*
 //$source.gemfire-cq
 
-The example is similar to that presented for the <<gemfire-source, gemfire source>> above, and requires an external cache server as described in the above section. In this case the query provides a finer filter on data events. In the example below, the `cqtest` stream will only receive events matching a single ticker symbol, whereas the `gftest` stream example above will receive updates to every entry in the region. 
+The example is similar to that presented for the <<gemfire-source, gemfire source>> above, and requires an external cache server as described in the above section. In this case the query provides a finer filter on data events. In the example below, the `cqtest` stream will only receive events matching a single ticker symbol, whereas the `gftest` stream example above will receive updates to every entry in the region.
 
     xd:> stream create --name stocks --definition "http --port=9090 | gemfire-json-server --regionName=Stocks --keyExpression=payload.getField('symbol')" --deploy
     xd:> stream create --name cqtest --definition "gemfire-cq --query='Select * from /Stocks where symbol=''FAKE''' | file" --deploy
@@ -521,7 +522,7 @@ Refer to your syslog documentation to configure the syslog daemon to forward sys
 
 UDP - Mac OSX (syslog.conf) and Ubuntu (rsyslog.conf)
 
-    *.*	@localhost:5140 
+    *.*	@localhost:5140
 
 TCP - Ubuntu (rsyslog.conf)
 
@@ -787,7 +788,7 @@ def commands = ['', // index 0 is not used
 // payload will contain an incrementing counter, starting at 1
 if (commands.size > payload)
   return commands[payload] + "\n"
-else 
+else
   return "PING\n"  // send keep alive after 4th 'real' command
 
 ----
@@ -1050,19 +1051,19 @@ xd:> stream create myKafkaSource --definition "kafka --zkconnect=localhost:2181 
 [[jdbc-source]]
 === JDBC Source
 
-This source module supports the ability to ingest data directly from various databases.  
+This source module supports the ability to ingest data directly from various databases.
 It does this by querying the database and sending the results as messages to the stream.
 
 Configure a stream with a jdbc source using a query:
 ----
 xd:> stream create foo --definition "jdbc --fixedDelay=1 --split=1 --url=jdbc:hsqldb:hsql://localhost:9101/mydb --query='select * from testfoo' |log" --deploy
-----  
+----
 In the example above the user will be polling the testfoo table to retrieve all the rows in the table once a second until the stream is undeployed or destroyed.
 
 Configure a stream with a jdbc source using a query and update:
 ----
 xd:> stream create foo --definition "jdbc --fixedDelay=1 --split=1 --url=jdbc:hsqldb:hsql://localhost:9101/mydb --query='select * from testfoo where tag = 0' --update='update testfoo set tag=1 where fooid in (:fooid)'|log" --deploy
-----  
+----
 In the example above the user will be polling the testfoo table to retrieve rows in the table that have a "tag" of zero.  The update will set the value of tag to 1 for the rows that were retrieved, thus rows that have already been retrieved will not included in future queries.
 
 //^source.jdbc
@@ -1137,3 +1138,22 @@ $$split$$:: $$whether to split the query result as individual messages$$ *($$boo
 $$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
 $$username$$:: $$the MongoDB username used for connecting$$ *($$String$$, default: ``)*
 //$source.mongodb
+
+[[trigger-source]]
+=== Trigger Source
+The trigger source emits a message or messages according to the provided trigger configuration.
+The message payload is a simple literal value, provided in the `payload` property.
+
+//^source.trigger
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$source.trigger' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$trigger$$** $$source$$ has the following options:
+
+$$cron$$:: $$cron expression specifying when the trigger should fire$$ *($$String$$, no default)*
+$$date$$:: $$a one-time date when the trigger should fire; only applies if 'fixedDelay' and 'cron' are not provided$$ *($$String$$, default: `The current time`)*
+$$dateFormat$$:: $$the format specifying how the 'date' should be parsed$$ *($$String$$, default: `MM/dd/yy HH:mm:ss`)*
+$$fixedDelay$$:: $$time delay between executions, expressed in TimeUnits (seconds by default)$$ *($$Integer$$, no default)*
+$$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
+$$payload$$:: $$the message that will be sent when the trigger fires$$ *($$String$$, default: ``)*
+$$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
+//$source.trigger

@@ -16,9 +16,6 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -40,26 +37,32 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 @Mixin(PeriodicTriggerMixin.class)
 public class TriggerSourceOptionsMetadata implements ProfileNamesProvider {
 
+	private static final String[] USE_CRON = new String[] { "use-cron" };
+
+	private static final String[] USE_DELAY = new String[] { "use-delay" };
+
+	private static final String[] USE_DATE = new String[] { "use-date" };
+
 	private Integer fixedDelay;
 
 	private String cron;
 
 	private String payload = "";
 
-	private String date;
+	private String date = "The current time";
 
 	private String dateFormat = "MM/dd/yy HH:mm:ss";
 
 	@Override
 	public String[] profilesToActivate() {
 		if (cron != null) {
-			return new String[] { "use-cron" };
+			return USE_CRON;
 		}
 		else if (fixedDelay != null) {
-			return new String[] { "use-delay" };
+			return USE_DELAY;
 		}
 		else {
-			return new String[] { "use-date" };
+			return USE_DATE;
 		}
 	}
 
@@ -100,13 +103,10 @@ public class TriggerSourceOptionsMetadata implements ProfileNamesProvider {
 
 	@NotNull
 	public String getDate() {
-		if (date == null) {
-			return new SimpleDateFormat(dateFormat).format(new Date());
-		}
 		return date;
 	}
 
-	@ModuleOption("the date when the trigger should fire")
+	@ModuleOption("a one-time date when the trigger should fire; only applies if 'fixedDelay' and 'cron' are not provided")
 	public void setDate(String date) {
 		this.date = date;
 	}
@@ -116,7 +116,7 @@ public class TriggerSourceOptionsMetadata implements ProfileNamesProvider {
 		return dateFormat;
 	}
 
-	@ModuleOption("the format specifying how the date should be parsed")
+	@ModuleOption("the format specifying how the 'date' should be parsed")
 	public void setDateFormat(String dateFormat) {
 		this.dateFormat = dateFormat;
 	}

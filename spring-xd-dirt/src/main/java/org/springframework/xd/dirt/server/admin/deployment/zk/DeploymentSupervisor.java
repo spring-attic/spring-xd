@@ -463,7 +463,6 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 
 				Map<String, SupervisorElectionListener> listenersMap =
 						applicationContext.getBeansOfType(SupervisorElectionListener.class);
-				System.out.println("listenersMap ***** "+ listenersMap);
 				for (Map.Entry<String, SupervisorElectionListener> entry : listenersMap.entrySet()) {
 					entry.getValue().onSupervisorElected(supervisorElectedEvent);
 				}

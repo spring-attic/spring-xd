@@ -66,7 +66,7 @@ APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 
 APP_HOME_LIB=$APP_HOME/lib
-CLASSPATH=$APP_HOME/modules/processor/scripts:$APP_HOME/config:$APP_HOME
+CLASSPATH=$APP_HOME/modules/processor/scripts:$APP_HOME/config
 HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop26}"
 x=0
 args=("$@")

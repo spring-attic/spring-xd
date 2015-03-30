@@ -76,7 +76,7 @@ for arg in "${args[@]}" ; do
     x=$((x+1))
 done
 APP_HOME_LIB=$APP_HOME/lib
-CLASSPATH=$APP_HOME/modules/processor/scripts:$APP_HOME/config:$APP_HOME
+CLASSPATH=$APP_HOME/modules/processor/scripts:$APP_HOME/config
 if [ -d "$APP_HOME_LIB" ]; then
     for i in "$APP_HOME_LIB"/*.jar; do
         CLASSPATH="$CLASSPATH":"$i"

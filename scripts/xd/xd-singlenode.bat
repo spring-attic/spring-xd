@@ -84,7 +84,7 @@ if exist "%APP_HOME_LIB%" (
             set found=0
         )
     )
-    set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config;%APP_HOME%
+    set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
     set HADOOP_LIB=%APP_HOME%\lib\!HADOOP_DISTRO!
     if exist "!HADOOP_LIB!" (

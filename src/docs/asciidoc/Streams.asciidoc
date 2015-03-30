@@ -14,7 +14,7 @@ A high level DSL is used to create stream definitions. The DSL to define a strea
 
      http | file
 
-The DSL mimics a UNIX pipes and filters syntax. Default values for ports and filenames are used in this example but can be overriden using `--` options, such as 
+The DSL mimics a UNIX pipes and filters syntax. Default values for ports and filenames are used in this example but can be overriden using `--` options, such as
 
      http --port=8091 | file --dir=/tmp/httpdata/
 
@@ -22,12 +22,12 @@ To create these stream definitions you make an HTTP POST request to the XD Admin
 
 === Creating a Simple Stream
 
-The XD Admin server footnote:[The server is implemented by the `AdminMain` class in the `spring-xd-dirt` subproject] exposes a full RESTful API for managing the lifecycle of stream definitions, but the easiest way to use the XD shell. Start the shell as described in the xref:Getting-Started#getting-started[Getting Started] section 
+The XD Admin server footnote:[The server is implemented by the `AdminMain` class in the `spring-xd-dirt` subproject] exposes a full RESTful API for managing the lifecycle of stream definitions, but the easiest way to use the XD shell. Start the shell as described in the xref:Getting-Started#getting-started[Getting Started] section
 
 New streams are created by posting stream definitions.  The definitions are built from a simple DSL. For example, let's walk through what happens if we execute the following shell command:
 
     xd:> stream create --definition "time | log" --name ticktock
-  
+
 
 This defines a stream named `ticktock` based off the DSL expression `time | log`.  The DSL uses the "pipe" symbol `|`, to connect a source to a sink.
 
@@ -49,10 +49,12 @@ You can also include a http://docs.spring.io/spring/docs/4.0.x/spring-framework-
 
     xd:> stream deploy --name ticktock --properties "module.time.count=3,module.log.criteria=groups.contains('x')"
 
+IMPORTANT: See <<module-labels>>.
+
 === Deleting a Stream
 
 You can delete a stream by issuing the `stream destroy` command from the shell:
-  
+
     xd:> stream destroy --name ticktock
 
 === Deploying and Undeploying Streams
@@ -110,7 +112,7 @@ See the xref:Processors#processors[Processors] section for more information.
 
 === DSL Syntax
 
-In the examples above, we connected a source to a sink using the pipe symbol `|`. You can also pass parameters to the source and sink configurations. The parameter names will depend on the individual module implementations, but as an example, the `http` source module exposes a `port` setting which allows you to change the data ingestion port from the default value. To create the stream using port 8000, we would use 
+In the examples above, we connected a source to a sink using the pipe symbol `|`. You can also pass parameters to the source and sink configurations. The parameter names will depend on the individual module implementations, but as an example, the `http` source module exposes a `port` setting which allows you to change the data ingestion port from the default value. To create the stream using port 8000, we would use
 
     xd:> stream create --definition "http --port=8000 | log" --name myhttpstream
 
@@ -121,3 +123,8 @@ If you know a bit about Spring configuration files, you can inspect the module d
 In the examples above, simple module definitions are used to construct each stream. However, modules may be grouped together in order to avoid duplication and/or reduce the amount of chattiness over the messaging middleware. To learn more about that feature, refer to the xref:Modules#composing-modules[Composing Modules] section.
 
 If directed graphs are needed instead of the simple linear streams described above, two features are relevant. First, named channels may be used as a way to combine multiple flows upstream and/or downstream from the channel. The behavior of that channel may either be queue-based or topic-based depending on what prefix is used ("queue:myqueue" or "topic:mytopic", respectively). To learn more, refer to the xref:DSL-Reference#named-channels[Named Channels] section. Second, you may need to determine the output channel of a stream based on some information that is only known at runtime. To learn about such content-based routing, refer to the xref:Sinks#dynamic-router[Dynamic Router] section.
+
+[[module-labels]]
+=== Module Labels
+
+When a stream is comprised of multiple modules with the same name, they must be qualified with labels. See <<labels>>.

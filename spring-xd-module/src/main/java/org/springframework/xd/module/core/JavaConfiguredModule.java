@@ -68,13 +68,12 @@ public class JavaConfiguredModule extends SimpleModule {
 
 	public static String[] basePackages(SimpleModuleDefinition moduleDefinition) {
 
-		Resource propertiesFile = ModuleUtils.modulePropertiesFile(moduleDefinition);
+		Properties properties = ModuleUtils.loadModuleProperties(moduleDefinition);
 		//Assert.notNull(propertiesFile, "required module properties not found.");
-		if (propertiesFile == null) {
+		if (properties == null) {
 			return new String[0];
 		}
 
-		Properties properties = ModuleUtils.loadModuleProperties(moduleDefinition);
 
 		String basePackageNames = properties.getProperty(BASE_PACKAGES);
 		return StringUtils.commaDelimitedListToStringArray(basePackageNames);

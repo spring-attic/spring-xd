@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Tasklet used for running Sqoop tool.
@@ -43,6 +45,8 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 
 	private String[] arguments;
 
+	private Properties hadoopProperties;
+
 
 	public String[] getArguments() {
 		return arguments;
@@ -50,6 +54,14 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 
 	public void setArguments(String[] arguments) {
 		this.arguments = arguments;
+	}
+
+	public Properties getHadoopProperties() {
+		return hadoopProperties;
+	}
+
+	public void setHadoopProperties(Properties hadoopProperties) {
+		this.hadoopProperties = hadoopProperties;
 	}
 
 	@Override
@@ -73,6 +85,9 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 					}
 				}
 			}
+		}
+		for (Map.Entry e : hadoopProperties.entrySet()) {
+			command.add(SPRING_HADOOP_CONFIG_PREFIX + "." + e.getKey() + "=" + e.getValue());
 		}
 		return command;
 	}

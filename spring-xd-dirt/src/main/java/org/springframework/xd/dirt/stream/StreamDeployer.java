@@ -18,9 +18,6 @@ package org.springframework.xd.dirt.stream;
 
 import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
-import org.springframework.xd.dirt.server.admin.deployment.DeploymentHandler;
-import org.springframework.xd.dirt.zookeeper.Paths;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +28,7 @@ import org.apache.curator.framework.api.BackgroundPathAndBytesable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentHandler;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
@@ -125,15 +123,14 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 			try {
 				CuratorFramework client = this.zkConnection.getClient();
 				if (client.checkExists().forPath(Paths.STREAMS) != null) {
-					Iterable<StreamDefinition> streamDefinitions = findAll();
-					for (StreamDefinition definition : streamDefinitions) {
+					for (StreamDefinition definition : findAll()) {
 						setModuleDefinitions(client, definition);
 					}
 				}
 			}
 			catch (Exception e) {
 				logger.error("Exception migrating stream definitions. This migration is done when the existing " +
-						"stream definitions that don't have module definitions set. " + e);
+						"stream definitions that don't have module definitions set." , e);
 			}
 		}
 	}
@@ -152,6 +149,8 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 			byte[] bytes = client.getData().forPath(path);
 			if (bytes != null) {
 				Map<String, String> map = ZooKeeperUtils.bytesToMap(bytes);
+				// If the module definitions are not set for this stream data, then add the module definitions list to
+				// the key {@link #MODULE_DEFINITIONS_KEY} along with the stream definition.
 				if (map.get(MODULE_DEFINITIONS_KEY) == null) {
 					List<ModuleDescriptor> moduleDescriptors = this.parser.parse(streamName,
 							definition.getDefinition(), definitionKind);
@@ -168,7 +167,7 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 						}
 						catch (JsonProcessingException jpe) {
 							logger.error("Exception writing module definitions " + moduleDefinitions +
-									" for the stream " + streamName + " : " + jpe);
+									" for the stream " + streamName, jpe);
 						}
 					}
 				}
@@ -176,7 +175,7 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 		}
 		catch (Exception e) {
 			logger.error("Exception when updating module definitions for the stream "
-					+ streamName + " : " + e);
+					+ streamName, e);
 		}
 	}
 

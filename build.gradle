@@ -589,7 +589,12 @@ project('spring-xd-dirt') {
 
 	applicationDistribution.from(scriptFiles) { into "bin" }
 
-	applicationDistribution.from(moduleFiles) { into "modules" }
+	applicationDistribution.from(moduleFiles) {
+		into "modules"
+		include "*/*/lib/*"
+		include "*/*/config/*"
+		include "common"
+	}
 
 	// Following execution is used by jsTests task to start SingleNodeApplication as background process
 	task backgroundAdminServer << { task ->

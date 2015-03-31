@@ -123,7 +123,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 * @param moduleDescriptors The list of ModuleDescriptors resulting from parsing the definition.
 	 * @return a list of ModuleDefinitions
 	 */
-	private List<ModuleDefinition> createModuleDefinitions(List<ModuleDescriptor> moduleDescriptors) {
+	protected List<ModuleDefinition> createModuleDefinitions(List<ModuleDescriptor> moduleDescriptors) {
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDescriptors.size());
 		for (ModuleDescriptor moduleDescriptor : moduleDescriptors) {
 			moduleDefinitions.add(moduleDescriptor.getModuleDefinition());

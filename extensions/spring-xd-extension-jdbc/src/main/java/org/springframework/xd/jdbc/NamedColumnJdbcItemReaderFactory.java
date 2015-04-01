@@ -59,6 +59,8 @@ public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumn
 
 	private NamedColumnJdbcItemReader reader;
 
+	private String delimiter;
+
 	@Override
 	public NamedColumnJdbcItemReader getObject() throws Exception {
 
@@ -118,6 +120,7 @@ public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumn
 		reader.setFetchSize(fetchSize);
 		reader.setDataSource(dataSource);
 		reader.setVerifyCursorPosition(verifyCursorPosition);
+		reader.setDelimiter(delimiter);
 		reader.afterPropertiesSet();
 
 		initialized = true;
@@ -151,4 +154,7 @@ public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumn
 		this.verifyCursorPosition = verify;
 	}
 
+	public void setDelimiter(String delimiter) {
+		this.delimiter = delimiter;
+	}
 }

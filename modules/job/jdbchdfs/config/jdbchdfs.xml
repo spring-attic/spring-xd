@@ -62,17 +62,13 @@
 		<property name="partitionClause" value="#{stepExecutionContext['partClause']}" />
 		<property name="sql" value="${sql}"/>
 		<property name="fetchSize" value="${commitInterval}"/>
+		<property name="delimiter" value="${delimiter}"/>
 	</bean>
 
 	<bean id="itemWriter" class="org.springframework.xd.batch.item.hadoop.HdfsTextItemWriter" scope="step">
 		<constructor-arg ref="hadoopFs"/>
 		<property name="lineAggregator">
-			<bean class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
-				<property name="fieldExtractor">
-					<bean class="org.springframework.xd.tuple.batch.TupleFieldExtractor"/>
-				</property>
-				<property name="delimiter" value="${delimiter}"/>
-			</bean>
+			<bean class="org.springframework.batch.item.file.transform.PassThroughLineAggregator"/>
 		</property>
 		<property name="baseFilename" value="${fileName}#{stepExecutionContext['partSuffix']}"/>
 		<property name="rolloverThresholdInBytes" value="${rollover}"/>
@@ -87,6 +83,7 @@
 	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">
 		fs.defaultFS=${fsUri}
 	</hdp:configuration>
+
 	<hdp:resource-loader id="hadoopResourceLoader"/>
 
 </beans>

@@ -15,14 +15,12 @@
  */
 package org.springframework.xd.jdbc;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.JdbcUtils;
-import org.springframework.xd.tuple.Tuple;
-import org.springframework.xd.tuple.TupleBuilder;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 /**
  * Reader which reads a row from a database as a delimited string from a
@@ -30,25 +28,32 @@ import java.sql.SQLException;
  *
  * @author Luke Taylor
  * @author Thomas Risberg
+ * @author Michael Minella
  */
-public class NamedColumnJdbcItemReader extends JdbcCursorItemReader<Tuple> {
+public class NamedColumnJdbcItemReader extends JdbcCursorItemReader<String> {
+
+	private String delimiter;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		setRowMapper(new RowMapper<Tuple>() {
+		setRowMapper(new RowMapper<String>() {
 			@Override
-			public Tuple mapRow(ResultSet rs, int rowNum) throws SQLException {
-				TupleBuilder builder = TupleBuilder.tuple();
+			public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+				StringBuilder builder = new StringBuilder();
 
 				for (int i=1; i <= rs.getMetaData().getColumnCount(); i++) {
-					String name = JdbcUtils.lookupColumnName(rs.getMetaData(), i);
-					builder.put(name, JdbcUtils.getResultSetValue(rs, i, String.class));
+					builder.append(JdbcUtils.getResultSetValue(rs, i, String.class))
+							.append(delimiter);
 				}
 
-				return builder.build();
+				return builder.substring(0, builder.length() - delimiter.length());
 			}
 		});
 
 		super.afterPropertiesSet();
+	}
+
+	public void setDelimiter(String delimiter) {
+		this.delimiter = delimiter;
 	}
 }

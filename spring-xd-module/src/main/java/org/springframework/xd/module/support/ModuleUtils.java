@@ -18,6 +18,7 @@ package org.springframework.xd.module.support;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import org.springframework.boot.loader.archive.JarFileArchive;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertyResolver;
 import org.springframework.core.env.PropertySourcesPropertyResolver;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -158,9 +160,8 @@ public class ModuleUtils {
 
 		String ext = extension.startsWith(".") ? extension : "." + extension;
 
-		try (
-				URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[] {moduleLocation.getURL()}, NullClassLoader.NO_PARENT, true);
-		) {
+		try {
+			URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[] {moduleLocation.getURL()}, NullClassLoader.NO_PARENT, true);
 			PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver(insulatedClassLoader);
 
 			try {

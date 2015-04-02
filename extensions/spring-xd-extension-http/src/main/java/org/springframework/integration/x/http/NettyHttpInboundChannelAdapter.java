@@ -24,8 +24,13 @@ import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.REQUEST_ENTITY_TOO_LARGE;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -109,6 +114,13 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	private final int port;
 
+	/* begin whu */
+	private final String path;
+
+	private static final String KEY_MODULE_STATE = NettyHttpInboundChannelAdapter.class.getName() + ".moduleState";
+
+	/* end whu */
+
 	private final boolean ssl;
 
 	private volatile ServerBootstrap bootstrap;
@@ -139,9 +151,32 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	public NettyHttpInboundChannelAdapter(int port, boolean ssl) {
+		/* begin whu */
+		this(port, "/", ssl);
+		/* end whu */
+	}
+
+	/* begin whu */
+	public NettyHttpInboundChannelAdapter(int port, String path) {
+		this(port, path, false);
+	}
+
+	public NettyHttpInboundChannelAdapter(int port, String path, boolean ssl) {
 		this.port = port;
 		this.ssl = ssl;
+		this.path = path;
+		putToChannelAdapter();
 	}
+
+	private void putToChannelAdapter() {
+		Map<String, Object> pathToProducer = getModuleState();
+		if (pathToProducer.containsKey(path)) {
+			logger.warn("Channel for path '" + path + "' already exists, overwriting.");
+		}
+		pathToProducer.put(path, this);
+	}
+
+	/* end whu */
 
 	/**
 	 *
@@ -198,11 +233,21 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 			this.messageConverter = new NettyInboundMessageConverter(getMessageBuilderFactory());
 		}
 		executionHandler = new ExecutionHandler(executor);
-		bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
-				Executors.newCachedThreadPool()));
-		bootstrap.setOption("child.tcpNoDelay", true);
-		bootstrap.setPipelineFactory(new PipelineFactory());
-		bootstrap.bind(new InetSocketAddress(this.port));
+		/* begin whu */
+		try {
+			/* end whu */
+			bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
+					Executors.newCachedThreadPool()));
+			bootstrap.setOption("child.tcpNoDelay", true);
+			bootstrap.setPipelineFactory(new PipelineFactory());
+			bootstrap.bind(new InetSocketAddress(this.port));
+			/* begin whu */
+		}
+		catch (Exception e) {
+			/* bind exception -> server already created by another channel */
+			bootstrap = null;
+		}
+		/* end whu */
 	}
 
 	@Override
@@ -286,6 +331,58 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 		}
 	}
 
+	/* start whu */
+	void wrapSendMessage(Message<?> message) {
+		sendMessage(message);
+	}
+
+	private boolean sendMessageToResponsibleSender(HttpRequest request, Message<?> message) {
+		String name = "wrapSendMessage";
+		Object sender = getResponsibleSender(request);
+		for (Method m : sender.getClass().getDeclaredMethods()) {
+			if (m.getName().equals(name)) {
+				m.setAccessible(true);
+				try {
+					m.invoke(sender, message);
+					return true;
+				}
+				catch (Exception e) {
+					logger.warn("Exception when sending message", e);
+				}
+			}
+		}
+		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T getResponsibleSender(HttpRequest request) {
+		T result = null;
+		List<String> matches = new LinkedList<>();
+		String uri = request.getUri();
+		Map<String, ?> map = getModuleState();
+		for (String path : map.keySet()) {
+			if (uri.equals(path) || uri.matches(path)) {
+				matches.add(path);
+				result = (T) map.get(path);
+			}
+		}
+		if (matches.size() > 1) {
+			logger.warn("Ambiguous HTTP path, multiple matches " + matches + " for path '" + uri + "'");
+		}
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> getModuleState() {
+		/* bit hacky, store module state in system properties */
+		if (!System.getProperties().containsKey(KEY_MODULE_STATE)) {
+			System.getProperties().put(KEY_MODULE_STATE, new HashMap<String, Object>());
+		}
+		return (Map<String, Object>) System.getProperties().get(KEY_MODULE_STATE);
+	}
+
+	/* end whu */
+
 	private class Handler extends SimpleChannelUpstreamHandler {
 
 		private final MessageConverter messageConverter;
@@ -316,7 +413,14 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Sending message: " + message);
 					}
-					sendMessage(message);
+					/* start whu */
+					boolean done = sendMessageToResponsibleSender(request, message);
+					if (!done) {
+						logger.error("Message invocation method not found.");
+						response = new DefaultHttpResponse(HTTP_1_1, INTERNAL_SERVER_ERROR);
+					}
+					/* end whu */
+					//sendMessage(message); // commented whu
 				}
 				catch (Exception ex) {
 					logger.error("Error sending message", ex);

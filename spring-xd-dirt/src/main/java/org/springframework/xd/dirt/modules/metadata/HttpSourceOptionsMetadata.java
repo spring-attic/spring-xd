@@ -27,6 +27,8 @@ public class HttpSourceOptionsMetadata {
 
 	private int port = 9000;
 
+	private String path = "/";
+
 	private boolean https;
 
 	private String sslPropertiesLocation = "classpath:httpSSL.properties";
@@ -42,6 +44,15 @@ public class HttpSourceOptionsMetadata {
 	@ModuleOption("the port to listen to")
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	@ModuleOption("the path of this source")
+	public void setPath(String path) {
+		this.path = path;
 	}
 
 	public boolean isHttps() {

@@ -98,6 +98,68 @@ public class NettyHttpInboundChannelAdapterTests {
 		adapter.stop();
 	}
 
+	/* start whu */
+	@Test
+	public void testMultiplePaths() throws Exception {
+		final CountDownLatch latch = new CountDownLatch(2);
+		int port = SocketUtils.findAvailableServerSocket();
+
+		final List<Message<?>> messages1 = new ArrayList<Message<?>>();
+		final List<Message<?>> messages2 = new ArrayList<Message<?>>();
+		DirectChannel channel1 = new DirectChannel();
+		channel1.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				messages1.add(message);
+				latch.countDown();
+			}
+		});
+		DirectChannel channel2 = new DirectChannel();
+		channel2.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				messages2.add(message);
+				latch.countDown();
+			}
+		});
+
+		String path1 = "/test1";
+		String path2 = "/test2";
+		NettyHttpInboundChannelAdapter adapter1 = new NettyHttpInboundChannelAdapter(port, path1);
+		NettyHttpInboundChannelAdapter adapter2 = new NettyHttpInboundChannelAdapter(port, path2);
+		adapter1.setOutputChannel(channel1);
+		adapter1.start();
+		adapter2.setOutputChannel(channel2);
+		adapter2.start();
+
+		RestTemplate template = new RestTemplate();
+		URI uri1 = new URI("http://localhost:" + port + path1);
+		URI uri2 = new URI("http://localhost:" + port + path2);
+		ResponseEntity<?> response1 = template.postForEntity(uri1, "foo", Object.class);
+		ResponseEntity<?> response2 = template.postForEntity(uri2, "bar", Object.class);
+		ResponseEntity<?> response3 = template.postForEntity(uri2, "bar", Object.class);
+
+		assertEquals(HttpStatus.OK, response1.getStatusCode());
+		assertEquals(HttpStatus.OK, response2.getStatusCode());
+		assertEquals(HttpStatus.OK, response3.getStatusCode());
+		assertTrue(latch.await(1, TimeUnit.SECONDS));
+		assertEquals(1, messages1.size());
+		assertEquals(2, messages2.size());
+		Message<?> message1 = messages1.get(0);
+		Message<?> message2 = messages2.get(0);
+		assertEquals("foo", message1.getPayload());
+		assertEquals("bar", message2.getPayload());
+		assertEquals("/test1", message1.getHeaders().get("requestPath"));
+		assertEquals("/test2", message2.getHeaders().get("requestPath"));
+
+		adapter1.stop();
+		adapter2.stop();
+	}
+
+	/* end whu */
+
 	@Test
 	public void testContentTypeHeaderMapsToSiContentTypeHeader() throws Exception {
 		final List<Message<?>> messages = new ArrayList<Message<?>>();

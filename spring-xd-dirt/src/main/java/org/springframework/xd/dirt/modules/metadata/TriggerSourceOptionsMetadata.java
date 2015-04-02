@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.AssertFalse;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
@@ -26,6 +26,9 @@ import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
+import org.springframework.xd.module.options.validation.CronExpression;
+import org.springframework.xd.module.options.validation.DateFormat;
+import org.springframework.xd.module.options.validation.Exclusives;
 
 /**
  * Describes options to the {@code trigger} source module.
@@ -43,13 +46,15 @@ public class TriggerSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private static final String[] USE_DATE = new String[] { "use-date" };
 
+	public static final String DEFAULT_DATE = "The current time";
+
 	private Integer fixedDelay;
 
 	private String cron;
 
 	private String payload = "";
 
-	private String date = "The current time";
+	private String date = DEFAULT_DATE;
 
 	private String dateFormat = "MM/dd/yy HH:mm:ss";
 
@@ -71,9 +76,9 @@ public class TriggerSourceOptionsMetadata implements ProfileNamesProvider {
 		return fixedDelay;
 	}
 
-	@AssertTrue(message = "cron and fixedDelay are mutually exclusive")
-	private boolean isValid() {
-		return !(fixedDelay != null && cron != null);
+	@AssertFalse(message = "'cron', explicit 'date' and 'fixedDelay' are mutually exclusive")
+	private boolean isInvalid() {
+		return Exclusives.strictlyMoreThanOne(fixedDelay != null, cron != null, !DEFAULT_DATE.equals(date));
 	}
 
 	@ModuleOption("time delay between executions, expressed in TimeUnits (seconds by default)")
@@ -82,6 +87,7 @@ public class TriggerSourceOptionsMetadata implements ProfileNamesProvider {
 	}
 
 
+	@CronExpression
 	public String getCron() {
 		return cron;
 	}
@@ -112,6 +118,7 @@ public class TriggerSourceOptionsMetadata implements ProfileNamesProvider {
 	}
 
 	@NotBlank
+	@DateFormat
 	public String getDateFormat() {
 		return dateFormat;
 	}

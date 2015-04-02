@@ -21,6 +21,7 @@ import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JO
 import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.validation.DateFormat;
 
 /**
  * Options for the {@code timestampfile} job module.
@@ -83,6 +84,7 @@ public class TimestampFileJobOptionsMetadata {
 		return fileExtension;
 	}
 
+	@DateFormat
 	public String getFormat() {
 		return format;
 	}

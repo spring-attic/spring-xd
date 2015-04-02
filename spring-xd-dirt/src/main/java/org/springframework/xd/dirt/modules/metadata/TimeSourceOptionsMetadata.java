@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.modules.metadata;
 import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.validation.DateFormat;
 
 /**
  * Describes options to the {@code time} source module.
@@ -34,6 +35,7 @@ public class TimeSourceOptionsMetadata {
 	private int fixedDelay = 1;
 
 
+	@DateFormat
 	public String getFormat() {
 		return format;
 	}

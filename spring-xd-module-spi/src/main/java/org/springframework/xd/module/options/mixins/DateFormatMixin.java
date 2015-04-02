@@ -23,6 +23,7 @@ import javax.validation.constraints.AssertFalse;
 import org.hibernate.validator.constraints.NotBlank;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.validation.DateFormat;
 
 
 /**
@@ -35,21 +36,10 @@ public class DateFormatMixin {
 	private String dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
 	@NotBlank
+	@DateFormat
 	public String getDateFormat() {
 		return dateFormat;
 	}
-
-	@AssertFalse(message = "invalid 'dateFormat' pattern specified")
-	public boolean isInvalidDateFormat() {
-		try {
-			new SimpleDateFormat(dateFormat);
-			return false;
-		}
-		catch (IllegalArgumentException e) {
-			return true;
-		}
-	}
-
 
 	@ModuleOption("a pattern (as in SimpleDateFormat) for parsing/formatting dates and timestamps")
 	public void setDateFormat(String dateFormat) {

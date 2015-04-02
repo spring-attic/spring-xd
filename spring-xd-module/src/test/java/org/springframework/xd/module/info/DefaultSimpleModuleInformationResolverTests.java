@@ -67,7 +67,7 @@ public class DefaultSimpleModuleInformationResolverTests {
 	}
 
 	private ModuleDefinition craftDefinitionFor(String name, ModuleType type) {
-		String location = String.format("classpath:%s-modules/%s/%s", DefaultSimpleModuleInformationResolverTests.class.getSimpleName(), type, name);
+		String location = String.format("classpath:%s-modules/%s/%s/", DefaultSimpleModuleInformationResolverTests.class.getSimpleName(), type, name);
 		return ModuleDefinitions.simple(name, type, location);
 	}
 

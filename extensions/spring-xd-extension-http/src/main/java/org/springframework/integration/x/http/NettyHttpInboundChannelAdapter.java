@@ -171,7 +171,9 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	private void putToChannelAdapter() {
 		Map<String, Object> pathToProducer = getModuleState();
 		if (pathToProducer.containsKey(path)) {
-			logger.warn("Channel for path '" + path + "' already exists, overwriting.");
+			String msg = "Channel for HTTP port " + port + ", path '" + path + "' already exists.";
+			logger.warn(msg);
+			throw new RuntimeException(msg);
 		}
 		pathToProducer.put(path, this);
 	}
@@ -255,6 +257,8 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 		if (bootstrap != null) {
 			bootstrap.shutdown();
 		}
+		Map<String, Object> pathToProducer = getModuleState();
+		pathToProducer.remove(path);
 	}
 
 	private SSLContext initializeSSLContext() throws Exception {

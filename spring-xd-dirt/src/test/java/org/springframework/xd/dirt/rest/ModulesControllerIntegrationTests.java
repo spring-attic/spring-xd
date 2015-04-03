@@ -21,11 +21,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,6 +49,7 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.TestModuleDefinitions;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Tests REST compliance of module-related endpoints.
@@ -65,14 +70,17 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	@Autowired
 	private WritableModuleRegistry moduleRegistry;
 
-	@Autowired
-	private ModuleDefinitionService moduleDefinitionService;
-
-
 	@Before
-	public void setupSuccessfulModuleComposition() {
+	public void setupSuccessfulModuleComposition() throws IOException {
 		ModuleDefinition any = Mockito.any();
 		when(moduleRegistry.registerNew(any)).thenReturn(true);
+
+		File config = temporaryFolder.newFolder("config");
+		Properties props = new Properties();
+		props.setProperty("options.foo.description", "the foo property");
+		props.setProperty("options.foo.type", "String");
+		props.setProperty("options.foo.default", "yummy");
+		props.store(new FileOutputStream(new File(config, "foo.properties")), "module properties");
 	}
 
 	@Before
@@ -102,10 +110,8 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 			processorDefinitions.add(moduleDefinition);
 		}
 
-		final File file = temporaryFolder.newFile("job_4_with_resource.xml");
-		FileUtils.writeStringToFile(file, "This is the contents of job_4_with_resource.xml");
 
-		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("job_4_with_resource", ModuleType.job, "file:" + file.getAbsolutePath());
+		ModuleDefinition moduleDefinition = ModuleDefinitions.simple("job_4_with_resource", ModuleType.job, "file:" + temporaryFolder.getRoot().getAbsolutePath() + "/");
 		moduleDefinitions.add(moduleDefinition);
 		jobDefinitions.add(moduleDefinition);
 
@@ -139,6 +145,15 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 				jsonPath("$.content[6].name").value("processor_2")).andExpect(
 				jsonPath("$.content[9].name").value("sink_2")).andExpect(
 				jsonPath("$.content[12].name").value("source_2"));
+	}
+
+	@Test
+	public void testListAllWithDetails() throws Exception {
+		mockMvc.perform(get("/modules?detailed=true").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk()).andExpect(
+				jsonPath("$.content", Matchers.hasSize(13))).andExpect(jsonPath("$.content[0].name").value("job_0")).andExpect(
+				jsonPath("$.content[3].name").value("job_4_with_resource")).andExpect(
+				jsonPath("$.content[3].options[0].description").value("the foo property"));
 	}
 
 	@Test

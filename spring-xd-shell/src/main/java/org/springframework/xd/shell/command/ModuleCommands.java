@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.fusesource.jansi.Ansi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -38,6 +39,8 @@ import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
+
+import static org.fusesource.jansi.Ansi.ansi;
 
 /**
  * Commands for working with modules. Allows retrieval of information about available modules, as well as creating new
@@ -98,13 +101,26 @@ public class ModuleCommands implements CommandMarker {
 				final TableRow row = new TableRow();
 				row.addValue(1, o.getName())
 						.addValue(2, o.getDescription())
-						.addValue(3, o.getDefaultValue() == null ? "<none>" : o.getDefaultValue())
+						.addValue(3, prettyPrintDefaultValue(o))
 						.addValue(4, o.getType() == null ? "<unknown>" : o.getType());
 				table.getRows().add(row);
 			}
 			result.append(table.toString());
 		}
 		return result.toString();
+	}
+
+	/**
+	 * Escapes some special values so that they don't disturb console rendering and are easier to read.
+	 */
+	private String prettyPrintDefaultValue(Option o) {
+		if (o.getDefaultValue() == null) {
+			return "<none>";
+		}
+		return o.getDefaultValue()
+				.replace("\n", "\\n")
+				.replace("\t", "\\t")
+				.replace("\f", "\\f");
 	}
 
 	@CliCommand(value = COMPOSE_MODULE, help = "Create a virtual module")

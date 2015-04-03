@@ -56,7 +56,7 @@ public class ModulesController {
 
 	private final DetailedModuleDefinitionResourceAssembler detailedAssembler;
 
-	private ModuleDefinitionResourceAssembler moduleDefinitionResourceAssembler = new ModuleDefinitionResourceAssembler();
+	private ModuleDefinitionResourceAssembler simpleAssembler = new ModuleDefinitionResourceAssembler();
 
 	@Autowired
 	public ModulesController(ModuleDefinitionService moduleDefinitionService,
@@ -73,13 +73,12 @@ public class ModulesController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<ModuleDefinitionResource> list(Pageable pageable,
+	public PagedResources<? extends ModuleDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<ModuleDefinition> assembler,
-			@RequestParam(value = "type", required = false) ModuleType type) {
+			@RequestParam(value = "type", required = false) ModuleType type,
+			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
 		Page<ModuleDefinition> page = type == null ? moduleDefinitionService.findDefinitions(pageable) : moduleDefinitionService.findDefinitions(pageable, type);
-		PagedResources<ModuleDefinitionResource> result = assembler.toResource(page,
-				new ModuleDefinitionResourceAssembler());
-		return result;
+		return assembler.toResource(page, detailed ? detailedAssembler: simpleAssembler);
 	}
 
 	/**
@@ -109,7 +108,7 @@ public class ModulesController {
 	public ModuleDefinitionResource compose(@RequestParam("name") String name,
 			@RequestParam("definition") String definition) {
 		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, /*TODO*/null, definition);
-		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);
+		ModuleDefinitionResource resource = simpleAssembler.toResource(moduleDefinition);
 		return resource;
 	}
 
@@ -126,7 +125,7 @@ public class ModulesController {
 	public ModuleDefinitionResource compose(@PathVariable("type") ModuleType type, @PathVariable("name") String name,
 			@RequestBody String definition) {
 		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, type, definition);
-		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);
+		ModuleDefinitionResource resource = simpleAssembler.toResource(moduleDefinition);
 		return resource;
 	}
 
@@ -142,7 +141,7 @@ public class ModulesController {
 	public ModuleDefinitionResource upload(@PathVariable("type") ModuleType type, @PathVariable("name") String name,
 			@RequestBody byte[] bytes) {
 		ModuleDefinition moduleDefinition = moduleDefinitionService.upload(name, type, bytes);
-		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);
+		ModuleDefinitionResource resource = simpleAssembler.toResource(moduleDefinition);
 		return resource;
 	}
 

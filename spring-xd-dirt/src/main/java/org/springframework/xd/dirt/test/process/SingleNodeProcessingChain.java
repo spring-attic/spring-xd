@@ -37,10 +37,6 @@ public class SingleNodeProcessingChain extends AbstractSingleNodeProcessingChain
 		super(application, streamName, processingChain, moduleResourceLocation);
 	}
 
-	@Override
-	public Message<?> receive() {
-		return sink.receive();
-	}
 
 	@Override
 	public Message<?> receive(int timeout) {
@@ -48,15 +44,9 @@ public class SingleNodeProcessingChain extends AbstractSingleNodeProcessingChain
 	}
 
 	@Override
-	public Object receivePayload() {
-		return sink.receivePayload();
-	}
-
-	@Override
 	public Object receivePayload(int timeout) {
 		return sink.receivePayload(timeout);
 	}
-
 
 	@Override
 	public void send(Message<?> message) {

@@ -37,18 +37,8 @@ public class SingleNodeProcessingChainConsumer extends AbstractSingleNodeProcess
 	}
 
 	@Override
-	public Message<?> receive() {
-		return sink.receive();
-	}
-
-	@Override
 	public Message<?> receive(int timeout) {
 		return sink.receive(timeout);
-	}
-
-	@Override
-	public Object receivePayload() {
-		return sink.receivePayload();
 	}
 
 	@Override

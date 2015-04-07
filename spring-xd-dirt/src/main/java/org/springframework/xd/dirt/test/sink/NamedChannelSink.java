@@ -27,11 +27,7 @@ import org.springframework.xd.dirt.test.NamedChannelModule;
  */
 public interface NamedChannelSink extends NamedChannelModule {
 
-	public Message<?> receive();
-
 	public Message<?> receive(int timeout);
-
-	public Object receivePayload();
 
 	public Object receivePayload(int timeout);
 }

@@ -33,18 +33,8 @@ public abstract class AbstractSingleNodeNamedChannelSink extends AbstractSingleN
 	}
 
 	@Override
-	public Message<?> receive() {
-		return this.receive(0);
-	}
-
-	@Override
 	public Message<?> receive(int timeout) {
 		return this.messageChannel.receive(timeout);
-	}
-
-	@Override
-	public Object receivePayload() {
-		return this.receivePayload(0);
 	}
 
 	@Override

@@ -27,11 +27,50 @@ import org.springframework.xd.dirt.test.NamedChannelModule;
  */
 public interface NamedChannelSink extends NamedChannelModule {
 
-	public Message<?> receive();
+	/**
+	 * Receive the first available message from this sink.
+	 * <p>
+	 * If the sink contains no messages, this method will block.
+	 *
+	 * @return the first available message or <code>null</code> if the receiving thread is interrupted.
+	 */
+	Message<?> receive();
 
-	public Message<?> receive(int timeout);
+	/**
+	 * Receive the first available message from this sink.
+	 * <p>
+	 * If the channel contains no messages, this method will block until the allotted timeout elapses.
+	 * If the specified timeout is 0, the method will return immediately.
+	 * If less than zero, it will block indefinitely (see {@link #receive()}).
+	 *
+	 * @param timeout the timeout in milliseconds
+	 *
+	 * @return the first available message or <code>null</code> if no message is available within the
+	 * allotted time or the receiving thread is interrupted.
+	 */
+	Message<?> receive(int timeout);
 
-	public Object receivePayload();
+	/**
+	 * Receive the first available payload from this sink.
+	 * <p>
+	 * If the sink contains no messages, this method will block.
+	 *
+	 * @return the first available payload or <code>null</code> if the receiving thread is interrupted.
+	 */
+	Object receivePayload();
 
-	public Object receivePayload(int timeout);
+	/**
+	 * Receive the first available payload from this sink.
+	 * <p>
+	 * If the channel contains no messages, this method will block until the allotted timeout elapses.
+	 * If the specified timeout is 0, the method will return immediately.
+	 * If less than zero, it will block indefinitely (see {@link #receivePayload()}).
+	 *
+	 * @param timeout the timeout in milliseconds
+	 *
+	 * @return the first available payload or <code>null</code> if no message is available within the
+	 * allotted time or the receiving thread is interrupted.
+	 */
+	Object receivePayload(int timeout);
+
 }

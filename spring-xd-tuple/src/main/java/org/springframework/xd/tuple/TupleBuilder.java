@@ -21,11 +21,13 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.format.support.FormattingConversionService;
+import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.convert.support.DefaultTupleConversionService;
 import org.springframework.util.Assert;
 
 /**
@@ -39,32 +41,43 @@ import org.springframework.util.Assert;
  */
 public class TupleBuilder {
 
-	private List<String> names = new ArrayList<String>();
+	private List<String> names;
 
-	private List<Object> values = new ArrayList<Object>();
+	private List<Object> values;
 
-	private FormattingConversionService formattingConversionService = new DefaultTupleConversionService();
-
-	private final static String DEFAULT_DATE_PATTERN = "yyyy-MM-dd";
+	private ConfigurableConversionService formattingConversionService = new DefaultTupleConversionService();
 
 	private final static Locale DEFAULT_LOCALE = Locale.US;
 
 	private static Converter<Tuple, String> tupleToStringConverter = new TupleToJsonStringConverter();
 
-	private static Converter<String, Tuple> stringToTupleConverter = new JsonStringToTupleConverter();
+	private static Converter<String, Tuple> stringToTupleConverter;
 
-	private DateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
-	{
-		dateFormat.setLenient(false);
-	}
+	private final static String DEFAULT_DATE_PATTERN = "yyyy-MM-dd";
 
-	public static TupleBuilder tuple() {
+	private String datePattern = DEFAULT_DATE_PATTERN;
+
+
+	public static TupleBuilder tuple(int size) {
 		TupleBuilder tb = new TupleBuilder();
 		tb.setNumberFormatFromLocale(DEFAULT_LOCALE);
+
+		if(size <= 0) {
+			tb.setNames(new LinkedList<String>());
+			tb.setValues(new LinkedList<>());
+		} else {
+			tb.setNames(new ArrayList<String>(size));
+			tb.setValues(new ArrayList<>(size));
+		}
 		DateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
 		dateFormat.setLenient(false);
 		tb.setDateFormat(dateFormat);
 		return tb;
+
+	}
+
+	public static TupleBuilder tuple() {
+		return tuple(0);
 	}
 
 	public Tuple of(String k1, Object v1) {
@@ -108,10 +121,14 @@ public class TupleBuilder {
 	}
 
 	public static Tuple fromString(String source) {
+		if(stringToTupleConverter == null) {
+			stringToTupleConverter = new JsonStringToTupleConverter();
+		}
+
 		return stringToTupleConverter.convert(source);
 	}
 
-	public TupleBuilder setFormattingConversionService(FormattingConversionService formattingConversionService) {
+	public TupleBuilder setFormattingConversionService(ConfigurableConversionService formattingConversionService) {
 		Assert.notNull(formattingConversionService);
 		this.formattingConversionService = formattingConversionService;
 		return this;
@@ -136,13 +153,13 @@ public class TupleBuilder {
 	}
 
 	static List<Object> valuesOf(Object v1) {
-		ArrayList<Object> values = new ArrayList<Object>();
+		ArrayList<Object> values = new ArrayList<>();
 		values.add(v1);
 		return Collections.unmodifiableList(values);
 	}
 
 	static List<String> namesOf(String k1) {
-		List<String> fields = new ArrayList<String>(1);
+		List<String> fields = new ArrayList<>(1);
 		fields.add(k1);
 		return Collections.unmodifiableList(fields);
 
@@ -152,6 +169,14 @@ public class TupleBuilder {
 		DefaultTuple tuple = new DefaultTuple(names, values, formattingConversionService);
 		tuple.setTupleToStringConverter(tupleToStringConverter);
 		return tuple;
+	}
+
+	private void setNames(List<String> names) {
+		this.names = names;
+	}
+
+	private void setValues(List<Object> values) {
+		this.values = values;
 	}
 
 }

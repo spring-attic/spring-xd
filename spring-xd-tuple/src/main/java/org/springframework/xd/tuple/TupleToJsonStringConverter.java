@@ -13,10 +13,10 @@
 
 package org.springframework.xd.tuple;
 
-import org.springframework.core.convert.converter.Converter;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.springframework.core.convert.converter.Converter;
 
 /**
  * @author David Turanski
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 
-	private final ObjectMapper mapper = new ObjectMapper();
+	private ObjectMapper mapper;
 
 	@Override
 	public String convert(Tuple source) {
@@ -41,6 +41,10 @@ public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 	}
 
 	private ObjectNode toObjectNode(Tuple source) {
+		if(mapper == null) {
+			mapper = new ObjectMapper();
+		}
+
 		ObjectNode root = mapper.createObjectNode();
 		root.put("id", source.getId().toString());
 		root.put("timestamp", source.getTimestamp());

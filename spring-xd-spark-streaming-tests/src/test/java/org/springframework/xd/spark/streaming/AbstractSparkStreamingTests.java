@@ -26,6 +26,7 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasConten
 import java.io.File;
 import java.util.Random;
 
+import org.hamcrest.core.StringContains;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,6 +40,7 @@ import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.shell.command.StreamCommandTemplate;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.XDMatchers;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.fixtures.FileSink;
 
@@ -138,6 +140,30 @@ public abstract class AbstractSparkStreamingTests {
 			assertThat(sink, eventually(hasContentsThat(containsString("(bar,5)"))));
 			assertThat(sink, eventually(hasContentsThat(containsString("(test1,2)"))));
 			assertThat(sink, eventually(hasContentsThat(containsString("(test2,1)"))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			streamOps.destroyStream(tapStreamName);
+			sink.cleanup();
+		}
+	}
+
+	@Test
+	public void testTapSparkProcessor() throws Exception {
+		HttpSource source = new HttpSource(shell);
+		String streamName =  testName.getMethodName() + new Random().nextInt();
+		String tapStreamName =  testName.getMethodName() + new Random().nextInt();
+		FileSink sink = new FileSink().binary(true);
+		try {
+			String stream = String.format("%s | spark-word-count --enableTap=true | counter", source);
+			createStream(streamName, stream);
+			String tapStream = String.format("tap:stream:%s.spark-word-count > %s --inputType=text/plain", streamName, sink);
+			createStream(tapStreamName, tapStream);
+			source.ensureReady().postData(TEST_LONG_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(foo,6)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(bar,5)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test1,2)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test2,1)"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);

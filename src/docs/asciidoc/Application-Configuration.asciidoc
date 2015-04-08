@@ -5,25 +5,25 @@ endif::[]
 
 === Introduction
 
-There are two main parts of Spring XD that can be configured, servers and modules.  
+There are two main parts of Spring XD that can be configured, servers and modules.
 
 The servers (`xd-singlenode`, `xd-admin`, `xd-container`) are http://projects.spring.io/spring-boot/[Spring Boot] applications and are configured as described in the http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/[Spring Boot Reference documentation].  In the most simple case this means editing values in the YAML based configuration file `servers.yml`.  The values in this configuration file will overwrite the values in the default https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/application.yml[application.yml] file that is embedded in the XD jar.
 
 NOTE: The use of YAML is an alternative to using property files. YAML is a superset of JSON, and as such is a very convenient format for specifying hierarchical configuration data.
 
-For modules, each module has its own configuration file located in its own directory, for example `source/http/http.properties`.  Shared configuration values for modules can be placed in a common `modules.yml` file.  
+For modules, each module has its own configuration file located in its own directory, for example `source/http/http.properties`.  Shared configuration values for modules can be placed in a common `modules.yml` file.
 
-For both server and module configuration, you can have environment specific settings through the use of application profiles and the ability to override values in files by setting OS environment variables.  
+For both server and module configuration, you can have environment specific settings through the use of application profiles and the ability to override values in files by setting OS environment variables.
 
 In this section we will walk though how to configure servers and modules.
 
 === Server Configuration
 
-The startup scripts for `xd-singlenode`, `xd-admin`, and `xd-container` will by default look for the file `$XD_HOME\config\servers.yml` as a source of externalized configuration information.  
+The startup scripts for `xd-singlenode`, `xd-admin`, and `xd-container` will by default look for the file `$XD_HOME\config\servers.yml` as a source of externalized configuration information.
 
 The location and name of this resourse can be changed by using the environment variables `XD_CONFIG_LOCATION` and `XD_CONFIG_NAME`.  The start up script takes the value of these environment variables to set the Spring Boot properties `spring.config.location` and `spring.config.name`.  Note, that for `XD_CONFIG_LOCATION` you can reference any http://docs.spring.io/spring/docs/4.0.3.RELEASE/spring-framework-reference/htmlsingle/#resources[Spring Resource] implementation, most commonly denoted using the prefixes `classpath:`, `file:` and `http:`.
 
-It is common to keep your server configuration separate form the installation directory of XD itself.  To do this, here is an example environment variable setting 
+It is common to keep your server configuration separate form the installation directory of XD itself.  To do this, here is an example environment variable setting
 
 [source,bash]
 ----
@@ -45,20 +45,20 @@ You may also put multiple profile specific configuration in a single `servers.ym
 
 ==== Database Configuration
 
-Spring XD saves the state of the batch job workflows in a relational database.  When running `xd-singlenode` a embedded HSQLDB database is run.  When running in distributed mode a standalone HSQLDB instance can be used, the startup script `hsqldb-server` is in is provided the installation directory under the folder 'hsqldb/bin'.  It is recommended to use HSQLDB only for development and learning. 
+Spring XD saves the state of the batch job workflows in a relational database.  When running `xd-singlenode` a embedded HSQLDB database is run.  When running in distributed mode a standalone HSQLDB instance can be used, the startup script `hsqldb-server` is in is provided the installation directory under the folder 'hsqldb/bin'.  It is recommended to use HSQLDB only for development and learning.
 
 When deploying in a production environment, you will need to select another database.  Spring XD is actively tested on MySql (Version: 5.1.23) and Postgres (Version 9.2-1002).  All batch workflow tables are automatically created, if they do not exist, for HSQLDB, MySQL and Postgres.  The JDBC driver jars for the HSQLDB and Postgres are already on the XD classpath.
 
-The provided configuration file `servers.yml` located in `$XD_HOME\config` has commented out configuration for some commonly used databases.  You can use these as a basis to support your database environment. XD also utilizes the Tomcat jdbc connection pool and these settings can be configured in the `servers.yml`.  
+The provided configuration file `servers.yml` located in `$XD_HOME\config` has commented out configuration for some commonly used databases.  You can use these as a basis to support your database environment. XD also utilizes the Tomcat jdbc connection pool and these settings can be configured in the `servers.yml`.
 
-NOTE: Until full schema support is added for Oracle, Sybase and other database, you will need to put a .jar file in the `xd/lib` directory that contains the equivalent functionality as these https://github.com/spring-projects/spring-xd/tree/master/spring-xd-batch/src/main/resources/org/springframework/xd/batch/schema[DDL scripts].  
+NOTE: Until full schema support is added for Oracle, Sybase and other database, you will need to put a .jar file in the `xd/lib` directory that contains the equivalent functionality as these https://github.com/spring-projects/spring-xd/tree/master/spring-xd-batch/src/main/resources/org/springframework/xd/batch/schema[DDL scripts].
 
 NOTE: There was a schema change in version 1.0 RC1.  Use or adapt the the https://gist.github.com/ilayaperumalg/3f379eb7f4527f6f6da4[sample migration class] to update your schema.
 
 
-===== HSQLDB 
+===== HSQLDB
 
-When in distributed mode and you want to use HSQLDB, you need to change the value of `spring.datasource` properties.  As an example, 
+When in distributed mode and you want to use HSQLDB, you need to change the value of `spring.datasource` properties.  As an example,
 
 [source,yaml]
 ----
@@ -75,11 +75,11 @@ spring:
    driverClassName: org.hsqldb.jdbc.JDBCDriver
 ----
 
-The properties under `hsql.server` are substituted in the `spring.datasource.url` property value.  This lets you create short variants of existing Spring Boot properties.  Using this style, you can override the value of these configuration variables by setting an OS environment variable, such as `xd_server_host`.  Alternatively, you can not use any placeholders and set `spring.datasource.url` directly to known values. 
+The properties under `hsql.server` are substituted in the `spring.datasource.url` property value.  This lets you create short variants of existing Spring Boot properties.  Using this style, you can override the value of these configuration variables by setting an OS environment variable, such as `xd_server_host`.  Alternatively, you can not use any placeholders and set `spring.datasource.url` directly to known values.
 
 ===== MySQL
 
-When in distributed mode and you want to use MySQL, you need to change the value of `spring.datasource.*` properties.  As an example, 
+When in distributed mode and you want to use MySQL, you need to change the value of `spring.datasource.*` properties.  As an example,
 
 [source,yaml]
 ----
@@ -96,7 +96,7 @@ To override these settings set an OS environment variable such as `spring_dataso
 
 ===== PostgreSQL
 
-When in distributed mode and you want to use PostgreSQL, you need to change the value of `spring.datasource.*` properties.  As an example, 
+When in distributed mode and you want to use PostgreSQL, you need to change the value of `spring.datasource.*` properties.  As an example,
 
 [source,yaml]
 ----
@@ -144,7 +144,7 @@ In addition, the following default settings for the rabbit message bus can be mo
 ----
     redis:
       headers:				 # <1>
-      default:				 
+      default:
         backOffInitialInterval:    1000  # <2>
         backOffMaxInterval:        10000 # <3>
         backOffMultiplier:         2.0   # <4>
@@ -209,16 +209,17 @@ In addition, the following default settings for the rabbit message bus can be mo
         prefix:                    xdbus. # <15>
         prefetch:                  1     # <16>
         replyHeaderPatterns:       STANDARD_REPLY_HEADERS,*   # <17>
-        requestHeaderPatterns:     STANDARD_REQUEST_HEADERS,* # <18>
-        requeue:                   true  # <19>
-        transacted:                false # <20>
-        txSize:                    1     # <21>
+        republishToDLQ             false # <18>
+        requestHeaderPatterns:     STANDARD_REQUEST_HEADERS,* # <19>
+        requeue:                   true  # <20>
+        transacted:                false # <21>
+        txSize:                    1     # <22>
 ----
 <1> When the bus (or a stream module deployment) is configured to compress messages, specifies the compression level. See _java.uti.zip.Deflater_ for available values; defaults to 1 (BEST_SPEED)
 
 <2> AUTO (container acks), NONE (broker acks), MANUAL (consumer acks). Upper case only. Note: MANUAL requires specialized code in the consuming module and is unlikely to be used in an XD application. For more information, see http://docs.spring.io/spring-integration/reference/html/amqp.html#amqp-inbound-ack
 
-<3> When true, the bus will automatically declare dead letter queues and binding for each bus queue. The user is responsible for setting a policy on the broker to enable dead-lettering; see xref:MessageBus#error-handling-message-delivery-failures[Message Bus Configuration] for more information.
+<3> When true, the bus will automatically declare dead letter queues and binding for each bus queue. The user is responsible for setting a policy on the broker to enable dead-lettering; see xref:MessageBus#error-handling-message-delivery-failures[Message Bus Configuration] for more information. The bus will configure a dead-letter-exchange (`<prefix>DLX`) and bind a queue with the name `<original queue name>.dlq` and route using the original queue name
 
 <4> The time in milliseconds before retrying a failed message delivery
 
@@ -238,7 +239,8 @@ In addition, the following default settings for the rabbit message bus can be mo
 
 <12> The minimum number of consumer threads receiving messages for a module
 
-<13> The maximum number of delivery attempts
+<13> The maximum number of delivery attempts. Setting this to `1` disables the retry mechanism and `requeue` must be set to false if you wish failed messages to be rejected or routed to a DLQ. Otherwise deliveries
+will be attempted repeatedly, with no termination. Also see `republishToDLQ`
 
 <14> The maximum number of consumer threads receiving messages for a module
 
@@ -248,13 +250,15 @@ In addition, the following default settings for the rabbit message bus can be mo
 
 <17> Determines which reply headers will be transported
 
-<18> Determines which request headers will be transported
+<18> By default, failed messages after retries are exhausted are rejected. If a dead-letter queue (DLQ) is configured, rabbitmq will route the failed message (unchanged) to the DLQ. Setting this property to `true` instructs the bus to republish failed messages to the DLQ, with additional headers, including the exception message and stack trace from the cause of the final failure. Note that the republish will occur even if `maxAttempts` is only set to `1`. Also see `autoBindDLQ`
 
-<19> Whether rejected messages will be requeued by default
+<19> Determines which request headers will be transported
 
-<20> Whether the channel is to be transacted
+<20> Whether rejected messages will be requeued by default
 
-<21> The number of messages to process between acks (when ack mode is AUTO).
+<21> Whether the channel is to be transacted
+
+<22> The number of messages to process between acks (when ack mode is AUTO).
 
 [[kafka-configuration]]
 ==== Kafka
@@ -265,7 +269,7 @@ message bus can be modified in `servers.yml`.
 
 NOTE: To ensure the proper functioning of the Kafka Message Bus, you must eanble log cleaning in your Kafka configuration.  This is set using the configuration variable `log.cleaner.enable=true`.  See the https://cwiki.apache.org/confluence/display/KAFKA/Log+Compaction[Kafka documentation] for additional configuration options for log cleaning.
 
-NOTE: At this time, the Kafka message bus does not support job processing. This feature will be available in a future release. 
+NOTE: At this time, the Kafka message bus does not support job processing. This feature will be available in a future release.
 
 [source,yaml]
 ----
@@ -632,7 +636,7 @@ The format of each line is the following:
 HTTP_METHOD URL_PATTERN '=>' SECURITY_ATTRIBUTE
 ----
 
-where 
+where
 
 * HTTP_METHOD is one http method, capital case
 * URL_PATTERN is an Ant style URL pattern
@@ -654,7 +658,7 @@ Modules are configured by placing property files in a nested directory structure
 
 NOTE: If `XD_MODULE_CONFIG_LOCATION` is set to use explicit location, make sure to copy entire directory structure from the default module config location `xd/config/modules` into the new module config location. The `XD_MODULE_CONFIG_LOCATION` can reference any http://docs.spring.io/spring/docs/4.0.3.RELEASE/spring-framework-reference/htmlsingle/#resources[Spring Resource] implementation, most commonly denoted using the prefixes `classpath:`, `file:` and `http:`.
 
-As an example, if you wanted to configure the twittersearch module, you would create a file 
+As an example, if you wanted to configure the twittersearch module, you would create a file
 ----
 XD_MODULE_CONFIG_LOCATION\source\twittersearch\twittersearch.properties
 ----
@@ -727,4 +731,3 @@ password=
 ----
 
 A property file with the same keys, but likely different values would be located in `XD_MODULE_CONFIG_LOCATION\sink\jdbc\jdbc.properites`.
-

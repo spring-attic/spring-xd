@@ -128,6 +128,8 @@ xd:
             # prefix for queue/exchange names so policies (ha, dle etc.) can be applied
         prefetch:                  1
         replyHeaderPatterns:       STANDARD_REPLY_HEADERS,*
+        republishToDLQ:            false
+            # When false, normal rabbitmq dlq processing; when true, republish to the DLQ with stack trace
         requestHeaderPatterns:     STANDARD_REQUEST_HEADERS,*
         requeue:                   true
         transacted:                false

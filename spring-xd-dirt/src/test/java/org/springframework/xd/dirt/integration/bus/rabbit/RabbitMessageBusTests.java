@@ -447,6 +447,55 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		admin.deleteExchange("xdbustest.DLX");
 	}
 
+	@Test
+	public void testAutoBindDLQwithRepublish() throws Exception {
+		// pre-declare the queue with dead-lettering, users can also use a policy
+		RabbitAdmin admin = new RabbitAdmin(this.rabbitAvailableRule.getResource());
+		Map<String, Object> args = new HashMap<String, Object>();
+		args.put("x-dead-letter-exchange", "xdbustest.DLX");
+		Queue queue = new Queue("xdbustest.dlqpubtest", true, false, false, args);
+		admin.declareQueue(queue);
+
+		MessageBus bus = getMessageBus();
+		Properties properties = new Properties();
+		properties.put("prefix", "xdbustest.");
+		properties.put("autoBindDLQ", "true");
+		properties.put("republishToDLQ", "true");
+		properties.put("maxAttempts", "1"); // disable retry
+		properties.put("requeue", "false");
+		DirectChannel moduleInputChannel = new DirectChannel();
+		moduleInputChannel.setBeanName("dlqPubTest");
+		moduleInputChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				throw new RuntimeException("foo");
+			}
+
+		});
+		bus.bindConsumer("dlqpubtest", moduleInputChannel, properties);
+
+		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
+		template.convertAndSend("", "xdbustest.dlqpubtest", "foo");
+
+		int n = 0;
+		while (n++ < 100) {
+			org.springframework.amqp.core.Message deadLetter = template.receive("xdbustest.dlqpubtest.dlq");
+			if (deadLetter != null) {
+				assertEquals("foo", new String(deadLetter.getBody()));
+				assertNotNull(deadLetter.getMessageProperties().getHeaders().get("x-exception-stacktrace"));
+				break;
+			}
+			Thread.sleep(100);
+		}
+		assertTrue(n < 100);
+
+		bus.unbindConsumer("dlqpubtest", moduleInputChannel);
+		admin.deleteQueue("xdbustest.dlqpubtest.dlq");
+		admin.deleteQueue("xdbustest.dlqpubtest");
+		admin.deleteExchange("xdbustest.DLX");
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testBatchingAndCompression() throws Exception {

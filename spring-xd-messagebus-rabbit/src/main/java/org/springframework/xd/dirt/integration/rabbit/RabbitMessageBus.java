@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
@@ -50,7 +49,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.core.support.BatchingStrategy;
 import org.springframework.amqp.rabbit.core.support.SimpleBatchingStrategy;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
+import org.springframework.amqp.rabbit.retry.RepublishMessageRecoverer;
 import org.springframework.amqp.rabbit.support.DefaultMessagePropertiesConverter;
 import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.AmqpHeaders;
@@ -123,6 +124,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private static final String[] DEFAULT_REPLY_HEADER_PATTERNS = new String[] { "STANDARD_REPLY_HEADERS", "*" };
 
+	private static final String DEAD_LETTER_EXCHANGE = "DLX";
+
 	private static final Set<Object> RABBIT_CONSUMER_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
 		BusProperties.MAX_CONCURRENCY,
 		RabbitPropertiesAccessor.ACK_MODE,
@@ -132,7 +135,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		RabbitPropertiesAccessor.REQUEUE,
 		RabbitPropertiesAccessor.TRANSACTED,
 		RabbitPropertiesAccessor.TX_SIZE,
-		RabbitPropertiesAccessor.AUTO_BIND_DLQ
+		RabbitPropertiesAccessor.AUTO_BIND_DLQ,
+		RabbitPropertiesAccessor.REPUBLISH_TO_DLQ
 	}));
 
 	/**
@@ -271,12 +275,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private volatile boolean defaultAutoBindDLQ = false;
 
+	private volatile boolean defaultRepublishToDLQ = false;
+
 	private static final ExpressionParser expressionParser =
 			new SpelExpressionParser(new SpelParserConfiguration(true, true));
-
-	private LinkedHashMap<Object, Long> channelsForManualAck = new LinkedHashMap<Object, Long>();
-
-	private long manualAckMessageIndex = 0;
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -361,6 +363,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.defaultAutoBindDLQ = defaultAutoBindDLQ;
 	}
 
+	public void setDefaultRepublishToDLQ(boolean defaultRepublishToDLQ) {
+		this.defaultRepublishToDLQ = defaultRepublishToDLQ;
+	}
+
 	@Override
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel, Properties properties) {
 		if (logger.isInfoEnabled()) {
@@ -437,13 +443,13 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			listenerContainer.setTaskExecutor(new SimpleAsyncTaskExecutor(queue.getName() + "-"));
 			listenerContainer.setQueues(queue);
 			int maxAttempts = properties.getMaxAttempts(this.defaultMaxAttempts);
-			if (maxAttempts > 1) {
+			if (maxAttempts > 1 || properties.getRepublishToDLQ(this.defaultRepublishToDLQ)) {
 				RetryOperationsInterceptor retryInterceptor = RetryInterceptorBuilder.stateless()
 						.maxAttempts(maxAttempts)
 						.backOffOptions(properties.getBackOffInitialInterval(this.defaultBackOffInitialInterval),
 								properties.getBackOffMultiplier(this.defaultBackOffMultiplier),
 								properties.getBackOffMaxInterval(this.defaultBackOffMaxInterval))
-						.recoverer(new RejectAndDontRequeueRecoverer())
+						.recoverer(determineRecoverer(name, properties))
 						.build();
 				listenerContainer.setAdviceChain(new Advice[] { retryInterceptor });
 			}
@@ -473,6 +479,21 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		finally {
 			Thread.currentThread().setContextClassLoader(originalClassloader);
+		}
+	}
+
+	private MessageRecoverer determineRecoverer(String name, RabbitPropertiesAccessor properties) {
+		if (properties.getRepublishToDLQ(this.defaultRepublishToDLQ)) {
+			RabbitTemplate errorTemplate = new RabbitTemplate(this.connectionFactory);
+			String prefix = properties.getPrefix(this.defaultPrefix);
+			RepublishMessageRecoverer republishMessageRecoverer = new RepublishMessageRecoverer(errorTemplate,
+					deadLetterExchangeName(prefix),
+					applyPrefix(prefix, name));
+			// TODO: Add container id to republished message headers? (Needs AMQP-489).
+			return republishMessageRecoverer;
+		}
+		else {
+			return new RejectAndDontRequeueRecoverer();
 		}
 	}
 
@@ -670,11 +691,15 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			String dlqName = constructDLQName(queueName);
 			Queue dlq = new Queue(dlqName);
 			declareQueueIfNotPresent(dlq);
-			final String dlxName = prefix + "DLX";
+			final String dlxName = deadLetterExchangeName(prefix);
 			final DirectExchange dlx = new DirectExchange(dlxName);
 			declareExchangeIfNotPresent(dlx);
 			this.rabbitAdmin.declareBinding(BindingBuilder.bind(dlq).to(dlx).with(queueName));
 		}
+	}
+
+	private String deadLetterExchangeName(String prefix) {
+		return prefix + DEAD_LETTER_EXCHANGE;
 	}
 
 	@Override
@@ -686,7 +711,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	public void doManualAck(LinkedList<MessageHeaders> messageHeadersList) {
 		Iterator<MessageHeaders> iterator = messageHeadersList.iterator();
 		Map<Object, Long> channelsToAck = new HashMap<Object, Long>();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			MessageHeaders messageHeaders = iterator.next();
 			if (messageHeaders.containsKey(AmqpHeaders.CHANNEL)) {
 				Channel channel = (com.rabbitmq.client.Channel) messageHeaders.get(AmqpHeaders.CHANNEL);
@@ -847,6 +872,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		 */
 		private static final String AUTO_BIND_DLQ = "autoBindDLQ";
 
+		/**
+		 * Whether to automatically declare the DLQ and bind it to the bus DLX.
+		 */
+		private static final String REPUBLISH_TO_DLQ = "republishToDLQ";
+
 		public RabbitPropertiesAccessor(Properties properties) {
 			super(properties);
 		}
@@ -901,6 +931,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		public boolean getAutoBindDLQ(boolean defaultValue) {
 			return getProperty(AUTO_BIND_DLQ, defaultValue);
+		}
+
+		public boolean getRepublishToDLQ(boolean defaultValue) {
+			return getProperty(REPUBLISH_TO_DLQ, defaultValue);
 		}
 
 	}

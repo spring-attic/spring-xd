@@ -22,7 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.integration.channel.ChannelInterceptorAware;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.spark.streaming.SparkMessageSender;
@@ -62,15 +67,19 @@ class MessageBusSender extends SparkMessageSender {
 
 	private final SparkStreamingChannel outputChannel;
 
-	public MessageBusSender(String outputChannelName, Properties messageBusProperties,
+	private final String tapChannelName;
+
+	public MessageBusSender(String outputChannelName, String tapChannelName, Properties messageBusProperties,
 			Properties moduleProducerProperties, MimeType contentType) {
-		this(null, outputChannelName, messageBusProperties, moduleProducerProperties, contentType);
+		this(null, outputChannelName, tapChannelName, messageBusProperties, moduleProducerProperties, contentType);
 	}
 
 	public MessageBusSender(LocalMessageBusHolder messageBusHolder, String outputChannelName,
-			Properties messageBusProperties, Properties moduleProducerProperties, MimeType contentType) {
+			String tapChannelName, Properties messageBusProperties, Properties moduleProducerProperties,
+			MimeType contentType) {
 		this.messageBusHolder = messageBusHolder;
 		this.outputChannelName = outputChannelName;
+		this.tapChannelName = tapChannelName;
 		this.messageBusProperties = messageBusProperties;
 		this.moduleProducerProperties = moduleProducerProperties;
 		this.contentType = contentType;
@@ -94,8 +103,30 @@ class MessageBusSender extends SparkMessageSender {
 					outputChannel.configureMessageConverter(contentType);
 				}
 				messageBus.bindProducer(outputChannelName, outputChannel, moduleProducerProperties);
+				addTapChannel();
 			}
 			this.running = true;
+		}
+	}
+
+	/**
+	 * Add tap channel to the module's output channel.
+	 * Also, bind the tap channel to the message bus.
+	 */
+	private void addTapChannel() {
+		Assert.notNull(outputChannel, "Output channel can not be null.");
+		Assert.notNull(messageBus, "MessageBus can not be null.");
+		logger.info("creating and binding tap channel for {}", tapChannelName);
+		if (outputChannel instanceof ChannelInterceptorAware) {
+			DirectChannel tapChannel = new DirectChannel();
+			tapChannel.setBeanName(tapChannelName + ".tap.bridge");
+			messageBus.bindPubSubProducer(tapChannelName, tapChannel, null);
+			outputChannel.addInterceptor(new WireTap(tapChannel));
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("output channel is not interceptor aware. Tap will not be created.");
+			}
 		}
 	}
 
@@ -110,6 +141,12 @@ class MessageBusSender extends SparkMessageSender {
 		if (this.isRunning() && messageBus != null) {
 			logger.info("stopping MessageBusSender");
 			messageBus.unbindProducer(outputChannelName, outputChannel);
+			for (ChannelInterceptor interceptor : outputChannel.getChannelInterceptors()) {
+				if (interceptor instanceof WireTap) {
+					((WireTap) interceptor).stop();
+				}
+			}
+			messageBus.unbindProducers(tapChannelName);
 			messageBus = null;
 		}
 		if (applicationContext != null) {

@@ -831,7 +831,6 @@ project('spring-xd-module') {
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile project(':spring-xd-module-spi')
 		compile project(':spring-xd-spark-streaming')
-		testCompile project(':spring-xd-test')
 	}
 }
 

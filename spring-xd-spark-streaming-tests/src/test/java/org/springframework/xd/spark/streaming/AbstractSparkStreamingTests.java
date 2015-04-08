@@ -116,6 +116,30 @@ public abstract class AbstractSparkStreamingTests {
 	}
 
 	@Test
+	public void testSparkTapStream() throws Exception {
+		HttpSource source = new HttpSource(shell);
+		String streamName =  testName.getMethodName() + new Random().nextInt();
+		String tapStreamName =  testName.getMethodName() + new Random().nextInt();
+		FileSink sink = new FileSink().binary(true);
+		try {
+			String stream = String.format("%s | counter", source);
+			createStream(streamName, stream);
+			String tapStream = String.format("tap:stream:"+ streamName + " > spark-word-count | %s --inputType=text/plain", sink);
+			createStream(tapStreamName, tapStream);
+			source.ensureReady().postData(TEST_LONG_MESSAGE);
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(foo,6)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(bar,5)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test1,2)"))));
+			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test2,1)"))));
+		}
+		finally {
+			streamOps.destroyStream(streamName);
+			streamOps.destroyStream(tapStreamName);
+			sink.cleanup();
+		}
+	}
+
+	@Test
 	public void testSparkProcessorWithInputType() throws Exception {
 		HttpSource source = new HttpSource(shell);
 		String streamName =  testName.getMethodName()  + new Random().nextInt();

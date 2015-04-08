@@ -36,6 +36,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+import org.springframework.xd.dirt.plugins.AbstractMessageBusBinderPlugin;
 
 import scala.collection.mutable.ArrayBuffer;
 
@@ -108,7 +109,12 @@ class MessageBusReceiver extends Receiver {
 			applicationContext = MessageBusConfiguration.createApplicationContext(messageBusProperties);
 			messageBus = applicationContext.getBean(MessageBus.class);
 		}
-		messageBus.bindConsumer(channelName, messageStoringChannel, moduleConsumerProperties);
+		if (AbstractMessageBusBinderPlugin.isChannelPubSub(channelName)) {
+			messageBus.bindPubSubConsumer(channelName, messageStoringChannel, moduleConsumerProperties);
+		}
+		else {
+			messageBus.bindConsumer(channelName, messageStoringChannel, moduleConsumerProperties);
+		}
 	}
 
 	@Override

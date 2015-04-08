@@ -367,7 +367,12 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		}
 	}
 
-	private boolean isChannelPubSub(String channelName) {
+	/**
+	 * Determine whether the provided channel name represents a pub/sub channel (i.e. topic or tap).
+	 * @param channelName name of the channel to check
+	 * @return true if pub/sub.
+	 */
+	public static boolean isChannelPubSub(String channelName) {
 		Assert.isTrue(StringUtils.hasText(channelName), "Channel name should not be empty/null.");
 		// Check if the channelName starts with tap: or topic:
 		return (channelName.startsWith(TAP_CHANNEL_PREFIX) || channelName.startsWith(TOPIC_CHANNEL_PREFIX));

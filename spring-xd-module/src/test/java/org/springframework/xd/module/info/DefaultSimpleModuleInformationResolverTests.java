@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.TestModuleDefinitions;
 
 /**
  * Unit tests for DefaultSimpleModuleInformationResolver.
@@ -38,37 +37,37 @@ import org.springframework.xd.module.TestModuleDefinitions;
  */
 public class DefaultSimpleModuleInformationResolverTests {
 
-	@Test
-	public void doesNotSupportComposedModules() {
-		DefaultSimpleModuleInformationResolver resolver = new DefaultSimpleModuleInformationResolver();
-		ModuleDefinition filter = TestModuleDefinitions.dummy("filter", ModuleType.processor);
-		ModuleDefinition transform = TestModuleDefinitions.dummy("transform", ModuleType.processor);
-		ModuleInformation result = resolver.resolve(ModuleDefinitions.composed("foo", ModuleType.processor, "filter | transform", Arrays.asList(filter, transform)));
+    @Test
+    public void doesNotSupportComposedModules() {
+        DefaultSimpleModuleInformationResolver resolver = new DefaultSimpleModuleInformationResolver();
+        ModuleDefinition filter = ModuleDefinitions.simple("filter", ModuleType.processor, "classpath:dontcare");
+        ModuleDefinition transform = ModuleDefinitions.simple("transform", ModuleType.processor, "classpath:dontcare");
+        ModuleInformation result = resolver.resolve(ModuleDefinitions.composed("foo", ModuleType.processor, "filter | transform", Arrays.asList(filter, transform)));
 
-		assertThat(result, CoreMatchers.nullValue());
-	}
+        assertThat(result, CoreMatchers.nullValue());
+    }
 
-	@Test
-	public void returnFound() {
-		DefaultSimpleModuleInformationResolver resolver = new DefaultSimpleModuleInformationResolver();
-		ModuleInformation result = resolver.resolve(craftDefinitionFor("module1", source));
+    @Test
+    public void returnFound() {
+        DefaultSimpleModuleInformationResolver resolver = new DefaultSimpleModuleInformationResolver();
+        ModuleInformation result = resolver.resolve(craftDefinitionFor("module1", source));
 
-		assertThat(result, notNullValue());
-		assertThat(result.getShortDescription(), equalTo("I'm a cool module."));
-	}
+        assertThat(result, notNullValue());
+        assertThat(result.getShortDescription(), equalTo("I'm a cool module."));
+    }
 
-	@Test
-	public void foundFileWithNoInfoIsOk() {
-		DefaultSimpleModuleInformationResolver resolver = new DefaultSimpleModuleInformationResolver();
-		ModuleInformation result = resolver.resolve(craftDefinitionFor("module2", source));
+    @Test
+    public void foundFileWithNoInfoIsOk() {
+        DefaultSimpleModuleInformationResolver resolver = new DefaultSimpleModuleInformationResolver();
+        ModuleInformation result = resolver.resolve(craftDefinitionFor("module2", source));
 
-		assertThat(result, notNullValue());
-		assertThat(result.getShortDescription(), nullValue());
-	}
+        assertThat(result, notNullValue());
+        assertThat(result.getShortDescription(), nullValue());
+    }
 
-	private ModuleDefinition craftDefinitionFor(String name, ModuleType type) {
-		String location = String.format("classpath:%s-modules/%s/%s/", DefaultSimpleModuleInformationResolverTests.class.getSimpleName(), type, name);
-		return ModuleDefinitions.simple(name, type, location);
-	}
+    private ModuleDefinition craftDefinitionFor(String name, ModuleType type) {
+        String location = String.format("classpath:%s-modules/%s/%s/", DefaultSimpleModuleInformationResolverTests.class.getSimpleName(), type, name);
+        return ModuleDefinitions.simple(name, type, location);
+    }
 
 }

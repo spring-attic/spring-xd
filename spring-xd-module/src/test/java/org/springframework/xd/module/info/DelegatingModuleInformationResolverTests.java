@@ -25,8 +25,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.TestModuleDefinitions;
 
 /**
  * Unit tests for DelegatingModuleInformationResolver.
@@ -35,38 +35,38 @@ import org.springframework.xd.module.TestModuleDefinitions;
  */
 public class DelegatingModuleInformationResolverTests {
 
-	@Test
-	public void firstNonNullWins() {
-		ModuleInformation info1 = new ModuleInformation();
-		ModuleInformation info2 = new ModuleInformation();
-		ModuleInformationResolver resolver1 = Mockito.mock(ModuleInformationResolver.class);
-		Mockito.when(resolver1.resolve(Mockito.any(ModuleDefinition.class))).thenReturn(info1);
-		ModuleInformationResolver resolver2 = Mockito.mock(ModuleInformationResolver.class);
-		Mockito.when(resolver2.resolve(Mockito.any(ModuleDefinition.class))).thenReturn(info2);
+    @Test
+    public void firstNonNullWins() {
+        ModuleInformation info1 = new ModuleInformation();
+        ModuleInformation info2 = new ModuleInformation();
+        ModuleInformationResolver resolver1 = Mockito.mock(ModuleInformationResolver.class);
+        Mockito.when(resolver1.resolve(Mockito.any(ModuleDefinition.class))).thenReturn(info1);
+        ModuleInformationResolver resolver2 = Mockito.mock(ModuleInformationResolver.class);
+        Mockito.when(resolver2.resolve(Mockito.any(ModuleDefinition.class))).thenReturn(info2);
 
-		DelegatingModuleInformationResolver resolver = new DelegatingModuleInformationResolver();
-		resolver.setDelegates(Arrays.asList(resolver1, resolver2));
+        DelegatingModuleInformationResolver resolver = new DelegatingModuleInformationResolver();
+        resolver.setDelegates(Arrays.asList(resolver1, resolver2));
 
-		ModuleInformation result = resolver.resolve(TestModuleDefinitions.dummy("foo", ModuleType.processor));
-		assertThat(result, CoreMatchers.equalTo(info1));
+        ModuleInformation result = resolver.resolve(ModuleDefinitions.simple("foo", ModuleType.processor, "classpath:dontcare"));
+        assertThat(result, CoreMatchers.equalTo(info1));
 
-	}
+    }
 
-	@Test
-	public void nullResultsCarryThrough() {
-		ModuleInformation info1 = new ModuleInformation();
-		ModuleInformation info2 = new ModuleInformation();
-		ModuleInformationResolver resolver1 = Mockito.mock(ModuleInformationResolver.class);
-		Mockito.when(resolver1.resolve(TestModuleDefinitions.dummy("bar", ModuleType.processor))).thenReturn(info1);
-		ModuleInformationResolver resolver2 = Mockito.mock(ModuleInformationResolver.class);
-		Mockito.when(resolver2.resolve(TestModuleDefinitions.dummy("wizz", ModuleType.processor))).thenReturn(info2);
+    @Test
+    public void nullResultsCarryThrough() {
+        ModuleInformation info1 = new ModuleInformation();
+        ModuleInformation info2 = new ModuleInformation();
+        ModuleInformationResolver resolver1 = Mockito.mock(ModuleInformationResolver.class);
+        Mockito.when(resolver1.resolve(ModuleDefinitions.simple("bar", ModuleType.processor, "classpath:dontcare"))).thenReturn(info1);
+        ModuleInformationResolver resolver2 = Mockito.mock(ModuleInformationResolver.class);
+        Mockito.when(resolver2.resolve(ModuleDefinitions.simple("wizz", ModuleType.processor, "classpath:dontcare"))).thenReturn(info2);
 
-		DelegatingModuleInformationResolver resolver = new DelegatingModuleInformationResolver();
-		resolver.setDelegates(Arrays.asList(resolver1, resolver2));
+        DelegatingModuleInformationResolver resolver = new DelegatingModuleInformationResolver();
+        resolver.setDelegates(Arrays.asList(resolver1, resolver2));
 
-		ModuleInformation result = resolver.resolve(TestModuleDefinitions.dummy("foo", ModuleType.processor));
-		assertThat(result, CoreMatchers.nullValue());
+        ModuleInformation result = resolver.resolve(ModuleDefinitions.simple("foo", ModuleType.processor, "classpath"));
+        assertThat(result, CoreMatchers.nullValue());
 
-	}
+    }
 
 }

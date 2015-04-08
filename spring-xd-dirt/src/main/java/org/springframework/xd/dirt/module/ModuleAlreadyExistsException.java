@@ -32,10 +32,18 @@ public class ModuleAlreadyExistsException extends XDRuntimeException {
 
 	private final ModuleType type;
 
-	public ModuleAlreadyExistsException(String name, ModuleType type) {
-		super(String.format("There is already a module named '%s' with type '%s'", name, type));
+	/**
+	 * Construct a new exception with the given parameters. The message template will be interpolated using
+	 * {@link String#format(String, Object...)} with the module name and type being the first and second replacements.
+	 */
+	public ModuleAlreadyExistsException(String messageTemplate, String name, ModuleType type) {
+		super(String.format(messageTemplate, name, type));
 		this.name = name;
 		this.type = type;
+	}
+
+	public ModuleAlreadyExistsException(String name, ModuleType type) {
+		this("There is already a module named '%s' with type '%s'", name, type);
 	}
 
 	public String getName() {

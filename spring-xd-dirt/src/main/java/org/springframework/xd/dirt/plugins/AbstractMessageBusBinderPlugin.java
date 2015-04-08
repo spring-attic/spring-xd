@@ -387,10 +387,9 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	/**
 	 * Event handler for tap additions.
 	 *
-	 * @param client curator client
 	 * @param data module data
 	 */
-	private void onTapAdded(CuratorFramework client, ChildData data) {
+	private void onTapAdded(ChildData data) {
 		String tapChannelName = buildTapChannelNameFromPath(data.getPath());
 		MessageChannel outputChannel = tappableChannels.get(tapChannelName);
 		if (outputChannel != null) {
@@ -401,10 +400,9 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	/**
 	 * Event handler for tap removals.
 	 *
-	 * @param client curator client
 	 * @param data module data
 	 */
-	private void onTapRemoved(CuratorFramework client, ChildData data) {
+	private void onTapRemoved(ChildData data) {
 		unbindTapChannel(buildTapChannelNameFromPath(data.getPath()));
 	}
 
@@ -454,10 +452,10 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 				case INITIALIZED:
 					break;
 				case CHILD_ADDED:
-					onTapAdded(client, event.getData());
+					onTapAdded(event.getData());
 					break;
 				case CHILD_REMOVED:
-					onTapRemoved(client, event.getData());
+					onTapRemoved(event.getData());
 					break;
 				default:
 					break;

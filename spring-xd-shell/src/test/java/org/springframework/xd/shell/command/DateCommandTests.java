@@ -49,7 +49,7 @@ public class DateCommandTests extends AbstractShellIntegrationTest {
 		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, Locale.getDefault());
 		Date result = df.parse(cr.getResult().toString());
 		Date now = new Date();
-		MatcherAssert.assertThat(now, DateMatchers.within(5, TimeUnit.SECONDS, result));
+		MatcherAssert.assertThat(now, DateMatchers.within(60, TimeUnit.SECONDS, result));
 	}
 
 	public static void main(String[] args) {

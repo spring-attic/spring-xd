@@ -232,10 +232,11 @@ $$Un-deploy an existing job$$.
 ==== $$module compose$$
 $$Create a virtual module$$.
 
-    module compose [--name] <name> --definition <definition>
+    module compose [--name] <name> --definition <definition> [--force [<force>]]
 
 *$$name$$*:: $$the name to give to the module$$. *(required)*
 *$$definition$$*:: $$module definition using xd dsl$$. *(required)*
+*$$force$$*:: $$force update if module already exists (only if not in use)$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
 
 ==== $$module delete$$
 $$Delete a virtual module$$.
@@ -261,11 +262,12 @@ $$List all modules$$.
 ==== $$module upload$$
 $$Upload a new module$$.
 
-    module upload --type <type> --name <name> [--file] <file>
+    module upload --type <type> --name <name> [--file] <file> [--force [<force>]]
 
 *$$type$$*:: $$the type for the uploaded module$$. *(required)*
 *$$name$$*:: $$the name for the uploaded module$$. *(required)*
 *$$file$$*:: $$path to the module archive$$. *(required)*
+*$$force$$*:: $$force update if module already exists (only if not in use)$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
 
 
 === Metrics Commands

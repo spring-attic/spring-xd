@@ -54,18 +54,6 @@ public class ModuleTemplate implements Disposable {
 	 */
 	private List<String> modules = new ArrayList<>();
 
-	public String compose(String name, String definition) {
-		CommandResult result = shell.executeCommand(String.format("module compose %s --definition \"%s\"", name,
-				definition));
-		assertNotNull("Module composition apparently failed. Exception is: " + result.getException(),
-				result.getResult());
-		Matcher matcher = COMPOSE_SUCCESS_PATTERN.matcher((CharSequence) result.getResult());
-		assertTrue("Module composition apparently failed: " + result.getResult(), matcher.matches());
-		String key = matcher.group(2) + ":" + matcher.group(1);
-		modules.add(key);
-		return key;
-	}
-
 	public String upload(String name, ModuleType type, File file) {
 		String escapedPath = file.getAbsolutePath().replace("\\", "\\\\");
 		CommandResult result = shell.executeCommand(String.format("module upload --type %s --name %s --file '%s'", type, name, escapedPath));
@@ -83,8 +71,9 @@ public class ModuleTemplate implements Disposable {
 		return result.isSuccess();
 	}
 
-	public void info(String name, ModuleType type) {
+	public String info(String name, ModuleType type) {
 		CommandResult result = shell.executeCommand(String.format("module info %s:%s", type, name));
+		return (String) result.getResult();
 	}
 
 	@Override
@@ -98,4 +87,19 @@ public class ModuleTemplate implements Disposable {
 		}
 	}
 
+	public String compose(String name, String definition) {
+		return this.compose(name, definition, false);
+	}
+
+	public String compose(String name, String definition, boolean force) {
+		CommandResult result = shell.executeCommand(String.format("module compose %s --definition \"%s\" --force %b", name,
+				definition, force));
+		assertNotNull("Module composition apparently failed. Exception is: " + result.getException(),
+				result.getResult());
+		Matcher matcher = COMPOSE_SUCCESS_PATTERN.matcher((CharSequence) result.getResult());
+		assertTrue("Module composition apparently failed: " + result.getResult(), matcher.matches());
+		String key = matcher.group(2) + ":" + matcher.group(1);
+		modules.add(key);
+		return key;
+	}
 }

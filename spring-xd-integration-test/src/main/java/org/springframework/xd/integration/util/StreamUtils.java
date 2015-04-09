@@ -197,8 +197,12 @@ public class StreamUtils {
 		while (!isFileCopied && System.currentTimeMillis() < timeout) {
 			SshjSshClient client = getSSHClient(host, privateKey);
 			client.exec("mkdir " + dir);
+			ExecResponse response = client.exec("ls -al " + dir );
+			if (response.getExitStatus() > 0) {
+				continue; //directory was not created
+			}
 			client.put(dir + "/" + fileName, payload);
-			ExecResponse response = client.exec("ls -al " + dir + "/" + fileName);
+			response = client.exec("ls -al " + dir + "/" + fileName);
 			if (response.getExitStatus() > 0) {
 				continue; //file was not created
 			}

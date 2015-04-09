@@ -129,6 +129,7 @@ public class JobCommandTest extends AbstractJobTest {
 		deployJob(jobName);
 		checkJob(jobName, job.toDSL(), true);
 		undeployJob(jobName);
+		checkJob(jobName, job.toDSL(), false);
 	}
 
 	@Test
@@ -142,7 +143,7 @@ public class JobCommandTest extends AbstractJobTest {
 	@Test
 	public void testMissingJobDescriptor() {
 		exception.expect(SpringXDException.class);
-		exception.expectMessage("Definition can not be empty");
+		exception.expectMessage("definition cannot be blank or null");
 		logger.info("Testing Missing job Descriptor");
 		job("missingdescriptor", "",true);
 	}
@@ -152,7 +153,6 @@ public class JobCommandTest extends AbstractJobTest {
 		String data = UUID.randomUUID().toString();
 		String jobName = "tsle" + UUID.randomUUID().toString();
 
-		jdbcSink.getJdbcTemplate().getDataSource();
 		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
 				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
 
@@ -163,7 +163,6 @@ public class JobCommandTest extends AbstractJobTest {
 		job(jobName, job.toDSL(),true);
 		jobLaunch(jobName);
 		String query = String.format("SELECT data FROM %s", tableName);
-
 		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 1);
 
 		List<String> results = jdbcSink.getJdbcTemplate().queryForList(query, String.class);

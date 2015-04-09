@@ -34,8 +34,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
-import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.test.rabbit.RabbitAdminTestSupport;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
@@ -60,11 +60,11 @@ public class RabbitBusCleanerIntegrationTests extends AbstractShellIntegrationTe
 		RabbitAdmin admin = new RabbitAdmin(test.getResource());
 		final String uuid = UUID.randomUUID().toString();
 		String queueName = MessageBusSupport.applyPrefix("xdbus.",
-				AbstractStreamPlugin.constructPipeName(uuid, 0));
+				BusUtils.constructPipeName(uuid, 0));
 		admin.declareQueue(new Queue(queueName));
 		final FanoutExchange fanout = new FanoutExchange(
 				MessageBusSupport.applyPrefix("xdbus.", MessageBusSupport.applyPubSub(
-						AbstractStreamPlugin.constructTapPrefix(uuid) + ".foo.bar")));
+						BusUtils.constructTapPrefix(uuid) + ".foo.bar")));
 		admin.declareExchange(fanout);
 		RestTemplate template = new RestTemplate();
 		URI uri = new URI("http://localhost:" + adminPort + "/streams/clean/rabbit/" + queueName.substring(6));

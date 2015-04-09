@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -412,6 +412,10 @@ public class JobPluginTests extends RandomConfigurationSupport {
 			return null;
 		}
 
+		@Override
+		public boolean isCapable(Capability capability) {
+			return false;
+		}
 	}
 
 	@After

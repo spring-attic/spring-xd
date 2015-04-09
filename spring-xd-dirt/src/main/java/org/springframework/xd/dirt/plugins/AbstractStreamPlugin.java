@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.plugins;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -42,17 +43,13 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 		super(messageBus, zkConnection);
 	}
 
-	public static String constructTapPrefix(String group) {
-		return TAP_CHANNEL_PREFIX + "stream:" + group;
-	}
-
 	@Override
 	protected String getInputChannelName(Module module) {
 		ModuleDescriptor descriptor = module.getDescriptor();
 		String sourceChannel = descriptor.getSourceChannelName();
 		return (sourceChannel != null)
 				? sourceChannel
-				: constructPipeName(descriptor.getGroup(), descriptor.getIndex() - 1);
+				: BusUtils.constructPipeName(descriptor.getGroup(), descriptor.getIndex() - 1);
 	}
 
 	@Override
@@ -61,7 +58,7 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 		String sinkChannel = descriptor.getSinkChannelName();
 		return (sinkChannel != null)
 				? sinkChannel
-				: constructPipeName(descriptor.getGroup(), descriptor.getIndex());
+				: BusUtils.constructPipeName(descriptor.getGroup(), descriptor.getIndex());
 	}
 
 	@Override
@@ -69,7 +66,7 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 		Assert.isTrue(module.getType() != ModuleType.job, "Job module type not supported.");
 		ModuleDescriptor descriptor = module.getDescriptor();
 		// for Stream return channel name with indexed elements
-		return String.format("%s.%s.%s", constructTapPrefix(descriptor.getGroup()),
+		return String.format("%s.%s.%s", BusUtils.constructTapPrefix(descriptor.getGroup()),
 				module.getName(), descriptor.getIndex());
 	}
 

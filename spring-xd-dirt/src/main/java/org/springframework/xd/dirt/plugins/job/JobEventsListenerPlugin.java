@@ -22,6 +22,7 @@ import java.util.Map;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
 import org.springframework.xd.dirt.plugins.job.support.listener.XDJobListenerConstants;
@@ -36,7 +37,7 @@ import org.springframework.xd.module.core.Module;
  */
 public class JobEventsListenerPlugin extends AbstractJobPlugin implements XDJobListenerConstants {
 
-	private static final String JOB_TAP_CHANNEL_PREFIX = TAP_CHANNEL_PREFIX + JOB_CHANNEL_PREFIX;
+	private static final String JOB_TAP_CHANNEL_PREFIX = BusUtils.TAP_CHANNEL_PREFIX + JOB_CHANNEL_PREFIX;
 
 	public JobEventsListenerPlugin(MessageBus messageBus) {
 		super(messageBus);

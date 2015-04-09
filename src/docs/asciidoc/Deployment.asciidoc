@@ -94,6 +94,8 @@ module.[modulename].consumer.replyHeaderPatterns:: Controls which message header
 module.[modulename].consumer.requeue:: Whether messages will be requeued (and retried) on failure *(default true)*
 module.[modulename].consumer.transacted:: Whether consumers use transacted channels *(default false)*
 module.[modulename].consumer.txSize:: The number of delivered messages between acknowledgements (when _ackMode=AUTO_) *(default 1)*
+module.[modulename].consumer.durable:: When true, publish/subscribe named channels (`tap:`, `topic:`) will be backed by a durable queue and will be eligible for dead-letter configuration, accoring to the `autBindDLQ` setting.
+
 module.[modulename].producer.deliveryMode:: The delivery mode of messages sent to RabbitMQ (_PERSISTENT_ or _NON_PERSISTENT_) *(default PERSISTENT)*
 module.[modulename].producer.requestHeaderPatterns:: Controls which message headers are passed between modules **(default 'STANDARD_REQUEST_HEADERS,*')**
 module.[modulename].producer.replyHeaderPatterns:: Controls which message headers are passed between modules (only used in partitioned jobs) **(default 'STANDARD_REPLY_HEADERS,*')**

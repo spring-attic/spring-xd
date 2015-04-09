@@ -20,6 +20,7 @@ import java.util.Properties;
 
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
 import org.springframework.xd.module.ModuleDescriptor;
@@ -65,7 +66,7 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
 		Assert.notNull(partitionsIn, "Partitioned jobs must have a " + JOB_PARTIONER_REPLY_CHANNEL);
 		ModuleDescriptor descriptor = module.getDescriptor();
-		String name = getJobChannelName(constructPipeName(descriptor.getGroup(), descriptor.getIndex()));
+		String name = getJobChannelName(BusUtils.constructPipeName(descriptor.getGroup(), descriptor.getIndex()));
 		messageBus.bindRequestor(name, partitionsOut, partitionsIn, properties[0]);
 
 		MessageChannel stepExecutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
@@ -82,7 +83,7 @@ public class JobPartitionerPlugin extends AbstractJobPlugin {
 		}
 		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
 		ModuleDescriptor descriptor = module.getDescriptor();
-		String name = getJobChannelName(constructPipeName(descriptor.getGroup(), descriptor.getIndex()));
+		String name = getJobChannelName(BusUtils.constructPipeName(descriptor.getGroup(), descriptor.getIndex()));
 		if (partitionsOut != null) {
 			messageBus.unbindProducer(name, partitionsOut);
 		}

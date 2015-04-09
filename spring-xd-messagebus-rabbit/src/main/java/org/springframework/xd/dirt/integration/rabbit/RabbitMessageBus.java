@@ -25,7 +25,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.UUID;
 
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
@@ -58,6 +57,8 @@ import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.postprocessor.DelegatingDecompressingPostProcessor;
 import org.springframework.amqp.support.postprocessor.GZipPostProcessor;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -87,6 +88,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
@@ -148,7 +150,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			.addAll(RABBIT_CONSUMER_PROPERTIES)
 			.build();
 
-	private static final Set<Object> SUPPORTED_PUBSUB_CONSUMER_PROPERTIES = SUPPORTED_BASIC_CONSUMER_PROPERTIES;
+	private static final Set<Object> SUPPORTED_PUBSUB_CONSUMER_PROPERTIES = new SetBuilder()
+			.addAll(SUPPORTED_BASIC_CONSUMER_PROPERTIES)
+			.add(BusProperties.DURABLE)
+			.build();
 
 	/**
 	 * Basic + concurrency.
@@ -384,7 +389,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (partitionIndex >= 0) {
 			queueName += "-" + partitionIndex;
 		}
-		Queue queue = new Queue(queueName);
+		Map<String, Object> args = queueArgs(accessor, queueName);
+		Queue queue = new Queue(queueName, true, false, false, args);
 		declareQueueIfNotPresent(queue);
 		autoBindDLQ(name, accessor);
 		doRegisterConsumer(name, moduleInputChannel, queue, accessor, false);
@@ -393,27 +399,49 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	@Override
 	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel, Properties properties) {
+		String exchangeName = BusUtils.removeGroupFromPubSub(name);
 		if (logger.isInfoEnabled()) {
-			logger.info("declaring pubsub for inbound: " + name);
+			logger.info("declaring pubsub for inbound: " + name + ", bound to: " + exchangeName);
 		}
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		validateConsumerProperties(name, properties, SUPPORTED_PUBSUB_CONSUMER_PROPERTIES);
 		String prefix = accessor.getPrefix(this.defaultPrefix);
-		FanoutExchange exchange = new FanoutExchange(applyPrefix(prefix, applyPubSub(name)));
+		FanoutExchange exchange = new FanoutExchange(applyPrefix(prefix, applyPubSub(exchangeName)));
 		declareExchangeIfNotPresent(exchange);
-		String uniqueName = name + "." + UUID.randomUUID().toString();
-		Queue queue = new Queue(prefix + uniqueName, false, true, true);
+		Queue queue;
+		boolean durable = accessor.isDurable(this.defaultDurableSubscription);
+		String queueName = applyPrefix(prefix, name);
+		if (durable) {
+			Map<String, Object> args = queueArgs(accessor, queueName);
+			queue = new Queue(queueName, true, false, false, args);
+		}
+		else {
+			queue = new Queue(queueName, false, true, true);
+		}
 		declareQueueIfNotPresent(queue);
 		org.springframework.amqp.core.Binding binding = BindingBuilder.bind(queue).to(exchange);
 		this.rabbitAdmin.declareBinding(binding);
 		// register with context so they will be redeclared after a connection failure
-		this.autoDeclareContext.getBeanFactory().registerSingleton(queue.getName(), queue);
+		if (!this.autoDeclareContext.containsBean(applyPubSub(name))) {
+			this.autoDeclareContext.getBeanFactory().registerSingleton(applyPubSub(name), queue);
+		}
 		String bindingBeanName = exchange.getName() + "." + queue.getName() + ".binding";
-		if (!autoDeclareContext.containsBean(bindingBeanName)) {
+		if (!this.autoDeclareContext.containsBean(bindingBeanName)) {
 			this.autoDeclareContext.getBeanFactory().registerSingleton(bindingBeanName, binding);
 		}
 		doRegisterConsumer(name, moduleInputChannel, queue, accessor, true);
-		autoBindDLQ(uniqueName, accessor);
+		if (durable) {
+			autoBindDLQ(name, accessor);
+		}
+	}
+
+	private Map<String, Object> queueArgs(RabbitPropertiesAccessor accessor, String queueName) {
+		Map<String, Object> args = new HashMap<>();
+		if (accessor.getAutoBindDLQ(this.defaultAutoBindDLQ)) {
+			args.put("x-dead-letter-exchange", applyPrefix(accessor.getPrefix(this.defaultPrefix), "DLX"));
+			args.put("x-dead-letter-routing-key", queueName);
+		}
+		return args;
 	}
 
 	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel, Queue queue,
@@ -622,7 +650,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		Queue replyQueue = new Queue(replyQueueName, false, false, true); // auto-delete
 		declareQueueIfNotPresent(replyQueue);
 		// register with context so it will be redeclared after a connection failure
-		this.autoDeclareContext.getBeanFactory().registerSingleton(replyQueueName, replyQueue);
+		if (!this.autoDeclareContext.containsBean(replyQueueName)) {
+			this.autoDeclareContext.getBeanFactory().registerSingleton(replyQueueName, replyQueue);
+		}
 		this.doRegisterConsumer(name, replies, replyQueue, accessor, false);
 	}
 
@@ -685,6 +715,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	 * @param properties The properties accessor.
 	 */
 	private void autoBindDLQ(final String name, RabbitPropertiesAccessor properties) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("autoBindDLQ=" + properties.getAutoBindDLQ(this.defaultAutoBindDLQ)
+					+ " for: " + name);
+		}
 		if (properties.getAutoBindDLQ(this.defaultAutoBindDLQ)) {
 			String prefix = properties.getPrefix(this.defaultPrefix);
 			String queueName = applyPrefix(prefix, name);
@@ -700,6 +734,37 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private String deadLetterExchangeName(String prefix) {
 		return prefix + DEAD_LETTER_EXCHANGE;
+	}
+
+	@Override
+	public void unbindConsumer(String name, MessageChannel channel) {
+		super.unbindConsumer(name, channel);
+		cleanAutoDeclareContext(name);
+	}
+
+	@Override
+	public void unbindConsumers(String name) {
+		super.unbindConsumers(name);
+		cleanAutoDeclareContext(name);
+	}
+
+	private void cleanAutoDeclareContext(String name) {
+		if (this.autoDeclareContext.containsBean(applyPubSub(name))) {
+			ConfigurableListableBeanFactory beanFactory = this.autoDeclareContext.getBeanFactory();
+			if (beanFactory instanceof DefaultListableBeanFactory) {
+				((DefaultListableBeanFactory) beanFactory).destroySingleton(applyPubSub(name));
+			}
+		}
+	}
+
+	@Override
+	public boolean isCapable(Capability capability) {
+		switch (capability) {
+			case DURABLE_PUBSUB:
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	@Override

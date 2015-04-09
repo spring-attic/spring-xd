@@ -43,6 +43,7 @@
 #        compress:                  false
 #        concurrency:               1
 #        deliveryMode:              PERSISTENT
+#        durableSubscription:       false
 #        maxAttempts:               3
 #        maxConcurrency:            1
 #        prefix:                    xdbus.

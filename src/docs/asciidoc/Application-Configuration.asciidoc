@@ -397,6 +397,10 @@ security:
   basic:
     enabled: true                                                     # <2>
     realm: SpringXD                                                   # <3>
+  user:
+    name: yourAdminUsername
+    password: yourAdminPassword
+    role: ADMIN, VIEW, CREATE                                         # <4>
 ----
 
 <1> The settings are applicable only to the admin server (regardless whether it's started in single node mode or as a separate instance).
@@ -404,6 +408,8 @@ security:
 <2> Must be set to `true` for security to be enabled.
 
 <3> (Optional) The realm for Basic authentication. Will default to `SpringXD` if not explicitly set.
+
+<4> Must set with appropriate roles (ADMIN, VIEW and CREATE) to enable. Note: the prefix `ROLE_` isn't required here.
 
 Additionally, you must specify an authentication method, out of the following that Spring XD supports:
 

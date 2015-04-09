@@ -190,6 +190,7 @@ xd:
 #  user: # valid only if security.basic.enabled=true
 #    name: yourAdminUsername
 #    password: yourAdminPassword
+#    role: ADMIN, VIEW, CREATE
 ---
 # Config to enable HTTPS on administration endpoints
 #spring:

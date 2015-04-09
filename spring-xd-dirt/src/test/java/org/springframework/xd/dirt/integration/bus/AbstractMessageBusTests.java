@@ -41,6 +41,7 @@ import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.xd.dirt.integration.bus.MessageBus.Capability;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
@@ -133,9 +134,11 @@ public abstract class AbstractMessageBusTests {
 		moduleOutputChannel.addInterceptor(new WireTap(tapChannel));
 		messageBus.bindPubSubProducer("tap:baz.http", tapChannel, null);
 		// A new module is using the tap as an input channel
-		messageBus.bindPubSubConsumer("tap:baz.http", module2InputChannel, null);
+		String fooTapName = messageBus.isCapable(Capability.DURABLE_PUBSUB) ? "foo.tap:baz.http" : "tap:baz.http";
+		messageBus.bindPubSubConsumer(fooTapName, module2InputChannel, null);
 		// Another new module is using tap as an input channel
-		messageBus.bindPubSubConsumer("tap:baz.http", module3InputChannel, null);
+		String barTapName = messageBus.isCapable(Capability.DURABLE_PUBSUB) ? "bar.tap:baz.http" : "tap:baz.http";
+		messageBus.bindPubSubConsumer(barTapName, module3InputChannel, null);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		boolean success = false;
 		boolean retried = false;
@@ -163,7 +166,7 @@ public abstract class AbstractMessageBusTests {
 			assertEquals("foo/bar", tapped2.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		}
 		// delete one tap stream is deleted
-		messageBus.unbindConsumer("tap:baz.http", module3InputChannel);
+		messageBus.unbindConsumer(barTapName, module3InputChannel);
 		Message<?> message2 = MessageBuilder.withPayload("bar").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		moduleOutputChannel.send(message2);
 
@@ -175,7 +178,7 @@ public abstract class AbstractMessageBusTests {
 		assertNull(module3InputChannel.receive(1000));
 
 		// when other tap stream is deleted
-		messageBus.unbindConsumer("tap:baz.http", module2InputChannel);
+		messageBus.unbindConsumer(fooTapName, module2InputChannel);
 		// Clean up as StreamPlugin would
 		messageBus.unbindConsumer("baz.0", moduleInputChannel);
 		messageBus.unbindProducer("baz.0", moduleOutputChannel);
@@ -193,7 +196,8 @@ public abstract class AbstractMessageBusTests {
 		QueueChannel module2InputChannel = new QueueChannel();
 		QueueChannel module3InputChannel = new QueueChannel();
 		// Create the tap first
-		messageBus.bindPubSubConsumer("tap:baz.http", module2InputChannel, null);
+		String fooTapName = messageBus.isCapable(Capability.DURABLE_PUBSUB) ? "foo.tap:baz.http" : "tap:baz.http";
+		messageBus.bindPubSubConsumer(fooTapName, module2InputChannel, null);
 
 		// Then create the stream
 		messageBus.bindProducer("baz.0", moduleOutputChannel, null);
@@ -202,7 +206,8 @@ public abstract class AbstractMessageBusTests {
 		messageBus.bindPubSubProducer("tap:baz.http", tapChannel, null);
 
 		// Another new module is using tap as an input channel
-		messageBus.bindPubSubConsumer("tap:baz.http", module3InputChannel, null);
+		String barTapName = messageBus.isCapable(Capability.DURABLE_PUBSUB) ? "bar.tap:baz.http" : "tap:baz.http";
+		messageBus.bindPubSubConsumer(barTapName, module3InputChannel, null);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		boolean success = false;
 		boolean retried = false;
@@ -230,7 +235,7 @@ public abstract class AbstractMessageBusTests {
 			assertEquals("foo/bar", tapped2.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		}
 		// delete one tap stream is deleted
-		messageBus.unbindConsumer("tap:baz.http", module3InputChannel);
+		messageBus.unbindConsumer(barTapName, module3InputChannel);
 		Message<?> message2 = MessageBuilder.withPayload("bar").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		moduleOutputChannel.send(message2);
 
@@ -242,7 +247,7 @@ public abstract class AbstractMessageBusTests {
 		assertNull(module3InputChannel.receive(1000));
 
 		// when other tap stream is deleted
-		messageBus.unbindConsumer("tap:baz.http", module2InputChannel);
+		messageBus.unbindConsumer(fooTapName, module2InputChannel);
 		// Clean up as StreamPlugin would
 		messageBus.unbindConsumer("baz.0", moduleInputChannel);
 		messageBus.unbindProducer("baz.0", moduleOutputChannel);

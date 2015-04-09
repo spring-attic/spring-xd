@@ -50,10 +50,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.dirt.integration.bus.BusCleaner;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
-import org.springframework.xd.dirt.plugins.AbstractMessageBusBinderPlugin;
-import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
 import org.springframework.xd.dirt.plugins.job.JobEventsListenerPlugin;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -111,7 +110,7 @@ public class RabbitBusCleaner implements BusCleaner {
 		}
 		else {
 			final String tapPrefix = MessageBusSupport.applyPrefix(busPrefix,
-					MessageBusSupport.applyPubSub(AbstractStreamPlugin.constructTapPrefix(entity)));
+					MessageBusSupport.applyPubSub(BusUtils.constructTapPrefix(entity)));
 			callback = new ExchangeCandidateCallback() {
 
 				@Override
@@ -156,36 +155,19 @@ public class RabbitBusCleaner implements BusCleaner {
 	private List<String> findStreamQueues(String adminUri, String vhost, String busPrefix, String stream,
 			RestTemplate restTemplate) {
 		List<String> removedQueues = new ArrayList<>();
-		int n = 0;
-		while (true) { // exits when no queue found
-			String queueName = MessageBusSupport.applyPrefix(busPrefix,
-					AbstractMessageBusBinderPlugin.constructPipeName(stream, n++));
-			URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
-					.pathSegment("queues", "{vhost}", "{stream}")
-					.buildAndExpand(vhost, queueName).encode().toUri();
-			try {
-				getQueueDetails(restTemplate, queueName, uri);
-				removedQueues.add(queueName);
-			}
-			catch (HttpClientErrorException e) {
-				if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-					break; // No more for this stream
+		URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+				.pathSegment("queues", "{vhost}")
+				.buildAndExpand(vhost).encode().toUri();
+		String queueNamePrefix = MessageBusSupport.applyPrefix(busPrefix, stream);
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> queues = restTemplate.getForObject(uri, List.class);
+		for (Map<String, Object> queue : queues) {
+			String queueName = (String) queue.get("name");
+			if (queueName.startsWith(queueNamePrefix)) {
+				if (queue.get("consumers") != Integer.valueOf(0)) {
+					throw new RabbitAdminException("Queue " + queueName + " is in use");
 				}
-				throw new RabbitAdminException("Failed to lookup queue " + queueName, e);
-			}
-			queueName = MessageBusSupport.constructDLQName(queueName);
-			uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
-					.pathSegment("queues", "{vhost}", "{stream}")
-					.buildAndExpand(vhost, queueName).encode().toUri();
-			try {
-				getQueueDetails(restTemplate, queueName, uri);
 				removedQueues.add(queueName);
-			}
-			catch (HttpClientErrorException e) {
-				if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-					continue; // DLQs are not mandatory
-				}
-				throw new RabbitAdminException("Failed to lookup queue " + queueName, e);
 			}
 		}
 		return removedQueues;
@@ -208,7 +190,7 @@ public class RabbitBusCleaner implements BusCleaner {
 			}
 		}
 		String jobRequestsQueueName = MessageBusSupport.applyPrefix(busPrefix,
-				MessageBusSupport.applyRequests(AbstractMessageBusBinderPlugin.constructPipeName(
+				MessageBusSupport.applyRequests(BusUtils.constructPipeName(
 						AbstractJobPlugin.getJobChannelName(job), 0)));
 		uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
 				.pathSegment("queues", "{vhost}", "{job}")

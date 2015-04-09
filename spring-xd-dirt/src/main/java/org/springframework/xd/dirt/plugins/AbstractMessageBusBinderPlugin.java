@@ -42,8 +42,9 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ChannelInterceptorAdapter;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus.Capability;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -70,10 +71,6 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	protected static final String MODULE_INPUT_CHANNEL = "input";
 
 	protected static final String MODULE_OUTPUT_CHANNEL = "output";
-
-	protected static final String TAP_CHANNEL_PREFIX = "tap:";
-
-	protected static final String TOPIC_CHANNEL_PREFIX = "topic:";
 
 	protected static final String JOB_CHANNEL_PREFIX = "job:";
 
@@ -108,16 +105,6 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 			}
 			zkConnection.addListener(new TapLifecycleConnectionListener());
 		}
-	}
-
-	/**
-	 * Construct a pipe name from the group and index.
-	 * @param group the group.
-	 * @param index the index.
-	 * @return the name.
-	 */
-	public static String constructPipeName(String group, int index) {
-		return group + "." + index;
 	}
 
 	private void startTapListener(CuratorFramework client) {
@@ -165,7 +152,8 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 		}
 		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
 		if (inputChannel != null) {
-			bindMessageConsumer(inputChannel, getInputChannelName(module), properties[0]);
+			bindMessageConsumer(inputChannel, getInputChannelName(module), module.getDescriptor().getGroup(),
+					properties[0]);
 			if (trackHistory && module.getType().equals(ModuleType.sink)) {
 				track(module, inputChannel, historyProperties);
 			}
@@ -277,9 +265,13 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	protected abstract String buildTapChannelName(Module module);
 
 	private void bindMessageConsumer(MessageChannel inputChannel, String inputChannelName,
-			Properties consumerProperties) {
-		if (isChannelPubSub(inputChannelName)) {
-			messageBus.bindPubSubConsumer(inputChannelName, inputChannel, consumerProperties);
+			String group, Properties consumerProperties) {
+		if (BusUtils.isChannelPubSub(inputChannelName)) {
+			String channelToBind = inputChannelName;
+			if (this.messageBus.isCapable(Capability.DURABLE_PUBSUB)) {
+				channelToBind = BusUtils.addGroupToPubSub(group, inputChannelName);
+			}
+			messageBus.bindPubSubConsumer(channelToBind, inputChannel, consumerProperties);
 		}
 		else {
 			messageBus.bindConsumer(inputChannelName, inputChannel, consumerProperties);
@@ -288,7 +280,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 
 	private void bindMessageProducer(MessageChannel outputChannel, String outputChannelName,
 			Properties producerProperties) {
-		if (isChannelPubSub(outputChannelName)) {
+		if (BusUtils.isChannelPubSub(outputChannelName)) {
 			messageBus.bindPubSubProducer(outputChannelName, outputChannel, producerProperties);
 		}
 		else {
@@ -332,7 +324,11 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	protected void unbindConsumer(Module module) {
 		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
 		if (inputChannel != null) {
-			messageBus.unbindConsumer(getInputChannelName(module), inputChannel);
+			String channelToUnbind = getInputChannelName(module);
+			if (this.messageBus.isCapable(Capability.DURABLE_PUBSUB)) {
+				channelToUnbind = BusUtils.addGroupToPubSub(module.getDescriptor().getGroup(), channelToUnbind);
+			}
+			messageBus.unbindConsumer(channelToUnbind, inputChannel);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Unbound consumer for " + module.toString());
 			}
@@ -375,17 +371,6 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 			interceptorAware.setInterceptors(interceptors);
 			messageBus.unbindProducers(tapChannelName);
 		}
-	}
-
-	/**
-	 * Determine whether the provided channel name represents a pub/sub channel (i.e. topic or tap).
-	 * @param channelName name of the channel to check
-	 * @return true if pub/sub.
-	 */
-	public static boolean isChannelPubSub(String channelName) {
-		Assert.isTrue(StringUtils.hasText(channelName), "Channel name should not be empty/null.");
-		// Check if the channelName starts with tap: or topic:
-		return (channelName.startsWith(TAP_CHANNEL_PREFIX) || channelName.startsWith(TOPIC_CHANNEL_PREFIX));
 	}
 
 	@Override
@@ -445,7 +430,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	 * @return the tap channel name
 	 */
 	private String buildTapChannelNameFromPath(String path) {
-		return TAP_CHANNEL_PREFIX + Paths.stripPath(path);
+		return BusUtils.TAP_CHANNEL_PREFIX + Paths.stripPath(path);
 	}
 
 

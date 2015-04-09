@@ -10,7 +10,7 @@ This section contains additional information about configuring the Message Bus, 
 [[rabbit-message-bus-high-availability-ha-configuration]]
 === Rabbit Message Bus High Availability (HA) Configuration
 
-The +RabbitMessageBus+ allows for HA configuration using normal https://www.rabbitmq.com/ha.html[RabbitMQ HA Configuration]. 
+The +RabbitMessageBus+ allows for HA configuration using normal https://www.rabbitmq.com/ha.html[RabbitMQ HA Configuration].
 
 First, use the +addresses+ property in +servers.yml+ to include the host/port for each server in the cluster. See xref:Application-Configuration#rabbitConfig[Application Configuration].
 
@@ -56,13 +56,23 @@ There is no automated mechanism provided to move dead lettered messages back to 
 
 *Automatic Dead Lettering Queue Binding*
 
-Starting with _version 1.1_, the dead letter queue and binding can be automatically configured by the system. A new property +autoBindDLQ+ has been added; it can be set at the bus level (in +servers.yml+) or using deployment properties, e.g. +--properties module.*.consumer.autoBindDLQ=true+ for all modules in the stream. When +true+, the dead letter queue will be declared (if necessary) and bound to a dead letter exchange named +xdbus.DLX+ (again, assuming the default +prefix+).
+Starting with _version 1.1_, the dead letter queue and binding can be automatically configured by the system. A new property +autoBindDLQ+ has been added; it can be set at the bus level (in +servers.yml+) or using deployment properties, e.g. +--properties module.*.consumer.autoBindDLQ=true+ for all modules in the stream. When +true+, the dead letter queue will be declared (if necessary) and bound to a dead letter exchange named +xdbus.DLX+ (again, assuming the default +prefix+) using the queue name as the routing key.
 
 In the above example, where we have queues +xdbus.foo.0+ and +xdbus.foo.1+, the system will also create +xdbus.foo.0.dlq+, bound to +xdbus.DLX+ with routing key +xdbus.foo.0+ and +xdbus.foo.1.dlq+, bound to +xdbus.DLX+ with routing key +xdbus.foo.1+.
 
-NOTE: This just sets up the DLQ and binding, you still need to set a policy to enable dead lettering on the queues, routing failed messages to +xdbus.DLX+:
+NOTE: Starting with _version 1.2_, any queues that are deployed with `autoBindDLQ` will automatically be configured to enable dead-lettering, routing to the DLX with the proper routing key. It is no longer necessary to use a policy to set up dead-lettering when using `autoBindDLQ`.
 
-+rabbitmqctl set_policy DLX "^xdbus\..*" \'{"dead-letter-exchange":"xdbus.DLX"}' --apply-to queues+
+Also, starting with _version 1.2_, the provision of dead-lettering on publish/subscribe named channels (`tap:` or `topic:`) depends on a new deployment property `durable`.
+This property is similar to a JMS durable subscription to a topic and is `false` by default.
+When `false` (default), the queue backing such a named channel is declared `auto-delete` and is removed when the stream is undeployed.
+A DLQ will not be created for such queues.
+When `true`, the queue becomes permanent (durable) and is not removed when the stream is undeployed.
+Also, when `true`, the queue is eligible for DLQ provisioning, according to the `autoBindDLQ` deployment property.
+`durable` can be set at the bus level, or in an individual deployment property, such as:
+
+`stream create ticktock --definition="time --fixedDelay=5 | log" --deploy`
+`stream create tttap --definition="tap:stream:ticktock > log"`
+`stream deploy tttap --properties=module.log.consumer.durableSubscription=true`
 
 ==== Redis Message Bus
 
@@ -113,7 +123,7 @@ If you wish to use SSL for communications with the RabbitMQ server, consult the 
 
 First configure the broker as described there. The message bus is a client of the broker and supports both of the described configurations for connecting clients (SSL _without certificate validation_ and _with certficate validation_).
 
-To use SSL without certificate validation, simply set 
+To use SSL without certificate validation, simply set
 
 ----
 spring:
@@ -123,7 +133,7 @@ spring:
 
 In +application.yml+ (and set the port(s) in the +addresses+ property appropriately).
 
-To use SSL with certificate validation, set 
+To use SSL with certificate validation, set
 
 ----
 spring:

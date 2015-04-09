@@ -401,13 +401,82 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 	}
 
 	@Test
-	public void testAutoBindDLQ() throws Exception {
-		// pre-declare the queue with dead-lettering, users can also use a policy
+	public void testDurablePubSubWithAutoBindDLQ() throws Exception {
 		RabbitAdmin admin = new RabbitAdmin(this.rabbitAvailableRule.getResource());
-		Map<String, Object> args = new HashMap<String, Object>();
-		args.put("x-dead-letter-exchange", "xdbustest.DLX");
-		Queue queue = new Queue("xdbustest.dlqtest", true, false, false, args);
-		admin.declareQueue(queue);
+
+		MessageBus bus = getMessageBus();
+		Properties properties = new Properties();
+		properties.put("prefix", "xdbustest.");
+		properties.put("autoBindDLQ", "true");
+		properties.put("durableSubscription", "true");
+		properties.put("maxAttempts", "1"); // disable retry
+		properties.put("requeue", "false");
+		DirectChannel moduleInputChannel = new DirectChannel();
+		moduleInputChannel.setBeanName("durableTest");
+		moduleInputChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				throw new RuntimeException("foo");
+			}
+
+		});
+		bus.bindPubSubConsumer("teststream.tap:stream:durabletest.0", moduleInputChannel, properties);
+
+		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
+		template.convertAndSend("xdbustest.topic.tap:stream:durabletest.0", "", "foo");
+
+		int n = 0;
+		while (n++ < 100) {
+			Object deadLetter = template.receiveAndConvert("xdbustest.teststream.tap:stream:durabletest.0.dlq");
+			if (deadLetter != null) {
+				assertEquals("foo", deadLetter);
+				break;
+			}
+			Thread.sleep(100);
+		}
+		assertTrue(n < 100);
+
+		bus.unbindConsumer("teststream.tap:stream:durabletest.0", moduleInputChannel);
+		assertNotNull(admin.getQueueProperties("xdbustest.teststream.tap:stream:durabletest.0.dlq"));
+		admin.deleteQueue("xdbustest.teststream.tap:stream:durabletest.0.dlq");
+		admin.deleteQueue("xdbustest.teststream.tap:stream:durabletest.0");
+		admin.deleteExchange("xdbustest.topic.tap:stream:durabletest.0");
+		admin.deleteExchange("xdbustest.DLX");
+	}
+
+	@Test
+	public void testNonDurablePubSubWithAutoBindDLQ() throws Exception {
+		RabbitAdmin admin = new RabbitAdmin(this.rabbitAvailableRule.getResource());
+
+		MessageBus bus = getMessageBus();
+		Properties properties = new Properties();
+		properties.put("prefix", "xdbustest.");
+		properties.put("autoBindDLQ", "true");
+		properties.put("durableSubscription", "false");
+		properties.put("maxAttempts", "1"); // disable retry
+		properties.put("requeue", "false");
+		DirectChannel moduleInputChannel = new DirectChannel();
+		moduleInputChannel.setBeanName("nondurabletest");
+		moduleInputChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				throw new RuntimeException("foo");
+			}
+
+		});
+		bus.bindPubSubConsumer("teststream.tap:stream:nondurabletest.0", moduleInputChannel, properties);
+
+		bus.unbindConsumer("teststream.tap:stream:nondurabletest.0", moduleInputChannel);
+		assertNull(admin.getQueueProperties("xdbustest.teststream.tap:stream:nondurabletest.0.dlq"));
+		admin.deleteQueue("xdbustest.teststream.tap:stream:nondurabletest.0");
+		admin.deleteExchange("xdbustest.topic.tap:stream:nondurabletest.0");
+	}
+
+	@Test
+	public void testAutoBindDLQ() throws Exception {
+		RabbitAdmin admin = new RabbitAdmin(this.rabbitAvailableRule.getResource());
 
 		MessageBus bus = getMessageBus();
 		Properties properties = new Properties();

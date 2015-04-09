@@ -42,6 +42,7 @@
 				<!-- set a map of decompressors here if using other than the default -->
 			</bean>
 		</property>
+		<property name="defaultDurableSubscription" value="${xd.messagebus.rabbit.default.durableSubscription}" />
 	</bean>
 
 </beans>

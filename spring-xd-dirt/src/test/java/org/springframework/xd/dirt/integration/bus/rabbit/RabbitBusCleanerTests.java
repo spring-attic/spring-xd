@@ -42,9 +42,9 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
-import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
 import org.springframework.xd.dirt.plugins.job.JobEventsListenerPlugin;
 import org.springframework.xd.test.rabbit.RabbitAdminTestSupport;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
@@ -73,7 +73,7 @@ public class RabbitBusCleanerTests {
 		String firstQueue = null;
 		for (int i = 0; i < 5; i++) {
 			String queueName = MessageBusSupport.applyPrefix("xdbus.",
-					AbstractStreamPlugin.constructPipeName(uuid, i));
+					BusUtils.constructPipeName(uuid, i));
 			if (firstQueue == null) {
 				firstQueue = queueName;
 			}
@@ -91,7 +91,7 @@ public class RabbitBusCleanerTests {
 		RabbitAdmin rabbitAdmin = new RabbitAdmin(connectionFactory);
 		final FanoutExchange fanout = new FanoutExchange(
 				MessageBusSupport.applyPrefix("xdbus.", MessageBusSupport.applyPubSub(
-						AbstractStreamPlugin.constructTapPrefix(uuid) + ".foo.bar")));
+						BusUtils.constructTapPrefix(uuid) + ".foo.bar")));
 		rabbitAdmin.declareExchange(fanout);
 		rabbitAdmin.declareBinding(BindingBuilder.bind(new Queue(firstQueue)).to(fanout));
 		new RabbitTemplate(connectionFactory).execute(new ChannelCallback<Void>() {
@@ -99,7 +99,7 @@ public class RabbitBusCleanerTests {
 			@Override
 			public Void doInRabbit(Channel channel) throws Exception {
 				String queueName = MessageBusSupport.applyPrefix("xdbus.",
-						AbstractStreamPlugin.constructPipeName(uuid, 4));
+						BusUtils.constructPipeName(uuid, 4));
 				String consumerTag = channel.basicConsume(queueName, new DefaultConsumer(channel));
 				try {
 					waitForConsumerStateNot(queueName, 0);

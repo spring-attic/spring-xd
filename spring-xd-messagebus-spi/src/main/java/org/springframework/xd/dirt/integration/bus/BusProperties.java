@@ -136,4 +136,9 @@ public interface BusProperties {
 	 */
 	public static final String COMPRESS = "compress";
 
+	/**
+	 * Durable pub/sub consumer.
+	 */
+	public static final String DURABLE = "durableSubscription";
+
 }

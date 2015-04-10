@@ -17,14 +17,15 @@ package org.springframework.xd.spark.streaming;
 
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.fileContent;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import java.io.File;
 import java.util.Random;
 
-import org.hamcrest.core.StringContains;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,7 +39,6 @@ import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.shell.command.StreamCommandTemplate;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.shell.command.fixtures.XDMatchers;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.fixtures.FileSink;
 
@@ -104,10 +104,10 @@ public abstract class AbstractSparkStreamingTests {
 			String stream = String.format("%s | spark-word-count | %s --inputType=text/plain", source, sink);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_LONG_MESSAGE);
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(foo,6)"))));
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(bar,5)"))));
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test1,2)"))));
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test2,1)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(foo,6)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(bar,5)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(test1,2)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(test2,1)"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);
@@ -124,13 +124,14 @@ public abstract class AbstractSparkStreamingTests {
 		try {
 			String stream = String.format("%s | counter", source);
 			createStream(streamName, stream);
-			String tapStream = String.format("tap:stream:"+ streamName + " > spark-word-count | %s --inputType=text/plain", sink);
+			String tapStream = String.format("tap:stream:%s > spark-word-count | %s --inputType=text/plain",
+					streamName, sink);
 			createStream(tapStreamName, tapStream);
 			source.ensureReady().postData(TEST_LONG_MESSAGE);
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(foo,6)"))));
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(bar,5)"))));
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test1,2)"))));
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test2,1)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(foo,6)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(bar,5)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(test1,2)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(test2,1)"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);
@@ -149,7 +150,7 @@ public abstract class AbstractSparkStreamingTests {
 					"--inputType=text/plain", source, sink);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
+			assertThat(sink, eventually(hasContentsThat(equalTo("(foo,3)"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);
@@ -166,7 +167,7 @@ public abstract class AbstractSparkStreamingTests {
 			String stream = String.format("%s | spark-word-count --outputType=application/json | %s", source, sink);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("{\"_1\":\"foo\",\"_2\":3}"))));
+			assertThat(sink, eventually(hasContentsThat(equalTo("{\"_1\":\"foo\",\"_2\":3}"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);
@@ -183,10 +184,10 @@ public abstract class AbstractSparkStreamingTests {
 			String stream = String.format("%s | spark-scala-word-count | %s --inputType=text/plain", source, sink);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_LONG_MESSAGE);
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(foo,6)"))));
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(bar,5)"))));
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test1,2)"))));
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(StringContains.containsString("(test2,1)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(foo,6)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(bar,5)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(test1,2)"))));
+			assertThat(sink, eventually(hasContentsThat(containsString("(test2,1)"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);
@@ -204,7 +205,7 @@ public abstract class AbstractSparkStreamingTests {
 					"%s --inputType=text/plain", source, sink);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("(foo,3)"))));
+			assertThat(sink, eventually(hasContentsThat(equalTo("(foo,3)"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);
@@ -221,7 +222,7 @@ public abstract class AbstractSparkStreamingTests {
 			String stream = String.format("%s | spark-scala-word-count --outputType=application/json | %s", source, sink);
 			createStream(streamName, stream);
 			source.ensureReady().postData(TEST_MESSAGE);
-			assertThat(sink, XDMatchers.eventually(XDMatchers.hasContentsThat(equalTo("{\"_1\":\"foo\",\"_2\":3}"))));
+			assertThat(sink, eventually(hasContentsThat(equalTo("{\"_1\":\"foo\",\"_2\":3}"))));
 		}
 		finally {
 			streamOps.destroyStream(streamName);

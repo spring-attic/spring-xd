@@ -397,6 +397,9 @@ security:
   basic:
     enabled: true                                                     # <2>
     realm: SpringXD                                                   # <3>
+  user:
+    name: yourAdminUsername
+    password: yourAdminPassword
     role: ADMIN, VIEW, CREATE                                         # <4>
 ----
 

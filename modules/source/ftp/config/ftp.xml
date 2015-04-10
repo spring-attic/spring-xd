@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/ftp
+		http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+	<beans:bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+		<beans:property name="host" value="${host}" />
+        	<beans:property name="port" value="${port}" />
+        	<beans:property name="username" value="${username}"/>
+        	<beans:property name="password" value="${password}"/>
+        	<beans:property name="clientMode" value="${clientMode}"/>
+	</beans:bean>
+
+	<int-ftp:inbound-channel-adapter auto-startup="true" channel="output" session-factory="ftpSessionFactory"
+		filename-pattern="${filenamePattern}" remote-directory="${remoteDir}" local-directory="${localDir}"
+		remote-file-separator="${remoteFileSeparator}" preserve-timestamp="${preserveTimestamp}"
+		auto-create-local-directory="${autoCreateLocalDir}"
+		temporary-file-suffix="${tmpFileSuffix}" delete-remote-files="${deleteRemoteFiles}">
+		<poller fixed-rate="${fixedRate}" />
+	</int-ftp:inbound-channel-adapter>
+
+	<channel id="output" />
+
+</beans:beans>
+
+

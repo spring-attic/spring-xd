@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,10 @@ import org.springframework.util.Assert;
 
 
 /**
- * 
+ * Object naming strategy for XD module.
+ *
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public class ModuleObjectNamingStrategy implements ObjectNamingStrategy {
 
@@ -48,8 +50,10 @@ public class ModuleObjectNamingStrategy implements ObjectNamingStrategy {
 		ObjectName originalName = ObjectNameManager.getInstance(beanKey);
 		StringBuilder sb = new StringBuilder();
 		sb.append(domain).append(":");
-		sb.append("module=").append(objectNameProperties.get("module")).append(".").append(
-				objectNameProperties.getProperty("index")).append(",");
+		sb.append("module=").append(objectNameProperties.get("group")).append(".").append(
+				objectNameProperties.getProperty("type")).append(".").append(
+				objectNameProperties.getProperty("label")).append(".").append(
+				objectNameProperties.getProperty("sequence")).append(",");
 		sb.append("component=").append(originalName.getKeyProperty("type")).append(",");
 		sb.append("name=").append(originalName.getKeyProperty("name"));
 		return ObjectNameManager.getInstance(sb.toString());

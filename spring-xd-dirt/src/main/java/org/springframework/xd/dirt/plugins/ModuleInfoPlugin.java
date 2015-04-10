@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.plugins;
 
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_MODULE_INDEX_KEY;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_MODULE_LABEL_KEY;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_MODULE_NAME_KEY;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_MODULE_TYPE_KEY;
 import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_MODULE_COUNT_KEY;
@@ -34,6 +35,7 @@ import org.springframework.xd.module.core.Module;
  * 
  * @author Eric Bottard
  * @author Marius Bogoevici
+ * @author Ilayaperumal Gopinathan
  */
 public class ModuleInfoPlugin extends AbstractPlugin {
 
@@ -46,6 +48,7 @@ public class ModuleInfoPlugin extends AbstractPlugin {
 	public void preProcessModule(Module module) {
 		Properties props = new Properties();
 		props.setProperty(XD_MODULE_NAME_KEY, module.getName());
+		props.setProperty(XD_MODULE_LABEL_KEY, module.getDescriptor().getModuleLabel());
 		props.setProperty(XD_MODULE_INDEX_KEY, String.valueOf(module.getDescriptor().getIndex()));
 		props.setProperty(XD_MODULE_TYPE_KEY, module.getType().name());
 		props.setProperty(XD_MODULE_COUNT_KEY, String.valueOf(module.getDeploymentProperties().getCount()));

@@ -18,9 +18,13 @@ package org.springframework.xd.dirt.rest;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,8 +50,6 @@ import org.springframework.xd.dirt.cluster.DetailedContainer;
 import org.springframework.xd.dirt.cluster.ModuleMessageRateNotFoundException;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
-import org.springframework.xd.dirt.module.store.ModuleMetadata;
-import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.domain.DetailedContainerResource;
 
 /**
@@ -60,6 +62,11 @@ import org.springframework.xd.rest.domain.DetailedContainerResource;
 @RequestMapping("/runtime/containers")
 @ExposesResourceFor(DetailedContainerResource.class)
 public class ContainersController {
+
+	/**
+	 * Logger.
+	 */
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private ContainerRepository containerRepository;
@@ -79,6 +86,12 @@ public class ContainersController {
 
 	private final static String SHUTDOWN_ENDPOINT = "/shutdown";
 
+	private final static String JOLOKIA_XD_MODULE_MBEAN_URL = "/management/jolokia/read/xd.*:module=*,component=*,name=*";
+
+	private final static String INPUT_CHANNEL_NAME = "input";
+
+	private final static String OUTPUT_CHANNEL_NAME = "output";
+
 	@Autowired
 	public ContainersController(ContainerRepository containerRepository) {
 		this.containerRepository = containerRepository;
@@ -95,56 +108,64 @@ public class ContainersController {
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public PagedResources<DetailedContainerResource> list(Pageable pageable,
-			PagedResourcesAssembler<DetailedContainer> assembler) throws ModuleMessageRateNotFoundException,
-			JSONException {
+			PagedResourcesAssembler<DetailedContainer> assembler) throws ModuleMessageRateNotFoundException {
 		Page<DetailedContainer> containers = containerRepository.findAllRuntimeContainers(pageable);
 		for (DetailedContainer container : containers) {
-			String containerHost = container.getAttributes().getIp();
-			String containerManagementPort = container.getAttributes().getManagementPort();
-			if (StringUtils.hasText(containerManagementPort) && enableMessageRates.equalsIgnoreCase("true")) {
-				Map<String, HashMap<String, Double>> messageRates = new HashMap<String, HashMap<String, Double>>();
-				for (ModuleMetadata moduleMetadata : container.getDeployedModules()) {
-					String moduleName = moduleMetadata.getName();
-					String moduleLabel = moduleName.substring(0, moduleName.indexOf('.'));
-					String request = CONTAINER_HOST_URI_PROTOCOL + containerHost + ":"
-							+ containerManagementPort + "/management/jolokia/read/xd." + moduleMetadata.getUnitName()
-							+ ":module=" + moduleLabel + ".*,component=*,name=%s/MeanSendRate";
-					try {
-						HashMap<String, Double> rate = new HashMap<String, Double>();
-						if (moduleMetadata.getModuleType().equals(ModuleType.source)) {
-							rate.put("output", getMessageRate(String.format(request, "output")));
-						}
-						else if (moduleMetadata.getModuleType().equals(ModuleType.sink)) {
-							rate.put("input", getMessageRate(String.format(request, "input")));
-						}
-						else if (moduleMetadata.getModuleType().equals(ModuleType.processor)) {
-							rate.put("output", getMessageRate(String.format(request, "output")));
-							rate.put("input", getMessageRate(String.format(request, "input")));
-						}
-						messageRates.put(moduleMetadata.getQualifiedId(), rate);
-					}
-					catch (RestClientException e) {
-						throw new ModuleMessageRateNotFoundException(e.getMessage());
-					}
-				}
-				container.setMessageRates(messageRates);
-			}
+			setMessageRates(container);
 		}
 		return assembler.toResource(containers, resourceAssembler);
 	}
 
 	/**
-	 * Get the message rate for the given jolokia request URL.
+	 * Set the message rates of all the deployed modules in the given container.
 	 *
-	 * @param requestURL the request URL for message rate
-	 * @return the message rate
-	 * @throws JSONException
+	 * @param container the container to set the message rates
 	 */
-	private Double getMessageRate(String requestURL) throws JSONException {
-		String response = restTemplate.getForObject(requestURL, String.class).toString();
-		JSONObject jObject = new JSONObject(response);
-		JSONObject value = jObject.getJSONObject("value");
-		return (Double) value.getJSONObject((String) value.names().get(0)).get("MeanSendRate");
+	private void setMessageRates(DetailedContainer container) {
+		String containerHost = container.getAttributes().getIp();
+		String containerManagementPort = container.getAttributes().getManagementPort();
+		if (StringUtils.hasText(containerManagementPort) && enableMessageRates.equalsIgnoreCase("true")) {
+			Map<String, HashMap<String, Double>> messageRates = new HashMap<String, HashMap<String, Double>>();
+			String request = String.format("%s%s:%s%s", CONTAINER_HOST_URI_PROTOCOL, containerHost,
+					containerManagementPort, JOLOKIA_XD_MODULE_MBEAN_URL);
+			try {
+				String response = restTemplate.getForObject(request, String.class).toString();
+				JSONObject jObject = new JSONObject(response);
+				JSONObject value = jObject.getJSONObject("value");
+				JSONArray jsonArray = value.names();
+				// iterate over each module MBean
+				for (int i = 0; i < jsonArray.length(); i++) {
+					String mbeanKey = (String) jsonArray.get(i);
+					StringTokenizer tokenizer = new StringTokenizer(mbeanKey, ",");
+					if (mbeanKey.contains("component=MessageChannel")
+							&& (mbeanKey.contains("name=" + INPUT_CHANNEL_NAME) || mbeanKey.contains("name=" + OUTPUT_CHANNEL_NAME))) {
+						while (tokenizer.hasMoreElements()) {
+							String element = (String) tokenizer.nextElement();
+							if (element.startsWith("module=")) {
+								String key = String.format("%s", element.substring(element.indexOf("=") + 1));
+								HashMap<String, Double> rate = (messageRates.get(key) != null) ? messageRates.get(key)
+										: new HashMap<String, Double>();
+								Double rateValue = (Double) value.getJSONObject((String) jsonArray.get(i)).get("MeanSendRate");
+								if (mbeanKey.contains("name=" + INPUT_CHANNEL_NAME)) {
+									rate.put(INPUT_CHANNEL_NAME, rateValue);
+								}
+								else if (mbeanKey.contains("name=" + OUTPUT_CHANNEL_NAME)) {
+									rate.put(OUTPUT_CHANNEL_NAME, rateValue);
+								}
+								messageRates.put(key, rate);
+							}
+						}
+					}
+				}
+				container.setMessageRates(messageRates);
+			}
+			catch (RestClientException e) {
+				logger.error(String.format("Error getting message rate metrics for %s", container.getName()), e);
+			}
+			catch (JSONException jse) {
+				logger.error(String.format("Error getting message rate metrics for %s", container.getName()), jse);
+			}
+		}
 	}
 
 	/**

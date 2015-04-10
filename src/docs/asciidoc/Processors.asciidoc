@@ -412,7 +412,7 @@ The **$$json-to-tuple$$** $$processor$$ has no particular option (in addition to
 
 [[object-to-json]]
 === Object to JSON
-The `object-to-json` processor can be used to convert any java Objec to a JSON String.
+The `object-to-json` processor can be used to convert any java Object to a JSON String.
 
 In the following example, notice how the collection of three elements is transformed to JSON (in particular, the three Strings are surrounded by quotes):
 

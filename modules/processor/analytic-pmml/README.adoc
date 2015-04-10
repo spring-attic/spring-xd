@@ -1,7 +1,0 @@
-= Analytics ML PMML module
-
-Spring XD provides support for rich machine learning analytics through the use of the `analytics-pmml` module, which is available separately at https://github.com/spring-projects/spring-xd-modules
-
-Instructions on how to build and install the module are available at https://github.com/spring-projects/spring-xd-modules/analytics-ml-pmml, while example usage is at https://github.com/spring-projects/spring-xd-samples/tree/master/analytics-pmml
-
-Be sure to read documentation about analytics in general at https://github.com/spring-projects/spring-xd/wiki/Analytics

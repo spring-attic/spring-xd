@@ -620,7 +620,7 @@ Full path is preserved so that above command would result files in HDFS shown be
 The **$$ftphdfs$$** $$job$$ has the following options:
 
 $$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
-$$host$$:: $$the host name for the FTP server$$ *($$String$$, no default)*
+$$host$$:: $$the host name for the FTP server$$ *($$String$$, default: `localhost`)*
 $$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `3600000`)*
 $$password$$:: $$the password for the FTP connection$$ *($$Password$$, no default)*
 $$port$$:: $$the port for the FTP server$$ *($$int$$, default: `21`)*

@@ -41,10 +41,11 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 	}
 
 	@Override
-	public ModuleDefinitionResource composeModule(String name, String definition) {
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+	public ModuleDefinitionResource composeModule(String name, String definition, boolean force) {
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<>();
 		values.add("name", name);
 		values.add("definition", definition);
+		values.add("force", force);
 		return restTemplate.postForObject(resources.get("modules").expand(), values, ModuleDefinitionResource.class);
 	}
 
@@ -62,9 +63,9 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 	}
 
 	@Override
-	public ModuleDefinitionResource uploadModule(String name, RESTModuleType type, Resource bytes) throws IOException {
-		String uriTemplate = resources.get("modules").toString() + "/{type}/{name}";
-		return restTemplate.postForObject(uriTemplate, bytes, ModuleDefinitionResource.class, type, name);
+	public ModuleDefinitionResource uploadModule(String name, RESTModuleType type, Resource bytes, boolean force) throws IOException {
+		String uriTemplate = resources.get("modules").toString() + "/{type}/{name}?force={force}";
+		return restTemplate.postForObject(uriTemplate, bytes, ModuleDefinitionResource.class, type, name, force);
 	}
 
 	@Override

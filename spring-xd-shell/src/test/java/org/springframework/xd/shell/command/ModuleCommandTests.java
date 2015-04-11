@@ -16,9 +16,7 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -110,11 +108,46 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	public void testCollidingModuleComposeWithOtherCompositeForcingUpdate() {
+		module().compose("compositesource", "time | splitter");
+
+		getShell().executeCommand("module compose compositesource --definition \"time | transform\" --force");
+
+		String info = module().info("compositesource", source);
+		assertThat(info, containsString("transform.script"));
+		assertThat(info, not(containsString("splitter.expression")));
+
+	}
+
+	@Test
 	public void testCollidingModuleComposeWithRegularModule() {
 		CommandResult result = getShell().executeCommand(
 				"module compose tcp --definition \"time | transform\"");
 		assertEquals("There is already a module named 'tcp' with type 'source'\n", result.getException().getMessage());
 
+	}
+
+	@Test
+	public void testCollidingModuleComposeWithRegularModuleShouldFailEvenWithForce() {
+		CommandResult result = getShell().executeCommand(
+				"module compose tcp --definition \"time | transform\" --force");
+		assertEquals("There is already a module named 'tcp' with type 'source', and it cannot be updated\n", result.getException().getMessage());
+
+	}
+
+	@Test
+	public void testCollidingModuleComposeWithForceAgainstUploadedModule() {
+		module().upload("foobar", source, new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar"));
+
+		// Without --force
+		CommandResult result = getShell().executeCommand(
+				"module compose foobar --definition \"time | transform\"");
+		assertEquals("There is already a module named 'foobar' with type 'source'\n", result.getException().getMessage());
+
+		// Now add --force
+		module().compose("foobar", "time | transform", true);
+		String info = module().info("foobar", source);
+		assertThat(info, containsString("transform.expression"));
 	}
 
 	@Test
@@ -171,17 +204,12 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 		}
 	}
 
-	//TODO: fix this test
 	@Test
-	@Ignore
 	public void testDeleteUploadedModuleUsedByStream() throws IOException {
 		File moduleSource = new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar");
 		module().upload("siDslModule2", processor, moduleSource);
-		executeCommand("stream create foo --definition \"http | siDslModule2 --prefix=foo | log\" --deploy false");
+		stream().createDontDeploy("foo", "http | siDslModule2 --prefix=foo | log");
 		assertFalse(module().delete("siDslModule2", processor));
-		//This not working either
-		File uploaded = new File("../custom-modules/processor/siDslModule2.jar");
-		uploaded.deleteOnExit();
 	}
 
 

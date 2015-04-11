@@ -38,7 +38,7 @@ public interface ModuleOperations {
 	/**
 	 * Compose a new composed Module.
 	 */
-	public ModuleDefinitionResource composeModule(String name, String definition);
+	public ModuleDefinitionResource composeModule(String name, String definition, boolean force);
 
 
 	/**
@@ -60,5 +60,5 @@ public interface ModuleOperations {
 	/**
 	 * Create a new module by uploading the contents of an archive.
 	 */
-	public ModuleDefinitionResource uploadModule(String name, RESTModuleType type, Resource bytes) throws IOException;
+	public ModuleDefinitionResource uploadModule(String name, RESTModuleType type, Resource bytes, boolean force) throws IOException;
 }

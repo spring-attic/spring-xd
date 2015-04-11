@@ -110,8 +110,10 @@ public class ModuleCommands implements CommandMarker {
 	@CliCommand(value = COMPOSE_MODULE, help = "Create a virtual module")
 	public String composeModule(
 			@CliOption(mandatory = true, key = {"name", ""}, help = "the name to give to the module") String name,
-			@CliOption(mandatory = true, key = "definition", optionContext = "completion-module disable-string-converter", help = "module definition using xd dsl") String dsl) {
-		ModuleDefinitionResource composedModule = moduleOperations().composeModule(name, dsl);
+			@CliOption(mandatory = true, key = "definition", optionContext = "completion-module disable-string-converter", help = "module definition using xd dsl") String dsl,
+			@CliOption(key = "force", help = "force update if module already exists (only if not in use)", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") boolean force
+	) {
+		ModuleDefinitionResource composedModule = moduleOperations().composeModule(name, dsl, force);
 		return String.format(("Successfully created module '%s' with type %s"), composedModule.getName(),
 				composedModule.getType());
 	}
@@ -120,9 +122,11 @@ public class ModuleCommands implements CommandMarker {
 	public String uploadModule(
 			@CliOption(mandatory = true, key = {"type"}, help = "the type for the uploaded module") RESTModuleType type,
 			@CliOption(mandatory = true, key = {"name"}, help = "the name for the uploaded module") String name,
-			@CliOption(mandatory = true, key = {"", "file"}, help = "path to the module archive") File file) throws IOException {
+			@CliOption(mandatory = true, key = {"", "file"}, help = "path to the module archive") File file,
+			@CliOption(key = "force", help = "force update if module already exists (only if not in use)", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") boolean force
+	) throws IOException {
 		Resource resource = new FileSystemResource(file);
-		ModuleDefinitionResource composedModule = moduleOperations().uploadModule(name, type, resource);
+		ModuleDefinitionResource composedModule = moduleOperations().uploadModule(name, type, resource, force);
 		return String.format(("Successfully uploaded module '%s:%s'"), composedModule.getType(),
 				composedModule.getName());
 	}

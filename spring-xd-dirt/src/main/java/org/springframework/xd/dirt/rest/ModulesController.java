@@ -105,9 +105,12 @@ public class ModulesController {
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public ModuleDefinitionResource compose(@RequestParam("name") String name,
-			@RequestParam("definition") String definition) {
-		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, /*TODO*/null, definition);
+	public ModuleDefinitionResource compose(
+			@RequestParam("name") String name,
+			@RequestParam("definition") String definition,
+			@RequestParam(value = "force", defaultValue = "false") boolean force
+	) {
+		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, /*TODO*/null, definition, force);
 		ModuleDefinitionResource resource = simpleAssembler.toResource(moduleDefinition);
 		return resource;
 	}
@@ -122,9 +125,12 @@ public class ModulesController {
 	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.POST, consumes = "text/plain")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public ModuleDefinitionResource compose(@PathVariable("type") ModuleType type, @PathVariable("name") String name,
-			@RequestBody String definition) {
-		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, type, definition);
+	public ModuleDefinitionResource compose(
+			@PathVariable("type") ModuleType type,
+			@PathVariable("name") String name,
+			@RequestBody String definition,
+			@RequestParam(value = "force", defaultValue = "false") boolean force) {
+		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, type, definition, force);
 		ModuleDefinitionResource resource = simpleAssembler.toResource(moduleDefinition);
 		return resource;
 	}
@@ -138,9 +144,12 @@ public class ModulesController {
 	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.POST, consumes = "application/octet-stream")
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public ModuleDefinitionResource upload(@PathVariable("type") ModuleType type, @PathVariable("name") String name,
+	public ModuleDefinitionResource upload(
+			@PathVariable("type") ModuleType type,
+			@PathVariable("name") String name,
+			@RequestParam(value = "force", defaultValue = "false") boolean force,
 			@RequestBody byte[] bytes) {
-		ModuleDefinition moduleDefinition = moduleDefinitionService.upload(name, type, bytes);
+		ModuleDefinition moduleDefinition = moduleDefinitionService.upload(name, type, bytes, force);
 		ModuleDefinitionResource resource = simpleAssembler.toResource(moduleDefinition);
 		return resource;
 	}

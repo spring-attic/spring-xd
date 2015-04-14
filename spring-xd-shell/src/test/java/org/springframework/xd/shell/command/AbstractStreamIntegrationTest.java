@@ -28,17 +28,7 @@ import org.junit.After;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.test.fixtures.Disposable;
-import org.springframework.xd.test.fixtures.FileSink;
-import org.springframework.xd.test.fixtures.FileSource;
-import org.springframework.xd.test.fixtures.JdbcSink;
-import org.springframework.xd.test.fixtures.JdbcSource;
-import org.springframework.xd.test.fixtures.MailSink;
-import org.springframework.xd.test.fixtures.NonPollingImapSource;
-import org.springframework.xd.test.fixtures.PollingMailSource;
-import org.springframework.xd.test.fixtures.TailSource;
-import org.springframework.xd.test.fixtures.TcpSink;
-import org.springframework.xd.test.fixtures.TcpSource;
+import org.springframework.xd.test.fixtures.*;
 
 
 /**
@@ -104,10 +94,22 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	}
 
 	protected JdbcSink newJdbcSink() {
-		return new JdbcSink(createDataSource());
+		JdbcSink jdbcSink = new JdbcSink(createDataSource());
+		disposables.add(jdbcSink);
+		return jdbcSink;
 	}
 
-	protected JdbcSource newJdbcSource() { return new JdbcSource(createDataSource());}
+	protected JdbcSource newJdbcSource() {
+		JdbcSource jdbcSource = new JdbcSource(createDataSource());
+		disposables.add(jdbcSource);
+		return jdbcSource;
+	}
+
+	protected FtpSource newFtpSource() {
+		FtpSource ftpSource = new FtpSource();
+		disposables.add(ftpSource);
+		return ftpSource;
+	}
 
 	private DataSource createDataSource() {
 

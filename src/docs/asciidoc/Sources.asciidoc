@@ -119,14 +119,14 @@ $$clientMode$$:: $$client mode to use : 2 for passive mode and 0 for active mode
 $$deleteRemoteFiles$$:: $$delete remote files after transfer$$ *($$boolean$$, default: `false`)*
 $$filenamePattern$$:: $$simple filename pattern to apply to the filter$$ *($$String$$, default: `*`)*
 $$fixedRate$$:: $$fixed delay in SECONDS to poll the remote directory$$ *($$int$$, default: `1000`)*
-$$host$$:: $$the remote host to connect to$$ *($$String$$, default: `localhost`)*
+$$host$$:: $$the host name for the FTP server$$ *($$String$$, default: `localhost`)*
 $$localDir$$:: $$set the local directory the remote files are transferred to$$ *($$String$$, default: `/tmp/xd/ftp`)*
-$$password$$:: $$the password for the provided user$$ *($$String$$, no default)*
-$$port$$:: $$the remote port to connect to$$ *($$int$$, default: `21`)*
-$$remoteDir$$:: $$the remote directory to transfer the files from$$ *($$String$$, no default)*
+$$password$$:: $$the password for the FTP connection$$ *($$Password$$, no default)*
+$$port$$:: $$the port for the FTP server$$ *($$int$$, default: `21`)*
+$$remoteDir$$:: $$the remote directory to transfer the files from$$ *($$String$$, default: `/`)*
 $$remoteFileSeparator$$:: $$file separator to use on the remote side$$ *($$String$$, default: `/`)*
 $$tmpFileSuffix$$:: $$extension to use when downloading files$$ *($$String$$, default: `.tmp`)*
-$$user$$:: $$the username to use$$ *($$String$$, no default)*
+$$username$$:: $$the username for the FTP connection$$ *($$String$$, no default)*
 //$source.ftp
 
 [[sftp]]

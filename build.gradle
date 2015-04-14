@@ -1168,6 +1168,7 @@ project('spring-xd-test-fixtures') {
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "org.springframework:spring-jms"
 		compile "org.apache.activemq:activemq-client"
+		compile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 		compile "org.springframework:spring-web"
 		compile("org.springframework.data:spring-data-mongodb") {
 			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'

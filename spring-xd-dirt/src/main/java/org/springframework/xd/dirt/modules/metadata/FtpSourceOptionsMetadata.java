@@ -17,158 +17,154 @@
 package org.springframework.xd.dirt.modules.metadata;
 
 import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.xd.module.options.mixins.FtpConnectionMixin;
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
+
+import javax.validation.constraints.Min;
 
 /**
  * Module options for FTP source module.
  *
  * @author Franck MARCHAND
  */
-public class FtpSourceOptionsMetadata {
+@Mixin({FtpConnectionMixin.class})
+public class FtpSourceOptionsMetadata implements ProfileNamesProvider{
 
-	private String host = "localhost";
+    private static final String USE_REF = "use-ref";
 
-	private int port = 21;
+    private static final String USE_CONTENT = "use-contents";
 
-	private String username;
+    private int clientMode = 0;
 
-	private String password;
+    private String remoteDir = "/";
 
-	private int clientMode = 0;
+    private boolean deleteRemoteFiles = false;
 
-	private String remoteDir;
+    private String localDir = "/tmp/xd/ftp";
 
-	private boolean deleteRemoteFiles = false;
+    private boolean autoCreateLocalDir = true;
 
-	private String localDir = "/tmp/xd/ftp";
+    private String tmpFileSuffix = ".tmp";
 
-	private boolean autoCreateLocalDir = true;
+    private int fixedRate = 1000;
 
-	private String tmpFileSuffix = ".tmp";
+    private String filenamePattern = "*";
 
-	private int fixedRate = 1000;
+    private String remoteFileSeparator = "/";
 
-	private String filenamePattern = "*";
+    private boolean preserveTimestamp = true;
 
-	private String remoteFileSeparator = "/";
+    private boolean ref = false;
 
-	public String getHost() {
-		return host;
-	}
+    @NotBlank
+    public String getRemoteDir() {
+        return remoteDir;
+    }
 
-	@ModuleOption("the remote host to connect to")
-	public void setHost(String host) {
-		this.host = host;
-	}
+    @ModuleOption("the remote directory to transfer the files from")
+    public void setRemoteDir(String remoteDir) {
+        this.remoteDir = remoteDir;
+    }
 
-	public int getPort() {
-		return port;
-	}
+    public boolean isDeleteRemoteFiles() {
+        return deleteRemoteFiles;
+    }
 
-	@ModuleOption("the remote port to connect to")
-	public void setPort(int port) {
-		this.port = port;
-	}
+    @ModuleOption("delete remote files after transfer")
+    public void setDeleteRemoteFiles(boolean deleteRemoteFiles) {
+        this.deleteRemoteFiles = deleteRemoteFiles;
+    }
 
-	@NotBlank
-	public String getUsername() {
-		return username;
-	}
+    @NotBlank
+    public String getLocalDir() {
+        return localDir;
+    }
 
-	@ModuleOption("the username to use")
-	public void setUser(String user) {
-		this.username = user;
-	}
+    @ModuleOption("set the local directory the remote files are transferred to")
+    public void setLocalDir(String localDir) {
+        this.localDir = localDir;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public boolean isAutoCreateLocalDir() {
+        return autoCreateLocalDir;
+    }
 
-	@ModuleOption("the password for the provided user")
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    @ModuleOption("local directory must be auto created if it does not exist")
+    public void setAutoCreateLocalDir(boolean autoCreateLocalDir) {
+        this.autoCreateLocalDir = autoCreateLocalDir;
+    }
 
-	@NotBlank
-	public String getRemoteDir() {
-		return remoteDir;
-	}
+    public String getTmpFileSuffix() {
+        return tmpFileSuffix;
+    }
 
-	@ModuleOption("the remote directory to transfer the files from")
-	public void setRemoteDir(String remoteDir) {
-		this.remoteDir = remoteDir;
-	}
+    @ModuleOption("extension to use when downloading files")
+    public void setTmpFileSuffix(String tmpFileSuffix) {
+        this.tmpFileSuffix = tmpFileSuffix;
+    }
 
-	public boolean isDeleteRemoteFiles() {
-		return deleteRemoteFiles;
-	}
+    @Min(0)
+    public int getFixedRate() {
+        return fixedRate;
+    }
 
-	@ModuleOption("delete remote files after transfer")
-	public void setDeleteRemoteFiles(boolean deleteRemoteFiles) {
-		this.deleteRemoteFiles = deleteRemoteFiles;
-	}
+    @ModuleOption("fixed delay in SECONDS to poll the remote directory")
+    public void setFixedRate(int fixedRate) {
+        this.fixedRate = fixedRate;
+    }
 
-	public String getLocalDir() {
-		return localDir;
-	}
+    @NotBlank
+    public String getFilenamePattern() {
+        return filenamePattern;
+    }
 
-	@ModuleOption("set the local directory the remote files are transferred to")
-	public void setLocalDir(String localDir) {
-		this.localDir = localDir;
-	}
-
-	public boolean isAutoCreateLocalDir() {
-		return autoCreateLocalDir;
-	}
-
-	@ModuleOption("local directory must be auto created if it does not exist")
-	public void setAutoCreateLocalDir(boolean autoCreateLocalDir) {
-		this.autoCreateLocalDir = autoCreateLocalDir;
-	}
-
-	public String getTmpFileSuffix() {
-		return tmpFileSuffix;
-	}
-
-	@ModuleOption("extension to use when downloading files")
-	public void setTmpFileSuffix(String tmpFileSuffix) {
-		this.tmpFileSuffix = tmpFileSuffix;
-	}
-
-	public int getFixedRate() {
-		return fixedRate;
-	}
-
-	@ModuleOption("fixed delay in SECONDS to poll the remote directory")
-	public void setFixedRate(int fixedRate) {
-		this.fixedRate = fixedRate;
-	}
-
-	public String getFilenamePattern() {
-		return filenamePattern;
-	}
-
-	@ModuleOption("simple filename pattern to apply to the filter")
-	public void setFilenamePattern(String pattern) {
-		this.filenamePattern = pattern;
-	}
+    @ModuleOption("simple filename pattern to apply to the filter")
+    public void setFilenamePattern(String pattern) {
+        this.filenamePattern = pattern;
+    }
 
 
-	public int getClientMode() {
-		return clientMode;
-	}
+    public int getClientMode() {
+        return clientMode;
+    }
 
-	@ModuleOption("client mode to use : 2 for passive mode and 0 for active mode")
-	public void setClientMode(int clientMode) {
-		this.clientMode = clientMode;
-	}
+    @ModuleOption("client mode to use : 2 for passive mode and 0 for active mode")
+    public void setClientMode(int clientMode) {
+        this.clientMode = clientMode;
+    }
 
-	public String getRemoteFileSeparator() {
-		return remoteFileSeparator;
-	}
+    @NotBlank
+    public String getRemoteFileSeparator() {
+        return remoteFileSeparator;
+    }
 
-	@ModuleOption("file separator to use on the remote side")
-	public void setRemoteFileSeparator(String remoteFileSeparator) {
-		this.remoteFileSeparator = remoteFileSeparator;
-	}
+    @ModuleOption("file separator to use on the remote side")
+    public void setRemoteFileSeparator(String remoteFileSeparator) {
+        this.remoteFileSeparator = remoteFileSeparator;
+    }
+
+    @ModuleOption("whether to preserve the timestamp of files retrieved")
+    public void setPreserveTimestamp(boolean preserveTimestamp) {
+        this.preserveTimestamp = preserveTimestamp;
+    }
+
+    public boolean isPreserveTimestamp() {
+        return preserveTimestamp;
+    }
+
+    public boolean isRef() {
+        return ref;
+    }
+
+    @ModuleOption("set to true to output the File object itself")
+    public void setRef(boolean ref) {
+        this.ref = ref;
+    }
+
+    @Override
+    public String[] profilesToActivate() {
+        return ref ? new String[]{USE_REF} : new String[]{USE_CONTENT};
+    }
 }

@@ -34,3 +34,4 @@ lib
 !/spring-xd-module/src/test/resources/ModuleFactoryTests/modules/processor/xmlModule/lib/
 spring-xd-spark-streaming/.cache
 .gradletasknamecache
+spring-xd.ids

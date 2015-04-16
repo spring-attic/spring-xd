@@ -31,7 +31,8 @@ import org.junit.Test;
 public class SingleNodeApplicationWithUserBasedSecurityTest {
 
 	@ClassRule
-	public static SpringXdResource springXdResource = new SpringXdResource("classpath:org/springframework/xd/dirt/security/simpleSecurity.yml");
+	public static SpringXdResource springXdResource = new SpringXdResource(
+			"classpath:org/springframework/xd/dirt/security/simpleSecurity.yml");
 
 	@Test
 	public void testUnauthenticatedAccessToModulesEndpointFails() throws Exception {
@@ -39,7 +40,16 @@ public class SingleNodeApplicationWithUserBasedSecurityTest {
 				.perform(get("/modules"))
 				.andExpect(status().isUnauthorized())
 				.andExpect(header().string("WWW-Authenticate", "Basic realm=\"SpringXD\"")
-		);
+				);
+	}
+
+	@Test
+	public void testUnauthenticatedAccessToModulesEndpointWithJsonExtensionFails() throws Exception {
+		springXdResource.getMockMvc()
+				.perform(get("/modules.json"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(header().string("WWW-Authenticate", "Basic realm=\"SpringXD\"")
+				);
 	}
 
 	@Test
@@ -48,7 +58,7 @@ public class SingleNodeApplicationWithUserBasedSecurityTest {
 				.perform(get("/management/metrics"))
 				.andExpect(status().isUnauthorized())
 				.andExpect(header().string("WWW-Authenticate", "Basic realm=\"SpringXD\"")
-		);
+				);
 	}
 
 	@Test
@@ -57,13 +67,15 @@ public class SingleNodeApplicationWithUserBasedSecurityTest {
 				.perform(get("/modules").header("Authorization", basicAuthorizationHeader("admin", "whosThere")))
 				.andDo(print())
 				.andExpect(status().isOk()
-		);
+				);
 	}
 
 	@Test
 	public void testAuthenticatedAccessToManagementEndpointSucceeds() throws Exception {
 		springXdResource.getMockMvc()
-				.perform(get("/management/metrics").header("Authorization", basicAuthorizationHeader("admin", "whosThere")))
+				.perform(
+						get("/management/metrics").header("Authorization",
+								basicAuthorizationHeader("admin", "whosThere")))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}

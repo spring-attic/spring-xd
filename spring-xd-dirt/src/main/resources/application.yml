@@ -177,10 +177,10 @@ xd:
     authorization:
       rules:
         # Streams
-        - GET    /streams/definitions            => hasRole('ROLE_VIEW')
-        - DELETE /streams/definitions            => hasRole('ROLE_CREATE')
+        - GET    /streams/definitions*            => hasRole('ROLE_VIEW')
+        - DELETE /streams/definitions*            => hasRole('ROLE_CREATE')
         - GET    /streams/definitions/*          => hasRole('ROLE_VIEW')
-        - POST   /streams/definitions            => hasRole('ROLE_CREATE')
+        - POST   /streams/definitions*            => hasRole('ROLE_CREATE')
         - DELETE /streams/definitions/*          => hasRole('ROLE_CREATE')
         # Stream Deployments
         - GET    /streams/deployments/           => hasRole('ROLE_VIEW')
@@ -215,35 +215,35 @@ xd:
         - GET    /jobs/executions/*/steps/*      => hasRole('ROLE_VIEW')
         - GET    /jobs/executions/*/steps/*/progress => hasRole('ROLE_VIEW')
         # Batch Job Instances
-        - GET    /jobs/instances?jobname=*       => hasRole('ROLE_VIEW')
+        - GET    /jobs/instances*                => hasRole('ROLE_VIEW')
         - GET    /jobs/instances/*               => hasRole('ROLE_VIEW')
         # Module Definitions
-        - GET    /modules                        => hasRole('ROLE_VIEW')
-        - POST   /modules                        => hasRole('ROLE_CREATE')
+        - GET    /modules*                       => hasRole('ROLE_VIEW')
+        - POST   /modules*                       => hasRole('ROLE_CREATE')
         - GET    /modules/*/*                    => hasRole('ROLE_VIEW')
         - DELETE /modules/*/*                    => hasRole('ROLE_CREATE')
         # Deployed Modules
-        - GET    /runtime/modules                => hasRole('ROLE_VIEW')
+        - GET    /runtime/modules*               => hasRole('ROLE_VIEW')
         # Containers
-        - GET    /runtime/containers             => hasRole('ROLE_VIEW')
+        - GET    /runtime/containers*            => hasRole('ROLE_VIEW')
         # Counters
-        - GET    /metrics/counters               => hasRole('ROLE_VIEW')
+        - GET    /metrics/counters*              => hasRole('ROLE_VIEW')
         - GET    /metrics/counters/*             => hasRole('ROLE_VIEW')
         - DELETE /metrics/counters/*             => hasRole('ROLE_CREATE')
         # Field Value Counters
-        - GET    /metrics/field-value-counters   => hasRole('ROLE_VIEW')
+        - GET    /metrics/field-value-counters*  => hasRole('ROLE_VIEW')
         - GET    /metrics/field-value-counters/* => hasRole('ROLE_VIEW')
         - DELETE /metrics/field-value-counters/* => hasRole('ROLE_CREATE')
         # Aggregate Counters
-        - GET    /metrics/aggregate-counters     => hasRole('ROLE_VIEW')
+        - GET    /metrics/aggregate-counters*    => hasRole('ROLE_VIEW')
         - GET    /metrics/aggregate-counters/*   => hasRole('ROLE_VIEW')
         - DELETE /metrics/aggregate-counters/*   => hasRole('ROLE_CREATE')
         # Gauges
-        - GET    /metrics/gauges                 => hasRole('ROLE_VIEW')
+        - GET    /metrics/gauges*                => hasRole('ROLE_VIEW')
         - GET    /metrics/gauges/*               => hasRole('ROLE_VIEW')
         - DELETE /metrics/gauges/*               => hasRole('ROLE_CREATE')
         # Rich Gauges
-        - GET    /metrics/rich-gauges            => hasRole('ROLE_VIEW')
+        - GET    /metrics/rich-gauges*           => hasRole('ROLE_VIEW')
         - GET    /metrics/rich-gauges/*          => hasRole('ROLE_VIEW')
         - DELETE /metrics/rich-gauges/*          => hasRole('ROLE_CREATE')
         # Tab Completions

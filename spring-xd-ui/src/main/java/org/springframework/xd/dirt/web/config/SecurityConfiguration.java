@@ -46,7 +46,6 @@ import org.springframework.session.web.http.SessionRepositoryFilter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.accept.ContentNegotiationStrategy;
-import org.springframework.xd.dirt.web.controller.support.RestLogoutSuccessHandler;
 
 /**
  * Setup Spring Security for the http endpoints of the application.
@@ -107,15 +106,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 		security = configureSimpleSecurity(security);
 
-		security
-				.anyRequest().authenticated()
-				.and()
+		security.and()
 				.formLogin()
 				.loginPage(loginPage)
 				.loginProcessingUrl("/admin-ui/login").defaultSuccessUrl("/admin-ui/")
 				.permitAll()
 				.and()
-				.logout().logoutUrl("/admin-ui/logout").logoutSuccessHandler(new RestLogoutSuccessHandler())
+				.logout().logoutUrl("/admin-ui/logout")
 				.permitAll()
 				.and()
 				.httpBasic()
@@ -124,6 +121,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint(loginPage), textHtmlMatcher)
 				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, AnyRequestMatcher.INSTANCE);
 
+		security.anyRequest().denyAll();
+
 		final SessionRepositoryFilter<ExpiringSession> sessionRepositoryFilter = new SessionRepositoryFilter<ExpiringSession>(
 				sessionRepository());
 		sessionRepositoryFilter.setHttpSessionStrategy(new HeaderHttpSessionStrategy());
@@ -131,7 +130,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		http.addFilterBefore(sessionRepositoryFilter, ChannelProcessingFilter.class)
 				.csrf().disable();
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
-
 	}
 
 	/**

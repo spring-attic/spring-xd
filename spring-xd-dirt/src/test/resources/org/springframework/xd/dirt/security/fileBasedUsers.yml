@@ -21,4 +21,5 @@ xd:
        users:
          bob: bobspassword, ROLE_VIEW
          alice: alicepwd, ROLE_ADMIN
+         cartman: cartmanpwd, ROLE_CREATE
 ---

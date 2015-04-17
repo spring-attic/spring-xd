@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module.spark.streaming;
+package org.springframework.xd.module.core;
 
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;

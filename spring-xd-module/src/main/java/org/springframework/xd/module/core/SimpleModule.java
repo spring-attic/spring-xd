@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -264,7 +263,7 @@ public abstract class SimpleModule extends AbstractModule {
 				throw new IllegalStateException(e);
 			}
 		}
-		if (ClassUtils.isAssignable(classLoader.getClass(), Closeable.class)) {
+		if (classLoader instanceof Closeable) {
 			try {
 				((Closeable) classLoader).close();
 			}

@@ -26,11 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.ModuleDeploymentProperties;
@@ -40,9 +35,7 @@ import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
-import org.springframework.xd.module.spark.streaming.SparkStreamingDriverModule;
 import org.springframework.xd.module.support.ModuleUtils;
-import org.springframework.xd.spark.streaming.SparkStreamingSupport;
 
 /**
  * Determines the type of {@link Module} to create from the Module's metadata and creates a module instance. Also,
@@ -136,8 +129,8 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition,
 			ModuleOptions moduleOptions) {
 		String name = (String) moduleOptions.asPropertySource().getProperty(MODULE_EXECUTION_FRAMEWORK_KEY);
-		if (SparkStreamingSupport.MODULE_EXECUTION_FRAMEWORK.equals(name)) {
-			return SparkStreamingDriverModule.class;
+		if ("spark".equals(name)) {
+			return NonBindingResourceConfiguredModule.class;
 		}
 		else if (ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition) != null) {
 			return ResourceConfiguredModule.class;

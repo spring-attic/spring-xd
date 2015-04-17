@@ -498,6 +498,8 @@ project('spring-xd-dirt') {
 		// ************* Dirt-Container only (per se)
 		compile project(":spring-xd-module")
 		compile "com.jayway.jsonpath:json-path"
+		// TODO: move as a plugin-only requirement
+		compile project(':spring-xd-spark-streaming')
 
 		// ************* Container: Modules (should move on their own: XD-915)
 		compile project(":spring-xd-hadoop")
@@ -833,7 +835,6 @@ project('spring-xd-module') {
 		compile "org.springframework.boot:spring-boot-loader"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile project(':spring-xd-module-spi')
-		compile project(':spring-xd-spark-streaming')
 	}
 }
 

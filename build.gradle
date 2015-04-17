@@ -1275,7 +1275,25 @@ project('spring-xd-distributed-test') {
 				"org.slf4j:jcl-over-slf4j",
 				"org.slf4j:slf4j-log4j12"
 	}
+}
 
+//Spring XD Performance Benchmarks
+project('spring-xd-benchmark') {
+	description = 'Spring XD benchmark tests'
+	test {
+		onlyIf {
+			Boolean.getBoolean('run_benchmark_tests')
+		}
+	}
+	dependencies {
+		compile project(":spring-xd-test-fixtures")
+		compile project(":spring-xd-test")
+		compile project(":spring-xd-dirt")
+		testCompile "junit:junit"
+		runtime "log4j:log4j",
+				"org.slf4j:jcl-over-slf4j",
+				"org.slf4j:slf4j-log4j12"
+	}
 }
 
 apply plugin: 'sonar-runner'

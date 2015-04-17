@@ -80,6 +80,7 @@ import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+import org.springframework.xd.dirt.integration.bus.MessageValues;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
@@ -125,6 +126,7 @@ import scala.collection.Seq;
  * @author Eric Bottard
  * @author Marius Bogoevici
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  */
 public class KafkaMessageBus extends MessageBusSupport {
 
@@ -873,7 +875,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 			catch (Exception e) {
 				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);
 			}
-			return deserializePayloadIfNecessary(theRequestMessage);
+			return deserializePayloadIfNecessary(theRequestMessage).toMessage(getMessageBuilderFactory());
 		}
 
 		@Override
@@ -919,8 +921,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			Map<String, Object> additionalHeaders = new HashMap<String, Object>();
-
 			int partition;
 			if (partitioningMetadata.isPartitionedModule()) {
 				// this is the logical partition in Spring XD - we need to fan out the messages further
@@ -933,18 +933,18 @@ public class KafkaMessageBus extends MessageBusSupport {
 				// The value will be modulo-ed by numPartitions by Kafka itself
 				partition = roundRobin();
 			}
-			additionalHeaders.put(PARTITION_HEADER, partition);
-			additionalHeaders.put("messageKey", partition);
-			additionalHeaders.put("topic", topicName);
 
+			MessageValues transformed = serializePayloadIfNecessary(message,
+					MimeTypeUtils.APPLICATION_OCTET_STREAM);
+
+			transformed.put(PARTITION_HEADER, partition);
+			transformed.put("messageKey", partition);
+			transformed.put("topic", topicName);
+			transformed.put("topic", topicName);
 
 			@SuppressWarnings("unchecked")
-			Message<byte[]> transformed = (Message<byte[]>) serializePayloadIfNecessary(message,
-					MimeTypeUtils.APPLICATION_OCTET_STREAM);
-			transformed = getMessageBuilderFactory().fromMessage(transformed)
-					.copyHeaders(additionalHeaders)
-					.build();
-			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
+			Message<byte[]> transformedMessage = (Message<byte[]>)transformed.toMessage(getMessageBuilderFactory());
+			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformedMessage,
 					KafkaMessageBus.this.headersToMap);
 			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
 			delegate.handleMessage(messageToSend);

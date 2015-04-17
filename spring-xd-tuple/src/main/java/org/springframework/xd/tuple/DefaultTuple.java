@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ import java.util.UUID;
 
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.format.support.FormattingConversionService;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -43,6 +43,7 @@ import org.springframework.util.IdGenerator;
  * 
  * @author Mark Pollack
  * @author David Turanski
+ * @author Michael Minella
  * 
  */
 public class DefaultTuple implements Tuple {
@@ -58,7 +59,7 @@ public class DefaultTuple implements Tuple {
 
 	private List<Object> values;
 
-	private transient FormattingConversionService formattingConversionService;
+	private transient ConfigurableConversionService configurableConversionService;
 
 	private transient Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
 
@@ -72,21 +73,21 @@ public class DefaultTuple implements Tuple {
 
 	// TODO consider making final and package protect ctor so as to always use TupleBuilder
 
-	public DefaultTuple(List<String> names, List<Object> values, FormattingConversionService formattingConversionService) {
+	public DefaultTuple(List<String> names, List<Object> values, ConfigurableConversionService configurableConversionService) {
 		Assert.notNull(names);
 		Assert.notNull(values);
-		Assert.notNull(formattingConversionService);
+		Assert.notNull(configurableConversionService);
 		if (values.size() != names.size()) {
 			throw new IllegalArgumentException("Field names must be same length as values: names=" + names
 					+ ", values=" + values);
 		}
 		// TODO check for no duplicate names.
 		// TODO check for no null values.
-		this.names = new ArrayList<String>(names);
-		this.values = new ArrayList<Object>(values); // shallow copy
-		this.formattingConversionService = formattingConversionService;
+		this.names = new ArrayList<>(names);
+		this.values = new ArrayList<>(values); // shallow copy
+		this.configurableConversionService = configurableConversionService;
 		this.id = getIdGenerator().generateId();
-		this.timestamp = Long.valueOf(System.currentTimeMillis());
+		this.timestamp = System.currentTimeMillis();
 	}
 
 	/*
@@ -181,7 +182,7 @@ public class DefaultTuple implements Tuple {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public List<Class> getFieldTypes() {
-		ArrayList<Class> types = new ArrayList<Class>(values.size());
+		ArrayList<Class> types = new ArrayList<>(values.size());
 		for (Object val : values) {
 			types.add(val.getClass());
 		}
@@ -332,7 +333,7 @@ public class DefaultTuple implements Tuple {
 	public boolean getBoolean(int index, String trueValue) {
 		Assert.notNull(trueValue, "'trueValue' cannot be null.");
 		String value = readAndTrim(index);
-		return trueValue.equals(value) ? true : false;
+		return trueValue.equals(value);
 
 	}
 
@@ -605,8 +606,8 @@ public class DefaultTuple implements Tuple {
 			return toTuple(resultMap);
 		}
 		else {
-			return new DefaultTuple(new ArrayList<String>(0), new ArrayList<Object>(0),
-					this.formattingConversionService);
+			return new DefaultTuple(new ArrayList<String>(0), new ArrayList<>(0),
+					this.configurableConversionService);
 		}
 	}
 
@@ -614,7 +615,7 @@ public class DefaultTuple implements Tuple {
 	 * @return names and values as a {@code Map<String, Object>}
 	 */
 	Map<String, Object> toMap() {
-		Map<String, Object> map = new LinkedHashMap<String, Object>(values.size());
+		Map<String, Object> map = new LinkedHashMap<>(values.size());
 		for (int i = 0; i < values.size(); i++) {
 			map.put(names.get(i), values.get(i));
 		}
@@ -623,15 +624,15 @@ public class DefaultTuple implements Tuple {
 
 	Tuple toTuple(Map<String, Object> resultMap) {
 
-		List<String> newNames = new ArrayList<String>();
-		List<Object> newValues = new ArrayList<Object>();
+		List<String> newNames = new ArrayList<>();
+		List<Object> newValues = new ArrayList<>();
 		for (String name : resultMap.keySet()) {
 			newNames.add(name);
 		}
 		for (Object value : resultMap.values()) {
 			newValues.add(value);
 		}
-		return new DefaultTuple(newNames, newValues, this.formattingConversionService);
+		return new DefaultTuple(newNames, newValues, this.configurableConversionService);
 
 	}
 
@@ -639,7 +640,7 @@ public class DefaultTuple implements Tuple {
 	<T> T convert(Object value, Class<T> targetType) {
 		// TODO wrap ConversionFailedException in IllegalArgumentException... may need to pass in index/field name for
 		// good error reporting.
-		return (T) formattingConversionService.convert(value, TypeDescriptor.forObject(value),
+		return (T) configurableConversionService.convert(value, TypeDescriptor.forObject(value),
 				TypeDescriptor.valueOf(targetType));
 	}
 
@@ -654,7 +655,7 @@ public class DefaultTuple implements Tuple {
 
 	/**
 	 * 
-	 * @param tupleToStringConverter
+	 * @param tupleToStringConverter used to convert a {@link Tuple} to a String
 	 */
 	protected void setTupleToStringConverter(Converter<Tuple, String> tupleToStringConverter) {
 		Assert.notNull(tupleToStringConverter, "tupleToStringConverter cannot be null");

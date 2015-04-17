@@ -148,16 +148,20 @@ public class DefaultTupleTestForBatch {
 
 	@Test
 	public void testReadBigDecimalWithFormat() throws Exception {
-		Tuple numberFormatTuple = TupleBuilder.tuple().setNumberFormatFromLocale(Locale.US).ofNamesAndValues(
-				tuple.getFieldNames(), tuple.getValues());
+		Tuple numberFormatTuple = TupleBuilder.tuple()
+				.setFormats(Locale.US, null)
+				.setConfigurableConversionService(new DefaultTupleConversionService())
+				.ofNamesAndValues(tuple.getFieldNames(), tuple.getValues());
 		BigDecimal bd = new BigDecimal("424.3");
 		assertEquals(bd, numberFormatTuple.getBigDecimal(8));
 	}
 
 	@Test
 	public void testReadBigDecimalWithEuroFormat() throws Exception {
-		Tuple numberFormatTuple = TupleBuilder.tuple().setNumberFormatFromLocale(Locale.GERMANY).ofNamesAndValues(
-				tuple.getFieldNames(), tuple.getValues());
+		Tuple numberFormatTuple = TupleBuilder.tuple()
+				.setFormats(Locale.GERMANY, null)
+				.setConfigurableConversionService(new DefaultTupleConversionService())
+				.ofNamesAndValues(tuple.getFieldNames(), tuple.getValues());
 		BigDecimal bd = new BigDecimal("1.3245");
 		assertEquals(bd, numberFormatTuple.getBigDecimal(9));
 	}
@@ -236,7 +240,10 @@ public class DefaultTupleTestForBatch {
 
 	@Test
 	public void testReadIntWithSeparatorAndFormat() throws Exception {
-		Tuple t = TupleBuilder.tuple().setNumberFormatFromLocale(Locale.GERMAN).of("foo", "354.224");
+		Tuple t = TupleBuilder.tuple()
+				.setFormats(Locale.GERMAN, null)
+				.setConfigurableConversionService(new DefaultTupleConversionService())
+				.of("foo", "354.224");
 		assertThat(354224, equalTo(t.getInt(0)));
 	}
 
@@ -348,7 +355,10 @@ public class DefaultTupleTestForBatch {
 	@Test
 	public void testReadDateWithFormat() throws Exception {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-		Tuple t = TupleBuilder.tuple().setDateFormat(dateFormat).of("foo", "13/01/1999");
+		Tuple t = TupleBuilder.tuple()
+				.setFormats(null, dateFormat)
+				.setConfigurableConversionService(new DefaultTupleConversionService())
+				.of("foo", "13/01/1999");
 		assertEquals(dateFormat.parse("13/01/1999"), t.getDate(0));
 	}
 

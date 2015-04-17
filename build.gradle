@@ -113,7 +113,6 @@ ext {
 	ftpServerVersion = '1.0.6'
 	apacheSshdVersion = '0.10.1'
 	greenmailVersion = '1.3.1b'
-	hamcrestDateVersion = '0.9.3'
 	httpClientVersion = '4.2.5'
 	jcloudsVersion = '1.7.0'
 	oracleToolsVersion = '1.2.2'
@@ -1102,7 +1101,6 @@ project('spring-xd-shell') {
 		runtime "log4j:log4j"
 		testCompile project(":spring-xd-test-fixtures")
 		testCompile project(":spring-xd-dirt")
-		testCompile "uk.co.modular-it:hamcrest-date:${hamcrestDateVersion}"
 		testCompile "org.springframework.integration:spring-integration-ftp"
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 		testCompile "org.springframework.integration:spring-integration-sftp"

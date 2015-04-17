@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,25 +25,32 @@ import java.util.List;
 import java.util.Locale;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.format.support.FormattingConversionService;
+import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.util.Assert;
 
 /**
  * Builder class to create Tuple instances.
  * 
  * Default Locale is US for NumberFormat and default DatePattern is "yyyy-MM-dd"
+ *
+ * <em>Note:</em> Using a custom conversion service that is instance based (not configured
+ * as a singleton) will have <em>significant</em> performance impacts.
  * 
  * @author Mark Pollack
  * @author David Turanski
+ * @author Michael Minella
+ * @author Gunnar Hillert
  * 
  */
 public class TupleBuilder {
 
-	private List<String> names = new ArrayList<String>();
+	private List<String> names = new ArrayList<>();
 
-	private List<Object> values = new ArrayList<Object>();
+	private List<Object> values = new ArrayList<>();
 
-	private FormattingConversionService formattingConversionService = new DefaultTupleConversionService();
+	private static final ConfigurableConversionService defaultConversionService;
+
+	private ConfigurableConversionService customConversionService = null;
 
 	private final static String DEFAULT_DATE_PATTERN = "yyyy-MM-dd";
 
@@ -58,13 +65,17 @@ public class TupleBuilder {
 		dateFormat.setLenient(false);
 	}
 
-	public static TupleBuilder tuple() {
-		TupleBuilder tb = new TupleBuilder();
-		tb.setNumberFormatFromLocale(DEFAULT_LOCALE);
+	static {
+		defaultConversionService = new DefaultTupleConversionService();
+		defaultConversionService.addConverterFactory(new LocaleAwareStringToNumberConverterFactory(NumberFormat
+				.getInstance(DEFAULT_LOCALE)));
 		DateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
 		dateFormat.setLenient(false);
-		tb.setDateFormat(dateFormat);
-		return tb;
+		defaultConversionService.addConverter(new StringToDateConverter(dateFormat));
+	}
+
+	public static TupleBuilder tuple() {
+		return new TupleBuilder();
 	}
 
 	public Tuple of(String k1, Object v1) {
@@ -111,23 +122,14 @@ public class TupleBuilder {
 		return stringToTupleConverter.convert(source);
 	}
 
-	public TupleBuilder setFormattingConversionService(FormattingConversionService formattingConversionService) {
+	public TupleBuilder setConfigurableConversionService(ConfigurableConversionService formattingConversionService) {
 		Assert.notNull(formattingConversionService);
-		this.formattingConversionService = formattingConversionService;
+		this.customConversionService = formattingConversionService;
 		return this;
 	}
 
-	public TupleBuilder setNumberFormatFromLocale(Locale locale) {
-		Assert.notNull(locale);
-		formattingConversionService.addConverterFactory(new LocaleAwareStringToNumberConverterFactory(NumberFormat
-				.getInstance(locale)));
-		return this;
-	}
-
-	public TupleBuilder setDateFormat(DateFormat dateFormat) {
-		Assert.notNull(dateFormat);
-		formattingConversionService.addConverter(new StringToDateConverter(dateFormat));
-		return this;
+	public ConversionServiceBuilder setFormats(Locale locale, DateFormat dateFormat) {
+		return new ConversionServiceBuilder(this, locale, dateFormat);
 	}
 
 	void addEntry(String k1, Object v1) {
@@ -136,22 +138,67 @@ public class TupleBuilder {
 	}
 
 	static List<Object> valuesOf(Object v1) {
-		ArrayList<Object> values = new ArrayList<Object>();
+		ArrayList<Object> values = new ArrayList<>();
 		values.add(v1);
 		return Collections.unmodifiableList(values);
 	}
 
 	static List<String> namesOf(String k1) {
-		List<String> fields = new ArrayList<String>(1);
+		List<String> fields = new ArrayList<>(1);
 		fields.add(k1);
 		return Collections.unmodifiableList(fields);
 
 	}
 
 	protected Tuple newTuple(List<String> names, List<Object> values) {
-		DefaultTuple tuple = new DefaultTuple(names, values, formattingConversionService);
+		DefaultTuple tuple;
+
+		if(customConversionService != null) {
+			tuple = new DefaultTuple(names, values, customConversionService);
+		}
+		else {
+			tuple = new DefaultTuple(names, values, defaultConversionService);
+		}
+
 		tuple.setTupleToStringConverter(tupleToStringConverter);
 		return tuple;
 	}
 
+	/**
+	 * Provides the ability to inject a {@link ConfigurableConversionService} as a way to
+	 * customize conversion behavior in the built {@link Tuple}.
+	 *
+	 * @author Michael Minella
+	 */
+	public static class ConversionServiceBuilder {
+
+		private TupleBuilder builder;
+
+		private Locale locale;
+
+		private DateFormat dateFormat;
+
+		ConversionServiceBuilder(TupleBuilder builder, Locale locale, DateFormat dateFormat) {
+			this.builder = builder;
+			this.locale = locale;
+			this.dateFormat = dateFormat;
+		}
+
+		public TupleBuilder setConfigurableConversionService(ConfigurableConversionService formattingConversionService) {
+			Assert.notNull(formattingConversionService);
+
+			if(locale != null) {
+				formattingConversionService.addConverterFactory(new LocaleAwareStringToNumberConverterFactory(NumberFormat
+						.getInstance(locale)));
+			}
+
+			if(dateFormat != null) {
+				formattingConversionService.addConverter(new StringToDateConverter(dateFormat));
+			}
+
+			builder.setConfigurableConversionService(formattingConversionService);
+
+			return builder;
+		}
+	}
 }

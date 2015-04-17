@@ -259,7 +259,9 @@ Custom modules are located separately from out-of-the-box modules. The location 
 [NOTE]
 ====
 An alternative way for specifying the location of custom modules via servers.yml is using the environment variable `XD_CUSTOMMODULE_HOME` that must point to the custom modules location.
-This can be used in the following way: `XD_CUSTOMMODULE_HOME=file\:/path/to/custom-modules bin/xd-singlenode`
+
+In cases where you want to start e.g. a single-node runtime with a custom module location you can also define the environment variable right before the executable like this: +
+`XD_CUSTOMMODULE_HOME=file\:/path/to/custom-modules bin/xd-singlenode`
 ====
 
 

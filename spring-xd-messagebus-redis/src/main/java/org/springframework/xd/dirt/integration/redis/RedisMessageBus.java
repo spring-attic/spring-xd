@@ -58,7 +58,6 @@ import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
 /**
  * A {@link MessageBus} implementation backed by Redis.
- *
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
@@ -137,7 +136,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 	private final RedisConnectionFactory connectionFactory;
 
-	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new 
+	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new
 			EmbeddedHeadersMessageConverter();
 
 	private final RedisQueueOutboundChannelAdapter errorAdapter;
@@ -245,7 +244,6 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	/**
 	 * If retry is enabled, wrap the bridge channel in another that will invoke send() within the scope of a retry
 	 * template.
-	 *
 	 * @param name The name.
 	 * @param bridgeToModuleChannel The channel.
 	 * @param properties The properties.
@@ -482,7 +480,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	 */
 	private class CompositeRedisQueueMessageDrivenEndpoint extends MessageProducerSupport {
 
-		private final List<RedisQueueMessageDrivenEndpoint> consumers = new 
+		private final List<RedisQueueMessageDrivenEndpoint> consumers = new
 				ArrayList<RedisQueueMessageDrivenEndpoint>();
 
 		public CompositeRedisQueueMessageDrivenEndpoint(String queueName, int concurrency) {

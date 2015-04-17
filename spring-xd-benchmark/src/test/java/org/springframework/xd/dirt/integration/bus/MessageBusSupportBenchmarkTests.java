@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -34,19 +36,12 @@ import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
 /**
- * Performance benchmark for {@link MessageBusSupport}
- *
+ * Performance benchmark tests for {@link MessageBusSupport}
  * @author David Turanski
  */
-public class MessageBusSupportBenchmarks {
+public class MessageBusSupportBenchmarkTests {
 
-	private MessageBusSupport messageBusSupport;
-
-	public static void main(String... args) {
-		MessageBusSupportBenchmarks benchmarks = new MessageBusSupportBenchmarks();
-		benchmarks.run();
-
-	}
+	private static MessageBusSupport messageBusSupport;
 
 	/*
 Baseline (before MessageValues):
@@ -67,9 +62,19 @@ ms     %     Task name
 -----------------------------------------
 99382  100%  simple tuple codec
 */
-	private void run() {
-		initMessageBus();
 
+	@BeforeClass
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public static void initMessageBus() {
+		TestMessageBus messageBus = new TestMessageBus();
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
+		codecs.put(Tuple.class, new TupleCodec());
+		messageBus.setCodec(new CompositeCodec(codecs, new PojoCodec()));
+		messageBusSupport = messageBus;
+	}
+
+	@Test
+	public void run() {
 		StopWatch watch = new StopWatch("MessageBusSupport");
 		watch.start("simple tuple codec");
 		runBenchmark(TupleBuilder.tuple().of("foo", "bar", "val", 1234));
@@ -95,16 +100,8 @@ ms     %     Task name
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	private void initMessageBus() {
-		TestMessageBus messageBus = new TestMessageBus();
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
-		codecs.put(Tuple.class, new TupleCodec());
-		messageBus.setCodec(new CompositeCodec(codecs, new PojoCodec()));
-		this.messageBusSupport = messageBus;
-	}
 
-	public class TestMessageBus extends MessageBusSupport {
+	public static class TestMessageBus extends MessageBusSupport {
 
 		@Override
 		public void bindConsumer(String name, MessageChannel channel, Properties properties) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,28 +26,27 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * A mutable type for allowing {@link MessageBus} implementations to transform and enrich message content more efficiently.
- *
+ * A mutable type for allowing {@link MessageBus} implementations to transform and enrich message content more
+ * efficiently.
  * @author David Turanski
  */
 public class MessageValues implements Map<String, Object> {
-	private Map<String,Object> headers = new HashMap<>();
+	private Map<String, Object> headers = new HashMap<>();
+
 	private Object payload;
 
 	/**
 	 * Create an instance from a {@link Message}.
-	 *  
 	 * @param message the message
 	 */
 	public MessageValues(Message<?> message) {
 		this.payload = message.getPayload();
-		for (Map.Entry<String,Object> header: message.getHeaders().entrySet()){
-			this.headers.put(header.getKey(),header.getValue());
+		for (Map.Entry<String, Object> header : message.getHeaders().entrySet()) {
+			this.headers.put(header.getKey(), header.getValue());
 		}
 	}
 
 	/**
-	 *  
 	 * @return the payload
 	 */
 	public Object getPayload() {
@@ -56,7 +55,6 @@ public class MessageValues implements Map<String, Object> {
 
 	/**
 	 * Convert to a {@link Message} using a {@link org.springframework.integration.support.MessageBuilderFactory}.
-	 *  
 	 * @param messageBuilderFactory the MessageBuilderFactory
 	 * @return the Message
 	 */
@@ -67,7 +65,6 @@ public class MessageValues implements Map<String, Object> {
 
 	/**
 	 * Convert to a {@link Message} using a the default {@link org.springframework.integration.support.MessageBuilder}.
-	 *
 	 * @return the Message
 	 */
 	public Message<?> toMessage() {

@@ -97,14 +97,12 @@ import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
 /**
  * A {@link MessageBus} implementation backed by RabbitMQ.
- *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Jennifer Hickey
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  * @author David Turanski
- *
  */
 public class RabbitMessageBus extends MessageBusSupport implements DisposableBean {
 
@@ -297,9 +295,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	/**
-	 * Set a {@link MessagePostProcessor} to decompress messages. Defaults to a {@link
-	 * DelegatingDecompressingPostProcessor} with its default delegates.
-	 *
+	 * Set a {@link MessagePostProcessor} to decompress messages. Defaults to a 
+	 * {@link DelegatingDecompressingPostProcessor} with its default delegates.
 	 * @param decompressingPostProcessor the post processor.
 	 */
 	public void setDecompressingPostProcessor(MessagePostProcessor decompressingPostProcessor) {
@@ -307,9 +304,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	/**
-	 * Set a {@link org.springframework.amqp.core.MessagePostProcessor} to compress messages. Defaults to a {@link
-	 * org.springframework.amqp.support.postprocessor.GZipPostProcessor}.
-	 *
+	 * Set a {@link org.springframework.amqp.core.MessagePostProcessor} to compress messages. Defaults to a 
+	 * {@link org.springframework.amqp.support.postprocessor.GZipPostProcessor}.
 	 * @param compressingPostProcessor the post processor.
 	 */
 	public void setCompressingPostProcessor(MessagePostProcessor compressingPostProcessor) {
@@ -335,10 +331,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	/**
-	 * Set the bus's default max consumers; can be overridden by consumer.maxConcurrency. Values less than 
-	 * * 'concurrency'
+	 * Set the bus's default max consumers; can be overridden by consumer.maxConcurrency. Values less than 'concurrency'
 	 * will be coerced to be equal to concurrency.
-	 *
 	 * @param defaultMaxConcurrency The default max concurrency.
 	 */
 	public void setDefaultMaxConcurrency(int defaultMaxConcurrency) {
@@ -650,7 +644,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.doRegisterConsumer(name, requests, requestQueue, accessor, false);
 
 		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
-		replyQueue.setExpressionRoutingKey(expressionParser.parseExpression("headers['" + AmqpHeaders.REPLY_TO + 
+		replyQueue.setExpressionRoutingKey(expressionParser.parseExpression("headers['" + AmqpHeaders.REPLY_TO +
 				"']"));
 		configureOutboundHandler(replyQueue, accessor);
 		doRegisterProducer(name, replies, replyQueue, accessor);
@@ -658,7 +652,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	/**
 	 * Try passive declaration first, in case the user has pre-configured the queue with incompatible arguments.
-	 *
 	 * @param queue The queue.
 	 */
 	private void declareQueueIfNotPresent(Queue queue) {
@@ -669,7 +662,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	/**
 	 * Try passive declaration first, in case the user has pre-configured the exchange with incompatible arguments.
-	 *
 	 * @param exchange
 	 */
 	private void declareExchangeIfNotPresent(final Exchange exchange) {
@@ -692,7 +684,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	/**
 	 * If so requested, declare the DLX/DLQ and bind it. The DLQ is bound to the DLX with a routing key of the original
 	 * queue name because we use default exchange routing by queue name for the original message.
-	 *
 	 * @param name The name.
 	 * @param properties The properties accessor.
 	 */

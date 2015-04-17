@@ -167,15 +167,15 @@ public abstract class MessageBusSupport
 	/**
 	 * Used in the canonical case, when the binding does not involve an alias name.
 	 */
-	protected final SharedChannelProvider<DirectChannel> directChannelProvider = new 
+	protected final SharedChannelProvider<DirectChannel> directChannelProvider = new
 			SharedChannelProvider<DirectChannel>(
-			DirectChannel.class) {
+					DirectChannel.class) {
 
-		@Override
-		protected DirectChannel createSharedChannel(String name) {
-			return new DirectChannel();
-		}
-	};
+				@Override
+				protected DirectChannel createSharedChannel(String name) {
+					return new DirectChannel();
+				}
+			};
 
 	protected volatile long defaultBackOffInitialInterval = DEFAULT_BACKOFF_INITIAL_INTERVAL;
 
@@ -207,7 +207,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * For bus implementations that support a prefix, apply the prefix to the name.
-	 *
 	 * @param prefix the prefix.
 	 * @param name the name.
 	 */
@@ -217,7 +216,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * For bus implementations that include a pub/sub component in identifiers, construct the name.
-	 *
 	 * @param name the name.
 	 */
 	public static String applyPubSub(String name) {
@@ -226,7 +224,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Build the requests entity name.
-	 *
 	 * @param name the name.
 	 * @return the request entity name.
 	 */
@@ -237,7 +234,6 @@ public abstract class MessageBusSupport
 	/**
 	 * For bus implementations that support dead lettering, construct the name of the dead letter entity for the
 	 * underlying pipe name.
-	 *
 	 * @param name the name.
 	 */
 	public static String constructDLQName(String name) {
@@ -273,7 +269,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Set the partition strategy to be used by this bus if no partitionExpression is provided for a module.
-	 *
 	 * @param partitionSelector The selector.
 	 */
 	public void setPartitionSelector(PartitionSelectorStrategy partitionSelector) {
@@ -283,7 +278,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Set the default retry back off initial interval for this bus; can be overridden with consumer
 	 * 'backOffInitialInterval' property.
-	 *
 	 * @param defaultBackOffInitialInterval
 	 */
 	public void setDefaultBackOffInitialInterval(long defaultBackOffInitialInterval) {
@@ -293,7 +287,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Set the default retry back off multiplier for this bus; can be overridden with consumer 'backOffMultiplier'
 	 * property.
-	 *
 	 * @param defaultBackOffMultiplier
 	 */
 	public void setDefaultBackOffMultiplier(double defaultBackOffMultiplier) {
@@ -303,7 +296,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Set the default retry back off max interval for this bus; can be overridden with consumer 'backOffMaxInterval'
 	 * property.
-	 *
 	 * @param defaultBackOffMaxInterval
 	 */
 	public void setDefaultBackOffMaxInterval(long defaultBackOffMaxInterval) {
@@ -312,7 +304,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Set the default concurrency for this bus; can be overridden with consumer 'concurrency' property.
-	 *
 	 * @param defaultConcurrency
 	 */
 	public void setDefaultConcurrency(int defaultConcurrency) {
@@ -322,7 +313,6 @@ public abstract class MessageBusSupport
 	/**
 	 * The default maximum delivery attempts for this bus. Can be overridden by consumer property 'maxAttempts' if
 	 * supported. Values less than 2 disable retry and one delivery attempt is made.
-	 *
 	 * @param defaultMaxAttempts The default maximum attempts.
 	 */
 	public void setDefaultMaxAttempts(int defaultMaxAttempts) {
@@ -332,7 +322,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Set whether this bus batches message sends by default. Only applies to bus implementations that support
 	 * batching.
-	 *
 	 * @param defaultBatchingEnabled the defaultBatchingEnabled to set.
 	 */
 	public void setDefaultBatchingEnabled(boolean defaultBatchingEnabled) {
@@ -341,7 +330,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Set the default batch size; only applies when batching is enabled and the bus supports batching.
-	 *
 	 * @param defaultBatchSize the defaultBatchSize to set.
 	 */
 	public void setDefaultBatchSize(int defaultBatchSize) {
@@ -351,7 +339,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Set the default batch buffer limit - used to send a batch early if its size exceeds this. Only applies if
 	 * batching is enabled and the bus supports this property.
-	 *
 	 * @param defaultBatchBufferLimit the defaultBatchBufferLimit to set.
 	 */
 	public void setDefaultBatchBufferLimit(int defaultBatchBufferLimit) {
@@ -361,7 +348,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Set the default batch timeout - used to send a batch if no messages arrive during this time. Only applies if
 	 * batching is enabled and the bus supports this property.
-	 *
 	 * @param defaultBatchTimeout the defaultBatchTimeout to set.
 	 */
 	public void setDefaultBatchTimeout(long defaultBatchTimeout) {
@@ -370,7 +356,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Set whether compression will be used by producers, by default.
-	 *
 	 * @param defaultCompress 'true' to use compression.
 	 */
 	public void setDefaultCompress(boolean defaultCompress) {
@@ -388,7 +373,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Dynamically create a producer for the named channel.
-	 *
 	 * @param name The name.
 	 * @param properties The properties.
 	 * @return The channel.
@@ -401,7 +385,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Create a producer for the named channel and bind it to the bus. Synchronized to avoid creating multiple
 	 * instances.
-	 *
 	 * @param name The name.
 	 * @param channelName The name of the channel to be created, and registered as bean.
 	 * @param properties The properties.
@@ -428,7 +411,6 @@ public abstract class MessageBusSupport
 	 * Dynamically create a producer for the named channel. Note: even though it's pub/sub, we still use a direct
 	 * channel. It will be bridged to a pub/sub channel in the local bus and bound to an appropriate element for other
 	 * buses.
-	 *
 	 * @param name The name.
 	 * @param properties The properties.
 	 * @return The channel.
@@ -441,7 +423,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Create a producer for the named channel and bind it to the bus. Synchronized to avoid creating multiple
 	 * instances.
-	 *
 	 * @param name The name.
 	 * @param channelName The name of the channel to be created, and registered as bean.
 	 * @param properties The properties.
@@ -661,11 +642,9 @@ public abstract class MessageBusSupport
 	 * invoked to determine the key. Otherwise, the partition key expression is evaluated to obtain the key value. If a
 	 * partition selector class is provided, it will be invoked to determine the partition. Otherwise, if the partition
 	 * expression is not null, it is evaluated against the key and is expected to return an integer to which the modulo
-	 * function will be applied, using the partitionCount as the divisor.
-	 * If no partition expression is provided, the key will be passed to the bus partition strategy along with the
-	 * partitionCount. The default partition strategy uses {@code key.hashCode()}, and the result will be the mod of
-	 * that value.
-	 *
+	 * function will be applied, using the partitionCount as the divisor. If no partition expression is provided, the
+	 * key will be passed to the bus partition strategy along with the partitionCount. The default partition strategy
+	 * uses {@code key.hashCode()}, and the result will be the mod of that value.
 	 * @param message the message.
 	 * @param meta the partitioning metadata.
 	 * @return the partition.
@@ -753,7 +732,6 @@ public abstract class MessageBusSupport
 	 * Validate the provided deployment properties for the consumer against those supported by this bus implementation.
 	 * The consumer is that part of the bus that consumes messages from the underlying infrastructure and sends them to
 	 * the next module. Consumer properties are used to configure the consumer.
-	 *
 	 * @param name The name.
 	 * @param properties The properties.
 	 * @param supported The supported properties.
@@ -768,7 +746,6 @@ public abstract class MessageBusSupport
 	 * Validate the provided deployment properties for the producer against those supported by this bus implementation.
 	 * When a module sends a message to the bus, the producer uses these properties while sending it to the underlying
 	 * infrastructure.
-	 *
 	 * @param name The name.
 	 * @param properties The properties.
 	 * @param supported The supported properties.
@@ -804,7 +781,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Create and configure a retry template if the consumer 'maxAttempts' property is set.
-	 *
 	 * @param properties The properties.
 	 * @return The retry template, or null if retry is not enabled.
 	 */
@@ -835,7 +811,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Attempt to create a direct binding (avoiding the bus) if the consumer is local. Named channel producers are not
 	 * bound directly.
-	 *
 	 * @param name The name.
 	 * @param moduleOutputChannel The channel to bind.
 	 * @param properties The producer properties.
@@ -892,7 +867,6 @@ public abstract class MessageBusSupport
 	/**
 	 * Attempt to bind a producer directly (avoiding the bus) if there is already a local producer. PubSub producers
 	 * cannot be bound directly. Create the direct binding, then unbind the existing bus producer.
-	 *
 	 * @param name The name.
 	 * @param consumerChannel The channel to bind the producer to.
 	 */
@@ -996,7 +970,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Looks up or optionally creates a new channel to use.
-	 *
 	 * @author Eric Bottard
 	 */
 	protected abstract class SharedChannelProvider<T extends MessageChannel> {
@@ -1046,7 +1019,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Handles representing any java class as a {@link MimeType}.
-	 *
 	 * @author David Turanski
 	 * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName"/>
 	 */

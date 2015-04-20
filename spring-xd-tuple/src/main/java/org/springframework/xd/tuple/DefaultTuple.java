@@ -27,12 +27,12 @@ import java.util.UUID;
 
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.format.support.FormattingConversionService;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -58,9 +58,9 @@ public class DefaultTuple implements Tuple {
 
 	private List<Object> values;
 
-	private transient FormattingConversionService formattingConversionService;
+	private transient ConfigurableConversionService formattingConversionService;
 
-	private transient Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
+	private transient Converter<Tuple, String> tupleToStringConverter;
 
 	private static volatile IdGenerator idGenerator = null;
 
@@ -72,7 +72,7 @@ public class DefaultTuple implements Tuple {
 
 	// TODO consider making final and package protect ctor so as to always use TupleBuilder
 
-	public DefaultTuple(List<String> names, List<Object> values, FormattingConversionService formattingConversionService) {
+	public DefaultTuple(List<String> names, List<Object> values, ConfigurableConversionService formattingConversionService) {
 		Assert.notNull(names);
 		Assert.notNull(values);
 		Assert.notNull(formattingConversionService);

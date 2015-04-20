@@ -113,7 +113,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (definitionFromRepo != null) {
 			throwDefinitionAlreadyExistsException(definitionFromRepo);
 		}
-		Assert.notNull(definition, "Definition may not be null");
+		Assert.hasText(definition, "definition cannot be blank or null");
 		parser.parse(name, definition, definitionKind);
 	}
 

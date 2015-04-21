@@ -1280,11 +1280,20 @@ project('spring-xd-distributed-test') {
 //Spring XD Performance Benchmarks
 project('spring-xd-benchmark') {
 	description = 'Spring XD benchmark tests'
+	
 	test {
 		onlyIf {
 			Boolean.getBoolean('run_benchmark_tests')
 		}
+		//redirect output to the console.
+		testLogging {
+			events "passed", "skipped", "failed", "standardOut", "standardError"
+		}
 	}
+	
+	//force tests to always run
+	test.dependsOn cleanTest
+	
 	dependencies {
 		compile project(":spring-xd-test-fixtures")
 		compile project(":spring-xd-test")

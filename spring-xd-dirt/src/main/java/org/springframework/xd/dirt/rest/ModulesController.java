@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.hateoas.ResourceAssembler;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
@@ -77,8 +78,11 @@ public class ModulesController {
 			PagedResourcesAssembler<ModuleDefinition> assembler,
 			@RequestParam(value = "type", required = false) ModuleType type,
 			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
-		Page<ModuleDefinition> page = type == null ? moduleDefinitionService.findDefinitions(pageable) : moduleDefinitionService.findDefinitions(pageable, type);
-		return assembler.toResource(page, detailed ? detailedAssembler: simpleAssembler);
+		Page<ModuleDefinition> page = type == null ? moduleDefinitionService.findDefinitions(pageable)
+				: moduleDefinitionService.findDefinitions(pageable, type);
+		//TODO Eclipse compiler (Eclipse 4.4 and 4.5M6) issue work-sound, see XD-2972
+		ResourceAssembler ra = detailedAssembler;
+		return assembler.toResource(page, detailed ? ra : simpleAssembler);
 	}
 
 	/**
@@ -109,7 +113,7 @@ public class ModulesController {
 			@RequestParam("name") String name,
 			@RequestParam("definition") String definition,
 			@RequestParam(value = "force", defaultValue = "false") boolean force
-	) {
+			) {
 		ModuleDefinition moduleDefinition = moduleDefinitionService.compose(name, /*TODO*/null, definition, force);
 		ModuleDefinitionResource resource = simpleAssembler.toResource(moduleDefinition);
 		return resource;

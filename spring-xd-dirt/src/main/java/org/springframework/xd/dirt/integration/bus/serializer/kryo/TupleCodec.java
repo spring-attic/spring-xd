@@ -65,7 +65,7 @@ public class TupleCodec extends AbstractKryoCodec<Tuple> {
 	private void setConversionService(DefaultTuple tuple, DefaultTupleConversionService defaultTupleConversionService,
 			TupleToJsonStringConverter tupleToJsonStringConverter) {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tuple);
-		dfa.setPropertyValue("formattingConversionService", defaultTupleConversionService);
+		dfa.setPropertyValue("configurableConversionService", defaultTupleConversionService);
 		dfa.setPropertyValue("tupleToStringConverter", tupleToJsonStringConverter);
 	}
 

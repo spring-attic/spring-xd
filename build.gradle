@@ -204,6 +204,10 @@ configure(javaProjects) { subproject ->
 		}
 
 		eclipse {
+			jdt {
+				sourceCompatibility=1.7
+				targetCompatibility=1.7
+			}
 			project { natures += 'org.springframework.ide.eclipse.core.springnature' }
 		}
 

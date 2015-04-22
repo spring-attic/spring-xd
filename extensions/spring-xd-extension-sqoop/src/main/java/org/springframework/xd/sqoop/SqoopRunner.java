@@ -19,11 +19,14 @@ package org.springframework.xd.sqoop;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.security.SecurityUtil;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.sqoop.Sqoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.data.hadoop.configuration.ConfigurationFactoryBean;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -47,6 +50,12 @@ public class SqoopRunner {
 	private static final String JDBC_PASSWORD_KEY = "jdbc.password";
 	private static final String JDBC_URL_KEY = "jdbc.url";
 	private static final String SPRING_HADOOP_CONFIG_PREFIX = "spring.hadoop.config";
+	public static final String SECURITY_AUTH_METHOD = "security.authMethod";
+	public static final String SECURITY_USER_KEYTAB = "security.userKeytab";
+	public static final String SECURITY_USER_PRINCIPAL = "security.userPrincipal";
+	public static final String SECURITY_NAMENODE_PRINCIPAL = "security.namenodePrincipal";
+	public static final String SECURITY_RM_MANAGER_PRINCIPAL = "security.rmManagerPrincipal";
+	public static final String SECURITY_MAPREDUCE_JOBHISTORY_PRINCIPAL = "security.jobHistoryPrincipal";
 
 	public static void main(String[] args) {
 
@@ -103,11 +112,41 @@ public class SqoopRunner {
 	}
 
 	protected static Configuration createConfiguration(Map<String, String> configOptions) {
+
 		Configuration configuration = new Configuration();
 		setConfigurationProperty(configOptions, configuration, CommonConfigurationKeys.FS_DEFAULT_NAME_KEY);
 		setConfigurationProperty(configOptions, configuration, YarnConfiguration.RM_ADDRESS);
 		setConfigurationProperty(configOptions, configuration, YarnConfiguration.YARN_APPLICATION_CLASSPATH);
 		setConfigurationProperty(configOptions, configuration, "mapreduce.framework.name");
+		if (StringUtils.hasText(configOptions.get("mapreduce.jobhistory.address"))) {
+			setConfigurationProperty(configOptions, configuration, "mapreduce.jobhistory.address");
+		}
+		if (configOptions.containsKey(SECURITY_AUTH_METHOD) && "kerberos".equals(configOptions.get(SECURITY_AUTH_METHOD))) {
+			configuration.setBoolean("hadoop.security.authorization", true);
+			configuration.set("hadoop.security.authentication", configOptions.get(SECURITY_AUTH_METHOD));
+			configuration.set("dfs.namenode.kerberos.principal", configOptions.get(SECURITY_NAMENODE_PRINCIPAL));
+			configuration.set("yarn.resourcemanager.principal", configOptions.get(SECURITY_RM_MANAGER_PRINCIPAL));
+			if (StringUtils.hasText(configOptions.get(SECURITY_MAPREDUCE_JOBHISTORY_PRINCIPAL))) {
+				configuration.set("mapreduce.jobhistory.principal", configOptions.get(SECURITY_MAPREDUCE_JOBHISTORY_PRINCIPAL));
+			}
+			String userKeytab = configOptions.get(SECURITY_USER_KEYTAB);
+			String userPrincipal = configOptions.get(SECURITY_USER_PRINCIPAL);
+			UserGroupInformation.setConfiguration(configuration);
+			if (StringUtils.hasText(userKeytab)) {
+				configuration.set(ConfigurationFactoryBean.USERKEYTAB, userKeytab.trim());
+			}
+			if (StringUtils.hasText(userPrincipal)) {
+				configuration.set(ConfigurationFactoryBean.USERPRINCIPAL, userPrincipal.trim());
+			}
+			if (StringUtils.hasText(userKeytab) && StringUtils.hasText(userPrincipal)) {
+				try {
+					SecurityUtil.login(configuration, ConfigurationFactoryBean.USERKEYTAB, ConfigurationFactoryBean.USERPRINCIPAL);
+				} catch (Exception e) {
+					logger.warn("Cannot login using keytab " + userKeytab + " and principal " + userPrincipal, e);
+				}
+			}
+		}
+
 		for (Entry<String, String> entry : configOptions.entrySet()) {
 			String key = entry.getKey();
 			if (key.startsWith(SPRING_HADOOP_CONFIG_PREFIX + ".")) {
@@ -154,7 +193,7 @@ public class SqoopRunner {
 	protected static boolean parseSqoopArguments(String[] sqoopArguments, List<String> runtimeArguments) {
 		boolean connectProvided = false;
 		for (int i = 0; i < sqoopArguments.length; i++) {
-			if (sqoopArguments[i].startsWith("--connect")) {
+			if (sqoopArguments[i].startsWith("--connect") || sqoopArguments[i].startsWith("--options-file")) {
 				connectProvided = true;
 			}
 			if (sqoopArguments[i].contains("\"")) {

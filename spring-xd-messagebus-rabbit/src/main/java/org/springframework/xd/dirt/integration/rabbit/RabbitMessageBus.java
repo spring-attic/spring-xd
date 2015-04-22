@@ -416,7 +416,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			queue = new Queue(queueName, true, false, false, args);
 		}
 		else {
-			queue = new Queue(queueName, false, true, true);
+			queue = new Queue(queueName, false, false, true);
 		}
 		declareQueueIfNotPresent(queue);
 		org.springframework.amqp.core.Binding binding = BindingBuilder.bind(queue).to(exchange);

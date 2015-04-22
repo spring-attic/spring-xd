@@ -39,6 +39,7 @@ include 'spring-xd-integration-test'
 include 'spring-xd-integration-test:acceptance-test-sparkapp'
 include 'spring-xd-test-fixtures'
 include 'spring-xd-distributed-test'
+include 'spring-xd-benchmark'
 include 'documentation-toolchain'
 
 ['source', 'processor', 'sink', 'job'].each {kind->

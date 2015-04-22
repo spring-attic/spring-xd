@@ -21,12 +21,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -35,12 +33,25 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import kafka.admin.AdminUtils;
+import kafka.api.OffsetRequest;
+import kafka.api.TopicMetadata;
+import kafka.common.ErrorMapping;
+import kafka.javaapi.PartitionMetadata;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.DefaultPartitioner;
+import kafka.producer.KeyedMessage;
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
+import kafka.serializer.DefaultEncoder;
+import kafka.serializer.StringEncoder;
+import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
+import scala.collection.Seq;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -80,25 +91,13 @@ import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+import org.springframework.xd.dirt.integration.bus.MessageValues;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
-import kafka.admin.AdminUtils;
-import kafka.api.OffsetRequest;
-import kafka.api.TopicMetadata;
-import kafka.common.ErrorMapping;
-import kafka.javaapi.PartitionMetadata;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.DefaultPartitioner;
-import kafka.producer.KeyedMessage;
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
-import kafka.serializer.DefaultEncoder;
-import kafka.serializer.StringEncoder;
-import kafka.utils.ZkUtils;
-import scala.collection.Seq;
-
 /**
+ * A message bus that uses Kafka as the underlying middleware. The general implementation mapping between XD concepts
+ * and Kafka concepts is as follows:
  * A message bus that uses Kafka as the underlying middleware.
  * The general implementation mapping between XD concepts and Kafka concepts is as follows:
  * <table>
@@ -109,22 +108,27 @@ import scala.collection.Seq;
  * <td>foo = "http | log"</td><td>foo.0</td><td>1 partition</td><td>1 producer, 1 consumer</td>
  * </tr>
  * <tr>
- * <td>foo = "http | log", log.count=x</td><td>foo.0</td><td>x partitions</td><td>1 producer, x consumers with static group 'springXD', achieves queue semantics</td>
+ * <td>foo = "http | log", log.count=x</td><td>foo.0</td><td>x partitions</td><td>1 producer, x consumers with static
+ * group 'springXD', achieves queue semantics</td>
  * </tr>
  * <tr>
- * <td>foo = "http | log", log.count=x + XD partitioning</td><td>still 1 topic 'foo.0'</td><td>x partitions + use key computed by XD</td><td>1 producer, x consumers with static group 'springXD', achieves queue semantics</td>
+ * <td>foo = "http | log", log.count=x + XD partitioning</td><td>still 1 topic 'foo.0'</td><td>x partitions + use key
+ * computed by XD</td><td>1 producer, x consumers with static group 'springXD', achieves queue semantics</td>
  * </tr>
  * <tr>
- * <td>foo = "http | log", log.count=x, concurrency=y</td><td>foo.0</td><td>x*y partitions</td><td>1 producer, x XD consumers, each with y threads</td>
+ * <td>foo = "http | log", log.count=x, concurrency=y</td><td>foo.0</td><td>x*y partitions</td><td>1 producer, x XD
+ * consumers, each with y threads</td>
  * </tr>
  * <tr>
- * <td>foo = "http | log", log.count=0, x actual log containers</td><td>foo.0</td><td>10(configurable) partitions</td><td>1 producer, x XD consumers. Can't know the number of partitions beforehand, so decide a number that better be greater than number of containers</td>
+ * <td>foo = "http | log", log.count=0, x actual log containers</td><td>foo.0</td><td>10(configurable)
+ * partitions</td><td>1 producer, x XD consumers. Can't know the number of partitions beforehand, so decide a number
+ * that better be greater than number of containers</td>
  * </tr>
  * </table>
- *
  * @author Eric Bottard
  * @author Marius Bogoevici
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  */
 public class KafkaMessageBus extends MessageBusSupport {
 
@@ -200,8 +204,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 			}));
 
 	/**
-	 * The consumer group to use when achieving point to point semantics (that
-	 * consumer group name is static and hence shared by all containers).
+	 * The consumer group to use when achieving point to point semantics (that consumer group name is static and hence
+	 * shared by all containers).
 	 */
 	private static final String POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP = "springXD";
 
@@ -244,7 +248,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 			.addAll(PRODUCER_COMPRESSION_PROPERTIES)
 			.build();
 
-	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
+	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new
+			EmbeddedHeadersMessageConverter();
 
 	private final ZookeeperConnect zookeeperConnect;
 
@@ -265,7 +270,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private int defaultQueueSize = 1000;
 
-	private int defaultFetchSize = 1024*1024;
+	private int defaultFetchSize = 1024 * 1024;
 
 	private int defaultMinPartitionCount = 1;
 
@@ -374,7 +379,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	/**
 	 * Retry configuration for operations such as validating topic creation
-	 *
 	 * @param retryOperations the retry configuration
 	 */
 	public void setRetryOperations(RetryOperations retryOperations) {
@@ -407,9 +411,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	}
 
 	/**
-	 * Allowed chars are ASCII alphanumerics, '.', '_' and '-'.
-	 * '_' is used as escaped char in the form '_xx' where xx is the hexadecimal
-	 * value of the byte(s) needed to represent an illegal char in utf8.
+	 * Allowed chars are ASCII alphanumerics, '.', '_' and '-'. '_' is used as escaped char in the form '_xx' where xx
+	 * is the hexadecimal value of the byte(s) needed to represent an illegal char in utf8.
 	 */
 	/*default*/
 	public static String escapeTopicName(String original) {
@@ -445,8 +448,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	}
 
 	/**
-	 * Set the default auto commit enabled property; This is used to
-	 * commit the offset either automatically or manually.
+	 * Set the default auto commit enabled property; This is used to commit the offset either automatically or
+	 * manually.
 	 * @param defaultAutoCommitEnabled
 	 */
 	public void setDefaultAutoCommitEnabled(boolean defaultAutoCommitEnabled) {
@@ -515,11 +518,13 @@ public class KafkaMessageBus extends MessageBusSupport {
 			producerMetadata.setPartitioner(new DefaultPartitioner(null));
 
 			Properties additionalProps = new Properties();
-			additionalProps.put("request.required.acks", String.valueOf(accessor.getRequiredAcks(this.defaultRequiredAcks)));
+			additionalProps.put("request.required.acks", String.valueOf(accessor.getRequiredAcks(this
+					.defaultRequiredAcks)));
 			if (accessor.isBatchingEnabled(this.defaultBatchingEnabled)) {
 				producerMetadata.setAsync(true);
 				producerMetadata.setBatchNumMessages(String.valueOf(accessor.getBatchSize(this.defaultBatchSize)));
-				additionalProps.put("queue.buffering.max.ms", String.valueOf(accessor.getBatchTimeout(this.defaultBatchTimeout)));
+				additionalProps.put("queue.buffering.max.ms", String.valueOf(accessor.getBatchTimeout(this
+						.defaultBatchTimeout)));
 			}
 
 			ProducerFactoryBean<String, byte[]> producerFB =
@@ -536,15 +541,19 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 					@Override
 					protected void handleMessageInternal(Message<?> message) throws Exception {
-						// strip off the message key used internally by the bus and use a partitioning key for partitioning
+						// strip off the message key used internally by the bus and use a partitioning key for 
+						// partitioning
 						producerConfiguration.getProducer()
-								.send(new KeyedMessage<String, byte[]>(topicName, null, message.getHeaders().get("messageKey", Integer.class), (byte[]) message.getPayload()));
+								.send(new KeyedMessage<String, byte[]>(topicName, null,
+										message.getHeaders().get("messageKey", Integer.class),
+										(byte[]) message.getPayload()));
 					}
 				};
 
 				MessageHandler handler = new SendingHandler(messageHandler, topicName, accessor,
 						targetTopicMetadata.partitionsMetadata().size());
-				EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
+				EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel,
+						handler);
 				consumer.setBeanFactory(this.getBeanFactory());
 				consumer.setBeanName("outbound." + name);
 				consumer.afterPropertiesSet();
@@ -590,9 +599,11 @@ public class KafkaMessageBus extends MessageBusSupport {
 			// createOrUpdateTopicPartitionAssignmentPathInZK(..., update=true)
 			Properties topicConfig = new Properties();
 			Seq<Object> brokerList = ZkUtils.getSortedBrokerList(zkClient);
-			scala.collection.Map<Object, Seq<Object>> replicaAssignment = AdminUtils.assignReplicasToBrokers(brokerList,
-					numPartitions, replicationFactor, -1, -1);
-			AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment, topicConfig,
+			scala.collection.Map<Object, Seq<Object>> replicaAssignment = AdminUtils.assignReplicasToBrokers
+					(brokerList,
+							numPartitions, replicationFactor, -1, -1);
+			AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment,
+					topicConfig,
 					true);
 
 
@@ -601,13 +612,16 @@ public class KafkaMessageBus extends MessageBusSupport {
 					@Override
 					public TopicMetadata doWithRetry(RetryContext context) throws Exception {
 						TopicMetadata topicMetadata = AdminUtils.fetchTopicMetadataFromZk(topicName, zkClient);
-						if (topicMetadata.errorCode() != ErrorMapping.NoError() || !topicName.equals(topicMetadata.topic())) {
+						if (topicMetadata.errorCode() != ErrorMapping.NoError() || !topicName.equals(topicMetadata
+								.topic())) {
 							// downcast to Exception because that's what the error throws
 							throw (Exception) ErrorMapping.exceptionFor(topicMetadata.errorCode());
 						}
-						List<PartitionMetadata> partitionMetadatas = new kafka.javaapi.TopicMetadata(topicMetadata).partitionsMetadata();
+						List<PartitionMetadata> partitionMetadatas = new kafka.javaapi.TopicMetadata(topicMetadata)
+								.partitionsMetadata();
 						if (partitionMetadatas.size() != numPartitions) {
-							throw new IllegalStateException("The number of expected partitions was: " + numPartitions + ", but " +
+							throw new IllegalStateException("The number of expected partitions was: " + numPartitions
+									+ ", but " +
 									partitionMetadatas.size() + " have been found instead");
 						}
 						for (PartitionMetadata partitionMetadata : partitionMetadatas) {
@@ -704,7 +718,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.setKeyDecoder(keyDecoder);
 		kafkaMessageDrivenChannelAdapter.setPayloadDecoder(valueDecoder);
 		kafkaMessageDrivenChannelAdapter.setOutputChannel(bridge);
-		kafkaMessageDrivenChannelAdapter.setAutoCommitOffset(accessor.getDefaultAutoCommitEnabled(this.defaultAutoCommitEnabled));
+		kafkaMessageDrivenChannelAdapter.setAutoCommitOffset(accessor.getDefaultAutoCommitEnabled(this
+				.defaultAutoCommitEnabled));
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
@@ -736,9 +751,11 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	}
 
-	public KafkaMessageListenerContainer createMessageListenerContainer(Properties properties, String group, int numThreads,
+	public KafkaMessageListenerContainer createMessageListenerContainer(Properties properties, String group,
+			int numThreads,
 			String topic, long referencePoint) {
-		return createMessageListenerContainer(new KafkaPropertiesAccessor(properties), group, numThreads, topic, null, referencePoint);
+		return createMessageListenerContainer(new KafkaPropertiesAccessor(properties), group, numThreads, topic, null,
+				referencePoint);
 	}
 
 	private KafkaMessageListenerContainer createMessageListenerContainer(KafkaPropertiesAccessor accessor,
@@ -774,7 +791,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	private OffsetManager createOffsetManager(String group, long referencePoint) {
 		try {
 			KafkaTopicOffsetManager kafkaOffsetManager =
-					new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic, Collections.<Partition, Long>emptyMap());
+					new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic, Collections.<Partition,
+							Long>emptyMap());
 			kafkaOffsetManager.setConsumerId(group);
 			kafkaOffsetManager.setReferenceTimestamp(referencePoint);
 			kafkaOffsetManager.setSegmentSize(offsetStoreSegmentSize);
@@ -806,7 +824,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		while (iterator.hasNext()) {
 			MessageHeaders headers = iterator.next();
 			Acknowledgment acknowledgment = (Acknowledgment) headers.get(KafkaHeaders.ACKNOWLEDGMENT);
-			Assert.notNull(acknowledgment, "Acknowledgement shouldn't be null when acknowledging kafka message manually.");
+			Assert.notNull(acknowledgment, "Acknowledgement shouldn't be null when acknowledging kafka message " +
+					"manually.");
 			acknowledgment.acknowledge();
 		}
 	}
@@ -828,7 +847,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 				if (nextModuleCount == 0) {
 					throw new IllegalArgumentException("Module count cannot be zero");
 				}
-				return Math.max(kafkaPartitions,nextModuleCount * concurrency);
+				return Math.max(kafkaPartitions, nextModuleCount * concurrency);
 			}
 		}
 
@@ -873,7 +892,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 			catch (Exception e) {
 				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);
 			}
-			return deserializePayloadIfNecessary(theRequestMessage);
+			return deserializePayloadIfNecessary(theRequestMessage).toMessage(getMessageBuilderFactory());
 		}
 
 		@Override
@@ -919,8 +938,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			Map<String, Object> additionalHeaders = new HashMap<String, Object>();
-
 			int partition;
 			if (partitioningMetadata.isPartitionedModule()) {
 				// this is the logical partition in Spring XD - we need to fan out the messages further
@@ -933,18 +950,18 @@ public class KafkaMessageBus extends MessageBusSupport {
 				// The value will be modulo-ed by numPartitions by Kafka itself
 				partition = roundRobin();
 			}
-			additionalHeaders.put(PARTITION_HEADER, partition);
-			additionalHeaders.put("messageKey", partition);
-			additionalHeaders.put("topic", topicName);
 
+			MessageValues transformed = serializePayloadIfNecessary(message,
+					MimeTypeUtils.APPLICATION_OCTET_STREAM);
+
+			transformed.put(PARTITION_HEADER, partition);
+			transformed.put("messageKey", partition);
+			transformed.put("topic", topicName);
+			transformed.put("topic", topicName);
 
 			@SuppressWarnings("unchecked")
-			Message<byte[]> transformed = (Message<byte[]>) serializePayloadIfNecessary(message,
-					MimeTypeUtils.APPLICATION_OCTET_STREAM);
-			transformed = getMessageBuilderFactory().fromMessage(transformed)
-					.copyHeaders(additionalHeaders)
-					.build();
-			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
+			Message<byte[]> transformedMessage = (Message<byte[]>) transformed.toMessage(getMessageBuilderFactory());
+			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformedMessage,
 					KafkaMessageBus.this.headersToMap);
 			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
 			delegate.handleMessage(messageToSend);

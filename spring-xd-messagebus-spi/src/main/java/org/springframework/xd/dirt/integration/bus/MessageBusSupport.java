@@ -26,12 +26,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,7 +51,6 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -129,31 +129,31 @@ public abstract class MessageBusSupport
 
 
 	protected static final Set<Object> CONSUMER_RETRY_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
-		BusProperties.BACK_OFF_INITIAL_INTERVAL,
-		BusProperties.BACK_OFF_MAX_INTERVAL,
-		BusProperties.BACK_OFF_MULTIPLIER,
-		BusProperties.MAX_ATTEMPTS
+			BusProperties.BACK_OFF_INITIAL_INTERVAL,
+			BusProperties.BACK_OFF_MAX_INTERVAL,
+			BusProperties.BACK_OFF_MULTIPLIER,
+			BusProperties.MAX_ATTEMPTS
 	}));
 
 	protected static final Set<Object> PRODUCER_PARTITIONING_PROPERTIES = new HashSet<Object>(
 			Arrays.asList(new String[] {
-				BusProperties.PARTITION_COUNT,
-				BusProperties.PARTITION_KEY_EXPRESSION,
-				BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
-				BusProperties.PARTITION_SELECTOR_CLASS,
-				BusProperties.PARTITION_SELECTOR_EXPRESSION,
+					BusProperties.PARTITION_COUNT,
+					BusProperties.PARTITION_KEY_EXPRESSION,
+					BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
+					BusProperties.PARTITION_SELECTOR_CLASS,
+					BusProperties.PARTITION_SELECTOR_EXPRESSION,
 			}));
 
 	protected static final Set<Object> PRODUCER_BATCHING_BASIC_PROPERTIES = new HashSet<Object>(
 			Arrays.asList(new String[] {
-				BusProperties.BATCHING_ENABLED,
-				BusProperties.BATCH_SIZE,
-				BusProperties.BATCH_TIMEOUT,
+					BusProperties.BATCHING_ENABLED,
+					BusProperties.BATCH_SIZE,
+					BusProperties.BATCH_TIMEOUT,
 			}));
 
 	protected static final Set<Object> PRODUCER_BATCHING_ADVANCED_PROPERTIES = new HashSet<Object>(
 			Arrays.asList(new String[] {
-				BusProperties.BATCH_BUFFER_LIMIT,
+					BusProperties.BATCH_BUFFER_LIMIT,
 			}));
 
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
@@ -167,14 +167,15 @@ public abstract class MessageBusSupport
 	/**
 	 * Used in the canonical case, when the binding does not involve an alias name.
 	 */
-	protected final SharedChannelProvider<DirectChannel> directChannelProvider = new SharedChannelProvider<DirectChannel>(
-			DirectChannel.class) {
+	protected final SharedChannelProvider<DirectChannel> directChannelProvider = new
+			SharedChannelProvider<DirectChannel>(
+					DirectChannel.class) {
 
-		@Override
-		protected DirectChannel createSharedChannel(String name) {
-			return new DirectChannel();
-		}
-	};
+				@Override
+				protected DirectChannel createSharedChannel(String name) {
+					return new DirectChannel();
+				}
+			};
 
 	protected volatile long defaultBackOffInitialInterval = DEFAULT_BACKOFF_INITIAL_INTERVAL;
 
@@ -200,9 +201,12 @@ public abstract class MessageBusSupport
 
 	protected volatile boolean defaultCompress = false;
 
+	// Payload type cache
+
+	private volatile Map<String, Class<?>> payloadTypeCache = new ConcurrentHashMap<>();
+
 	/**
-	 * For bus implementations that support a prefix, apply the prefix
-	 * to the name.
+	 * For bus implementations that support a prefix, apply the prefix to the name.
 	 * @param prefix the prefix.
 	 * @param name the name.
 	 */
@@ -211,9 +215,7 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * For bus implementations that include a pub/sub component in identifiers,
-	 * construct the name.
-	 * @param prefix the prefix.
+	 * For bus implementations that include a pub/sub component in identifiers, construct the name.
 	 * @param name the name.
 	 */
 	public static String applyPubSub(String name) {
@@ -230,8 +232,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * For bus implementations that support dead lettering, construct the name of the
-	 * dead letter entity for the underlying pipe name.
+	 * For bus implementations that support dead lettering, construct the name of the dead letter entity for the
+	 * underlying pipe name.
 	 * @param name the name.
 	 */
 	public static String constructDLQName(String name) {
@@ -266,8 +268,7 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Set the partition strategy to be used by this bus if no partitionExpression
-	 * is provided for a module.
+	 * Set the partition strategy to be used by this bus if no partitionExpression is provided for a module.
 	 * @param partitionSelector The selector.
 	 */
 	public void setPartitionSelector(PartitionSelectorStrategy partitionSelector) {
@@ -275,8 +276,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Set the default retry back off initial interval for this bus; can be overridden
-	 * with consumer 'backOffInitialInterval' property.
+	 * Set the default retry back off initial interval for this bus; can be overridden with consumer
+	 * 'backOffInitialInterval' property.
 	 * @param defaultBackOffInitialInterval
 	 */
 	public void setDefaultBackOffInitialInterval(long defaultBackOffInitialInterval) {
@@ -284,8 +285,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Set the default retry back off multiplier for this bus; can be overridden
-	 * with consumer 'backOffMultiplier' property.
+	 * Set the default retry back off multiplier for this bus; can be overridden with consumer 'backOffMultiplier'
+	 * property.
 	 * @param defaultBackOffMultiplier
 	 */
 	public void setDefaultBackOffMultiplier(double defaultBackOffMultiplier) {
@@ -293,8 +294,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Set the default retry back off max interval for this bus; can be overridden
-	 * with consumer 'backOffMaxInterval' property.
+	 * Set the default retry back off max interval for this bus; can be overridden with consumer 'backOffMaxInterval'
+	 * property.
 	 * @param defaultBackOffMaxInterval
 	 */
 	public void setDefaultBackOffMaxInterval(long defaultBackOffMaxInterval) {
@@ -302,8 +303,7 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Set the default concurrency for this bus; can be overridden
-	 * with consumer 'concurrency' property.
+	 * Set the default concurrency for this bus; can be overridden with consumer 'concurrency' property.
 	 * @param defaultConcurrency
 	 */
 	public void setDefaultConcurrency(int defaultConcurrency) {
@@ -311,9 +311,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * The default maximum delivery attempts for this bus. Can be overridden by
-	 * consumer property 'maxAttempts' if supported. Values less than 2 disable
-	 * retry and one delivery attempt is made.
+	 * The default maximum delivery attempts for this bus. Can be overridden by consumer property 'maxAttempts' if
+	 * supported. Values less than 2 disable retry and one delivery attempt is made.
 	 * @param defaultMaxAttempts The default maximum attempts.
 	 */
 	public void setDefaultMaxAttempts(int defaultMaxAttempts) {
@@ -321,8 +320,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Set whether this bus batches message sends by default. Only applies
-	 * to bus implementations that support batching.
+	 * Set whether this bus batches message sends by default. Only applies to bus implementations that support
+	 * batching.
 	 * @param defaultBatchingEnabled the defaultBatchingEnabled to set.
 	 */
 	public void setDefaultBatchingEnabled(boolean defaultBatchingEnabled) {
@@ -330,8 +329,7 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Set the default batch size; only applies when batching is enabled and
-	 * the bus supports batching.
+	 * Set the default batch size; only applies when batching is enabled and the bus supports batching.
 	 * @param defaultBatchSize the defaultBatchSize to set.
 	 */
 	public void setDefaultBatchSize(int defaultBatchSize) {
@@ -339,9 +337,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Set the default batch buffer limit - used to send a batch early if
-	 * its size exceeds this. Only applies if batching is enabled and the
-	 * bus supports this property.
+	 * Set the default batch buffer limit - used to send a batch early if its size exceeds this. Only applies if
+	 * batching is enabled and the bus supports this property.
 	 * @param defaultBatchBufferLimit the defaultBatchBufferLimit to set.
 	 */
 	public void setDefaultBatchBufferLimit(int defaultBatchBufferLimit) {
@@ -349,9 +346,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Set the default batch timeout - used to send a batch if no messages
-	 * arrive during this time. Only applies if batching is enabled and the
-	 * bus supports this property.
+	 * Set the default batch timeout - used to send a batch if no messages arrive during this time. Only applies if
+	 * batching is enabled and the bus supports this property.
 	 * @param defaultBatchTimeout the defaultBatchTimeout to set.
 	 */
 	public void setDefaultBatchTimeout(long defaultBatchTimeout) {
@@ -387,14 +383,15 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Create a producer for the named channel and bind it to the bus. Synchronized to
-	 * avoid creating multiple instances.
+	 * Create a producer for the named channel and bind it to the bus. Synchronized to avoid creating multiple
+	 * instances.
 	 * @param name The name.
 	 * @param channelName The name of the channel to be created, and registered as bean.
 	 * @param properties The properties.
 	 * @return The channel.
 	 */
-	protected synchronized MessageChannel doBindDynamicProducer(String name, String channelName, Properties properties) {
+	protected synchronized MessageChannel doBindDynamicProducer(String name, String channelName,
+			Properties properties) {
 		MessageChannel channel = this.directChannelProvider.lookupSharedChannel(channelName);
 		if (channel == null) {
 			try {
@@ -411,10 +408,9 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Dynamically create a producer for the named channel.
-	 * Note: even though it's pub/sub, we still use a
-	 * direct channel. It will be bridged to a pub/sub channel in the local
-	 * bus and bound to an appropriate element for other buses.
+	 * Dynamically create a producer for the named channel. Note: even though it's pub/sub, we still use a direct
+	 * channel. It will be bridged to a pub/sub channel in the local bus and bound to an appropriate element for other
+	 * buses.
 	 * @param name The name.
 	 * @param properties The properties.
 	 * @return The channel.
@@ -425,8 +421,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Create a producer for the named channel and bind it to the bus. Synchronized to
-	 * avoid creating multiple instances.
+	 * Create a producer for the named channel and bind it to the bus. Synchronized to avoid creating multiple
+	 * instances.
 	 * @param name The name.
 	 * @param channelName The name of the channel to be created, and registered as bean.
 	 * @param properties The properties.
@@ -545,24 +541,24 @@ public abstract class MessageBusSupport
 		}
 	}
 
-	protected final Message<?> serializePayloadIfNecessary(Message<?> message, MimeType to) {
+	protected final MessageValues serializePayloadIfNecessary(Message<?> message, MimeType to) {
 		Object originalPayload = message.getPayload();
 		Object originalContentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
 		Object contentType = originalContentType;
 		if (to.equals(ALL)) {
-			return message;
+			return new MessageValues(message);
 		}
 		else if (to.equals(APPLICATION_OCTET_STREAM)) {
 			//Pass content type as String since some transport adapters will exclude CONTENT_TYPE Header otherwise
 			contentType = JavaClassMimeTypeConversion.mimeTypeFromObject(originalPayload).toString();
 			Object payload = serializePayloadIfNecessary(originalPayload);
-			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload)
-					.copyHeaders(message.getHeaders())
-					.setHeader(MessageHeaders.CONTENT_TYPE, contentType);
+			MessageValues messageValues = new MessageValues(message);
+			messageValues.setPayload(payload);
+			messageValues.put(MessageHeaders.CONTENT_TYPE, contentType);
 			if (originalContentType != null) {
-				messageBuilder.setHeader(XdHeaders.XD_ORIGINAL_CONTENT_TYPE, originalContentType);
+				messageValues.put(XdHeaders.XD_ORIGINAL_CONTENT_TYPE, originalContentType);
 			}
-			return messageBuilder.build();
+			return messageValues;
 		}
 		else {
 			throw new IllegalArgumentException("'to' can only be 'ALL' or 'APPLICATION_OCTET_STREAM'");
@@ -589,17 +585,17 @@ public abstract class MessageBusSupport
 		}
 	}
 
-	protected final Message<?> deserializePayloadIfNecessary(Message<?> message) {
-		Message<?> messageToSend = message;
+	protected final MessageValues deserializePayloadIfNecessary(Message<?> message) {
+		MessageValues messageToSend = new MessageValues(message);
 		Object originalPayload = message.getPayload();
 		MimeType contentType = contentTypeResolver.resolve(message.getHeaders());
 		Object payload = deserializePayload(originalPayload, contentType);
 		if (payload != null) {
-			MessageBuilder<Object> transformed = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders());
-			Object originalContentType = message.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE);
-			transformed.setHeader(MessageHeaders.CONTENT_TYPE, originalContentType);
-			transformed.setHeader(XdHeaders.XD_ORIGINAL_CONTENT_TYPE, null);
-			messageToSend = transformed.build();
+			messageToSend.setPayload(payload);
+
+			Object originalContentType = messageToSend.get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE);
+			messageToSend.put(MessageHeaders.CONTENT_TYPE, originalContentType);
+			messageToSend.put(XdHeaders.XD_ORIGINAL_CONTENT_TYPE, null);
 		}
 		return messageToSend;
 	}
@@ -623,7 +619,12 @@ public abstract class MessageBusSupport
 				return new String(bytes, "UTF-8");
 			}
 			String className = JavaClassMimeTypeConversion.classNameFromMimeType(contentType);
-			targetType = Class.forName(className);
+			// Cache types to avoid unnecessary Class.forName calls.
+			targetType = payloadTypeCache.get(className);
+			if (targetType == null) {
+				targetType = Class.forName(className);
+				payloadTypeCache.put(className, targetType);
+			}
 
 			return codec.deserialize(bytes, targetType);
 		}
@@ -637,21 +638,13 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Determine the partition to which to send this message.
-	 * If a partition key extractor class is provided, it is invoked to determine the key.
-	 * Otherwise, the partition key expression is evaluated to obtain the
-	 * key value.
-	 * If a partition selector class is provided, it will be invoked to determine the
-	 * partition. Otherwise,
-	 * if the partition expression is not null, it is evaluated
-	 * against the key and is expected to return an integer to which the modulo function
-	 * will be applied, using the partitionCount as the divisor.
-	 * <p>
-	 * If no partition expression is provided, the key will be passed to the bus partition
-	 * strategy along with the partitionCount.
-	 * The default partition strategy uses {@code key.hashCode()}, and the result will
-	 * be the mod of that value.
-	 *
+	 * Determine the partition to which to send this message. If a partition key extractor class is provided, it is
+	 * invoked to determine the key. Otherwise, the partition key expression is evaluated to obtain the key value. If a
+	 * partition selector class is provided, it will be invoked to determine the partition. Otherwise, if the partition
+	 * expression is not null, it is evaluated against the key and is expected to return an integer to which the modulo
+	 * function will be applied, using the partitionCount as the divisor. If no partition expression is provided, the
+	 * key will be passed to the bus partition strategy along with the partitionCount. The default partition strategy
+	 * uses {@code key.hashCode()}, and the result will be the mod of that value.
 	 * @param message the message.
 	 * @param meta the partitioning metadata.
 	 * @return the partition.
@@ -730,15 +723,15 @@ public abstract class MessageBusSupport
 		}
 		catch (Exception e) {
 			logger.error("Failed to instantiate partition selector", e);
-			throw new MessageBusException("Failed to instantiate partition selector: " + partitionSelectorClassName, e);
+			throw new MessageBusException("Failed to instantiate partition selector: " + partitionSelectorClassName,
+					e);
 		}
 	}
 
 	/**
-	 * Validate the provided deployment properties for the consumer against those supported by
-	 * this bus implementation. The consumer is that part of the bus that consumes messages from
-	 * the underlying infrastructure and sends them to the next module. Consumer properties are
-	 * used to configure the consumer.
+	 * Validate the provided deployment properties for the consumer against those supported by this bus implementation.
+	 * The consumer is that part of the bus that consumes messages from the underlying infrastructure and sends them to
+	 * the next module. Consumer properties are used to configure the consumer.
 	 * @param name The name.
 	 * @param properties The properties.
 	 * @param supported The supported properties.
@@ -750,9 +743,9 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Validate the provided deployment properties for the producer against those supported by
-	 * this bus implementation. When a module sends a message to the bus, the producer uses
-	 * these properties while sending it to the underlying infrastructure.
+	 * Validate the provided deployment properties for the producer against those supported by this bus implementation.
+	 * When a module sends a message to the bus, the producer uses these properties while sending it to the underlying
+	 * infrastructure.
 	 * @param name The name.
 	 * @param properties The properties.
 	 * @param supported The supported properties.
@@ -816,8 +809,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Attempt to create a direct binding (avoiding the bus) if the consumer is local.
-	 * Named channel producers are not bound directly.
+	 * Attempt to create a direct binding (avoiding the bus) if the consumer is local. Named channel producers are not
+	 * bound directly.
 	 * @param name The name.
 	 * @param moduleOutputChannel The channel to bind.
 	 * @param properties The producer properties.
@@ -872,8 +865,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Attempt to bind a producer directly (avoiding the bus) if there is already a local producer.
-	 * PubSub producers cannot be bound directly. Create the direct binding, then unbind the existing bus producer.
+	 * Attempt to bind a producer directly (avoiding the bus) if there is already a local producer. PubSub producers
+	 * cannot be bound directly. Create the direct binding, then unbind the existing bus producer.
 	 * @param name The name.
 	 * @param consumerChannel The channel to bind the producer to.
 	 */
@@ -930,8 +923,8 @@ public abstract class MessageBusSupport
 	}
 
 	/**
-	 * Default partition strategy; only works on keys with "real" hash codes, such as String.
-	 * Caller now always applies modulo so no need to do so here.
+	 * Default partition strategy; only works on keys with "real" hash codes, such as String. Caller now always applies
+	 * modulo so no need to do so here.
 	 */
 	private class DefaultPartitionSelector implements PartitionSelectorStrategy {
 
@@ -977,7 +970,6 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Looks up or optionally creates a new channel to use.
-	 *
 	 * @author Eric Bottard
 	 */
 	protected abstract class SharedChannelProvider<T extends MessageChannel> {
@@ -1027,8 +1019,8 @@ public abstract class MessageBusSupport
 
 	/**
 	 * Handles representing any java class as a {@link MimeType}.
-	 * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName"/>
 	 * @author David Turanski
+	 * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName"/>
 	 */
 	abstract static class JavaClassMimeTypeConversion {
 
@@ -1042,7 +1034,8 @@ public abstract class MessageBusSupport
 			}
 			String className = obj.getClass().getName();
 			if (obj.getClass().isArray()) {
-				// Need to remove trailing ';' for an object array, e.g. "[Ljava.lang.String;" or multi-dimensional "[[[Ljava.lang.String;"
+				// Need to remove trailing ';' for an object array, e.g. "[Ljava.lang.String;" or multi-dimensional 
+				// "[[[Ljava.lang.String;"
 				if (className.endsWith(";")) {
 					className = className.substring(0, className.length() - 1);
 				}

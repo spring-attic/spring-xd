@@ -173,9 +173,23 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 		Assert.hasText(jobName, "jobName must not be empty nor null");
 		Assert.hasText(jobDefinition, "jobDefinition must not be empty nor null");
 		JobDefinitionResource resource = getJobDefinitionResource(jobName);
+		long timeout = System.currentTimeMillis() + WAIT_TIME;
 		String deployedStatus = (deployed) ? "deployed" : "undeployed";
-		return resource != null && deployedStatus.equals(resource.getStatus())
+		boolean status = resource != null && deployedStatus.equals(resource.getStatus())
 				&& jobDefinition.equals(resource.getDefinition());
+		while(!status && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			resource = getJobDefinitionResource(jobName);
+			status = resource != null && deployedStatus.equals(resource.getStatus())
+					&& jobDefinition.equals(resource.getDefinition());
+		}
+		return status ;
 	}
 
 	/**
@@ -429,6 +443,18 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 
 	private JobDefinitionResource getJobDefinitionResource(String jobName) {
 		PagedResources<JobDefinitionResource> resources = springXDTemplate.jobOperations().list();
+		long timeout = System.currentTimeMillis() + WAIT_TIME;
+		while (!resources.iterator().hasNext() && System.currentTimeMillis() < timeout) {
+			try {
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			resources = springXDTemplate.jobOperations().list();
+		}
+
 		JobDefinitionResource result = null;
 		Iterator<JobDefinitionResource> resourceIter = resources.iterator();
 		while (resourceIter.hasNext()) {

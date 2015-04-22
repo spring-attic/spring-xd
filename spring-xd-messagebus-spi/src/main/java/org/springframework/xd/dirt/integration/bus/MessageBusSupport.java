@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -125,7 +124,7 @@ public abstract class MessageBusSupport
 
 	protected static final Set<Object> PRODUCER_STANDARD_PROPERTIES = new HashSet<Object>(Arrays.asList(
 			BusProperties.NEXT_MODULE_COUNT
-	));
+			));
 
 
 	protected static final Set<Object> CONSUMER_RETRY_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
@@ -199,6 +198,9 @@ public abstract class MessageBusSupport
 	// compression
 
 	protected volatile boolean defaultCompress = false;
+
+	protected volatile boolean defaultDurableSubscription = false;
+
 
 	/**
 	 * For bus implementations that support a prefix, apply the prefix
@@ -366,6 +368,14 @@ public abstract class MessageBusSupport
 		this.defaultCompress = defaultCompress;
 	}
 
+	/**
+	 * Set whether subscriptions to taps/topics are durable.
+	 * @param defaultDurableSubscription true for durable (default false).
+	 */
+	public void setDefaultDurableSubscription(boolean defaultDurableSubscription) {
+		this.defaultDurableSubscription = defaultDurableSubscription;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(applicationContext, "The 'applicationContext' property cannot be null");
@@ -476,6 +486,11 @@ public abstract class MessageBusSupport
 	@Override
 	public void unbindProducer(String name, MessageChannel channel) {
 		deleteBinding("outbound." + name, channel);
+	}
+
+	@Override
+	public boolean isCapable(Capability capability) {
+		return false;
 	}
 
 	protected void addBinding(Binding binding) {

@@ -204,16 +204,17 @@ In addition, the following default settings for the rabbit message bus can be mo
         batchTimeout:              5000  # <10>
         compress:                  false # <11>
         concurrency:               1     # <12>
-        maxAttempts:               3     # <13>
-        maxConcurrency:            1     # <14>
-        prefix:                    xdbus. # <15>
-        prefetch:                  1     # <16>
-        replyHeaderPatterns:       STANDARD_REPLY_HEADERS,*   # <17>
-        republishToDLQ             false # <18>
-        requestHeaderPatterns:     STANDARD_REQUEST_HEADERS,* # <19>
-        requeue:                   true  # <20>
-        transacted:                false # <21>
-        txSize:                    1     # <22>
+        durableSubscription:       false # <13>
+        maxAttempts:               3     # <14>
+        maxConcurrency:            1     # <15>
+        prefix:                    xdbus. # <16>
+        prefetch:                  1     # <17>
+        replyHeaderPatterns:       STANDARD_REPLY_HEADERS,*   # <18>
+        republishToDLQ             false # <19>
+        requestHeaderPatterns:     STANDARD_REQUEST_HEADERS,* # <20>
+        requeue:                   true  # <21>
+        transacted:                false # <22>
+        txSize:                    1     # <23>
 ----
 <1> When the bus (or a stream module deployment) is configured to compress messages, specifies the compression level. See _java.uti.zip.Deflater_ for available values; defaults to 1 (BEST_SPEED)
 
@@ -239,26 +240,28 @@ In addition, the following default settings for the rabbit message bus can be mo
 
 <12> The minimum number of consumer threads receiving messages for a module
 
-<13> The maximum number of delivery attempts. Setting this to `1` disables the retry mechanism and `requeue` must be set to false if you wish failed messages to be rejected or routed to a DLQ. Otherwise deliveries
+<13> When `true` queues for subscriptions to publish/subscribe named channels (`tap:`, `topic:`) will be declared as durable and are eligible for dead-letter configuration according to the `autoBindDLQ` setting.
+
+<14> The maximum number of delivery attempts. Setting this to `1` disables the retry mechanism and `requeue` must be set to false if you wish failed messages to be rejected or routed to a DLQ. Otherwise deliveries
 will be attempted repeatedly, with no termination. Also see `republishToDLQ`
 
-<14> The maximum number of consumer threads receiving messages for a module
+<15> The maximum number of consumer threads receiving messages for a module
 
-<15> A prefix applied to all queues, exchanges so that policies (HA etc) can be applied
+<16> A prefix applied to all queues, exchanges so that policies (HA etc) can be applied
 
-<16> The number of messages to prefetch for each consumer
+<17> The number of messages to prefetch for each consumer
 
-<17> Determines which reply headers will be transported
+<18> Determines which reply headers will be transported
 
-<18> By default, failed messages after retries are exhausted are rejected. If a dead-letter queue (DLQ) is configured, rabbitmq will route the failed message (unchanged) to the DLQ. Setting this property to `true` instructs the bus to republish failed messages to the DLQ, with additional headers, including the exception message and stack trace from the cause of the final failure. Note that the republish will occur even if `maxAttempts` is only set to `1`. Also see `autoBindDLQ`
+<19> By default, failed messages after retries are exhausted are rejected. If a dead-letter queue (DLQ) is configured, rabbitmq will route the failed message (unchanged) to the DLQ. Setting this property to `true` instructs the bus to republish failed messages to the DLQ, with additional headers, including the exception message and stack trace from the cause of the final failure. Note that the republish will occur even if `maxAttempts` is only set to `1`. Also see `autoBindDLQ`
 
-<19> Determines which request headers will be transported
+<20> Determines which request headers will be transported
 
-<20> Whether rejected messages will be requeued by default
+<21> Whether rejected messages will be requeued by default
 
-<21> Whether the channel is to be transacted
+<22> Whether the channel is to be transacted
 
-<22> The number of messages to process between acks (when ack mode is AUTO).
+<23> The number of messages to process between acks (when ack mode is AUTO).
 
 [[kafka-configuration]]
 ==== Kafka

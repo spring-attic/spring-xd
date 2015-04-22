@@ -344,6 +344,15 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 		return getProperty(COMPRESS, defaultValue);
 	}
 
+	/**
+	 * If true, subscriptions to taps/topics will be durable.
+	 * @param defaultValue the default value.
+	 * @return the property or default value.
+	 */
+	public boolean isDurable(boolean defaultValue) {
+		return getProperty(DURABLE, defaultValue);
+	}
+
 	// Utility methods
 
 	/**

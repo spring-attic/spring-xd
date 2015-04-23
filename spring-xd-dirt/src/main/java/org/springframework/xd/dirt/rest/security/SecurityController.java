@@ -21,6 +21,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -62,8 +63,10 @@ public class SecurityController {
 
 		if (authenticationEnabled && SecurityContextHolder.getContext() != null) {
 			final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			securityInfo.setAuthenticated(authentication.isAuthenticated());
-			securityInfo.setUsername(authentication.getName());
+			if (!(authentication instanceof AnonymousAuthenticationToken)) {
+				securityInfo.setAuthenticated(authentication.isAuthenticated());
+				securityInfo.setUsername(authentication.getName());
+			}
 		}
 
 		return securityInfo;

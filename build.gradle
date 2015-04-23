@@ -977,8 +977,9 @@ project('spring-xd-ui') {
 	description = 'Spring XD UI'
 
 	dependencies {
-		compile "org.springframework.boot:spring-boot-starter-thymeleaf"
 		compile "org.springframework.boot:spring-boot-starter-security"
+		compile "org.springframework.boot:spring-boot-starter-web"
+		compile "org.springframework.session:spring-session"
 		compile "org.springframework.xd:spring-xd-admin-ui-client:$xdAdminUIVersion"
 		compile "log4j:log4j"
 		runtime "org.slf4j:slf4j-log4j12"

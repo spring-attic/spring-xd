@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -316,6 +317,14 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onRabbitAdminException(RabbitAdminException e) {
+		String logref = logDebug(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public VndErrors onBadCredentialsException(BadCredentialsException e) {
 		String logref = logDebug(e);
 		return new VndErrors(logref, e.getMessage());
 	}

@@ -8,6 +8,7 @@ ext {
 	cdh5Version = '2.5.0-cdh5.3.2'
 	hdp22Version = '2.6.0.2.2.4.0-2633'
 	phd21Version = '2.2.0-gphd-3.1.0.0'
+	phd30Version = '2.6.0.3.0.0.0-249'
 }
 
 project('spring-xd-hadoop:hadoop25') {
@@ -260,3 +261,50 @@ project('spring-xd-hadoop:phd21') {
 		include 'libfb303-*'
 	}
 }
+
+project('spring-xd-hadoop:phd30') {
+	description = 'Pivotal HD 3.0 dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-phd30") {
+			exclude group: 'org.apache.hadoop'
+		}
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-phd30") {
+			exclude group: 'org.apache.hadoop'
+		}
+		runtime ("org.apache.hadoop:hadoop-common:$phd30Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$phd30Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$phd30Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd30Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$phd30Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-app:$phd30Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$phd30Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd30Version")
+		configurations.runtime.exclude(group: 'org.xerial.snappy')
+		runtime ("org.apache.pig:pig:0.14.0.3.0.0.0-249:h2")
+		runtime ("org.apache.hive:hive-metastore:0.14.0.3.0.0.0-249")
+		runtime ("org.apache.hive:hive-service:0.14.0.3.0.0.0-249")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
+		include 'avro-*'
+		include 'protobuf-java-*'
+		include 'jetty-util-*'
+		include 'jersey-core-*'
+		include 'jersey-server-*'
+		// Pig dependencies
+		include 'pig-*'
+		include 'automaton-*'
+		include 'antlr-runtime-*'
+		include 'jline-*'
+		// Hive dependencies
+		include 'hive-common-*'
+		include 'hive-service-*'
+		include 'hive-metastore-*'
+		include 'libthrift-*'
+		include 'libfb303-*'
+	}
+}
+

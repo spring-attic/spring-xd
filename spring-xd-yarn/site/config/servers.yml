@@ -39,6 +39,12 @@ spring:
 #        siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*"
 #        siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
+# Pivotal HD 3.0 (phd30):
+#spring:
+#    yarn:
+#        siteYarnAppClasspath: "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*"
+#        siteMapreduceAppClasspath: "/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*"
+
 # Hortonworks HDP 2.2 (hdp22):
 #spring:
 #    yarn:

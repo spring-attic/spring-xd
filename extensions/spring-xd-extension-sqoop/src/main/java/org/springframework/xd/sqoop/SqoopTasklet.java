@@ -43,6 +43,8 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 
 	private static final String SPRING_HADOOP_CONFIG_PREFIX = "spring.hadoop.config";
 
+	private static final String SPRING_HADOOP_PREFIX = "spring.hadoop";
+
 	private String[] arguments;
 
 	private Properties hadoopProperties;
@@ -87,7 +89,12 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 			}
 		}
 		for (Map.Entry e : hadoopProperties.entrySet()) {
-			command.add(SPRING_HADOOP_CONFIG_PREFIX + "." + e.getKey() + "=" + e.getValue());
+			if (e.getKey().toString().startsWith(SPRING_HADOOP_PREFIX)) {
+				command.add(e.getKey() + "=" + e.getValue());
+			}
+			else {
+				command.add(SPRING_HADOOP_CONFIG_PREFIX + "." + e.getKey() + "=" + e.getValue());
+			}
 		}
 		return command;
 	}

@@ -276,6 +276,7 @@ project('spring-xd-hadoop:phd30') {
 		runtime ("org.apache.hadoop:hadoop-hdfs:$phd30Version")
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd30Version")
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$phd30Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-app:$phd30Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$phd30Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd30Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')

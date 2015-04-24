@@ -70,7 +70,7 @@ public class SqoopRunner {
 		String[] sqoopArgumentSource = args[1].split(" ");
 
 		List<String> sqoopArguments = new ArrayList<String>();
-		boolean connectProvided = parseSqoopArguments(sqoopArgumentSource, sqoopArguments);
+		boolean provideConnect = parseSqoopCommandArguments(command, sqoopArgumentSource, sqoopArguments);
 
 		logger.info("Sqoop command: " + command);
 		logger.info("Using args: " + sqoopArguments);
@@ -82,7 +82,7 @@ public class SqoopRunner {
 		Configuration configuration = createConfiguration(configOptions);
 
 		List<String> finalArguments = new ArrayList<String>();
-		createFinalArguments(hadoopMapredHome, command, sqoopArguments, connectProvided, configOptions, finalArguments);
+		createFinalArguments(hadoopMapredHome, command, sqoopArguments, provideConnect, configOptions, finalArguments);
 
 		final int ret = Sqoop.runTool(finalArguments.toArray(new String[finalArguments.size()]), configuration);
 
@@ -93,10 +93,10 @@ public class SqoopRunner {
 	}
 
 	protected static void createFinalArguments(String hadoopMapredHome, String command, List<String> sqoopArguments,
-	                                           boolean connectProvided, Map<String, String> configOptions,
+	                                           boolean provideConnect, Map<String, String> configOptions,
 	                                           List<String> finalArguments) {
 		finalArguments.add(command);
-		if (!connectProvided) {
+		if (provideConnect) {
 			finalArguments.add("--connect=" + configOptions.get(JDBC_URL_KEY));
 			if (configOptions.containsKey(JDBC_USERNAME_KEY) && configOptions.get(JDBC_USERNAME_KEY) != null) {
 				finalArguments.add("--username=" + configOptions.get(JDBC_USERNAME_KEY));
@@ -105,7 +105,8 @@ public class SqoopRunner {
 				finalArguments.add("--password=" + configOptions.get(JDBC_PASSWORD_KEY));
 			}
 		}
-		if ("import".equals(command.toLowerCase()) || "export".equals(command.toLowerCase())) {
+		if (command.toLowerCase().startsWith("import") || command.toLowerCase().startsWith("export") ||
+				command.toLowerCase().startsWith("create")) {
 			finalArguments.add("--hadoop-mapred-home=" + hadoopMapredHome);
 		}
 		finalArguments.addAll(sqoopArguments);
@@ -190,8 +191,13 @@ public class SqoopRunner {
 		}
 	}
 
-	protected static boolean parseSqoopArguments(String[] sqoopArguments, List<String> runtimeArguments) {
+	protected static boolean parseSqoopCommandArguments(String command, String[] sqoopArguments, List<String> runtimeArguments) {
 		boolean connectProvided = false;
+		boolean connectNeeded = false;
+		if (command.toLowerCase().startsWith("import") || command.toLowerCase().startsWith("export") ||
+				command.toLowerCase().startsWith("create") || command.toLowerCase().startsWith("codegen")) {
+			connectNeeded = true;
+		}
 		for (int i = 0; i < sqoopArguments.length; i++) {
 			if (sqoopArguments[i].startsWith("--connect") || sqoopArguments[i].startsWith("--options-file")) {
 				connectProvided = true;
@@ -214,7 +220,7 @@ public class SqoopRunner {
 				runtimeArguments.add(sqoopArguments[i]);
 			}
 		}
-		return connectProvided;
+		return connectNeeded && !connectProvided;
 	}
 
 }

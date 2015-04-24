@@ -665,6 +665,8 @@ A Sqoop job can be deployed and launched from Spring XD as a batch job. The Sqoo
 
 * import
 * export
+* codegen
+* merge
 * list-tables
 
 NOTE: The current release supports Sqoop 1.4.5

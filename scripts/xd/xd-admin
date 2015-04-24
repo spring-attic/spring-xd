@@ -65,44 +65,29 @@ cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 
-APP_HOME_LIB=$APP_HOME/lib
-CLASSPATH=$APP_HOME/modules/processor/scripts:$APP_HOME/config
+# If you change the default hadoop distro, make sure to update ContainerOptions.DEFAULT_HADOOP_OPTION
 HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop26}"
 x=0
 args=("$@")
 for arg in "${args[@]}" ; do
     if [ "$arg" = "--hadoopDistro" ] ; then
-        if [ "${args[x+1]}" = "hadoop25" ] || [ "${args[x+1]}" = "hadoop26" ] || [ "${args[x+1]}" = "cdh5" ] || [ "${args[x+1]}" = "hdp22" ] || [ "${args[x+1]}" = "phd21" ] || [ "${args[x+1]}" = "phd30" ] ; then
-          HADOOP_DISTRO="${args[x+1]}"
-          unset args[x+1]
-          unset args[x]
-        else
-          echo "ERROR: '${args[x+1]}' is not a valid Hadoop distro - valid distros are hadoop25, hadoop26, cdh5, hdp22, phd21 and phd30"
-          exit
-        fi
+        HADOOP_DISTRO="${args[x+1]}"
     fi
     x=$((x+1))
 done
-
-addJarsToClassPath( ) {
-    if [ -d $1 ]; then
-        for jar in "$1"/*.jar; do
-            CLASSPATH="$CLASSPATH":"$jar"
+APP_HOME_LIB=$APP_HOME/lib
+CLASSPATH=$APP_HOME/modules/processor/scripts:$APP_HOME/config
+if [ -d "$APP_HOME_LIB" ]; then
+    for i in "$APP_HOME_LIB"/*.jar; do
+        CLASSPATH="$CLASSPATH":"$i"
+    done
+    HADOOP_LIB=$APP_HOME/lib/$HADOOP_DISTRO
+    if [ -d "$HADOOP_LIB" ]; then
+        for j in "$HADOOP_LIB"/*.jar; do
+            CLASSPATH="$CLASSPATH":"$j"
         done
     fi
-}
-
-CLASSPATH="$APP_HOME/config"
-APP_HOME_LIB=$APP_HOME/lib
-XD_LIB=$APP_HOME/../xd/lib
-addJarsToClassPath $APP_HOME_LIB
-if [ -d $XD_LIB ]; then
-    addJarsToClassPath $XD_LIB
-    HADOOP_LIB=$XD_LIB/$HADOOP_DISTRO
-else
-    HADOOP_LIB=$APP_HOME_LIB/$HADOOP_DISTRO
 fi
-addJarsToClassPath $HADOOP_LIB
 
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then

@@ -39,6 +39,12 @@ public class CommonOptions {
 	@Option(name = "--mgmtPort", usage = "The port for the management server", metaVar = "<mgmtPort>")
 	private Integer mgmtPort;
 
+	static final String DEFAULT_HADOOP_DISTRO = "hadoop26";
+
+	@Option(name = "--hadoopDistro", handler = ResourcePatternScanningOptionHandlers.HadoopDistroOptionHandler.class,
+			usage = "The Hadoop distribution to be used for HDFS access")
+	private String distro = ContainerOptions.DEFAULT_HADOOP_DISTRO;
+
 	// Using wrapped here so that "showHelp" is not returned as a property by BeanPropertiesPropertySource
 	public Boolean isShowHelp() {
 		return showHelp ? true : null;
@@ -54,6 +60,14 @@ public class CommonOptions {
 
 	public void setXD_MGMT_PORT(int mgmtPort) {
 		this.mgmtPort = mgmtPort;
+	}
+
+	public void setHADOOP_DISTRO(String distro) {
+		this.distro = distro;
+	}
+
+	public String getHADOOP_DISTRO() {
+		return this.distro;
 	}
 
 }

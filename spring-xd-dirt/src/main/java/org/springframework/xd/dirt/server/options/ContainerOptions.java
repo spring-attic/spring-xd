@@ -19,7 +19,6 @@ package org.springframework.xd.dirt.server.options;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.HadoopDistroOptionHandler;
 
 /**
  * Holds configuration options that are valid for the Container node, when using distributed mode.
@@ -31,13 +30,6 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
 @ConfigurationProperties
 public class ContainerOptions extends CommonDistributedOptions {
 
-	/* This is also used in SingleNodeOptions. */
-	/*default*/static final String DEFAULT_HADOOP_DISTRO = "hadoop26";
-
-	@Option(name = "--hadoopDistro", handler = HadoopDistroOptionHandler.class,
-			usage = "The Hadoop distribution to be used for HDFS access")
-	private String distro = DEFAULT_HADOOP_DISTRO;
-
 	@Option(name = "--groups", usage = "The group memberships for this container as a comma delimited string")
 	private String groups;
 
@@ -46,10 +38,6 @@ public class ContainerOptions extends CommonDistributedOptions {
 
 	@Option(name = "--containerIp", usage = "The IP address of the container.")
 	private String ip;
-
-	public String getHADOOP_DISTRO() {
-		return this.distro;
-	}
 
 	public String getXD_CONTAINER_HOSTNAME() {
 		return hostname;
@@ -61,11 +49,6 @@ public class ContainerOptions extends CommonDistributedOptions {
 
 	public String getXD_CONTAINER_GROUPS() {
 		return this.groups;
-	}
-
-
-	public void setHADOOP_DISTRO(String distro) {
-		this.distro = distro;
 	}
 
 	public void setXD_CONTAINER_HOSTNAME(String hostname) {

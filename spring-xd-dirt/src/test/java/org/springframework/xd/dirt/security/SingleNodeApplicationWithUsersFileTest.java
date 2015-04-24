@@ -275,17 +275,6 @@ public class SingleNodeApplicationWithUsersFileTest {
 				.andExpect(status().isNotFound());
 	}
 
-	@Test
-	public void testAuthenticatedAndAuthorizedAccessToJobInstancesEndpointWithJsonExtension()
-			throws Exception {
-		springXdResource.getMockMvc()
-				.perform(
-						get("/jobs/instances.json").param("jobname", "testjobname").header("Authorization",
-								basicAuthorizationHeader("bob", "bobspassword")))
-				.andDo(print())
-				.andExpect(status().isNotFound());
-	}
-
 	// Modules
 
 	@Test

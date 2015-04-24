@@ -65,7 +65,7 @@ import org.springframework.xd.test.fixtures.SimpleFileSink;
 @SpringApplicationConfiguration(classes = IntegrationTestConfig.class)
 public abstract class AbstractIntegrationTest {
 
-	private final static String STREAM_NAME = "ec2Test3";
+	protected final static String STREAM_NAME = "ec2Test3";
 
 	protected final static String XD_DELIMITER = " | ";
 
@@ -525,7 +525,7 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Asserts that all channels of the processor channel combination, processed the correct number of messages
+	 * Asserts that the sink channel, processed the correct number of messages
 	 * The location of the sink is resolved at runtime.
 	 *
 	 * @param moduleName the name of the module jmx element to interrogate.
@@ -537,7 +537,7 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Asserts that all channels of the processor channel combination, processed the correct number of messages
+	 * Asserts that source channel, processed the correct number of messages
 	 * The location of the source  is resolved at runtime.
 	 *
 	 * @param moduleName the name of the module jmx element to interrogate.
@@ -545,8 +545,7 @@ public abstract class AbstractIntegrationTest {
 	 * @param msgCountExpected The number of messages this module and channel should have sent.
 	 */
 	public void assertReceivedBySource(String moduleName, String channelName, int msgCountExpected) {
-		//TODO
-		assertReceived(getContainerResolver().getContainerUrlForSink(), moduleName, channelName, msgCountExpected);
+		assertReceived(getContainerResolver().getContainerUrlForSource(), moduleName, channelName, msgCountExpected);
 	}
 
 	/**

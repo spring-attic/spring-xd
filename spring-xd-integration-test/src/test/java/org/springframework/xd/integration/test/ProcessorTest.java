@@ -28,9 +28,9 @@ import java.util.UUID;
 public class ProcessorTest extends AbstractIntegrationTest {
 
 
-	private final static String HTTP_MODULE_NAME = "http.0";
+	private final static String HTTP_MODULE_NAME = STREAM_NAME+".source.http.1";
 
-	private final static String FILTER_MODULE_NAME = "filter.1";
+	private final static String FILTER_MODULE_NAME = STREAM_NAME+".processor.filter.1";
 
 	private final static String OUTPUT_CHANNEL_NAME = "output";
 
@@ -56,7 +56,7 @@ public class ProcessorTest extends AbstractIntegrationTest {
 		assertReceivedByProcessor(FILTER_MODULE_NAME, OUTPUT_CHANNEL_NAME, 0);
 		assertReceivedByProcessor(FILTER_MODULE_NAME, TO_SPEL_CHANNEL_NAME, 1);
 		assertReceivedByProcessor(FILTER_MODULE_NAME, TO_SCRIPT_CHANNEL_NAME, 0);
-		assertReceivedBySink(HTTP_MODULE_NAME, OUTPUT_CHANNEL_NAME, 1);
+		assertReceivedBySource(HTTP_MODULE_NAME, OUTPUT_CHANNEL_NAME, 1);
 
 	}
 

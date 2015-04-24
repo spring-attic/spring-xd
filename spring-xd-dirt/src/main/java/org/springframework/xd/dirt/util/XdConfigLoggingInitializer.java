@@ -95,10 +95,10 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		logger.info("XD Home: " + environment.resolvePlaceholders("${XD_HOME}"));
 		logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
+		logHadoopDistro();
 		logConfigLocations();
 		if (isContainer) {
 			logContainerInfo();
-			logHadoopDistro();
 		}
 		else {
 			logAdminUI();

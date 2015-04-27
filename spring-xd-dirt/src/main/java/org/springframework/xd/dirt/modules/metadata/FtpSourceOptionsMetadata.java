@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.modules.metadata;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.xd.module.options.mixins.FtpConnectionMixin;
+import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
@@ -29,7 +30,7 @@ import javax.validation.constraints.Min;
  *
  * @author Franck MARCHAND
  */
-@Mixin({FtpConnectionMixin.class})
+@Mixin({FtpConnectionMixin.class, PeriodicTriggerMixin.class})
 public class FtpSourceOptionsMetadata implements ProfileNamesProvider{
 
     private static final String USE_REF = "use-ref";
@@ -48,7 +49,7 @@ public class FtpSourceOptionsMetadata implements ProfileNamesProvider{
 
     private String tmpFileSuffix = ".tmp";
 
-    private int fixedRate = 1000;
+    private int fixedDelay = 1;
 
     private String filenamePattern = "*";
 
@@ -106,13 +107,13 @@ public class FtpSourceOptionsMetadata implements ProfileNamesProvider{
     }
 
     @Min(0)
-    public int getFixedRate() {
-        return fixedRate;
+    public int getFixedDelay() {
+        return fixedDelay;
     }
 
-    @ModuleOption("fixed delay in SECONDS to poll the remote directory")
-    public void setFixedRate(int fixedRate) {
-        this.fixedRate = fixedRate;
+    @ModuleOption("the rate at which to poll the remote directory")
+    public void setFixedDelay(int fixedDelay) {
+        this.fixedDelay = fixedDelay;
     }
 
     @NotBlank

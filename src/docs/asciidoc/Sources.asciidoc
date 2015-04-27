@@ -118,13 +118,17 @@ $$autoCreateLocalDir$$:: $$local directory must be auto created if it does not e
 $$clientMode$$:: $$client mode to use : 2 for passive mode and 0 for active mode$$ *($$int$$, default: `0`)*
 $$deleteRemoteFiles$$:: $$delete remote files after transfer$$ *($$boolean$$, default: `false`)*
 $$filenamePattern$$:: $$simple filename pattern to apply to the filter$$ *($$String$$, default: `*`)*
-$$fixedRate$$:: $$fixed delay in SECONDS to poll the remote directory$$ *($$int$$, default: `1000`)*
+$$fixedDelay$$:: $$the rate at which to poll the remote directory$$ *($$int$$, default: `1`)*
 $$host$$:: $$the host name for the FTP server$$ *($$String$$, default: `localhost`)*
+$$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
 $$localDir$$:: $$set the local directory the remote files are transferred to$$ *($$String$$, default: `/tmp/xd/ftp`)*
 $$password$$:: $$the password for the FTP connection$$ *($$Password$$, no default)*
 $$port$$:: $$the port for the FTP server$$ *($$int$$, default: `21`)*
+$$preserveTimestamp$$:: $$whether to preserve the timestamp of files retrieved$$ *($$boolean$$, default: `true`)*
+$$ref$$:: $$set to true to output the File object itself$$ *($$boolean$$, default: `false`)*
 $$remoteDir$$:: $$the remote directory to transfer the files from$$ *($$String$$, default: `/`)*
 $$remoteFileSeparator$$:: $$file separator to use on the remote side$$ *($$String$$, default: `/`)*
+$$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
 $$tmpFileSuffix$$:: $$extension to use when downloading files$$ *($$String$$, default: `.tmp`)*
 $$username$$:: $$the username for the FTP connection$$ *($$String$$, no default)*
 //$source.ftp

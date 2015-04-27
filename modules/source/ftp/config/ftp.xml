@@ -27,8 +27,14 @@
 		remote-file-separator="${remoteFileSeparator}" preserve-timestamp="${preserveTimestamp}"
 		auto-create-local-directory="${autoCreateLocalDir}"
 		temporary-file-suffix="${tmpFileSuffix}" delete-remote-files="${deleteRemoteFiles}">
-		<poller fixed-rate="${fixedRate}" />
+		<poller trigger="trigger" />
 	</int-ftp:inbound-channel-adapter>
+
+	<beans:bean id="trigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+		<beans:constructor-arg value="${fixedDelay}" />
+		<beans:constructor-arg value="${timeUnit}" />
+		<beans:property name="initialDelay" value="${initialDelay} "/>
+	</beans:bean>
 
 	<channel id="output" />
 

@@ -14,7 +14,7 @@
 
 	<!-- TODO: Add BatchMbeanExporter -->
 	<util:properties id="objectNameProperties">
-		<prop key="group">${xd.stream.name}</prop>
+		<prop key="group">${xd.group.name}</prop>
 		<prop key="label">${xd.module.label}</prop>
 		<prop key="type">${xd.module.type}</prop>
 		<prop key="sequence">${xd.module.sequence}</prop>

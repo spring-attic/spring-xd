@@ -13,6 +13,10 @@
 
 package org.springframework.xd.dirt.plugins;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_GROUP_NAME_KEY;
+
+import java.util.Properties;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.util.ConfigLocations;
@@ -23,6 +27,7 @@ import org.springframework.xd.module.core.Module;
  *
  * @author David Turanski
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  */
 public class MBeanExportingPlugin extends AbstractPlugin {
 
@@ -33,6 +38,9 @@ public class MBeanExportingPlugin extends AbstractPlugin {
 
 	@Override
 	public void preProcessModule(Module module) {
+		Properties properties = new Properties();
+		properties.setProperty(XD_GROUP_NAME_KEY, module.getDescriptor().getGroup());
+		module.addProperties(properties);
 		module.addSource(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
 	}
 

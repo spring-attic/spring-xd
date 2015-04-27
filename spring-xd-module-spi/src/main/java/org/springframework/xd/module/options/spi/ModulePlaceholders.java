@@ -29,6 +29,8 @@ public final class ModulePlaceholders {
 
 	public static final String XD_JOB_NAME_KEY = "xd.job.name";
 
+	public static final String XD_GROUP_NAME_KEY = "xd.group.name";
+
 	public static final String XD_MODULE_NAME_KEY = "xd.module.name";
 
 	public static final String XD_MODULE_TYPE_KEY = "xd.module.type";

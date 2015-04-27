@@ -160,10 +160,10 @@ public class ContainersController {
 				container.setMessageRates(messageRates);
 			}
 			catch (RestClientException e) {
-				logger.error(String.format("Error getting message rate metrics for %s", container.getName()), e);
+				logger.warn(String.format("Error getting message rate metrics for %s", container.getName()), e);
 			}
 			catch (JSONException jse) {
-				logger.error(String.format("Error getting message rate metrics for %s", container.getName()), jse);
+				logger.warn(String.format("Error getting message rate metrics for %s", container.getName()), jse);
 			}
 		}
 	}

@@ -110,14 +110,17 @@ public class ModuleCommands implements CommandMarker {
 		return result.toString();
 	}
 
+	/**
+	 * Escapes some special values so that they don't disturb console rendering and are easier to read.
+	 */
 	private String prettyPrintDefaultValue(Option o) {
 		if (o.getDefaultValue() == null) {
-			return ansi().fg(Ansi.Color.YELLOW).a("<none>").reset().toString();
+			return "<none>";
 		}
 		return o.getDefaultValue()
-				.replace("\n", ansi().fg(Ansi.Color.YELLOW).a("\\n").reset().toString())
-				.replace("\t", ansi().fg(Ansi.Color.YELLOW).a("\\t").reset().toString())
-				.replace("\f", ansi().fg(Ansi.Color.YELLOW).a("\\f").reset().toString());
+				.replace("\n", "\\n")
+				.replace("\t", "\\t")
+				.replace("\f", "\\f");
 	}
 
 	@CliCommand(value = COMPOSE_MODULE, help = "Create a virtual module")

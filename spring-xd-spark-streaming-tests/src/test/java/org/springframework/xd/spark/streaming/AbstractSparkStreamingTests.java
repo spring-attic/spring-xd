@@ -26,6 +26,7 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasConten
 import java.io.File;
 import java.util.Random;
 
+import org.hamcrest.core.StringContains;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,6 +40,7 @@ import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.shell.command.StreamCommandTemplate;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.XDMatchers;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.fixtures.FileSink;
 
@@ -147,7 +149,7 @@ public abstract class AbstractSparkStreamingTests {
 		String tapStreamName =  testName.getMethodName() + new Random().nextInt();
 		FileSink sink = new FileSink().binary(true);
 		try {
-			String stream = String.format("%s | spark-word-count | counter", source);
+			String stream = String.format("%s | spark-word-count --enableTap=true | counter", source);
 			createStream(streamName, stream);
 			String tapStream = String.format("tap:stream:%s.spark-word-count > %s --inputType=text/plain", streamName, sink);
 			createStream(tapStreamName, tapStream);

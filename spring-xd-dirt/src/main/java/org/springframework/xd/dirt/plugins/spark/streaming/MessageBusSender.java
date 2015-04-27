@@ -55,6 +55,8 @@ class MessageBusSender extends SparkMessageSender {
 
 	private final Properties moduleProducerProperties;
 
+	private final Properties moduleProperties;
+
 	private MessageBus messageBus;
 
 	private ConfigurableApplicationContext applicationContext;
@@ -69,19 +71,23 @@ class MessageBusSender extends SparkMessageSender {
 
 	private final String tapChannelName;
 
+	private static final String ENABLE_TAP_PROP = "enableTap";
+
 	public MessageBusSender(String outputChannelName, String tapChannelName, Properties messageBusProperties,
-			Properties moduleProducerProperties, MimeType contentType) {
-		this(null, outputChannelName, tapChannelName, messageBusProperties, moduleProducerProperties, contentType);
+			Properties moduleProducerProperties, MimeType contentType, Properties moduleProperties) {
+		this(null, outputChannelName, tapChannelName, messageBusProperties, moduleProducerProperties, contentType,
+				moduleProperties);
 	}
 
 	public MessageBusSender(LocalMessageBusHolder messageBusHolder, String outputChannelName,
 			String tapChannelName, Properties messageBusProperties, Properties moduleProducerProperties,
-			MimeType contentType) {
+			MimeType contentType, Properties moduleProperties) {
 		this.messageBusHolder = messageBusHolder;
 		this.outputChannelName = outputChannelName;
 		this.tapChannelName = tapChannelName;
 		this.messageBusProperties = messageBusProperties;
 		this.moduleProducerProperties = moduleProducerProperties;
+		this.moduleProperties = moduleProperties;
 		this.contentType = contentType;
 		this.outputChannel = new SparkStreamingChannel();
 	}
@@ -103,10 +109,26 @@ class MessageBusSender extends SparkMessageSender {
 					outputChannel.configureMessageConverter(contentType);
 				}
 				messageBus.bindProducer(outputChannelName, outputChannel, moduleProducerProperties);
-				addTapChannel();
+				if (isTapEnabled()) {
+					addTapChannel();
+				}
 			}
 			this.running = true;
 		}
+	}
+
+	/**
+	 * Check if the tap is enabled for this module's output.
+	 *
+	 * @return boolean
+	 */
+	private boolean isTapEnabled() {
+		boolean tapEnabled = false;
+		String enableTap = this.moduleProperties.getProperty(ENABLE_TAP_PROP);
+		if (enableTap != null) {
+			tapEnabled = enableTap.equalsIgnoreCase(Boolean.TRUE.toString());
+		}
+		return tapEnabled;
 	}
 
 	/**
@@ -146,7 +168,9 @@ class MessageBusSender extends SparkMessageSender {
 					((WireTap) interceptor).stop();
 				}
 			}
-			messageBus.unbindProducers(tapChannelName);
+			if (isTapEnabled()) {
+				messageBus.unbindProducers(tapChannelName);
+			}
 			messageBus = null;
 		}
 		if (applicationContext != null) {

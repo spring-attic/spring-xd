@@ -110,7 +110,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 			if (module.getType().equals(ModuleType.processor)) {
 				MessageBusSender sender = new MessageBusSender(messageBusHolder, getOutputChannelName(module),
 						buildTapChannelName(module), messageBusProperties, outboundModuleProperties,
-						ModuleTypeConversionSupport.getOutputMimeType(module));
+						ModuleTypeConversionSupport.getOutputMimeType(module), module.getProperties());
 				ConfigurableBeanFactory beanFactory = module.getApplicationContext().getBeanFactory();
 				beanFactory.registerSingleton("messageBusSender", sender);
 			}
@@ -122,7 +122,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 				ConfigurableBeanFactory beanFactory = module.getApplicationContext().getBeanFactory();
 				MessageBusSender sender = new MessageBusSender(getOutputChannelName(module), buildTapChannelName(module),
 						messageBusProperties, outboundModuleProperties,
-						ModuleTypeConversionSupport.getOutputMimeType(module));
+						ModuleTypeConversionSupport.getOutputMimeType(module), module.getProperties());
 				beanFactory.registerSingleton("messageBusSender", sender);
 			}
 		}

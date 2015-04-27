@@ -36,6 +36,8 @@ public class DefaultSparkStreamingModuleOptionsMetadata {
 
 	private String storageLevel = "";
 
+	private boolean enableTap = false;
+
 	@ModuleOption("the time interval in millis for batching the stream events")
 	public void setBatchInterval(final String batchInterval) {
 		this.batchInterval = batchInterval;
@@ -68,6 +70,15 @@ public class DefaultSparkStreamingModuleOptionsMetadata {
 				return false;
 			}
 		}
+	}
+
+	@ModuleOption("enable tap at the output of the spark processor module")
+	public void setEnableTap(boolean enableTap) {
+		this.enableTap = enableTap;
+	}
+
+	public boolean isEnableTap() {
+		return this.enableTap;
 	}
 
 	@ModuleOption(value = "the underlying execution framework", hidden = true)

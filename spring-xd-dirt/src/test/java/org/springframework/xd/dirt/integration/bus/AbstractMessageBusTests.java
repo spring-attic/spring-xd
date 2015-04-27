@@ -47,8 +47,8 @@ import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
 import org.springframework.xd.tuple.Tuple;
+import org.springframework.xd.tuple.serializer.kryo.TupleCodec;
 
 /**
  * @author Gary Russell
@@ -291,7 +291,7 @@ public abstract class AbstractMessageBusTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected MultiTypeCodec<Object> getCodec() {
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
 		codecs.put(Tuple.class, new TupleCodec());
 		return new CompositeCodec(codecs, new PojoCodec());
 	}

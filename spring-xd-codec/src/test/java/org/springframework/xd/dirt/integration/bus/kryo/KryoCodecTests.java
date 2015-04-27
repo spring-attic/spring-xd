@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus.serializer.kryo;
+package org.springframework.xd.dirt.integration.bus.kryo;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,8 +28,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.xd.tuple.Tuple;
-import org.springframework.xd.tuple.TupleBuilder;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.StringCodec;
 
 /**
  * @author David Turanski
@@ -79,10 +79,6 @@ public class KryoCodecTests {
 		private String val1;
 
 		private int val2;
-
-		public SomeClassWithNoDefaultConstructors(String val1) {
-			this.val1 = val1;
-		}
 
 		public SomeClassWithNoDefaultConstructors(String val1, int val2) {
 			this.val1 = val1;
@@ -159,19 +155,7 @@ public class KryoCodecTests {
 		assertEquals(2, foo2.get("two"));
 	}
 
-	@Test
-	public void testNestedTupleSerialization() throws IOException {
-		TupleCodec serializer = new TupleCodec();
-		Tuple t0 = TupleBuilder.tuple().of("one", 1, "two", 2);
-		Tuple t1 = TupleBuilder.tuple().of("t0", t0);
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		serializer.serialize(t1, bos);
-		Tuple t2 = serializer.deserialize(bos.toByteArray());
-		Tuple t3 = (Tuple) t2.getValue("t0");
-		assertEquals(1, t3.getInt("one"));
-		assertEquals(2, t3.getInt("two"));
-		assertEquals(t0, t3);
-	}
+
 
 	static class Foo {
 

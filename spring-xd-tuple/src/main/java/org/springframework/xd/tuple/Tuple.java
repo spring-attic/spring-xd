@@ -572,16 +572,4 @@ public interface Tuple {
 	 */
 	Long getTimestamp();
 
-
-	/*
-	 * TODO consider once tuples are being processed in some context String getStreamName();
-	 * 
-	 * String getComponentName();
-	 */
-
-
-	/* TODO consider general metadata property/hash */
-
-	/* TODO in FieldSet have getRawString (including trailing white space) as well as getProperties */
-
 }

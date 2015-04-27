@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A {@link org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar } implementation backed by a Map
+ * A {@link KryoRegistrar } implementation backed by a Map
  * used to explicitly set the registration ID for each class.
  *
  * @author David Turanski

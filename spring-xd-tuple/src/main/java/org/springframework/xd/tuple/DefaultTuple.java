@@ -33,28 +33,17 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.IdGenerator;
 
 /**
  * Default implementation of Tuple interface
- * 
  * @author Mark Pollack
  * @author David Turanski
  * @author Michael Minella
- * 
  */
 public class DefaultTuple implements Tuple {
 
-	// TODO - error handling - when delegating to the conversion service, the ConversionFailedException does not have
-	// the context of which key
-	// caused the failure. Need to wrap ConversionFailedException with IllegalArgumentException and add that context
-	// back in.
-
-	// TODO consider LinkedHashMap and map to link index position to nam,e, look at efficient impls in goldman sach's
-	// collection class lib.
 	private List<String> names;
 
 	private List<Object> values;
@@ -63,17 +52,15 @@ public class DefaultTuple implements Tuple {
 
 	private transient Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
 
-	private static volatile IdGenerator idGenerator = null;
+	private final UUID id;
 
-	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
-
-	private UUID id;
-
-	private Long timestamp;
+	private final Long timestamp;
 
 	// TODO consider making final and package protect ctor so as to always use TupleBuilder
 
-	public DefaultTuple(List<String> names, List<Object> values, ConfigurableConversionService configurableConversionService) {
+	public DefaultTuple(List<String> names, List<Object> values, ConfigurableConversionService 
+			configurableConversionService, UUID id,
+			Long timestamp) {
 		Assert.notNull(names);
 		Assert.notNull(values);
 		Assert.notNull(configurableConversionService);
@@ -81,13 +68,11 @@ public class DefaultTuple implements Tuple {
 			throw new IllegalArgumentException("Field names must be same length as values: names=" + names
 					+ ", values=" + values);
 		}
-		// TODO check for no duplicate names.
-		// TODO check for no null values.
 		this.names = new ArrayList<>(names);
 		this.values = new ArrayList<>(values); // shallow copy
 		this.configurableConversionService = configurableConversionService;
-		this.id = getIdGenerator().generateId();
-		this.timestamp = System.currentTimeMillis();
+		this.id = id;
+		this.timestamp = timestamp;
 	}
 
 	/*
@@ -122,7 +107,6 @@ public class DefaultTuple implements Tuple {
 
 	/**
 	 * Return the values for all the fields in this tuple
-	 * 
 	 * @return an unmodifiable List of names.
 	 */
 	@Override
@@ -132,7 +116,6 @@ public class DefaultTuple implements Tuple {
 
 	/**
 	 * Return the values for all the fields in this tuple
-	 * 
 	 * @return an unmodifiable List list of values.
 	 */
 	@Override
@@ -596,7 +579,6 @@ public class DefaultTuple implements Tuple {
 		ExpressionParser parser = new SpelExpressionParser();
 		Expression exp = parser.parseExpression(expression);
 
-		// TODO test instance is a map
 		Object result = exp.getValue(context);
 		Map<String, Object> resultMap = null;
 		if (ClassUtils.isAssignableValue(Map.class, result)) {
@@ -607,7 +589,7 @@ public class DefaultTuple implements Tuple {
 		}
 		else {
 			return new DefaultTuple(new ArrayList<String>(0), new ArrayList<>(0),
-					this.configurableConversionService);
+					this.configurableConversionService, null, null);
 		}
 	}
 
@@ -632,21 +614,18 @@ public class DefaultTuple implements Tuple {
 		for (Object value : resultMap.values()) {
 			newValues.add(value);
 		}
-		return new DefaultTuple(newNames, newValues, this.configurableConversionService);
+		return new DefaultTuple(newNames, newValues, this.configurableConversionService, null, null);
 
 	}
 
 	@SuppressWarnings("unchecked")
 	<T> T convert(Object value, Class<T> targetType) {
-		// TODO wrap ConversionFailedException in IllegalArgumentException... may need to pass in index/field name for
-		// good error reporting.
 		return (T) configurableConversionService.convert(value, TypeDescriptor.forObject(value),
 				TypeDescriptor.valueOf(targetType));
 	}
 
 	/**
 	 * Find the index in the names collection for the given name.
-	 * 
 	 * Returns -1 if not found.
 	 */
 	protected int indexOf(String name) {
@@ -654,7 +633,6 @@ public class DefaultTuple implements Tuple {
 	}
 
 	/**
-	 * 
 	 * @param tupleToStringConverter used to convert a {@link Tuple} to a String
 	 */
 	protected void setTupleToStringConverter(Converter<Tuple, String> tupleToStringConverter) {
@@ -662,11 +640,10 @@ public class DefaultTuple implements Tuple {
 		this.tupleToStringConverter = tupleToStringConverter;
 	}
 
-	protected static IdGenerator getIdGenerator() {
-		return (idGenerator != null ? idGenerator : defaultIdGenerator);
-	}
-
 	@Override
+	/**
+	 * The format is of the form DefaultTuple [names="n1'
+	 */
 	public String toString() {
 		return tupleToStringConverter.convert(this);
 	}
@@ -679,6 +656,10 @@ public class DefaultTuple implements Tuple {
 					+ "]";
 		}
 
+	}
+	
+	public ConfigurableConversionService getConversionService() {
+		return this.configurableConversionService;
 	}
 
 }

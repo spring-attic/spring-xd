@@ -41,7 +41,7 @@ import org.springframework.xd.dirt.integration.bus.MessageBusSupport.JavaClassMi
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
+import org.springframework.xd.tuple.serializer.kryo.TupleCodec;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
@@ -59,7 +59,7 @@ public class MessageBusSupportTests {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Before
 	public void setUp() {
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
 		codecs.put(Tuple.class, new TupleCodec());
 		messageBus.setCodec(new CompositeCodec(codecs, new PojoCodec()));
 	}

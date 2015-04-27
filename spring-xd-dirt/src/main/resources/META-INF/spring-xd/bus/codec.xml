@@ -7,7 +7,7 @@
 		<constructor-arg name="delegates">
 			<map>
 				<entry key="org.springframework.xd.tuple.Tuple">
-					<bean class="org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec"/>
+					<bean class="org.springframework.xd.tuple.serializer.kryo.TupleCodec"/>
 				</entry>
 				<entry key="java.io.File">
 					<bean class="org.springframework.xd.dirt.integration.bus.serializer.kryo.FileCodec"/>

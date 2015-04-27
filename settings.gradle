@@ -4,6 +4,7 @@ include 'spring-xd-spi-common'
 
 include 'spring-xd-analytics'
 include 'spring-xd-analytics-ml'
+include 'spring-xd-codec'
 
 include 'spring-xd-rxjava'
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus.serializer.kryo;
+package org.springframework.xd.dirt.integration.bus.kryo;
 
 import static org.junit.Assert.assertEquals;
 
@@ -29,10 +29,7 @@ import org.junit.Test;
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-import org.springframework.xd.tuple.DefaultTuple;
-import org.springframework.xd.tuple.Tuple;
-import org.springframework.xd.tuple.TupleBuilder;
-
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 
 /**
  * @author David Turanski
@@ -45,8 +42,7 @@ public class CompositeCodecTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
 	public void setup() {
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
-		codecs.put(Tuple.class, new TupleCodec());
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
 		codec = new CompositeCodec(codecs, new PojoCodec());
 	}
 
@@ -59,19 +55,6 @@ public class CompositeCodecTests {
 				bos.toByteArray(),
 				SomeClassWithNoDefaultConstructors.class);
 		assertEquals(foo, foo2);
-	}
-
-	@Test
-	public void testTupleSerialization() throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		Tuple foo = TupleBuilder.tuple().of("hello", 123, "foo", "bar");
-		codec.serialize(foo, bos);
-		Tuple foo2 = (Tuple) codec.deserialize(
-				bos.toByteArray(),
-				DefaultTuple.class);
-		// Not foo2.equals(foo) actually returns a new instance
-		assertEquals(foo.getInt(0), foo2.getInt(0));
-		assertEquals(foo.getString(1), foo2.getString(1));
 	}
 
 	static class SomeClassWithNoDefaultConstructors {

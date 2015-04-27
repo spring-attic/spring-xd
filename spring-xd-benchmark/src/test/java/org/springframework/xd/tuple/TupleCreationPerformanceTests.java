@@ -58,7 +58,7 @@ public class TupleCreationPerformanceTests {
 	@Test
 	@Repeat(4)
 	public void testCreationOfTuples() {
-		StopWatch watch = new StopWatch();
+		StopWatch watch = new StopWatch("simple");
 		watch.start();
 		for(int i = 0; i < 100000; i++) {
 			TupleBuilder.tuple()
@@ -74,7 +74,7 @@ public class TupleCreationPerformanceTests {
 	@Test
 	@Repeat(4)
 	public void testCreationOfTuplesCustomConversionService() {
-		StopWatch watch = new StopWatch();
+		StopWatch watch = new StopWatch("customConversionService");
 		watch.start();
 		for(int i = 0; i < 100000; i++) {
 			TupleBuilder.tuple()
@@ -91,7 +91,7 @@ public class TupleCreationPerformanceTests {
 	@Test
 	@Repeat(4)
 	public void testCreationOfTuplesCustomConversionServiceAutowired() {
-		StopWatch watch = new StopWatch();
+		StopWatch watch = new StopWatch("customcConversionServiceAutowired");
 		watch.start();
 		for(int i = 0; i < 100000; i++) {
 			TupleBuilder.tuple()

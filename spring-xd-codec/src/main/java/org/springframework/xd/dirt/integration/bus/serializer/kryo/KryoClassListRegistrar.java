@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 /**
- * A {@link org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar} used to register a 
+ * A {@link KryoRegistrar} used to register a
  * list of Java classes. This assigns a sequential registration ID starting with an initial value (50 by default), but
  * may be configured. This is easiest to set up but requires that every server node be configured with the identical 
  * list in the same order.

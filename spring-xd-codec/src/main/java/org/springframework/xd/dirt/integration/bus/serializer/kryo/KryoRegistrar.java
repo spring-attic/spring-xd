@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 import com.esotericsoftware.kryo.Kryo;
 
 /**
- * Strategy interface used by {@link org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec} to register
+ * Strategy interface used by {@link PojoCodec} to register
  * classes consistently across {@link Kryo} instances. An XD user may register an instance of this type in the Spring XD
  * Application Context to enable kryo class registration which results in efficiency gains if you know the types your
  * application needs in advance. Note that Kryo serialization only applies to types used as message payloads in XD
@@ -43,7 +43,7 @@ import com.esotericsoftware.kryo.Kryo;
  */
 public interface KryoRegistrar {
 	/**
-	 * This method is invoked by the {@link org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec} and
+	 * This method is invoked by the {@link PojoCodec} and
 	 * applied to the {@link Kryo} instance whenever one is provided. This is currently done using an object pool so it
 	 * is inevitable that this method will be invoked repeatedly on the same instance. Kryo registration is idempotent,
 	 * but this could become inefficient if registering a large amount of types.

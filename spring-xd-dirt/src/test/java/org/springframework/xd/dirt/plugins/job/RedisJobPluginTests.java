@@ -32,7 +32,7 @@ import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
+import org.springframework.xd.tuple.serializer.kryo.TupleCodec;
 import org.springframework.xd.dirt.integration.redis.RedisMessageBus;
 import org.springframework.xd.test.redis.RedisTestSupport;
 import org.springframework.xd.tuple.Tuple;
@@ -75,7 +75,7 @@ public class RedisJobPluginTests extends JobPluginTests {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected MultiTypeCodec<Object> getCodec() {
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
 		codecs.put(Tuple.class, new TupleCodec());
 		return new CompositeCodec(codecs, new PojoCodec());
 	}

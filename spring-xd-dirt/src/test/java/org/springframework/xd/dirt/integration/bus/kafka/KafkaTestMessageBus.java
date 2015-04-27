@@ -26,7 +26,7 @@ import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.TupleCodec;
+import org.springframework.xd.tuple.serializer.kryo.TupleCodec;
 import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 import org.springframework.xd.dirt.integration.kafka.TestKafkaCluster;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
@@ -74,7 +74,7 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private static MultiTypeCodec<Object> getCodec() {
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
 		codecs.put(Tuple.class, new TupleCodec());
 		return new CompositeCodec(codecs, new PojoCodec());
 	}

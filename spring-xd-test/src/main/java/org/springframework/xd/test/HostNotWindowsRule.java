@@ -28,13 +28,14 @@ import org.junit.runners.model.Statement;
 public class HostNotWindowsRule implements TestRule {
 
 	@Override
-	public Statement apply(Statement base, Description description) {
+	public Statement apply(final Statement base, Description description) {
 
 		return new Statement() {
 
 			@Override
 			public void evaluate() throws Throwable {
 				Assume.assumeFalse("Skipping test on windows host", isWindows());
+				base.evaluate();
 			}
 		};
 

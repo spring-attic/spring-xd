@@ -141,8 +141,9 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 		public ModuleOptionsMetadataWithDefaults(ModuleOptionsMetadata wrapped, ModuleDefinition moduleDefinition) {
 			this.wrapped = wrapped;
 			this.moduleDefinition = moduleDefinition;
+			Environment moduleEnvironment = lookupEnvironment(moduleDefinition);
 			for (ModuleOption original : wrapped) {
-				Object newDefault = computeDefault(original);
+				Object newDefault = computeDefault(original, moduleEnvironment);
 				if (newDefault != null) {
 					// This changes the value by side effect
 					original.withDefaultValue(newDefault);
@@ -167,8 +168,7 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 			return wrapped.interpolate(rawPlusDefaults);
 		}
 
-		private Object computeDefault(ModuleOption option) {
-			Environment moduleEnvironment = lookupEnvironment(moduleDefinition);
+		private Object computeDefault(ModuleOption option, Environment moduleEnvironment) {
 			String fqKey = fullyQualifiedKey(moduleDefinition, option.getName());
 			return moduleEnvironment.getProperty(fqKey);
 		}

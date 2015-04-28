@@ -111,7 +111,9 @@ public class ContainersController {
 			PagedResourcesAssembler<DetailedContainer> assembler) throws ModuleMessageRateNotFoundException {
 		Page<DetailedContainer> containers = containerRepository.findAllRuntimeContainers(pageable);
 		for (DetailedContainer container : containers) {
-			setMessageRates(container);
+			if (!container.getDeployedModules().isEmpty()) {
+				setMessageRates(container);
+			}
 		}
 		return assembler.toResource(containers, resourceAssembler);
 	}

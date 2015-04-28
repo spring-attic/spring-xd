@@ -204,15 +204,6 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 		}
 	}
 
-	@Test
-	public void testDeleteUploadedModuleUsedByStream() throws IOException {
-		File moduleSource = new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar");
-		module().upload("siDslModule2", processor, moduleSource);
-		stream().createDontDeploy("foo", "http | siDslModule2 --prefix=foo | log");
-		assertFalse(module().delete("siDslModule2", processor));
-	}
-
-
 	private Table listAll() {
 		return (Table) getShell().executeCommand("module list").getResult();
 	}

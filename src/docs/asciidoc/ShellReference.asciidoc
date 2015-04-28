@@ -35,12 +35,6 @@ $$Configure the XD admin server to use$$.
 
 
 === Runtime Commands
-==== $$runtime containers$$
-$$List runtime containers$$.
-
-    runtime containers
-
-
 ==== $$runtime modules$$
 $$List runtime modules$$.
 
@@ -48,6 +42,12 @@ $$List runtime modules$$.
 
 *$$containerId$$*:: $$to filter by container id$$.
 *$$moduleId$$*:: $$to filter by module id$$.
+
+==== $$runtime containers$$
+$$List runtime containers$$.
+
+    runtime containers
+
 
 
 === Stream Commands
@@ -104,6 +104,34 @@ $$List created streams$$.
 
 
 === Job Commands
+==== $$job create$$
+$$Create a job$$.
+
+    job create [--name] <name> --definition <definition> [--deploy [<deploy>]]
+
+*$$name$$*:: $$the name to give to the job$$. *(required)*
+*$$definition$$*:: $$job definition using xd dsl $$. *(required)*
+*$$deploy$$*:: $$whether to deploy the job immediately$$. *(default: `false`, or `true` if +--deploy+ is specified without a value)*
+
+==== $$job list$$
+$$List all jobs$$.
+
+    job list
+
+
+==== $$job execution list$$
+$$List all job executions$$.
+
+    job execution list
+
+
+==== $$job execution step list$$
+$$List all step executions for the provided job execution id$$.
+
+    job execution step list [--id] <id>
+
+*$$id$$*:: $$the id of the job execution$$. *(required)*
+
 ==== $$job execution step progress$$
 $$Get the progress info for the given step execution$$.
 
@@ -199,34 +227,6 @@ $$Destroy all existing jobs$$.
 
 *$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
 
-==== $$job create$$
-$$Create a job$$.
-
-    job create [--name] <name> --definition <definition> [--deploy [<deploy>]]
-
-*$$name$$*:: $$the name to give to the job$$. *(required)*
-*$$definition$$*:: $$job definition using xd dsl $$. *(required)*
-*$$deploy$$*:: $$whether to deploy the job immediately$$. *(default: `false`, or `true` if +--deploy+ is specified without a value)*
-
-==== $$job list$$
-$$List all jobs$$.
-
-    job list
-
-
-==== $$job execution list$$
-$$List all job executions$$.
-
-    job execution list
-
-
-==== $$job execution step list$$
-$$List all step executions for the provided job execution id$$.
-
-    job execution step list [--id] <id>
-
-*$$id$$*:: $$the id of the job execution$$. *(required)*
-
 
 === Module Commands
 ==== $$module info$$
@@ -269,14 +269,6 @@ $$List all modules$$.
 
 
 === Metrics Commands
-==== $$counter display$$
-$$Display the value of a counter$$.
-
-    counter display [--name] <name> [--pattern <pattern>]
-
-*$$name$$*:: $$the name of the counter to display$$. *(required)*
-*$$pattern$$*:: $$the pattern used to format the value (see DecimalFormat)$$. *(default: `<use platform locale>`)*
-
 ==== $$counter list$$
 $$List all available counter names$$.
 
@@ -290,15 +282,14 @@ $$Delete the counter with the given name$$.
 
 *$$name$$*:: $$the name of the counter to delete$$. *(required)*
 
+==== $$counter display$$
+$$Display the value of a counter$$.
 
-==== $$field-value-counter display$$
-$$Display the value of a field-value-counter$$.
+    counter display [--name] <name> [--pattern <pattern>]
 
-    field-value-counter display [--name] <name> [--pattern <pattern>] [--size <size>]
+*$$name$$*:: $$the name of the counter to display$$. *(required)*
+*$$pattern$$*:: $$the pattern used to format the value (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
-*$$name$$*:: $$the name of the field-value-counter to display$$. *(required)*
-*$$pattern$$*:: $$the pattern used to format the field-value-counter's field count (see DecimalFormat)$$. *(default: `<use platform locale>`)*
-*$$size$$*:: $$the number of values to display$$. *(default: `25`)*
 
 ==== $$field-value-counter list$$
 $$List all available field-value-counter names$$.
@@ -313,19 +304,15 @@ $$Delete the field-value-counter with the given name$$.
 
 *$$name$$*:: $$the name of the field-value-counter to delete$$. *(required)*
 
+==== $$field-value-counter display$$
+$$Display the value of a field-value-counter$$.
 
-==== $$aggregate-counter display$$
-$$Display aggregate counter values by chosen interval and resolution(minute, hour)$$.
+    field-value-counter display [--name] <name> [--pattern <pattern>] [--size <size>]
 
-    aggregate-counter display [--name] <name> [--from <from>] [--to <to>] [--lastHours <lastHours>] [--lastDays <lastDays>] [--resolution <resolution>] [--pattern <pattern>]
+*$$name$$*:: $$the name of the field-value-counter to display$$. *(required)*
+*$$pattern$$*:: $$the pattern used to format the field-value-counter's field count (see DecimalFormat)$$. *(default: `<use platform locale>`)*
+*$$size$$*:: $$the number of values to display$$. *(default: `25`)*
 
-*$$name$$*:: $$the name of the aggregate counter to display$$. *(required)*
-*$$from$$*:: $$start-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'$$.
-*$$to$$*:: $$end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. defaults to now$$.
-*$$lastHours$$*:: $$set the interval to last 'n' hours$$.
-*$$lastDays$$*:: $$set the interval to last 'n' days$$.
-*$$resolution$$*:: $$the size of the bucket to aggregate (minute, hour, day, month)$$. *(default: `hour`)*
-*$$pattern$$*:: $$the pattern used to format the count values (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
 ==== $$aggregate-counter list$$
 $$List all available aggregate counter names$$.
@@ -340,14 +327,19 @@ $$Delete an aggregate counter$$.
 
 *$$name$$*:: $$the name of the aggregate counter to delete$$. *(required)*
 
+==== $$aggregate-counter display$$
+$$Display aggregate counter values by chosen interval and resolution(minute, hour)$$.
 
-==== $$gauge display$$
-$$Display the value of a gauge$$.
+    aggregate-counter display [--name] <name> [--from <from>] [--to <to>] [--lastHours <lastHours>] [--lastDays <lastDays>] [--resolution <resolution>] [--pattern <pattern>]
 
-    gauge display [--name] <name> [--pattern <pattern>]
+*$$name$$*:: $$the name of the aggregate counter to display$$. *(required)*
+*$$from$$*:: $$start-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'$$.
+*$$to$$*:: $$end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. defaults to now$$.
+*$$lastHours$$*:: $$set the interval to last 'n' hours$$.
+*$$lastDays$$*:: $$set the interval to last 'n' days$$.
+*$$resolution$$*:: $$the size of the bucket to aggregate (minute, hour, day, month)$$. *(default: `hour`)*
+*$$pattern$$*:: $$the pattern used to format the count values (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
-*$$name$$*:: $$the name of the gauge to display$$. *(required)*
-*$$pattern$$*:: $$the pattern used to format the value (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
 ==== $$gauge list$$
 $$List all available gauge names$$.
@@ -362,14 +354,14 @@ $$Delete a gauge$$.
 
 *$$name$$*:: $$the name of the gauge to delete$$. *(required)*
 
+==== $$gauge display$$
+$$Display the value of a gauge$$.
 
-==== $$rich-gauge display$$
-$$Display Rich Gauge value$$.
+    gauge display [--name] <name> [--pattern <pattern>]
 
-    rich-gauge display [--name] <name> [--pattern <pattern>]
+*$$name$$*:: $$the name of the gauge to display$$. *(required)*
+*$$pattern$$*:: $$the pattern used to format the value (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
-*$$name$$*:: $$the name of the richgauge to display value$$. *(required)*
-*$$pattern$$*:: $$the pattern used to format the richgauge value (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
 ==== $$rich-gauge list$$
 $$List all available richgauge names$$.
@@ -383,6 +375,14 @@ $$Delete the richgauge$$.
     rich-gauge delete [--name] <name>
 
 *$$name$$*:: $$the name of the richgauge to delete$$. *(required)*
+
+==== $$rich-gauge display$$
+$$Display Rich Gauge value$$.
+
+    rich-gauge display [--name] <name> [--pattern <pattern>]
+
+*$$name$$*:: $$the name of the richgauge to display value$$. *(required)*
+*$$pattern$$*:: $$the pattern used to format the richgauge value (see DecimalFormat)$$. *(default: `<use platform locale>`)*
 
 
 === Http Commands
@@ -411,6 +411,20 @@ $$Returns basic info about the Hadoop configuration$$.
     hadoop config info
 
 
+==== $$hadoop config props set$$
+$$Sets the value for the given Hadoop property$$.
+
+    hadoop config props set [--property] <property>
+
+*$$property$$*:: $$what to set, in the form <name=value>$$. *(required)*
+
+==== $$hadoop config props get$$
+$$Returns the value of the given Hadoop property$$.
+
+    hadoop config props get [--key] <key>
+
+*$$key$$*:: $$property name$$. *(required)*
+
 ==== $$hadoop config load$$
 $$Loads the Hadoop configuration from the given resource$$.
 
@@ -431,22 +445,49 @@ $$Sets the Hadoop namenode$$.
 
 *$$namenode$$*:: $$namenode URL - can be file:///|hdfs://<namenode>:<port>|webhdfs://<namenode>:<port>$$. *(required)*
 
-==== $$hadoop config props set$$
-$$Sets the value for the given Hadoop property$$.
-
-    hadoop config props set [--property] <property>
-
-*$$property$$*:: $$what to set, in the form <name=value>$$. *(required)*
-
-==== $$hadoop config props get$$
-$$Returns the value of the given Hadoop property$$.
-
-    hadoop config props get [--key] <key>
-
-*$$key$$*:: $$property name$$. *(required)*
-
 
 === Hadoop FileSystem Commands
+==== $$hadoop fs get$$
+$$Copy files to the local file system$$.
+
+    hadoop fs get --from <from> --to <to> [--ignoreCrc [<ignoreCrc>]] [--crc [<crc>]]
+
+*$$from$$*:: $$source file names$$. *(required)*
+*$$to$$*:: $$destination path name$$. *(required)*
+*$$ignoreCrc$$*:: $$whether ignore CRC$$. *(default: `false`, or `true` if +--ignoreCrc+ is specified without a value)*
+*$$crc$$*:: $$whether copy CRC$$. *(default: `false`, or `true` if +--crc+ is specified without a value)*
+
+==== $$hadoop fs put$$
+$$Copy single src, or multiple srcs from local file system to the destination file system$$.
+
+    hadoop fs put --from <from> --to <to>
+
+*$$from$$*:: $$source file names$$. *(required)*
+*$$to$$*:: $$destination path name$$. *(required)*
+
+==== $$hadoop fs count$$
+$$Count the number of directories, files, bytes, quota, and remaining quota$$.
+
+    hadoop fs count [--quota [<quota>]] --path <path>
+
+*$$quota$$*:: $$whether with quta information$$. *(default: `false`, or `true` if +--quota+ is specified without a value)*
+*$$path$$*:: $$path name$$. *(required)*
+
+==== $$hadoop fs tail$$
+$$Display last kilobyte of the file to stdout$$.
+
+    hadoop fs tail [--file] <file> [--follow [<follow>]]
+
+*$$file$$*:: $$file to be tailed$$. *(required)*
+*$$follow$$*:: $$whether show content while file grow$$. *(default: `false`, or `true` if +--follow+ is specified without a value)*
+
+==== $$hadoop fs mkdir$$
+$$Create a new directory$$.
+
+    hadoop fs mkdir [--dir] <dir>
+
+*$$dir$$*:: $$directory name$$. *(required)*
+
 ==== $$hadoop fs ls$$
 $$List files in the directory$$.
 
@@ -586,46 +627,5 @@ $$Create a file of zero length$$.
     hadoop fs touchz [--file] <file>
 
 *$$file$$*:: $$file to be touched$$. *(required)*
-
-==== $$hadoop fs get$$
-$$Copy files to the local file system$$.
-
-    hadoop fs get --from <from> --to <to> [--ignoreCrc [<ignoreCrc>]] [--crc [<crc>]]
-
-*$$from$$*:: $$source file names$$. *(required)*
-*$$to$$*:: $$destination path name$$. *(required)*
-*$$ignoreCrc$$*:: $$whether ignore CRC$$. *(default: `false`, or `true` if +--ignoreCrc+ is specified without a value)*
-*$$crc$$*:: $$whether copy CRC$$. *(default: `false`, or `true` if +--crc+ is specified without a value)*
-
-==== $$hadoop fs put$$
-$$Copy single src, or multiple srcs from local file system to the destination file system$$.
-
-    hadoop fs put --from <from> --to <to>
-
-*$$from$$*:: $$source file names$$. *(required)*
-*$$to$$*:: $$destination path name$$. *(required)*
-
-==== $$hadoop fs count$$
-$$Count the number of directories, files, bytes, quota, and remaining quota$$.
-
-    hadoop fs count [--quota [<quota>]] --path <path>
-
-*$$quota$$*:: $$whether with quta information$$. *(default: `false`, or `true` if +--quota+ is specified without a value)*
-*$$path$$*:: $$path name$$. *(required)*
-
-==== $$hadoop fs tail$$
-$$Display last kilobyte of the file to stdout$$.
-
-    hadoop fs tail [--file] <file> [--follow [<follow>]]
-
-*$$file$$*:: $$file to be tailed$$. *(required)*
-*$$follow$$*:: $$whether show content while file grow$$. *(default: `false`, or `true` if +--follow+ is specified without a value)*
-
-==== $$hadoop fs mkdir$$
-$$Create a new directory$$.
-
-    hadoop fs mkdir [--dir] <dir>
-
-*$$dir$$*:: $$directory name$$. *(required)*
 
 

@@ -249,7 +249,8 @@ xd:
         - GET    /completions/module?start=*     => hasRole('ROLE_VIEW')
         # Boot Endpoints
         - GET    /management/**                  => hasRole('ROLE_ADMIN')
-
+        # Version info
+        - GET    /meta/version                   => hasRole('ROLE_VIEW')
 
 server:
   port: ${PORT:9393}

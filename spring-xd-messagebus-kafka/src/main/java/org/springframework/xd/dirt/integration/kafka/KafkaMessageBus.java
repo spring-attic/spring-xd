@@ -708,8 +708,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
-		ReceivingHandler rh = new ReceivingHandler(kafkaMessageDrivenChannelAdapter,
-				messageListenerContainer.getOffsetManager());
+		ReceivingHandler rh = new ReceivingHandler();
 		rh.setOutputChannel(moduleInputChannel);
 		EventDrivenConsumer edc = new EventDrivenConsumer(bridge, rh) {
 			@Override
@@ -852,14 +851,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {
 
-		private KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter;
-
-		private OffsetManager offsetManager;
-
-		public ReceivingHandler(KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter,
-				OffsetManager offsetManager) {
-			this.kafkaMessageDrivenChannelAdapter = kafkaMessageDrivenChannelAdapter;
-			this.offsetManager = offsetManager;
+		public ReceivingHandler() {
 			this.setBeanFactory(KafkaMessageBus.this.getBeanFactory());
 		}
 
@@ -868,7 +860,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			Message<?> theRequestMessage = requestMessage;
 			try {
-				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
+				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage, true);
 			}
 			catch (Exception e) {
 				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);

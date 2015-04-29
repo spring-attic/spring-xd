@@ -383,7 +383,7 @@ public class RedisMessageBusTests extends PartitionCapableBusTests {
 				if (bytes == null) {
 					return null;
 				}
-				bytes = embeddedHeadersMessageConverter.extractHeaders(new GenericMessage<byte[]>(bytes)).getPayload();
+				bytes = embeddedHeadersMessageConverter.extractHeaders(new GenericMessage<byte[]>(bytes), false).getPayload();
 				return new String(bytes, "UTF-8");
 			}
 

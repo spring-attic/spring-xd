@@ -452,7 +452,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			Message<?> theRequestMessage = requestMessage;
 			try {
-				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
+				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage, true);
 			}
 			catch (Exception e) {
 				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);

@@ -661,17 +661,18 @@ $$programArgs$$:: $$program arguments for the application main class$$ *($$Strin
 //$job.sparkapp
 
 ==== Running Sqoop as a batch job (`sqoop`)
-A Sqoop job can be deployed and launched from Spring XD as a batch job. The Sqoop job uses a `SqoopTasklet` and a `SqoopRunner` that submits a Sqoop job using **org.apache.sqoop.Sqoop.runTool**. The Spring XD Sqoop batch job aims to support most of the Sqoop functionality, but at this point we have tested a limited subset:
+A Sqoop job can be deployed and launched from Spring XD as a batch job. The Sqoop job uses a `SqoopTasklet` and a `SqoopRunner` that submits a Sqoop job using **org.apache.sqoop.Sqoop.runTool**. The Spring XD Sqoop batch job aims to support most of the Sqoop functionality, but at this point we have only tested a subset:
 
 * import
 * export
 * codegen
 * merge
+* job
 * list-tables
 
 NOTE: The current release supports Sqoop 1.4.5
 
-The intention is to eventually support all features of the Sqoop tool including running Sqoop jobs saved in the Sqoop metastore. See http://sqoop.apache.org/docs/1.4.5/SqoopUserGuide.html[Sqoop User Guide] for full documentation of the Sqoop features.
+The intention is to eventually support all features of the Sqoop tool. See http://sqoop.apache.org/docs/1.4.5/SqoopUserGuide.html[Sqoop User Guide] for full documentation of the Sqoop features.
 
 We can test the Sqoop job by just listing the tables in the database:
 
@@ -759,6 +760,65 @@ spring:
       dfs.client.socket-timeout: 20000
 ----
 
+===== Using Sqoop's metastore
+
+It is possible to use Sqoop's metastore with some restrictions.
+
+WARNING: Sqoop ships with HSQLDB version 1.8 and Spring XD ships with HSQLDB version 2.3. Since these two versions are not compatible you can not use a Sqoop metastore
+that uses HSQLDB. This is unfortunate since HSQLDB version 1.8 is the only database that is fully supported for the metastore by Sqoop. We can however use another database
+for the metastore as long as we use some workarounds.
+
+NOTE: You can use PostgreSQL for the Sqoop metastore. We recommend that you run the commands listed below to create and initialize the tables to be used by the Sqoop metastore.
+
+Create and initialize the Sqoop metastore tables:
+
+----
+CREATE TABLE
+    SQOOP_ROOT
+    (
+        version INTEGER,
+        propname CHARACTER VARYING(128) NOT NULL,
+        propval CHARACTER VARYING(256),
+        UNIQUE (version, propname)
+    );
+CREATE TABLE
+    SQOOP_SESSIONS
+    (
+        job_name CHARACTER VARYING(64) NOT NULL,
+        propname CHARACTER VARYING(128) NOT NULL,
+        propval CHARACTER VARYING(1024),
+        propclass CHARACTER VARYING(32) NOT NULL,
+        UNIQUE (job_name, propname, propclass)
+    );
+INSERT INTO sqoop_root (version, propname, propval) VALUES (null, 'sqoop.hsqldb.job.storage.version', '0');
+INSERT INTO sqoop_root (version, propname, propval) VALUES (0, 'sqoop.hsqldb.job.info.table', 'SQOOP_SESSIONS');
+----
+
+You can now modify the `scoop-site.xml` file in the Spring XD config directory. Add the JDBC URL, username and password to use for connection to the PostgreSQL database
+that hosts the Sqoop metastore tables. You need to provide the following properties:
+
+- `sqoop.metastore.client.autoconnect.url`
+- `sqoop.metastore.client.autoconnect.username`
+- `sqoop.metastore.client.autoconnect.password`
+
+NOTE: In addition to the above configurations you need to use a `--password-file` option when creating the Sqoop job definitions. If you don't then Sqoop will prompt for a password
+as Spring XD runs the job. This will cause the job to hang.
+
+Here is an example of defining a Sqoop job using Spring XD's `sqoop` job:
+
+----
+xd>job create job1create --definition "sqoop --command=job --args='--create job1 -- import --table PETS --incremental append --check-column ID --last-value 0 --connect jdbc:hsqldb:hsql://localhost:9001/test --username sa --password-file /xd/hsql.password --target-dir /xd/job1 --num-mappers 1'" --deploy
+xd>job launch job1create
+----
+
+Here is an example of executing the predefined Sqoop job using Spring XD's `sqoop` job:
+
+----
+xd>job create job1exec --definition "sqoop --command=job --args='--exec job1'" --deploy
+xd>job launch job1exec
+----
+
+===== Options for Sqoop job
 
 //^job.sqoop
 // DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.sqoop' TAG

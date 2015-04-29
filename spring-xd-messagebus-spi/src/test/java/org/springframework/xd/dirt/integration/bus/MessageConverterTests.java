@@ -47,7 +47,7 @@ public class MessageConverterTests {
 		assertEquals("\u0002\u0003foo\u0000\u0000\u0000\u0005\"bar\"\u0003baz\u0000\u0000\u0000\u0006\"quxx\"Hello",
 				new String(converted.getPayload()).substring(1));
 
-		converted = converter.extractHeaders(converted);
+		converted = converter.extractHeaders(converted,false);
 		assertEquals("Hello", new String(converted.getPayload()));
 		assertEquals("bar", converted.getHeaders().get("foo"));
 		assertEquals("quxx", converted.getHeaders().get("baz"));
@@ -70,7 +70,7 @@ public class MessageConverterTests {
 		EmbeddedHeadersMessageConverter converter = new EmbeddedHeadersMessageConverter();
 		byte[] bytes = "\u0002\u0003foo\u0003bar\u0003baz\u0004quxxHello".getBytes("UTF-8");
 		Message<byte[]> message = new GenericMessage<byte[]>(bytes);
-		Message<byte[]> converted = converter.extractHeaders(message);
+		Message<byte[]> converted = converter.extractHeaders(message,false);
 		assertEquals("Hello", new String(converted.getPayload()));
 		assertEquals("bar", converted.getHeaders().get("foo"));
 		assertEquals("quxx", converted.getHeaders().get("baz"));
@@ -82,7 +82,7 @@ public class MessageConverterTests {
 		byte[] bytes = "\u0002\u0003foo\u0020bar\u0003baz\u0004quxxHello".getBytes("UTF-8");
 		Message<byte[]> message = new GenericMessage<byte[]>(bytes);
 		try {
-			converter.extractHeaders(message);
+			converter.extractHeaders(message,false);
 			Assert.fail("Exception expected");
 		}
 		catch (Exception e) {

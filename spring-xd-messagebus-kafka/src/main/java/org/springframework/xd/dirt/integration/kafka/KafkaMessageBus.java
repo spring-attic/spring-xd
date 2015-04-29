@@ -33,23 +33,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import kafka.admin.AdminUtils;
-import kafka.api.OffsetRequest;
-import kafka.api.TopicMetadata;
-import kafka.common.ErrorMapping;
-import kafka.javaapi.PartitionMetadata;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.DefaultPartitioner;
-import kafka.producer.KeyedMessage;
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
-import kafka.serializer.DefaultEncoder;
-import kafka.serializer.StringEncoder;
-import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
-import scala.collection.Seq;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.channel.DirectChannel;
@@ -94,6 +80,21 @@ import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.MessageValues;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+
+import kafka.admin.AdminUtils;
+import kafka.api.OffsetRequest;
+import kafka.api.TopicMetadata;
+import kafka.common.ErrorMapping;
+import kafka.javaapi.PartitionMetadata;
+import kafka.javaapi.producer.Producer;
+import kafka.producer.DefaultPartitioner;
+import kafka.producer.KeyedMessage;
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
+import kafka.serializer.DefaultEncoder;
+import kafka.serializer.StringEncoder;
+import kafka.utils.ZkUtils;
+import scala.collection.Seq;
 
 /**
  * A message bus that uses Kafka as the underlying middleware. The general implementation mapping between XD concepts
@@ -723,8 +724,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
-		ReceivingHandler rh = new ReceivingHandler(kafkaMessageDrivenChannelAdapter,
-				messageListenerContainer.getOffsetManager());
+		ReceivingHandler rh = new ReceivingHandler();
 		rh.setOutputChannel(moduleInputChannel);
 		EventDrivenConsumer edc = new EventDrivenConsumer(bridge, rh) {
 			@Override
@@ -871,14 +871,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {
 
-		private KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter;
-
-		private OffsetManager offsetManager;
-
-		public ReceivingHandler(KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter,
-				OffsetManager offsetManager) {
-			this.kafkaMessageDrivenChannelAdapter = kafkaMessageDrivenChannelAdapter;
-			this.offsetManager = offsetManager;
+		public ReceivingHandler() {
 			this.setBeanFactory(KafkaMessageBus.this.getBeanFactory());
 		}
 
@@ -887,7 +880,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			Message<?> theRequestMessage = requestMessage;
 			try {
-				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
+				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage, true);
 			}
 			catch (Exception e) {
 				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);

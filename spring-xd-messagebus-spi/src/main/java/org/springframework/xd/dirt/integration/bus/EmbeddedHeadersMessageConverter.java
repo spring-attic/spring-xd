@@ -92,13 +92,16 @@ public class EmbeddedHeadersMessageConverter {
 	/**
 	 * Return a message where headers, that were originally embedded into the payload, have been promoted
 	 * back to actual headers. The new payload is now the original payload.
+	 *
+	 * @param message the message to extract headers
+	 * @param copyRequestHeaders boolean value to specify if original headers should be copied
 	 */
-	public Message<byte[]> extractHeaders(Message<byte[]> message) throws Exception {
+	public Message<byte[]> extractHeaders(Message<byte[]> message, boolean copyRequestHeaders) throws Exception {
 		byte[] bytes = message.getPayload();
 		ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
 		int headerCount = byteBuffer.get() & 0xff;
 		if (headerCount < 255) {
-			return oldExtractHeaders(byteBuffer, bytes, headerCount);
+			return oldExtractHeaders(byteBuffer, bytes, headerCount, message, copyRequestHeaders);
 		}
 		else {
 			headerCount = byteBuffer.get() & 0xff;
@@ -115,11 +118,12 @@ public class EmbeddedHeadersMessageConverter {
 			}
 			byte[] newPayload = new byte[byteBuffer.remaining()];
 			byteBuffer.get(newPayload);
-			return MessageBuilder.withPayload(newPayload).copyHeaders(headers).build();
+			return buildMessage(message, newPayload, headers, copyRequestHeaders);
 		}
 	}
 
-	private Message<byte[]> oldExtractHeaders(ByteBuffer byteBuffer, byte[] bytes, int headerCount)
+	private Message<byte[]> oldExtractHeaders(ByteBuffer byteBuffer, byte[] bytes, int headerCount,
+			Message<byte[]> message, boolean copyRequestHeaders)
 			throws UnsupportedEncodingException {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		for (int i = 0; i < headerCount; i++) {
@@ -139,7 +143,16 @@ public class EmbeddedHeadersMessageConverter {
 		}
 		byte[] newPayload = new byte[byteBuffer.remaining()];
 		byteBuffer.get(newPayload);
-		return MessageBuilder.withPayload(newPayload).copyHeaders(headers).build();
+		return buildMessage(message, newPayload, headers, copyRequestHeaders);
+	}
+
+	private Message<byte[]> buildMessage(Message<byte[]> message, byte[] payload, Map<String, Object> headers,
+			boolean copyRequestHeaders) {
+		MessageBuilder<byte[]> messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(headers);
+		if (copyRequestHeaders) {
+			messageBuilder.copyHeadersIfAbsent(message.getHeaders());
+		}
+		return messageBuilder.build();
 	}
 
 }

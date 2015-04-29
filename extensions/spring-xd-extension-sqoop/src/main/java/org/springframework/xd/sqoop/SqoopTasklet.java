@@ -124,6 +124,7 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 		if (arguments == null || arguments.length < 1) {
 			throw new IllegalArgumentException("Missing arguments and/or configuration options for Sqoop");
 		}
+		addEnvironmentProvider(new SqoopEnvironmentProvider(environment));
 		addEnvironmentProvider(new ClasspathEnvironmentProvider(environment, this.getClass()));
 	}
 }

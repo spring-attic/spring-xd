@@ -12,6 +12,15 @@ $$Set the timezone of the Spring XD Shell (Not persisted)$$.
 
 *$$timeZone$$*:: $$the id of the timezone, You can obtain a list of timezone ids using 'admin config timezone list', If an invalid timezone id is provided, then 'Greenwich Mean Time' is being used$$. *(required)*
 
+==== $$admin config server$$
+$$Configure the XD admin server to use$$.
+
+    admin config server [[--uri] <uri>] [--username <username>] [--password [<password>]]
+
+*$$uri$$*:: $$the location of the XD Admin REST endpoint$$. *(default: `http://localhost:9393/`)*
+*$$username$$*:: $$the username for authenticated access to the Admin REST endpoint$$. *(default: ``)*
+*$$password$$*:: $$the password for authenticated access to the Admin REST endpoint (valid only with a username)$$.
+
 ==== $$admin config info$$
 $$Show the XD admin server being used$$.
 
@@ -24,17 +33,14 @@ $$List all timezones$$.
     admin config timezone list
 
 
-==== $$admin config server$$
-$$Configure the XD admin server to use$$.
-
-    admin config server [[--uri] <uri>] [--username <username>] [--password [<password>]]
-
-*$$uri$$*:: $$the location of the XD Admin REST endpoint$$. *(default: `http://localhost:9393/`)*
-*$$username$$*:: $$the username for authenticated access to the Admin REST endpoint$$. *(default: ``)*
-*$$password$$*:: $$the password for authenticated access to the Admin REST endpoint (valid only with a username)$$.
-
 
 === Runtime Commands
+==== $$runtime containers$$
+$$List runtime containers$$.
+
+    runtime containers
+
+
 ==== $$runtime modules$$
 $$List runtime modules$$.
 
@@ -42,12 +48,6 @@ $$List runtime modules$$.
 
 *$$containerId$$*:: $$to filter by container id$$.
 *$$moduleId$$*:: $$to filter by module id$$.
-
-==== $$runtime containers$$
-$$List runtime containers$$.
-
-    runtime containers
-
 
 
 === Stream Commands
@@ -104,34 +104,6 @@ $$List created streams$$.
 
 
 === Job Commands
-==== $$job create$$
-$$Create a job$$.
-
-    job create [--name] <name> --definition <definition> [--deploy [<deploy>]]
-
-*$$name$$*:: $$the name to give to the job$$. *(required)*
-*$$definition$$*:: $$job definition using xd dsl $$. *(required)*
-*$$deploy$$*:: $$whether to deploy the job immediately$$. *(default: `false`, or `true` if +--deploy+ is specified without a value)*
-
-==== $$job list$$
-$$List all jobs$$.
-
-    job list
-
-
-==== $$job execution list$$
-$$List all job executions$$.
-
-    job execution list
-
-
-==== $$job execution step list$$
-$$List all step executions for the provided job execution id$$.
-
-    job execution step list [--id] <id>
-
-*$$id$$*:: $$the id of the job execution$$. *(required)*
-
 ==== $$job execution step progress$$
 $$Get the progress info for the given step execution$$.
 
@@ -226,6 +198,34 @@ $$Destroy all existing jobs$$.
     job all destroy [--force [<force>]]
 
 *$$force$$*:: $$bypass confirmation prompt$$. *(default: `false`, or `true` if +--force+ is specified without a value)*
+
+==== $$job create$$
+$$Create a job$$.
+
+    job create [--name] <name> --definition <definition> [--deploy [<deploy>]]
+
+*$$name$$*:: $$the name to give to the job$$. *(required)*
+*$$definition$$*:: $$job definition using xd dsl $$. *(required)*
+*$$deploy$$*:: $$whether to deploy the job immediately$$. *(default: `false`, or `true` if +--deploy+ is specified without a value)*
+
+==== $$job list$$
+$$List all jobs$$.
+
+    job list
+
+
+==== $$job execution list$$
+$$List all job executions$$.
+
+    job execution list
+
+
+==== $$job execution step list$$
+$$List all step executions for the provided job execution id$$.
+
+    job execution step list [--id] <id>
+
+*$$id$$*:: $$the id of the job execution$$. *(required)*
 
 
 === Module Commands
@@ -405,12 +405,6 @@ $$Make GET request to http endpoint$$.
 
 
 === Hadoop Configuration Commands
-==== $$hadoop config info$$
-$$Returns basic info about the Hadoop configuration$$.
-
-    hadoop config info
-
-
 ==== $$hadoop config props set$$
 $$Sets the value for the given Hadoop property$$.
 
@@ -424,6 +418,12 @@ $$Returns the value of the given Hadoop property$$.
     hadoop config props get [--key] <key>
 
 *$$key$$*:: $$property name$$. *(required)*
+
+==== $$hadoop config info$$
+$$Returns basic info about the Hadoop configuration$$.
+
+    hadoop config info
+
 
 ==== $$hadoop config load$$
 $$Loads the Hadoop configuration from the given resource$$.

@@ -63,4 +63,15 @@ public class JarDeletingModuleCommandTests extends AbstractStreamIntegrationTest
 		stream().createDontDeploy("foo", "http | siDslModule2 --prefix=foo | log");
 		assertFalse(module().delete("siDslModule2", processor));
 	}
+
+	//TODO: Investigate why this test fails on windows
+	@Test
+	public void testDeleteComposedModuleUsedByStream() throws Exception {
+		module().compose("myhttp", "http | filter");
+		stream().createDontDeploy("foo", "myhttp | log");
+		assertFalse(module().delete("myhttp", ModuleType.source));
+		// Now deleting blocking stream
+		stream().destroyStream("foo");
+		assertTrue(module().delete("myhttp", ModuleType.source));
+	}
 }

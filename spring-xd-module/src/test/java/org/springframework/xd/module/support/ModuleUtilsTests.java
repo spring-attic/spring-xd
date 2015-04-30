@@ -30,6 +30,7 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.ModuleUtils;
 import org.springframework.xd.module.options.SimpleModuleOptionsMetadata;
 
 public class ModuleUtilsTests {

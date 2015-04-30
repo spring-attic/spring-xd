@@ -21,7 +21,7 @@ import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
-import org.springframework.xd.module.support.ModuleUtils;
+import org.springframework.xd.module.options.ModuleUtils;
 
 /**
  * A {@link org.springframework.xd.module.core.SimpleModule} configured using a bean definition resource (XML or
@@ -43,35 +43,9 @@ public class ResourceConfiguredModule extends SimpleModule {
 		super(descriptor, deploymentProperties, classLoader, moduleOptions);
 	}
 
-	/**
-	 * Return the resource that can be used to configure a module, or null if no such resource exists.
-	 *
-	 * @throws java.lang.IllegalStateException if both a .xml and .groovy file are present
-	 */
-	public static Resource resourceBasedConfigurationFile(SimpleModuleDefinition moduleDefinition) {
-		Resource xml = ModuleUtils.locateModuleResource(moduleDefinition, ".xml");
-		Resource groovy = ModuleUtils.locateModuleResource(moduleDefinition, ".groovy");
-		boolean xmlExists = xml != null;
-		boolean groovyExists = groovy != null;
-		if (xmlExists && groovyExists) {
-			throw new IllegalStateException(String.format("Found both resources '%s' and '%s' for module %s", xml,
-					groovy, moduleDefinition));
-		}
-		else if (xmlExists) {
-			return xml;
-		}
-		else if (groovyExists) {
-			return groovy;
-		}
-		else {
-			return null;
-		}
-
-	}
-
 	@Override
 	protected void configureModuleApplicationContext(SimpleModuleDefinition moduleDefinition) {
-		Resource source = resourceBasedConfigurationFile(moduleDefinition);
+		Resource source = ModuleUtils.resourceBasedConfigurationFile(moduleDefinition);
 		if (source != null) {
 			addSource(source);
 		}

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module.support;
+package org.springframework.xd.module.options;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +40,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.support.ArchiveResourceLoader;
+import org.springframework.xd.module.support.NullClassLoader;
+import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
  * Contains utility methods for accessing a module's properties and dealing with ClassLoaders.
@@ -182,5 +185,31 @@ public class ModuleUtils {
 			throw new RuntimeException("Exception creating module classloader for " + moduleLocation, e);
 		}
 		return null;
+	}
+
+	/**
+	 * Return the resource that can be used to configure a module, or null if no such resource exists.
+	 *
+	 * @throws java.lang.IllegalStateException if both a .xml and .groovy file are present
+	 */
+	public static Resource resourceBasedConfigurationFile(SimpleModuleDefinition moduleDefinition) {
+		Resource xml = ModuleUtils.locateModuleResource(moduleDefinition, ".xml");
+		Resource groovy = ModuleUtils.locateModuleResource(moduleDefinition, ".groovy");
+		boolean xmlExists = xml != null;
+		boolean groovyExists = groovy != null;
+		if (xmlExists && groovyExists) {
+			throw new IllegalStateException(String.format("Found both resources '%s' and '%s' for module %s", xml,
+					groovy, moduleDefinition));
+		}
+		else if (xmlExists) {
+			return xml;
+		}
+		else if (groovyExists) {
+			return groovy;
+		}
+		else {
+			return null;
+		}
+
 	}
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**

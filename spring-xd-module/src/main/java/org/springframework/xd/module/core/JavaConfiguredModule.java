@@ -34,7 +34,7 @@ import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
-import org.springframework.xd.module.support.ModuleUtils;
+import org.springframework.xd.module.options.ModuleUtils;
 
 /**
  * A {@link SimpleModule} configured by an @Configuration class.

@@ -23,7 +23,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.plugins.stream.StreamPlugin;
-import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 
 /**
  * Test class that helps injecting messageBus into {@link ModuleDeployer}'s common context via {@link TestStreamPlugin}.

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.dirt.module.support;
 
-import static org.springframework.xd.dirt.stream.ParsingContext.*;
+import static org.springframework.xd.dirt.stream.ParsingContext.module;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +27,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.module.DependencyException;
+import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
+import org.springframework.xd.dirt.module.ModuleDependencyRepository;
+import org.springframework.xd.dirt.module.NoSuchModuleException;
+import org.springframework.xd.dirt.module.UploadedModuleDefinition;
+import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.module.ModuleDefinition;

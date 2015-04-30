@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.dirt.core;
+package org.springframework.xd.dirt.stream;
 
 import java.util.Map;
-
-import org.springframework.xd.dirt.stream.AlreadyDeployedException;
-import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
-import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
-import org.springframework.xd.dirt.stream.NotDeployedException;
 
 /**
  * This interface defines validation methods that verify a stream or job

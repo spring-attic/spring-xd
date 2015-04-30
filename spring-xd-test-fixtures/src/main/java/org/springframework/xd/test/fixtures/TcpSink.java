@@ -22,6 +22,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import org.springframework.util.StreamUtils;
+import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 
 /**
@@ -48,7 +49,7 @@ public class TcpSink extends AbstractModuleFixture<TcpSink> implements Disposabl
 
 	/**
 	 * Construct a TcpSink with a port selected by @link
-	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
+	 * {@link org.springframework.xd.test.fixtures.util.AvailableSocketPorts#nextAvailablePort()}
 	 */
 	public TcpSink() {
 		this(AvailableSocketPorts.nextAvailablePort());

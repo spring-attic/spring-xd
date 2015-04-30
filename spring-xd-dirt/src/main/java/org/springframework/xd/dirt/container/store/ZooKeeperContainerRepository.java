@@ -41,7 +41,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.cluster.DetailedContainer;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 import org.springframework.xd.dirt.module.store.ZooKeeperModuleMetadataRepository;

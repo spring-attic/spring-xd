@@ -29,7 +29,7 @@ import org.springframework.validation.beanvalidation.CustomValidatorBean;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
-import org.springframework.xd.module.support.ModuleUtils;
+import org.springframework.xd.module.options.ModuleUtils;
 
 /**
  * Default implementation of {@link org.springframework.xd.module.info.ModuleInformationResolver} that supports

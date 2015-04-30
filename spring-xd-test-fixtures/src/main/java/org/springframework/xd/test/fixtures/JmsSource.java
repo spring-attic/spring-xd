@@ -20,6 +20,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.util.Assert;
+import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 
 /**

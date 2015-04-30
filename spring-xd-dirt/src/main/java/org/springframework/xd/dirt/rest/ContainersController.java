@@ -46,7 +46,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerShutdownException;
-import org.springframework.xd.dirt.cluster.DetailedContainer;
+import org.springframework.xd.dirt.container.store.DetailedContainer;
 import org.springframework.xd.dirt.cluster.ModuleMessageRateNotFoundException;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;

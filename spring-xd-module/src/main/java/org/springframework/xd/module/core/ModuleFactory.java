@@ -35,7 +35,7 @@ import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
-import org.springframework.xd.module.support.ModuleUtils;
+import org.springframework.xd.module.options.ModuleUtils;
 
 /**
  * Determines the type of {@link Module} to create from the Module's metadata and creates a module instance. Also,
@@ -132,7 +132,7 @@ public class ModuleFactory implements BeanClassLoaderAware {
 		if ("spark".equals(name)) {
 			return NonBindingResourceConfiguredModule.class;
 		}
-		else if (ResourceConfiguredModule.resourceBasedConfigurationFile(moduleDefinition) != null) {
+		else if (ModuleUtils.resourceBasedConfigurationFile(moduleDefinition) != null) {
 			return ResourceConfiguredModule.class;
 		}
 		else if (JavaConfiguredModule.basePackages(moduleDefinition).length > 0) {

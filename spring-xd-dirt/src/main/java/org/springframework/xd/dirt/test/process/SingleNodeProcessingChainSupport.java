@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.test.process;
 
-import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 
 
 /**

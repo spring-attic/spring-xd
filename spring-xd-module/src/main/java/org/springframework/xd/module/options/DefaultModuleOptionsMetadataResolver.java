@@ -16,8 +16,6 @@
 
 package org.springframework.xd.module.options;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,10 +37,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModuleDefinition;
-import org.springframework.xd.module.core.ResourceConfiguredModule;
 import org.springframework.xd.module.options.spi.Mixin;
-import org.springframework.xd.module.support.ModuleUtils;
-import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
  * The default implementation of {@link ModuleOptionsMetadataResolver} that deals with simple modules and reads the
@@ -234,7 +229,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	private ModuleOptionsMetadata inferModuleOptionsMetadata(SimpleModuleDefinition definition, ClassLoader classLoaderToUse) {
 		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
-		Resource source = ResourceConfiguredModule.resourceBasedConfigurationFile(definition);
+		Resource source = ModuleUtils.resourceBasedConfigurationFile(definition);
 		if (source == null) {
 			return new PassthruModuleOptionsMetadata();
 		}

@@ -19,6 +19,8 @@ package org.springframework.xd.test.fixtures;
 import java.io.IOException;
 import java.net.Socket;
 
+import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
+
 
 /**
  * A test fixture that allows testing of the 'tcp' source module.
@@ -38,7 +40,7 @@ public class TcpSource extends AbstractModuleFixture<TcpSource> {
 
 	/**
 	 * Construct a new TcpSource with the loopback address for host and using a port selected by @link
-	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
+	 * {@link org.springframework.xd.test.fixtures.util.AvailableSocketPorts#nextAvailablePort()}
 	 */
 	public TcpSource() {
 		this(null);
@@ -47,7 +49,7 @@ public class TcpSource extends AbstractModuleFixture<TcpSource> {
 
 	/**
 	 * Construct a new TcpSource with the provided host and using a port selected by @link
-	 * {@link org.springframework.xd.test.fixtures.AvailableSocketPorts#nextAvailablePort()}
+	 * {@link org.springframework.xd.test.fixtures.util.AvailableSocketPorts#nextAvailablePort()}
 	 *
 	 * @param host the host to connect to
 	 */

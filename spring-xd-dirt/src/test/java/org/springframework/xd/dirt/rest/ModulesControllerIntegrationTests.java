@@ -27,9 +27,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
 
-import org.apache.commons.io.FileUtils;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,13 +40,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.module.ModuleDefinitionService;
 import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDefinitions;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.TestModuleDefinitions;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Tests REST compliance of module-related endpoints.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.test.fixtures;
+package org.springframework.xd.test.fixtures.util;
 
 import java.io.IOException;
 import java.net.Socket;

@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 
 /**

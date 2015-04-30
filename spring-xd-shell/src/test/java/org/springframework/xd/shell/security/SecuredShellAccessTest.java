@@ -36,7 +36,7 @@ import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.shell.Configuration;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.test.RandomConfigurationSupport;

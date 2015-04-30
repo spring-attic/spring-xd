@@ -19,7 +19,6 @@ package org.springframework.xd.dirt.container.store;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.xd.dirt.cluster.Container;
-import org.springframework.xd.dirt.cluster.DetailedContainer;
 import org.springframework.xd.store.DomainRepository;
 
 /**

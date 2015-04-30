@@ -28,7 +28,7 @@ import org.springframework.xd.store.DomainRepository;
 /**
  * Verifies the state of resources (job or stream) by polling repository state until the
  * resource is in the expected state or the operation times out. For use with
- * {@link org.springframework.xd.dirt.server.SingleNodeApplication} testing.
+ * {@link org.springframework.xd.dirt.server.singlenode.SingleNodeApplication} testing.
  *
  * @see org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport
  * @author David Turanski

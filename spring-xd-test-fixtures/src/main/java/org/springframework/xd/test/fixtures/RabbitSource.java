@@ -23,6 +23,7 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.util.Assert;
+import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 
 /**

@@ -31,9 +31,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
-import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.test.process.SingleNodeProcessingChain;
 import org.springframework.xd.dirt.test.process.SingleNodeProcessingChainConsumer;

@@ -15,12 +15,11 @@
  */
 package org.springframework.xd.test.fixtures.util;
 
-import kafka.admin.AdminUtils;
-import kafka.api.TopicMetadata;
-import kafka.common.ErrorMapping;
-import kafka.javaapi.PartitionMetadata;
-import kafka.utils.ZKStringSerializer$;
+import java.util.List;
+import java.util.Properties;
+
 import org.I0Itec.zkclient.ZkClient;
+
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
@@ -31,10 +30,12 @@ import org.springframework.retry.policy.TimeoutRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.test.fixtures.AvailableSocketPorts;
 
-import java.util.List;
-import java.util.Properties;
+import kafka.admin.AdminUtils;
+import kafka.api.TopicMetadata;
+import kafka.common.ErrorMapping;
+import kafka.javaapi.PartitionMetadata;
+import kafka.utils.ZKStringSerializer$;
 
 /**
  * Utility methods for working with Kafka.  Used by {@link org.springframework.xd.test.fixtures.KafkaSource} and

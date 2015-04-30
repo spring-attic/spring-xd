@@ -17,7 +17,7 @@
 package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.xd.dirt.cluster.DetailedContainer;
+import org.springframework.xd.dirt.container.store.DetailedContainer;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.DetailedContainerResource;

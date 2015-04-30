@@ -18,6 +18,8 @@ package org.springframework.xd.test.fixtures;
 
 import javax.mail.internet.MimeMessage;
 
+import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
+
 import com.icegreen.greenmail.util.ServerSetup;
 
 

@@ -21,6 +21,7 @@ import java.util.Map;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.util.Assert;
+import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;

@@ -35,7 +35,7 @@ import org.junit.Test;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.domain.RESTModuleType;

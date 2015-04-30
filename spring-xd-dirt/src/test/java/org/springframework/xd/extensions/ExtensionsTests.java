@@ -35,7 +35,7 @@ import org.springframework.xd.dirt.integration.bus.converter.CompositeMessageCon
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoClassListRegistrar;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin;
-import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 import org.springframework.xd.extensions.test.Bar;
 import org.springframework.xd.extensions.test.Foo;

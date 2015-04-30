@@ -45,7 +45,6 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
-import org.springframework.xd.dirt.module.ModuleDefinitionService;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
@@ -58,6 +57,7 @@ import org.springframework.xd.dirt.server.admin.deployment.DeploymentMessagePubl
 import org.springframework.xd.dirt.server.admin.deployment.zk.DeploymentMessageConsumer;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
+import org.springframework.xd.dirt.module.support.ModuleDefinitionService;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;

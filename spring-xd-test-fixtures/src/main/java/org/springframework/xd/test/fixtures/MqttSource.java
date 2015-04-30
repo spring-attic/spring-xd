@@ -22,6 +22,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.util.Assert;
+import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 
 /**

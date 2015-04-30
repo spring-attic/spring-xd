@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.server;
+package org.springframework.xd.dirt.server.singlenode;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -19,6 +19,10 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
+import org.springframework.xd.dirt.server.ApplicationUtils;
+import org.springframework.xd.dirt.server.MessageBusClassLoaderFactory;
+import org.springframework.xd.dirt.server.ParentConfiguration;
+import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
 import org.springframework.xd.dirt.server.admin.AdminServerApplication;
 import org.springframework.xd.dirt.server.container.ContainerBootstrapContext;
 import org.springframework.xd.dirt.server.container.ContainerConfiguration;

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.cluster;
+package org.springframework.xd.dirt.container.store;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 
 /**

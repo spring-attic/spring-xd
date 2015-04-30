@@ -10,7 +10,7 @@
 	<context:component-scan base-package="org.springframework.xd.dirt.stream.completion" />
 
 	<!-- This service plays a similar supporting role to ModulesController as StreamDeployer does with StreamsController -->
-	<bean id="moduleDefinitionService" class="org.springframework.xd.dirt.module.ModuleDefinitionService"/>
+	<bean id="moduleDefinitionService" class="org.springframework.xd.dirt.module.support.ModuleDefinitionService"/>
 
 	<bean id="containerMatcher" class="org.springframework.xd.dirt.server.admin.deployment.ContainerMatcher">
 		<constructor-arg>

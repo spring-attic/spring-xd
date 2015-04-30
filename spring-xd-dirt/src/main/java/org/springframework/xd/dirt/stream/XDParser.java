@@ -30,6 +30,8 @@ import org.springframework.xd.module.ModuleDescriptor;
  */
 public interface XDParser {
 
+	List<DefinitionOrException> parse(String[] document);
+
 	/**
 	 * Parse a DSL string.
 	 *
@@ -43,4 +45,29 @@ public interface XDParser {
 	 *         described by the DSL.
 	 */
 	List<ModuleDescriptor> parse(String name, String config, ParsingContext type);
+
+	public static class DefinitionOrException {
+		private final List<ModuleDescriptor> descriptors;
+
+		private final Exception exception;
+
+		public DefinitionOrException(Exception e) {
+			this.exception = e;
+			this.descriptors = null;
+		}
+
+		public DefinitionOrException(List<ModuleDescriptor> moduleDescriptors) {
+			this.descriptors = moduleDescriptors;
+			this.exception = null;
+		}
+
+		public Exception getException() {
+			return exception;
+		}
+
+		public List<ModuleDescriptor> getDescriptors() {
+			return descriptors;
+		}
+	}
+
 }

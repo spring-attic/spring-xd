@@ -26,6 +26,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Iterables;
+
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
@@ -48,6 +50,7 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.store.AbstractRepository;
 
 /**
  * Parser to convert a DSL string for a stream into a list of
@@ -111,15 +114,47 @@ public class XDStreamParser implements XDParser {
 		this(null, moduleRegistry, moduleOptionsMetadataResolver);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+	@Override
+	public List<DefinitionOrException> parse(String[] document) {
+		List<DefinitionOrException> result = new ArrayList<>(document.length);
+		CrudRepository<BaseDefinition, String> transientRepository = new TransientDefinitionRepository();
+		StreamConfigParser parser = new StreamConfigParser(transientRepository);
+		for (String nameAndDefinitionPair : document) {
+			try {
+
+				StreamNode stream = parser.parse(nameAndDefinitionPair);
+				String streamName = stream.getStreamName();
+				List<ModuleDescriptor> moduleDescriptors = buildModuleDescriptors(streamName,
+						nameAndDefinitionPair, ParsingContext.stream, stream);
+				BaseDefinition streamDefinition = new StreamDefinition(streamName, nameAndDefinitionPair);
+				transientRepository.save(streamDefinition);
+				result.add(new DefinitionOrException(moduleDescriptors));
+			}
+			catch (Exception e) {
+				result.add(new DefinitionOrException(e));
+			}
+		}
+		return result;
+	}
+
+
 	@Override
 	public List<ModuleDescriptor> parse(String name, String config, ParsingContext parsingContext) {
 
 		StreamConfigParser parser = new StreamConfigParser(repository);
 		StreamNode stream = parser.parse(name, config);
-		Deque<ModuleDescriptor.Builder> builders = new LinkedList<ModuleDescriptor.Builder>();
+		return buildModuleDescriptors(name, config, parsingContext, stream);
+	}
+
+	/**
+	 * Build a list of ModuleDescriptors out of a parsed StreamNode.
+	 * @param name the name of the definition unit
+	 * @param rawDSL the raw DSL text of the definition
+	 * @param parsingContext the context in which parsing happens
+	 * @param stream the AST construct representing the definition
+	 */
+	private List<ModuleDescriptor> buildModuleDescriptors(String name, String rawDSL, ParsingContext parsingContext, StreamNode stream) {
+		Deque<ModuleDescriptor.Builder> builders = new LinkedList<>();
 
 		List<ModuleNode> moduleNodes = stream.getModuleNodes();
 		for (int m = moduleNodes.size() - 1; m >= 0; m--) {
@@ -145,7 +180,7 @@ public class XDStreamParser implements XDParser {
 				builders.getLast().setSourceChannelName(sourceChannel.getChannelName());
 			}
 			else {
-				throw new StreamDefinitionException(config, sourceChannel.getStartPos(),
+				throw new StreamDefinitionException(rawDSL, sourceChannel.getStartPos(),
 						NAMED_CHANNELS_UNSUPPORTED_HERE);
 			}
 		}
@@ -156,7 +191,7 @@ public class XDStreamParser implements XDParser {
 				builders.getFirst().setSinkChannelName(sinkChannel.getChannelName());
 			}
 			else {
-				throw new StreamDefinitionException(config, sinkChannel.getChannelNode().getStartPos(),
+				throw new StreamDefinitionException(rawDSL, sinkChannel.getChannelNode().getStartPos(),
 						NAMED_CHANNELS_UNSUPPORTED_HERE);
 			}
 		}
@@ -320,6 +355,59 @@ public class XDStreamParser implements XDParser {
 			}
 		}
 		throw new NoSuchModuleException(moduleName, candidates);
+	}
+
+	/**
+	 * A throwaway repository that is used during multi-definition parsing. "Sees" definitions that are
+	 * known to the real {@link #repository} and stores new definitions in an in-memory map.
+	 *
+	 * @author Eric Bottard
+	 */
+	private class TransientDefinitionRepository
+		extends AbstractRepository<BaseDefinition, String>
+		implements CrudRepository<BaseDefinition, String>{
+
+		private Map<String, BaseDefinition> store = new HashMap<>();
+
+		@Override
+		public <S extends BaseDefinition> S save(S entity) {
+			store.put(entity.getName(), entity);
+			return entity;
+		}
+
+		@Override
+		public BaseDefinition findOne(String s) {
+			BaseDefinition inMemory = store.get(s);
+			return inMemory != null ? inMemory : repository.findOne(s);
+		}
+
+		@Override
+		public Iterable<BaseDefinition> findAll() {
+			return Iterables.concat(repository.findAll(), store.values());
+		}
+
+		@Override
+		public long count() {
+			return store.size() + repository.count();
+		}
+
+		@Override
+		public void delete(String s) {
+			store.remove(s);
+			repository.delete(s);
+		}
+
+		@Override
+		public void delete(BaseDefinition entity) {
+			store.remove(entity.getName());
+			repository.delete(entity.getName());
+		}
+
+		@Override
+		public void deleteAll() {
+			store.clear();
+			repository.deleteAll();
+		}
 	}
 
 }

@@ -55,4 +55,40 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
         assertThat(fileSink, eventually(hasContentsThat(equalTo("foobar\n"))));
     }
 
+    @Test
+    public void testRefOptionEqualsFalse() throws Exception {
+        FtpSource ftpSource = newFtpSource();
+        FileSink fileSink = newFileSink();
+
+        File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
+        FileWriter fileWriter = new FileWriter(file);
+        fileWriter.write("foobar");
+        fileWriter.close();
+
+        ftpSource.ensureStarted();
+
+        stream().create(generateStreamName(), "%s --ref=false | transform --expression=payload.getClass() | %s", ftpSource, fileSink);
+
+        assertThat(fileSink, eventually(hasContentsThat(equalTo("byte[]\n"))));
+
+    }
+
+    @Test
+    public void testRefOptionEqualsTrue() throws Exception {
+        FtpSource ftpSource = newFtpSource();
+        FileSink fileSink = newFileSink();
+
+        File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
+        FileWriter fileWriter = new FileWriter(file);
+        fileWriter.write("foobar");
+        fileWriter.close();
+
+        ftpSource.ensureStarted();
+
+        stream().create(generateStreamName(), "%s --ref=true | transform --expression=payload.getClass() | %s", ftpSource, fileSink);
+
+        assertThat(fileSink, eventually(hasContentsThat(equalTo("java.io.File\n"))));
+
+    }
+
 }

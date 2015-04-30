@@ -41,7 +41,10 @@ import org.apache.ftpserver.usermanager.impl.WritePermission;
 import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 /**
- * Created by ebottard on 14/04/15.
+ * A fixture that helps testing the ftp source. Creates a local FTP server and exposes a File
+ * directory where files to be picked up can be added.
+ *
+ * @author Eric Bottard
  */
 public class FtpSource extends AbstractModuleFixture<FtpSource> implements Disposable {
 

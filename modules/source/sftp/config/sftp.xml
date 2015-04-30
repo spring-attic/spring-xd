@@ -2,12 +2,16 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration
 		http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/sftp
-		http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
+		http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd
+		http://www.springframework.org/schema/integration/file
+		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+	">
 
 	<beans:bean id="sftpSessionFactory"
 		class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
@@ -20,14 +24,36 @@
 	</beans:bean>
 
 	<int-sftp:inbound-channel-adapter
-		auto-startup="false" channel="output" session-factory="sftpSessionFactory"
+		auto-startup="false" channel="files" session-factory="sftpSessionFactory"
 		filter="filter" remote-directory="${remoteDir}" local-directory="${localDir}"
 		auto-create-local-directory="${autoCreateLocalDir}"
 		temporary-file-suffix="${tmpFileSuffix}" delete-remote-files="${deleteRemoteFiles}">
-		<poller fixed-delay="${fixedDelay}" time-unit="SECONDS" />
+		<poller trigger="trigger" />
 	</int-sftp:inbound-channel-adapter>
 
 	<channel id="output" />
+
+	<channel id="files" />
+
+	<beans:bean id="trigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+		<beans:constructor-arg value="${fixedDelay}" />
+		<beans:constructor-arg value="${timeUnit}" />
+		<beans:property name="initialDelay" value="${initialDelay} "/>
+	</beans:bean>
+
+	<beans:beans profile="use-ref">
+		<bridge input-channel="files" output-channel="output"/>
+	</beans:beans>
+
+	<beans:beans profile="use-contents">
+		<chain id="extractContents" input-channel="files" output-channel="output">
+			<header-enricher>
+				<header name="contentType" value="application/octet-stream"/>
+			</header-enricher>
+			<file:file-to-bytes-transformer />
+		</chain>
+
+	</beans:beans>
 
 	<beans:beans profile="accept-all-files">
 		<beans:bean id="filter"

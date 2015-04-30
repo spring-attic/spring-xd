@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import javax.validation.constraints.AssertTrue;
 import org.hibernate.validator.constraints.NotBlank;
 
 import org.springframework.util.StringUtils;
+import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
@@ -29,7 +31,10 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * Module options for SFTP source module.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Eric Bottard
  */
+
+@Mixin({PeriodicTriggerMixin.class, FileAsRefMixin.class})
 public class SftpSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private static final String ACCEPT_ALL_FILES = "accept-all-files";

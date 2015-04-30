@@ -35,7 +35,10 @@ import java.nio.file.Files;
 import java.util.Arrays;
 
 /**
- * Created by ebottard on 14/04/15.
+ * A fixture that helps testing the ftp source. Creates a local FTP server and exposes a File
+ * directory where files to be picked up can be added.
+ *
+ * @author Eric Bottard
  */
 public class FtpSource extends AbstractModuleFixture<FtpSource> implements Disposable {
 

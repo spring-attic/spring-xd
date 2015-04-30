@@ -12,23 +12,34 @@
 
 	<file:inbound-channel-adapter
 			auto-startup="false"
-			channel="router" directory="${dir}"
+			channel="files" directory="${dir}"
 			prevent-duplicates="${preventDuplicates}"
 			filename-pattern="${pattern}">
-		<poller fixed-delay="${fixedDelay}" time-unit="SECONDS"/>
+		<poller trigger="trigger" />
 	</file:inbound-channel-adapter>
 
-	<router input-channel="router" expression="${ref} ? 'output' : 'contents'"/>
-
-	<channel id="contents"/>
-
-	<chain id="extractContents" input-channel="contents" output-channel="output">
-		<header-enricher>
-			<header name="contentType" value="application/octet-stream"/>
-		</header-enricher>
-		<file:file-to-bytes-transformer/>
-	</chain>
-
 	<channel id="output"/>
+
+	<channel id="files" />
+
+	<beans:bean id="trigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+		<beans:constructor-arg value="${fixedDelay}" />
+		<beans:constructor-arg value="${timeUnit}" />
+		<beans:property name="initialDelay" value="${initialDelay} "/>
+	</beans:bean>
+
+	<beans:beans profile="use-ref">
+		<bridge input-channel="files" output-channel="output"/>
+	</beans:beans>
+
+	<beans:beans profile="use-contents">
+		<chain id="extractContents" input-channel="files" output-channel="output">
+			<header-enricher>
+				<header name="contentType" value="application/octet-stream"/>
+			</header-enricher>
+			<file:file-to-bytes-transformer />
+		</chain>
+
+	</beans:beans>
 
 </beans:beans>

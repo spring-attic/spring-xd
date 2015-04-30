@@ -30,12 +30,8 @@ import javax.validation.constraints.Min;
  *
  * @author Franck MARCHAND
  */
-@Mixin({FtpConnectionMixin.class, PeriodicTriggerMixin.class})
-public class FtpSourceOptionsMetadata implements ProfileNamesProvider{
-
-    private static final String USE_REF = "use-ref";
-
-    private static final String USE_CONTENT = "use-contents";
+@Mixin({FtpConnectionMixin.class, PeriodicTriggerMixin.class, FileAsRefMixin.class})
+public class FtpSourceOptionsMetadata {
 
     private int clientMode = 0;
 
@@ -56,8 +52,6 @@ public class FtpSourceOptionsMetadata implements ProfileNamesProvider{
     private String remoteFileSeparator = "/";
 
     private boolean preserveTimestamp = true;
-
-    private boolean ref = false;
 
     @NotBlank
     public String getRemoteDir() {
@@ -153,19 +147,5 @@ public class FtpSourceOptionsMetadata implements ProfileNamesProvider{
 
     public boolean isPreserveTimestamp() {
         return preserveTimestamp;
-    }
-
-    public boolean isRef() {
-        return ref;
-    }
-
-    @ModuleOption("set to true to output the File object itself")
-    public void setRef(boolean ref) {
-        this.ref = ref;
-    }
-
-    @Override
-    public String[] profilesToActivate() {
-        return ref ? new String[]{USE_REF} : new String[]{USE_CONTENT};
     }
 }

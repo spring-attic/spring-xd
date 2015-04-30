@@ -150,14 +150,17 @@ $$autoCreateLocalDir$$:: $$if local directory must be auto created if it does no
 $$deleteRemoteFiles$$:: $$delete remote files after transfer$$ *($$boolean$$, default: `false`)*
 $$fixedDelay$$:: $$fixed delay in SECONDS to poll the remote directory$$ *($$int$$, default: `1`)*
 $$host$$:: $$the remote host to connect to$$ *($$String$$, default: `localhost`)*
+$$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
 $$localDir$$:: $$set the local directory the remote files are transferred to$$ *($$String$$, default: `/tmp/xd/output`)*
 $$passPhrase$$:: $$the passphrase to use$$ *($$String$$, default: ``)*
 $$password$$:: $$the password for the provided user$$ *($$String$$, default: ``)*
 $$pattern$$:: $$simple filename pattern to apply to the filter$$ *($$String$$, no default)*
 $$port$$:: $$the remote port to connect to$$ *($$int$$, default: `22`)*
 $$privateKey$$:: $$the private key location (a valid Spring Resource URL)$$ *($$String$$, default: ``)*
+$$ref$$:: $$set to true to output the File object itself$$ *($$boolean$$, default: `false`)*
 $$regexPattern$$:: $$filename regex pattern to apply to the filter$$ *($$String$$, no default)*
 $$remoteDir$$:: $$the remote directory to transfer the files from$$ *($$String$$, no default)*
+$$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
 $$tmpFileSuffix$$:: $$extension to use when downloading files$$ *($$String$$, default: `.tmp`)*
 $$user$$:: $$the username to use$$ *($$String$$, no default)*
 //$source.sftp
@@ -260,9 +263,11 @@ The **$$file$$** $$source$$ has the following options:
 
 $$dir$$:: $$the absolute path to the directory to monitor for files$$ *($$String$$, default: `/tmp/xd/input/<stream name>`)*
 $$fixedDelay$$:: $$the fixed delay polling interval specified in seconds$$ *($$int$$, default: `5`)*
+$$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
 $$pattern$$:: $$a filter expression (Ant style) to accept only files that match the pattern$$ *($$String$$, default: `*`)*
 $$preventDuplicates$$:: $$whether to prevent the same file from being processed twice$$ *($$boolean$$, default: `true`)*
 $$ref$$:: $$set to true to output the File object itself$$ *($$boolean$$, default: `false`)*
+$$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
 //$source.file
 
 The `ref` option is useful in some cases in which the file contents are large and it would be more efficient to send the file path.

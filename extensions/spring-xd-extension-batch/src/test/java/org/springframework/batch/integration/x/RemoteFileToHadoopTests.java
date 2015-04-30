@@ -133,6 +133,7 @@ public class RemoteFileToHadoopTests {
 		((LocalMessageBus) this.bus).setApplicationContext(ctx);
 		this.bus.bindRequestor("foo", this.requestsOut, this.repliesIn, null);
 		this.bus.bindReplier("foo", this.requestsIn, this.repliesOut, null);
+		((LocalMessageBus) this.bus).afterPropertiesSet();
 	}
 
 	@After

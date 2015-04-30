@@ -28,7 +28,18 @@ import org.junit.After;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.test.fixtures.*;
+import org.springframework.xd.test.fixtures.Disposable;
+import org.springframework.xd.test.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FileSource;
+import org.springframework.xd.test.fixtures.FtpSource;
+import org.springframework.xd.test.fixtures.JdbcSink;
+import org.springframework.xd.test.fixtures.JdbcSource;
+import org.springframework.xd.test.fixtures.MailSink;
+import org.springframework.xd.test.fixtures.NonPollingImapSource;
+import org.springframework.xd.test.fixtures.PollingMailSource;
+import org.springframework.xd.test.fixtures.TailSource;
+import org.springframework.xd.test.fixtures.TcpSink;
+import org.springframework.xd.test.fixtures.TcpSource;
 
 
 /**

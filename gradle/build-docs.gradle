@@ -57,11 +57,6 @@ project('documentation-toolchain') {
 
 }
 
-
-
-
-
-
 apply plugin: org.asciidoctor.gradle.AsciidoctorPlugin
 
 asciidoctor {

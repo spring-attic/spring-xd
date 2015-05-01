@@ -24,7 +24,7 @@ propertiesFile.withInputStream {
 }
 
 project('spring-xd-module-plugin') {
-	apply plugin: 'maven'
+	startScripts.setEnabled(false)
     description = 'Gradle plugin to build a Spring XD Module'
 	dependencies {
  		compile gradleApi()
@@ -34,8 +34,8 @@ project('spring-xd-module-plugin') {
  		runtime "org.springframework.build.gradle:propdeps-plugin:${versions['org.springframework.build.gradle:propdeps-plugin']}"
  	}
  	compileGroovy {
-		sourceCompatibility = 1.6
-		targetCompatibility = 1.6
+		sourceCompatibility = project.compileJava.sourceCompatibility
+		targetCompatibility = project.compileJava.targetCompatibility
 	}
 }
 

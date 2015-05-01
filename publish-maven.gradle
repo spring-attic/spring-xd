@@ -1,170 +1,177 @@
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+//alias install -> publishToMavenLocal
+task install(dependsOn: 'publishToMavenLocal') {}
 
 // exclude hadoop install sub projects
 def hadoopInstalls = ['cdh5', 'hadoop26', 'hdp22', 'phd21', 'phd30']
 if (hadoopInstalls.contains(project.name)) {
-	// Disable installing hadoop distro artifacts
-	install.enabled = false
-	// Disable publishing hadoop distro artifacts
 	project.tasks.findByPath("artifactoryPublish")?.enabled = false
 }
 
-install {
-	repositories.mavenInstaller {
-		customizePom(pom, project)
+def nonPublishedProjects = hadoopInstalls + 'documentation-toolchain'
+
+def customizePom = {
+	description project.description
+	url linkHomepage
+	organization {
+		name 'Spring by Pivotal'
+		url 'https://spring.io'
+	}
+	licenses {
+		license {
+			name 'The Apache Software License, Version 2.0'
+			url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+			distribution 'repo'
+		}
+	}
+
+	scm {
+		url linkScmUrl
+		connection linkScmConnection
+		developerConnection linkScmDevConnection
+	}
+
+	developers {
+		xdDevelopers.each { dev ->
+			developer {
+				id dev.id
+				name dev.name
+				if (dev.email) {
+					email dev.email
+				}
+			}
+		}
 	}
 }
 
-def customizePom(pom, gradleProject) {
-	pom.whenConfigured { generatedPom ->
-		// respect 'optional' and 'provided' dependencies
-		gradleProject.configurations.optional.each { dep ->
-			generatedPom.dependencies.find { it.artifactId == dep.name }?.optional = 'true'
-		}
-		gradleProject.configurations.provided.each { dep ->
-			generatedPom.dependencies.find { it.artifactId == dep.name }?.scope = 'provided'
-		}
+// This is needed to generate elements that are also defined methods in MavenPublication
+customizePom.resolveStrategy = Closure.DELEGATE_FIRST
 
-		// eliminate test-scoped dependencies (no need in maven central poms)
-		generatedPom.dependencies.removeAll { dep ->
-			dep.scope == 'test'
-		}
+task sourceJar(type: Jar) {
+	from sourceSets.main.allJava
+}
 
-		def versions = new Properties()
-		def propertiesFile = new File('dependencies.properties')
-		propertiesFile.withInputStream {
-			versions.load(it)
-		}
 
-		// add all items necessary for maven central publication
-		generatedPom.project {
-			dependencyManagement {
-				dependencies {
-					versions.each { k,v ->
-						dependency {
-							def toks = k.split(':')
-							groupId = toks[0]
-							artifactId = toks[1]
-							version = v
+task javadocMaven(type: Jar, dependsOn: javadoc) {
+	from javadoc.destinationDir
+}
+
+def providedDep = { dep ->
+	dependency {
+		artifactId dep.name
+		groupId dep.group
+		version dep.version
+		scope provided
+	}
+}
+
+providedDep.resolveStrategy = Closure.DELEGATE_ONLY
+
+class ProjectDependenciesVersionResolver {
+	Map<String, ResolvedDependency>  resolvedDependencies = [:]
+
+	ProjectDependenciesVersionResolver(project) {
+		project.configurations.findAll {
+			['compile', 'runtime', 'default', 'optional', 'provided'].contains(it.name)
+		}.each { cfg ->
+			cfg.resolvedConfiguration.firstLevelModuleDependencies.each { dep ->
+				def existing = resolvedDependencies.putIfAbsent("${dep.moduleGroup}:${dep.moduleName}".toString(), dep)
+
+				//TODO: This may never happen, but added here just in case it does.
+				if (existing) {
+					assert existing.moduleVersion == dep.moduleVersion:
+							"Cannot resolve dependency version for ${project.name}. Different versions ${dep} ${existing}"
+				}
+			}
+		}
+	}
+
+	def getVersion(groupId, artifactId) {
+		def dep = resolvedDependencies["${groupId}:${artifactId}".toString()]
+		assert dep: "Unable to resolve dependency version for ${groupId}:${artifactId}"
+		return dep.moduleVersion
+	}
+}
+
+//Note setting enabled=false on publishing tasks doesn't work as expected
+if (!nonPublishedProjects.contains(project.name)) {
+	publishing {
+		publications {
+			mavenCustom(MavenPublication) {
+
+				from components.java
+
+				artifact sourceJar {
+					classifier 'sources'
+				}
+
+				artifact javadocMaven {
+					classifier 'javadoc'
+				}
+
+				pom.withXml {
+
+					def projectDependenciesVersionResolver = new ProjectDependenciesVersionResolver(project)
+
+					asNode().version + customizePom
+
+					asNode().dependencies.'*'.each {
+
+						// Add version as the 3rd element
+						it.version ||
+								it.children().add(2,
+										new Node(null, 'version', 
+										projectDependenciesVersionResolver.getVersion(it.groupId.text(), it.artifactId.text())))
+					}
+
+					project.configurations.optional.allDependencies.each { dep ->
+						def mvnDep = asNode().dependencies.'*'.find {
+							it.artifactId.text() == dep.name && it.groupId.text() == dep.group
+						}
+						new Node(mvnDep, 'optional', 'true')
+					}
+					project.configurations.provided.allDependencies.each { dep ->
+						def mvnDep = asNode().dependencies.'*'.find {
+							it.artifactId.text() == dep.name && it.groupId.text() == dep.group
+						}
+						if (mvnDep) {
+							mvnDep.scope*.replaceNode(new Node(null, 'scope', 'provided'))
+						} else {
+							asNode().dependencies + providedDep(dep)
 						}
 					}
-				}
-			}
 
-			name = gradleProject.description
-			description = gradleProject.description
-			url = linkHomepage
-			organization {
-				name = 'Spring by Pivotal'
-				url = 'https://spring.io'
-			}
-			licenses {
-				license {
-					name 'The Apache Software License, Version 2.0'
-					url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-					distribution 'repo'
-				}
-			}
-			scm {
-				url = linkScmUrl
-				connection = linkScmConnection
-				developerConnection = linkScmDevConnection
-			}
+					project.configurations.compile.allDependencies.each { dep ->
+						// Since provided is a subset of compile or runtime, 'runtime' guard is required here to preserve
+						// dependencies already changed to 'provided' above
+						def mvnDep = asNode().dependencies.'*'.find {
+							it.artifactId.text() == dep.name && it.groupId.text() == dep.group && it.scope?.text() == 'runtime'
+						}
+						mvnDep?.scope*.replaceNode(new Node(null, 'scope', 'compile'))
+					}
 
-			developers {
-				developer {
-					id = 'markfisher'
-					name = 'Mark Fisher'
-					email = 'mfisher@pivotal.io'
-				}
-				developer {
-					id = 'markpollack'
-					name = 'Mark Pollack'
-					email = 'mpollack@pivotal.io'
-				}
-				developer {
-					id = 'garyrussell'
-					name = 'Gary Russell'
-					email = 'grussell@pivotal.io'
-				}
-				developer {
-					id = 'ghillert'
-					name = 'Gunnar Hillert'
-					email = 'ghillert@pivotal.io'
-				}
-				developer {
-					id = 'pperalta'
-					name = 'Patrick Peralta'
-					email = 'pperalta@pivotal.io'
-				}
-				developer {
-					id = 'dturanski'
-					name = 'David Turanski'
-					email = 'dturanski@pivotal.io'
-				}
-				developer {
-					id = 'ebottard'
-					name = 'Eric Bottard'
-					email = 'ebottard@pivotal.io'
-				}
-				developer {
-					id = 'grenfro'
-					name = 'Glenn Renfro'
-					email = 'grenfro@pivotal.io'
-				}
-				developer {
-					id = 'igopinathan'
-					name = 'Ilayaperumal Gopinathan'
-					email = 'igopinathan@pivotal.io'
-				}
-				developer {
-					id = 'trisberg'
-					name = 'Thomas Risberg'
-					email = 'trisberg@pivotal.io'
-				}
-				developer {
-					id = 'mbogoevici'
-					name = 'Marius Bogoevici'
-					email = 'mbogoevici@pivotal.io'
-				}
-				developer {
-					id = 'jhickey'
-					name = 'Jennifer Hickey'
-				}
-				developer {
-					id = 'mminella'
-					name = 'Michael Minella'
-					email = 'mminella@pivotal.io'
-				}
-				developer {
-					id = 'ltaylor'
-					name = 'Luke Taylor'
-					email = 'ltaylor@pivotal.io'
-				}
-				developer {
-					id = 'aclement'
-					name = 'Andy Clement'
-					email = 'aclement@pivotal.io'
-				}
-				developer {
-					id = 'dsyer'
-					name = 'Dave Syer'
-					email = 'dsyer@pivotal.io'
-				}
-				developer {
-					id = 'jvalkealahti'
-					name = 'Janne Valkealahti'
-					email = 'jvalkealahti@pivotal.io'
-				}
-				developer {
-					id = 'jbrisbin'
-					name = 'Jon Brisbin'
-					email = 'jbrisbin@pivotal.io'
-				}
-				developer {
-					id = 'tdarimont'
-					name = 'Thomas Darimont'
-					email = 'tdarimont@pivotal.io'
+					// 
+					// This plugin does not support excludes applied to configurations.
+					//
+					asNode().dependencies.'*'.each { mvnDep ->
+						def scope = mvnDep.scope ? mvnDep.scope.text() : 'compile'
+						def configuration = project.configurations."${scope}"
+
+						configuration.excludeRules.each { ex ->
+							// TODO: Extra credit for getting the builder style to work here (see 'providedDep' above)
+							if (mvnDep.exclusions) {
+								def exclusion = new Node(mvnDep.exclusions[0], 'exclusion', null)
+								new Node(exclusion, 'groupId', ex.group)
+								new Node(exclusion, 'artifactId', ex.module ?: '*')
+							} else {
+								def exclusions = new Node(mvnDep, 'exclusions', null)
+								def exclusion = new Node(exclusions, 'exclusion', null)
+								new Node(exclusion, 'groupId', ex.group)
+								new Node(exclusion, 'artifactId', ex.module ?: '*')
+							}
+						}
+					}
 				}
 			}
 		}

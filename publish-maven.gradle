@@ -1,7 +1,7 @@
 apply plugin: 'maven'
 
 // exclude hadoop install sub projects
-def hadoopInstalls = ['cdh5', 'hadoop25', 'hadoop26', 'hdp22', 'phd21', 'phd30']
+def hadoopInstalls = ['cdh5', 'hadoop26', 'hdp22', 'phd21', 'phd30']
 if (hadoopInstalls.contains(project.name)) {
 	// Disable installing hadoop distro artifacts
 	install.enabled = false

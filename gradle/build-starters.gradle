@@ -25,6 +25,8 @@ project('spring-xd-module-parent') {
 		compile project(':spring-xd-dirt')
 	}
 
+	startScripts.setEnabled(false)
+
 	bootRepackage {
  	   enabled = false
 	}

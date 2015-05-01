@@ -48,6 +48,26 @@ ext {
 	linkScmUrl = 'https://github.com/spring-projects/spring-xd'
 	linkScmConnection = 'https://github.com/spring-projects/spring-xd.git'
 	linkScmDevConnection = 'git@github.com:spring-projects/spring-xd.git'
+	xdDevelopers = [
+		[ name:'Mark Fisher', id:'markfisher', email: 'mfisher@pivotal.io'],
+		[ name:'Mark Pollack', id:'markpollack', email: 'mpollack@pivotal.io'],
+		[ name:'Gary Russell', id:'garyrussell', email: 'grussell@pivotal.io'],
+		[ name:'Gunnar Hillert', id:'ghillert', email: 'ghillert@pivotal.io'],
+		[ name:'Patrick Peralta', id:'pperalta', email: 'pperalta@pivotal.io'],
+		[ name:'David Turanski', id:'dturanski', email: 'dturanski@pivotal.io'],
+		[ name:'Eric Bottard', id:'ebottard', 	email: 'ebottard@pivotal.io'],
+		[ name:'Glenn Renfro', id:'grenfro', email: 'grenfro@pivotal.io'],
+		[ name:'Ilayaperumal Gopinathan', id:'igopinathan', email: 'igopinathan@pivotal.io'],
+		[ name:'Thomas Risberg', id:'trisberg', email: 'trisberg@pivotal.io'],
+		[ name:'Marius Bogoevici', id:'mbogoevici', email: 'mbogoevici@pivotal.io'],
+		[ name:'Jennifer Hickey', id:'jhickey', email: ''],
+		[ name:'Michael Minella', id:'mminella', email: 'mminella@pivotal.io'],
+		[ name:'Andy Clement', id:'aclement', email: 'aclement@pivotal.io'],
+		[ name:'Luke Taylor', id:'ltaylor', email: ''],
+		[ name:'Dave Syer', id:'dsyer', email: 'dsyer@pivotal.io'],
+		[ name:'Janne Valkealahti', id:'jvalkealahti', email: 'jvalkealahti@pivotal.io'],
+		[ name: 'Thomas Darimont', id:'tdarimont', email: 'tdarimont@pivotal.io']
+	]
 
 	javadocLinks = [
 			"http://docs.spring.io/spring-xd/docs/1.0.x/api/"
@@ -153,7 +173,6 @@ configure(javaProjects) { subproject ->
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
 	apply plugin: 'propdeps'
-	apply plugin: 'propdeps-maven'
 	apply plugin: 'propdeps-idea'
 	apply plugin: 'propdeps-eclipse'
 
@@ -165,8 +184,7 @@ configure(javaProjects) { subproject ->
 		enabled = false
 	}
 
-	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters')
-			&& !subproject.projectDir.absolutePath.contains('spring-xd-gradle-plugins')) {
+	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters')) {
 		apply from: "${rootProject.projectDir}/publish-maven.gradle"
 		apply plugin: 'javadocHotfix'
 		apply plugin: 'license'
@@ -1337,7 +1355,9 @@ apply from: 'gradle/build-dist.gradle'
 
 task wrapper(type: Wrapper) {
 	description = "Generates build_xd[.bat] scripts"
-	gradleVersion = "1.12"
+	//see http://stackoverflow.com/questions/29113972/spring-boot-gradle-plugin-application-plugin-and-gradle-2-3-wrapper
+	//before upgrading to 2.3
+	gradleVersion = "2.2"
 	scriptFile = "gradle/build_xd"
 }
 

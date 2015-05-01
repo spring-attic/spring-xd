@@ -23,8 +23,11 @@ propertiesFile.withInputStream {
 	versions.load(it)
 }
 
+//apply from: 'publish-maven.gradle'
+//task install(dependsOn:'publishToMavenLocal'){}
+
 project('spring-xd-module-plugin') {
-	apply plugin: 'maven'
+	startScripts.setEnabled(false)
     description = 'Gradle plugin to build a Spring XD Module'
 	dependencies {
  		compile gradleApi()

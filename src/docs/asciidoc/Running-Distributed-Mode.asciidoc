@@ -326,7 +326,6 @@ The XDContainer nodes by default start up with server.port 0 (which means they w
 
 Spring XD supports the following Hadoop distributions:
 
-* hadoop25 - Apache Hadoop 2.5.2
 * hadoop26 - Apache Hadoop 2.6.0 (default)
 * phd21 - Pivotal HD 2.1 and 2.0
 * phd30 - Pivotal HD 3.0

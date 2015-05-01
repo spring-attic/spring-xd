@@ -3,60 +3,11 @@
  */ 
 
 ext {
-	hadoop25Version = '2.5.2'
 	hadoop26Version = '2.6.0'
-	cdh5Version = '2.5.0-cdh5.3.2'
+	cdh5Version = '2.5.0-cdh5.3.3'
 	hdp22Version = '2.6.0.2.2.4.0-2633'
 	phd21Version = '2.2.0-gphd-3.1.0.0'
 	phd30Version = '2.6.0.3.0.0.0-249'
-}
-
-project('spring-xd-hadoop:hadoop25') {
-	description = 'Hadoop 2.5.x dependencies'
-	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop25") {
-			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
-			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
-		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop25") {
-			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
-			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
-		}
-		runtime ("org.apache.hadoop:hadoop-common:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-app:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop25Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop25Version")
-		configurations.runtime.exclude(group: 'org.xerial.snappy')
-		runtime ("org.apache.pig:pig:0.13.0:h2")
-		runtime ("org.apache.hive:hive-metastore:0.13.1")
-		runtime ("org.apache.hive:hive-service:0.13.1")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'spring-data-hadoop-*'
-		include 'hadoop-*'
-		include 'avro-*'
-		include 'protobuf-java-*'
-		include 'jetty-util-*'
-		include 'jersey-core-*'
-		include 'jersey-server-*'
-		// Pig dependencies
-		include 'pig-*'
-		include 'automaton-*'
-		include 'antlr-runtime-*'
-		include 'jline-*'
-		// Hive dependencies
-		include 'hive-common-*'
-		include 'hive-service-*'
-		include 'hive-metastore-*'
-		include 'libthrift-*'
-		include 'libfb303-*'
-	}
 }
 
 project('spring-xd-hadoop:hadoop26') {
@@ -139,9 +90,9 @@ project('spring-xd-hadoop:cdh5') {
 		runtime ("org.apache.hadoop:hadoop-streaming:$cdh5Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$cdh5Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')
-		runtime ("org.apache.pig:pig:0.12.0-cdh5.3.2")
-		runtime ("org.apache.hive:hive-metastore:0.13.1-cdh5.3.2")
-		runtime ("org.apache.hive:hive-service:0.13.1-cdh5.3.2")
+		runtime ("org.apache.pig:pig:0.12.0-cdh5.3.3")
+		runtime ("org.apache.hive:hive-metastore:0.13.1-cdh5.3.3")
+		runtime ("org.apache.hive:hive-service:0.13.1-cdh5.3.3")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"

@@ -84,7 +84,6 @@ task copyXDShellInstall(type: Copy, dependsOn: ["copyXDInstall", ":spring-xd-she
 task copyHadoopLibs {}
 
 [
-	'hadoop25',
 	'hadoop26',
 	'cdh5',
 	'hdp22',
@@ -205,7 +204,6 @@ task distShellZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
         }
         // copy hadoop distro jars
         [
-                'hadoop25',
                 'hadoop26',
                 'cdh5',
                 'hdp22',

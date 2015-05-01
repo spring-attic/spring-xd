@@ -981,9 +981,11 @@ project('spring-xd-messagebus-spi') {
 		compile project(':spring-xd-spi-common')
 		compile project(':spring-xd-codec')
 		compile "org.springframework:spring-messaging"
+		compile "org.springframework:spring-web"
 		compile "org.springframework.retry:spring-retry"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "com.fasterxml.jackson.core:jackson-databind"
+		compile "org.apache.httpcomponents:httpclient"
 	}
 }
 
@@ -1008,6 +1010,8 @@ project('spring-xd-messagebus-rabbit') {
 		compile project(':spring-xd-messagebus-spi')
 		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.boot:spring-boot-autoconfigure"
+		compile "org.springframework:spring-web"
+		testCompile project(":spring-xd-test")
 	}
 }
 

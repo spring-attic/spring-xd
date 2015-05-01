@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.integration.bus.rabbit;
 
+import org.springframework.xd.dirt.integration.bus.RabbitAdminException;
+
 
 /**
  * Thrown when a delete operation has nothing to delete.

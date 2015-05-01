@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -35,7 +36,7 @@ import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Exposes representations of {@link Counter}s.
- * 
+ *
  * @author Eric Bottard
  */
 @Controller
@@ -71,5 +72,16 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 			throw new NoSuchMetricException(name, "There is no counter named '%s'");
 		}
 		return counterResourceAssembler.toResource(c);
+	}
+
+	/**
+	 * Retrieve information about a page of specific counters.
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/all", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public PagedResources<CounterResource> displayAll(Pageable pageable,
+			PagedResourcesAssembler<Counter> pagedAssembler) {
+		Page<Counter> page = repository.findAll(pageable);
+		return pagedAssembler.toResource(page, counterResourceAssembler);
 	}
 }

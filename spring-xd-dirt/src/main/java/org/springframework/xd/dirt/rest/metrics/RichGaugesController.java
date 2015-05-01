@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package org.springframework.xd.dirt.rest.metrics;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -35,7 +39,7 @@ import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
 
 /**
  * Exposes representations of {@link org.springframework.xd.analytics.metrics.core.Gauge}s.
- * 
+ *
  * @author Luke Taylor
  */
 @Controller
@@ -66,5 +70,13 @@ public class RichGaugesController extends AbstractMetricsController<RichGaugeRep
 			throw new NoSuchMetricException(name, "There is no rich gauge named '%s'");
 		}
 		return gaugeResourceAssembler.toResource(g);
+	}
+
+	@ResponseBody
+	@RequestMapping(value = "/all", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	public PagedResources<RichGaugeResource> displayAll(Pageable pageable,
+			PagedResourcesAssembler<RichGauge> pagedAssembler) {
+		Page<RichGauge> page = new PageImpl<RichGauge>((List<RichGauge>) repository.findAll());
+		return pagedAssembler.toResource(page, gaugeResourceAssembler);
 	}
 }

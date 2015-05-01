@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest;
 import org.springframework.xd.dirt.rest.Dependencies;
@@ -40,7 +41,7 @@ import org.springframework.xd.dirt.rest.RestConfiguration;
 
 /**
  * Tests proper behavior of {@link CountersController}.
- * 
+ *
  * @author Eric Bottard
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -71,8 +72,30 @@ public class CountersControllerIntegrationTests extends AbstractControllerIntegr
 		}
 		when(counterRepository.findAll()).thenReturn(Arrays.asList(counters));
 
-		mockMvc.perform(get("/metrics/counters")).andExpect(status().isOk())//
+		ResultActions resActions = mockMvc.perform(get("/metrics/counters")).andExpect(status().isOk())//
 		.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
+
+		for (int i = 0; i < 10; i++) {
+			resActions.andExpect(jsonPath("$.content[" + i + "].name").value("c" + i));
+			resActions.andExpect(jsonPath("$.content[" + i + "].value").doesNotExist());
+		}
+	}
+
+	@Test
+	public void testDetailedCounterListing() throws Exception {
+		Counter[] counters = new Counter[10];
+		for (int i = 0; i < counters.length; i++) {
+			counters[i] = new Counter("c" + i, i);
+		}
+		when(counterRepository.findAll()).thenReturn(Arrays.asList(counters));
+
+		ResultActions resActions = mockMvc.perform(get("/metrics/counters?detailed=true")).andExpect(status().isOk())//
+		.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
+
+		for (int i = 0; i < 10; i++) {
+			resActions.andExpect(jsonPath("$.content[" + i + "].name").value("c" + i));
+			resActions.andExpect(jsonPath("$.content[" + i + "].value").value(i));
+		}
 	}
 
 	@Test

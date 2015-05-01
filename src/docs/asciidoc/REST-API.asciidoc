@@ -343,6 +343,10 @@ For both the GET endpoints **only** 'application/json' accept header is supporte
 |GET
 |list all the known counters
 
+|/metrics/counters?detailed=true
+|GET
+|list metric values for all known counters
+
 |/metrics/counters/\{name\}
 |GET
 |get the current metric value
@@ -363,6 +367,10 @@ For both the GET endpoints **only** 'application/json' accept header is supporte
 |/metrics/field-value-counters/
 |GET
 |list all the known field value counters
+
+|/metrics/field-value-counters?detailed=true
+|GET
+|list metric values for all known field value counters
 
 |/metrics/field-value-counters/\{name\}
 |GET
@@ -385,6 +393,10 @@ For both the GET endpoints **only** 'application/json' accept header is supporte
 |GET
 |list all the known aggregate counters
 
+|/metrics/aggregate-counters?detailed=true
+|GET
+|list current metric values for all known aggregate counters
+
 |/metrics/aggregate-counters/\{name\}
 |GET
 |get the current metric values
@@ -406,6 +418,10 @@ For both the GET endpoints **only** 'application/json' accept header is supporte
 |GET
 |list all the known gauges
 
+|/metrics/gauges?detailed=true
+|GET
+|list current metric values for all known gauges
+
 |/metrics/gauges/\{name\}
 |GET
 |get the current metric values
@@ -426,6 +442,10 @@ For both the GET endpoints **only** 'application/json' accept header is supporte
 |/metrics/rich-gauges/
 |GET
 |list all the known rich gauges
+
+|/metrics/rich-gauges?detailed=true
+|GET
+|list metric values for all known rich gauges
 
 |/metrics/rich-gauges/\{name\}
 |GET

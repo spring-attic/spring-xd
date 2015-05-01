@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest;
 import org.springframework.xd.dirt.rest.Dependencies;
@@ -42,7 +43,7 @@ import org.springframework.xd.dirt.rest.RestConfiguration;
 
 /**
  * Tests proper behavior of {@link FieldValueCountersController}.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -72,13 +73,41 @@ public class FieldValueCountersControllerIntegrationTests extends AbstractContro
 	@Test
 	public void testCounterListing() throws Exception {
 		FieldValueCounter[] counters = new FieldValueCounter[10];
+		Map<String, Double> fieldValueCount = new HashMap<String, Double>();
+		fieldValueCount.put("num", 15.0);
 		for (int i = 0; i < counters.length; i++) {
-			counters[i] = new FieldValueCounter("c" + i);
+			counters[i] = new FieldValueCounter("c" + i, fieldValueCount);
 		}
 		when(fieldValueCounterRepository.findAll()).thenReturn(Arrays.asList(counters));
 
-		mockMvc.perform(get("/metrics/field-value-counters")).andExpect(status().isOk())//
+		ResultActions resActions = mockMvc.perform(get("/metrics/field-value-counters")).andExpect(status().isOk())//
 		.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
+
+		for (int i = 0; i < 10; i++) {
+			resActions.andExpect(jsonPath("$.content[" + i + "].name").value("c" + i));
+			resActions.andExpect(jsonPath("$.content[" + i + "].counts").doesNotExist());
+		}
+	}
+
+	@Test
+	public void testDetailedCounterListing() throws Exception {
+		FieldValueCounter[] counters = new FieldValueCounter[10];
+		Map<String, Double> fieldValueCount = new HashMap<String, Double>();
+		fieldValueCount.put("num", 15.0);
+		for (int i = 0; i < counters.length; i++) {
+			counters[i] = new FieldValueCounter("c" + i, fieldValueCount);
+		}
+		when(fieldValueCounterRepository.findAll()).thenReturn(Arrays.asList(counters));
+
+		ResultActions resActions = mockMvc.perform(get("/metrics/field-value-counters?detailed=true")).andExpect(
+				status().isOk())//
+				.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
+
+		for (int i = 0; i < 10; i++) {
+			resActions.andExpect(jsonPath("$.content[" + i + "].name").value("c" + i));
+			resActions.andExpect(jsonPath("$.content[" + i + "].counts").exists());
+			resActions.andExpect(jsonPath("$.content[" + i + "].counts.num").value(15.0));
+		}
 	}
 
 	@Test

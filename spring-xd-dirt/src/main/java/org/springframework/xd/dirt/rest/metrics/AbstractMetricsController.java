@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.data.web.PagedResourcesAssemblerArgumentResolver;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceAssembler;
 import org.springframework.http.HttpStatus;
@@ -38,7 +37,7 @@ import org.springframework.xd.rest.domain.metrics.MetricResource;
 /**
  * Base class for controllers that expose metrics related resources. Subclasses are meant to provide the root
  * {@link RequestMapping} uri.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -50,24 +49,32 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 		this.repository = repository;
 	}
 
-	private final ResourceAssembler<M, MetricResource> shallowResourceAssembler = new ShallowMetricResourceAssembler<M>(
+	protected final ResourceAssembler<M, MetricResource> shallowResourceAssembler = new ShallowMetricResourceAssembler<M>(
 			this.getClass());
 
 	/**
-	 * Handles listing of shallow metric representations. Method still has to be overridden (and annotated) in
-	 * subclasses because of the way {@link PagedResourcesAssemblerArgumentResolver} works.
+	 * Lists metric resources.
+	 *
+	 * @param pageable
+	 * @param pagedAssembler
+	 * @param resourceAssembler
+	 * @return
 	 */
-	protected PagedResources<MetricResource> list(Pageable pageable, PagedResourcesAssembler<M> pagedAssembler) {
+	protected PagedResources<? extends MetricResource> list(Pageable pageable,
+			PagedResourcesAssembler<M> pagedAssembler,
+			ResourceAssembler<M, ? extends MetricResource> resourceAssembler) {
 		/* Page */Iterable<M> metrics = repository.findAll(/* pageable */);
 
 		// Ok for now until we use PagingAndSortingRepo as we know we have lists
 		Page<M> page = new PageImpl<M>((List<M>) metrics);
-		return pagedAssembler.toResource(page, shallowResourceAssembler);
+		return pagedAssembler.toResource(page,
+				resourceAssembler == null ? shallowResourceAssembler : resourceAssembler);
 	}
+
 
 	/**
 	 * Deletes the metric from the repository
-	 * 
+	 *
 	 * @param name the name of the metric to delete
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)

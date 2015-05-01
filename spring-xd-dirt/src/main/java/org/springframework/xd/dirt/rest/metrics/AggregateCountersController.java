@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.springframework.xd.dirt.rest.metrics;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -42,7 +45,7 @@ import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Exposes representations of {@link AggregateCount}s.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -61,16 +64,33 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	/**
 	 * List {@link AggregateCount}s that match the given criteria.
 	 */
-	@Override
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
-	public PagedResources<MetricResource> list(Pageable pageable, PagedResourcesAssembler<Counter> pagedAssembler) {
-		return super.list(pageable, pagedAssembler);
+	public PagedResources<? extends MetricResource> list(Pageable pageable,
+			PagedResourcesAssembler<Counter> pagedAssembler,
+			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed,//
+			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime from, //
+			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime to, //
+			@RequestParam(value = "resolution", defaultValue = "hour") AggregateCountResolution resolution) {
+		PagedResources<? extends MetricResource> resources = list(pageable, pagedAssembler, shallowResourceAssembler);
+		if (detailed) {
+			to = providedOrDefaultToValue(to);
+			from = providedOrDefaultFromValue(from, to, resolution);
+			Interval interval = new Interval(from, to);
+
+			List<AggregateCountsResource> aggregateCounts = new LinkedList<>();
+			for (MetricResource metricResource : resources) {
+				AggregateCount aggregateCount = repository.getCounts(metricResource.getName(), interval, resolution);
+				aggregateCounts.add(aggregateCountResourceAssembler.toResource(aggregateCount));
+			}
+			return new PagedResources<>(aggregateCounts, resources.getMetadata());
+		}
+		return resources;
 	}
 
 	/**
 	 * Retrieve counts for a given time interval, using some precision.
-	 * 
+	 *
 	 * @param name the name of the aggregate counter we want to retrieve data from
 	 * @param from the start-time for the interval, default depends on the resolution (e.g. go back 1 day for hourly
 	 *        buckets)
@@ -79,25 +99,37 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	 */
 	@ResponseBody
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public AggregateCountsResource display(@PathVariable("name") String name,//
-			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime from,//
+	public AggregateCountsResource display(@PathVariable("name") String name, //
+			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime from, //
 			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime to, //
 			@RequestParam(value = "resolution", defaultValue = "hour") AggregateCountResolution resolution) {
 
-		if (to == null) {
-			to = new DateTime();
-		}
-		if (from == null) {
-			from = fromValue(to, resolution);
-		}
+		to = providedOrDefaultToValue(to);
+		from = providedOrDefaultFromValue(from, to, resolution);
 
 		AggregateCount aggregate = repository.getCounts(name, new Interval(from, to), resolution);
 
 		return aggregateCountResourceAssembler.toResource(aggregate);
 	}
 
-	private DateTime fromValue(DateTime to, AggregateCountResolution resolution) {
-		switch(resolution) {
+	/**
+	 * Return a default value for the interval end if none has been provided.
+	 */
+	private DateTime providedOrDefaultToValue(DateTime to) {
+		if (to == null) {
+			to = new DateTime();
+		}
+		return to;
+	}
+
+	/**
+	 * Return a default value for the interval start if none has been provided.
+	 */
+	private DateTime providedOrDefaultFromValue(DateTime from, DateTime to, AggregateCountResolution resolution) {
+		if (from != null) {
+			return from;
+		}
+		switch (resolution) {
 			case minute:
 				return to.minusMinutes(59);
 			case hour:

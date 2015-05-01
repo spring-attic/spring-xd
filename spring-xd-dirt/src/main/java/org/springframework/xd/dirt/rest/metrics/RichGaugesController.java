@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
@@ -35,7 +36,7 @@ import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
 
 /**
  * Exposes representations of {@link org.springframework.xd.analytics.metrics.core.Gauge}s.
- * 
+ *
  * @author Luke Taylor
  */
 @Controller
@@ -50,12 +51,12 @@ public class RichGaugesController extends AbstractMetricsController<RichGaugeRep
 		super(repository);
 	}
 
-	@Override
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
-	public PagedResources<MetricResource> list(Pageable pageable,
-			PagedResourcesAssembler<RichGauge> pagedAssembler) {
-		return super.list(pageable, pagedAssembler);
+	public PagedResources<? extends MetricResource> list(Pageable pageable,
+			PagedResourcesAssembler<RichGauge> pagedAssembler,
+			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
+		return list(pageable, pagedAssembler, detailed ? gaugeResourceAssembler : shallowResourceAssembler);
 	}
 
 	@ResponseBody
@@ -67,4 +68,5 @@ public class RichGaugesController extends AbstractMetricsController<RichGaugeRep
 		}
 		return gaugeResourceAssembler.toResource(g);
 	}
+
 }

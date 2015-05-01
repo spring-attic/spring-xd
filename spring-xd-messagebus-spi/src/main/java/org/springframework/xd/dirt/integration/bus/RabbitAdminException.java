@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus.rabbit;
+package org.springframework.xd.dirt.integration.bus;
 
 import org.springframework.xd.dirt.XDRuntimeException;
 

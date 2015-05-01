@@ -8,6 +8,8 @@ This section contains additional information about configuring the Message Bus, 
 [[rabbit-message-bus-high-availability-ha-configuration]]
 === Rabbit Message Bus High Availability (HA) Configuration
 
+==== Introduction
+
 The +RabbitMessageBus+ allows for HA configuration using normal https://www.rabbitmq.com/ha.html[RabbitMQ HA Configuration].
 
 First, use the +addresses+ property in +servers.yml+ to include the host/port for each server in the cluster. See xref:Application-Configuration#rabbitConfig[Application Configuration].
@@ -17,6 +19,20 @@ By default, queues and exchanges declared by the bus are prefixed with +xdbus.+ 
 To configure the entire bus for HA, create a policy:
 
 +rabbitmqctl set_policy ha-xdbus "^xdbus\." \'{"ha-mode":"all"}'+
+
+==== Connection Management and HA Queues
+
+When consuming from HA queues, there might be some performance advantage in consuming from the node that actually hosts
+the queue.
+Starting with _version 1.2_ it is now possible to configure the Rabbit Message Bus to do that.
+
+CAUTION: To utilize this mechanism, the https://www.rabbitmq.com/management.html[rabbit management plugin] must be enabled on each node in the cluster.
+The plugin's REST API is used to determine the location of the queue.
+
+This feature is enabled by adding more than one node to the +spring.rabbitmq.node+ property.
+See xref:Application-Configuration#rabbitConfig[RabbitMQ Configuration] for configuration details.
+
+When a node fails and a queue is moved to one of the mirrors, the bus will automatically reconnect to the right node.
 
 [[error-handling-message-delivery-failures]]
 === Error Handling (Message Delivery Failures)

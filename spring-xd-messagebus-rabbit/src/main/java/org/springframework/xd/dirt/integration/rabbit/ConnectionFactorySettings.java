@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2011-2014 the original author or authors.
+ *  * Copyright 2011-2015 the original author or authors.
  *  *
  *  * Licensed under the Apache License, Version 2.0 (the "License");
  *  * you may not use this file except in compliance with the License.
@@ -21,19 +21,29 @@ package org.springframework.xd.dirt.integration.rabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.RabbitConnectionFactoryBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 
 /**
  * Configures the connection factory used by the rabbit message bus.
  *
  * @author Eric Bottard
+ * @author Gary Russell
  */
 @Configuration
 public class ConnectionFactorySettings {
+
+	@Value("${spring.rabbitmq.useSSL}")
+	private boolean useSSL;
+
+	@Value("${spring.rabbitmq.sslProperties}")
+	private Resource sslPropertiesLocation;
+
 	@Bean
 	// TODO: Move to spring boot
 	public ConnectionFactory rabbitConnectionFactory(RabbitProperties config,
@@ -65,6 +75,10 @@ public class ConnectionFactorySettings {
 
 	@Bean
 	public RabbitConnectionFactoryBean rabbitFactory() {
-		return new RabbitConnectionFactoryBean();
+		RabbitConnectionFactoryBean rabbitConnectionFactoryBean = new RabbitConnectionFactoryBean();
+		rabbitConnectionFactoryBean.setUseSSL(this.useSSL);
+		rabbitConnectionFactoryBean.setSslPropertiesLocation(this.sslPropertiesLocation);
+		return rabbitConnectionFactoryBean;
 	}
+
 }

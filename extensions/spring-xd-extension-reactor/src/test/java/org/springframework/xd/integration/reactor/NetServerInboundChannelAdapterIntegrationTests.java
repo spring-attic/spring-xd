@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import reactor.net.tcp.support.SocketUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -46,9 +45,10 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.SocketUtils;
 import org.springframework.validation.BindException;
-import org.springframework.xd.integration.reactor.net.NetServerInboundChannelAdapterConfiguration;
-import org.springframework.xd.integration.reactor.net.NetServerSourceOptionsMetadata;
+import org.springframework.xd.integration.reactor.net.ReactorPeerInboundChannelAdapterConfiguration;
+import org.springframework.xd.integration.reactor.net.ReactorNetSourceOptionsMetadata;
 import org.springframework.xd.module.options.PojoModuleOptionsMetadata;
 
 /**
@@ -101,10 +101,10 @@ public class NetServerInboundChannelAdapterIntegrationTests {
 
 		@Bean
 		public PropertySource<?> optionsMetadataPropertySource() throws BindException {
-			Map<String, String> opts = new HashMap<>();
+			Map<String, String> opts = new HashMap<String, String>();
 			opts.put("port", String.valueOf(port));
 
-			return new PojoModuleOptionsMetadata(NetServerSourceOptionsMetadata.class)
+			return new PojoModuleOptionsMetadata(ReactorNetSourceOptionsMetadata.class)
 					.interpolate(opts)
 					.asPropertySource();
 		}
@@ -124,12 +124,17 @@ public class NetServerInboundChannelAdapterIntegrationTests {
 			return new PublishSubscribeChannel();
 		}
 
+		@Bean
+		public PublishSubscribeChannel errorChannel() {
+			return new PublishSubscribeChannel();
+		}
+
 	}
 
 	@Configuration
 	@Import({
-		TestConfig.class,
-		NetServerInboundChannelAdapterConfiguration.class
+			TestConfig.class,
+			ReactorPeerInboundChannelAdapterConfiguration.class
 	})
 	static class BaseConfig {
 	}
@@ -154,8 +159,7 @@ public class NetServerInboundChannelAdapterIntegrationTests {
 				ch.write(ByteBuffer.wrap(line.getBytes()));
 				ch.write(ByteBuffer.wrap(line.getBytes()));
 				ch.close();
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			}
 		}

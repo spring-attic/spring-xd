@@ -20,7 +20,7 @@ import java.util.List;
 import com.esotericsoftware.kryo.Kryo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.util.Assert;
+import org.springframework.util.Assert;
 
 /**
  * A {@link org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar} used to register a 

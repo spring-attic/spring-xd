@@ -8,10 +8,9 @@
 			 http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 			 http://www.springframework.org/schema/integration/reactor http://www.springframework.org/schema/integration/reactor/spring-integration-reactor.xsd">
 
-	<int-reactor:syslog-inbound-channel-adapter id="syslog" port="${port}" channel="output" auto-startup="false"/>
+	<int-reactor:syslog-inbound-channel-adapter id="syslog" port="${port}" channel="output"/>
 
 	<int:channel id="output"/>
-
-	<bean id="reactorEnv" class="reactor.core.Environment"/>
+	<int:channel id="errorChannel"/>
 
 </beans:beans>

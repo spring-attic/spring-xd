@@ -16,21 +16,21 @@
 
 package org.springframework.xd.integration.reactor.net;
 
-import reactor.core.Environment;
+import reactor.Environment;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 
 /**
- * Provides metadata about the configuration options of a {@link reactor.net.NetServer} in Spring XD.
+ * Provides metadata about the configuration options of a {@link reactor.io.net.ReactorPeer} in Spring XD.
  * 
- * @author Jon Brisbin
+ * @author Stephane Maldini
  */
-public class NetServerSourceOptionsMetadata {
+public class ReactorNetSourceOptionsMetadata {
 
-	private String transport = "tcp";
+	private String protocol = "tcp";
 
-	private String dispatcher = Environment.RING_BUFFER;
+	private String dispatcher = Environment.SHARED;
 
 	private String host = "0.0.0.0";
 
@@ -42,13 +42,13 @@ public class NetServerSourceOptionsMetadata {
 
 	private String codec = "string";
 
-	public String getTransport() {
-		return transport;
+	public String getProtocol() {
+		return protocol;
 	}
 
-	@ModuleOption("whether to use TCP or UDP as a transport")
-	public void setTransport(String transport) {
-		this.transport = transport;
+	@ModuleOption("whether to use TCP or UDP as a transport protocol")
+	public void setTransport(String protocol) {
+		this.protocol = protocol;
 	}
 
 	public String getDispatcher() {

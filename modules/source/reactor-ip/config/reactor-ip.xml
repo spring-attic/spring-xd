@@ -21,8 +21,9 @@
              xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
              http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<channel id="output"/>
 
-	<beans:bean id="netServerConfig" class="org.springframework.xd.integration.reactor.net.NetServerInboundChannelAdapterConfiguration"/>
+    <beans:bean id="netServerConfig" class="org.springframework.xd.integration.reactor.net.ReactorPeerInboundChannelAdapterConfiguration"/>
+    <channel id="output"/>
+    <channel id="errorChannel"/>
 
 </beans:beans>

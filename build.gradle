@@ -255,6 +255,7 @@ configure(javaProjects) { subproject ->
 		configurations.all {
 			resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
 			exclude group: 'ch.qos.logback', module: 'logback-classic'
+			exclude group: 'org.projectreactor', module: 'reactor-core'
 		}
 		// dependencies that are common across all java projects
 		dependencies {

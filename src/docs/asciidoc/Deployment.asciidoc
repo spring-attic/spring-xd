@@ -42,7 +42,7 @@ To address such deployment concerns, Spring XD provides a _Deployment Manifest_ 
 [[deployment-properties]]
 ==== Deployment Properties
 
-When you execute the `stream deploy` shell command, you can optionally provide a `properties` parameter which is a comma delimited list of key=value pairs. Examples for the key include *module.[modulename].count* and *module.[modulename].criteria* (for a full list of properties, see below). The value for the count is a positive integer, and the value for criteria is a valid SpEL expression. The Spring XD runtime matches an  available container for each module according to the deployment manifest.
+When you execute the `stream deploy` shell command, you can optionally provide a comma delimited list of key=value pairs known as _deployment properties_. Examples for the key include *module.[modulename].count* and *module.[modulename].criteria* (for a full list of properties, see below). The value for the count is a positive integer, and the value for criteria is a valid SpEL expression. The Spring XD runtime matches an  available container for each module according to the deployment manifest.
 
 The deployment properties allow you to specify deployment instructions for each module. Currently this includes:
 
@@ -52,6 +52,30 @@ The deployment properties allow you to specify deployment instructions for each 
 * Stream Partitioning
 * Direct Binding
 * History Tracking
+
+===== Spring XD Shell interaction
+When using the Spring XD Shell, there are two ways to provide deployment properties: either inline or _via_ a file reference. Those two ways are exclusive and documented below:
+
+Inline properties:: use the `--properties` shell option and list properties as a comma separated list of `key=value` pairs, like so:
++
+```
+stream deploy foo --properties "module.transform.count=2,module.log.criteria=groups.contains('group1')"
+```
+
+Using a file reference:: use the `--propertiesFile` option and point it to a local Java `.properties` file (_i.e._ that lives in the filesystem of the machine running the shell). Being read as a `.properties` file, normal rules apply (ISO 8859-1 encoding, `=`, `<space>` or `:` delimiter, _etc._) although we recommend using `=` as a key-value pair delimiter for consistency:
++
+```
+stream deploy foo --propertiesFile myprops.properties
+```
+where `myprops.properties` contains
++
+```
+# this is a comment
+module.transform.count=2
+module.log.criteria = groups.contains('group1')
+```
+
+Those two options apply to the `stream deploy` and `job deploy` commands.
 
 ===== General Properties
 

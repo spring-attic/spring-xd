@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -27,6 +26,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
@@ -54,11 +54,13 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 	/**
 	 * List Counters that match the given criteria.
 	 */
-	@Override
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
-	public PagedResources<MetricResource> list(Pageable pageable, PagedResourcesAssembler<Counter> pagedAssembler) {
-		return super.list(pageable, pagedAssembler);
+	public PagedResources<? extends MetricResource> list(Pageable pageable,
+			PagedResourcesAssembler<Counter> pagedAssembler,
+			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
+		return detailed ? list(pageable, pagedAssembler, counterResourceAssembler)
+				: list(pageable, pagedAssembler);
 	}
 
 	/**
@@ -74,14 +76,4 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 		return counterResourceAssembler.toResource(c);
 	}
 
-	/**
-	 * Retrieve information about a page of specific counters.
-	 */
-	@ResponseBody
-	@RequestMapping(value = "/all", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public PagedResources<CounterResource> displayAll(Pageable pageable,
-			PagedResourcesAssembler<Counter> pagedAssembler) {
-		Page<Counter> page = repository.findAll(pageable);
-		return pagedAssembler.toResource(page, counterResourceAssembler);
-	}
 }

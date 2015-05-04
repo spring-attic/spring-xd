@@ -16,11 +16,7 @@
 
 package org.springframework.xd.dirt.rest.metrics;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -30,6 +26,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
@@ -54,12 +51,13 @@ public class RichGaugesController extends AbstractMetricsController<RichGaugeRep
 		super(repository);
 	}
 
-	@Override
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
-	public PagedResources<MetricResource> list(Pageable pageable,
-			PagedResourcesAssembler<RichGauge> pagedAssembler) {
-		return super.list(pageable, pagedAssembler);
+	public PagedResources<? extends MetricResource> list(Pageable pageable,
+			PagedResourcesAssembler<RichGauge> pagedAssembler,
+			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
+		return detailed ? list(pageable, pagedAssembler, gaugeResourceAssembler)
+				: list(pageable, pagedAssembler);
 	}
 
 	@ResponseBody
@@ -72,11 +70,4 @@ public class RichGaugesController extends AbstractMetricsController<RichGaugeRep
 		return gaugeResourceAssembler.toResource(g);
 	}
 
-	@ResponseBody
-	@RequestMapping(value = "/all", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-	public PagedResources<RichGaugeResource> displayAll(Pageable pageable,
-			PagedResourcesAssembler<RichGauge> pagedAssembler) {
-		Page<RichGauge> page = new PageImpl<RichGauge>((List<RichGauge>) repository.findAll());
-		return pagedAssembler.toResource(page, gaugeResourceAssembler);
-	}
 }

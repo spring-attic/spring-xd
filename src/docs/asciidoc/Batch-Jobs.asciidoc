@@ -34,7 +34,7 @@ As a starting point, jobs for the following cases are provided to use out of the
 * JDBC to HDFS Import
 * HDFS to MongoDB Export
 
-These are described in the section below.  
+These are described in the section below.
 
 The purpose of this section is to show you how to create, schedule and monitor a job.
 
@@ -47,7 +47,7 @@ Before we dive deeper into the details of creating batch jobs with Spring XD, we
  . Deploy a Job
  . Launch a Job
  . Job Execution
- . Un-deploy a Job 
+ . Un-deploy a Job
  . Destroy a Job Definition
 
 ==== Register a Job Module
@@ -114,7 +114,7 @@ job deploy myjob --properties "module.fooJob.count=3,module.fooJob.criteria=grou
 
 The above deployment manifest would deploy 3 number of `fooJob` modules into containers whose group name matches "hdfs-containers-group".
 
-When a batch job is launched/scheduled, the job module that picks up the job launching request message executes the batch job.  To support partitioning of the job across multiple containers, the job definition needs to define how the job will be partitioned.  The type of partitioning depends on the type of the job, for example a job reading from JDBC would partition the data in a table by dividing up the number of rows and a job reading files form a directory would partition on the number of files available.  
+When a batch job is launched/scheduled, the job module that picks up the job launching request message executes the batch job.  To support partitioning of the job across multiple containers, the job definition needs to define how the job will be partitioned.  The type of partitioning depends on the type of the job, for example a job reading from JDBC would partition the data in a table by dividing up the number of rows and a job reading files form a directory would partition on the number of files available.
 
 The FTP to HDFS and FILE to JDBC jobs support for partitioning.  To add partitioning support for your own jobs you should import https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/META-INF/spring-xd/batch/singlestep-partition-support.xml[singlestep-partition-support.xml] in your job definition.  This provides the infrastructure so that the job module that processes the launch request can communicate as the master with the other job modules that have been deployed.  You will also need to provide an implementation of the http://docs.spring.io/spring-batch/apidocs/org/springframework/batch/core/partition/support/Partitioner.html[Partitioner] interface.
 
@@ -169,7 +169,7 @@ xd:> stream create --name fdStream --definition "trigger --payload={\"param1\":\
 ----
 To pause/stop future scheduled jobs from running for this stream, you must undeploy the stream for example:
 ----
-xd:> stream undeploy --name fdStream 
+xd:> stream undeploy --name fdStream
 ----
 ==== Launch job as a part of event flow
 A batch job is always used as a sink, with that being said it can receive messages from sources (other than triggers) and processors. In the case below we see that the user has created an http source (http source receives http posts and passes the payload of the http message to the next module in the stream) that will pass the http payload to the "myHttpJob".
@@ -194,7 +194,7 @@ When a batch job is deployed, by default it registers the following listeners al
 
 Along with the pub/sub channels for each of these listeners, there will also be a pub/sub channel that the aggregated events from all these listeners are published to.
 
-In the following example, we setup a Batch Job called _myHttpJob_. Afterwards we create a stream that will tap into the pub/sub channels that were implicitly generated when the _myHttpJob_ job was deployed. 
+In the following example, we setup a Batch Job called _myHttpJob_. Afterwards we create a stream that will tap into the pub/sub channels that were implicitly generated when the _myHttpJob_ job was deployed.
 
 ==== To receive aggregated events
 
@@ -208,7 +208,7 @@ xd>job launch myHttpJob
 **Note:** The syntax for the tap that receives the aggregated events is: `tap:job:<job-name>`
 
 
-In the logging output of the container you should see something like the following when the job completes (with the aggregated events 
+In the logging output of the container you should see something like the following when the job completes (with the aggregated events
 ----
 09:55:53,532  WARN SimpleAsyncTaskExecutor-1 logger.aggregatedEvents:150 - JobExecution: id=2, version=1, startTime=Sat Apr 12 09:55:53 PDT 2014, endTime=null, lastUpdated=Sat Apr 12 09:55:53 PDT 2014, status=STARTED, exitStatus=exitCode=UNKNOWN;exitDescription=, job=[JobInstance: id=2, version=0, Job=[myHttpJob]], jobParameters=[{random=0.07002785662707867}]
 09:55:53,554  WARN SimpleAsyncTaskExecutor-1 logger.aggregatedEvents:150 - StepExecution: id=2, version=1, name=step1, status=STARTED, exitStatus=EXECUTING, readCount=0, filterCount=0, writeCount=0 readSkipCount=0, writeSkipCount=0, processSkipCount=0, commitCount=0, rollbackCount=0, exitDescription=
@@ -260,7 +260,7 @@ In the logging output of the container you should see something like the followi
 xd>job create --name myHttpJob --definition "httpJob" --deploy
 
 xd>stream create --name itemEvents --definition "tap:job:myHttpJob.item >log" --deploy
-xd>stream create --name skipEvents --definition "tap:job:myHttpJob.skip >log" --deploy 
+xd>stream create --name skipEvents --definition "tap:job:myHttpJob.skip >log" --deploy
 xd>stream create --name chunkEvents --definition "tap:job:myHttpJob.chunk >log" --deploy
 
 xd>job launch myHttpJob
@@ -277,14 +277,14 @@ xd>job create --name myHttpJob --definition "httpJob --listeners=disable" --depl
 
 ==== To select specific listeners
 
-To select specific listeners, specify comma separated list in `--listeners` option. 
+To select specific listeners, specify comma separated list in `--listeners` option.
 Following example illustrates the selection of job and step execution listeners only:
 
 ----
 xd>job create --name myHttpJob --definition "httpJob --listeners=job,step" --deploy
 
 ----
-**Note:** 
+**Note:**
 List of options are: job, step, item, chunk and skip
 The aggregated channel is registered if at least one of these default listeners are enabled.
 
@@ -355,7 +355,7 @@ $$rollover$$:: $$the number of bytes to write before creating a new file in HDFS
 
 ==== Import CSV Files to JDBC (`filejdbc`)
 
-A module which loads CSV files into a JDBC table using a single batch job. By default it uses the internal HSQL DB which is used by Spring Batch. Refer to xref:Modules#module_values[how module options are resolved] for further details on how to change defaults (one can of course always use `--foo=bar` notation in the job definition to achieve the same effect). 
+A module which loads CSV files into a JDBC table using a single batch job. By default it uses the internal HSQL DB which is used by Spring Batch. Refer to xref:Modules#module_values[how module options are resolved] for further details on how to change defaults (one can of course always use `--foo=bar` notation in the job definition to achieve the same effect).
 
 //^job.filejdbc
 // DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.filejdbc' TAG
@@ -423,7 +423,7 @@ TIP: The connection pool settings for xd are located in servers.yml (i.e. `sprin
 
 ==== HDFS to JDBC Export (`hdfsjdbc`)
 
-This module functions very similarly to the `filejdbc` one except that the resources you specify should actually be in HDFS, rather than the OS filesystem. 
+This module functions very similarly to the `filejdbc` one except that the resources you specify should actually be in HDFS, rather than the OS filesystem.
 
 ----
 xd:> job create myjob --definition "hdfsjdbc --resources=/xd/data/*.csv --names=forename,surname,address --tableName=people --initializeDatabase=true" --deploy
@@ -643,7 +643,7 @@ xd:>job create JavaWordCountExample --definition "sparkapp --appJar=<the locatio
 xd>job launch JavaWordCountExample
 ----
 
-Once the job is launched, go to Spring XD admin-ui to verify the job results. 
+Once the job is launched, go to Spring XD admin-ui to verify the job results.
 Jobs → Executions → Select the job to verify that execution context holds the log for Spark application results. If you launch the Spark application through Spark Master, then the results and application status can be verified from SparkUI as well.
 
 //^job.sparkapp
@@ -682,7 +682,7 @@ xd:>job launch --name sqoopListTables
 
 The definition contains the name of the provided job as `sqoop` and the `--command` option names the Sqoop command we want to run, which in this case is "list-tables".
 
-Once the job is launched, go to Spring XD admin-ui to verify the job results. 
+Once the job is launched, go to Spring XD admin-ui to verify the job results.
 Jobs → Executions → Select the job to verify that step execution context holds the log for Sqoop Tool execution results. You should see some tables listed there. Since we didn't provide any connection arguments Spring XD will by default use the batch respoitory database for the Sqoop Tool execution. We could provide options specifying a different database using the `--url`, `--username` and `--password` options for the job:
 
 ----
@@ -725,6 +725,41 @@ job create sqoopComplexArgs1 --definition "sqoop --command=import --args='--tabl
 
 (For this example we have omitted the equal sign for the individual Sqoop arguments within the `--args` option. Either style works fine.)
 
+NOTE: If your Sqoop args use escape sequences (common when working with Hive data) then you should provide double back-slash characters when working with the XD Shell (this effectively escapes the escape character and only one back-slash will be passed on). Here is a brief example:
+
+----
+job create sqoopHiveArgs1 --definition "sqoop --command=import --args='--table MYFILES --target-dir /user/xduser/TEST --split-by ID --null-string \\\\N --fields-terminated-by \\0001'"
+----
+
+For more detailed coverage of using quotes and escaping please see xref:DSL-Reference#dsl-quotes-escaping[Single quotes, Double quotes, Escaping].
+
+NOTE: Advanced Hadoop configuration options can be provided in one of several configuration files. The `hadoop-site.xml` file is only used by the Sqoop job while the other configuration files are used by all Hadoop related jobs and streams:
+
+- `$XD_HOME/config/hadoop.properties` -- just add the property you would like to set:
++
+----
+dfs.client.socket-timeout=20000
+----
+- `$XD_HOME/config/hadoop-site.xml` -- add a property entry:
++
+[source,xml]
+----
+    <property>
+      <name>dfs.client.socket-timeout</name>
+      <value>20000</value>
+    </property>
+----
+- `$XD_HOME/config/servers.yml` -- add a spring.hadoop.config entry:
++
+[source,yml]
+----
+spring:
+  hadoop:
+    config:
+      dfs.client.socket-timeout: 20000
+----
+
+
 //^job.sqoop
 // DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.sqoop' TAG
 // THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
@@ -757,7 +792,7 @@ The content of the control file:
 VERSION: 1.0.0.1
 GPLOAD:
    INPUT:
-    - SOURCE: 
+    - SOURCE:
         FILE: [/home/demo/data/test_file.csv]
     - FORMAT: CSV
     - DELIMITER: ','
@@ -782,8 +817,8 @@ xd:>job create myload --definition "gpload --gploadHome=/usr/local/greenplum-loa
 xd:>job launch --name myload
 ----
 
-Once the job is launched, go to Spring XD admin-ui to verify the job results. 
-Jobs → Executions → Select the job to verify that step execution context holds the log for gpload execution results. 
+Once the job is launched, go to Spring XD admin-ui to verify the job results.
+Jobs → Executions → Select the job to verify that step execution context holds the log for gpload execution results.
 
 We can override the file name for the source file by providing it as a job parameter like this:
 

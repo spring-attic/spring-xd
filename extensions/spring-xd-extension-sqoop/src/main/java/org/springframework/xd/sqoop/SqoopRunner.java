@@ -116,7 +116,9 @@ public class SqoopRunner {
 
 		Configuration configuration = new Configuration();
 		setConfigurationProperty(configOptions, configuration, CommonConfigurationKeys.FS_DEFAULT_NAME_KEY);
+		setConfigurationProperty(configOptions, configuration, YarnConfiguration.RM_HOSTNAME);
 		setConfigurationProperty(configOptions, configuration, YarnConfiguration.RM_ADDRESS);
+		setConfigurationProperty(configOptions, configuration, YarnConfiguration.RM_SCHEDULER_ADDRESS);
 		setConfigurationProperty(configOptions, configuration, YarnConfiguration.YARN_APPLICATION_CLASSPATH);
 		setConfigurationProperty(configOptions, configuration, "mapreduce.framework.name");
 		if (StringUtils.hasText(configOptions.get("mapreduce.jobhistory.address"))) {

@@ -28,7 +28,9 @@
 				<value>jdbc.username=${username}</value>
 				<value>jdbc.password=${password}</value>
 				<value>fs.defaultFS=${fsUri}</value>
+				<value>yarn.resourcemanager.hostname=${resourceManagerHost}</value>
 				<value>yarn.resourcemanager.address=${resourceManagerHost}:${resourceManagerPort}</value>
+				<value>yarn.resourcemanager.scheduler.address=${spring.hadoop.resourceManagerSchedulerAddress:}</value>
 				<value>yarn.application.classpath=${spring.hadoop.yarnApplicationClasspath}</value>
 				<value>mapreduce.jobhistory.address=${spring.hadoop.jobHistoryAddress:}</value>
 				<value>mapreduce.framework.name=yarn</value>

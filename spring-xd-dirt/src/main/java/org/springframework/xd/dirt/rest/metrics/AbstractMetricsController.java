@@ -22,10 +22,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.data.web.PagedResourcesAssemblerArgumentResolver;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceAssembler;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,20 +49,8 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 		this.repository = repository;
 	}
 
-	private final ResourceAssembler<M, MetricResource> shallowResourceAssembler = new ShallowMetricResourceAssembler<M>(
+	protected final ResourceAssembler<M, MetricResource> shallowResourceAssembler = new ShallowMetricResourceAssembler<M>(
 			this.getClass());
-
-	/**
-	 * Handles listing of shallow metric representations. Method still has to be overridden (and annotated) in
-	 * subclasses because of the way {@link PagedResourcesAssemblerArgumentResolver} works.
-	 */
-	protected PagedResources<MetricResource> list(Pageable pageable, PagedResourcesAssembler<M> pagedAssembler) {
-		/* Page */Iterable<M> metrics = repository.findAll(/* pageable */);
-
-		// Ok for now until we use PagingAndSortingRepo as we know we have lists
-		Page<M> page = new PageImpl<M>((List<M>) metrics);
-		return pagedAssembler.toResource(page, shallowResourceAssembler);
-	}
 
 	/**
 	 * Lists metric resources.
@@ -76,7 +62,7 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 	 */
 	protected PagedResources<? extends MetricResource> list(Pageable pageable,
 			PagedResourcesAssembler<M> pagedAssembler,
-			ResourceAssemblerSupport<M, ? extends MetricResource> resourceAssembler) {
+			ResourceAssembler<M, ? extends MetricResource> resourceAssembler) {
 		/* Page */Iterable<M> metrics = repository.findAll(/* pageable */);
 
 		// Ok for now until we use PagingAndSortingRepo as we know we have lists

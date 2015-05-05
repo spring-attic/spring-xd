@@ -59,8 +59,7 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 	public PagedResources<? extends MetricResource> list(Pageable pageable,
 			PagedResourcesAssembler<Counter> pagedAssembler,
 			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
-		return detailed ? list(pageable, pagedAssembler, counterResourceAssembler)
-				: list(pageable, pagedAssembler);
+		return list(pageable, pagedAssembler, detailed ? counterResourceAssembler : shallowResourceAssembler);
 	}
 
 	/**

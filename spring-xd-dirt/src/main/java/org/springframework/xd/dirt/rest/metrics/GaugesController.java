@@ -55,8 +55,7 @@ public class GaugesController extends AbstractMetricsController<GaugeRepository,
 	public PagedResources<? extends MetricResource> list(Pageable pageable,
 			PagedResourcesAssembler<Gauge> pagedAssembler,
 			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
-		return detailed ? list(pageable, pagedAssembler, gaugeResourceAssembler)
-				: list(pageable, pagedAssembler);
+		return list(pageable, pagedAssembler, detailed ? gaugeResourceAssembler : shallowResourceAssembler);
 	}
 
 	@ResponseBody

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/ftp
+		http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd
+		http://www.springframework.org/schema/integration/file
+		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		">
+
+	<beans:bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+		<beans:property name="host" value="${host}" />
+        	<beans:property name="port" value="${port}" />
+        	<beans:property name="username" value="${username:#{null}}"/>
+        	<beans:property name="password" value="${password:#{null}}"/>
+        	<beans:property name="clientMode" value="${clientMode}"/>
+	</beans:bean>
+
+	<int-ftp:inbound-channel-adapter auto-startup="false" channel="files" session-factory="ftpSessionFactory"
+		filename-pattern="${filenamePattern}" remote-directory="${remoteDir}" local-directory="${localDir}"
+		remote-file-separator="${remoteFileSeparator}" preserve-timestamp="${preserveTimestamp}"
+		auto-create-local-directory="${autoCreateLocalDir}"
+		temporary-file-suffix="${tmpFileSuffix}" delete-remote-files="${deleteRemoteFiles}">
+		<poller trigger="trigger" />
+	</int-ftp:inbound-channel-adapter>
+
+	<beans:bean id="trigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+		<beans:constructor-arg value="${fixedDelay}" />
+		<beans:constructor-arg value="${timeUnit}" />
+		<beans:property name="initialDelay" value="${initialDelay} "/>
+	</beans:bean>
+
+	<channel id="output" />
+
+	<channel id="files" />
+
+	<beans:beans profile="use-ref">
+		<bridge input-channel="files" output-channel="output"/>
+	</beans:beans>
+
+	<beans:beans profile="use-contents">
+		<chain id="extractContents" input-channel="files" output-channel="output">
+			<header-enricher>
+				<header name="contentType" value="application/octet-stream"/>
+			</header-enricher>
+			<file:file-to-bytes-transformer />
+		</chain>
+
+	</beans:beans>
+
+</beans:beans>
+
+

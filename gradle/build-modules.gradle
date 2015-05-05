@@ -205,6 +205,10 @@ project('modules.source.sftp') {
     dependencies { runtime      "org.springframework.integration:spring-integration-sftp" }
 }
 
+project('modules.source.ftp') {
+    dependencies { runtime      "org.springframework.integration:spring-integration-ftp" }
+}
+
 project('modules.source.rabbit') {
     dependencies { runtime "org.springframework.integration:spring-integration-amqp" }
 }

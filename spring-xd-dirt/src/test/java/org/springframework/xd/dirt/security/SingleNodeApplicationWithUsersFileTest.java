@@ -61,7 +61,7 @@ public class SingleNodeApplicationWithUsersFileTest {
 	@ClassRule
 	public static TestRule springXdAndLdapServer = springXdResource;
 
-	@Parameters
+	@Parameters(name = "Authentication Test {index} - {1} - Returns: {0}")
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] {
 
@@ -171,7 +171,7 @@ public class SingleNodeApplicationWithUsersFileTest {
 	public Map<String, String> urlParameters;
 
 	@Test
-	public void testUnauthenticatedAccessToModulesEndpointFails() throws Exception {
+	public void testEndpointAuthentication() throws Exception {
 
 		logger.info(String.format("Using parameters - "
 				+ "URL: %s, URL parameters: %s, username: %s, password: %s",

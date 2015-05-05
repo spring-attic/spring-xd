@@ -178,8 +178,8 @@ xd:
       rules:
         # Streams
         - GET    /streams/definitions            => hasRole('ROLE_VIEW')
-        - DELETE /streams/definitions            => hasRole('ROLE_CREATE')
         - GET    /streams/definitions.*          => hasRole('ROLE_VIEW')
+        - DELETE /streams/definitions            => hasRole('ROLE_CREATE')
         - DELETE /streams/definitions.*          => hasRole('ROLE_CREATE')
         - GET    /streams/definitions/*          => hasRole('ROLE_VIEW')
         - POST   /streams/definitions            => hasRole('ROLE_CREATE')

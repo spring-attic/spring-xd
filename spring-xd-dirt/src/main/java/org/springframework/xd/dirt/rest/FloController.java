@@ -27,7 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.xd.dirt.stream.XDParser;
+import org.springframework.xd.dirt.stream.MultiStreamParseResult;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDescriptor;
 
 /**
@@ -40,25 +41,25 @@ import org.springframework.xd.module.ModuleDescriptor;
 @RequestMapping("/flo")
 public class FloController {
 
-	private XDParser parser;
+	private XDStreamParser.FloParser multilineParser;
 
 	@Autowired
-	public FloController(XDParser parser) {
-		this.parser = parser;
+	public FloController(XDStreamParser parser) {
+		this.multilineParser = new XDStreamParser.FloParser(parser);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public List<DefinitionOrVndErrors> validate(@RequestParam("definitions") String definitions) {
+	public List<SingleLineParseResult> validate(@RequestParam("definitions") String definitions) {
 
-		List<XDParser.DefinitionOrException> parse = parser.parse(definitions.split("\n"));
-		List<DefinitionOrVndErrors> result = new ArrayList<>(parse.size());
-		for (XDParser.DefinitionOrException doe : parse) {
-			result.add(new DefinitionOrVndErrors(doe));
+		MultiStreamParseResult parse = multilineParser.parse(definitions.split("\n"));
+		List<SingleLineParseResult> result = new ArrayList<>();
+		for (MultiStreamParseResult.Line doe : parse) {
+			result.add(new SingleLineParseResult(doe));
 		}
 		return result;
 	}
 
-	public static class DefinitionOrVndErrors {
+	public static class SingleLineParseResult {
 
 		private static final RestControllerAdvice ADVICE = new RestControllerAdvice();
 
@@ -66,7 +67,7 @@ public class FloController {
 
 		private final VndErrors errors;
 
-		private DefinitionOrVndErrors(XDParser.DefinitionOrException doe) {
+		private SingleLineParseResult(MultiStreamParseResult.Line doe) {
 			descriptors = doe.getDescriptors();
 			errors = doe.getException() != null ? ADVICE.onException(doe.getException()) : null;
 		}

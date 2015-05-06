@@ -115,30 +115,6 @@ public class XDStreamParser implements XDParser {
 	}
 
 	@Override
-	public List<DefinitionOrException> parse(String[] document) {
-		List<DefinitionOrException> result = new ArrayList<>(document.length);
-		CrudRepository<BaseDefinition, String> transientRepository = new TransientDefinitionRepository();
-		StreamConfigParser parser = new StreamConfigParser(transientRepository);
-		for (String nameAndDefinitionPair : document) {
-			try {
-
-				StreamNode stream = parser.parse(nameAndDefinitionPair);
-				String streamName = stream.getStreamName();
-				List<ModuleDescriptor> moduleDescriptors = buildModuleDescriptors(streamName,
-						nameAndDefinitionPair, ParsingContext.stream, stream);
-				BaseDefinition streamDefinition = new StreamDefinition(streamName, nameAndDefinitionPair);
-				transientRepository.save(streamDefinition);
-				result.add(new DefinitionOrException(moduleDescriptors));
-			}
-			catch (Exception e) {
-				result.add(new DefinitionOrException(e));
-			}
-		}
-		return result;
-	}
-
-
-	@Override
 	public List<ModuleDescriptor> parse(String name, String config, ParsingContext parsingContext) {
 
 		StreamConfigParser parser = new StreamConfigParser(repository);
@@ -358,55 +334,96 @@ public class XDStreamParser implements XDParser {
 	}
 
 	/**
-	 * A throwaway repository that is used during multi-definition parsing. "Sees" definitions that are
-	 * known to the real {@link #repository} and stores new definitions in an in-memory map.
+	 * A wrapper around the canonical parser that supports multiline "document" parsing.
+	 *
+	 * <p>While XDStreamParser parses a single definition, this class is able to parse multiple, reporting
+	 * errors or accepting constructs like taps against definitions that appear earlier in the document (without
+	 * actually saving them in the main repository).</p>
 	 *
 	 * @author Eric Bottard
 	 */
-	private class TransientDefinitionRepository
-		extends AbstractRepository<BaseDefinition, String>
-		implements CrudRepository<BaseDefinition, String>{
+	public static class FloParser {
 
-		private Map<String, BaseDefinition> store = new HashMap<>();
+		private final XDStreamParser delegate;
 
-		@Override
-		public <S extends BaseDefinition> S save(S entity) {
-			store.put(entity.getName(), entity);
-			return entity;
+		public FloParser(XDStreamParser delegate) {
+			this.delegate = delegate;
 		}
 
-		@Override
-		public BaseDefinition findOne(String s) {
-			BaseDefinition inMemory = store.get(s);
-			return inMemory != null ? inMemory : repository.findOne(s);
+		public MultiStreamParseResult parse(String[] document) {
+			MultiStreamParseResult result = new MultiStreamParseResult(document.length);
+			CrudRepository<BaseDefinition, String> transientRepository = new TransientDefinitionRepository();
+			StreamConfigParser parser = new StreamConfigParser(transientRepository);
+			for (String nameAndDefinitionPair : document) {
+				try {
+
+					StreamNode stream = parser.parse(nameAndDefinitionPair);
+					String streamName = stream.getStreamName();
+					List<ModuleDescriptor> moduleDescriptors = delegate.buildModuleDescriptors(streamName,
+							nameAndDefinitionPair, ParsingContext.stream, stream);
+					BaseDefinition streamDefinition = new StreamDefinition(streamName, nameAndDefinitionPair);
+					transientRepository.save(streamDefinition);
+					result.success(moduleDescriptors);
+				}
+				catch (Exception e) {
+					result.failure(e);
+				}
+			}
+			return result;
 		}
 
-		@Override
-		public Iterable<BaseDefinition> findAll() {
-			return Iterables.concat(repository.findAll(), store.values());
-		}
 
-		@Override
-		public long count() {
-			return store.size() + repository.count();
-		}
+		/**
+		 * A throwaway repository that is used during multi-definition parsing. "Sees" definitions that are
+		 * known to the real {@link #repository} and stores new definitions in an in-memory map.
+		 *
+		 * @author Eric Bottard
+		 */
+		private class TransientDefinitionRepository
+				extends AbstractRepository<BaseDefinition, String>
+				implements CrudRepository<BaseDefinition, String> {
 
-		@Override
-		public void delete(String s) {
-			store.remove(s);
-			repository.delete(s);
-		}
+			private Map<String, BaseDefinition> store = new HashMap<>();
 
-		@Override
-		public void delete(BaseDefinition entity) {
-			store.remove(entity.getName());
-			repository.delete(entity.getName());
-		}
+			@Override
+			public <S extends BaseDefinition> S save(S entity) {
+				store.put(entity.getName(), entity);
+				return entity;
+			}
 
-		@Override
-		public void deleteAll() {
-			store.clear();
-			repository.deleteAll();
+			@Override
+			public BaseDefinition findOne(String s) {
+				BaseDefinition inMemory = store.get(s);
+				return inMemory != null ? inMemory : delegate.repository.findOne(s);
+			}
+
+			@Override
+			public Iterable<BaseDefinition> findAll() {
+				return Iterables.concat(delegate.repository.findAll(), store.values());
+			}
+
+			@Override
+			public long count() {
+				return store.size() + delegate.repository.count();
+			}
+
+			@Override
+			public void delete(String s) {
+				store.remove(s);
+				delegate.repository.delete(s);
+			}
+
+			@Override
+			public void delete(BaseDefinition entity) {
+				store.remove(entity.getName());
+				delegate.repository.delete(entity.getName());
+			}
+
+			@Override
+			public void deleteAll() {
+				store.clear();
+				delegate.repository.deleteAll();
+			}
 		}
 	}
 

@@ -40,7 +40,6 @@ import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
-import org.springframework.amqp.rabbit.connection.AbstractRoutingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.BatchingRabbitTemplate;
 import org.springframework.amqp.rabbit.core.ChannelCallback;
@@ -66,7 +65,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
@@ -246,8 +244,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				}
 			};
 
-	private static final ExpressionParser EXPRESSION_PARSER =
-			new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -306,8 +303,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private Resource sslPropertiesLocation;
 
 	private volatile boolean clustered;
-
-	private AbstractRoutingConnectionFactory routingConnectionFactory;
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -437,7 +432,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 					&& this.addresses.length == this.nodes.length,
 					"'addresses', 'adminAddresses', and 'nodes' properties must have equal length");
 			this.connectionFactory = new LocalizedQueueConnectionFactory(this.connectionFactory, this.addresses,
-					this.adminAddresses, this.nodes, this.vhost, this.username, this.password);
+					this.adminAddresses, this.nodes, this.vhost, this.username, this.password, this.useSSL,
+					this.sslPropertiesLocation);
 		}
 	}
 

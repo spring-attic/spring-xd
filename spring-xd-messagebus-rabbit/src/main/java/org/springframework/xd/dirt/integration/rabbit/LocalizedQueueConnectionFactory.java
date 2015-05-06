@@ -73,9 +73,9 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 
 	private final String password;
 
-	private boolean useSSL;
+	private final boolean useSSL;
 
-	private Resource sslPropertiesLocation;
+	private final Resource sslPropertiesLocation;
 
 	/**
 	 *
@@ -90,7 +90,7 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 	 */
 	public LocalizedQueueConnectionFactory(ConnectionFactory defaultConnectionFactory,
 			String[] addresses, String[] adminAddresses, String[] nodes, String vhost,
-			String username, String password) {
+			String username, String password, boolean useSSL, Resource sslPropertiesLocation) {
 		Assert.isTrue(addresses.length == adminAddresses.length
 				&& addresses.length == nodes.length,
 				"'addresses', 'adminAddresses', and 'nodes' properties must have equal length");
@@ -101,6 +101,8 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 		this.vhost = vhost;
 		this.username = username;
 		this.password = password;
+		this.useSSL = useSSL;
+		this.sslPropertiesLocation = sslPropertiesLocation;
 	}
 
 	@Override
@@ -222,6 +224,7 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 		ccf.setAddresses(address);
 		ccf.setUsername(this.username);
 		ccf.setPassword(this.password);
+		ccf.setVirtualHost(this.vhost);
 		return ccf;
 	}
 

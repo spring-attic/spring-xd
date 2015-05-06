@@ -16,6 +16,11 @@
 
 package org.springframework.integration.x.kafka;
 
+import java.util.Arrays;
+
+import javax.validation.constraints.AssertTrue;
+
+import org.springframework.util.StringUtils;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
@@ -31,7 +36,7 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 @Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class, KafkaOffsetTopicOptionsMixin.class})
 public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
-	private String topic = ModulePlaceholders.XD_STREAM_NAME;
+	private String topics = ModulePlaceholders.XD_STREAM_NAME;
 
 	private String partitions = "";
 
@@ -53,13 +58,13 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private int queueSize = 1000;
 
-	@ModuleOption("kafka topic name")
-	public void setTopic(String topic) {
-		this.topic = topic;
+	@ModuleOption("comma separated kafka topic names")
+	public void setTopics(String topic) {
+		this.topics = topic;
 	}
 
-	public String getTopic() {
-		return this.topic;
+	public String getTopics() {
+		return this.topics;
 	}
 
 	public String getPartitions() {
@@ -160,6 +165,16 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 		inmemory,
 		redis,
 		kafka
+	}
+
+	@AssertTrue(message = "explicit partitions can only be set when using single topic source")
+	public boolean isPartitionsOptionValid() {
+		return (Arrays.asList(topics.split("\\s*,\\s*")).size() > 1) ? !StringUtils.hasText(partitions) : true;
+	}
+
+	@AssertTrue(message = "initial offsets can only be set when using single topic source")
+	public boolean isInitialOffsetsValid() {
+		return (Arrays.asList(topics.split("\\s*,\\s*")).size() > 1) ? !StringUtils.hasText(initialOffsets) : true;
 	}
 
 	@Override

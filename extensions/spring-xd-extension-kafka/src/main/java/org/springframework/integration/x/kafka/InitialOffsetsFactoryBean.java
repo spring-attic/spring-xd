@@ -16,8 +16,10 @@
 
 package org.springframework.integration.x.kafka;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -31,26 +33,28 @@ import org.springframework.util.StringUtils;
  * Parses the list of initial offsets and creates a map to initialize the {@link OffsetManager}
  *
  * @author Marius Bogoevici
+ * @author Ilayaperumal Gopinathan
  */
 public class InitialOffsetsFactoryBean implements FactoryBean<Map<Partition, Long>> {
 
 	// Matches expressions like 0@20,1@50 etc.
 	public static final Pattern VALIDATION_PATTERN = Pattern.compile("(\\d+@\\d+)[,(\\d+@\\d+)]*");
 
-	private String topic;
+	private final List<String> topics;
 
 	private String initialOffsetList;
 
-	public InitialOffsetsFactoryBean(String topic, String initialOffsetList) {
-		Assert.hasText(topic, "Topic name must be provided");
-		this.topic = topic;
+	public InitialOffsetsFactoryBean(String topics, String initialOffsetList) {
+		this.topics = Arrays.asList(topics.split("\\s*,\\s*"));
+		Assert.isTrue(!topics.isEmpty(), "Topic names must be provided");
 		this.initialOffsetList = initialOffsetList;
 	}
 
 	@Override
 	public Map<Partition, Long> getObject() throws Exception {
-		return StringUtils.hasText(initialOffsetList) ?
-				parseOffsetList(topic, initialOffsetList) : Collections.<Partition, Long>emptyMap();
+		//TODO: support initial offsets for multiple topics' partitions
+		return (StringUtils.hasText(initialOffsetList) && topics.size() == 1) ?
+				parseOffsetList(topics.get(0), initialOffsetList) : Collections.<Partition, Long>emptyMap();
 	}
 
 	@Override

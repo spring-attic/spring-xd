@@ -28,19 +28,17 @@
 
 
 	<bean id="partitions" class="org.springframework.integration.x.kafka.KafkaPartitionAllocator">
-		<constructor-arg index="0" ref="xd.zookeeper.client"/>
-		<constructor-arg index="1" ref="connectionFactory"/>
-		<constructor-arg index="2" value="${xd.module.name}"/>
-		<constructor-arg index="3" value="${xd.stream.name}"/>
-		<constructor-arg index="4" value="${topic}"/>
-		<constructor-arg index="5" value="${partitions}"/>
-		<constructor-arg index="6" value="${xd.module.sequence}"/>
-		<constructor-arg index="7" value="${xd.module.count}"/>
-		<constructor-arg index="8" ref="offsetManager"/>
+		<constructor-arg index="0" ref="connectionFactory"/>
+		<constructor-arg index="1" value="${xd.module.name}"/>
+		<constructor-arg index="2" value="${xd.stream.name}"/>
+		<constructor-arg index="3" value="${topics}"/>
+		<constructor-arg index="4" value="${partitions}"/>
+		<constructor-arg index="5" value="${xd.module.sequence}"/>
+		<constructor-arg index="6" value="${xd.module.count}"/>
 	</bean>
 
 	<bean id="initialOffsetsMap" class="org.springframework.integration.x.kafka.InitialOffsetsFactoryBean">
-		<constructor-arg index="0" value="${topic}"/>
+		<constructor-arg index="0" value="${topics}"/>
 		<constructor-arg index="1" value="${initialOffsets}"/>
 	</bean>
 

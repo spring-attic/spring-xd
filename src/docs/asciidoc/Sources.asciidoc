@@ -1076,7 +1076,8 @@ $$queueSize$$:: $$the maximum number of messages held internally and waiting for
 $$socketBufferBytes$$:: $$socket receive buffer for network requests$$ *($$int$$, default: `2097152`)*
 $$socketTimeout$$:: $$sock timeout for network requests in milliseconds$$ *($$int$$, default: `30000`)*
 $$streams$$:: $$number of streams in the topic$$ *($$int$$, default: `1`)*
-$$topic$$:: $$kafka topic name$$ *($$String$$, default: `<stream name>`)*
+$$topic$$:: $$single topic name$$ *($$String$$, default: ``)*
+$$topics$$:: $$comma separated kafka topic names$$ *($$String$$, default: ``)*
 $$zkconnect$$:: $$zookeeper connect string$$ *($$String$$, default: `localhost:2181/kafka`)*
 $$zkconnectionTimeout$$:: $$the max time the client waits to connect to ZK in milliseconds$$ *($$int$$, default: `6000`)*
 $$zksessionTimeout$$:: $$zookeeper session timeout in milliseconds$$ *($$int$$, default: `6000`)*

@@ -18,12 +18,11 @@ package org.springframework.xd.shell.command;
 import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.exists;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasValue;
 
 import java.util.Collections;
 import java.util.Properties;
 
-import kafka.admin.AdminUtils;
-import kafka.api.TopicMetadata;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,6 +38,9 @@ import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.test.fixtures.CounterSink;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
 
+import kafka.admin.AdminUtils;
+import kafka.api.TopicMetadata;
+
 /**
  * Integration tests for Kafka source and sinks.
  *
@@ -48,16 +50,23 @@ import org.springframework.xd.test.kafka.KafkaTestSupport;
  */
 public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 
-	private String topicToUse;
+	private String topic1ToUse;
+
+	private String topic2ToUse;
+
 
 	@Rule
 	public KafkaTestSupport kafkaTestSupport = new KafkaTestSupport();
 
 	@Before
 	public void createTopic() throws Exception {
-		topicToUse = "kafka-test-topic-" + random.nextInt();
+		topic1ToUse = "kafka-test-topic-" + random.nextInt();
 		// create Kafka topic
-		AdminUtils.createTopic(kafkaTestSupport.getZkClient(), topicToUse, 1, 1, new Properties());
+		AdminUtils.createTopic(kafkaTestSupport.getZkClient(), topic1ToUse, 1, 1, new Properties());
+		setupRetryTemplate(topic1ToUse);
+	}
+
+	private void setupRetryTemplate(final String topic) throws Exception {
 		RetryTemplate retryTemplate = new RetryTemplate();
 		retryTemplate.setRetryPolicy(new SimpleRetryPolicy(5,
 				Collections.<Class<? extends Throwable>,Boolean>singletonMap(TopicNotFoundException.class, true)));
@@ -65,7 +74,7 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 		retryTemplate.execute(new RetryCallback<TopicMetadata, Exception>() {
 			@Override
 			public TopicMetadata doWithRetry(RetryContext context) throws Exception {
-				return AdminUtils.fetchTopicMetadataFromZk(topicToUse, kafkaTestSupport.getZkClient());
+				return AdminUtils.fetchTopicMetadataFromZk(topic, kafkaTestSupport.getZkClient());
 			}
 		});
 	}
@@ -73,9 +82,8 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 	@After
 	public void deleteTopic() {
 		// delete topic
-		AdminUtils.deleteTopic(kafkaTestSupport.getZkClient(), topicToUse);
+		AdminUtils.deleteTopic(kafkaTestSupport.getZkClient(), topic1ToUse);
 	}
-
 
 	@Test
 	public void testKafkaSourceAndSink() throws Exception {
@@ -83,14 +91,40 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 		// create stream with kafka sink
 		final HttpSource httpSource = newHttpSource();
 		stream().create(generateStreamName(), "%s | kafka --topic='%s' --brokerList='%s'",
-				httpSource, topicToUse, kafkaTestSupport.getBrokerAddress());
+				httpSource, topic1ToUse, kafkaTestSupport.getBrokerAddress());
 		// create stream with kafka source
 		final CounterSink counter = metrics().newCounterSink();
 		stream().create(generateStreamName(), "kafka --topic='%s' --zkconnect=%s --outputType=text/plain | " +
-				"filter --expression=payload.toString().contains('%s') | %s",
-				topicToUse, kafkaTestSupport.getZkConnectString(), stringToPost, counter );
+						"filter --expression=payload.toString().contains('%s') | %s",
+				topic1ToUse, kafkaTestSupport.getZkConnectString(), stringToPost, counter );
 		httpSource.ensureReady().postData(stringToPost);
 		assertThat(counter, eventually(exists()));
+	}
+
+
+	@Test
+	public void testKafkaSourceAndSinkWithMultiTopics() throws Exception {
+		topic2ToUse = "kafka-test-topic-" + random.nextInt();
+		AdminUtils.createTopic(kafkaTestSupport.getZkClient(), topic2ToUse, 1, 1, new Properties());
+		setupRetryTemplate(topic2ToUse);
+		final String stringToPost = "Hi there!";
+		// create stream with kafka sink
+		final HttpSource httpSource1 = newHttpSource();
+		final HttpSource httpSource2 = newHttpSource();
+		stream().create(generateStreamName(), "%s | kafka --topic='%s' --brokerList='%s'",
+				httpSource1, topic1ToUse, kafkaTestSupport.getBrokerAddress());
+		stream().create(generateStreamName(), "%s | kafka --topic='%s' --brokerList='%s'",
+				httpSource2, topic2ToUse, kafkaTestSupport.getBrokerAddress());
+		// create stream with kafka source
+		final CounterSink counter = metrics().newCounterSink();
+		stream().create(generateStreamName(), "kafka --topics='%s,%s' --zkconnect=%s --outputType=text/plain | " +
+				"filter --expression=payload.toString().contains('%s') | %s",
+				topic1ToUse, topic2ToUse, kafkaTestSupport.getZkConnectString(), stringToPost, counter );
+		httpSource1.ensureReady().postData(stringToPost);
+		httpSource2.ensureReady().postData(stringToPost);
+		assertThat(counter, eventually(exists()));
+		assertThat(counter, eventually(hasValue("2")));
+		AdminUtils.deleteTopic(kafkaTestSupport.getZkClient(), topic2ToUse);
 	}
 
 

@@ -16,81 +16,33 @@
 
 package org.springframework.xd.integration.reactor.syslog;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import reactor.core.Environment;
-import reactor.event.dispatch.SynchronousDispatcher;
-import reactor.function.Consumer;
-import reactor.function.Function;
-import reactor.io.Buffer;
-import reactor.io.encoding.DelimitedCodec;
-import reactor.io.encoding.StandardCodecs;
-import reactor.net.NetChannel;
-import reactor.net.NetServer;
-import reactor.net.encoding.syslog.SyslogCodec;
-import reactor.net.encoding.syslog.SyslogMessage;
-import reactor.net.netty.tcp.NettyTcpServer;
-import reactor.net.netty.udp.NettyDatagramServer;
-import reactor.net.spec.NetServerSpec;
-import reactor.net.tcp.spec.TcpServerSpec;
-import reactor.net.udp.spec.DatagramServerSpec;
-
-import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.xd.integration.reactor.net.ReactorPeerInboundChannelAdapter;
+import reactor.fn.Consumer;
+import reactor.fn.Function;
+import reactor.io.buffer.Buffer;
+import reactor.io.net.ChannelStream;
+import reactor.io.net.ReactorPeer;
+import reactor.io.net.codec.syslog.SyslogCodec;
+import reactor.io.net.codec.syslog.SyslogMessage;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * {@code InboundChannelAdapter} implementation that uses the Reactor TCP support to read in syslog messages and
  * transform them to a {@code Map} for use in downstream modules.
  *
  * @author Jon Brisbin
+ * @author Stephane Maldini
  */
-public class SyslogInboundChannelAdapter extends MessageProducerSupport {
+public class SyslogInboundChannelAdapter extends ReactorPeerInboundChannelAdapter<Buffer, Buffer> {
 
-	private final Environment env;
-
-	private volatile NetServer<Buffer, Buffer> server;
-
-	private volatile String transport = "tcp";
-
-	private volatile String host = "0.0.0.0";
-
-	private volatile int port = 5140;
-
-	public SyslogInboundChannelAdapter(Environment env) {
-		this.env = env;
-	}
-
-	/**
-	 * Set the transport to use. Should be either 'tcp' or 'udp'.
-	 *
-	 * @param transport transport
-	 */
-	public void setTransport(String transport) {
-		if (null == transport || (!"tcp".equals(transport.toLowerCase()) && !"udp".equals(transport.toLowerCase()))) {
-			throw new IllegalArgumentException("Transport must be 'tcp' or 'udp'");
-		}
-		this.transport = transport.toLowerCase();
-	}
-
-	/**
-	 * Set hostname to bind this server to.
-	 *
-	 * @param host hostname
-	 */
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	/**
-	 * Set port to bind this server to.
-	 *
-	 * @param port port
-	 */
-	public void setPort(int port) {
-		this.port = port;
+	public SyslogInboundChannelAdapter(ReactorPeer<Buffer, Buffer, ChannelStream<Buffer, Buffer>> server)
+	{
+		super(server);
 	}
 
 	@Override
@@ -99,17 +51,7 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	@Override
-	protected void onInit() {
-		super.onInit();
-
-		NetServerSpec<Buffer, Buffer, ? extends NetServerSpec<Buffer, Buffer, ?, ?>, ? extends NetServer<Buffer,
-				Buffer>> spec;
-		if ("udp".equals(transport)) {
-			spec = new DatagramServerSpec<>(NettyDatagramServer.class);
-		}
-		else {
-			spec = new TcpServerSpec<>(NettyTcpServer.class);
-		}
+	protected void composeChannel(ChannelStream<Buffer, Buffer> input) {
 
 		// this is faster than putting the codec directly on the server
 		final Function<Buffer, SyslogMessage> decoder = new SyslogCodec()
@@ -131,37 +73,11 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 					}
 				});
 
-		spec.env(env)
-				// safest guess of Dispatcher since we don't know what's happening downstream
-				.dispatcher(new SynchronousDispatcher())
-						// optimize for massive throughput by using lightweight codec in server
-				.codec(new DelimitedCodec<>(false, StandardCodecs.PASS_THROUGH_CODEC))
-				.listen(host, port)
-				.consume(new Consumer<NetChannel<Buffer, Buffer>>() {
-					@Override
-					public void accept(NetChannel<Buffer, Buffer> conn) {
-						// consume lines and delegate to codec
-						conn.consume(new Consumer<Buffer>() {
-
-							@Override
-							public void accept(Buffer b) {
-								decoder.apply(b);
-							}
-						});
-					}
-				});
-
-		server = spec.get();
+		input.consume(new Consumer<Buffer>() {
+			@Override
+			public void accept(Buffer in) {
+				decoder.apply(in);
+			}
+		});
 	}
-
-	@Override
-	protected void doStart() {
-		server.start();
-	}
-
-	@Override
-	protected void doStop() {
-		server.shutdown();
-	}
-
 }

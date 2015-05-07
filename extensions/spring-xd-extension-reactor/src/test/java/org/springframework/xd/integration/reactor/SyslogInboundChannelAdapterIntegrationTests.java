@@ -16,7 +16,24 @@
 
 package org.springframework.xd.integration.reactor;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
+import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapterConfiguration;
+import reactor.Environment;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -26,26 +43,7 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import reactor.core.Environment;
-import reactor.core.Reactor;
-import reactor.core.spec.Reactors;
-import reactor.spring.context.config.EnableReactor;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jon Brisbin
@@ -124,7 +122,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 	}
 
 	@Configuration
-	@EnableReactor
+	@Import(SyslogInboundChannelAdapterConfiguration.class)
 	static class TestConfiguration {
 
 		static
@@ -137,21 +135,8 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		String transport;
 
 		@Bean
-		public Reactor reactor(Environment env) {
-			return Reactors.reactor().env(env).get();
-		}
-
-		@Bean
 		public DirectChannel output() {
 			return new DirectChannel();
-		}
-
-		@Bean
-		public SyslogInboundChannelAdapter syslogInboundChannelAdapter(Environment env, DirectChannel output) {
-			SyslogInboundChannelAdapter sica = new SyslogInboundChannelAdapter(env);
-			sica.setOutputChannel(output);
-			sica.setTransport(transport);
-			return sica;
 		}
 
 		@Bean

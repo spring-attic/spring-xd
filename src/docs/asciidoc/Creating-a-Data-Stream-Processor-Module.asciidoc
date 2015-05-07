@@ -8,7 +8,7 @@ This section covers how to create a processor module that uses stream processing
 
 [[reactor-streams]]
 === Reactor Streams
-https://github.com/reactor/reactor[Project Reactor] provides a https://reactor.github.io/docs/api/2.0.0.M2/reactor/rx/Stream.html[Stream API] that is based on the http://www.reactive-streams.org/[Reactive Streams specification]. The specification was jointly developed by twenty people from a dozen companies (Pivotal included) and has the goal of creating a standard for asynchronous stream processing with non-blocking back pressure on the JVM.  
+https://github.com/reactor/reactor[Project Reactor] provides a https://reactor.github.io/docs/api/2.0.1.RELEASE/reactor/rx/Stream.html[Stream API] that is based on the http://www.reactive-streams.org/[Reactive Streams specification]. The specification was jointly developed by twenty people from a dozen companies (Pivotal included) and has the goal of creating a standard for asynchronous stream processing with non-blocking back pressure on the JVM.
 
 To implement a Stream based processor module you need to implement the interface `org.springframework.xd.reactor.Processor`
 

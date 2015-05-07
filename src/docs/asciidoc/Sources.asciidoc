@@ -1054,26 +1054,14 @@ The **$$kafka$$** $$source$$ has the following options:
 
 $$autoOffsetReset$$:: $$strategy to reset the offset when there is no initial offset in ZK or if an offset is out of range$$ *($$AutoOffsetResetStrategy$$, default: `smallest`, possible values: `smallest,largest`)*
 $$encoding$$:: $$string encoder to translate bytes into string$$ *($$String$$, default: `UTF8`)*
-$$fetchMaxBytes$$:: $$max messages to attempt to fetch for each topic-partition in each fetch request$$ *($$int$$, default: `1048576`)*
+$$fetchMaxBytes$$:: $$max messages to attempt to fetch for each topic-partition in each fetch request$$ *($$int$$, default: `307200`)*
 $$fetchMaxWait$$:: $$max wait time before answering the fetch request$$ *($$int$$, default: `100`)*
 $$fetchMinBytes$$:: $$the minimum amount of data the server should return for a fetch request$$ *($$int$$, default: `1`)*
 $$groupId$$:: $$kafka consumer configuration group id$$ *($$String$$, default: `<stream name>`)*
 $$initialOffsets$$:: $$comma separated list of <partition>@<offset> pairs indicating where the source should start consuming from$$ *($$String$$, default: ``)*
-$$kafkaOffsetTopicBatchSize$$:: $$maximum batched writes to offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `200`)*
-$$kafkaOffsetTopicBatchTime$$:: $$maximum time for batching writes to offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `1000`)*
-$$kafkaOffsetTopicBatchingEnabled$$:: $$enables batching writes to offset topic, if Kafka offset strategy is chosen$$ *($$boolean$$, default: `false`)*
-$$kafkaOffsetTopicMaxSize$$:: $$maximum size of reads from offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `1048576`)*
-$$kafkaOffsetTopicName$$:: $$name of the offset topic, if Kafka offset strategy is chosen$$ *($$String$$, default: `<stream name>-${xd.module.name}-offsets`)*
-$$kafkaOffsetTopicRequiredAcks$$:: $$required acks for writing to the Kafka offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `1`)*
-$$kafkaOffsetTopicRetentionTime$$:: $$retention time for dead records (tombstones), if Kafka offset strategy is chosen$$ *($$int$$, default: `60000`)*
-$$kafkaOffsetTopicSegmentSize$$:: $$segment size of the offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `262144000`)*
 $$offsetStorage$$:: $$strategy for persisting offset values$$ *($$OffsetStorageStrategy$$, default: `kafka`, possible values: `inmemory,redis,kafka`)*
-$$offsetUpdateCount$$:: $$frequency, in number of messages, with which offsets are persisted, per concurrent processor, mutually exclusive with the time-based offset update option (use 0 to disable either)$$ *($$int$$, default: `0`)*
-$$offsetUpdateShutdownTimeout$$:: $$timeout for ensuring that all offsets have been written, on shutdown$$ *($$int$$, default: `2000`)*
-$$offsetUpdateTimeWindow$$:: $$frequency (in milliseconds) with which offsets are persisted mutually exclusive with the count-based offset update option (use 0 to disable either)$$ *($$int$$, default: `10000`)*
 $$partitions$$:: $$comma separated list of partition IDs to listen on$$ *($$String$$, default: ``)*
-$$queueSize$$:: $$the maximum number of messages held internally and waiting for processing, per concurrent handler$$ *($$int$$, default: `1000`)*
-$$socketBufferBytes$$:: $$socket receive buffer for network requests$$ *($$int$$, default: `2097152`)*
+$$socketBufferBytes$$:: $$socket receive buffer for network requests$$ *($$int$$, default: `65536`)*
 $$socketTimeout$$:: $$sock timeout for network requests in milliseconds$$ *($$int$$, default: `30000`)*
 $$streams$$:: $$number of streams in the topic$$ *($$int$$, default: `1`)*
 $$topic$$:: $$kafka topic name$$ *($$String$$, default: `<stream name>`)*

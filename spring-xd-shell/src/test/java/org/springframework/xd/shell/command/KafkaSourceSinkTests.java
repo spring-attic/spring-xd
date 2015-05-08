@@ -61,12 +61,9 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 	@Before
 	public void createTopic() throws Exception {
 		topic1ToUse = "kafka-test-topic-" + random.nextInt();
-		topic2ToUse = "kafka-test-topic-" + random.nextInt();
 		// create Kafka topic
 		AdminUtils.createTopic(kafkaTestSupport.getZkClient(), topic1ToUse, 1, 1, new Properties());
-		AdminUtils.createTopic(kafkaTestSupport.getZkClient(), topic2ToUse, 1, 1, new Properties());
 		setupRetryTemplate(topic1ToUse);
-		setupRetryTemplate(topic2ToUse);
 	}
 
 	private void setupRetryTemplate(final String topic) throws Exception {
@@ -86,12 +83,30 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 	public void deleteTopic() {
 		// delete topic
 		AdminUtils.deleteTopic(kafkaTestSupport.getZkClient(), topic1ToUse);
-		AdminUtils.deleteTopic(kafkaTestSupport.getZkClient(), topic2ToUse);
+	}
+
+	@Test
+	public void testKafkaSourceAndSink() throws Exception {
+		final String stringToPost = "Hi there!";
+		// create stream with kafka sink
+		final HttpSource httpSource = newHttpSource();
+		stream().create(generateStreamName(), "%s | kafka --topic='%s' --brokerList='%s'",
+				httpSource, topic1ToUse, kafkaTestSupport.getBrokerAddress());
+		// create stream with kafka source
+		final CounterSink counter = metrics().newCounterSink();
+		stream().create(generateStreamName(), "kafka --topic='%s' --zkconnect=%s --outputType=text/plain | " +
+						"filter --expression=payload.toString().contains('%s') | %s",
+				topic1ToUse, kafkaTestSupport.getZkConnectString(), stringToPost, counter );
+		httpSource.ensureReady().postData(stringToPost);
+		assertThat(counter, eventually(exists()));
 	}
 
 
 	@Test
-	public void testKafkaSourceAndSink() throws Exception {
+	public void testKafkaSourceAndSinkWithMultiTopics() throws Exception {
+		topic2ToUse = "kafka-test-topic-" + random.nextInt();
+		AdminUtils.createTopic(kafkaTestSupport.getZkClient(), topic2ToUse, 1, 1, new Properties());
+		setupRetryTemplate(topic2ToUse);
 		final String stringToPost = "Hi there!";
 		// create stream with kafka sink
 		final HttpSource httpSource1 = newHttpSource();
@@ -106,9 +121,10 @@ public class KafkaSourceSinkTests extends AbstractStreamIntegrationTest {
 				"filter --expression=payload.toString().contains('%s') | %s",
 				topic1ToUse, topic2ToUse, kafkaTestSupport.getZkConnectString(), stringToPost, counter );
 		httpSource1.ensureReady().postData(stringToPost);
-		httpSource1.ensureReady().postData(stringToPost);
+		httpSource2.ensureReady().postData(stringToPost);
 		assertThat(counter, eventually(exists()));
 		assertThat(counter, eventually(hasValue("2")));
+		AdminUtils.deleteTopic(kafkaTestSupport.getZkClient(), topic2ToUse);
 	}
 
 

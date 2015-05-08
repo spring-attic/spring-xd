@@ -36,7 +36,9 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 @Mixin({KafkaZKOptionMixin.class, KafkaConsumerOptionsMixin.class, KafkaOffsetTopicOptionsMixin.class})
 public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
-	private String topics = ModulePlaceholders.XD_STREAM_NAME;
+	private String topic = "";
+
+	private String topics = "";
 
 	private String partitions = "";
 
@@ -58,9 +60,18 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private int queueSize = 1000;
 
+	@ModuleOption("single topic name")
+	public void setTopic(String topic) {
+		this.topic = topic;
+	}
+
+	public String getTopic() {
+		return this.topic;
+	}
+
 	@ModuleOption("comma separated kafka topic names")
-	public void setTopics(String topic) {
-		this.topics = topic;
+	public void setTopics(String topics) {
+		this.topics = topics;
 	}
 
 	public String getTopics() {
@@ -165,6 +176,21 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 		inmemory,
 		redis,
 		kafka
+	}
+
+	@AssertTrue(message = "the options topic and topics are mutually exclusive")
+	public boolean isTopicOptionValid() {
+		boolean isTopicValid = StringUtils.hasText(topic);
+		boolean isTopicsValid = StringUtils.hasText(topics);
+		boolean isOptionValid =   isTopicValid  ? !isTopicsValid : true;
+		if (isOptionValid && (!isTopicsValid && !isTopicValid)) {
+			this.topic = ModulePlaceholders.XD_STREAM_NAME;
+			this.topics = this.topic;
+		}
+		else if (isOptionValid && isTopicValid) {
+				this.topics = this.topic;
+		}
+		return isOptionValid;
 	}
 
 	@AssertTrue(message = "explicit partitions can only be set when using single topic source")

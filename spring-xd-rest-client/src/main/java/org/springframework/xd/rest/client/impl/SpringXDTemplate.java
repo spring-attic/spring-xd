@@ -16,13 +16,10 @@
 
 package org.springframework.xd.rest.client.impl;
 
-import java.net.URI;
-
 import org.springframework.hateoas.UriTemplate;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
-import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.CompletionOperations;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
@@ -30,13 +27,16 @@ import org.springframework.xd.rest.client.GaugeOperations;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.RichGaugeOperations;
+import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.domain.XDRuntime;
 
+import java.net.URI;
+
 /**
  * Implementation of the entry point to the API.
- * 
+ *
  * @author Eric Bottard
  * @author David Turanski
  */
@@ -92,7 +92,8 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 */
 	private CompletionOperations completionOperations;
 
-	public SpringXDTemplate(ClientHttpRequestFactory factory, URI baseURI) {
+	public SpringXDTemplate(ClientHttpRequestFactory factory, URI baseURI, String rabbitMqAdminUri,
+							String rabbitMqPassword, String rabbitMqUsername, String rabbitMqVhost) {
 		super(factory);
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 
@@ -120,9 +121,11 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		resources.put("gauges", new UriTemplate(xdRuntime.getLink("gauges").getHref()));
 		resources.put("rich-gauges", new UriTemplate(xdRuntime.getLink("rich-gauges").getHref()));
 
+		resources.put("jobs/clean/rabbit", new UriTemplate(xdRuntime.getLink("jobs").getHref() + "/clean/rabbit"));
+		resources.put("streams/clean/rabbit", new UriTemplate(xdRuntime.getLink("streams").getHref() + "/clean/rabbit"));
 
-		streamOperations = new StreamTemplate(this);
-		jobOperations = new JobTemplate(this);
+		streamOperations = new StreamTemplate(this, rabbitMqAdminUri, rabbitMqPassword, rabbitMqUsername, rabbitMqVhost);
+		jobOperations = new JobTemplate(this, rabbitMqAdminUri, rabbitMqPassword, rabbitMqUsername, rabbitMqVhost);
 		counterOperations = new CounterTemplate(this);
 		fvcOperations = new FieldValueCounterTemplate(this);
 		aggrCounterOperations = new AggregateCounterTemplate(this);
@@ -133,9 +136,19 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		completionOperations = new CompletionTemplate(this);
 	}
 
-	public SpringXDTemplate(URI baseURI) {
-		this(new SimpleClientHttpRequestFactory(), baseURI);
+    public SpringXDTemplate(ClientHttpRequestFactory factory, URI baseURI) {
+        this(factory, baseURI, null, null, null, null);
+    }
+
+	public SpringXDTemplate(URI baseURI, String rabbitMqAdminUri,
+                            String rabbitMqPassword, String rabbitMqUsername, String rabbitMqVhost) {
+		this(new SimpleClientHttpRequestFactory(), baseURI, rabbitMqAdminUri, rabbitMqPassword, rabbitMqUsername,
+                rabbitMqVhost);
 	}
+
+    public SpringXDTemplate(URI baseURI) {
+        this(baseURI, null, null, null, null);
+    }
 
 	@Override
 	public StreamOperations streamOperations() {

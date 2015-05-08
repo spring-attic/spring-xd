@@ -50,4 +50,10 @@ public interface ResourceOperations {
 	 */
 	public void destroyAll();
 
+	/**
+	 * Delete Queues and DLQs for a stream, and any exchanges created for taps.
+	 */
+	public void cleanBusResources(String name);
+
+
 }

@@ -16,14 +16,10 @@
 
 package org.springframework.xd.rest.client.impl;
 
-import java.util.Collections;
-import java.util.Map;
-
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
-import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 /**
  * Implementation of the Stream-related part of the API.
@@ -31,10 +27,10 @@ import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
-public class StreamTemplate extends AbstractTemplate implements StreamOperations {
+public class StreamTemplate extends AbstractResourceTemplate implements StreamOperations {
 
-	StreamTemplate(AbstractTemplate source) {
-		super(source);
+	StreamTemplate(AbstractTemplate source, String adminUri, String password, String username, String vhost) {
+		super(source, adminUri, password, "streams", username, vhost);
 	}
 
 	@Override
@@ -51,48 +47,10 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	}
 
 	@Override
-	public void destroy(String name) {
-		// TODO: discover link by some other means (search by exact name on
-		// /streams??)
-		String uriTemplate = resources.get("streams/definitions").toString() + "/{name}";
-		restTemplate.delete(uriTemplate, Collections.singletonMap("name", name));
-	}
-
-	@Override
-	public void deploy(String name, Map<String, String> properties) {
-		// TODO: discover link by some other means (search by exact name on
-		// /streams??)
-		String uriTemplate = resources.get("streams/deployments").toString() + "/{name}";
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("properties", DeploymentPropertiesFormat.formatDeploymentProperties(properties));
-		//TODO: Do we need StreamDeploymentResource?
-		restTemplate.postForObject(uriTemplate, values, Object.class, name);
-	}
-
-	@Override
-	public void undeploy(String name) {
-		// TODO: discover link by some other means (search by exact name on
-		// /streams??)
-		String uriTemplate = resources.get("streams/deployments").toString() + "/{name}";
-		restTemplate.delete(uriTemplate, name);
-
-	}
-
-	@Override
 	public StreamDefinitionResource.Page list() {
 		String uriTemplate = resources.get("streams/definitions").toString();
 		uriTemplate = uriTemplate + "?size=10000";
 		return restTemplate.getForObject(uriTemplate, StreamDefinitionResource.Page.class);
-	}
-
-	@Override
-	public void undeployAll() {
-		restTemplate.delete(resources.get("streams/deployments").expand());
-	}
-
-	@Override
-	public void destroyAll() {
-		restTemplate.delete(resources.get("streams/definitions").expand());
 	}
 
 }

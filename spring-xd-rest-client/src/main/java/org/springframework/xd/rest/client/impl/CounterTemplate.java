@@ -16,38 +16,18 @@
 
 package org.springframework.xd.rest.client.impl;
 
-import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.domain.metrics.CounterResource;
-import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Implements the {@link CounterOperations} part of the API.
- * 
+ *
  * @author Eric Bottard
  */
-public class CounterTemplate extends AbstractTemplate implements CounterOperations {
+public class CounterTemplate extends AbstractSingleMetricTemplate<CounterResource> implements CounterOperations {
 
-	public CounterTemplate(AbstractTemplate abstractTemplate) {
-		super(abstractTemplate);
-	}
-
-	@Override
-	public CounterResource retrieve(String name) {
-		String url = resources.get("counters").toString() + "/{name}";
-		return restTemplate.getForObject(url, CounterResource.class, name);
-	}
-
-	@Override
-	public PagedResources<MetricResource> list() {
-		String url = resources.get("counters").toString() + "?size=10000";
-		return restTemplate.getForObject(url, MetricResource.Page.class);
-	}
-
-	@Override
-	public void delete(String name) {
-		String url = resources.get("counters").toString() + "/{name}";
-		restTemplate.delete(url, name);
-	}
+    public CounterTemplate(AbstractTemplate abstractTemplate) {
+        super(abstractTemplate, "counters", CounterResource.class);
+    }
 
 }

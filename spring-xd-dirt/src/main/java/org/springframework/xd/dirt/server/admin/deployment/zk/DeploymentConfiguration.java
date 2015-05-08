@@ -20,6 +20,8 @@ import org.springframework.boot.actuate.autoconfigure.AuditAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoDataAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.cluster.AdminAttributes;
@@ -49,7 +51,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  */
 @Configuration
 @EnableAutoConfiguration(exclude = {BatchAutoConfiguration.class, JmxAutoConfiguration.class,
-		AuditAutoConfiguration.class})
+		AuditAutoConfiguration.class, MongoAutoConfiguration.class, MongoDataAutoConfiguration.class })
 public class DeploymentConfiguration {
 
 	@Autowired

@@ -22,6 +22,7 @@ import java.util.Map;
  * Operations common to resources like Stream and Job.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Paul Harris
  */
 public interface ResourceOperations {
 
@@ -49,5 +50,10 @@ public interface ResourceOperations {
 	 * Undeploy all the resources known to the system.
 	 */
 	public void destroyAll();
+
+	/**
+	 * Remove any bus resources that cannot be automatically removed during undeploy.
+	 */
+	public void cleanBusResources(String name);
 
 }

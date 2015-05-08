@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,21 @@ import java.util.Date;
 
 import org.joda.time.DateTime;
 
-import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
 import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
-import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Implementation of the Aggregate Counter part of the metrics API.
- * 
+ *
  * @author Ilayaperumal Gopinathan
+ * @author Paul Harris
  */
-public class AggregateCounterTemplate extends AbstractTemplate implements AggregateCounterOperations {
+public class AggregateCounterTemplate extends AbstractMetricTemplate implements AggregateCounterOperations {
 
 	public AggregateCounterTemplate(AbstractTemplate abstractTemplate) {
-		super(abstractTemplate);
+		super(abstractTemplate, "aggregate-counters");
 	}
 
 	@Override
@@ -48,18 +47,6 @@ public class AggregateCounterTemplate extends AbstractTemplate implements Aggreg
 		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("resolution", resolution.toString())
 				.queryParam("from", fromParam).queryParam("to", toParam).build().toUriString();
 		return restTemplate.getForObject(uriString, AggregateCountsResource.class, name);
-	}
-
-	@Override
-	public PagedResources<MetricResource> list() {
-		String url = resources.get("aggregate-counters").toString() + "?size=10000";
-		return restTemplate.getForObject(url, MetricResource.Page.class);
-	}
-
-	@Override
-	public void delete(String name) {
-		String url = resources.get("aggregate-counters").toString() + "/{name}";
-		restTemplate.delete(url, name);
 	}
 
 }

@@ -17,9 +17,7 @@
 package org.springframework.xd.rest.client.impl;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -29,7 +27,6 @@ import org.springframework.xd.rest.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.domain.JobInstanceInfoResource;
 import org.springframework.xd.rest.domain.StepExecutionInfoResource;
 import org.springframework.xd.rest.domain.StepExecutionProgressInfoResource;
-import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 /**
  * Implementation of the Job-related part of the API.
@@ -38,11 +35,14 @@ import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
  * @author Eric Bottard
+ * @author Paul Harris
+ * @author Gary Russell
  */
-public class JobTemplate extends AbstractTemplate implements JobOperations {
+public class JobTemplate extends AbstractResourceTemplate implements JobOperations {
 
-	JobTemplate(AbstractTemplate source) {
-		super(source);
+	JobTemplate(AbstractTemplate source, String adminUri, String password, String username, String vhost,
+			String busPrefix) {
+		super(source, adminUri, password, "jobs", username, vhost, busPrefix);
 	}
 
 	@Override
@@ -56,21 +56,6 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		JobDefinitionResource job = restTemplate.postForObject(resources.get("jobs/definitions").expand(), values,
 				JobDefinitionResource.class);
 		return job;
-	}
-
-	@Override
-	public void destroy(String name) {
-		String uriTemplate = resources.get("jobs/definitions").toString() + "/{name}";
-		restTemplate.delete(uriTemplate, Collections.singletonMap("name", name));
-	}
-
-	@Override
-	public void deploy(String name, Map<String, String> properties) {
-		String uriTemplate = resources.get("jobs/deployments").toString() + "/{name}";
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("properties", DeploymentPropertiesFormat.formatDeploymentProperties(properties));
-		//TODO: Do we need JobDeploymentResource?
-		restTemplate.postForObject(uriTemplate, values, Object.class, name);
 	}
 
 	@Override
@@ -109,27 +94,11 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public void undeploy(String name) {
-		String uriTemplate = resources.get("jobs/deployments").toString() + "/{name}";
-		restTemplate.delete(uriTemplate, name);
-	}
-
-	@Override
 	public JobDefinitionResource.Page list() {
 		String uriTemplate = resources.get("jobs/definitions").toString();
 		// TODO handle pagination at the client side
 		uriTemplate = uriTemplate + "?size=10000&deployments=true";
 		return restTemplate.getForObject(uriTemplate, JobDefinitionResource.Page.class);
-	}
-
-	@Override
-	public void undeployAll() {
-		restTemplate.delete(resources.get("jobs/deployments").expand());
-	}
-
-	@Override
-	public void destroyAll() {
-		restTemplate.delete(resources.get("jobs/definitions").expand());
 	}
 
 	@Override

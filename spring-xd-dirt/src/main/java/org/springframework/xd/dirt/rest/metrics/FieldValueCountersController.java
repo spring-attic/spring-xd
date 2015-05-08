@@ -26,6 +26,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
@@ -60,8 +61,9 @@ public class FieldValueCountersController extends
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	public PagedResources<? extends MetricResource> list(Pageable pageable,
-			PagedResourcesAssembler<FieldValueCounter> pagedAssembler) {
-		return super.list(pageable, pagedAssembler, shallowResourceAssembler);
+			PagedResourcesAssembler<FieldValueCounter> pagedAssembler,
+			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
+		return list(pageable, pagedAssembler, detailed ? fvcResourceAssembler : shallowResourceAssembler);
 	}
 
 	@ResponseBody

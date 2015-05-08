@@ -21,6 +21,8 @@ import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchDatabaseInitializer;
 import org.springframework.boot.autoconfigure.batch.BatchProperties;
 import org.springframework.boot.autoconfigure.integration.IntegrationAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +37,8 @@ import org.springframework.xd.batch.XdBatchDatabaseInitializer;
  * @author David Turanski
  */
 @Configuration
-@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, IntegrationAutoConfiguration.class })
+@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, IntegrationAutoConfiguration.class,
+		 MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 @EnableConfigurationProperties(BatchProperties.class)
 public class HsqlServerApplication {
 

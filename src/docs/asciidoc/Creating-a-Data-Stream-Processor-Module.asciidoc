@@ -173,7 +173,7 @@ You can now create unit tests for the Processor module as you would for any othe
 </beans>
 ----
 
-Examples of unit and integration testing a module are available in the https://github.com/spring-projects/spring-xd-samples/tree/master/rxjava-moving-average[reactor sample project].  The sample project also shows how you can https://github.com/spring-projects/spring-xd/wiki/Modules#module-packaging[package] your module into a single jar and https://github.com/spring-projects/spring-xd/wiki/Creating-a-Processor-Module#register-the-module[upload] it to the admin server.
+Examples of unit and integration testing a module are available in the https://github.com/spring-projects/spring-xd-samples/tree/master/rxjava-moving-average[RxJava Moving Average sample project].  The sample project also shows how you can https://github.com/spring-projects/spring-xd/wiki/Modules#module-packaging[package] your module into a single jar and https://github.com/spring-projects/spring-xd/wiki/Creating-a-Processor-Module#register-the-module[upload] it to the admin server.
 
 ==== Scheduling
 There are two `MessageHandler` implementations that you can choose from, `SubjectMessageHandler` and `MultipleSubjectMessageHandler`.  

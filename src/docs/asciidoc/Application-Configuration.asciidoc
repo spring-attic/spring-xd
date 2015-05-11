@@ -1,7 +1,5 @@
 [[application-configuration]]
-ifndef::env-github[]
 == Application Configuration
-endif::[]
 
 === Introduction
 

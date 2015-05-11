@@ -1,7 +1,5 @@
 [[messagebus]]
-ifndef::env-github[]
 == Message Bus Configuration
-endif::[]
 
 === Introduction
 

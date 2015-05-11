@@ -1,7 +1,5 @@
 [[type-conversion]]
-ifndef::env-github[]
 == Type Conversion
-endif::[]
 
 === Introduction
 

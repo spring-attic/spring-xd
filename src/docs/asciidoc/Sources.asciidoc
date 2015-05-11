@@ -1,7 +1,5 @@
 [[sources]]
-ifndef::env-github[]
 == Sources
-endif::[]
 
 === Introduction
 In this section we will show some variations on input sources.  As a prerequisite start the XD Container

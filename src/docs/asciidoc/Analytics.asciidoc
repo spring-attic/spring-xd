@@ -1,7 +1,5 @@
 [[analytics]]
-ifndef::env-github[]
 == Analytics
-endif::[]
 
 === Introduction
 

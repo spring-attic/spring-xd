@@ -1,7 +1,5 @@
 [[creating-a-processor-module]]
-ifndef::env-github[]
 == Creating a Processor Module
-endif::[]
 
 === Introduction
 

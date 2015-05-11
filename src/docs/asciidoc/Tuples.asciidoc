@@ -1,7 +1,5 @@
 [[tuples]]
-ifndef::env-github[]
 == Tuples
-endif::[]
 
 === Introduction
 

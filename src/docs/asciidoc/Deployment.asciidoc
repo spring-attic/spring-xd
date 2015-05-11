@@ -1,7 +1,5 @@
 [[deployment]]
-ifndef::env-github[]
 == Deployment
-endif::[]
 
 === Introduction
 

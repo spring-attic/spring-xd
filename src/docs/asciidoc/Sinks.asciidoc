@@ -1,7 +1,5 @@
 [[sinks]]
-ifndef::env-github[]
 == Sinks
-endif::[]
 
 === Introduction
 In this section we will show some variations on output sinks.  As a prerequisite start the XD Container

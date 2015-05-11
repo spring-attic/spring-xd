@@ -1,7 +1,5 @@
 [[processors]]
-ifndef::env-github[]
 == Processors
-endif::[]
 
 === Introduction
 This section will cover the processors available out-of-the-box with Spring XD.  As a prerequisite, start the XD Container
@@ -70,7 +68,7 @@ Here is another example usage of filter
 This is an example that is operating on a JSON payload of tweets as consumed from the twitter search module.
 
 ==== Filter with Groovy Script
-For more complex filtering, you can pass the location of a Groovy script using the _script_ option. If you want to pass variable values to your script, you can statically bind values using the _variables_ option or optionally pass the path to a properties file containing the bindings using the _propertiesLocation_ option.All properties in the file will be made available to the script as variables. Note that _payload_ and _headers_ are implicitly bound to give you access to the data contained in a message. 
+For more complex filtering, you can pass the location of a Groovy script using the _script_ option. If you want to pass variable values to your script, you can statically bind values using the _variables_ option or optionally pass the path to a properties file containing the bindings using the _propertiesLocation_ option.All properties in the file will be made available to the script as variables. Note that _payload_ and _headers_ are implicitly bound to give you access to the data contained in a message.
 
 
 Example:
@@ -88,7 +86,7 @@ return payload.size()> 4 || shortstrings=='true'
 shortstrings=false
 ----
 
-By default, Spring XD will search the classpath for _custom-filter.groovy_ and _custom-filter.properties_. You can place the script in _${xd.home}/modules/processor/scripts_ and the properties file in _${xd.home}/config_ to make them available on the classpath.  Alternatively, you can prefix the _script_ and _properties-location_ values with _file:_ to load from the file system. 
+By default, Spring XD will search the classpath for _custom-filter.groovy_ and _custom-filter.properties_. You can place the script in _${xd.home}/modules/processor/scripts_ and the properties file in _${xd.home}/config_ to make them available on the classpath.  Alternatively, you can prefix the _script_ and _properties-location_ values with _file:_ to load from the file system.
 
 In the following stream definitions, the filter will pass only the first message:
 
@@ -291,7 +289,7 @@ $$url$$:: $$the url to perform an http request on$$ *($$String$$, no default)*
 //$processor.http-client
 
 [[shell]]
-== Shell
+=== Shell
 The `shell` processor forks an external process by running a shell command to launch a process written in any language. The process should implement a continual loop that waits for input from `stdin` and writes a result to `stdout` in a request-response manner. The process will be destroyed when the stream is undeployed. For example, it is possible to invoke a Python script within a stream in this manner. Since the shell processor relies on low-level stream processing there are some additional requirements:
 
 * Input and output data are expected to be Strings, the `charset` is configurable.
@@ -315,7 +313,7 @@ def send(data):
   sys.stdout.flush()
 
 #===========================================
-# Terminate a message using the default CRLF 
+# Terminate a message using the default CRLF
 #===========================================
 def eod():
   send("\r\n")
@@ -337,7 +335,7 @@ while True:
 
 [NOTE]
 ====
-Spring XD provides additional Python programming support for handling basic stream processing, as shown above, see xref:link:Creating-a-Python-Module[creating a Python module]. 
+Spring XD provides additional Python programming support for handling basic stream processing, as shown above, see xref:link:Creating-a-Python-Module[creating a Python module].
 ====
 
 To try this example, copy the above script and save it to `echo.py`.  Start Spring XD and create a stream:

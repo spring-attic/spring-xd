@@ -1,7 +1,5 @@
 [[creating-a-python-module]]
-ifndef::env-github[]
 == Creating a Python Module
-endif::[]
 
 === Introduction
 

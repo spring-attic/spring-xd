@@ -1,7 +1,5 @@
 [[installing-hadoop]]
-ifndef::env-github[]
 == Installing Hadoop
-endif::[]
 
 === Installing Hadoop
 

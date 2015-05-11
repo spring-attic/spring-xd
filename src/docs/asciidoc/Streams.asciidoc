@@ -1,7 +1,5 @@
 [[streams]]
-ifndef::env-github[]
 == Streams
-endif::[]
 
 === Introduction
 

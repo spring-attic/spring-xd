@@ -1,7 +1,5 @@
 [[samples]]
-ifndef::env-github[]
-== Samples 
-endif::[]
+== Samples
 
 We have a number of sample projects in the https://github.com/spring-projects/spring-xd-samples[Spring XD Samples GitHub repository]. Below are some additional examples for ingesting syslog data to HDFS.
 

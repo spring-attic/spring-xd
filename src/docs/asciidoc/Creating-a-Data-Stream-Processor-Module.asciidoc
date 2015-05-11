@@ -1,7 +1,5 @@
 [[creating-a-data-stream-processor-module]]
-ifndef::env-github[]
 == Creating a Data Stream Processor
-endif::[]
 
 === Introduction
 This section covers how to create a processor module that uses stream processing libraries and runtimes.module. Spring XD 1.1 provides integration with Project Reactor Stream, RxJava Observables, and Spark Streaming. Creating a data stream processor in XD allows you to use a functional programming model to filter, transform and aggregate data in a very concise and performant way.  This section walks through implementing a custom processor module using each of these libraries.

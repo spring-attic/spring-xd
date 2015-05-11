@@ -1,7 +1,5 @@
 [[running-on-YARN]]
-ifndef::env-github[]
 === Running on YARN
-endif::[]
 
 ==== Introduction
 The Spring XD distributed runtime (DIRT) supports distribution of

@@ -139,11 +139,11 @@ $$variables$$:: $$variable bindings as a comma delimited string of name-value pa
 ==== Transform with SpEL expression
 The simplest way to use the transform processor is to pass a SpEL expression when creating the stream. The expression should return the modified message or payload.  For example:
 
-    xd:> stream create --name transformtest --definition "http --port=9003 | transform --expression='FOO' | log" --deploy
+    xd:> stream create --name transformtest --definition "http --port=9003 | transform --expression=payload.toUpperCase() | log" --deploy
 
-This transform will convert all message payloads to the word "FOO". Try sending something to the HTTP endpoint and you should see "FOO" in the XD log:
+This transform will convert all message payloads to upper case. If sending the word "foo" to the HTTP endpoint and you should see "FOO" in the XD log:
 
-    xd:> http post --target http://localhost:9003 --data "some message"
+    xd:> http post --target http://localhost:9003 --data "foo"
 
 As part of the SpEL expression you can make use of the pre-registered JSON Path function.  The syntax is #jsonPath(payload,'<json path expression>')
 

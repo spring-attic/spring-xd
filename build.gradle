@@ -184,6 +184,32 @@ configure(javaProjects) { subproject ->
 		enabled = false
 	}
 
+	compileJava {
+		sourceCompatibility = 1.7
+		targetCompatibility = 1.7
+		options.fork = true
+		options.forkOptions.with {
+			memoryMaximumSize = "512m"
+		}
+	}
+
+	compileTestJava {
+		sourceCompatibility = 1.7
+		targetCompatibility = 1.7
+		options.fork = true
+		options.forkOptions.with {
+			memoryMaximumSize = "512m"
+		}
+	}
+
+	eclipse {
+		jdt {
+			sourceCompatibility=1.7
+			targetCompatibility=1.7
+		}
+		project { natures += 'org.springframework.ide.eclipse.core.springnature' }
+	}
+
 	if (!subproject.projectDir.absolutePath.contains('spring-xd-starters')) {
 		apply from: "${rootProject.projectDir}/publish-maven.gradle"
 		apply plugin: 'javadocHotfix'
@@ -200,31 +226,6 @@ configure(javaProjects) { subproject ->
 			excludes(['**/package-info.java'])
 		}
 
-		compileJava {
-			sourceCompatibility = 1.7
-			targetCompatibility = 1.7
-			options.fork = true
-			options.forkOptions.with {
-				memoryMaximumSize = "512m"
-			}
-		}
-
-		compileTestJava {
-			sourceCompatibility = 1.7
-			targetCompatibility = 1.7
-			options.fork = true
-			options.forkOptions.with {
-				memoryMaximumSize = "512m"
-			}
-		}
-
-		eclipse {
-			jdt {
-				sourceCompatibility=1.7
-				targetCompatibility=1.7
-			}
-			project { natures += 'org.springframework.ide.eclipse.core.springnature' }
-		}
 
 		// Include project specific settings
 		task eclipseSettings(type: Copy) {

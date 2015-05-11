@@ -1,7 +1,7 @@
 apply plugin: 'maven-publish'
 
 //alias install -> publishToMavenLocal
-task install(dependsOn:'publishToMavenLocal'){}
+task install(dependsOn: 'publishToMavenLocal') {}
 
 // exclude hadoop install sub projects
 def hadoopInstalls = ['cdh5', 'hadoop26', 'hdp22', 'phd21', 'phd30']
@@ -9,14 +9,7 @@ if (hadoopInstalls.contains(project.name)) {
 	project.tasks.findByPath("artifactoryPublish")?.enabled = false
 }
 
-
-
-// load versions
-def versions = new Properties()
-def propertiesFile = new File('dependencies.properties')
-propertiesFile.withInputStream {
-	versions.load(it)
-}
+def nonPublishedProjects = hadoopInstalls + 'documentation-toolchain'
 
 def customizePom = {
 	description project.description
@@ -40,7 +33,7 @@ def customizePom = {
 	}
 
 	developers {
-		xdDevelopers.each {dev ->
+		xdDevelopers.each { dev ->
 			developer {
 				id dev.id
 				name dev.name
@@ -64,7 +57,7 @@ task javadocMaven(type: Jar, dependsOn: javadoc) {
 	from javadoc.destinationDir
 }
 
-def providedDep = {dep->
+def providedDep = { dep ->
 	dependency {
 		artifactId dep.name
 		groupId dep.group
@@ -75,8 +68,34 @@ def providedDep = {dep->
 
 providedDep.resolveStrategy = Closure.DELEGATE_ONLY
 
+class ProjectDependenciesVersionResolver {
+	Map<String, ResolvedDependency>  resolvedDependencies = [:]
+
+	ProjectDependenciesVersionResolver(project) {
+		project.configurations.findAll {
+			['compile', 'runtime', 'default', 'optional', 'provided'].contains(it.name)
+		}.each { cfg ->
+			cfg.resolvedConfiguration.firstLevelModuleDependencies.each { dep ->
+				def existing = resolvedDependencies.putIfAbsent("${dep.moduleGroup}:${dep.moduleName}".toString(), dep)
+
+				//TODO: This may never happen, but added here just in case it does.
+				if (existing) {
+					assert existing.moduleVersion == dep.moduleVersion:
+							"Cannot resolve dependency version for ${project.name}. Different versions ${dep} ${existing}"
+				}
+			}
+		}
+	}
+
+	def getVersion(groupId, artifactId) {
+		def dep = resolvedDependencies["${groupId}:${artifactId}".toString()]
+		assert dep: "Unable to resolve dependency version for ${groupId}:${artifactId}"
+		return dep.moduleVersion
+	}
+}
+
 //Note setting enabled=false on publishing tasks doesn't work as expected
-if (!(hadoopInstalls + 'documentation-toolchain').contains(project.name)) {
+if (!nonPublishedProjects.contains(project.name)) {
 	publishing {
 		publications {
 			mavenCustom(MavenPublication) {
@@ -92,23 +111,29 @@ if (!(hadoopInstalls + 'documentation-toolchain').contains(project.name)) {
 				}
 
 				pom.withXml {
+
+					def projectDependenciesVersionResolver = new ProjectDependenciesVersionResolver(project)
+
 					asNode().version + customizePom
 
 					asNode().dependencies.'*'.each {
+
 						// Add version as the 3rd element
 						it.version ||
-							it.children().add(2,
-								new Node(null, 'version', versions["${it.groupId.text()}:${it.artifactId.text()}"]))
+								it.children().add(2,
+										new Node(null, 'version', 
+										projectDependenciesVersionResolver.getVersion(it.groupId.text(), it.artifactId.text())))
 					}
 
 					project.configurations.optional.allDependencies.each { dep ->
-						def mvnDep = asNode().dependencies.'*'.find { it.artifactId.text() == dep.name }
+						def mvnDep = asNode().dependencies.'*'.find {
+							it.artifactId.text() == dep.name && it.groupId.text() == dep.group
+						}
 						new Node(mvnDep, 'optional', 'true')
 					}
 					project.configurations.provided.allDependencies.each { dep ->
-						println "provided: ${dep.name}"
 						def mvnDep = asNode().dependencies.'*'.find {
-							it.artifactId.text() == dep.name && it.scope?.text() == 'runtime'
+							it.artifactId.text() == dep.name && it.groupId.text() == dep.group
 						}
 						if (mvnDep) {
 							mvnDep.scope*.replaceNode(new Node(null, 'scope', 'provided'))
@@ -116,9 +141,12 @@ if (!(hadoopInstalls + 'documentation-toolchain').contains(project.name)) {
 							asNode().dependencies + providedDep(dep)
 						}
 					}
+
 					project.configurations.compile.allDependencies.each { dep ->
+						// Since provided is a subset of compile or runtime, 'runtime' guard is required here to preserve
+						// dependencies already changed to 'provided' above
 						def mvnDep = asNode().dependencies.'*'.find {
-							it.artifactId.text() == dep.name && it.scope?.text() == 'runtime'
+							it.artifactId.text() == dep.name && it.groupId.text() == dep.group && it.scope?.text() == 'runtime'
 						}
 						mvnDep?.scope*.replaceNode(new Node(null, 'scope', 'compile'))
 					}
@@ -129,19 +157,18 @@ if (!(hadoopInstalls + 'documentation-toolchain').contains(project.name)) {
 					asNode().dependencies.'*'.each { mvnDep ->
 						def scope = mvnDep.scope ? mvnDep.scope.text() : 'compile'
 						def configuration = project.configurations."${scope}"
-						
-						configuration.excludeRules.each { ex->
+
+						configuration.excludeRules.each { ex ->
 							// TODO: Extra credit for getting the builder style to work here (see 'providedDep' above)
 							if (mvnDep.exclusions) {
 								def exclusion = new Node(mvnDep.exclusions[0], 'exclusion', null)
 								new Node(exclusion, 'groupId', ex.group)
 								new Node(exclusion, 'artifactId', ex.module ?: '*')
-							}
-							else {
+							} else {
 								def exclusions = new Node(mvnDep, 'exclusions', null)
 								def exclusion = new Node(exclusions, 'exclusion', null)
-								new Node(exclusion, 'groupId',ex.group)
-								new Node(exclusion, 'artifactId',ex.module ?: '*')
+								new Node(exclusion, 'groupId', ex.group)
+								new Node(exclusion, 'artifactId', ex.module ?: '*')
 							}
 						}
 					}

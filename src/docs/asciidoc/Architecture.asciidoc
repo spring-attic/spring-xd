@@ -1,7 +1,5 @@
 [[architecture]]
-ifndef::env-github[]
 == Architecture
-endif::[]
 
 === Introduction
 

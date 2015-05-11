@@ -1,7 +1,5 @@
 [[creating-a-source-module]]
-ifndef::env-github[]
 == Creating a Source Module
-endif::[]
 
 === Introduction
 

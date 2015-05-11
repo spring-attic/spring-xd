@@ -1,7 +1,5 @@
 [[building-spring-xd]]
-ifndef::env-github[]
-== Building Spring XD 
-endif::[]
+== Building Spring XD
 
 === Instructions
 

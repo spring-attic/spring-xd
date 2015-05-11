@@ -1,7 +1,5 @@
 [[xd-distributed-runtime]]
-ifndef::env-github[]
 == Distributed Runtime
-endif::[]
 
 === Introduction
 This document describes what's happening "under the hood" of the Spring XD Distributed Runtime (DIRT) and in particular, how the runtime architecture achieves high availability and failover in a clustered production environment. See xref:Running-Distributed-Mode[Running in Distributed Mode] for more information on installing and running Spring XD in distributed mode.

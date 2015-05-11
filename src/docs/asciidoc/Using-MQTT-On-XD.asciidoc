@@ -1,7 +1,5 @@
 [[using-mqtt-modules]]
-ifndef::env-github[]
 == Using MQTT Modules
-endif::[]
 
 === Introduction
 MQTT(MQ for telemetry transport) is a machine to machine connectivity protocol. It is a lightweight pub/sub protocol for devices where bandwidth and battery power are at a premium.  This purpose of this document is to show you how to: enable the RabbitMQ MQTT plugin, setup a Spring XD MQTT source and Spring MQTT sink. 

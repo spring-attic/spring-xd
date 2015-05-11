@@ -1,7 +1,5 @@
 [[introduction]]
-ifndef::env-github[]
 == Introduction
-endif::[]
 
 === Overview
 

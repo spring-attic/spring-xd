@@ -1,7 +1,5 @@
 [[module-options-metadata]]
-ifndef::env-github[]
 == Providing Module Options Metadata
-endif::[]
 
 === Introduction
 Each available module can expose metadata about the options it accepts. This is useful to enhance the user experience, and is the foundation to advanced features like contextual help and code completion.
@@ -47,7 +45,7 @@ Similarly, every job module benefits from a handful of xref:Batch-Jobs#job_optio
 Here is a recap of those automatically provided options:
 
 |===
-|Module Type|Options 
+|Module Type|Options
 
 |Source
 |outputType

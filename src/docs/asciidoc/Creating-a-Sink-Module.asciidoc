@@ -1,7 +1,5 @@
 [[creating-a-sink-module]]
-ifndef::env-github[]
 == Creating a Sink Module
-endif::[]
 
 === Introduction
 

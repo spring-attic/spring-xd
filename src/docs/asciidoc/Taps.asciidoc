@@ -1,7 +1,5 @@
 [[taps]]
-ifndef::env-github[]
 == Taps
-endif::[]
 
 === Introduction
 

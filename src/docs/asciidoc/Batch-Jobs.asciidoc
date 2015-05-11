@@ -1,7 +1,5 @@
 [[batch]]
-ifndef::env-github[]
 == Batch Jobs
-endif::[]
 
 === Introduction
 

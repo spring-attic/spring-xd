@@ -1,7 +1,5 @@
 [[adminui]]
-ifndef::env-github[]
-== Admin UI 
-endif::[]
+== Admin UI
 
 === Introduction
 

@@ -1,7 +1,5 @@
 [[module-project-migration]]
-ifndef::env-github[]
 == Modules-Project-Migration
-endif::[]
 
 === Introduction
 

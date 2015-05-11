@@ -1,7 +1,5 @@
 [[interactive-shell]]
-ifndef::env-github[]
-== Interactive Shell 
-endif::[]
+== Interactive Shell
 
 === Introduction
 Spring XD includes an interactive shell that you can use create, deploy, destroy and query streams and jobs.  There are also commands to help with common tasks such as interacting with HDFS, the UNIX shell, and sending HTTP requests.  In this section we will introduce the main commands and features of the shell.  

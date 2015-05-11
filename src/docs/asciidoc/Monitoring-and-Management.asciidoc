@@ -1,7 +1,5 @@
 [[monitoring-management]]
-ifndef::env-github[]
 == Monitoring and Management
-endif::[]
 
 Spring XD uses Spring Boot's monitoring and management support over http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[HTTP] and http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-jmx[JMX] along with Spring Integration's http://docs.spring.io/spring-integration/docs/4.0.0.M4/reference/htmlsingle/#jmx-mbean-exporter[MBean Exporters]
 

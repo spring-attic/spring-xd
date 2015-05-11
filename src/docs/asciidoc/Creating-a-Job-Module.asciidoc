@@ -1,7 +1,5 @@
 [[creating-a-job-module]]
-ifndef::env-github[]
 == Creating a Job Module
-endif::[]
 
 === Introduction
 As outlined in the xref:Modules#modules[modules] document, XD currently supports four types of modules: source, sink, and processor for stream processing and job for batch procesing. This document walks through creation of a simple job module.

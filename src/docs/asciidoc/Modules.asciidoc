@@ -1,7 +1,5 @@
 [[modules]]
-ifndef::env-github[]
 == Modules
-endif::[]
 
 === Introduction
 

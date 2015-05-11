@@ -1,7 +1,5 @@
 [[dsl-guide]]
-ifndef::env-github[]
 == DSL Guide
-endif::[]
 
 === Introduction
 

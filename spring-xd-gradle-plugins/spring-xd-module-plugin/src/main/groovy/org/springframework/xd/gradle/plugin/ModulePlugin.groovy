@@ -47,6 +47,7 @@ class ModulePlugin implements Plugin<Project> {
 	void apply(Project project) {
 		project.apply plugin: 'spring-boot'
 		project.apply plugin: 'propdeps'
+		project.apply plugin: 'propdeps-maven'
 		project.apply plugin: 'propdeps-idea'
 		project.apply plugin: 'propdeps-eclipse'
 
@@ -80,6 +81,10 @@ class ModulePlugin implements Plugin<Project> {
 		project.springBoot {
 			layout = 'MODULE'
 			customConfiguration = "exported"
+		}
+
+		project.test {
+			systemProperty 'XD_HOME', project.rootDir
 		}
 
 		project.task('configureModule') << {

@@ -1,6 +1,9 @@
-apply plugin: 'maven-publish'
-//alias install -> publishToMavenLocal
-task install(dependsOn:'publishToMavenLocal'){}
+apply plugin: 'maven'
+import org.gradle.api.artifacts.ProjectDependency
+
+install.repositories.mavenInstaller {
+	customizePom(pom, project)
+}
 
 ext.dependencyList = []
 
@@ -22,169 +25,153 @@ def getAllDependentProjects(project) {
 	}
 }
 
-// load versions
-def versions = new Properties()
-def propertiesFile = new File('dependencies.properties')
-propertiesFile.withInputStream {
-	versions.load(it)
-}
+def customizePom(pom, gradleProject) {
+	pom.whenConfigured { generatedPom ->
+		// add all items necessary for maven central publication
+		
+		getAllDependentProjects(gradleProject)
 
-def customizePom = {
+		generatedPom.dependencies.clear()
+		
+    	generatedPom.project {
+      		inceptionYear '2014'
+      		packaging 'pom'
+      		url linkHomepage
+      		licenses {
+        		license {
+          			name 'The Apache Software License, Version 2.0'
+          			url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          			distribution 'repo'
+        		}
+      		}
+      		scm {
+				url = linkScmUrl
+				connection = linkScmConnection
+				developerConnection = linkScmDevConnection
+	  		}
+  
+			name = gradleProject.description
+			description = gradleProject.description
 
-	inceptionYear '2014'
-	packaging 'pom'
-	description project.description
-	properties {
-		'project.build.sourceEncoding' 'UTF-8'
-		'java.source.version' project.compileJava.sourceCompatibility
-		'java.target.version' project.compileJava.targetCompatibility
-		'resource.delimiter' '@'
-		'project.reporting.outputEncoding' 'UTF-8'
-		'maven.compiler.source' '${java.source.version}'
-		'maven.compiler.target' '${java.target.version}'
-		'spring.xd.version' version
-		'spring.boot.version' versions['org.springframework.boot:spring-boot']
-	}
-	url linkHomepage
-	organization {
-		name 'Spring by Pivotal'
-		url 'https://spring.io'
-	}
-	licenses {
-		license {
-			name 'The Apache Software License, Version 2.0'
-			url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-			distribution 'repo'
-		}
-	}
-
-	scm {
-		url linkScmUrl
-		connection linkScmConnection
-		developerConnection linkScmDevConnection
-	}
-	build {
-		plugins {
-			plugin {
-				groupId 'org.springframework.boot'
-				artifactId 'spring-boot-maven-plugin'
-				version '${spring.boot.version}'
-				configuration {
-					layout 'MODULE'
-					getAllDependentProjects(project)
-					excludes {
-						dependencyList.each {
-							def toks = it.split(':')
-							exclude {
-								groupId toks[0]
-								artifactId toks[1]
+			properties {
+				'project.build.sourceEncoding' 'UTF-8'
+				'java.source.version' '1.7'
+				'java.target.version' '1.7'
+				'resource.delimiter' '@'
+				'project.reporting.outputEncoding' 'UTF-8'
+				'maven.compiler.source' '${java.source.version}'
+				'maven.compiler.target' '${java.target.version}'
+				'spring.xd.version'  version
+				'spring.boot.version' '1.2.1.RELEASE'
+			}
+			
+	 
+			/*
+			TODO: This breaks with Gradle 2.x see http://forums.gradle.org/gradle/topics/after_upgrade_gradle_to_2_0_version_the_maven_pom_not_support_build_property
+			*/
+			'build' {
+				'plugins' {
+					'plugin' {
+						'groupId' 'org.springframework.boot'
+						'artifactId' 'spring-boot-maven-plugin'
+						'version' '${spring.boot.version}'
+						'configuration' {
+							'layout' 'MODULE'
+							excludes {
+								dependencyList.each {
+									def toks = it.split(':')
+									exclude {
+										groupId toks[0]
+										artifactId toks[1]
+									}
+								}
+							}
+						}
+						'executions' {
+							'execution' {
+								'goals' {
+									'goal' 'repackage'
+								}
 							}
 						}
 					}
+
+					plugin {
+						'groupId' 'org.apache.maven.plugins'
+						'artifactId' 'maven-surefire-plugin'
+					  	'version' '2.18'
+					  	configuration {
+					  		systemPropertyVariables {
+					  			'XD_HOME' '${project.basedir}'
+					  		}
+					  	}
+					}
 				}
-				executions {
-					execution {
-						goals {
-							goal 'repackage'
+			}
+
+			dependencies {
+				dependency {
+					groupId 'org.springframework.xd'
+					artifactId 'spring-xd-dirt'
+					version '${spring.xd.version}'
+					scope 'provided'
+					exclusions {
+						exclusion {
+							groupId 'org.springframework.xd'
+							artifactId 'spring-xd-hadoop'
+						}
+						exclusion {
+							groupId 'org.springframework.xd'
+							artifactId 'spring-xd-spark-streaming'
+						}
+					}
+				}
+				dependency {
+					groupId 'org.springframework.xd'
+					artifactId 'spring-xd-test'
+					version '${spring.xd.version}'
+					scope 'test'
+					exclusions {
+						exclusion {
+							groupId 'org.springframework.xd'
+							artifactId 'spring-xd-hadoop'
+						}
+						exclusion {
+							groupId 'org.springframework.data'
+							artifactId 'spring-data-hadoop-test'
+						}
+						exclusion {
+							groupId 'org.springframework.data'
+							artifactId 'spring-data-hadoop'
 						}
 					}
 				}
 			}
 
-			plugin {
-				groupId 'org.apache.maven.plugins'
-				artifactId 'maven-surefire-plugin'
-				version '2.18'
-				configuration {
+			repositories {
+				repository {
+					id = 'jcenter'
+					name = 'JCenter Repository'
+					url = 'http://jcenter.bintray.com/'
+				}
+				repository {
+					id = 'repository.io.snapshot'
+					name = 'Spring Snapshot Repository'
+					url = 'http://repo.spring.io/snapshot'
+				}
+				repository {
+					id = 'repository.io.milestone'
+					name = 'Spring Milestone Repository'
+					url = 'http://repo.spring.io/milestone'
+				}
+			}
+			pluginRepositories {
+				pluginRepository {
+					id = 'repository.io.milestone'
+					name = 'Spring Milestone Repository'
+					url = 'http://repo.spring.io/milestone'
 				}
 			}
 		}
 	}
-
-	repositories {
-		repository {
-			id 'jcenter'
-			name 'JCenter Repository'
-			url 'http://jcenter.bintray.com/'
-		}
-		repository {
-			id 'repository.io.snapshot'
-			name 'Spring Snapshot Repository'
-			url 'http://repo.spring.io/snapshot'
-		}
-		repository {
-			id 'repository.io.milestone'
-			name 'Spring Milestone Repository'
-			url 'http://repo.spring.io/milestone'
-		}
-	}
-	pluginRepositories {
-		pluginRepository {
-			id 'repository.io.milestone'
-			name 'Spring Milestone Repository'
-			url 'http://repo.spring.io/milestone'
-		}
-	}
 }
-
-// This is needed to generate elements that are also defined methods in MavenPublication
-customizePom.resolveStrategy = Closure.DELEGATE_FIRST
-
-publishing {
-	publications {
-		mavenCustom(MavenPublication) {
-			from components.java
-			
-			pom.withXml {
-				asNode().version + customizePom
-
-				asNode().remove(asNode().dependencies)
-				// Builder is not straightforward here.
-				def dependencyManagement = new Node(asNode(),'dependencyManagement', null)
-				def dependencies
-				dependencies = new Node(dependencyManagement, 'dependencies', null)
-				versions.each {k,version ->
-					def (groupId,artifactId) = k.split(':')
-					def dependency = new Node(dependencies, 'dependency', null)
-					new Node(dependency, 'groupId', groupId)
-					new Node(dependency, 'artifactId', artifactId)
-					new Node(dependency, 'version', version)
-				}
-				
-				dependencies = new Node(asNode(), 'dependencies', null)
-				def dependency
-				dependency = new Node(dependencies, 'dependency', null)
-				new Node(dependency, 'groupId', 'org.springframework.xd')
-				new Node(dependency, 'artifactId', 'spring-xd-dirt')
-				new Node(dependency, 'version', project.version)
-				new Node(dependency, 'scope', 'provided')
-				def exclusions
-				def exclusion
-				exclusions = new Node(dependency, 'exclusions', null)
-				exclusion = new Node(exclusions, 'exclusion', null)
-				new Node(exclusion, 'groupId', 'org.springframework.xd')
-				new Node(exclusion, 'artifactId', 'spring-xd-hadoop')
-				exclusion = new Node(exclusions, 'exclusion', null)
-				new Node(exclusion, 'groupId', 'org.springframework.xd')
-				new Node(exclusion, 'artifactId', 'spring-xd-spark-streaming')
-
-				dependency = new Node(dependencies, 'dependency', null)
-				new Node(dependency, 'groupId', 'org.springframework.xd')
-				new Node(dependency, 'artifactId', 'spring-xd-test')
-				new Node(dependency, 'version', project.version)
-				new Node(dependency, 'scope', 'test')
-				exclusions = new Node(dependency, 'exclusions', null)
-				exclusion = new Node(exclusions, 'exclusion', null)
-				new Node(exclusion, 'groupId', 'org.springframework.xd')
-				new Node(exclusion, 'artifactId', 'spring-xd-hadoop')
-				exclusion = new Node(exclusions, 'exclusion', null)
-				new Node(exclusion, 'groupId', 'org.springframework.xd.data')
-				new Node(exclusion, 'artifactId', 'spring-data-hadoop-test')
-				exclusion = new Node(exclusions, 'exclusion', null)
-				new Node(exclusion, 'groupId', 'org.springframework.xd.data')
-				new Node(exclusion, 'artifactId', 'spring-data-hadoop')
-			}
-		}
-	}
-}
-

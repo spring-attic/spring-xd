@@ -27,7 +27,7 @@ project('documentation-toolchain') {
 
 	task shellReferenceDoc(type: JavaExec) {
 		classpath = sourceSets.test.runtimeClasspath
-		mainClassName = 'org.springframework.xd.documentation.ShellReferenceDoc'
+		main = 'org.springframework.xd.documentation.ShellReferenceDoc'
 		workingDir = rootProject.file('.')
 		args = [
 				"$docsDir/ShellReference.asciidoc"
@@ -36,7 +36,7 @@ project('documentation-toolchain') {
 
 	task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: ':spring-xd-dirt:build') {
 		classpath = sourceSets.main.runtimeClasspath
-		mainClassName = 'org.springframework.xd.documentation.ModuleOptionsReferenceDoc'
+		main = 'org.springframework.xd.documentation.ModuleOptionsReferenceDoc'
 		workingDir = rootProject.file('.')
 		args = [
 				"$docsDir/Sources.asciidoc",
@@ -48,7 +48,7 @@ project('documentation-toolchain') {
 	}
 	task checkDocsLinks(type: JavaExec, dependsOn: [compileJava, shellReferenceDoc, moduleOptionsReferenceDoc]) {
 		classpath = sourceSets.main.runtimeClasspath
-		mainClassName = 'org.springframework.xd.documentation.AsciidocLinkChecker'
+		main = 'org.springframework.xd.documentation.AsciidocLinkChecker'
 		args = [
 				"file:$docsDir/*.asciidoc"
 		]
@@ -56,6 +56,11 @@ project('documentation-toolchain') {
 
 
 }
+
+
+
+
+
 
 apply plugin: org.asciidoctor.gradle.AsciidoctorPlugin
 

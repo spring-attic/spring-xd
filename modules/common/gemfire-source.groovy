@@ -1,6 +1,6 @@
 beans {
 	xmlns([gfe: 'http://www.springframework.org/schema/gemfire', si: 'http://www.springframework.org/schema/integration'])
-	gfe.'client-cache'(id: 'client-cache', 'use-bean-factory-locator': false, close: false)
+	gfe.'client-cache'(id: 'client-cache', 'use-bean-factory-locator': false)
 
 	subscriptionEnabled Boolean, true
 	def xdhome = environment.getProperty('XD_HOME')

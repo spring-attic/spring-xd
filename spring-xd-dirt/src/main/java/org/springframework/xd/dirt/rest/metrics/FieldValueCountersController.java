@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
@@ -35,7 +36,7 @@ import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Controller that exposes {@link FieldValueCounter} related representations.
- * 
+ *
  * @author Eric Bottard
  */
 @Controller
@@ -57,12 +58,12 @@ public class FieldValueCountersController extends
 	/**
 	 * List {@link FieldValueCounter}s that match the given criteria.
 	 */
-	@Override
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
-	public PagedResources<MetricResource> list(Pageable pageable,
-			PagedResourcesAssembler<FieldValueCounter> pagedAssembler) {
-		return super.list(pageable, pagedAssembler);
+	public PagedResources<? extends MetricResource> list(Pageable pageable,
+			PagedResourcesAssembler<FieldValueCounter> pagedAssembler,
+			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
+		return list(pageable, pagedAssembler, detailed ? fvcResourceAssembler : shallowResourceAssembler);
 	}
 
 	@ResponseBody

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
@@ -51,7 +52,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperAccessException;
 /**
  * Base class for Controller layer tests. Takes care of resetting the mocked (be them mockito mocks or <i>e.g.</i> in
  * memory) dependencies before each test.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -117,6 +118,9 @@ public class AbstractControllerIntegrationTest {
 
 	@Autowired
 	protected RichGaugeRepository richGaugeRepository;
+
+	@Autowired
+	protected AggregateCounterRepository aggregateCounterRepository;
 
 	@Autowired
 	private JobService jobService;

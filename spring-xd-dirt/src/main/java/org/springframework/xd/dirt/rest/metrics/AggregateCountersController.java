@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.rest.metrics;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -64,8 +67,22 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	public PagedResources<? extends MetricResource> list(Pageable pageable,
-			PagedResourcesAssembler<Counter> pagedAssembler) {
-		return list(pageable, pagedAssembler, shallowResourceAssembler);
+			PagedResourcesAssembler<Counter> pagedAssembler,
+			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
+		PagedResources<? extends MetricResource> resources = list(pageable, pagedAssembler, shallowResourceAssembler);
+		if (detailed) {
+			AggregateCountResolution resolution = AggregateCountResolution.minute;
+			DateTime to = new DateTime();
+			DateTime from = fromValue(to, resolution);
+			Interval interval = new Interval(from, to);
+			List<AggregateCountsResource> aggregateCounts = new LinkedList<AggregateCountsResource>();
+			for (MetricResource metricResource : resources) {
+				AggregateCount aggregateCount = repository.getCounts(metricResource.getName(), interval, resolution);
+				aggregateCounts.add(aggregateCountResourceAssembler.toResource(aggregateCount));
+			}
+			return new PagedResources<AggregateCountsResource>(aggregateCounts, resources.getMetadata());
+		}
+		return resources;
 	}
 
 	/**

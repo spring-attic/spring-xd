@@ -250,9 +250,10 @@ Spring XD provides a strategy interface http://docs.spring.io/spring-xd/docs/cur
 * `classpath:/modules/`  (Spring XD does not provide any module definitions here)
 * The file path given by `xd.customModule.home` (`${xd.home}/custom-modules` by default)
 
+[[custom-module-registry]]
 ==== Custom Module Registry
 
-Custom modules are located separately from out-of-the-box modules. The location is given by `xd.customModule.home` in servers.yml. The location defaults to `${xd.home}/custom-modules` but we strongly recommend setting this to an external location on a network file system if you are using custom modules in production. There are two reasons for doing this. First, custom modules must be accessible to all nodes on the Spring XD cluster, including the XD Admin node. This allows any container instance to deploy the module. Second, if custom modules are registered within the Spring XD installation, they will not survive an upgrade to the Spring XD distribution and will need to be reinstalled.
+Custom modules are located separately from out-of-the-box modules. The location is given by `xd.customModule.home` in servers.yml. The location defaults to `${xd.home}/custom-modules` but we strongly recommend setting this to an external location on a network file system or using the xref:Modules#replicating-module-registry[replicating registry] if you are using custom modules in production. There are two reasons for doing this. First, custom modules must be accessible to all nodes on the Spring XD cluster, including the XD Admin node. This allows any container instance to deploy the module. Second, if custom modules are registered within the Spring XD installation, they will not survive an upgrade to the Spring XD distribution and will need to be reinstalled.
 
 [NOTE]
 ====
@@ -262,6 +263,22 @@ In cases where you want to start e.g. a single-node runtime with a custom module
 `XD_CUSTOMMODULE_HOME=file\:/path/to/custom-modules bin/xd-singlenode`
 ====
 
+[[replicating-module-registry]]
+==== Replicating Module Registry
+When running in distributed mode, an alternative to using a shared file system for custom modules is to use the _replicating module registry_.
+
+If the value of `xd.customModule.home` does not use the `file:` protocol, then Spring XD will automatically set up a replicating registry that proxies that remote registry (at the end of the day, all modules need to be read from local filesystem anyway). This is all done transparently and by default, files are copied down from the central repository only if their contents has changed.
+
+At the time of writing, only the `hdfs:` protocol is supported. Setting this up is straightforward:
+
+[source,yml]
+----
+xd:
+  customModule:
+    home: hdfs://somehost/root/path/of/registry
+----
+
+Files will be replicated on the local filesystem in a temporary directory, on demand and loaded from there. Obviously, the XD Admin process will need to have write access to that shared HDFS directory. Intermediary paths (`/root/path/of/registry` in the example above) are created at startup if they don't exist yet.
 
 === Module Class Loading
 

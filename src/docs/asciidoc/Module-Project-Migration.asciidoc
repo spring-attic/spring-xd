@@ -3,24 +3,24 @@
 
 === Introduction
 
-With the release of Spring XD 1.1.0, creating and deploying a module has been greatly 
+With the release of Spring XD 1.1.0, creating and deploying a module has been greatly
 simplified. Features such as simplified pom (using the spring-xd-module-parent) or
-simplified build.gradle (using the spring-xd-module plugin) mean simpler dependency 
+simplified build.gradle (using the spring-xd-module plugin) mean simpler dependency
 management and smaller build scripts to manage.  Another new feature is that a user
 can execute the module upload command via the XD shell to register a custom module on
-the fly, vs. having to copy it to the modules subdirectory.  The purpose of this appendix 
-is to show how to  upgrade an the existing 1.0.x style module project to a 1.1.0 style module 
-project. 
+the fly, vs. having to copy it to the modules subdirectory.  The purpose of this appendix
+is to show how to  upgrade an the existing 1.0.x style module project to a 1.1.0 style module
+project.
 
 [NOTE]
 ====
-If you are currently using the 1.0.x style of deploying modules, the format of deployment 
-is still supported by 1.1.0.  
+If you are currently using the 1.0.x style of deploying modules, the format of deployment
+is still supported by 1.1.0.
 ====
 
 ==== Updating your Maven Project
 ===== Cleaning up
-If you are using an assembly file for your POM, go ahead and remove it now.  
+If you are using an assembly file for your POM, go ahead and remove it now.
 For example (From your project directory):
 [source,bash]
 ----
@@ -68,7 +68,7 @@ For example we can take the following pom.xml from a 1.0.x style module project:
       <url>http://repo.springsource.org/libs-milestone</url>
     </repository>
   </repositories>
- 
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.xd</groupId>
@@ -123,7 +123,7 @@ and now replace it with a pom.xml that uses  spring-xd-module-parent.
     </repositories>
 </project>
 ----
-If there is a dependency that your project needs and is not included in the XD 
+If there is a dependency that your project needs and is not included in the XD
 dependencies you can add the dependencies as you normally would.
 For example if we needed the feed adapter from Spring Integration for a source module,
 we would need to add the following to our pom.xml file:
@@ -133,12 +133,12 @@ we would need to add the following to our pom.xml file:
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>spring-integration-feed</artifactId>
-			<version>4.1.2.RELEASE</version> 
+			<version>4.1.2.RELEASE</version>
 		</dependency>
 	</dependencies>
 ----
 
-==== Updating your Gradle Project 
+==== Updating your Gradle Project
 Since we can now use the spring-xd-module plugin you can remove any XD dependencies from
 the build.gradle.
 For example we can take the following build.gradle from a 1.0.x style module project:
@@ -242,7 +242,7 @@ repositories {
     maven { url "http://repo.spring.io/milestone" }
 }
 ----
-If there is a dependency that your project needs and is not included in the XD 
+If there is a dependency that your project needs and is not included in the XD
 dependencies you can add the dependencies as you normally would.
 For example if we needed the feed adapter from Spring Integration for a source module,
 we would need to add the following to our build.gradle file:
@@ -275,18 +275,18 @@ mv src/resources/module.properties src/resources/config
 ----
 If you have more than one bean definition file you will need to consolidate it to one
 bean definition file. You may import other bean definition files, but only the main one can be in the top level `config` directory. The same applies if you have more than one properties file, you
-will need to consolidate them to one properties file.  
+will need to consolidate them to one properties file.
 
 ==== Registering the module
-In XD 1.1.x there is no need for explicit copying of your module into the modules 
+In XD 1.1.x there is no need for explicit copying of your module into the modules
 directory. You can register your module from the XD Shell by executing the module upload
 command as shown below:
 [source,bash]
 ----
 xd:>module upload --file [path-to]/payload-conversion-1.0.0.BUILD-SNAPSHOT.jar --name mymodule --type processor
----- 
+----
 The example above will upload the payload-conversion-1.0.0.BUILD-SNAPSHOT.jar
-that was created after building the project.  The module will be placed in the 
+that was created after building the project.  The module will be placed in the
 ${xd.customModule.home}/processor/mymodule subdirectory.  To verify that the module
 was successfully registered, in the shell execute a module info type:module_name command.
 For example:
@@ -304,11 +304,9 @@ Information about processor module 'mymodule':
 ====
 The uploaded module will be deployed to the xd.customModule.home directory of the admin
 server. If the XD deployment has containers that are not on the same machine as the admin
-server, they will not have access to it.  The recommended workaround is to have the 
-xd.customModule.home be a mounted directory that is shared between the machines.
-==== 
+server, you'll need to use a shared filesystem or a replicating registry, as documented xref:Modules#custom-module-registry[here].
+====
 
 
-To do a deeper dive on Module Project Development refer to 
+To do a deeper dive on Module Project Development refer to
 xref:Modules#creating-a-module-project[Creating a Module Project]
- 

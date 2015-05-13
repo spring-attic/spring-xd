@@ -27,7 +27,8 @@ project('documentation-toolchain') {
 
 	task shellReferenceDoc(type: JavaExec) {
 		classpath = sourceSets.test.runtimeClasspath
-		main = 'org.springframework.xd.documentation.ShellReferenceDoc'
+		mainClassName = 'org.springframework.xd.documentation.ShellReferenceDoc'
+		main = mainClassName
 		workingDir = rootProject.file('.')
 		args = [
 				"$docsDir/ShellReference.asciidoc"
@@ -36,7 +37,8 @@ project('documentation-toolchain') {
 
 	task moduleOptionsReferenceDoc(type: JavaExec, dependsOn: ':spring-xd-dirt:build') {
 		classpath = sourceSets.main.runtimeClasspath
-		main = 'org.springframework.xd.documentation.ModuleOptionsReferenceDoc'
+		mainClassName = 'org.springframework.xd.documentation.ModuleOptionsReferenceDoc'
+		main = mainClassName
 		workingDir = rootProject.file('.')
 		args = [
 				"$docsDir/Sources.asciidoc",
@@ -48,7 +50,8 @@ project('documentation-toolchain') {
 	}
 	task checkDocsLinks(type: JavaExec, dependsOn: [compileJava, shellReferenceDoc, moduleOptionsReferenceDoc]) {
 		classpath = sourceSets.main.runtimeClasspath
-		main = 'org.springframework.xd.documentation.AsciidocLinkChecker'
+		mainClassName = 'org.springframework.xd.documentation.AsciidocLinkChecker'
+		main = mainClassName
 		args = [
 				"file:$docsDir/*.asciidoc"
 		]

@@ -155,6 +155,14 @@ xd:
 #    driverClassName: org.postgresql.Driver
 #    validationQuery: select 1
 
+#Config for use with Oracle - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:oracle:thin:@//localhost:1521/orcl
+#    username: scott
+#    password: tiger
+#    driverClassName: oracle.jdbc.driver.OracleDriver
+#    validationQuery: select 1 from dual
 ---
 #ConnectionPoolSettings
 #spring:

@@ -59,6 +59,8 @@ public class XdBatchDatabaseInitializer extends BatchDatabaseInitializer {
 					platform = "hsqldb";
 				if ("postgres".equals(platform))
 					platform = "postgresql";
+				if ("oracle".equals(platform))
+					platform = "oracle10g";
 				ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
 				populator.addScript(resourceLoader.getResource(REGISTRY_SCHEMA_LOCATION.replace("@@platform@@",
 						platform)));

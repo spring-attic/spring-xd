@@ -533,7 +533,7 @@ project('spring-xd-dirt') {
 
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
-	mainClassName = "org.springframework.xd.dirt.server.SingleNodeApplication"
+	mainClassName = "org.springframework.xd.dirt.server.singlenode.SingleNodeApplication"
 
 	test {
 		systemProperties["xd.home"] = "${rootProject.projectDir}"
@@ -559,7 +559,7 @@ project('spring-xd-dirt') {
 	// Following execution is used by jsTests task to start SingleNodeApplication as background process
 	task backgroundAdminServer << { task ->
 		println "Starting SingleNode server as a background process"
-		ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", sourceSets.main.runtimeClasspath.getAsPath(), "org.springframework.xd.dirt.server.SingleNodeApplication");
+		ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", sourceSets.main.runtimeClasspath.getAsPath(), "org.springframework.xd.dirt.server.singlenode.SingleNodeApplication");
 		processBuilder.directory(file("$rootDir/spring-xd-dirt"))
 		def Process proc = processBuilder.start()
 		proc.consumeProcessOutputStream(System.out)

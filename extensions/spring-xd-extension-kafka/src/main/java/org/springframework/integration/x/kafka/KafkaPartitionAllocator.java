@@ -29,8 +29,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.kafka.core.ConnectionFactory;
@@ -52,7 +52,7 @@ import org.springframework.util.StringUtils;
  */
 public class KafkaPartitionAllocator implements FactoryBean<Partition[]> {
 
-	private static final Log log = LogFactory.getLog(KafkaPartitionAllocator.class);
+	private static final Logger log = LoggerFactory.getLogger(KafkaPartitionAllocator.class);
 
 	private static final Pattern PARTITION_LIST_VALIDATION_REGEX = Pattern.compile("\\d+([,-]\\d+)*");
 

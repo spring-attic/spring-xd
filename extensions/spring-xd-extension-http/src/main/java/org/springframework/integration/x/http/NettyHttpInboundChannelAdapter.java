@@ -34,8 +34,8 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -85,7 +85,7 @@ import org.springframework.util.StringUtils;
  */
 public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
-	private static Log logger = LogFactory.getLog(NettyHttpInboundChannelAdapter.class);
+	private static Logger logger = LoggerFactory.getLogger(NettyHttpInboundChannelAdapter.class);
 
 	/**
 	 * Default max number of threads for the default {@link Executor}

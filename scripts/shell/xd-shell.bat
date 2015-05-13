@@ -15,7 +15,7 @@ set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%..
-
+set SPRING_XD_OPTS=-Dlogging.config.file=%APP_HOME%/config/logback.xml
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
 

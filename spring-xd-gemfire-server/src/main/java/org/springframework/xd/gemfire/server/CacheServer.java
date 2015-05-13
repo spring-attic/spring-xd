@@ -17,8 +17,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
@@ -33,7 +33,7 @@ import com.gemstone.gemfire.management.ManagementService;
  */
 public class CacheServer {
 
-	private static final Log logger = LogFactory.getLog(CacheServer.class);
+	private static final Logger logger = LoggerFactory.getLogger(CacheServer.class);
 
 	private static final int port = 40404;
 

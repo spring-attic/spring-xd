@@ -16,8 +16,8 @@
 
 package org.springframework.xd.integration.hadoop.partition;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.Path;
 import org.springframework.data.hadoop.store.partition.AbstractPartitionStrategy;
 import org.springframework.data.hadoop.store.partition.PartitionKeyResolver;
@@ -41,7 +41,7 @@ import org.springframework.xd.integration.hadoop.expression.MessageExpressionMet
  */
 public class MessagePartitionStrategy<T extends Object> extends AbstractPartitionStrategy<T, Message<?>> {
 
-	private final static Log log = LogFactory.getLog(MessagePartitionStrategy.class);
+	private final static Logger log = LoggerFactory.getLogger(MessagePartitionStrategy.class);
 
 	/**
 	 * Instantiates a new message partition strategy with

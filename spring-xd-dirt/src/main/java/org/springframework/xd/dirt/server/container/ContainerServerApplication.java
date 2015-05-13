@@ -19,8 +19,8 @@ package org.springframework.xd.dirt.server.container;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.boot.actuate.autoconfigure.AuditAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -66,7 +66,7 @@ import org.springframework.xd.dirt.util.XdProfiles;
 	AuditAutoConfiguration.class, MongoAutoConfiguration.class, MongoDataAutoConfiguration.class })
 public class ContainerServerApplication implements EnvironmentAware {
 
-	private static final Log logger = LogFactory.getLog(ContainerServerApplication.class);
+	private static final Logger logger = LoggerFactory.getLogger(ContainerServerApplication.class);
 
 	public static final String CONTAINER_ATTRIBUTES_PREFIX = "xd.container.";
 

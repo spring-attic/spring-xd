@@ -19,8 +19,8 @@ package org.springframework.xd.dirt.plugins.job.support.listener;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
@@ -49,7 +49,7 @@ public class FileDeletionStepExecutionListener implements StepExecutionListener 
 
 	private Resource[] resources;
 
-	private Log logger = LogFactory.getLog(getClass());
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {

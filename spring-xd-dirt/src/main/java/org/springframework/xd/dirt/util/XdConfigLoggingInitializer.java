@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.EnvironmentAware;
@@ -47,7 +47,7 @@ import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
  */
 public class XdConfigLoggingInitializer implements ApplicationListener<ContextRefreshedEvent>, EnvironmentAware {
 
-	private static Log logger = LogFactory.getLog(XdConfigLoggingInitializer.class);
+	private static Logger logger = LoggerFactory.getLogger(XdConfigLoggingInitializer.class);
 
 	protected ConfigurableEnvironment environment;
 
@@ -89,7 +89,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	}
 
 	/**
-	 * Log config info upon admin or container server context refresh.
+	 * Logger config info upon admin or container server context refresh.
 	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -141,7 +141,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	}
 
 	/**
-	 * Log server/module config locations and names.
+	 * Logger server/module config locations and names.
 	 */
 	private void logConfigLocations() {
 		logger.info("XD config location: " + environment.resolvePlaceholders(XD_CONFIG_LOCATION));
@@ -151,7 +151,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	}
 
 	/**
-	 * Log admin web UI URL
+	 * Logger admin web UI URL
 	 */
 	private void logAdminUI() {
 		String httpPort = environment.resolvePlaceholders(ADMIN_PORT);
@@ -193,6 +193,6 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 			sb.append(String.format("\t%s=%s\n", key,
 					environment.resolvePlaceholders(environment.getProperty(key).toString())));
 		}
-		logger.info(sb);
+		logger.info(sb.toString());
 	}
 }

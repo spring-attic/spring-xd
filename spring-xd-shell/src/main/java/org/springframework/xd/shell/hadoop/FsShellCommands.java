@@ -40,6 +40,7 @@ import org.springframework.util.ReflectionUtils;
  * HDFS shell commands
  * 
  * @author Jarred Li
+ * @author Glenn Renfro
  * 
  */
 @Component
@@ -94,7 +95,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			return result;
 		}
 		else {
-			LOG.severe("You must set namenode URL before running fs commands. Use `hadoop config fs` to configure namenode URL.");
+			LOG.error("You must set namenode URL before running fs commands. Use `hadoop config fs` to configure namenode URL.");
 			throw new IllegalStateException("You must set fs URL before running fs commands");
 		}
 	}
@@ -335,7 +336,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			for (Path p : FileUtil.stat2Paths(fs.globStatus(file), file)) {
 				FileStatus status = fs.getFileStatus(p);
 				if (status.isDirectory() && !recursive) {
-					LOG.severe("To remove directory, please use 'fs rm </path/to/dir> --recursive' instead");
+					LOG.error("To remove directory, please use 'fs rm </path/to/dir> --recursive' instead");
 					return;
 				}
 				if (!skipTrash) {
@@ -346,10 +347,10 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			}
 		}
 		catch (Exception t) {
-			LOG.severe("Exception: run HDFS shell failed. Message is: " + t.getMessage());
+			LOG.error("Exception: run HDFS shell failed. Message is: " + t.getMessage());
 		}
 		catch (Error t) {
-			LOG.severe("Error: run HDFS shell failed. Message is: " + t.getMessage());
+			LOG.error("Error: run HDFS shell failed. Message is: " + t.getMessage());
 		}
 	}
 
@@ -417,15 +418,15 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			shell.run(argv);
 		}
 		catch (Error t) {
-			LOG.severe("Severe: run HDFS shell failed. Message is: " + t.getMessage());
+			LOG.error("Severe: run HDFS shell failed. Message is: " + t.getMessage());
 			if (t.getCause() != null) {
-				LOG.severe("root error message is:" + t.getCause().getMessage());
+				LOG.error("root error message is:" + t.getCause().getMessage());
 			}
 		}
 		catch (Exception t) {
-			LOG.severe("Exception: run HDFS shell failed. Message is: " + t.getMessage());
+			LOG.error("Exception: run HDFS shell failed. Message is: " + t.getMessage());
 			if (t.getCause() != null) {
-				LOG.severe("root error message is:" + t.getCause().getMessage());
+				LOG.error("root error message is:" + t.getCause().getMessage());
 			}
 		}
 	}

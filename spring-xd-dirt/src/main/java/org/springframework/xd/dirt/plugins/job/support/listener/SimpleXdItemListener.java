@@ -18,8 +18,8 @@ package org.springframework.xd.dirt.plugins.job.support.listener;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.batch.core.ItemReadListener;
@@ -35,7 +35,7 @@ public final class SimpleXdItemListener<I, O> extends BatchJobListener<Object> i
 		ItemProcessListener<I, Object>,
 		ItemWriteListener<Object> {
 
-	private static final Log logger = LogFactory.getLog(SimpleXdItemListener.class);
+	private static final Logger logger = LoggerFactory.getLogger(SimpleXdItemListener.class);
 
 	public SimpleXdItemListener(SubscribableChannel itemEventsChannel, SubscribableChannel aggregatedEventsChannel) {
 		super(itemEventsChannel, aggregatedEventsChannel);

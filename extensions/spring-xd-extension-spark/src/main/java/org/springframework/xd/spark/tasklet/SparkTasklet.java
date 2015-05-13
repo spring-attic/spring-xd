@@ -358,13 +358,13 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 	private void printLog(List<String> lines, int exitCode) {
 		if (exitCode != 0) {
 			for (String line : lines) {
-				logger.error("Spark Log: " + line);
+				logger.error("Spark Logger: " + line);
 			}
 		}
 		else {
 			if (logger.isDebugEnabled()) {
 				for (String line : lines) {
-					logger.debug("Spark Log: " + line);
+					logger.debug("Spark Logger: " + line);
 				}
 			}
 		}

@@ -29,8 +29,8 @@ import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Rule;
 
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
@@ -44,7 +44,7 @@ import org.springframework.xd.test.AbstractExternalResourceTestSupport;
  */
 public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String> {
 
-	private static final Log log = LogFactory.getLog(KafkaTestSupport.class);
+	private static final Logger log = LoggerFactory.getLogger(KafkaTestSupport.class);
 
 	private static final String XD_KAFKA_TEST_EMBEDDED = "XD_KAFKA_TEST_EMBEDDED";
 
@@ -136,14 +136,14 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 			}
 			catch (Exception e) {
 				// ignore errors on shutdown
-				log.error(e);
+				log.error(e.getMessage(), e);
 			}
 			try {
 				Utils.rm(kafkaServer.config().logDirs());
 			}
 			catch (Exception e) {
 				// ignore errors on shutdown
-				log.error(e);
+				log.error(e.getMessage(), e);
 			}
 		}
 		try {
@@ -151,7 +151,7 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 		}
 		catch (ZkInterruptedException e) {
 			// ignore errors on shutdown
-			log.error(e);
+			log.error(e.getMessage(), e);
 		}
 		if (embedded) {
 			try {
@@ -159,7 +159,7 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 			}
 			catch (Exception e) {
 				// ignore errors on shutdown
-				log.error(e);
+				log.error(e.getMessage(), e);
 			}
 		}
 	}

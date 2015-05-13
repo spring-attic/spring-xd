@@ -18,8 +18,8 @@ package org.springframework.xd.test;
 
 import static org.junit.Assert.fail;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -45,7 +45,7 @@ public abstract class AbstractExternalResourceTestSupport<R> implements TestRule
 
 	private String resourceDescription;
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	protected AbstractExternalResourceTestSupport(String resourceDescription) {
 		Assert.hasText(resourceDescription, "resourceDescription is required");

@@ -20,8 +20,8 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasValue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import org.springframework.xd.shell.command.fixtures.HttpSource;
@@ -36,7 +36,7 @@ import org.springframework.xd.test.fixtures.CounterSink;
  */
 public class NamedChannelTests extends AbstractStreamIntegrationTest {
 
-	private static final Log logger = LogFactory.getLog(StreamCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(StreamCommandTests.class);
 
 	@Test
 	public void testCreateNamedChannelAsSink() {

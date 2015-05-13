@@ -18,7 +18,8 @@ package org.springframework.xd.shell.converter;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.ShellException;
@@ -40,11 +41,12 @@ import org.springframework.xd.shell.command.ModuleCommands.QualifiedModuleName;
  *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
+ * @author Glenn Renfro
  */
 @Component
 public class QualifiedModuleNameConverter implements Converter<QualifiedModuleName> {
 
-	private static final Logger logger = HandlerUtils.getLogger(SimpleParser.class);
+	private static final Logger logger = LoggerFactory.getLogger(SimpleParser.class);
 
 	@Autowired
 	private XDShell xdShell;
@@ -58,8 +60,8 @@ public class QualifiedModuleNameConverter implements Converter<QualifiedModuleNa
 	public QualifiedModuleName convertFromText(String value, Class<?> targetType, String optionContext) {
 		int colonIndex = value.indexOf(':');
 		if (colonIndex == -1) {
-			logger.warning("Incorrect syntax. Valid syntax is '<ModuleType>:<ModuleName>'.");
-			logger.warning("For example, 'module info source:file' to get 'file' <source> module info.");
+			logger.warn("Incorrect syntax. Valid syntax is '<ModuleType>:<ModuleName>'.");
+			logger.warn("For example, 'module info source:file' to get 'file' <source> module info.");
 			throw new ShellException();
 		}
 		RESTModuleType moduleType = validateAndReturnModuleType(value.substring(0, colonIndex));
@@ -77,7 +79,7 @@ public class QualifiedModuleNameConverter implements Converter<QualifiedModuleNa
 			return RESTModuleType.valueOf(value);
 		}
 		catch (IllegalArgumentException e) {
-			logger.warning("Not a valid module type. Valid module types are: "
+			logger.warn("Not a valid module type. Valid module types are: "
 					+ Arrays.toString(RESTModuleType.values()));
 			throw new ShellException();
 		}

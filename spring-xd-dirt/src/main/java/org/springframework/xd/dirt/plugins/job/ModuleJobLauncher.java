@@ -18,8 +18,8 @@ package org.springframework.xd.dirt.plugins.job;
 
 import java.util.Collection;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.configuration.JobRegistry;
@@ -39,7 +39,7 @@ import org.springframework.util.StringUtils;
  */
 public class ModuleJobLauncher implements Lifecycle {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private JobLauncher launcher;
 

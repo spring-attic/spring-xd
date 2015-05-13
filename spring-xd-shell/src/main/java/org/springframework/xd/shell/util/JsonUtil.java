@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.util.Assert;
 
@@ -41,7 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public final class JsonUtil {
 
-	private static final Log logger = LogFactory.getLog(JsonUtil.class);
+	private static final Logger logger = LoggerFactory.getLogger(JsonUtil.class);
 
 	private final static ObjectMapper mapper = new ObjectMapper();
 	static {

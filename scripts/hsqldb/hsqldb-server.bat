@@ -74,12 +74,18 @@ set APP_HOME_LIB=%APP_HOME%\lib
 set CLASSPATH=%APP_HOME_LIB%\*
 @rem add xd/lib to CLASSPATH
 set XD_LIB=%APP_HOME%\..\xd\lib
+
+setLocal EnableDelayedExpansion
 if exist "%XD_LIB%" (
-    setLocal EnableDelayedExpansion
     set CLASSPATH=!CLASSPATH!;%XD_LIB%\*
 )
 
 set SPRING_XD_OPTS=-Dxd.data.home=%APP_HOME%\..\xd\data
+
+#
+# Pickup log4j.properties
+#
+set CLASSPATH=!CLASSPATH!;$APP_HOME\config
 
 @rem Execute hsqldb-server
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% "%SPRING_XD_OPTS%" -classpath "%CLASSPATH%" org.springframework.xd.batch.hsqldb.server.HsqlServerApplication %CMD_LINE_ARGS%

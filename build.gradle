@@ -272,7 +272,12 @@ configure(javaProjects) { subproject ->
 
 		configurations.all {
 			resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
-			exclude group: 'ch.qos.logback', module: 'logback-classic'
+		}
+		if (!subproject.projectDir.absolutePath.contains('spring-xd-yarn-client') &&
+			!subproject.projectDir.absolutePath.contains('spring-xd-yarn-appmaster')) {
+			configurations.all {
+				exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+			}
 		}
 		// dependencies that are common across all java projects
 		dependencies {
@@ -380,9 +385,9 @@ project('spring-xd-analytics') {
 		testCompile project(":spring-xd-test")
 		testCompile "nl.jqno.equalsverifier:equalsverifier:$equalsverifierVersion"
 		testCompile "com.fasterxml.jackson.core:jackson-databind"
-		runtime "log4j:log4j",
+		runtime (
 				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12", "org.apache.commons:commons-pool2"
+				"org.apache.commons:commons-pool2")
 	}
 }
 
@@ -501,9 +506,7 @@ project('spring-xd-dirt') {
 		compile "org.hibernate:hibernate-validator"
 		compile "com.google.code.findbugs:jsr305"
 
-		runtime "org.slf4j:jul-to-slf4j"
 		runtime "org.slf4j:jcl-over-slf4j"
-		runtime "org.slf4j:slf4j-log4j12"
 		runtime "org.yaml:snakeyaml"
 		runtime "org.postgresql:postgresql:$postgresqlVersion"
 		runtime "mysql:mysql-connector-java"
@@ -787,9 +790,8 @@ project('spring-xd-gemfire-server') {
 		compile "commons-beanutils:commons-beanutils"
 		compile "org.springframework.data:spring-data-gemfire"
 		compile project(':spring-xd-tuple')
-		runtime "log4j:log4j",
-				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12"
+		runtime 'ch.qos.logback:logback-classic'
+		runtime "org.codehaus.groovy:groovy-all"
 	}
 	apply plugin: 'application'
 	// skip the startScripts task to avoid default start script generation
@@ -1032,8 +1034,6 @@ project('spring-xd-ui') {
 		compile "org.springframework.boot:spring-boot-starter-web"
 		compile "org.springframework.session:spring-session"
 		compile "org.springframework.xd:spring-xd-admin-ui-client:$xdAdminUIVersion"
-		compile "log4j:log4j"
-		runtime "org.slf4j:slf4j-log4j12"
 	}
 
 }
@@ -1150,9 +1150,8 @@ project('spring-xd-shell') {
 		compile "commons-io:commons-io"
 		configurations.compile.exclude(group: "xerces")
 
-		runtime "org.slf4j:jcl-over-slf4j"
-		runtime "org.slf4j:slf4j-log4j12"
-		runtime "log4j:log4j"
+		runtime 'ch.qos.logback:logback-classic'
+
 		testCompile project(":spring-xd-test-fixtures")
 		testCompile project(":spring-xd-dirt")
 		testCompile "org.springframework.integration:spring-integration-ftp"
@@ -1191,6 +1190,7 @@ project('spring-xd-batch') {
 		compile "org.springframework.boot:spring-boot-actuator"
 		compile "org.springframework:spring-jdbc"
 		compile "org.springframework.batch:spring-batch-core"
+		compile "org.slf4j:slf4j-api"
 	}
 	apply plugin: 'application'
 	// skip the startScripts task to avoid default start script generation
@@ -1201,6 +1201,13 @@ project('spring-xd-batch') {
 		outputs.dir scripts
 	}
 	applicationDistribution.from(scriptFiles) { into "bin" }
+
+	task configFiles {
+		def configs = file("$rootDir/spring-xd-batch/config")
+		outputs.dir configs
+	}
+
+	applicationDistribution.from(configFiles) { into "config" }
 }
 
 // Fixtures
@@ -1225,10 +1232,6 @@ project('spring-xd-test-fixtures') {
 			exclude group: 'org.springframework', module: 'spring-beans'
 			exclude group: 'org.springframework', module: 'spring-core'
 		}
-
-		runtime "log4j:log4j",
-				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12"
 	}
 }
 
@@ -1282,9 +1285,6 @@ project('spring-xd-integration-test') {
 		testCompile("org.springframework.data:spring-data-hadoop") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime "log4j:log4j",
-				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12"
 
 		testCompile("org.apache.ftpserver:ftpserver-core:${apacheFtpServerVersion}")
 	}
@@ -1326,9 +1326,6 @@ project('spring-xd-distributed-test') {
 		compile "com.oracle.tools:oracle-tools-core:$oracleToolsVersion"
 		compile "com.oracle.tools:oracle-tools-testing-support:$oracleToolsVersion"
 		testCompile "junit:junit"
-		runtime "log4j:log4j",
-				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12"
 	}
 }
 
@@ -1354,9 +1351,6 @@ project('spring-xd-benchmark') {
 		testCompile project(":spring-xd-test")
 		testCompile project(":spring-xd-dirt")
 		testCompile "junit:junit"
-		runtime "log4j:log4j",
-				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12"
 	}
 }
 

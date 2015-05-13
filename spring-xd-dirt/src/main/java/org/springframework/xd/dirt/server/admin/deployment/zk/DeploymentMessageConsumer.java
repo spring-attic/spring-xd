@@ -18,8 +18,8 @@ package org.springframework.xd.dirt.server.admin.deployment.zk;
 
 import java.util.Collections;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.queue.QueueConsumer;
 import org.apache.curator.framework.state.ConnectionState;
@@ -42,7 +42,7 @@ import org.springframework.xd.dirt.stream.StreamDeployer;
  */
 public class DeploymentMessageConsumer implements QueueConsumer<DeploymentMessage> {
 
-	private static final Log logger = LogFactory.getLog(DeploymentMessageConsumer.class);
+	private static final Logger logger = LoggerFactory.getLogger(DeploymentMessageConsumer.class);
 
 	@Autowired
 	private StreamDeployer streamDeployer;

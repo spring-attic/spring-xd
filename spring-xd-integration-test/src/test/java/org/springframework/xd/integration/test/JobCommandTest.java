@@ -23,8 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -47,7 +47,7 @@ import org.springframework.xd.test.fixtures.JdbcSink;
  */
 public class JobCommandTest extends AbstractJobTest {
 
-	private static final Log logger = LogFactory.getLog(JobCommandTest.class);
+	private static final Logger logger = LoggerFactory.getLogger(JobCommandTest.class);
 
 	private final static String DEFAULT_FILE_NAME = "filejdbctest";
 

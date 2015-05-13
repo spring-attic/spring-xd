@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.util.StringUtils;
@@ -49,7 +49,7 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 	 */
 	private static final String INPUT_TYPE = "inputType";
 
-	private static final Log logger = LogFactory.getLog(FlattenedCompositeModuleOptionsMetadata.class);
+	private static final Logger logger = LoggerFactory.getLogger(FlattenedCompositeModuleOptionsMetadata.class);
 
 	private Map<String, ModuleOption> options = new LinkedHashMap<String, ModuleOption>();
 

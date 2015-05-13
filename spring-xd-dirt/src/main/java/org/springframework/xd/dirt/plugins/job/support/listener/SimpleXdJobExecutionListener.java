@@ -16,8 +16,8 @@
 
 package org.springframework.xd.dirt.plugins.job.support.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
@@ -35,7 +35,7 @@ public class SimpleXdJobExecutionListener extends BatchJobListener<JobExecution>
 		super(jobExecutionEventsChannel, aggregatedEventsChannel);
 	}
 
-	private static final Log logger = LogFactory.getLog(SimpleXdJobExecutionListener.class);
+	private static final Logger logger = LoggerFactory.getLogger(SimpleXdJobExecutionListener.class);
 
 	@Override
 	public void beforeJob(JobExecution jobExecution) {

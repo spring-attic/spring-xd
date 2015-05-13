@@ -18,8 +18,8 @@ package org.springframework.xd.integration.hadoop.outbound;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -33,7 +33,7 @@ import org.springframework.messaging.MessageHandlingException;
  */
 public abstract class HdfsStoreMessageHandler extends AbstractMessageHandler implements SmartLifecycle {
 
-	private static final Log logger = LogFactory.getLog(HdfsStoreMessageHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(HdfsStoreMessageHandler.class);
 
 	private volatile boolean autoStartup = true;
 

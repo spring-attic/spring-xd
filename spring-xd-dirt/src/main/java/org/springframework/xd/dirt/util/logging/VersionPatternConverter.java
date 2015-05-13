@@ -20,14 +20,14 @@ import java.net.URL;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import org.apache.log4j.helpers.FormattingInfo;
-import org.apache.log4j.helpers.PatternConverter;
+import ch.qos.logback.classic.pattern.ClassicConverter;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import org.apache.log4j.spi.LoggingEvent;
 
 import org.springframework.util.StringUtils;
 
 /**
- * Implementation of {@link org.apache.log4j.helpers.PatternConverter}
+ * Implementation of {@link ch.qos.logback.classic.pattern.ClassicConverter}
  * that returns the "Implementation-Version" string obtained from the
  * manifest of the jar that this class was loaded from.
  * <p>
@@ -35,21 +35,19 @@ import org.springframework.util.StringUtils;
  * the manifest cannot be loaded, a default version string
  * of {@code unknown} is returned.
  *
- * @see org.springframework.xd.dirt.util.logging.VersionPatternLayout
- * @see org.springframework.xd.dirt.util.logging.VersionPatternParser
- *
  * @author Patrick Peralta
+ * @author David Turanski
  */
-public class VersionPatternConverter extends PatternConverter {
+public class VersionPatternConverter extends ClassicConverter {
 	private final String version;
 
 	public VersionPatternConverter() {
 		this.version = loadVersion();
 	}
 
-	public VersionPatternConverter(FormattingInfo fi) {
-		super(fi);
-		this.version = loadVersion();
+	@Override
+	public String convert(ILoggingEvent iLoggingEvent) {
+		return version;
 	}
 
 	/**
@@ -86,10 +84,4 @@ public class VersionPatternConverter extends PatternConverter {
 
 		return version;
 	}
-
-	@Override
-	protected String convert(LoggingEvent event) {
-		return this.version;
-	}
-
 }

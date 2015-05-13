@@ -16,8 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -31,7 +31,7 @@ import org.springframework.batch.repeat.RepeatStatus;
  */
 public class SimpleTasklet implements Tasklet {
 
-	private final Log logger = LogFactory.getLog(SimpleTasklet.class);
+	private final Logger logger = LoggerFactory.getLogger(SimpleTasklet.class);
 
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {

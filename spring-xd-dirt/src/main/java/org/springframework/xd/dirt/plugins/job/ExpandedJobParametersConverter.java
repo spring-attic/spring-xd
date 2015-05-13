@@ -28,8 +28,8 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
@@ -54,7 +54,7 @@ import com.fasterxml.jackson.databind.type.MapType;
  */
 public class ExpandedJobParametersConverter extends DefaultJobParametersConverter {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String ABSOLUTE_FILE_PATH = "absoluteFilePath";
 

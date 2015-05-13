@@ -27,8 +27,20 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.protocol.HttpContext;
 
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -48,7 +60,7 @@ import org.springframework.xd.dirt.plugins.job.JobEventsListenerPlugin;
  */
 public class RabbitBusCleaner implements BusCleaner {
 
-	private final static Log logger = LogFactory.getLog(RabbitBusCleaner.class);
+	private final static Logger logger = LoggerFactory.getLogger(RabbitBusCleaner.class);
 
 	@Override
 	public Map<String, List<String>> clean(String entity, boolean isJob) {

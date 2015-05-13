@@ -108,13 +108,13 @@ task copyYarnInstallDirt(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spri
 	into "$buildDir/dist/spring-xd-yarn/xd-yarn"
 	exclude "**/bin/*"
 	exclude "**/config/servers.yml"
-	exclude "**/config/xd-admin-logger.properties"
-	exclude "**/config/xd-container-logger.properties"
+	exclude "**/config/xd-*-logger.groovy"
 	exclude "**/config/modules"
 	exclude "**/lib/hadoop-*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
 	exclude "**/lib/slf4j-log4j12-*.jar"
 	exclude "**/lib/log4j-*.jar"
+	exclude "**/lib/logback-*.jar"
 }
 
 task copyYarnInstallMessageBusLibs(type: Copy, dependsOn: ["copyYarnInstallDirt"]) {

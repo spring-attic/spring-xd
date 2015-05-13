@@ -22,8 +22,8 @@ import java.net.ServerSocket;
 import javax.servlet.Filter;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.boot.actuate.autoconfigure.AuditAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -71,7 +71,7 @@ import org.springframework.xd.dirt.web.WebConfiguration;
 @Import({RestConfiguration.class, WebConfiguration.class, DeploymentConfiguration.class})
 public class AdminServerApplication {
 
-	private static final Log logger = LogFactory.getLog(AdminServerApplication.class);
+	private static final Logger logger = LoggerFactory.getLogger(AdminServerApplication.class);
 
 	private ConfigurableApplicationContext context;
 

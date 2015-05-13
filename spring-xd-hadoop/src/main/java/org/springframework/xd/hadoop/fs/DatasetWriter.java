@@ -16,8 +16,8 @@
 
 package org.springframework.xd.hadoop.fs;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.hadoop.store.dataset.DatasetOperations;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -32,7 +32,7 @@ import java.util.Collections;
  */
 public class DatasetWriter implements HdfsWriter {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private DatasetOperations datasetOperations;
 

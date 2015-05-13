@@ -28,8 +28,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -47,7 +47,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  */
 public class HttpCommandTests extends AbstractStreamIntegrationTest {
 
-	private static final Log logger = LogFactory.getLog(HttpCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(HttpCommandTests.class);
 
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();

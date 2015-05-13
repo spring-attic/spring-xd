@@ -19,8 +19,8 @@ package org.springframework.xd.hadoop.fs;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.kitesdk.data.PartitionStrategy;
 
 import org.springframework.beans.factory.FactoryBean;
@@ -42,7 +42,7 @@ import org.springframework.util.StringUtils;
  */
 public class DatasetDefinitionFactoryBean implements InitializingBean, FactoryBean<DatasetDefinition> {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private String format;
 

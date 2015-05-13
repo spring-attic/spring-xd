@@ -25,8 +25,8 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -70,7 +70,7 @@ public abstract class AbstractShellIntegrationTest {
 	@ClassRule
 	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
-	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractShellIntegrationTest.class);
 
 	protected static SingleNodeApplication application;
 

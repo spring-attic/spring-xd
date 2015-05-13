@@ -21,8 +21,8 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Test;
 
 import org.springframework.xd.test.fixtures.FileSink;
@@ -35,7 +35,7 @@ import org.springframework.xd.shell.command.fixtures.HttpSource;
  */
 public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrationTest {
 
-	private static final Log logger = LogFactory.getLog(StreamCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(StreamCommandTests.class);
 
 	/**
 	 * This test focuses on tuple access. Note that it explicitly creates a tuple out of Json, which is no longer

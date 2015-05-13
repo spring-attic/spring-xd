@@ -23,8 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 
@@ -39,7 +39,7 @@ import org.springframework.xd.hadoop.fs.HdfsTextFileWriterFactory;
  */
 public abstract class AbstractHdfsItemWriter<T> extends AbstractItemStreamItemWriter<T> {
 
-	protected final Log logger = LogFactory.getLog(getClass());
+	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private final AtomicLong counter = new AtomicLong(0L);
 

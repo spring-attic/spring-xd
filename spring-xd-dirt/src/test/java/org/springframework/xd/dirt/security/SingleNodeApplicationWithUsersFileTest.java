@@ -27,8 +27,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -56,7 +56,7 @@ public class SingleNodeApplicationWithUsersFileTest {
 	private final static SpringXdResource springXdResource = new SpringXdResource(
 			"classpath:org/springframework/xd/dirt/security/fileBasedUsers.yml");
 
-	private final static Log logger = LogFactory.getLog(SingleNodeApplicationWithUsersFileTest.class);
+	private final static Logger logger = LoggerFactory.getLogger(SingleNodeApplicationWithUsersFileTest.class);
 
 	@ClassRule
 	public static TestRule springXdAndLdapServer = springXdResource;

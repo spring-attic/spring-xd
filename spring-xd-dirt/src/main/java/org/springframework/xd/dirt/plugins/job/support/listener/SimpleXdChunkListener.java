@@ -16,8 +16,8 @@
 
 package org.springframework.xd.dirt.plugins.job.support.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.ChunkListener;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -30,7 +30,7 @@ import org.springframework.messaging.SubscribableChannel;
  */
 public class SimpleXdChunkListener extends BatchJobListener<ChunkContextInfo> implements ChunkListener {
 
-	private static final Log logger = LogFactory.getLog(SimpleXdChunkListener.class);
+	private static final Logger logger = LoggerFactory.getLogger(SimpleXdChunkListener.class);
 
 	public SimpleXdChunkListener(SubscribableChannel chunkEventsChannel, SubscribableChannel aggregatedEventsChannel) {
 		super(chunkEventsChannel, aggregatedEventsChannel);

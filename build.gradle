@@ -272,7 +272,8 @@ configure(javaProjects) { subproject ->
 
 		configurations.all {
 			resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
-			exclude group: 'ch.qos.logback', module: 'logback-classic'
+			//exclude group: 'ch.qos.logback', module: 'logback-classic'
+			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 		}
 		// dependencies that are common across all java projects
 		dependencies {
@@ -380,9 +381,10 @@ project('spring-xd-analytics') {
 		testCompile project(":spring-xd-test")
 		testCompile "nl.jqno.equalsverifier:equalsverifier:$equalsverifierVersion"
 		testCompile "com.fasterxml.jackson.core:jackson-databind"
-		runtime "log4j:log4j",
+		runtime (//"log4j:log4j",
 				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12", "org.apache.commons:commons-pool2"
+				//"org.slf4j:slf4j-log4j12",
+				"org.apache.commons:commons-pool2")
 	}
 }
 
@@ -502,9 +504,9 @@ project('spring-xd-dirt') {
 		compile "org.hibernate:hibernate-validator"
 		compile "com.google.code.findbugs:jsr305"
 
-		runtime "org.slf4j:jul-to-slf4j"
+		//runtime "org.slf4j:jul-to-slf4j"
 		runtime "org.slf4j:jcl-over-slf4j"
-		runtime "org.slf4j:slf4j-log4j12"
+		//runtime "org.slf4j:slf4j-log4j12"
 		runtime "org.yaml:snakeyaml"
 		runtime "org.postgresql:postgresql:$postgresqlVersion"
 		runtime "mysql:mysql-connector-java"
@@ -1174,6 +1176,7 @@ project('spring-xd-batch') {
 		compile "org.springframework.boot:spring-boot-actuator"
 		compile "org.springframework:spring-jdbc"
 		compile "org.springframework.batch:spring-batch-core"
+		compile "org.slf4j:slf4j-api"
 	}
 	apply plugin: 'application'
 	// skip the startScripts task to avoid default start script generation

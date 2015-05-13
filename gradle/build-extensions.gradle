@@ -98,9 +98,10 @@ project('spring-xd-extension-process') {
 		compile project(':spring-xd-extension-encoder-support')
 		compile "org.springframework.integration:spring-integration-ip"
 		testCompile project(':spring-xd-test')
-		testRuntime "org.slf4j:jcl-over-slf4j",
+		testRuntime (
+		//"org.slf4j:jcl-over-slf4j",
 				"org.slf4j:slf4j-log4j12",
-				"log4j:log4j"
+				"log4j:log4j")
 	}
 }
 
@@ -187,9 +188,10 @@ project('spring-xd-extension-reactor') {
                 project(':spring-xd-module'),
                 "com.jayway.jsonpath:json-path"
         "com.esotericsoftware.kryo:kryo"
-        testRuntime "org.slf4j:jcl-over-slf4j",
+        testRuntime(
+		//"org.slf4j:jcl-over-slf4j",
                 "org.slf4j:slf4j-log4j12",
-                "log4j:log4j"
+                "log4j:log4j")
     }
 }
 
@@ -202,9 +204,9 @@ project('spring-xd-extension-throughput') {
 
         testCompile project(":spring-xd-test"),
                 project(':spring-xd-module')
-        testRuntime "org.slf4j:jcl-over-slf4j",
+        testRuntime(// "org.slf4j:jcl-over-slf4j",
                 "org.slf4j:slf4j-log4j12",
-                "log4j:log4j"
+                "log4j:log4j")
     }
 }
 

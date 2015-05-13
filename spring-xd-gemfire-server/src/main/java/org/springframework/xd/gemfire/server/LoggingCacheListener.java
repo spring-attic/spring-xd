@@ -13,8 +13,8 @@
 
 package org.springframework.xd.gemfire.server;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.util.StringUtils;
 
@@ -35,7 +35,7 @@ public class LoggingCacheListener<K, V> implements CacheListener<K, V> {
 
 	private final Level level;
 
-	private static Log logger = LogFactory.getLog(LoggingCacheListener.class);
+	private static Logger logger = LoggerFactory.getLogger(LoggingCacheListener.class);
 
 	public LoggingCacheListener() {
 		this("DEBUG");
@@ -103,11 +103,6 @@ public class LoggingCacheListener<K, V> implements CacheListener<K, V> {
 
 	private void logEvent(String logMessage) {
 		switch (this.level) {
-			case FATAL:
-				if (logger.isFatalEnabled()) {
-					logger.fatal(logMessage);
-				}
-				break;
 			case ERROR:
 				if (logger.isErrorEnabled()) {
 					logger.error(logMessage);

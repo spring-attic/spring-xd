@@ -223,7 +223,7 @@ public abstract class ModuleRedeployer {
 	}
 
 	/**
-	 * Log unwanted re-deployment of the module if the module count is less
+	 * Logger unwanted re-deployment of the module if the module count is less
 	 * than or equal to zero.
 	 * @param criteria the criteria for the module deployment
 	 * @param moduleLabel the module label

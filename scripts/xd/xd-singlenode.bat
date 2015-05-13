@@ -117,7 +117,7 @@ if not defined XD_MODULE_CONFIG_NAME (
 @rem make sure to append '/' to XD_MODULE_CONFIG_LOCATION until the path issue is resoloved in EnvironmentAwareModuleOptionsMetadataResolver
 set XD_MODULE_CONFIG_LOCATION=%XD_MODULE_CONFIG_LOCATION%/
 
-set SPRING_XD_OPTS=-Dspring.application.name=singlenode -Dlogging.config=%XD_CONFIG_LOCATION%/xd-singlenode-logger.properties -Dxd.home=%XD_HOME%
+set SPRING_XD_OPTS=-Dspring.application.name=singlenode -Dlogging.config=%XD_CONFIG_LOCATION%/xd-singlenode-logback.groovy -Dxd.home=%XD_HOME%
 set SPRING_XD_OPTS=%SPRING_XD_OPTS% -Dspring.config.location=%XD_CONFIG_LOCATION% -Dxd.config.home=%XD_CONFIG_LOCATION% -Dspring.config.name=%XD_CONFIG_NAME%
 set SPRING_XD_OPTS=%SPRING_XD_OPTS% -Dxd.module.config.location=%XD_MODULE_CONFIG_LOCATION% -Dxd.module.config.name=%XD_MODULE_CONFIG_NAME%
 

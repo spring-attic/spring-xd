@@ -16,8 +16,8 @@
 
 package org.springframework.xd.dirt.plugins.job.support.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.SkipListener;
 import org.springframework.integration.support.MessageBuilder;
@@ -32,7 +32,7 @@ import org.springframework.xd.dirt.plugins.job.BatchJobHeaders;
  */
 public class SimpleXdSkipListener extends BatchJobListener<Object> implements SkipListener<Object, Object> {
 
-	private static final Log logger = LogFactory.getLog(SimpleXdSkipListener.class);
+	private static final Logger logger = LoggerFactory.getLogger(SimpleXdSkipListener.class);
 
 	public SimpleXdSkipListener(SubscribableChannel skipEventsChannel, SubscribableChannel aggregatedEventsChannel) {
 		super(skipEventsChannel, aggregatedEventsChannel);

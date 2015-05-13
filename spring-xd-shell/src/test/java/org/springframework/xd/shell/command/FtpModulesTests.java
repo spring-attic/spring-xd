@@ -18,27 +18,38 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
-import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
+import org.springframework.xd.test.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FileSource;
+import org.springframework.xd.test.fixtures.FtpSink;
+import org.springframework.xd.test.fixtures.FtpSource;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.xd.test.fixtures.FileSink;
-import org.springframework.xd.test.fixtures.FtpSource;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 /**
  * Tests for the FTP source.
  *
  * @author Eric Bottard
  * @author Gunnar Hillert
+ * @author Franck Marchand
  */
 public class FtpModulesTests extends AbstractStreamIntegrationTest {
+
+	public static final String HELLO_FTP_SINK = "hello ftp sink !";
 
 	@Test
 	public void testBasicModuleBehavior() throws IOException {
@@ -99,7 +110,6 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 	public void testModeOptionEqualsRef() throws Exception {
 		FtpSource ftpSource = newFtpSource();
 		FileSink fileSink = newFileSink();
-
 		File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
 		FileWriter fileWriter = new FileWriter(file);
 		fileWriter.write("foobar");
@@ -149,6 +159,26 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 				ftpSource, fileSink);
 
 		assertThat(fileSink, eventually(hasContentsThat(equalTo("java.lang.String\n"))));
-
 	}
+
+    @Test
+    public void testBasicSinkModuleBehavior() throws IOException {
+        FtpSink ftpSink = newFtpSink();
+        FileSource fileSource = newFileSource();
+
+        fileSource.appendToFile(HELLO_FTP_SINK);
+
+        ftpSink.ensureStarted();
+
+        stream().create(generateStreamName(), "%s | %s", fileSource, ftpSink);
+
+        String[] files = ftpSink.getRemoteServerDirectory().list();
+
+        assertThat("only one file should have been created !", files.length, is(1));
+
+        List<String> lines = Files.readAllLines(Paths.get(ftpSink.getRemoteServerDirectory().getAbsolutePath(), files[0]));
+
+        assertThat(lines, hasSize(1));
+        assertThat(lines, contains(HELLO_FTP_SINK));
+    }
 }

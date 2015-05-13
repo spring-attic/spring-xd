@@ -87,13 +87,6 @@ project('modules.source.mail') {
     }
 }
 
-project('modules.sink.redis') {
-    dependencies {
-        runtime project(":spring-xd-extension-redis")
-    }
-}
-
-
 project('modules.source.file') {
     dependencies { runtime	"org.springframework.integration:spring-integration-file" }
 }
@@ -264,6 +257,18 @@ project('modules.processor.filter') {
 }
 
 // ================ M O D U L E S : S I N K S ==========================
+
+project('modules.sink.redis') {
+    dependencies {
+        runtime project(":spring-xd-extension-redis")
+    }
+}
+
+project('modules.sink.ftp') {
+    dependencies {
+        dependencies { runtime "org.springframework.integration:spring-integration-ftp" }
+    }
+}
 
 project('modules.sink.tcp') {
     dependencies { runtime project(":spring-xd-extension-tcp") }

@@ -89,11 +89,13 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	@Override
 	public D save(D definition) {
 		Assert.notNull(definition, "Definition may not be null");
+		String name = definition.getName();
+		String def = definition.getDefinition();
+		validateBeforeSave(name, def);
 		if (repository.findOne(definition.getName()) != null) {
 			throwDefinitionAlreadyExistsException(definition);
 		}
-		List<ModuleDescriptor> moduleDescriptors = parser.parse(definition.getName(),
-				definition.getDefinition(), definitionKind);
+		List<ModuleDescriptor> moduleDescriptors = parser.parse(name, def, definitionKind);
 
 		// todo: the result of parse() should already have correct (polymorphic) definitions
 		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);

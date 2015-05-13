@@ -59,6 +59,7 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 
 	@Override
 	protected void beforeDelete(D definition) {
+		validateBeforeDelete(definition.getName());
 		if (instanceRepository.exists(definition.getName())) {
 			undeploy(definition.getName());
 		}
@@ -66,32 +67,15 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 
 	@Override
 	public void undeploy(String name) {
-		Assert.hasText(name, "name cannot be blank or null");
+		validateBeforeUndeploy(name);
 		logger.trace("Undeploying {}", name);
-
-		D definition = getDefinitionRepository().findOne(name);
-		if (definition == null) {
-			throwNoSuchDefinitionException(name);
-		}
-
-		final I instance = instanceRepository.findOne(name);
-		if (instance == null) {
-			throwNotDeployedException(name);
-		}
-
-		instanceRepository.delete(instance);
+		instanceRepository.delete(instanceRepository.findOne(name));
 		undeployResource(name);
 	}
 
 	@Override
 	public void deploy(String name, Map<String, String> properties) {
-
-		Assert.hasText(name, "name cannot be blank or null");
-		Assert.notNull(properties, "properties cannot be null");
-
-		if (instanceRepository.exists(name)) {
-			throwAlreadyDeployedException(name);
-		}
+		validateBeforeDeploy(name, properties);
 
 		final D definition = basicDeploy(name, properties);
 

@@ -14,29 +14,33 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.batch.jdbc;
+package org.springframework.batch.integration.x;
 
-import org.junit.Before;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Map;
+
+import javax.sql.DataSource;
+
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.sql.DataSource;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = ColumnRangePartitionerConfiguration.class)
-public class ColumnRangePartitionerTest {
+@ContextConfiguration(classes = IncrementalColumnRangePartitionerConfiguration.class)
+public class IncrementalColumnRangePartitionerTest {
 
-	private ColumnRangePartitioner partitioner;
+	private IncrementalColumnRangePartitioner partitioner;
 
 	private DataSource dataSource;
 
@@ -50,7 +54,7 @@ public class ColumnRangePartitionerTest {
 
 	@Before
 	public void setUp() {
-		partitioner = new ColumnRangePartitioner();
+		partitioner = new IncrementalColumnRangePartitioner();
 		partitioner.setDataSource(dataSource);
 		jdbc.execute("create table bar (foo int)");
 	}
@@ -63,6 +67,7 @@ public class ColumnRangePartitionerTest {
 	@Test
 	public void testNoPartitions() {
 		partitioner.setPartitions(1);
+		partitioner.beforeStep(new StepExecution("step1", new JobExecution(5l)));
 		Map<String, ExecutionContext> partitions = partitioner.partition(1);
 		assertEquals(1, partitions.size());
 		assertTrue(partitions.containsKey("partition0"));
@@ -76,13 +81,14 @@ public class ColumnRangePartitionerTest {
 		partitioner.setColumn("foo");
 		partitioner.setTable("bar");
 		partitioner.setPartitions(2);
+		partitioner.beforeStep(new StepExecution("step1", new JobExecution(5l)));
 		Map<String, ExecutionContext> partitions = partitioner.partition(1);
 		assertEquals(2, partitions.size());
 		assertTrue(partitions.containsKey("partition0"));
-		assertEquals("WHERE foo BETWEEN 1 AND 2", partitions.get("partition0").get("partClause"));
+		assertEquals("WHERE (foo BETWEEN 1 AND 2)", partitions.get("partition0").get("partClause"));
 		assertEquals("-p0", partitions.get("partition0").get("partSuffix"));
 		assertTrue(partitions.containsKey("partition1"));
-		assertEquals("WHERE foo BETWEEN 3 AND 4", partitions.get("partition1").get("partClause"));
+		assertEquals("WHERE (foo BETWEEN 3 AND 4)", partitions.get("partition1").get("partClause"));
 		assertEquals("-p1", partitions.get("partition1").get("partSuffix"));
 	}
 
@@ -92,10 +98,11 @@ public class ColumnRangePartitionerTest {
 		partitioner.setColumn("foo");
 		partitioner.setTable("bar");
 		partitioner.setPartitions(5);
+		partitioner.beforeStep(new StepExecution("step1", new JobExecution(5l)));
 		Map<String, ExecutionContext> partitions = partitioner.partition(1);
 		assertEquals(5, partitions.size());
 		assertTrue(partitions.containsKey("partition4"));
-		assertEquals("WHERE foo BETWEEN 5 AND 5", partitions.get("partition4").get("partClause"));
+		assertEquals("WHERE (foo BETWEEN 5 AND 5)", partitions.get("partition4").get("partClause"));
 		assertEquals("-p4", partitions.get("partition4").get("partSuffix"));
 	}
 

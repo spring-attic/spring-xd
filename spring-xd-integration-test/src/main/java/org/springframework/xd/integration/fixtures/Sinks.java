@@ -146,7 +146,7 @@ public class Sinks extends ModuleFixture {
 		jdbcSink = new JdbcSink(environment.getDataSource());
 
 		if (!jdbcSink.isReady()) {
-			throw new IllegalStateException("Unable to connecto to database.");
+			throw new IllegalStateException("Unable to connect to database.");
 		}
 		return jdbcSink;
 	}

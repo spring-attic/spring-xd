@@ -32,6 +32,7 @@ import org.springframework.xd.test.fixtures.Disposable;
 import org.springframework.xd.test.fixtures.FileSink;
 import org.springframework.xd.test.fixtures.FileSource;
 import org.springframework.xd.test.fixtures.FtpSource;
+import org.springframework.xd.test.fixtures.FtpSink;
 import org.springframework.xd.test.fixtures.JdbcSink;
 import org.springframework.xd.test.fixtures.JdbcSource;
 import org.springframework.xd.test.fixtures.MailSink;
@@ -48,6 +49,7 @@ import org.springframework.xd.test.fixtures.TcpSource;
  * @author Andy Clement
  * @author Mark Pollack
  * @author Eric Bottard
+ * @author Franck Marchand
  */
 public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegrationTest {
 
@@ -121,6 +123,12 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		disposables.add(ftpSource);
 		return ftpSource;
 	}
+
+    protected FtpSink newFtpSink() {
+		FtpSink ftpSink = new FtpSink();
+		disposables.add(ftpSink);
+		return ftpSink;
+    }
 
 	private DataSource createDataSource() {
 

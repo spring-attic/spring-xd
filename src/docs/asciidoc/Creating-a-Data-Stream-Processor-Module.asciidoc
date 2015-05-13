@@ -2,7 +2,87 @@
 == Creating a Data Stream Processor
 
 === Introduction
-This section covers how to create a processor module that uses stream processing libraries and runtimes.module. Spring XD 1.1 provides integration with RxJava Observables and Spark Streaming. Creating a data stream processor in XD allows you to use a functional programming model to filter, transform and aggregate data in a very concise and performant way.  This section walks through implementing a custom processor module using each of these libraries.
+This section covers how to create a processor module that uses stream processing libraries and runtimes.module. Spring XD 1.1 provides integration with Project Reactor Stream, RxJava Observables, and Spark Streaming. Creating a data stream processor in XD allows you to use a functional programming model to filter, transform and aggregate data in a very concise and performant way.  This section walks through implementing a custom processor module using each of these libraries.
+
+[[reactor-streams]]
+=== Reactor Streams
+https://github.com/reactor/reactor[Project Reactor] provides a https://reactor.github.io/docs/api/2.0.1.RELEASE/reactor/rx/Stream.html[Stream API] that is based on the http://www.reactive-streams.org/[Reactive Streams specification]. The specification was jointly developed by twenty people from a dozen companies (Pivotal included) and has the goal of creating a standard for asynchronous stream processing with non-blocking back pressure on the JVM.
+
+To implement a Stream based processor module you need to implement the interface `org.springframework.xd.reactor.Processor`
+
+[source,java]
+----
+public interface Processor<I, O> {
+
+    /**
+     * Process a stream of messages and return an output stream.  The input
+     * and output stream will be mapped onto receive/send operations on the message bus.
+     *
+     * @param inputStream Input stream the receives messages from the message bus
+     * @return Output stream of messages sent to the message bus
+     */
+    Stream<O> process(Stream<I> inputStream);
+
+}
+----
+
+Messages that are delivered on the Message Bus are accessed from the input Stream.  The return value is the output Stream that is the result of applying various operations to the input stream.  The content of the output Stream is sent to the message bus for consumption by other processors or sinks.
+
+Examples of operations you can perform on the Stream are map, flatMap, buffer, window, and reduce.  The parameterized data type can be a `org.springframework.messaging.Message`, `org.springframework.xd.tuple.Tuple`, `java.lang.Map` or any other POJO.  The following example uses the `Tuple` object to compute the average value of a measurement from a sample size of 5.
+
+[source,java]
+----
+import org.springframework.xd.reactor.Processor;
+import org.springframework.xd.tuple.Tuple;
+import reactor.rx.Stream;
+
+import static com.acme.Math.avg;
+import static org.springframework.xd.tuple.TupleBuilder.tuple;
+
+public class MovingAverage implements Processor<Tuple, Tuple> {
+    @Override
+    public Stream<Tuple> process(Stream<Tuple> inputStream) {
+        return inputStream.map(tuple -> tuple.getDouble("measurement"))
+                .buffer(5)
+                .map(data -> tuple().of("average", avg(data)));
+    }
+}
+----
+
+You can now create unit tests for the Processor module just as you would for any other Java class.  The module application context file can be in XML or in Java using a @Configuration class.  The XML version is shown below.
+
+[source,xml]
+----
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/integration 
+         http://www.springframework.org/schema/integration/spring-integration.xsd
+         http://www.springframework.org/schema/beans 
+	 http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <bean id="messageProcessor" class="com.acme.MovingAverage"/>
+
+
+    <!-- The following configuration uses the SyncDispatcherMessageHandler -->
+
+    <int:channel id="input"/>
+
+    <bean name="messageHandler" class="org.springframework.xd.reactor.SynchronousDispatcherMessageHandler">
+        <constructor-arg ref="messageProcessor"/>
+    </bean>
+
+
+    <int:service-activator input-channel="input" ref="messageHandler"
+                           output-channel="output"/>
+
+    <int:channel id="output"/>
+
+</beans>
+----
+
+Examples of unit and integration testing a module are available in the https://github.com/spring-projects/spring-xd-samples/tree/master/reactor-moving-average[reactor sample project].  The sample project also shows how you can https://github.com/spring-projects/spring-xd/wiki/Modules#module-packaging[package] your module into a single jar and https://github.com/spring-projects/spring-xd/wiki/Creating-a-Processor-Module#register-the-module[upload] it to the admin server.
 
 [[rxjava-streams]]
 === RxJava Streams

@@ -342,16 +342,16 @@ public class XDStreamParser implements XDParser {
 	 *
 	 * @author Eric Bottard
 	 */
-	public static class FloParser {
+	public static class MultiLineDocumentParser {
 
 		private final XDStreamParser delegate;
 
-		public FloParser(XDStreamParser delegate) {
+		public MultiLineDocumentParser(XDStreamParser delegate) {
 			this.delegate = delegate;
 		}
 
-		public MultiStreamParseResult parse(String[] document) {
-			MultiStreamParseResult result = new MultiStreamParseResult(document.length);
+		public DocumentParseResult parse(String[] document) {
+			DocumentParseResult result = new DocumentParseResult(document.length);
 			CrudRepository<BaseDefinition, String> transientRepository = new TransientDefinitionRepository();
 			StreamConfigParser parser = new StreamConfigParser(transientRepository);
 			for (String nameAndDefinitionPair : document) {

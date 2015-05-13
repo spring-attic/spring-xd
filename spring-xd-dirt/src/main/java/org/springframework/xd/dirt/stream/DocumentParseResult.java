@@ -31,11 +31,11 @@ import org.springframework.xd.module.ModuleDescriptor;
  *
  * @author Eric Bottard
  */
-public class MultiStreamParseResult implements Iterable<MultiStreamParseResult.Line>{
+public class DocumentParseResult implements Iterable<DocumentParseResult.Line>{
 
 	private List<Line> lines;
 
-	public MultiStreamParseResult(int size) {
+	public DocumentParseResult(int size) {
 		lines = new ArrayList<>(size);
 	}
 

@@ -26,8 +26,12 @@ import java.util.UUID;
 import org.apache.hadoop.fs.FileStatus;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
+import org.springframework.util.StringUtils;
+import org.springframework.xd.test.fixtures.IncrementalJdbcHdfsJob;
 import org.springframework.xd.test.fixtures.JdbcHdfsJob;
 import org.springframework.xd.test.fixtures.JdbcSink;
 import org.springframework.xd.test.fixtures.PartitionedJdbcHdfsJob;
@@ -39,6 +43,7 @@ import org.springframework.xd.test.fixtures.PartitionedJdbcHdfsJob;
  *
  * @author Glenn Renfro
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JdbcHdfsTest extends AbstractJobTest {
 
 	private final static String DEFAULT_TABLE_NAME = "jdbchdfstest";
@@ -61,13 +66,12 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		}
 	}
 
-
 	/**
 	 * Asserts that jdbcHdfsJob has written the test data from a jdbc source table to a hdfs file system.
 	 *
 	 */
 	@Test
-	public void testJdbcHdfsJob() {
+	public void testJdbcHdfsJobWithSql() {
 		// Deploy stream and job.
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
@@ -98,7 +102,215 @@ public class JdbcHdfsTest extends AbstractJobTest {
 	 *
 	 */
 	@Test
-	public void testPartitionedJdbcHdfsJob() {
+	public void testJdbcHdfsJobWithColumnsAndTable() {
+		// Deploy stream and job.
+		String data = UUID.randomUUID().toString();
+		jdbcSink.getJdbcTemplate().getDataSource();
+		JdbcHdfsJob job = new JdbcHdfsJob(JdbcHdfsJob.DEFAULT_DIRECTORY, JdbcHdfsJob.DEFAULT_FILE_NAME, null, "payload", "jdbchdfstest");
+		// Use a trigger to send data to JDBC
+		stream("dataSender", sources.http() + XD_DELIMITER
+				+ jdbcSink);
+		sources.httpSource("dataSender").postData(data);
+
+		job(job.toDSL());
+		waitForXD();
+		jobLaunch();
+		waitForXD(2000);
+		// Evaluate the results of the test.
+		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-0.csv";
+		assertPathsExists(path);
+		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(path);
+		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
+				fileStatuses.size());
+		Iterator<FileStatus> statuses = fileStatuses.iterator();
+		assertEquals("File size should match the data size +1 for the //n", data.length() + 1, statuses.next().getLen());
+		assertEquals("The data returned from hadoop was different than was sent.  ", data + "\n",
+				hadoopUtil.getFileContentsFromHdfs(path));
+	}
+
+	/**
+	 * Asserts that jdbcHdfsJob has written the test data from a jdbc source table to a hdfs file system.
+	 *
+	 */
+	@Test
+	public void testIncrementalJdbcHdfsJobWithColumnsAndTable() {
+		// Deploy stream and job.
+		jdbcSink.getJdbcTemplate().getDataSource();
+		IncrementalJdbcHdfsJob job = jobs.incrementalJdbcHdfsJob();
+		// Use a trigger to send data to JDBC
+		stream("dataSender", sources.http() + XD_DELIMITER
+				+ jdbcSink);
+
+		String file1Contents = StringUtils.arrayToDelimitedString(new String[] {"1", "2", "3"}, "\n");
+
+		sources.httpSource("dataSender").postData("1");
+		sources.httpSource("dataSender").postData("2");
+		sources.httpSource("dataSender").postData("3");
+
+		job(job.toDSL());
+		waitForXD();
+		jobLaunch();
+		waitForXD(5000);
+
+		// Evaluate the results of the test.
+		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-0.csv";
+		assertPathsExists(path);
+		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(path);
+		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
+				fileStatuses.size());
+		Iterator<FileStatus> statuses = fileStatuses.iterator();
+		assertEquals("File size should match the data size +1 for the //n", file1Contents.length() + 1, statuses.next().getLen());
+		assertEquals("The data returned from hadoop was different than was sent.  ", file1Contents + "\n",
+				hadoopUtil.getFileContentsFromHdfs(path));
+
+		String file2Contents = StringUtils.arrayToDelimitedString(new String[] {"4", "5", "6"}, "\n");
+
+		sources.httpSource("dataSender").postData("4");
+		sources.httpSource("dataSender").postData("5");
+		sources.httpSource("dataSender").postData("6");
+
+		jobLaunch();
+		waitForXD(5000);
+
+		// Evaluate the results of the test.
+		path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-1.csv";
+		assertPathsExists(path);
+		fileStatuses = hadoopUtil.listDir(path);
+		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
+				fileStatuses.size());
+		statuses = fileStatuses.iterator();
+		assertEquals("File size should match the data size +1 for the //n", file2Contents.length() + 1, statuses.next().getLen());
+		assertEquals("The data returned from hadoop was different than was sent.  ", file2Contents + "\n",
+				hadoopUtil.getFileContentsFromHdfs(path));
+	}
+
+	/**
+	 * Asserts that jdbcHdfsJob has written the test data from a jdbc source table to a hdfs file system.
+	 *
+	 */
+	@Test
+	public void testIncrementalJdbcHdfsJobWithColumnsAndTablePartitionDifferentFromCheck() {
+		// Deploy stream and job.
+		jdbcSink.getJdbcTemplate().getDataSource();
+		IncrementalJdbcHdfsJob job = new IncrementalJdbcHdfsJob(IncrementalJdbcHdfsJob.DEFAULT_DIRECTORY, IncrementalJdbcHdfsJob.DEFAULT_FILE_NAME, IncrementalJdbcHdfsJob.DEFAULT_TABLE, "payload,checkColumn", "payload", 3, "checkColumn", -1);
+		// Use a trigger to send data to JDBC
+		jdbcSink.columns("payload,checkColumn");
+		stream("dataSender", sources.http() + XD_DELIMITER
+				+ jdbcSink);
+
+		sources.httpSource("dataSender").postData("{\"payload\": 1, \"checkColumn\": 1}");
+		sources.httpSource("dataSender").postData("{\"payload\": 2, \"checkColumn\": 1}");
+		sources.httpSource("dataSender").postData("{\"payload\": 3, \"checkColumn\": 1}");
+
+		job("ec2job4", job.toDSL(), true);
+		waitForXD(5000);
+		jobLaunch("ec2job4");
+		waitForXD(5000);
+
+		// Evaluate the results of the test.
+		String dir = JdbcHdfsJob.DEFAULT_DIRECTORY + "/";
+		String path0 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0" + "-0.csv";
+		String path1 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p1" + "-0.csv";
+		String path2 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p2" + "-0.csv";
+		assertPathsExists(path0, path1, path2);
+		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(dir);
+		assertEquals("The number of files in list result should only be 4. The directory itself and 3 files. ", 4,
+				fileStatuses.size());
+		for (FileStatus fileStatus : fileStatuses) {
+			if (!fileStatus.isDirectory()) {
+				assertTrue("The file should be of reasonable size", fileStatus.getLen() > 2 && fileStatus.getLen() < 10);
+			}
+		}
+
+		sources.httpSource("dataSender").postData("{\"payload\": 4, \"checkColumn\": 2}");
+		sources.httpSource("dataSender").postData("{\"payload\": 5, \"checkColumn\": 2}");
+		sources.httpSource("dataSender").postData("{\"payload\": 6, \"checkColumn\": 2}");
+
+		jobLaunch("ec2job4");
+		waitForXD(5000);
+
+		// Evaluate the results of the test.
+		String path3 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0" + "-1.csv";
+		String path4 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p1" + "-1.csv";
+		String path5 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p2" + "-1.csv";
+		assertPathsExists(path3, path4, path5);
+		fileStatuses = hadoopUtil.listDir(dir);
+		assertEquals("The number of files in list result should only be 7. The directory itself and 5 files. ", 7,
+				fileStatuses.size());
+		for (FileStatus fileStatus : fileStatuses) {
+			if (!fileStatus.isDirectory()) {
+				assertTrue("The file should be of reasonable size", fileStatus.getLen() > 2 && fileStatus.getLen() < 10);
+			}
+		}
+	}
+
+	/**
+	 * Asserts that jdbcHdfsJob has written the test data from a jdbc source table to a hdfs file system.
+	 *
+	 */
+	@Test
+	public void testIncrementalJdbcHdfsJobWithOverride() {
+		// Deploy stream and job.
+		jdbcSink.getJdbcTemplate().getDataSource();
+		IncrementalJdbcHdfsJob job = jobs.incrementalJdbcHdfsJob();
+		// Use a trigger to send data to JDBC
+		stream("dataSender", sources.http() + XD_DELIMITER
+				+ jdbcSink);
+
+		String file1Contents = StringUtils.arrayToDelimitedString(new String[] {"1", "2", "3"}, "\n");
+
+		sources.httpSource("dataSender").postData("1");
+		sources.httpSource("dataSender").postData("2");
+		sources.httpSource("dataSender").postData("3");
+
+		job("ec2job5", job.toDSL(), true);
+		waitForXD();
+		jobLaunch("ec2job5");
+		waitForXD(5000);
+
+		// Evaluate the results of the test.
+		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-0.csv";
+		assertPathsExists(path);
+		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(path);
+		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
+				fileStatuses.size());
+		Iterator<FileStatus> statuses = fileStatuses.iterator();
+		assertEquals("File size should match the data size +1 for the //n", file1Contents.length() + 1, statuses.next().getLen());
+		assertEquals("The data returned from hadoop was different than was sent.  ", file1Contents + "\n",
+				hadoopUtil.getFileContentsFromHdfs(path));
+
+		String file2Contents = StringUtils.arrayToDelimitedString(new String[] {"3", "4", "5", "6"}, "\n");
+
+		sources.httpSource("dataSender").postData("4");
+		sources.httpSource("dataSender").postData("5");
+		sources.httpSource("dataSender").postData("6");
+
+		IncrementalJdbcHdfsJob overrideJob = new IncrementalJdbcHdfsJob(IncrementalJdbcHdfsJob.DEFAULT_DIRECTORY, IncrementalJdbcHdfsJob.DEFAULT_FILE_NAME, IncrementalJdbcHdfsJob.DEFAULT_TABLE, IncrementalJdbcHdfsJob.DEFAULT_COLUMN, null, -1, IncrementalJdbcHdfsJob.DEFAULT_COLUMN, 2);
+		destroyAllJobs();
+		waitForEmptyJobList(WAIT_TIME);
+		job("ec2job5", overrideJob.toDSL(), true);
+		waitForXD();
+		jobLaunch("ec2job5");
+		waitForXD(5000);
+
+		// Evaluate the results of the test.
+		path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-1.csv";
+		assertPathsExists(path);
+		fileStatuses = hadoopUtil.listDir(path);
+		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
+				fileStatuses.size());
+		statuses = fileStatuses.iterator();
+		assertEquals("File size should match the data size +1 for the //n", file2Contents.length() + 1, statuses.next().getLen());
+		assertEquals("The data returned from hadoop was different than was sent.  ", file2Contents + "\n",
+				hadoopUtil.getFileContentsFromHdfs(path));
+	}
+
+	/**
+	 * Asserts that jdbcHdfsJob has written the test data from a jdbc source table to a hdfs file system.
+	 *
+	 */
+	@Test
+	public void testPartitionedJdbcHdfsJobWithColumnsTable() {
 		// Deploy stream and job.
 		jdbcSink.columns(PartitionedJdbcHdfsJob.DEFAULT_COLUMN_NAMES);
 		String data0 = "{\"id\":1,\"name\":\"Sven\"}";

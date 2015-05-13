@@ -516,6 +516,7 @@ The **$$jdbchdfs$$** $$job$$ has the following options:
 
 $$abandonWhenPercentageFull$$:: $$connections that have timed out wont get closed and reported up unless the number of connections in use are above the percentage$$ *($$int$$, default: `0`)*
 $$alternateUsernameAllowed$$:: $$uses an alternate user name if connection fails$$ *($$boolean$$, default: `false`)*
+$$checkColumn$$:: $$the column to be examined when determining which rows to import$$ *($$String$$, default: ``)*
 $$columns$$:: $$the column names to read from the supplied table$$ *($$String$$, default: ``)*
 $$commitInterval$$:: $$the commit interval to be used for the step$$ *($$int$$, default: `1000`)*
 $$connectionProperties$$:: $$connection properties that will be sent to our JDBC driver when establishing new connections$$ *($$String$$, no default)*
@@ -537,6 +538,7 @@ $$maxIdle$$:: $$maximum number of connections that should be kept in the pool at
 $$maxWait$$:: $$maximum number of milliseconds that the pool will wait for a connection$$ *($$int$$, default: `30000`)*
 $$minEvictableIdleTimeMillis$$:: $$minimum amount of time an object may sit idle in the pool before it is eligible for eviction$$ *($$int$$, default: `60000`)*
 $$minIdle$$:: $$minimum number of established connections that should be kept in the pool at all times$$ *($$int$$, default: `10`)*
+$$overrideValue$$:: $$a value used to override the previously stored max (used with incremental imports)$$ *($$int$$, default: `-1`)*
 $$partitionColumn$$:: $$the column to use for partitioning, should be numeric and uniformly distributed$$ *($$String$$, default: ``)*
 $$partitionResultsTimeout$$:: $$time (ms) that the partition handler will wait for results$$ *($$long$$, default: `3600000`)*
 $$partitions$$:: $$the number of partitions$$ *($$int$$, default: `1`)*

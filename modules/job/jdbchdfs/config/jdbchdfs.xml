@@ -9,11 +9,39 @@
 
 	<import resource="classpath:/META-INF/spring-xd/batch/singlestep-partition-support.xml"/>
 
-	<bean id="partitioner" class="org.springframework.xd.batch.jdbc.ColumnRangePartitioner">
+	<!-- This should override the job configured in the singlestep-partition-support.xml configuration -->
+	<job id="job" restartable="${restartable}" xmlns="http://www.springframework.org/schema/batch">
+		<step id="step1-master">
+			<partition handler="partitionHandler" partitioner="partitioner" />
+			<listeners>
+				<listener ref="partitioner"/>
+				<listener ref="promotionListener"/>
+			</listeners>
+		</step>
+	</job>
+	
+	<bean id="promotionListener" class="org.springframework.batch.core.listener.ExecutionContextPromotionListener">
+		<property name="keys" value="batch.incremental.maxId"/>
+	</bean>
+
+	<bean id="partitionHandler" class="org.springframework.batch.integration.partition.MessageChannelPartitionHandler">
+		<property name="messagingOperations">
+			<bean class="org.springframework.integration.core.MessagingTemplate">
+				<property name="defaultChannel" ref="setHeaderReplyChannelChannel" />
+				<property name="receiveTimeout" value="${partitionResultsTimeout:3600000}" />
+			</bean>
+		</property>
+		<property name="stepName" value="step1" />
+	</bean>
+
+	<bean id="partitioner" class="org.springframework.batch.integration.x.IncrementalColumnRangePartitioner" scope="step">
 		<property name="dataSource" ref="moduleDataSource"/>
 		<property name="table" value="${tableName}"/>
 		<property name="column" value="${partitionColumn}"/>
 		<property name="partitions" value="${partitions}"/>
+		<property name="jobExplorer" ref="jobExplorer"/>
+		<property name="checkColumn" value="${checkColumn}"/>
+		<property name="overrideValue" value="${overrideValue}"/>
 	</bean>
 
 	<batch:step id="step1">

@@ -17,6 +17,7 @@
 package org.springframework.xd.test.fixtures;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -32,12 +33,19 @@ public class JdbcHdfsJob extends AbstractModuleFixture<JdbcHdfsJob> {
 
 	public final static String DEFAULT_SQL = "select payload from jdbchdfstest";
 
+	public final static String DEFAULT_COLUMNS = "";
+
+	public final static String DEFAULT_TABLE = "";
 
 	private final String dir;
 
 	private final String fileName;
 
 	private final String sql;
+
+	private final String columns;
+
+	private final String table;
 
 	/**
 	 * Construct a new jdbchdfs fixture using the provided dir, file and sql.
@@ -46,14 +54,16 @@ public class JdbcHdfsJob extends AbstractModuleFixture<JdbcHdfsJob> {
 	 * @param fileName The name of the file to be written.
 	 * @param sql The sql statement that will extract the data from the database
 	 */
-	public JdbcHdfsJob(String dir, String fileName, String sql) {
+	public JdbcHdfsJob(String dir, String fileName, String sql, String columns, String table) {
 		Assert.hasText(dir, "dir must not be null or empty");
 		Assert.hasText(fileName, "fileName must not be null or empty");
-		Assert.hasText(sql, "sql must not be null nor empty");
+		Assert.state(StringUtils.hasText(sql) || (StringUtils.hasText(columns) && StringUtils.hasText(table)), "Either sql or column/table must be provided");
 
 		this.dir = dir;
 		this.fileName = fileName;
 		this.sql = sql;
+		this.columns = columns;
+		this.table = table;
 	}
 
 	/**
@@ -62,7 +72,7 @@ public class JdbcHdfsJob extends AbstractModuleFixture<JdbcHdfsJob> {
 	 * @return an instance of the JdbcHdfsJob fixture.
 	 */
 	public static JdbcHdfsJob withDefaults() {
-		return new JdbcHdfsJob(DEFAULT_DIRECTORY, DEFAULT_FILE_NAME, DEFAULT_SQL);
+		return new JdbcHdfsJob(DEFAULT_DIRECTORY, DEFAULT_FILE_NAME, DEFAULT_SQL, DEFAULT_COLUMNS, DEFAULT_TABLE);
 	}
 
 	/**
@@ -70,10 +80,13 @@ public class JdbcHdfsJob extends AbstractModuleFixture<JdbcHdfsJob> {
 	 */
 	@Override
 	public String toDSL() {
-		return String.format(
-				"jdbchdfs --directory=%s --fileName=%s --sql='%s' ",
-				dir, fileName, sql);
+		if(StringUtils.hasText(sql)) {
+			return String.format(
+					"jdbchdfs --directory=%s --fileName=%s --sql='%s' ",
+					dir, fileName, sql);
+		}
+		else {
+			return String.format("jdbchdfs --directory=%s --fileName=%s --tableName=%s --columns=%s", dir, fileName, table, columns);
+		}
 	}
-
-
 }

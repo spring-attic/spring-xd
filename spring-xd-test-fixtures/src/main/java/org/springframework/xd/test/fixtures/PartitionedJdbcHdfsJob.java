@@ -35,7 +35,6 @@ public class PartitionedJdbcHdfsJob extends AbstractModuleFixture<PartitionedJdb
 
 	public final static int DEFAULT_PARTITIONS = 3;
 
-
 	private final String dir;
 
 	private final String fileName;

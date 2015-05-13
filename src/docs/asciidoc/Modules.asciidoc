@@ -267,7 +267,7 @@ In cases where you want to start e.g. a single-node runtime with a custom module
 ==== Replicating Module Registry
 When running in distributed mode, an alternative to using a shared file system for custom modules is to use the _replicating module registry_.
 
-If the value of `xd.customModule.home` does not use the `file:` protocol, then Spring XD will automatically set up a replicating registry that proxies that remote registry (at the end of the day, all modules need to be read from local filesystem anyway). This is all done transparently and by default, files are copied down from the central repository only if their contents has changed.
+If the value of `xd.customModule.home` does not use the `file:` protocol, then Spring XD will automatically set up a replicating registry that proxies that remote registry to the local filesystem. This is all done transparently and by default, files are copied down from the central repository only if their contents has changed.
 
 At the time of writing, only the `hdfs:` protocol is supported. Setting this up is straightforward:
 
@@ -278,7 +278,7 @@ xd:
     home: hdfs://somehost/root/path/of/registry
 ----
 
-Files will be replicated on the local filesystem in a temporary directory, on demand and loaded from there. Obviously, the XD Admin process will need to have write access to that shared HDFS directory. Intermediary paths (`/root/path/of/registry` in the example above) are created at startup if they don't exist yet.
+Files will be replicated on the local filesystem in a temporary directory, on demand and loaded from there. The XD Admin process will need to have write access to that shared HDFS directory. Intermediary paths (`/root/path/of/registry` in the example above) are created at startup if they don't exist yet.
 
 === Module Class Loading
 

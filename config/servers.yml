@@ -77,7 +77,7 @@
 #      offsetStoreRetentionTime:                60000
 #      offsetStoreRequiredAcks:                 1
 #      offsetStoreMaxFetchSize:                 1048576
-#      offsetStoreBatchSize:                    200
+#      offsetStoreBatchBytes:                   16384
 #      offsetStoreBatchEnabled:                 false
 #      offsetStoreBatchTime:                    1000
 #      offsetUpdateTimeWindow:                  10000
@@ -85,12 +85,12 @@
 #      offsetUpdateShutdownTimeout:             2000
 #      default:
 #        batchingEnabled:           false
-#        batchSize:                 200
-#        batchTimeout:              5000
+#        batchSize:                 16384
+#        batchTimeout:              0
 #        replicationFactor:         1
 #        concurrency:               1
 #        requiredAcks:              1
-#        compressionCodec:          default
+#        compressionCodec:          none
 #        autoCommitEnabled:         true
 #        queueSize:                 1000
 #        fetchSize:                 1048576

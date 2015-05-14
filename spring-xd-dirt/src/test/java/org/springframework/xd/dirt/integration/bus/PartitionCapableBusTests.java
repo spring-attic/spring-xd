@@ -87,6 +87,7 @@ abstract public class PartitionCapableBusTests extends BrokerBusTests {
 		properties.put("partitionKeyExpression", "payload");
 		properties.put("partitionSelectorExpression", "hashCode()");
 		properties.put("partitionCount", "3");
+		properties.put(BusProperties.NEXT_MODULE_CONCURRENCY, "2");
 
 		DirectChannel output = new DirectChannel();
 		output.setBeanName("test.output");
@@ -187,6 +188,7 @@ abstract public class PartitionCapableBusTests extends BrokerBusTests {
 		properties.put("partitionKeyExtractorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
 		properties.put("partitionSelectorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
 		properties.put("partitionCount", "3");
+		properties.put(BusProperties.NEXT_MODULE_CONCURRENCY, "2");
 
 		DirectChannel output = new DirectChannel();
 		output.setBeanName("test.output");

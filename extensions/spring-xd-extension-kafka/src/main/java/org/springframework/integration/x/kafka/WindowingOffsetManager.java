@@ -121,7 +121,7 @@ public class WindowingOffsetManager implements OffsetManager, InitializingBean, 
 		Assert.isTrue(timespan > 0 ^ count > 0, "Only one of the timespan or count must be set");
 		// create the stream if windowing is set, and count is higher than 1
 		if (timespan > 0 || count > 1) {
-			offsets = new SerializedSubject(PublishSubject.<PartitionAndOffset>create());
+			offsets = new SerializedSubject<>(PublishSubject.<PartitionAndOffset>create());
 			// window by either count or time
 			Observable<Observable<PartitionAndOffset>> window =
 					timespan > 0 ? offsets.window(timespan, TimeUnit.MILLISECONDS) : offsets.window(count);

@@ -117,9 +117,8 @@
 			<constructor-arg index="2" ref="initialOffsetsMap"/>
 			<property name="segmentSize" value="${kafkaOffsetTopicSegmentSize}"/>
 			<property name="retentionTime" value="${kafkaOffsetTopicRetentionTime}"/>
-			<property name="batchWrites" value="${kafkaOffsetTopicBatchingEnabled}"/>
 			<property name="maxSize" value="${kafkaOffsetTopicMaxSize}"/>
-			<property name="maxBatchSize" value="${kafkaOffsetTopicBatchSize}"/>
+			<property name="batchBytes" value="${kafkaOffsetTopicBatchBytes}"/>
 			<property name="maxQueueBufferingTime" value="${kafkaOffsetTopicBatchTime}"/>
 			<property name="requiredAcks" value="${kafkaOffsetTopicRequiredAcks}"/>
 			<property name="consumerId" value="${groupId}"/>

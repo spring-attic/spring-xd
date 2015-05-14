@@ -71,6 +71,7 @@
 			<xsd:attribute name="codec" use="optional"/>
 			<xsd:attribute name="overwrite" use="optional"/>
 			<xsd:attribute name="idle-timeout" use="optional"/>
+			<xsd:attribute name="close-timeout" use="optional"/>
 			<xsd:attribute name="in-use-suffix" use="optional"/>
 			<xsd:attribute name="in-use-prefix" use="optional"/>
 			<xsd:attribute name="rollover-strategy" use="optional"/>

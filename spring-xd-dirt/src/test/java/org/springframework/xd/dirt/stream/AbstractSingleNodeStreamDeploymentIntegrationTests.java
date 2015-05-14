@@ -38,6 +38,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
@@ -441,6 +442,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	}
 
 	@Test
+	@Ignore
 	public void verifyQueueChannelsRegisteredOnDemand() throws InterruptedException {
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
 				"queue:x > router --expression=payload.contains('y')?'queue:y':'queue:z'");

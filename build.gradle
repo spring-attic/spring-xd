@@ -894,6 +894,9 @@ project('spring-xd-spark-streaming-tests') {
 
 	test {
 		forkEvery = 1
+		onlyIf {
+			!Boolean.getBoolean('disable_spark_tests')
+		}
 		if (System.getProperty('os.name').startsWith('Windows')) {
 			if (project.hasProperty('hadoop.home.dir')) {
 				systemProperty "hadoop.home.dir", getProperty('hadoop.home.dir')

@@ -16,7 +16,8 @@
 
 package org.springframework.xd.shell.hadoop;
 
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -33,7 +34,7 @@ import org.springframework.shell.event.ParseResult;
  */
 public abstract class ConfigurationAware implements ApplicationListener<ConfigurationModifiedEvent>, ExecutionProcessor {
 
-	protected final Logger LOG = Logger.getLogger(getClass().getName());
+	protected final Logger LOG = LoggerFactory.getLogger(getClass().getName());
 
 	@Autowired
 	private Configuration hadoopConfiguration;
@@ -75,7 +76,7 @@ public abstract class ConfigurationAware implements ApplicationListener<Configur
 	protected abstract boolean configurationChanged() throws Exception;
 
 	protected void logUpdateError(Exception ex) {
-		LOG.severe("Hadoop configuration changed but updating [" + failedComponentName() + "] failed; cause=" + ex);
+		LOG.error("Hadoop configuration changed but updating [" + failedComponentName() + "] failed; cause=" + ex);
 	}
 
 	protected String failedComponentName() {

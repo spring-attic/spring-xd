@@ -76,10 +76,14 @@ class ProjectDependenciesVersionResolver {
 			['compile', 'runtime', 'default', 'optional', 'provided'].contains(it.name)
 		}.each { cfg ->
 			cfg.resolvedConfiguration.firstLevelModuleDependencies.each { dep ->
-				def existing = resolvedDependencies.putIfAbsent("${dep.moduleGroup}:${dep.moduleName}".toString(), dep)
+				def existing = resolvedDependencies.get("${dep.moduleGroup}:${dep.moduleName}".toString(), dep)
+				if (!existing) {
+					existing = resolvedDependencies.put("${dep.moduleGroup}:${dep.moduleName}".toString(), dep)
+					
+				}
 
 				//TODO: This may never happen, but added here just in case it does.
-				if (existing) {
+				else {
 					assert existing.moduleVersion == dep.moduleVersion:
 							"Cannot resolve dependency version for ${project.name}. Different versions ${dep} ${existing}"
 				}

@@ -92,9 +92,6 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		String name = definition.getName();
 		String def = definition.getDefinition();
 		validateBeforeSave(name, def);
-		if (repository.findOne(definition.getName()) != null) {
-			throwDefinitionAlreadyExistsException(definition);
-		}
 		List<ModuleDescriptor> moduleDescriptors = parser.parse(name, def, definitionKind);
 
 		// todo: the result of parse() should already have correct (polymorphic) definitions

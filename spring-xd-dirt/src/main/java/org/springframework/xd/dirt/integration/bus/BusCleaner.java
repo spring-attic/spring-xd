@@ -30,7 +30,8 @@ public interface BusCleaner {
 
 	/**
 	 * Clean up all resources for the supplied stream/job.
-	 * @param entity the stream or job.
+	 * @param entity the stream or job; may be terminated with a simple wild card '*', in which
+	 * case all streams with names starting with the characters before the '*' will be cleaned.
 	 * @param isJob true if the entity is a job.
 	 * @return a map of lists of resources removed.
 	 */

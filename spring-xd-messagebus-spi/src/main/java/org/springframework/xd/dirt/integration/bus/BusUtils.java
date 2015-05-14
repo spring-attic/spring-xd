@@ -48,8 +48,19 @@ import org.springframework.web.client.RestTemplate;
  */
 public class BusUtils {
 
+	/**
+	 * The delimiter between a group and index when constructing a bus consumer/producer.
+	 */
+	public static final String GROUP_INDEX_DELIMITER = ".";
+
+	/**
+	 * The prefix for the consumer/producer when creating a tap.
+	 */
 	public static final String TAP_CHANNEL_PREFIX = "tap:";
 
+	/**
+	 * The prefix for the consumer/producer when creating a topic.
+	 */
 	public static final String TOPIC_CHANNEL_PREFIX = "topic:";
 
 	public static final Pattern PUBSUB_NAMED_CHANNEL_PATTERN = Pattern.compile("[^.]+\\.(tap|topic):");
@@ -89,7 +100,7 @@ public class BusUtils {
 	 * @return the name.
 	 */
 	public static String constructPipeName(String group, int index) {
-		return group + "." + index;
+		return group + GROUP_INDEX_DELIMITER + index;
 	}
 
 	public static String constructTapPrefix(String group) {

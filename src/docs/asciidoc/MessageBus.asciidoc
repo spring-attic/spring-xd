@@ -171,3 +171,42 @@ NOTE: By default, the +rabbit+ source and sink modules inherit their default con
 
 === Rabbit Message Bus Batching and Compression
 See xref:Application-Configuration#rabbitBusProps[RabbitMQ Message Bus Properties] for information about batching and compressing messages passing through the bus.
+
+=== Removing RabbitMQ MessageBus Resources
+
+When a stream or job is undeployed, the broker resources (queues, exchanges) are NOT removed from RabbitMQ.
+This is due to the possibility that a stream might be being undeployed temporarily, and avoids message loss.
+
+If you wish to completely remove these resources, a REST API is provided for this purpose. In addition, the
+`SpringXDTemplate` provides a Java binding for this REST api via its `streamOperations().cleanBusResources(String name)`
+and `jobOperations().cleanBusResources(String name)` APIs.
+
+Or, you can use the REST API directly; for example:
+
+[source]
+----
+curl 'http://localhost:9393/streams/clean/rabbit/foo\
+     ?user=guest&pw=guest&vhost=/&busPrefix=xdbus.&adminUri=http://localhost:15672'
+
+curl 'http://localhost:9393/jobs/clean/rabbit/bar\
+    ?user=guest&pw=guest&vhost=/&busPrefix=xdbus.&adminUri=http://localhost:15672'
+----
+
+Where `foo` is the stream name and `bar` is the job name.
+
+The stream or job name supports a simple wildcard syntax; if it ends with `*`, then all streams beginning with the
+name (excluding the `*`) will be cleaned.
+
+These operations remove the inter-module stream queues, any tap exchanges created for the stream, the job queue and
+request queue for partitioned jobs.
+
+The operation will fail if any queue currently has a consumer; similarly, the operation will fail if any exchange
+has a binding. Under either condition, no changes will be made to RabbitMQ.
+
+The following query params are supported:
+
+* adminUri - location of the RabbitMQ Admin (default `http://localhost:15672`)
+* user - admin user (default `guest`)
+* pw - admin password (default `guest`)
+* vhost - the vhost used for the bus resources (default `/`)
+* busPrefix - the prefix used for all bus resources (default `xdbus.`)

@@ -1043,7 +1043,10 @@ $ cat mylog.txt | netcat localhost 1234
 
 [[kafka]]
 === Kafka
-This source module ingests data from Kafka topic configuration.
+This source module ingests data from a single or comma separated list of Kafka topics.
+When using single topic configuration, one can also specify `explicit partitions` list and `initial offset` to fetch data from.
+Also note that for the stream with the given `name` or kafka source with the given `groupId`, the offsets for the configured topics aren't deleted when the stream is undeployed/destroyed. This
+allows the re-deployed stream read from where it left when it was undeployed/destroyed.
 
 //^source.kafka
 // DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$source.kafka' TAG
@@ -1082,9 +1085,16 @@ $$zksessionTimeout$$:: $$zookeeper session timeout in milliseconds$$ *($$int$$, 
 $$zksyncTime$$:: $$how far a ZK follower can be behind a ZK leader in milliseconds$$ *($$int$$, default: `2000`)*
 //$source.kafka
 
-Configure a stream:
+Configure a stream that has kafka source with a single topic:
+
 ----
-xd:> stream create myKafkaSource --definition "kafka --zkconnect=localhost:2181 --topic=mytopic | log" --deploy
+xd:> stream create myKafkaSource1 --definition "kafka --zkconnect=localhost:2181 --topic=mytopic | log" --deploy
+----
+
+Configure a stream that has kafka source with a multiple topics:
+
+----
+xd:> stream create myKafkaSource2 --definition "kafka --zkconnect=localhost:2181 --topics=mytopic1,mytopic2 | log" --deploy
 ----
 
 [[jdbc-source]]

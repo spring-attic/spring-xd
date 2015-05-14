@@ -23,10 +23,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
+import org.springframework.util.IdGenerator;
 
 /**
  * Builder class to create Tuple instances.
@@ -48,6 +51,10 @@ public class TupleBuilder {
 
 	private List<Object> values = new ArrayList<>();
 
+	private UUID id;
+
+	private Long timestamp;
+
 	private static final ConfigurableConversionService defaultConversionService;
 
 	private ConfigurableConversionService customConversionService = null;
@@ -60,10 +67,7 @@ public class TupleBuilder {
 
 	private static Converter<String, Tuple> stringToTupleConverter = new JsonStringToTupleConverter();
 
-	private DateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
-	{
-		dateFormat.setLenient(false);
-	}
+	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
 
 	static {
 		defaultConversionService = new DefaultTupleConversionService();
@@ -128,6 +132,21 @@ public class TupleBuilder {
 		return this;
 	}
 
+	public TupleBuilder addId() {
+	addId(defaultIdGenerator.generateId());
+		return  this;
+	}
+	public TupleBuilder addId(UUID id) {
+		Assert.notNull(id, "'id' cannot be null");
+		this.id = id;
+		return  this;
+	}
+
+	public TupleBuilder addTimestamp() {
+		this.timestamp = System.currentTimeMillis();
+		return this;
+	}
+
 	public ConversionServiceBuilder setFormats(Locale locale, DateFormat dateFormat) {
 		return new ConversionServiceBuilder(this, locale, dateFormat);
 	}
@@ -154,10 +173,10 @@ public class TupleBuilder {
 		DefaultTuple tuple;
 
 		if(customConversionService != null) {
-			tuple = new DefaultTuple(names, values, customConversionService);
+			tuple = new DefaultTuple(names, values, customConversionService, id, timestamp);
 		}
 		else {
-			tuple = new DefaultTuple(names, values, defaultConversionService);
+			tuple = new DefaultTuple(names, values, defaultConversionService, id, timestamp);
 		}
 
 		tuple.setTupleToStringConverter(tupleToStringConverter);

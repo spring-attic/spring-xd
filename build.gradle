@@ -98,7 +98,8 @@ ext {
 			'spring-xd-extension-gemfire',
 			'spring-xd-extension-kafka',
 			'spring-xd-messagebus-spi',
-			'spring-xd-spi-common'
+			'spring-xd-spi-common',
+			'spring-xd-codec'
 	].collect { p -> project(p) } + messagebusProjects
 }
 
@@ -458,7 +459,6 @@ project('spring-xd-dirt') {
 		compile "org.jolokia:jolokia-core"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "log4j:log4j"
-		compile "com.esotericsoftware:kryo-shaded"
 		compile "redis.clients:jedis"
 		compile("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
 			exclude group: 'jline', module: 'jline'
@@ -921,6 +921,7 @@ project('spring-xd-spark-streaming-tests') {
 project('spring-xd-tuple') {
 	description = 'Spring XD Tuple'
 	dependencies {
+		compile project(':spring-xd-codec')
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "org.springframework:spring-context"
 		compile "org.springframework.integration:spring-integration-core"
@@ -960,6 +961,16 @@ project('spring-xd-rest-domain') {
 	}
 }
 
+project('spring-xd-codec') {
+	description = 'Spring XD Codecs used for serialization'
+	dependencies {
+		compile project(':spring-xd-spi-common')
+		compile "org.springframework:spring-core"
+		compile "org.springframework.integration:spring-integration-core"
+		compile "com.esotericsoftware:kryo-shaded"
+	}
+}
+
 project('spring-xd-spi-common') {
 	description = 'Spring XD SPI shared code'
 }
@@ -968,6 +979,7 @@ project('spring-xd-messagebus-spi') {
 	description = 'Spring XD MessageBus Service Provider Interface'
 	dependencies {
 		compile project(':spring-xd-spi-common')
+		compile project(':spring-xd-codec')
 		compile "org.springframework:spring-messaging"
 		compile "org.springframework.retry:spring-retry"
 		compile "org.springframework.integration:spring-integration-core"
@@ -1333,9 +1345,9 @@ project('spring-xd-benchmark') {
 	test.dependsOn cleanTest
 
 	dependencies {
-		compile project(":spring-xd-test-fixtures")
-		compile project(":spring-xd-test")
-		compile project(":spring-xd-dirt")
+		testCompile project(":spring-xd-test-fixtures")
+		testCompile project(":spring-xd-test")
+		testCompile project(":spring-xd-dirt")
 		testCompile "junit:junit"
 		runtime "log4j:log4j",
 				"org.slf4j:jcl-over-slf4j",

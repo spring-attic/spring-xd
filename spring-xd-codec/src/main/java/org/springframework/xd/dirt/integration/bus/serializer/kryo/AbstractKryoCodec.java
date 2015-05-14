@@ -36,11 +36,18 @@ import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
  *
  * @author David Turanski
  */
-abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
+public abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
 
-	protected final static int FILE_REGISTRATION_ID = 1;
+	protected final static int FILE_REGISTRATION_ID = 40;
 
-	protected final static int TUPLE_REGISTRATION_ID = 2;
+	protected final static int TUPLE_REGISTRATION_ID = 41;
+
+	protected final static int ARRAY_LIST_REGISTRATION_ID = 42;
+	
+	protected final static int UUID_REGISTRATION_ID = 43;
+
+	protected final static int LONG_REGISTRATION_ID = 44;
+	
 
 	private final KryoFactory factory;
 

@@ -24,14 +24,12 @@ import org.springframework.core.serializer.Serializer;
 
 /**
  * Interface for classes that perform both serialization and deserialization.
- * 
  * @author David Turanski
  */
 public interface MultiTypeCodec<T> extends Serializer<T> {
 
 	/**
 	 * Deserialize an object of a given type
-	 * 
 	 * @param inputStream the input stream containing the serialized object
 	 * @param type the object's class
 	 * @return the object
@@ -41,7 +39,6 @@ public interface MultiTypeCodec<T> extends Serializer<T> {
 
 	/**
 	 * Deserialize an object of a given type
-	 * 
 	 * @param bytes the byte array containing the serialized object
 	 * @param type the object's class
 	 * @return the object

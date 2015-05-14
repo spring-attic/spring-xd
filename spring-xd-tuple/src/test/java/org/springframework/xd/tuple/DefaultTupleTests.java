@@ -99,18 +99,18 @@ public class DefaultTupleTests {
 
 	@Test
 	public void testId() {
-		Tuple tuple1 = TupleBuilder.tuple().of("foo", "bar");
+		Tuple tuple1 = TupleBuilder.tuple().addId().of("foo", "bar");
 		assertThat(tuple1.getId(), notNullValue());
-		Tuple tuple2 = TupleBuilder.tuple().of("foo", "bar");
+		Tuple tuple2 = TupleBuilder.tuple().addId().of("foo", "bar");
 		assertNotSame(tuple1.getId(), tuple2.getId());
 	}
 
 	@Test
 	public void testTimestamp() throws Exception {
-		Tuple tuple1 = TupleBuilder.tuple().of("foo", "bar");
+		Tuple tuple1 = TupleBuilder.tuple().addTimestamp().of("foo", "bar");
 		assertThat(tuple1.getTimestamp(), notNullValue());
 		Thread.sleep(100L);
-		Tuple tuple2 = TupleBuilder.tuple().of("foo", "bar");
+		Tuple tuple2 = TupleBuilder.tuple().addTimestamp().of("foo", "bar");
 		assertNotSame(tuple1.getTimestamp(), tuple2.getTimestamp());
 	}
 

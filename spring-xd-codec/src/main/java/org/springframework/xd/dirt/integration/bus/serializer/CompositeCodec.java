@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
 
 /**
@@ -77,6 +78,7 @@ public class CompositeCodec<P> implements MultiTypeCodec<Object> {
 	public Object deserialize(byte[] bytes, Class<?> type) throws IOException {
 		return deserialize(new ByteArrayInputStream(bytes), type);
 	}
+
 
 	private AbstractCodec<P> findDelegate(Class<?> type) {
 		if (delegates == null) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus.serializer.kryo;
+package org.springframework.xd.dirt.integration.bus.kryo;
 
 import static org.junit.Assert.assertEquals;
 
@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
+
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.FileCodec;
 
 /**
  * @author David Turanski

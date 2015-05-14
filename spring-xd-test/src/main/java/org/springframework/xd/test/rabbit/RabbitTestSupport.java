@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@
 package org.springframework.xd.test.rabbit;
 
 
+import java.net.Socket;
+
+import javax.net.SocketFactory;
+
 import org.junit.Rule;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -24,21 +28,32 @@ import org.springframework.xd.test.AbstractExternalResourceTestSupport;
 
 /**
  * JUnit {@link Rule} that detects the fact that RabbitMQ is available on localhost.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Eric Bottard
  */
 public class RabbitTestSupport extends AbstractExternalResourceTestSupport<CachingConnectionFactory> {
 
+	private final boolean management;
+
 	public RabbitTestSupport() {
+		this(false);
+	}
+
+	public RabbitTestSupport(boolean management) {
 		super("RABBIT");
+		this.management = management;
 	}
 
 	@Override
 	protected void obtainResource() throws Exception {
 		resource = new CachingConnectionFactory("localhost");
 		resource.createConnection().close();
+		if (management) {
+			Socket socket = SocketFactory.getDefault().createSocket("localhost", 15672);
+			socket.close();
+		}
 	}
 
 	@Override

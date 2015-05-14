@@ -43,6 +43,14 @@
 			</bean>
 		</property>
 		<property name="defaultDurableSubscription" value="${xd.messagebus.rabbit.default.durableSubscription}" />
+		<property name="addresses" value="${spring.rabbitmq.addresses}" />
+		<property name="adminAddresses" value="${spring.rabbitmq.adminAddresses}" />
+		<property name="nodes" value="${spring.rabbitmq.nodes}" />
+		<property name="username" value="${spring.rabbitmq.username}" />
+		<property name="password" value="${spring.rabbitmq.password}" />
+		<property name="vhost" value="${spring.rabbitmq.virtual_host}" />
+		<property name="useSSL" value="${spring.rabbitmq.useSSL}" />
+		<property name="sslPropertiesLocation" value="${spring.rabbitmq.sslProperties}" />
 	</bean>
 
 </beans>

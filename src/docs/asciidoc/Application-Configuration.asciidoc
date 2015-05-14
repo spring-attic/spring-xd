@@ -164,23 +164,47 @@ In addition, the following default settings for the rabbit message bus can be mo
 [[rabbitmq-configuration]]
 ==== RabbitMQ
 [[rabbitConfig]]
-If you want to use RabbitMQ as a data transport use the following configuration setting
+If you want to use RabbitMQ as a data transport use the following configuration settings
 
 [source,yaml]
 ----
 spring:
   rabbitmq:
-   addresses: localhost:5672
-   username: guest
-   password: guest
-   virtual_host: /
-   useSSL: false
-   sslProperties:
+   addresses: localhost:5672 # <1>
+   adminAddresses: http://localhost:15672 # <2>
+   nodes: rabbit@localhost # <3>
+   username: guest         # <4>
+   password: guest         # <5>
+   virtual_host: /         # <6>
+   useSSL: false           # <7>
+   sslProperties:          # <8>
 ----
+
+<1> A comma-separated list of RabbitMQ server addresses (a single entry when not clustering).
+<2> A comma-separated list of RabbitMQ management plugin URLs - only used when +nodes+ contains more than one entry.
+Entries in this list must correspond to the corresponding entry in +addresses+.
+<3> A comma-separated list of RabbitMQ node names; when more than one entry, used to locate the server address where
+a queue is located.
+Entries in this list must correspond to the corresponding entry in +addresses+.
+<4> The user name.
+<5> The password.
+<6> The virtual host.
+<7> True to use SSL for the AMQP protocol.
+<8> The location of the SSL properties file, when certificate exchange is used.
 
 To override these settings set an OS environment variable such as `spring_rabbitmq_host` to the value you require.
 
 See xref:MessageBus#rabbitssl[Message Bus] regarding SSL configuration.
+
+When configuring a clustered environment, with
+xref:MessageBus#rabbit-message-bus-high-availability-ha-configuration[High Availability Queues], it is possible to configure the
+bus so that it consumes from the node where the queue is located.
+This is facilitated by the +LocalizedQueueConnectionFactory+ which determines the node for a queue.
+To enable this feature, add the list of nodes to the +spring.rabbitmq.nodes+ property.
+These nodes correspond to the broker addresses in the corresponding place in the +spring.rabbitmq.addresses+ property.
+The size of these lists must be identical (when the +nodes+ property has more than one entry).
+The +spring.rabbitmq.adminAddresses+ property contains the corresponding URLs for the admins on those same nodes.
+Again, the property list must be the same length.
 
 [[rabbitBusProps]]
 In addition, the following default settings for the rabbit message bus can be modified in `servers.yml`...

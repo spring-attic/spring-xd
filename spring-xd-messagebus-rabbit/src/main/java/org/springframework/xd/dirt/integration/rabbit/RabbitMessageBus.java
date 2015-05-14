@@ -26,9 +26,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Envelope;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,10 +61,10 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.io.Resource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
@@ -97,6 +94,10 @@ import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.MessageValues;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Envelope;
+
 /**
  * A {@link MessageBus} implementation backed by RabbitMQ.
  * @author Mark Fisher
@@ -122,9 +123,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private static final int DEFAULT_TX_SIZE = 1;
 
-	private static final String[] DEFAULT_REQUEST_HEADER_PATTERNS = new String[] {"STANDARD_REQUEST_HEADERS", "*"};
+	private static final String[] DEFAULT_REQUEST_HEADER_PATTERNS = new String[] { "STANDARD_REQUEST_HEADERS", "*" };
 
-	private static final String[] DEFAULT_REPLY_HEADER_PATTERNS = new String[] {"STANDARD_REPLY_HEADERS", "*"};
+	private static final String[] DEFAULT_REPLY_HEADER_PATTERNS = new String[] { "STANDARD_REPLY_HEADERS", "*" };
 
 	private static final String DEAD_LETTER_EXCHANGE = "DLX";
 
@@ -180,7 +181,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			// request
 			.addAll(SUPPORTED_BASIC_CONSUMER_PROPERTIES)
 			.add(BusProperties.CONCURRENCY)
-					// reply
+			// reply
 			.add(RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS)
 			.add(RabbitPropertiesAccessor.DELIVERY_MODE)
 			.build();
@@ -225,7 +226,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private static final Set<Object> SUPPORTED_REQUESTING_PRODUCER_PROPERTIES = new SetBuilder()
 			// request
 			.addAll(SUPPORTED_BASIC_PRODUCER_PROPERTIES)
-					// reply
+			// reply
 			.addAll(SUPPORTED_BASIC_CONSUMER_PROPERTIES)
 			.add(BusProperties.CONCURRENCY)
 			.add(RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS)
@@ -243,15 +244,17 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				}
 			};
 
+	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final RabbitAdmin rabbitAdmin;
 
 	private final RabbitTemplate rabbitTemplate = new RabbitTemplate();
 
-	private final ConnectionFactory connectionFactory;
-
 	private final GenericApplicationContext autoDeclareContext = new GenericApplicationContext();
+
+	private ConnectionFactory connectionFactory;
 
 	private MessagePostProcessor decompressingPostProcessor = new DelegatingDecompressingPostProcessor();
 
@@ -283,8 +286,23 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private volatile boolean defaultRepublishToDLQ = false;
 
-	private static final ExpressionParser expressionParser =
-			new SpelExpressionParser(new SpelParserConfiguration(true, true));
+	private volatile String[] addresses;
+
+	private volatile String[] adminAddresses;
+
+	private volatile String[] nodes;
+
+	private String username;
+
+	private String password;
+
+	private String vhost;
+
+	private boolean useSSL;
+
+	private Resource sslPropertiesLocation;
+
+	private volatile boolean clustered;
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
@@ -300,7 +318,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	/**
-	 * Set a {@link MessagePostProcessor} to decompress messages. Defaults to a 
+	 * Set a {@link MessagePostProcessor} to decompress messages. Defaults to a
 	 * {@link DelegatingDecompressingPostProcessor} with its default delegates.
 	 * @param decompressingPostProcessor the post processor.
 	 */
@@ -309,7 +327,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	/**
-	 * Set a {@link org.springframework.amqp.core.MessagePostProcessor} to compress messages. Defaults to a 
+	 * Set a {@link org.springframework.amqp.core.MessagePostProcessor} to compress messages. Defaults to a
 	 * {@link org.springframework.amqp.support.postprocessor.GZipPostProcessor}.
 	 * @param compressingPostProcessor the post processor.
 	 */
@@ -371,6 +389,52 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	public void setDefaultRepublishToDLQ(boolean defaultRepublishToDLQ) {
 		this.defaultRepublishToDLQ = defaultRepublishToDLQ;
+	}
+
+	public void setAddresses(String[] addresses) {
+		this.addresses = addresses;
+	}
+
+	public void setAdminAddresses(String[] adminAddresses) {
+		this.adminAddresses = adminAddresses;
+	}
+
+	public void setNodes(String[] nodes) {
+		this.nodes = nodes;
+		this.clustered = nodes.length > 1;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public void setVhost(String vhost) {
+		this.vhost = vhost;
+	}
+
+	public void setUseSSL(boolean useSSL) {
+		this.useSSL = useSSL;
+	}
+
+	public void setSslPropertiesLocation(Resource sslPropertiesLocation) {
+		this.sslPropertiesLocation = sslPropertiesLocation;
+	}
+
+	@Override
+	protected void onInit() {
+		super.onInit();
+		if (this.clustered) {
+			Assert.state(this.addresses.length == this.adminAddresses.length
+					&& this.addresses.length == this.nodes.length,
+					"'addresses', 'adminAddresses', and 'nodes' properties must have equal length");
+			this.connectionFactory = new LocalizedQueueConnectionFactory(this.connectionFactory, this.addresses,
+					this.adminAddresses, this.nodes, this.vhost, this.username, this.password, this.useSSL,
+					this.sslPropertiesLocation);
+		}
 	}
 
 	@Override
@@ -448,9 +512,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel, Queue queue,
 			RabbitPropertiesAccessor properties, boolean isPubSub) {
 		// Fix for XD-2503
-		// Temporarily overrides the thread context classloader with the one where the SimpleMessageListenerContainer 
+		// Temporarily overrides the thread context classloader with the one where the SimpleMessageListenerContainer
 		// is defined
-		// This allows for the proxying that happens while initializing the SimpleMessageListenerContainer to work 
+		// This allows for the proxying that happens while initializing the SimpleMessageListenerContainer to work
 		// correctly
 		ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
 		try {
@@ -483,7 +547,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 								properties.getBackOffMaxInterval(this.defaultBackOffMaxInterval))
 						.recoverer(determineRecoverer(name, properties))
 						.build();
-				listenerContainer.setAdviceChain(new Advice[] {retryInterceptor});
+				listenerContainer.setAdviceChain(new Advice[] { retryInterceptor });
 			}
 			listenerContainer.setAfterReceivePostProcessors(this.decompressingPostProcessor);
 			listenerContainer.setMessagePropertiesConverter(RabbitMessageBus.inboundMessagePropertiesConverter);
@@ -560,7 +624,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			queue.setRoutingKey(queueName); // uses default exchange
 		}
 		else {
-			queue.setExpressionRoutingKey(expressionParser.parseExpression(buildPartitionRoutingExpression
+			queue.setExpressionRoutingKey(EXPRESSION_PARSER.parseExpression(buildPartitionRoutingExpression
 					(queueName)));
 			for (int i = 0; i < properties.getPartitionCount(); i++) {
 				this.rabbitAdmin.declareQueue(new Queue(queueName + "-" + i));
@@ -674,7 +738,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.doRegisterConsumer(name, requests, requestQueue, accessor, false);
 
 		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
-		replyQueue.setExpressionRoutingKey(expressionParser.parseExpression("headers['" + AmqpHeaders.REPLY_TO +
+		replyQueue.setExpressionRoutingKey(EXPRESSION_PARSER.parseExpression("headers['" + AmqpHeaders.REPLY_TO +
 				"']"));
 		configureOutboundHandler(replyQueue, accessor);
 		doRegisterProducer(name, replies, replyQueue, accessor);

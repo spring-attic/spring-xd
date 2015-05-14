@@ -44,6 +44,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
+import org.springframework.xd.dirt.integration.bus.RabbitAdminException;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
 import org.springframework.xd.dirt.plugins.job.JobEventsListenerPlugin;
 import org.springframework.xd.test.rabbit.RabbitAdminTestSupport;
@@ -68,7 +69,7 @@ public class RabbitBusCleanerTests {
 	@Test
 	public void testCleanStream() {
 		final RabbitBusCleaner cleaner = new RabbitBusCleaner();
-		final RestTemplate template = RabbitBusCleaner.buildRestTemplate("http://localhost:15672", "guest", "guest");
+		final RestTemplate template = BusUtils.buildRestTemplate("http://localhost:15672", "guest", "guest");
 		final String uuid = UUID.randomUUID().toString();
 		String firstQueue = null;
 		for (int i = 0; i < 5; i++) {

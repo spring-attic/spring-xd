@@ -112,7 +112,7 @@ public abstract class MessageBusSupport
 
 	private static final int DEFAULT_BATCH_BUFFER_LIMIT = 10000;
 
-	private static final int DEFAULT_BATCH_TIMEOUT = 5000;
+	private static final int DEFAULT_BATCH_TIMEOUT = 0;
 
 	/**
 	 * The set of properties every bus implementation must support (or at least tolerate).
@@ -124,7 +124,8 @@ public abstract class MessageBusSupport
 			.build();
 
 	protected static final Set<Object> PRODUCER_STANDARD_PROPERTIES = new HashSet<Object>(Arrays.asList(
-			BusProperties.NEXT_MODULE_COUNT
+			BusProperties.NEXT_MODULE_COUNT,
+			BusProperties.NEXT_MODULE_CONCURRENCY
 			));
 
 

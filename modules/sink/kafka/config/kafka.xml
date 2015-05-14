@@ -15,33 +15,35 @@
 	<bean id="producerProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="properties">
 				<props>
-					<prop key="request.required.acks">${requestRequiredAck}</prop>
-					<prop key="request.timeout.ms">${requestTimeout}</prop>
-					<prop key="producer.type">${producerType}</prop>
-					<prop key="compression.codec">${compressionCodec}</prop>
-					<prop key="compressed.topics">${compressedTopics}</prop>
-					<prop key="message.send.max.retries">${maxSendRetries}</prop>
+					<prop key="acks">${requestRequiredAck}</prop>
+					<prop key="buffer.memory">${bufferMemory}</prop>
+					<prop key="retries">${maxSendRetries}</prop>
+					<prop key="linger.ms">${maxBufferTime}</prop>
+					<prop key="max.request.size">${maxRequestSize}</prop>
+					<prop key="receive.buffer.bytes">${receiveBufferBytes}</prop>
+					<prop key="send.buffer.bytes">${sendBufferBytes}</prop>
+					<prop key="timeout.ms">${ackTimeoutOnServer}</prop>
+					<prop key="block.on.buffer.full">${blockOnBufferFull}</prop>
+					<prop key="metadata.fetch.timeout.ms">${topicMetadataFetchTimeout}</prop>
+					<prop key="metadata.max.age.ms">${topicMetadataRefreshInterval}</prop>
+					<prop key="reconnect.backoff.ms">${reconnectBackoff}</prop>
 					<prop key="retry.backoff.ms">${retryBackoff}</prop>
-					<prop key="topic.metadata.refresh.interval.ms">${topicMetadataRefreshInterval}</prop>
-					<prop key="queue.buffering.max.ms">${maxBufferTime}</prop>
-					<prop key="queue.buffering.max.messages">${maxBufferMsgs}</prop>
-					<prop key="queue.enqueue.timeout.ms">${enqueueTimeout}</prop>
-					<prop key="batch.num.messages">${batchCount}</prop>
-					<prop key="send.buffer.bytes">${socketBufferSize}</prop>
 				</props>
 		</property>
 	</bean>
 
-	<bean id="stringEncoder" class="org.springframework.integration.kafka.serializer.common.StringEncoder">
+	<bean id="serializer" class="org.apache.kafka.common.serialization.ByteArraySerializer">
 		<property name="encoding" value="${encoding}"/>
 	</bean>
 
 	<int-kafka:producer-context id="kafkaProducerContext" producer-properties="producerProperties">
 		<int-kafka:producer-configurations>
 			<int-kafka:producer-configuration
-				broker-list="${brokerList}" key-class-type="java.lang.String"
-				value-class-type="java.lang.String" topic="${topic}" value-encoder="stringEncoder"
-				key-encoder="stringEncoder" />
+				broker-list="${brokerList}" key-class-type="[B"
+				value-class-type="[B" topic="${topic}" value-serializer="serializer"
+				key-serializer="serializer"
+				batch-bytes="${batchBytes}"
+				compression-type="${compressionCodec}"/>
 		</int-kafka:producer-configurations>
 	</int-kafka:producer-context>
 </beans>

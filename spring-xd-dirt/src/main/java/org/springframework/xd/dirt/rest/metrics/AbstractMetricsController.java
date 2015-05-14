@@ -68,7 +68,7 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 		// Ok for now until we use PagingAndSortingRepo as we know we have lists
 		Page<M> page = new PageImpl<M>((List<M>) metrics);
 		return pagedAssembler.toResource(page,
-				resourceAssembler == null ? shallowResourceAssembler : resourceAssembler);
+				resourceAssembler == null ? shallowResourceAssembler : (ResourceAssembler<M, MetricResource>)resourceAssembler);
 	}
 
 

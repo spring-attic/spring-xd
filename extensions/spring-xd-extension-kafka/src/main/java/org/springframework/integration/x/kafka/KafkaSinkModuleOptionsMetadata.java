@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,6 @@ public class KafkaSinkModuleOptionsMetadata {
 
 	private String brokerList = "localhost:9092";
 
-	private String encoding = "UTF8";
-
 	@ModuleOption("kafka topic name")
 	public void setTopic(String topic) {
 		this.topic = topic;
@@ -51,14 +49,5 @@ public class KafkaSinkModuleOptionsMetadata {
 
 	public String getBrokerList() {
 		return brokerList;
-	}
-
-	@ModuleOption("string encoder to translate bytes into string")
-	public void setEncoding(String encoding) {
-		this.encoding = encoding;
-	}
-
-	public String getEncoding() {
-		return this.encoding;
 	}
 }

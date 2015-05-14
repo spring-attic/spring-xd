@@ -116,7 +116,7 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 
 	@Test
 	public void testCompression() throws Exception {
-		final String[] codecs = new String[] {null, "default", "gzip", "snappy"};
+		final String[] codecs = new String[] {null, "none", "gzip", "snappy"};
 
 		byte[] ratherBigPayload = new byte[2048];
 		Arrays.fill(ratherBigPayload, (byte) 65);

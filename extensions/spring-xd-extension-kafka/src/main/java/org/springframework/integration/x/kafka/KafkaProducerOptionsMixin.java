@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,34 +25,39 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Module options for Kafka Producer configuration.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Marius Bogoevici
  */
 public class KafkaProducerOptionsMixin {
 
 	private int requestRequiredAck = 0;
 
-	private int requestTimeout = 10000;
-
-	private String producerType = "sync";
+	private int bufferMemory = 33554432;
 
 	private String compressionCodec = "none";
 
-	private String compressedTopics = "";
-
 	private int maxSendRetries = 3;
 
-	private int retryBackoff = 100;
+	private int batchBytes = 16384;
 
-	private int topicMetadataRefreshInterval = 600 * 1000;
+	private int maxRequestSize = 1048576;
 
-	private int maxBufferTime = 5000;
+	private int maxBufferTime = 0;
 
-	private int maxBufferMsgs = 10000;
+	private int receiveBufferBytes = 32768;
 
-	private int enqueueTimeout = -1;
+	private int sendBufferBytes = 131072;
 
-	private int batchCount = 200;
+	private int ackTimeoutOnServer = 30000;
 
-	private int socketBufferSize = 100 * 1024;
+	private boolean blockOnBufferFull = true;
+
+	private int topicMetadataRefreshInterval = 300000;
+
+	private int topicMetadataFetchTimeout = 60000;
+
+	private long reconnectBackoff = 10;
+
+	private long retryBackoff = 100;
 
 	public int getRequestRequiredAck() {
 		return requestRequiredAck;
@@ -68,27 +73,12 @@ public class KafkaProducerOptionsMixin {
 		return (this.requestRequiredAck >= -1) && (this.requestRequiredAck <= 1);
 	}
 
-	public int getRequestTimeout() {
-		return requestTimeout;
+	public int getBufferMemory() {
+		return bufferMemory;
 	}
-
-	@ModuleOption("timeout in milliseconds after waiting for request required ack")
-	public void setRequestTimeout(int requestTimeout) {
-		this.requestTimeout = requestTimeout;
-	}
-
-	public String getProducerType() {
-		return producerType;
-	}
-
-	@ModuleOption("producer type")
-	public void setProducerType(String producerType) {
-		this.producerType = producerType;
-	}
-
-	@AssertTrue(message = "produer type can either be sync or async")
-	public boolean isProducerTypeValid() {
-		return (this.producerType.equals("sync") || this.producerType.equals("async"));
+	@ModuleOption("the total bytes of memory the producer can use to buffer records waiting to be sent to the server")
+	public void setBufferMemory(int bufferMemory) {
+		this.bufferMemory = bufferMemory;
 	}
 
 	public String getCompressionCodec() {
@@ -106,15 +96,6 @@ public class KafkaProducerOptionsMixin {
 				|| this.compressionCodec.equals("snappy");
 	}
 
-	public String getCompressedTopics() {
-		return compressedTopics;
-	}
-
-	@ModuleOption("comma separated list of topics to apply the compression codec")
-	public void setCompressedTopics(String compressedTopics) {
-		this.compressedTopics = compressedTopics;
-	}
-
 	public int getMaxSendRetries() {
 		return maxSendRetries;
 	}
@@ -124,67 +105,104 @@ public class KafkaProducerOptionsMixin {
 		this.maxSendRetries = maxSendRetries;
 	}
 
-	public int getRetryBackoff() {
-		return retryBackoff;
+
+	public int getBatchBytes() {
+		return batchBytes;
 	}
 
-	@ModuleOption("amount of time the producer waits before refreshing the metadata")
-	public void setRetryBackoff(int retryBackoff) {
-		this.retryBackoff = retryBackoff;
+	@ModuleOption("batch size in bytes, per partition")
+	public void setBatchBytes(int batchBytes) {
+		this.batchBytes = batchBytes;
+	}
+	public int getMaxRequestSize() {
+		return maxRequestSize;
 	}
 
-
-	public int getTopicMetadataRefreshInterval() {
-		return topicMetadataRefreshInterval;
-	}
-
-	@ModuleOption("topic metadata refresh interval")
-	public void setTopicMetadataRefreshInterval(int topicMetadataRefreshInterval) {
-		this.topicMetadataRefreshInterval = topicMetadataRefreshInterval;
+	@ModuleOption("the maximum size of a request")
+	public void setMaxRequestSize(int maxRequestSize) {
+		this.maxRequestSize = maxRequestSize;
 	}
 
 	public int getMaxBufferTime() {
 		return maxBufferTime;
 	}
 
-	@ModuleOption("maximum time in milliseconds to buffer data when using async mode")
+	@ModuleOption("the amount of time, in ms that the producer will wait before sending a batch to the server")
 	public void setMaxBufferTime(int maxBufferTime) {
 		this.maxBufferTime = maxBufferTime;
 	}
 
-	public int getMaxBufferMsgs() {
-		return maxBufferMsgs;
+	public int getReceiveBufferBytes() {
+		return receiveBufferBytes;
 	}
 
-	@ModuleOption("the maximum number of unsent messages that can be queued up the async producer")
-	public void setMaxBufferMsgs(int maxBufferMsgs) {
-		this.maxBufferMsgs = maxBufferMsgs;
+	@ModuleOption("the size of the TCP receive buffer to use when reading data")
+	public void setReceiveBufferBytes(int receiveBufferBytes) {
+		this.receiveBufferBytes = receiveBufferBytes;
 	}
 
-	public int getEnqueueTimeout() {
-		return enqueueTimeout;
+	public int getSendBufferBytes() {
+		return sendBufferBytes;
 	}
 
-	@ModuleOption("the amount of time to block before dropping messages when running in async mode")
-	public void setEnqueueTimeout(int enqueueTimeout) {
-		this.enqueueTimeout = enqueueTimeout;
+	@ModuleOption("the size of the TCP send buffer to use when sending data")
+	public void setSendBufferBytes(int sendBufferBytes) {
+		this.sendBufferBytes = sendBufferBytes;
 	}
 
-	public int getBatchCount() {
-		return batchCount;
+	public int getAckTimeoutOnServer() {
+		return ackTimeoutOnServer;
 	}
 
-	@ModuleOption("the number of messages to send in one batch when using async mode")
-	public void setBatchCount(int batchCount) {
-		this.batchCount = batchCount;
+	@ModuleOption("the maximum amount of time the server will wait for acknowledgments from followers to meet the " +
+			"acknowledgment requirements the producer has specified with the acks configuration")
+	public void setAckTimeoutOnServer(int ackTimeoutOnServer) {
+		this.ackTimeoutOnServer = ackTimeoutOnServer;
 	}
 
-	public int getSocketBufferSize() {
-		return socketBufferSize;
+	public boolean isBlockOnBufferFull() {
+		return blockOnBufferFull;
 	}
 
-	@ModuleOption("socket write buffer size")
-	public void setSocketBufferSize(int socketBufferSize) {
-		this.socketBufferSize = socketBufferSize;
+	@ModuleOption("whether to block or not when the memory buffer is full")
+	public void setBlockOnBufferFull(boolean blockOnBufferFull) {
+		this.blockOnBufferFull = blockOnBufferFull;
+	}
+
+	public int getTopicMetadataRefreshInterval() {
+		return topicMetadataRefreshInterval;
+	}
+
+	@ModuleOption("the period of time in milliseconds after which a refresh of metadata is forced")
+	public void setTopicMetadataRefreshInterval(int topicMetadataRefreshInterval) {
+		this.topicMetadataRefreshInterval = topicMetadataRefreshInterval;
+	}
+
+	public int getTopicMetadataFetchTimeout() {
+		return topicMetadataFetchTimeout;
+	}
+
+	@ModuleOption("the maximum amount of time to block waiting for the metadata fetch to succeed")
+	public void setTopicMetadataFetchTimeout(int topicMetadataFetchTimeout) {
+		this.topicMetadataFetchTimeout = topicMetadataFetchTimeout;
+	}
+
+	public long getReconnectBackoff() {
+		return reconnectBackoff;
+	}
+
+	@ModuleOption("the amount of time to wait before attempting to reconnect to a given host when a connection fails")
+	public void setReconnectBackoff(long reconnectBackoff) {
+		this.reconnectBackoff = reconnectBackoff;
+	}
+
+	public long getRetryBackoff() {
+		return retryBackoff;
+	}
+
+	@ModuleOption("the amount of time to wait before attempting to retry a failed produce request to a given" +
+			" topic partition")
+	public void setRetryBackoff(long retryBackoff) {
+		this.retryBackoff = retryBackoff;
 	}
 }

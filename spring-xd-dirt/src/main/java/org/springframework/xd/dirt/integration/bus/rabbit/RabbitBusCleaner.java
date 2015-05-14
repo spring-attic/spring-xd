@@ -24,12 +24,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.dirt.integration.bus.BusCleaner;
@@ -74,25 +74,39 @@ public class RabbitBusCleaner implements BusCleaner {
 				: findStreamQueues(adminUri, vhost, busPrefix, entity, restTemplate);
 		ExchangeCandidateCallback callback;
 		if (isJob) {
-			Collection<String> exchangeNames = JobEventsListenerPlugin.getEventListenerChannels(entity).values();
-			final Set<String> jobExchanges = new HashSet<>();
-			for (String exchange : exchangeNames) {
-				jobExchanges.add(MessageBusSupport.applyPrefix(busPrefix, MessageBusSupport.applyPubSub(exchange)));
+			String pattern;
+			if (entity.endsWith("*")) {
+				pattern = entity.substring(0, entity.length() - 1) + "[^.]*";
 			}
-			jobExchanges.add(MessageBusSupport.applyPrefix(busPrefix, MessageBusSupport.applyPubSub(
-					JobEventsListenerPlugin.getEventListenerChannelName(entity))));
+			else {
+				pattern = entity;
+			}
+			Collection<String> exchangeNames = JobEventsListenerPlugin.getEventListenerChannels(pattern).values();
+			final Set<Pattern> jobExchanges = new HashSet<>();
+			for (String exchange : exchangeNames) {
+				jobExchanges.add(Pattern.compile(MessageBusSupport.applyPrefix(busPrefix,
+						MessageBusSupport.applyPubSub(exchange))));
+			}
+			jobExchanges.add(Pattern.compile(MessageBusSupport.applyPrefix(busPrefix, MessageBusSupport.applyPubSub(
+					JobEventsListenerPlugin.getEventListenerChannelName(pattern)))));
 			callback = new ExchangeCandidateCallback() {
 
 				@Override
 				public boolean isCandidate(String exchangeName) {
-					return jobExchanges.contains(exchangeName);
+					for (Pattern pattern : jobExchanges) {
+						Matcher matcher = pattern.matcher(exchangeName);
+						if (matcher.matches()) {
+							return true;
+						}
+					}
+					return false;
 				}
 
 			};
 		}
 		else {
-			final String tapPrefix = MessageBusSupport.applyPrefix(busPrefix,
-					MessageBusSupport.applyPubSub(BusUtils.constructTapPrefix(entity)));
+			final String tapPrefix = adjustPrefix(MessageBusSupport.applyPrefix(busPrefix,
+					MessageBusSupport.applyPubSub(BusUtils.constructTapPrefix(entity))));
 			callback = new ExchangeCandidateCallback() {
 
 				@Override
@@ -136,19 +150,13 @@ public class RabbitBusCleaner implements BusCleaner {
 
 	private List<String> findStreamQueues(String adminUri, String vhost, String busPrefix, String stream,
 			RestTemplate restTemplate) {
+		String queueNamePrefix = adjustPrefix(MessageBusSupport.applyPrefix(busPrefix, stream));
+		List<Map<String, Object>> queues = listAllQueues(adminUri, vhost, restTemplate);
 		List<String> removedQueues = new ArrayList<>();
-		URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
-				.pathSegment("queues", "{vhost}")
-				.buildAndExpand(vhost).encode().toUri();
-		String queueNamePrefix = MessageBusSupport.applyPrefix(busPrefix, stream);
-		@SuppressWarnings("unchecked")
-		List<Map<String, Object>> queues = restTemplate.getForObject(uri, List.class);
 		for (Map<String, Object> queue : queues) {
 			String queueName = (String) queue.get("name");
 			if (queueName.startsWith(queueNamePrefix)) {
-				if (queue.get("consumers") != Integer.valueOf(0)) {
-					throw new RabbitAdminException("Queue " + queueName + " is in use");
-				}
+				checkNoConsumers(queueName, queue);
 				removedQueues.add(queueName);
 			}
 		}
@@ -158,40 +166,53 @@ public class RabbitBusCleaner implements BusCleaner {
 	private List<String> findJobQueues(String adminUri, String vhost, String busPrefix, String job,
 			RestTemplate restTemplate) {
 		List<String> removedQueues = new ArrayList<>();
-		String jobQueueName = MessageBusSupport.applyPrefix(busPrefix, AbstractJobPlugin.getJobChannelName(job));
-		URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
-				.pathSegment("queues", "{vhost}", "{job}")
-				.buildAndExpand(vhost, jobQueueName).encode().toUri();
-		try {
-			getQueueDetails(restTemplate, jobQueueName, uri);
-			removedQueues.add(jobQueueName);
-		}
-		catch (HttpClientErrorException e) {
-			if (!e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-				throw new RabbitAdminException("Failed to lookup queue " + jobQueueName, e);
+		String jobQueueName = MessageBusSupport.applyPrefix(busPrefix,
+				AbstractJobPlugin.getJobChannelName(job));
+		String jobRequestsQueuePrefix = adjustPrefix(MessageBusSupport.applyPrefix(busPrefix,
+				AbstractJobPlugin.getJobChannelName(job)));
+		List<Map<String, Object>> queues = listAllQueues(adminUri, vhost, restTemplate);
+		for (Map<String, Object> queue : queues) {
+			String queueName = (String) queue.get("name");
+			if (job.endsWith("*")) {
+				if (queueName.startsWith(jobQueueName.substring(0, jobQueueName.length() - 1))) {
+					checkNoConsumers(queueName, queue);
+					removedQueues.add(queueName);
+				}
 			}
-		}
-		String jobRequestsQueueName = MessageBusSupport.applyPrefix(busPrefix,
-				MessageBusSupport.applyRequests(BusUtils.constructPipeName(
-						AbstractJobPlugin.getJobChannelName(job), 0)));
-		uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
-				.pathSegment("queues", "{vhost}", "{job}")
-				.buildAndExpand(vhost, jobRequestsQueueName).encode().toUri();
-		try {
-			getQueueDetails(restTemplate, jobRequestsQueueName, uri);
-			removedQueues.add(jobRequestsQueueName);
-		}
-		catch (HttpClientErrorException e) {
-			if (!e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-				throw new RabbitAdminException("Failed to lookup queue " + jobRequestsQueueName, e);
+			else {
+				if (queueName.equals(jobQueueName)) {
+					checkNoConsumers(queueName, queue);
+					removedQueues.add(queueName);
+				}
+				else if (queueName.startsWith(jobRequestsQueuePrefix)
+						&& queueName.endsWith(MessageBusSupport.applyRequests(""))) {
+					checkNoConsumers(queueName, queue);
+					removedQueues.add(queueName);
+				}
 			}
 		}
 		return removedQueues;
 	}
 
-	@SuppressWarnings("unchecked")
-	private void getQueueDetails(RestTemplate restTemplate, String queueName, URI uri) {
-		Map<String, Object> queue = restTemplate.getForObject(uri, Map.class);
+	private List<Map<String, Object>> listAllQueues(String adminUri, String vhost, RestTemplate restTemplate) {
+		URI uri = UriComponentsBuilder.fromUriString(adminUri + "/api")
+				.pathSegment("queues", "{vhost}")
+				.buildAndExpand(vhost).encode().toUri();
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> queues = restTemplate.getForObject(uri, List.class);
+		return queues;
+	}
+
+	private String adjustPrefix(String prefix) {
+		if (prefix.endsWith("*")) {
+			return prefix.substring(0, prefix.length() - 1);
+		}
+		else {
+			return prefix + BusUtils.GROUP_INDEX_DELIMITER;
+		}
+	}
+
+	private void checkNoConsumers(String queueName, Map<String, Object> queue) {
 		if (queue.get("consumers") != Integer.valueOf(0)) {
 			throw new RabbitAdminException("Queue " + queueName + " is in use");
 		}
@@ -237,7 +258,6 @@ public class RabbitBusCleaner implements BusCleaner {
 	private interface ExchangeCandidateCallback {
 
 		boolean isCandidate(String exchangeName);
-
 	}
 
 }

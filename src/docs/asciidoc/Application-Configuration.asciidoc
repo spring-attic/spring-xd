@@ -45,11 +45,12 @@ You may also put multiple profile specific configuration in a single `servers.ym
 
 Spring XD saves the state of the batch job workflows in a relational database.  When running `xd-singlenode` a embedded HSQLDB database is run.  When running in distributed mode a standalone HSQLDB instance can be used, the startup script `hsqldb-server` is in is provided the installation directory under the folder 'hsqldb/bin'.  It is recommended to use HSQLDB only for development and learning.
 
-When deploying in a production environment, you will need to select another database.  Spring XD is actively tested on MySql (Version: 5.1.23) and Postgres (Version 9.2-1002).  All batch workflow tables are automatically created, if they do not exist, for HSQLDB, MySQL and Postgres.  The JDBC driver jars for the HSQLDB and Postgres are already on the XD classpath.
+When deploying in a production environment, you will need to select another database.  Spring XD is actively tested on MySql (Version: 5.1.23) and Postgres (Version 9.2-1002).  All batch workflow tables are automatically created, if they do not exist, for HSQLDB, MySQL, Postgres and Oracle.  The JDBC driver jars for the HSQLDB and Postgres are already on the XD classpath.
+If you use Oracle DB, then you would need to copy the JDBC jar into `xd/lib`.
 
 The provided configuration file `servers.yml` located in `$XD_HOME\config` has commented out configuration for some commonly used databases.  You can use these as a basis to support your database environment. XD also utilizes the Tomcat jdbc connection pool and these settings can be configured in the `servers.yml`.
 
-NOTE: Until full schema support is added for Oracle, Sybase and other database, you will need to put a .jar file in the `xd/lib` directory that contains the equivalent functionality as these https://github.com/spring-projects/spring-xd/tree/master/spring-xd-batch/src/main/resources/org/springframework/xd/batch/schema[DDL scripts].
+NOTE: Until full schema support is added for Sybase and other database, you will need to put a .jar file in the `xd/lib` directory that contains the equivalent functionality as these https://github.com/spring-projects/spring-xd/tree/master/spring-xd-batch/src/main/resources/org/springframework/xd/batch/schema[DDL scripts].
 
 NOTE: There was a schema change in version 1.0 RC1.  Use or adapt the the https://gist.github.com/ilayaperumalg/3f379eb7f4527f6f6da4[sample migration class] to update your schema.
 
@@ -104,6 +105,23 @@ spring:
     username: yourUsername
     password: yourPassword
     driverClassName: org.postgresql.Driver
+----
+
+To override these settings set an OS environment variable such as `spring_datasource_url` to the value you require.
+
+===== Oracle database
+
+When in distributed mode and you want to use Oracle database, you need to change the value of `spring.datasource.*` properties.  As an example,
+
+[source,yaml]
+----
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@//yourDBhost:1521/yourDB
+    username: scott
+    password: tiger
+    driverClassName: oracle.jdbc.driver.OracleDriver
+    validationQuery: select 1 from dual
 ----
 
 To override these settings set an OS environment variable such as `spring_datasource_url` to the value you require.

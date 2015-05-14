@@ -16,38 +16,18 @@
 
 package org.springframework.xd.rest.client.impl;
 
-import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.GaugeOperations;
 import org.springframework.xd.rest.domain.metrics.GaugeResource;
-import org.springframework.xd.rest.domain.metrics.MetricResource;
 
 /**
  * Implementation of the Gauge part of the metrics API.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class GaugeTemplate extends AbstractTemplate implements GaugeOperations {
+public class GaugeTemplate extends AbstractSingleMetricTemplate<GaugeResource> implements GaugeOperations {
 
 	public GaugeTemplate(AbstractTemplate abstractTemplate) {
-		super(abstractTemplate);
-	}
-
-	@Override
-	public GaugeResource retrieve(String name) {
-		String url = resources.get("gauges").toString() + "/{name}";
-		return restTemplate.getForObject(url, GaugeResource.class, name);
-	}
-
-	@Override
-	public PagedResources<MetricResource> list() {
-		String url = resources.get("gauges").toString() + "?page=10000";
-		return restTemplate.getForObject(url, MetricResource.Page.class);
-	}
-
-	@Override
-	public void delete(String name) {
-		String url = resources.get("gauges").toString() + "/{name}";
-		restTemplate.delete(url, name);
+		super(abstractTemplate, "gauges", GaugeResource.class);
 	}
 
 }

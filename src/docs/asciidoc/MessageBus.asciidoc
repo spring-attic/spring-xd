@@ -8,6 +8,8 @@ This section contains additional information about configuring the Message Bus, 
 [[rabbit-message-bus-high-availability-ha-configuration]]
 === Rabbit Message Bus High Availability (HA) Configuration
 
+==== Introduction
+
 The +RabbitMessageBus+ allows for HA configuration using normal https://www.rabbitmq.com/ha.html[RabbitMQ HA Configuration].
 
 First, use the +addresses+ property in +servers.yml+ to include the host/port for each server in the cluster. See xref:Application-Configuration#rabbitConfig[Application Configuration].
@@ -17,6 +19,20 @@ By default, queues and exchanges declared by the bus are prefixed with +xdbus.+ 
 To configure the entire bus for HA, create a policy:
 
 +rabbitmqctl set_policy ha-xdbus "^xdbus\." \'{"ha-mode":"all"}'+
+
+==== Connection Management and HA Queues
+
+When consuming from HA queues, there might be some performance advantage in consuming from the node that actually hosts
+the queue.
+Starting with _version 1.2_ it is now possible to configure the Rabbit Message Bus to do that.
+
+CAUTION: To utilize this mechanism, the https://www.rabbitmq.com/management.html[rabbit management plugin] must be enabled on each node in the cluster.
+The plugin's REST API is used to determine the location of the queue.
+
+This feature is enabled by adding more than one node to the +spring.rabbitmq.node+ property.
+See xref:Application-Configuration#rabbitConfig[RabbitMQ Configuration] for configuration details.
+
+When a node fails and a queue is moved to one of the mirrors, the bus will automatically reconnect to the right node.
 
 [[error-handling-message-delivery-failures]]
 === Error Handling (Message Delivery Failures)
@@ -155,3 +171,42 @@ NOTE: By default, the +rabbit+ source and sink modules inherit their default con
 
 === Rabbit Message Bus Batching and Compression
 See xref:Application-Configuration#rabbitBusProps[RabbitMQ Message Bus Properties] for information about batching and compressing messages passing through the bus.
+
+=== Removing RabbitMQ MessageBus Resources
+
+When a stream or job is undeployed, the broker resources (queues, exchanges) are NOT removed from RabbitMQ.
+This is due to the possibility that a stream might be being undeployed temporarily, and avoids message loss.
+
+If you wish to completely remove these resources, a REST API is provided for this purpose. In addition, the
+`SpringXDTemplate` provides a Java binding for this REST api via its `streamOperations().cleanBusResources(String name)`
+and `jobOperations().cleanBusResources(String name)` APIs.
+
+Or, you can use the REST API directly; for example:
+
+[source]
+----
+curl 'http://localhost:9393/streams/clean/rabbit/foo\
+     ?user=guest&pw=guest&vhost=/&busPrefix=xdbus.&adminUri=http://localhost:15672'
+
+curl 'http://localhost:9393/jobs/clean/rabbit/bar\
+    ?user=guest&pw=guest&vhost=/&busPrefix=xdbus.&adminUri=http://localhost:15672'
+----
+
+Where `foo` is the stream name and `bar` is the job name.
+
+The stream or job name supports a simple wildcard syntax; if it ends with `*`, then all streams beginning with the
+name (excluding the `*`) will be cleaned.
+
+These operations remove the inter-module stream queues, any tap exchanges created for the stream, the job queue and
+request queue for partitioned jobs.
+
+The operation will fail if any queue currently has a consumer; similarly, the operation will fail if any exchange
+has a binding. Under either condition, no changes will be made to RabbitMQ.
+
+The following query params are supported:
+
+* adminUri - location of the RabbitMQ Admin (default `http://localhost:15672`)
+* user - admin user (default `guest`)
+* pw - admin password (default `guest`)
+* vhost - the vhost used for the bus resources (default `/`)
+* busPrefix - the prefix used for all bus resources (default `xdbus.`)

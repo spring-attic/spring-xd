@@ -43,7 +43,7 @@ appender("FILE", RollingFileAppender) {
 
 root(WARN, ["STDOUT", "FILE"])
 
-llogger("org.springframework.xd", WARN)
+logger("org.springframework.xd", WARN)
 logger("org.springframework.xd.dirt.server", INFO)
 logger("org.springframework.xd.dirt.util.XdConfigLoggingInitializer", INFO)
 logger("xd.sink", INFO)

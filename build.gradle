@@ -272,7 +272,6 @@ configure(javaProjects) { subproject ->
 
 		configurations.all {
 			resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
-			//exclude group: 'ch.qos.logback', module: 'logback-classic'
 			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 		}
 		// dependencies that are common across all java projects
@@ -513,7 +512,9 @@ project('spring-xd-dirt') {
 
 		testCompile "org.apache.curator:curator-test:${curatorVersion}"
 
-		compile project(':spring-xd-batch')
+		compile (project(':spring-xd-batch')) {
+		//	transitive = false
+		}
 
 		// ************* Dirt-Server only
 		compile project(':spring-xd-rest-domain')
@@ -790,9 +791,8 @@ project('spring-xd-gemfire-server') {
 		compile "commons-beanutils:commons-beanutils"
 		compile "org.springframework.data:spring-data-gemfire"
 		compile project(':spring-xd-tuple')
-		runtime "log4j:log4j",
-				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12"
+		runtime 'ch.qos.logback:logback-classic'
+		runtime "org.codehaus.groovy:groovy-all"
 	}
 	apply plugin: 'application'
 	// skip the startScripts task to avoid default start script generation
@@ -1177,6 +1177,9 @@ project('spring-xd-batch') {
 		compile "org.springframework:spring-jdbc"
 		compile "org.springframework.batch:spring-batch-core"
 		compile "org.slf4j:slf4j-api"
+		runtime (/*"org.slf4j:slf4j-log4j12",*/
+				"log4j:log4j"
+		)
 	}
 	apply plugin: 'application'
 	// skip the startScripts task to avoid default start script generation

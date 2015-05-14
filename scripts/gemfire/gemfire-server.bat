@@ -79,7 +79,7 @@ if exist "%XD_LIB%" (
 )
 
 @rem Execute gemfire-server
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dlog4j.configuration=file:///"%APP_HOME%"/config/gemfire-cacheserver-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.gemfire.server.CacheServer %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dlog4j.configuration=file:///"%APP_HOME%"/config/logback.groovy -classpath "%CLASSPATH%" org.springframework.xd.gemfire.server.CacheServer %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

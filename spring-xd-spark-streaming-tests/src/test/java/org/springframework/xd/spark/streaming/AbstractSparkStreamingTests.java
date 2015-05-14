@@ -87,8 +87,14 @@ public abstract class AbstractSparkStreamingTests {
 
 	@After
 	public void tearDown() {
-		singleNodeApplication.close();
-		shell.stop();
+		if (singleNodeApplication != null) {
+			singleNodeApplication.close();
+		}
+		singleNodeApplication = null;
+		if (shell != null) {
+			shell.stop();
+		}
+		shell = null;
 	}
 
 	protected void createStream(String streamName, String stream) {

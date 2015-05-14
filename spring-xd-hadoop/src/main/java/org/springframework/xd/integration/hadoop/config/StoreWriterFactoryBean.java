@@ -59,6 +59,8 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 
 	private volatile long idleTimeout;
 
+	private volatile long closeTimeout;
+
 	private volatile String inUseSuffix;
 
 	private volatile String inUsePrefix;
@@ -118,6 +120,7 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 					codec,
 					partitionStrategy);
 			writer.setIdleTimeout(idleTimeout);
+			writer.setCloseTimeout(closeTimeout);
 			writer.setInWritingPrefix(inUsePrefix);
 			writer.setInWritingSuffix(inUseSuffix);
 			writer.setOverwrite(overwrite);
@@ -134,6 +137,7 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 		else {
 			TextFileWriter writer = new TextFileWriter(configuration, basePath, codec);
 			writer.setIdleTimeout(idleTimeout);
+			writer.setCloseTimeout(closeTimeout);
 			writer.setInWritingPrefix(inUsePrefix);
 			writer.setInWritingSuffix(inUseSuffix);
 			writer.setOverwrite(overwrite);
@@ -216,6 +220,15 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 	 */
 	public void setIdleTimeout(long idleTimeout) {
 		this.idleTimeout = idleTimeout;
+	}
+
+	/**
+	 * Sets the close timeout for the writer.
+	 *
+	 * @param closeTimeout the new close timeout
+	 */
+	public void setCloseTimeout(long closeTimeout) {
+		this.closeTimeout = closeTimeout;
 	}
 
 	/**

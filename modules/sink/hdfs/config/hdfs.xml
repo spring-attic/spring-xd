@@ -54,6 +54,7 @@
 		codec="${codec}"
 		overwrite="${overwrite}"
 		idle-timeout="${idleTimeout}"
+		close-timeout="${closeTimeout}"
 		in-use-suffix="${inUseSuffix}"
 		in-use-prefix="${inUsePrefix}"
 		rollover-strategy="fileRolloverStrategy"

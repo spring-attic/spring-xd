@@ -39,7 +39,7 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 
 	@Test
 	public void directBindingEnabledWithExplicitModuleCounts() throws InterruptedException {
-		String streamName = "directBindingEnabledWithExplicitModuleCounts";
+		String streamName = generateUniqueName();
 		StreamDefinition sd = new StreamDefinition(streamName, getHttpLogStream());
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -56,7 +56,7 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 
 	@Test
 	public void directBindingEnabledWithWildcardModuleCount() throws InterruptedException {
-		String streamName = "directBindingEnabledWithWildcardModuleCount";
+		String streamName = generateUniqueName();
 		StreamDefinition sd = new StreamDefinition(streamName, getHttpLogStream());
 		integrationSupport.streamDefinitionRepository().save(sd);
 		integrationSupport.deployStream(sd, Collections.singletonMap("module.*.count", "0"));
@@ -70,7 +70,7 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 
 	@Test
 	public void directBindingEnabledWithCriteria() throws InterruptedException {
-		String streamName = "directBindingEnabledWithCriteria";
+		String streamName = generateUniqueName();
 		StreamDefinition sd = new StreamDefinition(streamName, getHttpLogStream());
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -89,7 +89,7 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 
 	@Test
 	public void directBindingNotEnabledWithMismatchedCounts() throws InterruptedException {
-		String streamName = "directBindingNotEnabledWithMismatchedCounts";
+		String streamName = generateUniqueName();
 		StreamDefinition sd = new StreamDefinition(streamName, getHttpLogStream());
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -106,7 +106,7 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 
 	@Test
 	public void directBindingNotEnabledWithOverriddenCount() throws InterruptedException {
-		String streamName = "directBindingNotEnabledWithOverriddenCount";
+		String streamName = generateUniqueName();
 		StreamDefinition sd = new StreamDefinition(streamName, "http | log");
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -123,7 +123,7 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 
 	@Test
 	public void directBindingNotEnabledWithMismatchedCriteria() throws InterruptedException {
-		String streamName = "directBindingNotEnabledWithMismatchedCriteria";
+		String streamName = generateUniqueName();
 		StreamDefinition sd = new StreamDefinition(streamName, getHttpLogStream());
 		integrationSupport.streamDefinitionRepository().save(sd);
 		Map<String, String> props = new HashMap<String, String>();
@@ -142,7 +142,7 @@ public abstract class AbstractDistributedTransportSingleNodeStreamDeploymentInte
 
 	@Test
 	public void directBindingEnabledForPartOfStream() throws InterruptedException {
-		String streamName = "directBindingEnabledForPartOfStream";
+		String streamName = generateUniqueName();
 		StreamDefinition sd = new StreamDefinition(streamName, String.format("http --port=%s | filter | log",
 				SocketUtils.findAvailableServerSocket()));
 		integrationSupport.streamDefinitionRepository().save(sd);

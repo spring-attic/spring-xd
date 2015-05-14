@@ -24,12 +24,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import kafka.api.OffsetRequest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
 
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.kafka.core.BrokerAddress;
 import org.springframework.integration.kafka.core.DefaultConnectionFactory;
 import org.springframework.integration.kafka.core.FetchRequest;
@@ -45,6 +45,8 @@ import org.springframework.integration.kafka.util.MessageUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.integration.bus.kafka.KafkaTestMessageBus;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
+
+import kafka.api.OffsetRequest;
 
 /**
  * @author Marius Bogoevici
@@ -80,12 +82,15 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 
 
 	@Override
-	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3, Map<String, Object> initialTransportState) {
+	protected void verifyOnDemandQueues(MessageChannel m1, MessageChannel m2, Map<String, Object> initialTransportState) {
 		DefaultConnectionFactory defaultConnectionFactory = getDefaultConnectionFactory();
 		KafkaTemplate template = new KafkaTemplate(defaultConnectionFactory);
-		String y = receiveFromTopicForQueue(template, escapeTopicName("queue:y"), initialTransportState);
+		DirectChannel d1 = (DirectChannel) m1;
+		DirectChannel d2 = (DirectChannel) m2;
+		System.out.println("***** print name "+ escapeTopicName(d1.getComponentName()));
+		String y = receiveFromTopicForQueue(template, escapeTopicName(d1.getComponentName()), initialTransportState);
 		assertTrue(y.endsWith("y")); // bus headers
-		String z = receiveFromTopicForQueue(template, escapeTopicName("queue:z"), initialTransportState);
+		String z = receiveFromTopicForQueue(template, escapeTopicName(d2.getComponentName()), initialTransportState);
 		assertNotNull(z);
 		assertTrue(z.endsWith("z")); // bus headers
 		try {
@@ -133,6 +138,7 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 		Partition partition = new Partition(topicName, 0);
 		Result<KafkaMessageBatch> receive = template.receive(Collections.singleton(new FetchRequest(partition,
 				(Long) initialTransportState.get(topicName), 1000)));
+		System.out.println("**** initial offset *** " + initialTransportState.get(topicName));
 		return MessageUtils.decodePayload(receive.getResult(partition).getMessages().get(0), new StringDecoder());
 	}
 

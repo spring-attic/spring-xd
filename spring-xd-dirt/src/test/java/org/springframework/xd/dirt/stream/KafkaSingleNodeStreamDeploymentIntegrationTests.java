@@ -28,6 +28,8 @@ import kafka.api.OffsetRequest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 import org.springframework.integration.kafka.core.BrokerAddress;
@@ -78,6 +80,19 @@ public class KafkaSingleNodeStreamDeploymentIntegrationTests extends
 		System.clearProperty("xd.messagebus.kafka.brokers");
 	}
 
+	@Test
+	@Ignore("Disabled pending on resolution of https://jira.spring.io/browse/XD-3055")
+	@Override
+	public void testTappingWithRepeatedModulesDoesNotDuplicateMessages() {
+		// do nothing
+	}
+
+	@Test
+	@Ignore("Disabled pending on resolution of https://jira.spring.io/browse/XD-3055")
+	@Override
+	public void verifyQueueChannelsRegisteredOnDemand() throws InterruptedException {
+		// do nothing
+	}
 
 	@Override
 	protected void verifyOnDemandQueues(MessageChannel y3, MessageChannel z3, Map<String, Object> initialTransportState) {

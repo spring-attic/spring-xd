@@ -442,7 +442,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	}
 
 	@Test
-	@Ignore
 	public void verifyQueueChannelsRegisteredOnDemand() throws InterruptedException {
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
 				"queue:x > router --expression=payload.contains('y')?'queue:y':'queue:z'");

@@ -97,11 +97,8 @@ public class IncrementalJdbcHdfsJob extends AbstractModuleFixture<IncrementalJdb
 		StringBuilder dsl = new StringBuilder();
 		dsl.append(String.format("jdbchdfs --directory=%s --fileName=%s", this.dir, this.fileName));
 
-		if(this.override < 0) {
+		if(StringUtils.hasText(this.checkColumn)) {
 			dsl.append(String.format(" --tableName=%s --columns=%s --checkColumn=%s", this.table, this.columns, this.checkColumn));
-		}
-		else {
-			dsl.append(String.format(" --tableName=%s --columns=%s --checkColumn=%s --overrideValue=%s", this.table, this.columns, this.checkColumn, this.override));
 		}
 
 		if(StringUtils.hasText(this.partitionColumn)) {

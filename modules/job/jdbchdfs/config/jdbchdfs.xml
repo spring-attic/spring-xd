@@ -41,7 +41,7 @@
 		<property name="partitions" value="${partitions}"/>
 		<property name="jobExplorer" ref="jobExplorer"/>
 		<property name="checkColumn" value="${checkColumn}"/>
-		<property name="overrideValue" value="${overrideValue}"/>
+		<property name="overrideValue" value="#{jobParameters['overrideCheckColumnValue']}"/>
 	</bean>
 
 	<batch:step id="step1">

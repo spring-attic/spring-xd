@@ -70,7 +70,7 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 
 	private String checkColumn;
 
-	private int overrideValue;
+	private Integer overrideValue;
 
 	/**
 	 * The data source for connecting to the database.
@@ -116,7 +116,7 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 		this.checkColumn = checkColumn;
 	}
 
-	public void setOverrideValue(int overrideValue) {
+	public void setOverrideValue(Integer overrideValue) {
 		this.overrideValue = overrideValue;
 	}
 
@@ -180,7 +180,7 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 	public void beforeStep(StepExecution stepExecution) {
 		if(StringUtils.hasText(checkColumn)) {
 
-			if(overrideValue >= 0) {
+			if(overrideValue != null && overrideValue >= 0) {
 				this.incrementalMin = overrideValue;
 			}
 			else {
@@ -221,12 +221,16 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 
 		if(StringUtils.hasText(column) && StringUtils.hasText(table)) {
 			if(StringUtils.hasText(checkColumn)) {
-				this.partitionMin = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Integer.class);
-				this.partitionMax = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Integer.class);
+				Integer minResult = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Integer.class);
+				Integer maxResult = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Integer.class);
+				this.partitionMin = minResult != null ? minResult : Integer.MIN_VALUE;
+				this.partitionMax = maxResult != null ? maxResult : Integer.MAX_VALUE;
 			}
 			else {
-				this.partitionMin = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table, Integer.class);
-				this.partitionMax = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table, Integer.class);
+				Integer minResult = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table, Integer.class);
+				Integer maxResult = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table, Integer.class);
+				this.partitionMin = minResult != null ? minResult : Integer.MIN_VALUE;
+				this.partitionMax = maxResult != null ? maxResult : Integer.MAX_VALUE;
 			}
 		}
 	}

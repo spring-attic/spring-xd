@@ -81,9 +81,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 				+ jdbcSink);
 		sources.httpSource("dataSender").postData(data);
 
-		job(job.toDSL());
+		job("ec2job1", job.toDSL(), true);
 		waitForXD();
-		jobLaunch();
+		jobLaunch("ec2job1");
 		waitForXD(2000);
 		// Evaluate the results of the test.
 		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-0.csv";
@@ -112,9 +112,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 				+ jdbcSink);
 		sources.httpSource("dataSender").postData(data);
 
-		job(job.toDSL());
+		job("ec2job2", job.toDSL(), true);
 		waitForXD();
-		jobLaunch();
+		jobLaunch("ec2job2");
 		waitForXD(2000);
 		// Evaluate the results of the test.
 		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-0.csv";
@@ -147,9 +147,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("2");
 		sources.httpSource("dataSender").postData("3");
 
-		job(job.toDSL());
+		job("ec2job3", job.toDSL(), true);
 		waitForXD();
-		jobLaunch();
+		jobLaunch("ec2job3");
 		waitForXD(5000);
 
 		// Evaluate the results of the test.
@@ -169,7 +169,7 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("5");
 		sources.httpSource("dataSender").postData("6");
 
-		jobLaunch();
+		jobLaunch("ec2job3");
 		waitForXD(5000);
 
 		// Evaluate the results of the test.
@@ -181,6 +181,58 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		statuses = fileStatuses.iterator();
 		assertEquals("File size should match the data size +1 for the //n", file2Contents.length() + 1, statuses.next().getLen());
 		assertEquals("The data returned from hadoop was different than was sent.  ", file2Contents + "\n",
+				hadoopUtil.getFileContentsFromHdfs(path));
+	}
+
+	/**
+	 * Asserts that jdbcHdfsJob has written the test data from a jdbc source table to a hdfs file system.
+	 *
+	 */
+	@Test
+	public void testIncrementalJdbcHdfsJobWithColumnsAndTableNothingNew() {
+		// Deploy stream and job.
+		jdbcSink.getJdbcTemplate().getDataSource();
+		IncrementalJdbcHdfsJob job = jobs.incrementalJdbcHdfsJob();
+		// Use a trigger to send data to JDBC
+		stream("dataSender", sources.http() + XD_DELIMITER
+				+ jdbcSink);
+
+		String file1Contents = StringUtils.arrayToDelimitedString(new String[] {"1", "2", "3"}, "\n");
+
+		sources.httpSource("dataSender").postData("1");
+		sources.httpSource("dataSender").postData("2");
+		sources.httpSource("dataSender").postData("3");
+
+		job("ec2job4", job.toDSL(), true);
+		waitForXD();
+		jobLaunch("ec2job4");
+		waitForXD(5000);
+
+		// Evaluate the results of the test.
+		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-0.csv";
+		assertPathsExists(path);
+		Collection<FileStatus> fileStatuses = hadoopUtil.listDir(path);
+		assertEquals("The number of files in list result should only be 1. The file itself. ", 1,
+				fileStatuses.size());
+		Iterator<FileStatus> statuses = fileStatuses.iterator();
+		assertEquals("File size should match the data size +1 for the //n", file1Contents.length() + 1, statuses.next().getLen());
+		assertEquals("The data returned from hadoop was different than was sent.  ", file1Contents + "\n",
+				hadoopUtil.getFileContentsFromHdfs(path));
+
+		jobLaunch("ec2job4");
+		waitForXD(5000);
+
+		// Evaluate the results of the test.
+		String dir = JdbcHdfsJob.DEFAULT_DIRECTORY + "/";
+		path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-0.csv";
+		assertPathsExists(path);
+		fileStatuses = hadoopUtil.listDir(dir);
+		assertEquals("The number of files in list result should only be 2. The directory and file itself. ", 2,
+				fileStatuses.size());
+		statuses = fileStatuses.iterator();
+		statuses.next();
+		assertEquals("File size should match the data size +1 for the //n", file1Contents.length() + 1, statuses.next().getLen());
+		assertEquals("The data returned from hadoop was different than was sent.  ", file1Contents + "\n",
 				hadoopUtil.getFileContentsFromHdfs(path));
 	}
 
@@ -202,9 +254,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("{\"payload\": 2, \"checkColumn\": 1}");
 		sources.httpSource("dataSender").postData("{\"payload\": 3, \"checkColumn\": 1}");
 
-		job("ec2job4", job.toDSL(), true);
+		job("ec2job5", job.toDSL(), true);
 		waitForXD(5000);
-		jobLaunch("ec2job4");
+		jobLaunch("ec2job5");
 		waitForXD(5000);
 
 		// Evaluate the results of the test.
@@ -226,7 +278,7 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("{\"payload\": 5, \"checkColumn\": 2}");
 		sources.httpSource("dataSender").postData("{\"payload\": 6, \"checkColumn\": 2}");
 
-		jobLaunch("ec2job4");
+		jobLaunch("ec2job5");
 		waitForXD(5000);
 
 		// Evaluate the results of the test.
@@ -263,9 +315,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("2");
 		sources.httpSource("dataSender").postData("3");
 
-		job("ec2job5", job.toDSL(), true);
+		job("ec2job6", job.toDSL(), true);
 		waitForXD();
-		jobLaunch("ec2job5");
+		jobLaunch("ec2job6");
 		waitForXD(5000);
 
 		// Evaluate the results of the test.
@@ -285,12 +337,7 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("5");
 		sources.httpSource("dataSender").postData("6");
 
-		IncrementalJdbcHdfsJob overrideJob = new IncrementalJdbcHdfsJob(IncrementalJdbcHdfsJob.DEFAULT_DIRECTORY, IncrementalJdbcHdfsJob.DEFAULT_FILE_NAME, IncrementalJdbcHdfsJob.DEFAULT_TABLE, IncrementalJdbcHdfsJob.DEFAULT_COLUMN, null, -1, IncrementalJdbcHdfsJob.DEFAULT_COLUMN, 2);
-		destroyAllJobs();
-		waitForEmptyJobList(WAIT_TIME);
-		job("ec2job5", overrideJob.toDSL(), true);
-		waitForXD();
-		jobLaunch("ec2job5");
+		launchJob("ec2job6", "{\"overrideCheckColumnValue\" : 2}");
 		waitForXD(5000);
 
 		// Evaluate the results of the test.
@@ -325,9 +372,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData(data1);
 		sources.httpSource("dataSender").postData(data2);
 
-		job(job.toDSL());
+		job("ec2job7", job.toDSL(), true);
 		waitForXD();
-		jobLaunch();
+		jobLaunch("ec2job7");
 		waitForXD(2000);
 		// Evaluate the results of the test.
 		String dir = JdbcHdfsJob.DEFAULT_DIRECTORY + "/";

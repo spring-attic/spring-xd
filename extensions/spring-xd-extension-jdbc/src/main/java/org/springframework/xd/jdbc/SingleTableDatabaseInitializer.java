@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.ByteArrayResource;
@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
  */
 public class SingleTableDatabaseInitializer extends ResourceDatabasePopulator implements InitializingBean {
 
-	private static final Log logger = LogFactory.getLog(SingleTableDatabaseInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(SingleTableDatabaseInitializer.class);
 
 	private List<Resource> scripts = new ArrayList<Resource>();
 

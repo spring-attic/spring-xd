@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.ResolvableType;
@@ -73,7 +73,7 @@ import rx.subjects.Subject;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SubjectMessageHandler extends AbstractMessageProducingHandler implements DisposableBean {
 
-    protected final Log logger = LogFactory.getLog(getClass());
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ConcurrentMap<Long, PublishSubject<Object>> subjectMap =
             new ConcurrentHashMap<Long, PublishSubject<Object>>();
@@ -109,7 +109,7 @@ public class SubjectMessageHandler extends AbstractMessageProducingHandler imple
         }, new Action1<Throwable>() {
             @Override
             public void call(Throwable throwable) {
-                logger.error(throwable);
+                logger.error(throwable.getMessage(), throwable);
             }
         }, new Action0() {
             @Override

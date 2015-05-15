@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -46,7 +46,7 @@ import org.springframework.xd.dirt.integration.bus.StringConvertingContentTypeRe
  */
 public abstract class AbstractFromMessageConverter extends AbstractMessageConverter {
 
-	protected Log logger = LogFactory.getLog(this.getClass());
+	protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	protected final List<MimeType> targetMimeTypes;
 

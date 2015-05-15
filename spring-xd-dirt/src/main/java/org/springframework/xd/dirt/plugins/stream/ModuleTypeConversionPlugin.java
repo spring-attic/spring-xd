@@ -18,8 +18,8 @@ package org.springframework.xd.dirt.plugins.stream;
 
 import java.util.Collection;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.integration.bus.converter.AbstractFromMessageConverter;
@@ -42,7 +42,7 @@ import org.springframework.xd.module.core.Plugin;
  */
 public class ModuleTypeConversionPlugin extends AbstractPlugin {
 
-	private final static Log logger = LogFactory.getLog(ModuleTypeConversionPlugin.class);
+	private final static Logger logger = LoggerFactory.getLogger(ModuleTypeConversionPlugin.class);
 
 	private final CompositeMessageConverterFactory converterFactory;
 

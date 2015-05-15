@@ -25,8 +25,8 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventuall
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
 import org.junit.Test;
@@ -45,7 +45,7 @@ import org.springframework.xd.shell.util.TableRow;
  */
 public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 
-	private static final Log logger = LogFactory.getLog(RuntimeCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(RuntimeCommandTests.class);
 
 	@Test
 	public void testListContainers() {

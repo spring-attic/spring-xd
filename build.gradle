@@ -274,7 +274,7 @@ configure(javaProjects) { subproject ->
 
 		configurations.all {
 			resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
-			exclude group: 'ch.qos.logback', module: 'logback-classic'
+			exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 		}
 		// dependencies that are common across all java projects
 		dependencies {
@@ -382,9 +382,10 @@ project('spring-xd-analytics') {
 		testCompile project(":spring-xd-test")
 		testCompile "nl.jqno.equalsverifier:equalsverifier:$equalsverifierVersion"
 		testCompile "com.fasterxml.jackson.core:jackson-databind"
-		runtime "log4j:log4j",
+		runtime (//"log4j:log4j",
 				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12", "org.apache.commons:commons-pool2"
+				//"org.slf4j:slf4j-log4j12",
+				"org.apache.commons:commons-pool2")
 	}
 }
 
@@ -503,16 +504,18 @@ project('spring-xd-dirt') {
 		compile "org.hibernate:hibernate-validator"
 		compile "com.google.code.findbugs:jsr305"
 
-		runtime "org.slf4j:jul-to-slf4j"
+		//runtime "org.slf4j:jul-to-slf4j"
 		runtime "org.slf4j:jcl-over-slf4j"
-		runtime "org.slf4j:slf4j-log4j12"
+		//runtime "org.slf4j:slf4j-log4j12"
 		runtime "org.yaml:snakeyaml"
 		runtime "org.postgresql:postgresql:$postgresqlVersion"
 		runtime "mysql:mysql-connector-java"
 
 		testCompile "org.apache.curator:curator-test:${curatorVersion}"
 
-		compile project(':spring-xd-batch')
+		compile (project(':spring-xd-batch')) {
+		//	transitive = false
+		}
 
 		// ************* Dirt-Server only
 		compile project(':spring-xd-rest-domain')
@@ -789,9 +792,8 @@ project('spring-xd-gemfire-server') {
 		compile "commons-beanutils:commons-beanutils"
 		compile "org.springframework.data:spring-data-gemfire"
 		compile project(':spring-xd-tuple')
-		runtime "log4j:log4j",
-				"org.slf4j:jcl-over-slf4j",
-				"org.slf4j:slf4j-log4j12"
+		runtime 'ch.qos.logback:logback-classic'
+		runtime "org.codehaus.groovy:groovy-all"
 	}
 	apply plugin: 'application'
 	// skip the startScripts task to avoid default start script generation
@@ -1146,9 +1148,8 @@ project('spring-xd-shell') {
 		compile "commons-io:commons-io"
 		configurations.compile.exclude(group: "xerces")
 
-		runtime "org.slf4j:jcl-over-slf4j"
-		runtime "org.slf4j:slf4j-log4j12"
-		runtime "log4j:log4j"
+		runtime 'ch.qos.logback:logback-classic'
+
 		testCompile project(":spring-xd-test-fixtures")
 		testCompile project(":spring-xd-dirt")
 		testCompile "org.springframework.integration:spring-integration-ftp"
@@ -1187,6 +1188,10 @@ project('spring-xd-batch') {
 		compile "org.springframework.boot:spring-boot-actuator"
 		compile "org.springframework:spring-jdbc"
 		compile "org.springframework.batch:spring-batch-core"
+		compile "org.slf4j:slf4j-api"
+		runtime (/*"org.slf4j:slf4j-log4j12",*/
+				"log4j:log4j"
+		)
 	}
 	apply plugin: 'application'
 	// skip the startScripts task to avoid default start script generation

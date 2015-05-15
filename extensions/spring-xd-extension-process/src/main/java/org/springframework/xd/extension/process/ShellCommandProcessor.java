@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
@@ -66,7 +66,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 
 	private final AbstractByteArraySerializer serializer;
 
-	private final static Log log = LogFactory.getLog(ShellCommandProcessor.class);
+	private final static Logger log = LoggerFactory.getLogger(ShellCommandProcessor.class);
 
     private final ShellWordsParser shellWordsParser = new ShellWordsParser();
 

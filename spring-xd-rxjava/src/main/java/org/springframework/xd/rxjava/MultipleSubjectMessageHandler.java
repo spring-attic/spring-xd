@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.ResolvableType;
@@ -71,7 +71,7 @@ import rx.subjects.Subject;
 public class MultipleSubjectMessageHandler extends AbstractMessageProducingHandler implements DisposableBean,
         IntegrationEvaluationContextAware {
 
-    protected final Log logger = LogFactory.getLog(getClass());
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ConcurrentMap<Object, PublishSubject<Object>> subjectMap =
             new ConcurrentHashMap<Object, PublishSubject<Object>>();
@@ -138,7 +138,7 @@ public class MultipleSubjectMessageHandler extends AbstractMessageProducingHandl
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        logger.error(throwable);
+                        logger.error(throwable.getMessage(), throwable);
                         subjectMap.remove(idToUse);
                     }
                 });

@@ -16,8 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -59,7 +59,7 @@ import static org.junit.Assert.assertTrue;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JobCommandTests extends AbstractJobIntegrationTest {
 
-	private static final Log logger = LogFactory.getLog(JobCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(JobCommandTests.class);
 
 	@Test
 	public void testJobLifecycleForMyJob() throws InterruptedException {

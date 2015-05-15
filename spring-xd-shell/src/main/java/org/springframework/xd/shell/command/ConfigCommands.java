@@ -25,8 +25,8 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -62,7 +62,7 @@ import org.springframework.xd.shell.util.UiUtils;
 @Component
 public class ConfigCommands implements CommandMarker, InitializingBean {
 
-	private static final Log logger = LogFactory.getLog(XDShell.class);
+	private static final Logger logger = LoggerFactory.getLogger(XDShell.class);
 
 	@Autowired
 	private CommandLine commandLine;

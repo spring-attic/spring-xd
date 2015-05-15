@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.util.Assert;
@@ -46,7 +46,7 @@ import org.springframework.xd.module.options.ModuleUtils;
  */
 public class ModuleFactory implements BeanClassLoaderAware {
 
-	private static Log log = LogFactory.getLog(ModuleFactory.class);
+	private static Logger log = LoggerFactory.getLogger(ModuleFactory.class);
 
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 

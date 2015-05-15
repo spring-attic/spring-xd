@@ -16,8 +16,8 @@
 
 package org.springframework.xd.integration.hadoop.outbound;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.data.hadoop.store.DataStoreWriter;
 import org.springframework.messaging.Message;
@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  */
 public class HdfsDataStoreMessageHandler extends HdfsStoreMessageHandler {
 
-	private static final Log logger = LogFactory.getLog(HdfsDataStoreMessageHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(HdfsDataStoreMessageHandler.class);
 
 	private DataStoreWriter<String> storeWriter;
 

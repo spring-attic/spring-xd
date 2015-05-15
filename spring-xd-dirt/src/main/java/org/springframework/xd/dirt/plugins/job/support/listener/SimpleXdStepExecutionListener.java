@@ -16,8 +16,8 @@
 
 package org.springframework.xd.dirt.plugins.job.support.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
@@ -31,7 +31,7 @@ import org.springframework.messaging.SubscribableChannel;
  */
 public class SimpleXdStepExecutionListener extends BatchJobListener<StepExecution> implements StepExecutionListener {
 
-	private static final Log logger = LogFactory.getLog(SimpleXdStepExecutionListener.class);
+	private static final Logger logger = LoggerFactory.getLogger(SimpleXdStepExecutionListener.class);
 
 	public SimpleXdStepExecutionListener(SubscribableChannel stepExecutionEventsChannel,
 			SubscribableChannel aggregatedEventsChannel) {

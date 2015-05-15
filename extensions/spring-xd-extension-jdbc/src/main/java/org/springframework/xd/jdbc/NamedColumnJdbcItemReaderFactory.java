@@ -18,8 +18,8 @@ package org.springframework.xd.jdbc;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.item.database.AbstractCursorItemReader;
 import org.springframework.batch.support.DatabaseType;
@@ -39,7 +39,7 @@ import org.springframework.util.StringUtils;
  */
 public class NamedColumnJdbcItemReaderFactory implements FactoryBean<NamedColumnJdbcItemReader>, InitializingBean {
 
-	private static final Log log = LogFactory.getLog(NamedColumnJdbcItemReaderFactory.class);
+	private static final Logger log = LoggerFactory.getLogger(NamedColumnJdbcItemReaderFactory.class);
 
 	private DataSource dataSource;
 

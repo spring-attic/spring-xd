@@ -18,8 +18,8 @@ package org.springframework.xd.rest.client.impl.support;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.joda.time.DateTime;
 
 import org.springframework.batch.core.JobParameter;
@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public class JobParameterJacksonDeserializer extends JsonDeserializer<JobParameter> {
 
-	private final Log logger = LogFactory.getLog(JobParameterJacksonDeserializer.class);
+	private final Logger logger = LoggerFactory.getLogger(JobParameterJacksonDeserializer.class);
 
 	@Override
 	public JobParameter deserialize(JsonParser jsonParser, DeserializationContext deserializationContext)

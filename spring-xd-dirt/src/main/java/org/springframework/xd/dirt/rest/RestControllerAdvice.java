@@ -16,8 +16,8 @@
 
 package org.springframework.xd.dirt.rest;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
@@ -64,7 +64,7 @@ import org.springframework.xd.dirt.util.PageNotFoundException;
 @ControllerAdvice
 public class RestControllerAdvice {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	/*
 	 * Note that any controller-specific exception handler is resolved first. So for example, having a

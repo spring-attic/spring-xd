@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -66,7 +66,7 @@ import com.google.common.annotations.VisibleForTesting;
  */
 public class RabbitBusCleaner implements BusCleaner {
 
-	private final static Log logger = LogFactory.getLog(RabbitBusCleaner.class);
+	private final static Logger logger = LoggerFactory.getLogger(RabbitBusCleaner.class);
 
 	@Override
 	public Map<String, List<String>> clean(String entity, boolean isJob) {

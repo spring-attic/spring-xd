@@ -24,8 +24,8 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasConten
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -44,7 +44,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  */
 public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
-	private static final Log logger = LogFactory.getLog(StreamCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(StreamCommandTests.class);
 
 	@Test
 	public void testStreamLifecycleForTickTock() throws InterruptedException {

@@ -20,8 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -52,7 +52,7 @@ public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
 	@ClassRule
 	public static HostNotWindowsRule hostNotWindowsRule = new HostNotWindowsRule();
 
-	private static final Log logger = LogFactory.getLog(JobCommandWithHadoopTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(JobCommandWithHadoopTests.class);
 
 	@Autowired
 	org.apache.hadoop.conf.Configuration configuration;

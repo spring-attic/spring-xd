@@ -104,7 +104,12 @@ Since this properties file contains sensitive information, it will typically be 
 
 This source module supports transfer of files using the FTP protocol.
 Files are transferred from the `remote` directory to the `local` directory where the module is deployed.
-Messages emitted by the source can be the local +File+ object or its contents.
+Messages emitted by the source are provided as a byte array by default. However, this can be
+customized using the `--mode` option:
+
+- *ref* Provides a `java.io.File` reference
+- *lines* Will split files line-by-line and emit a new message for each line
+- *contents* The default. Provides the contents of a file as a byte array
 
 ==== Options
 
@@ -121,10 +126,10 @@ $$fixedDelay$$:: $$the rate at which to poll the remote directory$$ *($$int$$, d
 $$host$$:: $$the host name for the FTP server$$ *($$String$$, default: `localhost`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
 $$localDir$$:: $$set the local directory the remote files are transferred to$$ *($$String$$, default: `/tmp/xd/ftp`)*
+$$mode$$:: $$specifies how the file is being read. By default the content of a file is provided as byte array$$ *($$FileReadingMode$$, default: `contents`, possible values: `ref,lines,contents`)*
 $$password$$:: $$the password for the FTP connection$$ *($$Password$$, no default)*
 $$port$$:: $$the port for the FTP server$$ *($$int$$, default: `21`)*
 $$preserveTimestamp$$:: $$whether to preserve the timestamp of files retrieved$$ *($$boolean$$, default: `true`)*
-$$ref$$:: $$set to true to output the File object itself$$ *($$boolean$$, default: `false`)*
 $$remoteDir$$:: $$the remote directory to transfer the files from$$ *($$String$$, default: `/`)*
 $$remoteFileSeparator$$:: $$file separator to use on the remote side$$ *($$String$$, default: `/`)*
 $$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
@@ -137,7 +142,13 @@ $$username$$:: $$the username for the FTP connection$$ *($$String$$, no default)
 
 This source module supports transfer of files using the SFTP protocol.
 Files are transferred from the `remote` directory to the `local` directory where the module is deployed.
-Messages emitted by the source can be the local +File+ object or its contents.
+
+Messages emitted by the source are provided as a byte array by default. However, this can be
+customized using the `--mode` option:
+
+- *ref* Provides a `java.io.File` reference
+- *lines* Will split files line-by-line and emit a new message for each line
+- *contents* The default. Provides the contents of a file as a byte array
 
 ==== Options
 
@@ -152,12 +163,12 @@ $$fixedDelay$$:: $$fixed delay in SECONDS to poll the remote directory$$ *($$int
 $$host$$:: $$the remote host to connect to$$ *($$String$$, default: `localhost`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
 $$localDir$$:: $$set the local directory the remote files are transferred to$$ *($$String$$, default: `/tmp/xd/output`)*
+$$mode$$:: $$specifies how the file is being read. By default the content of a file is provided as byte array$$ *($$FileReadingMode$$, default: `contents`, possible values: `ref,lines,contents`)*
 $$passPhrase$$:: $$the passphrase to use$$ *($$String$$, default: ``)*
 $$password$$:: $$the password for the provided user$$ *($$String$$, default: ``)*
 $$pattern$$:: $$simple filename pattern to apply to the filter$$ *($$String$$, no default)*
 $$port$$:: $$the remote port to connect to$$ *($$int$$, default: `22`)*
 $$privateKey$$:: $$the private key location (a valid Spring Resource URL)$$ *($$String$$, default: ``)*
-$$ref$$:: $$set to true to output the File object itself$$ *($$boolean$$, default: `false`)*
 $$regexPattern$$:: $$filename regex pattern to apply to the filter$$ *($$String$$, no default)*
 $$remoteDir$$:: $$the remote directory to transfer the files from$$ *($$String$$, no default)*
 $$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
@@ -238,7 +249,12 @@ Some platforms, such as linux, send status messages to `stderr`. The tail module
 [[file]]
 === File
 
-The file source provides the contents of a File as a byte array by default but may be configured to provide the file reference itself.
+The file source provides the contents of a File as a byte array by default. However, this can be
+customized using the `--mode` option:
+
+- *ref* Provides a `java.io.File` reference
+- *lines* Will split files line-by-line and emit a new message for each line
+- *contents* The default. Provides the contents of a file as a byte array
 
 To log the contents of a file create a stream definition using the XD shell
 
@@ -264,9 +280,9 @@ The **$$file$$** $$source$$ has the following options:
 $$dir$$:: $$the absolute path to the directory to monitor for files$$ *($$String$$, default: `/tmp/xd/input/<stream name>`)*
 $$fixedDelay$$:: $$the fixed delay polling interval specified in seconds$$ *($$int$$, default: `5`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
+$$mode$$:: $$specifies how the file is being read. By default the content of a file is provided as byte array$$ *($$FileReadingMode$$, default: `contents`, possible values: `ref,lines,contents`)*
 $$pattern$$:: $$a filter expression (Ant style) to accept only files that match the pattern$$ *($$String$$, default: `*`)*
 $$preventDuplicates$$:: $$whether to prevent the same file from being processed twice$$ *($$boolean$$, default: `true`)*
-$$ref$$:: $$set to true to output the File object itself$$ *($$boolean$$, default: `false`)*
 $$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
 //$source.file
 

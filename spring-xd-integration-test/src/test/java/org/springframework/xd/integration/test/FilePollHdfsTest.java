@@ -58,7 +58,7 @@ public class FilePollHdfsTest extends AbstractJobTest {
 		String sourceFileName = UUID.randomUUID().toString() + ".out";
 		String sourceDir = "/tmp/xd/" + FilePollHdfsJob.DEFAULT_FILE_NAME;
 
-		SimpleFileSource fileSource = sources.file(sourceDir, sourceFileName).reference(true);
+		SimpleFileSource fileSource = sources.file(sourceDir, sourceFileName).mode(SimpleFileSource.Mode.REF);
 		job(jobName, jobs.filePollHdfsJob(DEFAULT_NAMES).toDSL(), true);
 		stream(fileSource + XD_TAP_DELIMITER + " queue:job:" + jobName);
 		//Since the job may be on a different container you will have to copy the file to the job's container.

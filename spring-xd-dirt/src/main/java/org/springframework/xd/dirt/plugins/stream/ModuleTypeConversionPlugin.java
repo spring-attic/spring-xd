@@ -42,8 +42,6 @@ import org.springframework.xd.module.core.Plugin;
  */
 public class ModuleTypeConversionPlugin extends AbstractPlugin {
 
-	private final static Logger logger = LoggerFactory.getLogger(ModuleTypeConversionPlugin.class);
-
 	private final CompositeMessageConverterFactory converterFactory;
 
 	private final ModuleTypeConversionSupport moduleTypeConversionSupport;
@@ -84,7 +82,7 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin {
 
 	@Override
 	public boolean supports(Module module) {
-		return module.shouldBind();
+		ModuleType type = module.getType();
+		return type == ModuleType.source || type == ModuleType.processor || type == ModuleType.sink;
 	}
-
 }

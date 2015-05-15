@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -79,9 +78,17 @@ ms     %     Task name
 		runBenchmark(TupleBuilder.tuple().of("foo", "bar", "val", 1234));
 		watch.stop();
 		watch.start("string payload");
-		runBenchmark(StringUtils.leftPad("hello", 1000, "*"));
+		runBenchmark(leftPad("hello", 1000, '*'));
 		watch.stop();
 		System.out.println(watch.prettyPrint());
+	}
+
+	private String leftPad(String text, int size, char filler) {
+		StringBuilder sb = new StringBuilder(size);
+		for (int i = 0; i < size - text.length(); i++) {
+			sb.append(filler);
+		}
+		return sb.append(text).toString();
 	}
 
 

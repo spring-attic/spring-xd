@@ -67,7 +67,7 @@ ext {
 		[ name:'Luke Taylor', id:'ltaylor', email: ''],
 		[ name:'Dave Syer', id:'dsyer', email: 'dsyer@pivotal.io'],
 		[ name:'Janne Valkealahti', id:'jvalkealahti', email: 'jvalkealahti@pivotal.io'],
-		[ name: 'Thomas Darimont', id:'tdarimont', email: 'tdarimont@pivotal.io']
+		[ name:'Thomas Darimont', id:'tdarimont', email: 'tdarimont@pivotal.io']
 	]
 
 	javadocLinks = [
@@ -147,6 +147,7 @@ ext {
 	zookeeperVersion = '3.4.6'
 	sparkVersion = '1.2.1'
 	sparkScalaVersion = '2.10'
+	scalaVersion = '2.10.4'
 	sqoopVersion = '1.4.5'
 
 	// Also in IO
@@ -531,8 +532,6 @@ project('spring-xd-dirt') {
 		// ************* Dirt-Container only (per se)
 		compile project(":spring-xd-module")
 		compile "com.jayway.jsonpath:json-path"
-		// TODO: move as a plugin-only requirement
-		compile project(':spring-xd-spark-streaming')
 
 		// ************* Container: Modules (should move on their own: XD-915)
 		compile project(":spring-xd-hadoop")
@@ -549,6 +548,7 @@ project('spring-xd-dirt') {
 		runtime("org.springframework:spring-oxm") {
 			exclude group: "commons-lang", module: "commons-lang"
 		}
+		runtime("org.scala-lang:scala-library:${scalaVersion}")
 
 		// ************* Test
 		testCompile project(":spring-xd-test")
@@ -896,7 +896,7 @@ project('spring-xd-spark-streaming') {
 			exclude group: 'com.esotericsoftware.kryo', module: 'kryo'
 		}
 		compile "org.springframework.integration:spring-integration-core"
-		compile project(":spring-xd-module-spi")
+		provided project(":spring-xd-dirt")
 	}
 }
 

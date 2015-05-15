@@ -71,8 +71,4 @@ public abstract class AbstractModule implements Module {
 				ObjectUtils.getIdentityHexString(this) + "]";
 	}
 
-	@Override
-	public boolean shouldBind() {
-		return true;
-	}
 }

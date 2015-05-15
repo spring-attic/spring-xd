@@ -420,3 +420,26 @@ project('modules.job.gpload') {
         runtime(project(":spring-xd-extension-gpload"))
     }
 }
+
+
+// ============================ TEST MODULES ============================
+project('modules.processor.spark-scala-word-count') {
+    dependencies {
+        runtime(project(":spring-xd-extension-spark-streaming-examples"))
+    }
+}
+project('modules.processor.spark-word-count') {
+    dependencies {
+        runtime(project(":spring-xd-extension-spark-streaming-examples"))
+    }
+}
+project('modules.sink.file-logger') {
+    dependencies {
+        runtime(project(":spring-xd-extension-spark-streaming-examples"))
+    }
+}
+project('modules.sink.file-logger-scala') {
+    dependencies {
+        runtime(project(":spring-xd-extension-spark-streaming-examples"))
+    }
+}

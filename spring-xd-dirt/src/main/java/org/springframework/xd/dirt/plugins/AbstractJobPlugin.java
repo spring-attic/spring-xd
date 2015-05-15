@@ -57,6 +57,6 @@ public class AbstractJobPlugin extends AbstractMessageBusBinderPlugin {
 
 	@Override
 	public boolean supports(Module module) {
-		return ((module.shouldBind()) && module.getType() == ModuleType.job);
+		return module.getType() == ModuleType.job;
 	}
 }

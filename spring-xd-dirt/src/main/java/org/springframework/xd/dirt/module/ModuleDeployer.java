@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -30,9 +31,11 @@ import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.OrderComparator;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleDeploymentProperties;
@@ -40,6 +43,7 @@ import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.ModuleFactory;
 import org.springframework.xd.module.core.Plugin;
+import org.springframework.xd.module.core.SimpleModule;
 
 /**
  * Handles the creation, deployment, and un-deployment of {@link Module modules}.
@@ -57,12 +61,14 @@ import org.springframework.xd.module.core.Plugin;
  * @author David Turanski
  * @author Patrick Peralta
  */
-public class ModuleDeployer implements ApplicationContextAware, InitializingBean {
+public class ModuleDeployer implements ApplicationContextAware {
 
 	/**
 	 * Logger.
 	 */
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	private static final String[] PLUGINS_CONFIG_LOCATIONS = new String[] {"classpath*:/META-INF/spring-xd/module-plugins/*.xml"};
 
 	/**
 	 * The container application context.
@@ -76,17 +82,27 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 	private volatile ApplicationContext globalContext;
 
 	/**
+	 * The main plugin context. This contains plugins that are <i>a priori</i> applicable to
+	 * all modules. On deployment, a per-module context (that is a child of mainPluginsContext) is
+	 * created, which has visibility over plugins that may be loaded from the module classpath only
+	 * (those take precedence).
+	 */
+	private volatile ApplicationContext mainPluginsContext;
+
+	/**
+	 * A map of per-module application contexts.
+	 *
+	 * @see #mainPluginsContext
+	 */
+	@GuardedBy("this")
+	private final Map<Module, AbstractApplicationContext> pluginContexts = new HashMap<>();
+
+	/**
 	 * Map of deployed modules. Key is the group/deployment unit name,
 	 * value is a map of module index to module.
 	 */
 	@GuardedBy("this")
 	private final Map<String, Map<Integer, Module>> deployedModules = new HashMap<String, Map<Integer, Module>>();
-
-	/**
-	 * List of registered plugins.
-	 */
-	@GuardedBy("this")
-	private final List<Plugin> plugins = new ArrayList<Plugin>();
 
 	/**
 	 * Module factory for creating new {@link Module} instances.
@@ -111,6 +127,7 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 	public void setApplicationContext(ApplicationContext context) {
 		this.context = context;
 
+		this.mainPluginsContext = this.context.getParent();
 		ApplicationContext global = null;
 		try {
 			// TODO: evaluate
@@ -142,15 +159,6 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 
 		Assert.notNull(global, "Global application context not found");
 		this.globalContext = global;
-	}
-
-	@Override
-	public synchronized void afterPropertiesSet() {
-		if (!plugins.isEmpty()) {
-			plugins.clear();
-		}
-		plugins.addAll(this.context.getParent().getBeansOfType(Plugin.class).values());
-		OrderComparator.sort(this.plugins);
 	}
 
 	/**
@@ -201,7 +209,7 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 		logger.info("Deployed {}", module);
 		Map<Integer, Module> modules = this.deployedModules.get(group);
 		if (modules == null) {
-			modules = new HashMap<Integer, Module>();
+			modules = new HashMap<>();
 			this.deployedModules.put(group, modules);
 		}
 		modules.put(descriptor.getIndex(), module);
@@ -212,11 +220,27 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 	 *
 	 * @param module module to deploy
 	 */
-	private void doDeploy(Module module) {
-		preProcessModule(module);
-		module.initialize();
-		postProcessModule(module);
-		module.start();
+	private void doDeploy(final Module module) {
+		AbstractApplicationContext modulePluginContext = new ClassPathXmlApplicationContext(PLUGINS_CONFIG_LOCATIONS, false, mainPluginsContext);
+		ClassLoader classLoader = getClass().getClassLoader();
+		if (module instanceof SimpleModule) {
+			SimpleModule simpleModule = (SimpleModule) module;
+			classLoader = simpleModule.getClassLoader();
+		}
+		modulePluginContext.setClassLoader(classLoader);
+		modulePluginContext.refresh();
+		pluginContexts.put(module, modulePluginContext);
+
+		doWithContextClassLoader(classLoader, new Callable<Void>() {
+			@Override
+			public Void call() throws Exception {
+				preProcessModule(module);
+				module.initialize();
+				postProcessModule(module);
+				module.start();
+				return null;
+			}
+		});
 	}
 
 	/**
@@ -273,12 +297,21 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 	 *
 	 * @param module module to shut down and destroy
 	 */
-	private void destroyModule(Module module) {
+	private void destroyModule(final Module module) {
 		logger.info("Removed {}", module);
-		beforeShutdown(module);
-		module.stop();
-		removeModule(module);
-		module.destroy();
+		ClassLoader classLoader = module.getApplicationContext().getClassLoader() != null ? module.getApplicationContext().getClassLoader() : getClass().getClassLoader();
+		doWithContextClassLoader(classLoader, new Callable<Void>() {
+			@Override
+			public Void call() throws Exception {
+				beforeShutdown(module);
+				module.stop();
+				removeModule(module);
+				module.destroy();
+				AbstractApplicationContext pluginConetxt = pluginContexts.remove(module);
+				pluginConetxt.close();
+				return null;
+			}
+		});
 	}
 
 	/**
@@ -313,18 +346,39 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 	/**
 	 * Return an {@link Iterable} over the list of supported plugins for the given module.
 	 *
+	 * <p>Contains plugins that may be loaded from the module classloader, and which may shadow (by name)
+	 * plugins available in {@link #mainPluginsContext}.</p>
+	 *
 	 * @param module the module for which to obtain supported plugins
 	 * @return iterable of supported plugins for a module
 	 */
 	private Iterable<Plugin> getSupportedPlugins(Module module) {
-		return Iterables.filter(this.plugins, new ModulePluginPredicate(module));
+		ApplicationContext modulePluginContext = pluginContexts.get(module);
+		List<Plugin> modulePlugins = new ArrayList<>(BeanFactoryUtils.beansOfTypeIncludingAncestors(modulePluginContext, Plugin.class).values());
+		OrderComparator.sort(modulePlugins);
+		return Iterables.filter(modulePlugins, new ModulePluginPredicate(module));
+	}
+
+	private <R> R doWithContextClassLoader(ClassLoader classLoader, Callable<R> callable) {
+		ClassLoader toRestore = Thread.currentThread().getContextClassLoader();
+		try {
+			Thread.currentThread().setContextClassLoader(classLoader);
+			return callable.call();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		finally {
+			Thread.currentThread().setContextClassLoader(toRestore);
+		}
+
 	}
 
 
 	/**
 	 * Predicate used to determine if a plugin supports a module.
 	 */
-	private class ModulePluginPredicate implements Predicate<Plugin> {
+	private static class ModulePluginPredicate implements Predicate<Plugin> {
 		private final Module module;
 
 		private ModulePluginPredicate(Module module) {

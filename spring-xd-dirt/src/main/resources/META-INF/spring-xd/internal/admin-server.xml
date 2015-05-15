@@ -15,7 +15,6 @@
 	<bean id="containerMatcher" class="org.springframework.xd.dirt.server.admin.deployment.ContainerMatcher">
 		<constructor-arg>
 			<list>
-				<bean class="org.springframework.xd.dirt.spark.SparkStreamingContainerFilter"/>
 			</list>
 		</constructor-arg>
 	</bean>

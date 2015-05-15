@@ -55,6 +55,7 @@ public class ModuleFactory implements BeanClassLoaderAware {
 	/**
 	 * This key is used by the module to define the execution framework(spark streaming, reactor etc.,) to be used when
 	 * deploying it.
+	 * @deprecated TODO remove
 	 */
 	public static final String MODULE_EXECUTION_FRAMEWORK_KEY = "moduleExecutionFramework";
 
@@ -128,11 +129,7 @@ public class ModuleFactory implements BeanClassLoaderAware {
 
 	private Class<? extends SimpleModule> determineModuleClass(SimpleModuleDefinition moduleDefinition,
 			ModuleOptions moduleOptions) {
-		String name = (String) moduleOptions.asPropertySource().getProperty(MODULE_EXECUTION_FRAMEWORK_KEY);
-		if ("spark".equals(name)) {
-			return NonBindingResourceConfiguredModule.class;
-		}
-		else if (ModuleUtils.resourceBasedConfigurationFile(moduleDefinition) != null) {
+		if (ModuleUtils.resourceBasedConfigurationFile(moduleDefinition) != null) {
 			return ResourceConfiguredModule.class;
 		}
 		else if (JavaConfiguredModule.basePackages(moduleDefinition).length > 0) {

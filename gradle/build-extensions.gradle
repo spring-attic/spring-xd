@@ -248,6 +248,19 @@ project('spring-xd-extension-spark') {
 	}
 }
 
+project('spring-xd-extension-spark-streaming-examples') {
+    description = 'Support for modules used as Spark Streaming examples'
+    apply plugin: 'scala'
+    tasks.withType(ScalaCompile) { scalaCompileOptions.useAnt = false }
+    dependencies {
+        compile("org.scala-lang:scala-library:${scalaVersion}")
+        compile project(':spring-xd-spark-streaming')
+        compile project(":spring-xd-module-spi")
+    }
+}
+
+
+
 project('spring-xd-extension-sqoop') {
     description = 'Spring XD Sqoop extensions'
     dependencies {
@@ -271,3 +284,4 @@ project('spring-xd-extension-gpload') {
         compile "org.yaml:snakeyaml"
     }
 }
+

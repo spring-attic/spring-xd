@@ -30,8 +30,6 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class DefaultSparkStreamingModuleOptionsMetadata {
 
-	private String moduleExecutionFramework = SparkStreamingSupport.MODULE_EXECUTION_FRAMEWORK;
-
 	private String batchInterval;
 
 	private String storageLevel = "";
@@ -81,8 +79,4 @@ public class DefaultSparkStreamingModuleOptionsMetadata {
 		return this.enableTap;
 	}
 
-	@ModuleOption(value = "the underlying execution framework", hidden = true)
-	public String getModuleExecutionFramework() {
-		return this.moduleExecutionFramework;
-	}
 }

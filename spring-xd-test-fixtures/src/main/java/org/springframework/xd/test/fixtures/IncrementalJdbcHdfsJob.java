@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
  * A test fixture that represents the JdbcHdfs Job
  *
  * @author Glenn Renfro
+ * @author Michael Minella
  */
 public class IncrementalJdbcHdfsJob extends AbstractModuleFixture<IncrementalJdbcHdfsJob> {
 

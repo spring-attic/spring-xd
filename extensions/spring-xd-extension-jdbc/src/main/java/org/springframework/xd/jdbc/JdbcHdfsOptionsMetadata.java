@@ -66,7 +66,7 @@ public class JdbcHdfsOptionsMetadata {
 	private int overrideValue = -1;
 
 	@ModuleOption("a value used to override the previously stored max (used with incremental imports)")
-	public void setOverrideValue(int overrideValue) {
+	public void setOverrideCheckColumnValue(int overrideValue) {
 		this.overrideValue = overrideValue;
 	}
 
@@ -180,7 +180,7 @@ public class JdbcHdfsOptionsMetadata {
 		return checkColumn;
 	}
 
-	public int getOverrideValue() {
+	public int getOverrideCheckColumnValue() {
 		return overrideValue;
 	}
 }

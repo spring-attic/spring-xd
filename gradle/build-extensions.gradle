@@ -29,6 +29,23 @@ project('spring-xd-extension-http') {
     }
 }
 
+project('spring-xd-extension-gpfdist') {
+	description = 'Spring XD gpfdist'
+	dependencies {
+		compile "io.projectreactor:reactor-core"
+		compile "io.projectreactor:reactor-net"
+		compile "com.codahale.metrics:metrics-core"
+		compile "org.springframework.integration:spring-integration-core"
+		compile "org.springframework:spring-jdbc"
+		compile project(":spring-xd-module-spi")
+		testCompile "junit:junit"
+		testCompile "org.springframework:spring-test"
+		testCompile "org.mockito:mockito-core"
+		testCompile "org.hamcrest:hamcrest-library"
+		testRuntime "io.netty:netty-all"
+	}
+}
+
 project('spring-xd-extension-gemfire') {
     description = 'Spring XD Gemfire'
     dependencies {

@@ -94,6 +94,7 @@ ext {
 			'spring-xd-hadoop',
 			'spring-xd-extension-http',
 			'spring-xd-extension-jdbc',
+			'spring-xd-extension-gpfdist',
 			'spring-xd-extension-reactor',
 			'spring-xd-extension-gemfire',
 			'spring-xd-extension-kafka',

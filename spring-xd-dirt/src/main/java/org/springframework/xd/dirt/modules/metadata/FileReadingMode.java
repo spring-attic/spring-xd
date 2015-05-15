@@ -16,13 +16,6 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import java.util.Arrays;
-
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 
 /**
  *
@@ -31,12 +24,10 @@ import com.google.common.collect.Collections2;
  */
 
 public enum FileReadingMode {
-
-	REF("ref", "use-ref"),
-	TEXT_LINE("textLine", "use-contents-with-split"),
-	FILE_AS_BYTES("fileAsBytes", "use-contents");
-
-	private String key;
+	//ref, textLine, fileAsBytes
+	ref("use-ref"),
+	lines("use-contents-with-split"),
+	contents("use-contents");
 
 	private String profile;
 
@@ -44,42 +35,12 @@ public enum FileReadingMode {
 	 * Constructor.
 	 *
 	 */
-	FileReadingMode(final String key, final String profile) {
-		this.key = key;
+	FileReadingMode(final String profile) {
 		this.profile = profile;
-	}
-
-	public String getKey() {
-		return key;
 	}
 
 	public String getProfile() {
 		return profile;
-	}
-
-	private static Function<FileReadingMode, String> func = new Function<FileReadingMode, String>() {
-
-		@Override
-		public String apply(FileReadingMode input) {
-			return input.key;
-		}
-	};
-
-	public static FileReadingMode fromKey(String key) {
-
-		Assert.hasText(key, "FileReadingMode key must neither be null nor empty.");
-
-		for (FileReadingMode fileReadingMode : FileReadingMode.values()) {
-			if (fileReadingMode.getKey().equalsIgnoreCase(key)) {
-				return fileReadingMode;
-			}
-		}
-
-		throw new IllegalArgumentException(String.format(
-				"Not a valid mode '%s'. Acceptable values are: %s",
-				key,
-				StringUtils.collectionToCommaDelimitedString(Collections2.transform(
-						Arrays.asList(FileReadingMode.values()), func))));
 	}
 
 }

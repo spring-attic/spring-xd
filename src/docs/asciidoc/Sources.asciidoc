@@ -121,7 +121,7 @@ $$fixedDelay$$:: $$the rate at which to poll the remote directory$$ *($$int$$, d
 $$host$$:: $$the host name for the FTP server$$ *($$String$$, default: `localhost`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
 $$localDir$$:: $$set the local directory the remote files are transferred to$$ *($$String$$, default: `/tmp/xd/ftp`)*
-$$mode$$:: $$set to to ref, textLine or fileAsBytes$$ *($$String$$, default: `fileAsBytes`)*
+$$mode$$:: $$Specifies how the file is being read. By default the contents of a file is provided as byte array.$$ *($$FileReadingMode$$, default: `fileAsBytes`, possible values: `ref,textLine,fileAsBytes`)*
 $$password$$:: $$the password for the FTP connection$$ *($$Password$$, no default)*
 $$port$$:: $$the port for the FTP server$$ *($$int$$, default: `21`)*
 $$preserveTimestamp$$:: $$whether to preserve the timestamp of files retrieved$$ *($$boolean$$, default: `true`)*
@@ -152,7 +152,7 @@ $$fixedDelay$$:: $$fixed delay in SECONDS to poll the remote directory$$ *($$int
 $$host$$:: $$the remote host to connect to$$ *($$String$$, default: `localhost`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
 $$localDir$$:: $$set the local directory the remote files are transferred to$$ *($$String$$, default: `/tmp/xd/output`)*
-$$mode$$:: $$set to to ref, textLine or fileAsBytes$$ *($$String$$, default: `fileAsBytes`)*
+$$mode$$:: $$Specifies how the file is being read. By default the contents of a file is provided as byte array.$$ *($$FileReadingMode$$, default: `fileAsBytes`, possible values: `ref,textLine,fileAsBytes`)*
 $$passPhrase$$:: $$the passphrase to use$$ *($$String$$, default: ``)*
 $$password$$:: $$the password for the provided user$$ *($$String$$, default: ``)*
 $$pattern$$:: $$simple filename pattern to apply to the filter$$ *($$String$$, no default)*
@@ -269,7 +269,7 @@ The **$$file$$** $$source$$ has the following options:
 $$dir$$:: $$the absolute path to the directory to monitor for files$$ *($$String$$, default: `/tmp/xd/input/<stream name>`)*
 $$fixedDelay$$:: $$the fixed delay polling interval specified in seconds$$ *($$int$$, default: `5`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
-$$mode$$:: $$set to to ref, textLine or fileAsBytes$$ *($$String$$, default: `fileAsBytes`)*
+$$mode$$:: $$Specifies how the file is being read. By default the contents of a file is provided as byte array.$$ *($$FileReadingMode$$, default: `fileAsBytes`, possible values: `ref,textLine,fileAsBytes`)*
 $$pattern$$:: $$a filter expression (Ant style) to accept only files that match the pattern$$ *($$String$$, default: `*`)*
 $$preventDuplicates$$:: $$whether to prevent the same file from being processed twice$$ *($$boolean$$, default: `true`)*
 $$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*

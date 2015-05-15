@@ -18,7 +18,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import org.hibernate.validator.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
@@ -32,16 +32,16 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  */
 public class FileAsRefMixin implements ProfileNamesProvider {
 
-	private FileReadingMode fileReadingmode = FileReadingMode.FILE_AS_BYTES;
+	private FileReadingMode fileReadingmode = FileReadingMode.contents;
 
-	@NotBlank
-	public String getMode() {
-		return this.fileReadingmode != null ? fileReadingmode.getKey() : null;
+	@NotNull
+	public FileReadingMode getMode() {
+		return fileReadingmode;
 	}
 
-	@ModuleOption("set to to ref, textLine or fileAsBytes")
-	public void setMode(String key) {
-		this.fileReadingmode = FileReadingMode.fromKey(key);
+	@ModuleOption("Specifies how the file is being read. By default the content of a file is provided as byte array.")
+	public void setMode(FileReadingMode mode) {
+		this.fileReadingmode = mode;
 	}
 
 	@Override

@@ -59,7 +59,7 @@ public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 	 * @param fileName file name
 	 */
 	public SimpleFileSource(String dir, String fileName) {
-		this(dir, fileName, Mode.FILE_AS_BYTES);
+		this(dir, fileName, Mode.CONTENTS);
 	}
 
 	/**
@@ -85,8 +85,8 @@ public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 	public enum Mode {
 
 		REF("ref"),
-		TEXT_LINE("textLine"),
-		FILE_AS_BYTES("fileAsBytes");
+		LINES("lines"),
+		CONTENTS("contents");
 
 		private String value;
 

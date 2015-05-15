@@ -58,7 +58,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	public void testModeOptionEqualsFileAsBytes() throws Exception {
+	public void testModeOptionEqualsContents() throws Exception {
 		FtpSource ftpSource = newFtpSource();
 		FileSink fileSink = newFileSink();
 
@@ -69,7 +69,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 
 		ftpSource.ensureStarted();
 
-		stream().create(generateStreamName(), "%s --mode=fileAsBytes | transform --expression=payload.getClass() | %s",
+		stream().create(generateStreamName(), "%s --mode=contents | transform --expression=payload.getClass() | %s",
 				ftpSource, fileSink);
 
 		assertThat(fileSink, eventually(hasContentsThat(equalTo("byte[]\n"))));
@@ -77,7 +77,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	public void testModeOptionEqualsDefaultFileAsBytes() throws Exception {
+	public void testModeOptionEqualsDefaultContents() throws Exception {
 		FtpSource ftpSource = newFtpSource();
 		FileSink fileSink = newFileSink();
 
@@ -115,7 +115,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	public void testModeOptionEqualsTextLine() throws Exception {
+	public void testModeOptionEqualsLines() throws Exception {
 		FtpSource ftpSource = newFtpSource();
 		FileSink fileSink = newFileSink();
 
@@ -126,7 +126,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 
 		ftpSource.ensureStarted();
 
-		stream().create(generateStreamName(), "%s --mode=textLine | transform --expression=payload.getClass() | %s",
+		stream().create(generateStreamName(), "%s --mode=lines | transform --expression=payload.getClass() | %s",
 				ftpSource, fileSink);
 
 		assertThat(fileSink, eventually(hasContentsThat(equalTo("java.lang.String\n"))));

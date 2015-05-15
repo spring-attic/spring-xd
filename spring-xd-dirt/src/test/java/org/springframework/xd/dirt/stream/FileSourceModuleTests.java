@@ -73,6 +73,29 @@ public class FileSourceModuleTests extends StreamTestSupport {
 	public void testFileContents() throws IOException {
 		deployStream(
 				"filecontents",
+				"file --mode=contents --dir=" + sourceDirName + " --fixedDelay=0 | sink");
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				byte[] bytes = (byte[]) message.getPayload();
+				assertEquals("foo", new String(bytes));
+				assertEquals("foo.txt", message.getHeaders().get(FileHeaders.FILENAME, String.class));
+				assertEquals(MimeType.valueOf("application/octet-stream"),
+						contentTypeResolver.resolve(message.getHeaders()));
+			}
+		};
+		StreamTestSupport.getSinkInputChannel("filecontents").subscribe(test);
+		dropFile("foo.txt");
+		test.waitForCompletion(1000);
+		undeployStream("filecontents");
+		assertTrue(test.getMessageHandled());
+	}
+
+	@Test
+	public void testFileContentsUsingDefaultMode() throws IOException {
+		deployStream(
+				"filecontents",
 				"file --dir=" + sourceDirName + " --fixedDelay=0 | sink");
 		MessageTest test = new MessageTest() {
 
@@ -134,10 +157,10 @@ public class FileSourceModuleTests extends StreamTestSupport {
 	}
 
 	@Test
-	public void testTextLineMode() throws IOException {
+	public void testLinesMode() throws IOException {
 		deployStream(
 				"textLine",
-				"file --mode=textLine --dir=" + sourceDirName + " --fixedDelay=0 | sink");
+				"file --mode=lines --dir=" + sourceDirName + " --fixedDelay=0 | sink");
 		MessageTest test = new MessageTest() {
 
 			private AtomicInteger counter = new AtomicInteger(0);
@@ -175,7 +198,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 					"file --mode=failme --dir=" + sourceDirName + " --fixedDelay=0 | sink");
 		}
 		catch (ModuleConfigurationException e) {
-			String expectation = "mode: Property 'mode' threw exception; nested exception is java.lang.IllegalArgumentException: Not a valid mode 'failme'. Acceptable values are: ref,textLine,fileAsBytes";
+			String expectation = "Cannot convert value of type [java.lang.String] to required type [org.springframework.xd.dirt.modules.metadata.FileReadingMode] for property 'mode'";
 			assertTrue("Expected the exception to contain: " + expectation, e.getMessage().contains(expectation));
 			return;
 		}

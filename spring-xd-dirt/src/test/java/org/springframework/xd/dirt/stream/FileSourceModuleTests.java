@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
@@ -29,17 +31,20 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.xd.dirt.integration.bus.StringConvertingContentTypeResolver;
+import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 
 
 /**
  *
  * @author David Turanski
+ * @author Gunnar Hillert
  */
 public class FileSourceModuleTests extends StreamTestSupport {
 
@@ -75,6 +80,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 			public void test(Message<?> message) throws MessagingException {
 				byte[] bytes = (byte[]) message.getPayload();
 				assertEquals("foo", new String(bytes));
+				assertEquals("foo.txt", message.getHeaders().get(FileHeaders.FILENAME, String.class));
 				assertEquals(MimeType.valueOf("application/octet-stream"),
 						contentTypeResolver.resolve(message.getHeaders()));
 			}
@@ -96,6 +102,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 			@Override
 			public void test(Message<?> message) throws MessagingException {
 				assertEquals("foo", message.getPayload());
+				assertEquals("foo2.txt", message.getHeaders().get(FileHeaders.FILENAME, String.class));
 				assertEquals(MimeTypeUtils.APPLICATION_OCTET_STREAM, contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
@@ -110,7 +117,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 	public void testFileReference() throws IOException {
 		deployStream(
 				"fileref",
-				"file --ref=true --dir=" + sourceDirName + " --fixedDelay=0 | sink");
+				"file --mode=ref --dir=" + sourceDirName + " --fixedDelay=0 | sink");
 		MessageTest test = new MessageTest() {
 
 			@Override
@@ -126,9 +133,69 @@ public class FileSourceModuleTests extends StreamTestSupport {
 		assertTrue(test.getMessageHandled());
 	}
 
+	@Test
+	public void testTextLineMode() throws IOException {
+		deployStream(
+				"textLine",
+				"file --mode=textLine --dir=" + sourceDirName + " --fixedDelay=0 | sink");
+		MessageTest test = new MessageTest() {
+
+			private AtomicInteger counter = new AtomicInteger(0);
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				assertTrue("Extected a String", message.getPayload() instanceof String);
+				assertEquals("foo", message.getPayload());
+				assertEquals("foo1.txt", message.getHeaders().get(FileHeaders.FILENAME, String.class));
+				counter.incrementAndGet();
+			}
+
+			@Override
+			public boolean getMessageHandled() {
+				if (counter.get() == 10) {
+					super.messageHandled = true;
+				}
+				return super.messageHandled;
+			}
+
+		};
+		StreamTestSupport.getSinkInputChannel("textLine").subscribe(test);
+		dropFile("foo1.txt", 10);
+		test.waitForCompletion(3000);
+		undeployStream("textLine");
+		assertTrue(test.getMessageHandled());
+
+	}
+
+	@Test
+	public void testTextLineModeWithIncorrectMode() throws IOException {
+		try {
+			deployStream(
+					"failme",
+					"file --mode=failme --dir=" + sourceDirName + " --fixedDelay=0 | sink");
+		}
+		catch (ModuleConfigurationException e) {
+			String expectation = "mode: Property 'mode' threw exception; nested exception is java.lang.IllegalArgumentException: Not a valid mode 'failme'. Acceptable values are: ref,textLine,fileAsBytes";
+			assertTrue("Expected the exception to contain: " + expectation, e.getMessage().contains(expectation));
+			return;
+		}
+
+		fail("Was expecting an exception to be thrown.");
+
+	}
+
 	private void dropFile(String fileName) throws IOException {
+		dropFile(fileName, 1);
+	}
+
+	private void dropFile(String fileName, int lines) throws IOException {
 		PrintWriter writer = new PrintWriter(sourceDirName + "/" + fileName, "UTF-8");
-		writer.write("foo");
+		for (int i = 1; i <= lines; i++) {
+			writer.write("foo");
+			if (i < lines) {
+				writer.write("\n");
+			}
+		}
 		writer.close();
 	}
 

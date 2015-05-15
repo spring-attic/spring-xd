@@ -18,77 +18,119 @@
 
 package org.springframework.xd.shell.command;
 
-import org.junit.Test;
-import org.springframework.xd.test.fixtures.FileSink;
-import org.springframework.xd.test.fixtures.FtpSource;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import org.junit.Test;
+
+import org.springframework.xd.test.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FtpSource;
+
 /**
  * Tests for the FTP source.
  *
  * @author Eric Bottard
+ * @author Gunnar Hillert
  */
 public class FtpModulesTests extends AbstractStreamIntegrationTest {
 
-    @Test
-    public void testBasicModuleBehavior() throws IOException {
-        FtpSource ftpSource = newFtpSource();
-        FileSink fileSink = newFileSink();
+	@Test
+	public void testBasicModuleBehavior() throws IOException {
+		FtpSource ftpSource = newFtpSource();
+		FileSink fileSink = newFileSink();
 
-        File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
-        FileWriter fileWriter = new FileWriter(file);
-        fileWriter.write("foobar");
-        fileWriter.close();
+		File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
+		FileWriter fileWriter = new FileWriter(file);
+		fileWriter.write("foobar");
+		fileWriter.close();
 
-        ftpSource.ensureStarted();
+		ftpSource.ensureStarted();
 
-        stream().create(generateStreamName(), "%s | %s --inputType=text/plain", ftpSource, fileSink);
+		stream().create(generateStreamName(), "%s | %s --inputType=text/plain", ftpSource, fileSink);
 
-        assertThat(fileSink, eventually(hasContentsThat(equalTo("foobar\n"))));
-    }
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("foobar\n"))));
+	}
 
-    @Test
-    public void testRefOptionEqualsFalse() throws Exception {
-        FtpSource ftpSource = newFtpSource();
-        FileSink fileSink = newFileSink();
+	@Test
+	public void testModeOptionEqualsFileAsBytes() throws Exception {
+		FtpSource ftpSource = newFtpSource();
+		FileSink fileSink = newFileSink();
 
-        File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
-        FileWriter fileWriter = new FileWriter(file);
-        fileWriter.write("foobar");
-        fileWriter.close();
+		File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
+		FileWriter fileWriter = new FileWriter(file);
+		fileWriter.write("foobar");
+		fileWriter.close();
 
-        ftpSource.ensureStarted();
+		ftpSource.ensureStarted();
 
-        stream().create(generateStreamName(), "%s --ref=false | transform --expression=payload.getClass() | %s", ftpSource, fileSink);
+		stream().create(generateStreamName(), "%s --mode=fileAsBytes | transform --expression=payload.getClass() | %s",
+				ftpSource, fileSink);
 
-        assertThat(fileSink, eventually(hasContentsThat(equalTo("byte[]\n"))));
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("byte[]\n"))));
 
-    }
+	}
 
-    @Test
-    public void testRefOptionEqualsTrue() throws Exception {
-        FtpSource ftpSource = newFtpSource();
-        FileSink fileSink = newFileSink();
+	@Test
+	public void testModeOptionEqualsDefaultFileAsBytes() throws Exception {
+		FtpSource ftpSource = newFtpSource();
+		FileSink fileSink = newFileSink();
 
-        File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
-        FileWriter fileWriter = new FileWriter(file);
-        fileWriter.write("foobar");
-        fileWriter.close();
+		File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
+		FileWriter fileWriter = new FileWriter(file);
+		fileWriter.write("foobar");
+		fileWriter.close();
 
-        ftpSource.ensureStarted();
+		ftpSource.ensureStarted();
 
-        stream().create(generateStreamName(), "%s --ref=true | transform --expression=payload.getClass() | %s", ftpSource, fileSink);
+		stream().create(generateStreamName(), "%s | transform --expression=payload.getClass() | %s",
+				ftpSource, fileSink);
 
-        assertThat(fileSink, eventually(hasContentsThat(equalTo("java.io.File\n"))));
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("byte[]\n"))));
 
-    }
+	}
+
+	@Test
+	public void testModeOptionEqualsRef() throws Exception {
+		FtpSource ftpSource = newFtpSource();
+		FileSink fileSink = newFileSink();
+
+		File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
+		FileWriter fileWriter = new FileWriter(file);
+		fileWriter.write("foobar");
+		fileWriter.close();
+
+		ftpSource.ensureStarted();
+
+		stream().create(generateStreamName(), "%s --mode=ref | transform --expression=payload.getClass() | %s",
+				ftpSource, fileSink);
+
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("java.io.File\n"))));
+
+	}
+
+	@Test
+	public void testModeOptionEqualsTextLine() throws Exception {
+		FtpSource ftpSource = newFtpSource();
+		FileSink fileSink = newFileSink();
+
+		File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
+		FileWriter fileWriter = new FileWriter(file);
+		fileWriter.write("foobar");
+		fileWriter.close();
+
+		ftpSource.ensureStarted();
+
+		stream().create(generateStreamName(), "%s --mode=textLine | transform --expression=payload.getClass() | %s",
+				ftpSource, fileSink);
+
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("java.lang.String\n"))));
+
+	}
 
 }

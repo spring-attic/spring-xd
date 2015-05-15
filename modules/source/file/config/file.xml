@@ -39,7 +39,20 @@
 			</header-enricher>
 			<file:file-to-bytes-transformer />
 		</chain>
+	</beans:beans>
 
+	<beans:beans profile="use-contents-with-split">
+		<chain id="extractContentsAndSplit" input-channel="files" output-channel="output">
+			<header-enricher>
+				<header name="contentType" value="text/plain"/>
+				<header name="file_name"   expression="payload.name"/>
+			</header-enricher>
+			<splitter>
+				<beans:bean class="org.springframework.integration.file.splitter.FileSplitter">
+					<beans:constructor-arg value="false"/>
+				</beans:bean>
+			</splitter>
+		</chain>
 	</beans:beans>
 
 </beans:beans>

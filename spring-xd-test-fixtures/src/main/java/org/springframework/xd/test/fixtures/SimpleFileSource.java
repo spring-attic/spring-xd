@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import org.springframework.xd.test.fixtures.util.FixtureUtils;
 
 
 /**
- * A FileSource for integraiton tests. Note it does not need to implement {@link DisposableFileSupport}
+ * A FileSource for integration tests. Note it does not need to implement {@link DisposableFileSupport}
  *
  * @author Glenn Renfro
  * @author Mark Pollack
+ * @author Gunnar Hillert
  */
 public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 
@@ -32,7 +33,7 @@ public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 
 	private final String fileName;
 
-	private boolean reference;
+	private Mode mode;
 
 
 	/**
@@ -40,14 +41,15 @@ public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 	 *
 	 * @param dir directory name
 	 * @param fileName file name
-	 * @param reference false if file content should be sent to output channel, true if file object should be sent.
+	 * @param mode 'FILE_AS_BYTES' if file content should be sent to output channel, 'REF' if file object should be sent, 'TEXT_LINE' for splitting the file into Strings (1 per line).
 	 */
-	public SimpleFileSource(String dir, String fileName, boolean reference) {
+	public SimpleFileSource(String dir, String fileName, Mode mode) {
 		Assert.hasText(dir, "dir must not be null or empty");
 		Assert.hasText(fileName, "fileName must not be null or empty");
+		Assert.notNull(mode, "mode must not be null");
 		this.dir = dir;
 		this.fileName = fileName;
-		this.reference = reference;
+		this.mode = mode;
 	}
 
 	/**
@@ -57,7 +59,7 @@ public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 	 * @param fileName file name
 	 */
 	public SimpleFileSource(String dir, String fileName) {
-		this(dir, fileName, false);
+		this(dir, fileName, Mode.FILE_AS_BYTES);
 	}
 
 	/**
@@ -66,19 +68,38 @@ public class SimpleFileSource extends AbstractModuleFixture<SimpleFileSource> {
 	@Override
 	protected String toDSL() {
 		String dsl = FixtureUtils.labelOrEmpty(label);
-		dsl += String.format("file --dir=%s --pattern='%s' --ref=%s", dir, fileName, reference);
+		dsl += String.format("file --dir=%s --pattern='%s' --mode=%s", dir, fileName, mode);
 		return dsl;
 	}
 
 	/**
 	 * Determines if the file object or the content of the file should be sent to the output channel.
-	 * @param reference Set to true to output the File object itself. False if content should be sent.
+	 * @param mode 'FILE_AS_BYTES' if file content should be sent to output channel, 'REF' if file object should be sent, 'TEXT_LINE' for splitting the file into Strings (1 per line).
 	 * @return the current instance of the SimpleFileSource fixture.
 	 */
-	public SimpleFileSource reference(boolean reference) {
-		this.reference = reference;
+	public SimpleFileSource mode(Mode mode) {
+		this.mode = mode;
 		return this;
 	}
 
+	public enum Mode {
 
+		REF("ref"),
+		TEXT_LINE("textLine"),
+		FILE_AS_BYTES("fileAsBytes");
+
+		private String value;
+
+		/**
+		 * Constructor.
+		 */
+		Mode(final String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+	}
 }

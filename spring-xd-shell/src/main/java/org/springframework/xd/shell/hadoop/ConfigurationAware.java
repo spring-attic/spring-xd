@@ -31,6 +31,7 @@ import org.springframework.shell.event.ParseResult;
  * 
  * @author Costin Leau
  * @author Jarred Li
+ * @author Glenn Renfro
  */
 public abstract class ConfigurationAware implements ApplicationListener<ConfigurationModifiedEvent>, ExecutionProcessor {
 

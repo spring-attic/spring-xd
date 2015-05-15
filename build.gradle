@@ -1136,8 +1136,7 @@ project('spring-xd-shell') {
 		configurations.compile.exclude(group: "xerces")
 
 		runtime 'ch.qos.logback:logback-classic'
-		compile "org.codehaus.groovy:groovy-all"
-        
+
 		testCompile project(":spring-xd-test-fixtures")
 		testCompile project(":spring-xd-dirt")
 		testCompile "org.springframework.integration:spring-integration-ftp"

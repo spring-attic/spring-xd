@@ -40,6 +40,7 @@ import org.springframework.util.ReflectionUtils;
  * HDFS shell commands
  * 
  * @author Jarred Li
+ * @author Glenn Renfro
  * 
  */
 @Component

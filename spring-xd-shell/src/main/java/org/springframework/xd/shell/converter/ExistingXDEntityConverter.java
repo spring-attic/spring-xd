@@ -39,6 +39,7 @@ import org.springframework.xd.shell.XDShell;
  * A no-op converter from String to String, but that helps with completion in names of already existing entities.
  * 
  * @author Eric Bottard
+ * @author Glenn Renfro
  */
 @Component
 public class ExistingXDEntityConverter implements Converter<String> {

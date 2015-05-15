@@ -41,6 +41,7 @@ import org.springframework.xd.shell.command.ModuleCommands.QualifiedModuleName;
  *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
+ * @author Glenn Renfro
  */
 @Component
 public class QualifiedModuleNameConverter implements Converter<QualifiedModuleName> {

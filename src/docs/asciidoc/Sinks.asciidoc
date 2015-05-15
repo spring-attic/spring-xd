@@ -17,6 +17,8 @@ The Sinks covered are
 
 * <<jdbc, JDBC>>
 
+* <<gpfdist, GPFDIST>>
+
 * <<tcp-sink, TCP>>
 
 * <<shell-sink, Shell Command>>
@@ -607,6 +609,120 @@ $$validatorClassName$$:: $$name of a class which implements the org.apache.tomca
 NOTE: To include the whole message into a single column, use `payload` (the default) for the `columns` option
 
 TIP: The connection pool settings for xd are located in servers.yml (i.e. `spring.datasource.*` )  
+
+[[gpfdist]]
+=== GPFDIST
+
+The gpfdist sink allows you to stream data in parallel to either Pivotal Greenplum DB
+ or Pivotal HAWQ.  Internally, this sink creates a custom http listener that supports 
+the `gpfdist` protcol and schedules a task that orchestrates a `gploadd` session in the 
+same way it is done natively in Greenplum.
+
+No data is written into temporary files and all data is kept in stream buffers waiting 
+to get inserted into Greenplum DB or HAWQ.  If there are no existing load sessions from Greenplum, 
+the sink will block until such sessions are established.
+
+==== Example usage
+
+The https://github.com/spring-projects/spring-xd-modules/tree/master/load-generator-gpfdist-source[load-generator-gpfdist] source can be used to send dummy test data to the `gpfdist` sink.
+
+Using `psql`, create the following table with a simple schema that matches the data produced by the
+`load-generator-string` source, two integer values, a producer ID and a timestamp separated by a tab.
+
+[source,text]
+----
+create table xdsink (date integer, time integer) distributed randomly;
+----
+
+Now create the stream definition and deploy.  You should ensure that your pg_hba.conf (e.g. /data/master/gpsne-1/pg_hba.conf) is configured to allow a connection from your host where you are running the gpfdist sink. (an entry such as `host     all         gpadmin         192.168.70.128/32	trust`)
+
+[source,text]
+----
+xd:>stream create --name gpfdiststream --definition "load-generator-gpfdist --messageCount=10000000 --producers=1 --recordType=counter  | gpfdist --dbHost=192.168.70.138 --table=xdsink --batchTimeout=5 --batchCount=1000 --batchPeriod=0 --flushCount=200 --flushTime=2 --rateInterval=1000000" --deploy
+Created and deployed new stream 'gpfdiststream'
+----
+
+In this XD stream we send 10M messages from the `load-generator-string` source to the `gpfdist` sink.
+We roughly keep load session alive for 5 seconds while flushing data after 2s or 200 entries which ever
+comes first and sleep 0s in between load sessions.
+
+You will see log output (you will probably need to set the log level of the package log4j.logger.org.springframework.xd.greenplum to INFO.)
+[source,text]
+----
+2015-05-14 22:48:23,669 1.2.0.SNAP  INFO pool-14-thread-1 gpfdist.GPFDistMessageHandler - METER: 1 minute rate = 200000.0 mean rate = 269618.7284878825
+2015-05-14 22:48:25,495 1.2.0.SNAP  INFO sqlTaskScheduler-1 support.CleanableJdbcOperations - DROP EXTERNAL TABLE xdsink_ext_fabcf3bb_c514_49ca_bfd6_cacb009463dc
+2015-05-14 22:48:25,498 1.2.0.SNAP  INFO sqlTaskScheduler-1 support.CleanableJdbcOperations - CREATE READABLE EXTERNAL TABLE xdsink_ext_ae89e85d_eb65_4e11_ad72_4b8302086ebd ( LIKE xdsink ) LOCAT
+----
+
+`gpfdist` sink currently contains a throughput meter for this POC to
+get perf numbers. In this case it is showing about 270K/sec
+messages per second to be transferred from XD into Greenplum.
+
+==== Performance Notes
+
+On a Lenovo W540, Spring XD singlenode, `load-generator-string | gpfdist` inserted data at ~ 540K/sec. 
+The underlying message handler in the gpfdist sink is able to achieve ~1.2M/sec, which is comprable to
+the use of the native gpload client.  Additional performance optimizations when used within an XD stream
+are on the roadmap.
+==== Implementation Notes
+
+Within a `gpfdist` sink we have a Reactor based stream where data is published from the incoming SI channel.
+This channel receives data from the Message Bus.  The Reactor stream is then connected to `Netty` based 
+http channel adapters so that when a new http connection is established, the Reactor stream is flushed and balanced among
+existing http clients.  When `Greenplum` does a load from an external table, each segment will initiate 
+a http connection and start loading data.  The net effect is that incoming data is automatically spread 
+among the Greenplum segments.
+
+==== GPFDIST with Options
+
+The options `flushCount` and `flushTime` are used to determine when to flush
+data that is buffered in an internal 
+http://projectreactor.io/docs/reference/streams.html#basics[Reactor stream] to 
+the http connection.  Data is flushed based on if the count value has been reached 
+or the time specified has elapsed.  Note that with too high a value, memory consumption
+will go up.  Too small a value combined with a low ingestion rate will result in data 
+being inserted into the database less frequently.
+
+`batchCount` defines the maximum count of aggregated windows the client
+takes before the internal Reactor stream and http channel is closed.
+
+`batchTimeout` defines how many seconds each http connection should be
+kept alive if no data is streamed to a client. Use this together with
+`batchCount` to estimate how long each loading session should last.
+
+`batchPeriod` defines how many seconds a task running load operation
+should sleep in between a loads.
+
+`delimiter` is used to postfix incoming data with a line termination
+because Greenplum expects line terminated data.
+
+`controlFile` can be used to introduce more parameters for a load
+operation. For simple use cases, the `table` property can be used.
+
+`rateInterval` if set, enables rate logging passing through sink.
+
+//^sink.gpfdist
+// DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$sink.gpfdist' TAG
+// THIS SNIPPET HAS BEEN GENERATED BY ModuleOptionsReferenceDoc AND MANUAL EDITS WILL BE LOST
+The **$$gpfdist$$** $$sink$$ has the following options:
+
+$$batchCount$$:: $$batch count$$ *($$int$$, default: `100`)*
+$$batchPeriod$$:: $$batch period$$ *($$int$$, default: `10`)*
+$$batchTimeout$$:: $$batch timeout$$ *($$int$$, default: `4`)*
+$$controlFile$$:: $$path to yaml control file$$ *($$String$$, no default)*
+$$dbHost$$:: $$database host$$ *($$String$$, default: `localhost`)*
+$$dbName$$:: $$database name$$ *($$String$$, default: `gpadmin`)*
+$$dbPassword$$:: $$database password$$ *($$String$$, default: `gpadmin`)*
+$$dbPort$$:: $$database port$$ *($$int$$, default: `5432`)*
+$$dbUser$$:: $$database user$$ *($$String$$, default: `gpadmin`)*
+$$delimiter$$:: $$data line delimiter$$ *($$String$$, default: `
+`)*
+$$flushCount$$:: $$flush item count$$ *($$int$$, default: `100`)*
+$$flushTime$$:: $$flush item time$$ *($$int$$, default: `2`)*
+$$port$$:: $$gpfdist listen port$$ *($$int$$, default: `0`)*
+$$rateInterval$$:: $$enable transfer rate interval$$ *($$int$$, default: `0`)*
+$$table$$:: $$target database table$$ *($$String$$, no default)*
+//$sink.gpfdist
 
 [[tcp-sink]]
 === TCP Sink

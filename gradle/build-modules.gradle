@@ -281,6 +281,10 @@ project('modules.sink.jdbc') {
     dependencies { runtime project(":spring-xd-extension-jdbc") }
 }
 
+project('modules.sink.gpfdist') {
+    dependencies { runtime project(":spring-xd-extension-gpfdist") }
+}
+
 project('modules.sink.mail') {
     dependencies {
         runtime project(":spring-xd-extension-mail")

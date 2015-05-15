@@ -114,7 +114,6 @@ allprojects {
 
 	repositories {
 		mavenCentral()
-		mavenLocal()
 		maven { url 'http://repo.spring.io/milestone' }
 		maven { url 'http://repo.spring.io/libs-milestone' }
 		maven { url 'http://repo.spring.io/libs-snapshot' }

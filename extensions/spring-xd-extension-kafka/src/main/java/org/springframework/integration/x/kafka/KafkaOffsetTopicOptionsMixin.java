@@ -33,11 +33,9 @@ public class KafkaOffsetTopicOptionsMixin {
 
 	private int kafkaOffsetTopicMaxSize = 1024*1024;
 
-	private int kafkaOffsetTopicBatchSize = 200;
+	private int kafkaOffsetTopicBatchBytes = 200;
 
 	private int kafkaOffsetTopicBatchTime = 1000;
-
-	private boolean kafkaOffsetTopicBatchingEnabled = false;
 
 	public int getKafkaOffsetTopicSegmentSize() {
 		return kafkaOffsetTopicSegmentSize;
@@ -84,13 +82,13 @@ public class KafkaOffsetTopicOptionsMixin {
 		this.kafkaOffsetTopicMaxSize = kafkaOffsetTopicMaxSize;
 	}
 
-	public int getKafkaOffsetTopicBatchSize() {
-		return kafkaOffsetTopicBatchSize;
+	public int getKafkaOffsetTopicBatchBytes() {
+		return kafkaOffsetTopicBatchBytes;
 	}
 
-	@ModuleOption(value = "maximum batched writes to offset topic, if Kafka offset strategy is chosen", hidden = true)
-	public void setKafkaOffsetTopicBatchSize(int kafkaOffsetTopicBatchSize) {
-		this.kafkaOffsetTopicBatchSize = kafkaOffsetTopicBatchSize;
+	@ModuleOption(value = "maximum batched bytes for writes to offset topic, if Kafka offset strategy is chosen", hidden = true)
+	public void setKafkaOffsetTopicBatchBytes(int kafkaOffsetTopicBatchBytes) {
+		this.kafkaOffsetTopicBatchBytes = kafkaOffsetTopicBatchBytes;
 	}
 
 	public int getKafkaOffsetTopicBatchTime() {
@@ -102,12 +100,4 @@ public class KafkaOffsetTopicOptionsMixin {
 		this.kafkaOffsetTopicBatchTime = kafkaOffsetTopicBatchTime;
 	}
 
-	public boolean getKafkaOffsetTopicBatchingEnabled() {
-		return kafkaOffsetTopicBatchingEnabled;
-	}
-
-	@ModuleOption(value = "enables batching writes to offset topic, if Kafka offset strategy is chosen", hidden = true)
-	public void setKafkaOffsetTopicBatchingEnabled(boolean kafkaOffsetTopicBatchingEnabled) {
-		this.kafkaOffsetTopicBatchingEnabled = kafkaOffsetTopicBatchingEnabled;
-	}
 }

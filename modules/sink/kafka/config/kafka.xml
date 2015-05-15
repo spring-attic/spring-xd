@@ -32,9 +32,7 @@
 		</property>
 	</bean>
 
-	<bean id="serializer" class="org.apache.kafka.common.serialization.ByteArraySerializer">
-		<property name="encoding" value="${encoding}"/>
-	</bean>
+	<bean id="serializer" class="org.apache.kafka.common.serialization.ByteArraySerializer"/>
 
 	<int-kafka:producer-context id="kafkaProducerContext" producer-properties="producerProperties">
 		<int-kafka:producer-configurations>

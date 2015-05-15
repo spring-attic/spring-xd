@@ -1057,9 +1057,8 @@ $$fetchMaxWait$$:: $$max wait time before answering the fetch request$$ *($$int$
 $$fetchMinBytes$$:: $$the minimum amount of data the server should return for a fetch request$$ *($$int$$, default: `1`)*
 $$groupId$$:: $$kafka consumer configuration group id$$ *($$String$$, default: `<stream name>`)*
 $$initialOffsets$$:: $$comma separated list of <partition>@<offset> pairs indicating where the source should start consuming from$$ *($$String$$, default: ``)*
-$$kafkaOffsetTopicBatchSize$$:: $$maximum batched writes to offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `200`)*
+$$kafkaOffsetTopicBatchBytes$$:: $$maximum batched bytes for writes to offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `200`)*
 $$kafkaOffsetTopicBatchTime$$:: $$maximum time for batching writes to offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `1000`)*
-$$kafkaOffsetTopicBatchingEnabled$$:: $$enables batching writes to offset topic, if Kafka offset strategy is chosen$$ *($$boolean$$, default: `false`)*
 $$kafkaOffsetTopicMaxSize$$:: $$maximum size of reads from offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `1048576`)*
 $$kafkaOffsetTopicName$$:: $$name of the offset topic, if Kafka offset strategy is chosen$$ *($$String$$, default: `<stream name>-${xd.module.name}-offsets`)*
 $$kafkaOffsetTopicRequiredAcks$$:: $$required acks for writing to the Kafka offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `1`)*

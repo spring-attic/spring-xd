@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -33,9 +32,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import kafka.admin.AdminUtils;
+import kafka.api.OffsetRequest;
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
+import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import scala.collection.Seq;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.channel.DirectChannel;
@@ -80,19 +87,6 @@ import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.MessageValues;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-
-import kafka.admin.AdminUtils;
-import kafka.api.OffsetRequest;
-import kafka.api.TopicMetadata;
-import kafka.common.ErrorMapping;
-import kafka.javaapi.PartitionMetadata;
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
-import kafka.utils.ZkUtils;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.utils.ClientUtils;
-import scala.collection.Seq;
 
 /**
  * A message bus that uses Kafka as the underlying middleware. The general implementation mapping between XD concepts
@@ -143,15 +137,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	public static final int METADATA_VERIFICATION_MAX_INTERVAL = 1000;
 
-	public static final String BATCHING_ENABLED = "batchingEnabled";
-
-	public static final String BATCH_SIZE = "batchSize";
-
-	public static final String BATCH_TIMEOUT = "batchTimeout";
-
-	public static final String REPLICATION_FACTOR = "replicationFactor";
-
-	public static final String CONCURRENCY = "concurrency";
 
 	public static final String FETCH_SIZE = "fetchSize";
 

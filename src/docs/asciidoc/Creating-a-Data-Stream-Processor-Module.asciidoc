@@ -197,7 +197,7 @@ The satisfies the contract to have single threaded access to a Subject.  Another
 [[spark-streaming]]
 === Spark streaming
 
-Spring XD integrates with Spark streaming so that the streaming data computation logic can be run on a **spark cluster**. Spring XD runs the `Spark Driver` as an XD module (processor or sink) in the XD container while the `spark streaming receiver` and the data computation is done at the `Spark Cluster`.
+Spring XD integrates with Spark streaming so that the streaming data computation logic can be run on a **spark cluster**. Spring XD runs the `Spark Driver` as an XD module (processor or sink) in the XD container while the Spark streaming `reliable receiver` and the data computation is done at the `Spark Cluster`.
 
 This provides advantage over connecting to various streaming sources while running the computation logic on spark cluster. Running the spark driver on the XD container also provides automatic failover capabilities in case of driver failure. 
 
@@ -271,7 +271,8 @@ If you are using **Java7** to run Spring XD, then make sure to set the **JAVA_OP
 
 When a spark streaming processor (a processor or a sink) that implements `Processor` interface above is deployed, the `SparkDriver` sets up the streaming context and runs as an XD module inside the **XD container**. 
 
-This sets up Spark streaming receiver (in case of processor and sink) in spark cluster that connects to XD upstream module's output channel in the message bus. This `MessageBusReceiver` makes the incoming messages available for the computation in spark cluster as DStreams. If the streaming module is of XD processor type then the computed messages are pushed to the downstream module by `MessageBusSender`. The MessageBusSender binds to the downstream module's input channel which subsequently connects to any of the XD processor or sink modules. 
+This sets up Spark streaming receiver (in case of processor and sink) in spark cluster that connects to XD upstream module's output channel in the message bus. Also note that this receiver is a `reliable` Spark streaming receiver (if you use `rabbit` or `kafka` as message-bus) out of the box. This is implemented using manual acknowledgement and explicit offset management on Rabbit and Kafka respectively.
+The `MessageBusReceiver` makes the incoming messages available for the computation in spark cluster as DStreams. If the streaming module is of XD processor type then the computed messages are pushed to the downstream module by `MessageBusSender`. The MessageBusSender binds to the downstream module's input channel which subsequently connects to any of the XD processor or sink modules.
 
 It is important to note that the MessageBusReceiver, streaming processor computation and the MessageBusSender run on **Spark cluster**.
 

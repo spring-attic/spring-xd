@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/file
+		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+
+	<channel id="output" />
+
+	<channel id="files" />
+
+	<beans:bean id="trigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+		<beans:constructor-arg value="${fixedDelay}" />
+		<beans:constructor-arg value="${timeUnit}" />
+		<beans:property name="initialDelay" value="${initialDelay} "/>
+	</beans:bean>
+
+	<beans:beans profile="use-ref">
+		<bridge input-channel="files" output-channel="output"/>
+	</beans:beans>
+
+	<beans:beans profile="use-contents">
+		<chain id="extractContents" input-channel="files" output-channel="output">
+			<header-enricher>
+				<header name="contentType" value="application/octet-stream"/>
+			</header-enricher>
+			<file:file-to-bytes-transformer />
+		</chain>
+	</beans:beans>
+
+	<beans:beans profile="use-contents-with-split">
+		<chain id="extractContentsAndSplit" input-channel="files" output-channel="output">
+			<header-enricher>
+				<header name="contentType" value="text/plain"/>
+				<header name="file_name"   expression="payload.name"/>
+			</header-enricher>
+			<splitter>
+				<beans:bean class="org.springframework.integration.file.splitter.FileSplitter">
+					<beans:constructor-arg value="false"/>
+				</beans:bean>
+			</splitter>
+		</chain>
+	</beans:beans>
+
+</beans:beans>

@@ -39,7 +39,7 @@ public class FileAsRefMixin implements ProfileNamesProvider {
 		return fileReadingmode;
 	}
 
-	@ModuleOption("Specifies how the file is being read. By default the content of a file is provided as byte array.")
+	@ModuleOption("specifies how the file is being read. By default the content of a file is provided as byte array")
 	public void setMode(FileReadingMode mode) {
 		this.fileReadingmode = mode;
 	}

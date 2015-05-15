@@ -95,7 +95,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 	@Test
 	public void testFileContentsUsingDefaultMode() throws IOException {
 		deployStream(
-				"filecontents",
+				"filecontentsdefault",
 				"file --dir=" + sourceDirName + " --fixedDelay=0 | sink");
 		MessageTest test = new MessageTest() {
 
@@ -108,10 +108,10 @@ public class FileSourceModuleTests extends StreamTestSupport {
 						contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
-		StreamTestSupport.getSinkInputChannel("filecontents").subscribe(test);
+		StreamTestSupport.getSinkInputChannel("filecontentsdefault").subscribe(test);
 		dropFile("foo.txt");
 		test.waitForCompletion(1000);
-		undeployStream("filecontents");
+		undeployStream("filecontentsdefault");
 		assertTrue(test.getMessageHandled());
 	}
 

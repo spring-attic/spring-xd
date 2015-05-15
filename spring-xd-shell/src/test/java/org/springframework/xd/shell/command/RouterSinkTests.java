@@ -71,4 +71,37 @@ public class RouterSinkTests extends AbstractStreamIntegrationTest {
 		httpSource.postData("b");
 		assertThat(fileSink, eventually(hasContentsThat(equalTo("a-foob-bar"))));
 	}
+
+	@Test
+	public void testDiscardsUsingExpression() {
+		FileSink fileSink = newFileSink().binary(true);
+		HttpSource httpSource = newHttpSource();
+		String queue = generateQueueName();
+
+		stream().create(generateStreamName(),
+				"%s | router --expression='payload.contains(\"a\") ? \"%s\" : null'", httpSource, queue);
+		stream().create(generateStreamName(), "%s > %s", queue, fileSink);
+
+		httpSource.ensureReady().postData("a1");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("a1"))));
+		httpSource.postData("b1").postData("b2").postData("a2");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("a1a2"))));
+	}
+
+	@Test
+	public void testDiscardsUsingScript() {
+		FileSink fileSink = newFileSink().binary(true);
+		HttpSource httpSource = newHttpSource();
+		String queue = "queue:my-queue";
+
+		stream().create(generateStreamName(),
+				"%s | router --script='org/springframework/xd/shell/command/router-discard.groovy'", httpSource, queue);
+		stream().create(generateStreamName(), "%s > %s", queue, fileSink);
+
+		httpSource.ensureReady().postData("a1");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("a1"))));
+		httpSource.postData("b1").postData("b2").postData("a2");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("a1a2"))));
+	}
+
 }

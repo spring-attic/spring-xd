@@ -15,12 +15,13 @@
 
 
 	<beans:beans profile="use-expression">
-		<router input-channel="input" expression="${expression}"/>
+		<router input-channel="input" expression="${expression}" resolution-required="false"
+						default-output-channel="nullChannel"/>
 	</beans:beans>
 
 	<beans:beans profile="use-script">
 		<beans:import resource="../../../common/script-variable-generator.xml"/>
-		<router input-channel="input">
+		<router input-channel="input" resolution-required="false" default-output-channel="nullChannel">
 			<int-groovy:script location="${script}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
 		</router>
 	</beans:beans>

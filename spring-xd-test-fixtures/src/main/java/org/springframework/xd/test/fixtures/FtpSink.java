@@ -18,56 +18,41 @@
 
 package org.springframework.xd.test.fixtures;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Arrays;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
-import org.apache.ftpserver.ftplet.Authentication;
-import org.apache.ftpserver.ftplet.AuthenticationFailedException;
-import org.apache.ftpserver.ftplet.Authority;
-import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.ftpserver.ftplet.User;
+import org.apache.ftpserver.ftplet.*;
 import org.apache.ftpserver.listener.ListenerFactory;
-import org.apache.ftpserver.usermanager.ClearTextPasswordEncryptor;
-import org.apache.ftpserver.usermanager.impl.AbstractUserManager;
-import org.apache.ftpserver.usermanager.impl.BaseUser;
-import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
-import org.apache.ftpserver.usermanager.impl.WritePermission;
-
 import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
 /**
- * A fixture that helps testing the ftp source. Creates a local FTP server and exposes a File
- * directory where files to be picked up can be added.
+ * A fixture that helps testing the ftp sink. instantiates and runs a local FTP server and exposes a {@link File} directory in order to be able
+ * to check if the file pushed through FTP is present on the server side and if it has the same content as the file sent.
  *
- * @author Eric Bottard
  * @author Franck Marchand
  */
-public class FtpSource extends AbstractModuleFixture<FtpSource> implements Disposable {
+public class FtpSink extends AbstractModuleFixture<FtpSink> implements Disposable {
 
 	private int port = AvailableSocketPorts.nextAvailablePort();
-
-	private File localDirectory;
 
 	private File remoteServerDirectory;
 
 	private FtpServer server;
 
-	public FtpSource() {
-		try {
-			localDirectory = Files.createTempDirectory("ftp-source-local").toFile();
-			remoteServerDirectory = Files.createTempDirectory("ftp-source-remote").toFile();
+	public FtpSink() {
+        try {
+			remoteServerDirectory = Files.createTempDirectory("ftp-sink-remote").toFile();
 		}
 		catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
 	}
 
-	public FtpSource ensureStarted() {
+	public FtpSink ensureStarted() {
 		FtpServerFactory serverFactory = new FtpServerFactory();
 		serverFactory.setUserManager(new FtpDummyUserManager(remoteServerDirectory, "foo", "bar"));
 
@@ -88,15 +73,13 @@ public class FtpSource extends AbstractModuleFixture<FtpSource> implements Dispo
 
 	@Override
 	protected String toDSL() {
-		return String.format("ftp --port=%d --username=foo --password=bar --localDir=%s", port,
-				localDirectory.getAbsolutePath());
+		return String.format("ftp --port=%d --username=foo --password=bar", port);
 	}
 
 	@Override
 	public void cleanup() {
 		server.stop();
 		try {
-			FileUtils.deleteDirectory(localDirectory);
 			FileUtils.deleteDirectory(remoteServerDirectory);
 		}
 		catch (IOException e) {

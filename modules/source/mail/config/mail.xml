@@ -20,7 +20,7 @@
 			store-uri="${protocol}://${username:}:${password:}@${host}:${port}/${folder}"
 			channel="transform" should-mark-messages-as-read="${markAsRead}"
 			should-delete-messages="${delete}">
-			<poller fixed-delay="${fixedDelay}" time-unit="SECONDS">
+			<poller fixed-delay="${fixedDelay}" time-unit="SECONDS" max-messages-per-poll="${maxMessages}">
 				<advice-chain>
 					<beans:bean
 						class="org.springframework.xd.dirt.module.support.ThreadContextClassLoaderSetterAdvice" />

@@ -22,6 +22,7 @@ import javax.validation.constraints.Min;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import org.springframework.xd.module.options.mixins.MaxMessagesDefaultUnlimitedMixin;
 import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
@@ -31,9 +32,10 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
  * Holds module options metadata about the {@code file} source.
  *
  * @author Eric Bottard
+ * @author Gary Russell
  */
 
-@Mixin({FileAsRefMixin.class, PeriodicTriggerMixin.class})
+@Mixin({ FileAsRefMixin.class, PeriodicTriggerMixin.class, MaxMessagesDefaultUnlimitedMixin.class })
 public class FileSourceOptionsMetadata {
 
 	private String dir = "/tmp/xd/input/" + ModulePlaceholders.XD_STREAM_NAME;

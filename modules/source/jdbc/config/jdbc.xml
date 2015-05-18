@@ -19,7 +19,7 @@
 			update="${update:#{null}}"
 			max-rows-per-poll="${maxRowsPerPoll}"
 			auto-startup="false">
-		<poller fixed-delay="${fixedDelay}" time-unit="SECONDS">
+		<poller fixed-delay="${fixedDelay}" time-unit="SECONDS" max-messages-per-poll="${maxMessages}">
 			<transactional />
 		</poller>
 	</int-jdbc:inbound-channel-adapter>

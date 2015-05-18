@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,28 @@
 
 package org.springframework.xd.jdbc;
 
+import javax.validation.constraints.Min;
+
 import org.hibernate.validator.constraints.NotBlank;
+
+import org.springframework.xd.module.options.mixins.MaxMessagesDefaultOneMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
-
-import javax.validation.constraints.Min;
 
 /**
  * Captures options for the {@code jdbc} source module.
  *
  * @author Eric Bottard
  * @author Thomas Risberg
+ * @author Gary Russell
  */
-@Mixin({JdbcConnectionMixin.class, JdbcConnectionPoolMixin.class})
+@Mixin({ JdbcConnectionMixin.class, JdbcConnectionPoolMixin.class, MaxMessagesDefaultOneMixin.class })
 public class JdbcSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
-	private static final String[] USE_SPLITTER = new String[]{"use-splitter"};
-	private static final String[] DONT_USE_SPLITTER = new String[]{"dont-use-splitter"};
+	private static final String[] USE_SPLITTER = new String[] { "use-splitter" };
+
+	private static final String[] DONT_USE_SPLITTER = new String[] { "dont-use-splitter" };
 
 
 	private String query;

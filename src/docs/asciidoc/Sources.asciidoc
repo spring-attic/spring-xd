@@ -126,6 +126,7 @@ $$fixedDelay$$:: $$the rate at which to poll the remote directory$$ *($$int$$, d
 $$host$$:: $$the host name for the FTP server$$ *($$String$$, default: `localhost`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
 $$localDir$$:: $$set the local directory the remote files are transferred to$$ *($$String$$, default: `/tmp/xd/ftp`)*
+$$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `-1`)*
 $$mode$$:: $$specifies how the file is being read. By default the content of a file is provided as byte array$$ *($$FileReadingMode$$, default: `contents`, possible values: `ref,lines,contents`)*
 $$password$$:: $$the password for the FTP connection$$ *($$Password$$, no default)*
 $$port$$:: $$the port for the FTP server$$ *($$int$$, default: `21`)*
@@ -163,6 +164,7 @@ $$fixedDelay$$:: $$fixed delay in SECONDS to poll the remote directory$$ *($$int
 $$host$$:: $$the remote host to connect to$$ *($$String$$, default: `localhost`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
 $$localDir$$:: $$set the local directory the remote files are transferred to$$ *($$String$$, default: `/tmp/xd/output`)*
+$$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `-1`)*
 $$mode$$:: $$specifies how the file is being read. By default the content of a file is provided as byte array$$ *($$FileReadingMode$$, default: `contents`, possible values: `ref,lines,contents`)*
 $$passPhrase$$:: $$the passphrase to use$$ *($$String$$, default: ``)*
 $$password$$:: $$the password for the provided user$$ *($$String$$, default: ``)*
@@ -280,6 +282,7 @@ The **$$file$$** $$source$$ has the following options:
 $$dir$$:: $$the absolute path to the directory to monitor for files$$ *($$String$$, default: `/tmp/xd/input/<stream name>`)*
 $$fixedDelay$$:: $$the fixed delay polling interval specified in seconds$$ *($$int$$, default: `5`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
+$$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `-1`)*
 $$mode$$:: $$specifies how the file is being read. By default the content of a file is provided as byte array$$ *($$FileReadingMode$$, default: `contents`, possible values: `ref,lines,contents`)*
 $$pattern$$:: $$a filter expression (Ant style) to accept only files that match the pattern$$ *($$String$$, default: `*`)*
 $$preventDuplicates$$:: $$whether to prevent the same file from being processed twice$$ *($$boolean$$, default: `true`)*
@@ -312,6 +315,7 @@ $$fixedDelay$$:: $$the polling interval used for looking up messages (s)$$ *($$i
 $$folder$$:: $$the folder to take emails from$$ *($$String$$, default: `INBOX`)*
 $$host$$:: $$the hostname of the mail server$$ *($$String$$, default: `localhost`)*
 $$markAsRead$$:: $$whether to mark emails as read once they’ve been fetched$$ *($$boolean$$, default: `false`)*
+$$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `1`)*
 $$password$$:: $$the password to use to connect to the mail server $$ *($$String$$, no default)*
 $$port$$:: $$the port of the mail server$$ *($$int$$, default: `25`)*
 $$protocol$$:: $$the protocol to use to retrieve messages$$ *($$MailProtocol$$, default: `imap`, possible values: `imap,imaps,pop3,pop3s`)*
@@ -812,6 +816,7 @@ $$encoder$$:: $$the encoder to use when sending messages$$ *($$Encoding$$, defau
 $$expression$$:: $$a SpEL expression used to transform messages$$ *($$String$$, default: `payload.toString()`)*
 $$fixedDelay$$:: $$the rate at which stimulus messages will be emitted (seconds)$$ *($$int$$, default: `5`)*
 $$host$$:: $$the remote host to connect to$$ *($$String$$, default: `localhost`)*
+$$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `1`)*
 $$nio$$:: $$whether or not to use NIO$$ *($$boolean$$, default: `false`)*
 $$port$$:: $$the port on the remote host to connect to$$ *($$int$$, default: `1234`)*
 $$propertiesLocation$$:: $$the path of a properties file containing custom script variable bindings$$ *($$String$$, no default)*
@@ -1002,6 +1007,7 @@ The **$$time$$** $$source$$ has the following options:
 $$fixedDelay$$:: $$time delay between messages, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `1`)*
 $$format$$:: $$how to render the current time, using SimpleDateFormat$$ *($$String$$, default: `yyyy-MM-dd HH:mm:ss`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
+$$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `1`)*
 $$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
 //$source.time
 
@@ -1149,6 +1155,7 @@ $$logAbandoned$$:: $$flag to log stack traces for application code which abandon
 $$maxActive$$:: $$maximum number of active connections that can be allocated from this pool at the same time$$ *($$int$$, default: `100`)*
 $$maxAge$$:: $$time in milliseconds to keep this connection$$ *($$int$$, default: `0`)*
 $$maxIdle$$:: $$maximum number of connections that should be kept in the pool at all times$$ *($$int$$, default: `100`)*
+$$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `1`)*
 $$maxRowsPerPoll$$:: $$max numbers of rows to process for each poll$$ *($$int$$, default: `0`)*
 $$maxWait$$:: $$maximum number of milliseconds that the pool will wait for a connection$$ *($$int$$, default: `30000`)*
 $$minEvictableIdleTimeMillis$$:: $$minimum amount of time an object may sit idle in the pool before it is eligible for eviction$$ *($$int$$, default: `60000`)*
@@ -1194,7 +1201,7 @@ $$databaseName$$:: $$the MongoDB database name$$ *($$String$$, default: `xd`)*
 $$fixedDelay$$:: $$the time delay between polls for data, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `1000`)*
 $$host$$:: $$the MongoDB host to connect to$$ *($$String$$, default: `localhost`)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
-$$maxMessages$$:: $$the maximum number of messages to get at a time$$ *($$int$$, default: `1`)*
+$$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `1`)*
 $$password$$:: $$the MongoDB password used for connecting$$ *($$String$$, default: ``)*
 $$port$$:: $$the MongoDB port to connect to$$ *($$int$$, default: `27017`)*
 $$query$$:: $$the query to make to the mongo db$$ *($$String$$, default: `{}`)*
@@ -1218,6 +1225,7 @@ $$date$$:: $$a one-time date when the trigger should fire; only applies if 'fixe
 $$dateFormat$$:: $$the format specifying how the 'date' should be parsed$$ *($$String$$, default: `MM/dd/yy HH:mm:ss`)*
 $$fixedDelay$$:: $$time delay between executions, expressed in TimeUnits (seconds by default)$$ *($$Integer$$, no default)*
 $$initialDelay$$:: $$an initial delay when using a fixed delay trigger, expressed in TimeUnits (seconds by default)$$ *($$int$$, default: `0`)*
+$$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `1`)*
 $$payload$$:: $$the message that will be sent when the trigger fires$$ *($$String$$, default: ``)*
 $$timeUnit$$:: $$the time unit for the fixed and initial delays$$ *($$String$$, default: `SECONDS`)*
 //$source.trigger

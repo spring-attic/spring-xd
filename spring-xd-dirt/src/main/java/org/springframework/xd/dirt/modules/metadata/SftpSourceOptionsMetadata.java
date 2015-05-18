@@ -21,6 +21,7 @@ import javax.validation.constraints.AssertTrue;
 import org.hibernate.validator.constraints.NotBlank;
 
 import org.springframework.util.StringUtils;
+import org.springframework.xd.module.options.mixins.MaxMessagesDefaultUnlimitedMixin;
 import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
@@ -32,9 +33,10 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  *
  * @author Ilayaperumal Gopinathan
  * @author Eric Bottard
+ * @author Gary Russell
  */
 
-@Mixin({PeriodicTriggerMixin.class, FileAsRefMixin.class})
+@Mixin({ PeriodicTriggerMixin.class, FileAsRefMixin.class, MaxMessagesDefaultUnlimitedMixin.class })
 public class SftpSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private static final String ACCEPT_ALL_FILES = "accept-all-files";

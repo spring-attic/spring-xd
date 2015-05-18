@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import org.springframework.xd.module.options.mixins.MaxMessagesDefaultOneMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
@@ -30,10 +31,11 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 /**
  * Captures options for the {@code mail} source module.
- * 
+ *
  * @author Eric Bottard
+ * @author Gary Russell
  */
-@Mixin({ MailServerMixin.class })
+@Mixin({ MailServerMixin.class, MaxMessagesDefaultOneMixin.class })
 public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private int fixedDelay = 60;

@@ -23,6 +23,7 @@ import javax.validation.groups.Default;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import org.springframework.xd.module.options.mixins.MaxMessagesDefaultOneMixin;
 import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
@@ -40,15 +41,15 @@ import org.springframework.xd.module.options.validation.Exclusives;
  * @author Florent Biville
  * @author Gary Russell
  */
-@Mixin(PeriodicTriggerMixin.class)
+@Mixin({ PeriodicTriggerMixin.class, MaxMessagesDefaultOneMixin.class })
 @DateWithCustomFormat(groups = TriggerSourceOptionsMetadata.DateHasBeenSet.class)
 public class TriggerSourceOptionsMetadata implements ProfileNamesProvider, ValidationGroupsProvider {
 
-	private static final String[] USE_CRON = new String[] {"use-cron"};
+	private static final String[] USE_CRON = new String[] { "use-cron" };
 
-	private static final String[] USE_DELAY = new String[] {"use-delay"};
+	private static final String[] USE_DELAY = new String[] { "use-delay" };
 
-	private static final String[] USE_DATE = new String[] {"use-date"};
+	private static final String[] USE_DATE = new String[] { "use-date" };
 
 	public static final String DEFAULT_DATE = "The current time";
 
@@ -137,6 +138,6 @@ public class TriggerSourceOptionsMetadata implements ProfileNamesProvider, Valid
 
 	@Override
 	public Class<?>[] groupsToValidate() {
-		return DEFAULT_DATE.equals(date) ? DEFAULT_GROUP : new Class<?>[] {Default.class, DateHasBeenSet.class};
+		return DEFAULT_DATE.equals(date) ? DEFAULT_GROUP : new Class<?>[] { Default.class, DateHasBeenSet.class };
 	}
 }

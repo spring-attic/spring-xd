@@ -94,24 +94,7 @@ public class DefaultTupleTests {
 		assertThat(names.get(0), equalTo("foo"));
 		assertThat((String) tuple.getValue("foo"), equalTo("bar"));
 		assertThat(tuple.hasFieldName("foo"), equalTo(true));
-		// assertThat(tuple.get("foo").asString(), equalTo("bar"));
-	}
-
-	@Test
-	public void testId() {
-		Tuple tuple1 = TupleBuilder.tuple().addId().of("foo", "bar");
-		assertThat(tuple1.getId(), notNullValue());
-		Tuple tuple2 = TupleBuilder.tuple().addId().of("foo", "bar");
-		assertNotSame(tuple1.getId(), tuple2.getId());
-	}
-
-	@Test
-	public void testTimestamp() throws Exception {
-		Tuple tuple1 = TupleBuilder.tuple().addTimestamp().of("foo", "bar");
-		assertThat(tuple1.getTimestamp(), notNullValue());
-		Thread.sleep(100L);
-		Tuple tuple2 = TupleBuilder.tuple().addTimestamp().of("foo", "bar");
-		assertNotSame(tuple1.getTimestamp(), tuple2.getTimestamp());
+		assertThat(tuple.getValue("foo").toString(), equalTo("bar"));
 	}
 
 	@Test
@@ -233,6 +216,17 @@ public class DefaultTupleTests {
 		TupleBuilder builder = TupleBuilder.tuple();
 		Tuple tuple = builder.put("up", "down").put("charm", "strange").build();
 		assertTwoEntries(tuple);
+	}
+
+	@Test
+	public void testPutAllApi() {
+		Tuple tuple = TupleBuilder.tuple().put("red", "rot").put("brown", "braun").put("blue", "blau").put("yellow", "gelb")
+				.put("beige", "beige").build();
+		assertThat(tuple.size(), equalTo(5));
+		Tuple tuplePlusOne = TupleBuilder.tuple().putAll(tuple).put("up", 1).build();
+		assertThat(tuplePlusOne.size(), equalTo(6));
+		assertThat(tuplePlusOne.getFieldNames().get(0), equalTo("red"));
+		assertThat(tuplePlusOne.getFieldNames().get(5), equalTo("up"));
 	}
 
 	@Test

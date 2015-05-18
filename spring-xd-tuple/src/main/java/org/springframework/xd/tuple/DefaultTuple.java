@@ -50,17 +50,10 @@ public class DefaultTuple implements Tuple {
 
 	private transient ConfigurableConversionService configurableConversionService;
 
-	private transient Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
-
-	private final UUID id;
-
-	private final Long timestamp;
-
-	// TODO consider making final and package protect ctor so as to always use TupleBuilder
+	private transient Converter<Tuple, String> tupleToStringConverter = new TupleToJsonStringConverter();
 
 	public DefaultTuple(List<String> names, List<Object> values, ConfigurableConversionService 
-			configurableConversionService, UUID id,
-			Long timestamp) {
+			configurableConversionService) {
 		Assert.notNull(names);
 		Assert.notNull(values);
 		Assert.notNull(configurableConversionService);
@@ -71,8 +64,6 @@ public class DefaultTuple implements Tuple {
 		this.names = new ArrayList<>(names);
 		this.values = new ArrayList<>(values); // shallow copy
 		this.configurableConversionService = configurableConversionService;
-		this.id = id;
-		this.timestamp = timestamp;
 	}
 
 	/*
@@ -83,26 +74,6 @@ public class DefaultTuple implements Tuple {
 	@Override
 	public int size() {
 		return values.size();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.xd.tuple.Tuple#getId()
-	 */
-	@Override
-	public UUID getId() {
-		return this.id;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.xd.tuple.Tuple#getTimestamp()
-	 */
-	@Override
-	public Long getTimestamp() {
-		return this.timestamp;
 	}
 
 	/**
@@ -589,7 +560,7 @@ public class DefaultTuple implements Tuple {
 		}
 		else {
 			return new DefaultTuple(new ArrayList<String>(0), new ArrayList<>(0),
-					this.configurableConversionService, null, null);
+					this.configurableConversionService);
 		}
 	}
 
@@ -614,7 +585,7 @@ public class DefaultTuple implements Tuple {
 		for (Object value : resultMap.values()) {
 			newValues.add(value);
 		}
-		return new DefaultTuple(newNames, newValues, this.configurableConversionService, null, null);
+		return new DefaultTuple(newNames, newValues, this.configurableConversionService);
 
 	}
 
@@ -648,15 +619,6 @@ public class DefaultTuple implements Tuple {
 		return tupleToStringConverter.convert(this);
 	}
 
-	class DefaultTupleToStringConverter implements Converter<Tuple, String> {
-
-		@Override
-		public String convert(Tuple source) {
-			return "DefaultTuple [names=" + names + ", values=" + values + ", id=" + id + ", timestamp=" + timestamp
-					+ "]";
-		}
-
-	}
 	
 	public ConfigurableConversionService getConversionService() {
 		return this.configurableConversionService;

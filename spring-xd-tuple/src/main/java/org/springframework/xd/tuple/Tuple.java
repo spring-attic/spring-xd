@@ -556,20 +556,4 @@ public interface Tuple {
 	 */
 	Tuple select(String expression);
 
-	// Meta-data useful for stream processing
-
-	/**
-	 * Get the unique Id of this tuple, not included in comparisons for equality.
-	 * 
-	 * @return unique Id
-	 */
-	UUID getId();
-
-	/**
-	 * Get the creation timestamp of this tuple, not included in comparisons for equality
-	 * 
-	 * @return creation timestamp
-	 */
-	Long getTimestamp();
-
 }

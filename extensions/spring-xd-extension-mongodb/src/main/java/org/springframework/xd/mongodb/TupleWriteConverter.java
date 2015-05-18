@@ -30,8 +30,8 @@ public class TupleWriteConverter implements Converter<Tuple, DBObject> {
 	private String idField = null;
 
 	/**
-	 * Set the tuple field name which will be used as the Mongo _id. If not set, the id property of the tuple will be
-	 * used.
+	 * Set the tuple field name which will be used as the Mongo _id. If not set, the MongoDriver will
+	 * will assign a ObjectId with a generated value.
 	 * 
 	 * @param idField the name of the field to use as the identity in MongoDB.
 	 */
@@ -50,9 +50,6 @@ public class TupleWriteConverter implements Converter<Tuple, DBObject> {
 			else {
 				dbo.put(name, source.getValue(i));
 			}
-		}
-		if (dbo.get("_id") == null) {
-			dbo.put("_id", source.getId().toString());
 		}
 		return dbo;
 	}

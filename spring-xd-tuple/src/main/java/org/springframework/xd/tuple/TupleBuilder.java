@@ -51,10 +51,6 @@ public class TupleBuilder {
 
 	private List<Object> values = new ArrayList<>();
 
-	private UUID id;
-
-	private Long timestamp;
-
 	private static final ConfigurableConversionService defaultConversionService;
 
 	private ConfigurableConversionService customConversionService = null;
@@ -118,6 +114,20 @@ public class TupleBuilder {
 		return this;
 	}
 
+	/**
+	 * Add all names and values of the tuple to the built tuple.
+	 * @param tuple names and value to add to the tuple being built
+	 * @return builder to continue creating a new tuple instance
+	 */
+	public TupleBuilder putAll(Tuple tuple) {
+		for (int i = 0; i < tuple.size(); i++) {
+			Object value = tuple.getValues().get(i);
+			String name = tuple.getFieldNames().get(i);
+			addEntry(name, value);
+		}
+		return this;
+	}
+
 	public Tuple build() {
 		return newTuple(names, values);
 	}
@@ -129,21 +139,6 @@ public class TupleBuilder {
 	public TupleBuilder setConfigurableConversionService(ConfigurableConversionService formattingConversionService) {
 		Assert.notNull(formattingConversionService);
 		this.customConversionService = formattingConversionService;
-		return this;
-	}
-
-	public TupleBuilder addId() {
-	addId(defaultIdGenerator.generateId());
-		return  this;
-	}
-	public TupleBuilder addId(UUID id) {
-		Assert.notNull(id, "'id' cannot be null");
-		this.id = id;
-		return  this;
-	}
-
-	public TupleBuilder addTimestamp() {
-		this.timestamp = System.currentTimeMillis();
 		return this;
 	}
 
@@ -173,10 +168,10 @@ public class TupleBuilder {
 		DefaultTuple tuple;
 
 		if(customConversionService != null) {
-			tuple = new DefaultTuple(names, values, customConversionService, id, timestamp);
+			tuple = new DefaultTuple(names, values, customConversionService);
 		}
 		else {
-			tuple = new DefaultTuple(names, values, defaultConversionService, id, timestamp);
+			tuple = new DefaultTuple(names, values, defaultConversionService);
 		}
 
 		tuple.setTupleToStringConverter(tupleToStringConverter);

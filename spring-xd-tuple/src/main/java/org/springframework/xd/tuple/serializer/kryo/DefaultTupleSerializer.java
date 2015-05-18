@@ -40,8 +40,6 @@ public class DefaultTupleSerializer extends Serializer<Tuple> {
 		for (Object val: tuple.getValues()) {
 			kryo.writeClassAndObject(output, val);
 		}
-		kryo.writeObjectOrNull(output, tuple.getId(), UUID.class);
-		kryo.writeObjectOrNull(output, tuple.getTimestamp(), Long.class);
 	}
 
 	@Override
@@ -52,21 +50,6 @@ public class DefaultTupleSerializer extends Serializer<Tuple> {
 			Object val = kryo.readClassAndObject(input);
 			values.add(i, val);
 		}
-		UUID id = kryo.readObjectOrNull(input, UUID.class);
-		Long timestamp = kryo.readObjectOrNull(input, Long.class);
-		return createTupleInstance(names, values, id, timestamp);
-	}
-
-	private Tuple createTupleInstance(List<String> names, List<Object> values, UUID id, Long timestamp) {
-		TupleBuilder tupleBuilder = TupleBuilder.tuple();
-		// These values not preserved but added to the instance if non null to emulate immutability
-		if (id != null) {
-			tupleBuilder.addId();
-		}
-		if (timestamp != null) {
-			tupleBuilder.addTimestamp();
-		}
-
-		return tupleBuilder.ofNamesAndValues(names, values);
+		return TupleBuilder.tuple().ofNamesAndValues(names, values);
 	}
 }

@@ -502,7 +502,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 			int numPartitions = accessor.getNumberOfKafkaPartitionsForProducer();
 
-			TopicMetadata targetTopicMetadata = ensureTopicCreated(topicName, numPartitions, defaultReplicationFactor);
+			Collection<Partition> partitions = ensureTopicCreated(topicName, numPartitions, defaultReplicationFactor);
 
 
 			ProducerMetadata<String, byte[]> producerMetadata = new ProducerMetadata<String, byte[]>(
@@ -543,7 +543,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 				};
 
 				MessageHandler handler = new SendingHandler(messageHandler, topicName, accessor,
-						targetTopicMetadata.partitionsMetadata().size());
+						partitions.size());
 				EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 				consumer.setBeanFactory(this.getBeanFactory());
 				consumer.setBeanName("outbound." + name);
@@ -580,7 +580,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 	/**
 	 * Creates a Kafka topic if needed, or try to increase its partition count to the desired number.
 	 */
-	private TopicMetadata ensureTopicCreated(final String topicName, final int numPartitions, int replicationFactor) {
+	private Collection<Partition> ensureTopicCreated(final String topicName, final int numPartitions, int replicationFactor) {
 
 		final int sessionTimeoutMs = 10000;
 		final int connectionTimeoutMs = 10000;
@@ -588,40 +588,35 @@ public class KafkaMessageBus extends MessageBusSupport {
 		try {
 			// The following is basically copy/paste from AdminUtils.createTopic() with
 			// createOrUpdateTopicPartitionAssignmentPathInZK(..., update=true)
-			Properties topicConfig = new Properties();
+			final Properties topicConfig = new Properties();
 			Seq<Object> brokerList = ZkUtils.getSortedBrokerList(zkClient);
-			scala.collection.Map<Object, Seq<Object>> replicaAssignment = AdminUtils.assignReplicasToBrokers(brokerList,
-					numPartitions, replicationFactor, -1, -1);
-			AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment, topicConfig,
-					true);
-
-
+			final scala.collection.Map<Object, Seq<Object>> replicaAssignment = AdminUtils.assignReplicasToBrokers
+					(brokerList,
+							numPartitions, replicationFactor, -1, -1);
+			retryOperations.execute(new RetryCallback<Object, RuntimeException>() {
+				@Override
+				public Object doWithRetry(RetryContext context) throws RuntimeException {
+					AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment,
+							topicConfig, true);
+					return null;
+				}
+			});
 			try {
-				TopicMetadata topicMetadata = retryOperations.execute(new RetryCallback<TopicMetadata, Exception>() {
+				Collection<Partition> partitions = retryOperations.execute(new RetryCallback<Collection<Partition>, Exception>() {
 					@Override
-					public TopicMetadata doWithRetry(RetryContext context) throws Exception {
-						TopicMetadata topicMetadata = AdminUtils.fetchTopicMetadataFromZk(topicName, zkClient);
-						if (topicMetadata.errorCode() != ErrorMapping.NoError() || !topicName.equals(topicMetadata.topic())) {
-							// downcast to Exception because that's what the error throws
-							throw (Exception) ErrorMapping.exceptionFor(topicMetadata.errorCode());
+					public Collection<Partition> doWithRetry(RetryContext context) throws Exception {
+						connectionFactory.refreshMetadata(Collections.singleton(topicName));
+						Collection<Partition> partitions = connectionFactory.getPartitions(topicName);
+						if (partitions.size() < numPartitions) {
+							throw new IllegalStateException("The number of expected partitions was: " + numPartitions
+									+ ", but " +
+									partitions.size() + " have been found instead");
 						}
-						List<PartitionMetadata> partitionMetadatas = new kafka.javaapi.TopicMetadata(topicMetadata).partitionsMetadata();
-						if (partitionMetadatas.size() != numPartitions) {
-							throw new IllegalStateException("The number of expected partitions was: " + numPartitions + ", but " +
-									partitionMetadatas.size() + " have been found instead");
-						}
-						for (PartitionMetadata partitionMetadata : partitionMetadatas) {
-							if (partitionMetadata.errorCode() != ErrorMapping.NoError()) {
-								throw (Exception) ErrorMapping.exceptionFor(partitionMetadata.errorCode());
-							}
-						}
-						return topicMetadata;
+						connectionFactory.getLeaders(partitions);
+						return partitions;
 					}
 				});
-				// work around an issue in Spring
-				this.connectionFactory.refreshMetadata(Collections.<String>emptySet());
-
-				return topicMetadata;
+				return partitions;
 			}
 			catch (Exception e) {
 				logger.error("Cannot initialize MessageBus", e);
@@ -648,14 +643,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 		int concurrency = accessor.getConcurrency(defaultConcurrency);
 		String topic = escapeTopicName(name);
 
-		ensureTopicCreated(topic, accessor.getCount() * concurrency, defaultReplicationFactor);
-
-		connectionFactory.refreshMetadata(Collections.singleton(topic));
+		Collection<Partition>  allPartitions =  ensureTopicCreated(topic, accessor.getCount() * concurrency, defaultReplicationFactor);
 
 		Decoder<byte[]> valueDecoder = new DefaultDecoder(null);
 		Decoder<Integer> keyDecoder = new IntegerEncoderDecoder();
-
-		Collection<Partition> allPartitions = connectionFactory.getPartitions(topic);
 
 		Collection<Partition> listenedPartitions;
 

@@ -40,9 +40,7 @@
 				<header name="file_name"   expression="payload.name"/>
 			</header-enricher>
 			<splitter>
-				<beans:bean class="org.springframework.integration.file.splitter.FileSplitter">
-					<beans:constructor-arg value="false"/>
-				</beans:bean>
+				<beans:bean class="org.springframework.integration.file.splitter.FileSplitter"/>
 			</splitter>
 		</chain>
 	</beans:beans>

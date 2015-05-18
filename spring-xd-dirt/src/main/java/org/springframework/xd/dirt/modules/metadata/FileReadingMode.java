@@ -18,13 +18,15 @@ package org.springframework.xd.dirt.modules.metadata;
 
 
 /**
+ * Defines the supported modes of reading and processing files for the
+ * {@code File}, {@code FTP} and {@code SFTP} sources. The modes are triggered
+ * through Spring Application Context profiles that whose names are accessible via {@link #profile}.
  *
  * @author Gunnar Hillert
  * @since 1.2
  */
-
 public enum FileReadingMode {
-	//ref, textLine, fileAsBytes
+
 	ref("use-ref"),
 	lines("use-contents-with-split"),
 	contents("use-contents");
@@ -33,12 +35,14 @@ public enum FileReadingMode {
 
 	/**
 	 * Constructor.
-	 *
 	 */
 	FileReadingMode(final String profile) {
 		this.profile = profile;
 	}
 
+	/**
+	 * @return Spring Application Context profile name that provides the functionality of the respective mode.
+	 */
 	public String getProfile() {
 		return profile;
 	}

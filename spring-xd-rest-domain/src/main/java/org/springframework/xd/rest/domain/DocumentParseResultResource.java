@@ -19,7 +19,6 @@
 package org.springframework.xd.rest.domain;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,8 +49,6 @@ public class DocumentParseResultResource extends ResourceSupport {
 	 * @author Eric Bottard
 	 */
 	public static class Line {
-
-		private String group;
 
 		private List<Error> errors;
 
@@ -113,6 +110,11 @@ public class DocumentParseResultResource extends ResourceSupport {
 	public static class ModuleDescriptor {
 
 		/**
+		 * The group to which this module belongs.
+		 */
+		private String group;
+
+		/**
 		 * The effective label which uniquely identifies this module in the group. May be different from the name.
 		 */
 		private String label;
@@ -144,13 +146,19 @@ public class DocumentParseResultResource extends ResourceSupport {
 		 */
 		private String sinkChannelName;
 
-		public ModuleDescriptor(String moduleLabel, RESTModuleType type, String name, String sourceChannelName, String sinkChannelName, Map<String, String> options) {
+		public ModuleDescriptor(String group, String moduleLabel, RESTModuleType type, String name,
+				String sourceChannelName, String sinkChannelName, Map<String, String> options) {
+			this.group = group;
 			this.label = moduleLabel;
 			this.type = type;
 			this.name = name;
 			this.sourceChannelName = sourceChannelName;
 			this.sinkChannelName = sinkChannelName;
 			this.options = options;
+		}
+
+		public String getGroup() {
+			return group;
 		}
 
 		public String getLabel() {

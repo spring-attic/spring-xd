@@ -18,8 +18,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import com.google.common.collect.Lists;
-
 import org.springframework.hateoas.ResourceAssembler;
 import org.springframework.xd.dirt.stream.DocumentParseResult;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
@@ -27,12 +25,15 @@ import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.rest.domain.DocumentParseResultResource;
 import org.springframework.xd.rest.domain.RESTModuleType;
 
+import com.google.common.collect.Lists;
+
 /**
  * This class is responsible for creating a REST representation of a DocumentParseResult.
  *
  * @author Eric Bottard
  */
-public class DocumentParseResultResourceAssembler implements ResourceAssembler<DocumentParseResult, DocumentParseResultResource> {
+public class DocumentParseResultResourceAssembler implements
+		ResourceAssembler<DocumentParseResult, DocumentParseResultResource> {
 
 	@Override
 	public DocumentParseResultResource toResource(DocumentParseResult entity) {
@@ -40,19 +41,25 @@ public class DocumentParseResultResourceAssembler implements ResourceAssembler<D
 		for (DocumentParseResult.Line line : entity) {
 			DocumentParseResultResource.Line resourceLine = new DocumentParseResultResource.Line();
 
-			// For now, one exception at max
-			if (line.getException() != null) {
-				if (line.getException() instanceof StreamDefinitionException) {
-					StreamDefinitionException sde = (StreamDefinitionException) line.getException();
-					resourceLine.addError(new DocumentParseResultResource.Error(sde.getMessage(), sde.getPosition()));
-				}
-				else {
-					resourceLine.addError(new DocumentParseResultResource.Error(line.getException().getMessage()));
+			// Add any exceptions to the response for this line
+			if (line.getExceptions() != null) {
+
+				for (Exception e : line.getExceptions()) {
+
+					if (e instanceof StreamDefinitionException) {
+						StreamDefinitionException sde = (StreamDefinitionException) e;
+						resourceLine.addError(new DocumentParseResultResource.Error(sde.getMessage(), sde.getPosition()));
+					}
+					else {
+						resourceLine.addError(new DocumentParseResultResource.Error(e.getMessage()));
+					}
 				}
 			}
-			else {
+			// If any modules were parsed, include that in the response
+			if (line.getDescriptors() != null) {
 				for (ModuleDescriptor md : Lists.reverse(line.getDescriptors())) {
 					resourceLine.addDescriptor(new DocumentParseResultResource.ModuleDescriptor(
+							md.getGroup(),
 							md.getModuleLabel(),
 							RESTModuleType.valueOf(md.getType().name()),
 							md.getModuleName(),

@@ -31,7 +31,7 @@ import org.springframework.xd.module.ModuleDescriptor;
  *
  * @author Eric Bottard
  */
-public class DocumentParseResult implements Iterable<DocumentParseResult.Line>{
+public class DocumentParseResult implements Iterable<DocumentParseResult.Line> {
 
 	private List<Line> lines;
 
@@ -39,8 +39,8 @@ public class DocumentParseResult implements Iterable<DocumentParseResult.Line>{
 		lines = new ArrayList<>(size);
 	}
 
-	public void success(List<ModuleDescriptor> descriptors) {
-		lines.add(new Line(descriptors));
+	public void success(List<ModuleDescriptor> descriptors, List<Exception> errors) {
+		lines.add(new Line(descriptors, errors));
 	}
 
 	public void failure(Exception e) {
@@ -58,22 +58,29 @@ public class DocumentParseResult implements Iterable<DocumentParseResult.Line>{
 	 * @author Eric Bottard
 	 */
 	public static class Line {
+
 		private final List<ModuleDescriptor> descriptors;
 
-		private final Exception exception;
+		private final List<Exception> exceptions;
 
 		private Line(Exception e) {
-			this.exception = e;
+			this.exceptions = new ArrayList<>();
+			this.exceptions.add(e);
 			this.descriptors = null;
+		}
+
+		private Line(List<ModuleDescriptor> moduleDescriptors, List<Exception> errors) {
+			this.descriptors = moduleDescriptors;
+			this.exceptions = errors.size() > 0 ? errors : null;
 		}
 
 		private Line(List<ModuleDescriptor> moduleDescriptors) {
 			this.descriptors = moduleDescriptors;
-			this.exception = null;
+			this.exceptions = null;
 		}
 
-		public Exception getException() {
-			return exception;
+		public List<Exception> getExceptions() {
+			return exceptions;
 		}
 
 		public List<ModuleDescriptor> getDescriptors() {

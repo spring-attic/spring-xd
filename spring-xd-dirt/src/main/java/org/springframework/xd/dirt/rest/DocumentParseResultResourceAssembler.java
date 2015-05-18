@@ -40,19 +40,25 @@ public class DocumentParseResultResourceAssembler implements ResourceAssembler<D
 		for (DocumentParseResult.Line line : entity) {
 			DocumentParseResultResource.Line resourceLine = new DocumentParseResultResource.Line();
 
-			// For now, one exception at max
-			if (line.getException() != null) {
-				if (line.getException() instanceof StreamDefinitionException) {
-					StreamDefinitionException sde = (StreamDefinitionException) line.getException();
-					resourceLine.addError(new DocumentParseResultResource.Error(sde.getMessage(), sde.getPosition()));
-				}
-				else {
-					resourceLine.addError(new DocumentParseResultResource.Error(line.getException().getMessage()));
+			// Add any exceptions to the response for this line
+			if (line.getExceptions() != null) {
+
+				for (Exception e : line.getExceptions()) {
+
+					if (e instanceof StreamDefinitionException) {
+						StreamDefinitionException sde = (StreamDefinitionException) e;
+						resourceLine.addError(new DocumentParseResultResource.Error(sde.getMessage(), sde.getPosition()));
+					}
+					else {
+						resourceLine.addError(new DocumentParseResultResource.Error(e.getMessage()));
+					}
 				}
 			}
-			else {
+			// If any modules were parsed, include that in the response
+			if (line.getDescriptors() != null) {
 				for (ModuleDescriptor md : Lists.reverse(line.getDescriptors())) {
 					resourceLine.addDescriptor(new DocumentParseResultResource.ModuleDescriptor(
+							md.getGroup(),
 							md.getModuleLabel(),
 							RESTModuleType.valueOf(md.getType().name()),
 							md.getModuleName(),

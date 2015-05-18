@@ -32,16 +32,16 @@
 		</property>
 	</bean>
 
-	<bean id="stringEncoder" class="org.springframework.integration.kafka.serializer.common.StringEncoder">
-		<property name="encoding" value="${encoding}"/>
+	<bean id="encoder" class="kafka.serializer.DefaultEncoder">
+		<constructor-arg><null/></constructor-arg>
 	</bean>
 
 	<int-kafka:producer-context id="kafkaProducerContext" producer-properties="producerProperties">
 		<int-kafka:producer-configurations>
 			<int-kafka:producer-configuration
-				broker-list="${brokerList}" key-class-type="java.lang.String"
-				value-class-type="java.lang.String" topic="${topic}" value-encoder="stringEncoder"
-				key-encoder="stringEncoder" />
+				broker-list="${brokerList}" key-class-type="[B"
+				value-class-type="[B" topic="${topic}" value-encoder="encoder"
+				key-encoder="encoder" />
 		</int-kafka:producer-configurations>
 	</int-kafka:producer-context>
 </beans>

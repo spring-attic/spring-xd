@@ -104,7 +104,12 @@ Since this properties file contains sensitive information, it will typically be 
 
 This source module supports transfer of files using the FTP protocol.
 Files are transferred from the `remote` directory to the `local` directory where the module is deployed.
-Messages emitted by the source can be the local +File+ object or its contents.
+Messages emitted by the source are provided as a byte array by default. However, this can be
+customized using the `--mode` option:
+
+- *ref* Provides a `java.io.File` reference
+- *lines* Will split files line-by-line and emit a new message for each line
+- *contents* The default. Provides the contents of a file as a byte array
 
 ==== Options
 
@@ -137,7 +142,13 @@ $$username$$:: $$the username for the FTP connection$$ *($$String$$, no default)
 
 This source module supports transfer of files using the SFTP protocol.
 Files are transferred from the `remote` directory to the `local` directory where the module is deployed.
-Messages emitted by the source can be the local +File+ object or its contents.
+
+Messages emitted by the source are provided as a byte array by default. However, this can be
+customized using the `--mode` option:
+
+- *ref* Provides a `java.io.File` reference
+- *lines* Will split files line-by-line and emit a new message for each line
+- *contents* The default. Provides the contents of a file as a byte array
 
 ==== Options
 
@@ -239,11 +250,11 @@ Some platforms, such as linux, send status messages to `stderr`. The tail module
 === File
 
 The file source provides the contents of a File as a byte array by default. However, this can be
-customzied using the `--mode` option:
+customized using the `--mode` option:
 
 - *ref* Provides a `java.io.File` reference
-- *textLine* Will split files line-by-line and emit a new message for each line
-- *fileAsBytes* The default. Provides the contents of a file as a byte array
+- *lines* Will split files line-by-line and emit a new message for each line
+- *contents* The default. Provides the contents of a file as a byte array
 
 To log the contents of a file create a stream definition using the XD shell
 

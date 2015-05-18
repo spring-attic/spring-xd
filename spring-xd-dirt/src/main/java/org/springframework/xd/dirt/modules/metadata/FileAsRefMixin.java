@@ -18,6 +18,8 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
@@ -26,27 +28,24 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * the choice to pass along the File itself or its contents.
  *
  * @author Eric Bottard
+ * @author Gunnar Hillert
  */
 public class FileAsRefMixin implements ProfileNamesProvider {
 
-	private static final String USE_REF = "use-ref";
+	private FileReadingMode fileReadingmode = FileReadingMode.contents;
 
-	private static final String USE_CONTENT = "use-contents";
-
-	private boolean ref = false;
-
-
-	public boolean isRef() {
-		return ref;
+	@NotNull
+	public FileReadingMode getMode() {
+		return fileReadingmode;
 	}
 
-	@ModuleOption("set to true to output the File object itself")
-	public void setRef(boolean ref) {
-		this.ref = ref;
+	@ModuleOption("specifies how the file is being read. By default the content of a file is provided as byte array")
+	public void setMode(FileReadingMode mode) {
+		this.fileReadingmode = mode;
 	}
 
 	@Override
 	public String[] profilesToActivate() {
-		return ref ? new String[] { USE_REF } : new String[] { USE_CONTENT };
+		return new String[] { this.fileReadingmode.getProfile() };
 	}
 }

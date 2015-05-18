@@ -10,7 +10,7 @@
 		http://www.springframework.org/schema/integration/groovy
 		http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd">
 
-    <beans:import resource="../../../common/script-variable-generator.xml"/>
+	<beans:import resource="../../../common/script-variable-generator.xml"/>
 
 	<channel id="input" />
 

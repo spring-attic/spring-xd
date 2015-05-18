@@ -32,8 +32,8 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.module.WritableModuleRegistry;
-import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
+import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
@@ -193,7 +193,7 @@ public class StreamTestSupport {
 
 	protected static abstract class MessageTest implements MessageHandler {
 
-		private boolean messageHandled;
+		protected boolean messageHandled;
 
 		public boolean getMessageHandled() {
 			return this.messageHandled;

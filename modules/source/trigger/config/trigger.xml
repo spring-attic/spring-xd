@@ -8,7 +8,7 @@
 
 	<int:inbound-channel-adapter channel="output"
 		auto-startup="false" expression="'${payload}'">
-		<int:poller trigger="trigger" />
+		<int:poller trigger="trigger" max-messages-per-poll="${maxMessages}" />
 	</int:inbound-channel-adapter>
 
 	<beans profile="use-date">

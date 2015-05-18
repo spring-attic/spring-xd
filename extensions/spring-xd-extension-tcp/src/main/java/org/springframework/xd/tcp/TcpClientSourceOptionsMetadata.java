@@ -19,6 +19,7 @@ package org.springframework.xd.tcp;
 import javax.validation.constraints.Min;
 
 import org.springframework.xd.module.options.mixins.ExpressionOrScriptMixin;
+import org.springframework.xd.module.options.mixins.MaxMessagesDefaultOneMixin;
 import org.springframework.xd.module.options.mixins.ToStringCharsetMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
@@ -27,13 +28,14 @@ import org.springframework.xd.tcp.EncoderDecoderMixins.DecoderMixin;
 
 /**
  * Captures options available to the {@code tcp-client} source module.
- * 
+ *
  * @author Eric Bottard
  */
 @Mixin({ ExpressionOrScriptMixin.class,
 	ClientTcpConnectionFactoryOptionsMetadataMixin.class,
 	DecoderMixin.class,
-	ToStringCharsetMixin.class })
+	ToStringCharsetMixin.class,
+	MaxMessagesDefaultOneMixin.class })
 public class TcpClientSourceOptionsMetadata {
 
 	private int fixedDelay = 5;

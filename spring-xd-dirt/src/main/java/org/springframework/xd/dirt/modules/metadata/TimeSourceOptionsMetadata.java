@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import org.springframework.xd.module.options.mixins.MaxMessagesDefaultOneMixin;
 import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
@@ -27,7 +28,7 @@ import org.springframework.xd.module.options.validation.DateFormat;
  * @author Eric Bottard
  * @author Gary Russell
  */
-@Mixin(PeriodicTriggerMixin.class)
+@Mixin({ PeriodicTriggerMixin.class, MaxMessagesDefaultOneMixin.class })
 public class TimeSourceOptionsMetadata {
 
 	private String format = "yyyy-MM-dd HH:mm:ss";

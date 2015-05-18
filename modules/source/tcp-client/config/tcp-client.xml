@@ -32,7 +32,7 @@
 	<bean id="counter" class="java.util.concurrent.atomic.AtomicInteger" />
 
 	<int:inbound-channel-adapter channel="commandsTrigger" expression="@counter.incrementAndGet()" auto-startup="false">
-		<int:poller fixed-delay="${fixedDelay}" time-unit="SECONDS" />
+		<int:poller fixed-delay="${fixedDelay}" time-unit="SECONDS" max-messages-per-poll="${maxMessages}" />
 	</int:inbound-channel-adapter>
 	
 

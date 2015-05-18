@@ -28,7 +28,7 @@
 		filter="filter" remote-directory="${remoteDir}" local-directory="${localDir}"
 		auto-create-local-directory="${autoCreateLocalDir}"
 		temporary-file-suffix="${tmpFileSuffix}" delete-remote-files="${deleteRemoteFiles}">
-		<poller trigger="trigger" />
+		<poller trigger="trigger" max-messages-per-poll="${maxMessages}" />
 	</int-sftp:inbound-channel-adapter>
 
 	<beans:import resource="../../../common/file-source-common-context.xml"/>

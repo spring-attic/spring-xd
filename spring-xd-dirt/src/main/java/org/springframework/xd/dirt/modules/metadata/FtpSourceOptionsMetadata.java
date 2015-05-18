@@ -21,6 +21,7 @@ import javax.validation.constraints.Min;
 import org.hibernate.validator.constraints.NotBlank;
 
 import org.springframework.xd.module.options.mixins.FtpConnectionMixin;
+import org.springframework.xd.module.options.mixins.MaxMessagesDefaultUnlimitedMixin;
 import org.springframework.xd.module.options.mixins.PeriodicTriggerMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
@@ -31,7 +32,8 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Franck Marchand
  * @author Eric Bottard
  */
-@Mixin({ FtpConnectionMixin.class, PeriodicTriggerMixin.class, FileAsRefMixin.class })
+@Mixin({ FtpConnectionMixin.class, PeriodicTriggerMixin.class, FileAsRefMixin.class,
+	MaxMessagesDefaultUnlimitedMixin.class })
 public class FtpSourceOptionsMetadata {
 
 	private int clientMode = 0;

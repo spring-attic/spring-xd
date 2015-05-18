@@ -15,7 +15,7 @@
 			channel="files" directory="${dir}"
 			prevent-duplicates="${preventDuplicates}"
 			filename-pattern="${pattern}">
-		<poller trigger="trigger" />
+		<poller trigger="trigger" max-messages-per-poll="${maxMessages}" />
 	</file:inbound-channel-adapter>
 
 	<beans:import resource="../../../common/file-source-common-context.xml"/>

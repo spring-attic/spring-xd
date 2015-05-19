@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +86,23 @@ public class StreamsController extends
 			@RequestParam(required = false) String vhost,
 			@RequestParam(required = false) String busPrefix) {
 		return cleanRabbitBus(stream, adminUri, user, pw, vhost, busPrefix, false);
+	}
+
+	/**
+	 * Create a new resource definition.
+	 *
+	 * @param name The name of the entity to create (required)
+	 * @param definition The entity definition, expressed in the XD DSL (required)
+	 */
+	@RequestMapping(value = "/definitions", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.CREATED)
+	public void save(@RequestParam("name") String name, @RequestParam("definition") String definition,
+			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) throws Exception {
+		validator.validateBeforeSave(name, definition);
+		deployer.save(new StreamDefinition(name, definition));
+		if (deploy) {
+			publishDeploymentMessage(name, Collections.<String, String>emptyMap());
+		}
 	}
 
 }

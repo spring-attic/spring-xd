@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.server.admin.deployment.zk;
 
-import java.util.Collections;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
@@ -28,9 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentAction;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentMessage;
-import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDeployer;
-import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 
 /**
@@ -86,19 +82,6 @@ public class DeploymentMessageConsumer implements QueueConsumer<DeploymentMessag
 		DeploymentAction deploymentAction = deploymentMessage.getDeploymentAction();
 		String name = deploymentMessage.getUnitName();
 		switch (deploymentAction) {
-			case create:
-			case createAndDeploy: {
-				if (deployer instanceof StreamDeployer) {
-					deployer.save(new StreamDefinition(name, deploymentMessage.getDefinition()));
-				}
-				else if (deployer instanceof JobDeployer) {
-					deployer.save(new JobDefinition(name, deploymentMessage.getDefinition()));
-				}
-				if (DeploymentAction.createAndDeploy.equals(deploymentAction)) {
-					deployer.deploy(name, Collections.<String, String>emptyMap());
-				}
-				break;
-			}
 			case deploy:
 				deployer.deploy(name, deploymentMessage.getDeploymentProperties());
 				break;

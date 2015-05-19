@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +64,6 @@ public class JobsController extends
 		super(jobDeployer, new JobDefinitionResourceAssembler(), DeploymentUnitType.Job);
 	}
 
-	@Override
 	@RequestMapping(value = "/definitions", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	public void save(@RequestParam("name") String name, @RequestParam("definition") String definition,
@@ -72,7 +72,11 @@ public class JobsController extends
 		if (distributedJobLocator.getJobNames().contains(name)) {
 			throw new BatchJobAlreadyExistsException(name);
 		}
-		super.save(name, definition, deploy);
+		validator.validateBeforeSave(name, definition);
+		deployer.save(new JobDefinition(name, definition));
+		if (deploy) {
+			publishDeploymentMessage(name, Collections.<String, String>emptyMap());
+		}
 	}
 
 	/**

@@ -68,9 +68,9 @@ import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 public abstract class XDController<D extends BaseDefinition, A extends
 		ResourceAssemblerSupport<D, R>, R extends NamedResource, I extends BaseInstance<D>> {
 
-	private final AbstractInstancePersistingDeployer<D, I> deployer;
+	protected final AbstractInstancePersistingDeployer<D, I> deployer;
 
-	private final DeploymentValidator validator;
+	protected final DeploymentValidator validator;
 
 	private A resourceAssemblerSupport;
 
@@ -171,6 +171,16 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	public void deploy(@PathVariable("name") String name, @RequestParam(required = false) String properties) throws Exception {
 		Map<String, String> deploymentProperties = DeploymentPropertiesFormat.parseDeploymentProperties(properties);
 		validator.validateBeforeDeploy(name, deploymentProperties);
+		publishDeploymentMessage(name, deploymentProperties);
+	}
+
+	/**
+	 * Publish the deployment message.
+	 *
+	 * @param name the deployment unit name
+	 * @param deploymentProperties the deployment properties
+	 */
+	protected void publishDeploymentMessage(String name, Map<String, String> deploymentProperties) {
 		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
 				.setUnitName(name)
 				.setDeploymentAction(DeploymentAction.deploy)
@@ -244,24 +254,6 @@ public abstract class XDController<D extends BaseDefinition, A extends
 						+ StringUtils.collectionToCommaDelimitedString(uninspectedInstanceNames));
 			}
 		}
-	}
-
-	/**
-	 * Create a new resource definition.
-	 *
-	 * @param name The name of the entity to create (required)
-	 * @param definition The entity definition, expressed in the XD DSL (required)
-	 */
-	@RequestMapping(value = "/definitions", method = RequestMethod.POST)
-	@ResponseStatus(HttpStatus.CREATED)
-	public void save(@RequestParam("name") String name, @RequestParam("definition") String definition,
-			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) throws Exception {
-		DeploymentAction deploymentAction = (deploy) ? DeploymentAction.createAndDeploy : DeploymentAction.create;
-		validator.validateBeforeSave(name, definition);
-		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
-				.setUnitName(name)
-				.setDeploymentAction(deploymentAction)
-				.setDefinition(definition));
 	}
 
 	private ResourceSupport enhanceWithDeployment(D definition, R resource) {

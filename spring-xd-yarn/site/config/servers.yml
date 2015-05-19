@@ -13,12 +13,21 @@ xd:
   containerMemory: 512M
   containerJavaOpts: -XX:MaxPermSize=128m
   containerLocality: false
-  container:
-    groups: yarn
 
 spring:
   yarn:
     applicationBaseDir: /xd/yarn/
+
+---
+#Container Attributes: Used to target containers configured with attribute values for module deployment by specifying attribute expressions in the deployment manifest.
+#'groups' is a native XD convention for targeting a group of container instances and is also supported as a command line option and environment variable XD_CONTAINER_GROUPS.
+# A container instance may belong to multiple groups. XD also supports any user defined attributes provided here.
+#
+xd:
+  container:
+    groups: yarn
+#    color: green
+#    foo: bar
 
 ---
 
@@ -63,6 +72,9 @@ spring:
 #  hadoop:
 #    fsUri: hdfs://localhost:8020
 #    resourceManagerHost: localhost
+#    resourceManagerPort: 8032
+#    resourceManagerSchedulerAddress: ${spring.hadoop.resourceManagerHost:8030}
+#    jobHistoryAddress: ${spring.hadoop.resourceManagerHost:10020}
 
 ---
 # Zookeeper properties
@@ -72,26 +84,19 @@ spring:
 #  namespace: xd
 #  client:
 #    connect: localhost:2181
+#    sessionTimeout: 60000
+#    connectionTimeout: 30000
+#    initialRetryWait: 1000
+#    retryMaxAttempts: 3
 
 ---
-# Quiet Period
-#
-# The quiet period is the amount of time that must elapse after the newest container
-# arrives before deployments to new containers are initiated. A short quiet period
-# is ideal for development environments because it results in quick deployments
-# to new containers. In production environments, longer quiet periods are desirable
-# because it will prevent the first few containers from receiving all deployments.
-#
-# Module deployments triggered by container arrivals only apply to modules
-# that failed a previous deployment due to the lack of containers to host them.
-# Note that this property only applies to that type of deployment; new deployments
-# targeted to existing containers are not subject to delays.
-#
-# The default value for this property is 15000 ms.
-#
-# xd:
-#  admin:
-#    quietPeriod: 15000
+#Custom module registry location
+#Any custom modules built can be placed into this configured location
+#The location must be set to a valid resource URL (file://, classpath:/ etc.,)
+#For YARN deployments we recommend using HDFS (hdfs://) for the location
+xd:
+  customModule:
+    home: ${spring.hadoop.fsUri}/xd/yarn/custom-modules
 
 ---
 
@@ -100,7 +105,18 @@ spring:
 #  transport: rabbit
 
 #  messagebus:
+#    local:
+#      queueSize:                   2147483647
+#      polling:                     1000
+#      executor:
+#        corePoolSize:              0
+#        maxPoolSize:               200
+#        queueSize:                 2147483647
+#        keepAliveSeconds:          60
 #    rabbit:
+#      compressionLevel:            1
+            # bus-level property, applies only when 'compress=true' for a stream module
+            # See java.util.zip.Deflater; 1=BEST_SPEED, 9=BEST_COMPRESSION, ...
 #      default:
 #        ackMode:                   AUTO
             # Valid: AUTO (container acks), NONE (broker acks), MANUAL (consumer acks).
@@ -112,14 +128,22 @@ spring:
 #        backOffInitialInterval:    1000
 #        backOffMaxInterval:        10000
 #        backOffMultiplier:         2.0
+#        batchBufferLimit:          10000
+#        batchingEnabled:           false
+#        batchSize:                 100
+#        batchTimeout:              5000
+#        compress:                  false
 #        concurrency:               1
 #        deliveryMode:              PERSISTENT
+#        durableSubscription:       false
 #        maxAttempts:               3
 #        maxConcurrency:            1
 #        prefix:                    xdbus.
             # prefix for queue/exchange names so policies (ha, dle etc.) can be applied
 #        prefetch:                  1
 #        replyHeaderPatterns:       STANDARD_REPLY_HEADERS,*
+#        republishToDLQ:            false
+            # When false, normal rabbitmq dlq processing; when true, republish to the DLQ with stack trace
 #        requestHeaderPatterns:     STANDARD_REQUEST_HEADERS,*
 #        requeue:                   true
 #        transacted:                false
@@ -135,6 +159,36 @@ spring:
 #        backOffMultiplier:         2.0
 #        concurrency:               1
 #        maxAttempts:               3
+
+#    kafka:
+#      brokers:                                 localhost:9092
+#      zkAddress:                               localhost:2181
+#      numOfKafkaPartitionsForCountEqualsZero:  10
+#      socketBufferSize:                        2097152
+#      offsetStoreTopic:                        SpringXdOffsets
+#      offsetStoreSegmentSize:                  25000000
+#      offsetStoreRetentionTime:                60000
+#      offsetStoreRequiredAcks:                 1
+#      offsetStoreMaxFetchSize:                 1048576
+#      offsetStoreBatchBytes:                   16384
+#      offsetStoreBatchEnabled:                 false
+#      offsetStoreBatchTime:                    1000
+#      offsetUpdateTimeWindow:                  10000
+#      offsetUpdateCount:                       0
+#      offsetUpdateShutdownTimeout:             2000
+#      default:
+#        batchingEnabled:           false
+#        batchSize:                 16384
+#        batchTimeout:              0
+#        replicationFactor:         1
+#        concurrency:               1
+#        requiredAcks:              1
+#        compressionCodec:          none
+#        autoCommitEnabled:         true
+#        queueSize:                 1000
+#        fetchSize:                 1048576
+#        minPartitionCount:         1
+
 
 #Disable batch database initialization
 #spring:
@@ -216,6 +270,57 @@ spring:
 #    alternateUsernameAllowed: false
 
 ---
+# Config to enable security on administration endpoints (consider adding ssl)
+#spring:
+#  profiles: admin
+#security:
+#  basic:
+#    enabled: true # false to disable security settings (default)
+#    realm: SpringXD
+#  user: # valid only if security.basic.enabled=true
+#    name: yourAdminUsername
+#    password: yourAdminPassword
+#    role: ADMIN, VIEW, CREATE
+---
+# Config to enable HTTPS on administration endpoints
+#spring:
+#  profiles: admin
+#server:
+#  ssl:
+#    key-alias: yourKeyAlias
+#    key-store: path/to/keystore
+#    key-store-password: yourKeyStorePassword
+#    key-password: yourKeyPassword
+#    trust-store: path/to/trust-store
+#    trust-store-password: yourTrustStorePassword
+---
+# Config to enable LDAP simple bind authentication for administration endpoints
+# (security.basic.enabled must be also set to true)
+#spring:
+#  profiles: admin
+#xd:
+# security:
+#   authentication:
+#     ldap:
+#       enabled: true # required for LDAP autentication to come into effect
+#       url: ldap://yourLdapHost:${yourLdapPort}
+#       userDnPattern: yourUserPattern # e.g. uid={0},ou=people,dc=example,dc=com
+---
+# Config to enable LDAP search and bind authentication for administration endpoints
+# (security.basic.enabled must be also set to true)
+#spring:
+#  profiles: admin
+#xd:
+# security:
+#   authentication:
+#     ldap:
+#       enabled: true # required for LDAP authentication to come into effect
+#       url: ldap://yourLdapHost:${yourLdapPort}
+#       managerDn: yourManagerDn # e.g. uid=bob,ou=managers,dc=example,dc=com
+#       managerPassword: yourManagerPassword
+#       userSearchBase: yourUserSearchBase # e.g. ou=otherpeople,dc=example,dc=com
+#       userSearchFilter: yourUserSearchFilter # e.g. uid={0}
+---
 # Config to enable/disable JMX/jolokia endpoints
 #XD_JMX_ENABLED: true
 #endpoints:
@@ -224,6 +329,12 @@ spring:
 #  jmx:
 #    enabled: ${XD_JMX_ENABLED:true}
 #    uniqueNames: true
+
+---
+#Port that admin-ui is listening on
+#should be kept 0 for not getting port conflicts
+server:
+  port: 0
 
 ---
 # Port that admin management is listening on
@@ -236,13 +347,11 @@ management:
 # Redis properties
 #spring:
 #  redis:
-#    port: 6379
-#    host: localhost
-
-#Port that admin-ui is listening on
-#should be kept 0 for not getting port conflicts
-server:
-  port: 0
+#   port: 6379
+#   host: 127.0.0.1
+#   sentinel:
+#     master: mymaster
+#     nodes: 127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381
 
 ---
 # RabbitMQ properties
@@ -256,12 +365,68 @@ server:
 #    sslProperties:
 
 ---
+# Quiet Period
+#
+# The quiet period is the amount of time that must elapse after the newest container
+# arrives before deployments to new containers are initiated. A short quiet period
+# is ideal for development environments because it results in quick deployments
+# to new containers. In production environments, longer quiet periods are desirable
+# because it will prevent the first few containers from receiving all deployments.
+#
+# Module deployments triggered by container arrivals only apply to modules
+# that failed a previous deployment due to the lack of containers to host them.
+# Note that this property only applies to that type of deployment; new deployments
+# targeted to existing containers are not subject to delays.
+#
+# The default value for this property is 15000 ms.
+#
+#xd:
+#  admin:
+#    quietPeriod: 15000
+
+---
+# Module deployment timeout
+# The module deployment timeout is the number of milliseconds the admin server
+# will wait for a response to a module deployment request to a container.
+#xd:
+#  admin:
+#    deploymentTimeout: 30000
+
+---
 # User Extensions: Where XD scans the classpath to discover extended container configuration to add beans to the Plugins context.
 # Each property may be a comma delimited string. 'basepackages' refers to package names used for
-# annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing XML or Groovy configuration. 
+# annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing XML or Groovy configuration.
 # XD prepends classpath:* if no prefix included and appends **/*.* to each location
 #xd:
 #  extensions:
 #    basepackages: com.acme.xd.extensions
 #    locations: META-INF/spring-xd/ext
+
 ---
+# Pretty print JSON output
+#typeconversion:
+#  json:
+#    prettyPrint: true
+
+---
+# Spark Streaming Configuration
+#spark:
+#  storageLevel: MEMORY_ONLY
+#  master: spark://localhost:7077
+#  streaming:
+#    batchInterval: 2000
+
+---
+#Enable collecting message rates from containers that have management port enabled.
+#xd:
+#  messageRateMonitoring:
+#    enabled: true
+---
+
+#xd:
+#  analytics:
+#    redis:
+#      backOffInitialInterval: 1000
+#      backOffMaxInterval: 10000
+#      backOffMultiplier: 2.0
+#      maxAttempts: 5

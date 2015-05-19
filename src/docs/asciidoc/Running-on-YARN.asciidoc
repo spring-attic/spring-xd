@@ -4,7 +4,7 @@
 ==== Introduction
 The Spring XD distributed runtime (DIRT) supports distribution of
 processing tasks across multiple nodes. See
-xref:Running-Distributed-Mode[Running Distributed Mode] for
+xref:Running-Distributed-Mode#running-distributed-mode[Running Distributed Mode] for
 information on running Spring XD in distributed mode. One option is to
 run these nodes on a Hadoop YARN cluster rather than on VMs or
 physical servers managed by you.
@@ -14,18 +14,24 @@ To begin with, you need to have access to a Hadoop cluster running a
 version based on Apache Hadoop version 2. This includes
 link:http://www.us.apache.org/dist/hadoop/common/hadoop-2.6.0/[Apache
 Hadoop 2.6.0],
-link:http://www.gopivotal.com/big-data/pivotal-hd[Pivotal HD 2.1],
-link:http://hortonworks.com/hdp/[Hortonworks HDP 2.2] and link:http://www.cloudera.com/content/cloudera/en/products-and-services/cloudera-express.html[Cloudera CDH5].
+link:http://www.gopivotal.com/big-data/pivotal-hd[Pivotal HD 2.1 or 3.0],
+link:http://hortonworks.com/hdp/[Hortonworks HDP 2.2] and link:http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html[Cloudera CDH5].
+
+[IMPORTANT]
+====
+Running YARN on some Ubuntu distributions and Mac OS X has shown to have issues when YARN applications are killed. It seems that the kill command 
+doesn't always succesfully kill the corresponding OS process and you end up with application processes still running. See link:https://issues.apache.org/jira/browse/HADOOP-9752[HADOOP-9752] for more details.
+====
 
 You need a supported transport, see
-xref:Running-Distributed-Mode[Running Distributed Mode] for
+xref:Running-Distributed-Mode#running-distributed-mode[Running Distributed Mode] for
 installation of Redis or Rabbit MQ. Spring XD on YARN currently uses
 Redis as the default data transport.
 
 You also need Zookeeper running. If your Hadoop cluster doesn't have
 Zookeeper installed you need to install and run it specifically for
 Spring XD. See the
-link:Running-Distributed-Mode#setting-up-zookeeper[Setting up
+xref:Running-Distributed-Mode#setting-up-zookeeper[Setting up
 ZooKeeper] section of the "Running Distributed Mode" chapter.
 
 Lastly, you need an RDBMs to support batch jobs and JDBC operations.
@@ -105,7 +111,7 @@ spring:
       topology.script.file.name: /path/to/topology-script.sh
 ----
 
-[IMPORTANT]
+[NOTE]
 ====
 Setting hadoop `topology.script.file.name` property is mandatory if
 more sophisticated container placement is used to allocate XD admins
@@ -163,8 +169,7 @@ spring:
 ===== XD Admin port
 
 On default the property `server.port` which defines the used port for
-embedded server is disabled thus falling back to default which is
-`8080`.
+embedded server is set to `9393` but it can be overridden by changing the value in `servers.yml`.
 
 [source,yaml]
 ----
@@ -174,10 +179,10 @@ embedded server is disabled thus falling back to default which is
 ----
 
 On YARN it is recommended that you simply set the port to `0` meaning
-server will automatically choose a random port. This is advisable
+that server will automatically choose a random port. This is advisable
 simply because it will prevent port collission which are usually a
 little difficult to track down from a cluster. See more instructions
-from section <<connect-xd-shell-to-yarn-runtime-managed-admins>> how to connect
+in the section <<connect-xd-shell-to-yarn-runtime-managed-admins>> for how to connect
 xd-shell to admins managed by YARN.
 
 [source,yaml]
@@ -187,9 +192,27 @@ server:
   port: 0
 ----
 
+==== Adding custom modules
+
+The recommended approach for custom modules is to define the module registry location as a directory
+in HDFS. This will allow the most flexibility and the modules will automatically be available to all XD containers 
+running in the Hadoop cluster. The `xd.customModule.home` property is by default set to the value 
+`${spring.hadoop.fsUri}/xd/yarn/custom-modules` for YARN deployments. This can be modified, but we recommend keeping 
+it to a location on HDFS within the same Hadoop cluster. 
+
+[source,yaml]
+----
+xd:
+  customModule:
+    home: ${spring.hadoop.fsUri}/xd/yarn/custom-modules
+----
+
+See the xref:Modules#modules[Modules] section for more on 
+custom modules.
+
 ==== Customizing module configurations
 
-The configurations for all modules can be customized by modifying the
+The configurations for all standard XD modules can be customized by modifying the
 file `modules.yml` in the `config` directory and then adding it to the `modules-config.zip`
 archive in the same directory.
 
@@ -199,14 +222,6 @@ achieve this:
 ----
 jar -uf modules-config.zip modules.yml
 ----
-
-==== Adding custom modules
-
-There is an empty archive file named `custom-modules.zip`. You can
-replace this with your own ZIP archive with the same name and it will
-be uploaded as part of the deployment to YARN. Place custom module
-definitions in a `modules` directory inside this new ZIP archive.
-Module definitions must follow the Spring XD module semantics.
 
 ==== Modify container logging
 
@@ -271,7 +286,7 @@ $ bin/xd-yarn submitted
 
 You should see one application running named `xd-app`.
 
-[IMPORTANT]
+[NOTE]
 ====
 Pay attention to `APPLICATION ID` listed in output because that is an
 `id` used in most of the control commands to communicate to a specific
@@ -323,7 +338,7 @@ Then connect xd-shell to this instance:
 
 [source,bash]
 ----
-server-unknown:>admin config server http://hadoop.localdomain:43740
+server-unknown:>admin config server --uri http://hadoop.localdomain:43740
 Successfully targeted http://hadoop.localdomain:43740
 
 xd:>runtime containers
@@ -411,7 +426,7 @@ yarn.scheduler.minimum-allocation-mb::
 Defines a minimum allocated memory for container.
 
 +
-[IMPORTANT]
+[NOTE]
 ====
 This setting also indirectly defines what is the actual physical
 memory limit requested during a container allocation. Actual physical

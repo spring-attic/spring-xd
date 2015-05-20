@@ -21,8 +21,6 @@ package org.springframework.xd.dirt.server.admin.deployment;
  * @author Ilayaperumal Gopinathan
  */
 public enum DeploymentAction {
-	create,
-	createAndDeploy,
 	deploy,
 	undeploy,
 	destroy,

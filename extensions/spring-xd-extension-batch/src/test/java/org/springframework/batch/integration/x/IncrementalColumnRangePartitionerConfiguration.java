@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.batch.jdbc;
+package org.springframework.batch.integration.x;
+
+import javax.sql.DataSource;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
-import javax.sql.DataSource;
-
 @Configuration
-public class ColumnRangePartitionerConfiguration {
+public class IncrementalColumnRangePartitionerConfiguration {
 
 	@Bean
 	DataSource dataSource() {

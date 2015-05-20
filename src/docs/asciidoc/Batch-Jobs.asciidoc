@@ -516,6 +516,7 @@ The **$$jdbchdfs$$** $$job$$ has the following options:
 
 $$abandonWhenPercentageFull$$:: $$connections that have timed out wont get closed and reported up unless the number of connections in use are above the percentage$$ *($$int$$, default: `0`)*
 $$alternateUsernameAllowed$$:: $$uses an alternate user name if connection fails$$ *($$boolean$$, default: `false`)*
+$$checkColumn$$:: $$the column to be examined when determining which rows to import$$ *($$String$$, default: ``)*
 $$columns$$:: $$the column names to read from the supplied table$$ *($$String$$, default: ``)*
 $$commitInterval$$:: $$the commit interval to be used for the step$$ *($$int$$, default: `1000`)*
 $$connectionProperties$$:: $$connection properties that will be sent to our JDBC driver when establishing new connections$$ *($$String$$, no default)*

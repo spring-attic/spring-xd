@@ -23,7 +23,6 @@ import javax.validation.constraints.AssertTrue;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.options.mixins.BatchJobCommitIntervalOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
-import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobSinglestepPartitionSupportOptionMixin;
 import org.springframework.xd.module.options.mixins.HadoopConfigurationMixin;
 import org.springframework.xd.module.options.spi.Mixin;
@@ -37,6 +36,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Ilayaperumal Gopinathan
  * @author Thomas Risberg
  * @author Glenn Renfro
+ * @author Michael Minella
  */
 @Mixin({ JdbcConnectionMixin.class, JdbcConnectionPoolMixin.class, BatchJobFieldDelimiterOptionMixin.class,
 		BatchJobCommitIntervalOptionMixin.class, HadoopConfigurationMixin.class,
@@ -60,6 +60,13 @@ public class JdbcHdfsOptionsMetadata {
 	private String directory = "/xd/" + XD_JOB_NAME;
 
 	private String fileExtension = "csv";
+
+	private String checkColumn = "";
+
+	@ModuleOption("the column to be examined when determining which rows to import")
+	public void setCheckColumn(String checkColumn) {
+		this.checkColumn = checkColumn;
+	}
 
 	@ModuleOption("the table to read data from")
 	public void setTableName(String tableName) {
@@ -160,5 +167,9 @@ public class JdbcHdfsOptionsMetadata {
 
 	public String getFileExtension() {
 		return fileExtension;
+	}
+
+	public String getCheckColumn() {
+		return checkColumn;
 	}
 }

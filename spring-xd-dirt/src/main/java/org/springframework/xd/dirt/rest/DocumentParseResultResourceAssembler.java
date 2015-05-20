@@ -18,6 +18,8 @@
 
 package org.springframework.xd.dirt.rest;
 
+import com.google.common.collect.Lists;
+
 import org.springframework.hateoas.ResourceAssembler;
 import org.springframework.xd.dirt.stream.DocumentParseResult;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
@@ -25,15 +27,12 @@ import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.rest.domain.DocumentParseResultResource;
 import org.springframework.xd.rest.domain.RESTModuleType;
 
-import com.google.common.collect.Lists;
-
 /**
  * This class is responsible for creating a REST representation of a DocumentParseResult.
  *
  * @author Eric Bottard
  */
-public class DocumentParseResultResourceAssembler implements
-		ResourceAssembler<DocumentParseResult, DocumentParseResultResource> {
+public class DocumentParseResultResourceAssembler implements ResourceAssembler<DocumentParseResult, DocumentParseResultResource> {
 
 	@Override
 	public DocumentParseResultResource toResource(DocumentParseResult entity) {

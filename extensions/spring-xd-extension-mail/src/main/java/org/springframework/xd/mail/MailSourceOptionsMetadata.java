@@ -19,6 +19,10 @@ package org.springframework.xd.mail;
 import static org.springframework.xd.mail.MailProtocol.imap;
 import static org.springframework.xd.mail.MailProtocol.imaps;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.validation.constraints.AssertFalse;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -27,6 +31,7 @@ import org.springframework.xd.module.options.mixins.MaxMessagesDefaultOneMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
+import org.springframework.xd.module.options.validation.Exclusives;
 
 
 /**
@@ -34,8 +39,9 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  *
  * @author Eric Bottard
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  */
-@Mixin({ MailServerMixin.class, MaxMessagesDefaultOneMixin.class })
+@Mixin({MailServerMixin.class, MaxMessagesDefaultOneMixin.class})
 public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private int fixedDelay = 60;
@@ -53,6 +59,10 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 	private String folder = "INBOX";
 
 	private String expression = "true";
+
+	private String properties = null;
+
+	private String propertiesFile = null;
 
 
 	@NotNull
@@ -120,9 +130,48 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 		return usePolling;
 	}
 
+	@ModuleOption("comma separated JavaMail property values")
+	public void setProperties(String properties) {
+		this.properties = properties;
+	}
+
+	public String getProperties() {
+		return this.properties;
+	}
+
+	@ModuleOption("file to load the JavaMail properties")
+	public void setPropertiesFile(String propertiesFile) {
+		this.propertiesFile = propertiesFile;
+	}
+
+	public String getPropertiesFile() {
+		return this.propertiesFile;
+	}
+
 	@Override
 	public String[] profilesToActivate() {
-		return usePolling ? new String[] { "use-polling" } : new String[] { "use-idle" };
+		List<String> profilesToActivate = new ArrayList<String>();
+		addPropertiesProfile(profilesToActivate);
+		addPollingProfile(profilesToActivate);
+		return profilesToActivate.toArray(new String[profilesToActivate.size()]);
+	}
+
+	private void addPropertiesProfile(List<String> profilesToActivate) {
+		if (propertiesFile != null) {
+			profilesToActivate.add("use-properties-file");
+		}
+		else {
+			profilesToActivate.add("use-properties");
+		}
+	}
+
+	private void addPollingProfile(List<String> profilesToActivate) {
+		if (usePolling) {
+			profilesToActivate.add("use-polling");
+		}
+		else {
+			profilesToActivate.add("use-idle");
+		}
 	}
 
 	@ModuleOption("the polling interval used for looking up messages (s)")
@@ -149,5 +198,10 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 		else {
 			return true;
 		}
+	}
+
+	@AssertFalse(message = "'properties' and 'propertiesFile' are mutually exclusive")
+	private boolean isInvalid() {
+		return Exclusives.strictlyMoreThanOne(properties != null, propertiesFile != null);
 	}
 }

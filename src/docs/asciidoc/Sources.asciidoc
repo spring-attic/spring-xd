@@ -299,6 +299,15 @@ Let's see an example:
 
   xd:> stream create --name mailstream --definition "mail --host=imap.gmail.com --username=your.user%40gmail.com --password=password --port=993 | file" --deploy
 
+One can also specify JavaMail properties as comma separated key=value pairs or as Spring supported resource URL location for the properties file.
+
+  xd:> stream create --name mailstream --definition "mail --host=imap.gmail.com --username=your.user%40gmail.com --password=password --port=993
+        --properties=mail.imap.socketFactory.class=javax.net.ssl.SSLSocketFactory,mail.imap.socketFactory.fallback=false,mail.store.protocol=imaps,mail.debug=true
+        | file" --deploy
+
+  xd:> stream create --name mailstream --definition "mail --host=imap.gmail.com --username=your.user%40gmail.com --password=password --port=993
+  --propertiesFile=file://<path>/java-mail.properties | file" --deploy
+
 Then send an email to yourself and you should see it appear inside a file at `/tmp/xd/output/mailstream`
 
 Note: If the username/password have special characters like @, '<space>' then you need to enter appropriate unicode characters for them.
@@ -321,6 +330,8 @@ $$markAsRead$$:: $$whether to mark emails as read once they’ve been fetched$$ 
 $$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$, default: `1`)*
 $$password$$:: $$the password to use to connect to the mail server $$ *($$String$$, no default)*
 $$port$$:: $$the port of the mail server$$ *($$int$$, default: `25`)*
+$$properties$$:: $$comma separated JavaMail property values$$ *($$String$$, no default)*
+$$propertiesFile$$:: $$file to load the JavaMail properties$$ *($$String$$, no default)*
 $$protocol$$:: $$the protocol to use to retrieve messages$$ *($$MailProtocol$$, default: `imap`, possible values: `imap,imaps,pop3,pop3s`)*
 $$usePolling$$:: $$whether to use polling or not (no polling works with imap(s) only)$$ *($$boolean$$, default: `false`)*
 $$username$$:: $$the username to use to connect to the mail server$$ *($$String$$, no default)*

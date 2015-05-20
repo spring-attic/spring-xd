@@ -19,6 +19,7 @@ package org.springframework.xd.mail;
 import static org.springframework.xd.mail.MailProtocol.imap;
 import static org.springframework.xd.mail.MailProtocol.imaps;
 
+import javax.validation.constraints.AssertFalse;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -27,6 +28,7 @@ import org.springframework.xd.module.options.mixins.MaxMessagesDefaultOneMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
+import org.springframework.xd.module.options.validation.Exclusives;
 
 
 /**
@@ -34,8 +36,9 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  *
  * @author Eric Bottard
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  */
-@Mixin({ MailServerMixin.class, MaxMessagesDefaultOneMixin.class })
+@Mixin({MailServerMixin.class, MaxMessagesDefaultOneMixin.class})
 public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private int fixedDelay = 60;
@@ -53,6 +56,16 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 	private String folder = "INBOX";
 
 	private String expression = "true";
+
+	private String defaultProperties = null;
+
+	private String properties = null;
+
+	private String propertiesFile = null;
+
+	private static final String IMAPS_PROPERTIES = "mail.imap.socketFactory.class=javax.net.ssl.SSLSocketFactory," +
+			"mail.imap.socketFactory.fallback=false," +
+			"mail.store.protocol=imaps";
 
 
 	@NotNull
@@ -120,9 +133,31 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 		return usePolling;
 	}
 
+	@ModuleOption("comma separated JavaMail property values")
+	public void setProperties(String properties) {
+		this.properties = properties;
+	}
+
+	public String getProperties() {
+		return this.properties;
+	}
+
+	@ModuleOption("file to load the JavaMail properties")
+	public void setPropertiesFile(String propertiesFile) {
+		this.propertiesFile = propertiesFile;
+	}
+
+	public String getPropertiesFile() {
+		return this.propertiesFile;
+	}
+
+	public String getDefaultProperties() {
+		return defaultProperties;
+	}
+
 	@Override
 	public String[] profilesToActivate() {
-		return usePolling ? new String[] { "use-polling" } : new String[] { "use-idle" };
+		return (usePolling) ? new String[] {"use-polling"} : new String[] {"use-idle"};
 	}
 
 	@ModuleOption("the polling interval used for looking up messages (s)")
@@ -133,13 +168,15 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 	@ModuleOption("the protocol to use to retrieve messages")
 	public void setProtocol(MailProtocol protocol) {
 		this.protocol = protocol;
+		if (protocol == imaps) {
+			this.defaultProperties = IMAPS_PROPERTIES;
+		}
 	}
 
 	@ModuleOption("whether to use polling or not (no polling works with imap(s) only)")
 	public void setUsePolling(boolean usePolling) {
 		this.usePolling = usePolling;
 	}
-
 
 	@AssertTrue(message = "usePolling=false is only supported with imap(s)")
 	private boolean isUsePollingValid() {
@@ -149,5 +186,10 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 		else {
 			return true;
 		}
+	}
+
+	@AssertFalse(message = "'properties' and 'propertiesFile' are mutually exclusive")
+	private boolean isInvalid() {
+		return Exclusives.strictlyMoreThanOne(properties != null, propertiesFile != null);
 	}
 }

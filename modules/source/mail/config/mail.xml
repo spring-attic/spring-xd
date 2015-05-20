@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
-	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<channel id="output" />
 
@@ -19,7 +17,7 @@
 		<int-mail:inbound-channel-adapter
 			store-uri="${protocol}://${username:}:${password:}@${host}:${port}/${folder}"
 			channel="transform" should-mark-messages-as-read="${markAsRead}"
-			should-delete-messages="${delete}">
+			should-delete-messages="${delete}" java-mail-properties="javaMailProperties">
 			<poller fixed-delay="${fixedDelay}" time-unit="SECONDS" max-messages-per-poll="${maxMessages}">
 				<advice-chain>
 					<beans:bean
@@ -34,8 +32,19 @@
 			store-uri="${protocol}://${username:}:${password:}@${host}:${port}/${folder}"
 			channel="transform" auto-startup="true" mail-filter-expression="${expression}"
 			should-mark-messages-as-read="${markAsRead}"
-			should-delete-messages="${delete}">
+			should-delete-messages="${delete}" java-mail-properties="javaMailProperties">
 		</int-mail:imap-idle-channel-adapter>
+	</beans:beans>
+
+	<beans:beans>
+		<beans:bean id="javaMailProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+			<beans:property name="properties" ref="utilProperties"/>
+		</beans:bean>
+		<beans:bean id="utilProperties" class="org.springframework.xd.mail.JavaMailPropertiesFactoryBean">
+			<beans:property name="propertiesString" value="${properties:#{null}}"/>
+			<beans:property name="defaultPropertiesString" value="${defaultProperties:#{null}}"/>
+			<beans:property name="propertiesFileString" value="${propertiesFile:#{null}}"/>
+		</beans:bean>
 	</beans:beans>
 
 </beans:beans>

@@ -24,10 +24,10 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.xd.dirt.cluster.AdminAttributes;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
-import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.cluster.AdminAttributes;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.ApplicationUtils;
 import org.springframework.xd.dirt.server.container.ContainerRegistrar;
 import org.springframework.xd.dirt.util.RuntimeUtils;
@@ -50,8 +50,7 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 		Map<String, Plugin> pluginMap = pluginContext.getBeansOfType(Plugin.class);
 		assertTrue(pluginMap.size() > 0);
 
-		assertSame(containerContext.getBean(ZooKeeperConnection.class), adminContext.getBean(ZooKeeperConnection
-				.class));
+		assertSame(containerContext.getBean(ZooKeeperConnection.class), adminContext.getBean(ZooKeeperConnection.class));
 
 		ContainerAttributes containerAttributes = containerContext.getBean(ContainerAttributes.class);
 		assertEquals(RuntimeUtils.getHost(), containerAttributes.getHost());

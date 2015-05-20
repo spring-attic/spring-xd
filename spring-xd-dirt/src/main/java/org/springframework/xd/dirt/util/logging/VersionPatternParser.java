@@ -41,7 +41,6 @@ public class VersionPatternParser extends PatternParser {
 	protected void finalizeConverter(char c) {
 		if (c == VERSION_CHAR) {
 			currentLiteral.setLength(0);
-			//addConverter(new VersionPatternConverter());
 		}
 		else {
 			super.finalizeConverter(c);

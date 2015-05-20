@@ -43,6 +43,7 @@ public class DefaultTupleSerializer extends Serializer<Tuple> {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Tuple read(Kryo kryo, Input input, Class<Tuple> type) {
 		List<String> names = kryo.readObject(input, ArrayList.class);
 		List<Object> values = new ArrayList<>(names.size());

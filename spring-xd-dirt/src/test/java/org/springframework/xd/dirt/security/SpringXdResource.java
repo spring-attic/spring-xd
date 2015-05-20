@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
  * @author Marius Bogoevici
@@ -44,6 +45,8 @@ public class SpringXdResource extends ExternalResource {
 
 	private String configurationLocation;
 
+	private RandomConfigurationSupport randomConfigurationSupport;
+
 	public SpringXdResource(String configurationLocation) {
 		this.configurationLocation = configurationLocation;
 	}
@@ -54,6 +57,7 @@ public class SpringXdResource extends ExternalResource {
 		if (!StringUtils.isEmpty(configurationLocation)) {
 			System.setProperty("spring.config.location", configurationLocation);
 		}
+		randomConfigurationSupport = new RandomConfigurationSupport();
 		singleNodeApplication = new SingleNodeApplication();
 		singleNodeApplication.run();
 		WebApplicationContext configurableApplicationContext = (WebApplicationContext) singleNodeApplication.adminContext();
@@ -73,6 +77,8 @@ public class SpringXdResource extends ExternalResource {
 		else {
 			System.clearProperty("spring.config.location");
 		}
+		RandomConfigurationSupport.cleanup();
+		randomConfigurationSupport = null;
 	}
 
 	public MockMvc getMockMvc() {

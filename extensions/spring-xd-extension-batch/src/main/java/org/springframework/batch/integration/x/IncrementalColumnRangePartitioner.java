@@ -60,17 +60,17 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 
 	private int partitions;
 
-	private int partitionMax = Integer.MAX_VALUE;
+	private long partitionMax = Long.MAX_VALUE;
 
-	private int partitionMin = Integer.MIN_VALUE;
+	private long partitionMin = Long.MIN_VALUE;
 
-	private int incrementalMin = Integer.MIN_VALUE;
+	private long incrementalMin = Long.MIN_VALUE;
 
 	private JobExplorer jobExplorer;
 
 	private String checkColumn;
 
-	private Integer overrideValue;
+	private Long overrideValue;
 
 	/**
 	 * The data source for connecting to the database.
@@ -116,7 +116,7 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 		this.checkColumn = checkColumn;
 	}
 
-	public void setOverrideValue(Integer overrideValue) {
+	public void setOverrideValue(Long overrideValue) {
 		this.overrideValue = overrideValue;
 	}
 
@@ -136,18 +136,19 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 		if(!StringUtils.hasText(checkColumn) && !StringUtils.hasText(column)) {
 			ExecutionContext value = new ExecutionContext();
 			value.put("partClause", "");
-			result.put("partition", value);
+			result.put("partition0", value);
+			value.put("partSuffix", "");
 		}
 		else {
 			if(StringUtils.hasText(checkColumn)) {
 				incrementalClause.append(checkColumn).append(" > ").append(this.incrementalMin);
 			}
 
-			int targetSize = (this.partitionMax - this.partitionMin) / partitions + 1;
+			long targetSize = (this.partitionMax - this.partitionMin) / partitions + 1;
 
 			int number = 0;
-			int start = this.partitionMin;
-			int end = start + targetSize - 1;
+			long start = this.partitionMin;
+			long end = start + targetSize - 1;
 
 			while (start >= 0 && start <= this.partitionMax) {
 				ExecutionContext value = new ExecutionContext();
@@ -206,31 +207,31 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 						this.incrementalMin = lastExecution.getExecutionContext().getInt(BATCH_INCREMENTAL_MAX_ID);
 					}
 					else {
-						this.incrementalMin = Integer.MIN_VALUE;
+						this.incrementalMin = Long.MIN_VALUE;
 					}
 				}
 				else {
-					this.incrementalMin = Integer.MIN_VALUE;
+					this.incrementalMin = Long.MIN_VALUE;
 				}
 			}
 
-			int newMin = jdbcTemplate.queryForObject(String.format("select max(%s) from %s", checkColumn, table), Integer.class);
+			long newMin = jdbcTemplate.queryForObject(String.format("select max(%s) from %s", checkColumn, table), Integer.class);
 
 			stepExecution.getExecutionContext().put(BATCH_INCREMENTAL_MAX_ID, newMin);
 		}
 
 		if(StringUtils.hasText(column) && StringUtils.hasText(table)) {
 			if(StringUtils.hasText(checkColumn)) {
-				Integer minResult = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Integer.class);
-				Integer maxResult = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Integer.class);
-				this.partitionMin = minResult != null ? minResult : Integer.MIN_VALUE;
-				this.partitionMax = maxResult != null ? maxResult : Integer.MAX_VALUE;
+				Long minResult = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Long.class);
+				Long maxResult = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Long.class);
+				this.partitionMin = minResult != null ? minResult : Long.MIN_VALUE;
+				this.partitionMax = maxResult != null ? maxResult : Long.MAX_VALUE;
 			}
 			else {
-				Integer minResult = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table, Integer.class);
-				Integer maxResult = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table, Integer.class);
-				this.partitionMin = minResult != null ? minResult : Integer.MIN_VALUE;
-				this.partitionMax = maxResult != null ? maxResult : Integer.MAX_VALUE;
+				Long minResult = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table, Long.class);
+				Long maxResult = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table, Long.class);
+				this.partitionMin = minResult != null ? minResult : Long.MIN_VALUE;
+				this.partitionMax = maxResult != null ? maxResult : Long.MAX_VALUE;
 			}
 		}
 	}

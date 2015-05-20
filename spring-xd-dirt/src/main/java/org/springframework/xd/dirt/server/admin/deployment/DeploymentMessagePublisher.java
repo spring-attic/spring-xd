@@ -23,10 +23,19 @@ package org.springframework.xd.dirt.server.admin.deployment;
 public interface DeploymentMessagePublisher {
 
 	/**
-	 * Publish deployment message.
+	 * Publish the {@link DeploymentMessage} and immediately
+	 * return.
 	 *
-	 * @param deploymentMessage the deployment message
+	 * @param message the deployment message
 	 */
-	public void publishDeploymentMessage(DeploymentMessage deploymentMessage);
+	void publish(DeploymentMessage message);
 
+	/**
+	 * Publish the {@link DeploymentMessage} and block the
+	 * executing thread until the message has been processed
+	 * by the recipient.
+	 *
+	 * @param message the deployment message
+	 */
+	void poll(DeploymentMessage message);
 }

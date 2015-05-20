@@ -19,6 +19,8 @@ package org.springframework.xd.shell.command.fixtures;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.test.fixtures.AbstractMetricSink;
@@ -29,6 +31,7 @@ import org.springframework.xd.test.fixtures.AbstractMetricSink;
  * 
  * @param <T> the type of metric sink fixture this is matching
  * @author Eric Bottard
+ * @author Marius Bogoevici
  */
 public class MetricExistsMatcher<T extends AbstractMetricSink> extends BaseMatcher<T> {
 
@@ -36,7 +39,8 @@ public class MetricExistsMatcher<T extends AbstractMetricSink> extends BaseMatch
 	public boolean matches(Object item) {
 		AbstractMetricSink metric = (AbstractMetricSink) item;
 		Table table = (Table) metric.shell.executeCommand(metric.getDslName() + " list").getResult();
-		return table.getRows().contains(new TableRow().addValue(1, metric.getName()));
+		return table != null && !CollectionUtils.isEmpty(table.getRows())
+				&& table.getRows().contains(new TableRow().addValue(1, metric.getName()));
 	}
 
 	@Override

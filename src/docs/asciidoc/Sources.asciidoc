@@ -297,9 +297,12 @@ Spring XD provides a source module for receiving emails, named `mail`. Depending
 
 Let's see an example:
 
-  xd:> stream create --name mailstream --definition "mail --host=imap.gmail.com --username=your.user@gmail.com --password=secret | file" --deploy
+  xd:> stream create --name mailstream --definition "mail --host=imap.gmail.com --username=your.user%40gmail.com --password=password --port=993 | file" --deploy
 
 Then send an email to yourself and you should see it appear inside a file at `/tmp/xd/output/mailstream`
+
+Note: If the username/password have special characters like @, '<space>' then you need to enter appropriate unicode characters for them.
+For example the character `@` can be specified with its unicode `%40` as in the above definition.
 
 The full list of options for the `mail` source is below:
 

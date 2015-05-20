@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,17 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.util.Assert;
 import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.spi.Mixin;
+import org.springframework.xd.module.options.support.StringToEnumIgnoringCaseConverterFactory;
 
 /**
  * The default implementation of {@link ModuleOptionsMetadataResolver} that deals with simple modules and reads the
@@ -58,6 +61,7 @@ import org.springframework.xd.module.options.spi.Mixin;
  * <ul>
  *
  * @author Eric Bottard
+ * @author Gunnar Hillert
  */
 public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, ResourceLoaderAware {
 
@@ -94,22 +98,28 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 
 	private final DefaultModuleOptionsMetadataCollector defaultModuleOptionsMetadataCollector = new DefaultModuleOptionsMetadataCollector();
-    private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
 
-    /**
+	private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
+
+	/**
 	 * Construct a new {@link DefaultModuleOptionsMetadataResolver} that will use the provided conversion service when
 	 * converting from String to rich object (supported for {@link PojoModuleOptionsMetadata} only).
+	 *
+	 * @param conversionService Must not be null
 	 */
 	public DefaultModuleOptionsMetadataResolver(ConversionService conversionService) {
-		this.conversionService = conversionService;
+		Assert.notNull(conversionService, "The provided conversionService must not be null.");
 	}
 
 	/**
-	 * Construct a new {@link DefaultModuleOptionsMetadataResolver}, using no particular conversion service for
-	 * {@link PojoModuleOptionsMetadata}.
+	 * Construct a new {@link DefaultModuleOptionsMetadataResolver}, using a
+	 * {@link GenericConversionService} which is augmented with a {@link StringToEnumIgnoringCaseConverterFactory}.
+	 * See also {@link} PojoModuleOptionsMetadata}.
 	 */
 	public DefaultModuleOptionsMetadataResolver() {
-		this(null);
+		final GenericConversionService defaultConversionService = new GenericConversionService();
+		defaultConversionService.addConverterFactory(new StringToEnumIgnoringCaseConverterFactory());
+		this.conversionService = defaultConversionService;
 	}
 
 	public void setCompositeResolver(ModuleOptionsMetadataResolver compositeResolver) {
@@ -160,7 +170,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 			return resolveNormalMetadata((SimpleModuleDefinition) definition);
 		}
 		else {
-			return resolveComposedModuleMetadata((CompositeModuleDefinition)definition);
+			return resolveComposedModuleMetadata((CompositeModuleDefinition) definition);
 		}
 
 	}
@@ -178,7 +188,8 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	private ModuleOptionsMetadata resolveNormalMetadata(SimpleModuleDefinition definition) {
 
 		Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
-		ClassLoader classLoaderToUse = ModuleUtils.createModuleDiscoveryClassLoader(moduleLocation, ModuleOptionsMetadataResolver.class.getClassLoader());
+		ClassLoader classLoaderToUse = ModuleUtils.createModuleDiscoveryClassLoader(moduleLocation,
+				ModuleOptionsMetadataResolver.class.getClassLoader());
 
 		Properties props = ModuleUtils.loadModuleProperties(definition);
 		if (props == null) {
@@ -226,7 +237,8 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 *
 	 * Note that this may end up in false positives and does not convey much information.
 	 */
-	private ModuleOptionsMetadata inferModuleOptionsMetadata(SimpleModuleDefinition definition, ClassLoader classLoaderToUse) {
+	private ModuleOptionsMetadata inferModuleOptionsMetadata(SimpleModuleDefinition definition,
+			ClassLoader classLoaderToUse) {
 		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 
 		Resource source = ModuleUtils.resourceBasedConfigurationFile(definition);
@@ -235,7 +247,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 		}
 
 		AbstractBeanDefinitionReader reader = source.getFilename().endsWith("xml") ?
-				new XmlBeanDefinitionReader(beanFactory):
+				new XmlBeanDefinitionReader(beanFactory) :
 				new GroovyBeanDefinitionReader(beanFactory);
 
 		reader.setResourceLoader(new PathMatchingResourcePatternResolver(classLoaderToUse));

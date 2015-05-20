@@ -133,4 +133,22 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 
 	}
 
+	@Test
+	public void testModeOptionEqualsLinesWithUppercase() throws Exception {
+		FtpSource ftpSource = newFtpSource();
+		FileSink fileSink = newFileSink();
+
+		File file = new File(ftpSource.getRemoteServerDirectory(), "hello.txt");
+		FileWriter fileWriter = new FileWriter(file);
+		fileWriter.write("foobar");
+		fileWriter.close();
+
+		ftpSource.ensureStarted();
+
+		stream().create(generateStreamName(), "%s --mode=LINes | transform --expression=payload.getClass() | %s",
+				ftpSource, fileSink);
+
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("java.lang.String\n"))));
+
+	}
 }

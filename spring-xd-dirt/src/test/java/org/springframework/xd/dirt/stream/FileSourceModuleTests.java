@@ -108,6 +108,29 @@ public class FileSourceModuleTests extends StreamTestSupport {
 	}
 
 	@Test
+	public void testFileContentsUpperCase() throws IOException {
+		deployStream(
+				"filecontentsuppercase",
+				"file --mode=CONTENTS --dir=" + sourceDirName + " --fixedDelay=0 | sink");
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				byte[] bytes = (byte[]) message.getPayload();
+				assertEquals("foo", new String(bytes));
+				assertEquals("foo.txt", message.getHeaders().get(FileHeaders.FILENAME, String.class));
+				assertEquals(MimeType.valueOf("application/octet-stream"),
+						contentTypeResolver.resolve(message.getHeaders()));
+			}
+		};
+		StreamTestSupport.getSinkInputChannel("filecontentsuppercase").subscribe(test);
+		dropFile("foo.txt");
+		test.waitForCompletion(3000);
+		undeployStream("filecontentsuppercase");
+		assertTrue(test.getMessageHandled());
+	}
+
+	@Test
 	public void testFileContentsUsingDefaultMode() throws IOException {
 		deployStream(
 				"filecontentsdefault",
@@ -146,7 +169,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 		};
 		StreamTestSupport.getSinkInputChannel("filestring").subscribe(test);
 		dropFile("foo2.txt");
-		test.waitForCompletion(3000);
+		test.waitForCompletion(6000);
 		StreamTestSupport.getDeployedModule("filestring", 0).stop();
 		assertTrue(test.getMessageHandled());
 	}
@@ -213,12 +236,12 @@ public class FileSourceModuleTests extends StreamTestSupport {
 					"file --mode=failme --dir=" + sourceDirName + " --fixedDelay=0 | sink");
 		}
 		catch (ModuleConfigurationException e) {
-			String expectation = "Cannot convert value of type [java.lang.String] to required type [org.springframework.xd.dirt.modules.metadata.FileReadingMode] for property 'mode'";
+			String expectation = "Failed to convert property value of type 'java.lang.String' to required type 'org.springframework.xd.dirt.modules.metadata.FileReadingMode' for property 'mode'";
 			assertTrue("Expected the exception to contain: " + expectation, e.getMessage().contains(expectation));
 			return;
 		}
 
-		fail("Was expecting an exception to be thrown.");
+		fail("Was expecting a 'ModuleConfigurationException' to be thrown.");
 
 	}
 

@@ -1023,7 +1023,7 @@ project('spring-xd-messagebus-kafka') {
 	dependencies {
 		compile project(':spring-xd-messagebus-spi')
 		compile("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
-			exclude group: 'org.apache.velocity', module: 'velocity'
+			exclude group: 'org.apache.avro', module: 'avro-compiler'
 		}
 	}
 }
@@ -1043,11 +1043,16 @@ project('spring-xd-ui') {
 project('spring-xd-test') {
 	description = 'Spring XD Test'
 	dependencies {
-		compile "org.springframework.integration:spring-integration-test"
+		compile ("org.springframework.integration:spring-integration-test"){
+			exclude group: 'org.apache.avro', module: 'avro-compiler'
+			
+		}
 		compile "org.springframework.integration:spring-integration-amqp"
 		compile "org.springframework.integration:spring-integration-redis"
 		compile "org.springframework.integration:spring-integration-mqtt"
-		compile "org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion"
+		compile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
+			exclude group: 'org.apache.avro', module: 'avro-compiler'
+		}
 
 		compile("org.springframework.data:spring-data-hadoop")
 		// Exclude transitive dependencies
@@ -1160,7 +1165,9 @@ project('spring-xd-shell') {
 		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 		testCompile "org.springframework.integration:spring-integration-sftp"
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
-		testCompile("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion")
+		testCompile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
+			exclude group: 'org.apache.avro', module: 'avro-compiler'
+		}
 		testCompile project(":spring-xd-test")
 	}
 

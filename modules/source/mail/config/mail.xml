@@ -4,10 +4,12 @@
 	xmlns:file="http://www.springframework.org/schema/integration/file"
 	xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
 	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<channel id="output" />
 
@@ -15,11 +17,13 @@
 	<int-mail:mail-to-string-transformer
 		charset="${charset}" input-channel="transform" output-channel="output" />
 
+	<util:properties id="javaMailProperties" location="${xd.config.home}/java-mail.properties"/>
+
 	<beans:beans profile="use-polling">
 		<int-mail:inbound-channel-adapter
 			store-uri="${protocol}://${username:}:${password:}@${host}:${port}/${folder}"
 			channel="transform" should-mark-messages-as-read="${markAsRead}"
-			should-delete-messages="${delete}">
+			should-delete-messages="${delete}" java-mail-properties="javaMailProperties">
 			<poller fixed-delay="${fixedDelay}" time-unit="SECONDS" max-messages-per-poll="${maxMessages}">
 				<advice-chain>
 					<beans:bean
@@ -34,7 +38,7 @@
 			store-uri="${protocol}://${username:}:${password:}@${host}:${port}/${folder}"
 			channel="transform" auto-startup="true" mail-filter-expression="${expression}"
 			should-mark-messages-as-read="${markAsRead}"
-			should-delete-messages="${delete}">
+			should-delete-messages="${delete}" java-mail-properties="javaMailProperties">
 		</int-mail:imap-idle-channel-adapter>
 	</beans:beans>
 

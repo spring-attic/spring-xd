@@ -188,9 +188,9 @@ public class XDStreamParser implements XDParser {
 			catch (NoSuchModuleException nsme) {
 				if (errorAccumulator != null) {
 					errorAccumulator.add(nsme);
-					// 'processor' below effectively indicates 'unknown' - a caller passing an error accumulator
-					// should be aware that this can happen (the accumulator will contain
-					// the exception that indicates it did)
+					// 'processor' below effectively indicates 'unknown' - a caller passing an
+					// error accumulator should be aware that this can happen (the accumulator
+					// will contain the exception that indicates it did)
 					moduleType = ModuleType.processor;
 				}
 				else {
@@ -201,8 +201,8 @@ public class XDStreamParser implements XDParser {
 
 			ModuleDefinition moduleDefinition = moduleRegistry.findDefinition(builder.getModuleName(),
 					builder.getType());
-			builder.setModuleDefinition(moduleDefinition);
 			if (moduleDefinition != null) {
+				builder.setModuleDefinition(moduleDefinition);
 				ModuleOptionsMetadata optionsMetadata = moduleOptionsMetadataResolver.resolve(moduleDefinition);
 				if (parsingContext.shouldBindAndValidate()) {
 					try {
@@ -397,7 +397,7 @@ public class XDStreamParser implements XDParser {
 					}
 					List<Exception> errorAccumulator = new ArrayList<Exception>();
 					List<ModuleDescriptor> moduleDescriptors = delegate.buildModuleDescriptors(streamName,
-							nameAndDefinitionPair, ParsingContext.stream, stream, errorAccumulator);
+							nameAndDefinitionPair, ParsingContext.partial_stream, stream, errorAccumulator);
 					BaseDefinition streamDefinition = new StreamDefinition(streamName, nameAndDefinitionPair);
 					transientRepository.save(streamDefinition);
 					result.success(moduleDescriptors, errorAccumulator);

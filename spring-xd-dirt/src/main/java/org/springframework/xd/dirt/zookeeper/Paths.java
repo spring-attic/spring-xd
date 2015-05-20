@@ -113,6 +113,11 @@ public class Paths {
 	public static final String QUEUE = "queue";
 
 	/**
+	 * Name of the parent node for deployment request responses.
+	 */
+	public static final String RESPONSES = "responses";
+
+	/**
 	 * Name of module deployments node. Module deployment requests for
 	 * individual containers are written as children of this node.
 	 */

@@ -72,7 +72,7 @@ $$name$$:: $$the name of the log category to log to (will be prefixed by 'xd.sin
 
 Here are some examples explaining the above options:
 
-The logger name is the sink name prefixed with the string `xd.sink.`. The sink name is the same as the stream name by default, but you can set it by passing the `--name` parameter 
+The logger name is the sink name prefixed with the string `xd.sink.`. The sink name is the same as the stream name by default, but you can set it by passing the `--name` parameter
 
   xd:> stream create --name myotherlogstream --definition "http --port=8001 | log --name=mylogger" --deploy
 
@@ -141,7 +141,7 @@ In this example the hdfs protocol is used but you may also use the webhdfs proto
   Found 1 items
   -rw-r--r--   3 jvalkealahti supergroup          0 2013-12-18 18:10 /xd/myhdfsstream1/myhdfsstream1-0.txt.tmp
 
-While the file is being written to it will have the `tmp` suffix.  When the data written exceeds the rollover size (default 1GB) it will be renamed to remove the `tmp` suffix.  There are several options to control the in use file file naming options.  These are `--inUsePrefix` and `--inUseSuffix` set the file name prefix and suffix respectfully.  
+While the file is being written to it will have the `tmp` suffix.  When the data written exceeds the rollover size (default 1GB) it will be renamed to remove the `tmp` suffix.  There are several options to control the in use file file naming options.  These are `--inUsePrefix` and `--inUseSuffix` set the file name prefix and suffix respectfully.
 
 When you destroy a stream
 
@@ -161,7 +161,7 @@ To list the list the contents of a file directly from a shell execute the hadoop
   2013-12-18 18:10:09
   ...
 
-In the above examples we didn't yet go through why the file was written in a specific directory and why it was named in this specific way. Default location of a file is defined as `/xd/<stream name>/<stream name>-<rolling part>.txt`. These can be changed using options `--directory` and `--fileName` respectively. Example is shown below. 
+In the above examples we didn't yet go through why the file was written in a specific directory and why it was named in this specific way. Default location of a file is defined as `/xd/<stream name>/<stream name>-<rolling part>.txt`. These can be changed using options `--directory` and `--fileName` respectively. Example is shown below.
 
   xd:>stream create --name myhdfsstream2 --definition "time | hdfs --directory=/xd/tmp --fileName=data" --deploy
   xd:>stream destroy --name myhdfsstream2
@@ -170,7 +170,7 @@ In the above examples we didn't yet go through why the file was written in a spe
   -rw-r--r--   3 jvalkealahti supergroup        120 2013-12-18 18:31 /xd/tmp/data-0.txt
 
 It is also possible to control the size of a files written into HDFS. The `--rollover` option can be used to control when file currently being written is rolled over and a new file opened by providing the rollover size in bytes, kilobytes, megatypes, gigabytes, and terabytes.
- 
+
   xd:>stream create --name myhdfsstream3 --definition "time | hdfs --rollover=100" --deploy
   xd:>stream destroy --name myhdfsstream3
   xd:>hadoop fs ls /xd/myhdfsstream3
@@ -189,7 +189,7 @@ The stream can also be compressed during the write operation. Example of this is
   Found 1 items
   -rw-r--r--   3 jvalkealahti supergroup         80 2013-12-18 18:48 /xd/myhdfsstream4/myhdfsstream4-0.txt.gzip
 
-From a native os shell we can use hadoop's fs commands and pipe data into gunzip. 
+From a native os shell we can use hadoop's fs commands and pipe data into gunzip.
 
   # bin/hadoop fs -cat /xd/myhdfsstream4/myhdfsstream4-0.txt.gzip | gunzip
   2013-12-18 18:48:10
@@ -264,7 +264,7 @@ Partitioning can also be based on defined ranges. In a below example we simulate
 
 Let the stream run few seconds, destroy it and check what got written in those partitioned files.
 
-  xd:>stream destroy --name myhdfsstream8 
+  xd:>stream destroy --name myhdfsstream8
   Destroyed stream 'myhdfsstream8'
   xd:>hadoop fs ls --recursive true --dir /xd
   drwxr-xr-x   - jvalkealahti supergroup          0 2014-05-28 19:34 /xd/myhdfsstream8
@@ -297,7 +297,7 @@ Partition using a `dateFormat` can be based on content itself. This is a good us
 
 Let the stream run few seconds, destroy it and check what got written in those partitioned files. If you see the partition paths, those are based on year 1970, not present year.
 
-  xd:>stream destroy --name myhdfsstream9 
+  xd:>stream destroy --name myhdfsstream9
   Destroyed stream 'myhdfsstream9'
   xd:>hadoop fs ls --recursive true --dir /xd
   drwxr-xr-x   - jvalkealahti supergroup          0 2014-05-28 19:56 /xd/myhdfsstream9
@@ -421,7 +421,7 @@ range(Object source, List<Object> list)
 
 Creates a partition path part by matching a `source` against a list denoted by `list` using a simple binary search.
 
-The partition method takes a `source` as first argument and `list` as a second argument. Behind the scenes this is using jvm’s `binarySearch` which works on an `Object` level so we can pass in anything. Remember that meaningful range match only works if passed in `Object` and types in list are of same type like `Integer`. Range is defined by a binarySearch itself so mostly it is to match against an upper bound except the last range in a list. Having a list of `{1000,3000,5000}` means that everything above 3000 will be matched with 5000. If that is an issue then simply adding `Integer.MAX_VALUE` as last range would overflow everything above 5000 into a new partition. Created partitions would then be `1000_range`, `3000_range` and `5000_range`. 
+The partition method takes a `source` as first argument and `list` as a second argument. Behind the scenes this is using jvm’s `binarySearch` which works on an `Object` level so we can pass in anything. Remember that meaningful range match only works if passed in `Object` and types in list are of same type like `Integer`. Range is defined by a binarySearch itself so mostly it is to match against an upper bound except the last range in a list. Having a list of `{1000,3000,5000}` means that everything above 3000 will be matched with 5000. If that is an issue then simply adding `Integer.MAX_VALUE` as last range would overflow everything above 5000 into a new partition. Created partitions would then be `1000_range`, `3000_range` and `5000_range`.
 
 .Parameters
 source:: An `Object` to be matched against `list`.
@@ -470,7 +470,7 @@ Then list the contents of the stream's data directory.
   -rw-r--r--   3 trisberg supergroup        202 2013-12-19 12:23 /xd/mydataset/string/1387473825754-63.avro
   -rw-r--r--   3 trisberg supergroup        216 2013-12-19 12:24 /xd/mydataset/string/1387473846708-80.avro
 
-You can see that the sink has created two files containing the first two batches of 20 stream payloads each. There is also a `.metadata` directory created that contains the metadata that the Kite SDK Dataset implementation uses as well as the generated Avro schema for the persisted type. 
+You can see that the sink has created two files containing the first two batches of 20 stream payloads each. There is also a `.metadata` directory created that contains the metadata that the Kite SDK Dataset implementation uses as well as the generated Avro schema for the persisted type.
 
   xd:>hadoop fs ls /xd/mydataset/string/.metadata
   Found 2 items
@@ -478,7 +478,7 @@ You can see that the sink has created two files containing the first two batches
   -rw-r--r--   3 trisberg supergroup          8 2013-12-19 12:23 /xd/mydataset/string/.metadata/schema.avsc
 
 
-Now destroy the stream. 
+Now destroy the stream.
 
   xd:>stream destroy --name mydataset
 
@@ -512,7 +512,7 @@ The `partitionPath` option lets you specify one or more paths that will be used 
  * _dateformat_ creates partitions based on a timestamp and a dateformat expression provided - creates directories based on the name provided (works well with fields of datatype long)
    - specify function plus field name, a name for the partition and the date format like: `dateFormat('timestamp', 'Y-M', 'yyyyMM')`
  * _range_ creates partitions based on a field value and the upper bounds for each bucket that is specified (works well with fields of datatype int and string)
-   - specify function plus field name and the upper bounds for each partition bucket like: `range('age',20,50,80,T(Integer).MAX_VALUE)` (Note that you can use SpEL expressions like we just did for the Integer.MAX_VALUE) 
+   - specify function plus field name and the upper bounds for each partition bucket like: `range('age',20,50,80,T(Integer).MAX_VALUE)` (Note that you can use SpEL expressions like we just did for the Integer.MAX_VALUE)
  * _identity_ creates partitions based on the exact value of a field (works well with fields of datatype string, long and int)
    - specify function plus field name, a name for the partition, the type of the field (String or Integer) and the number of values/buckets for the partition like: `identity('region','R',T(String),10)`
  * _hash_ creates partitions based on the hash calculated from the value of a field divided into a number of buckets that is specified (works well with all data types)
@@ -608,18 +608,18 @@ $$validatorClassName$$:: $$name of a class which implements the org.apache.tomca
 
 NOTE: To include the whole message into a single column, use `payload` (the default) for the `columns` option
 
-TIP: The connection pool settings for xd are located in servers.yml (i.e. `spring.datasource.*` )  
+TIP: The connection pool settings for xd are located in servers.yml (i.e. `spring.datasource.*` )
 
 [[gpfdist]]
 === GPFDIST
 
 The gpfdist sink allows you to stream data in parallel to either Pivotal Greenplum DB
- or Pivotal HAWQ.  Internally, this sink creates a custom http listener that supports 
-the `gpfdist` protcol and schedules a task that orchestrates a `gploadd` session in the 
+ or Pivotal HAWQ.  Internally, this sink creates a custom http listener that supports
+the `gpfdist` protcol and schedules a task that orchestrates a `gploadd` session in the
 same way it is done natively in Greenplum.
 
-No data is written into temporary files and all data is kept in stream buffers waiting 
-to get inserted into Greenplum DB or HAWQ.  If there are no existing load sessions from Greenplum, 
+No data is written into temporary files and all data is kept in stream buffers waiting
+to get inserted into Greenplum DB or HAWQ.  If there are no existing load sessions from Greenplum,
 the sink will block until such sessions are established.
 
 ==== Example usage
@@ -660,27 +660,27 @@ messages per second to be transferred from XD into Greenplum.
 
 ==== Performance Notes
 
-On a Lenovo W540, Spring XD singlenode, `load-generator-string | gpfdist` inserted data at ~ 540K/sec. 
+On a Lenovo W540, Spring XD singlenode, `load-generator-string | gpfdist` inserted data at ~ 540K/sec.
 The underlying message handler in the gpfdist sink is able to achieve ~1.2M/sec, which is comprable to
 the use of the native gpload client.  Additional performance optimizations when used within an XD stream
 are on the roadmap.
 ==== Implementation Notes
 
 Within a `gpfdist` sink we have a Reactor based stream where data is published from the incoming SI channel.
-This channel receives data from the Message Bus.  The Reactor stream is then connected to `Netty` based 
+This channel receives data from the Message Bus.  The Reactor stream is then connected to `Netty` based
 http channel adapters so that when a new http connection is established, the Reactor stream is flushed and balanced among
-existing http clients.  When `Greenplum` does a load from an external table, each segment will initiate 
-a http connection and start loading data.  The net effect is that incoming data is automatically spread 
+existing http clients.  When `Greenplum` does a load from an external table, each segment will initiate
+a http connection and start loading data.  The net effect is that incoming data is automatically spread
 among the Greenplum segments.
 
 ==== GPFDIST with Options
 
 The options `flushCount` and `flushTime` are used to determine when to flush
-data that is buffered in an internal 
-http://projectreactor.io/docs/reference/streams.html#basics[Reactor stream] to 
-the http connection.  Data is flushed based on if the count value has been reached 
+data that is buffered in an internal
+http://projectreactor.io/docs/reference/streams.html#basics[Reactor stream] to
+the http connection.  Data is flushed based on if the count value has been reached
 or the time specified has elapsed.  Note that with too high a value, memory consumption
-will go up.  Too small a value combined with a low ingestion rate will result in data 
+will go up.  Too small a value combined with a low ingestion rate will result in data
 being inserted into the database less frequently.
 
 `batchCount` defines the maximum count of aggregated windows the client
@@ -855,7 +855,7 @@ while True:
 
 [NOTE]
 ====
-Spring XD provides additional Python programming support for handling basic stream processing, as shown above, see xref:Creating-a-Python-Module[creating a Python module]. 
+Spring XD provides additional Python programming support for handling basic stream processing, as shown above, see xref:Creating-a-Python-Module[creating a Python module].
 ====
 
 //^sink.shell
@@ -919,7 +919,7 @@ Here is a simple example of how the mail module is used:
 
 Then,
 
-  xd:> http post --data Hello 
+  xd:> http post --data Hello
 
 You would then receive an email whose body contains "Hello" and whose subject is "Hellow world". Of special attention here is the way you need to escape strings for most of the parameters, because they're actually SpEL expressions (so here for example, we used a String literal for the `to` parameter).
 
@@ -1001,11 +1001,14 @@ To start the GemFire cache server GemFire Server included in the Spring XD distr
    $cd gemfire/bin
    $./gemfire-server ../config/cq-demo.xml
 
-The command line argument is the path of a Spring Data Gemfire configuration file with including a configured cache server and one or more regions. A sample cache configuration is provided https://github.com/SpringSource/spring-xd/blob/master/spring-xd-gemfire-server/config/cq-demo.xml[cq-demo.xml] located in the `config` directory. Note that Spring interprets the path as a relative path unless it is explicitly preceded by `file:`. The sample configuration starts a server on port 40404 and creates a region named _Stocks_. 
+The command line argument is the path of a Spring Data Gemfire configuration file with including a configured cache server and one or more regions. A sample cache configuration is provided https://github.com/SpringSource/spring-xd/blob/master/spring-xd-gemfire-server/config/cq-demo.xml[cq-demo.xml] located in the `config` directory. Note that Spring interprets the path as a relative path unless it is explicitly preceded by `file:`. The sample configuration starts a server on port 40404 and creates a region named _Stocks_.
 
 ==== Gemfire sinks
 
 There are 2 implementations of the gemfire sink: _gemfire-server_ and _gemfire-json-server_. They are identical except the latter converts JSON string payloads to a JSON document format proprietary to GemFire and provides JSON field access and query capabilities. If you are not using JSON, the gemfire-server module will write the payload using java serialization to the configured region. Both modules accept the same options.
+
+TIP: If native gemfire properties are required to configure the client cache, e.g., for security, place a `gemfire.properties` file in $XD_HOME/config.
+
 
 //^sink.gemfire-server
 // DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$sink.gemfire-server' TAG
@@ -1039,7 +1042,7 @@ NOTE: You may also configure default Gemfire connection settings for all gemfire
 ==== Example
 Suppose we have a JSON document containing a stock price:
 
-      {"symbol":"FAKE", "price":73} 
+      {"symbol":"FAKE", "price":73}
 
 We want this to be cached using the stock symbol as the key. The stream definition is:
 
@@ -1048,20 +1051,20 @@ We want this to be cached using the stock symbol as the key. The stream definiti
 The keyExpression is a SpEL expression that depends on the payload type. In this case, _com.gemstone.org.json.JSONObject. JSONObject_ which  provides the _getField_ method. To run this example:
 
     xd:> stream create --name stocks --definition "http --port=9090 | gemfire-json-server --regionName=Stocks --keyExpression=payload.getField('symbol')" --deploy
-    
+
     xd:> http post --target http://localhost:9090 --data {"symbol":"FAKE","price":73}
 
-This will write an entry to the GemFire _Stocks_ region with the key _FAKE_.  Please do not put spaces when separating the JSON key-value pairs, only a comma. 
+This will write an entry to the GemFire _Stocks_ region with the key _FAKE_.  Please do not put spaces when separating the JSON key-value pairs, only a comma.
 
 You should see a message on STDOUT for the process running the GemFire server like:
 
     INFO [LoggingCacheListener] - updated entry FAKE
 
-TIP: If you are deploying on Java 7 or earlier and need to deploy more than 4 Gemfire modules, be sure to increase the permsize of the singlenode or container. i.e. JAVA_OPTS="-XX:PermSize=256m".  
+TIP: If you are deploying on Java 7 or earlier and need to deploy more than 4 Gemfire modules, be sure to increase the permsize of the singlenode or container. i.e. JAVA_OPTS="-XX:PermSize=256m".
 
 [[splunk-server]]
 === Splunk Server
-A http://www.splunk.com/[Splunk] sink that writes data to a TCP Data Input type for Splunk. 
+A http://www.splunk.com/[Splunk] sink that writes data to a TCP Data Input type for Splunk.
 
 ==== Splunk sinks
 The Splunk sink converts an object payload to a string using the object’s toString method and then converts this to a SplunkEvent that is sent via TCP to Splunk.
@@ -1160,7 +1163,7 @@ In the server log you should see the following output:
 11:54:25,669  WARN ThreadPoolTaskScheduler-1 sink.b:145 - b-bar
 ----
 
-For more information, please also consult the Spring Integration Reference manual: http://static.springsource.org/spring-integration/reference/html/messaging-routing-chapter.html#router-namespace particularly the section "Routers and the Spring Expression Language (SpEL)".	
+For more information, please also consult the Spring Integration Reference manual: http://static.springsource.org/spring-integration/reference/html/messaging-routing-chapter.html#router-namespace particularly the section "Routers and the Spring Expression Language (SpEL)".
 
 ==== Groovy-based Routing
 
@@ -1218,7 +1221,7 @@ You can also use Groovy scripts located on your classpath by specifying:
 ----
 ===============================
 
-If you want to pass variable values to your script, you can statically bind values using the _variables_ option or optionally pass the path to a properties file containing the bindings using the _propertiesLocation_ option. All properties in the file will be made available to the script as variables. You may specify both _variables_ and _propertiesLocation_, in which case any duplicate values provided as _variables_ override values provided in _propertiesLocation_. Note that _payload_ and _headers_ are implicitly bound to give you access to the data contained in a message. 
+If you want to pass variable values to your script, you can statically bind values using the _variables_ option or optionally pass the path to a properties file containing the bindings using the _propertiesLocation_ option. All properties in the file will be made available to the script as variables. You may specify both _variables_ and _propertiesLocation_, in which case any duplicate values provided as _variables_ override values provided in _propertiesLocation_. Note that _payload_ and _headers_ are implicitly bound to give you access to the data contained in a message.
 
 For more information, see the Spring Integration Reference manual: "Groovy support"
 http://static.springsource.org/spring-integration/reference/html/messaging-endpoints-chapter.html#groovy
@@ -1236,7 +1239,7 @@ $$script$$:: $$reference to a script used to process messages$$ *($$String$$, no
 $$variables$$:: $$variable bindings as a comma delimited string of name-value pairs, e.g., 'foo=bar,baz=car'$$ *($$String$$, no default)*
 //$sink.router
 
-TIP: If the `script` option is set, the script is checked for updates every 60 seconds. 
+TIP: If the `script` option is set, the script is checked for updates every 60 seconds.
 
 [[null-sink]]
 === Null Sink
@@ -1244,7 +1247,7 @@ TIP: If the `script` option is set, the script is checked for updates every 60 s
 Null sink can be useful when the main stream isn't focused on stream destination but the tap streams are used for analytics etc.,
 It is also useful to iteratively add in steps to a stream without worrying about having to land data anywhere.
 
-For example, 
+For example,
 
 ----
 xd:>stream create nullStream --definition "http | null" --deploy

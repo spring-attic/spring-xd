@@ -408,6 +408,8 @@ NOTE: Both `twittersearch` and `twitterstream` emit JSON in the https://dev.twit
 === GemFire Source
 This source configures a client cache and client region, along with the necessary subscriptions enabled, in the XD container process along with a Spring Integration GemFire inbound channel adapter, backed by a CacheListener that outputs messages triggered by an external entry event on the region. By default the payload contains the updated entry value, but may be controlled by passing in a SpEL expression that uses the http://gemfire.docs.pivotal.io/latest/javadocs/japi/com/gemstone/gemfire/cache/EntryEvent.html[EntryEvent] as the evaluation context.
 
+TIP: If native gemfire properties are required to configure the client cache, e.g., for security, place a `gemfire.properties` file in $XD_HOME/config.
+
 ==== Options
 
 //^source.gemfire

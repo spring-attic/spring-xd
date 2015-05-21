@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -35,9 +36,10 @@ import org.springframework.xd.test.fixtures.FileSource;
 
 /**
  * Tests to explicitly assert file related source and sink behavior.
- * 
+ *
  * @author Eric Bottard
  * @author David Turanski
+ * @author Franck Marchand
  */
 public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 
@@ -67,6 +69,11 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testCustomSuffix() throws Exception {
 		testFileSinkSource("." + TEXT_SINKFILE_SUFFIX, "--suffix='" + TEXT_SINKFILE_SUFFIX + "'");
+	}
+
+	@Test
+	public void testNameAndDirExpression() throws Exception {
+		testFileSinkSource("--nameExpression=payload.trim()", "dir-", "-suffix");
 	}
 
 	@Test
@@ -111,6 +118,40 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 			in.delete();
 			in.getParentFile().delete();
 			out.delete();
+		}
+	}
+
+	private void testFileSinkSource(String nameExpressionParam, String dirPrefix, String dirSuffix) throws Exception {
+		// Are we on *nix at least?
+		if (!new File("/tmp/").exists()) {
+			return;
+		}
+
+		// Both use stream name
+		String streamName = generateStreamName();
+
+		File inDir = new File(DEFAULT_IN, streamName);
+		inDir.mkdirs();
+		File in = new File(inDir, "one.txt");
+		File outDir = new File("/tmp/" + dirPrefix + "hello" + dirSuffix);
+		File out = new File(outDir, "hello");
+
+		try {
+			FileCopyUtils.copy("hello", new FileWriter(in));
+			String dirExpression = " --dirExpression='''/tmp/'' + ''" + dirPrefix + "'' + payload.trim() + ''"
+					+ dirSuffix + "'''";
+			stream().create(streamName, "in: file --outputType=text/plain | out: file " + nameExpressionParam +
+					dirExpression);
+			Thread.sleep(1000);
+			String actual = FileCopyUtils.copyToString(new FileReader(out));
+			assertEquals("hello", actual.trim());
+			assertEquals(out.exists(), is(true));
+		}
+		finally {
+			in.delete();
+			in.getParentFile().delete();
+			out.delete();
+			outDir.delete();
 		}
 	}
 }

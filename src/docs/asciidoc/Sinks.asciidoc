@@ -109,6 +109,33 @@ You can cutomize the behavior and specify the `name` and `dir` options of the ou
 
   xd:> stream create --name otherfilestream --definition "http --port=8000 | file --name=myfile --dir=/some/custom/directory" --deploy
 
+To set the filename from a SpEL expression (e.g. headers['file_name']), you can use the `nameExpression` option.
+
+  xd:> stream create --name myfilestream --definition "http --port=8000 | file --nameExpression=payload.trim()" --deploy
+
+If you run this command :
+
+  xd:> http post --target http://localhost:8000 --data "hello.txt"
+
+It will take the payload of the message ("hello.txt"), as it's defined previously with `nameExpression`, and use it
+as the filename. In this example, the filename is equal to the content of the file.
+
+You can use `dirExpression` to specify the name of the directory that will contain the new file.
+
+  xd:> stream create --name myfilestream --definition "http --port=8000 | file --nameExpression=payload.trim() --dirExpression='''/tmp/test/dir-'' + payload.trim()'" --deploy
+
+If you run this command :
+
+  xd:> http post --target http://localhost:8000 --data "hello.txt"
+
+For the filename, it will do the same thing as explained previously. For the directory name it will use
+the content of the file (trimmed) concatenated with 'dir-' (in that case : "/tmp/test/dir-hello.txt").
+If the destination directory does not exists, the respective destination directory and any non-existing
+parent directories are being created automatically.
+
+When you use the `nameExpression` option you have to use the `dirExpression` option (not the `dir` option) to
+specify the destination directory name, even if it's a simple string (e.g. `'mydir'`).
+
 ==== File with Options
 //^sink.file
 // DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$sink.file' TAG
@@ -118,8 +145,10 @@ The **$$file$$** $$sink$$ has the following options:
 $$binary$$:: $$if false, will append a newline character at the end of each line$$ *($$boolean$$, default: `false`)*
 $$charset$$:: $$the charset to use when writing a String payload$$ *($$String$$, default: `UTF-8`)*
 $$dir$$:: $$the directory in which files will be created$$ *($$String$$, default: `/tmp/xd/output/`)*
+$$dirExpression$$:: $$spring expression used to define directory name$$ *($$String$$, no default)*
 $$mode$$:: $$what to do if the file already exists$$ *($$Mode$$, default: `APPEND`, possible values: `APPEND,REPLACE,FAIL,IGNORE`)*
 $$name$$:: $$filename pattern to use$$ *($$String$$, default: `<stream name>`)*
+$$nameExpression$$:: $$spring expression used to define filename$$ *($$String$$, no default)*
 $$suffix$$:: $$filename extension to use$$ *($$String$$, no default)*
 //$sink.file
 

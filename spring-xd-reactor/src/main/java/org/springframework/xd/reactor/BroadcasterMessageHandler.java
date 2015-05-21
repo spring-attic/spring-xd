@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
@@ -69,7 +70,7 @@ import java.lang.reflect.Method;
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class BroadcasterMessageHandler extends AbstractMessageProducingHandler {
+public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  implements DisposableBean {
 
     protected final Log logger = LogFactory.getLog(getClass());
 
@@ -79,6 +80,8 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler {
     private final Processor reactorProcessor;
 
     private final ResolvableType inputType;
+
+    private Subscription processorSubscription;
 
     /**
      * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
@@ -95,18 +98,16 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler {
         this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
 
         //Stream with a RingBufferProcessor
-        this.stream = RingBufferProcessor.share("xd-reactor", 8192, false);
+        this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
 
         //user defined stream processing
         Publisher<?> outputStream = processor.process(Streams.wrap(stream));
 
         //Simple log error handling
         outputStream.subscribe(new DefaultSubscriber<Object>() {
-            Subscription s;
-
             @Override
             public void onSubscribe(Subscription s) {
-                this.s = s;
+                processorSubscription = s;
                 s.request(Long.MAX_VALUE);
             }
 
@@ -142,4 +143,14 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler {
         }
     }
 
+    @Override
+    public void destroy() throws Exception {
+        Subscription processorSubscription = this.processorSubscription;
+        if(processorSubscription != null){
+            this.processorSubscription = null;
+            processorSubscription.cancel();
+        }
+
+        Environment.terminate();
+    }
 }

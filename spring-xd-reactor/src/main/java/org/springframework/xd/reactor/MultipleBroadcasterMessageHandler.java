@@ -178,7 +178,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         for (Subscription subscription : controlsMap.values()) {
             subscription.cancel();
         }
-        environment.shutdown();
+        Environment.terminate();
     }
 
     @Override

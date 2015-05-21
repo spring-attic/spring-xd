@@ -19,9 +19,6 @@ package org.springframework.xd.mail;
 import static org.springframework.xd.mail.MailProtocol.imap;
 import static org.springframework.xd.mail.MailProtocol.imaps;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.validation.constraints.AssertFalse;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
@@ -60,9 +57,15 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private String expression = "true";
 
+	private String defaultProperties = null;
+
 	private String properties = null;
 
 	private String propertiesFile = null;
+
+	private static final String IMAPS_PROPERTIES = "mail.imap.socketFactory.class=javax.net.ssl.SSLSocketFactory," +
+			"mail.imap.socketFactory.fallback=false," +
+			"mail.store.protocol=imaps";
 
 
 	@NotNull
@@ -148,30 +151,13 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 		return this.propertiesFile;
 	}
 
+	public String getDefaultProperties() {
+		return defaultProperties;
+	}
+
 	@Override
 	public String[] profilesToActivate() {
-		List<String> profilesToActivate = new ArrayList<String>();
-		addPropertiesProfile(profilesToActivate);
-		addPollingProfile(profilesToActivate);
-		return profilesToActivate.toArray(new String[profilesToActivate.size()]);
-	}
-
-	private void addPropertiesProfile(List<String> profilesToActivate) {
-		if (propertiesFile != null) {
-			profilesToActivate.add("use-properties-file");
-		}
-		else {
-			profilesToActivate.add("use-properties");
-		}
-	}
-
-	private void addPollingProfile(List<String> profilesToActivate) {
-		if (usePolling) {
-			profilesToActivate.add("use-polling");
-		}
-		else {
-			profilesToActivate.add("use-idle");
-		}
+		return (usePolling) ? new String[] {"use-polling"} : new String[] {"use-idle"};
 	}
 
 	@ModuleOption("the polling interval used for looking up messages (s)")
@@ -182,13 +168,15 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 	@ModuleOption("the protocol to use to retrieve messages")
 	public void setProtocol(MailProtocol protocol) {
 		this.protocol = protocol;
+		if (protocol == imaps) {
+			this.defaultProperties = IMAPS_PROPERTIES;
+		}
 	}
 
 	@ModuleOption("whether to use polling or not (no polling works with imap(s) only)")
 	public void setUsePolling(boolean usePolling) {
 		this.usePolling = usePolling;
 	}
-
 
 	@AssertTrue(message = "usePolling=false is only supported with imap(s)")
 	private boolean isUsePollingValid() {

@@ -3,11 +3,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
-	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<channel id="output" />
 
@@ -38,16 +36,14 @@
 		</int-mail:imap-idle-channel-adapter>
 	</beans:beans>
 
-	<beans:beans profile="use-properties-file">
-		<util:properties id="javaMailProperties" location="${propertiesFile}"/>
-	</beans:beans>
-
-	<beans:beans profile="use-properties">
+	<beans:beans>
 		<beans:bean id="javaMailProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 			<beans:property name="properties" ref="utilProperties"/>
 		</beans:bean>
-		<beans:bean id="utilProperties" class="org.springframework.xd.mail.ModulePropertiesFactoryBean">
+		<beans:bean id="utilProperties" class="org.springframework.xd.mail.JavaMailPropertiesFactoryBean">
 			<beans:property name="propertiesString" value="${properties:#{null}}"/>
+			<beans:property name="defaultPropertiesString" value="${defaultProperties:#{null}}"/>
+			<beans:property name="propertiesFileString" value="${propertiesFile:#{null}}"/>
 		</beans:bean>
 	</beans:beans>
 

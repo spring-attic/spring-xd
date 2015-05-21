@@ -302,11 +302,19 @@ Let's see an example:
 One can also specify JavaMail properties as comma separated key=value pairs or as Spring supported resource URL location for the properties file.
 
   xd:> stream create --name mailstream --definition "mail --host=imap.gmail.com --username=your.user%40gmail.com --password=password --port=993
-        --properties=mail.imap.socketFactory.class=javax.net.ssl.SSLSocketFactory,mail.imap.socketFactory.fallback=false,mail.store.protocol=imaps,mail.debug=true
-        | file" --deploy
+        --properties=mail.debug=true | file" --deploy
 
   xd:> stream create --name mailstream --definition "mail --host=imap.gmail.com --username=your.user%40gmail.com --password=password --port=993
-  --propertiesFile=file://<path>/java-mail.properties | file" --deploy
+  --propertiesFile=file:/<path>/java-mail.properties | file" --deploy
+
+If you are using `imaps` protocol, the mail source is configured to use these default properties:
+
+[source,bash]
+----
+mail.imap.socketFactory.class=javax.net.ssl.SSLSocketFactory
+mail.imap.socketFactory.fallback=false
+mail.store.protocol=imaps
+----
 
 Then send an email to yourself and you should see it appear inside a file at `/tmp/xd/output/mailstream`
 

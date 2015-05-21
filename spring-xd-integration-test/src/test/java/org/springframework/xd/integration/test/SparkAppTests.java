@@ -74,7 +74,7 @@ public class SparkAppTests extends AbstractJobTest {
 		job(jobName, sparkAppJob.toDSL(), true);
 		jobLaunch(jobName);
 
-		waitForJobToComplete(jobName, WAIT_TIME_FOR_SPARK_SERVER);
+		waitForJobToComplete(jobName, WAIT_TIME_FOR_SPARK_SERVER, DEFAULT_JOB_COMPLETE_COUNT);
 		verifySparkAppResults(jobName);
 	}
 

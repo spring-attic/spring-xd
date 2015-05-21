@@ -52,11 +52,14 @@ public class JdbcHdfsTest extends AbstractJobTest {
 
 	private String tableName;
 
+	private String jobName;
+	
 	/**
 	 * Removes the table created from a previous test. Also deletes the result hdfs directory.
 	 */
 	@Before
 	public void initialize() {
+		jobName = "jdbchdfs" + UUID.randomUUID().toString();
 		jdbcSink = sinks.jdbc();
 		tableName = DEFAULT_TABLE_NAME;
 		jdbcSink.tableName(tableName);
@@ -81,10 +84,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 				+ jdbcSink);
 		sources.httpSource("dataSender").postData(data);
 
-		job("ec2job1", job.toDSL(), true);
-		waitForXD();
-		jobLaunch("ec2job1");
-		waitForXD(2000);
+		job(jobName, job.toDSL(), true);
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName);
 		// Evaluate the results of the test.
 		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-0.csv";
 		assertPathsExists(path);
@@ -112,10 +114,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 				+ jdbcSink);
 		sources.httpSource("dataSender").postData(data);
 
-		job("ec2job2", job.toDSL(), true);
-		waitForXD();
-		jobLaunch("ec2job2");
-		waitForXD(2000);
+		job(jobName, job.toDSL(), true);
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName);
 		// Evaluate the results of the test.
 		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-0.csv";
 		assertPathsExists(path);
@@ -147,10 +148,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("2");
 		sources.httpSource("dataSender").postData("3");
 
-		job("ec2job3", job.toDSL(), true);
-		waitForXD();
-		jobLaunch("ec2job3");
-		waitForXD(5000);
+		job(jobName, job.toDSL(), true);
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName);
 
 		// Evaluate the results of the test.
 		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-0.csv";
@@ -169,9 +169,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("5");
 		sources.httpSource("dataSender").postData("6");
 
-		jobLaunch("ec2job3");
-		waitForXD(5000);
-
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName, 2);
+		
 		// Evaluate the results of the test.
 		path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-1.csv";
 		assertPathsExists(path);
@@ -203,10 +203,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("2");
 		sources.httpSource("dataSender").postData("3");
 
-		job("ec2job4", job.toDSL(), true);
-		waitForXD();
-		jobLaunch("ec2job4");
-		waitForXD(5000);
+		job(jobName, job.toDSL(), true);
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName);
 
 		// Evaluate the results of the test.
 		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-0.csv";
@@ -219,8 +218,8 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		assertEquals("The data returned from hadoop was different than was sent.  ", file1Contents + "\n",
 				hadoopUtil.getFileContentsFromHdfs(path));
 
-		jobLaunch("ec2job4");
-		waitForXD(5000);
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName, 2);
 
 		// Evaluate the results of the test.
 		String dir = JdbcHdfsJob.DEFAULT_DIRECTORY + "/";
@@ -254,10 +253,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("{\"payload\": 2, \"checkColumn\": 1}");
 		sources.httpSource("dataSender").postData("{\"payload\": 3, \"checkColumn\": 1}");
 
-		job("ec2job5", job.toDSL(), true);
-		waitForXD(5000);
-		jobLaunch("ec2job5");
-		waitForXD(5000);
+		job(jobName, job.toDSL(), true);
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName);
 
 		// Evaluate the results of the test.
 		String dir = JdbcHdfsJob.DEFAULT_DIRECTORY + "/";
@@ -278,8 +276,8 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("{\"payload\": 5, \"checkColumn\": 2}");
 		sources.httpSource("dataSender").postData("{\"payload\": 6, \"checkColumn\": 2}");
 
-		jobLaunch("ec2job5");
-		waitForXD(5000);
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName, 2);
 
 		// Evaluate the results of the test.
 		String path3 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0" + "-1.csv";
@@ -315,10 +313,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("2");
 		sources.httpSource("dataSender").postData("3");
 
-		job("ec2job6", job.toDSL(), true);
-		waitForXD();
-		jobLaunch("ec2job6");
-		waitForXD(5000);
+		job(jobName, job.toDSL(), true);
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName);
 
 		// Evaluate the results of the test.
 		String path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-0.csv";
@@ -337,8 +334,8 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData("5");
 		sources.httpSource("dataSender").postData("6");
 
-		launchJob("ec2job6", "{\"overrideCheckColumnValue\" : 2}");
-		waitForXD(5000);
+		launchJob(jobName, "{\"overrideCheckColumnValue\" : 2}");
+		waitForJobToComplete(jobName, 2);
 
 		// Evaluate the results of the test.
 		path = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0-1.csv";
@@ -372,10 +369,9 @@ public class JdbcHdfsTest extends AbstractJobTest {
 		sources.httpSource("dataSender").postData(data1);
 		sources.httpSource("dataSender").postData(data2);
 
-		job("ec2job7", job.toDSL(), true);
-		waitForXD();
-		jobLaunch("ec2job7");
-		waitForXD(2000);
+		job(jobName, job.toDSL(), true);
+		jobLaunch(jobName);
+		waitForJobToComplete(jobName);
 		// Evaluate the results of the test.
 		String dir = JdbcHdfsJob.DEFAULT_DIRECTORY + "/";
 		String path0 = JdbcHdfsJob.DEFAULT_DIRECTORY + "/" + JdbcHdfsJob.DEFAULT_FILE_NAME + "-p0" + "-0.csv";

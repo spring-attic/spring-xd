@@ -51,6 +51,7 @@ import static org.junit.Assert.assertTrue;
 public abstract class AbstractJobTest extends AbstractIntegrationTest {
 
 	protected final static String JOB_NAME = "ec2Job3";
+	protected final static int DEFAULT_JOB_COMPLETE_COUNT = 1;
 
 	@Autowired
 	protected Jobs jobs;
@@ -193,16 +194,17 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	 * one jobExecution.
 	 *
 	 * @param jobName  The name of the job to evaluate.
+	 * @param jobCompleteCount the number of job executions marked complete to return true.                     
 	 * @param waitTime The milliseconds that the method should wait for the job execution to complete.
 	 */
-	protected boolean waitForJobToComplete(String jobName, long waitTime) {
+	protected boolean waitForJobToComplete(String jobName, long waitTime, int jobCompleteCount) {
 		Assert.hasText(jobName, "The job name must be specified.");
 
-		boolean isJobComplete = isJobComplete(jobName);
+		boolean isJobComplete = isJobComplete(jobName, jobCompleteCount);
 		long timeout = System.currentTimeMillis() + waitTime;
 		while (!isJobComplete && System.currentTimeMillis() < timeout) {
 			sleepOneSecond();
-			isJobComplete = isJobComplete(jobName);
+			isJobComplete = isJobComplete(jobName, jobCompleteCount);
 		}
 		return isJobComplete;
 	}
@@ -217,36 +219,47 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	 * @param jobName The name of the job to evaluate.
 	 */
 	protected boolean waitForJobToComplete(String jobName) {
-		Assert.hasText(jobName, "The job name must be specified.");
-		return waitForJobToComplete(jobName, WAIT_TIME);
+		return waitForJobToComplete(jobName, DEFAULT_JOB_COMPLETE_COUNT);
 	}
-
+	/**
+	 * Wait until the job is complete up to default WAIT_TIME. If multiple job executions
+	 * have been executed using this jobName,
+	 * the method will only check the first job execution it retrieves from the datastore.
+	 * Hint: use a unique jobName, to guarantee that you will get zero or one jobExecution.
+	 *
+	 * @param jobName The name of the job to evaluate.
+	 * @param jobCompleteCount The number of job executions marked complete before returning true.
+	 */
+	protected boolean waitForJobToComplete(String jobName, int jobCompleteCount) {
+		Assert.hasText(jobName, "The job name must be specified.");
+		return waitForJobToComplete(jobName, WAIT_TIME, jobCompleteCount);
+	}
     /**
      * Checks to see if the execution for the job is complete.
      * Since a single jobName can have multiple jobExecutions, this method evaluates the first job execution
      *  in the job execution list.
      * @param jobName The name of the job to be evaluated.
+	 * @param jobCompleteCount The number of executions that reached complete to return true.
      * @return true if the job is deployed else false
      */
-    private boolean isJobComplete(String jobName) {
-        boolean result = false;
+    private boolean isJobComplete(String jobName, int jobCompleteCount) {
         List<JobExecutionInfoResource> resources = getJobExecInfoByName(jobName);
         Iterator<JobExecutionInfoResource> resourceIter = resources.iterator();
+		int count = 0;
         while (resourceIter.hasNext()) {
             JobExecutionInfoResource resource = resourceIter.next();
 
             if (jobName.equals(resource.getName())) {
                 if (BatchStatus.COMPLETED.equals(resource.getJobExecution().getStatus())) {
-                    result = true;
+					count++;
                     break;
                 }
                 else {
-                    result = false;
                     break;
                 }
             }
         }
-        return result;
+        return jobCompleteCount == count;
     }
 
 	/**
@@ -423,7 +436,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	private JobDefinitionResource getJobDefinitionResource(String jobName) {
 		PagedResources<JobDefinitionResource> resources = springXDTemplate.jobOperations().list();
 		long timeout = System.currentTimeMillis() + WAIT_TIME;
-		while (!resources.iterator().hasNext() && System.currentTimeMillis() < timeout) {
+			while (!resources.iterator().hasNext() && System.currentTimeMillis() < timeout) {
 			sleepOneSecond();
 			resources = springXDTemplate.jobOperations().list();
 		}

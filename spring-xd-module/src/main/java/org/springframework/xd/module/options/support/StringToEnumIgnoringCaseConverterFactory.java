@@ -38,6 +38,8 @@ public class StringToEnumIgnoringCaseConverterFactory implements
 
 	@Override
 	public <T extends Enum> Converter<String, T> getConverter(Class<T> targetType) {
+		Assert.notNull(targetType, "The target type must not be null.");
+
 		Class<?> enumType = targetType;
 		while (enumType != null && !enumType.isEnum()) {
 			enumType = enumType.getSuperclass();

@@ -17,6 +17,8 @@ package org.springframework.xd.reactor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
@@ -32,9 +34,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import reactor.Environment;
-import reactor.fn.Consumer;
 import reactor.rx.Stream;
-import reactor.rx.action.Control;
+import reactor.rx.action.support.DefaultSubscriber;
 import reactor.rx.broadcast.Broadcaster;
 import reactor.rx.broadcast.SerializedBroadcaster;
 
@@ -64,6 +65,7 @@ import java.util.concurrent.ConcurrentMap;
  * All error handling is the responsibility of the processor implementation.
  *
  * @author Mark Pollack
+ * @author Stephane Maldini
  */
 public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingHandler implements DisposableBean,
         IntegrationEvaluationContextAware {
@@ -73,7 +75,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
     private final ConcurrentMap<Object, Broadcaster<Object>> broadcasterMap =
             new ConcurrentHashMap<Object, Broadcaster<Object>>();
 
-    private final Map<Object, Control> controlsMap = new Hashtable<Object, Control>();
+    private final Map<Object, Subscription> controlsMap = new Hashtable<Object, Subscription>();
 
     private final Environment environment;
 
@@ -116,17 +118,9 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
             throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
                     + "] or [" + message.getPayload().getClass() + "]");
         }
-
-        if (logger.isDebugEnabled()) {
-            Object idToUse = partitionExpression.getValue(evaluationContext, message, Object.class);
-            Control controls = this.controlsMap.get(idToUse);
-            if (controls != null) {
-                logger.debug(controls.debug());
-            }
-        }
     }
 
-
+    @SuppressWarnings("unchecked")
     private Broadcaster<Object> getBroadcaster(Message<?> message) {
         final Object idToUse = partitionExpression.getValue(evaluationContext, message, Object.class);
         if (logger.isDebugEnabled()) {
@@ -138,40 +132,40 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
             if (existingBroadcaster == null) {
                 broadcaster = broadcasterMap.get(idToUse);
                 //user defined stream processing
-                Stream<?> outputStream = processor.process(broadcaster);
+                Publisher<?> outputStream = processor.process(broadcaster);
 
-                final Control control = outputStream.consume(new Consumer<Object>() {
+                outputStream.subscribe(new DefaultSubscriber<Object>() {
+                    Subscription s;
+
                     @Override
-                    public void accept(Object outputObject) {
+                    public void onSubscribe(Subscription s) {
+                        this.s = s;
+                        controlsMap.put(idToUse, s);
+                        s.request(Long.MAX_VALUE);
+                    }
+
+                    @Override
+                    public void onNext(Object outputObject) {
                         if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
                             getOutputChannel().send((Message) outputObject);
                         } else {
                             getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
                         }
                     }
-                });
 
-                outputStream.when(Throwable.class, new Consumer<Throwable>() {
                     @Override
-                    public void accept(Throwable throwable) {
+                    public void onError(Throwable throwable) {
                         logger.error(throwable);
                         broadcasterMap.remove(idToUse);
                     }
-                });
 
-                broadcaster.observeComplete(new Consumer<Void>() {
                     @Override
-                    public void accept(Void aVoid) {
-                        logger.error("Consumer completed for [" + control + "]");
+                    public void onComplete() {
+                        logger.error("Consumer completed for [" + s + "]");
                         broadcasterMap.remove(idToUse);
                     }
                 });
 
-                controlsMap.put(idToUse, control);
-
-                if (logger.isDebugEnabled()) {
-                    logger.debug(control.debug());
-                }
             } else {
                 broadcaster = existingBroadcaster;
             }
@@ -181,8 +175,8 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     @Override
     public void destroy() throws Exception {
-        for (Control control : controlsMap.values()) {
-            control.cancel();
+        for (Subscription subscription : controlsMap.values()) {
+            subscription.cancel();
         }
         environment.shutdown();
     }

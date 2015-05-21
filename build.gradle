@@ -1021,7 +1021,7 @@ project('spring-xd-messagebus-kafka') {
 	dependencies {
 		compile project(':spring-xd-messagebus-spi')
 		compile("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
-			exclude group: 'org.apache.avro', module: ':avro-compiler'
+			exclude group: 'org.apache.avro', module: 'avro-compiler'
 		}
 	}
 }
@@ -1164,7 +1164,7 @@ project('spring-xd-shell') {
 		testCompile "org.springframework.integration:spring-integration-sftp"
 		testCompile "org.apache.sshd:sshd-core:$apacheSshdVersion"
 		testCompile ("org.springframework.integration:spring-integration-kafka:$springIntegrationKafkaVersion") {
-			exclude group: 'org.apache.avro', module: ':avro-compiler'
+			exclude group: 'org.apache.avro', module: 'avro-compiler'
 		}
 		testCompile project(":spring-xd-test")
 	}

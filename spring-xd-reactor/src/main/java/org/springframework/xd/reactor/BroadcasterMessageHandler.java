@@ -17,6 +17,9 @@ package org.springframework.xd.reactor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.ResolvableType;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
@@ -25,9 +28,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import reactor.Environment;
+import reactor.core.processor.RingBufferProcessor;
 import reactor.fn.Consumer;
 import reactor.rx.Stream;
+import reactor.rx.Streams;
 import reactor.rx.action.Control;
+import reactor.rx.action.support.DefaultSubscriber;
 import reactor.rx.broadcast.Broadcaster;
 import reactor.rx.broadcast.SerializedBroadcaster;
 
@@ -42,7 +48,7 @@ import java.lang.reflect.Method;
  * a call to onNext is invoked on the dispatcher thread of the message bus and sending a message to the output
  * channel will involve IO operations on the message bus.
  * <p/>
- * The implementation uses a {@link reactor.rx.broadcast.SerializedBroadcaster} with synchronous dispatch.
+ * The implementation uses a {@link reactor.core.processor.RingBufferProcessor} with asynchronous dispatch.
  * This has the advantage that the state of the Stream can be shared across all the incoming dispatcher threads that
  * are invoking onNext. It has the disadvantage that processing and sending to the output channel will execute serially
  * on one of the dispatcher threads.
@@ -53,27 +59,29 @@ import java.lang.reflect.Method;
  * result in 2 messages in the log, no matter how many dispatcher threads are used.
  * <p/>
  * You can modify what thread the outputStream subscriber, which does the send to the output channel,
- * will use by explicitly calling <code>observeOn</code> before returning the outputStream from your processor.
+ * will use by explicitly calling <code>dispatchOn</code> or other switch (http://projectreactor.io/docs/reference/#streams-multithreading)
+ * before returning the outputStream from your processor.
  * <p/>
  * Use {@link org.springframework.xd.reactor.MultipleBroadcasterMessageHandler} for concurrent execution on dispatcher
- * threads spread across across multiple Observables.
+ * threads spread across across multiple Stream.
  * <p/>
  * All error handling is the responsibility of the processor implementation.
  *
  * @author Mark Pollack
+ * @author Stephane Maldini
  */
-public class BroadcasterMessageHandler extends AbstractMessageProducingHandler {
+public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  implements DisposableBean {
 
     protected final Log logger = LogFactory.getLog(getClass());
 
-    private final Broadcaster<Object> stream;
+    private final RingBufferProcessor<Object> stream;
 
     @SuppressWarnings("rawtypes")
     private final Processor reactorProcessor;
 
     private final ResolvableType inputType;
 
-    private final Control control;
+    private Subscription processorSubscription;
 
     /**
      * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
@@ -89,35 +97,39 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler {
         Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
         this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
 
-        //Stream with a SynchronousDispatcher as this handler is called by Message Listener managed threads
-        this.stream = SerializedBroadcaster.create();
+        //Stream with a RingBufferProcessor
+        this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
 
         //user defined stream processing
-        Stream<?> outputStream = processor.process(stream);
+        Publisher<?> outputStream = processor.process(Streams.wrap(stream));
 
-        //Simple log error handling
-        outputStream.when(Throwable.class, new Consumer<Throwable>() {
+        outputStream.subscribe(new DefaultSubscriber<Object>() {
             @Override
-            public void accept(Throwable throwable) {
-                logger.error(throwable);
+            public void onSubscribe(Subscription s) {
+                processorSubscription = s;
+                s.request(Long.MAX_VALUE);
             }
-        });
 
-        this.control = outputStream.consume(new Consumer<Object>() {
             @Override
-            public void accept(Object outputObject) {
+            public void onNext(Object outputObject) {
                 if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
                     getOutputChannel().send((Message) outputObject);
                 } else {
                     getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
                 }
             }
+
+            @Override
+            public void onError(Throwable throwable) {
+                //Simple log error handling
+                logger.error(throwable);
+            }
+
+            @Override
+            public void onComplete() {
+                //Send a message ?
+            }
         });
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(control.debug());
-        }
-
     }
 
     @Override
@@ -129,10 +141,16 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler {
             //TODO handle type conversion of payload to input type if possible
             stream.onNext(message.getPayload());
         }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug(control.debug());
-        }
     }
 
+    @Override
+    public void destroy() throws Exception {
+        Subscription processorSubscription = this.processorSubscription;
+        if(processorSubscription != null){
+            this.processorSubscription = null;
+            processorSubscription.cancel();
+        }
+
+        Environment.terminate();
+    }
 }

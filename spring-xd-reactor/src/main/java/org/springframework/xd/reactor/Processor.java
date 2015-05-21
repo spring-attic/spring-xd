@@ -31,7 +31,7 @@ public interface Processor<I, O> {
      * and output stream will be mapped onto receive/send operations on the message bus.
      *
      * @param inputStream Input stream the receives messages from the message bus
-     * @return Output Publisher of messages sent to the message bus
+     * @return Output Publisher (Stream, Promise, or any valid Reactive Stream Publisher) of messages sent to the message bus
      */
     Publisher<O> process(Stream<I> inputStream);
 

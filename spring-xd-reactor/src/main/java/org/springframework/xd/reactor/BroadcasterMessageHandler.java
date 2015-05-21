@@ -103,7 +103,6 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
         //user defined stream processing
         Publisher<?> outputStream = processor.process(Streams.wrap(stream));
 
-        //Simple log error handling
         outputStream.subscribe(new DefaultSubscriber<Object>() {
             @Override
             public void onSubscribe(Subscription s) {
@@ -122,6 +121,7 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
 
             @Override
             public void onError(Throwable throwable) {
+                //Simple log error handling
                 logger.error(throwable);
             }
 

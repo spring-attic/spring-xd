@@ -14,6 +14,7 @@ buildscript {
 		classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
 		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.10.0'
 		classpath 'org.codehaus.groovy:groovy-backports-compat23:2.3.5'
+		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.0'
 	}
 }
 
@@ -176,6 +177,7 @@ configure(javaProjects) { subproject ->
 	apply plugin: 'propdeps'
 	apply plugin: 'propdeps-idea'
 	apply plugin: 'propdeps-eclipse'
+	apply plugin: 'com.jfrog.artifactory'
 
 	dependencies {
 		versionManagement files(rootProject.file('dependencies.properties'))

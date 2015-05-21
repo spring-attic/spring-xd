@@ -155,7 +155,7 @@ ext {
 	oldGuavaVersion = '15.0'  // This is only used by spring-xd-integration-test, IO uses version 17.0
 	guavaVersion = '16.0.1'
 
-	springDataHadoopBase = '2.2.0.M1'
+	springDataHadoopBase = '2.2.0.RC1'
 
 //	//Reactor 1.1 is used in spring-xd-extension-batch transitively though spring integration
 //	reactor11xVersion = '1.1.5.RELEASE'
@@ -673,6 +673,8 @@ project('spring-xd-hadoop') {
 
 		compile("org.springframework.data:spring-data-hadoop-store") { exclude group: 'org.apache.hadoop' }
 		testRuntime "org.xerial.snappy:snappy-java"
+		testRuntime "log4j:log4j"
+		testRuntime "org.slf4j:slf4j-log4j12"
 	}
 }
 

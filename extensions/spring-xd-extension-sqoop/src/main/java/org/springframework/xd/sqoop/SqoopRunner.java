@@ -197,7 +197,8 @@ public class SqoopRunner {
 		boolean connectProvided = false;
 		boolean connectNeeded = false;
 		if (command.toLowerCase().startsWith("import") || command.toLowerCase().startsWith("export") ||
-				command.toLowerCase().startsWith("create") || command.toLowerCase().startsWith("codegen")) {
+				command.toLowerCase().startsWith("create") || command.toLowerCase().startsWith("codegen") ||
+				command.toLowerCase().startsWith("list")) {
 			connectNeeded = true;
 		}
 		for (int i = 0; i < sqoopArguments.length; i++) {

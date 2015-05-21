@@ -5,12 +5,16 @@ task install(dependsOn:'publishToMavenLocal'){}
 ext.dependencyList = []
 
 def addChildrenToList(pResolvedDependency, addSelf) {
+	def dep = "${pResolvedDependency.moduleGroup}:${pResolvedDependency.moduleName}"
+
+    if (dependencyList.contains(dep)) {
+    	return
+    }
 
 	pResolvedDependency.children.each{
 		addChildrenToList(it,true)
 	}
 
-	def dep = "${pResolvedDependency.moduleGroup}:${pResolvedDependency.moduleName}"
 	if(addSelf && !dependencyList.contains(dep)) {
 		dependencyList << dep
 	}

@@ -1,6 +1,8 @@
 /*
  * Tasks related to building the Spring XD distribution
 */
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
 def dirtJars = []
 def loadDirtJars = {
 	if (dirtJars.size == 0) {
@@ -316,13 +318,6 @@ task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip, yarnModulesZip, ya
 	}
 }
 
-artifacts {
-	archives distZip
-	archives distYarnZip
-	archives docsZip
-	archives distShellZip
-}
-
 task dist(dependsOn: assemble) {
 	group = 'Distribution'
 	description = 'Builds XD binary and reference docs distribution archives.'
@@ -333,6 +328,8 @@ artifactory {
 	publish {
 		repository {
 			repoKey = 'libs-snapshot-local' // The Artifactory repository key to publish to
+			//username = 
+			//password = 
 		}
 		defaults {
 			// Reference to Gradle publications defined in the build script.
@@ -340,9 +337,35 @@ artifactory {
 			// published to Artifactory.
 			publications('mavenCustom')
 			publishArtifacts = true
+			properties {
+				archives '*:*:*:*@zip', 'zip.name':'spring-xd', 'zip.displayname':'Spring XD', 'zip.deployed':false
+				archives '*:*:*:docs@zip', 'zip.type':'docs'
+				archives '*:*:*:dist@zip', 'zip.type':'dist'
+			}
 		}
 	}
 	resolve {
 		repoKey = 'libs-snapshot'
+	}
+}
+
+publishing {
+	publications {
+		archives(MavenPublication) {
+			artifact distZip
+			artifact distYarnZip
+			artifact docsZip
+			artifact distShellZip
+		}
+	}
+}
+
+artifactoryPublish {
+	publications('archives')
+	publishArtifacts = true
+	properties {
+		archives '*:*:*:*@zip', 'zip.name':'spring-xd', 'zip.displayname':'Spring XD', 'zip.deployed':false
+		archives '*:*:*:docs@zip', 'zip.type':'docs'
+		archives '*:*:*:dist@zip', 'zip.type':'dist'
 	}
 }

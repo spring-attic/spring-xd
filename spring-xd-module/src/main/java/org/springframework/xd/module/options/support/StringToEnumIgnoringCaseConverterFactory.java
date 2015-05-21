@@ -47,7 +47,7 @@ public class StringToEnumIgnoringCaseConverterFactory implements
 		return new StringToEnum(enumType);
 	}
 
-	private class StringToEnum<T extends Enum> implements Converter<String, T> {
+	private static class StringToEnum<T extends Enum> implements Converter<String, T> {
 
 		private final Class<T> enumType;
 

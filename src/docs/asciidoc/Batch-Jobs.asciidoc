@@ -686,7 +686,7 @@ Once the job is launched, go to Spring XD admin-ui to verify the job results.
 Jobs → Executions → Select the job to verify that step execution context holds the log for Sqoop Tool execution results. You should see some tables listed there. Since we didn't provide any connection arguments Spring XD will by default use the batch respoitory database for the Sqoop Tool execution. We could provide options specifying a different database using the `--url`, `--username` and `--password` options for the job:
 
 ----
-xd:>job create sqoopListTables2 --definition "sqoop --command=import --url=jdbc:mysql://localhost:3306/test --username=myuser --password=mypasswd" --deploy
+xd:>job create sqoopListTables2 --definition "sqoop --command=list-tables --url=jdbc:mysql://localhost:3306/test --username=myuser --password=mypasswd" --deploy
 xd:>job launch --name sqoopListTables2
 ----
 
@@ -695,7 +695,7 @@ Here we connect to a local MySQL database. It's important to note that you need 
 There also is an option to specify connection arguments using the `--args` option. This allows you to use the same arguments that you are used to provide on the command line when running the Sqoop Tool directly. To connect to the same MySQL database as above using `--args` we would use:
 
 ----
-xd:>job create sqoopListTables3 --definition "sqoop --command=list-tables --connect=jdbc:mysql://localhost:3306/test --username=myuser --password=mypasswd" --deploy
+xd:>job create sqoopListTables3 --definition "sqoop --command=list-tables --args='--connect=jdbc:mysql://localhost:3306/test --username=myuser --password=mypasswd'" --deploy
 xd:>job launch --name sqoopListTables3
 ----
 

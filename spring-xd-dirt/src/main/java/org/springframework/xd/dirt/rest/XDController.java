@@ -120,7 +120,7 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	@ResponseStatus(HttpStatus.OK)
 	public void delete(@PathVariable("name") String name) throws Exception {
 		validator.validateBeforeDelete(name);
-		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
+		deploymentMessagePublisher.poll(new DeploymentMessage(deploymentUnitType)
 				.setUnitName(name)
 				.setDeploymentAction(DeploymentAction.destroy));
 	}
@@ -131,7 +131,7 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	@RequestMapping(value = "/definitions", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteAll() throws Exception {
-		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
+		deploymentMessagePublisher.poll(new DeploymentMessage(deploymentUnitType)
 				.setDeploymentAction(DeploymentAction.destroyAll));
 	}
 
@@ -144,7 +144,7 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	@ResponseStatus(HttpStatus.OK)
 	public void undeploy(@PathVariable("name") String name) throws Exception {
 		validator.validateBeforeUndeploy(name);
-		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
+		deploymentMessagePublisher.poll(new DeploymentMessage(deploymentUnitType)
 				.setUnitName(name)
 				.setDeploymentAction(DeploymentAction.undeploy));
 	}
@@ -155,7 +155,7 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	@RequestMapping(value = "/deployments", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void undeployAll() throws Exception {
-		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
+		deploymentMessagePublisher.poll(new DeploymentMessage(deploymentUnitType)
 				.setDeploymentAction(DeploymentAction.undeployAll));
 	}
 
@@ -171,7 +171,7 @@ public abstract class XDController<D extends BaseDefinition, A extends
 	public void deploy(@PathVariable("name") String name, @RequestParam(required = false) String properties) throws Exception {
 		Map<String, String> deploymentProperties = DeploymentPropertiesFormat.parseDeploymentProperties(properties);
 		validator.validateBeforeDeploy(name, deploymentProperties);
-		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
+		deploymentMessagePublisher.poll(new DeploymentMessage(deploymentUnitType)
 				.setUnitName(name)
 				.setDeploymentAction(DeploymentAction.deploy)
 				.setDeploymentProperties(deploymentProperties));
@@ -258,7 +258,7 @@ public abstract class XDController<D extends BaseDefinition, A extends
 			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) throws Exception {
 		DeploymentAction deploymentAction = (deploy) ? DeploymentAction.createAndDeploy : DeploymentAction.create;
 		validator.validateBeforeSave(name, definition);
-		deploymentMessagePublisher.publishDeploymentMessage(new DeploymentMessage(deploymentUnitType)
+		deploymentMessagePublisher.poll(new DeploymentMessage(deploymentUnitType)
 				.setUnitName(name)
 				.setDeploymentAction(deploymentAction)
 				.setDefinition(definition));

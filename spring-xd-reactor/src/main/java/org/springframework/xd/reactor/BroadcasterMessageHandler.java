@@ -134,7 +134,7 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
 
         if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
             stream.onNext(message);
-        } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
+        } else {
             //TODO handle type conversion of payload to input type if possible
             stream.onNext(message.getPayload());
         }

@@ -114,11 +114,8 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         RingBufferProcessor<Object> reactiveProcessorToUse = getReactiveProcessor(message);
         if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
             reactiveProcessorToUse.onNext(message);
-        } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
-            reactiveProcessorToUse.onNext(message.getPayload());
         } else {
-            throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
-                    + "] or [" + message.getPayload().getClass() + "]");
+            reactiveProcessorToUse.onNext(message.getPayload());
         }
     }
 

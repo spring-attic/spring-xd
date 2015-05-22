@@ -34,10 +34,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import reactor.Environment;
+import reactor.core.processor.RingBufferProcessor;
 import reactor.rx.Stream;
+import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
 import reactor.rx.broadcast.Broadcaster;
-import reactor.rx.broadcast.SerializedBroadcaster;
 
 import java.lang.reflect.Method;
 import java.util.Hashtable;
@@ -72,12 +73,10 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     protected final Log logger = LogFactory.getLog(getClass());
 
-    private final ConcurrentMap<Object, Broadcaster<Object>> broadcasterMap =
-            new ConcurrentHashMap<Object, Broadcaster<Object>>();
+    private final ConcurrentMap<Object, RingBufferProcessor<Object>> reactiveProcessorMap =
+        new ConcurrentHashMap<Object, RingBufferProcessor<Object>>();
 
     private final Map<Object, Subscription> controlsMap = new Hashtable<Object, Subscription>();
-
-    private final Environment environment;
 
     @SuppressWarnings("rawtypes")
     private final Processor processor;
@@ -102,37 +101,41 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         Assert.notNull(partitionExpression, "Partition expression can not be null");
         this.processor = processor;
         this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
-        environment = Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
+
+        // This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
+        Environment.initializeIfEmpty();
+
         Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Stream.class);
         this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
     }
 
     @Override
     protected void handleMessageInternal(Message<?> message) {
-        Broadcaster<Object> broadcasterToUse = getBroadcaster(message);
+        RingBufferProcessor<Object> reactiveProcessorToUse = getReactiveProcessor(message);
         if (ClassUtils.isAssignable(inputType.getRawClass(), message.getClass())) {
-            broadcasterToUse.onNext(message);
+            reactiveProcessorToUse.onNext(message);
         } else if (ClassUtils.isAssignable(inputType.getRawClass(), message.getPayload().getClass())) {
-            broadcasterToUse.onNext(message.getPayload());
+            reactiveProcessorToUse.onNext(message.getPayload());
         } else {
             throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
-                    + "] or [" + message.getPayload().getClass() + "]");
+                + "] or [" + message.getPayload().getClass() + "]");
         }
     }
 
     @SuppressWarnings("unchecked")
-    private Broadcaster<Object> getBroadcaster(Message<?> message) {
+    private RingBufferProcessor<Object> getReactiveProcessor(Message<?> message) {
         final Object idToUse = partitionExpression.getValue(evaluationContext, message, Object.class);
         if (logger.isDebugEnabled()) {
             logger.debug("Partition Expression evaluated to " + idToUse);
         }
-        Broadcaster<Object> broadcaster = broadcasterMap.get(idToUse);
-        if (broadcaster == null) {
-            Broadcaster<Object> existingBroadcaster = broadcasterMap.putIfAbsent(idToUse, SerializedBroadcaster.create());
-            if (existingBroadcaster == null) {
-                broadcaster = broadcasterMap.get(idToUse);
+        RingBufferProcessor<Object> reactiveProcessor = reactiveProcessorMap.get(idToUse);
+        if (reactiveProcessor == null) {
+            RingBufferProcessor<Object> existingReactiveProcessor =
+                reactiveProcessorMap.putIfAbsent(idToUse, RingBufferProcessor.share("xd-reactor-partition-" + idToUse, 64));
+            if (existingReactiveProcessor == null) {
+                reactiveProcessor = reactiveProcessorMap.get(idToUse);
                 //user defined stream processing
-                Publisher<?> outputStream = processor.process(broadcaster);
+                Publisher<?> outputStream = processor.process(Streams.wrap(reactiveProcessor));
 
                 outputStream.subscribe(new DefaultSubscriber<Object>() {
                     Subscription s;
@@ -156,21 +159,21 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
                     @Override
                     public void onError(Throwable throwable) {
                         logger.error(throwable);
-                        broadcasterMap.remove(idToUse);
+                        reactiveProcessorMap.remove(idToUse);
                     }
 
                     @Override
                     public void onComplete() {
                         logger.error("Consumer completed for [" + s + "]");
-                        broadcasterMap.remove(idToUse);
+                        reactiveProcessorMap.remove(idToUse);
                     }
                 });
 
             } else {
-                broadcaster = existingBroadcaster;
+                reactiveProcessor = existingReactiveProcessor;
             }
         }
-        return broadcaster;
+        return reactiveProcessor;
     }
 
     @Override

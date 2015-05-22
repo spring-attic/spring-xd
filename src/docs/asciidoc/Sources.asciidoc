@@ -1124,7 +1124,7 @@ $$socketTimeout$$:: $$sock timeout for network requests in milliseconds$$ *($$in
 $$streams$$:: $$number of streams in the topic$$ *($$int$$, default: `1`)*
 $$topic$$:: $$single topic name$$ *($$String$$, default: ``)*
 $$topics$$:: $$comma separated kafka topic names$$ *($$String$$, default: ``)*
-$$zkconnect$$:: $$zookeeper connect string$$ *($$String$$, default: `localhost:2181/kafka`)*
+$$zkconnect$$:: $$zookeeper connect string$$ *($$String$$, default: `localhost:2181`)*
 $$zkconnectionTimeout$$:: $$the max time the client waits to connect to ZK in milliseconds$$ *($$int$$, default: `6000`)*
 $$zksessionTimeout$$:: $$zookeeper session timeout in milliseconds$$ *($$int$$, default: `6000`)*
 $$zksyncTime$$:: $$how far a ZK follower can be behind a ZK leader in milliseconds$$ *($$int$$, default: `2000`)*

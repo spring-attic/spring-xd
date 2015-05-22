@@ -26,7 +26,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class KafkaZKOptionMixin {
 
-	private String zkconnect = "localhost:2181/kafka";
+	private String zkconnect = "localhost:2181";
 
 	private int zksessionTimeout = 6000;
 

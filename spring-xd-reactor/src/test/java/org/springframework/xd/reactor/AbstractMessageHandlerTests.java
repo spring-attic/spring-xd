@@ -50,17 +50,16 @@ public abstract class AbstractMessageHandlerTests {
 	public void pojoBasedProcessor() throws IOException {
 		sendPojoMessages();
 		for (int i = 0; i < numMessages; i++) {
-			Message<?> outputMessage = outputChannel1.receive(500);
+			Message<?> outputMessage = outputChannel1.receive(2000);
 			assertEquals("ping-pojopong", outputMessage.getPayload());
 		}
 	}
 
 	@Test
 	public void stringBasedProcessor() throws IOException {
-
 		sendStringMessages();
 		for (int i = 0; i < numMessages; i++) {
-			Message<?> outputMessage = outputChannel2.receive(500);
+			Message<?> outputMessage = outputChannel2.receive(2000);
 			assertEquals("ping-stringpong", outputMessage.getPayload());
 		}
 	}

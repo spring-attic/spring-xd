@@ -39,12 +39,12 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.retry.RecoveryCallback;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
@@ -419,8 +419,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			MessageValues transformed = serializePayloadIfNecessary(message,
-					MimeTypeUtils.APPLICATION_OCTET_STREAM);
+			MessageValues transformed = serializePayloadIfNecessary(message);
 
 			if (replyTo != null) {
 				transformed.put(XdHeaders.REPLY_TO, this.replyTo);
@@ -429,13 +428,10 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 				transformed.put(PARTITION_HEADER, determinePartition(message, this.partitioningMetadata));
 			}
-
-			@SuppressWarnings("unchecked")
-			Message<byte[]> transformedMessage = (Message<byte[]>) transformed.toMessage(getMessageBuilderFactory());
-			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformedMessage,
+			
+			byte[] messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
 					RedisMessageBus.this.headersToMap);
-			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
-			delegate.handleMessage(messageToSend);
+			delegate.handleMessage(MessageBuilder.withPayload(messageToSend).copyHeaders(transformed).build());
 		}
 
 	}
@@ -450,12 +446,13 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		@SuppressWarnings("unchecked")
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
-			Message<?> theRequestMessage = requestMessage;
+			MessageValues theRequestMessage;
 			try {
 				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage, true);
 			}
 			catch (Exception e) {
 				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);
+				theRequestMessage = new MessageValues(requestMessage);
 			}
 			return deserializePayloadIfNecessary(theRequestMessage).toMessage(getMessageBuilderFactory());
 		}

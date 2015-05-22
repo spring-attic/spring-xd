@@ -16,6 +16,10 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.util.MimeType;
@@ -27,16 +31,26 @@ import org.springframework.util.MimeType;
  */
 public class StringConvertingContentTypeResolver extends DefaultContentTypeResolver {
 
+	private ConcurrentMap<String,MimeType> mimeTypeCache = new ConcurrentHashMap<>();
 
 	@Override
-	// TODO: This will likely be pushed to core Spring
 	public MimeType resolve(MessageHeaders headers) {
+		return resolve((Map<String, Object>) headers);
+	}
+
+	public MimeType resolve(Map<String,Object> headers) {
 		Object value = headers.get(MessageHeaders.CONTENT_TYPE);
 		if (value instanceof MimeType) {
 			return (MimeType) value;
 		}
 		else if (value instanceof String) {
-			return MimeType.valueOf((String) value);
+			MimeType mimeType = mimeTypeCache.get(value);
+			if (mimeType == null) {
+				String valueAsString = (String) value;
+				mimeType = MimeType.valueOf(valueAsString);
+				mimeTypeCache.put(valueAsString,mimeType);
+			}
+			return mimeType;
 		}
 		return getDefaultMimeType();
 	}

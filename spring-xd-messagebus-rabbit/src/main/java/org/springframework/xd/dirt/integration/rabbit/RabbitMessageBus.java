@@ -83,7 +83,6 @@ import org.springframework.retry.interceptor.RetryOperationsInterceptor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
@@ -878,8 +877,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			MessageValues messageToSend = serializePayloadIfNecessary(message,
-					MimeTypeUtils.APPLICATION_OCTET_STREAM);
+			MessageValues messageToSend = serializePayloadIfNecessary(message
+			);
 
 			if (replyTo != null) {
 				messageToSend.put(AmqpHeaders.REPLY_TO, this.replyTo);

@@ -163,7 +163,7 @@ xd:
 #    kafka:
 #      brokers:                                 localhost:9092
 #      zkAddress:                               localhost:2181
-#      numOfKafkaPartitionsForCountEqualsZero:  10
+#      mode:                                    embeddedHeaders
 #      socketBufferSize:                        2097152
 #      offsetStoreTopic:                        SpringXdOffsets
 #      offsetStoreSegmentSize:                  25000000
@@ -177,7 +177,6 @@ xd:
 #      offsetUpdateCount:                       0
 #      offsetUpdateShutdownTimeout:             2000
 #      default:
-#        batchingEnabled:           false
 #        batchSize:                 16384
 #        batchTimeout:              0
 #        replicationFactor:         1

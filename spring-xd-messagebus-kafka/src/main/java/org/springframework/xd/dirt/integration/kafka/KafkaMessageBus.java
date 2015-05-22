@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -45,7 +46,8 @@ import org.apache.kafka.common.serialization.ByteArraySerializer;
 import scala.collection.Seq;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.integration.channel.DirectChannel;
+import org.springframework.http.MediaType;
+import org.springframework.integration.channel.FixedSubscriberChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -69,6 +71,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryOperations;
@@ -77,7 +80,6 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
@@ -254,7 +256,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private int defaultRequiredAcks = DEFAULT_REQUIRED_ACKS;
 
-	private int defaultQueueSize = 1000;
+	private int defaultQueueSize = 1024;
+
+	private int defaultMaxWait = 100;
 
 	private int defaultFetchSize = 1024 * 1024;
 
@@ -289,6 +293,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	private int offsetUpdateCount = 0;
 
 	private int offsetUpdateShutdownTimeout = 2000;
+
+	private Mode mode = Mode.embeddedHeaders;
 
 	public KafkaMessageBus(ZookeeperConnect zookeeperConnect, String brokers, String zkAddress,
 			MultiTypeCodec<Object> codec, String... headersToMap) {
@@ -376,6 +382,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		// we instantiate the connection factory here due to https://jira.spring.io/browse/XD-2647
 		ZookeeperConfiguration configuration = new ZookeeperConfiguration(this.zookeeperConnect);
 		configuration.setBufferSize(socketBufferSize);
+		configuration.setMaxWait(defaultMaxWait);
 		DefaultConnectionFactory defaultConnectionFactory =
 				new DefaultConnectionFactory(configuration);
 		defaultConnectionFactory.afterPropertiesSet();
@@ -454,6 +461,14 @@ public class KafkaMessageBus extends MessageBusSupport {
 		this.defaultMinPartitionCount = defaultMinPartitionCount;
 	}
 
+	public void setDefaultMaxWait(int defaultMaxWait) {
+		this.defaultMaxWait = defaultMaxWait;
+	}
+
+	public void setMode(Mode mode) {
+		this.mode = mode;
+	}
+
 	@Override
 	public void bindConsumer(String name, final MessageChannel moduleInputChannel, Properties properties) {
 		// Point-to-point consumers reset at the earliest time, which allows them to catch up with all messages
@@ -521,8 +536,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 					}
 				};
 
-				MessageHandler handler = new SendingHandler(messageHandler, topicName, accessor,
-						partitions.size());
+				MessageHandler handler = new SendingHandler(topicName, accessor,
+						partitions.size(), producerConfiguration);
 				EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel,
 						handler);
 				consumer.setBeanFactory(this.getBeanFactory());
@@ -661,7 +676,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 			}
 		}
 
-		final DirectChannel bridge = new DirectChannel();
+		ReceivingHandler rh = new ReceivingHandler();
+		rh.setOutputChannel(moduleInputChannel);
+
+		final FixedSubscriberChannel bridge = new FixedSubscriberChannel(rh);
 		bridge.setBeanName("bridge." + name);
 
 		final KafkaMessageListenerContainer messageListenerContainer =
@@ -679,8 +697,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
-		ReceivingHandler rh = new ReceivingHandler();
-		rh.setOutputChannel(moduleInputChannel);
+
 		EventDrivenConsumer edc = new EventDrivenConsumer(bridge, rh) {
 			@Override
 			protected void doStop() {
@@ -836,15 +853,28 @@ public class KafkaMessageBus extends MessageBusSupport {
 		@Override
 		@SuppressWarnings("unchecked")
 		protected Object handleRequestMessage(Message<?> requestMessage) {
-			Message<?> theRequestMessage = requestMessage;
-			try {
-				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage, true);
+			if (Mode.embeddedHeaders.equals(mode)) {
+				MessageValues messageValues;
+				try {
+					messageValues = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage, true);
+				}
+				catch (Exception e) {
+					logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);
+					messageValues = new MessageValues(requestMessage);
+				}
+				messageValues = deserializePayloadIfNecessary(messageValues);
+				return MessageBuilder.createMessage(messageValues.getPayload(), new KafkaBusMessageHeaders(messageValues));
+			} else {
+				return requestMessage;
 			}
-			catch (Exception e) {
-				logger.error(EmbeddedHeadersMessageConverter.decodeExceptionMessage(requestMessage), e);
-			}
-			return deserializePayloadIfNecessary(theRequestMessage).toMessage(getMessageBuilderFactory());
 		}
+
+		private final class KafkaBusMessageHeaders extends MessageHeaders {
+			KafkaBusMessageHeaders(Map<String,Object> headers) {
+				super(headers, MessageHeaders.ID_VALUE_NONE, -1L);
+			}
+		}
+
 
 		@Override
 		protected boolean shouldCopyRequestHeaders() {
@@ -854,8 +884,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 	}
 
 	private class SendingHandler extends AbstractMessageHandler {
-
-		private final MessageHandler delegate;
 
 		private final PartitioningMetadata partitioningMetadata;
 
@@ -867,10 +895,11 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		private int factor;
 
+		private final ProducerConfiguration<byte[], byte[]> producerConfiguration;
 
-		private SendingHandler(MessageHandler delegate, String topicName,
-				KafkaPropertiesAccessor properties, int numberOfPartitions) {
-			this.delegate = delegate;
+
+		private SendingHandler(String topicName, KafkaPropertiesAccessor properties, int numberOfPartitions,
+							   ProducerConfiguration<byte[], byte[]> producerConfiguration) {
 			this.topicName = topicName;
 			this.numberOfKafkaPartitions = numberOfPartitions;
 			this.partitioningMetadata = new PartitioningMetadata(properties);
@@ -885,6 +914,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 				this.factor = (numberOfKafkaPartitions + partitioningMetadata.getPartitionCount() - 1)
 						/ partitioningMetadata.getPartitionCount();
 			}
+			this.producerConfiguration = producerConfiguration;
 		}
 
 		@Override
@@ -902,20 +932,27 @@ public class KafkaMessageBus extends MessageBusSupport {
 				partition = roundRobin() % numberOfKafkaPartitions;
 			}
 
-			MessageValues transformed = serializePayloadIfNecessary(message,
-					MimeTypeUtils.APPLICATION_OCTET_STREAM);
-
-			transformed.put(PARTITION_HEADER, partition);
-			transformed.put("messageKey", partition);
-			transformed.put("topic", topicName);
-			transformed.put("topic", topicName);
-
-			@SuppressWarnings("unchecked")
-			Message<byte[]> transformedMessage = (Message<byte[]>) transformed.toMessage(getMessageBuilderFactory());
-			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformedMessage,
-					KafkaMessageBus.this.headersToMap);
-			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
-			delegate.handleMessage(messageToSend);
+			if (Mode.embeddedHeaders.equals(mode)) {
+				MessageValues transformed = serializePayloadIfNecessary(message);
+				byte[] messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
+						KafkaMessageBus.this.headersToMap);
+				producerConfiguration.send(topicName, partition, null, messageToSend);
+			}
+			else if (Mode.raw.equals(mode)) {
+				Object contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+				if (contentType != null
+						&& !contentType.equals(MediaType.APPLICATION_OCTET_STREAM_VALUE)) {
+					logger.error("Raw mode supports only " + MediaType.APPLICATION_OCTET_STREAM_VALUE + " content type"
+							+ message.getPayload().getClass());
+				}
+				if (message.getPayload() instanceof byte[]) {
+					producerConfiguration.send(topicName, partition, null, (byte[])message.getPayload());
+				}
+				else {
+					logger.error("Raw mode supports only byte[] payloads but value sent was of type "
+							+ message.getPayload().getClass());
+				}
+			}
 		}
 
 		private int roundRobin() {
@@ -926,6 +963,11 @@ public class KafkaMessageBus extends MessageBusSupport {
 			return result;
 		}
 
+	}
+
+	public enum Mode {
+		raw,
+		embeddedHeaders
 	}
 
 }

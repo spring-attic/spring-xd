@@ -75,9 +75,13 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 	@Override
 	protected MessageBus getMessageBus() {
 		if (messageBus == null) {
-			messageBus = new KafkaTestMessageBus(kafkaTestSupport, getCodec());
+			messageBus = createKafkaTestMessageBus();
 		}
 		return messageBus;
+	}
+
+	protected KafkaTestMessageBus createKafkaTestMessageBus() {
+		return new KafkaTestMessageBus(kafkaTestSupport, getCodec(), KafkaMessageBus.Mode.embeddedHeaders);
 	}
 
 	@Override
@@ -228,6 +232,7 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		messageBus.unbindProducers("foo" + uniqueBindingId + ".0");
 		messageBus.unbindConsumers("foo" + uniqueBindingId + ".0");
 	}
+
 
 	@Test
 	@Ignore("Kafka message bus does not support direct binding")

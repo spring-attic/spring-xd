@@ -17,6 +17,8 @@ package org.springframework.xd.reactor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
@@ -32,11 +34,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import reactor.Environment;
-import reactor.fn.Consumer;
+import reactor.core.processor.RingBufferProcessor;
 import reactor.rx.Stream;
-import reactor.rx.action.Control;
+import reactor.rx.Streams;
+import reactor.rx.action.support.DefaultSubscriber;
 import reactor.rx.broadcast.Broadcaster;
-import reactor.rx.broadcast.SerializedBroadcaster;
 
 import java.lang.reflect.Method;
 import java.util.Hashtable;
@@ -64,18 +66,17 @@ import java.util.concurrent.ConcurrentMap;
  * All error handling is the responsibility of the processor implementation.
  *
  * @author Mark Pollack
+ * @author Stephane Maldini
  */
 public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingHandler implements DisposableBean,
         IntegrationEvaluationContextAware {
 
     protected final Log logger = LogFactory.getLog(getClass());
 
-    private final ConcurrentMap<Object, Broadcaster<Object>> broadcasterMap =
-            new ConcurrentHashMap<Object, Broadcaster<Object>>();
+    private final ConcurrentMap<Object, RingBufferProcessor<Object>> reactiveProcessorMap =
+        new ConcurrentHashMap<Object, RingBufferProcessor<Object>>();
 
-    private final Map<Object, Control> controlsMap = new Hashtable<Object, Control>();
-
-    private final Environment environment;
+    private final Map<Object, Subscription> controlsMap = new Hashtable<Object, Subscription>();
 
     @SuppressWarnings("rawtypes")
     private final Processor processor;
@@ -100,91 +101,87 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         Assert.notNull(partitionExpression, "Partition expression can not be null");
         this.processor = processor;
         this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
-        environment = Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
+
+        // This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
+        Environment.initializeIfEmpty();
+
         Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Stream.class);
         this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
     }
 
     @Override
     protected void handleMessageInternal(Message<?> message) {
-        Broadcaster<Object> broadcasterToUse = getBroadcaster(message);
+        RingBufferProcessor<Object> reactiveProcessorToUse = getReactiveProcessor(message);
         if (ClassUtils.isAssignable(inputType.getRawClass(), message.getClass())) {
-            broadcasterToUse.onNext(message);
+            reactiveProcessorToUse.onNext(message);
         } else if (ClassUtils.isAssignable(inputType.getRawClass(), message.getPayload().getClass())) {
-            broadcasterToUse.onNext(message.getPayload());
+            reactiveProcessorToUse.onNext(message.getPayload());
         } else {
             throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
-                    + "] or [" + message.getPayload().getClass() + "]");
-        }
-
-        if (logger.isDebugEnabled()) {
-            Object idToUse = partitionExpression.getValue(evaluationContext, message, Object.class);
-            Control controls = this.controlsMap.get(idToUse);
-            if (controls != null) {
-                logger.debug(controls.debug());
-            }
+                + "] or [" + message.getPayload().getClass() + "]");
         }
     }
 
-
-    private Broadcaster<Object> getBroadcaster(Message<?> message) {
+    @SuppressWarnings("unchecked")
+    private RingBufferProcessor<Object> getReactiveProcessor(Message<?> message) {
         final Object idToUse = partitionExpression.getValue(evaluationContext, message, Object.class);
         if (logger.isDebugEnabled()) {
             logger.debug("Partition Expression evaluated to " + idToUse);
         }
-        Broadcaster<Object> broadcaster = broadcasterMap.get(idToUse);
-        if (broadcaster == null) {
-            Broadcaster<Object> existingBroadcaster = broadcasterMap.putIfAbsent(idToUse, SerializedBroadcaster.create());
-            if (existingBroadcaster == null) {
-                broadcaster = broadcasterMap.get(idToUse);
+        RingBufferProcessor<Object> reactiveProcessor = reactiveProcessorMap.get(idToUse);
+        if (reactiveProcessor == null) {
+            RingBufferProcessor<Object> existingReactiveProcessor =
+                reactiveProcessorMap.putIfAbsent(idToUse, RingBufferProcessor.share("xd-reactor-partition-" + idToUse, 64));
+            if (existingReactiveProcessor == null) {
+                reactiveProcessor = reactiveProcessorMap.get(idToUse);
                 //user defined stream processing
-                Stream<?> outputStream = processor.process(broadcaster);
+                Publisher<?> outputStream = processor.process(Streams.wrap(reactiveProcessor));
 
-                final Control control = outputStream.consume(new Consumer<Object>() {
+                outputStream.subscribe(new DefaultSubscriber<Object>() {
+                    Subscription s;
+
                     @Override
-                    public void accept(Object outputObject) {
+                    public void onSubscribe(Subscription s) {
+                        this.s = s;
+                        controlsMap.put(idToUse, s);
+                        s.request(Long.MAX_VALUE);
+                    }
+
+                    @Override
+                    public void onNext(Object outputObject) {
                         if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
                             getOutputChannel().send((Message) outputObject);
                         } else {
                             getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
                         }
                     }
-                });
 
-                outputStream.when(Throwable.class, new Consumer<Throwable>() {
                     @Override
-                    public void accept(Throwable throwable) {
+                    public void onError(Throwable throwable) {
                         logger.error(throwable);
-                        broadcasterMap.remove(idToUse);
+                        reactiveProcessorMap.remove(idToUse);
                     }
-                });
 
-                broadcaster.observeComplete(new Consumer<Void>() {
                     @Override
-                    public void accept(Void aVoid) {
-                        logger.error("Consumer completed for [" + control + "]");
-                        broadcasterMap.remove(idToUse);
+                    public void onComplete() {
+                        logger.error("Consumer completed for [" + s + "]");
+                        reactiveProcessorMap.remove(idToUse);
                     }
                 });
 
-                controlsMap.put(idToUse, control);
-
-                if (logger.isDebugEnabled()) {
-                    logger.debug(control.debug());
-                }
             } else {
-                broadcaster = existingBroadcaster;
+                reactiveProcessor = existingReactiveProcessor;
             }
         }
-        return broadcaster;
+        return reactiveProcessor;
     }
 
     @Override
     public void destroy() throws Exception {
-        for (Control control : controlsMap.values()) {
-            control.cancel();
+        for (Subscription subscription : controlsMap.values()) {
+            subscription.cancel();
         }
-        environment.shutdown();
+        Environment.terminate();
     }
 
     @Override

@@ -2,11 +2,14 @@
 == Creating a Data Stream Processor
 
 === Introduction
-This section covers how to create a processor module that uses stream processing libraries and runtimes.module. Spring XD 1.1 provides integration with Project Reactor Stream, RxJava Observables, and Spark Streaming. Creating a data stream processor in XD allows you to use a functional programming model to filter, transform and aggregate data in a very concise and performant way.  This section walks through implementing a custom processor module using each of these libraries.
+This section covers how to create a processor module that uses stream processing libraries and runtimes.module. Spring XD 1.2 provides integration with Project Reactor Stream, RxJava Observables, and Spark Streaming. Creating a data stream processor in XD allows you to use a functional programming model to filter, transform and aggregate data in a very concise and performant way.  This section walks through implementing a custom processor module using each of these libraries.
 
 [[reactor-streams]]
 === Reactor Streams
-https://github.com/reactor/reactor[Project Reactor] provides a https://reactor.github.io/docs/api/2.0.1.RELEASE/reactor/rx/Stream.html[Stream API] that is based on the http://www.reactive-streams.org/[Reactive Streams specification]. The specification was jointly developed by twenty people from a dozen companies (Pivotal included) and has the goal of creating a standard for asynchronous stream processing with non-blocking back pressure on the JVM.
+https://github.com/reactor/reactor[Project Reactor] provides a https://reactor.github.io/docs/api/2.0.2.RELEASE/reactor/rx/Stream.html[Stream API] that is based on the http://www.reactive-streams.org/[Reactive Streams specification]. The specification was jointly developed by twenty people from a dozen companies (Pivotal included) and has the goal of creating a standard for asynchronous stream processing with non-blocking back pressure on the JVM.
+
+[TIP]
+Explore Reactor with http://projectreactor.io/docs/reference/[the reference guide].
 
 To implement a Stream based processor module you need to implement the interface `org.springframework.xd.reactor.Processor`
 
@@ -18,17 +21,17 @@ public interface Processor<I, O> {
      * Process a stream of messages and return an output stream.  The input
      * and output stream will be mapped onto receive/send operations on the message bus.
      *
-     * @param inputStream Input stream the receives messages from the message bus
-     * @return Output stream of messages sent to the message bus
+     * @param inputStream Input Stream the receives messages from the message bus
+     * @return Output Publisher (Stream, Promise, or any valid Reactive Stream Publisher) of messages sent to the message bus
      */
-    Stream<O> process(Stream<I> inputStream);
+    Publisher<O> process(Stream<I> inputStream);
 
 }
 ----
 
-Messages that are delivered on the Message Bus are accessed from the input Stream.  The return value is the output Stream that is the result of applying various operations to the input stream.  The content of the output Stream is sent to the message bus for consumption by other processors or sinks.
+Messages that are delivered on the Message Bus are accessed from the input Stream, which can be directly composed.  The return value is the output Stream that is the result of applying various operations to the input stream.  The content of the output Stream is sent to the message bus for consumption by other processors or sinks.
 
-Examples of operations you can perform on the Stream are map, flatMap, buffer, window, and reduce.  The parameterized data type can be a `org.springframework.messaging.Message`, `org.springframework.xd.tuple.Tuple`, `java.lang.Map` or any other POJO.  The following example uses the `Tuple` object to compute the average value of a measurement from a sample size of 5.
+Examples of operations you can perform on the Stream are map, flatMap, buffer, window, and reduce. The parameterized data type can be a `org.springframework.messaging.Message`, `org.springframework.xd.tuple.Tuple`, `java.lang.Map` or any other POJO.  The following example uses the `Tuple` object to compute the average value of a measurement from a sample size of 5.
 
 [source,java]
 ----
@@ -41,7 +44,7 @@ import static org.springframework.xd.tuple.TupleBuilder.tuple;
 
 public class MovingAverage implements Processor<Tuple, Tuple> {
     @Override
-    public Stream<Tuple> process(Stream<Tuple> inputStream) {
+    public Publisher<Tuple> process(Stream<Tuple> inputStream) {
         return inputStream.map(tuple -> tuple.getDouble("measurement"))
                 .buffer(5)
                 .map(data -> tuple().of("average", avg(data)));
@@ -65,11 +68,9 @@ You can now create unit tests for the Processor module just as you would for any
     <bean id="messageProcessor" class="com.acme.MovingAverage"/>
 
 
-    <!-- The following configuration uses the SyncDispatcherMessageHandler -->
-
     <int:channel id="input"/>
 
-    <bean name="messageHandler" class="org.springframework.xd.reactor.SynchronousDispatcherMessageHandler">
+    <bean name="messageHandler" class="org.springframework.xd.reactor.BroadcasterMessageHandler">
         <constructor-arg ref="messageProcessor"/>
     </bean>
 

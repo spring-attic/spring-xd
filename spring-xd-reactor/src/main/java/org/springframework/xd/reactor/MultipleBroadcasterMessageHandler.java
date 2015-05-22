@@ -85,8 +85,6 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     private final Expression partitionExpression;
 
-    private final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
-
     private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
     /**
@@ -100,6 +98,8 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         Assert.notNull(processor, "processor cannot be null.");
         Assert.notNull(partitionExpression, "Partition expression can not be null");
         this.processor = processor;
+
+        SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
         this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
 
         // This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
@@ -174,7 +174,8 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     @Override
     public void destroy() throws Exception {
-        Collection<RingBufferProcessor> toRemove = new ArrayList<RingBufferProcessor>(reactiveProcessorMap.values());
+        Collection<RingBufferProcessor<Object>> toRemove =
+            new ArrayList<RingBufferProcessor<Object>>(reactiveProcessorMap.values());
         for (RingBufferProcessor ringBufferProcessor : toRemove) {
             ringBufferProcessor.onComplete();
         }

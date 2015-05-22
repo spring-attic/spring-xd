@@ -176,7 +176,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
     public void destroy() throws Exception {
         Collection<RingBufferProcessor<Object>> toRemove =
             new ArrayList<RingBufferProcessor<Object>>(reactiveProcessorMap.values());
-        for (RingBufferProcessor ringBufferProcessor : toRemove) {
+        for (RingBufferProcessor<Object> ringBufferProcessor : toRemove) {
             ringBufferProcessor.onComplete();
         }
         Environment.terminate();

@@ -359,8 +359,10 @@ project('modules.sink.rabbit') {
 // ================ M O D U L E S : J O B S ============================
 
 project('modules.job.sparkapp') {
-   dependencies {
-	runtime(project(":spring-xd-extension-spark"))
+    dependencies {
+        runtime(project(":spring-xd-extension-spark"))
+        runtime("org.slf4j:slf4j-log4j12")
+        runtime("log4j:log4j")
    }
 }
 

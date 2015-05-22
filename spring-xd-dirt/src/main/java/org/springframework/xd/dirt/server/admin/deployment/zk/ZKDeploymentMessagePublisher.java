@@ -17,7 +17,6 @@ import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorWatcher;
-import org.apache.curator.framework.recipes.queue.DistributedQueue;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
@@ -160,7 +159,7 @@ public class ZKDeploymentMessagePublisher implements DeploymentMessagePublisher 
 		}
 		finally {
 			try {
-				client.delete().forPath(resultPath);
+				client.delete().deletingChildrenIfNeeded().forPath(resultPath);
 			}
 			catch (Exception e) {
 				// logging this as debug; consequence is that the result

@@ -147,12 +147,12 @@ public class DeploymentMessageConsumer implements QueueConsumer<DeploymentMessag
 		try {
 			String requestId = message.getRequestId();
 			if (StringUtils.hasText(requestId)) {
-				logger.info("Processed deployment request " + requestId);
+				logger.debug("Processed deployment request " + requestId);
 				String resultPath = Paths.build(Paths.DEPLOYMENTS, Paths.RESPONSES, requestId,
 						errorDesc == null
 								? ZKDeploymentMessagePublisher.SUCCESS
 								: ZKDeploymentMessagePublisher.ERROR);
-				logger.info("creating result path {}", resultPath);
+				logger.debug("creating result path {}", resultPath);
 				zkConnection.getClient().create().forPath(resultPath,
 						errorDesc == null ? null : errorDesc.getBytes());
 			}

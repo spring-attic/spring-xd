@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
+import org.springframework.xd.test.rabbit.RabbitTestSupport;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Patrick Peralta
@@ -47,6 +50,12 @@ public class StreamPartitionTests extends AbstractDistributedTests {
 	private enum Transport {
 		rabbit, redis
 	}
+
+	@Rule
+	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
+
+	@Rule
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 
 	/**

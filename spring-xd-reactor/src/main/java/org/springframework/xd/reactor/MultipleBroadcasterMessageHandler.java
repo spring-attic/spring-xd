@@ -85,6 +85,8 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     private final Expression partitionExpression;
 
+    private final Environment environment;
+
     private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
     /**
@@ -103,7 +105,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
 
         // This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
-        Environment.initializeIfEmpty();
+        this.environment = Environment.initializeIfEmpty();
 
         Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Stream.class);
         this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
@@ -176,10 +178,12 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
     public void destroy() throws Exception {
         Collection<RingBufferProcessor<Object>> toRemove =
             new ArrayList<RingBufferProcessor<Object>>(reactiveProcessorMap.values());
+
         for (RingBufferProcessor<Object> ringBufferProcessor : toRemove) {
             ringBufferProcessor.onComplete();
         }
-        Environment.terminate();
+
+        environment.shutdown();
     }
 
     @Override

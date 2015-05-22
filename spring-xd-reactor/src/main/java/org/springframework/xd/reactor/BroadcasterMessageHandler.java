@@ -59,7 +59,8 @@ import java.lang.reflect.Method;
  * result in 2 messages in the log, no matter how many dispatcher threads are used.
  * <p/>
  * You can modify what thread the outputStream subscriber, which does the send to the output channel,
- * will use by explicitly calling <code>dispatchOn</code> or other switch (http://projectreactor.io/docs/reference/#streams-multithreading)
+ * will use by explicitly calling <code>dispatchOn</code> or other switch (http://projectreactor
+ * .io/docs/reference/#streams-multithreading)
  * before returning the outputStream from your processor.
  * <p/>
  * Use {@link org.springframework.xd.reactor.MultipleBroadcasterMessageHandler} for concurrent execution on dispatcher
@@ -70,79 +71,81 @@ import java.lang.reflect.Method;
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  implements DisposableBean {
+public class BroadcasterMessageHandler extends AbstractMessageProducingHandler implements DisposableBean {
 
-    protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass());
 
-    private final RingBufferProcessor<Object> stream;
+	private final RingBufferProcessor<Object> stream;
 
-    @SuppressWarnings("rawtypes")
-    private final Processor reactorProcessor;
+	private final Environment environment;
 
-    private final Class<?> inputType;
+	@SuppressWarnings("rawtypes")
+	private final Processor reactorProcessor;
 
-    /**
-     * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
-     * processing to.
-     *
-     * @param processor The stream based reactor processor
-     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public BroadcasterMessageHandler(Processor processor) {
-        Assert.notNull(processor, "processor cannot be null.");
-        this.reactorProcessor = processor;
-        Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
-        Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
-        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
+	private final Class<?> inputType;
 
-        //Stream with a RingBufferProcessor
-        this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
+	/**
+	 * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
+	 * processing to.
+	 *
+	 * @param processor The stream based reactor processor
+	 */
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public BroadcasterMessageHandler(Processor processor) {
+		Assert.notNull(processor, "processor cannot be null.");
+		this.reactorProcessor = processor;
+		environment = Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
+		Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
+		this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
 
-        //user defined stream processing
-        Publisher<?> outputStream = processor.process(Streams.wrap(stream));
+		//Stream with a RingBufferProcessor
+		this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
 
-        outputStream.subscribe(new DefaultSubscriber<Object>() {
-            @Override
-            public void onSubscribe(Subscription s) {
-                s.request(Long.MAX_VALUE);
-            }
+		//user defined stream processing
+		Publisher<?> outputStream = processor.process(Streams.wrap(stream));
 
-            @Override
-            public void onNext(Object outputObject) {
-                if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-                    getOutputChannel().send((Message) outputObject);
-                } else {
-                    getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-                }
-            }
+		outputStream.subscribe(new DefaultSubscriber<Object>() {
+			@Override
+			public void onSubscribe(Subscription s) {
+				s.request(Long.MAX_VALUE);
+			}
 
-            @Override
-            public void onError(Throwable throwable) {
-                //Simple log error handling
-                logger.error(throwable);
-            }
+			@Override
+			public void onNext(Object outputObject) {
+				if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
+					getOutputChannel().send((Message) outputObject);
+				} else {
+					getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+				}
+			}
 
-            @Override
-            public void onComplete() {
-                //Send a message ?
-            }
-        });
-    }
+			@Override
+			public void onError(Throwable throwable) {
+				//Simple log error handling
+				logger.error(throwable);
+			}
 
-    @Override
-    protected void handleMessageInternal(Message<?> message) throws Exception {
+			@Override
+			public void onComplete() {
+				System.out.println("HELLO");
+			}
+		});
+	}
 
-        if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-            stream.onNext(message);
-        } else {
-            //TODO handle type conversion of payload to input type if possible
-            stream.onNext(message.getPayload());
-        }
-    }
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+		System.out.println(Thread.currentThread() + " " + message);
+		if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
+			stream.onNext(message);
+		} else {
+			//TODO handle type conversion of payload to input type if possible
+			stream.onNext(message.getPayload());
+		}
+	}
 
-    @Override
-    public void destroy() throws Exception {
-        stream.onComplete();
-        Environment.terminate();
-    }
+	@Override
+	public void destroy() throws Exception {
+			stream.onComplete();
+			environment.shutdown();
+	}
 }

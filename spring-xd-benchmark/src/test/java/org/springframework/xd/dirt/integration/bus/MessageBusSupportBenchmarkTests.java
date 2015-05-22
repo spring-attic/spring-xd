@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StopWatch;
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
@@ -91,8 +90,8 @@ ms     %     Task name
 		Message<?> message = new GenericMessage(payload);
 		int ITERATIONS = 1000000;
 		for (int i = 0; i < ITERATIONS; i++) {
-			MessageValues msg = messageBusSupport.serializePayloadIfNecessary(message,
-					MimeTypeUtils.APPLICATION_OCTET_STREAM);
+			MessageValues msg = messageBusSupport.serializePayloadIfNecessary(message
+			);
 			messageBusSupport.deserializePayloadIfNecessary(msg.toMessage());
 			if (i > 0 && i % 100000 == 0) {
 				System.out.println("completed " + i + " iterations.");

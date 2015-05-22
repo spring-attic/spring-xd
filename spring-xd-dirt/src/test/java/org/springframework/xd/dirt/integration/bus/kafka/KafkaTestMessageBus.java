@@ -43,11 +43,11 @@ import org.springframework.xd.tuple.Tuple;
 public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus> {
 
 	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport) {
-		this(kafkaTestSupport, getCodec());
+		this(kafkaTestSupport, getCodec(), KafkaMessageBus.Mode.embeddedHeaders);
 	}
 
 
-	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport, MultiTypeCodec<Object> codec) {
+	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport, MultiTypeCodec<Object> codec, KafkaMessageBus.Mode mode) {
 
 		try {
 			ZookeeperConnect zookeeperConnect = new ZookeeperConnect();
@@ -56,6 +56,7 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 					kafkaTestSupport.getBrokerAddress(),
 					kafkaTestSupport.getZkConnectString(), codec);
 			messageBus.setDefaultBatchingEnabled(false);
+			messageBus.setMode(mode);
 			messageBus.afterPropertiesSet();
 			GenericApplicationContext context = new GenericApplicationContext();
 			context.refresh();

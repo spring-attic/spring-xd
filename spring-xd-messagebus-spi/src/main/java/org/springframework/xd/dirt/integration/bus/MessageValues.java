@@ -46,6 +46,11 @@ public class MessageValues implements Map<String, Object> {
 		}
 	}
 
+	public MessageValues(Object payload, Map<String,Object> headers) {
+		this.payload = payload;
+		this.headers.putAll(headers);
+	}
+
 	/**
 	 * @return the payload
 	 */
@@ -138,5 +143,13 @@ public class MessageValues implements Map<String, Object> {
 	@Override
 	public Set<Entry<String, Object>> entrySet() {
 		return headers.entrySet();
+	}
+
+	public void copyHeadersIfAbsent(Map<String,Object> headersToCopy) {
+		for (Entry<String, Object> headersToCopyEntry	 : headersToCopy.entrySet()) {
+			if (!containsKey(headersToCopyEntry.getKey())) {
+				put(headersToCopyEntry.getKey(), headersToCopyEntry.getValue());
+			}
+		}
 	}
 }

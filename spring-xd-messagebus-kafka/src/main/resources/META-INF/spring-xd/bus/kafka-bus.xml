@@ -18,6 +18,8 @@
 		<constructor-arg ref="codec"/>
 		<constructor-arg value="#{new String[0]}"/>
 
+		<property name="mode" value="${xd.messagebus.kafka.mode}"/>
+
 		<!-- Producer properties -->
 		<property name="defaultBatchSize" value="${xd.messagebus.kafka.default.batchSize}"/>
 		<property name="defaultBatchTimeout" value="${xd.messagebus.kafka.default.batchTimeout}"/>

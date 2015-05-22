@@ -68,8 +68,8 @@ public class MessageBusSupportTests {
 	public void testBytesPassThru() {
 		byte[] payload = "foo".getBytes();
 		Message<byte[]> message = MessageBuilder.withPayload(payload).build();
-		MessageValues converted = messageBus.serializePayloadIfNecessary(message,
-				MimeTypeUtils.APPLICATION_OCTET_STREAM);
+		MessageValues converted = messageBus.serializePayloadIfNecessary(message
+		);
 		assertSame(payload, converted.getPayload());
 		Message<?> convertedMessage = converted.toMessage();
 		assertSame(payload, convertedMessage.getPayload());
@@ -87,8 +87,8 @@ public class MessageBusSupportTests {
 		Message<byte[]> message = MessageBuilder.withPayload(payload)
 				.setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE)
 				.build();
-		MessageValues messageValues = messageBus.serializePayloadIfNecessary(message,
-				MimeTypeUtils.APPLICATION_OCTET_STREAM);
+		MessageValues messageValues = messageBus.serializePayloadIfNecessary(message
+		);
 		Message<?> converted = messageValues.toMessage();
 		assertSame(payload, converted.getPayload());
 		assertEquals(MimeTypeUtils.APPLICATION_OCTET_STREAM,
@@ -104,7 +104,7 @@ public class MessageBusSupportTests {
 	@Test
 	public void testString() throws IOException {
 		MessageValues convertedValues = messageBus.serializePayloadIfNecessary(
-				new GenericMessage<String>("foo"), MimeTypeUtils.APPLICATION_OCTET_STREAM);
+				new GenericMessage<String>("foo"));
 
 		Message<?> converted = convertedValues.toMessage();
 		assertEquals(MimeTypeUtils.TEXT_PLAIN,
@@ -120,7 +120,7 @@ public class MessageBusSupportTests {
 				.copyHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON))
 				.build();
 		MessageValues convertedValues = messageBus.serializePayloadIfNecessary(
-				inbound, MimeTypeUtils.APPLICATION_OCTET_STREAM);
+				inbound);
 
 		Message<?> converted = convertedValues.toMessage();
 
@@ -136,8 +136,8 @@ public class MessageBusSupportTests {
 	@Test
 	public void testPojoSerialization() {
 		MessageValues convertedValues = messageBus.serializePayloadIfNecessary(
-				new GenericMessage<Foo>(new Foo("bar")),
-				MimeTypeUtils.APPLICATION_OCTET_STREAM);
+				new GenericMessage<Foo>(new Foo("bar"))
+		);
 		Message<?> converted = convertedValues.toMessage();
 		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
 		assertEquals("application", mimeType.getType());
@@ -152,8 +152,8 @@ public class MessageBusSupportTests {
 	@Test
 	public void testPojoWithXJavaObjectMimeTypeNoType() {
 		MessageValues convertedValues = messageBus.serializePayloadIfNecessary(
-				new GenericMessage<Foo>(new Foo("bar")),
-				MimeTypeUtils.APPLICATION_OCTET_STREAM);
+				new GenericMessage<Foo>(new Foo("bar"))
+		);
 		Message<?> converted = convertedValues.toMessage();
 		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
 		assertEquals("application", mimeType.getType());
@@ -168,8 +168,8 @@ public class MessageBusSupportTests {
 	@Test
 	public void testPojoWithXJavaObjectMimeTypeExplicitType() {
 		MessageValues convertedValues = messageBus.serializePayloadIfNecessary(
-				new GenericMessage<Foo>(new Foo("bar")),
-				MimeTypeUtils.APPLICATION_OCTET_STREAM);
+				new GenericMessage<Foo>(new Foo("bar"))
+		);
 		Message<?> converted = convertedValues.toMessage();
 		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
 		assertEquals("application", mimeType.getType());
@@ -184,8 +184,8 @@ public class MessageBusSupportTests {
 	@Test
 	public void testTupleSerialization() {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
-		MessageValues convertedValues = messageBus.serializePayloadIfNecessary(new GenericMessage<Tuple>(payload),
-				MimeTypeUtils.APPLICATION_OCTET_STREAM);
+		MessageValues convertedValues = messageBus.serializePayloadIfNecessary(new GenericMessage<Tuple>(payload)
+		);
 		Message<?> converted = convertedValues.toMessage();
 		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
 		assertEquals("application", mimeType.getType());

@@ -42,15 +42,15 @@ public class MessageConverterTests {
 				.setHeader("foo", "bar")
 				.setHeader("baz", "quxx")
 				.build();
-		Message<byte[]> converted = converter.embedHeaders(message, "foo", "baz");
-		assertEquals(0xff, converted.getPayload()[0] & 0xff);
+		byte[] embedded = converter.embedHeaders(new MessageValues(message), "foo", "baz");
+		assertEquals(0xff, embedded[0] & 0xff);
 		assertEquals("\u0002\u0003foo\u0000\u0000\u0000\u0005\"bar\"\u0003baz\u0000\u0000\u0000\u0006\"quxx\"Hello",
-				new String(converted.getPayload()).substring(1));
+				new String(embedded).substring(1));
 
-		converted = converter.extractHeaders(converted,false);
-		assertEquals("Hello", new String(converted.getPayload()));
-		assertEquals("bar", converted.getHeaders().get("foo"));
-		assertEquals("quxx", converted.getHeaders().get("baz"));
+		MessageValues extracted = converter.extractHeaders(MessageBuilder.withPayload(embedded).build(), false);
+		assertEquals("Hello", new String((byte[])extracted.getPayload()));
+		assertEquals("bar", extracted.get("foo"));
+		assertEquals("quxx", extracted.get("baz"));
 	}
 
 	@Test
@@ -59,10 +59,10 @@ public class MessageConverterTests {
 		Message<byte[]> message = MessageBuilder.withPayload("Hello".getBytes())
 				.setHeader("foo", "bar")
 				.build();
-		Message<byte[]> converted = converter.embedHeaders(message, "foo", "baz");
-		assertEquals(0xff, converted.getPayload()[0] & 0xff);
+		byte[] embedded = converter.embedHeaders(new MessageValues(message), "foo", "baz");
+		assertEquals(0xff, embedded[0] & 0xff);
 		assertEquals("\u0001\u0003foo\u0000\u0000\u0000\u0005\"bar\"Hello",
-				new String(converted.getPayload()).substring(1));
+				new String(embedded).substring(1));
 	}
 
 	@Test
@@ -70,10 +70,10 @@ public class MessageConverterTests {
 		EmbeddedHeadersMessageConverter converter = new EmbeddedHeadersMessageConverter();
 		byte[] bytes = "\u0002\u0003foo\u0003bar\u0003baz\u0004quxxHello".getBytes("UTF-8");
 		Message<byte[]> message = new GenericMessage<byte[]>(bytes);
-		Message<byte[]> converted = converter.extractHeaders(message,false);
-		assertEquals("Hello", new String(converted.getPayload()));
-		assertEquals("bar", converted.getHeaders().get("foo"));
-		assertEquals("quxx", converted.getHeaders().get("baz"));
+		MessageValues extracted = converter.extractHeaders(message,false);
+		assertEquals("Hello", new String((byte[])extracted.getPayload()));
+		assertEquals("bar", extracted.get("foo"));
+		assertEquals("quxx", extracted.get("baz"));
 	}
 
 	@Test

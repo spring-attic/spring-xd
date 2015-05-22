@@ -244,10 +244,12 @@ public class SparkTasklet implements Tasklet, EnvironmentAware, StepExecutionLis
 		StringBuilder classPathBuilder = new StringBuilder();
 		String separator = System.getProperty("path.separator");
 		for (String url : classPath) {
-			if (classPathBuilder.length() > 0) {
-				classPathBuilder.append(separator);
+			if (!url.contains("logback")) {
+				if (classPathBuilder.length() > 0) {
+					classPathBuilder.append(separator);
+				}
+				classPathBuilder.append(url);
 			}
-			classPathBuilder.append(url);
 		}
 
 		ProcessBuilder pb = new ProcessBuilder(sparkCommand).redirectErrorStream(true);

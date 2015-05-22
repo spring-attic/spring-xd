@@ -79,7 +79,7 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
     @SuppressWarnings("rawtypes")
     private final Processor reactorProcessor;
 
-    private final ResolvableType inputType;
+    private final Class<?> inputType;
 
     private Subscription processorSubscription;
 
@@ -95,7 +95,7 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
         this.reactorProcessor = processor;
         Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
         Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
-        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
+        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
 
         //Stream with a RingBufferProcessor
         this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
@@ -135,9 +135,9 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {
 
-        if (ClassUtils.isAssignable(inputType.getRawClass(), message.getClass())) {
+        if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
             stream.onNext(message);
-        } else if (ClassUtils.isAssignable(inputType.getRawClass(), message.getPayload().getClass())) {
+        } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
             //TODO handle type conversion of payload to input type if possible
             stream.onNext(message.getPayload());
         }

@@ -81,7 +81,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
     @SuppressWarnings("rawtypes")
     private final Processor processor;
 
-    private final ResolvableType inputType;
+    private final Class<?> inputType;
 
     private final Expression partitionExpression;
 
@@ -106,15 +106,15 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         Environment.initializeIfEmpty();
 
         Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Stream.class);
-        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2);
+        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
     }
 
     @Override
     protected void handleMessageInternal(Message<?> message) {
         RingBufferProcessor<Object> reactiveProcessorToUse = getReactiveProcessor(message);
-        if (ClassUtils.isAssignable(inputType.getRawClass(), message.getClass())) {
+        if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
             reactiveProcessorToUse.onNext(message);
-        } else if (ClassUtils.isAssignable(inputType.getRawClass(), message.getPayload().getClass())) {
+        } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
             reactiveProcessorToUse.onNext(message.getPayload());
         } else {
             throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()

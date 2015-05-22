@@ -81,8 +81,6 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
 
     private final Class<?> inputType;
 
-    private Subscription processorSubscription;
-
     /**
      * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
      * processing to.
@@ -106,7 +104,6 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
         outputStream.subscribe(new DefaultSubscriber<Object>() {
             @Override
             public void onSubscribe(Subscription s) {
-                processorSubscription = s;
                 s.request(Long.MAX_VALUE);
             }
 
@@ -145,12 +142,7 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
 
     @Override
     public void destroy() throws Exception {
-        Subscription processorSubscription = this.processorSubscription;
-        if(processorSubscription != null){
-            this.processorSubscription = null;
-            processorSubscription.cancel();
-        }
-
+        stream.onComplete();
         Environment.terminate();
     }
 }

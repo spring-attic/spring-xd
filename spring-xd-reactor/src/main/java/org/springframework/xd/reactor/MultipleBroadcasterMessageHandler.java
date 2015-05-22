@@ -41,6 +41,8 @@ import reactor.rx.action.support.DefaultSubscriber;
 import reactor.rx.broadcast.Broadcaster;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,8 +77,6 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     private final ConcurrentMap<Object, RingBufferProcessor<Object>> reactiveProcessorMap =
             new ConcurrentHashMap<Object, RingBufferProcessor<Object>>();
-
-    private final Map<Object, Subscription> controlsMap = new Hashtable<Object, Subscription>();
 
     @SuppressWarnings("rawtypes")
     private final Processor processor;
@@ -143,7 +143,6 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
                     @Override
                     public void onSubscribe(Subscription s) {
                         this.s = s;
-                        controlsMap.put(idToUse, s);
                         s.request(Long.MAX_VALUE);
                     }
 
@@ -178,8 +177,9 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     @Override
     public void destroy() throws Exception {
-        for (Subscription subscription : controlsMap.values()) {
-            subscription.cancel();
+        Collection<RingBufferProcessor> toRemove = new ArrayList<RingBufferProcessor>(reactiveProcessorMap.values());
+        for (RingBufferProcessor ringBufferProcessor : toRemove) {
+            ringBufferProcessor.onComplete();
         }
         Environment.terminate();
     }

@@ -96,8 +96,7 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler i
 		this.reactorProcessor = processor;
 		environment = Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
 		Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
-		this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
-
+		this.inputType = ResolvableType.forMethodParameter(method, 0).getGeneric().getRawClass();
 		//Stream with a RingBufferProcessor
 		this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
 
@@ -127,18 +126,18 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler i
 
 			@Override
 			public void onComplete() {
-				System.out.println("HELLO");
+				//ignore
 			}
 		});
 	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		System.out.println(Thread.currentThread() + " " + message);
 		if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
 			stream.onNext(message);
 		} else {
 			//TODO handle type conversion of payload to input type if possible
+
 			stream.onNext(message.getPayload());
 		}
 	}

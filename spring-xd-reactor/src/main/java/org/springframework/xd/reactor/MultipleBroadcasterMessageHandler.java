@@ -108,7 +108,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         this.environment = Environment.initializeIfEmpty();
 
         Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Stream.class);
-        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
+        this.inputType = ResolvableType.forMethodParameter(method, 0).getGeneric().getRawClass();
     }
 
     @Override

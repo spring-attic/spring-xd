@@ -28,7 +28,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -38,13 +37,10 @@ import reactor.core.processor.RingBufferProcessor;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
-import reactor.rx.broadcast.Broadcaster;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Hashtable;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -70,18 +66,20 @@ import java.util.concurrent.ConcurrentMap;
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingHandler implements DisposableBean,
+public class MultipleBroadcasterMessageHandler<IN, OUT> extends AbstractMessageProducingHandler implements DisposableBean,
         IntegrationEvaluationContextAware {
 
     protected final Log logger = LogFactory.getLog(getClass());
 
-    private final ConcurrentMap<Object, RingBufferProcessor<Object>> reactiveProcessorMap =
-            new ConcurrentHashMap<Object, RingBufferProcessor<Object>>();
+    private final ConcurrentMap<Object, RingBufferProcessor<IN>> reactiveProcessorMap =
+            new ConcurrentHashMap<Object, RingBufferProcessor<IN>>();
 
     @SuppressWarnings("rawtypes")
-    private final Processor processor;
+    private final Processor<IN, OUT> processor;
 
     private final Class<?> inputType;
+
+    private final ResolvableType resolvableInputType;
 
     private final Expression partitionExpression;
 
@@ -96,7 +94,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
      * @param processor The stream based reactor processor
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public MultipleBroadcasterMessageHandler(Processor processor, String partitionExpression) {
+    public MultipleBroadcasterMessageHandler(Processor<IN, OUT> processor, String partitionExpression) {
         Assert.notNull(processor, "processor cannot be null.");
         Assert.notNull(partitionExpression, "Partition expression can not be null");
         this.processor = processor;
@@ -108,29 +106,34 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         this.environment = Environment.initializeIfEmpty();
 
         Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Stream.class);
-        this.inputType = ResolvableType.forMethodParameter(method, 0).getGeneric().getRawClass();
+        resolvableInputType = ResolvableType.forMethodParameter(method, 0).getGeneric();
+        this.inputType = resolvableInputType == null ? null : resolvableInputType.getRawClass();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void handleMessageInternal(Message<?> message) {
-        RingBufferProcessor<Object> reactiveProcessorToUse = getReactiveProcessor(message);
+        RingBufferProcessor<IN> reactiveProcessorToUse = getReactiveProcessor(message);
         if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-            reactiveProcessorToUse.onNext(message);
+            reactiveProcessorToUse.onNext((IN)message);
         } else {
-            reactiveProcessorToUse.onNext(message.getPayload());
+            reactiveProcessorToUse.onNext((IN)message.getPayload());
         }
     }
 
     @SuppressWarnings("unchecked")
-    private RingBufferProcessor<Object> getReactiveProcessor(Message<?> message) {
+    private RingBufferProcessor<IN> getReactiveProcessor(Message<?> message) {
         final Object idToUse = partitionExpression.getValue(evaluationContext, message, Object.class);
         if (logger.isDebugEnabled()) {
             logger.debug("Partition Expression evaluated to " + idToUse);
         }
-        RingBufferProcessor<Object> reactiveProcessor = reactiveProcessorMap.get(idToUse);
+        RingBufferProcessor<IN> reactiveProcessor = reactiveProcessorMap.get(idToUse);
         if (reactiveProcessor == null) {
-            RingBufferProcessor<Object> existingReactiveProcessor =
-                    reactiveProcessorMap.putIfAbsent(idToUse, RingBufferProcessor.share("xd-reactor-partition-" + idToUse, 64));
+            RingBufferProcessor<IN> newReactiveProcessor =
+                RingBufferProcessor.share("xd-reactor-partition-" + idToUse, 64);
+
+            RingBufferProcessor<IN> existingReactiveProcessor =
+                    reactiveProcessorMap.putIfAbsent(idToUse, newReactiveProcessor);
             if (existingReactiveProcessor == null) {
                 reactiveProcessor = reactiveProcessorMap.get(idToUse);
                 //user defined stream processing
@@ -168,6 +171,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
                 });
 
             } else {
+                newReactiveProcessor.onComplete();
                 reactiveProcessor = existingReactiveProcessor;
             }
         }
@@ -176,10 +180,10 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     @Override
     public void destroy() throws Exception {
-        Collection<RingBufferProcessor<Object>> toRemove =
-            new ArrayList<RingBufferProcessor<Object>>(reactiveProcessorMap.values());
+        Collection<RingBufferProcessor<IN>> toRemove =
+            new ArrayList<RingBufferProcessor<IN>>(reactiveProcessorMap.values());
 
-        for (RingBufferProcessor<Object> ringBufferProcessor : toRemove) {
+        for (RingBufferProcessor<IN> ringBufferProcessor : toRemove) {
             ringBufferProcessor.onComplete();
         }
 

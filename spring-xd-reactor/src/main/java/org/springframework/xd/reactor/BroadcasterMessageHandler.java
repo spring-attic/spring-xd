@@ -29,13 +29,9 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
-import reactor.fn.Consumer;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
-import reactor.rx.action.Control;
 import reactor.rx.action.support.DefaultSubscriber;
-import reactor.rx.broadcast.Broadcaster;
-import reactor.rx.broadcast.SerializedBroadcaster;
 
 import java.lang.reflect.Method;
 
@@ -71,18 +67,19 @@ import java.lang.reflect.Method;
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class BroadcasterMessageHandler extends AbstractMessageProducingHandler implements DisposableBean {
+public class BroadcasterMessageHandler<IN, OUT> extends AbstractMessageProducingHandler implements DisposableBean {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final RingBufferProcessor<Object> stream;
+	private final RingBufferProcessor<IN> stream;
 
 	private final Environment environment;
 
 	@SuppressWarnings("rawtypes")
-	private final Processor reactorProcessor;
+	private final Processor<IN, OUT> reactorProcessor;
 
 	private final Class<?> inputType;
+	private final ResolvableType resolvableInputType;
 
 	/**
 	 * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
@@ -91,13 +88,16 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler i
 	 * @param processor The stream based reactor processor
 	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public BroadcasterMessageHandler(Processor processor) {
+	public BroadcasterMessageHandler(Processor<IN, OUT> processor) {
 		Assert.notNull(processor, "processor cannot be null.");
 		this.reactorProcessor = processor;
 		environment = Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
+
 		Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
-		this.inputType = ResolvableType.forMethodParameter(method, 0).getGeneric().getRawClass();
-		//Stream with a RingBufferProcessor
+		resolvableInputType = ResolvableType.forMethodParameter(method, 0).getGeneric();
+		this.inputType = resolvableInputType == null ? null : resolvableInputType.getRawClass();
+
+		//Stream with a  RingBufferProcessor
 		this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
 
 		//user defined stream processing
@@ -132,13 +132,15 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler i
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void handleMessageInternal(Message<?> message) throws Exception {
+
 		if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-			stream.onNext(message);
+			stream.onNext((IN)message);
 		} else {
 			//TODO handle type conversion of payload to input type if possible
 
-			stream.onNext(message.getPayload());
+			stream.onNext((IN)message.getPayload());
 		}
 	}
 

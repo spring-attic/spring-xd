@@ -42,7 +42,7 @@ import static org.junit.Assert.assertTrue;
 
 
 /**
-/**
+ * /**
  * Base Class for Spring XD Integration Job test classes
  *
  * @author Glenn Renfro
@@ -65,10 +65,10 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 		springXDTemplate = createSpringXDTemplate();
 		destroyAllJobs();
 		waitForEmptyJobList(WAIT_TIME);
-        StreamUtils.destroyAllStreams(adminServer);
-        waitForXD();
+		StreamUtils.destroyAllStreams(adminServer);
+		waitForXD();
 
-    }
+	}
 
 	/**
 	 * Destroys all streams created in the test.
@@ -146,6 +146,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 
 	/**
 	 * Deploys the job with the jobName.
+	 *
 	 * @param jobName The name of the job to deploy.
 	 */
 	public void deployJob(String jobName) {
@@ -155,8 +156,9 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 
 	/**
 	 * Verifies that the description and status for the job name is as expected.
+	 *
 	 * @param jobDefinition the definition that the job should have.
-	 * @param deployed if true the job should be deployed.  if false the job should not be deployed.
+	 * @param deployed      if true the job should be deployed.  if false the job should not be deployed.
 	 * @return true if the job is as expected.   false if the job is not.
 	 */
 	public boolean checkJob(String jobDefinition, boolean deployed) {
@@ -165,9 +167,10 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 
 	/**
 	 * Verifies that the description and status for the job name is as expected.
-	 * @param jobName The name of the job to evaluate.
+	 *
+	 * @param jobName       The name of the job to evaluate.
 	 * @param jobDefinition the definition that the job should have.
-	 * @param deployed if true the job should be deployed.  if false the job should not be deployed.
+	 * @param deployed      if true the job should be deployed.  if false the job should not be deployed.
 	 * @return true if the job is as expected.   false if the job is not.
 	 */
 	public boolean checkJob(String jobName, String jobDefinition, boolean deployed) {
@@ -178,24 +181,22 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 		String deployedStatus = (deployed) ? "deployed" : "undeployed";
 		boolean status = resource != null && deployedStatus.equals(resource.getStatus())
 				&& jobDefinition.equals(resource.getDefinition());
-		while(!status && System.currentTimeMillis() < timeout) {
+		while (!status && System.currentTimeMillis() < timeout) {
 			sleepOneSecond();
 			resource = getJobDefinitionResource(jobName);
 			status = resource != null && deployedStatus.equals(resource.getStatus())
 					&& jobDefinition.equals(resource.getDefinition());
 		}
-		return status ;
+		return status;
 	}
 
 	/**
-	 * Wait until the job is complete. If multiple job executions have been executed using
-	 * this jobName, the method will only check the first job execution it retrieves from
-	 * the datastore.  Hint: use a unique jobName, to guarantee that you will get zero or
-	 * one jobExecution.
+	 * Waits until the number of "Complete" job executions reaches the jobCompleteCount.
 	 *
-	 * @param jobName  The name of the job to evaluate.
-	 * @param jobCompleteCount the number of job executions marked complete to return true.                     
-	 * @param waitTime The milliseconds that the method should wait for the job execution to complete.
+	 * @param jobName          The name of the job to evaluate.
+	 * @param jobCompleteCount the number of job executions marked complete to return true.
+	 * @param waitTime         The milliseconds that the method should wait for the job execution to complete.
+	 * @return True if the number of Complete Jobs is reached before waitTime, else false.
 	 */
 	protected boolean waitForJobToComplete(String jobName, long waitTime, int jobCompleteCount) {
 		Assert.hasText(jobName, "The job name must be specified.");
@@ -209,11 +210,9 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 		return isJobComplete;
 	}
 
-
 	/**
-	 * Wait until the job is complete up to default WAIT_TIME. If multiple job executions
-	 * have been executed using this jobName,
-	 * the method will only check the first job execution it retrieves from the datastore.
+	 * Wait until the job is complete up to default WAIT_TIME. The method will return true
+	 * if any of the job executions are marked complete.
 	 * Hint: use a unique jobName, to guarantee that you will get zero or one jobExecution.
 	 *
 	 * @param jobName The name of the job to evaluate.
@@ -221,46 +220,44 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	protected boolean waitForJobToComplete(String jobName) {
 		return waitForJobToComplete(jobName, DEFAULT_JOB_COMPLETE_COUNT);
 	}
+
 	/**
-	 * Wait until the job is complete up to default WAIT_TIME. If multiple job executions
-	 * have been executed using this jobName,
-	 * the method will only check the first job execution it retrieves from the datastore.
-	 * Hint: use a unique jobName, to guarantee that you will get zero or one jobExecution.
+	 * Waits until the number of "Complete" job executions reaches the jobCompleteCount.
 	 *
-	 * @param jobName The name of the job to evaluate.
+	 * @param jobName          The name of the job to evaluate.
 	 * @param jobCompleteCount The number of job executions marked complete before returning true.
 	 */
 	protected boolean waitForJobToComplete(String jobName, int jobCompleteCount) {
 		Assert.hasText(jobName, "The job name must be specified.");
 		return waitForJobToComplete(jobName, WAIT_TIME, jobCompleteCount);
 	}
-    /**
-     * Checks to see if the execution for the job is complete.
-     * Since a single jobName can have multiple jobExecutions, this method evaluates the first job execution
-     *  in the job execution list.
-     * @param jobName The name of the job to be evaluated.
-	 * @param jobCompleteCount The number of executions that reached complete to return true.
-     * @return true if the job is deployed else false
-     */
-    private boolean isJobComplete(String jobName, int jobCompleteCount) {
-        List<JobExecutionInfoResource> resources = getJobExecInfoByName(jobName);
-        Iterator<JobExecutionInfoResource> resourceIter = resources.iterator();
-		int count = 0;
-        while (resourceIter.hasNext()) {
-            JobExecutionInfoResource resource = resourceIter.next();
 
-            if (jobName.equals(resource.getName())) {
-                if (BatchStatus.COMPLETED.equals(resource.getJobExecution().getStatus())) {
+	/**
+	 * Checks to see if the execution for the job is complete.
+	 * Returns true when the number of job complete executions matches the job completeCount.
+	 *
+	 * @param jobName          The name of the job to be evaluated.
+	 * @param jobCompleteCount The number of executions that reached complete to return true.
+	 * @return true if the job is deployed else false
+	 */
+	private boolean isJobComplete(String jobName, int jobCompleteCount) {
+		List<JobExecutionInfoResource> resources = getJobExecInfoByName(jobName);
+		Iterator<JobExecutionInfoResource> resourceIter = resources.iterator();
+		int count = 0;
+		while (resourceIter.hasNext()) {
+			JobExecutionInfoResource resource = resourceIter.next();
+
+			if (jobName.equals(resource.getName())) {
+				if (BatchStatus.COMPLETED.equals(resource.getJobExecution().getStatus())) {
 					count++;
-                    break;
-                }
-                else {
-                    break;
-                }
-            }
-        }
-        return jobCompleteCount == count;
-    }
+					break;
+				} else {
+					break;
+				}
+			}
+		}
+		return jobCompleteCount == count;
+	}
 
 	/**
 	 * Creates the job definition and deploys it to the cluster being tested.
@@ -289,18 +286,15 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 
 	/**
 	 * Undeploys the job
-	 *
 	 */
-	protected void undeployJob()
-	{
+	protected void undeployJob() {
 		undeployJob(JOB_NAME);
 	}
 
 	/*
 	 * Destroys the job
 	 */
-	protected void destroyJob()
-	{
+	protected void destroyJob() {
 		destroyJob(JOB_NAME);
 	}
 
@@ -309,8 +303,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	 *
 	 * @param jobName The name of the job to destroy
 	 */
-	protected void destroyJob(final String jobName)
-	{
+	protected void destroyJob(final String jobName) {
 		Assert.hasText(jobName, "The jobName must not be empty nor null");
 		springXDTemplate.jobOperations().destroy(jobName);
 	}
@@ -320,14 +313,14 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	 *
 	 * @param jobName The name of the job to undeploy
 	 */
-	protected void undeployJob(final String jobName)
-	{
+	protected void undeployJob(final String jobName) {
 		Assert.hasText(jobName, "The jobName must not be empty nor null");
 		springXDTemplate.jobOperations().undeploy(jobName);
 	}
 
 	/**
 	 * Retrieve a list of JobExecutionInfoResources that have the name contained in the jobName parameter
+	 *
 	 * @param jobName The search name
 	 * @return a list of JobExecutionInfoResources
 	 */
@@ -346,6 +339,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 
 	/**
 	 * Retrieves a list of step executions for the execution Id.
+	 *
 	 * @param executionId The executionId that will be searched.
 	 * @return a list if StepExecutionInfoResources
 	 */
@@ -356,17 +350,17 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	/**
 	 * Waits up to the wait time for a job to be deployed or undeployed.
 	 *
-	 * @param jobName The name of the job to be evaluated.
-	 * @param waitTime the amount of time in millis to wait.
-     * @param isDeployed if true the method will wait for the job to be deployed.  If false it will wait for the job to become undeployed.
+	 * @param jobName    The name of the job to be evaluated.
+	 * @param waitTime   the amount of time in millis to wait.
+	 * @param isDeployed if true the method will wait for the job to be deployed.  If false it will wait for the job to become undeployed.
 	 * @return true if the job is deployed else false.
 	 */
-	protected boolean waitForJobDeploymentChange(String jobName, int waitTime,boolean isDeployed) {
+	protected boolean waitForJobDeploymentChange(String jobName, int waitTime, boolean isDeployed) {
 		boolean result = isJobDeployed(jobName);
 		long timeout = System.currentTimeMillis() + waitTime;
 		while (!result && System.currentTimeMillis() < timeout) {
 			sleepOneSecond();
-			result = isDeployed?isJobDeployed(jobName):isJobUndeployed(jobName);
+			result = isDeployed ? isJobDeployed(jobName) : isJobUndeployed(jobName);
 		}
 
 		return result;
@@ -388,24 +382,26 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 		return result;
 	}
 
-    /**
-     * Checks to see if the specified job is undeployed on the XD cluster.
-     *
-     * @param jobName The name of the job to be evaluated.
-     * @return true if the job is deployed else false
-     */
-    protected boolean isJobUndeployed(String jobName) {
-        Assert.hasText(jobName, "The job name must be specified.");
-        JobDefinitionResource resource = getJobDefinitionResource(jobName);
-        boolean result = false;
-        if ("undeployed".equals(resource.getStatus())) {
-            result = true;
-        }
-        return result;
-    }
+	/**
+	 * Checks to see if the specified job is undeployed on the XD cluster.
+	 *
+	 * @param jobName The name of the job to be evaluated.
+	 * @return true if the job is deployed else false
+	 */
+	protected boolean isJobUndeployed(String jobName) {
+		Assert.hasText(jobName, "The job name must be specified.");
+		JobDefinitionResource resource = getJobDefinitionResource(jobName);
+		boolean result = false;
+		if ("undeployed".equals(resource.getStatus())) {
+			result = true;
+		}
+		return result;
+	}
+
 	/**
 	 * Wait up to the specified time for the job list to become empty.
-	 * @param waitTime The time in Millis to wait.  
+	 *
+	 * @param waitTime The time in Millis to wait.
 	 */
 	protected void waitForEmptyJobList(int waitTime) {
 		PagedResources<JobDefinitionResource> resources = springXDTemplate.jobOperations().list();
@@ -418,7 +414,6 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	}
 
 
-
 	/**
 	 * Create an new instance of the SpringXDTemplate given the Admin Server URL
 	 *
@@ -427,8 +422,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	private SpringXDTemplate createSpringXDTemplate() {
 		try {
 			return new SpringXDTemplate(adminServer.toURI());
-		}
-		catch (URISyntaxException uriException) {
+		} catch (URISyntaxException uriException) {
 			throw new IllegalStateException(uriException.getMessage(), uriException);
 		}
 	}
@@ -436,7 +430,7 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	private JobDefinitionResource getJobDefinitionResource(String jobName) {
 		PagedResources<JobDefinitionResource> resources = springXDTemplate.jobOperations().list();
 		long timeout = System.currentTimeMillis() + WAIT_TIME;
-			while (!resources.iterator().hasNext() && System.currentTimeMillis() < timeout) {
+		while (!resources.iterator().hasNext() && System.currentTimeMillis() < timeout) {
 			sleepOneSecond();
 			resources = springXDTemplate.jobOperations().list();
 		}
@@ -456,13 +450,12 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 	private void sleepOneSecond() {
 		try {
 			Thread.sleep(1000);
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new IllegalStateException(e.getMessage(), e);
 		}
 	}
-	
+
 	/**
 	 * Retrieves the first job execution from a list of job executions for the job name.
 	 *
@@ -476,13 +469,14 @@ public abstract class AbstractJobTest extends AbstractIntegrationTest {
 
 	/**
 	 * Requests the steps execution details for a specific step from the admin server.
-	 * @param jobExecutionId The job execution id of the step to be interrogated.
+	 *
+	 * @param jobExecutionId  The job execution id of the step to be interrogated.
 	 * @param stepExecutionId The step execution id of the step that will be interrogated.
 	 * @return The JSon Returned from the step execution request.
 	 */
-	protected String getStepResultJson(long jobExecutionId, long stepExecutionId){
+	protected String getStepResultJson(long jobExecutionId, long stepExecutionId) {
 		RestTemplate restTemplate = new RestTemplate();
-		return  restTemplate.getForObject(
+		return restTemplate.getForObject(
 				"{server}/jobs/executions/{jobexecutionid}/steps/{stepExecutionID}",
 				String.class, getEnvironment().getAdminServerUrl(), jobExecutionId,
 				stepExecutionId);

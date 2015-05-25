@@ -20,7 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -28,21 +27,16 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
-import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
-import reactor.rx.broadcast.Broadcaster;
 
-import java.lang.reflect.Method;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -68,124 +62,140 @@ import java.util.concurrent.ConcurrentMap;
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingHandler implements DisposableBean,
-        IntegrationEvaluationContextAware {
+public class MultipleBroadcasterMessageHandler<IN, OUT> extends AbstractMessageProducingHandler implements
+    DisposableBean,
+		IntegrationEvaluationContextAware {
 
-    protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass());
 
-    private final ConcurrentMap<Object, RingBufferProcessor<Object>> reactiveProcessorMap =
-            new ConcurrentHashMap<Object, RingBufferProcessor<Object>>();
+	private final ConcurrentMap<Object, RingBufferProcessor<IN>> reactiveProcessorMap =
+			new ConcurrentHashMap<>();
 
-    private final Map<Object, Subscription> controlsMap = new Hashtable<Object, Subscription>();
+	private final Processor<IN, OUT> processor;
 
-    @SuppressWarnings("rawtypes")
-    private final Processor processor;
+	private final Class<IN> inputType;
 
-    private final Class<?> inputType;
+	private final Expression partitionExpression;
 
-    private final Expression partitionExpression;
+	private final Environment environment;
 
-    private final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
+	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
-    private EvaluationContext evaluationContext = new StandardEvaluationContext();
+	/**
+	 * Construct a new SynchronousDispatcherMessageHandler given the reactor based Processor to delegate
+	 * processing to.
+	 *
+	 * @param processor The stream based reactor processor
+	 */
+	@SuppressWarnings("unchecked")
+	public MultipleBroadcasterMessageHandler(Processor<IN, OUT> processor, String partitionExpression) {
+		Assert.notNull(processor, "processor cannot be null.");
+		Assert.notNull(partitionExpression, "Partition expression can not be null");
+		this.processor = processor;
 
-    /**
-     * Construct a new SynchronousDispatcherMessageHandler given the reactor based Processor to delegate
-     * processing to.
-     *
-     * @param processor The stream based reactor processor
-     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public MultipleBroadcasterMessageHandler(Processor processor, String partitionExpression) {
-        Assert.notNull(processor, "processor cannot be null.");
-        Assert.notNull(partitionExpression, "Partition expression can not be null");
-        this.processor = processor;
-        this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
+		SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
+		this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
 
-        // This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
-        Environment.initializeIfEmpty();
+		// This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
+		this.environment = Environment.initializeIfEmpty();
 
-        Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Stream.class);
-        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
-    }
+		this.inputType = BroadcasterMessageHandler.extractGeneric(processor);
+	}
 
-    @Override
-    protected void handleMessageInternal(Message<?> message) {
-        RingBufferProcessor<Object> reactiveProcessorToUse = getReactiveProcessor(message);
-        if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-            reactiveProcessorToUse.onNext(message);
-        } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
-            reactiveProcessorToUse.onNext(message.getPayload());
-        } else {
-            throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
-                    + "] or [" + message.getPayload().getClass() + "]");
-        }
-    }
+	@Override
+	@SuppressWarnings("unchecked")
+	protected void handleMessageInternal(Message<?> message) {
+		RingBufferProcessor<IN> reactiveProcessorToUse = getReactiveProcessor(message);
+		if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
+			reactiveProcessorToUse.onNext((IN) message);
+		} else {
+			reactiveProcessorToUse.onNext((IN) message.getPayload());
+		}
+	}
 
-    @SuppressWarnings("unchecked")
-    private RingBufferProcessor<Object> getReactiveProcessor(Message<?> message) {
-        final Object idToUse = partitionExpression.getValue(evaluationContext, message, Object.class);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Partition Expression evaluated to " + idToUse);
-        }
-        RingBufferProcessor<Object> reactiveProcessor = reactiveProcessorMap.get(idToUse);
-        if (reactiveProcessor == null) {
-            RingBufferProcessor<Object> existingReactiveProcessor =
-                    reactiveProcessorMap.putIfAbsent(idToUse, RingBufferProcessor.share("xd-reactor-partition-" + idToUse, 64));
-            if (existingReactiveProcessor == null) {
-                reactiveProcessor = reactiveProcessorMap.get(idToUse);
-                //user defined stream processing
-                Publisher<?> outputStream = processor.process(Streams.wrap(reactiveProcessor));
+	@SuppressWarnings("unchecked")
+	private RingBufferProcessor<IN> getReactiveProcessor(Message<?> message) {
+		final Object idToUse = partitionExpression.getValue(evaluationContext, message, Object.class);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Partition Expression evaluated to " + idToUse);
+		}
+		RingBufferProcessor<IN> reactiveProcessor = reactiveProcessorMap.get(idToUse);
+		if (reactiveProcessor == null) {
+			RingBufferProcessor<IN> newReactiveProcessor =
+					RingBufferProcessor.share("xd-reactor-partition-" + idToUse, 64);
 
-                outputStream.subscribe(new DefaultSubscriber<Object>() {
-                    Subscription s;
+			RingBufferProcessor<IN> existingReactiveProcessor =
+					reactiveProcessorMap.putIfAbsent(idToUse, newReactiveProcessor);
+			if (existingReactiveProcessor == null) {
+				reactiveProcessor = reactiveProcessorMap.get(idToUse);
+				//user defined stream processing
+				Publisher<?> outputStream = processor.process(Streams.wrap(reactiveProcessor));
 
-                    @Override
-                    public void onSubscribe(Subscription s) {
-                        this.s = s;
-                        controlsMap.put(idToUse, s);
-                        s.request(Long.MAX_VALUE);
-                    }
+				outputStream.subscribe(new DefaultSubscriber<Object>() {
+					Subscription s;
 
-                    @Override
-                    public void onNext(Object outputObject) {
-                        if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-                            getOutputChannel().send((Message) outputObject);
-                        } else {
-                            getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-                        }
-                    }
+					@Override
+					public void onSubscribe(Subscription s) {
+						this.s = s;
+						s.request(Long.MAX_VALUE);
+						if(logger.isDebugEnabled()) {
+							logger.debug("xd-reactor started [ " + MultipleBroadcasterMessageHandler.this + " - " + s + " ]");
+						}
+					}
 
-                    @Override
-                    public void onError(Throwable throwable) {
-                        logger.error(throwable);
-                        reactiveProcessorMap.remove(idToUse);
-                    }
+					@Override
+					public void onNext(Object outputObject) {
+						if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
+							getOutputChannel().send((Message) outputObject);
+						} else {
+							getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+						}
+					}
 
-                    @Override
-                    public void onComplete() {
-                        logger.error("Consumer completed for [" + s + "]");
-                        reactiveProcessorMap.remove(idToUse);
-                    }
-                });
+					@Override
+					public void onError(Throwable throwable) {
+						logger.error("", throwable);
+						reactiveProcessorMap.remove(idToUse);
+						if (s != null) {
+							s.cancel();
+						}
+					}
 
-            } else {
-                reactiveProcessor = existingReactiveProcessor;
-            }
-        }
-        return reactiveProcessor;
-    }
+					@Override
+					public void onComplete() {
+						if (logger.isDebugEnabled()) {
+							logger.debug("xd-reactor completed [ " + MultipleBroadcasterMessageHandler.this + " - " + s + " ]");
 
-    @Override
-    public void destroy() throws Exception {
-        for (Subscription subscription : controlsMap.values()) {
-            subscription.cancel();
-        }
-        Environment.terminate();
-    }
+						}
+						reactiveProcessorMap.remove(idToUse);
+						if (s != null) {
+							s.cancel();
+						}
+					}
+				});
 
-    @Override
-    public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-        this.evaluationContext = evaluationContext;
-    }
+			} else {
+				newReactiveProcessor.onComplete();
+				reactiveProcessor = existingReactiveProcessor;
+			}
+		}
+		return reactiveProcessor;
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		Collection<RingBufferProcessor<IN>> toRemove =
+				new ArrayList<>(reactiveProcessorMap.values());
+
+		for (RingBufferProcessor<IN> ringBufferProcessor : toRemove) {
+			ringBufferProcessor.onComplete();
+		}
+
+		environment.shutdown();
+	}
+
+	@Override
+	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+		this.evaluationContext = evaluationContext;
+	}
 }

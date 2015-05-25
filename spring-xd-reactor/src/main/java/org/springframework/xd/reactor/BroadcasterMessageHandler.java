@@ -20,24 +20,19 @@ import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.core.ResolvableType;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
-import reactor.fn.Consumer;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
-import reactor.rx.action.Control;
 import reactor.rx.action.support.DefaultSubscriber;
-import reactor.rx.broadcast.Broadcaster;
-import reactor.rx.broadcast.SerializedBroadcaster;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -59,7 +54,8 @@ import java.lang.reflect.Method;
  * result in 2 messages in the log, no matter how many dispatcher threads are used.
  * <p/>
  * You can modify what thread the outputStream subscriber, which does the send to the output channel,
- * will use by explicitly calling <code>dispatchOn</code> or other switch (http://projectreactor.io/docs/reference/#streams-multithreading)
+ * will use by explicitly calling <code>dispatchOn</code> or other switch (http://projectreactor
+ * .io/docs/reference/#streams-multithreading)
  * before returning the outputStream from your processor.
  * <p/>
  * Use {@link org.springframework.xd.reactor.MultipleBroadcasterMessageHandler} for concurrent execution on dispatcher
@@ -70,87 +66,104 @@ import java.lang.reflect.Method;
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  implements DisposableBean {
+public class BroadcasterMessageHandler<IN, OUT> extends AbstractMessageProducingHandler implements DisposableBean {
 
-    protected final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass());
 
-    private final RingBufferProcessor<Object> stream;
+	private final RingBufferProcessor<IN> stream;
 
-    @SuppressWarnings("rawtypes")
-    private final Processor reactorProcessor;
+	private final Environment environment;
 
-    private final Class<?> inputType;
+	private Class<IN> inputType;
 
-    private Subscription processorSubscription;
+	@SuppressWarnings("unchecked")
+	static <IN> Class<IN> extractGeneric(Processor<IN, ?> processor) {
+		if (processor.getClass().getGenericInterfaces().length == 0) return null;
 
-    /**
-     * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
-     * processing to.
-     *
-     * @param processor The stream based reactor processor
-     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public BroadcasterMessageHandler(Processor processor) {
-        Assert.notNull(processor, "processor cannot be null.");
-        this.reactorProcessor = processor;
-        Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
-        Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
-        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
+		Type t = processor.getClass().getGenericInterfaces()[0];
+		if (ParameterizedType.class.isAssignableFrom(t.getClass())) {
+			ParameterizedType pt = (ParameterizedType) t;
 
-        //Stream with a RingBufferProcessor
-        this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
+			if (pt.getActualTypeArguments().length == 0) return null;
 
-        //user defined stream processing
-        Publisher<?> outputStream = processor.process(Streams.wrap(stream));
+			t = pt.getActualTypeArguments()[0];
+				if (t instanceof ParameterizedType) {
+					return (Class<IN>) ((ParameterizedType) t).getRawType();
+				} else if (t instanceof Class) {
+					return (Class<IN>) t;
+				}
+		}
+		return null;
+	}
 
-        outputStream.subscribe(new DefaultSubscriber<Object>() {
-            @Override
-            public void onSubscribe(Subscription s) {
-                processorSubscription = s;
-                s.request(Long.MAX_VALUE);
-            }
+	/**
+	 * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
+	 * processing to.
+	 *
+	 * @param processor The stream based reactor processor
+	 */
+	@SuppressWarnings("unchecked")
+	public BroadcasterMessageHandler(Processor<IN, OUT> processor) {
+		Assert.notNull(processor, "processor cannot be null.");
+		environment = Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
 
-            @Override
-            public void onNext(Object outputObject) {
-                if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-                    getOutputChannel().send((Message) outputObject);
-                } else {
-                    getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-                }
-            }
+		this.inputType = extractGeneric(processor);
 
-            @Override
-            public void onError(Throwable throwable) {
-                //Simple log error handling
-                logger.error(throwable);
-            }
+		//Stream with a  RingBufferProcessor
+		this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
 
-            @Override
-            public void onComplete() {
-                //Send a message ?
-            }
-        });
-    }
+		//user defined stream processing
+		Publisher<?> outputStream = processor.process(Streams.wrap(stream));
 
-    @Override
-    protected void handleMessageInternal(Message<?> message) throws Exception {
+		outputStream.subscribe(new DefaultSubscriber<Object>() {
+			@Override
+			public void onSubscribe(Subscription s) {
+				s.request(Long.MAX_VALUE);
+				if (logger.isDebugEnabled()) {
+					logger.debug("xd-reactor started [ " + BroadcasterMessageHandler.this + " ]");
+				}
+			}
 
-        if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-            stream.onNext(message);
-        } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
-            //TODO handle type conversion of payload to input type if possible
-            stream.onNext(message.getPayload());
-        }
-    }
+			@Override
+			public void onNext(Object outputObject) {
+				if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
+					getOutputChannel().send((Message) outputObject);
+				} else {
+					getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+				}
+			}
 
-    @Override
-    public void destroy() throws Exception {
-        Subscription processorSubscription = this.processorSubscription;
-        if(processorSubscription != null){
-            this.processorSubscription = null;
-            processorSubscription.cancel();
-        }
+			@Override
+			public void onError(Throwable throwable) {
+				//Simple log error handling
+				logger.error("", throwable);
+			}
 
-        Environment.terminate();
-    }
+			@Override
+			public void onComplete() {
+				if (logger.isDebugEnabled()) {
+					logger.debug("reactor-x completed [ " + BroadcasterMessageHandler.this + " ]");
+				}
+			}
+		});
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+
+		if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
+			stream.onNext((IN) message);
+		} else {
+			//TODO handle type conversion of payload to input type if possible
+
+			stream.onNext((IN) message.getPayload());
+		}
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		stream.onComplete();
+		environment.shutdown();
+	}
 }

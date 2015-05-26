@@ -243,12 +243,12 @@ xd:
 #       userSearchFilter: yourUserSearchFilter # e.g. uid={0}
 ---
 # Config to enable/disable JMX/jolokia endpoints
-XD_JMX_ENABLED: true
+XD_JMX_ENABLED: false
 endpoints:
   jolokia:
-    enabled: ${XD_JMX_ENABLED:true}
+    enabled: ${XD_JMX_ENABLED:false}
   jmx:
-    enabled: ${XD_JMX_ENABLED:true}
+    enabled: ${XD_JMX_ENABLED:false}
     uniqueNames: true
 
 # Config to enable the shutdown button on the UI

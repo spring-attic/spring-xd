@@ -1,4 +1,5 @@
 # XD on YARN deployment configuration
+# XD on YARN deployment configuration
 #
 # You can set properties here to override the defaults.
 #
@@ -322,12 +323,12 @@ xd:
 #       userSearchFilter: yourUserSearchFilter # e.g. uid={0}
 ---
 # Config to enable/disable JMX/jolokia endpoints
-#XD_JMX_ENABLED: true
+#XD_JMX_ENABLED: false
 #endpoints:
 #  jolokia:
-#    enabled: ${XD_JMX_ENABLED:true}
+#    enabled: ${XD_JMX_ENABLED:false}
 #  jmx:
-#    enabled: ${XD_JMX_ENABLED:true}
+#    enabled: ${XD_JMX_ENABLED:false}
 #    uniqueNames: true
 
 ---

@@ -63,15 +63,15 @@ spring:
 
 endpoints:
   jolokia:
-    enabled: ${XD_JMX_ENABLED:true}
+    enabled: ${XD_JMX_ENABLED}
   jmx:
-    enabled: ${XD_JMX_ENABLED:true}
+    enabled: ${XD_JMX_ENABLED}
     uniqueNames: true
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${xd.transport:${transport:redis}}
 XD_HOME: ${xdHomeDir:..}
-XD_JMX_ENABLED: true
+XD_JMX_ENABLED: false
 
 xd:
   data:

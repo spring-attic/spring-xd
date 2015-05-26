@@ -485,6 +485,7 @@ TIP: The connection pool settings for xd are located in servers.yml (i.e. `sprin
 
 Performs the reverse of the previous module. The database configuration is the same as for `filejdbc` but without the initialization options since you need to already have the data to import into HDFS. When creating the job, you must either supply the select statement by setting the `sql` parameter, or you can supply both `tableName` and `columns` options (which will be used to build the SQL statement).
 
+
 To import data from the database table `some_table`, you could use
 
 ----
@@ -499,7 +500,7 @@ Launch the job using:
 xd:> job launch myjob
 ----
 
-If you want to partition your job across multiple XD containers you can provide the `partitionColumn` and `partitions` option. When the job is launched the partitioner will query the database for the range of values and evenly divie the load between the partitions. This assumes that there is an even distribution of column values in the table. When using the partitioning support you must also use the `tableName` and `columns` options instead of the `sql` option. This is so the partitioner can construct the queries with the appropriate where clauses for the different partitions.
+If you want to partition your job across multiple XD containers you can provide the `partitionColumn` and `partitions` option. When the job is launched the partitioner will query the database for the range of values and evenly divide the load between the partitions. This assumes that there is an even distribution of column values in the table. When using the partitioning support you must also use the `tableName` and `columns` options instead of the `sql` option. This is so the partitioner can construct the queries with the appropriate where clauses for the different partitions.
 
 An example of a partitioned job could look like this:
 
@@ -508,6 +509,25 @@ xd:> job create partitionedJob --definition "jdbchdfs --columns='id,col1,col2' -
 ----
 
 NOTE: When using the partitioning support you can not use the `sql` option. Use `tableName` and `columns` instead.
+
+You can perform incremental imports using this job by defining a column to check against.  Currently the column must be numeric (similar to how the partitionColumn works).  An example of launching a job that performs incremental imports would look like the following:
+
+----
+xd:> job create incrementalImportJob --definition "jdbchdfs --columns='id,col1,col2' --tableName=some_table --checkColumn=sequence" --deploy
+----
+
+If you want to specify the value for the `checkColumn`, you can pass the override value in as a `JobParameter` named `overrideCheckColumnValue` as shown below:
+
+----
+xd:> job launch incrementalImportJob --params {"overrideCheckColumnValue" : 2}
+----
+
+There are two things to keep in mind when using incremental imports with this job:
+
+* When using incremental imports, the `sql` option is not available.  Use `tableName` and `columns` instead.
+* If an import fails, it must be rerun to completion before running the next import.  Without this, inconsistent data may result.
+
+
 
 //^job.jdbchdfs
 // DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$job.jdbchdfs' TAG

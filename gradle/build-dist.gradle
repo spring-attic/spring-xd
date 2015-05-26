@@ -321,6 +321,13 @@ task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip, yarnModulesZip, ya
 task dist(dependsOn: assemble) {
 	group = 'Distribution'
 	description = 'Builds XD binary and reference docs distribution archives.'
+
+	artifacts {
+		archives distZip
+		archives distYarnZip
+		archives docsZip
+		archives distShellZip
+	}
 }
 
 artifactory {

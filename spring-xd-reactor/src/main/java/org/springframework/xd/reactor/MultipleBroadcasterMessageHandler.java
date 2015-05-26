@@ -105,8 +105,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         // This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
         Environment.initializeIfEmpty();
 
-        Method method = ReflectionUtils.findMethod(this.processor.getClass(), "process", Stream.class);
-        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
+        this.inputType = ReactorReflectionUtils.extractGeneric(processor);
     }
 
     @Override

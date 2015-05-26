@@ -20,24 +20,19 @@ import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.core.ResolvableType;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
-import reactor.fn.Consumer;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
-import reactor.rx.action.Control;
 import reactor.rx.action.support.DefaultSubscriber;
-import reactor.rx.broadcast.Broadcaster;
-import reactor.rx.broadcast.SerializedBroadcaster;
 
-import java.lang.reflect.Method;
+import static org.springframework.util.ReflectionUtils.*;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -94,8 +89,8 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
         Assert.notNull(processor, "processor cannot be null.");
         this.reactorProcessor = processor;
         Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
-        Method method = ReflectionUtils.findMethod(this.reactorProcessor.getClass(), "process", Stream.class);
-        this.inputType = ResolvableType.forMethodParameter(method, 0).getNested(2).getRawClass();
+
+        this.inputType = ReactorReflectionUtils.extractGeneric(processor);
 
         //Stream with a RingBufferProcessor
         this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
@@ -140,6 +135,9 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
         } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
             //TODO handle type conversion of payload to input type if possible
             stream.onNext(message.getPayload());
+        } else {
+            throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
+                    + "] or [" + message.getPayload().getClass() + "]");
         }
     }
 
@@ -153,4 +151,6 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
 
         Environment.terminate();
     }
+
+
 }

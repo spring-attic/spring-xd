@@ -14,7 +14,8 @@ configure(moduleProjects) { moduleProject ->
     // contain java code, so reset everything (prevents creation of
     // the 'build' directory, etc)
     apply plugin: 'spring-boot'
-
+    startScripts.enabled = false
+    distZip.enabled = false
     bootRepackage {
         enabled = false
     }

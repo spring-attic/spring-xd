@@ -182,6 +182,7 @@ configure(javaProjects) { subproject ->
 	dependencies {
 		versionManagement files(rootProject.file('dependencies.properties'))
 	}
+	startScripts.enabled = false
 
 	bootRepackage {
 		enabled = false
@@ -565,7 +566,7 @@ project('spring-xd-dirt') {
 	}
 
 	// skip the startScripts task to avoid default start script generation
-	startScripts.setEnabled(false)
+	startScripts.enabled = false
 	mainClassName = "org.springframework.xd.dirt.server.singlenode.SingleNodeApplication"
 
 	test {
@@ -799,10 +800,10 @@ project('spring-xd-gemfire-server') {
 	}
 	apply plugin: 'application'
 	// skip the startScripts task to avoid default start script generation
-	startScripts.setEnabled(false)
+	startScripts.enabled = false
 
 	task(launch, dependsOn: 'classes', type: JavaExec) {
-		main = 'org.springframework.xd.gemfire.CacheServer'
+		main = 'org.springframework.xd.gemfire.server.CacheServer'
 		classpath = sourceSets.test.runtimeClasspath
 		if (rootProject.hasProperty('config')) {
 			args = [
@@ -1174,7 +1175,7 @@ project('spring-xd-shell') {
 	}
 
 	// skip the startScripts task to avoid default start script generation
-	startScripts.setEnabled(false)
+	startScripts.enabled = false
 
 	task scriptFiles {
 		def scripts = file("$rootDir/scripts/shell")
@@ -1205,7 +1206,7 @@ project('spring-xd-batch') {
 	}
 	apply plugin: 'application'
 	// skip the startScripts task to avoid default start script generation
-	startScripts.setEnabled(false)
+	startScripts.enabled = false
 
 	task scriptFiles {
 		def scripts = file("$rootDir/scripts/hsqldb")

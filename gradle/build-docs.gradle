@@ -17,6 +17,7 @@ buildscript {
 def docsDir = rootProject.file('src/docs/asciidoc') // Will be default with newer asciidoctor plugin
 
 project('documentation-toolchain') {
+	startScripts.enabled = false
 	description = 'Utilities for generating/verifying documentation'
 	dependencies {
 		compile project(':spring-xd-dirt')

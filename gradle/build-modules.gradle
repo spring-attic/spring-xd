@@ -15,7 +15,7 @@ configure(moduleProjects) { moduleProject ->
     // the 'build' directory, etc)
     apply plugin: 'spring-boot'
     startScripts.enabled = false
-
+    distZip.enabled = false
     bootRepackage {
         enabled = false
     }

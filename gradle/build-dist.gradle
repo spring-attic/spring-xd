@@ -85,13 +85,15 @@ task copyXDShellInstall(type: Copy, dependsOn: ["copyXDInstall", ":spring-xd-she
 
 task copyHadoopLibs {}
 
-[
+def hadoopDistros = [
 	'hadoop26',
 	'cdh5',
 	'hdp22',
 	'phd21',
 	'phd30'
-].each { distro ->
+]
+
+hadoopDistros.each { distro ->
 	tasks.create(name: "copyHadoopLibs-$distro", type: Copy) {
 		from project(":spring-xd-hadoop:$distro").copyToLib.outputs.files
 		into "$buildDir/dist/spring-xd/xd/lib/$distro"
@@ -321,7 +323,6 @@ task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip, yarnModulesZip, ya
 task dist(dependsOn: assemble) {
 	group = 'Distribution'
 	description = 'Builds XD binary and reference docs distribution archives.'
-
 	artifacts {
 		archives distZip
 		archives distYarnZip
@@ -329,6 +330,8 @@ task dist(dependsOn: assemble) {
 		archives distShellZip
 	}
 }
+
+def excludedMavenProjects = hadoopDistros << 'documentation-toolchain' << rootProject.name
 
 artifactory {
 	contextUrl = 'http://repo.spring.io'
@@ -342,12 +345,14 @@ artifactory {
 			// Reference to Gradle publications defined in the build script.
 			// This is how we tell the Artifactory Plugin which artifacts should be
 			// published to Artifactory.
-			publications('mavenCustom')
-			publishArtifacts = true
-			properties {
-				archives '*:*:*:*@zip', 'zip.name':'spring-xd', 'zip.displayname':'Spring XD', 'zip.deployed':false
-				archives '*:*:*:docs@zip', 'zip.type':'docs'
-				archives '*:*:*:dist@zip', 'zip.type':'dist'
+			if (!excludedMavenProjects.contains(project.name)) {
+				publications('mavenCustom')
+				publishArtifacts = true
+				properties {
+					archives '*:*:*:*@zip', 'zip.name':'spring-xd', 'zip.displayname':'Spring XD', 'zip.deployed':false
+					archives '*:*:*:docs@zip', 'zip.type':'docs'
+					archives '*:*:*:dist@zip', 'zip.type':'dist'
+				}
 			}
 		}
 	}

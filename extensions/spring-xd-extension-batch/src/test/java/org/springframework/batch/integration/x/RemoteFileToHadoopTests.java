@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -35,7 +36,6 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.data.hadoop.test.context.HadoopDelegatingSmartContextLoader;
 import org.springframework.data.hadoop.test.context.MiniHadoopCluster;
 import org.springframework.integration.file.remote.session.Session;
@@ -103,6 +104,12 @@ public class RemoteFileToHadoopTests {
 		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext();
 		ctx.setConfigLocations("org/springframework/batch/integration/x/RemoteFileToHadoopTests-context.xml",
 				"org/springframework/batch/integration/x/miniclusterconfig.xml");
+		Properties properties = new Properties();
+		properties.setProperty("restartable", "false");
+		properties.setProperty("xd.config.home", "file:../../config");
+		properties.setProperty("partitionResultsTimeout", "3600000");
+		PropertiesPropertySource propertiesPropertySource = new PropertiesPropertySource("props", properties);
+		ctx.getEnvironment().getPropertySources().addLast(propertiesPropertySource);
 		ctx.setParent(context);
 		ctx.refresh();
 

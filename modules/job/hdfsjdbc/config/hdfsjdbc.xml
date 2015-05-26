@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:hdp="http://www.springframework.org/schema/hadoop"
 	xmlns:batch="http://www.springframework.org/schema/batch"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
@@ -95,7 +97,16 @@
 		<property name="configuration" ref="hadoopConfiguration"/>
 	</bean>
 
-	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">
+	<context:property-placeholder location="${xd.config.home}/hadoop.properties"/>
+
+	<hdp:configuration
+		register-url-handler="false"
+		properties-location="${xd.config.home}/hadoop.properties"
+		security-method="${spring.hadoop.security.authMethod:}"
+		user-keytab="${spring.hadoop.security.userKeytab:}"
+		user-principal="${spring.hadoop.security.userPrincipal:}"
+		namenode-principal="${spring.hadoop.security.namenodePrincipal:}"
+		rm-manager-principal="${spring.hadoop.security.rmManagerPrincipal:}">
 		fs.defaultFS=${fsUri}
 	</hdp:configuration>
 	<hdp:resource-loader id="hadoopResourceLoader"/>

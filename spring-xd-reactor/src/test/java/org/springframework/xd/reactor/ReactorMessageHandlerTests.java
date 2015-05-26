@@ -21,7 +21,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Test the {@link org.springframework.xd.reactor.MultipleBroadcasterMessageHandler} by using two types of
+ * Test the {@link PartitionedReactorMessageHandler} by using two types of
  * {@link Processor}. The first is parameterized by
  * {@link org.springframework.messaging.Message} and the second by String to test extracting payload types and
  * wrapping return types in a Message.
@@ -31,6 +31,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 @DirtiesContext
-public class BroadcasterMessageHandlerTests extends AbstractMessageHandlerTests {
+public class ReactorMessageHandlerTests extends AbstractMessageHandlerTests {
 
 }

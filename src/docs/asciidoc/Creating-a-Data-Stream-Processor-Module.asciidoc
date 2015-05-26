@@ -70,7 +70,7 @@ You can now create unit tests for the Processor module just as you would for any
 
     <int:channel id="input"/>
 
-    <bean name="messageHandler" class="org.springframework.xd.reactor.BroadcasterMessageHandler">
+    <bean name="messageHandler" class="org.springframework.xd.reactor.ReactorMessageHandler">
         <constructor-arg ref="messageProcessor"/>
     </bean>
 

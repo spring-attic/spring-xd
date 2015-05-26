@@ -8,20 +8,16 @@
 
     <import resource="reactor.xml"/>
 
-    <bean name="reactorMessageHandler" class="org.springframework.xd.reactor.MultipleBroadcasterMessageHandler">
+    <bean name="reactorMessageHandler" class="org.springframework.xd.reactor.ReactorMessageHandler">
         <constructor-arg ref="messageProcessor"/>
-        <constructor-arg value="T(java.lang.Thread).currentThread().getId()"/>
     </bean>
 
-    <bean name="reactorStringHandler" class="org.springframework.xd.reactor.MultipleBroadcasterMessageHandler">
+    <bean name="reactorStringHandler" class="org.springframework.xd.reactor.ReactorMessageHandler">
         <constructor-arg ref="stringProcessor"/>
-        <constructor-arg value="T(java.lang.Thread).currentThread().getId()"/>
     </bean>
 
-
-    <bean name="reactorRawTypeHandler" class="org.springframework.xd.reactor.MultipleBroadcasterMessageHandler">
+    <bean name="reactorRawTypeHandler" class="org.springframework.xd.reactor.BroadcasterMessageHandler">
         <constructor-arg ref="rawTypeProcessor"/>
-        <constructor-arg value="T(java.lang.Thread).currentThread().getId()"/>
     </bean>
 
 

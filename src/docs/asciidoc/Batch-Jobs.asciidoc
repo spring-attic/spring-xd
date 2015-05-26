@@ -513,7 +513,7 @@ NOTE: When using the partitioning support you can not use the `sql` option. Use 
 You can perform incremental imports using this job by defining a column to check against.  Currently the column must be numeric (similar to how the partitionColumn works).  An example of launching a job that performs incremental imports would look like the following:
 
 ----
-xd:> job create incrementalImportJob --definition "jdbchdfs --columns='id,col1,col2' --tableName=some_table --checkColumn=sequence" --deploy
+xd:> job create incrementalImportJob --definition "jdbchdfs --columns='id,col1,col2' --tableName=some_table --checkColumn=sequence --restartable=true" --deploy
 ----
 
 If you want to specify the value for the `checkColumn`, you can pass the override value in as a `JobParameter` named `overrideCheckColumnValue` as shown below:
@@ -525,8 +525,7 @@ xd:> job launch incrementalImportJob --params {"overrideCheckColumnValue" : 2}
 There are two things to keep in mind when using incremental imports with this job:
 
 * When using incremental imports, the `sql` option is not available.  Use `tableName` and `columns` instead.
-* If an import fails, it must be rerun to completion before running the next import.  Without this, inconsistent data may result.
-
+* If an import fails, it must be rerun to completion before running the next import.  Without this, inconsistent data may result.  Since HDFS is a non-transactional store, failed records may not be rolled back.  An administrator may need to check HDFS for completeness and the last imported value.
 
 
 //^job.jdbchdfs

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.test.fixtures.Disposable;
 import org.springframework.xd.test.fixtures.FileSink;
 import org.springframework.xd.test.fixtures.FileSource;
-import org.springframework.xd.test.fixtures.FtpSource;
 import org.springframework.xd.test.fixtures.FtpSink;
+import org.springframework.xd.test.fixtures.FtpSource;
 import org.springframework.xd.test.fixtures.JdbcSink;
 import org.springframework.xd.test.fixtures.JdbcSource;
 import org.springframework.xd.test.fixtures.MailSink;
@@ -124,11 +124,11 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return ftpSource;
 	}
 
-    protected FtpSink newFtpSink() {
+	protected FtpSink newFtpSink() {
 		FtpSink ftpSink = new FtpSink();
 		disposables.add(ftpSink);
 		return ftpSink;
-    }
+	}
 
 	private DataSource createDataSource() {
 

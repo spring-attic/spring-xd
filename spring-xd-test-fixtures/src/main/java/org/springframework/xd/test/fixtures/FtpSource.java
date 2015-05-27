@@ -21,27 +21,17 @@ package org.springframework.xd.test.fixtures;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
-import org.apache.ftpserver.ftplet.Authentication;
-import org.apache.ftpserver.ftplet.AuthenticationFailedException;
-import org.apache.ftpserver.ftplet.Authority;
 import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.ftpserver.ftplet.User;
 import org.apache.ftpserver.listener.ListenerFactory;
-import org.apache.ftpserver.usermanager.ClearTextPasswordEncryptor;
-import org.apache.ftpserver.usermanager.impl.AbstractUserManager;
-import org.apache.ftpserver.usermanager.impl.BaseUser;
-import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
-import org.apache.ftpserver.usermanager.impl.WritePermission;
 
 import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 /**
- * A fixture that helps testing the ftp source. Creates a local FTP server and exposes a File
+ * A fixture that helps testing the ftp source. Creates a local FTP server and exposes a file
  * directory where files to be picked up can be added.
  *
  * @author Eric Bottard

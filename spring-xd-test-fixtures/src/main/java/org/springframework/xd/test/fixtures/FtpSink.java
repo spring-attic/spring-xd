@@ -18,16 +18,17 @@
 
 package org.springframework.xd.test.fixtures;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.ftpserver.FtpServer;
-import org.apache.ftpserver.FtpServerFactory;
-import org.apache.ftpserver.ftplet.*;
-import org.apache.ftpserver.listener.ListenerFactory;
-import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.ftpserver.FtpServer;
+import org.apache.ftpserver.FtpServerFactory;
+import org.apache.ftpserver.ftplet.FtpException;
+import org.apache.ftpserver.listener.ListenerFactory;
+
+import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 /**
  * A fixture that helps testing the ftp sink. instantiates and runs a local FTP server and exposes a {@link File} directory in order to be able
@@ -44,7 +45,7 @@ public class FtpSink extends AbstractModuleFixture<FtpSink> implements Disposabl
 	private FtpServer server;
 
 	public FtpSink() {
-        try {
+		try {
 			remoteServerDirectory = Files.createTempDirectory("ftp-sink-remote").toFile();
 		}
 		catch (IOException e) {

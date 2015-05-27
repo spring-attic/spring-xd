@@ -11,6 +11,7 @@ The Processors covered are
 * <<transform, Transform>>
 * <<script, Script>>
 * <<splitter, Splitter>>
+* <<header-enricher, Header Enricher>>
 * <<aggregator, Aggregator>>
 * <<http-clent, HTTP Client>>
 * <<shell, Shell Command>>
@@ -216,6 +217,26 @@ Try sending this payload to the HTTP endpoint and you should see just the value 
 
     xd:> http post --target http://localhost:9005 --data '{"firstName":"John", "lastName":"Smith"}'
 
+[[header-enricher]]
+=== Header Enricher
+The header enricher module builds upon the concept of the same name in Spring Integration and allows enriching a message
+with headers using a Spring EL expression.
+
+//^processor.header-enricher
+//$processor.header-enricher
+
+Example :
+
+    xd:>stream create --name test-header-enricher --definition "time --fixedDelay=3 | header-enricher --name=time --expression='payload.toString() + '' hello!''' | log --expression=headers['time']" --deploy
+
+Every 3 seconds you should see something like this in the logs :
+
+    2015-05-27T22:02:42+0200 1.2.0.SNAP INFO task-scheduler-3 sink.test-header-enricher - 2015-05-27 22:02:42 hello!
+    2015-05-27T22:02:45+0200 1.2.0.SNAP INFO task-scheduler-3 sink.test-header-enricher - 2015-05-27 22:02:45 hello!
+    2015-05-27T22:02:48+0200 1.2.0.SNAP INFO task-scheduler-3 sink.test-header-enricher - 2015-05-27 22:02:48 hello!
+    2015-05-27T22:02:51+0200 1.2.0.SNAP INFO task-scheduler-3 sink.test-header-enricher - 2015-05-27 22:02:51 hello!
+    2015-05-27T22:02:54+0200 1.2.0.SNAP INFO task-scheduler-3 sink.test-header-enricher - 2015-05-27 22:02:54 hello!
+    2015-05-27T22:02:57+0200 1.2.0.SNAP INFO task-scheduler-3 sink.test-header-enricher - 2015-05-27 22:02:57 hello!
 
 [[aggregator]]
 === Aggregator

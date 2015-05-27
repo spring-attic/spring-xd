@@ -11,8 +11,7 @@
 		http://www.springframework.org/schema/integration/ftp
 		http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd
 		http://www.springframework.org/schema/integration/file
-		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
-		">
+		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
 	<beans:bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<beans:property name="host" value="${host}" />
@@ -33,4 +32,3 @@
 	<beans:import resource="../../../common/file-source-common-context.xml"/>
 
 </beans:beans>
-

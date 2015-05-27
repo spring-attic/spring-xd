@@ -31,33 +31,29 @@ import org.apache.ftpserver.listener.ListenerFactory;
 import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
 /**
- * A fixture that helps testing the ftp source. Creates a local FTP server and exposes a file
- * directory where files to be picked up can be added.
+ * A fixture that helps testing the ftp sink. instantiates and runs a local FTP server and exposes a {@link File} directory in order to be able
+ * to check if the file pushed through FTP is present on the server side and if it has the same content as the file sent.
  *
- * @author Eric Bottard
  * @author Franck Marchand
  */
-public class FtpSource extends AbstractModuleFixture<FtpSource> implements Disposable {
+public class FtpSink extends AbstractModuleFixture<FtpSink> implements Disposable {
 
 	private int port = AvailableSocketPorts.nextAvailablePort();
-
-	private File localDirectory;
 
 	private File remoteServerDirectory;
 
 	private FtpServer server;
 
-	public FtpSource() {
+	public FtpSink() {
 		try {
-			localDirectory = Files.createTempDirectory("ftp-source-local").toFile();
-			remoteServerDirectory = Files.createTempDirectory("ftp-source-remote").toFile();
+			remoteServerDirectory = Files.createTempDirectory("ftp-sink-remote").toFile();
 		}
 		catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
 	}
 
-	public FtpSource ensureStarted() {
+	public FtpSink ensureStarted() {
 		FtpServerFactory serverFactory = new FtpServerFactory();
 		serverFactory.setUserManager(new FtpDummyUserManager(remoteServerDirectory, "foo", "bar"));
 
@@ -78,15 +74,13 @@ public class FtpSource extends AbstractModuleFixture<FtpSource> implements Dispo
 
 	@Override
 	protected String toDSL() {
-		return String.format("ftp --port=%d --username=foo --password=bar --localDir=%s", port,
-				localDirectory.getAbsolutePath());
+		return String.format("ftp --port=%d --username=foo --password=bar", port);
 	}
 
 	@Override
 	public void cleanup() {
 		server.stop();
 		try {
-			FileUtils.deleteDirectory(localDirectory);
 			FileUtils.deleteDirectory(remoteServerDirectory);
 		}
 		catch (IOException e) {

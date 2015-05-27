@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/ftp
+		http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+	<beans:bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+		<beans:property name="host" value="${host}"/>
+			<beans:property name="port" value="${port}"/>
+			<beans:property name="username" value="${username:#{null}}"/>
+			<beans:property name="password" value="${password:#{null}}"/>
+			<beans:property name="clientMode" value="${clientMode}"/>
+	</beans:bean>
+
+	<int-ftp:outbound-channel-adapter auto-startup="false" channel="input" session-factory="ftpSessionFactory"
+		remote-directory="${remoteDir}"
+		temporary-remote-directory="${temporaryRemoteDir}"
+		use-temporary-file-name="${useTemporaryFilename}"
+		remote-file-separator="${remoteFileSeparator}"
+		auto-create-directory="${autoCreateDir}"
+		temporary-file-suffix="${tmpFileSuffix}">
+	</int-ftp:outbound-channel-adapter>
+
+	<channel id="input"/>
+
+</beans:beans>

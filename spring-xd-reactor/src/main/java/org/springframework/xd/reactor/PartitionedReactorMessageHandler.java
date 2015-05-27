@@ -15,25 +15,18 @@
  */
 package org.springframework.xd.reactor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
-import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import reactor.Environment;
+import reactor.core.processor.ReactorProcessor;
 import reactor.core.processor.RingBufferProcessor;
-import reactor.fn.Supplier;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
 
@@ -41,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -64,60 +58,37 @@ import java.util.concurrent.ConcurrentMap;
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class PartitionedReactorMessageHandler<IN, OUT> extends AbstractMessageProducingHandler implements
-    DisposableBean,
-		IntegrationEvaluationContextAware {
-
-	protected final Log logger = LogFactory.getLog(getClass());
+public final class PartitionedReactorMessageHandler<IN, OUT>  extends AbstractReactorMessageHandler<IN, OUT>
+		implements IntegrationEvaluationContextAware{
 
 	private final ConcurrentMap<Object, RingBufferProcessor<IN>> reactiveProcessorMap =
 			new ConcurrentHashMap<>();
 
-	private final ReactiveProcessor<IN, OUT> processor;
-
-	private final Class<IN> inputType;
-
+	private EvaluationContext evaluationContext = new StandardEvaluationContext();
 	private final Expression partitionExpression;
 
-	private final Environment environment;
-
-	private EvaluationContext evaluationContext = new StandardEvaluationContext();
-
 	/**
-	 * Construct a new SynchronousDispatcherMessageHandler given the reactor based Processor to delegate
+	 * Construct a new Reactor based Processor to delegate
 	 * processing to.
 	 *
 	 * @param processor The stream based reactor processor
 	 */
 	public PartitionedReactorMessageHandler(ReactiveProcessor<IN, OUT> processor,
 	                                        Class<IN> inputType,
-	                                        String partitionExpression) {
-		Assert.notNull(processor, "processor cannot be null.");
-		Assert.notNull(partitionExpression, "Partition expression can not be null");
-		this.processor = processor;
-
+	                                        Class<OUT> outputType,
+	                                        MessageChannel output,
+	                                        String partitionExpression,
+	                                        int backlog,
+	                                        long timeout) {
+		super(processor, output, inputType, outputType, 1, backlog, timeout);
 		SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
 		this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
 
-		// This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
-		this.environment = Environment.initializeIfEmpty();
-
-		this.inputType = inputType;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	@SuppressWarnings("unchecked")
-	protected void handleMessageInternal(Message<?> message) {
-		RingBufferProcessor<IN> reactiveProcessorToUse = getReactiveProcessor(message);
-		if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-			reactiveProcessorToUse.onNext((IN) message);
-		} else {
-			reactiveProcessorToUse.onNext((IN) message.getPayload());
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private RingBufferProcessor<IN> getReactiveProcessor(Message<?> message) {
+	protected ReactorProcessor<IN, ?> resolveProcessor(Message<?> message){
 		final Object idToUse = partitionExpression.getValue(evaluationContext, message, Object.class);
 		if (logger.isDebugEnabled()) {
 			logger.debug("Partition Expression evaluated to " + idToUse);
@@ -125,17 +96,17 @@ public class PartitionedReactorMessageHandler<IN, OUT> extends AbstractMessagePr
 		RingBufferProcessor<IN> reactiveProcessor = reactiveProcessorMap.get(idToUse);
 		if (reactiveProcessor == null) {
 			RingBufferProcessor<IN> newReactiveProcessor =
-					RingBufferProcessor.share("xd-reactor-partition-" + idToUse, 64);
+					RingBufferProcessor.share("xd-reactor-partition-" + idToUse, backlog);
 
 			RingBufferProcessor<IN> existingReactiveProcessor =
 					reactiveProcessorMap.putIfAbsent(idToUse, newReactiveProcessor);
 			if (existingReactiveProcessor == null) {
 				reactiveProcessor = reactiveProcessorMap.get(idToUse);
 				//user defined stream processing
-				processor.accept(Streams.wrap(reactiveProcessor), new Supplier<Subscriber<OUT>>() {
+				processor.accept(Streams.wrap(reactiveProcessor), new ReactiveOutput<OUT>() {
 					@Override
-					public Subscriber<OUT> get() {
-						return new DefaultSubscriber<OUT>() {
+					public void writeOutput(Publisher<? extends OUT> writeOutput) {
+						writeOutput.subscribe(new DefaultSubscriber<OUT>() {
 							Subscription s;
 
 							@Override
@@ -149,10 +120,10 @@ public class PartitionedReactorMessageHandler<IN, OUT> extends AbstractMessagePr
 
 							@Override
 							public void onNext(OUT outputObject) {
-								if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-									getOutputChannel().send((Message) outputObject);
+								if (outputType == null) {
+									output.send((Message) outputObject);
 								} else {
-									getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+									output.send(MessageBuilder.withPayload(outputObject).build());
 								}
 							}
 
@@ -176,7 +147,7 @@ public class PartitionedReactorMessageHandler<IN, OUT> extends AbstractMessagePr
 									s.cancel();
 								}
 							}
-						};
+						});
 					}
 				});
 			} else {
@@ -188,15 +159,23 @@ public class PartitionedReactorMessageHandler<IN, OUT> extends AbstractMessagePr
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	protected void doStart() {
+		//IGNORE, lazy start by partition
+	}
+
+	@Override
+	public boolean isRunning() {
+		return !reactiveProcessorMap.isEmpty();
+	}
+
+	@Override
+	protected void doShutdown(long timeout) {
 		Collection<RingBufferProcessor<IN>> toRemove =
 				new ArrayList<>(reactiveProcessorMap.values());
 
 		for (RingBufferProcessor<IN> ringBufferProcessor : toRemove) {
-			ringBufferProcessor.onComplete();
+			ringBufferProcessor.awaitAndShutdown(timeout, TimeUnit.MILLISECONDS);
 		}
-
-		environment.shutdown();
 	}
 
 	@Override

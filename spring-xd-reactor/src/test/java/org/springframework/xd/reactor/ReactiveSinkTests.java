@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,14 +42,17 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration("reactor.xml")
 @DirtiesContext
 @ActiveProfiles("bar-sink")
-public class ReactiveSinkTests extends AbstractMessageHandlerTests {
+public class ReactiveSinkTests {
 
 	@Autowired
 	BarSink barSink;
 
 	@Test
 	public void pojoBasedProcessor() throws Exception {
-		sendPojoMessages();
+		Message<?> message = new GenericMessage<String>("ping");
+		for (int i = 0; i < 10; i++) {
+			barSink.inputSink().send(message);
+		}
 		barSink.latch.await(10, TimeUnit.SECONDS);
 		assertEquals(0, barSink.latch.getCount());
 	}

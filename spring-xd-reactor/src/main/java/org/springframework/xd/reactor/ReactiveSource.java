@@ -15,20 +15,20 @@
  */
 package org.springframework.xd.reactor;
 
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import reactor.fn.Consumer;
-import reactor.fn.Supplier;
 
 /**
  * Contract for performing stream processing using Reactor within an XD source module.
  * <p/>
- * This {@link Consumer} will receive a {@link Subscriber} {@link Supplier} on module initialization or on new partition
- * and eventually subscribe a supplied {@link Supplier#get} {@link Subscriber}.
+ * This {@link Consumer} will receive a {@link ReactiveOutput} on module initialization or on new partition
+ * and eventually send messages to the module to the right with {@link ReactiveOutput#writeOutput(Publisher)}.
  * <p/>
  * The {@link Subscriber} will map {@link Subscriber#onNext(Object)} calls to send operations on the message bus.
  *
  * @author Stephane Maldini
  */
-public interface ReactiveSource<I> extends Consumer<Supplier<Subscriber<I>>>, ReactiveModule {
+public interface ReactiveSource<I> extends Consumer<ReactiveOutput<I>>, ReactiveModule {
 
 }

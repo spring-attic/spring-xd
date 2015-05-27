@@ -15,16 +15,15 @@
  */
 package org.springframework.xd.reactor.processor;
 
-import org.reactivestreams.Subscriber;
 import org.springframework.context.annotation.Profile;
-import org.springframework.xd.reactor.ReactiveProcessor;
-import org.springframework.xd.reactor.EnableReactorModule;
-import reactor.fn.Function;
-import reactor.fn.Supplier;
-import reactor.rx.Stream;
-
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.xd.reactor.EnableReactorModule;
+import org.springframework.xd.reactor.ReactiveOutput;
+import org.springframework.xd.reactor.ReactiveProcessor;
+import reactor.fn.Consumer;
+import reactor.fn.Function;
+import reactor.rx.Stream;
 
 /**
  * A simple stream processor that transforms messages by adding "-pong" to the payload.
@@ -34,18 +33,25 @@ import org.springframework.messaging.support.GenericMessage;
  */
 @SuppressWarnings("rawtypes")
 @Profile("pojo")
-@EnableReactorModule
+@EnableReactorModule(concurrency = 5)
 public class PongMessageProcessor implements ReactiveProcessor<Message, Message> {
 
 	@Override
-	public void accept(Stream<Message> inputStream, Supplier<Subscriber<Message>> output) {
-		inputStream
-				.map(new Function<Message, Message>() {
-					@Override
-					public Message apply(Message message) {
-						return new GenericMessage<String>(message.getPayload() + "-pojopong");
-					}
-				})
-				.subscribe(output.get());
+	public void accept(Stream<Message> inputStream, ReactiveOutput<Message> output) {
+		output.writeOutput(
+				inputStream
+						.map(new Function<Message, Message>() {
+							@Override
+							public Message apply(Message message) {
+								return new GenericMessage<String>(message.getPayload() + "-pojopong");
+							}
+						})
+						.observe(new Consumer<Message>() {
+							@Override
+							public void accept(Message message) {
+								System.out.println(Thread.currentThread() + " - " + message);
+							}
+						})
+		);
 	}
 }

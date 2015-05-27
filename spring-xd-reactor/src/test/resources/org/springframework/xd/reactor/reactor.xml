@@ -10,5 +10,11 @@
         <int:queue capacity="20"/>
     </int:channel>
 
-    <context:component-scan base-package="org.springframework.xd.reactor" />
+    <context:component-scan base-package="org.springframework.xd.reactor"/>
+
+    <beans profile="source-and-sink">
+        <int:bridge input-channel="outputSource" output-channel="inputSink">
+            <int:poller max-messages-per-poll="10" receive-timeout="100" fixed-rate="1"/>
+        </int:bridge>
+    </beans>
 </beans>

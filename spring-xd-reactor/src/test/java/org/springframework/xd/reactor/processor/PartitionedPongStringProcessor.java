@@ -16,7 +16,7 @@
 package org.springframework.xd.reactor.processor;
 
 import org.springframework.context.annotation.Profile;
-import org.springframework.xd.reactor.PartitionAware;
+import org.springframework.xd.reactor.EnableReactorModule;
 
 /**
  * A partitioned stream processor that transforms Strings by adding "-pong" to the string.
@@ -24,10 +24,7 @@ import org.springframework.xd.reactor.PartitionAware;
  * @author Stephane Maldini
  */
 @Profile("string-partition")
-public class PartitionedPongStringProcessor extends PongStringProcessor implements PartitionAware {
+@EnableReactorModule(partition = "T(java.lang.Thread).currentThread().getId()")
+public class PartitionedPongStringProcessor extends PongStringProcessor {
 
-	@Override
-	public String get() {
-		return "T(java.lang.Thread).currentThread().getId()";
-	}
 }

@@ -15,26 +15,21 @@
  */
 package org.springframework.xd.reactor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import reactor.Environment;
+import reactor.core.processor.ReactorProcessor;
 import reactor.core.processor.RingBufferProcessor;
-import reactor.fn.Supplier;
+import reactor.core.processor.RingBufferWorkProcessor;
+import reactor.jarjar.com.lmax.disruptor.LiteBlockingWaitStrategy;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -68,17 +63,9 @@ import java.lang.reflect.Type;
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class ReactorMessageHandler<IN, OUT> extends AbstractMessageProducingHandler
-		implements DisposableBean {
+public final class ReactorMessageHandler<IN, OUT> extends AbstractReactorMessageHandler<IN, OUT> {
 
-	protected final Log logger = LogFactory.getLog(getClass());
-
-	private final RingBufferProcessor<IN> stream;
-
-	private final Environment                environment;
-	private final ReactiveProcessor<IN, OUT> processor;
-
-	private Class<IN> inputType;
+	private final ReactorProcessor<IN, IN> reactorProcessor;
 
 	/**
 	 * Construct a new {@link ReactorMessageHandler} given the reactor based Processor to delegate
@@ -86,30 +73,34 @@ public class ReactorMessageHandler<IN, OUT> extends AbstractMessageProducingHand
 	 *
 	 * @param processor The stream based reactor processor
 	 */
-	public ReactorMessageHandler(ReactiveProcessor<IN, OUT> processor, Class<IN> inputType) {
-		Assert.notNull(processor, "processor cannot be null.");
-		environment = Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
-
-		this.inputType = inputType;
+	public ReactorMessageHandler(ReactiveProcessor<IN, OUT> processor,
+	                             MessageChannel output,
+	                             Class<IN> inputType,
+	                             Class<OUT> outputType,
+	                             int concurrency,
+	                             int backlog,
+	                             long timeout
+	) {
+		super(processor, output, inputType, outputType, concurrency, backlog, timeout);
 
 		//Stream with a  RingBufferProcessor
 		if (inputType == null) {
-			this.stream = null;
+			this.reactorProcessor = null;
 		} else {
-			this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
+			this.reactorProcessor = this.concurrency == 1 ?
+					RingBufferProcessor.<IN>share("xd-reactor", backlog) :
+					RingBufferWorkProcessor.<IN>share("xd-reactor", backlog, new LiteBlockingWaitStrategy());
 		}
-		this.processor = processor;
 	}
 
 	@Override
-	protected void onInit() throws Exception {
-		//user defined stream processing
-		processor.accept(stream != null ? Streams.wrap(stream) : null, new Supplier<Subscriber<OUT>>() {
+	protected void doStart() {
+		processor.accept(reactorProcessor != null ? Streams.wrap(reactorProcessor) : null, new ReactiveOutput<OUT>() {
 			@Override
-			public Subscriber<OUT> get() {
-				return new DefaultSubscriber<OUT>() {
+			public void writeOutput(Publisher<? extends OUT> writeOutput) {
+				writeOutput.subscribe(new DefaultSubscriber<OUT>() {
 					@Override
-					public void onSubscribe(Subscription s) {
+					public void onSubscribe(final Subscription s) {
 						s.request(Long.MAX_VALUE);
 						if (logger.isDebugEnabled()) {
 							logger.debug("xd-reactor started [ " + ReactorMessageHandler.this + " ]");
@@ -118,11 +109,7 @@ public class ReactorMessageHandler<IN, OUT> extends AbstractMessageProducingHand
 
 					@Override
 					public void onNext(OUT outputObject) {
-						if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-							getOutputChannel().send((Message) outputObject);
-						} else {
-							getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-						}
+						forwardToOutput(outputObject);
 					}
 
 					@Override
@@ -137,33 +124,28 @@ public class ReactorMessageHandler<IN, OUT> extends AbstractMessageProducingHand
 							logger.debug("xd-reactor completed [ " + ReactorMessageHandler.this + " ]");
 						}
 					}
-				};
+				});
 			}
 		});
-		super.onInit();
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	protected void handleMessageInternal(Message<?> message) throws Exception {
-		if (stream == null) {
+	protected ReactorProcessor<IN, ?> resolveProcessor(Message<?> message){
+		if (reactorProcessor == null) {
 			throw new MessagingException("This ReactiveModule does not accept input messages");
 		}
-		if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-			stream.onNext((IN) message);
-		} else {
-			//TODO handle type conversion of payload to input type if possible
-
-			stream.onNext((IN) message.getPayload());
-		}
+		return reactorProcessor;
 	}
 
+	@Override
+	public boolean isRunning() {
+		return reactorProcessor.alive();
+	}
 
 	@Override
-	public void destroy() throws Exception {
-		if (stream != null) {
-			stream.onComplete();
+	protected void doShutdown(long timeout) {
+		if (reactorProcessor != null) {
+			reactorProcessor.awaitAndShutdown(timeout, TimeUnit.MILLISECONDS);
 		}
-		environment.shutdown();
 	}
 }

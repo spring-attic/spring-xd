@@ -11,21 +11,22 @@ https://github.com/reactor/reactor[Project Reactor] provides a https://reactor.g
 [TIP]
 Explore Reactor with http://projectreactor.io/docs/reference/[the reference guide].
 
-To implement a Stream based processor module you need to implement the interface `org.springframework.xd.reactor.Processor`
+To implement a Stream based processor module you need to implement the interface `org.springframework.xd.reactor.ReactiveProcessor`
 
 [source,java]
 ----
-public interface Processor<I, O> {
 
-    /**
-     * Process a stream of messages and return an output stream.  The input
-     * and output stream will be mapped onto receive/send operations on the message bus.
-     *
-     * @param inputStream Input Stream the receives messages from the message bus
-     * @return Output Publisher (Stream, Promise, or any valid Reactive Stream Publisher) of messages sent to the message bus
-     */
-    Publisher<O> process(Stream<I> inputStream);
-
+/**
+ * Contract for performing stream processing using Reactor within an XD processor module
+ * <p/>
+ * This {@link BiConsumer} will receive an input {@link Stream} left operand and an output
+ * and a right operand {@link ReactiveOutput} on module initialization or on new partition
+ * and eventually send messages to the module to the right with {@link ReactiveOutput#writeOutput(Publisher)}.
+ * <p/>
+ * The {@link Stream} will map {@link Subscriber#onNext(Object)} calls to receive operations on the message bus.
+ * The {@link ReactiveOutput} will map {@link Subscriber#onNext(Object)} calls to send operations on the message bus.
+ */
+public interface ReactiveProcessor<I, O> extends BiConsumer<Stream<I>, ReactiveOutput<O>>, ReactiveModule{
 }
 ----
 
@@ -35,51 +36,65 @@ Examples of operations you can perform on the Stream are map, flatMap, buffer, w
 
 [source,java]
 ----
-import org.springframework.xd.reactor.Processor;
+import org.springframework.xd.reactor.ReactiveProcessor;
+import org.springframework.xd.reactor.ReactiveOutput;
+import org.springframework.xd.reactor.EnableReactorModule;
 import org.springframework.xd.tuple.Tuple;
+
 import reactor.rx.Stream;
 
 import static com.acme.Math.avg;
 import static org.springframework.xd.tuple.TupleBuilder.tuple;
 
-public class MovingAverage implements Processor<Tuple, Tuple> {
+@EnableReactorModule
+public class MovingAverage implements ReactiveProcessor<Tuple, Tuple> {
+
     @Override
-    public Publisher<Tuple> process(Stream<Tuple> inputStream) {
-        return inputStream.map(tuple -> tuple.getDouble("measurement"))
+    public void accept(Stream<Tuple> inputStream, ReactiveOutput<Tuple> output) {
+        output.writeOutput(
+          inputStream
+                .map(tuple -> tuple.getDouble("measurement"))
                 .buffer(5)
-                .map(data -> tuple().of("average", avg(data)));
+                .map(data -> tuple().of("average", avg(data)))
+        );
     }
 }
 ----
 
-You can now create unit tests for the Processor module just as you would for any other Java class.  The module application context file can be in XML or in Java using a @Configuration class.  The XML version is shown below.
+You can also define a source or a sink if you implement the adequate interface:
+
+[source,java]
+----
+import org.springframework.xd.reactor.ReactiveSource;
+import org.springframework.xd.reactor.ReactiveOutput;
+import org.springframework.xd.reactor.EnableReactorModule;
+import org.springframework.xd.tuple.Tuple;
+import reactor.rx.Streams;
+
+import static com.acme.Math.avg;
+import static org.springframework.xd.tuple.TupleBuilder.tuple;
+
+@EnableReactorModule
+public class PeriodicEmitter implements ReactiveSource<Long> {
+
+    @Override
+    public void accept(ReactiveOutput<Long> output) {
+        output.writeOutput(
+          Streams..period(1)
+				);
+    }
+}
+----
+
+You can now create unit tests for the module just as you would for any other Java class.  The module application context file can be in XML or in Java using a @Configuration class.  The XML version is shown below.
 
 [source,xml]
 ----
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:int="http://www.springframework.org/schema/integration"
        xmlns="http://www.springframework.org/schema/beans"
-       xsi:schemaLocation="http://www.springframework.org/schema/integration 
-         http://www.springframework.org/schema/integration/spring-integration.xsd
-         http://www.springframework.org/schema/beans 
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
 	 http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-
     <bean id="messageProcessor" class="com.acme.MovingAverage"/>
-
-
-    <int:channel id="input"/>
-
-    <bean name="messageHandler" class="org.springframework.xd.reactor.ReactorMessageHandler">
-        <constructor-arg ref="messageProcessor"/>
-    </bean>
-
-
-    <int:service-activator input-channel="input" ref="messageHandler"
-                           output-channel="output"/>
-
-    <int:channel id="output"/>
-
 </beans>
 ----
 

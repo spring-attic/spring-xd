@@ -15,15 +15,20 @@
  */
 package org.springframework.xd.reactor;
 
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import reactor.fn.Supplier;
+import org.reactivestreams.Publisher;
 
 /**
- * Contract for performing stream processing using on a given expression evaluated partition.
- * <p/>
- * This {@link Supplier} will provide an expression string to be evaluated by an internal {@link SpelExpressionParser}.
+ * A {@link Publisher} gateway to invoke the next module in a Spring XD Stream.
+ *
+ * {@code
+ *  public voic accept(Stream<String> input, ReactiveOutput<String> output){
+ *    output.writeOutput(input.map(transformer));
+ *  }
+ * }
  *
  * @author Stephane Maldini
  */
-public interface PartitionAware extends Supplier<String>{
+public interface ReactiveOutput<T> {
+
+	void writeOutput(Publisher<? extends T> output);
 }

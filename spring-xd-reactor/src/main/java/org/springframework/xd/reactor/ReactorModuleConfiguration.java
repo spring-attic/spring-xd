@@ -6,7 +6,6 @@ package org.springframework.xd.reactor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.reactivestreams.Subscriber;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -16,19 +15,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.AbstractMessageProducingHandler;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
-import reactor.fn.Supplier;
 import reactor.rx.Stream;
-
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
 @Configuration
 @EnableIntegration
-public class ReactorModuleConfiguration implements BeanPostProcessor, BeanFactoryAware{
+public class ReactorModuleConfiguration implements BeanPostProcessor, BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -48,57 +42,101 @@ public class ReactorModuleConfiguration implements BeanPostProcessor, BeanFactor
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (ReactiveModule.class.isAssignableFrom(bean.getClass())) {
+
 			if (ReactiveSink.class.isAssignableFrom(bean.getClass())) {
 				final ReactiveSink sink = (ReactiveSink) bean;
-				createMessageHandler(new ReactiveProcessor<Object, Object>() {
-					@Override
-					public void accept(Stream<Object> objectStream, Supplier<Subscriber<Object>> subscriberSupplier) {
-						sink.accept(objectStream);
-					}
-				}, extractGeneric(bean, ReactiveSink.class));
+				createMessageHandler(
+						bean,
+						new ReactiveProcessor<Object, Object>() {
+							@Override
+							public void accept(Stream<Object> objectStream, ReactiveOutput<Object> output) {
+								sink.accept(objectStream);
+							}
+						},
+						ReactorReflectionUtils.extractGeneric(bean, ReactiveSink.class),
+						null
+				);
 				return bean;
 			}
 
 			if (ReactiveSource.class.isAssignableFrom(bean.getClass())) {
 				final ReactiveSource source = (ReactiveSource) bean;
-				createMessageHandler(new ReactiveProcessor<Object, Object>() {
-					@Override
-					public void accept(Stream<Object> objectStream, Supplier<Subscriber<Object>> subscriberSupplier) {
-						source.accept(subscriberSupplier);
-					}
-				}, null);
+				createMessageHandler(
+						bean,
+						new ReactiveProcessor<Object, Object>() {
+							@Override
+							public void accept(Stream<Object> objectStream, ReactiveOutput<Object> output) {
+								source.accept(output);
+							}
+						},
+						null,
+						ReactorReflectionUtils.extractGeneric(bean, ReactiveSource.class));
 				return bean;
 			}
 
-			createMessageHandler((ReactiveProcessor) bean, extractGeneric(bean, ReactiveProcessor.class));
+			createMessageHandler(
+					bean,
+					(ReactiveProcessor) bean,
+					ReactorReflectionUtils.extractGeneric(bean, ReactiveProcessor.class, 0),
+					ReactorReflectionUtils.extractGeneric(bean, ReactiveProcessor.class, 1)
+			);
 		}
 		return bean;
 	}
 
-	@SuppressWarnings({"unchecked","rawtypes"})
-	private void createMessageHandler(ReactiveProcessor bean, Class inputType) {
-		final AbstractMessageProducingHandler handler;
-		if (inputType != null &&
-				PartitionAware.class.isAssignableFrom(bean.getClass())) {
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private void createMessageHandler(Object bean, ReactiveProcessor reactiveProcessor, Class inputType, Class outputType) {
 
-			String partitionExpression = ((PartitionAware)bean).get();
-			handler = new PartitionedReactorMessageHandler<>(bean, inputType, partitionExpression);
+		EnableReactorModule ann = ReactorReflectionUtils.extractAnnotation(bean);
 
-		}else{
-			handler = new ReactorMessageHandler<>(bean, inputType);
+		final MessageChannel output;
+		final SubscribableChannel input;
+		final int concurrency;
+		final String partitionExpression;
+		final int backlog;
+		final long shutdownTimeout;
+
+		if (ann != null) {
+			input = beanFactory.getBean(ann.input(), SubscribableChannel.class);
+			output = beanFactory.getBean(ann.output(), MessageChannel.class);
+			concurrency = ann.concurrency();
+			partitionExpression = ann.partition();
+			backlog = ann.backlog();
+			shutdownTimeout = ann.shutdownTimeout();
+		} else {
+			try {
+				input = (SubscribableChannel) input();
+			} catch (ClassCastException cce) {
+				throw new IllegalArgumentException("Input channel must be of type SubscribableChannel");
+			}
+			output = output();
+			concurrency = 1;
+			partitionExpression = "";
+			backlog = 8192;
+			shutdownTimeout = 5000L;
 		}
 
-		handler.setOutputChannel(output());
-		handler.setBeanFactory(beanFactory);
-		handler.afterPropertiesSet();
 
-		MessageChannel input = input();
-		if(SubscribableChannel.class.isAssignableFrom(input.getClass())){
-			EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel)input, handler);
+		final MessageHandler handler;
+		if (inputType != null &&
+				!partitionExpression.isEmpty()) {
+
+			handler = new PartitionedReactorMessageHandler<>(
+					reactiveProcessor, inputType, outputType, output, partitionExpression, backlog, shutdownTimeout
+			);
+
+		} else {
+			handler = new ReactorMessageHandler<>(
+					reactiveProcessor, output, inputType, outputType, concurrency, backlog, shutdownTimeout
+			);
+		}
+
+		if (SubscribableChannel.class.isAssignableFrom(input.getClass())) {
+			EventDrivenConsumer consumer = new EventDrivenConsumer(input, handler);
 			consumer.afterPropertiesSet();
 			consumer.start();
-		}else{
-			throw new IllegalArgumentException("Input channel is not subscribable: "+input+" of type "+input.getClass());
+		} else {
+			throw new IllegalArgumentException("Input channel is not subscribable: " + input + " of type " + input.getClass());
 		}
 	}
 
@@ -110,33 +148,6 @@ public class ReactorModuleConfiguration implements BeanPostProcessor, BeanFactor
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
-	}
-
-	@SuppressWarnings("unchecked")
-	static <IN> Class<IN> extractGeneric(Object processor, Class<?> target) {
-		Class<?> searchType = processor.getClass();
-		while (searchType != Object.class) {
-			if (searchType.getGenericInterfaces().length == 0){
-				continue;
-			}
-			for (Type t : searchType.getGenericInterfaces()) {
-				if (ParameterizedType.class.isAssignableFrom(t.getClass())
-						&& ((ParameterizedType)t).getRawType().equals(target)) {
-					ParameterizedType pt = (ParameterizedType) t;
-
-					if (pt.getActualTypeArguments().length == 0) return (Class<IN>)Message.class;
-
-					t = pt.getActualTypeArguments()[0];
-					if (t instanceof ParameterizedType) {
-						return (Class<IN>) ((ParameterizedType) t).getRawType();
-					} else if (t instanceof Class) {
-						return (Class<IN>) t;
-					}
-				}
-			}
-			searchType = searchType.getSuperclass();
-		}
-		return (Class<IN>)Message.class;
 	}
 
 }

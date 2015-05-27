@@ -13,30 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.xd.reactor.processor;
 
-package org.springframework.xd.reactor;
-
-import reactor.fn.Function;
-import reactor.rx.Stream;
+import org.springframework.xd.reactor.ReactiveProcessor;
 
 /**
- * @author Marius Bogoevici
+ * @author Mark Pollack
  */
-public class PongRawTypeProcessor extends AbstractRawTypeProcessor implements AdditionalInterface<Integer,Integer> {
-
-	@Override
-	public Stream process(Stream inputStream) {
-		return inputStream.map(new Function<Object, Object>() {
-			@Override
-			public Object apply(Object message) {
-				return message.toString() + "-objectpong";
-			}
-		});
-	}
-
-	@Override
-	public Integer handle(Integer input) {
-		return input;
-	}
+public abstract class AbstractPongStringProcessor  implements ReactiveProcessor<String, String> {
 }
-

@@ -17,7 +17,6 @@ package org.springframework.xd.reactor;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -29,7 +28,8 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test the {@link ReactorMessageHandler} by using String types of
+ * Test the {@link PartitionedReactorMessageHandler} by using String types of
+ * {@link ReactiveProcessor}. by using String types of
  * {@link ReactiveProcessor}. This verifies extracting payload types and
  * wrapping return types in a Message.
  *
@@ -39,15 +39,14 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("reactor.xml")
 @DirtiesContext
-@ActiveProfiles("string")
-public class ReactorStringHandlerTests extends AbstractMessageHandlerTests {
-
+@ActiveProfiles("raw")
+public class ReactorRawHandlerTests extends AbstractMessageHandlerTests {
 	@Test
-	public void striBasedProcessor() throws IOException {
-		sendStringMessages();
+	public void pojoBasedProcessor() throws IOException {
+		sendPojoMessages();
 		for (int i = 0; i < numMessages; i++) {
 			Message<?> outputMessage = fromProcessorChannel.receive(2000);
-			assertEquals("ping-stringpong", outputMessage.getPayload());
+			assertEquals("ping-objectpong", outputMessage.getPayload());
 		}
 	}
 }

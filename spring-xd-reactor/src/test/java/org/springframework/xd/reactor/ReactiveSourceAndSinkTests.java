@@ -17,37 +17,41 @@ package org.springframework.xd.reactor;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.context.annotation.Import;
-import org.springframework.messaging.Message;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.reactor.sink.BarSink;
+import org.springframework.xd.reactor.source.FooSource;
 
-import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test the {@link ReactorMessageHandler} by using String types of
- * {@link ReactiveProcessor}. This verifies extracting payload types and
- * wrapping return types in a Message.
+ * Test the {@link ReactorMessageHandler} by using Message types of
+ * {@link ReactiveProcessor}.
  *
  * @author Mark Pollack
- * @author Stephane Maldini
+ * @author Stepane Maldini
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("reactor.xml")
 @DirtiesContext
-@ActiveProfiles("string")
-public class ReactorStringHandlerTests extends AbstractMessageHandlerTests {
+@ActiveProfiles("source-and-sink")
+public class ReactiveSourceAndSinkTests extends AbstractMessageHandlerTests {
+
+	@Autowired
+	BarSink barSink;
+
+	@Autowired
+	FooSource fooSource;
 
 	@Test
-	public void striBasedProcessor() throws IOException {
-		sendStringMessages();
-		for (int i = 0; i < numMessages; i++) {
-			Message<?> outputMessage = fromProcessorChannel.receive(2000);
-			assertEquals("ping-stringpong", outputMessage.getPayload());
-		}
+	public void pojoBasedProcessor() throws Exception {
+		barSink.latch.await(10, TimeUnit.SECONDS);
+		assertEquals(0, barSink.latch.getCount());
 	}
 }

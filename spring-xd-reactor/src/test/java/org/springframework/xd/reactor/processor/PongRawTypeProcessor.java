@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.reactor.processor;
 
 import org.springframework.context.annotation.Profile;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.xd.reactor.AdditionalInterface;
 import org.springframework.xd.reactor.EnableReactorModule;
 import org.springframework.xd.reactor.ReactiveOutput;
+import org.springframework.xd.reactor.processor.AbstractRawTypeProcessor;
 import reactor.fn.Function;
 import reactor.rx.Stream;
 
 /**
- * A simple stream processor that transforms Strings by adding "-pong" to the string.
- *
- * @author Mark Pollack
- * @author Stephane Maldini
+ * @author Marius Bogoevici
  */
-@Profile("string")
+@Profile("raw")
 @EnableReactorModule
-public class PongStringProcessor extends AbstractPongStringProcessor{
+public class PongRawTypeProcessor extends AbstractRawTypeProcessor implements AdditionalInterface<Integer,Integer> {
 
 	@Override
-	public void accept(Stream<String> inputStream, ReactiveOutput<String> output) {
-		output.writeOutput(
-				inputStream
-						.map(new Function<String, String>() {
-							@Override
-							public String apply(String message) {
-								return message + "-stringpong";
-							}
-						})
-		);
+	public void accept(Stream inputStream, ReactiveOutput output) {
+		output.writeOutput(inputStream.map(new Function<Object, Object>() {
+			@Override
+			public Object apply(Object message) {
+				return MessageBuilder.withPayload(((Message)message).getPayload() + "-objectpong").build();
+			}
+		}));
+	}
+
+
+	@Override
+	public Integer handle(Integer input) {
+		return input;
 	}
 }
+

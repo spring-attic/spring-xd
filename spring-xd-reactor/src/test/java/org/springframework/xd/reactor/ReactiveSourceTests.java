@@ -23,9 +23,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.reactor.sink.BarSink;
-
-import java.util.concurrent.TimeUnit;
+import org.springframework.xd.reactor.source.FooSource;
 
 import static org.junit.Assert.assertEquals;
 
@@ -40,13 +38,16 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration("reactor.xml")
 @DirtiesContext
 @ActiveProfiles("foo-source")
-public class ReactiveSourceTests extends AbstractMessageHandlerTests {
+public class ReactiveSourceTests {
+
+	@Autowired
+	FooSource fooSource;
 
 	@Test
 	public void pojoBasedProcessor() throws Exception {
 		for (int i = 0; i < 20; i++) {
-			Message<?> outputMessage = fromProcessorChannel.receive(2000);
-			assertEquals(""+i, outputMessage.getPayload().toString());
+			Message<?> outputMessage = fooSource.outputSource().receive(2000);
+			assertEquals("" + i, outputMessage.getPayload().toString());
 		}
 	}
 }

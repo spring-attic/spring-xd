@@ -16,9 +16,7 @@
 package org.springframework.xd.reactor;
 
 import org.reactivestreams.Subscriber;
-import org.springframework.stereotype.Component;
 import reactor.fn.Consumer;
-import reactor.fn.Supplier;
 import reactor.rx.Stream;
 
 /**

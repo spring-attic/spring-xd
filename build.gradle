@@ -593,7 +593,7 @@ project('spring-xd-dirt') {
 		into "modules"
 		include "*/*/lib/*"
 		include "*/*/config/*"
-		include "common"
+		include "common/*"
 	}
 
 	// Following execution is used by jsTests task to start SingleNodeApplication as background process

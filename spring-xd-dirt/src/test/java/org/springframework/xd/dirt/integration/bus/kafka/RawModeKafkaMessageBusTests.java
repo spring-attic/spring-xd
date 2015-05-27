@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.amqp.utils.test.TestUtils;

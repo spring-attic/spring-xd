@@ -29,23 +29,25 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test the {@link ReactorMessageHandler} by using Message types of
- * {@link ReactiveProcessor}.
+ * Test the {@link ReactorMessageHandler} by using String types of
+ * {@link ReactiveProcessor}. This verifies extracting payload types and
+ * wrapping return types in a Message.
  *
  * @author Mark Pollack
- * @author Stepane Maldini
+ * @author Stephane Maldini
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("reactor.xml")
 @DirtiesContext
-@ActiveProfiles("pojo")
-public class ReactorMessageHandlerTests extends AbstractMessageHandlerTests {
+@ActiveProfiles("string")
+public class ReactorStringHandlerTests extends AbstractMessageHandlerTests {
+
 	@Test
-	public void pojoBasedProcessor() throws IOException {
-		sendPojoMessages();
+	public void stringBasedProcessor() throws IOException {
+		sendStringMessages();
 		for (int i = 0; i < numMessages; i++) {
 			Message<?> outputMessage = fromProcessorChannel.receive(2000);
-			assertEquals("ping-pojopong", outputMessage.getPayload());
+			assertEquals("ping-stringpong", outputMessage.getPayload());
 		}
 	}
 }

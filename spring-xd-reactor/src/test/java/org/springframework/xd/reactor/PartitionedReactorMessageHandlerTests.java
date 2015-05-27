@@ -18,20 +18,22 @@ package org.springframework.xd.reactor;
 import org.junit.runner.RunWith;
 
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.reactor.processor.PartitionedPongMessageProcessor;
 
 /**
- * Test the {@link PartitionedReactorMessageHandler} by using two types of
- * {@link org.springframework.xd.reactor.Processor}. The first is parameterized by
- * {@link org.springframework.messaging.Message} and the second by String to test extracting payload types and
- * wrapping return types in a Message.
+ * Test the {@link PartitionedReactorMessageHandler} by using Message types of
+ * {@link ReactiveProcessor}.
  *
  * @author Mark Pollack
+ * @author Stephane Maldini
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@ContextConfiguration("reactor.xml")
 @DirtiesContext
-public class PartitionedReactorMessageHandlerTests extends AbstractMessageHandlerTests {
+@ActiveProfiles("pojo-partition")
+public class PartitionedReactorMessageHandlerTests extends ReactorMessageHandlerTests {
 
 }

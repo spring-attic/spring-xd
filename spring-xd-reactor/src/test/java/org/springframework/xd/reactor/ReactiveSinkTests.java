@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,43 +16,40 @@
 package org.springframework.xd.reactor;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.reactor.sink.BarSink;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
 /**
+ * Test the {@link ReactorMessageHandler} by using Message types of
+ * {@link ReactiveProcessor}.
+ *
  * @author Mark Pollack
+ * @author Stepane Maldini
  */
-public abstract class AbstractMessageHandlerTests {
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("reactor.xml")
+@DirtiesContext
+@ActiveProfiles("bar-sink")
+public class ReactiveSinkTests extends AbstractMessageHandlerTests {
 
-	protected final int numMessages = 10;
 	@Autowired
-	@Qualifier("output")
-	PollableChannel fromProcessorChannel;
+	BarSink barSink;
 
-	@Autowired
-	@Qualifier("input")
-	MessageChannel toProcessorChannel;
-
-	protected void sendPojoMessages() {
-		Message<?> message = new GenericMessage<String>("ping");
-		for (int i = 0; i < numMessages; i++) {
-			toProcessorChannel.send(message);
-		}
-	}
-
-	protected void sendStringMessages() {
-		Message<?> message = new GenericMessage<String>("ping");
-		for (int i = 0; i < numMessages; i++) {
-			toProcessorChannel.send(message);
-		}
+	@Test
+	public void pojoBasedProcessor() throws Exception {
+		sendPojoMessages();
+		barSink.latch.await(10, TimeUnit.SECONDS);
+		assertEquals(0, barSink.latch.getCount());
 	}
 }

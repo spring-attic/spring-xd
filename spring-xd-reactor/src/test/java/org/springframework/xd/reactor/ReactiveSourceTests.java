@@ -17,14 +17,15 @@ package org.springframework.xd.reactor;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.context.annotation.Import;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.reactor.sink.BarSink;
 
-import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
@@ -38,14 +39,14 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("reactor.xml")
 @DirtiesContext
-@ActiveProfiles("pojo")
-public class ReactorMessageHandlerTests extends AbstractMessageHandlerTests {
+@ActiveProfiles("foo-source")
+public class ReactiveSourceTests extends AbstractMessageHandlerTests {
+
 	@Test
-	public void pojoBasedProcessor() throws IOException {
-		sendPojoMessages();
-		for (int i = 0; i < numMessages; i++) {
+	public void pojoBasedProcessor() throws Exception {
+		for (int i = 0; i < 20; i++) {
 			Message<?> outputMessage = fromProcessorChannel.receive(2000);
-			assertEquals("ping-pojopong", outputMessage.getPayload());
+			assertEquals(""+i, outputMessage.getPayload().toString());
 		}
 	}
 }

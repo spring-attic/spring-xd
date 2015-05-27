@@ -18,6 +18,7 @@ package org.springframework.xd.reactor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.expression.EvaluationContext;
@@ -32,6 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
+import reactor.fn.Supplier;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
 
@@ -71,7 +73,7 @@ public class PartitionedReactorMessageHandler<IN, OUT> extends AbstractMessagePr
 	private final ConcurrentMap<Object, RingBufferProcessor<IN>> reactiveProcessorMap =
 			new ConcurrentHashMap<>();
 
-	private final Processor<IN, OUT> processor;
+	private final ReactiveProcessor<IN, OUT> processor;
 
 	private final Class<IN> inputType;
 
@@ -87,8 +89,9 @@ public class PartitionedReactorMessageHandler<IN, OUT> extends AbstractMessagePr
 	 *
 	 * @param processor The stream based reactor processor
 	 */
-	@SuppressWarnings("unchecked")
-	public PartitionedReactorMessageHandler(Processor<IN, OUT> processor, String partitionExpression) {
+	public PartitionedReactorMessageHandler(ReactiveProcessor<IN, OUT> processor,
+	                                        Class<IN> inputType,
+	                                        String partitionExpression) {
 		Assert.notNull(processor, "processor cannot be null.");
 		Assert.notNull(partitionExpression, "Partition expression can not be null");
 		this.processor = processor;
@@ -99,7 +102,7 @@ public class PartitionedReactorMessageHandler<IN, OUT> extends AbstractMessagePr
 		// This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
 		this.environment = Environment.initializeIfEmpty();
 
-		this.inputType = ReactorMessageHandler.extractGeneric(processor);
+		this.inputType = inputType;
 	}
 
 	@Override
@@ -129,51 +132,53 @@ public class PartitionedReactorMessageHandler<IN, OUT> extends AbstractMessagePr
 			if (existingReactiveProcessor == null) {
 				reactiveProcessor = reactiveProcessorMap.get(idToUse);
 				//user defined stream processing
-				Publisher<?> outputStream = processor.process(Streams.wrap(reactiveProcessor));
-
-				outputStream.subscribe(new DefaultSubscriber<Object>() {
-					Subscription s;
-
+				processor.accept(Streams.wrap(reactiveProcessor), new Supplier<Subscriber<OUT>>() {
 					@Override
-					public void onSubscribe(Subscription s) {
-						this.s = s;
-						s.request(Long.MAX_VALUE);
-						if(logger.isDebugEnabled()) {
-							logger.debug("xd-reactor started [ " + PartitionedReactorMessageHandler.this + " - " + s + " ]");
-						}
-					}
+					public Subscriber<OUT> get() {
+						return new DefaultSubscriber<OUT>() {
+							Subscription s;
 
-					@Override
-					public void onNext(Object outputObject) {
-						if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-							getOutputChannel().send((Message) outputObject);
-						} else {
-							getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-						}
-					}
+							@Override
+							public void onSubscribe(Subscription s) {
+								this.s = s;
+								s.request(Long.MAX_VALUE);
+								if (logger.isDebugEnabled()) {
+									logger.debug("xd-reactor started [ " + PartitionedReactorMessageHandler.this + " - " + s + " ]");
+								}
+							}
 
-					@Override
-					public void onError(Throwable throwable) {
-						logger.error("", throwable);
-						reactiveProcessorMap.remove(idToUse);
-						if (s != null) {
-							s.cancel();
-						}
-					}
+							@Override
+							public void onNext(OUT outputObject) {
+								if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
+									getOutputChannel().send((Message) outputObject);
+								} else {
+									getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+								}
+							}
 
-					@Override
-					public void onComplete() {
-						if (logger.isDebugEnabled()) {
-							logger.debug("xd-reactor completed [ " + PartitionedReactorMessageHandler.this + " - " + s + " ]");
+							@Override
+							public void onError(Throwable throwable) {
+								logger.error("", throwable);
+								reactiveProcessorMap.remove(idToUse);
+								if (s != null) {
+									s.cancel();
+								}
+							}
 
-						}
-						reactiveProcessorMap.remove(idToUse);
-						if (s != null) {
-							s.cancel();
-						}
+							@Override
+							public void onComplete() {
+								if (logger.isDebugEnabled()) {
+									logger.debug("xd-reactor completed [ " + PartitionedReactorMessageHandler.this + " - " + s + " ]");
+
+								}
+								reactiveProcessorMap.remove(idToUse);
+								if (s != null) {
+									s.cancel();
+								}
+							}
+						};
 					}
 				});
-
 			} else {
 				newReactiveProcessor.onComplete();
 				reactiveProcessor = existingReactiveProcessor;

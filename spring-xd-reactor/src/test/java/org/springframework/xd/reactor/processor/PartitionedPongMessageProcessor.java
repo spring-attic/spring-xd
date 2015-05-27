@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.reactor;
+package org.springframework.xd.reactor.processor;
 
-import reactor.fn.Function;
-import reactor.rx.Stream;
+import org.springframework.context.annotation.Profile;
+import org.springframework.xd.reactor.PartitionAware;
 
 /**
- * A simple stream processor that transforms Strings by adding "-pong" to the string.
+ * A partitioned stream processor that transforms messages by adding "-pong" to the payload.
  *
- * @author Mark Pollack
+ * @author Stephane Maldini
  */
-public class PongStringProcessor extends AbstractPongStringProcessor {
+@Profile("pojo-partition")
+public class PartitionedPongMessageProcessor extends PongMessageProcessor implements PartitionAware {
 
-    @Override
-    public Stream<String> process(Stream<String> inputStream) {
-        return inputStream.map(new Function<String, String>() {
-            @Override
-            public String apply(String message) {
-                return message + "-stringpong";
-            }
-        });
-    }
+	@Override
+	public String get() {
+		return "T(java.lang.Thread).currentThread().getId()";
+	}
 }

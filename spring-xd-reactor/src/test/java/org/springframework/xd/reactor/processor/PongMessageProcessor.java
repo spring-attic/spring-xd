@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.reactor;
+package org.springframework.xd.reactor.processor;
 
+import org.reactivestreams.Subscriber;
+import org.springframework.context.annotation.Profile;
+import org.springframework.xd.reactor.ReactiveProcessor;
+import org.springframework.xd.reactor.EnableReactorModule;
 import reactor.fn.Function;
+import reactor.fn.Supplier;
 import reactor.rx.Stream;
 
 import org.springframework.messaging.Message;
@@ -25,17 +30,22 @@ import org.springframework.messaging.support.GenericMessage;
  * A simple stream processor that transforms messages by adding "-pong" to the payload.
  *
  * @author Mark Pollack
+ * @author Stephane Maldini
  */
 @SuppressWarnings("rawtypes")
-public class PongMessageProcessor implements Processor<Message, Message> {
+@Profile("pojo")
+@EnableReactorModule
+public class PongMessageProcessor implements ReactiveProcessor<Message, Message> {
 
-    @Override
-    public Stream<Message> process(Stream<Message> inputStream) {
-        return inputStream.map(new Function<Message, Message>() {
-            @Override
-            public Message apply(Message message) {
-                return new GenericMessage<String>(message.getPayload() + "-pojopong");
-            }
-        });
-    }
+	@Override
+	public void accept(Stream<Message> inputStream, Supplier<Subscriber<Message>> output) {
+		inputStream
+				.map(new Function<Message, Message>() {
+					@Override
+					public Message apply(Message message) {
+						return new GenericMessage<String>(message.getPayload() + "-pojopong");
+					}
+				})
+				.subscribe(output.get());
+	}
 }

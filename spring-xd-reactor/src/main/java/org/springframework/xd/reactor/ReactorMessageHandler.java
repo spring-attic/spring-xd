@@ -17,16 +17,18 @@ package org.springframework.xd.reactor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
+import reactor.fn.Supplier;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
@@ -66,35 +68,17 @@ import java.lang.reflect.Type;
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class ReactorMessageHandler<IN, OUT> extends AbstractMessageProducingHandler implements DisposableBean {
+public class ReactorMessageHandler<IN, OUT> extends AbstractMessageProducingHandler
+		implements DisposableBean {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final RingBufferProcessor<IN> stream;
 
-	private final Environment environment;
+	private final Environment                environment;
+	private final ReactiveProcessor<IN, OUT> processor;
 
 	private Class<IN> inputType;
-
-	@SuppressWarnings("unchecked")
-	static <IN> Class<IN> extractGeneric(Processor<IN, ?> processor) {
-		if (processor.getClass().getGenericInterfaces().length == 0) return null;
-
-		Type t = processor.getClass().getGenericInterfaces()[0];
-		if (ParameterizedType.class.isAssignableFrom(t.getClass())) {
-			ParameterizedType pt = (ParameterizedType) t;
-
-			if (pt.getActualTypeArguments().length == 0) return null;
-
-			t = pt.getActualTypeArguments()[0];
-				if (t instanceof ParameterizedType) {
-					return (Class<IN>) ((ParameterizedType) t).getRawType();
-				} else if (t instanceof Class) {
-					return (Class<IN>) t;
-				}
-		}
-		return null;
-	}
 
 	/**
 	 * Construct a new {@link ReactorMessageHandler} given the reactor based Processor to delegate
@@ -102,56 +86,69 @@ public class ReactorMessageHandler<IN, OUT> extends AbstractMessageProducingHand
 	 *
 	 * @param processor The stream based reactor processor
 	 */
-	@SuppressWarnings("unchecked")
-	public ReactorMessageHandler(Processor<IN, OUT> processor) {
+	public ReactorMessageHandler(ReactiveProcessor<IN, OUT> processor, Class<IN> inputType) {
 		Assert.notNull(processor, "processor cannot be null.");
 		environment = Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
 
-		this.inputType = extractGeneric(processor);
+		this.inputType = inputType;
 
 		//Stream with a  RingBufferProcessor
-		this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
+		if (inputType == null) {
+			this.stream = null;
+		} else {
+			this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
+		}
+		this.processor = processor;
+	}
 
+	@Override
+	protected void onInit() throws Exception {
 		//user defined stream processing
-		Publisher<?> outputStream = processor.process(Streams.wrap(stream));
-
-		outputStream.subscribe(new DefaultSubscriber<Object>() {
+		processor.accept(stream != null ? Streams.wrap(stream) : null, new Supplier<Subscriber<OUT>>() {
 			@Override
-			public void onSubscribe(Subscription s) {
-				s.request(Long.MAX_VALUE);
-				if (logger.isDebugEnabled()) {
-					logger.debug("xd-reactor started [ " + ReactorMessageHandler.this + " ]");
-				}
-			}
+			public Subscriber<OUT> get() {
+				return new DefaultSubscriber<OUT>() {
+					@Override
+					public void onSubscribe(Subscription s) {
+						s.request(Long.MAX_VALUE);
+						if (logger.isDebugEnabled()) {
+							logger.debug("xd-reactor started [ " + ReactorMessageHandler.this + " ]");
+						}
+					}
 
-			@Override
-			public void onNext(Object outputObject) {
-				if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-					getOutputChannel().send((Message) outputObject);
-				} else {
-					getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-				}
-			}
+					@Override
+					public void onNext(OUT outputObject) {
+						if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
+							getOutputChannel().send((Message) outputObject);
+						} else {
+							getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
+						}
+					}
 
-			@Override
-			public void onError(Throwable throwable) {
-				//Simple log error handling
-				logger.error("", throwable);
-			}
+					@Override
+					public void onError(Throwable throwable) {
+						//Simple log error handling
+						logger.error("", throwable);
+					}
 
-			@Override
-			public void onComplete() {
-				if (logger.isDebugEnabled()) {
-					logger.debug("reactor-x completed [ " + ReactorMessageHandler.this + " ]");
-				}
+					@Override
+					public void onComplete() {
+						if (logger.isDebugEnabled()) {
+							logger.debug("xd-reactor completed [ " + ReactorMessageHandler.this + " ]");
+						}
+					}
+				};
 			}
 		});
+		super.onInit();
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-
+		if (stream == null) {
+			throw new MessagingException("This ReactiveModule does not accept input messages");
+		}
 		if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
 			stream.onNext((IN) message);
 		} else {
@@ -161,9 +158,12 @@ public class ReactorMessageHandler<IN, OUT> extends AbstractMessageProducingHand
 		}
 	}
 
+
 	@Override
 	public void destroy() throws Exception {
-		stream.onComplete();
+		if (stream != null) {
+			stream.onComplete();
+		}
 		environment.shutdown();
 	}
 }

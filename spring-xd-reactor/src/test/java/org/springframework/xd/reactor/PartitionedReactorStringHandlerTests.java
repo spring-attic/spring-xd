@@ -15,37 +15,27 @@
  */
 package org.springframework.xd.reactor;
 
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.context.annotation.Import;
-import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
-
 /**
- * Test the {@link ReactorMessageHandler} by using Message types of
- * {@link ReactiveProcessor}.
+ * Test the {@link PartitionedReactorMessageHandler} by using String types of
+ * {@link ReactiveProcessor}. by using String types of
+ * {@link ReactiveProcessor}. This verifies extracting payload types and
+ * wrapping return types in a Message.
  *
  * @author Mark Pollack
- * @author Stepane Maldini
+ * @author Stephane Maldini
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("reactor.xml")
 @DirtiesContext
-@ActiveProfiles("pojo")
-public class ReactorMessageHandlerTests extends AbstractMessageHandlerTests {
-	@Test
-	public void pojoBasedProcessor() throws IOException {
-		sendPojoMessages();
-		for (int i = 0; i < numMessages; i++) {
-			Message<?> outputMessage = fromProcessorChannel.receive(2000);
-			assertEquals("ping-pojopong", outputMessage.getPayload());
-		}
-	}
+@ActiveProfiles("string-partition")
+public class PartitionedReactorStringHandlerTests extends ReactorStringHandlerTests {
+
+
 }

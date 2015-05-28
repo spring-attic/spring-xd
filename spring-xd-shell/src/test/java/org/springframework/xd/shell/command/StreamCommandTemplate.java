@@ -62,7 +62,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
 	 */
 	public void create(String streamname, String streamdefinition, Object... values) {
-		doCreate(streamname, streamdefinition, true, values);
+		doCreate(streamname, streamdefinition, true, true, values);
 	}
 
 	/**
@@ -73,11 +73,12 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 *
 	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
 	 */
-	public void createDontDeploy(String streamname, String streamdefinition, Object... values) {
-		doCreate(streamname, streamdefinition, false, values);
+	public void createDontDeploy(String streamname, String streamdefinition, boolean verifyExistence, Object... values) {
+		doCreate(streamname, streamdefinition, false, verifyExistence, values);
 	}
 
-	private void doCreate(String streamname, String streamdefinition, boolean deploy, Object... values) {
+	private void doCreate(String streamname, String streamdefinition, boolean deploy, boolean verifyExistence,
+			Object... values) {
 		String actualDefinition = String.format(streamdefinition, values);
 		// Shell parser expects quotes to be escaped by \
 		String wholeCommand = String.format("stream create %s --definition \"%s\" --deploy %s", streamname,
@@ -96,7 +97,10 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 			deployMsg = "Created and deployed";
 		}
 		assertEquals(deployMsg + " new stream '" + streamname + "'", cr.getResult());
-		verifyExists(streamname, actualDefinition, deploy);
+
+		if (verifyExistence) {
+			verifyExists(streamname, actualDefinition, deploy);
+		}
 	}
 
 	/**

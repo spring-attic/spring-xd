@@ -15,37 +15,18 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.springframework.xd.module.ModuleType.processor;
-import static org.springframework.xd.module.ModuleType.source;
-import static org.springframework.xd.module.core.CompositeModule.OPTION_SEPARATOR;
-import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
-import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import java.io.File;
 import java.io.IOException;
 
-import org.hamcrest.Description;
-import org.hamcrest.DiagnosingMatcher;
-import org.hamcrest.Matcher;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.shell.util.Table;
-import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.test.HostNotWindowsRule;
-import org.springframework.xd.test.fixtures.FileSink;
 
 /**
  * Test module commands that require deleting an uploaded module. Such tests fail on Windows due to OS file locking.
@@ -53,6 +34,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  * @author David Turanski
  */
 public class JarDeletingModuleCommandTests extends AbstractStreamIntegrationTest {
+
 	@ClassRule
 	public static HostNotWindowsRule hostNotWindowsRule = new HostNotWindowsRule();
 
@@ -60,7 +42,7 @@ public class JarDeletingModuleCommandTests extends AbstractStreamIntegrationTest
 	public void testDeleteUploadedModuleUsedByStream() throws IOException {
 		File moduleSource = new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar");
 		module().upload("siDslModule2", processor, moduleSource);
-		stream().createDontDeploy("foo", "http | siDslModule2 --prefix=foo | log");
+		stream().createDontDeploy("foo", "http | siDslModule2 --prefix=foo | log", true);
 		assertFalse(module().delete("siDslModule2", processor));
 	}
 
@@ -68,7 +50,7 @@ public class JarDeletingModuleCommandTests extends AbstractStreamIntegrationTest
 	@Test
 	public void testDeleteComposedModuleUsedByStream() throws Exception {
 		module().compose("myhttp", "http | filter");
-		stream().createDontDeploy("foo", "myhttp | log");
+		stream().createDontDeploy("foo", "myhttp | log", true);
 		assertFalse(module().delete("myhttp", ModuleType.source));
 		// Now deleting blocking stream
 		stream().destroyStream("foo");

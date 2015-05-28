@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +68,24 @@ public class StreamsController extends
 	@ResponseStatus(HttpStatus.OK)
 	public PagedResources<StreamDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<StreamDefinition> assembler) {
-		return listValues(pageable, assembler);
+
+		PagedResources<StreamDefinitionResource> pagedResources = listValues(pageable, assembler);
+
+		final List<StreamDefinitionResource> maskedContents = new ArrayList<StreamDefinitionResource>(
+				pagedResources.getContent().size());
+
+		for (StreamDefinitionResource streamDefinitionResource : pagedResources.getContent()) {
+			streamDefinitionResource.getDefinition();
+			StreamDefinitionResource maskedStreamDefinitionResource =
+					new StreamDefinitionResource(streamDefinitionResource.getName(),
+							PasswordUtils.maskPasswordsInDefinition(streamDefinitionResource.getDefinition()));
+			maskedStreamDefinitionResource.setStatus(streamDefinitionResource.getStatus());
+			maskedContents.add(maskedStreamDefinitionResource);
+		}
+
+		return new PagedResources<StreamDefinitionResource>(maskedContents, pagedResources.getMetadata(),
+				pagedResources.getLinks());
+
 	}
 
 	@Override

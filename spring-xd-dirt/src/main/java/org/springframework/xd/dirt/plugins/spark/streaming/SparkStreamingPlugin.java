@@ -58,8 +58,8 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 	private static final String MESSAGE_BUS_PROPERTY_PREFIX = "xd.messagebus.";
 
 	@Autowired
-	public SparkStreamingPlugin(MessageBus messageBus, ZooKeeperConnection zkConnection) {
-		super(messageBus, zkConnection);
+	public SparkStreamingPlugin(MessageBus messageBus) {
+		super(messageBus);
 	}
 
 	@Override

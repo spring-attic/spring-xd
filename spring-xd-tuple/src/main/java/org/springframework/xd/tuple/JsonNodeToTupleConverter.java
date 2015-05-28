@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author David Turanski
- * 
+ *
  */
 public class JsonNodeToTupleConverter implements Converter<JsonNode, Tuple> {
 
@@ -47,10 +47,10 @@ public class JsonNodeToTupleConverter implements Converter<JsonNode, Tuple> {
 					builder.addEntry(name, nodeToList(node));
 				}
 				else {
-					if (name.equals("id")) {
+					if (name.equals("id")) {//NOSONAR
 						// TODO how should this be handled?
 					}
-					else if (name.equals("timestamp")) {
+					else if (name.equals("timestamp")) {//NOSONAR
 						// TODO how should this be handled?
 					}
 					else {

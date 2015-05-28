@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.integration.rabbit;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -95,9 +96,9 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 				&& addresses.length == nodes.length,
 				"'addresses', 'adminAddresses', and 'nodes' properties must have equal length");
 		this.defaultConnectionFactory = defaultConnectionFactory;
-		this.addresses = addresses;
-		this.adminAdresses = adminAddresses;
-		this.nodes = nodes;
+		this.addresses = Arrays.copyOf(addresses, addresses.length);
+		this.adminAdresses = Arrays.copyOf(adminAddresses, adminAddresses.length);
+		this.nodes = Arrays.copyOf(nodes, nodes.length);
 		this.vhost = vhost;
 		this.username = username;
 		this.password = password;

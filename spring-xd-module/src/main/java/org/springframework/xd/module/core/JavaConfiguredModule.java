@@ -15,7 +15,7 @@
 
 package org.springframework.xd.module.core;
 
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 
@@ -25,7 +25,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -81,6 +80,7 @@ public class JavaConfiguredModule extends SimpleModule {
 
 
 	static class JavaConfigModuleListener implements ApplicationListener<ApplicationPreparedEvent> {
+
 		private final String[] basePackages;
 
 		public JavaConfigModuleListener(String... basePackages) {
@@ -103,7 +103,7 @@ public class JavaConfiguredModule extends SimpleModule {
 		private final String[] basePackages;
 
 		public JavaConfigValidationListener(SimpleModuleDefinition moduleDefinition, String[] basePackages) {
-			this.basePackages = basePackages;
+			this.basePackages = Arrays.copyOf(basePackages, basePackages.length);
 			this.moduleDefinition = moduleDefinition;
 		}
 
@@ -129,7 +129,7 @@ public class JavaConfiguredModule extends SimpleModule {
 						"Unable to find a module @Configuration class in base_packages: %s for module %s:%s",
 						StringUtils.arrayToCommaDelimitedString(basePackages),
 						moduleDefinition.getName(), moduleDefinition.getType()
-				));
+						));
 			}
 		}
 	}

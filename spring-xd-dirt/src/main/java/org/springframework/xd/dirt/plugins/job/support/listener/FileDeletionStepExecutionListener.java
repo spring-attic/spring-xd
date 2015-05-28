@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.plugins.job.support.listener;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,7 @@ import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
 
 /**
  * Step listener which can be used to delete files once they have been successfully processed by XD.
- * 
+ *
  * Can be used in one of two different ways:
  *
  * <ol>
@@ -42,6 +43,7 @@ import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
  *
  * @author Luke Taylor
  * @author Michael Minella
+ * @author Gary Russell
  */
 public class FileDeletionStepExecutionListener implements StepExecutionListener {
 
@@ -70,7 +72,8 @@ public class FileDeletionStepExecutionListener implements StepExecutionListener 
 			deleteResources();
 		}
 		else {
-			deleteFilePath(stepExecution.getJobExecution().getJobParameters().getString(ExpandedJobParametersConverter.ABSOLUTE_FILE_PATH));
+			deleteFilePath(stepExecution.getJobExecution().getJobParameters().getString(
+					ExpandedJobParametersConverter.ABSOLUTE_FILE_PATH));
 		}
 		return stepExecution.getExitStatus();
 	}
@@ -110,6 +113,6 @@ public class FileDeletionStepExecutionListener implements StepExecutionListener 
 	}
 
 	public void setResources(Resource[] resources) {
-		this.resources = resources;
+		this.resources = Arrays.copyOf(resources, resources.length);
 	}
 }

@@ -375,11 +375,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	public void setDefaultRequestHeaderPatterns(String[] defaultRequestHeaderPatterns) {
-		this.defaultRequestHeaderPatterns = defaultRequestHeaderPatterns;
+		this.defaultRequestHeaderPatterns = Arrays.copyOf(defaultRequestHeaderPatterns,
+				defaultRequestHeaderPatterns.length);
 	}
 
 	public void setDefaultReplyHeaderPatterns(String[] defaultReplyHeaderPatterns) {
-		this.defaultReplyHeaderPatterns = defaultReplyHeaderPatterns;
+		this.defaultReplyHeaderPatterns = Arrays.copyOf(defaultReplyHeaderPatterns, defaultReplyHeaderPatterns.length);
 	}
 
 	public void setDefaultAutoBindDLQ(boolean defaultAutoBindDLQ) {
@@ -391,15 +392,15 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	public void setAddresses(String[] addresses) {
-		this.addresses = addresses;
+		this.addresses = Arrays.copyOf(addresses, addresses.length);
 	}
 
 	public void setAdminAddresses(String[] adminAddresses) {
-		this.adminAddresses = adminAddresses;
+		this.adminAddresses = Arrays.copyOf(adminAddresses, adminAddresses.length);
 	}
 
 	public void setNodes(String[] nodes) {
-		this.nodes = nodes;
+		this.nodes = Arrays.copyOf(nodes, nodes.length);
 		this.clustered = nodes.length > 1;
 	}
 
@@ -877,8 +878,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			MessageValues messageToSend = serializePayloadIfNecessary(message
-			);
+			MessageValues messageToSend = serializePayloadIfNecessary(message);
 
 			if (replyTo != null) {
 				messageToSend.put(AmqpHeaders.REPLY_TO, this.replyTo);

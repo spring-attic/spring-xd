@@ -130,31 +130,31 @@ public abstract class MessageBusSupport
 
 
 	protected static final Set<Object> CONSUMER_RETRY_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
-			BusProperties.BACK_OFF_INITIAL_INTERVAL,
-			BusProperties.BACK_OFF_MAX_INTERVAL,
-			BusProperties.BACK_OFF_MULTIPLIER,
-			BusProperties.MAX_ATTEMPTS
+		BusProperties.BACK_OFF_INITIAL_INTERVAL,
+		BusProperties.BACK_OFF_MAX_INTERVAL,
+		BusProperties.BACK_OFF_MULTIPLIER,
+		BusProperties.MAX_ATTEMPTS
 	}));
 
 	protected static final Set<Object> PRODUCER_PARTITIONING_PROPERTIES = new HashSet<Object>(
 			Arrays.asList(new String[] {
-					BusProperties.PARTITION_COUNT,
-					BusProperties.PARTITION_KEY_EXPRESSION,
-					BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
-					BusProperties.PARTITION_SELECTOR_CLASS,
-					BusProperties.PARTITION_SELECTOR_EXPRESSION,
+				BusProperties.PARTITION_COUNT,
+				BusProperties.PARTITION_KEY_EXPRESSION,
+				BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
+				BusProperties.PARTITION_SELECTOR_CLASS,
+				BusProperties.PARTITION_SELECTOR_EXPRESSION,
 			}));
 
 	protected static final Set<Object> PRODUCER_BATCHING_BASIC_PROPERTIES = new HashSet<Object>(
 			Arrays.asList(new String[] {
-					BusProperties.BATCHING_ENABLED,
-					BusProperties.BATCH_SIZE,
-					BusProperties.BATCH_TIMEOUT,
+				BusProperties.BATCHING_ENABLED,
+				BusProperties.BATCH_SIZE,
+				BusProperties.BATCH_TIMEOUT,
 			}));
 
 	protected static final Set<Object> PRODUCER_BATCHING_ADVANCED_PROPERTIES = new HashSet<Object>(
 			Arrays.asList(new String[] {
-					BusProperties.BATCH_BUFFER_LIMIT,
+				BusProperties.BATCH_BUFFER_LIMIT,
 			}));
 
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
@@ -640,7 +640,7 @@ public abstract class MessageBusSupport
 			return codec.deserialize(bytes, targetType);
 		}
 		catch (ClassNotFoundException e) {
-			throw new SerializationException("unable to deserialize [" + targetType + "]. Class not found.", e);
+			throw new SerializationException("unable to deserialize [" + targetType + "]. Class not found.", e);//NOSONAR
 		}
 		catch (IOException e) {
 			throw new SerializationException("unable to deserialize [" + targetType + "]", e);
@@ -1039,7 +1039,7 @@ public abstract class MessageBusSupport
 
 		public static final MimeType TEXT_PLAIN_MIME_TYPE = MimeType.valueOf(TEXT_PLAIN_VALUE);
 
-		private static ConcurrentMap<String,MimeType> mimeTypesCache = new ConcurrentHashMap<>();
+		private static ConcurrentMap<String, MimeType> mimeTypesCache = new ConcurrentHashMap<>();
 
 		static MimeType mimeTypeFromObject(Object obj) {
 			Assert.notNull(obj, "object cannot be null.");
@@ -1063,7 +1063,7 @@ public abstract class MessageBusSupport
 					modifiedClassName = "\"" + modifiedClassName + "\"";
 				}
 				mimeType = MimeType.valueOf("application/x-java-object;type=" + modifiedClassName);
-				mimeTypesCache.put(className,mimeType);
+				mimeTypesCache.put(className, mimeType);
 			}
 			return mimeType;
 		}

@@ -55,7 +55,7 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 	}
 
 	public void setArguments(String[] arguments) {
-		this.arguments = arguments;
+		this.arguments = Arrays.copyOf(arguments, arguments.length);
 	}
 
 	public Properties getHadoopProperties() {

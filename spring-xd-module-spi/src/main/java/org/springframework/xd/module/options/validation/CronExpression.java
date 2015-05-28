@@ -16,8 +16,12 @@
 
 package org.springframework.xd.module.options.validation;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.*;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -34,20 +38,21 @@ import org.springframework.scheduling.support.CronSequenceGenerator;
  * The annotated element must be a valid Spring cron expression (6 fields).
  *
  * @author Eric Bottard
+ * @author Gary Russell
  */
-@Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER})
+@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
 @Retention(RUNTIME)
 @Documented
-@Constraint(validatedBy = {CronExpression.CronValidator.class})
+@Constraint(validatedBy = { CronExpression.CronValidator.class })
 public @interface CronExpression {
 
 	String DEFAULT_MESSAGE = "";
 
 	String message() default DEFAULT_MESSAGE;
 
-	Class<?>[] groups() default { };
+	Class<?>[] groups() default {};
 
-	Class<? extends Payload>[] payload() default { };
+	Class<? extends Payload>[] payload() default {};
 
 
 	/**
@@ -55,7 +60,7 @@ public @interface CronExpression {
 	 *
 	 * @see CronExpression
 	 */
-	@Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER})
+	@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER })
 	@Retention(RUNTIME)
 	@Documented
 	@interface List {
@@ -63,7 +68,7 @@ public @interface CronExpression {
 		CronExpression[] value();
 	}
 
-	public static class CronValidator implements ConstraintValidator <CronExpression, CharSequence>{
+	public static class CronValidator implements ConstraintValidator<CronExpression, CharSequence> {
 
 		private String message;
 
@@ -79,7 +84,7 @@ public @interface CronExpression {
 				return true;
 			}
 			try {
-				CronSequenceGenerator cronSequenceGenerator = new CronSequenceGenerator(value.toString());
+				new CronSequenceGenerator(value.toString());
 			}
 			catch (IllegalArgumentException e) {
 				if (DEFAULT_MESSAGE.equals(this.message)) {

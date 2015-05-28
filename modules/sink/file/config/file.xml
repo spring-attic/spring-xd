@@ -22,10 +22,19 @@
 
 	<channel id="files"/>
 
-	<file:outbound-channel-adapter id="files"
-		mode="${mode}"
-		charset="${charset}"
-		directory="${dir}"
-		filename-generator-expression="'${name}' + '${extensionWithDot}'"/>
+	<beans:beans profile="use-string">
+		<file:outbound-channel-adapter id="files"
+			mode="${mode}"
+			charset="${charset}"
+			directory="${dir}"
+			filename-generator-expression="'${name}' + '${extensionWithDot}'"/>
+	</beans:beans>
 
+	<beans:beans profile="use-expression">
+		<file:outbound-channel-adapter id="files"
+		    mode="${mode}"
+		    charset="${charset}"
+		    directory-expression="${directoryExpression}"
+		    filename-generator-expression="${nameExpression}" />
+	</beans:beans>
 </beans:beans>

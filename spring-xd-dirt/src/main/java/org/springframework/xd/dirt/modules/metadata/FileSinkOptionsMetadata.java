@@ -25,13 +25,21 @@ import org.hibernate.validator.constraints.NotBlank;
 
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**
  * 
  * Holds options to the 'file' sink module.
+ *
+ * @author Eric Bottard
+ * @author Franck Marchand
  */
-public class FileSinkOptionsMetadata {
+public class FileSinkOptionsMetadata implements ProfileNamesProvider {
+
+	private static final String USE_SPEL_PROFILE = "use-expression";
+
+	private static final String USE_LITERAL_STRING_PROFILE = "use-string";
 
 	private boolean binary = false;
 
@@ -44,6 +52,10 @@ public class FileSinkOptionsMetadata {
 	private String suffix = "out";
 
 	private Mode mode = APPEND;
+
+	private String nameExpression;
+
+	private String directoryExpression;
 
 	@NotNull
 	public Mode getMode() {
@@ -106,8 +118,30 @@ public class FileSinkOptionsMetadata {
 		return charset;
 	}
 
+	public String getNameExpression() {
+		return nameExpression;
+	}
+
+	@ModuleOption("spring expression used to define filename")
+	public void setNameExpression(String nameExpression) {
+		this.nameExpression = nameExpression;
+	}
+
+	public String getDirectoryExpression() {
+		return directoryExpression;
+	}
+
+	@ModuleOption("spring EL expression used to define directory name")
+	public void setDirectoryExpression(String directoryExpression) {
+		this.directoryExpression = directoryExpression;
+	}
+
 	public static enum Mode {
 		APPEND, REPLACE, FAIL, IGNORE;
 	}
 
+	@Override
+	public String[] profilesToActivate() {
+		return (nameExpression != null || directoryExpression != null) ? new String[] {USE_SPEL_PROFILE} : new String[] {USE_LITERAL_STRING_PROFILE};
+	}
 }

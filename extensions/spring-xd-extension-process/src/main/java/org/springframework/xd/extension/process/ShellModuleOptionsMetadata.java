@@ -23,8 +23,8 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.xd.module.options.mixins.FromStringCharsetMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
-import org.springframework.xd.tcp.EncoderDecoderMixins.BufferSizeMixin;
-import org.springframework.xd.tcp.EncoderDecoderMixins.EncoderMixin;
+import org.springframework.xd.tcp.encdec.EncoderDecoderMixins.BufferSizeMixin;
+import org.springframework.xd.tcp.encdec.EncoderDecoderMixins.EncoderMixin;
 
 /**
  * Options Metadata for shell processor and sink modules.

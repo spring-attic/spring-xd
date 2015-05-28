@@ -23,7 +23,7 @@ import org.springframework.xd.module.options.mixins.MaxMessagesDefaultOneMixin;
 import org.springframework.xd.module.options.mixins.ToStringCharsetMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
-import org.springframework.xd.tcp.EncoderDecoderMixins.DecoderMixin;
+import org.springframework.xd.tcp.encdec.EncoderDecoderMixins.DecoderMixin;
 
 
 /**

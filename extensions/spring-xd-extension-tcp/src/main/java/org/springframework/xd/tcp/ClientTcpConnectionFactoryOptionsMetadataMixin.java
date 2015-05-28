@@ -22,8 +22,8 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
-import org.springframework.xd.tcp.EncoderDecoderMixins.BufferSizeMixin;
-import org.springframework.xd.tcp.EncoderDecoderMixins.EncoderMixin;
+import org.springframework.xd.tcp.encdec.EncoderDecoderMixins.BufferSizeMixin;
+import org.springframework.xd.tcp.encdec.EncoderDecoderMixins.EncoderMixin;
 
 
 /**

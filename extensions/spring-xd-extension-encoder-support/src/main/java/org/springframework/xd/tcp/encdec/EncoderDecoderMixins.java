@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.tcp;
+package org.springframework.xd.tcp.encdec;
 
-import static org.springframework.xd.tcp.EncoderDecoderMixins.Encoding.CRLF;
+import static org.springframework.xd.tcp.encdec.EncoderDecoderMixins.Encoding.CRLF;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;

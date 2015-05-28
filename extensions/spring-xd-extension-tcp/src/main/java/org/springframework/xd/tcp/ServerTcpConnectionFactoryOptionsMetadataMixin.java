@@ -21,8 +21,8 @@ import javax.validation.constraints.Min;
 
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
-import org.springframework.xd.tcp.EncoderDecoderMixins.BufferSizeMixin;
-import org.springframework.xd.tcp.EncoderDecoderMixins.DecoderMixin;
+import org.springframework.xd.tcp.encdec.EncoderDecoderMixins.BufferSizeMixin;
+import org.springframework.xd.tcp.encdec.EncoderDecoderMixins.DecoderMixin;
 
 
 /**

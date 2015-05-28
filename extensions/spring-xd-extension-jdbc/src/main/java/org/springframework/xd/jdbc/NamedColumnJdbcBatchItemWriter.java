@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.jdbc;
+
+import java.util.Arrays;
 
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.util.Assert;
@@ -26,13 +29,16 @@ import org.springframework.util.Assert;
  * supplied in the module configuration.
  *
  * @author Luke Taylor
+ * @author Gary Russell
  */
 public class NamedColumnJdbcBatchItemWriter<T> extends JdbcBatchItemWriter<T> {
+
 	private String[] names;
+
 	private String tableName;
 
 	public void setColumnNames(String[] names) {
-		this.names = names;
+		this.names = Arrays.copyOf(names, names.length);
 	}
 
 	public void setTableName(String tableName) {

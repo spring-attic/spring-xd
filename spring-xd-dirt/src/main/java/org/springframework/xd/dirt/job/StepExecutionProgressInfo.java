@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.job;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import org.springframework.batch.admin.history.CumulativeHistory;
@@ -28,9 +29,10 @@ import org.springframework.util.StringUtils;
 
 /**
  * Represents Batch job step execution progress info.
- * 
+ *
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  * @since 1.0
  */
 public class StepExecutionProgressInfo {
@@ -57,7 +59,7 @@ public class StepExecutionProgressInfo {
 		}
 
 		private PercentCompleteBasis(String[] code, String message) {
-			this.codes = code;
+			this.codes = Arrays.copyOf(code, code.length);
 			this.message = message;
 		}
 

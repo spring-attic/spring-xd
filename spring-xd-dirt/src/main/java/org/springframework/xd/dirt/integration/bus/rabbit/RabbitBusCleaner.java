@@ -27,7 +27,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -215,7 +214,7 @@ public class RabbitBusCleaner implements BusCleaner {
 	}
 
 	private void checkNoConsumers(String queueName, Map<String, Object> queue) {
-		if (queue.get("consumers") != Integer.valueOf(0)) {
+		if (!queue.get("consumers").equals(Integer.valueOf(0))) {
 			throw new RabbitAdminException("Queue " + queueName + " is in use");
 		}
 	}

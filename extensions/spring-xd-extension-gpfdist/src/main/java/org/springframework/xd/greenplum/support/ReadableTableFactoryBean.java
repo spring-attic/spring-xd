@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.support;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 
+/**
+ * @since 1.2
+ * @author Janne Valkealahti
+ * @author Gary Russell
+ */
 public class ReadableTableFactoryBean implements FactoryBean<ReadableTable>, InitializingBean {
 
 	private ControlFile controlFile;
@@ -70,10 +77,11 @@ public class ReadableTableFactoryBean implements FactoryBean<ReadableTable>, Ini
 		w.setSegmentRejectType(segmentRejectType);
 
 		if (format == Format.TEXT) {
-			Character delim = delimiter != null ? delimiter : new Character('\t');
+			Character delim = delimiter != null ? delimiter : Character.valueOf('\t');
 			w.setTextFormat(delim, nullString, escape);
-		} else if (format == Format.CSV) {
-			Character delim = delimiter != null ? delimiter : new Character(',');
+		}
+		else if (format == Format.CSV) {
+			Character delim = delimiter != null ? delimiter : Character.valueOf(',');
 			w.setCsvFormat(quote, delim, nullString, forceQuote, escape);
 		}
 
@@ -131,7 +139,7 @@ public class ReadableTableFactoryBean implements FactoryBean<ReadableTable>, Ini
 	}
 
 	public void setForceQuote(String[] forceQuote) {
-		this.forceQuote = forceQuote;
+		this.forceQuote = Arrays.copyOf(forceQuote, forceQuote.length);
 	}
 
 	public Character getDelimiter() {

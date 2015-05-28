@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.support;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * Base settings for all external tables;
  *
+ * @since 1.2
  * @author Janne Valkealahti
+ * @author Gary Russell
  *
  */
 public abstract class AbstractExternalTable {
@@ -58,7 +63,7 @@ public abstract class AbstractExternalTable {
 	}
 
 	public void setLocations(List<String> locations) {
-		this.locations = locations;
+		this.locations = new ArrayList<String>(locations);
 	}
 
 	public void setTextFormat() {
@@ -83,7 +88,7 @@ public abstract class AbstractExternalTable {
 		this.delimiter = delimiter;
 		this.nullString = nullString;
 		this.escape = escape;
-		this.formatForceQuote = forceQuote;
+		this.formatForceQuote = Arrays.copyOf(forceQuote, forceQuote.length);
 	}
 
 	public Format getFormat() {
@@ -127,7 +132,7 @@ public abstract class AbstractExternalTable {
 	}
 
 	public void setForceQuote(String[] forceQuote) {
-		this.formatForceQuote = forceQuote;
+		this.formatForceQuote = Arrays.copyOf(forceQuote, forceQuote.length);
 	}
 
 	public String getEncoding() {

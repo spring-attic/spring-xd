@@ -58,7 +58,8 @@ public class DeploymentMessageConsumer implements QueueConsumer<DeploymentMessag
 	private ZooKeeperConnection zkConnection;
 
 	// todo: for testing only; this will be removed eventually
-	public void consumeMessage(DeploymentMessage message, StreamDeployer streamDeployer, JobDeployer jobDeployer) throws Exception {
+	public void consumeMessage(DeploymentMessage message, StreamDeployer streamDeployer, JobDeployer jobDeployer)
+			throws Exception {
 		this.streamDeployer = streamDeployer;
 		this.jobDeployer = jobDeployer;
 		this.consumeMessage(message);
@@ -88,7 +89,7 @@ public class DeploymentMessageConsumer implements QueueConsumer<DeploymentMessag
 	 * @param deployer the deployer to use for processing
 	 * @param message the deployment message
 	 */
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void processDeploymentMessage(ResourceDeployer deployer, DeploymentMessage message) {
 		DeploymentAction deploymentAction = message.getDeploymentAction();
 		String name = message.getUnitName();
@@ -105,7 +106,7 @@ public class DeploymentMessageConsumer implements QueueConsumer<DeploymentMessag
 						deployer.save(new JobDefinition(name, message.getDefinition()));
 					}
 					if (DeploymentAction.createAndDeploy.equals(deploymentAction)) {
-						deployer.deploy(name, Collections.<String, String>emptyMap());
+						deployer.deploy(name, Collections.<String, String> emptyMap());
 					}
 					break;
 				}
@@ -126,7 +127,7 @@ public class DeploymentMessageConsumer implements QueueConsumer<DeploymentMessag
 					break;
 			}
 		}
-		catch (Throwable t) {
+		catch (Throwable t) {//NOSONAR - ok since it's re-thrown
 			errorDesc = ZooKeeperUtils.getStackTrace(t);
 			throw t;
 		}

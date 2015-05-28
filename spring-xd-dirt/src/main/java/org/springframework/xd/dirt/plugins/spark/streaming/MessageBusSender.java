@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.messaging.Message;
@@ -37,6 +36,7 @@ import org.springframework.xd.spark.streaming.SparkMessageSender;
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 1.1
  */
 @SuppressWarnings("serial")
@@ -139,17 +139,10 @@ class MessageBusSender extends SparkMessageSender {
 		Assert.notNull(outputChannel, "Output channel can not be null.");
 		Assert.notNull(messageBus, "MessageBus can not be null.");
 		logger.info("creating and binding tap channel for {}", tapChannelName);
-		if (outputChannel instanceof ChannelInterceptorAware) {
-			DirectChannel tapChannel = new DirectChannel();
-			tapChannel.setBeanName(tapChannelName + ".tap.bridge");
-			messageBus.bindPubSubProducer(tapChannelName, tapChannel, null);
-			outputChannel.addInterceptor(new WireTap(tapChannel));
-		}
-		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("output channel is not interceptor aware. Tap will not be created.");
-			}
-		}
+		DirectChannel tapChannel = new DirectChannel();
+		tapChannel.setBeanName(tapChannelName + ".tap.bridge");
+		messageBus.bindPubSubProducer(tapChannelName, tapChannel, null);
+		outputChannel.addInterceptor(new WireTap(tapChannel));
 	}
 
 	@Override

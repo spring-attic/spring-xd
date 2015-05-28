@@ -108,8 +108,8 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 	private Map<Module, JavaStreamingContext> streamingContexts = new HashMap<>();
 
 	@Autowired
-	public SparkStreamingPlugin(MessageBus messageBus, ZooKeeperConnection zkConnection) {
-		super(messageBus, zkConnection);
+	public SparkStreamingPlugin(MessageBus messageBus) {
+		super(messageBus);
 	}
 
 	@Override

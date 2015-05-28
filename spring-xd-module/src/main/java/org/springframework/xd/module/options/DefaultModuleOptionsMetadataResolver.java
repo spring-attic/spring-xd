@@ -114,7 +114,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	/**
 	 * Construct a new {@link DefaultModuleOptionsMetadataResolver}, using a
 	 * {@link GenericConversionService} which is augmented with a {@link StringToEnumIgnoringCaseConverterFactory}.
-	 * See also {@link} PojoModuleOptionsMetadata}.
+	 * See also {@link PojoModuleOptionsMetadata}.
 	 */
 	public DefaultModuleOptionsMetadataResolver() {
 		final GenericConversionService defaultConversionService = new GenericConversionService();

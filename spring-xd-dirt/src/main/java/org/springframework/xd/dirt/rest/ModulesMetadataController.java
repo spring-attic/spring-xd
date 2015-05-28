@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,8 +73,9 @@ public class ModulesMetadataController {
 	@ResponseBody
 	public PagedResources<ModuleMetadataResource> list(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler) {
-		Page<ModuleMetadata> page = this.moduleMetadataRepository.findAll(pageable);
-		return assembler.toResource(page, moduleMetadataResourceAssembler);
+
+		final Page<ModuleMetadata> page = this.moduleMetadataRepository.findAll(pageable);
+		return maskSensitiveData(assembler.toResource(page, moduleMetadataResourceAssembler));
 	}
 
 	/**
@@ -90,8 +92,9 @@ public class ModulesMetadataController {
 	public PagedResources<ModuleMetadataResource> listByContainer(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler,
 			@RequestParam("containerId") String containerId) {
-		return assembler.toResource(this.moduleMetadataRepository.findAllByContainerId(pageable, containerId),
-				moduleMetadataResourceAssembler);
+		return maskSensitiveData(assembler.toResource(
+				this.moduleMetadataRepository.findAllByContainerId(pageable, containerId),
+				moduleMetadataResourceAssembler));
 	}
 
 	/**
@@ -108,8 +111,9 @@ public class ModulesMetadataController {
 	public PagedResources<ModuleMetadataResource> listByModule(Pageable pageable,
 			PagedResourcesAssembler<ModuleMetadata> assembler,
 			@RequestParam("moduleId") String moduleId) {
-		return assembler.toResource(this.moduleMetadataRepository.findAllByModuleId(pageable, moduleId),
-				moduleMetadataResourceAssembler);
+		return maskSensitiveData(assembler.toResource(
+				this.moduleMetadataRepository.findAllByModuleId(pageable, moduleId),
+				moduleMetadataResourceAssembler));
 	}
 
 	/**
@@ -129,7 +133,7 @@ public class ModulesMetadataController {
 		if (moduleMetadata == null) {
 			throw new ModuleNotDeployedException(containerId, moduleId);
 		}
-		return moduleMetadataResourceAssembler.toResource(moduleMetadata);
+		return maskSensitiveData(moduleMetadataResourceAssembler.toResource(moduleMetadata));
 
 	}
 
@@ -154,6 +158,29 @@ public class ModulesMetadataController {
 			}
 		}
 
-		return moduleMetadataResourceAssembler.toResources(moduleMetadataListToReturn);
+		final List<ModuleMetadataResource> resources = moduleMetadataResourceAssembler.toResources(moduleMetadataListToReturn);
+		maskSensitiveData(resources);
+		return resources;
+	}
+
+	private ModuleMetadataResource maskSensitiveData(ModuleMetadataResource moduleMetadataResource) {
+		PasswordUtils.maskPropertiesIfNecessary(moduleMetadataResource.getModuleOptions());
+		return moduleMetadataResource;
+	}
+
+	private PagedResources<ModuleMetadataResource> maskSensitiveData(
+			PagedResources<ModuleMetadataResource> moduleMetadataResources) {
+		maskSensitiveData(moduleMetadataResources.getContent());
+		return moduleMetadataResources;
+	}
+
+	private Collection<ModuleMetadataResource> maskSensitiveData(
+			Collection<ModuleMetadataResource> moduleMetadataResources) {
+
+		for (ModuleMetadataResource metadataResource : moduleMetadataResources) {
+			maskSensitiveData(metadataResource);
+		}
+
+		return moduleMetadataResources;
 	}
 }

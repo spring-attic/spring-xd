@@ -24,13 +24,15 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasConten
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.test.fixtures.FileSink;
 
 /**
@@ -119,9 +121,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		stream().deploy(streamName);
 		stream().verifyExists(streamName, streamDefinition, true);
-
 	}
-
 
 	@Test
 	public void testNamedChannelWithNoConsumerShouldBuffer() {
@@ -257,6 +257,20 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		assertThat(sink1, eventually(hasContentsThat(equalTo("DRACARYS!"))));
 
 		assertThat(sink2, eventually(hasContentsThat(equalTo("DRACARYS!"))));
+	}
+
+	@Test
+	public void testMaskingOfPasswords() throws IOException {
+
+		String streamName = generateStreamName();
+		stream().createDontDeploy(streamName, "http | jdbc --password=mypassword");
+
+		CommandResult cr = getShell().executeCommand("stream list");
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		Table table = (Table) cr.getResult();
+		assertTrue(table.getRows().contains(
+				new TableRow().addValue(1, streamName).addValue(2, "http | jdbc --password=**********").addValue(3,
+						"undeployed")));
 	}
 
 	@Test

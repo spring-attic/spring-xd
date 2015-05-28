@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.dirt.rest.PasswordUtils;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
@@ -96,6 +97,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 			deployMsg = "Created and deployed";
 		}
 		assertEquals(deployMsg + " new stream '" + streamname + "'", cr.getResult());
+
 		verifyExists(streamname, actualDefinition, deploy);
 	}
 
@@ -156,11 +158,13 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 * @param definition definition of the stream
 	 */
 	public void verifyExists(String streamName, String definition, boolean deployed) {
+		final String passwordMaskedDefinition = PasswordUtils.maskPasswordsInDefinition(definition);
 		CommandResult cr = getShell().executeCommand("stream list");
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		Table t = (Table) cr.getResult();
 		assertTrue(t.getRows().contains(
-				new TableRow().addValue(1, streamName).addValue(2, definition.replace("\\\\", "\\")).addValue(3,
+				new TableRow().addValue(1, streamName).addValue(2, passwordMaskedDefinition.replace("\\\\", "\\")).addValue(
+						3,
 						deployed ? "deployed" : "undeployed")));
 	}
 

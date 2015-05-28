@@ -58,7 +58,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private int offsetUpdateShutdownTimeout = 2000;
 
-	private int queueSize = 1000;
+	private int queueSize = 1024;
 
 	@ModuleOption("single topic name")
 	public void setTopic(String topic) {
@@ -163,7 +163,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 	}
 
 	@ModuleOption(value = "the maximum number of messages held internally and waiting for processing, " +
-			"per concurrent handler")
+			"per concurrent handler. Value must be a power of 2.")
 	public void setQueueSize(int queueSize) {
 		this.queueSize = queueSize;
 	}

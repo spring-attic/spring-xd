@@ -163,7 +163,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 	}
 
 	@ModuleOption(value = "the maximum number of messages held internally and waiting for processing, " +
-			"per concurrent handler. Value must be a power of 2.")
+			"per concurrent handler. Value must be a power of 2")
 	public void setQueueSize(int queueSize) {
 		this.queueSize = queueSize;
 	}

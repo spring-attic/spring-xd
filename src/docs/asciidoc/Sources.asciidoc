@@ -1118,7 +1118,7 @@ $$offsetUpdateCount$$:: $$frequency, in number of messages, with which offsets a
 $$offsetUpdateShutdownTimeout$$:: $$timeout for ensuring that all offsets have been written, on shutdown$$ *($$int$$, default: `2000`)*
 $$offsetUpdateTimeWindow$$:: $$frequency (in milliseconds) with which offsets are persisted mutually exclusive with the count-based offset update option (use 0 to disable either)$$ *($$int$$, default: `10000`)*
 $$partitions$$:: $$comma separated list of partition IDs to listen on$$ *($$String$$, default: ``)*
-$$queueSize$$:: $$the maximum number of messages held internally and waiting for processing, per concurrent handler. Value must be a power of 2.$$ *($$int$$, default: `1024`)*
+$$queueSize$$:: $$the maximum number of messages held internally and waiting for processing, per concurrent handler. Value must be a power of 2$$ *($$int$$, default: `1024`)*
 $$socketBufferBytes$$:: $$socket receive buffer for network requests$$ *($$int$$, default: `2097152`)*
 $$socketTimeout$$:: $$sock timeout for network requests in milliseconds$$ *($$int$$, default: `30000`)*
 $$streams$$:: $$number of streams in the topic$$ *($$int$$, default: `1`)*

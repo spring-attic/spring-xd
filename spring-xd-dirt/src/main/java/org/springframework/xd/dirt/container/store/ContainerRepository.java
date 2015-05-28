@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.xd.store.DomainRepository;
 
 /**
  * Repository for persisting {@link Container} entities.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public interface ContainerRepository extends DomainRepository<Container, String> {
@@ -37,7 +37,7 @@ public interface ContainerRepository extends DomainRepository<Container, String>
 
 	/**
 	 * @param pageable pagination info
-	 * @return paged list of all the {@RuntimeContainer}s in the XD cluster.
+	 * @return paged list of all the {@code RuntimeContainer}s in the XD cluster.
 	 */
 	public Page<DetailedContainer> findAllRuntimeContainers(Pageable pageable);
 

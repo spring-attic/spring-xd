@@ -40,6 +40,7 @@ import org.springframework.xd.rest.domain.metrics.MetricResource;
  *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 abstract class AbstractMetricsController<R extends MetricRepository<M>, M extends Metric> {
 
@@ -55,10 +56,10 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 	/**
 	 * Lists metric resources.
 	 *
-	 * @param pageable
-	 * @param pagedAssembler
-	 * @param resourceAssembler
-	 * @return
+	 * @param pageable the Pageable
+	 * @param pagedAssembler the PagedResourcesAssembler
+	 * @param resourceAssembler the ResourceAssembler
+	 * @return the resources
 	 */
 	protected PagedResources<? extends MetricResource> list(Pageable pageable,
 			PagedResourcesAssembler<M> pagedAssembler,
@@ -68,7 +69,7 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 		// Ok for now until we use PagingAndSortingRepo as we know we have lists
 		Page<M> page = new PageImpl<M>((List<M>) metrics);
 		return pagedAssembler.toResource(page,
-				resourceAssembler == null ? shallowResourceAssembler : (ResourceAssembler<M, MetricResource>)resourceAssembler);
+				resourceAssembler == null ? this.shallowResourceAssembler : resourceAssembler);
 	}
 
 

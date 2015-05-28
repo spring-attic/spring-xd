@@ -30,6 +30,8 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.utils.ThreadUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
@@ -63,6 +65,11 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
  * @author Patrick Peralta
  */
 public class ZooKeeperContainerRepository implements ContainerRepository, ApplicationListener<ApplicationEvent> {
+
+	/**
+	 * Logger.
+	 */
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	/**
 	 * ZooKeeper connection.
@@ -153,6 +160,7 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 						@Override
 						public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) {
 							// shut down the cache if ZooKeeper connection goes away
+							ZooKeeperUtils.logCacheEvent(logger, event);
 							if (event.getType() == PathChildrenCacheEvent.Type.CONNECTION_SUSPENDED ||
 									event.getType() == PathChildrenCacheEvent.Type.CONNECTION_LOST) {
 								closeCache();

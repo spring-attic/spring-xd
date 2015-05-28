@@ -21,6 +21,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Map;
 
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -146,7 +147,14 @@ public abstract class ZooKeeperUtils {
 		}
 		builder.append("type=").append(event.getType());
 
-		logger.info(builder.toString());
+		if (EnumSet.of(PathChildrenCacheEvent.Type.CONNECTION_SUSPENDED,
+				PathChildrenCacheEvent.Type.CONNECTION_LOST).contains(event.getType())) {
+			logger.warn(builder.toString());
+		}
+		else {
+			logger.info(builder.toString());
+		}
+
 		if (data != null && logger.isTraceEnabled()) {
 			String content;
 			byte[] bytes = data.getData();

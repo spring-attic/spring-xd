@@ -29,6 +29,7 @@ import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.listener.ListenerFactory;
 
 import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
+import org.springframework.xd.test.fixtures.util.FixtureUtils;
 
 /**
  * A fixture that helps testing the ftp source. Creates a local FTP server and exposes a file
@@ -36,6 +37,7 @@ import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
  *
  * @author Eric Bottard
  * @author Franck Marchand
+ * @author David Turanski
  */
 public class FtpSource extends AbstractModuleFixture<FtpSource> implements Disposable {
 
@@ -79,7 +81,7 @@ public class FtpSource extends AbstractModuleFixture<FtpSource> implements Dispo
 	@Override
 	protected String toDSL() {
 		return String.format("ftp --port=%d --username=foo --password=bar --localDir=%s", port,
-				localDirectory.getAbsolutePath());
+				FixtureUtils.handleShellEscapeProcessing(localDirectory.getAbsolutePath()));
 	}
 
 	@Override

@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.dirt.rest.PasswordUtils;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
@@ -62,7 +63,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
 	 */
 	public void create(String streamname, String streamdefinition, Object... values) {
-		doCreate(streamname, streamdefinition, true, true, values);
+		doCreate(streamname, streamdefinition, true, values);
 	}
 
 	/**
@@ -73,12 +74,11 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 *
 	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
 	 */
-	public void createDontDeploy(String streamname, String streamdefinition, boolean verifyExistence, Object... values) {
-		doCreate(streamname, streamdefinition, false, verifyExistence, values);
+	public void createDontDeploy(String streamname, String streamdefinition, Object... values) {
+		doCreate(streamname, streamdefinition, false, values);
 	}
 
-	private void doCreate(String streamname, String streamdefinition, boolean deploy, boolean verifyExistence,
-			Object... values) {
+	private void doCreate(String streamname, String streamdefinition, boolean deploy, Object... values) {
 		String actualDefinition = String.format(streamdefinition, values);
 		// Shell parser expects quotes to be escaped by \
 		String wholeCommand = String.format("stream create %s --definition \"%s\" --deploy %s", streamname,
@@ -98,9 +98,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 		}
 		assertEquals(deployMsg + " new stream '" + streamname + "'", cr.getResult());
 
-		if (verifyExistence) {
-			verifyExists(streamname, actualDefinition, deploy);
-		}
+		verifyExists(streamname, actualDefinition, deploy);
 	}
 
 	/**
@@ -160,11 +158,13 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 * @param definition definition of the stream
 	 */
 	public void verifyExists(String streamName, String definition, boolean deployed) {
+		final String passwordMaskedDefinition = PasswordUtils.maskPasswordsInDefinition(definition);
 		CommandResult cr = getShell().executeCommand("stream list");
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		Table t = (Table) cr.getResult();
 		assertTrue(t.getRows().contains(
-				new TableRow().addValue(1, streamName).addValue(2, definition.replace("\\\\", "\\")).addValue(3,
+				new TableRow().addValue(1, streamName).addValue(2, passwordMaskedDefinition.replace("\\\\", "\\")).addValue(
+						3,
 						deployed ? "deployed" : "undeployed")));
 	}
 

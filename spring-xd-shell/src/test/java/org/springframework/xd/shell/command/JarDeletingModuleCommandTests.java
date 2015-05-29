@@ -42,7 +42,7 @@ public class JarDeletingModuleCommandTests extends AbstractStreamIntegrationTest
 	public void testDeleteUploadedModuleUsedByStream() throws IOException {
 		File moduleSource = new File("src/test/resources/spring-xd/xd/modules/processor/siDslModule.jar");
 		module().upload("siDslModule2", processor, moduleSource);
-		stream().createDontDeploy("foo", "http | siDslModule2 --prefix=foo | log", true);
+		stream().createDontDeploy("foo", "http | siDslModule2 --prefix=foo | log");
 		assertFalse(module().delete("siDslModule2", processor));
 	}
 
@@ -50,7 +50,7 @@ public class JarDeletingModuleCommandTests extends AbstractStreamIntegrationTest
 	@Test
 	public void testDeleteComposedModuleUsedByStream() throws Exception {
 		module().compose("myhttp", "http | filter");
-		stream().createDontDeploy("foo", "myhttp | log", true);
+		stream().createDontDeploy("foo", "myhttp | log");
 		assertFalse(module().delete("myhttp", ModuleType.source));
 		// Now deleting blocking stream
 		stream().destroyStream("foo");

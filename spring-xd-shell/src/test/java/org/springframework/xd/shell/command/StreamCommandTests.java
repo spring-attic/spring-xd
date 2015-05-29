@@ -95,7 +95,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Create 2 tictok streams with --deploy = false");
 		String streamName = generateStreamName();
 		String streamDefinition = "time | log";
-		stream().createDontDeploy(streamName, streamDefinition, true);
+		stream().createDontDeploy(streamName, streamDefinition);
 
 		CommandResult cr = getShell().executeCommand(
 				"stream create --definition \"" + streamDefinition + "\" --name " + streamName + " --deploy false");
@@ -111,7 +111,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Create tictok stream");
 		String streamName = generateStreamName();
 		String streamDefinition = "time | log";
-		stream().createDontDeploy(streamName, streamDefinition, true);
+		stream().createDontDeploy(streamName, streamDefinition);
 
 		stream().deploy(streamName);
 		stream().verifyExists(streamName, streamDefinition, true);
@@ -121,9 +121,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		stream().deploy(streamName);
 		stream().verifyExists(streamName, streamDefinition, true);
-
 	}
-
 
 	@Test
 	public void testNamedChannelWithNoConsumerShouldBuffer() {
@@ -265,7 +263,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testMaskingOfPasswords() throws IOException {
 
 		String streamName = generateStreamName();
-		stream().createDontDeploy(streamName, "http | jdbc --password=mypassword", false);
+		stream().createDontDeploy(streamName, "http | jdbc --password=mypassword");
 
 		CommandResult cr = getShell().executeCommand("stream list");
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());

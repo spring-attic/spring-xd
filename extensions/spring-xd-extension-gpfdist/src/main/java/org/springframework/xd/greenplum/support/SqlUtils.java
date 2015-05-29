@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.support;
 
 import java.util.List;
 
 import org.springframework.util.StringUtils;
-import org.springframework.xd.greenplum.support.Format;
-import org.springframework.xd.greenplum.support.LoadConfiguration;
-import org.springframework.xd.greenplum.support.Mode;
-import org.springframework.xd.greenplum.support.ReadableTable;
 
 public abstract class SqlUtils {
 
-	public static String createExternalReadableTable(LoadConfiguration config, String prefix, List<String> overrideLocations) {
+	public static String createExternalReadableTable(LoadConfiguration config, String prefix,
+			List<String> overrideLocations) {
 
 		// TODO: this function needs a cleanup
 		StringBuilder buf = new StringBuilder();
@@ -41,9 +39,11 @@ public abstract class SqlUtils {
 		if (externalTable.getLike() != null) {
 			buf.append("LIKE ");
 			buf.append(config.getTable());
-		} else if (StringUtils.hasText(externalTable.getColumns())) {
+		}
+		else if (StringUtils.hasText(externalTable.getColumns())) {
 			buf.append(externalTable.getColumns());
-		} else {
+		}
+		else {
 			buf.append("LIKE ");
 			buf.append(config.getTable());
 		}
@@ -53,7 +53,8 @@ public abstract class SqlUtils {
 		buf.append("LOCATION(");
 		if (overrideLocations != null && !overrideLocations.isEmpty()) {
 			buf.append(createLocationString(overrideLocations.toArray(new String[0])));
-		} else {
+		}
+		else {
 			buf.append(createLocationString(externalTable.getLocations().toArray(new String[0])));
 		}
 		buf.append(") ");
@@ -61,7 +62,8 @@ public abstract class SqlUtils {
 		// format type
 		if (externalTable.getFormat() == Format.TEXT) {
 			buf.append("FORMAT 'TEXT'");
-		} else {
+		}
+		else {
 			buf.append("FORMAT 'CSV'");
 		}
 
@@ -70,7 +72,8 @@ public abstract class SqlUtils {
 		buf.append("DELIMITER '");
 		if (externalTable.getDelimiter() != null) {
 			buf.append(unicodeEscaped(externalTable.getDelimiter().charValue()));
-		} else {
+		}
+		else {
 			buf.append("|");
 		}
 		buf.append("'");
@@ -122,9 +125,9 @@ public abstract class SqlUtils {
 
 	/**
 	 *
-	 * @param config
-	 * @param prefix
-	 * @return
+	 * @param config the load configuration
+	 * @param prefix the prefix
+	 * @return the drop DDL
 	 */
 	public static String dropExternalReadableTable(LoadConfiguration config, String prefix) {
 		StringBuilder b = new StringBuilder();
@@ -147,6 +150,7 @@ public abstract class SqlUtils {
 	 * @param prefix
 	 *            Prefix for temporary resources.
 	 * @return
+	 *            the load DDL
 	 */
 	public static String load(LoadConfiguration config, String prefix) {
 		if (config.getMode() == Mode.INSERT) {
@@ -165,7 +169,8 @@ public abstract class SqlUtils {
 		b.append(" SELECT ");
 		if (StringUtils.hasText(config.getColumns())) {
 			b.append(config.getColumns());
-		} else {
+		}
+		else {
 			b.append("*");
 		}
 		b.append(" FROM ");
@@ -200,9 +205,11 @@ public abstract class SqlUtils {
 	private static String unicodeEscaped(char ch) {
 		if (ch < 0x10) {
 			return "\\u000" + Integer.toHexString(ch);
-		} else if (ch < 0x100) {
+		}
+		else if (ch < 0x100) {
 			return "\\u00" + Integer.toHexString(ch);
-		} else if (ch < 0x1000) {
+		}
+		else if (ch < 0x1000) {
 			return "\\u0" + Integer.toHexString(ch);
 		}
 		return "\\u" + Integer.toHexString(ch);

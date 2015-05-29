@@ -16,14 +16,6 @@
 
 package org.springframework.xd.gpload;
 
-import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.JobExecutionException;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.step.tasklet.x.AbstractProcessBuilderTasklet;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.StringUtils;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -35,6 +27,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.yaml.snakeyaml.Yaml;
+
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.JobExecutionException;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.step.tasklet.x.AbstractProcessBuilderTasklet;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.StringUtils;
+
 /**
  * Tasklet used for running gpload tool.
  *
@@ -42,13 +43,18 @@ import java.util.Map;
  *
  * @since 1.2
  * @author Thomas Risberg
+ * @author Gary Russell
  */
 public class GploadTasklet extends AbstractProcessBuilderTasklet implements InitializingBean {
 
 	private static final String GPLOAD_COMMAND = "gpload";
+
 	private static final String CONTROL_FILE_NODE_GPLOAD = "GPLOAD";
+
 	private static final String CONTROL_FILE_NODE_INPUT = "INPUT";
+
 	private static final String CONTROL_FILE_NODE_SOURCE = "SOURCE";
+
 	private static final String CONTROL_FILE_NODE_FILE = "FILE";
 
 	private String gploadHome;
@@ -183,7 +189,8 @@ public class GploadTasklet extends AbstractProcessBuilderTasklet implements Init
 			if (StringUtils.hasText(inputSourceFile)) {
 				try {
 					controlFileToUse = createControlFile(inputSourceFile, controlFile);
-				} catch (IOException e) {
+				}
+				catch (IOException e) {
 					throw new JobExecutionException("Error while creating control file", e);
 				}
 			}
@@ -223,7 +230,8 @@ public class GploadTasklet extends AbstractProcessBuilderTasklet implements Init
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (!StringUtils.hasText(gploadHome)) {
-			throw new IllegalArgumentException("Missing gploadHome property, it is mandatory for running gpload command");
+			throw new IllegalArgumentException(
+					"Missing gploadHome property, it is mandatory for running gpload command");
 		}
 		if (StringUtils.hasText(password) && StringUtils.hasText(passwordFile)) {
 			throw new IllegalArgumentException("You can't specify both 'password' and 'passwordFile' options");
@@ -258,32 +266,33 @@ public class GploadTasklet extends AbstractProcessBuilderTasklet implements Init
 		return outFile;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected static void replaceInputSourceFile(Object data, String inputSourceFile) {
 		if (data != null && data instanceof Map) {
-			Object gpload = ((Map)data).get(CONTROL_FILE_NODE_GPLOAD);
+			Object gpload = ((Map) data).get(CONTROL_FILE_NODE_GPLOAD);
 			if (gpload != null && gpload instanceof Map) {
-				Object input = ((Map)gpload).get(CONTROL_FILE_NODE_INPUT);
+				Object input = ((Map) gpload).get(CONTROL_FILE_NODE_INPUT);
 				if (input == null) {
-					input = new ArrayList();
-					((Map)gpload).put(CONTROL_FILE_NODE_INPUT, input);
+					input = new ArrayList<Object>();
+					((Map) gpload).put(CONTROL_FILE_NODE_INPUT, input);
 				}
 				if (input instanceof List) {
 					boolean hasSource = false;
-					for (Object o : (List)input) {
-						if (o instanceof Map && ((Map)o).containsKey(CONTROL_FILE_NODE_SOURCE)) {
+					for (Object o : (List) input) {
+						if (o instanceof Map && ((Map) o).containsKey(CONTROL_FILE_NODE_SOURCE)) {
 							hasSource = true;
 						}
 					}
 					if (!hasSource) {
 						Map<String, Object> tmp = new LinkedHashMap<>();
-						tmp.put(CONTROL_FILE_NODE_SOURCE, new LinkedHashMap());
-						((List)input).add(tmp);
+						tmp.put(CONTROL_FILE_NODE_SOURCE, new LinkedHashMap<String, Object>());
+						((List) input).add(tmp);
 					}
-					for (Object o : (List)input) {
-						if (o instanceof Map && ((Map)o).containsKey(CONTROL_FILE_NODE_SOURCE)) {
-							Object source = ((Map)o).get(CONTROL_FILE_NODE_SOURCE);
+					for (Object o : (List) input) {
+						if (o instanceof Map && ((Map) o).containsKey(CONTROL_FILE_NODE_SOURCE)) {
+							Object source = ((Map) o).get(CONTROL_FILE_NODE_SOURCE);
 							if (source != null && source instanceof Map) {
-								((Map)source).put(CONTROL_FILE_NODE_FILE, Arrays.asList(inputSourceFile));
+								((Map) source).put(CONTROL_FILE_NODE_FILE, Arrays.asList(inputSourceFile));
 							}
 						}
 					}
@@ -291,4 +300,5 @@ public class GploadTasklet extends AbstractProcessBuilderTasklet implements Init
 			}
 		}
 	}
+
 }

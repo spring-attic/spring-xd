@@ -16,18 +16,18 @@
 
 package org.springframework.xd.sqoop;
 
-import org.springframework.batch.step.tasklet.x.ClasspathEnvironmentProvider;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.batch.step.tasklet.x.AbstractProcessBuilderTasklet;
-import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.env.PropertySource;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import org.springframework.batch.step.tasklet.x.AbstractProcessBuilderTasklet;
+import org.springframework.batch.step.tasklet.x.ClasspathEnvironmentProvider;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
 
 /**
  * Tasklet used for running Sqoop tool.
@@ -36,6 +36,7 @@ import java.util.Properties;
  *
  * @since 1.1
  * @author Thomas Risberg
+ * @author Gary Russell
  */
 public class SqoopTasklet extends AbstractProcessBuilderTasklet implements InitializingBean {
 
@@ -81,14 +82,14 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 		while (i.hasNext()) {
 			PropertySource<?> p = i.next();
 			if (p instanceof EnumerablePropertySource) {
-				for (String name : ((EnumerablePropertySource)p).getPropertyNames()) {
-					if(name.startsWith(SPRING_HADOOP_CONFIG_PREFIX)) {
+				for (String name : ((EnumerablePropertySource) p).getPropertyNames()) {
+					if (name.startsWith(SPRING_HADOOP_CONFIG_PREFIX)) {
 						command.add(name + "=" + environment.getProperty(name));
 					}
 				}
 			}
 		}
-		for (Map.Entry e : hadoopProperties.entrySet()) {
+		for (Map.Entry<?, ?> e : hadoopProperties.entrySet()) {
 			if (e.getKey().toString().startsWith(SPRING_HADOOP_PREFIX)) {
 				command.add(e.getKey() + "=" + e.getValue());
 			}

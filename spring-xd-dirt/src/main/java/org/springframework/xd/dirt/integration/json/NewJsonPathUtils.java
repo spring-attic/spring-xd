@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2011-2014 the original author or authors.
+ *  * Copyright 2011-2015 the original author or authors.
  *  *
  *  * Licensed under the Apache License, Version 2.0 (the "License");
  *  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Predicate;
 
 /**
- * Similar to {@link org.springframework.integration.json.JsonPathUtils}, but compatible with newer versions of
+ * Similar to {@code org.springframework.integration.json.JsonPathUtils}, but compatible with newer versions of
  * json-path that expect a Predicate vararg.
  *
  * @author Eric Bottard

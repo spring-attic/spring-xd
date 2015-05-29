@@ -21,11 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 
+import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.pool.KryoCallback;
-
-import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
 /**
  * Base class for Codecs using {@link com.esotericsoftware.kryo.Kryo} to serialize arbitrary types
@@ -55,9 +55,11 @@ abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implem
 	 * @return the object
 	 * @throws IOException
 	 */
+	@Override
 	public T deserialize(InputStream inputStream, final Class<? extends T> type) throws IOException {
 		final Input input = new Input(inputStream);
 		T result = pool.run(new KryoCallback<T>() {
+
 			@Override
 			public T execute(Kryo kryo) {
 				return doDeserialize(kryo, input, type);
@@ -69,9 +71,9 @@ abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implem
 
 	/**
 	 * Infers the type from this class's generic type argument
-	 * @param kryo
-	 * @param input
-	 * @return
+	 * @param kryo the Kryo
+	 * @param input the input
+	 * @return the object
 	 */
 	@Override
 	@SuppressWarnings("unchecked")

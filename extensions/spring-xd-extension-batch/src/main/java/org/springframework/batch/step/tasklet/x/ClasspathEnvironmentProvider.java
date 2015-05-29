@@ -16,16 +16,19 @@
 
 package org.springframework.batch.step.tasklet.x;
 
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.util.StringUtils;
-
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.util.StringUtils;
+
 /**
+ * @since 1.2
+ * @author Thomas Risberg
+ * @author Gary Russell
  */
 public class ClasspathEnvironmentProvider implements EnvironmentProvider {
 
@@ -33,10 +36,10 @@ public class ClasspathEnvironmentProvider implements EnvironmentProvider {
 
 	ConfigurableEnvironment environment;
 
-	Class taskletClass;
+	Class<?> taskletClass;
 
 
-	public ClasspathEnvironmentProvider(ConfigurableEnvironment environment, Class taskletClass) {
+	public ClasspathEnvironmentProvider(ConfigurableEnvironment environment, Class<?> taskletClass) {
 		this.environment = environment;
 		this.taskletClass = taskletClass;
 	}

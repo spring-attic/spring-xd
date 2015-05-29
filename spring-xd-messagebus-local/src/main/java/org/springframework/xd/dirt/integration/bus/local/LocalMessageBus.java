@@ -152,7 +152,7 @@ public class LocalMessageBus extends MessageBusSupport {
 	 * Set the {@link ThreadPoolTaskExecutor}} queue size to limit the number of concurrent
 	 * threads. The executor is used for PubSub operations.
 	 * Default: {@link Integer#MAX_VALUE}.
-	 * @param executorCorePoolSize the queue size.
+	 * @param executorQueueSize the queue size.
 	 */
 	public void setExecutorQueueSize(int executorQueueSize) {
 		this.executorQueueSize = executorQueueSize;

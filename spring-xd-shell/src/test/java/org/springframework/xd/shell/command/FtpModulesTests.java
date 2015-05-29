@@ -24,7 +24,7 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
-import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasTrimmedContentsThat;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -47,6 +47,7 @@ import org.springframework.xd.test.fixtures.FtpSource;
  * @author Eric Bottard
  * @author Gunnar Hillert
  * @author Franck Marchand
+ * @author David Turanski
  */
 public class FtpModulesTests extends AbstractStreamIntegrationTest {
 
@@ -66,7 +67,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 
 		stream().create(generateStreamName(), "%s | %s --inputType=text/plain", ftpSource, fileSink);
 
-		assertThat(fileSink, eventually(hasContentsThat(equalTo("foobar\n"))));
+		assertThat(fileSink, eventually(hasTrimmedContentsThat(equalTo("foobar"))));
 	}
 
 	@Test
@@ -84,7 +85,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 		stream().create(generateStreamName(), "%s --mode=contents | transform --expression=payload.getClass() | %s",
 				ftpSource, fileSink);
 
-		assertThat(fileSink, eventually(hasContentsThat(equalTo("byte[]\n"))));
+		assertThat(fileSink, eventually(hasTrimmedContentsThat(equalTo("byte[]"))));
 
 	}
 
@@ -103,7 +104,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 		stream().create(generateStreamName(), "%s | transform --expression=payload.getClass() | %s",
 				ftpSource, fileSink);
 
-		assertThat(fileSink, eventually(hasContentsThat(equalTo("byte[]\n"))));
+		assertThat(fileSink, eventually(hasTrimmedContentsThat(equalTo("byte[]"))));
 
 	}
 
@@ -121,7 +122,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 		stream().create(generateStreamName(), "%s --mode=ref | transform --expression=payload.getClass() | %s",
 				ftpSource, fileSink);
 
-		assertThat(fileSink, eventually(hasContentsThat(equalTo("java.io.File\n"))));
+		assertThat(fileSink, eventually(hasTrimmedContentsThat(equalTo("java.io.File"))));
 
 	}
 
@@ -140,7 +141,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 		stream().create(generateStreamName(), "%s --mode=lines | transform --expression=payload.getClass() | %s",
 				ftpSource, fileSink);
 
-		assertThat(fileSink, eventually(hasContentsThat(equalTo("java.lang.String\n"))));
+		assertThat(fileSink, eventually(hasTrimmedContentsThat(equalTo("java.lang.String"))));
 
 	}
 
@@ -159,7 +160,7 @@ public class FtpModulesTests extends AbstractStreamIntegrationTest {
 		stream().create(generateStreamName(), "%s --mode=LINes | transform --expression=payload.getClass() | %s",
 				ftpSource, fileSink);
 
-		assertThat(fileSink, eventually(hasContentsThat(equalTo("java.lang.String\n"))));
+		assertThat(fileSink, eventually(hasTrimmedContentsThat(equalTo("java.lang.String"))));
 	}
 
 	@Test

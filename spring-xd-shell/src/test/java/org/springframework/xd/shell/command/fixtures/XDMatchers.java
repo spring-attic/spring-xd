@@ -29,14 +29,16 @@ import org.springframework.xd.test.fixtures.AbstractMetricSink;
 import org.springframework.xd.test.fixtures.EventuallyMatcher;
 import org.springframework.xd.test.fixtures.FileSink;
 import org.springframework.xd.test.fixtures.FileSink.FileSinkContentsMatcher;
+import org.springframework.xd.test.fixtures.FileSink.FileSinkTrimmedContentsMatcher;
 import org.springframework.xd.test.fixtures.HasDisplayValue;
 import org.springframework.xd.test.fixtures.MetricHasSimpleValueMatcher;
 
 
 /**
  * Utility class that provides static factory methods for {@link Matcher}s in this package.
- * 
+ *
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class XDMatchers {
 
@@ -63,6 +65,10 @@ public class XDMatchers {
 
 	public static FileSinkContentsMatcher hasContentsThat(Matcher<String> matcher) {
 		return new FileSink.FileSinkContentsMatcher(matcher);
+	}
+
+	public static FileSinkTrimmedContentsMatcher hasTrimmedContentsThat(Matcher<String> matcher) {
+		return new FileSink.FileSinkTrimmedContentsMatcher(matcher);
 	}
 
 	public static FileContentsMatcher fileContent(Matcher<String> matcher) {

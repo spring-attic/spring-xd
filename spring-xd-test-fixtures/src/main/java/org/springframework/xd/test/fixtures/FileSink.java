@@ -32,8 +32,37 @@ import org.springframework.xd.test.fixtures.util.FixtureUtils;
  * Support class to capture output of a sink in a File.
  *
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class FileSink extends DisposableFileSupport<FileSink> {
+
+
+	/**
+	 *  A matcher on the trimmed String contents of the sink, that delegates to another (String) matcher.
+	 *   
+	 *  @author David Turanski
+	 */
+	public static final class FileSinkTrimmedContentsMatcher extends FileSinkContentsMatcher {
+
+		public FileSinkTrimmedContentsMatcher(Matcher<String> matcher) {
+			super(matcher);
+		}
+
+		@Override
+		protected boolean matches(Object item, Description mismatchDescription) {
+			FileSink fs = (FileSink) item;
+			try {
+				String contents = fs.getContents().trim();
+				mismatchDescription.appendValue(contents);
+				return matcher.matches(contents);
+			}
+			catch (IOException e) {
+				mismatchDescription.appendText("failed with an IOException: " + e.getMessage());
+				return false;
+			}
+		}
+
+	}
 
 	/**
 	 * A matcher on the String contents of the sink, that delegates to another (String) matcher.
@@ -44,9 +73,9 @@ public class FileSink extends DisposableFileSupport<FileSink> {
 	 *
 	 * @author Eric Bottard
 	 */
-	public static final class FileSinkContentsMatcher extends DiagnosingMatcher<FileSink> {
+	public static class FileSinkContentsMatcher extends DiagnosingMatcher<FileSink> {
 
-		private final Matcher<String> matcher;
+		protected final Matcher<String> matcher;
 
 		public FileSinkContentsMatcher(Matcher<String> matcher) {
 			this.matcher = matcher;

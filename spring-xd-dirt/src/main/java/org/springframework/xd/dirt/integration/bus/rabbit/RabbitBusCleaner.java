@@ -30,21 +30,11 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.protocol.HttpContext;
 
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.dirt.integration.bus.BusCleaner;
+import org.springframework.xd.dirt.integration.bus.RabbitManagementUtils;
 import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.RabbitAdminException;
@@ -80,7 +70,7 @@ public class RabbitBusCleaner implements BusCleaner {
 
 	private Map<String, List<String>> doClean(String adminUri, String user, String pw, String vhost,
 			String busPrefix, String entity, boolean isJob) {
-		RestTemplate restTemplate = BusUtils.buildRestTemplate(adminUri, user, pw);
+		RestTemplate restTemplate = RabbitManagementUtils.buildRestTemplate(adminUri, user, pw);
 		List<String> removedQueues = isJob
 				? findJobQueues(adminUri, vhost, busPrefix, entity, restTemplate)
 				: findStreamQueues(adminUri, vhost, busPrefix, entity, restTemplate);

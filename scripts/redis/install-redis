@@ -28,7 +28,7 @@ cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 
-REDIS_VERSION=redis-2.8.3
+REDIS_VERSION=redis-3.0.1
 REDIS_ZIP_NAME="$REDIS_VERSION.tar.gz"
 REDIS_HOME=$APP_HOME
 REDIS_ZIP_PATH="$REDIS_HOME/dist/$REDIS_ZIP_NAME"

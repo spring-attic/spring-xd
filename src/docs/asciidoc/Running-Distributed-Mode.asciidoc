@@ -192,28 +192,28 @@ $ redis-server
 You should see something like this:
 
 ----
-[35142] 01 May 14:36:28.939 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
-[35142] 01 May 14:36:28.940 * Max number of open files set to 10032
-                _._
-           _.-``__ ''-._
-      _.-``    `.  `_.  ''-._           Redis 2.6.12 (00000000/0) 64 bit
-  .-`` .-```.  ```\/    _.,_ ''-._
- (    '      ,       .-`  | `,    )     Running in stand alone mode
+11655:C 08 Jun 14:45:04.167 # Warning: no config file specified, using the default config. In order to specify a config file use ./redis-server /path/to/redis.conf
+                _._                                                  
+           _.-``__ ''-._                                             
+      _.-``    `.  `_.  ''-._           Redis 3.0.1 (bddc928a/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._                                   
+ (    '      ,       .-`  | `,    )     Running in standalone mode
  |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
- |    `-._   `._    /     _.-'    |     PID: 35142
-  `-._    `-._  `-./  _.-'    _.-'
- |`-._`-._    `-.__.-'    _.-'_.-'|
- |    `-._`-._        _.-'_.-'    |           http://redis.io
-  `-._    `-._`-.__.-'_.-'    _.-'
- |`-._`-._    `-.__.-'    _.-'_.-'|
- |    `-._`-._        _.-'_.-'    |
-  `-._    `-._`-.__.-'_.-'    _.-'
-      `-._    `-.__.-'    _.-'
-          `-._        _.-'
-              `-.__.-'
+ |    `-._   `._    /     _.-'    |     PID: 11655
+  `-._    `-._  `-./  _.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |           http://redis.io        
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |                                  
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+      `-._    `-.__.-'    _.-'                                       
+          `-._        _.-'                                           
+              `-.__.-'                                               
 
-[35142] 01 May 14:36:28.941 # Server started, Redis version 2.6.12
-[35142] 01 May 14:36:28.941 * The server is now ready to accept connections on port 6379
+11655:M 08 Jun 14:45:04.169 # Server started, Redis version 3.0.1
+11655:M 08 Jun 14:45:04.169 * DB loaded from disk: 0.000 seconds
+11655:M 08 Jun 14:45:04.169 * The server is now ready to accept connections on port 6379
 ----
 
 ==== Using RabbitMQ

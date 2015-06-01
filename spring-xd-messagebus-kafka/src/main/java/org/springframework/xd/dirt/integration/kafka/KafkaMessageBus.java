@@ -160,8 +160,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private static final String DEFAULT_COMPRESSION_CODEC = "default";
 
-	public static final String KAFKA_MIN_PARTITION_COUNT = "minPartitionCount";
-
 	private static final int DEFAULT_REQUIRED_ACKS = 1;
 
 	private static final boolean DEFAULT_AUTO_COMMIT_ENABLED = true;
@@ -205,11 +203,16 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 */
 	private static final String POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP = "springXD";
 
+	private static final Set<Object> KAFKA_CONSUMER_PROPERTIES = new SetBuilder()
+			.add(BusProperties.MIN_PARTITION_COUNT)
+			.build();
+
 	/**
 	 * Basic + concurrency + partitioning.
 	 */
 	private static final Set<Object> SUPPORTED_CONSUMER_PROPERTIES = new SetBuilder()
 			.addAll(CONSUMER_STANDARD_PROPERTIES)
+			.addAll(KAFKA_CONSUMER_PROPERTIES)
 			.add(BusProperties.PARTITION_INDEX) // Not actually used
 			.add(BusProperties.COUNT) // Not actually used
 			.add(BusProperties.CONCURRENCY)
@@ -217,7 +220,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 			.build();
 
 	private static final Set<Object> KAFKA_PRODUCER_PROPERTIES = new SetBuilder()
-			.add(KAFKA_MIN_PARTITION_COUNT)
+			.add(BusProperties.MIN_PARTITION_COUNT)
 			.build();
 
 	/**
@@ -643,7 +646,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 		int concurrency = accessor.getConcurrency(defaultConcurrency);
 		String topic = escapeTopicName(name);
 
-		Collection<Partition>  allPartitions =  ensureTopicCreated(topic, accessor.getCount() * concurrency, defaultReplicationFactor);
+
+		int numPartitions = accessor.getNumberOfKafkaPartitionsForConsumer();
+		Collection<Partition> allPartitions = ensureTopicCreated(topic, numPartitions, defaultReplicationFactor);
 
 		Decoder<byte[]> valueDecoder = new DefaultDecoder(null);
 		Decoder<Integer> keyDecoder = new IntegerEncoderDecoder();
@@ -668,9 +673,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 					int moduleSequence = accessor.getSequence();
 					if (moduleCount == 0) {
 						throw new IllegalArgumentException("This type of transport does not support 0-count modules");
-					}
-					if (moduleCount == 1) {
-						listenedPartitions.add(partition);
 					}
 					else {
 						// sequence numbers are zero-based
@@ -809,8 +811,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		public int getNumberOfKafkaPartitionsForProducer() {
 			int concurrency = getProperty(NEXT_MODULE_CONCURRENCY, defaultConcurrency);
-			int kafkaPartitions = getKafkaPartitionCount(defaultMinPartitionCount);
-			if (new PartitioningMetadata(this).isPartitionedModule()) {
+
+			int kafkaPartitions = getMinPartitionCount(defaultMinPartitionCount);
+			if (isPartitionedModule()) {
 				return Math.max(kafkaPartitions, getPartitionCount() * concurrency);
 			}
 			else {
@@ -820,6 +823,20 @@ public class KafkaMessageBus extends MessageBusSupport {
 				}
 				return Math.max(kafkaPartitions,nextModuleCount * concurrency);
 			}
+		}
+
+		public int getNumberOfKafkaPartitionsForConsumer() {
+			int concurrency = getConcurrency(defaultConcurrency);
+			int minKafkaPartitions = getMinPartitionCount(defaultMinPartitionCount);
+			int moduleCount = getCount();
+			if (moduleCount == 0) {
+				throw new IllegalArgumentException("Module count cannot be zero");
+			}
+			return Math.max(minKafkaPartitions, moduleCount * concurrency);
+		}
+
+		public boolean isPartitionedModule() {
+			return new PartitioningMetadata(this).isPartitionedModule();
 		}
 
 		public String getCompressionCodec(String defaultValue) {
@@ -834,8 +851,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 			return getProperty(AUTO_COMMIT_ENABLED, defaultAutoCommitEnabled);
 		}
 
-		public int getKafkaPartitionCount(int defaultPartitionCount) {
-			return getProperty(KAFKA_MIN_PARTITION_COUNT, defaultPartitionCount);
+		public int getMinPartitionCount(int defaultPartitionCount) {
+			return getProperty(MIN_PARTITION_COUNT, defaultPartitionCount);
 		}
 
 	}

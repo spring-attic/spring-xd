@@ -81,6 +81,10 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 			if (hasPartitionKeyProperty(previousProperties)) {
 				properties.put("consumer." + BusProperties.PARTITION_INDEX, String.valueOf(moduleSequence - 1));
 			}
+			String minPartitionCount = previousProperties.get("producer." + BusProperties.MIN_PARTITION_COUNT);
+			if (minPartitionCount != null) {
+				properties.put("consumer." + BusProperties.MIN_PARTITION_COUNT, minPartitionCount);
+			}
 		}
 		// Not last
 		if (moduleIndex + 1 < streamModules.size()) {

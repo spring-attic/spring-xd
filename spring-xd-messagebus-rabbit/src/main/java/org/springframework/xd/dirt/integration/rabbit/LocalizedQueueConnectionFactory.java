@@ -34,7 +34,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.xd.dirt.integration.bus.BusUtils;
+import org.springframework.xd.dirt.integration.bus.RabbitManagementUtils;
 
 
 /**
@@ -206,7 +206,7 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 	 * @return the template.
 	 */
 	protected RestTemplate createRestTemplate(String adminUri) {
-		return BusUtils.buildRestTemplate(adminUri, this.username, this.password);
+		return RabbitManagementUtils.buildRestTemplate(adminUri, this.username, this.password);
 	}
 
 	/**

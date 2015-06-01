@@ -16,30 +16,10 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.regex.Pattern;
 
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.protocol.HttpContext;
-
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * Message Bus utilities.
@@ -105,42 +85,6 @@ public class BusUtils {
 
 	public static String constructTapPrefix(String group) {
 		return TAP_CHANNEL_PREFIX + "stream:" + group;
-	}
-
-	public static RestTemplate buildRestTemplate(String adminUri, String user, String password) {
-		BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-		credsProvider.setCredentials(
-				new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT),
-				new UsernamePasswordCredentials(user, password));
-		HttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
-		// Set up pre-emptive basic Auth because the rabbit plugin doesn't currently support challenge/response for PUT
-		// Create AuthCache instance
-		AuthCache authCache = new BasicAuthCache();
-		// Generate BASIC scheme object and add it to the local; from the apache docs...
-		// auth cache
-		BasicScheme basicAuth = new BasicScheme();
-		URI uri;
-		try {
-			uri = new URI(adminUri);
-		}
-		catch (URISyntaxException e) {
-			throw new RabbitAdminException("Invalid URI", e);
-		}
-		authCache.put(new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme()), basicAuth);
-		// Add AuthCache to the execution context
-		final HttpClientContext localContext = HttpClientContext.create();
-		localContext.setAuthCache(authCache);
-		RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient) {
-
-			@Override
-			protected HttpContext createHttpContext(HttpMethod httpMethod, URI uri) {
-				return localContext;
-			}
-
-		});
-		restTemplate.setMessageConverters(Collections.<HttpMessageConverter<?>> singletonList(
-				new MappingJackson2HttpMessageConverter()));
-		return restTemplate;
 	}
 
 }

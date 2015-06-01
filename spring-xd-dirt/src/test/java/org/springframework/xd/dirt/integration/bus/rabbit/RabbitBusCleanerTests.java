@@ -44,6 +44,7 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.xd.dirt.integration.bus.BusCleanerUtils;
 import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.RabbitAdminException;
@@ -73,7 +74,7 @@ public class RabbitBusCleanerTests {
 	@Test
 	public void testCleanStream() {
 		final RabbitBusCleaner cleaner = new RabbitBusCleaner();
-		final RestTemplate template = BusUtils.buildRestTemplate("http://localhost:15672", "guest", "guest");
+		final RestTemplate template = BusCleanerUtils.buildRestTemplate("http://localhost:15672", "guest", "guest");
 		final String stream1 = UUID.randomUUID().toString();
 		String stream2 = stream1 + "-1";
 		String firstQueue = null;

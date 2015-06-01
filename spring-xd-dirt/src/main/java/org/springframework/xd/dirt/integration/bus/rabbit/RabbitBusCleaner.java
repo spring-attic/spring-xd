@@ -45,6 +45,7 @@ import org.apache.http.protocol.HttpContext;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.dirt.integration.bus.BusCleaner;
+import org.springframework.xd.dirt.integration.bus.BusCleanerUtils;
 import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.RabbitAdminException;
@@ -80,7 +81,7 @@ public class RabbitBusCleaner implements BusCleaner {
 
 	private Map<String, List<String>> doClean(String adminUri, String user, String pw, String vhost,
 			String busPrefix, String entity, boolean isJob) {
-		RestTemplate restTemplate = BusUtils.buildRestTemplate(adminUri, user, pw);
+		RestTemplate restTemplate = BusCleanerUtils.buildRestTemplate(adminUri, user, pw);
 		List<String> removedQueues = isJob
 				? findJobQueues(adminUri, vhost, busPrefix, entity, restTemplate)
 				: findStreamQueues(adminUri, vhost, busPrefix, entity, restTemplate);

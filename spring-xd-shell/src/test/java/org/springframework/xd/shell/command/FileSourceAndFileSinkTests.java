@@ -145,7 +145,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 			Thread.sleep(1000);
 			String actual = FileCopyUtils.copyToString(new FileReader(out));
 			assertEquals("hello", actual.trim());
-			assertEquals(out.exists(), is(true));
+			assertEquals(out.exists(), true);
 		}
 		finally {
 			in.delete();

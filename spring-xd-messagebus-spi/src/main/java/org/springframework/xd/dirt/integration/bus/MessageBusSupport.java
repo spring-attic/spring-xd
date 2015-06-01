@@ -124,7 +124,8 @@ public abstract class MessageBusSupport
 			.build();
 
 	protected static final Set<Object> PRODUCER_STANDARD_PROPERTIES = new HashSet<Object>(Arrays.asList(
-			BusProperties.NEXT_MODULE_COUNT
+			BusProperties.NEXT_MODULE_COUNT,
+			BusProperties.NEXT_MODULE_CONCURRENCY
 	));
 
 

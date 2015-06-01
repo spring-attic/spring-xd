@@ -82,9 +82,9 @@ if exist "%XD_LIB%" (
 
 set SPRING_XD_OPTS=-Dxd.data.home=%APP_HOME%\..\xd\data
 
-#
-# Pickup log4j.properties
-#
+@rem
+@rem Pickup log4j.properties
+@rem
 set CLASSPATH=!CLASSPATH!;$APP_HOME\config
 
 @rem Execute hsqldb-server

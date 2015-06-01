@@ -157,11 +157,13 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
-		Properties props = new Properties();
-		props.put(KafkaMessageBus.KAFKA_MIN_PARTITION_COUNT, "10");
+		Properties producerProperties = new Properties();
+		producerProperties.put(BusProperties.MIN_PARTITION_COUNT, "10");
+		Properties consumerProperties = new Properties();
+		consumerProperties.put(BusProperties.MIN_PARTITION_COUNT, "10");
 		long uniqueBindingId = System.currentTimeMillis();
-		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, props);
-		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, null);
+		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, producerProperties);
+		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, consumerProperties);
 		Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
 		// Let the consumer actually bind to the producer before sending a msg
 		busBindUnbindLatency();
@@ -185,12 +187,15 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
-		Properties props = new Properties();
-		props.put(KafkaMessageBus.KAFKA_MIN_PARTITION_COUNT, "5");
-		props.put(BusProperties.NEXT_MODULE_COUNT,"6");
+		Properties producerProps = new Properties();
+		producerProps.put(BusProperties.MIN_PARTITION_COUNT, "5");
+		producerProps.put(BusProperties.NEXT_MODULE_CONCURRENCY, "6");
+		Properties consumerProps = new Properties();
+		consumerProps.put(BusProperties.MIN_PARTITION_COUNT, "5");
+		consumerProps.put(BusProperties.CONCURRENCY, "6");
 		long uniqueBindingId = System.currentTimeMillis();
-		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, props);
-		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, null);
+		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, producerProps);
+		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, consumerProps);
 		Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
 		// Let the consumer actually bind to the producer before sending a msg
 		busBindUnbindLatency();
@@ -213,13 +218,15 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
-		Properties props = new Properties();
-		props.put(KafkaMessageBus.KAFKA_MIN_PARTITION_COUNT, "3");
-		props.put(BusProperties.PARTITION_COUNT,"5");
-		props.put(BusProperties.PARTITION_KEY_EXPRESSION,"payload");
+		Properties producerProperties = new Properties();
+		producerProperties.put(BusProperties.MIN_PARTITION_COUNT, "3");
+		producerProperties.put(BusProperties.PARTITION_COUNT, "5");
+		producerProperties.put(BusProperties.PARTITION_KEY_EXPRESSION, "payload");
+		Properties consumerProperties = new Properties();
+		consumerProperties.put(BusProperties.MIN_PARTITION_COUNT, "3");
 		long uniqueBindingId = System.currentTimeMillis();
-		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, props);
-		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, null);
+		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, producerProperties);
+		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, consumerProperties);
 		Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
 		// Let the consumer actually bind to the producer before sending a msg
 		busBindUnbindLatency();

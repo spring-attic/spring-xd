@@ -58,7 +58,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private int offsetUpdateShutdownTimeout = 2000;
 
-	private int queueSize = 1024;
+	private int queueSize = 8192;
 
 	@ModuleOption("single topic name")
 	public void setTopic(String topic) {

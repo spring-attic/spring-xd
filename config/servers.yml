@@ -92,7 +92,7 @@
 #        requiredAcks:              1
 #        compressionCodec:          none
 #        autoCommitEnabled:         true
-#        queueSize:                 1024
+#        queueSize:                 8192 # must be a power of 2
 #        maxWait:                   100
 #        fetchSize:                 1048576
 #        minPartitionCount:         1

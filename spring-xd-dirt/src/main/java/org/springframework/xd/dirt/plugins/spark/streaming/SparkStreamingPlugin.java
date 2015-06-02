@@ -108,7 +108,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 
 	@Autowired
 	public SparkStreamingPlugin(MessageBus messageBus) {
-		super(messageBus, null);
+		super(messageBus);
 	}
 
 	@Override

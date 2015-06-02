@@ -39,33 +39,39 @@ xd:
 
 # Hadoop Hadoop 2.6.x (hadoop26):
 spring:
-    yarn:
-        siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*"
-        siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*"
+  yarn:
+    siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*"
+    siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*"
 
 # Pivotal HD 2.0 and Pivotal HD 2.1 (phd21):
 #spring:
-#    yarn:
-#        siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*"
-#        siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
+#  yarn:
+#    siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*"
+#    siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
 # Pivotal HD 3.0 (phd30):
 #spring:
-#    yarn:
-#        siteYarnAppClasspath: "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*"
-#        siteMapreduceAppClasspath: "/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*"
+#  yarn:
+#    siteYarnAppClasspath: "/etc/hadoop/conf,/usr/phd/current/hadoop-client/*,/usr/phd/current/hadoop-client/lib/*,/usr/phd/current/hadoop-hdfs-client/*,/usr/phd/current/hadoop-hdfs-client/lib/*,/usr/phd/current/hadoop-yarn-client/*,/usr/phd/current/hadoop-yarn-client/lib/*"
+#    siteMapreduceAppClasspath: "/usr/phd/current/hadoop-mapreduce-client/*,/usr/phd/current/hadoop-mapreduce-client/lib/*"
+#    config:
+#      mapreduce.application.framework.path: '/phd/apps/3.0.0.0-249/mapreduce/mapreduce.tar.gz#mr-framework'
+#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/phd/3.0.0.0-249/hadoop/lib/hadoop-lzo-0.6.0.3.0.0.0-249.jar:/etc/hadoop/conf/secure'
 
 # Hortonworks HDP 2.2 (hdp22):
 #spring:
-#    yarn:
-#        siteYarnAppClasspath: "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*"
-#        siteMapreduceAppClasspath: "/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*"
+#  yarn:
+#    siteYarnAppClasspath: "/etc/hadoop/conf,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*"
+#    siteMapreduceAppClasspath: "/usr/hdp/current/hadoop-mapreduce-client/*,/usr/hdp/current/hadoop-mapreduce-client/lib/*"
+#    config:
+#      mapreduce.application.framework.path: '/hdp/apps/2.2.4.2-2/mapreduce/mapreduce.tar.gz#mr-framework'
+#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/2.2.4.2-2/hadoop/lib/hadoop-lzo-0.6.0.2.2.4.2-2.jar:/etc/hadoop/conf/secure'
 
 # Cloudera CDH5 (cdh5):
 #spring:
-#    yarn:
-#        siteYarnAppClasspath: "$HADOOP_CLIENT_CONF_DIR,$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_COMMON_HOME/lib/*,$HADOOP_HDFS_HOME/*,$HADOOP_HDFS_HOME/lib/*,$HADOOP_YARN_HOME/*,$HADOOP_YARN_HOME/lib/*"
-#        siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
+#  yarn:
+#    siteYarnAppClasspath: "$HADOOP_CLIENT_CONF_DIR,$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_COMMON_HOME/lib/*,$HADOOP_HDFS_HOME/*,$HADOOP_HDFS_HOME/lib/*,$HADOOP_YARN_HOME/*,$HADOOP_YARN_HOME/lib/*"
+#    siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
 ---
 # Hadoop properties

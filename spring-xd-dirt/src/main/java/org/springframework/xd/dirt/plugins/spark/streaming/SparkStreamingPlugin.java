@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.streaming.Duration;
@@ -410,8 +411,8 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 		URLClassLoader parentClassLoader = (URLClassLoader) classLoader.getParent();
 		URL[] urls = parentClassLoader.getURLs();
 		for (URL url : urls) {
-			String file = url.getFile().split("\\!", 2)[0];
-			//if (file.endsWith(".jar")) {
+			String file = FilenameUtils.getName(url.getFile());
+			String fileToAdd = url.getFile().split("\\!", 2)[0];
 			if (file.endsWith(".jar") && (// Add spark jars
 					file.contains("spark") ||
 							// Add SpringXD dependencies
@@ -434,7 +435,7 @@ public class SparkStreamingPlugin extends AbstractStreamPlugin {
 							// Add codec dependency
 							file.contains("kryo") ||
 							file.contains("gs-collections"))) {
-				jars.add(file);
+				jars.add(fileToAdd);
 			}
 		}
 		return jars;

@@ -93,7 +93,7 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 			if (count != null) {
 				properties.put("producer." + BusProperties.NEXT_MODULE_COUNT, count);
 			}
-			String concurrency = nextProperties.get(BusProperties.CONCURRENCY);
+			String concurrency = nextProperties.get("consumer." + BusProperties.CONCURRENCY);
 			if (concurrency != null) {
 				properties.put("producer." + BusProperties.NEXT_MODULE_CONCURRENCY, concurrency);
 			}

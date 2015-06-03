@@ -50,6 +50,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 public class ParentConfiguration {
 
 	@Bean
+	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
 	public MBeanServerFactoryBean mbeanServer() {
 		MBeanServerFactoryBean factoryBean = new MBeanServerFactoryBean();
 		factoryBean.setLocateExistingServerIfPossible(true);

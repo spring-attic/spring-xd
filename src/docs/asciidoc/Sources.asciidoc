@@ -1,11 +1,13 @@
+
+// Empty line above needed after the list from previous file
 [[sources]]
 == Sources
 
 === Introduction
-In this section we will show some variations on input sources.  As a prerequisite start the XD Container
-as instructed in the xref:Getting-Started#getting-started[Getting Started] page.
+This section describes the _source_ modules included with Spring XD. A source implements a data provider to originate a stream. To run the examples shown here, start the XD Container as instructed in the 
+xref:Getting-Started#getting-started[Getting Started] page.
 
-The Sources covered are
+The available Sources are
 
 * <<http, HTTP>>
 * <<ftp, FTP>>
@@ -350,7 +352,7 @@ Of special attention are the `markAsRead` and `delete` options, which by default
 
 
 [[twitter-search]]
-=== Twitter Search
+=== Twitter Search (`twittersearch`)
 
 The twittersearch source runs a continuous query against Twitter.
 
@@ -390,7 +392,7 @@ $ cat /tmp/xd/output/springone2gx
 NOTE: Both `twittersearch` and `twitterstream` emit JSON in the https://dev.twitter.com/docs/platform-objects/tweets[native Twitter format].
 
 [[twitter-stream]]
-=== Twitter Stream
+=== Twitter Stream (`twitterstream`)
 
 This source ingests data from Twitter's https://dev.twitter.com/docs/streaming-apis/streams/public[streaming API v1.1]. It uses the https://dev.twitter.com/docs/streaming-apis/streams/public[sample and filter] stream endpoints rather than the full "firehose" which needs special access. The endpoint used will depend on the parameters you supply in the stream definition (some are specific to the filter endpoint).
 
@@ -427,7 +429,7 @@ Note: The options available are pretty much the same as those listed in the http
 NOTE: Both `twittersearch` and `twitterstream` emit JSON in the https://dev.twitter.com/docs/platform-objects/tweets[native Twitter format].
 
 [[gemfire-source]]
-=== GemFire Source
+=== GemFire Source (`gemfire`)
 This source configures a client cache and client region, along with the necessary subscriptions enabled, in the XD container process along with a Spring Integration GemFire inbound channel adapter, backed by a CacheListener that outputs messages triggered by an external entry event on the region. By default the payload contains the updated entry value, but may be controlled by passing in a SpEL expression that uses the http://gemfire.docs.pivotal.io/latest/javadocs/japi/com/gemstone/gemfire/cache/EntryEvent.html[EntryEvent] as the evaluation context.
 
 TIP: If native gemfire properties are required to configure the client cache, e.g., for security, place a `gemfire.properties` file in $XD_HOME/config.
@@ -503,7 +505,7 @@ $ ./gemfire-server ../config/cq-demo.xml
 
 
 [[gemfire-continuous-query]]
-=== GemFire Continuous Query
+=== GemFire Continuous Query (`gemfire-cq`)
 Continuous query allows client applications to create a GemFire query using Object Query Language(OQL) and register a CQ listener which subscribes to the query and is notified every time the query's result set changes. The _gemfire_cq_ source registers a CQ which will post CQEvent messages to the stream.
 
 ==== Options
@@ -823,7 +825,7 @@ $ hexdump -C /tmp/xd/output/tcptest9
 ----
 
 [[tcp-client]]
-=== TCP Client
+=== TCP Client (`tcp-client`)
 The `tcp-client` source module uses raw tcp sockets, as does the `tcp` module but contrary to the `tcp` module, acts as a client. Whereas the `tcp` module will open a listening socket and wait for connections from a remote party, the `tcp-client` will initiate the connection to a remote server and emit as messages what that remote server sends over the wire. As an optional feature, the `tcp-client` can itself emit messages to the remote server, so that a simple conversation can take place.
 
 ==== TCP Client options
@@ -877,7 +879,7 @@ else
 ----
 
 [[reactor-ip]]
-=== Reactor IP
+=== Reactor IP (`reactor-ip`)
 The `reactor-ip` source acts as a server and allows a remote party to connect to XD and submit data over a raw TCP or UDP socket.  The reactor-ip source differs from the standard tcp source in that it is based on the https://github.com/reactor/reactor[Reactor Project] and can be configured to use the http://martinfowler.com/articles/lmax.html[LMAX Disruptor RingBuffer] library allowing for extremely high ingestion rates, e.g. ~ 1M/sec.
 
 To create a stream definition use the following XD shell command
@@ -1143,7 +1145,7 @@ xd:> stream create myKafkaSource2 --definition "kafka --zkconnect=localhost:2181
 ----
 
 [[jdbc-source]]
-=== JDBC Source
+=== JDBC Source (`jdbc`)
 
 This source module supports the ability to ingest data directly from various databases.
 It does this by querying the database and sending the results as messages to the stream.
@@ -1204,7 +1206,7 @@ $$validatorClassName$$:: $$name of a class which implements the org.apache.tomca
 //$source.jdbc
 
 [[mongodb-source]]
-=== MongoDB Source
+=== MongoDB Source (`mongodb`)
 The MongoDB source allows one to query a MongoDB collection and emit messages for each and every matching result.
 This source works by regularly polling MongoDB and emitting the result list, as independent objects. If `split` is set to
 `false`, the whole list is emitted as payload.
@@ -1235,7 +1237,7 @@ $$username$$:: $$the MongoDB username used for connecting$$ *($$String$$, defaul
 //$source.mongodb
 
 [[trigger-source]]
-=== Trigger Source
+=== Trigger Source (`trigger`)
 The trigger source emits a message or messages according to the provided trigger configuration.
 The message payload is a simple literal value, provided in the `payload` property.
 

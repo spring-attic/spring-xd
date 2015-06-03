@@ -43,7 +43,7 @@ project('documentation-toolchain') {
 				"$docsDir/Sources.asciidoc",
 				"$docsDir/Processors.asciidoc",
 				"$docsDir/Sinks.asciidoc",
-				"$docsDir/Batch-Jobs.asciidoc",
+				"$docsDir/Jobs.asciidoc",
 				"$docsDir/Analytics.asciidoc",
 		]
 	}

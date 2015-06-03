@@ -1,11 +1,13 @@
+
+// Empty line above needed after the list from previous file
 [[processors]]
 == Processors
 
 === Introduction
-This section will cover the processors available out-of-the-box with Spring XD.  As a prerequisite, start the XD Container
-as instructed in the xref:Getting-Started#getting-started[Getting Started] page.
+This section describes the _processor_ modules included with Spring XD. A processor implements a processing task within a stream. A stream may chain multiple processors sequentially as needed.  To run the examples shown here, start the XD Container as instructed in the 
+xref:Getting-Started#getting-started[Getting Started] page.
 
-The Processors covered are
+The available Processors are
 
 * <<filter, Filter>>
 * <<transform, Transform>>
@@ -262,7 +264,7 @@ $$username$$:: $$the username to use when using the jdbc store$$ *($$String$$, n
 ====
 
 [[http-client]]
-=== HTTP Client
+=== HTTP Client (`http-client`)
 The `http-client` processor acts as a client that issues HTTP requests to a remote server, submitting the message payload it receices to that server and in turn emitting the response it receives to the next module down the line.
 
 For example, the following command will result in an immediate fetching of earthquake data and it being logged in the container:
@@ -386,7 +388,7 @@ $$workingDir$$:: $$the process working directory$$ *($$String$$, no default)*
 
 
 [[json-to-tuple]]
-=== JSON to Tuple
+=== JSON to Tuple (`json-to-tuple`)
 The `json-to-tuple` processor is able to transform a String representation of some JSON map into a xref:Tuples#tuples[Tuple].
 
 Here is a simple example:
@@ -398,7 +400,7 @@ xd:>http post --data '{"firstName": "Spring", "lastName": "XD"}'
 
 [NOTE]
 ====
-Transformation to Tuple can be used as an alternative or in addition of xref:Type-conversion#type-conversion[Type Conversion], depending on your usecase.
+Transformation to Tuple can be used as an alternative to xref:Type-conversion#type-conversion[Type Conversion].
 ====
 
 //^processor.json-to-tuple
@@ -409,7 +411,7 @@ The **$$json-to-tuple$$** $$processor$$ has no particular option (in addition to
 //$processor.json-to-tuple
 
 [[object-to-json]]
-=== Object to JSON
+=== Object to JSON (`object-to-json`)
 The `object-to-json` processor can be used to convert any java Object to a JSON String.
 
 In the following example, notice how the collection of three elements is transformed to JSON (in particular, the three Strings are surrounded by quotes):
@@ -423,6 +425,11 @@ xd:>http post --data !
 ----
 
 results in `["hello", "world", "!"]` appearing in the log.
+
+[NOTE]
+====
+Transformation to JSON can be used as an alternative to xref:Type-conversion#type-conversion[Type Conversion].
+====
 
 //^processor.object-to-json
 // DO NOT MODIFY THE LINES BELOW UNTIL THE CLOSING '//$processor.object-to-json' TAG

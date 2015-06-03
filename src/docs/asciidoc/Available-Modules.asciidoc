@@ -1,0 +1,21 @@
+[[available-modules]]
+== Available Modules
+
+=== Introduction
+
+Spring XD ships with a number of pre-packaged modules ready to use for running batch jobs or assembling streams to perform common stream processing tasks using files, HDFS, Spark, Kafka, http, twitter, syslog, GemFire, and more. You can easily assemble these modules into streams to build complex big data applications declaratively, without having to write Java code or know the underlying Spring products on which Spring XD is built. 
+
+In addition to the standard modules included with the Spring XD distribution, you will find community-contributed modules in the https://github.com/spring-projects/spring-xd-modules[spring-xd-modules] GitHub repository. 
+
+You can use these modules out of the box or as a basis for building your own custom modules. If you are looking for a technical deep dive or want to develop your own modules, the xref:Modules#modules[Modules] section contains the relevant details.
+
+=== Modules Included with Spring XD
+
+The following pages provide a detailed description, along with configuration options, and examples for all modules included in the Spring XD Distribution:
+
+* xref:Sources#sources[Sources]
+* xref:Processors#processors[Processors]
+* xref:Sinks#sinks[Sinks]
+* xref:Analytics#counters-and-gauges[Counters and Gauges]
+* xref:Jobs#jobs[Jobs]
+

@@ -375,6 +375,7 @@ publishing {
 artifactoryPublish {
 	publications('archives')
 	publishArtifacts = true
+	publishPom = false
 	properties {
 		archives '*:*:*:*@zip', 'zip.name':'spring-xd', 'zip.displayname':'Spring XD', 'zip.deployed':false
 		archives '*:*:*:docs@zip', 'zip.type':'docs'

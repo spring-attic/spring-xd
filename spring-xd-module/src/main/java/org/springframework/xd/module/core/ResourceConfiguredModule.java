@@ -21,7 +21,6 @@ import java.io.IOException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.SimpleModuleDefinition;
@@ -57,7 +56,6 @@ public class ResourceConfiguredModule extends SimpleModule {
 				// In this case, add the source as UrlResource instead of ClassPathResource. Adding as ClasspathResource
 				// wouldn't get the overridden module definitions as the classloader is already initialized.
 				try {
-					Assert.isTrue(source.getURL() != null, "Module definition config file URL is invalid");
 					addSource(new UrlResource(source.getURL()));
 				}
 				catch (IOException e) {

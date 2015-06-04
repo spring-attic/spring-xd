@@ -5,7 +5,7 @@
 
 One of the features that XD offers is the ability to launch and monitor batch jobs based on http://www.springsource.org/spring-batch[Spring Batch].  The Spring Batch project was started in 2007 as a collaboration between SpringSource and Accenture to provide a comprehensive framework to support the development of robust batch applications.  Batch jobs have their own set of best practices and domain concepts which have been incorporated into Spring Batch building upon Accenture's consulting business.  Since then Spring Batch has been used in thousands of enterprise applications and is the basis for the recent JSR standardization of batch processing, https://jcp.org/en/jsr/detail?id=352[JSR-352].
 
-Spring XD builds upon Spring Batch to simplify creating batch workflow solutions that span traditional use-cases such as moving data between flat files and relational databases as well as Hadoop use-cases where analysis logic is broken up into several steps that run on a Hadoop cluster.  Steps specific to Hadoop in a workflow can be MapReduce jobs, executing Hive/Pig scripts or HDFS operations. Spring XD ships with a number of useful xref:Jobs#jobs[job] modules out of the box. This section presents an overview for creating, deploying, and running batch jobs.
+Spring XD builds upon Spring Batch to simplify creating batch workflow solutions that span traditional use-cases such as moving data between flat files and relational databases as well as Hadoop use-cases where analysis logic is broken up into several steps that run on a Hadoop cluster.  Steps specific to Hadoop in a workflow can be MapReduce jobs, executing Hive/Pig scripts or HDFS operations. Spring XD ships with a number of useful xref:Jobs#jobs[job modules out of the box]. This section presents an overview for creating, deploying, and running batch jobs.
 
 === Workflow
 
@@ -50,7 +50,7 @@ Before we dive deeper into the details of creating batch jobs with Spring XD, we
 
 ==== Register a Job Module
 
-Register a *Job Module* with the _Module Registry_ by putting XML and/or jar files into the +$XD_HOME/modules/jobs+ directory.
+Register a *Job Module* with the _Module Registry_ using the XD Shell `module upload` command. See xref:Modules#registering-a-module[registering a module] for details.
 
 ==== Create a Job Definition
 

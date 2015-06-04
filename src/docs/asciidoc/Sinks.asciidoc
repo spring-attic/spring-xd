@@ -47,7 +47,7 @@ The available sinks are
 
 * <<kafka-sink, Kafka>>
 
-Additionally, Spring XD provides a number of xref:Analytics#counters-and-gauges[counters and gauges], which are specialized sinks useful for real time analytics.
+Additionally, Spring XD provides a number of xref:Counters-and-Gauges#counters-and-gauges[counters and gauges], which are specialized sinks useful for real time analytics.
 
 See the section xref:Creating-a-Sink-Module#creating-a-sink-module[Creating a Sink Module] for information on how to create sink modules using other Spring Integration Adapters.
 

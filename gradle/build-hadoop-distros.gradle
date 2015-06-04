@@ -90,7 +90,9 @@ project('spring-xd-hadoop:cdh5') {
 		runtime ("org.apache.hadoop:hadoop-streaming:$cdh5Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$cdh5Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')
-		runtime ("org.apache.pig:pig:0.12.0-cdh5.3.3")
+		runtime ("org.apache.pig:pig:0.12.0-cdh5.3.3") {
+			exclude group: 'org.apache.hbase'
+		}
 		runtime ("org.apache.hive:hive-metastore:0.13.1-cdh5.3.3")
 		runtime ("org.apache.hive:hive-service:0.13.1-cdh5.3.3")
 	}

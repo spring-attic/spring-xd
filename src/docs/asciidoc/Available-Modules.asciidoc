@@ -16,6 +16,6 @@ The following pages provide a detailed description, along with configuration opt
 * xref:Sources#sources[Sources]
 * xref:Processors#processors[Processors]
 * xref:Sinks#sinks[Sinks]
-* xref:Analytics#counters-and-gauges[Counters and Gauges]
+* xref:Counters-and-Gauges#counters-and-gauges[Counters and Gauges]
 * xref:Jobs#jobs[Jobs]
 

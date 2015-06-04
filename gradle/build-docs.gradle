@@ -44,7 +44,7 @@ project('documentation-toolchain') {
 				"$docsDir/Processors.asciidoc",
 				"$docsDir/Sinks.asciidoc",
 				"$docsDir/Jobs.asciidoc",
-				"$docsDir/Analytics.asciidoc",
+				"$docsDir/Counters-and-Gauges.asciidoc",
 		]
 	}
 	task checkDocsLinks(type: JavaExec, dependsOn: [compileJava, shellReferenceDoc, moduleOptionsReferenceDoc]) {

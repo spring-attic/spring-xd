@@ -18,7 +18,6 @@ package org.springframework.xd.module.options;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -34,12 +33,12 @@ import org.springframework.core.env.PropertyResolver;
 import org.springframework.core.env.PropertySourcesPropertyResolver;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.SimpleModuleDefinition;
-import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.support.ArchiveResourceLoader;
 import org.springframework.xd.module.support.NullClassLoader;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
@@ -49,6 +48,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  *
  * @author Eric Bottard
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public class ModuleUtils {
 
@@ -174,7 +174,9 @@ public class ModuleUtils {
 							.arrayToCommaDelimitedString(resources));
 				}
 				else if (resources.length == 1) {
-					return resources[0];
+					Resource resource = (resources[0] instanceof ClassPathResource) ?
+							new UrlResource(resources[0].getURL()) : resources[0];
+					return resource;
 				}
 			}
 			catch (IOException e) {

@@ -58,7 +58,7 @@ public class ResourceConfiguredModule extends SimpleModule {
 				// wouldn't get the overridden module definitions as the classloader is already initialized.
 				try {
 					Assert.isTrue(source.getURL() != null, "Module definition config file URL is invalid");
-					addSource(new UrlResource(source.getURL().toString()));
+					addSource(new UrlResource(source.getURL()));
 				}
 				catch (IOException e) {
 					throw new RuntimeException("Exception loading module definition " + moduleDefinition + ":" + e);

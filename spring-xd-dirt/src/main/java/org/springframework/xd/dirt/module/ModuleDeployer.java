@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.beans.Introspector;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +27,6 @@ import javax.annotation.concurrent.GuardedBy;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -247,6 +247,7 @@ public class ModuleDeployer implements ApplicationContextAware, InitializingBean
 	 * @param moduleDescriptor descriptor for module to be undeployed
 	 */
 	public synchronized void undeploy(ModuleDescriptor moduleDescriptor) {
+		Introspector.flushCaches(); // This is to prevent classloader leakage
 		String group = moduleDescriptor.getGroup();
 		int index = moduleDescriptor.getIndex();
 		Map<Integer, Module> modules = deployedModules.get(group);

@@ -174,6 +174,9 @@ public class ModuleUtils {
 							.arrayToCommaDelimitedString(resources));
 				}
 				else if (resources.length == 1) {
+					// If the resource is of ClassPathResource add the source as UrlResource.
+					// Adding as ClasspathResource wouldn't get the overridden module definitions as the
+					// classloader is already initialized.
 					Resource resource = (resources[0] instanceof ClassPathResource) ?
 							new UrlResource(resources[0].getURL()) : resources[0];
 					return resource;

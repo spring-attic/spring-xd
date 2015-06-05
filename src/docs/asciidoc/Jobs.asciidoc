@@ -44,7 +44,7 @@ xd:> job create myjob --definition "filepollhdfs --names=forename,surname,addres
 You would then use a stream with a file source to scan a directory for files and drive the job. A separate job will be started for each file found:
 
 ----
-xd:> stream create csvStream --definition "file --ref=true --dir=/mycsvdir --pattern=*.csv > queue:job:myjob" --deploy
+xd:> stream create csvStream --definition "file --mode=ref --dir=/mycsvdir --pattern=*.csv > queue:job:myjob" --deploy
 
 ----
 

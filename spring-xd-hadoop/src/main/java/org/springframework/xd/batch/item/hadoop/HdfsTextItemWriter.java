@@ -33,7 +33,7 @@ import org.springframework.data.hadoop.store.StoreException;
 import org.springframework.util.Assert;
 
 /**
- * 
+ *
  * @author Mark Pollack
  */
 public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements InitializingBean {
@@ -106,7 +106,7 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 
 	/**
 	 * Converts the list of items to a byte array.
-	 * 
+	 *
 	 * @param items
 	 * @return the byte array
 	 */
@@ -152,13 +152,15 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 			} catch (IOException e) {
 				IOUtils.closeStream(fsDataOutputStream);
 				throw new StoreException("Error while closing stream", e);
+			} finally {
+				fsDataOutputStream = null;
 			}
 		}
 	}
 
 	/**
 	 * Public setter for the {@link LineAggregator}. This will be used to translate the item into a line for output.
-	 * 
+	 *
 	 * @param lineAggregator the {@link LineAggregator} to set
 	 */
 	public void setLineAggregator(LineAggregator<T> lineAggregator) {

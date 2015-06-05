@@ -33,7 +33,6 @@ import org.springframework.core.env.PropertyResolver;
 import org.springframework.core.env.PropertySourcesPropertyResolver;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
@@ -149,6 +148,24 @@ public class ModuleUtils {
 			throw new RuntimeException(String.format("Unable to read module properties for %s:%s",
 					moduleDefinition.getName(), moduleDefinition.getType()), e);
 		}
+		finally {
+			if (resource instanceof ClassPathResource) {
+				closeModuleClassLoader((ClassPathResource)resource);
+			}
+		}
+	}
+
+	private static void closeModuleClassLoader(ClassPathResource resource) {
+		ClassLoader classLoader = resource.getClassLoader();
+		if (classLoader != null && classLoader instanceof URLClassLoader) {
+			try {
+				((URLClassLoader) classLoader).close();
+			}
+			catch (IOException e) {
+				throw new RuntimeException("Exception closing module classloader for " +
+						resource.getFilename() + ":" + e);
+			}
+		}
 	}
 
 	/**
@@ -162,7 +179,6 @@ public class ModuleUtils {
 		Assert.isTrue(moduleLocation.exists(), "module resource " + definition.getLocation() + " does not exist");
 
 		String ext = extension.startsWith(".") ? extension : "." + extension;
-
 		try {
 			URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[] {moduleLocation.getURL()}, NullClassLoader.NO_PARENT, true);
 			PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver(insulatedClassLoader);
@@ -174,12 +190,7 @@ public class ModuleUtils {
 							.arrayToCommaDelimitedString(resources));
 				}
 				else if (resources.length == 1) {
-					// If the resource is of ClassPathResource add the source as UrlResource.
-					// Adding as ClasspathResource wouldn't get the overridden module definitions as the
-					// classloader is already initialized.
-					Resource resource = (resources[0] instanceof ClassPathResource) ?
-							new UrlResource(resources[0].getURL()) : resources[0];
-					return resource;
+					return resources[0];
 				}
 			}
 			catch (IOException e) {

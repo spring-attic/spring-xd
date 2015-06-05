@@ -37,7 +37,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -624,26 +623,25 @@ public abstract class MessageBusSupport
 	}
 
 	private Object deserializePayload(byte[] bytes, MimeType contentType) {
-		Class<?> targetType = null;
+		String className = JavaClassMimeTypeConversion.classNameFromMimeType(contentType);
 		try {
 			if (TEXT_PLAIN.equals(contentType)) {
 				return new String(bytes, "UTF-8");
 			}
-			String className = JavaClassMimeTypeConversion.classNameFromMimeType(contentType);
 			// Cache types to avoid unnecessary Class.forName calls.
-			targetType = payloadTypeCache.get(className);
+			Class<?> targetType = payloadTypeCache.get(className);
 			if (targetType == null) {
-				targetType = Class.forName(className);
+				targetType = ClassUtils.forName(className, null);
 				payloadTypeCache.put(className, targetType);
 			}
 
 			return codec.deserialize(bytes, targetType);
 		}
 		catch (ClassNotFoundException e) {
-			throw new SerializationException("unable to deserialize [" + targetType + "]. Class not found.", e);//NOSONAR
+			throw new SerializationException("unable to deserialize [" + className + "]. Class not found.", e);//NOSONAR
 		}
 		catch (IOException e) {
-			throw new SerializationException("unable to deserialize [" + targetType + "]", e);
+			throw new SerializationException("unable to deserialize [" + className + "]", e);
 		}
 
 	}

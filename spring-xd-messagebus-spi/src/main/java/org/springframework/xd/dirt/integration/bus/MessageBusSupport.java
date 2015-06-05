@@ -21,6 +21,7 @@ import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,7 +38,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -624,28 +624,30 @@ public abstract class MessageBusSupport
 	}
 
 	private Object deserializePayload(byte[] bytes, MimeType contentType) {
-		Class<?> targetType = null;
-		try {
-			if (TEXT_PLAIN.equals(contentType)) {
+		if (TEXT_PLAIN.equals(contentType)) {
+			try {
 				return new String(bytes, "UTF-8");
 			}
-			String className = JavaClassMimeTypeConversion.classNameFromMimeType(contentType);
-			// Cache types to avoid unnecessary Class.forName calls.
-			targetType = payloadTypeCache.get(className);
-			if (targetType == null) {
-				targetType = Class.forName(className);
-				payloadTypeCache.put(className, targetType);
+			catch (UnsupportedEncodingException e) {
+				throw new SerializationException("unable to deserialize [java.lang.String]. Encoding not supported.", e);
 			}
-
-			return codec.deserialize(bytes, targetType);
 		}
-		catch (ClassNotFoundException e) {
-			throw new SerializationException("unable to deserialize [" + targetType + "]. Class not found.", e);//NOSONAR
+		else {
+			String className = JavaClassMimeTypeConversion.classNameFromMimeType(contentType);
+			try {
+				// Cache types to avoid unnecessary ClassUtils.forName calls.
+				Class<?> targetType = payloadTypeCache.get(className);
+				if (targetType == null) {
+					targetType = ClassUtils.forName(className, null);
+					payloadTypeCache.put(className, targetType);
+				}
+				return codec.deserialize(bytes, targetType);
+			} catch (ClassNotFoundException e) {
+				throw new SerializationException("unable to deserialize [" + className + "]. Class not found.", e);//NOSONAR
+			} catch (IOException e) {
+				throw new SerializationException("unable to deserialize [" + className + "]", e);
+			}
 		}
-		catch (IOException e) {
-			throw new SerializationException("unable to deserialize [" + targetType + "]", e);
-		}
-
 	}
 
 	/**

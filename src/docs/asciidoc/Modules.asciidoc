@@ -16,12 +16,12 @@ Modules are categorized by `type`, typically representing the role or function o
 
 Spring XD ships with a number of xref:Available-Modules#available-modules[pre-built modules] useful for assembling streams to perform common stream processing tasks using files, HDFS, Spark, Kafka, http, twitter, syslog, GemFire, and more. Users can easily assemble these modules into streams to build complex big data applications declaratively, without having to write Java code or know the underlying Spring products on which Spring XD is built.
 
-However, if you are interested in extending Spring XD with your own modules, some knowledge of Spring, Spring Integration or Spring Batch is essential. The remainder of this document assumes the reader has some familiarity with these topics.
+However, if you are interested in developing your own modules, some knowledge of Spring, Spring Integration or Spring Batch is essential. The remainder of this document assumes the reader has some familiarity with these topics.
 
 [[creating-a-module]]
 === Creating a Module
 
-This section provides some general details on implementing and packaging custom modules. For a quick start, take a look at the https://github.com/spring-projects/spring-xd-samples/tree/master/si-dsl-module[si-dsl-module example] or dive into the examples of creating xref:Creating-a-Source-Module#creating-a-source-module[source], xref:Creating-a-Processor-Module#creating-a-processor-module[processor], xref:Creating-a-Sink-Module#creating-a-sink-module[sink], and xref:Creating-a-Job-Module#creating-a-job-module[job] modules.
+This section provides some general details on implementing and packaging custom modules. For a quick start, take a look at the https://github.com/spring-projects/spring-xd-samples/tree/master/si-dsl-module[si-dsl-module example], the https://github.com/spring-projects/spring-xd-modules[community modules repository], or dive into the examples of creating xref:Creating-a-Source-Module#creating-a-source-module[source], xref:Creating-a-Processor-Module#creating-a-processor-module[processor], xref:Creating-a-Sink-Module#creating-a-sink-module[sink], and xref:Creating-a-Job-Module#creating-a-job-module[job] modules.
 
 ==== Stream Modules
 
@@ -42,7 +42,7 @@ Notice that modules adhere to an important convention: The input and output chan
 
 A module is a packaged component containing artifacts used to create a Spring application context. In general, a module is not aware of its runtime environment. Each module's application context is configured and connected to other modules via Plugins in order to support distributed processing. In this respect, modules may potentially be applied to purposes other than stream processing. The module types described here (source, processor, sink, and job) are specific to Spring XD, but the Module type is designed to act as a https://github.com/spring-projects/spring-bus[core component of any micro-service architecture built with Spring].
 
-Physically, a Module is somewhat analogous to a _war_ file in Servlet container. The Spring XD container configures and starts a module when it is deployed. Deploying a module in Spring XD terms means activating an instance for processing, not to be confused with deploying a web application in Servlet container. Consistent with the _war_ analogy, a module has it's own class loader to load resources provided by the module, notably the files found in its _config_ in its _lib_ directories. Another feature in common with a war file is that web applications are installed in a configured location and conform to a standard layout. Artifacts are installed in a known location, either in expanded form or as a single archive file. Spring XD modules work the same way. Spring XD module layout has evolved significantly as new features have been added to support custom module development. This evolution has generally led to increased flexibility with respect to individual artifacts. However, the module's packaging structure is well defined:
+Physically, a Module is somewhat analogous to a _war_ file in Servlet container. The Spring XD container configures and starts a module when it is deployed. Deploying a module in Spring XD terms means activating an instance for processing, not to be confused with deploying a web application in Servlet container. Here we use the terms _install_ or _register_ to refer to uploading the module jar to make it available to the Spring XD runtime. Consistent with the _war_ analogy, a module uses a separate class loader to load its resources, notably the files found in its `config` in `lib` directories. Another feature in common with a war file is that web applications are installed in a configured location and must conform to a standard layout. Artifacts are installed in a known location, either in expanded form or as a single archive. Spring XD modules work the same way. The module's layout has evolved significantly as new features have been added to support custom module development. This evolution has generally led to increased flexibility with respect to individual artifacts. However, the module's packaging structure is well defined:
 
 ----
 <module_name>
@@ -51,7 +51,7 @@ Physically, a Module is somewhat analogous to a _war_ file in Servlet container.
       │   ├── <any-name>.properties
       │   └── <any-name>.[xml | groovy] (optional)
       ├── lib
-      │   ├── <dependent libraries not already in Spring XD class path (xd/lib)>
+      │   ├── <dependent libraries not provided by Spring XD (xd/lib)>
       │  
 ----
 
@@ -59,26 +59,25 @@ For historical reasons, all modules included with Spring XD distribution are pro
 
 A module's contents typically includes:
 
-* *Application context configuration:* If either _config/<any_name>.xml_, or _config/<any_name>.groovy_ are present, this will be loaded by an http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/factory/xml/XmlBeanDefinitionReader.html[XmlBeanDefinitionReader] or http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/factory/groovy/GroovyBeanDefinitionReader.html[GroovyBeanDefinitionReader] to configure the application context. If using an @Configuration class, neither of these files should be present.
-* *Module properties file:* If the module declares options (e.g. property placeholders whose values must be supplied for each instance when creating a stream), the properties file _config/<any_name>.properties_ may provide an _options_class_ property containing the fully qualified class name of a Module Options Metadata class. Alternately the properties file may provide in-line Module Option descriptors (see <<module-options,Module Options>> below).
+* *Application context configuration:* If either `config/<any_name>.xml` or `config/<any_name>.groovy` are present, it will be used as the source for the module's application context. At most one of these may be present. If using an @Configuration class, neither of these files should be present.
+* *Module properties file:* If the module declares options (e.g. property placeholders whose values must be supplied for each instance when creating a stream), the properties file `config/<any_name>.properties` may contain an `options_class` property referencing the fully qualified class name of a Module Options Metadata class. Alternately the properties file may provide in-line Module Option descriptors (see <<module-options,Module Options>> below). If using @Configuration, the properties file must include a `base_packages` property containing a comma delimited list of package names to enable Spring component scanning scoped to the module. Note that `base_packages` will be ignored if a configuration resource (`config/*.xml` or `config/*.groovy`) is present.
 
 [NOTE]
 ====
-As of Spring XD 1.1, the names of the module's bean definition resource (xml or groovy) and properties file are arbitrary. This provides additional flexibilty over requiring a conventional file name, as has been the case in prior releases. Now the top level `config` directory is the convention. This carries the constraint that no other similar file types may be present in config. Multiple xml, groovy, or properties files matching the pattern, for example, `config/*.xml` will result in an exception. If you want to combine bean definitions from multiple resources, you may use `import` declarations and the imported resources must be somewhere else in the module's class path. This may be a subdirectory of `config` or any other arbitrary location.
+As of Spring XD 1.1, the names of the module's bean definition resource (xml or groovy) and properties file are arbitrary. This provides additional flexibilty over requiring a conventional file name, as has been the case in prior releases. Currently, the required top level `config` directory is the convention. This carries the constraint that no other matching file types may be present in config. Multiple xml, groovy, or properties files matching the pattern, for example, `config/*.xml` will result in an exception. If you want to combine bean definitions from multiple resources, you may use `import` declarations and the imported resources must be somewhere else in the module's class path. This may be a subdirectory of `config` or any other arbitrary location.
 ====
-If no configuration resource (`config/*.xml` or `config/*.groovy`) is present, Spring XD will expect a _base_packages_ property containing a comma delimited list of package names to enable Spring component scanning scoped to the module.
 
 * *Custom code:*
-Any root level _.class_ files packaged as in a typical jar file. This could include an @Configuration class and dependent classes defined by the module.
+Any root level `.class` files packaged as in a typical jar file. This may include an @Configuration class, a Module Options Metadata class, and any dependent classes required by the module.
 
 * *Dependent jar files:*
-Any required runtime dependencies that are not already present in the Spring XD class path (_$XD_INSTALL_DIR/xd/lib_) must be provided in the module's _/lib_ directory.
+Any required runtime dependencies that are not provided by the Spring XD runtime (in `$XD_INSTALL_DIR/xd/lib`) are loaded from the module's `/lib` directory.
 
-As mentioned previously, a Spring XD module can be installed as an expanded directory tree or an archive. If the module requires dependent jars, which is the typical case, it may be packaged as an http://stackoverflow.com/questions/11947037/what-is-an-uber-jar[uberjar] compatible with Spring Boot, and conforming to the above structure. The next section describes Spring XD's support for module packaging and development.
+As mentioned previously, a Spring XD module can be installed as an expanded directory tree or an archive. If the module requires dependent jars, which is the typical case, it may be packaged as an http://stackoverflow.com/questions/11947037/what-is-an-uber-jar[uber jar] compatible with the Spring Boot layout, and conforming to the above structure. The next section describes Spring XD's support for module packaging and development.
 
 [[creating-a-module-project]]
 ==== Creating a Module Project
-Spring XD 1.1.x provides support for creating a module project to test and package the module with Maven or Gradle.
+Spring XD (1.1.x or later) provides tools for creating a module project to test and package the module either with Maven or Gradle.
 
 ===== Configuring your Maven build
 
@@ -89,13 +88,30 @@ Start by setting the parent to `spring-xd-module-parent` in your `pom.xml`:
 <parent>
   <groupId>org.springframework.xd</groupId>
   <artifactId>spring-xd-module-parent</artifactId>
+  <!-- 1.1.x or later -->
   <version>1.1.2.RELEASE</version>
 </parent>
 ----
 
+Note that Maven requires the parent pom version to be hard coded. 
+
+
 ===== Configuring your Gradle build
 
-Start by adding the following to your  `build.gradle` script
+Start by creating a `gradle.properties` file defining `springXdVersion`. 
+
+----
+springXdVersion = 1.1.2.RELEASE
+----
+
+This property is required by the `spring-xd-module` plugin to resolve Spring XD dependencies, and to configure dependent libraries that your module project will need. This property should be used to reference the Spring XD version where needed. 
+
+[NOTE]
+====
+Defining this value in gradle.properties helps with xref:Modules#module-dependency-management[dependency-management] when porting to other Spring XD versions. We also recommend adding any additional version references here.
+==== 
+
+Next, add the following to your `build.gradle` script:
 
 [source,groovy]
 ----
@@ -105,13 +121,8 @@ buildscript {
     }
     // Add the path of the Spring XD Module plugin
     dependencies {
-      classpath("org.springframework.xd:spring-xd-module-plugin:1.1.2.RELEASE") //or a later release of the plugin
+      classpath("org.springframework.xd:spring-xd-module-plugin:${springXdVersion}")
     }
-}
-
-//The Spring XD version is required by the plugin to pull in order to configure dependent libraries that your module project will likely need.
-ext {
-  springXdVersion = '1.1.2.RELEASE' //or a later release of Spring XD
 }
 
 apply plugin: 'spring-xd-module'
@@ -119,26 +130,35 @@ apply plugin: 'spring-xd-module'
 
 [NOTE]
 ====
-If your module has no internal dependencies, a plain old jar file conforming to the module packaging structure above will work. In this case, you may still benefit from using these build support tools to inherit common dependencies and automate tasks critical to in-container testing. An example of such a module project that does not use the parent pom is https://github.com/spring-projects/spring-xd-samples/blob/master/tweet-transformer-processor/pom.xml[here].
+If your module has no additional dependencies, a plain old jar file conforming to the module layout shown above will work. In this case, you may still benefit from using these build tools to inherit common dependencies and automate tasks needed for in-container testing.
 ====
 
-These build support tools provide the necessary Spring XD libraries to compile and test the module along with support for packaging your module as an uber-jar, using the respective Spring Boot plugin: http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-maven-plugin.html[Spring Boot Maven Plugin] or the http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-gradle-plugin.html[Spring Boot Gradle Plugin].
+These build tools provide the necessary Spring XD libraries to compile and test the module along with support for packaging your module as an uber jar, wrapping the respective Spring Boot plugin: http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-maven-plugin.html[Spring Boot Maven Plugin] or the http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-gradle-plugin.html[Spring Boot Gradle Plugin].
 
-As described in the above sections, the module must include any dependencies that are not already provided by the Spring XD container. These are loaded at runtime by the module class loader when the module is deployed. Missing jars in the module's lib directory will result in the dreaded `ClassDefNotFoundException`. Additionally, the module should typically not export different versions of libraries which are already on the Spring XD class path, as this can result in version conflicts and related class loading issues. Both build support tools configure the boot plugin with the `MODULE` layout and is configured to exclude any artifacts that are provided by Spring XD (which covers quite a lot). So you don't have to worry about it. There are two basic rules:
+As described in the above sections, the module jar must include any dependencies that are not provided by the Spring XD container. These are loaded at runtime by the module class loader when the module is deployed. Missing jars in the module's lib directory will result in the dreaded `ClassDefNotFoundException`. Conversely, the module should avoid exporting different versions of libraries which are already on the Spring XD class path as this can result in version conflicts and related class loading issues. Both build support tools configure the boot plugin with the `MODULE` layout and each is configured to exclude any artifacts that are already provided by Spring XD (which covers quite a lot). There are two basic rules:
 
-* The `MODULE` layout for Spring Boot packaging ensures `provided` dependencies will not be included in the uber-jar. The Spring XD module build support declares `spring-xd-dirt` as a provided dependency, as some of its classes are needed for module development.
-* Any compile dependencies, transitive or declared for the module will be excluded from the uber-jar if they are also Spring XD runtime dependencies.
+* The `MODULE` layout for Spring Boot packaging ensures `provided` dependencies will not be included in the uber jar. The Spring XD module tools declare `spring-xd-dirt` as a provided dependency, as some of its classes are needed for module development.
+* Any compile or runtime dependencies, transitive or explicitly declared, for the module will be excluded from the uber jar if they are also Spring XD runtime dependencies.
 
-[NOTE]
-====
-In rare cases, it may be necessary to override the default exclusions. For example, if your module requires a different version of library that is on the Spring XD class path, you can override the boot maven plugin configuration in your pom, like so:
+
+The build support tools declare dependencies on `spring-xd-dirt` and `spring-xd-test` which provide some useful features for module development, including support for:
+
+* Java defined xref:ModuleOptionsMetadata#module-options-metadata[Module Options Metadata]
+* In-container module testing - start an embedded single node container, deploy your module and validate the results.
+
+[[module-dependency-management]]
+==== Module dependency management
+
+Runtime issues may arise if module dependencies conflict with those on the Spring XD classpath. This happens when a module declares a dependency using a different version of a jar provided by the Spring XD runtime. If the versions are the same, the build tools will ensure that these dependencies will not be exported to the module jar. However if the versions declared in your build are different, the dependencies will be exported and loaded by the module class loader. The tools are designed to permit you to override the version, but generally we don't recommend this unless you have a specific requirement to do so. If there are conflicting dependencies, your module may or may not work. Symptoms of version conflicts include `ClassDefNotFoundException` or `NoSuchMethodError` when you deploy the module.  If you encounter such errors, you should manually check the contents of `$XD_INSTALL_DIR/xd/lib` against the contents of the module jar, and make the necessary changes to your build script. Compile time dependencies must be declared in any case. If they are also on the Spring XD classpath they should be declared as `provided`. 
+
+As of Spring XD 1.2.0, the Maven `spring-xd-module-parent` pom includes a `dependencyManagement` section, so you need not specify a version for shared Spring XD dependencies when using Maven. Also, the Maven build requires some extra configuration to override versions of existing Spring XD dependencies: 
 
 [source, xml]
 ----
 <parent>
   <groupId>org.springframework.xd</groupId>
   <artifactId>spring-xd-module-parent</artifactId>
-  <version>1.1.0.BUILD-SNAPSHOT</version>
+  <version>...</version>
 </parent>
 <build>
   <plugins>
@@ -170,34 +190,33 @@ In rare cases, it may be necessary to override the default exclusions. For examp
         </dependency>
     </dependencies>
 ----
+
+Gradle requires you to specify a version, and will use the version you specify. However if you declare the dependency as `provided` Gradle will not export the dependency regardless of the version. 
+
+===== Porting to another Spring XD version
+
+As we have seen, a module project's build script is configured for a specific Spring XD version. With each new release of Spring XD, its runtime dependencies are subject to change and this directly affects which dependencies will be exported to the module jar and may result in version conflicts or unsatisfied dependencies. For this reason, _**we highly recommend that you rebuild any custom modules to match your target runtime environment.**_  In many cases, this is simply a matter of updating the spring XD version in your build. For example, if using Gradle, as discussed above, we recommend defining the required  `springXdVersion` property in `gradle.properties`. Then you may override this value on the command line without making any changes to the build script. For example, 
+
+----
+$./gradlew clean build -PspringXdVersion=1.2.0.BUILD-SNAPSHOT
+----
+
+[NOTE]
+====
+Overriding the property on the Gradle command line does not work if the property is hard coded in `build.gradle` itself, e.g., in an `ext` closure.
 ====
 
-The build support tools declare dependencies on `spring-xd-dirt` and `spring-xd-test` which provide some useful features for module development, including support for:
+[NOTE]
+====
+If using Maven, the module build script must be modified to change the parent pom version, since Maven does not support the use of properties in this case.
+====
 
-* Java defined xref:ModuleOptionsMetadata#module-options-metadata[Module Options Metadata]
-* In-container module testing - start an embedded single node container, deploy your module and validate the results.
+In rare cases, other version changes may be required. For example, your module may declare compile or runtime dependencies that have since been added to the target Spring XD release. 
 
 [[testing-a-module]]
 ==== Testing a Module Project
 
 The sections xref:Creating-A-Source-Module[Creating a Source Module], xref:Creating-A-Processor-Module[Creating a Processor Module], xref:Creating-A-Sink-Module[Creating a Sink Module], and xref:Creating-A-Job-Module[Creating a Job Module] each reference working examples of custom module projects including in-container tests.
-
-[NOTE]
-====
-As of Spring XD 1.1.x, the Spring XD message transport is loaded dynamically from a location given by $XD_HOME$/lib/messagebus/<transport>, according to the configured transport. This avoids having unnecessary dependencies on Spring XD's class path corresponding to unused transports. Thus, the embedded single node container used for testing modules must load the message bus libraries from the above location (typically local transport). Thus, these tools set XD_HOME to the project root directory and copy the local message bus jars to a top level `lib` directory to enable in-container tests using the respective build command. However, if you write such a test in your IDE and it fails with an exception message about not finding a message bus implementation, run
-----
-$mvn process-resources
-----
-
-or
-
-----
-$./gradlew processTestResources
-----
-
-to install the local message bus. Currently testing modules for additional transports from a standalone module project is not supported out of the box.
-====
-
 
 To build the module:
 ----
@@ -207,7 +226,7 @@ $mvn clean package
 or
 
 ----
-$./gradlew clean test bootRepackage
+$./gradlew clean build
 ----
 
 [NOTE]
@@ -226,6 +245,11 @@ Registering a module requires you to install to the Spring XD Module Registry. A
 ----
 xd:>module upload --file [path-to]/mymodule-1.0.0.BUILD-SNAPSHOT.jar --name mymodule --type processor
 ----
+
+[NOTE]
+====
+By default, the `module upload` command will fail if a module with the same name and type already exists. You may override this using the `--force` option. This is especially useful during development.
+====
 
 ==== The Module Registry
 
@@ -289,15 +313,15 @@ Modules use a separate class loader that will first load classes from jars in th
 * When using local transport, any class that is directly or indirectly referenced from the payload type of your messages (__i.e.__ any type in transit from module to module) must be referenced by both the producing and consuming modules and thus should be installed into _xd/lib_.
 
 ==== Dynamic Module ClassLoader
-Starting with Spring XD 1.2, a module can selectively add libraries from paths that are derived from module options. The aim is __e.g.__ to support several alternative implementations in the same module. This works like the following:
+Starting with Spring XD 1.2, a module can selectively add libraries from paths that are derived from module options. The aim is to support alternate implementations in the same module. This works like the following:
 
  1. In the module `.properties` file, specify a value for the `module.classloader` key. The default is `/lib/*.jar,/lib/*.zip`, which is consistent with what has been exposed earlier.
- 2. The value for that key is a comma separated list of paths (most certainly with Ant-style patterns) that will be looked for additional libraries to add to the module ClassLoader (in addition to the module "Archive" itself, which is always considered).
+ 2. The value for that key is a comma separated list of paths (most certainly with Ant-style patterns) that will be searched for additional libraries to add to the module ClassLoader (in addition to the module "Archive" itself, which is always included).
    a. paths that start with a `/` (as `/lib/*.jar` in the example above) are considered internal resources to the archives (__e.g.__ nested jars in the über-jar)
    b. paths that do __not__ start with a `/` (and in particular paths that start with a protocol, such as `file:`) are loaded with a regular Spring resource pattern resolver
  3. Those paths can contain placeholders of the form `${foo}`. Those will be resolved against the visible module options (and other inherited properties). Paths containing unresolvable placeholders are silently ignored.
 
-This allows constructions like those (assuming for example that we want to create a `jpa` module that supports several JPA providers):
+This allows constructions like this (assuming for example that we want to create a `jpa` module that supports several JPA providers):
 
 ----
 jpa.jar

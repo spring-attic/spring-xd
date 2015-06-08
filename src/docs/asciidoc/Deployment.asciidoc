@@ -136,7 +136,7 @@ module.[modulename].producer.compress:: When _true_, compress the message before
 [[stream-partitioning]]
 ===== Stream Partitioning
 
-NOTE: Partitioning is only allowed when using a _RabbitMessageBus_ or a _RedisMessageBus_.
+NOTE: Partitioning is not supported with the local transport.
 
 A common pattern in stream processing is to partition the data as it is streamed. This entails deploying multiple instances of a message consuming module and using content-based routing so that messages containing the identical data value(s) are always routed to the same module instance. You can use the Deployment Manifest to declaratively configure a partitioning strategy to route each message to a specific consumer instance.
 
@@ -150,7 +150,7 @@ module.[modulename].producer.partitionKeyExpression:: A _SpEL_ expression, evalu
 module.[modulename].producer.partitionSelectorClass:: The class name of a _PartitionSelectorStrategy_ *(default null)*
 module.[modulename].producer.partitionSelectorExpression:: A _SpEL_ expression, evaluated against the partition key, to determine the partition index to which the message will be routed. The final partition index will be the return value (an integer) modulo _[nextModule].count_ If both the class and expression are null, the bus's default _PartitionSelectorStrategy_ will be applied to the key *(default null)*
 
-In summary, a module is partitioned if its _count_ is > 1 and the previous module has a _partitionKeyExtractorClass_ or _partitionKeyExpression_ (class takes precedence). When a partition key is extracted, the partitioned module instance is determined by invoking the _partitionSelectorClass_, if present, or the _partitionSelectorExpression % count_. If neither is present the result is _key.hashCode() % count_.
+In summary, a module is partitioned if its _count_ is > 1 and the previous module has a _partitionKeyExtractorClass_ or _partitionKeyExpression_ (class takes precedence). When a partition key is extracted, the partitioned module instance is determined by invoking the _partitionSelectorClass_, if present, or the _partitionSelectorExpression % partitionCount_ , where _partitionCount_ is _count_ in the case of Redis and RabbitMQ, and the underlying partition count of the topic in the case of Kafka (see the Message Bus section on xref:MessageBus#kafka-bus-partitions[Kafka partition configuration] for details). If neither a _partitionSelectorClass_ nor a _partitionSelectorExpression_ is present the result is _key.hashCode() % partitionCount_.
 
 [[direct-binding]]
 ===== Direct Binding

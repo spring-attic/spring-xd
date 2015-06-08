@@ -178,7 +178,6 @@ xd:
 #      offsetStoreRequiredAcks:                 1
 #      offsetStoreMaxFetchSize:                 1048576
 #      offsetStoreBatchBytes:                   16384
-#      offsetStoreBatchEnabled:                 false
 #      offsetStoreBatchTime:                    1000
 #      offsetUpdateTimeWindow:                  10000
 #      offsetUpdateCount:                       0
@@ -190,8 +189,8 @@ xd:
 #        concurrency:               1
 #        requiredAcks:              1
 #        compressionCodec:          none
-#        autoCommitEnabled:         true
 #        queueSize:                 8192 # must be a power of 2
+#        maxWait:                   100
 #        fetchSize:                 1048576
 #        minPartitionCount:         1
 

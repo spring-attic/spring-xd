@@ -308,54 +308,114 @@ will be attempted repeatedly, with no termination. Also see `republishToDLQ`
 [[kafkaConfig]]
 
 If you want to use Kafka as a data transport, the following connection settings, as well as defaults for the kafka
-message bus can be modified in `servers.yml`.
+message bus can be modified in `servers.yml`. Starting with release 1.2, Spring XD only supports Kafka 0.8.2 or higher.
 
-NOTE: To ensure the proper functioning of the Kafka Message Bus, you must eanble log cleaning in your Kafka configuration.  This is set using the configuration variable `log.cleaner.enable=true`.  See the https://cwiki.apache.org/confluence/display/KAFKA/Log+Compaction[Kafka documentation] for additional configuration options for log cleaning.
+NOTE: To ensure the proper functioning of the Kafka Message Bus, you must eanble log cleaning in your Kafka
+configuration.  This is set using the configuration variable `log.cleaner.enable=true`.
+See the https://cwiki.apache.org/confluence/display/KAFKA/Log+Compaction[Kafka documentation] for additional
+configuration options for log cleaning.
 
-NOTE: At this time, the Kafka message bus does not support job processing. This feature will be available in a future release.
+NOTE: At this time, the Kafka message bus does not support job processing.
+
+NOTE: The Kafka message bus does not support `count=0` for module deployments, and therefore, it does not support
+direct binding of modules. This feature will be available in a future release. In the meantime, if direct communication
+ between modules is necessary for Kafka deployments, xref:Modules#composing-modules[composite modules] should be used instead.
 
 [source,yaml]
 ----
   messagebus:
     kafka:
+      # connection properties
       brokers:                                localhost:9092  # <1>
       zkAddress:                              localhost:2181  # <2>
+      socketBufferSize:                       2097152         # <3>
+      # operating mode
+      mode:                                   embeddedHeaders # <4>
+      # offset topic settings
+      offsetStoreTopic:                       SpringXdOffsets # <5>
+      offsetStoreSegmentSize:                 25000000        # <6>
+      offsetStoreRetentionTime:               60000           # <7>
+      offsetStoreRequiredAcks:                1               # <8>
+      offsetStoreMaxFetchSize:                1048576         # <9>
+      offsetStoreBatchBytes:                  16384           # <10>
+      offsetStoreBatchTime:                   1000            # <11>
+      offsetUpdateTimeWindow:                 10000           # <12>
+      offsetUpdateCount:                      0               # <13>
+      offsetUpdateShutdownTimeout:            2000            # <14>
+      # defaults for the bus
       default:
-        batchingEnabled:           false      # <3>
-        batchSize:                 200        # <4>
-        batchTimeout:              5000       # <5>
-        replicationFactor:         1          # <6>
-        concurrency:               1          # <7>
-        requiredAcks:              1          # <8>
-        compressionCodec:          default    # <9>
-        offsetStoreTopic:          SpringXdOffsets   # <10>
+        batchSize:                 16384                      # <15>
+        batchTimeout:              0                          # <16>
+        replicationFactor:         1                          # <17>
+        concurrency:               1                          # <18>
+        requiredAcks:              1                          # <19>
+        compressionCodec:          none                       # <20>
+        queueSize:                 8192                       # <21>
+        maxWait:                   100                        # <22>
+        fetchSize:                 1048576                    # <23>
+        minPartitionCount:         1                          # <24>
 ----
 
 <1> A list of Kafka broker addresses, for sending messages
 
 <2> A list of ZooKeeper addresses, for receiving messages
 
-<3> True to enable message batching by producers by default
+<3> The size of the socket buffer, for the consumer
 
-<4> The number of messages in a batch (may be preempted by _batchTimeout_)
+<4> How the bus handles headers and serialization: `embeddedHeaders` supports Spring Integration header embedding and
+bus-managed serialization based on embedded content type headers, whereas `raw` mode will operate only with byte array
+data, will not embed headers and will leave the handling of serialization to the user.
 
-<5> The idle time to wait before sending a partial batch
+<5> The name of the topic where the Kafka Message Bus will store offsets (must be a compacted topic - Spring XD will
+attempt to create a compacted topic by default)
 
-<6> The replication factor of the topics created by the message bus. At least as many brokers must be in the cluster
+<6> The segment size for the offset topic
+
+<7> The retention time for the offset topic
+
+<8> The number of required acks for the offset topic
+
+<9> The maximum fetch size when reading from the offset topic
+
+<10> The batch size (in bytes) for the producers writing to the offset topic
+
+<11> Upper bound for the offset topic producer delay for batching
+
+<12> The frequency (in milliseconds) with which offsets are saved (mutually exclusive with _offsetUpdateCount_)
+
+<13> The frequency (in message counts) with which offsets are saved (mutually exclusive with _offsetUpdateTimeWindow_)
+
+<14> The timeout for shutting down offset management and ensuring that the latest offset updates have been pushed.
+
+<15> The amount of data (in bytes) that the producer will try to buffer before sending data to brokers.
+
+<16> Timeout (in milliseconds) for batching data on the producer side. A value of zero (default) means that data will be
+sent out immediately as available.
+
+<17> The replication factor of the topics created by the message bus. At least as many brokers must be in the cluster
 when the topic is being created.
 
-<7> The maximum number of consumer threads receiving messages for a module. The total number of threads actively
+<18> The maximum number of consumer threads receiving messages for a module. The total number of threads actively
 consuming partitions across all the instances of a specific module cannot be larger than the partition count of a
 transport topic - therefore, if such a situation occurs, some modules instances will, in fact, use less consumer
 threads.
 
-<8> The number of required acks when producing messages, i.e. how many brokers have committed data to the logs and
+<19> The number of required acks when producing messages, i.e. how many brokers have committed data to the logs and
 acknowledged this to the leader. Special values are `-1`, meaning all in-sync replicas, and `0` indicating that no
 acks are necessary.
 
-<9> Enables compression for the bus and sets the compression codec.
+<20> Enables compression for the bus and sets the compression codec.
 
-<10> The name of the topic that will be used to store client offset values.
+<21> The maximum size of the internal message queue (in messages), per consumer processing thread. It must be a power
+of 2.
+
+<22> The maximum amount of time that the consumers will wait to fetch data from a broker (if less than _fetchSize_ is
+available)
+
+<23> The maximum amount of data that the consumers will try to fetch, per broker, in one polling cycle.
+
+<24> The minimum number of partitions that will be used by a bus topic.
+
 ==== Admin Server HTTP Port
 
 The default HTTP port of the `xd-admin` server is 9393.  To change the value use the following configuration setting

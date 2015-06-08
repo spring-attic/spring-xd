@@ -3,7 +3,8 @@
 
 === Introduction
 
-This section contains additional information about configuring the Message Bus, including High Availability, SSL, and Error handling.
+This section contains additional information about configuring the Message Bus, including High Availability, SSL,
+Error handling and partitioning.
 
 [[rabbit-message-bus-high-availability-ha-configuration]]
 === Rabbit Message Bus High Availability (HA) Configuration
@@ -210,3 +211,66 @@ The following query params are supported:
 * pw - admin password (default `guest`)
 * vhost - the vhost used for the bus resources (default `/`)
 * busPrefix - the prefix used for all bus resources (default `xdbus.`)
+
+[[kafka-bus-partitions]]
+=== Kafka Message Bus Partition Control
+
+This section describes how topic partitioning functions when using Kafka as transport.
+
+[[kafka-partition-control]]
+==== Controlling the partition count of a transport topic
+
+The _KafkaMessageBus_ will attempt to set the number of partitions in a transport topic as _consumerCount * consumerConcurrency_,
+either by creating the topic with the required number of partitions, or by repartitioning it, in case it exists.
+
+For example, let's consider a stream with the following definition:
+
+----
+stream create ingest --definition="http | hdfs"
+----
+
+A default deployment will result in the creation of a single topic with a single partition.
+
+----
+stream deploy ingest
+----
+
+A deployment (or redeployment) of the same stream with a different module count and concurrency will result in
+6 partitions, evenly distributed across the 3 module instances:
+
+----
+stream deploy ingest --properties module.hdfs.count=3,module.hdfs.concurrency=2
+----
+
+Besides relying on defaults, you can customize the number of Kafka partitions used by transport topics by indicating a
+minimum value to be used by deployments (by minimum, it is understood that, if smaller than
+_consumerCount * consumerConcurrency_, the latter value will be used instead).
+
+This can be done globally by changing the `xd.messagebus.kafka.default.minPartitionCount` property in
+`servers.yml`:
+
+----
+xd:
+  messagebus:
+    kafka:
+      default:
+        minPartitionCount:   5
+----
+
+This will result in creating at least 5 partitions for each transport topic.
+
+Alternatively, and for more granular control, the property can be specified for specific deployments and modules,
+through the `producer.minPartitionCount` property in the deployment manifest, as in the following example, where
+10 partitions will be created:
+
+[source]
+----
+stream deploy ingest --properties module.http.producer.minPartitionCount=10,module.hdfs.count=3
+----
+
+Overpartitioning can serve a number of purposes, such as load balancing and distributing data among brokers, as well as
+ allowing for scaling up by increasing the number of concurrent consumers in the future.
+
+NOTE: If the Kafka topic already exists and it already has a number of partitions larger than either `minPartitionCount`
+or _consumerCount * consumerConcurrency_, its partition count will remain unchanged, and the Kafka transport will operate
+with all the existing partitions.

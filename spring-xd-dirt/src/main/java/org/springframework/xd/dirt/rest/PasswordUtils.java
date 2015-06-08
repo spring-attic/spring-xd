@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinition;
@@ -40,9 +43,15 @@ public class PasswordUtils {
 		throw new AssertionError();
 	}
 
+	public static final String[] PASSWORD_PARAMETER_NAMES = { "password", "passwd" };
+
+	public static final String MASK_CHARACTER = "*";
+
 	public static Pattern passwordParameterPattern = Pattern.compile(
 			//"(?i)(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)([\\p{N}|\\p{L}|\\p{Po}]*)",
-			"(?i)(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)((\"[\\p{L}|\\p{Pd}|\\p{Ps}|\\p{Pe}|\\p{Pc}|\\p{S}|\\p{N}|\\p{Z}]*\")|([\\p{N}|\\p{L}|\\p{Po}|\\p{Pc}|\\p{S}]*))",
+			"(?i)(--[\\p{Z}]*("
+					+ StringUtils.arrayToDelimitedString(PASSWORD_PARAMETER_NAMES, "|")
+					+ ")[\\p{Z}]*=[\\p{Z}]*)((\"[\\p{L}|\\p{Pd}|\\p{Ps}|\\p{Pe}|\\p{Pc}|\\p{S}|\\p{N}|\\p{Z}]*\")|([\\p{N}|\\p{L}|\\p{Po}|\\p{Pc}|\\p{S}]*))",
 			Pattern.UNICODE_CASE);
 
 	/**
@@ -64,14 +73,52 @@ public class PasswordUtils {
 			final String maskedPasswordValue;
 			if (passwordValue.startsWith("\"") && passwordValue.endsWith("\"")) {
 				final String passwordValueWithoutQuotes = passwordValue.substring(1, passwordValue.length() - 1);
-				maskedPasswordValue = "\"" + passwordValueWithoutQuotes.replaceAll(".", "*") + "\"";
+				maskedPasswordValue = "\"" + maskString(passwordValueWithoutQuotes) + "\"";
 			}
 			else {
-				maskedPasswordValue = matcher.group(3).replaceAll(".", "*");
+				maskedPasswordValue = maskString(matcher.group(3));
 			}
 			matcher.appendReplacement(output, matcher.group(1) + maskedPasswordValue);
 		}
 		matcher.appendTail(output);
 		return output.toString();
+	}
+
+	/**
+	 * Masks provided {@link String}s with the {@link PasswordUtils#MASK_CHARACTER}.
+	 *
+	 * @param stringToMask Must not be null
+	 * @return The masked String
+	 */
+	public static String maskString(String stringToMask) {
+		Assert.notNull(stringToMask, "'stringToMask' must not be null.");
+		return stringToMask.replaceAll(".", MASK_CHARACTER);
+	}
+
+	/**
+	 * Will mask property values if they contain keys that contain the values specified
+	 * in {@link PasswordUtils#PASSWORD_PARAMETER_NAMES}.
+	 *
+	 * Be aware that this is a mutable operation and the passed-in {@link Properties}
+	 * will be modified.
+	 *
+	 * @param properties Must not be null.
+	 */
+	public static void maskPropertiesIfNecessary(Properties properties) {
+		Assert.notNull(properties, "'properties' must not be null.");
+
+		for (Entry<Object, Object> property : properties.entrySet()) {
+			if (property.getKey() instanceof String && property.getValue() instanceof String) {
+				final String propertyKey = (String) property.getKey();
+				final String propertyValue = (String) property.getValue();
+
+				for (String param : PasswordUtils.PASSWORD_PARAMETER_NAMES) {
+					if (propertyKey.toLowerCase().contains(param.toLowerCase())) {
+						properties.setProperty(propertyKey,
+								PasswordUtils.maskString(propertyValue));
+					}
+				}
+			}
+		}
 	}
 }

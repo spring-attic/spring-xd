@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.rest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+
+import java.util.Properties;
 
 import org.junit.Test;
 
@@ -192,5 +194,49 @@ public class PasswordUtilsTests {
 		assertEquals(
 				"filejdbc --password=\"********\" --driverClassName=\"org.postgresql.Driver\" --passwd=\"********\"",
 				maskedPassword);
+	}
+
+	@Test
+	public void testMaskString() {
+		String maskedPassword = PasswordUtils.maskString("12345");
+		assertEquals("*****", maskedPassword);
+	}
+
+	@Test
+	public void testMaskStringWithNullString() {
+		try {
+			PasswordUtils.maskString(null);
+		}
+		catch (IllegalArgumentException e) {
+			assertEquals("'stringToMask' must not be null.", e.getMessage());
+			return;
+		}
+		fail("Expected an IllegalArgumentException to be thrown");
+	}
+
+	@Test
+	public void testMaskPropertiesIfNecessaryWithNullProperties() {
+		try {
+			PasswordUtils.maskPropertiesIfNecessary(null);
+		}
+		catch (IllegalArgumentException e) {
+			assertEquals("'properties' must not be null.", e.getMessage());
+			return;
+		}
+		fail("Expected an IllegalArgumentException to be thrown");
+	}
+
+	@Test
+	public void testMaskPropertiesIfNecessary() {
+		final Properties properties = new Properties();
+		properties.setProperty("nothingtomask", "1234");
+		properties.setProperty("mypassword", "1234");
+		properties.setProperty("passwdisMINE", "1234");
+
+		PasswordUtils.maskPropertiesIfNecessary(properties);
+
+		assertEquals("1234", properties.getProperty("nothingtomask"));
+		assertEquals("****", properties.getProperty("mypassword"));
+		assertEquals("****", properties.getProperty("passwdisMINE"));
 	}
 }

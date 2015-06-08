@@ -273,11 +273,11 @@ public abstract class AbstractBusPropertiesAccessor implements BusProperties {
 	}
 
 	/**
-	 * The number of partitions for this module.
-	 * @return The count.
+	 * The next module count for non-sink modules
+	 * @return the next module count
 	 */
-	public int getPartitionCount() {
-		return getProperty(PARTITION_COUNT, 1);
+	public int getNextModuleCount() {
+		return getProperty(NEXT_MODULE_COUNT, 1);
 	}
 
 	/**

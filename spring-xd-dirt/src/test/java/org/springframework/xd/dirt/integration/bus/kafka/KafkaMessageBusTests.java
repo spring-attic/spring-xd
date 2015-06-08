@@ -178,7 +178,7 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 	}
 
 	@Test
-	public void testCustomPartitionCountDoesNotOverrideModuleCountAndConcurrency() throws Exception {
+	public void testCustomPartitionCountDoesNotOverrideModuleCountAndConcurrencyIfSmaller() throws Exception {
 
 		byte[] ratherBigPayload = new byte[2048];
 		Arrays.fill(ratherBigPayload, (byte) 65);
@@ -210,7 +210,38 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 	}
 
 	@Test
-	public void testCustomPartitionCountDoesNotOverridePartitioning() throws Exception {
+	public void testCustomPartitionCountOverridesModuleCountAndConcurrencyIfLarger() throws Exception {
+
+		byte[] ratherBigPayload = new byte[2048];
+		Arrays.fill(ratherBigPayload, (byte) 65);
+		KafkaTestMessageBus messageBus = (KafkaTestMessageBus) getMessageBus();
+
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		Properties producerProps = new Properties();
+		producerProps.put(BusProperties.MIN_PARTITION_COUNT, "6");
+		producerProps.put(BusProperties.NEXT_MODULE_CONCURRENCY, "5");
+		Properties consumerProps = new Properties();
+		consumerProps.put(BusProperties.MIN_PARTITION_COUNT, "6");
+		consumerProps.put(BusProperties.CONCURRENCY, "5");
+		long uniqueBindingId = System.currentTimeMillis();
+		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, producerProps);
+		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, consumerProps);
+		Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
+		// Let the consumer actually bind to the producer before sending a msg
+		busBindUnbindLatency();
+		moduleOutputChannel.send(message);
+		Message<?> inbound = moduleInputChannel.receive(2000);
+		assertNotNull(inbound);
+		assertArrayEquals(ratherBigPayload, (byte[]) inbound.getPayload());
+		Collection<Partition> partitions = messageBus.getCoreMessageBus().getConnectionFactory().getPartitions("foo" + uniqueBindingId + ".0");
+		assertThat(partitions, hasSize(6));
+		messageBus.unbindProducers("foo" + uniqueBindingId + ".0");
+		messageBus.unbindConsumers("foo" + uniqueBindingId + ".0");
+	}
+
+	@Test
+	public void testCustomPartitionCountDoesNotOverridePartitioningIfSmaller() throws Exception {
 
 		byte[] ratherBigPayload = new byte[2048];
 		Arrays.fill(ratherBigPayload, (byte) 65);
@@ -220,7 +251,7 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		QueueChannel moduleInputChannel = new QueueChannel();
 		Properties producerProperties = new Properties();
 		producerProperties.put(BusProperties.MIN_PARTITION_COUNT, "3");
-		producerProperties.put(BusProperties.PARTITION_COUNT, "5");
+		producerProperties.put(BusProperties.NEXT_MODULE_COUNT, "5");
 		producerProperties.put(BusProperties.PARTITION_KEY_EXPRESSION, "payload");
 		Properties consumerProperties = new Properties();
 		consumerProperties.put(BusProperties.MIN_PARTITION_COUNT, "3");
@@ -240,6 +271,36 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		messageBus.unbindConsumers("foo" + uniqueBindingId + ".0");
 	}
 
+	@Test
+	public void testCustomPartitionCountOverridesPartitioningIfLarger() throws Exception {
+
+		byte[] ratherBigPayload = new byte[2048];
+		Arrays.fill(ratherBigPayload, (byte) 65);
+		KafkaTestMessageBus messageBus = (KafkaTestMessageBus) getMessageBus();
+
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		Properties producerProperties = new Properties();
+		producerProperties.put(BusProperties.MIN_PARTITION_COUNT, "5");
+		producerProperties.put(BusProperties.NEXT_MODULE_COUNT, "3");
+		producerProperties.put(BusProperties.PARTITION_KEY_EXPRESSION, "payload");
+		Properties consumerProperties = new Properties();
+		consumerProperties.put(BusProperties.MIN_PARTITION_COUNT, "5");
+		long uniqueBindingId = System.currentTimeMillis();
+		messageBus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, producerProperties);
+		messageBus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, consumerProperties);
+		Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
+		// Let the consumer actually bind to the producer before sending a msg
+		busBindUnbindLatency();
+		moduleOutputChannel.send(message);
+		Message<?> inbound = moduleInputChannel.receive(2000);
+		assertNotNull(inbound);
+		assertArrayEquals(ratherBigPayload, (byte[]) inbound.getPayload());
+		Collection<Partition> partitions = messageBus.getCoreMessageBus().getConnectionFactory().getPartitions("foo" + uniqueBindingId + ".0");
+		assertThat(partitions, hasSize(5));
+		messageBus.unbindProducers("foo" + uniqueBindingId + ".0");
+		messageBus.unbindConsumers("foo" + uniqueBindingId + ".0");
+	}
 
 	@Test
 	@Ignore("Kafka message bus does not support direct binding")

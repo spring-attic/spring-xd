@@ -137,7 +137,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	public static final int METADATA_VERIFICATION_MAX_INTERVAL = 1000;
 
-
 	public static final String FETCH_SIZE = "fetchSize";
 
 	public static final String QUEUE_SIZE = "fetchSize";
@@ -483,34 +482,33 @@ public class KafkaMessageBus extends MessageBusSupport {
 	public void bindProducer(final String name, MessageChannel moduleOutputChannel, Properties properties) {
 
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
-		KafkaPropertiesAccessor accessor = new KafkaPropertiesAccessor(properties);
+		KafkaPropertiesAccessor producerPropertiesAccessor = new KafkaPropertiesAccessor(properties);
 		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)) {
 			validateProducerProperties(name, properties, SUPPORTED_NAMED_PRODUCER_PROPERTIES);
 		}
 		else {
 			validateProducerProperties(name, properties, SUPPORTED_PRODUCER_PROPERTIES);
 		}
-		if (!bindNewProducerDirectlyIfPossible(name, (SubscribableChannel) moduleOutputChannel, accessor)) {
+		if (!bindNewProducerDirectlyIfPossible(name, (SubscribableChannel) moduleOutputChannel, producerPropertiesAccessor)) {
 			if (logger.isInfoEnabled()) {
 				logger.info("Using kafka topic for outbound: " + name);
 			}
 
 			final String topicName = escapeTopicName(name);
 
-			int numPartitions = accessor.getNumberOfKafkaPartitionsForProducer();
+			int numPartitions = producerPropertiesAccessor.getNumberOfKafkaPartitionsForProducer();
 
-			Collection<Partition> partitions = ensureTopicCreated(topicName, numPartitions, defaultReplicationFactor,
-					accessor.isPartitionedModule());
+			Collection<Partition> partitions = ensureTopicCreated(topicName, numPartitions, defaultReplicationFactor);
 
 			ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<>(
 					topicName, byte[].class, byte[].class, BYTE_ARRAY_SERIALIZER, BYTE_ARRAY_SERIALIZER);
 			producerMetadata.setCompressionType(ProducerMetadata.CompressionType.valueOf(
-					accessor.getCompressionCodec(this.defaultCompressionCodec)));
-			producerMetadata.setBatchBytes(accessor.getBatchSize(this.defaultBatchSize));
+					producerPropertiesAccessor.getCompressionCodec(this.defaultCompressionCodec)));
+			producerMetadata.setBatchBytes(producerPropertiesAccessor.getBatchSize(this.defaultBatchSize));
 			Properties additionalProps = new Properties();
-			additionalProps.put(ProducerConfig.ACKS_CONFIG, String.valueOf(accessor.getRequiredAcks(this
+			additionalProps.put(ProducerConfig.ACKS_CONFIG, String.valueOf(producerPropertiesAccessor.getRequiredAcks(this
 					.defaultRequiredAcks)));
-			additionalProps.put(ProducerConfig.LINGER_MS_CONFIG, String.valueOf(accessor.getBatchTimeout(this
+			additionalProps.put(ProducerConfig.LINGER_MS_CONFIG, String.valueOf(producerPropertiesAccessor.getBatchTimeout(this
 					.defaultBatchTimeout)));
 			ProducerFactoryBean<byte[], byte[]> producerFB =
 					new ProducerFactoryBean<>(producerMetadata, brokers, additionalProps);
@@ -519,14 +517,14 @@ public class KafkaMessageBus extends MessageBusSupport {
 				final ProducerConfiguration<byte[], byte[]> producerConfiguration = new ProducerConfiguration<>(
 						producerMetadata, producerFB.getObject());
 
-				MessageHandler handler = new SendingHandler(topicName, accessor,
+				MessageHandler handler = new SendingHandler(topicName, producerPropertiesAccessor,
 						partitions.size(), producerConfiguration);
 				EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel,
 						handler);
 				consumer.setBeanFactory(this.getBeanFactory());
 				consumer.setBeanName("outbound." + name);
 				consumer.afterPropertiesSet();
-				Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer, accessor);
+				Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer, producerPropertiesAccessor);
 				addBinding(producerBinding);
 				producerBinding.start();
 			}
@@ -556,8 +554,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 	/**
 	 * Creates a Kafka topic if needed, or try to increase its partition count to the desired number.
 	 */
-	private Collection<Partition> ensureTopicCreated(final String topicName, final int numPartitions,
-			int replicationFactor, final boolean strict) {
+	private Collection<Partition> ensureTopicCreated(final String topicName, final int numPartitions, int replicationFactor) {
 
 		final int sessionTimeoutMs = 10000;
 		final int connectionTimeoutMs = 10000;
@@ -586,7 +583,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 					public Collection<Partition> doWithRetry(RetryContext context) throws Exception {
 						connectionFactory.refreshMetadata(Collections.singleton(topicName));
 						Collection<Partition> partitions = connectionFactory.getPartitions(topicName);
-						if (partitions.size() < numPartitions || (strict && partitions.size() != numPartitions)) {
+						if (partitions.size() < numPartitions) {
 							throw new IllegalStateException("The number of expected partitions was: " + numPartitions
 									+ ", but " +
 									partitions.size() + " have been found instead");
@@ -609,7 +606,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 	}
 
 	private void createKafkaConsumer(String name, final MessageChannel moduleInputChannel, Properties properties,
-			String group, long referencePoint) {
+																	 String group, long referencePoint) {
 
 		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)) {
 			validateConsumerProperties(name, properties, SUPPORTED_NAMED_CONSUMER_PROPERTIES);
@@ -619,11 +616,12 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 		KafkaPropertiesAccessor accessor = new KafkaPropertiesAccessor(properties);
 
-		int concurrency = accessor.getConcurrency(defaultConcurrency);
+		int maxConcurrency = accessor.getConcurrency(defaultConcurrency);
+
 		String topic = escapeTopicName(name);
 
 		int numPartitions = accessor.getNumberOfKafkaPartitionsForConsumer();
-		Collection<Partition> allPartitions = ensureTopicCreated(topic, numPartitions, defaultReplicationFactor, false);
+		Collection<Partition> allPartitions = ensureTopicCreated(topic, numPartitions, defaultReplicationFactor);
 
 		Decoder<byte[]> valueDecoder = new DefaultDecoder(null);
 		Decoder<byte[]> keyDecoder = new DefaultDecoder(null);
@@ -647,7 +645,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 				else {
 					int moduleSequence = accessor.getSequence();
 					if (moduleCount == 0) {
-						throw new IllegalArgumentException("This type of transport does not support 0-count modules");
+						throw new IllegalArgumentException("The Kafka transport does not support 0-count modules");
 					}
 					else {
 						// sequence numbers are zero-based
@@ -666,7 +664,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 		bridge.setBeanName("bridge." + name);
 
 		final KafkaMessageListenerContainer messageListenerContainer =
-				createMessageListenerContainer(accessor, group, concurrency, listenedPartitions,
+				createMessageListenerContainer(accessor, group, maxConcurrency, listenedPartitions,
 						referencePoint);
 
 		final KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter =
@@ -720,7 +718,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 	}
 
 	private KafkaMessageListenerContainer createMessageListenerContainer(KafkaPropertiesAccessor accessor,
-			String group, int numThreads, String topic,
+			String group, int maxConcurrency, String topic,
 			Collection<Partition> listenedPartitions, long referencePoint) {
 		Assert.isTrue(StringUtils.hasText(topic) ^ !CollectionUtils.isEmpty(listenedPartitions),
 				"Exactly one of topic or a list of listened partitions must be provided");
@@ -736,7 +734,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 			logger.debug("Listening to topic " + topic);
 		}
 		// if we have less target partitions than target concurrency, adjust accordingly
-		messageListenerContainer.setConcurrency(Math.min(numThreads, listenedPartitions.size()));
+		messageListenerContainer.setConcurrency(Math.min(maxConcurrency, listenedPartitions.size()));
 		OffsetManager offsetManager = createOffsetManager(group, referencePoint);
 		messageListenerContainer.setOffsetManager(offsetManager);
 		messageListenerContainer.setQueueSize(accessor.getProperty(QUEUE_SIZE, defaultQueueSize));
@@ -792,18 +790,13 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 
 		public int getNumberOfKafkaPartitionsForProducer() {
-			int concurrency = getProperty(NEXT_MODULE_CONCURRENCY, defaultConcurrency);
-			int kafkaPartitions = getMinPartitionCount(defaultMinPartitionCount);
-			if (isPartitionedModule()) {
-				return Math.max(kafkaPartitions, getPartitionCount() * concurrency);
+			int nextModuleCount = getNextModuleCount();
+			if (nextModuleCount == 0) {
+				throw new IllegalArgumentException("Module count cannot be zero");
 			}
-			else {
-				int nextModuleCount = getProperty(NEXT_MODULE_COUNT, 1);
-				if (nextModuleCount == 0) {
-					throw new IllegalArgumentException("Module count cannot be zero");
-				}
-				return Math.max(kafkaPartitions, nextModuleCount * concurrency);
-			}
+			int nextModuleConcurrency = getProperty(NEXT_MODULE_CONCURRENCY, defaultConcurrency);
+			int minKafkaPartitions = getMinPartitionCount(defaultMinPartitionCount);
+			return Math.max(minKafkaPartitions, nextModuleCount * nextModuleConcurrency);
 		}
 
 		public int getNumberOfKafkaPartitionsForConsumer() {
@@ -814,10 +807,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 				throw new IllegalArgumentException("Module count cannot be zero");
 			}
 			return Math.max(minKafkaPartitions, moduleCount * concurrency);
-		}
-
-		public boolean isPartitionedModule() {
-			return new PartitioningMetadata(this).isPartitionedModule();
 		}
 
 		public String getCompressionCodec(String defaultValue) {
@@ -892,8 +881,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		private final int numberOfKafkaPartitions;
 
-		private int factor;
-
 		private final ProducerConfiguration<byte[], byte[]> producerConfiguration;
 
 
@@ -901,42 +888,26 @@ public class KafkaMessageBus extends MessageBusSupport {
 				ProducerConfiguration<byte[], byte[]> producerConfiguration) {
 			this.topicName = topicName;
 			this.numberOfKafkaPartitions = numberOfPartitions;
-			this.partitioningMetadata = new PartitioningMetadata(properties);
+			this.partitioningMetadata = new PartitioningMetadata(properties, numberOfPartitions);
 			this.setBeanFactory(KafkaMessageBus.this.getBeanFactory());
-			if (partitioningMetadata.isPartitionedModule()) {
-				// ceiling division of total number of kafka partitions to the Spring XD partition count
-				// a container with a certain partition index will listen to at most this number of
-				// partitions, evenly distributed. E.g. for 8 kafka partitions and 3 partition indices
-				// the factor is 3, partition 0 will listen to 0,3,6, etc.
-				// this value will be used further fanning data out to the multiple Kafka partitions that
-				// are assigned to a given partition index
-				this.factor = (numberOfKafkaPartitions + partitioningMetadata.getPartitionCount() - 1)
-						/ partitioningMetadata.getPartitionCount();
-			}
 			this.producerConfiguration = producerConfiguration;
 		}
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			int partition;
+			int targetPartition;
 			if (partitioningMetadata.isPartitionedModule()) {
-				// this is the logical partition in Spring XD - we need to fan out the messages further
-				int springXdPartition = determinePartition(message, partitioningMetadata);
-				// in order to do so, we will generate a number whose modulus when applied to total partition count
-				// is equal to springXdPartition
-				partition =
-						((roundRobin() % factor) * partitioningMetadata.getPartitionCount() + springXdPartition)
-								% numberOfKafkaPartitions;
+				targetPartition = determinePartition(message, partitioningMetadata);
 			}
 			else {
-				partition = roundRobin() % numberOfKafkaPartitions;
+				targetPartition = roundRobin() % numberOfKafkaPartitions;
 			}
 
 			if (Mode.embeddedHeaders.equals(mode)) {
 				MessageValues transformed = serializePayloadIfNecessary(message);
 				byte[] messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
 						KafkaMessageBus.this.headersToMap);
-				producerConfiguration.send(topicName, partition, null, messageToSend);
+				producerConfiguration.send(topicName, targetPartition, null, messageToSend);
 			}
 			else if (Mode.raw.equals(mode)) {
 				Object contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
@@ -946,7 +917,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 							+ message.getPayload().getClass());
 				}
 				if (message.getPayload() instanceof byte[]) {
-					producerConfiguration.send(topicName, partition, null, (byte[]) message.getPayload());
+					producerConfiguration.send(topicName, targetPartition, null, (byte[]) message.getPayload());
 				}
 				else {
 					logger.error("Raw mode supports only byte[] payloads but value sent was of type "

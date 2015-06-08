@@ -65,7 +65,7 @@ public class RawModeKafkaMessageBusTests extends KafkaMessageBusTests {
 		Properties properties = new Properties();
 		properties.put("partitionKeyExtractorClass", "org.springframework.xd.dirt.integration.bus.kafka.RawKafkaPartitionTestSupport");
 		properties.put("partitionSelectorClass", "org.springframework.xd.dirt.integration.bus.kafka.RawKafkaPartitionTestSupport");
-		properties.put("partitionCount", "3");
+		properties.put(BusProperties.NEXT_MODULE_COUNT, "3");
 		properties.put(BusProperties.NEXT_MODULE_CONCURRENCY, "2");
 
 		DirectChannel output = new DirectChannel();
@@ -119,7 +119,7 @@ public class RawModeKafkaMessageBusTests extends KafkaMessageBusTests {
 		Properties properties = new Properties();
 		properties.put("partitionKeyExpression", "payload[0]");
 		properties.put("partitionSelectorExpression", "hashCode()");
-		properties.put("partitionCount", "3");
+		properties.put(BusProperties.NEXT_MODULE_COUNT, "3");
 		properties.put(BusProperties.NEXT_MODULE_CONCURRENCY, "2");
 
 		DirectChannel output = new DirectChannel();

@@ -67,6 +67,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.integration.bus.Binding;
+import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
@@ -218,7 +219,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		properties.put("partitionKeyExtractorClass", "foo");
 		properties.put("partitionSelectorExpression", "0");
 		properties.put("partitionSelectorClass", "foo");
-		properties.put("partitionCount", "1");
+		properties.put(BusProperties.NEXT_MODULE_COUNT, "1");
 
 		bus.bindProducer("props.0", new DirectChannel(), properties);
 		assertEquals(1, bindings.size());
@@ -238,7 +239,6 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), allOf(
 					containsString("RabbitMessageBus does not support producer properties: "),
-					containsString("partitionCount"),
 					containsString("partitionSelectorExpression"),
 					containsString("partitionKeyExtractorClass"),
 					containsString("partitionKeyExpression"),
@@ -252,7 +252,6 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), allOf(
 					containsString("RabbitMessageBus does not support producer properties: "),
-					containsString("partitionCount"),
 					containsString("partitionSelectorExpression"),
 					containsString("partitionKeyExtractorClass"),
 					containsString("partitionKeyExpression"),
@@ -309,7 +308,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		properties.put("partitionKeyExtractorClass", "foo");
 		properties.put("partitionSelectorExpression", "0");
 		properties.put("partitionSelectorClass", "foo");
-		properties.put("partitionCount", "1");
+		properties.put(BusProperties.NEXT_MODULE_COUNT, "1");
 		properties.put("partitionIndex", "0");
 		try {
 			bus.bindRequestor("dummy", null, null, properties);
@@ -318,7 +317,6 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), allOf(
 					containsString("RabbitMessageBus does not support producer properties: "),
-					containsString("partitionCount"),
 					containsString("partitionSelectorExpression"),
 					containsString("partitionKeyExtractorClass"),
 					containsString("partitionKeyExpression"),
@@ -378,7 +376,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		properties.put("partitionKeyExtractorClass", "foo");
 		properties.put("partitionSelectorExpression", "0");
 		properties.put("partitionSelectorClass", "foo");
-		properties.put("partitionCount", "1");
+		properties.put(BusProperties.NEXT_MODULE_COUNT, "1");
 		properties.put("partitionIndex", "0");
 		try {
 			bus.bindReplier("dummy", null, null, properties);
@@ -387,7 +385,6 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), allOf(
 					containsString("RabbitMessageBus does not support consumer properties: "),
-					containsString("partitionCount"),
 					containsString("partitionSelectorExpression"),
 					containsString("partitionKeyExtractorClass"),
 					containsString("partitionKeyExpression"),

@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
@@ -141,9 +143,14 @@ public class ModuleUtils {
 			return null;
 		}
 		Properties properties = new Properties();
-		try (InputStream inputStream = resource.getInputStream()) {
-			properties.load(inputStream);
-			return properties;
+		try {
+			// Do not use resource.getInputStream as it may cache on ClassPathResource
+			URLConnection urlConnection = resource.getURL().openConnection();
+			ResourceUtils.useCachesIfNecessary(urlConnection);
+			try (InputStream inputStream = urlConnection.getInputStream()) {
+				properties.load(inputStream);
+				return properties;
+			}
 		}
 		catch (IOException e) {
 			throw new RuntimeException(String.format("Unable to read module properties for %s:%s",

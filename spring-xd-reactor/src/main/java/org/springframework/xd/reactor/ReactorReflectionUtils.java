@@ -15,6 +15,8 @@
  */
 package org.springframework.xd.reactor;
 
+import org.springframework.messaging.Message;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
@@ -36,22 +38,29 @@ public abstract class ReactorReflectionUtils {
      * be determined.
      */
     public static Class<?> extractGeneric(Processor<?, ?> processor) {
-        if (processor.getClass().getGenericInterfaces().length == 0) return null;
-
-        Type t = processor.getClass().getGenericInterfaces()[0];
-        if (ParameterizedType.class.isAssignableFrom(t.getClass())) {
-            ParameterizedType pt = (ParameterizedType) t;
-
-            if (pt.getActualTypeArguments().length == 0) return null;
-
-            t = pt.getActualTypeArguments()[0];
-            if (t instanceof ParameterizedType) {
-                return (Class) ((ParameterizedType) t).getRawType();
-            } else if (t instanceof Class) {
-                return (Class) t;
+        Class<?> searchType = processor.getClass();
+        while (searchType != Object.class) {
+            if (searchType.getClass().getGenericInterfaces().length == 0) {
+                continue;
             }
+            for (Type t : searchType.getGenericInterfaces()) {
+                if (ParameterizedType.class.isAssignableFrom(t.getClass())) {
+                    ParameterizedType pt = (ParameterizedType) t;
+                    if (pt.getActualTypeArguments().length == 0) {
+                        return Message.class;
+                    }
+                    t = pt.getActualTypeArguments()[0];
+                    if (t instanceof ParameterizedType) {
+                        return (Class) ((ParameterizedType) t).getRawType();
+                    } else if (t instanceof Class) {
+                        return (Class) t;
+                    }
+                }
+            }
+            searchType = searchType.getSuperclass();
         }
-        return null;
+        return Message.class;
+
     }
 
 }

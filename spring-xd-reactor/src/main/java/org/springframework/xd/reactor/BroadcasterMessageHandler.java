@@ -32,6 +32,9 @@ import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import static org.springframework.util.ReflectionUtils.*;
 
 /**
@@ -69,14 +72,13 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
 
     protected final Log logger = LogFactory.getLog(getClass());
 
-    private final RingBufferProcessor<Object> stream;
-
-    @SuppressWarnings("rawtypes")
-    private final Processor reactorProcessor;
+    private final RingBufferProcessor<Object> ringBufferProcessor;
 
     private final Class<?> inputType;
 
-    private Subscription processorSubscription;
+    private volatile CountDownLatch shutdownLatch;
+
+    private int stopTimeout = 5000;
 
     /**
      * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
@@ -87,21 +89,19 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
     @SuppressWarnings({"unchecked", "rawtypes"})
     public BroadcasterMessageHandler(Processor processor) {
         Assert.notNull(processor, "processor cannot be null.");
-        this.reactorProcessor = processor;
         Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
 
         this.inputType = ReactorReflectionUtils.extractGeneric(processor);
 
         //Stream with a RingBufferProcessor
-        this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
+        this.ringBufferProcessor = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
 
         //user defined stream processing
-        Publisher<?> outputStream = processor.process(Streams.wrap(stream));
+        Publisher<?> outputStream = processor.process(Streams.wrap(ringBufferProcessor));
 
         outputStream.subscribe(new DefaultSubscriber<Object>() {
             @Override
             public void onSubscribe(Subscription s) {
-                processorSubscription = s;
                 s.request(Long.MAX_VALUE);
             }
 
@@ -122,19 +122,31 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
 
             @Override
             public void onComplete() {
-                //Send a message ?
+                CountDownLatch latch = shutdownLatch;
+                if (latch != null) {
+                    latch.countDown();
+                }
             }
         });
+    }
+
+    /**
+     * Time in milliseconds to wait when shutting down the processor, waiting on a latch inside
+     * the onComplete method of the subscriber.  Default is 5000 milliseconds
+     * @param stopTimeoutInMillis time to wait when shutting down the processor.
+     */
+    public void setStopTimeout(int stopTimeoutInMillis) {
+        this.stopTimeout = stopTimeoutInMillis;
     }
 
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {
 
         if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-            stream.onNext(message);
+            ringBufferProcessor.onNext(message);
         } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
             //TODO handle type conversion of payload to input type if possible
-            stream.onNext(message.getPayload());
+            ringBufferProcessor.onNext(message.getPayload());
         } else {
             throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
                     + "] or [" + message.getPayload().getClass() + "]");
@@ -143,12 +155,19 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
 
     @Override
     public void destroy() throws Exception {
-        Subscription processorSubscription = this.processorSubscription;
-        if(processorSubscription != null){
-            this.processorSubscription = null;
-            processorSubscription.cancel();
+        if (ringBufferProcessor != null) {
+            shutdownLatch = new CountDownLatch(1);
+            ringBufferProcessor.onComplete();
+            try {
+                shutdownLatch.await(stopTimeout, TimeUnit.MILLISECONDS);
+            }
+            catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            finally {
+                shutdownLatch = null;
+            }
         }
-
         Environment.terminate();
     }
 

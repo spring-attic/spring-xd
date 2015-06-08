@@ -67,11 +67,6 @@ public interface BusProperties {
 	public static final String COUNT = "count";
 
 	/**
-	 * The partition count.
-	 */
-	public static final String PARTITION_COUNT = "partitionCount";
-
-	/**
 	 * The consumer's partition index.
 	 */
 	public static final String PARTITION_INDEX = "partitionIndex";

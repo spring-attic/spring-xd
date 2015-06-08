@@ -89,7 +89,7 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 		// Not last
 		if (moduleIndex + 1 < streamModules.size()) {
 			ModuleDeploymentProperties nextProperties = deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
-			String count = nextProperties.get("count");
+			String count = nextProperties.get(ModuleDeploymentProperties.COUNT_KEY);
 			if (count != null) {
 				properties.put("producer." + BusProperties.NEXT_MODULE_COUNT, count);
 			}
@@ -101,23 +101,21 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 
 		// Partitioning
 		if (hasPartitionKeyProperty(properties)) {
+			// validate next module count if the stream is partitioned
 			try {
 				ModuleDeploymentProperties nextProperties =
 						deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
-
-				String count = nextProperties.get("count");
-				validateCountProperty(count, moduleDescriptor);
-				properties.put("producer." + BusProperties.PARTITION_COUNT, count);
+				validateCountPropertyForPartitioning(nextProperties.get(ModuleDeploymentProperties.COUNT_KEY), moduleDescriptor);
 			}
 			catch (IndexOutOfBoundsException e) {
 				logger.warn("Module '{}' is a sink module which contains a property " +
-						"of '{}' used for data partitioning; this feature is only " +
-						"supported for modules that produce data", moduleDescriptor,
+								"of '{}' used for data partitioning; this feature is only " +
+								"supported for modules that produce data", moduleDescriptor,
 						"producer.partitionKeyExpression");
-
 			}
 		}
 		else if (moduleIndex + 1 < streamModules.size()) {
+			// check for direct binding if the module is neither last nor partitioned
 			ModuleDeploymentProperties nextProperties = deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
 			/*
 			 *  A direct binding is allowed if all of the following are true:
@@ -169,7 +167,7 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 	 * @throws IllegalArgumentException if the value of the string
 	 *         does not consist of an integer > 1
 	 */
-	private void validateCountProperty(String count, ModuleDescriptor descriptor) {
+	private void validateCountPropertyForPartitioning(String count, ModuleDescriptor descriptor) {
 		Assert.hasText(count, String.format("'count' property is required " +
 				"in properties for module '%s' in order to support partitioning", descriptor));
 

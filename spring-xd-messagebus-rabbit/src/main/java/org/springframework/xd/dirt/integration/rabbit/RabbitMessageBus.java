@@ -626,7 +626,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		else {
 			queue.setExpressionRoutingKey(EXPRESSION_PARSER.parseExpression(buildPartitionRoutingExpression
 					(queueName)));
-			for (int i = 0; i < properties.getPartitionCount(); i++) {
+			// if the stream is partitioned, create one queue for each target partition
+			for (int i = 0; i < properties.getNextModuleCount(); i++) {
 				this.rabbitAdmin.declareQueue(new Queue(queueName + "-" + i));
 			}
 		}
@@ -872,7 +873,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		private SendingHandler(MessageHandler delegate, String replyTo, RabbitPropertiesAccessor properties) {
 			this.delegate = delegate;
 			this.replyTo = replyTo;
-			this.partitioningMetadata = new PartitioningMetadata(properties);
+			this.partitioningMetadata = new PartitioningMetadata(properties, properties.getNextModuleCount());
 			this.setBeanFactory(RabbitMessageBus.this.getBeanFactory());
 		}
 

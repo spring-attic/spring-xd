@@ -413,7 +413,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		private SendingHandler(MessageHandler delegate, String replyTo, RedisPropertiesAccessor properties) {
 			this.delegate = delegate;
 			this.replyTo = replyTo;
-			this.partitioningMetadata = new PartitioningMetadata(properties);
+			this.partitioningMetadata = new PartitioningMetadata(properties, properties.getNextModuleCount());
 			this.setBeanFactory(RedisMessageBus.this.getBeanFactory());
 		}
 

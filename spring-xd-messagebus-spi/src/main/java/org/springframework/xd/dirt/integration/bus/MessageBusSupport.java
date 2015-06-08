@@ -138,7 +138,6 @@ public abstract class MessageBusSupport
 
 	protected static final Set<Object> PRODUCER_PARTITIONING_PROPERTIES = new HashSet<Object>(
 			Arrays.asList(new String[] {
-				BusProperties.PARTITION_COUNT,
 				BusProperties.PARTITION_KEY_EXPRESSION,
 				BusProperties.PARTITION_KEY_EXTRACTOR_CLASS,
 				BusProperties.PARTITION_SELECTOR_CLASS,
@@ -964,12 +963,12 @@ public abstract class MessageBusSupport
 
 		private final int partitionCount;
 
-		public PartitioningMetadata(AbstractBusPropertiesAccessor properties) {
+		public PartitioningMetadata(AbstractBusPropertiesAccessor properties, int partitionCount) {
+			this.partitionCount = partitionCount;
 			this.partitionKeyExtractorClass = properties.getPartitionKeyExtractorClass();
 			this.partitionKeyExpression = properties.getPartitionKeyExpression();
 			this.partitionSelectorClass = properties.getPartitionSelectorClass();
 			this.partitionSelectorExpression = properties.getPartitionSelectorExpression();
-			this.partitionCount = properties.getPartitionCount();
 		}
 
 		public boolean isPartitionedModule() {

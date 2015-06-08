@@ -14,9 +14,24 @@ Modules are categorized by `type`, typically representing the role or function o
 
 * A job module implements a Spring Batch job enabled for Spring XD.
 
-Spring XD ships with a number of xref:Available-Modules#available-modules[pre-built modules] useful for assembling streams to perform common stream processing tasks using files, HDFS, Spark, Kafka, http, twitter, syslog, GemFire, and more. Users can easily assemble these modules into streams to build complex big data applications declaratively, without having to write Java code or know the underlying Spring products on which Spring XD is built.
+[[available-modules]]
+=== Available Modules
 
-However, if you are interested in developing your own modules, some knowledge of Spring, Spring Integration or Spring Batch is essential. The remainder of this document assumes the reader has some familiarity with these topics.
+Spring XD ships with a number of pre-packaged modules ready to use for running batch jobs or assembling streams to perform common stream processing tasks using files, HDFS, Spark, Kafka, http, twitter, syslog, GemFire, and more. You can easily assemble these modules into streams to build complex big data applications declaratively, without having to write Java code or know the underlying Spring products on which Spring XD is built. You can use these modules out of the box or as a basis for building your own custom modules. 
+
+==== Modules Included with Spring XD
+
+The following pages provide a detailed description, along with configuration options, and examples for all modules included in the Spring XD Distribution:
+
+* xref:Sources#sources[Sources]
+* xref:Processors#processors[Processors]
+* xref:Sinks#sinks[Sinks]
+* xref:Counters-and-Gauges#counters-and-gauges[Counters and Gauges]
+* xref:Jobs#jobs[Jobs]
+
+In addition to the standard modules included with the Spring XD distribution, you will find community-contributed modules in the https://github.com/spring-projects/spring-xd-modules[spring-xd-modules] GitHub repository.
+
+If you are looking for a technical deep dive or want to develop your own modules, the sections below contain the relevant details. If you are interested in developing your own modules, some knowledge of Spring, Spring Integration or Spring Batch is essential. The remainder of this document assumes the reader has some familiarity with these topics.
 
 [[creating-a-module]]
 === Creating a Module
@@ -77,9 +92,32 @@ As mentioned previously, a Spring XD module can be installed as an expanded dire
 
 [[creating-a-module-project]]
 ==== Creating a Module Project
-Spring XD (1.1.x or later) provides tools for creating a module project to test and package the module either with Maven or Gradle.
 
-===== Configuring your Maven build
+Spring XD (1.1.x or later) provides build tools for creating a module project to test and package the module either with xref:Modules#building-with-maven[Maven] or xref:Modules#building-with-gradle[Gradle]. As described in the above sections, the module jar must export any dependencies that are not provided by the Spring XD container. The build tools address these concerns, packaging your module as an uber jar by wrapping the http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-maven-plugin.html[Spring Boot Maven Plugin] or the http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-gradle-plugin.html[Spring Boot Gradle Plugin], respectively. The plugins are configured with The `MODULE` layout for Spring Boot packaging. This does not build an executable jar file, as is normally done, and ensures `provided` dependencies will not be included in the uber jar.
+
+In addition, the build tools provide Spring XD dependencies necessary to compile and test the module. Specifically, `spring-xd-dirt` and `spring-xd-test` provide some useful features for module development. As you would expect, the Spring XD versions match the specified parent pom or plugin version. These provide support for:
+
+* Java defined xref:ModuleOptionsMetadata#module-options-metadata[Module Options Metadata]
+* In-container testing - You can start an embedded single node container in a test class, create a stream designed to test your module using a Spring XD test framework, deploy the stream, and validate the results.
+
+[NOTE]
+====
+If your module has no additional dependencies, a plain old jar file conforming to the module layout shown above will work. In this case, you may still benefit from using the build tools to simplify development and testing.
+====
+
+[[module-dependency-management]]
+==== Module dependency management
+
+Normally a module should export only the dependencies not provided by the Spring XD runtime. Runtime dependencies provided by the module are loaded using a separate xref:Modules#module-class-loading[module class loader] when the module is deployed. This potentially can cause class version conflicts. Spring XD build tools are designed to prevent this and allow you to override the default exclusion rules if necessary. Generally we don't recommend this unless you have a specific requirement for an alternate version. If your module introduces version conflicts, you will see errors such as `ClassDefNotFoundException` or `NoSuchMethodError` when you deploy the module. If you encounter such errors, you should manually check the contents of `$XD_INSTALL_DIR/xd/lib` against the contents of the module jar, or use the dependency analysis tools provided by Maven or Gradle, and make the necessary changes to your build script.
+
+===== Porting to another Spring XD version
+
+A module project's build script is configured for a specific Spring XD version. With each new release of Spring XD, its runtime dependencies are subject to change and this directly affects which dependencies will be exported to the module jar. Deploying an existing module to a different Spring XD runtime version may result in version conflicts or unsatisfied dependencies. For this reason, _**we highly recommend that you rebuild any custom modules to match your target runtime environment.**_  In many cases, this is simply a matter of updating the spring XD version in your build.
+
+The details of dependency management depend on which build tool you are using. The sections on xref:Modules#building-with-maven[Building with Maven] or xref:Modules#building-with-gradle[Building with Gradle] provide more specifics. 
+
+[[building-with-maven]]
+==== Building with Maven
 
 Start by setting the parent to `spring-xd-module-parent` in your `pom.xml`:
 
@@ -91,17 +129,81 @@ Start by setting the parent to `spring-xd-module-parent` in your `pom.xml`:
   <!-- 1.1.x or later -->
   <version>1.1.2.RELEASE</version>
 </parent>
+<dependencies>
+...
+</dependencies>
+<repositories>
+...
+</repositories>
 ----
 
-Note that Maven requires the parent pom version to be hard coded. 
+[NOTE]
+====
+Maven requires the parent pom version to be hard coded. Hence, you must edit the build script to target an alternate version of 
+Spring XD.
+====
 
+To build the module:
 
-===== Configuring your Gradle build
+----
+$mvn clean package
+----
+
+The parent adds many of the transitive dependencies of `spring-xd-dirt` (provided) and `spring-xd-test`(test). Some transitive dependencies are excluded, such as Hadoop. Any easy way to determine what dependencies are included is to run a maven dependency goal, e.g.:
+
+----
+$mvn dependency:list 
+----
+
+Any provided dependencies need not be declared as a module dependency. In any case, they will be excluded from the module jar by default.
+
+If you must provide an alternate version of an existing Spring XD dependency, configure the Boot plugin explicitly in your pom to override the default, for example: 
+
+[source, xml]
+----
+<parent>
+  <groupId>org.springframework.xd</groupId>
+  <artifactId>spring-xd-module-parent</artifactId>
+  <version>...</version>
+</parent>
+<build>
+  <plugins>
+    <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+<!-- this is required to force the includes to come after the excludes and override -->
+            <excludes>
+                <exclude/>
+            </excludes>
+<!-- specify exactly what is included; transitive dependencies are not considered here -->
+            <includes>
+              <include>
+                <groupId>xmlpull</groupId>
+                <artifactId>xmlpull</artifactId>
+              </include>
+            </includes>
+          </configuration>
+        </plugin>
+      </plugins>
+     </build>
+
+    <dependencies>
+        <dependency>
+          <groupId>xmlpull</groupId>
+          <artifactId>xmlpull</artifactId>
+          <version>1.1.3.4d_b4_min</version>
+        </dependency>
+    </dependencies>
+----
+
+[[building-with-gradle]]
+==== Building with Gradle
 
 Start by creating a `gradle.properties` file defining `springXdVersion`. 
 
 ----
-springXdVersion = 1.1.2.RELEASE
+springXdVersion = [the Spring XD version]
 ----
 
 This property is required by the `spring-xd-module` plugin to resolve Spring XD dependencies, and to configure dependent libraries that your module project will need. This property should be used to reference the Spring XD version where needed. 
@@ -128,74 +230,19 @@ buildscript {
 apply plugin: 'spring-xd-module'
 ----
 
-[NOTE]
-====
-If your module has no additional dependencies, a plain old jar file conforming to the module layout shown above will work. In this case, you may still benefit from using these build tools to inherit common dependencies and automate tasks needed for in-container testing.
-====
+The plugin adds many of the transitive dependencies of `spring-xd-dirt` (provided) and `spring-xd-test`(test). Some transitive dependencies are excluded, such as Hadoop. Any easy way to determine what dependencies are included is to run one of Gradle's dependency tools, e.g.:
 
-These build tools provide the necessary Spring XD libraries to compile and test the module along with support for packaging your module as an uber jar, wrapping the respective Spring Boot plugin: http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-maven-plugin.html[Spring Boot Maven Plugin] or the http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-gradle-plugin.html[Spring Boot Gradle Plugin].
-
-As described in the above sections, the module jar must include any dependencies that are not provided by the Spring XD container. These are loaded at runtime by the module class loader when the module is deployed. Missing jars in the module's lib directory will result in the dreaded `ClassDefNotFoundException`. Conversely, the module should avoid exporting different versions of libraries which are already on the Spring XD class path as this can result in version conflicts and related class loading issues. Both build support tools configure the boot plugin with the `MODULE` layout and each is configured to exclude any artifacts that are already provided by Spring XD (which covers quite a lot). There are two basic rules:
-
-* The `MODULE` layout for Spring Boot packaging ensures `provided` dependencies will not be included in the uber jar. The Spring XD module tools declare `spring-xd-dirt` as a provided dependency, as some of its classes are needed for module development.
-* Any compile or runtime dependencies, transitive or explicitly declared, for the module will be excluded from the uber jar if they are also Spring XD runtime dependencies.
-
-
-The build support tools declare dependencies on `spring-xd-dirt` and `spring-xd-test` which provide some useful features for module development, including support for:
-
-* Java defined xref:ModuleOptionsMetadata#module-options-metadata[Module Options Metadata]
-* In-container module testing - start an embedded single node container, deploy your module and validate the results.
-
-[[module-dependency-management]]
-==== Module dependency management
-
-Runtime issues may arise if module dependencies conflict with those on the Spring XD classpath. This happens when a module declares a dependency using a different version of a jar provided by the Spring XD runtime. If the versions are the same, the build tools will ensure that these dependencies will not be exported to the module jar. However if the versions declared in your build are different, the dependencies will be exported and loaded by the module class loader. The tools are designed to permit you to override the version, but generally we don't recommend this unless you have a specific requirement to do so. If there are conflicting dependencies, your module may or may not work. Symptoms of version conflicts include `ClassDefNotFoundException` or `NoSuchMethodError` when you deploy the module.  If you encounter such errors, you should manually check the contents of `$XD_INSTALL_DIR/xd/lib` against the contents of the module jar, and make the necessary changes to your build script. Compile time dependencies must be declared in any case. If they are also on the Spring XD classpath they should be declared as `provided`. 
-
-As of Spring XD 1.2.0, the Maven `spring-xd-module-parent` pom includes a `dependencyManagement` section, so you need not specify a version for shared Spring XD dependencies when using Maven. Also, the Maven build requires some extra configuration to override versions of existing Spring XD dependencies: 
-
-[source, xml]
 ----
-<parent>
-  <groupId>org.springframework.xd</groupId>
-  <artifactId>spring-xd-module-parent</artifactId>
-  <version>...</version>
-</parent>
-<build>
-  <plugins>
-    <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <configuration>
-<!-- this is required to force the includes to come after the excludes and override -->
-            <excludes>
-                <exclude/>
-            </excludes>
-<!-- specify exactly what is included; again transitive dependencies are not included -->
-            <includes>
-              <include>
-                <groupId>xmlpull</groupId>
-                <artifactId>xmlpull</artifactId>
-              </include>
-            </includes>
-          </configuration>
-        </plugin>
-      </plugins>
-     </build>
-
-    <dependencies>
-        <dependency>
-          <groupId>xmlpull</groupId>
-          <artifactId>xmlpull</artifactId>
-          <version>1.1.3.4d_b4_min</version>
-        </dependency>
-    </dependencies>
+$./gradlew dependencies 
 ----
 
-Gradle requires you to specify a version, and will use the version you specify. However if you declare the dependency as `provided` Gradle will not export the dependency regardless of the version. 
+To build the module:
 
-===== Porting to another Spring XD version
+----
+$./gradlew clean build
+----
 
-As we have seen, a module project's build script is configured for a specific Spring XD version. With each new release of Spring XD, its runtime dependencies are subject to change and this directly affects which dependencies will be exported to the module jar and may result in version conflicts or unsatisfied dependencies. For this reason, _**we highly recommend that you rebuild any custom modules to match your target runtime environment.**_  In many cases, this is simply a matter of updating the spring XD version in your build. For example, if using Gradle, as discussed above, we recommend defining the required  `springXdVersion` property in `gradle.properties`. Then you may override this value on the command line without making any changes to the build script. For example, 
+This configuration allows you to override `springXdVersion` on the command line:
 
 ----
 $./gradlew clean build -PspringXdVersion=1.2.0.BUILD-SNAPSHOT
@@ -203,39 +250,36 @@ $./gradlew clean build -PspringXdVersion=1.2.0.BUILD-SNAPSHOT
 
 [NOTE]
 ====
-Overriding the property on the Gradle command line does not work if the property is hard coded in `build.gradle` itself, e.g., in an `ext` closure.
+Overriding the property on the Gradle command line does not work if the `springXdVersion` is hard coded in `build.gradle` itself, e.g., in an `ext` closure.
 ====
 
-[NOTE]
-====
-If using Maven, the module build script must be modified to change the parent pom version, since Maven does not support the use of properties in this case.
-====
 
-In rare cases, other version changes may be required. For example, your module may declare compile or runtime dependencies that have since been added to the target Spring XD release. 
 
+If you must provide an alternate version of an existing Spring XD dependency, override the `exported` configuration and the `configureModule` task in build.gradle, for example: 
+
+----
+dependencies {
+    ...
+    exported "org.springframework.integration:spring-integration-xml:${springIntegrationVersion}"
+    exported "org.springframework.ws:spring-xml:${springWsVersion}"
+}
+
+task configureModule(overwrite:true){
+  configurations {
+    exported {
+        transitive = false
+        exclude group:'org.springframework.xd'
+    }
+  }
+}
+----
+ 
 [[testing-a-module]]
 ==== Testing a Module Project
 
 The sections xref:Creating-A-Source-Module[Creating a Source Module], xref:Creating-A-Processor-Module[Creating a Processor Module], xref:Creating-A-Sink-Module[Creating a Sink Module], and xref:Creating-A-Job-Module[Creating a Job Module] each reference working examples of custom module projects including in-container tests.
 
-To build the module:
-----
-$mvn clean package
-----
-
-or
-
-----
-$./gradlew clean build
-----
-
-[NOTE]
-====
-Spring XD does not parse any embedded version in the jar name, a la Maven. `myModule-v1.jar` resolves to module named `myModule-v1`.
-====
-
 See the https://github.com/spring-projects/spring-xd-samples/tree/master/si-dsl-module[si-dsl-module example] for a complete working example.
-
 
 [[registering-a-module]]
 === Registering a Module
@@ -304,13 +348,16 @@ xd:
 
 Files will be replicated on the local filesystem in a temporary directory, on demand and loaded from there. The XD Admin process will need to have write access to that shared HDFS directory. Intermediary paths (`/root/path/of/registry` in the example above) are created at startup if they don't exist yet.
 
+[[module-class-loading]]
 === Module Class Loading
 
 Modules use a separate class loader that will first load classes from jars in the module's `/lib` (and any class files located in the module's root path). If not found, the class will be loaded from the parent ClassLoader that Spring XD normally uses (which includes everything under _$XD_HOME/lib_). Still, there are a couple of caveats to be aware of:
 
 * Avoid putting into the module's _lib/_ directory any jar files that are already in Spring XD's class path or you may end up with ClassCastExceptions or other class loading issues.
 
-* When using local transport, any class that is directly or indirectly referenced from the payload type of your messages (__i.e.__ any type in transit from module to module) must be referenced by both the producing and consuming modules and thus should be installed into _xd/lib_.
+* When not using local transport, any class that is directly or indirectly referenced from the payload type of your messages (__i.e.__ any type in transit from module to module) must be referenced by both the producing and consuming modules and thus should be installed into _xd/lib_.
+
+* Occasionally, a class's dependencies are not resolved correctly even though all the required jars appear to be on the module classpath. Consider a scenario in which class A depends on class B, and B depends on class C. If A and C are visible to the module class loader but only B is visible to the parent class loader, then you will get a `ClassDefNotFoundException` for class C if it has not already been loaded, because the parent class loader cannot resolve C. Unfortunately, an automated strategy to resolve this situation is difficult. A workaround is to install the jar containing class C into _xd/lib_.
 
 ==== Dynamic Module ClassLoader
 Starting with Spring XD 1.2, a module can selectively add libraries from paths that are derived from module options. The aim is to support alternate implementations in the same module. This works like the following:

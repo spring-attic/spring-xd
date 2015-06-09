@@ -198,9 +198,9 @@ The satisfies the contract to have single threaded access to a Subject.  Another
 [[spark-streaming]]
 === Spark streaming
 
-Spring XD integrates with Spark streaming so that the streaming data computation logic can be run on a **spark cluster**. Spring XD runs the `Spark Driver` as an XD module (processor or sink) in the XD container while the Spark streaming `reliable receiver` and the data computation is done at the `Spark Cluster`.
+Spring XD integrates with Spark streaming so that the streaming data computation logic can be run on a **Spark cluster**. Spring XD runs the `Spark Driver` as an XD module (processor or sink) in the XD container while the Spark streaming `reliable receiver` and the data computation is done at the `Spark Cluster`.
 
-This provides advantage over connecting to various streaming sources while running the computation logic on spark cluster. Running the spark driver on the XD container also provides automatic failover capabilities in case of driver failure. 
+This provides advantage over connecting to various streaming sources while running the computation logic on Spark cluster. Running the spark driver on the XD container also provides automatic failover capabilities in case of driver failure.
 
 With Spark Streaming, events are processed at the `micro batch level` via DStreams, which represent a continuous flow of partitioned RDDs. Setting up a Spark Streaming module within XD can be beneficial when adding streaming data computation logic for a `tapped` XD stream. While the primary stream processes events one at a time (through the regular XD modules), the tapped stream will become a `source` for the Spark Streaming module.
 
@@ -208,12 +208,18 @@ Lets discuss a real world scenario of data collection and doing some analytics o
 
 ```
 stream create mainstream --definition "mqtt | filter1: <some filtering> | hdfs"  
-stream create sparkstream1 --definition "tap:mainstream:filter1 > spark-streaming-processor-module1 | <some XD sink>"
-stream create sparkstream2 --definition "tap:mainstream:filter1 > spark-streaming-processor-module2 | spark-streaming-sinkmodule1"
-stream create sparkstream3 --definition "tap:mainstream:filter1 > spark-streaming-sinkmodule2"
+stream create sparkstream1 --definition "tap:stream:mainstream.filter1 > <some XD sink>"
+stream create sparkstream2 --definition "tap:stream:mainstream.filter1 > spark-streaming-processor-module2 | spark-streaming-sinkmodule1"
+stream create sparkstream3 --definition "tap:stream:mainstream.filter1 > spark-streaming-sinkmodule2"
 ```
 In the above set of streams, consider a primary stream that collects data `one at a time` from various sensors and stores that `raw` data into HDFS, after only same basic filtering. At the same time, there are a few other streams that perform analytics on the data being collected at `micro-batch level`. Here, the tapped stream’s source can be reliable or durable based on the `messagebus` implementation, and this data is processed (at the micro batch level) by the Spark Streaming module. This allows the developer to choose the stream data processing based on the use case.
 
+One can also add a `tap` at the output of the Spark streaming `processor` module.
+For instance, adding a tap at the output of `sparkstream2`'s Spark stream processor would be:
+
+```
+stream create tapSparkStream --definition "tap:stream:sparkstream2.spark-streaming-processor-module2 > <some XD sink>"
+```
 ==== Writing a spark streaming module
 
 Spring XD provides **Java** and **Scala** based interfaces which expose a `process` method that the spark streaming developer would implement. This method processes the input DStream received by the spark streaming `receiver`. In case of XD processor module this method would return an output DStream. In case of XD sink module, it would write the computed data into file system, HDFS etc., (for example saveAsTextFiles(), saveAsHadoopFiles() using Spark APIs).
@@ -270,7 +276,7 @@ If you are using **Java7** to run Spring XD, then make sure to set the **JAVA_OP
 
 ==== How this works
 
-When a spark streaming processor (a processor or a sink) that implements `Processor` interface above is deployed, the `SparkDriver` sets up the streaming context and runs as an XD module inside the **XD container**. 
+When a Spark streaming processor (a processor or a sink) that implements `Processor` interface above is deployed, the `SparkDriver` sets up the streaming context and runs as an XD module inside the **XD container**.
 
 This sets up Spark streaming receiver (in case of processor and sink) in spark cluster that connects to XD upstream module's output channel in the message bus. Also note that this receiver is a `reliable` Spark streaming receiver (if you use `rabbit` or `kafka` as message-bus) out of the box. This is implemented using manual acknowledgement and explicit offset management on Rabbit and Kafka respectively.
 The `MessageBusReceiver` makes the incoming messages available for the computation in spark cluster as DStreams. If the streaming module is of XD processor type then the computed messages are pushed to the downstream module by `MessageBusSender`. The MessageBusSender binds to the downstream module's input channel which subsequently connects to any of the XD processor or sink modules.
@@ -279,9 +285,10 @@ It is important to note that the MessageBusReceiver, streaming processor computa
 
 image::images/sparkstreaming.png[Spring XD spark streaming modules and data partitioning, width=500]
 
-==== Data loss and recovery
+==== Failover and recovery
 
-The current implementation of the spark streaming supports `automatic failover` capability on `spark driver failure` by re-deploying the spark streaming module but the streaming receiver (MessageBus receiver)  implementation `isn't reliable` yet. (There could be data loss in case of receiver worker node failure). In the upcoming release, we will have a reliable receiver https://jira.spring.io/browse/XD-2748[implementation].
+Spark streaming integration supports `automatic failover` capability on `spark driver failure`. In case of driver module failure, the module will get automatically re-deployed spark ailable XD container.
+Also, the underlying Spark streaming receiver is a `reliable` receiver when using `RabbitMQ` or `Kafka` as the messagebus. This will make sure all the messages are always acknowledged and processed reliably in Spark.
 
 ==== Module Type Conversion
 

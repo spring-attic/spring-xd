@@ -178,7 +178,6 @@ xd:
 #      offsetStoreRequiredAcks:                 1
 #      offsetStoreMaxFetchSize:                 1048576
 #      offsetStoreBatchBytes:                   16384
-#      offsetStoreBatchEnabled:                 false
 #      offsetStoreBatchTime:                    1000
 #      offsetUpdateTimeWindow:                  10000
 #      offsetUpdateCount:                       0

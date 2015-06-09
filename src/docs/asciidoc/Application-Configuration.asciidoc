@@ -308,7 +308,7 @@ will be attempted repeatedly, with no termination. Also see `republishToDLQ`
 [[kafkaConfig]]
 
 If you want to use Kafka as a data transport, the following connection settings, as well as defaults for the kafka
-message bus can be modified in `servers.yml`.
+message bus can be modified in `servers.yml`. Starting with release 1.2, Spring XD only supports Kafka 0.8.2 or higher.
 
 NOTE: To ensure the proper functioning of the Kafka Message Bus, you must eanble log cleaning in your Kafka
 configuration.  This is set using the configuration variable `log.cleaner.enable=true`.
@@ -318,7 +318,7 @@ configuration options for log cleaning.
 NOTE: At this time, the Kafka message bus does not support job processing.
 
 NOTE: The Kafka message bus does not support `count=0` for module deployments, and therefore, it does not support
-direct binding of modules. This feature will be available in a future release. In the mean time, if direct communication
+direct binding of modules. This feature will be available in a future release. In the meantime, if direct communication
  between modules is necessary for Kafka deployments, xref:Modules#composing-modules[composite modules] should be used instead.
 
 [source,yaml]

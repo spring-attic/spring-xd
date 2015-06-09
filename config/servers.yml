@@ -71,7 +71,6 @@
 #      brokers:                                 localhost:9092
 #      zkAddress:                               localhost:2181
 #      mode:                                    embeddedHeaders
-#      numOfKafkaPartitionsForCountEqualsZero:  10
 #      socketBufferSize:                        2097152
 #      offsetStoreTopic:                        SpringXdOffsets
 #      offsetStoreSegmentSize:                  25000000
@@ -79,7 +78,6 @@
 #      offsetStoreRequiredAcks:                 1
 #      offsetStoreMaxFetchSize:                 1048576
 #      offsetStoreBatchBytes:                   16384
-#      offsetStoreBatchEnabled:                 false
 #      offsetStoreBatchTime:                    1000
 #      offsetUpdateTimeWindow:                  10000
 #      offsetUpdateCount:                       0

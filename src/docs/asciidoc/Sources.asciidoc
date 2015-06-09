@@ -3,7 +3,6 @@
 [[sources]]
 == Sources
 
-=== Introduction
 This section describes the _source_ modules included with Spring XD. A source implements a data provider to originate a stream. To run the examples shown here, start the XD Container as instructed in the
 xref:Getting-Started#getting-started[Getting Started] page.
 

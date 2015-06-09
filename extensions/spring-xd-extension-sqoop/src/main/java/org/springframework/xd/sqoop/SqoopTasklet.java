@@ -28,6 +28,7 @@ import org.springframework.batch.step.tasklet.x.ClasspathEnvironmentProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.util.StringUtils;
 
 /**
  * Tasklet used for running Sqoop tool.
@@ -75,7 +76,13 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 	@Override
 	protected List<String> createCommand() {
 		List<String> command = new ArrayList<String>();
-		command.add("java");
+		String javaHome = System.getenv("JAVA_HOME");
+		if (StringUtils.hasText(javaHome)) {
+			command.add(javaHome + "/bin/java");
+		}
+		else {
+			command.add("java");
+		}
 		command.add(SQOOP_RUNNER_CLASS);
 		command.addAll(Arrays.asList(arguments));
 		Iterator<PropertySource<?>> i = environment.getPropertySources().iterator();

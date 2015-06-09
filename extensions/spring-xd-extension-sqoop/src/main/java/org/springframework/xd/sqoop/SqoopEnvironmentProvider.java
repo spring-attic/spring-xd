@@ -18,6 +18,7 @@ package org.springframework.xd.sqoop;
 
 import org.springframework.batch.step.tasklet.x.EnvironmentProvider;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
@@ -36,6 +37,10 @@ public class SqoopEnvironmentProvider implements EnvironmentProvider {
 
 	@Override
 	public void setEnvironment(Map<String, String> env) {
+		String javaHome = System.getenv("JAVA_HOME");
+		if (StringUtils.hasText(javaHome)) {
+			env.put("JAVA_HOME", javaHome);
+		}
 		env.put("SQOOP_CONF_DIR", environment.getProperty(XD_CONFIG_HOME));
 	}
 

@@ -76,9 +76,9 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
 
     private final Class<?> inputType;
 
-    private volatile CountDownLatch shutdownLatch;
-
     private int stopTimeout = 5000;
+
+    private int ringBufferSize = 8192;
 
     /**
      * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
@@ -89,12 +89,11 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
     @SuppressWarnings({"unchecked", "rawtypes"})
     public BroadcasterMessageHandler(Processor processor) {
         Assert.notNull(processor, "processor cannot be null.");
-        Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
 
         this.inputType = ReactorReflectionUtils.extractGeneric(processor);
 
         //Stream with a RingBufferProcessor
-        this.ringBufferProcessor = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
+        this.ringBufferProcessor = RingBufferProcessor.share("xd-reactor", ringBufferSize);
 
         //user defined stream processing
         Publisher<?> outputStream = processor.process(Streams.wrap(ringBufferProcessor));
@@ -119,14 +118,6 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
                 //Simple log error handling
                 logger.error(throwable);
             }
-
-            @Override
-            public void onComplete() {
-                CountDownLatch latch = shutdownLatch;
-                if (latch != null) {
-                    latch.countDown();
-                }
-            }
         });
     }
 
@@ -137,6 +128,17 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
      */
     public void setStopTimeout(int stopTimeoutInMillis) {
         this.stopTimeout = stopTimeoutInMillis;
+    }
+
+    /**
+     * The size of the RingBuffer, must be a power of 2.  Default is 8192.
+     *
+     * @param ringBufferSize size of the RingBuffer.
+     */
+    public void setRingBufferSize(int ringBufferSize) {
+        Assert.isTrue(ringBufferSize> 0 && Integer.bitCount(ringBufferSize) == 1,
+                "'ringBufferSize' must be a power of 2 ");
+        this.ringBufferSize = ringBufferSize;
     }
 
     @Override
@@ -156,19 +158,8 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
     @Override
     public void destroy() throws Exception {
         if (ringBufferProcessor != null) {
-            shutdownLatch = new CountDownLatch(1);
-            ringBufferProcessor.onComplete();
-            try {
-                shutdownLatch.await(stopTimeout, TimeUnit.MILLISECONDS);
-            }
-            catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            finally {
-                shutdownLatch = null;
-            }
+            ringBufferProcessor.awaitAndShutdown(stopTimeout, TimeUnit.MILLISECONDS);
         }
-        Environment.terminate();
     }
 
 

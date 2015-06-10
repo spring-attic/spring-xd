@@ -15,12 +15,18 @@
  */
 package org.springframework.xd.reactor;
 
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
+
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -32,19 +38,11 @@ import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
+
 import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
-import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
-import reactor.rx.broadcast.Broadcaster;
-
-import java.lang.reflect.Method;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -81,6 +79,10 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
     @SuppressWarnings("rawtypes")
     private final Processor processor;
 
+    private final Environment environment;
+
+    private int stopTimeout = 5000;
+
     private final Class<?> inputType;
 
     private final Expression partitionExpression;
@@ -103,9 +105,18 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
 
         // This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
-        Environment.initializeIfEmpty();
+        environment = new Environment().assignErrorJournal();
 
         this.inputType = ReactorReflectionUtils.extractGeneric(processor);
+    }
+
+    /**
+     * Time in milliseconds to wait when shutting down the processor, waiting on a latch inside
+     * the onComplete method of the subscriber.  Default is 5000 milliseconds
+     * @param stopTimeoutInMillis time to wait when shutting down the processor.
+     */
+    public void setStopTimeout(int stopTimeoutInMillis) {
+        this.stopTimeout = stopTimeoutInMillis;
     }
 
     @Override
@@ -134,7 +145,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
             if (existingReactiveProcessor == null) {
                 reactiveProcessor = reactiveProcessorMap.get(idToUse);
                 //user defined stream processing
-                Publisher<?> outputStream = processor.process(Streams.wrap(reactiveProcessor));
+                Publisher<?> outputStream = processor.process(Streams.wrap(reactiveProcessor).env(environment));
 
                 outputStream.subscribe(new DefaultSubscriber<Object>() {
                     Subscription s;
@@ -177,10 +188,10 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     @Override
     public void destroy() throws Exception {
-        for (Subscription subscription : controlsMap.values()) {
-            subscription.cancel();
+        for (RingBufferProcessor ringBufferProcessor : reactiveProcessorMap.values()) {
+            ringBufferProcessor.awaitAndShutdown(stopTimeout, TimeUnit.MILLISECONDS);
         }
-        Environment.terminate();
+        environment.shutdown();
     }
 
     @Override

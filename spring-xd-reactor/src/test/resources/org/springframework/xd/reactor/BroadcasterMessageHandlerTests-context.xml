@@ -16,5 +16,10 @@
         <constructor-arg ref="stringProcessor"/>
     </bean>
 
+    <bean name="reactorRawTypeHandler" class="org.springframework.xd.reactor.BroadcasterMessageHandler">
+        <constructor-arg ref="rawTypeProcessor"/>
+    </bean>
+
+
 
 </beans>

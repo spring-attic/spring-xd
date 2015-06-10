@@ -34,6 +34,7 @@ import org.springframework.core.env.PropertyResolver;
 import org.springframework.core.env.PropertySourcesPropertyResolver;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
@@ -174,7 +175,14 @@ public class ModuleUtils {
 							.arrayToCommaDelimitedString(resources));
 				}
 				else if (resources.length == 1) {
-					return resources[0];
+					// Convert from ClassPathResource to UrlResource, as CPR.getInputStream()
+					// will apply caching, which we don't want we re-deploying. See XD-3141
+					Resource resource = resources[0];
+					if (resource instanceof ClassPathResource) {
+						return new UrlResource(resource.getURL());
+					} else {
+						return resource;
+					}
 				}
 			}
 			catch (IOException e) {

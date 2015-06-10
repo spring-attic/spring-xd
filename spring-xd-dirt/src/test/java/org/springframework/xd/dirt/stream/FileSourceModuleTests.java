@@ -43,6 +43,7 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.splitter.FileSplitter;
+import org.springframework.integration.file.splitter.FileSplitter.FileMarker;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.ContentTypeResolver;
@@ -229,6 +230,89 @@ public class FileSourceModuleTests extends StreamTestSupport {
 	}
 
 	@Test
+	public void testLinesModeWithMarkersTrue() throws IOException {
+		deployStream(
+				"textLineWithEmitMarkersTrue",
+				"file --mode=lines --withMarkers=true --dir=" + sourceDirName + " --fixedDelay=0 | sink");
+		MessageTest test = new MessageTest() {
+
+			private AtomicInteger counter = new AtomicInteger(0);
+
+			private FileMarker startFileMarker = null;
+
+			private FileMarker endFileMarker = null;
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				if (message.getPayload() instanceof FileMarker) {
+					final FileMarker fileMarker = (FileMarker) message.getPayload();
+					if (FileMarker.Mark.START.equals(fileMarker.getMark())) {
+						startFileMarker = fileMarker;
+					}
+					else if (FileMarker.Mark.END.equals(fileMarker.getMark())) {
+						endFileMarker = fileMarker;
+					}
+				}
+				else {
+					assertTrue("Extected a String", message.getPayload() instanceof String);
+					assertEquals("foo", message.getPayload());
+					assertEquals("foo1.txt", message.getHeaders().get(FileHeaders.FILENAME, String.class));
+					counter.incrementAndGet();
+				}
+			}
+
+			@Override
+			public boolean getMessageHandled() {
+				if (counter.get() == 10 && startFileMarker != null && endFileMarker != null) {
+					super.messageHandled = true;
+				}
+				return super.messageHandled;
+			}
+
+		};
+		StreamTestSupport.getSinkInputChannel("textLineWithEmitMarkersTrue").subscribe(test);
+		dropFile("foo1.txt", 10);
+		test.waitForCompletion(3000);
+		undeployStream("textLineWithEmitMarkersTrue");
+		assertTrue(test.getMessageHandled());
+
+	}
+
+	@Test
+	public void testRefModeWithWithMarkersTrue() throws IOException {
+		try {
+			deployStream(
+					"refWithMarkersTrue",
+					"file --mode=ref --withMarkers=true --dir=" + sourceDirName + " --fixedDelay=0 | sink");
+		}
+		catch (ModuleConfigurationException e) {
+			String expectation = "withMarkers can only be supplied when FileReadingMode is 'lines'";
+			assertTrue("Expected the exception to contain: " + expectation, e.getMessage().contains(expectation));
+			return;
+		}
+
+		fail("Was expecting a 'ModuleConfigurationException' to be thrown.");
+
+	}
+
+	@Test
+	public void testRefModeWithWithMarkersFalse() throws IOException {
+		try {
+			deployStream(
+					"refWithMarkersTrue",
+					"file --mode=ref --withMarkers=false --dir=" + sourceDirName + " --fixedDelay=0 | sink");
+		}
+		catch (ModuleConfigurationException e) {
+			String expectation = "withMarkers can only be supplied when FileReadingMode is 'lines'";
+			assertTrue("Expected the exception to contain: " + expectation, e.getMessage().contains(expectation));
+			return;
+		}
+
+		fail("Was expecting a 'ModuleConfigurationException' to be thrown.");
+
+	}
+
+	@Test
 	public void testTextLineModeWithIncorrectMode() throws IOException {
 		try {
 			deployStream(
@@ -256,6 +340,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 		props.setProperty("fixedDelay", "5");
 		props.setProperty("timeUnit", "SECONDS");
 		props.setProperty("initialDelay", "0");
+		props.setProperty("withMarkers", "false");
 		PropertiesPropertySource pps = new PropertiesPropertySource("props", props);
 		env.getPropertySources().addLast(pps);
 		env.setActiveProfiles("use-contents-with-split");

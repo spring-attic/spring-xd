@@ -1,19 +1,61 @@
 == Connecting to Kerberized Hadoop
 
-If you have enabled Kerberos security in your Hadoop cluster it is possible to connect XD Shell, hdfs and hdfs-dataset sinks to it.
+If you have enabled Kerberos security in your Hadoop cluster it is possible to connect Spring XD's sink and job modules to it as well as the XD Shell.
 
-`hadoop.properties`
+=== Spring XD Admin and Container
+
+For XD Admin and Container you can either add the needed properties in `xd/config/servers.yml` or in `xd/config/hadoop.properties`.
+
+We'll show an example of both files here (you only need to add this in one of them of course):
+
+`xd/config/servers.yml`
+[source,text]
+----
+---
+# Hadoop properties
+spring:
+  hadoop:
+    fsUri: hdfs://hadoop.example.com:8020
+    resourceManagerHost: hadoop.example.com
+    resourceManagerPort: 8032
+    jobHistoryAddress: hadoop.example.com:10020
+    security:
+      authMethod: kerberos
+      userPrincipal: springxd@EXAMPLE.COM
+      userKeytab: /home/springxd/springxd.keytab
+      namenodePrincipal: hdfs/hadoop.example.com@EXAMPLE.COM
+      rmManagerPrincipal: yarn/hadoop.example.com@EXAMPLE.COM
+    config:
+      mapreduce.jobhistory.principal: mapred/hadoop.example.com@EXAMPLE.COM
+
+---
+----
+
+`xd/config/hadoop.properties`
 [source,text]
 ----
 hadoop.security.authorization=true
 spring.hadoop.security.authMethod=kerberos
-spring.hadoop.security.userKeytab=/path/to/user.keytab
-spring.hadoop.security.userPrincipal=user/host
-spring.hadoop.security.namenodePrincipal=hdfs/host@DOMAIN
-spring.hadoop.security.rmManagerPrincipal=yarn/host@DOMAIN
+spring.hadoop.security.userKeytab=/home/springxd/springxd.keytab
+spring.hadoop.security.userPrincipal=springxd@EXAMPLE.COM
+spring.hadoop.security.namenodePrincipal=hdfs/hadoop.example.com@EXAMPLE.COM
+spring.hadoop.security.rmManagerPrincipal=yarn/hadoop.example.com@EXAMPLE.COM
+spring.hadoop.config.mapreduce.jobhistory.principal=mapred/hadoop.example.com@EXAMPLE.COM
 ----
 
-For both XD Container and XD Shell the config file is `config/hadoop.properties`.
+=== Spring Shell
+
+For the XD Shell the config file is `/shell/config/hadoop.properties`.
+
+`xd/config/hadoop.properties`
+[source,text]
+----
+hadoop.security.authorization=true
+spring.hadoop.security.authMethod=kerberos
+spring.hadoop.security.userKeytab=/home/springxd/springxd.keytab
+spring.hadoop.security.userPrincipal=springxd@EXAMPLE.COM
+spring.hadoop.security.namenodePrincipal=hdfs/hadoop.example.com@EXAMPLE.COM
+----
 
 === Setting Principals
 Principals for `spring.hadoop.security.namenodePrincipal` and `spring.hadoop.security.rmManagerPrincipal` would equal what are in use in Hadoop cluster.

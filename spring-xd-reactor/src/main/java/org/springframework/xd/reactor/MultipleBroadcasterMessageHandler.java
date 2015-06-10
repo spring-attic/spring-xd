@@ -15,36 +15,27 @@
  */
 package org.springframework.xd.reactor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.core.ResolvableType;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
-import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
-import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
-import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
-import reactor.rx.broadcast.Broadcaster;
 
-import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -65,23 +56,18 @@ import java.util.concurrent.ConcurrentMap;
  * <p/>
  * All error handling is the responsibility of the processor implementation.
  *
+ * The default RingBuffer size is set to 64.
+ *
  * @author Mark Pollack
  * @author Stephane Maldini
  */
-public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingHandler implements DisposableBean,
-        IntegrationEvaluationContextAware {
-
-    protected final Log logger = LogFactory.getLog(getClass());
+public class MultipleBroadcasterMessageHandler extends AbstractReactorMessageHandler implements IntegrationEvaluationContextAware {
 
     private final ConcurrentMap<Object, RingBufferProcessor<Object>> reactiveProcessorMap =
             new ConcurrentHashMap<Object, RingBufferProcessor<Object>>();
 
-    private final Map<Object, Subscription> controlsMap = new Hashtable<Object, Subscription>();
-
     @SuppressWarnings("rawtypes")
     private final Processor processor;
-
-    private final Class<?> inputType;
 
     private final Expression partitionExpression;
 
@@ -90,8 +76,8 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
     private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
     /**
-     * Construct a new SynchronousDispatcherMessageHandler given the reactor based Processor to delegate
-     * processing to.
+     * Construct a new MessageHandler given the reactor based Processor to delegate
+     * processing to and a partition expression.
      *
      * @param processor The stream based reactor processor
      */
@@ -101,24 +87,14 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         Assert.notNull(partitionExpression, "Partition expression can not be null");
         this.processor = processor;
         this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
-
-        // This by default create no dispatcher but provides for Timer if buffer(1, TimeUnit.Seconds) or similar is used
-        Environment.initializeIfEmpty();
-
         this.inputType = ReactorReflectionUtils.extractGeneric(processor);
+        setRingBufferSize(64);
     }
 
     @Override
     protected void handleMessageInternal(Message<?> message) {
         RingBufferProcessor<Object> reactiveProcessorToUse = getReactiveProcessor(message);
-        if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-            reactiveProcessorToUse.onNext(message);
-        } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
-            reactiveProcessorToUse.onNext(message.getPayload());
-        } else {
-            throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
-                    + "] or [" + message.getPayload().getClass() + "]");
-        }
+        invokeProcessor(message, reactiveProcessorToUse);
     }
 
     @SuppressWarnings("unchecked")
@@ -130,43 +106,14 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
         RingBufferProcessor<Object> reactiveProcessor = reactiveProcessorMap.get(idToUse);
         if (reactiveProcessor == null) {
             RingBufferProcessor<Object> existingReactiveProcessor =
-                    reactiveProcessorMap.putIfAbsent(idToUse, RingBufferProcessor.share("xd-reactor-partition-" + idToUse, 64));
+                    reactiveProcessorMap.putIfAbsent(idToUse,
+                            RingBufferProcessor.share("xd-reactor-partition-" + idToUse, getRingBufferSize()));
             if (existingReactiveProcessor == null) {
                 reactiveProcessor = reactiveProcessorMap.get(idToUse);
                 //user defined stream processing
-                Publisher<?> outputStream = processor.process(Streams.wrap(reactiveProcessor));
+                Publisher<?> outputStream = processor.process(Streams.wrap(reactiveProcessor).env(getEnvironment()));
 
-                outputStream.subscribe(new DefaultSubscriber<Object>() {
-                    Subscription s;
-
-                    @Override
-                    public void onSubscribe(Subscription s) {
-                        this.s = s;
-                        controlsMap.put(idToUse, s);
-                        s.request(Long.MAX_VALUE);
-                    }
-
-                    @Override
-                    public void onNext(Object outputObject) {
-                        if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-                            getOutputChannel().send((Message) outputObject);
-                        } else {
-                            getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        logger.error(throwable);
-                        reactiveProcessorMap.remove(idToUse);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        logger.error("Consumer completed for [" + s + "]");
-                        reactiveProcessorMap.remove(idToUse);
-                    }
-                });
+                outputStream.subscribe(new ChannelForwardingSubscriber());
 
             } else {
                 reactiveProcessor = existingReactiveProcessor;
@@ -177,14 +124,15 @@ public class MultipleBroadcasterMessageHandler extends AbstractMessageProducingH
 
     @Override
     public void destroy() throws Exception {
-        for (Subscription subscription : controlsMap.values()) {
-            subscription.cancel();
+        for (RingBufferProcessor ringBufferProcessor : reactiveProcessorMap.values()) {
+            ringBufferProcessor.awaitAndShutdown(getStopTimeout(), TimeUnit.MILLISECONDS);
         }
-        Environment.terminate();
+        getEnvironment().shutdown();
     }
 
     @Override
     public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
         this.evaluationContext = evaluationContext;
     }
+
 }

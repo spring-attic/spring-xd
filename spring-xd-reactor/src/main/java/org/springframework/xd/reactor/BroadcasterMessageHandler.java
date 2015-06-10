@@ -15,24 +15,19 @@
  */
 package org.springframework.xd.reactor;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
 import reactor.rx.action.support.DefaultSubscriber;
 
-import static org.springframework.util.ReflectionUtils.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -63,20 +58,11 @@ import static org.springframework.util.ReflectionUtils.*;
  * All error handling is the responsibility of the processor implementation.
  *
  * @author Mark Pollack
- * @author Stephane Maldini
+ * @author Stephane Malbdini
  */
-public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  implements DisposableBean {
+public class BroadcasterMessageHandler extends AbstractReactorMessageHandler {
 
-    protected final Log logger = LogFactory.getLog(getClass());
-
-    private final RingBufferProcessor<Object> stream;
-
-    @SuppressWarnings("rawtypes")
-    private final Processor reactorProcessor;
-
-    private final Class<?> inputType;
-
-    private Subscription processorSubscription;
+    private final RingBufferProcessor<Object> ringBufferProcessor;
 
     /**
      * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
@@ -87,69 +73,29 @@ public class BroadcasterMessageHandler extends AbstractMessageProducingHandler  
     @SuppressWarnings({"unchecked", "rawtypes"})
     public BroadcasterMessageHandler(Processor processor) {
         Assert.notNull(processor, "processor cannot be null.");
-        this.reactorProcessor = processor;
-        Environment.initializeIfEmpty(); // This by default uses SynchronousDispatcher
 
         this.inputType = ReactorReflectionUtils.extractGeneric(processor);
 
         //Stream with a RingBufferProcessor
-        this.stream = RingBufferProcessor.share("xd-reactor", 8192); //todo expose the backlog size in module conf
+        this.ringBufferProcessor = RingBufferProcessor.share("xd-reactor", getRingBufferSize());
 
         //user defined stream processing
-        Publisher<?> outputStream = processor.process(Streams.wrap(stream));
+        Publisher<?> outputStream = processor.process(Streams.wrap(ringBufferProcessor).env(getEnvironment()));
 
-        outputStream.subscribe(new DefaultSubscriber<Object>() {
-            @Override
-            public void onSubscribe(Subscription s) {
-                processorSubscription = s;
-                s.request(Long.MAX_VALUE);
-            }
-
-            @Override
-            public void onNext(Object outputObject) {
-                if (ClassUtils.isAssignable(Message.class, outputObject.getClass())) {
-                    getOutputChannel().send((Message) outputObject);
-                } else {
-                    getOutputChannel().send(MessageBuilder.withPayload(outputObject).build());
-                }
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                //Simple log error handling
-                logger.error(throwable);
-            }
-
-            @Override
-            public void onComplete() {
-                //Send a message ?
-            }
-        });
+        outputStream.subscribe(new ChannelForwardingSubscriber());
     }
 
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {
-
-        if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
-            stream.onNext(message);
-        } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
-            //TODO handle type conversion of payload to input type if possible
-            stream.onNext(message.getPayload());
-        } else {
-            throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
-                    + "] or [" + message.getPayload().getClass() + "]");
-        }
+        invokeProcessor(message, ringBufferProcessor);
     }
 
     @Override
     public void destroy() throws Exception {
-        Subscription processorSubscription = this.processorSubscription;
-        if(processorSubscription != null){
-            this.processorSubscription = null;
-            processorSubscription.cancel();
+        if (ringBufferProcessor != null) {
+            ringBufferProcessor.awaitAndShutdown(getStopTimeout(), TimeUnit.MILLISECONDS);
         }
-
-        Environment.terminate();
+        getEnvironment().shutdown();
     }
 
 

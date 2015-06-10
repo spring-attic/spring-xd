@@ -16,23 +16,16 @@
 package org.springframework.xd.reactor;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscription;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.expression.IntegrationEvaluationContextAware;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import reactor.core.processor.RingBufferProcessor;
 import reactor.rx.Streams;
-import reactor.rx.action.support.DefaultSubscriber;
 
-import java.util.Hashtable;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -56,8 +49,6 @@ import java.util.concurrent.TimeUnit;
  * <p/>
  * All error handling is the responsibility of the processor implementation.
  *
- * The default RingBuffer size is set to 64.
- *
  * @author Mark Pollack
  * @author Stephane Maldini
  */
@@ -65,9 +56,6 @@ public class MultipleBroadcasterMessageHandler extends AbstractReactorMessageHan
 
     private final ConcurrentMap<Object, RingBufferProcessor<Object>> reactiveProcessorMap =
             new ConcurrentHashMap<Object, RingBufferProcessor<Object>>();
-
-    @SuppressWarnings("rawtypes")
-    private final Processor processor;
 
     private final Expression partitionExpression;
 
@@ -83,12 +71,9 @@ public class MultipleBroadcasterMessageHandler extends AbstractReactorMessageHan
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public MultipleBroadcasterMessageHandler(Processor processor, String partitionExpression) {
-        Assert.notNull(processor, "processor cannot be null.");
+        super(processor);
         Assert.notNull(partitionExpression, "Partition expression can not be null");
-        this.processor = processor;
         this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
-        this.inputType = ReactorReflectionUtils.extractGeneric(processor);
-        setRingBufferSize(64);
     }
 
     @Override

@@ -44,7 +44,22 @@ public abstract class AbstractReactorMessageHandler extends AbstractMessageProdu
 
     private final Environment environment = new Environment().assignErrorJournal();
 
-    protected Class<?> inputType;
+    private final Class<?> inputType;
+
+    @SuppressWarnings("rawtypes")
+    protected final Processor processor;
+
+    /**
+     * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
+     * processing to.
+     *
+     * @param processor The stream based reactor processor
+     */
+    public AbstractReactorMessageHandler(Processor processor) {
+        Assert.notNull(processor, "processor cannot be null.");
+        this.processor = processor;
+        this.inputType = ReactorReflectionUtils.extractGeneric(processor);
+    }
 
     /**
      * Time in milliseconds to wait when shutting down the processor, waiting on a latch inside

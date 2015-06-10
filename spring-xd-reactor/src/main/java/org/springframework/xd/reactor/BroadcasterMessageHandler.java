@@ -16,16 +16,12 @@
 package org.springframework.xd.reactor;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscription;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandlingException;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import reactor.core.processor.RingBufferProcessor;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
-import reactor.rx.action.support.DefaultSubscriber;
 
 import java.util.concurrent.TimeUnit;
 
@@ -62,7 +58,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class BroadcasterMessageHandler extends AbstractReactorMessageHandler {
 
-    private final RingBufferProcessor<Object> ringBufferProcessor;
+    private RingBufferProcessor<Object> ringBufferProcessor;
 
     /**
      * Construct a new BroadcasterMessageHandler given the reactor based Processor to delegate
@@ -72,17 +68,7 @@ public class BroadcasterMessageHandler extends AbstractReactorMessageHandler {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public BroadcasterMessageHandler(Processor processor) {
-        Assert.notNull(processor, "processor cannot be null.");
-
-        this.inputType = ReactorReflectionUtils.extractGeneric(processor);
-
-        //Stream with a RingBufferProcessor
-        this.ringBufferProcessor = RingBufferProcessor.share("xd-reactor", getRingBufferSize());
-
-        //user defined stream processing
-        Publisher<?> outputStream = processor.process(Streams.wrap(ringBufferProcessor).env(getEnvironment()));
-
-        outputStream.subscribe(new ChannelForwardingSubscriber());
+        super(processor);
     }
 
     @Override
@@ -98,5 +84,15 @@ public class BroadcasterMessageHandler extends AbstractReactorMessageHandler {
         getEnvironment().shutdown();
     }
 
+    @Override
+    protected void onInit() throws Exception {
+        super.onInit();
+        //Stream with a RingBufferProcessor
+        this.ringBufferProcessor = RingBufferProcessor.share("xd-reactor", getRingBufferSize());
 
+        //user defined stream processing
+        Publisher<?> outputStream = processor.process(Streams.wrap(ringBufferProcessor).env(getEnvironment()));
+
+        outputStream.subscribe(new ChannelForwardingSubscriber());
+    }
 }

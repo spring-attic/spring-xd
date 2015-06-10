@@ -3,10 +3,12 @@
 
 === Introduction
 
-Spring XD provides a browser-based GUI which currently has 2 sections allowing you to
+Spring XD provides a browser-based GUI which currently has 4 sections:
 
-* perform Batch Job related tasks
-* deploy/undeploy Stream Definitions
+* **Containers** Provides the XD cluster view with the list of all running containers
+* **Streams** Deploy/undeploy Stream Definitions
+* **Jobs** Perform Batch Job related tasks
+* **Analytics** Create data visualizations for the various counter modules
 
 Upon starting Spring XD, the Admin UI is available at:
 
@@ -16,9 +18,9 @@ For example: http://localhost:9393/admin-ui
 
 If you have enabled https, then it will be located at https://localhost:9393/admin-ui
 
-If you have enabled security, a login form is available at http://localhost:9393/admin-ui/login
+If you have enabled security, a login form is available at http://localhost:9393/admin-ui/#/login
 
-**Note**: Default admin server port is 9393
+**Note**: Default admin server port is `9393`
 
 .The Spring XD Admin UI
 image::images/spring-xd-admin-ui-about.png[The Spring XD Admin UI, width=500]
@@ -179,3 +181,31 @@ image::images/spring-xd-admin-ui-jobs-step-execution-history.png[Step Execution 
 
 On this screen, you can view various metrics associated with the selected step such as *duration*, *read counts*, *write counts* etc.
 
+[[adminui-analytics]]
+=== Analytics
+
+The _Analytics_ section of the admin UI provides dashboarding and data visualization capabilities for the various counter modules available in _Spring XD_:
+
+* Counters
+* Aggregate Counters
+* Field-Value Counters
+* Gauges
+* Rich Gauges
+
+For example, if you have created the `springtweets` stream and the corresponding counter in the <<counter, Counter chapter>>, you can now easily create the corresponding graph from within the **Dashboard** tab:
+
+1. Under `Metric Type`, select `Counters` from the select box
+2. Under `Stream`, select `tweetcount`
+3. Under `Visualization`, select the desired chart option, e.g. `Graph Chart`
+
+Afterwards you should see a visualization similar to the following:
+
+.Counter Graph
+image::images/spring-xd-admin-ui-analytics-counter.png[Analytics Counter, width=500]
+
+Using the icons to the right, you can add additional charts to the dashboard, re-arange the order of created dashboards or remove data visualizations.
+
+The remaining 3 tabs **Counters**, **Gauges** and **Rich-Gauges**, provide default visualizations for all _Spring XD_ counters within the system. For example, if you have created the <<simple-tap-example, Simple Tap Example>> (Rich Gauge) in the <<counter, Counter Chapter>>, you will see a visualization similar to the following under the _Rich-Gauges_ tab:
+
+.Rich Gauge
+image::images/spring-xd-admin-ui-analytics-richgauge.png[Analytics Rich Gauge, width=500]

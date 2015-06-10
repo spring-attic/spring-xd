@@ -12,8 +12,12 @@ The following types of metrics are available
 * <<gauge,Gauge>>
 * <<rich-gauge,Rich Gauge>>
 
-
 Spring XD supports these metrics and analytical data structures as a general purpose class library that works with several backend storage technologies.  The 1.0 release provides in memory and Redis implementations.
+
+[TIP]
+====
+As of _Spring XD 1.2_ you can now create data visualizations for the various counters and gauges using the _Admin UI_. Please see the <<adminui-analytics, Admin UI Analytics Chapter>> for more details.
+====
 
 [[counter]]
 === Counter
@@ -162,6 +166,7 @@ $$nameExpression$$:: $$a SpEL expression to compute the name of the metric to co
 
 Here is an example of creating a tap for a gauge:
 
+[[simple-tap-example]]
 ==== Simple Tap Example
 
 Create an ingest stream

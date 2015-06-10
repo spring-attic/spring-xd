@@ -40,7 +40,10 @@
 				<header name="file_name"   expression="payload.name"/>
 			</header-enricher>
 			<splitter id="iteratingFileSplitter">
-				<beans:bean class="org.springframework.integration.file.splitter.FileSplitter"/>
+				<beans:bean class="org.springframework.integration.file.splitter.FileSplitter">
+					<beans:constructor-arg index="0" value="true"/>
+					<beans:constructor-arg index="1" value="${withMarkers:false}"/>
+				</beans:bean>
 			</splitter>
 		</chain>
 	</beans:beans>

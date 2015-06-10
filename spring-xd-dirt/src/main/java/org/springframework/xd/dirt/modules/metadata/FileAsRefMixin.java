@@ -18,6 +18,7 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
@@ -34,6 +35,8 @@ public class FileAsRefMixin implements ProfileNamesProvider {
 
 	private FileReadingMode fileReadingmode = FileReadingMode.contents;
 
+	private Boolean withMarkers = null;
+
 	@NotNull
 	public FileReadingMode getMode() {
 		return fileReadingmode;
@@ -44,8 +47,29 @@ public class FileAsRefMixin implements ProfileNamesProvider {
 		this.fileReadingmode = mode;
 	}
 
+	public Boolean getWithMarkers() {
+		return withMarkers;
+	}
+
+	@ModuleOption(defaultValue = "false",
+			value = "if true emits start of file/end of file marker messages before/after the data. Only valid with FileReadingMode 'lines'")
+	public void setWithMarkers(Boolean withMarkers) {
+		this.withMarkers = withMarkers;
+	}
+
+	@AssertTrue(message = "withMarkers can only be supplied when FileReadingMode is 'lines'")
+	public boolean isWithMarkersValid() {
+		if (this.withMarkers != null && !FileReadingMode.lines.equals(this.fileReadingmode)) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+
 	@Override
 	public String[] profilesToActivate() {
 		return new String[] { this.fileReadingmode.getProfile() };
 	}
+
 }

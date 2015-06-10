@@ -20,38 +20,41 @@ import java.lang.reflect.Type;
 
 /**
  * Utility class for working with the reflection API for Reactor based processors.
- *
+ * <p/>
  * <p>Only intended for internal use.
  *
  * @author Stephane Maldini
  * @author Mark Pollack
- *
  */
 public abstract class ReactorReflectionUtils {
 
     /**
      * Given the processor interface, determine it's input type parameter
+     *
      * @param processor and instance of the processor interface
      * @return the corresponding Class of the processor input type parameter, or null if can't
      * be determined.
      */
-    public static Class<?> extractGeneric(Processor<?, ?> processor) {
-        if (processor.getClass().getGenericInterfaces().length == 0) return null;
-
-        Type t = processor.getClass().getGenericInterfaces()[0];
-        if (ParameterizedType.class.isAssignableFrom(t.getClass())) {
-            ParameterizedType pt = (ParameterizedType) t;
-
-            if (pt.getActualTypeArguments().length == 0) return null;
-
-            t = pt.getActualTypeArguments()[0];
-            if (t instanceof ParameterizedType) {
-                return (Class) ((ParameterizedType) t).getRawType();
-            } else if (t instanceof Class) {
-                return (Class) t;
+    public static Class<?> extractInputType(Processor<?, ?> processor) {
+        Class<?> searchType = processor.getClass();
+        while (searchType != Object.class) {
+            for (Type t : searchType.getGenericInterfaces()) {
+                // if it is a parameterized
+                if (t instanceof ParameterizedType && Processor.class.equals(((ParameterizedType) t).getRawType())) {
+                    Type inputTypeArgument = ((ParameterizedType) t).getActualTypeArguments()[0];
+                    if (inputTypeArgument instanceof ParameterizedType) {
+                        return (Class) ((ParameterizedType) inputTypeArgument)
+                                .getRawType();
+                    } else if (inputTypeArgument instanceof Class) {
+                        return (Class) inputTypeArgument;
+                    }
+                } else if (t instanceof Class && Processor.class.equals(t)) {
+                    return Object.class;
+                }
             }
+            searchType = searchType.getSuperclass();
         }
-        return null;
+        throw new IllegalStateException("Cannot identify the input type");
     }
 
 }

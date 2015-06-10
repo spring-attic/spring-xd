@@ -19,4 +19,11 @@
     </bean>
 
 
+    <bean name="reactorRawTypeHandler" class="org.springframework.xd.reactor.MultipleBroadcasterMessageHandler">
+        <constructor-arg ref="rawTypeProcessor"/>
+        <constructor-arg value="T(java.lang.Thread).currentThread().getId()"/>
+    </bean>
+
+
+
 </beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,8 @@
  */
 package org.springframework.xd.reactor;
 
-import reactor.fn.Function;
-import reactor.rx.Stream;
-
 /**
- * A simple stream processor that transforms Strings by adding "-pong" to the string.
- *
  * @author Mark Pollack
  */
-public class PongStringProcessor extends AbstractPongStringProcessor {
-
-    @Override
-    public Stream<String> process(Stream<String> inputStream) {
-        return inputStream.map(new Function<String, String>() {
-            @Override
-            public String apply(String message) {
-                return message + "-stringpong";
-            }
-        });
-    }
+public abstract class AbstractPongStringProcessor  implements Processor<String, String> {
 }

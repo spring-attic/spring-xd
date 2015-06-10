@@ -36,15 +36,27 @@ public abstract class AbstractMessageHandlerTests {
 	@Autowired
 	@Qualifier("outputChannel1")
 	PollableChannel outputChannel1;
+
 	@Autowired
 	@Qualifier("outputChannel2")
 	PollableChannel outputChannel2;
+
+	@Autowired
+	@Qualifier("outputChannel3")
+	PollableChannel outputChannel3;
+
 	@Autowired
 	@Qualifier("toMessageHandlerChannel")
 	MessageChannel toMessageHandlerChannel;
+
 	@Autowired
 	@Qualifier("toStringHandlerChannel")
 	MessageChannel toStringHandlerChannel;
+
+	@Autowired
+	@Qualifier("toRawTypeHandlerChannel")
+	MessageChannel toRawTypeHandlerChannel;
+
 
 	@Test
 	public void pojoBasedProcessor() throws IOException {
@@ -65,10 +77,26 @@ public abstract class AbstractMessageHandlerTests {
 		}
 	}
 
+	@Test
+	public void rawTypeBasedProcessor() throws IOException {
+		sendRawMessages();
+		for (int i = 0; i < numMessages; i++) {
+			Message<?> outputMessage = outputChannel3.receive(500);
+			assertEquals("ping-objectpong", outputMessage.getPayload());
+		}
+	}
+
 	private void sendPojoMessages() {
 		Message<?> message = new GenericMessage<String>("ping");
 		for (int i = 0; i < numMessages; i++) {
 			toMessageHandlerChannel.send(message);
+		}
+	}
+
+	private void sendRawMessages() {
+		Message<?> message = new GenericMessage<String>("ping");
+		for (int i = 0; i < numMessages; i++) {
+			toRawTypeHandlerChannel.send(message);
 		}
 	}
 

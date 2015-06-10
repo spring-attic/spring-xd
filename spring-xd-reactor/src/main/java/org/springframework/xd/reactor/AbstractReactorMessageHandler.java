@@ -58,7 +58,7 @@ public abstract class AbstractReactorMessageHandler extends AbstractMessageProdu
     public AbstractReactorMessageHandler(Processor processor) {
         Assert.notNull(processor, "processor cannot be null.");
         this.processor = processor;
-        this.inputType = ReactorReflectionUtils.extractGeneric(processor);
+        this.inputType = ReactorReflectionUtils.extractInputType(processor);
     }
 
     /**
@@ -112,13 +112,16 @@ public abstract class AbstractReactorMessageHandler extends AbstractMessageProdu
 
 
     protected void invokeProcessor(Message<?> message, RingBufferProcessor<Object> reactiveProcessorToUse) {
-        if (inputType == null || ClassUtils.isAssignable(inputType, message.getClass())) {
+        // pass the message directly if the input type accepts it, unless the input type is Object
+        // this restricts the branch to Message and its subinterfaces/implementations
+        if (!Object.class.equals(inputType) && ClassUtils.isAssignable(inputType, message.getClass())) {
             reactiveProcessorToUse.onNext(message);
         } else if (ClassUtils.isAssignable(inputType, message.getPayload().getClass())) {
+            //TODO handle type conversion of payload to input type if possible
             reactiveProcessorToUse.onNext(message.getPayload());
         } else {
             throw new MessageHandlingException(message, "Processor signature does not match [" + message.getClass()
-                    + "] or [" + message.getPayload().getClass() + "]");
+                + "] or [" + message.getPayload().getClass() + "]");
         }
     }
 

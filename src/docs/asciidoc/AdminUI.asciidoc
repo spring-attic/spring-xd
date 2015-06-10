@@ -8,7 +8,7 @@ Spring XD provides a browser-based GUI which currently has 4 sections:
 * **Containers** Provides the XD cluster view with the list of all running containers
 * **Streams** Deploy/undeploy Stream Definitions
 * **Jobs** Perform Batch Job related tasks
-* **Analytics** Create data visualizations for the various counter modules
+* **Analytics** Create data visualizations for the various analytics modules
 
 Upon starting Spring XD, the Admin UI is available at:
 
@@ -184,7 +184,7 @@ On this screen, you can view various metrics associated with the selected step s
 [[adminui-analytics]]
 === Analytics
 
-The _Analytics_ section of the admin UI provides dashboarding and data visualization capabilities for the various counter modules available in _Spring XD_:
+The _Analytics_ section of the admin UI provides dashboarding and data visualization capabilities for the various analytics modules available in _Spring XD_:
 
 * Counters
 * Aggregate Counters
@@ -196,12 +196,19 @@ For example, if you have created the `springtweets` stream and the corresponding
 
 1. Under `Metric Type`, select `Counters` from the select box
 2. Under `Stream`, select `tweetcount`
-3. Under `Visualization`, select the desired chart option, e.g. `Graph Chart`
+3. Under `Visualization`, select the desired chart option, `Bar Chart`
 
-Afterwards you should see a visualization similar to the following:
+You will see a visualization similar to the following:
+
+.Counter Bar Chart
+image::images/spring-xd-admin-ui-analytics-counter-barchart.png[Analytics Bar Chart, width=500]
+
+Under `Visualization`, select the desired chart option, `Graph Chart`
+
+You will see a visualization similar to the following:
 
 .Counter Graph
-image::images/spring-xd-admin-ui-analytics-counter.png[Analytics Counter, width=500]
+image::images/spring-xd-admin-ui-analytics-counter.png[Analytics Counter Graph, width=500]
 
 Using the icons to the right, you can add additional charts to the dashboard, re-arange the order of created dashboards or remove data visualizations.
 

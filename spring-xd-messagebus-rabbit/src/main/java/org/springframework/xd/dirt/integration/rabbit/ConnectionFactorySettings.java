@@ -38,10 +38,10 @@ import org.springframework.core.io.Resource;
 @Configuration
 public class ConnectionFactorySettings {
 
-	@Value("${spring.rabbitmq.useSSL}")
+	@Value("${spring.rabbitmq.useSSL:false}")
 	private boolean useSSL;
 
-	@Value("${spring.rabbitmq.sslProperties}")
+	@Value("${spring.rabbitmq.sslProperties:}")
 	private Resource sslPropertiesLocation;
 
 	@Bean

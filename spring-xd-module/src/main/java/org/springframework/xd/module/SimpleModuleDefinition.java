@@ -17,6 +17,8 @@ package org.springframework.xd.module;
 
 import java.net.URL;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * A module definition for a "simple", single module whose code and supporting resources
  * can be located somewhere.
@@ -42,6 +44,9 @@ public class SimpleModuleDefinition extends ModuleDefinition {
         return false;
     }
 
+    // Don't bother serializing locations as these may not be portable across containers.
+    // Will be looked-up again
+    @JsonIgnore
     public String getLocation() {
         return location;
     }

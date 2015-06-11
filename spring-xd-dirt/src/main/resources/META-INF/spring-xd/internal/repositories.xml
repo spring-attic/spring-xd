@@ -12,7 +12,7 @@
 	<bean id="moduleDependencyRepository" class="org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository"/>
 
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
-		<constructor-arg>
+		<property name="delegates">
 			<list>
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
 					<constructor-arg value="${xd.module.home}" />
@@ -26,7 +26,7 @@
 				<bean class="org.springframework.xd.dirt.module.store.ZooKeeperComposedModuleDefinitionRegistry">
 				</bean>
 			</list>
-		</constructor-arg>
+		</property>
 	</bean>
 
 <!-- The order of delegates matters here. The ModuleTypeConversionPluginMetadataResolver can override the default value of inputType if

@@ -34,9 +34,16 @@ import org.springframework.xd.module.ModuleType;
  */
 public class DelegatingModuleRegistry implements WritableModuleRegistry {
 
-	private final List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
+	private List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
 
 	public DelegatingModuleRegistry(ModuleRegistry... delegates) {
+		setDelegates(delegates);
+	}
+
+	public DelegatingModuleRegistry() {
+	}
+
+	public void setDelegates(ModuleRegistry... delegates) {
 		for (ModuleRegistry delegate : delegates) {
 			this.delegates.add(delegate);
 		}

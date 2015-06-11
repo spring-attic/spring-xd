@@ -34,7 +34,11 @@ import org.springframework.xd.module.ModuleType;
  */
 public class DelegatingModuleRegistry implements WritableModuleRegistry {
 
-	private final List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
+	private List<ModuleRegistry> delegates = new ArrayList<>();
+
+	public DelegatingModuleRegistry() {
+
+	}
 
 	public DelegatingModuleRegistry(ModuleRegistry... delegates) {
 		for (ModuleRegistry delegate : delegates) {
@@ -129,5 +133,9 @@ public class DelegatingModuleRegistry implements WritableModuleRegistry {
 			}
 		}
 		return false;
+	}
+
+	public void setDelegates(List<ModuleRegistry> delegates) {
+		this.delegates = delegates;
 	}
 }

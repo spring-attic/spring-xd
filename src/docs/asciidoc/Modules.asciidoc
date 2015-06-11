@@ -127,7 +127,7 @@ Start by setting the parent to `spring-xd-module-parent` in your `pom.xml`:
   <groupId>org.springframework.xd</groupId>
   <artifactId>spring-xd-module-parent</artifactId>
   <!-- 1.1.x or later -->
-  <version>1.1.2.RELEASE</version>
+  <version>1.2.0.RELEASE</version>
 </parent>
 <dependencies>
 ...

@@ -123,7 +123,7 @@ allprojects {
 }
 
 ext {
-	xdAdminUIVersion = '1.2.0.RC1'
+	xdAdminUIVersion = '1.2.0.RELEASE'
 	// Not in IO
 	activemqVersion = '5.6.0'
 	apacheFtpServerVersion = '1.0.6'

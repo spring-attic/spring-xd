@@ -287,7 +287,7 @@ image::images/sparkstreaming.png[Spring XD spark streaming modules and data part
 
 ==== Failover and recovery
 
-Spark streaming integration supports `automatic failover` capability on `spark driver failure`. In case of driver module failure, the module will get automatically re-deployed spark ailable XD container.
+Spark streaming integration supports `automatic failover` capability on `spark driver failure`. In case of driver module failure, the module will get automatically re-deployed on another available XD container.
 Also, the underlying Spark streaming receiver is a `reliable` receiver when using `RabbitMQ` or `Kafka` as the messagebus. This will make sure all the messages are always acknowledged and processed reliably in Spark.
 
 ==== Module Type Conversion

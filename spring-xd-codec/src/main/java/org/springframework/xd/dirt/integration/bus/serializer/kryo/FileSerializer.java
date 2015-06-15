@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,25 +15,27 @@
 
 package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
-import org.springframework.beans.factory.FactoryBean;
+import java.io.File;
+
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 
 /**
  * @author David Turanski
+ * @since 1.2
  */
-public class KryoNullRegistrar implements FactoryBean<KryoRegistrar> {
+public class FileSerializer extends Serializer<File> {
 
 	@Override
-	public KryoRegistrar getObject() throws Exception {
-		return null;
+	public void write(Kryo kryo, Output output, File file) {
+		output.writeString(file.getPath());
 	}
 
 	@Override
-	public Class<?> getObjectType() {
-		return KryoNullRegistrar.class;
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return true;
+	public File read(Kryo kryo, Input input, Class<File> type) {
+		String path  = input.readString();
+		return new File(path);
 	}
 }

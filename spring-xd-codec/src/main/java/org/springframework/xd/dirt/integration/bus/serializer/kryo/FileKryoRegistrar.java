@@ -1,11 +1,10 @@
 /*
- * Copyright 2013 the original author or authors.
- *
+ * Copyright 2015 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,25 +15,24 @@
 
 package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
+import java.util.Collections;
+import java.util.List;
+
+import com.esotericsoftware.kryo.Registration;
 
 /**
- * Kryo Codec for Strings
- *
+ * A {@link KryoRegistrar} used to register a File serializer.
  * @author David Turanski
- * @since 1.0
+ * @since 1.2
  */
-public class StringCodec extends AbstractKryoCodec<String> {
+public class FileKryoRegistrar extends AbstractKryoRegistrar {
+
+	private final static int FILE_REGISTRATION_ID = 40;
+
+	private final FileSerializer fileSerializer = new FileSerializer();
 
 	@Override
-	protected void doSerialize(Kryo kryo, String object, Output output) {
-		output.writeString(object);
-	}
-
-	@Override
-	protected String doDeserialize(Kryo kryo, Input input) {
-		return input.readString();
+	public List<Registration> getRegistrations() {
+		return Collections.singletonList(new Registration(java.io.File.class, fileSerializer, FILE_REGISTRATION_ID));
 	}
 }

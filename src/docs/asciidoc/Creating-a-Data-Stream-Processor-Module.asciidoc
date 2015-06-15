@@ -292,7 +292,7 @@ Also, the underlying Spark streaming receiver is a `reliable` receiver when usin
 
 ==== Module Type Conversion
 
-Spark streaming modules avail the out of the box module type conversion support from Spring XD. A spark streaming processor module can specify `inputType` and `outputType` while a spark streaming sink module can specify `inputType` to denote the `contentType` of the incoming/outgoing messages before they get ingested into/written out of spark streaming module.
+Spark streaming modules can benefit from the out of the box module type conversion support from Spring XD. A spark streaming processor module can specify `inputType` and `outputType` while a spark streaming sink module can specify `inputType` to denote the `contentType` of the incoming/outgoing messages before they get ingested into/written out of spark streaming module.
 
 ```
 stream create mainstream --definition "mqtt | filter1: <some filtering> | hdfs"  

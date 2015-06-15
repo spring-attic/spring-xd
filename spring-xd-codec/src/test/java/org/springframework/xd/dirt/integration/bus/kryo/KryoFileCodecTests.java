@@ -16,15 +16,17 @@
 
 package org.springframework.xd.dirt.integration.bus.kryo;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
 
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.FileCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.FileKryoRegistrar;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
+
+import static org.junit.Assert.assertEquals;
+
 
 /**
  * @author David Turanski
@@ -34,11 +36,11 @@ public class KryoFileCodecTests {
 	@Test
 	public void test() throws IOException {
 
-		FileCodec pc = new FileCodec();
+		PojoCodec pc = new PojoCodec(new FileKryoRegistrar());
 		File file = new File("/foo/bar");
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		pc.serialize(file, bos);
-		File file2 = pc.deserialize(bos.toByteArray());
+		File file2 = (File) pc.deserialize(bos.toByteArray(), File.class);
 		assertEquals(file, file2);
 	}
 }

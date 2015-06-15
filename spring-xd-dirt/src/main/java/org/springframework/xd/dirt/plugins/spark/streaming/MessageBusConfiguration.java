@@ -40,7 +40,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 @Configuration
 @Import(PropertyPlaceholderAutoConfiguration.class)
 @ImportResource({"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "bus/${XD_TRANSPORT}-bus.xml",
-		ConfigLocations.XD_CONFIG_ROOT + "bus/codec.xml"})
+		ConfigLocations.XD_CONFIG_ROOT + "bus/codec-hide.xml"})
 class MessageBusConfiguration {
 
 	private static final String RABBIT_ACKMODE_PROPERTY = "xd.messagebus.rabbit.default.ackMode";

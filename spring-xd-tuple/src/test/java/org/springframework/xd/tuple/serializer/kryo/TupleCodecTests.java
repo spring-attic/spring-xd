@@ -15,10 +15,9 @@
 
 package org.springframework.xd.tuple.serializer.kryo;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,13 +25,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
-import org.springframework.xd.tuple.serializer.kryo.TupleCodec;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author David Turanski
@@ -43,20 +43,17 @@ public class TupleCodecTests {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Before
 	public void setup() {
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
-		codecs.put(Tuple.class, new org.springframework.xd.tuple.serializer.kryo.TupleCodec());
-		codec = new CompositeCodec(codecs, new PojoCodec());
+		codec = new PojoCodec(new TupleKryoRegistrar());
 	}
 
 	@Test
 	public void testNestedTupleSerialization() throws IOException {
-		TupleCodec serializer = new TupleCodec();
 		Tuple t0 = TupleBuilder.tuple().of("one", 1, "two", 2);
 		Tuple t1 = TupleBuilder.tuple().of("three", 3, "four", 4, "t0", t0);
 		Tuple t2 = TupleBuilder.tuple().of("t1", t1);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		serializer.serialize(t2, bos);
-		Tuple t3 = serializer.deserialize(bos.toByteArray());
+		codec.serialize(t2, bos);
+		Tuple t3 = (Tuple) codec.deserialize(bos.toByteArray(), DefaultTuple.class);
 		Tuple t4 = (Tuple) t3.getValue("t1");
 		Tuple t5 = (Tuple) t4.getValue("t0");
 		assertEquals(1, t5.getInt("one"));

@@ -16,14 +16,19 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
@@ -33,15 +38,19 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.FileKryoRegistrar;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
 
 /**
  * Beans defined and imported here are shared by the XD Admin Server and Container Server.
- *
  * @author David Turanski
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
@@ -52,12 +61,18 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 @EnableIntegration
 @Import(PropertyPlaceholderAutoConfiguration.class)
 @ImportResource({
-	ConfigLocations.XD_CONFIG_ROOT + "bus/${XD_TRANSPORT}-bus.xml",
-	ConfigLocations.XD_CONFIG_ROOT + "bus/codec.xml",
-	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "bus/ext/*.xml",
-	ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
-	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml"
+		ConfigLocations.XD_CONFIG_ROOT + "bus/${XD_TRANSPORT}-bus.xml",
+		"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "bus/ext/*.xml",
+		ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
+		ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml"
 })
+//@ComponentScan(
+//		basePackages = {"spring.xd.bus.ext"},
+//		useDefaultFilters = false,
+//		includeFilters = {
+//				@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = AbstractKryoCodec.class)
+//		})
+@ComponentScan(basePackages = {"spring.xd.bus.ext"})
 public class SharedServerContextConfiguration {
 
 	public static final String ZK_CONNECT = "zk.client.connect";
@@ -65,6 +80,28 @@ public class SharedServerContextConfiguration {
 	public static final String EMBEDDED_ZK_CONNECT = "zk.embedded.client.connect";
 
 	public static final String ZK_PROPERTIES_SOURCE = "zk-properties";
+
+	@Autowired
+	ApplicationContext applicationContext;
+
+	@Bean
+	@ConditionalOnMissingBean(name = "codec")
+	public MultiTypeCodec codec() {
+		Map<String, AbstractKryoRegistrar> kryoRegistrarMap = applicationContext.getBeansOfType(AbstractKryoRegistrar
+				.class);
+		return new PojoCodec(new ArrayList<>(kryoRegistrarMap.values()));
+	}
+
+	@Bean
+	public AbstractKryoRegistrar fileRegistrar() {
+		return new FileKryoRegistrar();
+	}
+
+	@Bean
+	public AbstractKryoRegistrar tupleRegistrar() {
+		return new TupleKryoRegistrar();
+	}
+
 
 	@Configuration
 	@Profile(XdProfiles.SINGLENODE_PROFILE)
@@ -125,13 +162,13 @@ public class SharedServerContextConfiguration {
 		@Value("${zk.client.sessionTimeout:" + ZooKeeperConnection.DEFAULT_SESSION_TIMEOUT + "}")
 		protected int zkSessionTimeout;
 
-		@Value("${zk.client.connectionTimeout:"+ ZooKeeperConnection.DEFAULT_CONNECTION_TIMEOUT +"}")
+		@Value("${zk.client.connectionTimeout:" + ZooKeeperConnection.DEFAULT_CONNECTION_TIMEOUT + "}")
 		protected int zkConnectionTimeout;
 
 		@Value("${zk.client.initialRetryWait:" + ZooKeeperConnection.DEFAULT_INITIAL_RETRY_WAIT + "}")
 		protected int zkInitialRetryWait;
 
-		@Value("${zk.client.retryMaxAttempts:"+ ZooKeeperConnection.DEFAULT_MAX_RETRY_ATTEMPTS +"}")
+		@Value("${zk.client.retryMaxAttempts:" + ZooKeeperConnection.DEFAULT_MAX_RETRY_ATTEMPTS + "}")
 		protected int zkRetryMaxAttempts;
 
 		// TODO: Consider a way to not require this property

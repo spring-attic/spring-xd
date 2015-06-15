@@ -15,39 +15,38 @@
 
 package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-import com.esotericsoftware.kryo.Kryo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.esotericsoftware.kryo.Registration;
+
+import org.springframework.util.CollectionUtils;
+
 
 /**
- * A {@link KryoRegistrar } implementation backed by a Map
+ * A {@link KryoRegistrar} implementation backed by a Map
  * used to explicitly set the registration ID for each class.
- *
  * @author David Turanski
  * @since 1.1
  */
-public class KryoClassMapRegistrar implements KryoRegistrar {
+public class KryoClassMapRegistrar extends AbstractKryoRegistrar {
 
-	private final static Logger log = LoggerFactory.getLogger(KryoClassMapRegistrar.class);
-
-	final private Map<Integer, Class<?>> kryoRegisteredClasses;
+	final private Map<Integer, Class<?>> registeredClasses;
 
 	public KryoClassMapRegistrar(Map<Integer, Class<?>> kryoRegisteredClasses) {
-		this.kryoRegisteredClasses = kryoRegisteredClasses;
+		this.registeredClasses = kryoRegisteredClasses;
 	}
 
+
 	@Override
-	public void registerTypes(Kryo kryo) {
-		if (kryoRegisteredClasses == null) {
-			return;
-		}
-		for (Map.Entry<Integer, Class<?>> entry : kryoRegisteredClasses.entrySet()) {
-			if (log.isDebugEnabled()) {
-				log.debug("registering class {} id = {}", entry.getValue(), entry.getKey());
+	public List<Registration> getRegistrations() {
+		List<Registration> registrations = new ArrayList<>();
+		if (!CollectionUtils.isEmpty(registeredClasses)) {
+			for (Map.Entry<Integer, Class<?>> entry : registeredClasses.entrySet()) {
+				registrations.add(new Registration(entry.getValue(), kryo.getSerializer(entry.getValue()), entry.getKey()));
 			}
-			kryo.register(entry.getValue(), entry.getKey());
 		}
+		return registrations;
 	}
 }

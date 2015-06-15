@@ -36,7 +36,7 @@ import com.esotericsoftware.kryo.pool.KryoCallback;
 abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implements MultiTypeCodec<T> {
 
 	/**
-	 * Deserialize an object of a given type
+	 * Deserialize an object of a given type given a byte array
 	 *
 	 * @param bytes the byte array containing the serialized object
 	 * @param type the object's class
@@ -45,10 +45,16 @@ abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implem
 	 */
 	@Override
 	public T deserialize(byte[] bytes, Class<? extends T> type) throws IOException {
-		return deserialize(new ByteArrayInputStream(bytes), type);
+		final Input input = new Input(bytes);
+		try {
+			return deserialize(input, type);
+		} finally {
+			input.close();
+		}
 	}
 
 	/**
+	 * Deserialize an object of a given type given an InputStream
 	 *
 	 * @param inputStream the input stream containing the serialized object
 	 * @param type the object's class
@@ -58,15 +64,29 @@ abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implem
 	@Override
 	public T deserialize(InputStream inputStream, final Class<? extends T> type) throws IOException {
 		final Input input = new Input(inputStream);
-		T result = pool.run(new KryoCallback<T>() {
+		try {
+			return deserialize(input, type);
+		} finally {
+			input.close();
+		}
+	}
+
+	/**
+	 * Deserialize an object of a given type given an Input.
+	 *
+	 * @param input the Kryo input stream containing the serialized object
+	 * @param type the object's class
+	 * @return the object
+	 * @throws IOException
+	 */
+	protected T deserialize(final Input input, final Class<? extends T> type) throws IOException {
+		return pool.run(new KryoCallback<T>() {
 
 			@Override
 			public T execute(Kryo kryo) {
 				return doDeserialize(kryo, input, type);
 			}
 		});
-		input.close();
-		return result;
 	}
 
 	/**

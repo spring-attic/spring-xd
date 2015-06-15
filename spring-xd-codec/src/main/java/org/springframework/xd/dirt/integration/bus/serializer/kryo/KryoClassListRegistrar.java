@@ -15,31 +15,29 @@
 
 package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import com.esotericsoftware.kryo.Kryo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+
+import com.esotericsoftware.kryo.Registration;
 
 /**
  * A {@link KryoRegistrar} used to register a
  * list of Java classes. This assigns a sequential registration ID starting with an initial value (50 by default), but
- * may be configured. This is easiest to set up but requires that every server node be configured with the identical 
+ * may be configured. This is easiest to set up but requires that every server node be configured with the identical
  * list in the same order.
- *
  * @author David Turanski
  * @since 1.1
  */
-public class KryoClassListRegistrar implements KryoRegistrar {
-	private final static Logger log = LoggerFactory.getLogger(KryoClassListRegistrar.class);
+public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 
 	private final List<Class<?>> registeredClasses;
 
 	private int initialValue = 50;
 
 	/**
-	 *  
 	 * @param classes the list of classes to register
 	 */
 	public KryoClassListRegistrar(List<Class<?>> classes) {
@@ -49,26 +47,25 @@ public class KryoClassListRegistrar implements KryoRegistrar {
 	/**
 	 * Set the inital ID value. Classes in the list will be sequentially assigned an ID starting with this value
 	 * (default is 50).
-	 * 
-	 *
 	 * @param initialValue the initial value
 	 */
 	public void setInitialValue(int initialValue) {
-		Assert.isTrue(initialValue > 10, "'initialValue' must be a value greater than 10");
+		Assert.isTrue(initialValue >= MIN_REGISTRATION_VALUE, "'initialValue' must be >= " +
+				MIN_REGISTRATION_VALUE);
 		this.initialValue = initialValue;
 	}
 
+
 	@Override
-	public void registerTypes(Kryo kryo) {
-		if (registeredClasses == null) {
-			return;
-		}
-		for (int i = 0; i < registeredClasses.size(); i++) {
-			if (log.isDebugEnabled()) {
-				log.debug("registering class {} id = {}", registeredClasses.get(i).getName() , (i + initialValue));
+	public List<Registration> getRegistrations() {
+		List<Registration> registrations = new ArrayList<>();
+		if (!CollectionUtils.isEmpty(registeredClasses)) {
+			for (int i = 0; i < registeredClasses.size(); i++) {
+				registrations.add(new Registration(registeredClasses.get(i),
+						kryo.getSerializer(registeredClasses.get(i)), i + initialValue));
 			}
-			kryo.register(registeredClasses.get(i), i + initialValue);
 		}
+		return registrations;
 	}
 
 }

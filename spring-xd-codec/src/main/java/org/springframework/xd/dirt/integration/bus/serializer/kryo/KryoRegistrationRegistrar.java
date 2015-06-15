@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,36 +17,23 @@ package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.esotericsoftware.kryo.Registration;
 
-import org.springframework.util.CollectionUtils;
-
-
 /**
- * A {@link KryoRegistrar} implementation backed by a Map
- * used to explicitly set the registration ID for each class.
+ * A {@link KryoRegistrar } implementation backed by a List of {@link com.esotericsoftware.kryo.Registration}.
  * @author David Turanski
- * @since 1.1
+ * @since 1.2
  */
-public class KryoClassMapRegistrar extends AbstractKryoRegistrar {
+public class KryoRegistrationRegistrar extends AbstractKryoRegistrar {
+	private final List<Registration> registrations;
 
-	final private Map<Integer, Class<?>> registeredClasses;
-
-	public KryoClassMapRegistrar(Map<Integer, Class<?>> kryoRegisteredClasses) {
-		this.registeredClasses = kryoRegisteredClasses;
+	public KryoRegistrationRegistrar(List<Registration> registrations) {
+		this.registrations = registrations != null ? registrations : new ArrayList<Registration>();
 	}
-
 
 	@Override
 	public List<Registration> getRegistrations() {
-		List<Registration> registrations = new ArrayList<>();
-		if (!CollectionUtils.isEmpty(registeredClasses)) {
-			for (Map.Entry<Integer, Class<?>> entry : registeredClasses.entrySet()) {
-				registrations.add(new Registration(entry.getValue(), kryo.getSerializer(entry.getValue()), entry.getKey()));
-			}
-		}
 		return registrations;
 	}
 }

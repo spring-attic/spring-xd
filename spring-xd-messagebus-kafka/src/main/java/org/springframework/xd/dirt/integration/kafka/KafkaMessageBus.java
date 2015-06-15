@@ -113,11 +113,6 @@ import scala.collection.Seq;
  * <td>foo = "http | log", log.count=x, concurrency=y</td><td>foo.0</td><td>x*y partitions</td><td>1 producer, x XD
  * consumers, each with y threads</td>
  * </tr>
- * <tr>
- * <td>foo = "http | log", log.count=0, x actual log containers</td><td>foo.0</td><td>10(configurable)
- * partitions</td><td>1 producer, x XD consumers. Can't know the number of partitions beforehand, so decide a number
- * that better be greater than number of containers</td>
- * </tr>
  * </table>
  * @author Eric Bottard
  * @author Marius Bogoevici
@@ -139,19 +134,19 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	public static final String FETCH_SIZE = "fetchSize";
 
-	public static final String QUEUE_SIZE = "fetchSize";
+	public static final String QUEUE_SIZE = "queueSize";
 
 	public static final String REQUIRED_ACKS = "requiredAcks";
 
 	public static final String COMPRESSION_CODEC = "compressionCodec";
 
-	public static final String AUTO_COMMIT_ENABLED = "autoCommitEnabled";
+	public static final String AUTO_COMMIT_OFFSET_ENABLED = "autoCommitOffsetEnabled";
 
 	private static final String DEFAULT_COMPRESSION_CODEC = "none";
 
 	private static final int DEFAULT_REQUIRED_ACKS = 1;
 
-	private static final boolean DEFAULT_AUTO_COMMIT_ENABLED = true;
+	private static final boolean DEFAULT_AUTO_COMMIT_OFFSET_ENABLED = true;
 
 	private RetryOperations retryOperations;
 
@@ -194,6 +189,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private static final Set<Object> KAFKA_CONSUMER_PROPERTIES = new SetBuilder()
 			.add(BusProperties.MIN_PARTITION_COUNT)
+			.add(AUTO_COMMIT_OFFSET_ENABLED)
+			.add(FETCH_SIZE)
+			.add(QUEUE_SIZE)
 			.build();
 
 	/**
@@ -205,11 +203,6 @@ public class KafkaMessageBus extends MessageBusSupport {
 			.add(BusProperties.PARTITION_INDEX) // Not actually used
 			.add(BusProperties.COUNT) // Not actually used
 			.add(BusProperties.CONCURRENCY)
-			.add(FETCH_SIZE)
-			.build();
-
-	private static final Set<Object> KAFKA_PRODUCER_PROPERTIES = new SetBuilder()
-			.add(BusProperties.MIN_PARTITION_COUNT)
 			.build();
 
 	/**
@@ -217,11 +210,18 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 */
 	private static final Set<Object> SUPPORTED_NAMED_CONSUMER_PROPERTIES = new SetBuilder()
 			.addAll(CONSUMER_STANDARD_PROPERTIES)
+			.addAll(KAFKA_CONSUMER_PROPERTIES)
 			.build();
 
 	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = new SetBuilder()
 			.addAll(PRODUCER_STANDARD_PROPERTIES)
 			.addAll(PRODUCER_BATCHING_BASIC_PROPERTIES)
+			.addAll(PRODUCER_COMPRESSION_PROPERTIES)
+			.build();
+
+
+	private static final Set<Object> KAFKA_PRODUCER_PROPERTIES = new SetBuilder()
+			.add(BusProperties.MIN_PARTITION_COUNT)
 			.build();
 
 	/**
@@ -268,7 +268,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	// auto commit property
 
-	private boolean defaultAutoCommitEnabled = DEFAULT_AUTO_COMMIT_ENABLED;
+	private boolean defaultAutoCommitOffsetEnabled = DEFAULT_AUTO_COMMIT_OFFSET_ENABLED;
 
 	private int socketBufferSize = 2097152;
 
@@ -435,10 +435,10 @@ public class KafkaMessageBus extends MessageBusSupport {
 	/**
 	 * Set the default auto commit enabled property; This is used to commit the offset either automatically or
 	 * manually.
-	 * @param defaultAutoCommitEnabled
+	 * @param defaultAutoCommitOffsetEnabled
 	 */
-	public void setDefaultAutoCommitEnabled(boolean defaultAutoCommitEnabled) {
-		this.defaultAutoCommitEnabled = defaultAutoCommitEnabled;
+	public void setDefaultAutoCommitOffsetEnabled(boolean defaultAutoCommitOffsetEnabled) {
+		this.defaultAutoCommitOffsetEnabled = defaultAutoCommitOffsetEnabled;
 	}
 
 	public void setDefaultQueueSize(int defaultQueueSize) {
@@ -678,30 +678,12 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.setKeyDecoder(keyDecoder);
 		kafkaMessageDrivenChannelAdapter.setPayloadDecoder(valueDecoder);
 		kafkaMessageDrivenChannelAdapter.setOutputChannel(bridge);
-		kafkaMessageDrivenChannelAdapter.setAutoCommitOffset(accessor.getDefaultAutoCommitEnabled(this
-				.defaultAutoCommitEnabled));
+		kafkaMessageDrivenChannelAdapter.setAutoCommitOffset(accessor.getAutoCommitOffsetEnabled(this.defaultAutoCommitOffsetEnabled));
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
 
-		EventDrivenConsumer edc = new EventDrivenConsumer(bridge, rh) {
-
-			@Override
-			protected void doStop() {
-				// stop the offset manager and the channel adapter before unbinding
-				// this means that the upstream channel adapter has a chance to stop
-				kafkaMessageDrivenChannelAdapter.stop();
-				if (messageListenerContainer.getOffsetManager() instanceof DisposableBean) {
-					try {
-						((DisposableBean) messageListenerContainer.getOffsetManager()).destroy();
-					}
-					catch (Exception e) {
-						logger.error("Error while closing the offset manager", e);
-					}
-				}
-				super.doStop();
-			}
-		};
+		EventDrivenConsumer edc = new KafkaConsumerBusAdapter(bridge, rh, kafkaMessageDrivenChannelAdapter, messageListenerContainer);
 		edc.setBeanName("inbound." + name);
 
 		Binding consumerBinding = Binding.forConsumer(name, edc, moduleInputChannel, accessor);
@@ -741,7 +723,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 		messageListenerContainer.setConcurrency(Math.min(maxConcurrency, listenedPartitions.size()));
 		OffsetManager offsetManager = createOffsetManager(group, referencePoint);
 		messageListenerContainer.setOffsetManager(offsetManager);
-		messageListenerContainer.setQueueSize(accessor.getProperty(QUEUE_SIZE, defaultQueueSize));
+		int queueSize = accessor.getProperty(QUEUE_SIZE, defaultQueueSize);
+		Assert.isTrue(queueSize > 0 && Integer.bitCount(queueSize) == 1, "must be a power of 2");
+		messageListenerContainer.setQueueSize(queueSize);
 		messageListenerContainer.setMaxFetch(accessor.getProperty(FETCH_SIZE, defaultFetchSize));
 		return messageListenerContainer;
 	}
@@ -787,6 +771,35 @@ public class KafkaMessageBus extends MessageBusSupport {
 		}
 	}
 
+	private static class KafkaConsumerBusAdapter extends EventDrivenConsumer {
+
+		private final KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter;
+
+		private final KafkaMessageListenerContainer messageListenerContainer;
+
+		public KafkaConsumerBusAdapter(FixedSubscriberChannel bridge, ReceivingHandler rh, KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter, KafkaMessageListenerContainer messageListenerContainer) {
+			super(bridge, rh);
+			this.kafkaMessageDrivenChannelAdapter = kafkaMessageDrivenChannelAdapter;
+			this.messageListenerContainer = messageListenerContainer;
+		}
+
+		@Override
+		protected void doStop() {
+			// stop the offset manager and the channel adapter before unbinding
+			// this means that the upstream channel adapter has a chance to stop
+			kafkaMessageDrivenChannelAdapter.stop();
+			if (messageListenerContainer.getOffsetManager() instanceof DisposableBean) {
+				try {
+					((DisposableBean) messageListenerContainer.getOffsetManager()).destroy();
+				}
+				catch (Exception e) {
+					logger.error("Error while closing the offset manager", e);
+				}
+			}
+			super.doStop();
+		}
+	}
+
 	private class KafkaPropertiesAccessor extends AbstractBusPropertiesAccessor {
 
 		public KafkaPropertiesAccessor(Properties properties) {
@@ -821,8 +834,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 			return getProperty(REQUIRED_ACKS, defaultRequiredAcks);
 		}
 
-		public boolean getDefaultAutoCommitEnabled(boolean defaultAutoCommitEnabled) {
-			return getProperty(AUTO_COMMIT_ENABLED, defaultAutoCommitEnabled);
+		public boolean getAutoCommitOffsetEnabled(boolean defaultAutoOffsetCommitEnabled) {
+			return getProperty(AUTO_COMMIT_OFFSET_ENABLED, defaultAutoOffsetCommitEnabled);
 		}
 
 		public int getMinPartitionCount(int defaultPartitionCount) {

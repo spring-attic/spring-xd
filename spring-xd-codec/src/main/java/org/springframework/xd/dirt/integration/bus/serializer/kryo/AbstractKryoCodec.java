@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,17 +36,6 @@ import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
  * @author David Turanski
  */
 public abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
-
-	protected final static int FILE_REGISTRATION_ID = 40;
-
-	protected final static int TUPLE_REGISTRATION_ID = 41;
-
-	protected final static int ARRAY_LIST_REGISTRATION_ID = 42;
-	
-	protected final static int UUID_REGISTRATION_ID = 43;
-
-	protected final static int LONG_REGISTRATION_ID = 44;
-	
 
 	private final KryoFactory factory;
 
@@ -77,15 +65,17 @@ public abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
 	public void serialize(final T object, OutputStream outputStream) throws IOException {
 		Assert.notNull(outputStream, "'outputSteam' cannot be null");
 		final Output output = new Output(outputStream);
-		pool.run(new KryoCallback<Object>() {
-			@Override
-			public Object execute(Kryo kryo) {
-				doSerialize(kryo, object, output);
-				return Void.class;
-			}
-		});
-
-		output.close();
+		try {
+			pool.run(new KryoCallback<Object>() {
+				@Override
+				public Object execute(Kryo kryo) {
+					doSerialize(kryo, object, output);
+					return Void.class;
+				}
+			});
+		} finally {
+			output.close();
+		}
 	}
 
 	/**
@@ -98,26 +88,17 @@ public abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
 	@Override
 	public T deserialize(InputStream inputStream) throws IOException {
 		final Input input = new Input(inputStream);
-		T result = pool.run(new KryoCallback<T>() {
-			@Override
-			public T execute(Kryo kryo) {
-				return doDeserialize(kryo, input);
-			}
-		});
-		input.close();
-		return result;
-	}
-
-	/**
-	 * Deserialize an object when the type is known
-	 *
-	 * @param bytes the byte array containing the serialized object
-	 * @return the object
-	 * @throws IOException
-	 */
-	@Override
-	public T deserialize(byte[] bytes) throws IOException {
-		return deserialize(new ByteArrayInputStream(bytes));
+		try {
+			T result = pool.run(new KryoCallback<T>() {
+				@Override
+				public T execute(Kryo kryo) {
+					return doDeserialize(kryo, input);
+				}
+			});
+			return result;
+		} finally {
+			input.close();
+		}
 	}
 
 	protected abstract void doSerialize(Kryo kryo, T object, Output output);

@@ -15,7 +15,10 @@
 
 package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
+import java.util.List;
+
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Registration;
 
 /**
  * Strategy interface used by {@link PojoCodec} to register
@@ -42,6 +45,9 @@ import com.esotericsoftware.kryo.Kryo;
  * @since 1.1
  */
 public interface KryoRegistrar {
+	
+	static final int MIN_REGISTRATION_VALUE = 10;
+	
 	/**
 	 * This method is invoked by the {@link PojoCodec} and
 	 * applied to the {@link Kryo} instance whenever one is provided. This is currently done using an object pool so it
@@ -51,4 +57,10 @@ public interface KryoRegistrar {
 	 * @param kryo the provided instance
 	 */
 	void registerTypes(Kryo kryo);
+
+	/**
+	 *
+	 * @return the list of {@link com.esotericsoftware.kryo.Registration} provided
+	 */
+	List<Registration> getRegistrations();
 }

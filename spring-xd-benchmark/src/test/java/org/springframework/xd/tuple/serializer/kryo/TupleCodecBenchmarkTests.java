@@ -15,20 +15,24 @@
 
 package org.springframework.xd.tuple.serializer.kryo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.Random;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.util.StopWatch;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author David Turanski
@@ -38,9 +42,9 @@ public class TupleCodecBenchmarkTests {
 
 	private static final int NUM_FIELDS = 10;
 
-	private TupleCodec serializer = new TupleCodec();
+	private PojoCodec serializer;
 
-	private TupleCodec deserializer = new TupleCodec();
+	private PojoCodec deserializer;
 
 	private Random random = new Random(System.currentTimeMillis());
 
@@ -50,13 +54,20 @@ public class TupleCodecBenchmarkTests {
 		for (int i = 0; i < ITERATIONS; i++) {
 			tuples[i] = randomTuple(NUM_FIELDS, includeNestedObjects);
 		}
-		return  tuples;
+		return tuples;
+	}
+
+	@Before
+	public void setUp() {
+		serializer = new PojoCodec(new TupleKryoRegistrar());
+		deserializer = new PojoCodec(new TupleKryoRegistrar());
 	}
 
 	@Test
 	public void runBenchmarks() throws IOException {
-		StopWatch stopWatch = new StopWatch("Tuple ser/deser - Iterations:" + ITERATIONS + " number of fields:" + NUM_FIELDS);
-		
+		StopWatch stopWatch = new StopWatch("Tuple ser/deser - Iterations:" + ITERATIONS + " number of fields:" + 
+				NUM_FIELDS);
+
 		Tuple[] primitiveTuples = generateSamples(false);
 		Tuple[] nestedTuples = generateSamples(true);
 
@@ -68,7 +79,7 @@ public class TupleCodecBenchmarkTests {
 			i++;
 		} while (System.currentTimeMillis() < endTime);
 
-		
+
 		runBenchmark(stopWatch, "primitives", primitiveTuples, serializer, deserializer);
 		runBenchmark(stopWatch, "nested", nestedTuples, serializer, deserializer);
 		System.out.println(stopWatch.prettyPrint());
@@ -82,14 +93,14 @@ public class TupleCodecBenchmarkTests {
 
 	}
 
-	private void runBenchmark(StopWatch stopWatch, String taskName, Tuple[] tuples, TupleCodec serializer,
-			TupleCodec deserializer) throws IOException {
+	private void runBenchmark(StopWatch stopWatch, String taskName, Tuple[] tuples, PojoCodec serializer,
+			PojoCodec deserializer) throws IOException {
 		stopWatch.start(taskName);
 		for (int i = 0; i < ITERATIONS; i++) {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			serializer.serialize(tuples[i], bos);
 			byte[] bytes = bos.toByteArray();
-			Tuple result = deserializer.deserialize(bytes);
+			Tuple result = (Tuple) deserializer.deserialize(bytes, DefaultTuple.class);
 			assertEquals(tuples[i].getFieldNames(), result.getFieldNames());
 			assertEquals(tuples[i].getValues(), result.getValues());
 			assertNotNull(((DefaultTuple) tuples[i]).getConversionService());
@@ -102,12 +113,12 @@ public class TupleCodecBenchmarkTests {
 	//TODO: Other types supported by Tuple, e.g. BigInteger
 	//TODO: Can this be simplified with autoboxing?
 	private Tuple randomTuple(int numFields, boolean includeNestedObjects) {
-		Class<?>[] types = new Class<?>[] {int.class, boolean.class, char.class, long.class, float.class, 
-				double.class, byte.class, Byte.class, Integer.class, Boolean.class, Long.class, Double.class, 
+		Class<?>[] types = new Class<?>[] {int.class, boolean.class, char.class, long.class, float.class,
+				double.class, byte.class, Byte.class, Integer.class, Boolean.class, Long.class, Double.class,
 				String.class, Foo.class, Tuple.class};
 
-		int range = includeNestedObjects ? types.length: types.length - 2;
-		
+		int range = includeNestedObjects ? types.length : types.length - 2;
+
 		TupleBuilder tupleBuilder = new TupleBuilder();
 		for (int i = 0; i < numFields; i++) {
 

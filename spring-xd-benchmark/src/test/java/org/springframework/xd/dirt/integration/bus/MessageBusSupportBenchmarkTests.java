@@ -15,8 +15,6 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,12 +25,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
-import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
-import org.springframework.xd.tuple.serializer.kryo.TupleCodec;
-import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
+import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
 
 /**
  * Performance benchmark tests for {@link MessageBusSupport}
@@ -66,9 +61,7 @@ ms     %     Task name
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public static void initMessageBus() {
 		TestMessageBus messageBus = new TestMessageBus();
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
-		codecs.put(Tuple.class, new TupleCodec());
-		messageBus.setCodec(new CompositeCodec(codecs, new PojoCodec()));
+		messageBus.setCodec(new PojoCodec(new TupleKryoRegistrar()));
 		messageBusSupport = messageBus;
 	}
 

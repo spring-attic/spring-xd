@@ -112,8 +112,6 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	}
 
 	private void logHadoopDistro() {
-		String hadoopDistro = environment.resolvePlaceholders(HADOOP_DISTRO_OPTION);
-		logger.info("Hadoop Distro: " + hadoopDistro);
 		if (ClassUtils.isPresent("org.apache.hadoop.util.VersionInfo", this.getClass().getClassLoader())) {
 			logger.info("Hadoop version detected from classpath " + org.apache.hadoop.util.VersionInfo.getVersion());
 		}

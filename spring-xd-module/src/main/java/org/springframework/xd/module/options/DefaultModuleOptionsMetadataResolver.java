@@ -35,7 +35,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.util.Assert;
 import org.springframework.xd.module.CompositeModuleDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModuleDefinition;
@@ -62,6 +61,7 @@ import org.springframework.xd.module.options.support.StringToEnumIgnoringCaseCon
  *
  * @author Eric Bottard
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, ResourceLoaderAware {
 
@@ -101,15 +101,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 	private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
 
-	/**
-	 * Construct a new {@link DefaultModuleOptionsMetadataResolver} that will use the provided conversion service when
-	 * converting from String to rich object (supported for {@link PojoModuleOptionsMetadata} only).
-	 *
-	 * @param conversionService Must not be null
-	 */
-	public DefaultModuleOptionsMetadataResolver(ConversionService conversionService) {
-		Assert.notNull(conversionService, "The provided conversionService must not be null.");
-	}
+	private boolean shouldCreateModuleClassLoader = true;
 
 	/**
 	 * Construct a new {@link DefaultModuleOptionsMetadataResolver}, using a
@@ -124,6 +116,16 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 	public void setCompositeResolver(ModuleOptionsMetadataResolver compositeResolver) {
 		this.compositeResolver = compositeResolver;
+	}
+
+	/**
+	 * Set to true to create a new classloader (ParentLastURLClassLoader) when loading
+	 * the module options metadata classes.
+	 *
+	 * @param shouldCreateModuleClassLoader
+	 */
+	public void setShouldCreateModuleClassLoader(boolean shouldCreateModuleClassLoader) {
+		this.shouldCreateModuleClassLoader = shouldCreateModuleClassLoader;
 	}
 
 	private ModuleOptionsMetadata makeSimpleModuleOptions(Properties props) {
@@ -188,10 +190,10 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	private ModuleOptionsMetadata resolveNormalMetadata(SimpleModuleDefinition definition) {
 
 		Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
-		ClassLoader classLoaderToUse = ModuleUtils.createModuleDiscoveryClassLoader(moduleLocation,
-				ModuleOptionsMetadataResolver.class.getClassLoader());
-
 		Properties props = ModuleUtils.loadModuleProperties(definition);
+		ClassLoader parentCL = ModuleOptionsMetadataResolver.class.getClassLoader();
+		ClassLoader classLoaderToUse = (shouldCreateModuleClassLoader) ?
+				ModuleUtils.createModuleDiscoveryClassLoader(moduleLocation, parentCL) : parentCL;
 		if (props == null) {
 			return inferModuleOptionsMetadata(definition, classLoaderToUse);
 		}

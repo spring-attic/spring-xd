@@ -5,13 +5,6 @@ endif::[]
 Below is a reference list of all Spring XD specific commands you can use in the link:Shell#interactive-shell[XD Shell].
 
 === Configuration Commands
-==== $$admin config timezone set$$
-$$Set the timezone of the Spring XD Shell (Not persisted)$$.
-
-    admin config timezone set [--timeZone] <timeZone>
-
-*$$timeZone$$*:: $$the id of the timezone, You can obtain a list of timezone ids using 'admin config timezone list', If an invalid timezone id is provided, then 'Greenwich Mean Time' is being used$$. *(required)*
-
 ==== $$admin config server$$
 $$Configure the XD admin server to use$$.
 
@@ -20,6 +13,13 @@ $$Configure the XD admin server to use$$.
 *$$uri$$*:: $$the location of the XD Admin REST endpoint$$. *(default: `http://localhost:9393/`)*
 *$$username$$*:: $$the username for authenticated access to the Admin REST endpoint$$. *(default: ``)*
 *$$password$$*:: $$the password for authenticated access to the Admin REST endpoint (valid only with a username)$$.
+
+==== $$admin config timezone set$$
+$$Set the timezone of the Spring XD Shell (Not persisted)$$.
+
+    admin config timezone set [--timeZone] <timeZone>
+
+*$$timeZone$$*:: $$the id of the timezone, You can obtain a list of timezone ids using 'admin config timezone list', If an invalid timezone id is provided, then 'Greenwich Mean Time' is being used$$. *(required)*
 
 ==== $$admin config info$$
 $$Show the XD admin server being used$$.

@@ -66,12 +66,6 @@ import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
 		ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
 		ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml"
 })
-//@ComponentScan(
-//		basePackages = {"spring.xd.bus.ext"},
-//		useDefaultFilters = false,
-//		includeFilters = {
-//				@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = AbstractKryoCodec.class)
-//		})
 @ComponentScan(basePackages = {"spring.xd.bus.ext"})
 public class SharedServerContextConfiguration {
 

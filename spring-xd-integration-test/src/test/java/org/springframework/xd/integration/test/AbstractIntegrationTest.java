@@ -265,28 +265,34 @@ public abstract class AbstractIntegrationTest {
 	 * @param sourceDir The directory to place the file
 	 * @param fileName The name of the file where the data will be written
 	 * @param data The data to be written to the file
+	 * @result returns true if file was created else false
 	 */
-	public void setupDataFiles(String host, String sourceDir, String fileName, String data) {
+	public boolean setupDataFiles(String host, String sourceDir, String fileName, String data) {
 		Assert.hasText(host, "host must not be empty nor null");
 		Assert.hasText(fileName, "fileName must not be empty nor null");
 		Assert.notNull(sourceDir, "sourceDir must not be null");
 		Assert.notNull(data, "data must not be null");
-
+		boolean result = false;
 		if (xdEnvironment.isOnEc2()) {
-			StreamUtils.createDataFileOnRemote(xdEnvironment.getPrivateKey(), host, sourceDir, fileName, data,
+			result = StreamUtils.createDataFileOnRemote(xdEnvironment.getPrivateKey(), host, sourceDir, fileName, data,
 					WAIT_TIME);
 		}
 		else {
 			try {
+				File dirs = new File(sourceDir);
+				dirs.mkdirs();
+				dirs.deleteOnExit();
 				File file = new File(sourceDir + "/" + fileName);
 				file.deleteOnExit();
 				file.createNewFile();
 				FileCopyUtils.copy(data.getBytes(), file);
+				result = file.exists();
 			}
 			catch (IOException ioe) {
 				throw new IllegalStateException(ioe.getMessage(), ioe);
 			}
 		}
+		return result;
 	}
 
 	/**
@@ -776,8 +782,6 @@ public abstract class AbstractIntegrationTest {
 
 	}
 
-
-
 	/**
 	 * Get the {@see XdEnvironment}
 	 *
@@ -787,5 +791,25 @@ public abstract class AbstractIntegrationTest {
 		return xdEnvironment;
 	}
 
+	/**
+	 * Checks for file or dir on the XD instance and returns true when file is present
+	 * else false.
+	 * @param host The host url  where the file is be stored
+	 * @param path The URI of the directory or file
+	 * @return True if file is present before waitTime is expired else false.
+	 */
+	protected boolean fileExistsOnXDInstance(String host, String path){
+		Assert.hasText(host, "host must not be null nor empty");
+		Assert.hasText(path, "path must not be null nor empty");
+		boolean exists = false;
+		if (isOnEc2){
+			exists = StreamUtils.fileExists(host,xdEnvironment.getPrivateKey(),path);
+		}else{
+			File file = new File(path);
+			exists = file.exists();
+		}
+		return exists;
+		
+	}
 
 }

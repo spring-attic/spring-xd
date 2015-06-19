@@ -17,6 +17,7 @@
 package org.springframework.xd.integration.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.FileJdbcJob;
 import org.springframework.xd.test.fixtures.JdbcSink;
 
@@ -37,6 +39,8 @@ import org.springframework.xd.test.fixtures.JdbcSink;
 public class FileJdbcTest extends AbstractJobTest {
 
 	private final static String DEFAULT_FILE_NAME = "filejdbctest";
+	private final static String DEFAULT_DIRECTORY = XdEnvironment.RESULT_LOCATION +
+			"/" + FileJdbcJob.DEFAULT_DIRECTORY + "/";
 
 	private JdbcSink jdbcSink;
 
@@ -61,21 +65,17 @@ public class FileJdbcTest extends AbstractJobTest {
 	public void testPartitionedFileJdbcJob() {
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
-		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY,
+		FileJdbcJob job = new FileJdbcJob(DEFAULT_DIRECTORY,
 				String.format("/%spartition*", DEFAULT_FILE_NAME),
 				FileJdbcJob.DEFAULT_TABLE_NAME,
 				FileJdbcJob.DEFAULT_NAMES);
+		job(job.toDSL());
 
 		for (int i = 0; i < 5; i++) {
-			// Create a stream that writes to a file. This file will be used by the job.
-			stream("dataSender" + i, sources.http("foobar", 9000 + i) + XD_DELIMITER
-					+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME + "partition" + i).toDSL());
-			String host = getContainerResolver().getContainerHostForSource("dataSender" + i);
-			sources.http(host, 9000 + i).postData(data);
+			// Setup data files to be used for partition test
+			assertTrue(setupDataFiles(getContainerHostForJob(), DEFAULT_DIRECTORY,
+					DEFAULT_FILE_NAME + "partition" + i + ".out", data));
 		}
-		waitForXD();
-		job(job.toDSL());
-		waitForXD();
 		jobLaunch();
 
 		String query = String.format("SELECT data FROM %s", tableName);
@@ -98,22 +98,20 @@ public class FileJdbcTest extends AbstractJobTest {
 	public void testFileJdbcJob() {
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
-		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
+		FileJdbcJob job = new FileJdbcJob(DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
 				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
 
-		// Create a stream that writes to a file. This file will be used by the job.
-		stream("dataSender", sources.http() + XD_DELIMITER
-				+ sinks.file(FileJdbcJob.DEFAULT_DIRECTORY, DEFAULT_FILE_NAME).toDSL());
-		sources.httpSource("dataSender").postData(data);
 		job(job.toDSL());
-		waitForXD();
+		// Setup data files to be used for partition test
+		assertTrue(setupDataFiles(getContainerHostForJob(), DEFAULT_DIRECTORY, 
+				DEFAULT_FILE_NAME + ".out", data));
+
 		jobLaunch();
 		String query = String.format("SELECT data FROM %s", tableName);
 
 		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 1);
 
 		List<String> results = jdbcSink.getJdbcTemplate().queryForList(query, String.class);
-
 		assertEquals(1, results.size());
 
 		for (String result : results) {

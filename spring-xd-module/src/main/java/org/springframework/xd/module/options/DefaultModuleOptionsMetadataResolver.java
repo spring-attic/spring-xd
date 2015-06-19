@@ -109,6 +109,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 */
 	public DefaultModuleOptionsMetadataResolver(ConversionService conversionService) {
 		Assert.notNull(conversionService, "The provided conversionService must not be null.");
+		this.conversionService = conversionService;
 	}
 
 	/**

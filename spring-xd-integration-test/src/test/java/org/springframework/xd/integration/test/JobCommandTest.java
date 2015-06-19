@@ -70,7 +70,7 @@ public class JobCommandTest extends AbstractJobTest {
 	@Test
 	public void testJobLifecycle() throws InterruptedException {
 		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
-				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
+				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES, FileJdbcJob.DEFAULT_DELETE_FILES);
 		String jobName = "tjl" + UUID.randomUUID().toString();
 		logger.info("Testing Job Lifecycle for: " + jobName);
 		job(jobName, job.toDSL(),true);
@@ -88,7 +88,7 @@ public class JobCommandTest extends AbstractJobTest {
 		exception.expectMessage("Batch Job with the name " + JOB_NAME + " already exists");
 		logger.info("Testing Job Create Duplicate");
 		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
-				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
+				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES, FileJdbcJob.DEFAULT_DELETE_FILES);
 		job(job.toDSL());
 		checkJob(job.toDSL(), true);
 		job(job.toDSL());
@@ -109,7 +109,7 @@ public class JobCommandTest extends AbstractJobTest {
 		logger.info("Testing Job False Deploy");
 
 		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
-				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
+				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES, FileJdbcJob.DEFAULT_DELETE_FILES);
 		job("jobFalseDeploy", job.toDSL(),false);
 		checkJob(job.toDSL(), false);
 		job("jobFalseDeploy", job.toDSL(),false);
@@ -118,7 +118,7 @@ public class JobCommandTest extends AbstractJobTest {
 	@Test
 	public void testJobDeployUndeployFlow() throws InterruptedException {
 		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
-				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
+				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES, FileJdbcJob.DEFAULT_DELETE_FILES);
 		String jobName = "tjduf" + UUID.randomUUID().toString();
 		logger.info("Testing Job Deploy Undeploy Flow for: " + jobName);
 
@@ -154,7 +154,7 @@ public class JobCommandTest extends AbstractJobTest {
 		String jobName = "tsle" + UUID.randomUUID().toString();
 
 		FileJdbcJob job = new FileJdbcJob(FileJdbcJob.DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
-				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
+				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES, FileJdbcJob.DEFAULT_DELETE_FILES);
 
 		// Create a stream that writes to a file. This file will be used by the job.
 		stream("dataSender", sources.http() + XD_DELIMITER

@@ -196,7 +196,7 @@ public class StreamUtils {
 		long timeout = System.currentTimeMillis() + retryTime;
 		while (!isFileCopied && System.currentTimeMillis() < timeout) {
 			SshjSshClient client = getSSHClient(host, privateKey);
-			client.exec("mkdir " + dir);
+			client.exec("mkdir -p " + dir);
 			ExecResponse response = client.exec("ls -al " + dir );
 			if (response.getExitStatus() > 0) {
 				continue; //directory was not created
@@ -487,7 +487,7 @@ public class StreamUtils {
 	/**
 	 * Retrieves the container pids for a remote machine.  	 
 	 * @param url The URL where the containers are deployed.
-	 * @param privateKey ssh private key credentional
+	 * @param privateKey ssh private key credential
 	 * @param jpsCommand The command to retrieve java processes on container machine.
 	 * @return An Integer array that contains the pids.
 	 */
@@ -499,6 +499,26 @@ public class StreamUtils {
 		return extractPidsFromJPS(response.getOutput());
 	}
 
+	/**
+	 * Verifies the specified path exists on remote machine.
+	 * @param host The host where the file exists.
+	 * @param privateKey ssh private key credential
+	 * @param path path to file or directory
+	 * @return true if file exists else false.
+	 */
+	public static boolean fileExists(String host, String privateKey, String path){
+		Assert.hasText(host, "host must not be null nor empty");
+		Assert.hasText(privateKey, "privateKey must not be null nor empty");
+		Assert.hasText(path, "path must not be null nor empty");
+		boolean result = true;
+		final SshjSshClient client = getSSHClient(host, privateKey);
+		ExecResponse response = client.exec("ls -al " + path);
+		if (response.getExitStatus() > 0){
+			result = false;
+		}
+		return result;
+	}
+	
 	private static Integer[] extractPidsFromJPS(String jpsResult) {
 		String[] pidList = StringUtils.tokenizeToStringArray(jpsResult, "\n");
 		ArrayList<Integer> pids = new ArrayList<Integer>();
@@ -549,7 +569,6 @@ public class StreamUtils {
 	}
 
 	private static boolean isMetricPresent(SpringXDTemplate xdTemplate, String name) {
-
 		boolean result = false;
 		PagedResources<MetricResource> resources = xdTemplate.counterOperations().list();
 		Iterator<MetricResource> resourceIter = resources.iterator();

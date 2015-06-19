@@ -35,6 +35,8 @@ public class FileJdbcJob extends AbstractModuleFixture<FileJdbcJob> {
 
 	public final static String DEFAULT_NAMES = "data";
 
+	public static final boolean DEFAULT_DELETE_FILES = false;
+
 
 	private final String dir;
 
@@ -43,6 +45,8 @@ public class FileJdbcJob extends AbstractModuleFixture<FileJdbcJob> {
 	private final String tableName;
 
 	private final String names;
+
+	private final boolean deleteFiles;
 
 	/**
 	 * Construct a new FileJdbcJob using the provided directory and file names.
@@ -53,7 +57,7 @@ public class FileJdbcJob extends AbstractModuleFixture<FileJdbcJob> {
 	 * @param names a comma delimited list of column names that are contained in the source file.
 	 *
 	 */
-	public FileJdbcJob(String dir, String fileName, String tableName, String names) {
+	public FileJdbcJob(String dir, String fileName, String tableName, String names, boolean deleteFiles) {
 		Assert.hasText(dir, "dir must not be null or empty");
 		Assert.hasText(tableName, "tableName must not be null or empty");
 		Assert.hasText(names, "names must not be null nor empty");
@@ -62,10 +66,11 @@ public class FileJdbcJob extends AbstractModuleFixture<FileJdbcJob> {
 		this.fileName = fileName;
 		this.tableName = tableName;
 		this.names = names;
+		this.deleteFiles = deleteFiles;
 	}
 
 	public static FileJdbcJob withDefaults() {
-		return new FileJdbcJob(DEFAULT_DIRECTORY, DEFAULT_FILE_NAME, DEFAULT_TABLE_NAME, DEFAULT_NAMES);
+		return new FileJdbcJob(DEFAULT_DIRECTORY, DEFAULT_FILE_NAME, DEFAULT_TABLE_NAME, DEFAULT_NAMES, DEFAULT_DELETE_FILES);
 	}
 
 	/**
@@ -73,15 +78,23 @@ public class FileJdbcJob extends AbstractModuleFixture<FileJdbcJob> {
 	 */
 	@Override
 	public String toDSL() {
+		StringBuilder definition = new StringBuilder();
+
 		if(StringUtils.hasText(fileName)) {
-			return String.format(
+			definition.append(String.format(
 					"filejdbc --resources=file:%s/%s --names=%s --tableName=%s --initializeDatabase=true ", dir,
-					fileName, names, tableName);
+					fileName, names, tableName));
 		}
 		else {
-			return String.format(
+			definition.append(String.format(
 					"filejdbc --resources=file:%s --names=%s --tableName=%s --initializeDatabase=true ", dir,
-					names, tableName);
+					names, tableName));
 		}
+
+		if(deleteFiles) {
+			definition.append("--deleteFiles=true ");
+		}
+
+		return definition.toString();
 	}
 }

@@ -19,6 +19,8 @@ package org.springframework.xd.integration.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +31,6 @@ import org.junit.Test;
 import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.test.fixtures.FileJdbcJob;
 import org.springframework.xd.test.fixtures.JdbcSink;
-
 
 /**
  * Asserts that this job will read the specified file and place the results into the database.
@@ -68,7 +69,9 @@ public class FileJdbcTest extends AbstractJobTest {
 		FileJdbcJob job = new FileJdbcJob(DEFAULT_DIRECTORY,
 				String.format("/%spartition*", DEFAULT_FILE_NAME),
 				FileJdbcJob.DEFAULT_TABLE_NAME,
-				FileJdbcJob.DEFAULT_NAMES);
+				FileJdbcJob.DEFAULT_NAMES,
+				FileJdbcJob.DEFAULT_DELETE_FILES);
+
 		job(job.toDSL());
 
 		for (int i = 0; i < 5; i++) {
@@ -99,10 +102,11 @@ public class FileJdbcTest extends AbstractJobTest {
 		String data = UUID.randomUUID().toString();
 		jdbcSink.getJdbcTemplate().getDataSource();
 		FileJdbcJob job = new FileJdbcJob(DEFAULT_DIRECTORY, FileJdbcJob.DEFAULT_FILE_NAME,
-				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES);
+				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES,
+				FileJdbcJob.DEFAULT_DELETE_FILES);
 
 		job(job.toDSL());
-		// Setup data files to be used for partition test
+		// Setup data files to be used for test
 		assertTrue(setupDataFiles(getContainerHostForJob(), DEFAULT_DIRECTORY, 
 				DEFAULT_FILE_NAME + ".out", data));
 
@@ -117,6 +121,62 @@ public class FileJdbcTest extends AbstractJobTest {
 		for (String result : results) {
 			assertEquals(data, result);
 		}
+	}
+
+	/**
+	 * Asserts that fileJdbcJob has written the test data from a file to the table.
+	 *
+	 */
+	@Test
+	public void testFileJdbcJobMultipleInvocations() {
+		List<String> data = new ArrayList<>();
+		String curData = UUID.randomUUID().toString();
+		data.add(curData);
+
+		jdbcSink.getJdbcTemplate().getDataSource();
+		FileJdbcJob job = new FileJdbcJob(DEFAULT_DIRECTORY, "*",
+				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES, true);
+
+		job(job.toDSL());
+
+		// Setup data files to be used for test
+		assertTrue(setupDataFiles(getContainerHostForJob(), DEFAULT_DIRECTORY,
+				DEFAULT_FILE_NAME + "1.out", curData));
+
+		jobLaunch();
+		String query = String.format("SELECT data FROM %s", tableName);
+
+		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 1);
+
+		List<String> results = jdbcSink.getJdbcTemplate().queryForList(query, String.class);
+
+		assertEquals(1, results.size());
+
+		for (String result : results) {
+			assertTrue(data.contains(result));
+		}
+
+		assertTrue(!fileExistsOnXDInstance(getContainerHostForJob(), DEFAULT_DIRECTORY + File.separator + DEFAULT_FILE_NAME + "1.out"));
+
+		curData = UUID.randomUUID().toString();
+		data.add(curData);
+
+		assertTrue(setupDataFiles(getContainerHostForJob(), DEFAULT_DIRECTORY,
+				DEFAULT_FILE_NAME + "2.out", curData));
+
+		jobLaunch();
+
+		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 2);
+
+		results = jdbcSink.getJdbcTemplate().queryForList(query, String.class);
+
+		assertEquals(2, results.size());
+
+		for (String result : results) {
+			assertTrue(data.contains(result));
+		}
+
+		assertTrue(!fileExistsOnXDInstance(getContainerHostForJob(), DEFAULT_DIRECTORY + File.separator + DEFAULT_FILE_NAME + "2.out"));
 	}
 
 	/**

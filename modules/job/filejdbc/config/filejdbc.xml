@@ -19,7 +19,7 @@
 		</listeners>
 	</step>
 
-	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionStepExecutionListener">
+	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionStepExecutionListener" scope="step">
 		<property name="resources" value="${resources}"/>
 		<property name="deleteFiles" value="${deleteFiles}"/>
 	</bean>

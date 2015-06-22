@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.xd.dirt.server.MessageBusExtensionsConfiguration;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
@@ -39,8 +40,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  */
 @Configuration
 @Import(PropertyPlaceholderAutoConfiguration.class)
-@ImportResource({"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "bus/${XD_TRANSPORT}-bus.xml",
-		ConfigLocations.XD_CONFIG_ROOT + "bus/codec-hide.xml"})
+@ImportResource({"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "bus/${XD_TRANSPORT}-bus.xml"})
 class MessageBusConfiguration {
 
 	private static final String RABBIT_ACKMODE_PROPERTY = "xd.messagebus.rabbit.default.ackMode";
@@ -73,6 +73,7 @@ class MessageBusConfiguration {
 				})
 				.web(false)
 				.showBanner(false);
+		application.sources(MessageBusExtensionsConfiguration.class);
 		if (transport.equals("rabbit")) {
 			application.sources(RabbitAutoConfiguration.class);
 		}

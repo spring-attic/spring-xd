@@ -59,14 +59,12 @@ import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
  */
 @Configuration
 @EnableIntegration
-@Import(PropertyPlaceholderAutoConfiguration.class)
+@Import({PropertyPlaceholderAutoConfiguration.class, MessageBusExtensionsConfiguration.class})
 @ImportResource({
 		ConfigLocations.XD_CONFIG_ROOT + "bus/${XD_TRANSPORT}-bus.xml",
-		"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "bus/ext/*.xml",
 		ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
 		ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml"
 })
-@ComponentScan(basePackages = {"spring.xd.bus.ext"})
 public class SharedServerContextConfiguration {
 
 	public static final String ZK_CONNECT = "zk.client.connect";
@@ -74,28 +72,6 @@ public class SharedServerContextConfiguration {
 	public static final String EMBEDDED_ZK_CONNECT = "zk.embedded.client.connect";
 
 	public static final String ZK_PROPERTIES_SOURCE = "zk-properties";
-
-	@Autowired
-	ApplicationContext applicationContext;
-
-	@Bean
-	@ConditionalOnMissingBean(name = "codec")
-	public MultiTypeCodec codec() {
-		Map<String, AbstractKryoRegistrar> kryoRegistrarMap = applicationContext.getBeansOfType(AbstractKryoRegistrar
-				.class);
-		return new PojoCodec(new ArrayList<>(kryoRegistrarMap.values()));
-	}
-
-	@Bean
-	public AbstractKryoRegistrar fileRegistrar() {
-		return new FileKryoRegistrar();
-	}
-
-	@Bean
-	public AbstractKryoRegistrar tupleRegistrar() {
-		return new TupleKryoRegistrar();
-	}
-
 
 	@Configuration
 	@Profile(XdProfiles.SINGLENODE_PROFILE)

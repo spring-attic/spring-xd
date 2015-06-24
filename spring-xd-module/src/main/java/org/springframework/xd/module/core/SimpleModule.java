@@ -50,6 +50,7 @@ import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.ModuleUtils;
 import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 
 /**
@@ -263,13 +264,7 @@ public abstract class SimpleModule extends AbstractModule {
 				throw new IllegalStateException(e);
 			}
 		}
-		if (classLoader instanceof Closeable) {
-			try {
-				((Closeable) classLoader).close();
-			}
-			catch (IOException e) {
-			}
-		}
+		ModuleUtils.closeClassLoader(classLoader);
 	}
 
 	private static ModuleOptions defaultModuleOptions() {

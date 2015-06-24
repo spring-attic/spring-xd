@@ -19,12 +19,15 @@ package org.springframework.xd.dirt.server.admin;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.Filter;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.AuditAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
@@ -46,6 +49,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.xd.batch.XdBatchDatabaseInitializer;
 import org.springframework.xd.dirt.rest.RestConfiguration;
@@ -189,4 +194,18 @@ public class AdminServerApplication {
 	public BatchDatabaseInitializer batchDatabaseInitializer() {
 		return new XdBatchDatabaseInitializer();
 	}
+
+
+	@Autowired
+	private ScheduledAnnotationBeanPostProcessor postProcessor;
+
+	@Autowired
+	@Qualifier("framework")
+	private TaskScheduler frameworkTaskScheduler;
+
+	@PostConstruct
+	public void forceScheduledTaskExecutor() {
+		postProcessor.setScheduler(frameworkTaskScheduler);
+	}
+
 }

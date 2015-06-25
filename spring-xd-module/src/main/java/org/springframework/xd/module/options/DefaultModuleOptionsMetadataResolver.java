@@ -101,7 +101,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 	private ResourcePatternResolver resourceLoader = new PathMatchingResourcePatternResolver();
 
-	private boolean useParentClassLoader = false;
+	private boolean shouldCreateModuleClassLoader = true;
 
 	/**
 	 * Construct a new {@link DefaultModuleOptionsMetadataResolver}, using a
@@ -119,12 +119,13 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	}
 
 	/**
-	 * Set to use parent classloader when loading the module options metadata classes.
+	 * Set to true to create a new classloader (ParentLastURLClassLoader) when loading
+	 * the module options metadata classes.
 	 *
-	 * @param useParentClassLoader
+	 * @param shouldCreateModuleClassLoader
 	 */
-	public void setUseParentClassLoader(boolean useParentClassLoader) {
-		this.useParentClassLoader = useParentClassLoader;
+	public void setShouldCreateModuleClassLoader(boolean shouldCreateModuleClassLoader) {
+		this.shouldCreateModuleClassLoader = shouldCreateModuleClassLoader;
 	}
 
 	private ModuleOptionsMetadata makeSimpleModuleOptions(Properties props) {
@@ -191,8 +192,8 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 		Resource moduleLocation = resourceLoader.getResource(definition.getLocation());
 		Properties props = ModuleUtils.loadModuleProperties(definition);
 		ClassLoader parentCL = ModuleOptionsMetadataResolver.class.getClassLoader();
-		ClassLoader classLoaderToUse = (useParentClassLoader) ? parentCL :
-				ModuleUtils.createModuleDiscoveryClassLoader(moduleLocation, parentCL);
+		ClassLoader classLoaderToUse = (shouldCreateModuleClassLoader) ?
+				ModuleUtils.createModuleDiscoveryClassLoader(moduleLocation, parentCL) : parentCL;
 		if (props == null) {
 			return inferModuleOptionsMetadata(definition, classLoaderToUse);
 		}

@@ -17,36 +17,45 @@
 package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+
 /**
- * Kryo Codec that can handle arbitrary types
- *
+ * Kryo Codec that can serialize and deserialize arbitrary types. Classes and associated
+ * {@link com.esotericsoftware.kryo.Serializer}s may be registered via
+ * {@link org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar}s.
  * @author David Turanski
  * @since 1.0
  */
 public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
-	private final KryoRegistrar kryoRegistrar;
+	private final CompositeKryoRegistrar kryoRegistrar;
 
 	public PojoCodec() {
-		kryoRegistrar = null;
+		this.kryoRegistrar = null;
 	}
 
 	/**
-	 * Use this constructor to register known domain classes to Kryo using a {@link
-	 * KryoRegistrar}. This constructor is used in XDs
-	 * Spring configuration. Null by defaults, users must register a bean of this type to take advantage of this
-	 * feature.
-	 *
+	 * Create an instance with a single KryoRegistrar.
 	 * @param kryoRegistrar
 	 */
 	public PojoCodec(KryoRegistrar kryoRegistrar) {
-		this.kryoRegistrar = kryoRegistrar;
+		this(kryoRegistrar != null ? Collections.singletonList(kryoRegistrar) : null);
+	}
+
+	/**
+	 * Create an instance with zero to many KryoRegistrars.
+	 * @param kryoRegistrars
+	 */
+	public PojoCodec(List<KryoRegistrar> kryoRegistrars) {
+		kryoRegistrar = CollectionUtils.isEmpty(kryoRegistrars) ? null :
+				new CompositeKryoRegistrar(kryoRegistrars);
 	}
 
 	@Override
@@ -67,5 +76,4 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 			kryoRegistrar.registerTypes(kryo);
 		}
 	}
-
 }

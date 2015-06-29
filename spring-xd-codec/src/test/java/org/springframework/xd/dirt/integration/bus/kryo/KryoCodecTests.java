@@ -29,7 +29,6 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.StringCodec;
 
 /**
  * @author David Turanski
@@ -40,12 +39,12 @@ public class KryoCodecTests {
 	@Test
 	public void testStringSerialization() throws IOException {
 		String str = "hello";
-		StringCodec serializer = new StringCodec();
+		PojoCodec serializer = new PojoCodec();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
 		serializer.serialize(str, bos);
 
-		String s2 = serializer.deserialize(bos.toByteArray());
+		String s2 = (String)serializer.deserialize(bos.toByteArray(), String.class);
 		assertEquals(str, s2);
 	}
 
@@ -53,13 +52,13 @@ public class KryoCodecTests {
 	public void testSerializationWithStreams() throws IOException {
 		String str = "hello";
 		File file = new File("test.ser");
-		StringCodec serializer = new StringCodec();
+		PojoCodec serializer = new PojoCodec();
 		FileOutputStream fos = new FileOutputStream(file);
 		serializer.serialize(str, fos);
 		fos.close();
 
 		FileInputStream fis = new FileInputStream(file);
-		String s2 = serializer.deserialize(fis);
+		String s2 = (String) serializer.deserialize(fis, String.class);
 		file.delete();
 		assertEquals(str, s2);
 	}

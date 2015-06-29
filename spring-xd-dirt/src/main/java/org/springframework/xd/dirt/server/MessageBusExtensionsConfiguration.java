@@ -27,6 +27,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.FileKryoRegistrar;
+import org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
@@ -46,18 +47,18 @@ public class MessageBusExtensionsConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(name = "codec")
 	public MultiTypeCodec codec() {
-		Map<String, AbstractKryoRegistrar> kryoRegistrarMap = applicationContext.getBeansOfType(AbstractKryoRegistrar
+		Map<String, KryoRegistrar> kryoRegistrarMap = applicationContext.getBeansOfType(KryoRegistrar
 				.class);
 		return new PojoCodec(new ArrayList<>(kryoRegistrarMap.values()));
 	}
 
 	@Bean
-	public AbstractKryoRegistrar fileRegistrar() {
+	public KryoRegistrar fileRegistrar() {
 		return new FileKryoRegistrar();
 	}
 
 	@Bean
-	public AbstractKryoRegistrar tupleRegistrar() {
+	public KryoRegistrar tupleRegistrar() {
 		return new TupleKryoRegistrar();
 	}
 }

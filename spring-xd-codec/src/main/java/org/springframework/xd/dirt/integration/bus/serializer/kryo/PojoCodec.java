@@ -45,7 +45,7 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 	 * Create an instance with a single KryoRegistrar.
 	 * @param kryoRegistrar
 	 */
-	public PojoCodec(AbstractKryoRegistrar kryoRegistrar) {
+	public PojoCodec(KryoRegistrar kryoRegistrar) {
 		this(kryoRegistrar != null ? Collections.singletonList(kryoRegistrar) : null);
 	}
 
@@ -53,7 +53,7 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 	 * Create an instance with zero to many KryoRegistrars.
 	 * @param kryoRegistrars
 	 */
-	public PojoCodec(List<AbstractKryoRegistrar> kryoRegistrars) {
+	public PojoCodec(List<KryoRegistrar> kryoRegistrars) {
 		kryoRegistrar = CollectionUtils.isEmpty(kryoRegistrars) ? null :
 				new CompositeKryoRegistrar(kryoRegistrars);
 	}

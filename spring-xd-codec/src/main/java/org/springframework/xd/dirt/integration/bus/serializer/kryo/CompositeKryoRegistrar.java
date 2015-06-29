@@ -32,9 +32,9 @@ import org.springframework.xd.dirt.integration.bus.serializer.SerializationExcep
  */
 public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 
-	private final List<AbstractKryoRegistrar> delegates;
+	private final List<KryoRegistrar> delegates;
 
-	public CompositeKryoRegistrar(List<AbstractKryoRegistrar> delegates) {
+	public CompositeKryoRegistrar(List<KryoRegistrar> delegates) {
 		super();
 		this.delegates = delegates;
 		
@@ -46,7 +46,7 @@ public class CompositeKryoRegistrar extends AbstractKryoRegistrar {
 	@Override
 	public List<Registration> getRegistrations() {
 		List<Registration> registrations = new ArrayList<>();
-		for (AbstractKryoRegistrar registrar : delegates) {
+		for (KryoRegistrar registrar : delegates) {
 			registrations.addAll(registrar.getRegistrations());
 		}
 		return registrations;

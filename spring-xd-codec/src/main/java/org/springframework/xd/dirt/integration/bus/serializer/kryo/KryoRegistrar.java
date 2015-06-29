@@ -57,4 +57,10 @@ public interface KryoRegistrar {
 	 * @param kryo the provided instance
 	 */
 	void registerTypes(Kryo kryo);
+
+	/**
+	 *
+	 * @return the list of {@link com.esotericsoftware.kryo.Registration} provided
+	 */
+	List<Registration> getRegistrations();
 }

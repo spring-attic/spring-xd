@@ -99,6 +99,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security =
 				http.csrf().disable()
 						.authorizeRequests()
+						.antMatchers("/").authenticated()
 						.antMatchers("/admin-ui/**").permitAll()
 						.antMatchers("/authenticate").permitAll()
 						.antMatchers("/security/info").permitAll()

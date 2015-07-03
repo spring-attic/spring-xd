@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import org.springframework.xd.test.RandomConfigurationSupport;
  *
  * @author Marius Bogoevici
  */
-public class SecuredShellAccessTest extends RandomConfigurationSupport {
+public class SecuredShellAccessTests extends RandomConfigurationSupport {
 
 	private static SingleNodeApplication singleNodeApplication;
 
@@ -170,9 +170,7 @@ public class SecuredShellAccessTest extends RandomConfigurationSupport {
 		JLineShellComponent shell = bootstrap.getJLineShellComponent();
 		CommandResult commandResult = shell.executeCommand("admin config server --uri http://localhost:" + adminPort + " --password whosThere");
 		assertThat(commandResult.isSuccess(), is(true));
-		Configuration configuration = bootstrap.getApplicationContext().getBean(Configuration.class);
-		assertThat(configuration.getTarget().getTargetException(), instanceOf(IllegalArgumentException.class));
-		assertThat(configuration.getTarget().getTargetException().getMessage(), equalTo("A password may be specified only together with a user name"));
+		assertThat(commandResult.getResult(), equalTo((Object)"A password may be specified only together with a username"));
 		commandResult = shell.executeCommand("module list");
 		assertThat(commandResult.isSuccess(), is(false));
 	}

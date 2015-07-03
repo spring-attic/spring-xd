@@ -13,4 +13,5 @@ security:
   user:
     name: admin
     password: whosThere
+    role: ADMIN, VIEW, CREATE
 ---

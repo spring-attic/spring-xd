@@ -97,7 +97,12 @@ public class DeploymentUnitStatus {
 		/**
 		 * The deployment unit is in the process of being undeployed.
 		 */
-		undeploying
+		undeploying,
+
+		/**
+		 * The deployment status is unknown or can't be calculated.
+		 */
+		unknown
 	}
 
 	/**

@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -123,7 +124,15 @@ public class ContainerMatchingModuleRedeployer extends ModuleRedeployer {
 		// iterate the cache of stream deployments
 		for (ChildData data : streamDeployments.getCurrentData()) {
 			String streamName = ZooKeeperUtils.stripPathConverter.convert(data);
-			final Stream stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
+			Stream stream = null;
+			try {
+				stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
+			}
+			catch (Exception e) {
+				logger.error(String.format("Exception loading the stream %s. The stream deployment status " +
+						"could be unknown. Fix the issue mentioned in the exception and restart the admin. " +
+						"The exception is: %s", streamName, ExceptionUtils.getStackTrace(e)));
+			}
 			// if stream is null this means the stream was destroyed or undeployed
 			if (stream != null) {
 				List<ModuleDeploymentRequestsPath> requestedModules =
@@ -167,7 +176,15 @@ public class ContainerMatchingModuleRedeployer extends ModuleRedeployer {
 			String jobName = ZooKeeperUtils.stripPathConverter.convert(data);
 
 			// if job is null this means the job was destroyed or undeployed
-			Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
+			Job job = null;
+			try {
+				job = DeploymentLoader.loadJob(client, jobName, jobFactory);
+			}
+			catch (Exception e) {
+				logger.error(String.format("Exception loading the job %s. The job deployment status could be " +
+						"unknown. Fix the issue mentioned in the exception and restart the admin. " +
+						"The exception is: %s", jobName, ExceptionUtils.getStackTrace(e)));
+			}
 			if (job != null) {
 				List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
 						requestedModulesPaths, jobName);

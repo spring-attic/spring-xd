@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -120,7 +121,15 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			String moduleType = moduleDeploymentsPath.getModuleType();
 
 			if (ModuleType.job.toString().equals(moduleType)) {
-				Job job = DeploymentLoader.loadJob(client, unitName, jobFactory);
+				Job job = null;
+				try {
+					job = DeploymentLoader.loadJob(client, unitName, jobFactory);
+				}
+				catch (Exception e) {
+					logger.error(String.format("Exception loading the job %s. The job deployment status could be " +
+							"unknown. Fix the issue mentioned in the exception and restart the admin. " +
+							"The exception is: %s", unitName, ExceptionUtils.getStackTrace(e)));
+				}
 				if (job != null) {
 					redeployModule(new ModuleDeployment(job, job.getJobModuleDescriptor(),
 							deploymentProperties), false);
@@ -129,7 +138,14 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			else {
 				Stream stream = streamMap.get(unitName);
 				if (stream == null) {
-					stream = DeploymentLoader.loadStream(client, unitName, streamFactory);
+					try {
+						stream = DeploymentLoader.loadStream(client, unitName, streamFactory);
+					}
+					catch (Exception e) {
+						logger.error(String.format("Exception loading the stream %s. The stream deployment status " +
+								"could be unknown. Fix the issue mentioned in the exception and restart the admin. " +
+								"The exception is: %s", unitName, ExceptionUtils.getStackTrace(e)));
+					}
 					streamMap.put(unitName, stream);
 				}
 				if (stream != null) {

@@ -120,22 +120,32 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			String moduleType = moduleDeploymentsPath.getModuleType();
 
 			if (ModuleType.job.toString().equals(moduleType)) {
-				Job job = DeploymentLoader.loadJob(client, unitName, jobFactory);
-				if (job != null) {
-					redeployModule(new ModuleDeployment(job, job.getJobModuleDescriptor(),
-							deploymentProperties), false);
+				try {
+					final Job job = DeploymentLoader.loadJob(client, unitName, jobFactory);
+					if (job != null) {
+						redeployModule(new ModuleDeployment(job, job.getJobModuleDescriptor(),
+								deploymentProperties), false);
+					}
+				}
+				catch (Exception e) {
+					logger.error(String.format("Exception loading job %s", unitName), e);
 				}
 			}
 			else {
 				Stream stream = streamMap.get(unitName);
 				if (stream == null) {
-					stream = DeploymentLoader.loadStream(client, unitName, streamFactory);
-					streamMap.put(unitName, stream);
-				}
-				if (stream != null) {
-					streamModuleDeployments.add(new ModuleDeployment(stream,
-							stream.getModuleDescriptor(moduleDeploymentsPath.getModuleLabel()),
-							deploymentProperties));
+					try {
+						stream = DeploymentLoader.loadStream(client, unitName, streamFactory);
+						streamMap.put(unitName, stream);
+						if (stream != null) {
+							streamModuleDeployments.add(new ModuleDeployment(stream,
+									stream.getModuleDescriptor(moduleDeploymentsPath.getModuleLabel()),
+									deploymentProperties));
+						}
+					}
+					catch (Exception e) {
+						logger.error(String.format("Exception loading stream %s.", unitName), e);
+					}
 				}
 			}
 		}

@@ -65,7 +65,7 @@ public class DeploymentUnitStatus {
 	/**
 	 * Deployment unit states.
 	 */
-	public static enum State {
+	public enum State {
 
 		/**
 		 * The deployment unit is not deployed.
@@ -97,7 +97,13 @@ public class DeploymentUnitStatus {
 		/**
 		 * The deployment unit is in the process of being undeployed.
 		 */
-		undeploying
+		undeploying,
+
+		/**
+		 * The deployment status could not be calculated; this is typically
+		 * due to an error loading the deployment unit.
+		 */
+		unknown
 	}
 
 	/**

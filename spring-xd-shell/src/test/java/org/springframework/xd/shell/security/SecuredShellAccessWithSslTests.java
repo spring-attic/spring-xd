@@ -47,7 +47,7 @@ import org.springframework.xd.test.RandomConfigurationSupport;
  *
  * @author Marius Bogoevici
  */
-public class SecuredShellAccessWithSslTests extends RandomConfigurationSupport {
+public class SecuredShellAccessWithSslTests {
 
 	private static SingleNodeApplication singleNodeApplication;
 
@@ -57,10 +57,11 @@ public class SecuredShellAccessWithSslTests extends RandomConfigurationSupport {
 
 	@BeforeClass
 	public static void setUp() throws Exception {
+		RandomConfigurationSupport randomConfigurationSupport = new RandomConfigurationSupport();
 		originalConfigLocation = System.getProperty("spring.config.location");
 		System.setProperty("spring.config.location", "classpath:org/springframework/xd/shell/security/securedServerWithSsl.yml");
 		singleNodeApplication = new SingleNodeApplication().run();
-		adminPort = singleNodeApplication.adminContext().getEnvironment().resolvePlaceholders("${server.port}");
+		adminPort = randomConfigurationSupport.getAdminServerPort();
 	}
 
 	@Test

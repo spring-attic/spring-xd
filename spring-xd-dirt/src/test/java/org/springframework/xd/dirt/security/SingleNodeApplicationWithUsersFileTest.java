@@ -27,8 +27,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -36,6 +34,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -65,6 +65,9 @@ public class SingleNodeApplicationWithUsersFileTest {
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] {
 
+			{ HttpStatus.OK, "/", "alice", "alicepwd", null },
+			{ HttpStatus.UNAUTHORIZED, "/", null, null, null },
+
 			{ HttpStatus.UNAUTHORIZED, "/management/metrics", null, null, null },
 			{ HttpStatus.OK, "/management/metrics", "alice", "alicepwd", null },
 
@@ -81,10 +84,23 @@ public class SingleNodeApplicationWithUsersFileTest {
 			{ HttpStatus.FORBIDDEN, "/jobs/definitions", "cartman", "cartmanpwd", null },
 			{ HttpStatus.FORBIDDEN, "/jobs/definitions.xml", "cartman", "cartmanpwd", null },
 			{ HttpStatus.FORBIDDEN, "/jobs/definitions.json", "cartman", "cartmanpwd", null },
+			{ HttpStatus.OK, "/jobs/definitions", "bob", "bobspassword", null },
+			{ HttpStatus.OK, "/jobs/definitions.xml", "bob", "bobspassword", null },
+			{ HttpStatus.OK, "/jobs/definitions.json", "bob", "bobspassword", null },
+			{ HttpStatus.FORBIDDEN, "/jobs/definitions.json", "cartman", "cartmanpwd",
+				ImmutableMap.of("page", "0", "size", "10") },
+			{ HttpStatus.OK, "/jobs/definitions.json", "bob", "bobspassword",
+				ImmutableMap.of("page", "0", "size", "10") },
 
 			{ HttpStatus.FORBIDDEN, "/jobs/configurations", "cartman", "cartmanpwd", null },
+			{ HttpStatus.OK, "/jobs/configurations", "bob", "bobspassword", null },
 			{ HttpStatus.FORBIDDEN, "/jobs/configurations.xml", "cartman", "cartmanpwd", null },
 			{ HttpStatus.FORBIDDEN, "/jobs/configurations.json", "cartman", "cartmanpwd", null },
+			{ HttpStatus.OK, "/jobs/configurations.json", "bob", "bobspassword", null },
+			{ HttpStatus.FORBIDDEN, "/jobs/configurations.json", "cartman", "cartmanpwd",
+				ImmutableMap.of("page", "0", "size", "10") },
+			{ HttpStatus.OK, "/jobs/configurations.json", "bob", "bobspassword",
+				ImmutableMap.of("page", "0", "size", "10") },
 
 			{ HttpStatus.FORBIDDEN, "/jobs/executions", "cartman", "cartmanpwd", null },
 			{ HttpStatus.FORBIDDEN, "/jobs/executions.xml", "cartman", "cartmanpwd", null },

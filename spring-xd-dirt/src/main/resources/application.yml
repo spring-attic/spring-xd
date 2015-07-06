@@ -196,6 +196,7 @@ xd:
         - DELETE /streams/deployments/*          => hasRole('ROLE_CREATE')
         # Job Definitions
         - GET    /jobs/definitions               => hasRole('ROLE_VIEW')
+        - GET    /jobs/definitions.*             => hasRole('ROLE_VIEW')
         - DELETE /jobs/definitions               => hasRole('ROLE_CREATE')
         - GET    /jobs/definitions/*             => hasRole('ROLE_VIEW')
         - POST   /jobs/definitions               => hasRole('ROLE_CREATE')
@@ -208,12 +209,13 @@ xd:
         - DELETE /jobs/deployments/*             => hasRole('ROLE_CREATE')
         # Batch Job Configurations
         - GET    /jobs/configurations            => hasRole('ROLE_VIEW')
+        - GET    /jobs/configurations.*          => hasRole('ROLE_VIEW')
         - GET    /jobs/configurations/*          => hasRole('ROLE_VIEW')
         # Batch Job Executions
         - GET    /jobs/executions                => hasRole('ROLE_VIEW')
         - PUT    /jobs/executions?stop=true      => hasRole('ROLE_CREATE')
         - GET    /jobs/executions?jobname=*      => hasRole('ROLE_VIEW')
-        - POST   /jobs/executions?jobname=*      => hasRole('ROLE_CREATE')
+        - POST   /jobs/executions                => hasRole('ROLE_CREATE')
         - GET    /jobs/executions/*              => hasRole('ROLE_VIEW')
         - PUT    /jobs/executions/*?restart=true => hasRole('ROLE_CREATE')
         - PUT    /jobs/executions/*?stop=true    => hasRole('ROLE_CREATE')

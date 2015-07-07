@@ -215,7 +215,7 @@ xd:
         - GET    /jobs/executions                => hasRole('ROLE_VIEW')
         - PUT    /jobs/executions?stop=true      => hasRole('ROLE_CREATE')
         - GET    /jobs/executions?jobname=*      => hasRole('ROLE_VIEW')
-        - POST   /jobs/executions?jobname=*      => hasRole('ROLE_CREATE')
+        - POST   /jobs/executions                => hasRole('ROLE_CREATE')
         - GET    /jobs/executions/*              => hasRole('ROLE_VIEW')
         - PUT    /jobs/executions/*?restart=true => hasRole('ROLE_CREATE')
         - PUT    /jobs/executions/*?stop=true    => hasRole('ROLE_CREATE')

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ public class SqoopOptionsMetadata {
 
 	private String args = "";
 
+	private String libjars = "";
+
 	@NotBlank
 	public String getCommand() {
 		return command;
@@ -53,5 +55,14 @@ public class SqoopOptionsMetadata {
 	@ModuleOption("the arguments for the Sqoop command")
 	public void setArgs(String args) {
 		this.args = args;
+	}
+
+	public String getLibjars() {
+		return libjars;
+	}
+
+	@ModuleOption("extra jars from the classpath to add to the job")
+	public void setLibjars(String libjars) {
+		this.libjars = libjars;
 	}
 }

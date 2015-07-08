@@ -51,6 +51,8 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 
 	private Properties hadoopProperties;
 
+	private String libjars;
+
 
 	public String[] getArguments() {
 		return arguments;
@@ -66,6 +68,10 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 
 	public void setHadoopProperties(Properties hadoopProperties) {
 		this.hadoopProperties = hadoopProperties;
+	}
+
+	public void setLibjars(String libjars) {
+		this.libjars = libjars;
 	}
 
 	@Override
@@ -132,7 +138,7 @@ public class SqoopTasklet extends AbstractProcessBuilderTasklet implements Initi
 		if (arguments == null || arguments.length < 1) {
 			throw new IllegalArgumentException("Missing arguments and/or configuration options for Sqoop");
 		}
-		addEnvironmentProvider(new SqoopEnvironmentProvider(environment));
+		addEnvironmentProvider(new SqoopEnvironmentProvider(environment, libjars));
 		addEnvironmentProvider(new ClasspathEnvironmentProvider(environment, this.getClass()));
 	}
 }

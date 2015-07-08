@@ -43,6 +43,7 @@
 			</list>
 		</property>
 		<property name="hadoopProperties" ref="hadoopProperties"/>
+		<property name="libjars" value="${libjars}"/>
 	</bean>
 
 	<util:properties id="hadoopProperties" location="${xd.config.home}/hadoop.properties"/>

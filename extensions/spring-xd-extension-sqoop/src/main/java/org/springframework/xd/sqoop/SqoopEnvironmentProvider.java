@@ -31,8 +31,11 @@ public class SqoopEnvironmentProvider implements EnvironmentProvider {
 
 	ConfigurableEnvironment environment;
 
-	public SqoopEnvironmentProvider(ConfigurableEnvironment environment) {
+	String libjars;
+
+	public SqoopEnvironmentProvider(ConfigurableEnvironment environment, String libjars) {
 		this.environment = environment;
+		this.libjars = libjars;
 	}
 
 	@Override
@@ -42,6 +45,9 @@ public class SqoopEnvironmentProvider implements EnvironmentProvider {
 			env.put("JAVA_HOME", javaHome);
 		}
 		env.put("SQOOP_CONF_DIR", environment.getProperty(XD_CONFIG_HOME));
+		if (StringUtils.hasText(libjars)) {
+			env.put("XD_MODULE_LIBJARS", libjars);
+		}
 	}
 
 }

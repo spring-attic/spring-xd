@@ -15,46 +15,77 @@
  */
 package org.springframework.xd.reactor;
 
+import org.springframework.messaging.Message;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
  * Utility class for working with the reflection API for Reactor based processors.
- * <p/>
+ *
  * <p>Only intended for internal use.
  *
  * @author Stephane Maldini
  * @author Mark Pollack
+ *
  */
 public abstract class ReactorReflectionUtils {
 
     /**
+     * @see {@link #extractGeneric(Object, Class, int)}
+     */
+    static Class<?> extractGeneric(Object processor, Class<?> target) {
+        return extractGeneric(processor, target, 0);
+    }
+
+    /**
      * Given the processor interface, determine it's input type parameter
-     *
      * @param processor and instance of the processor interface
+     * @param target the interface to scan
+     * @param index the generic index to retrieve
      * @return the corresponding Class of the processor input type parameter, or null if can't
      * be determined.
      */
-    public static Class<?> extractInputType(Processor<?, ?> processor) {
+    @SuppressWarnings("unchecked")
+    static Class<?> extractGeneric(Object processor, Class<?> target, int index) {
         Class<?> searchType = processor.getClass();
         while (searchType != Object.class) {
-            for (Type t : searchType.getGenericInterfaces()) {
-                // if it is a parameterized
-                if (t instanceof ParameterizedType && Processor.class.equals(((ParameterizedType) t).getRawType())) {
-                    Type inputTypeArgument = ((ParameterizedType) t).getActualTypeArguments()[0];
-                    if (inputTypeArgument instanceof ParameterizedType) {
-                        return (Class) ((ParameterizedType) inputTypeArgument)
-                                .getRawType();
-                    } else if (inputTypeArgument instanceof Class) {
-                        return (Class) inputTypeArgument;
+            if (searchType.getGenericInterfaces().length > 0) {
+                for (Type t : searchType.getGenericInterfaces()) {
+                    if (ParameterizedType.class.isAssignableFrom(t.getClass())
+                        && ((ParameterizedType) t).getRawType().equals(target)) {
+                        ParameterizedType pt = (ParameterizedType) t;
+
+                        if (pt.getActualTypeArguments().length == 0) return Message.class;
+
+                        t = pt.getActualTypeArguments()[index];
+                        if (t instanceof ParameterizedType) {
+                            return (Class<?>) ((ParameterizedType) t).getRawType();
+                        } else if (t instanceof Class) {
+                            return (Class<?>) t;
+                        }
                     }
-                } else if (t instanceof Class && Processor.class.equals(t)) {
-                    return Object.class;
                 }
             }
             searchType = searchType.getSuperclass();
         }
-        throw new IllegalStateException("Cannot identify the input type");
+        return Message.class;
+    }
+
+    /**
+     * Given a processor bean, find the EnableReactorModule annotation for introspection
+     */
+    @SuppressWarnings("unchecked")
+    static EnableReactorModule extractAnnotation(Object processor) {
+        Class<?> searchType = processor.getClass();
+        while (searchType != Object.class) {
+            EnableReactorModule annotation = searchType.getAnnotation(EnableReactorModule.class);
+            if(annotation != null){
+                return annotation;
+            }
+            searchType = searchType.getSuperclass();
+        }
+        return null;
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +15,39 @@
  */
 package org.springframework.xd.reactor;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.PollableChannel;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+
 /**
- * Test the {@link MultipleBroadcasterMessageHandler} by using two types of
- * {@link org.springframework.xd.reactor.Processor}. The first is parameterized by
- * {@link org.springframework.messaging.Message} and the second by String to test extracting payload types and
+ * Test the {@link ReactorMessageHandler} by using String types of
+ * {@link ReactiveProcessor}. This verifies extracting payload types and
  * wrapping return types in a Message.
  *
  * @author Mark Pollack
+ * @author Stephane Maldini
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@ContextConfiguration("reactor.xml")
 @DirtiesContext
-public class MultipleBroadcasterMessageHandlerTests extends AbstractMessageHandlerTests {
+@ActiveProfiles("string")
+public class ReactorStringHandlerTests extends AbstractMessageHandlerTests {
 
+	@Test
+	public void striBasedProcessor() throws IOException {
+		sendStringMessages();
+		for (int i = 0; i < numMessages; i++) {
+			Message<?> outputMessage = fromProcessorChannel.receive(2000);
+			assertEquals("ping-stringpong", outputMessage.getPayload());
+		}
+	}
 }

@@ -13,10 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.reactor;
+
+package org.springframework.xd.reactor.processor;
+
+import org.springframework.xd.reactor.ReactiveOutput;
+import org.springframework.xd.reactor.ReactiveProcessor;
+import reactor.rx.Stream;
 
 /**
- * @author Mark Pollack
+ * @author Marius Bogoevici
  */
-public abstract class AbstractPongStringProcessor  implements Processor<String, String> {
+public abstract class AbstractRawTypeProcessor implements ReactiveProcessor {
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public final void accept(Object o, Object o2) {
+		accept((Stream)o, (ReactiveOutput)o2);
+	}
+
+	public abstract void accept(Stream input, ReactiveOutput output);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,19 @@
 package org.springframework.xd.reactor;
 
 import org.reactivestreams.Publisher;
-import reactor.rx.Stream;
+import org.reactivestreams.Subscriber;
+import reactor.fn.Consumer;
 
 /**
- * Contract for performing stream processing using Reactor within an XD processor module
+ * Contract for performing stream processing using Reactor within an XD source module.
+ * <p/>
+ * This {@link Consumer} will receive a {@link ReactiveOutput} on module initialization or on new partition
+ * and eventually send messages to the module to the right with {@link ReactiveOutput#writeOutput(Publisher)}.
+ * <p/>
+ * The {@link Subscriber} will map {@link Subscriber#onNext(Object)} calls to send operations on the message bus.
  *
- * @author Mark Pollack
  * @author Stephane Maldini
  */
-public interface Processor<I, O> {
-
-    /**
-     * Process a stream of messages and return an output stream.  The input
-     * and output stream will be mapped onto receive/send operations on the message bus.
-     *
-     * @param inputStream Input stream the receives messages from the message bus
-     * @return Output Publisher (Stream, Promise, or any valid Reactive Stream Publisher) of messages sent to the message bus
-     */
-    Publisher<O> process(Stream<I> inputStream);
+public interface ReactiveSource<I> extends Consumer<ReactiveOutput<I>>, ReactiveModule {
 
 }

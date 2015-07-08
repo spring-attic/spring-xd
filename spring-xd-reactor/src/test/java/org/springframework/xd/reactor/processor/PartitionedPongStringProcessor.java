@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.xd.reactor.processor;
 
-package org.springframework.xd.reactor;
+import org.springframework.context.annotation.Profile;
+import org.springframework.xd.reactor.EnableReactorModule;
 
 /**
- * @author Marius Bogoevici
+ * A partitioned stream processor that transforms Strings by adding "-pong" to the string.
+ *
+ * @author Stephane Maldini
  */
-public abstract class AbstractRawTypeProcessor implements Processor {
+@Profile("string-partition")
+@EnableReactorModule(partition = "T(java.lang.Thread).currentThread().getId()")
+public class PartitionedPongStringProcessor extends PongStringProcessor {
+
 }

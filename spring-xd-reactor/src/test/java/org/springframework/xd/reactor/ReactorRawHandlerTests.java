@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,38 @@
  */
 package org.springframework.xd.reactor;
 
+import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.messaging.Message;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+
 /**
- * Test the {@link org.springframework.xd.reactor.MultipleBroadcasterMessageHandler} by using two types of
- * {@link Processor}. The first is parameterized by
- * {@link org.springframework.messaging.Message} and the second by String to test extracting payload types and
+ * Test the {@link PartitionedReactorMessageHandler} by using String types of
+ * {@link ReactiveProcessor}. by using String types of
+ * {@link ReactiveProcessor}. This verifies extracting payload types and
  * wrapping return types in a Message.
  *
  * @author Mark Pollack
+ * @author Stephane Maldini
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@ContextConfiguration("reactor.xml")
 @DirtiesContext
-public class BroadcasterMessageHandlerTests extends AbstractMessageHandlerTests {
-
+@ActiveProfiles("raw")
+public class ReactorRawHandlerTests extends AbstractMessageHandlerTests {
+	@Test
+	public void pojoBasedProcessor() throws IOException {
+		sendPojoMessages();
+		for (int i = 0; i < numMessages; i++) {
+			Message<?> outputMessage = fromProcessorChannel.receive(2000);
+			assertEquals("ping-objectpong", outputMessage.getPayload());
+		}
+	}
 }

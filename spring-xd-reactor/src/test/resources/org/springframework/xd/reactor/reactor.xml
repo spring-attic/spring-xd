@@ -1,43 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:int="http://www.springframework.org/schema/integration"
-       xmlns="http://www.springframework.org/schema/beans"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 
-    <int:channel id="outputChannel1">
+    <int:channel id="output">
         <int:queue capacity="20"/>
     </int:channel>
 
-    <int:channel id="outputChannel2">
-        <int:queue capacity="20"/>
-    </int:channel>
+    <context:component-scan base-package="org.springframework.xd.reactor"/>
 
-    <int:channel id="outputChannel3">
-        <int:queue capacity="20"/>
-    </int:channel>
-
-    <int:channel id="toMessageHandlerChannel"/>
-
-    <int:channel id="toStringHandlerChannel"/>
-
-    <int:channel id="toRawTypeHandlerChannel"/>
-
-    <bean id="messageProcessor" class="org.springframework.xd.reactor.PongMessageProcessor"/>
-
-    <int:service-activator input-channel="toMessageHandlerChannel" ref="reactorMessageHandler"
-                           output-channel="outputChannel1"/>
-
-    <bean id="stringProcessor" class="org.springframework.xd.reactor.PongStringProcessor"/>
-
-
-    <int:service-activator input-channel="toStringHandlerChannel" ref="reactorStringHandler"
-                           output-channel="outputChannel2"/>
-
-    <bean id="rawTypeProcessor" class="org.springframework.xd.reactor.PongRawTypeProcessor"/>
-
-    <int:service-activator input-channel="toRawTypeHandlerChannel" ref="reactorRawTypeHandler"
-                           output-channel="outputChannel3"/>
-
+    <beans profile="source-and-sink">
+        <int:bridge input-channel="outputSource" output-channel="inputSink">
+            <int:poller max-messages-per-poll="10" receive-timeout="100" fixed-rate="1"/>
+        </int:bridge>
+    </beans>
 </beans>

@@ -549,6 +549,8 @@ job create sqoopHiveArgs1 --definition "sqoop --command=import --args='--table M
 
 For more detailed coverage of using quotes and escaping please see xref:DSL-Reference#dsl-quotes-escaping[Single quotes, Double quotes, Escaping].
 
+NOTE: Some JDBC drivers require additional jars to work properly. If this is the case, then you can use the `--libjars` option to provide a comma separated list of jars to be added to the job execution. You should only specify the name of the jar and not the full path. The jars will be looked up from the classpath and included in the job submitted to the Hadoop cluster.
+
 NOTE: Advanced Hadoop configuration options can be provided in one of several configuration files. The `hadoop-site.xml` file is only used by the Sqoop job while the other configuration files are used by all Hadoop related jobs and streams:
 
 - `$XD_HOME/config/hadoop.properties` -- just add the property you would like to set:
@@ -644,6 +646,7 @@ $$args$$:: $$the arguments for the Sqoop command$$ *($$String$$, default: ``)*
 $$command$$:: $$the Sqoop command to run$$ *($$String$$, default: ``)*
 $$driverClassName$$:: $$the JDBC driver to use$$ *($$String$$, no default)*
 $$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
+$$libjars$$:: $$extra jars from the classpath to add to the job$$ *($$String$$, default: ``)*
 $$password$$:: $$the JDBC password$$ *($$Password$$, no default)*
 $$resourceManagerHost$$:: $$the Host for Hadoop's ResourceManager$$ *($$String$$, default: `${spring.hadoop.resourceManagerHost}`)*
 $$resourceManagerPort$$:: $$the Port for Hadoop's ResourceManager$$ *($$String$$, default: `${spring.hadoop.resourceManagerPort}`)*

@@ -50,19 +50,18 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  * @author Andrew Eisenberg
  * @author Scott Andrews
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 @Configuration
 @EnableHypermediaSupport(type = HAL)
 @EnableSpringDataWebSupport
-@ComponentScan(excludeFilters = @Filter(Configuration.class))
+@ComponentScan(excludeFilters = @Filter(Configuration.class) )
 public class RestConfiguration {
 
 	@Bean
 	public WebContentInterceptor webContentInterceptor() {
 		WebContentInterceptor webContentInterceptor = new WebContentInterceptor();
 		webContentInterceptor.setCacheSeconds(0);
-		webContentInterceptor.setUseCacheControlHeader(true);
-		webContentInterceptor.setUseExpiresHeader(true);
 		return webContentInterceptor;
 	}
 

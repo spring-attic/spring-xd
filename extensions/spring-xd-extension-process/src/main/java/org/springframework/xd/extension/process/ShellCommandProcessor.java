@@ -68,7 +68,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 
 	private final static Logger log = LoggerFactory.getLogger(ShellCommandProcessor.class);
 
-    private final ShellWordsParser shellWordsParser = new ShellWordsParser();
+	private final ShellWordsParser shellWordsParser = new ShellWordsParser();
 
 	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
@@ -133,8 +133,8 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 		Assert.isTrue(isRunning(), "Shell process is not started.");
 		String data;
 		try {
-			byte[] buffer = serializer.deserialize(stdout);
-			data = new String(buffer, charset);
+			byte[] buffer = this.serializer.deserialize(this.stdout);
+			data = new String(buffer, this.charset);
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e.getMessage(), e);
@@ -150,7 +150,8 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	public synchronized void send(String data) {
 		Assert.isTrue(isRunning(), "Shell process is not started.");
 		try {
-			serializer.serialize(data.getBytes(charset), stdin);
+			this.serializer.serialize(data.getBytes(this.charset), this.stdin);
+			this.stdin.flush();
 		}
 		catch (IOException e) {
 			log.error(e.getMessage(), e);

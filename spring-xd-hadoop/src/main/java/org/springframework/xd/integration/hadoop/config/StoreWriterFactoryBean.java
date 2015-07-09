@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.springframework.data.hadoop.store.strategy.naming.FileNamingStrategy;
 import org.springframework.data.hadoop.store.strategy.rollover.RolloverStrategy;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.integration.hadoop.partition.MessagePartitionStrategy;
@@ -45,9 +45,10 @@ import org.springframework.xd.integration.hadoop.partition.MessagePartitionStrat
  * path expression is set.
  *
  * @author Janne Valkealahti
+ * @author Gary Russell
  */
 public class StoreWriterFactoryBean implements InitializingBean, DisposableBean, FactoryBean<DataStoreWriter<?>>,
-		BeanFactoryAware, Lifecycle, IntegrationEvaluationContextAware {
+		BeanFactoryAware, Lifecycle {
 
 	private volatile DataStoreWriter<?> storeWriter;
 
@@ -106,9 +107,10 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		if (this.evaluationContext == null) {
+			this.evaluationContext = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
+		}
 		if (StringUtils.hasText(partitionExpression)) {
-			// we require that we were given StandardEvaluationContext
-			// via IntegrationEvaluationContextAware
 			if (!(evaluationContext instanceof StandardEvaluationContext)) {
 				throw new RuntimeException("Expecting evaluationContext of type StandardEvaluationContext but was "
 						+ evaluationContext);
@@ -180,7 +182,6 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 		}
 	}
 
-	@Override
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		// used with partition writer spel if set
 		this.evaluationContext = evaluationContext;

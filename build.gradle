@@ -141,7 +141,7 @@ ext {
 	splunkVersion = '1.3.0'
 	springBatchAdminMgrVersion = '1.3.0.RELEASE'
 	springIntegrationSplunkVersion = '1.1.0.RELEASE'
-	springIntegrationKafkaVersion = '1.2.0.RELEASE'
+	springIntegrationKafkaVersion = '1.2.1.RELEASE'
 	kafkaVersion = '0.8.2.1'
 	springShellVersion = '1.1.0.RELEASE'
 	zookeeperVersion = '3.4.6'
@@ -409,6 +409,7 @@ project('spring-xd-rxjava') {
 		compile "io.reactivex:rxjava"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "org.springframework:spring-expression"
+		compile "org.slf4j:slf4j-api"
 	}
 }
 
@@ -873,6 +874,7 @@ project('spring-xd-module') {
 		compile "org.springframework.boot:spring-boot-autoconfigure"
 		compile "org.springframework.boot:spring-boot-loader"
 		compile "com.fasterxml.jackson.core:jackson-databind"
+		compile "org.slf4j:slf4j-api"
 		compile project(':spring-xd-module-spi')
 	}
 }
@@ -980,6 +982,7 @@ project('spring-xd-codec') {
 		compile "org.springframework:spring-core"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "com.esotericsoftware:kryo-shaded"
+		compile "org.slf4j:slf4j-api"
 	}
 }
 
@@ -1178,6 +1181,7 @@ project('spring-xd-shell') {
 			exclude group: 'org.apache.avro', module: 'avro-compiler'
 		}
 		testCompile project(":spring-xd-test")
+		testCompile "io.projectreactor:reactor-stream" // TODO: remove when INT-3766 is resolved
 	}
 
 	// skip the startScripts task to avoid default start script generation

@@ -24,6 +24,7 @@ project('spring-xd-extension-http') {
         compile "org.springframework.integration:spring-integration-core"
         compile "io.netty:netty:${nettyVersion}"
         compile "org.springframework:spring-web"
+        compile "org.slf4j:slf4j-api"
         compile project(":spring-xd-module-spi")
         testCompile project(":spring-xd-test")
     }
@@ -93,6 +94,7 @@ project('spring-xd-extension-batch') {
         compile "org.springframework.integration:spring-integration-file"
         runtime "org.springframework.integration:spring-integration-ftp"
         runtime "io.projectreactor:reactor-core"
+        runtime "io.projectreactor:reactor-stream" // TODO: remove when INT-3766 is resolved
         provided "org.springframework.batch:spring-batch-core"
         provided "org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}"
         testCompile project(':spring-xd-test')
@@ -114,6 +116,7 @@ project('spring-xd-extension-process') {
 	dependencies {
 		compile project(':spring-xd-extension-encoder-support')
 		compile "org.springframework.integration:spring-integration-ip"
+		compile "org.slf4j:slf4j-api"
 		testCompile project(':spring-xd-test')
 		testRuntime (
 		//"org.slf4j:jcl-over-slf4j",

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.reactor;
 
-import org.reactivestreams.Publisher;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
-import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
-import reactor.core.processor.RingBufferProcessor;
-import reactor.rx.Streams;
+package org.springframework.xd.reactor;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+
+import org.reactivestreams.Publisher;
+
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
+
+import reactor.core.processor.RingBufferProcessor;
+import reactor.rx.Streams;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -51,8 +54,9 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Mark Pollack
  * @author Stephane Maldini
+ * @author Gary Russell
  */
-public class MultipleBroadcasterMessageHandler extends AbstractReactorMessageHandler implements IntegrationEvaluationContextAware {
+public class MultipleBroadcasterMessageHandler extends AbstractReactorMessageHandler {
 
     private final ConcurrentMap<Object, RingBufferProcessor<Object>> reactiveProcessorMap =
             new ConcurrentHashMap<Object, RingBufferProcessor<Object>>();
@@ -63,17 +67,32 @@ public class MultipleBroadcasterMessageHandler extends AbstractReactorMessageHan
 
     private EvaluationContext evaluationContext = new StandardEvaluationContext();
 
+    private boolean evaluationContextSet;
+
     /**
      * Construct a new MessageHandler given the reactor based Processor to delegate
      * processing to and a partition expression.
      *
      * @param processor The stream based reactor processor
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "rawtypes" })
     public MultipleBroadcasterMessageHandler(Processor processor, String partitionExpression) {
         super(processor);
         Assert.notNull(partitionExpression, "Partition expression can not be null");
         this.partitionExpression = spelExpressionParser.parseExpression(partitionExpression);
+    }
+
+    public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+        this.evaluationContext = evaluationContext;
+        this.evaluationContextSet = true;
+    }
+
+
+    @Override
+    protected void onInit() throws Exception {
+        if (!this.evaluationContextSet) {
+            this.evaluationContext = IntegrationContextUtils.getEvaluationContext(getBeanFactory());
+        }
     }
 
     @Override
@@ -100,7 +119,8 @@ public class MultipleBroadcasterMessageHandler extends AbstractReactorMessageHan
 
                 outputStream.subscribe(new ChannelForwardingSubscriber());
 
-            } else {
+            }
+            else {
                 reactiveProcessor = existingReactiveProcessor;
             }
         }
@@ -113,11 +133,6 @@ public class MultipleBroadcasterMessageHandler extends AbstractReactorMessageHan
             ringBufferProcessor.awaitAndShutdown(getStopTimeout(), TimeUnit.MILLISECONDS);
         }
         getEnvironment().shutdown();
-    }
-
-    @Override
-    public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-        this.evaluationContext = evaluationContext;
     }
 
 }

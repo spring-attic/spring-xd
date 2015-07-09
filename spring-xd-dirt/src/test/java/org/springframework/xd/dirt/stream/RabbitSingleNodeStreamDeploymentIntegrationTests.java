@@ -16,7 +16,7 @@ package org.springframework.xd.dirt.stream;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.springframework.test.util.MatcherAssertionErrors.assertThat;
+import static org.junit.Assert.assertThat;
 
 import java.util.Collections;
 import java.util.List;

@@ -16,11 +16,15 @@
 
 package org.springframework.xd.analytics.metrics.integration;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.integration.expression.IntegrationEvaluationContextAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -31,13 +35,17 @@ import org.springframework.util.Assert;
  *
  * @author Eric Bottard
  */
-abstract class AbstractMetricHandler implements IntegrationEvaluationContextAware {
+abstract class AbstractMetricHandler implements BeanFactoryAware, InitializingBean {
 
 	protected final Expression nameExpression;
 
 	protected final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
 
 	protected EvaluationContext evaluationContext = new StandardEvaluationContext();
+
+	private boolean evalationContextSet;
+
+	private BeanFactory beanFactory;
 
 	protected AbstractMetricHandler(String nameExpression) {
 		Assert.notNull(nameExpression, "Metric name expression can not be null");
@@ -48,10 +56,22 @@ abstract class AbstractMetricHandler implements IntegrationEvaluationContextAwar
 		return nameExpression.getValue(evaluationContext, message, CharSequence.class).toString();
 	}
 
-	@Override
 	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
 		Assert.notNull(evaluationContext, "'evaluationContext' cannot be null");
 		this.evaluationContext = evaluationContext;
+		this.evalationContextSet = true;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (!this.evalationContextSet) {
+			this.evaluationContext = IntegrationContextUtils.getEvaluationContext(this.beanFactory);
+		}
 	}
 
 }

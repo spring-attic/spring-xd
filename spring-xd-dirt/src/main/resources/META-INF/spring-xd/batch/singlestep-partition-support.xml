@@ -45,6 +45,8 @@
 		<property name="stepName" value="step1" />
 	</bean>
 
+	<int:channel id="setHeaderReplyChannelChannel" />
+
 	<int:header-enricher input-channel="setHeaderReplyChannelChannel" output-channel="stepExecutionRequests.output">
 		<int:header name="xdReplyChannel" expression="@replyChannelRegistry.channelToChannelName(headers.replyChannel)" />
 	</int:header-enricher>

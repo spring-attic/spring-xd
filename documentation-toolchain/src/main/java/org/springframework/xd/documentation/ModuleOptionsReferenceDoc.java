@@ -30,16 +30,21 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.SimpleModuleDefinition;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.module.options.ModuleUtils;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
 
@@ -63,6 +68,8 @@ public class ModuleOptionsReferenceDoc {
 	private ModuleRegistry moduleRegistry = new ResourceModuleRegistry("file:./modules");
 
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver = new DefaultModuleOptionsMetadataResolver();
+
+	private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 
 	public static void main(String... paths) throws IOException {
 		ModuleOptionsReferenceDoc runner = new ModuleOptionsReferenceDoc();
@@ -139,6 +146,8 @@ public class ModuleOptionsReferenceDoc {
 		ModuleDefinition def = moduleRegistry.findDefinition(name, type);
 		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(def);
 
+		Resource moduleLoc = resourcePatternResolver.getResource(((SimpleModuleDefinition) def).getLocation());
+		ClassLoader moduleClassLoader = ModuleUtils.createModuleDiscoveryClassLoader(moduleLoc, ModuleOptionsReferenceDoc.class.getClassLoader());
 		if (!moduleOptionsMetadata.iterator().hasNext()) {
 			out.format("The **%s** %s has no particular option (in addition to options shared by all modules)%n%n",
 					pt(def.getName()), pt(def.getType()));
@@ -160,19 +169,33 @@ public class ModuleOptionsReferenceDoc {
 
 		for (ModuleOption mo : options) {
 			String prettyDefault = prettifyDefaultValue(mo);
-			String maybeEnumHint = generateEnumValues(mo);
+			String maybeEnumHint = generateEnumValues(mo, moduleClassLoader);
 			out.format("%s:: %s *(%s, %s%s)*%n", pt(mo.getName()), pt(mo.getDescription()),
-					pt(mo.getType().getSimpleName()),
+					pt(className(mo.getType())),
 					prettyDefault, maybeEnumHint);
 		}
+	}
+
+	private String className(String fqName) {
+		int lastDot = fqName.lastIndexOf('.');
+		int lastDollar = fqName.lastIndexOf('$');
+		int chop = Math.max(lastDollar, lastDot);
+		return chop >= 0 ? fqName.substring(chop+1) : fqName;
 	}
 
 	/**
 	 * When the type of an option is an enum, document all possible values
 	 */
-	private String generateEnumValues(ModuleOption mo) {
-		if (Enum.class.isAssignableFrom(mo.getType())) {
-			String values = StringUtils.arrayToCommaDelimitedString(mo.getType().getEnumConstants());
+	private String generateEnumValues(ModuleOption mo, ClassLoader moduleClassLoader) {
+		Class<?> clazz = null;
+		try {
+			clazz = Class.forName(mo.getType(), false, moduleClassLoader);
+		}
+		catch (ClassNotFoundException e) {
+			return "";
+		}
+		if (Enum.class.isAssignableFrom(clazz)) {
+			String values = StringUtils.arrayToCommaDelimitedString(clazz.getEnumConstants());
 			return String.format(", possible values: `%s`", values);
 		}
 		else

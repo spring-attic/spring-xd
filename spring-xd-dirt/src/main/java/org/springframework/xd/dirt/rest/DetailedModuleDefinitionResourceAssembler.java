@@ -64,11 +64,11 @@ ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
 		if (!(moduleOptionsMetadata instanceof PassthruModuleOptionsMetadata)) {
 			for (ModuleOption option : moduleOptionsMetadata) {
 				Object defaultValue = option.getDefaultValue();
-				Class<?> type = option.getType();
+				String type = option.getType();
 
 				final String defaultValueAsString;
 
-				if (Password.class.equals(type) && defaultValue != null) {
+				if (Password.class.getName().equals(type) && defaultValue != null) {
 					defaultValueAsString = "******";
 				}
 				else if (defaultValue == null) {
@@ -79,7 +79,7 @@ ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
 				}
 
 				result.addOption(new DetailedModuleDefinitionResource.Option(option.getName(),
-						type == null ? null : type.getSimpleName(), option.getDescription(),
+						type == null ? null : type, option.getDescription(),
 								defaultValueAsString, option.isHidden()));
 			}
 		}

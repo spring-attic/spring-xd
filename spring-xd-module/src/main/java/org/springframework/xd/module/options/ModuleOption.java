@@ -32,7 +32,7 @@ public class ModuleOption {
 
 	private boolean hidden = false;
 
-	private Class<?> type;
+	private String type;
 
 
 	public ModuleOption(String name, String description) {
@@ -41,6 +41,13 @@ public class ModuleOption {
 	}
 
 	public ModuleOption withType(Class<?> type) {
+		if (type != null) {
+			this.type = type.getName();
+		}
+		return this;
+	}
+
+	public ModuleOption withType(String type) {
 		this.type = type;
 		return this;
 	}
@@ -68,7 +75,7 @@ public class ModuleOption {
 		return description;
 	}
 
-	public Class<?> getType() {
+	public String getType() {
 		return type;
 	}
 

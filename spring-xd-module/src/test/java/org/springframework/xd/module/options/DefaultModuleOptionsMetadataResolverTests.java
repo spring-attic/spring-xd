@@ -94,7 +94,7 @@ public class DefaultModuleOptionsMetadataResolverTests {
 		assertThat(metadata, hasItem(moduleOptionNamed("foo")));
 
 		ModuleOption foo = metadata.iterator().next();
-		assertThat(foo.getType(), equalTo((Class) String.class));
+		assertThat(foo.getType(), equalTo(String.class.getName()));
 	}
 
 	@Test

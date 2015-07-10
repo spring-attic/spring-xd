@@ -115,29 +115,29 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 			return;
 		}
 		// Boolean conversion accepts any string, so need to check explicit values
-		if (boolean.class.isAssignableFrom(option.getType())
-				|| Boolean.class.isAssignableFrom(option.getType())) {
+		if (boolean.class.getName().equals(option.getType())
+				|| Boolean.class.getName().equals(option.getType())) {
 			if (!(value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false") || value.equals("1") || value.equals("0"))) {
 				throw new RuntimeException(String.format(
 						"The value '%s' is the wrong type for option '%s'. The required type is %s.",
-						value, option.getName(), option.getType().getSimpleName()));
+						value, option.getName(), option.getType()));
 			}
 		}
 		else {
 			try {
-				if (int.class.isAssignableFrom(option.getType()) || Integer.class.isAssignableFrom(option.getType())) {
+				if (int.class.getName().equals(option.getType()) || Integer.class.getName().equals(option.getType())) {
 					Integer.parseInt(value);
 				}
-				else if (float.class.isAssignableFrom(option.getType())
-						|| Float.class.isAssignableFrom(option.getType())) {
+				else if (float.class.getName().equals(option.getType())
+						|| Float.class.getName().equals(option.getType())) {
 					Float.parseFloat(value);
 				}
-				else if (double.class.isAssignableFrom(option.getType())
-						|| Double.class.isAssignableFrom(option.getType())) {
+				else if (double.class.getName().equals(option.getType())
+						|| Double.class.getName().equals(option.getType())) {
 					Double.parseDouble(value);
 				}
-				else if (short.class.isAssignableFrom(option.getType())
-						|| Short.class.isAssignableFrom(option.getType())) {
+				else if (short.class.getName().equals(option.getType())
+						|| Short.class.getName().equals(option.getType())) {
 					Short.parseShort(value);
 				}
 			}
@@ -145,7 +145,7 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 				//TODO: SpringXDException not available to this library
 				throw new RuntimeException(String.format(
 						"The value '%s' is the wrong type for option '%s'. The required type is %s.",
-						value, option.getName(), option.getType().getSimpleName()));
+						value, option.getName(), option.getType()));
 			}
 		}
 	}

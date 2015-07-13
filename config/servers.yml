@@ -390,3 +390,14 @@ endpoints:
 #         backOffMaxInterval:        10000
 #         backOffMultiplier:         2.0
 #         maxAttempts:               5
+
+---
+# Kryo uses references by default. This value must be set to 'true' unless we know the payload types being serialized
+# do not contain circular refefences. Setting this value to 'false' disables references and improves performance
+# if they are not needed. See https://github.com/EsotericSoftware/kryo#references.
+#xd:
+#  codec:
+#     kryo:
+#       references: false
+
+---

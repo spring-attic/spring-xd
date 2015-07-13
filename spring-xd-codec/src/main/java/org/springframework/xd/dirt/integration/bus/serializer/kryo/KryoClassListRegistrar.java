@@ -34,14 +34,14 @@ import org.springframework.util.Assert;
  */
 public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 
-	private final List<Class> registeredClasses;
+	private final List<Class<?>> registeredClasses;
 
 	private int initialValue = 50;
 
 	/**
 	 * @param classes the list of classes to register
 	 */
-	public KryoClassListRegistrar(List<Class> classes) {
+	public KryoClassListRegistrar(List<Class<?>> classes) {
 		this.registeredClasses = classes;
 	}
 

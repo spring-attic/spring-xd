@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -43,13 +44,16 @@ import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
 public class MessageBusExtensionsConfiguration {
 	@Autowired
 	ApplicationContext applicationContext;
+	
+	@Value("${spring.xd.codec.kryo.references:true}")
+	private boolean useReferences;
 
 	@Bean
 	@ConditionalOnMissingBean(name = "codec")
-	public MultiTypeCodec codec() {
+	public MultiTypeCodec<?> codec() {
 		Map<String, KryoRegistrar> kryoRegistrarMap = applicationContext.getBeansOfType(KryoRegistrar
 				.class);
-		return new PojoCodec(new ArrayList<>(kryoRegistrarMap.values()));
+		return new PojoCodec(new ArrayList<>(kryoRegistrarMap.values()), useReferences);
 	}
 
 	@Bean

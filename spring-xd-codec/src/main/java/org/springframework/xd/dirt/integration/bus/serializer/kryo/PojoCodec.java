@@ -24,7 +24,6 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -37,8 +36,11 @@ import org.springframework.util.CollectionUtils;
 public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 	private final CompositeKryoRegistrar kryoRegistrar;
 
+	private final boolean useReferences;
+
 	public PojoCodec() {
 		this.kryoRegistrar = null;
+		this.useReferences = true;
 	}
 
 	/**
@@ -46,7 +48,7 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 	 * @param kryoRegistrar
 	 */
 	public PojoCodec(KryoRegistrar kryoRegistrar) {
-		this(kryoRegistrar != null ? Collections.singletonList(kryoRegistrar) : null);
+		this(kryoRegistrar != null ? Collections.singletonList(kryoRegistrar) : null, true);
 	}
 
 	/**
@@ -54,8 +56,31 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 	 * @param kryoRegistrars
 	 */
 	public PojoCodec(List<KryoRegistrar> kryoRegistrars) {
+		this.kryoRegistrar = CollectionUtils.isEmpty(kryoRegistrars) ? null :
+				new CompositeKryoRegistrar(kryoRegistrars);
+		this.useReferences = true;
+	}
+
+	/**
+	 * Create an instance with a single KryoRegistrar.
+	 * @param kryoRegistrar
+	 * @param useReferences set to false if references are not required (if the object graph is known to be acyclical).
+	 * The default is 'true' which is less performant but more flexible.
+	 */
+	public PojoCodec(KryoRegistrar kryoRegistrar, boolean useReferences) {
+		this(kryoRegistrar != null ? Collections.singletonList(kryoRegistrar) : null, useReferences);
+	}
+
+	/**
+	 * Create an instance with zero to many KryoRegistrars.
+	 * @param kryoRegistrars
+	 * @param useReferences set to false if references are not required (if the object graph is known to be acyclical). 
+	 * The default is 'true' which is less performant but more flexible.
+	 */
+	public PojoCodec(List<KryoRegistrar> kryoRegistrars, boolean useReferences) {
 		kryoRegistrar = CollectionUtils.isEmpty(kryoRegistrars) ? null :
 				new CompositeKryoRegistrar(kryoRegistrars);
+		this.useReferences = useReferences;
 	}
 
 	@Override
@@ -75,5 +100,6 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 		if (kryoRegistrar != null) {
 			kryoRegistrar.registerTypes(kryo);
 		}
+		kryo.setReferences(useReferences);
 	}
 }

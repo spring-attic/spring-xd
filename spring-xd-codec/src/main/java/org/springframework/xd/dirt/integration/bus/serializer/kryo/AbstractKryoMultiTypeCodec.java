@@ -16,20 +16,17 @@
 
 package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.ParameterizedType;
-
-import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.pool.KryoCallback;
 
+import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
+
 /**
  * Base class for Codecs using {@link com.esotericsoftware.kryo.Kryo} to serialize arbitrary types
- *
  * @author David Turanski
  * @since 1.0
  */
@@ -37,7 +34,6 @@ abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implem
 
 	/**
 	 * Deserialize an object of a given type given a byte array
-	 *
 	 * @param bytes the byte array containing the serialized object
 	 * @param type the object's class
 	 * @return the object
@@ -48,14 +44,14 @@ abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implem
 		final Input input = new Input(bytes);
 		try {
 			return deserialize(input, type);
-		} finally {
+		}
+		finally {
 			input.close();
 		}
 	}
 
 	/**
 	 * Deserialize an object of a given type given an InputStream
-	 *
 	 * @param inputStream the input stream containing the serialized object
 	 * @param type the object's class
 	 * @return the object
@@ -66,14 +62,20 @@ abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implem
 		final Input input = new Input(inputStream);
 		try {
 			return deserialize(input, type);
-		} finally {
+		}
+		finally {
 			input.close();
 		}
 	}
 
+	@Override
+	protected T doDeserialize(Kryo kryo, Input input) {
+		throw new UnsupportedOperationException("This method is not implemented for AbstractKryoMultiTypeCodec");
+	}
+
+
 	/**
 	 * Deserialize an object of a given type given an Input.
-	 *
 	 * @param input the Kryo input stream containing the serialized object
 	 * @param type the object's class
 	 * @return the object
@@ -87,20 +89,6 @@ abstract class AbstractKryoMultiTypeCodec<T> extends AbstractKryoCodec<T> implem
 				return doDeserialize(kryo, input, type);
 			}
 		});
-	}
-
-	/**
-	 * Infers the type from this class's generic type argument
-	 * @param kryo the Kryo
-	 * @param input the input
-	 * @return the object
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	protected T doDeserialize(Kryo kryo, Input input) {
-		Class<T> type = (Class<T>) (
-				(ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-		return doDeserialize(kryo, input, type);
 	}
 
 	protected abstract T doDeserialize(Kryo kryo, Input input, Class<? extends T> type);

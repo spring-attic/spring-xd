@@ -32,17 +32,14 @@ import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
 
 /**
  * Base class for Codecs using {@link com.esotericsoftware.kryo.Kryo}
- *
  * @author David Turanski
  */
 public abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
 
-	private final KryoFactory factory;
-
 	protected final KryoPool pool;
 
 	protected AbstractKryoCodec() {
-		factory = new KryoFactory() {
+		KryoFactory factory = new KryoFactory() {
 			public Kryo create() {
 				Kryo kryo = new Kryo();
 				// configure kryo instance, customize settings
@@ -56,31 +53,26 @@ public abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
 
 	/**
 	 * Serialize an object using an existing output stream
-	 *
 	 * @param object the object to be serialized
 	 * @param outputStream the output stream, e.g. a FileOutputStream
 	 * @throws IOException
 	 */
-	@Override
-	public void serialize(final T object, OutputStream outputStream) throws IOException {
-		Assert.notNull(outputStream, "'outputSteam' cannot be null");
-		final Output output = new Output(outputStream);
-		try {
-			pool.run(new KryoCallback<Object>() {
-				@Override
-				public Object execute(Kryo kryo) {
-					doSerialize(kryo, object, output);
-					return Void.class;
-				}
-			});
-		} finally {
-			output.close();
-		}
+
+	public void serialize(final Object object, OutputStream outputStream) throws IOException {
+		Assert.notNull(outputStream, "\'outputSteam\' cannot be null");
+		final Output output = (outputStream instanceof Output ? (Output) outputStream : new Output(outputStream));
+		this.pool.run(new KryoCallback<Object>() {
+			@SuppressWarnings("unchecked")
+			public Object execute(Kryo kryo) {
+				doSerialize(kryo, (T)object, output);
+				return Void.class;
+			}
+		});
+		output.close();
 	}
 
 	/**
 	 * Deserialize an object when the type is known
-	 *
 	 * @param inputStream the input stream containing the serialized object
 	 * @return the object
 	 * @throws IOException
@@ -89,14 +81,14 @@ public abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
 	public T deserialize(InputStream inputStream) throws IOException {
 		final Input input = new Input(inputStream);
 		try {
-			T result = pool.run(new KryoCallback<T>() {
+			return pool.run(new KryoCallback<T>() {
 				@Override
 				public T execute(Kryo kryo) {
 					return doDeserialize(kryo, input);
 				}
 			});
-			return result;
-		} finally {
+		}
+		finally {
 			input.close();
 		}
 	}
@@ -106,5 +98,6 @@ public abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
 	protected abstract T doDeserialize(Kryo kryo, Input input);
 
 	protected void configureKryoInstance(Kryo kryo) {
+		kryo.setReferences(false);
 	}
 }

@@ -26,11 +26,17 @@ import org.apache.sqoop.Sqoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.hadoop.configuration.ConfigurationFactoryBean;
+import org.springframework.data.hadoop.configuration.ConfigurationUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +89,26 @@ public class SqoopRunner {
 
 		List<String> finalArguments = new ArrayList<String>();
 		createFinalArguments(hadoopMapredHome, command, sqoopArguments, provideConnect, configOptions, finalArguments);
+
+		String xdModuleLibjars = System.getenv("XD_MODULE_LIBJARS");
+		if (StringUtils.hasText(xdModuleLibjars)) {
+			String[] extraJars = StringUtils.commaDelimitedListToStringArray(xdModuleLibjars);
+			List<URL> classPathUrls = new ArrayList<URL>();
+			try {
+				classPathUrls.addAll(Arrays.asList(((URLClassLoader) SqoopRunner.class.getClassLoader()).getURLs()));
+			} catch (Exception ignore) {
+			}
+			List<Resource> libJars = new ArrayList<>();
+			for (String jarName : extraJars) {
+				for (URL url : classPathUrls) {
+					if (url.getPath().endsWith(jarName)) {
+						logger.info("Adding jar: " + url);
+						libJars.add(new UrlResource(url));
+					}
+				}
+			}
+			ConfigurationUtils.addLibs(configuration, libJars.toArray(new Resource[libJars.size()]));
+		}
 
 		final int ret = Sqoop.runTool(finalArguments.toArray(new String[finalArguments.size()]), configuration);
 

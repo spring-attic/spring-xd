@@ -156,6 +156,9 @@ public abstract class SqlUtils {
 		if (config.getMode() == Mode.INSERT) {
 			return loadInsert(config, prefix);
 		}
+		else if (config.getMode() == Mode.UPDATE) {
+			return loadUpdate(config, prefix);
+		}
 		throw new IllegalArgumentException("Unsupported mode " + config.getMode());
 	}
 
@@ -175,6 +178,38 @@ public abstract class SqlUtils {
 		}
 		b.append(" FROM ");
 		b.append(name);
+
+		return b.toString();
+	}
+
+	private static String loadUpdate(LoadConfiguration config, String prefix) {
+		StringBuilder b = new StringBuilder();
+		String name = config.getTable() + "_ext_" + prefix;
+		b.append("UPDATE ");
+		b.append(config.getTable());
+		b.append(" into_table set ");
+
+		for (int i = 0; i < config.getUpdateColumns().size(); i++) {
+			b.append(config.getUpdateColumns().get(i) + "=from_table." + config.getUpdateColumns().get(i));
+			if (i + 1 < config.getUpdateColumns().size()) {
+				b.append(", ");
+			}
+		}
+
+		b.append(" FROM ");
+		b.append(name);
+		b.append(" from_table where ");
+
+		for (int i = 0; i < config.getMatchColumns().size(); i++) {
+			b.append("into_table." + config.getMatchColumns().get(i) + "=from_table." + config.getMatchColumns().get(i));
+			if (i + 1 < config.getMatchColumns().size()) {
+				b.append(" and ");
+			}
+		}
+
+		if (StringUtils.hasText(config.getUpdateCondition())) {
+			b.append(" and " + config.getUpdateCondition());
+		}
 
 		return b.toString();
 	}

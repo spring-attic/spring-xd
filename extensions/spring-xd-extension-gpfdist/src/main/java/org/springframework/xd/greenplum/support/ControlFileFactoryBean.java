@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.support;
 
 import java.util.List;
@@ -23,8 +24,9 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.YamlMapFactoryBean;
 import org.springframework.core.io.Resource;
+import org.springframework.xd.greenplum.support.ControlFile.OutputMode;
 
-public class ControlFileFactoryBean implements FactoryBean<ControlFile>, InitializingBean{
+public class ControlFileFactoryBean implements FactoryBean<ControlFile>, InitializingBean {
 
 	private ControlFile controlFile;
 
@@ -34,7 +36,8 @@ public class ControlFileFactoryBean implements FactoryBean<ControlFile>, Initial
 	public void afterPropertiesSet() throws Exception {
 		if (controlFileResource != null) {
 			controlFile = parseYaml();
-		} else {
+		}
+		else {
 			controlFile = new ControlFile();
 		}
 	}
@@ -69,7 +72,7 @@ public class ControlFileFactoryBean implements FactoryBean<ControlFile>, Initial
 		for (Entry<String, Object> e0 : yaml.entrySet()) {
 			if (e0.getKey().toLowerCase().equals("gpload")) {
 				if (e0.getValue() instanceof Map) {
-					Map<String, Object> gploadMap = (Map<String, Object>)e0.getValue();
+					Map<String, Object> gploadMap = (Map<String, Object>) e0.getValue();
 
 					// GPLOAD map
 					for (Entry<String, Object> e1 : gploadMap.entrySet()) {
@@ -77,13 +80,33 @@ public class ControlFileFactoryBean implements FactoryBean<ControlFile>, Initial
 
 							// GPLOAD.OUTPUT list
 							if (e1.getValue() instanceof List) {
-								for (Object v : (List<?>)e1.getValue()) {
+								for (Object v : (List<?>) e1.getValue()) {
 									if (v instanceof Map) {
-										Map<String, Object> tableMap = (Map<String, Object>)v;
+										Map<String, Object> tableMap = (Map<String, Object>) v;
 										for (Entry<String, Object> e2 : tableMap.entrySet()) {
 											if (e2.getKey().toLowerCase().equals("table")) {
 												if (e2.getValue() instanceof String) {
-													cf.setGploadOutputTable((String)e2.getValue());
+													cf.setGploadOutputTable((String) e2.getValue());
+												}
+											}
+											else if (e2.getKey().toLowerCase().equals("mode")) {
+												if (e2.getValue() instanceof String) {
+													cf.setGploadOutputMode(OutputMode.valueOf(((String) e2.getValue()).toUpperCase()));
+												}
+											}
+											else if (e2.getKey().toLowerCase().equals("match_columns")) {
+												if (e2.getValue() instanceof List) {
+													cf.setGploadOutputMatchColumns(((List<String>) e2.getValue()));
+												}
+											}
+											else if (e2.getKey().toLowerCase().equals("update_columns")) {
+												if (e2.getValue() instanceof List) {
+													cf.setGploadOutputUpdateColumns(((List<String>) e2.getValue()));
+												}
+											}
+											else if (e2.getKey().toLowerCase().equals("update_condition")) {
+												if (e2.getValue() instanceof String) {
+													cf.setGploadOutputUpdateCondition((String) e2.getValue());
 												}
 											}
 										}
@@ -91,19 +114,42 @@ public class ControlFileFactoryBean implements FactoryBean<ControlFile>, Initial
 									}
 								}
 							}
-						} else if (e1.getKey().toLowerCase().equals("input")) {
+						}
+						else if (e1.getKey().toLowerCase().equals("input")) {
 							if (e1.getValue() instanceof List) {
-								for (Object v : (List<?>)e1.getValue()) {
+								for (Object v : (List<?>) e1.getValue()) {
 									if (v instanceof Map) {
-										Map<String, Object> tableMap = (Map<String, Object>)v;
+										Map<String, Object> tableMap = (Map<String, Object>) v;
 										for (Entry<String, Object> e2 : tableMap.entrySet()) {
 											if (e2.getKey().toLowerCase().equals("delimiter")) {
 												if (e2.getValue() instanceof Character) {
-													cf.setGploadInputDelimiter((Character)e2.getValue());
-												} else if (e2.getValue() instanceof String) {
-													if (((String)e2.getValue()).length() == 1) {
-														cf.setGploadInputDelimiter(((String)e2.getValue()).charAt(0));
+													cf.setGploadInputDelimiter((Character) e2.getValue());
+												}
+												else if (e2.getValue() instanceof String) {
+													if (((String) e2.getValue()).length() == 1) {
+														cf.setGploadInputDelimiter(((String) e2.getValue()).charAt(0));
 													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						else if (e1.getKey().toLowerCase().equals("sql")) {
+							if (e1.getValue() instanceof List) {
+								for (Object v : (List<?>) e1.getValue()) {
+									if (v instanceof Map) {
+										Map<String, Object> sqlMap = (Map<String, Object>) v;
+										for (Entry<String, Object> e2 : sqlMap.entrySet()) {
+											if (e2.getKey().toLowerCase().equals("before")) {
+												if (e2.getValue() instanceof String) {
+													cf.addGploadSqlBefore((String) e2.getValue());
+												}
+											}
+											else if (e2.getKey().toLowerCase().equals("after")) {
+												if (e2.getValue() instanceof String) {
+													cf.addGploadSqlAfter((String) e2.getValue());
 												}
 											}
 										}
@@ -113,25 +159,30 @@ public class ControlFileFactoryBean implements FactoryBean<ControlFile>, Initial
 						}
 					}
 				}
-			} else if (e0.getKey().toLowerCase().equals("database")) {
+			}
+			else if (e0.getKey().toLowerCase().equals("database")) {
 				if (e0.getValue() instanceof String) {
-					cf.setDatabase((String)e0.getValue());
+					cf.setDatabase((String) e0.getValue());
 				}
-			} else if (e0.getKey().toLowerCase().equals("user")) {
+			}
+			else if (e0.getKey().toLowerCase().equals("user")) {
 				if (e0.getValue() instanceof String) {
-					cf.setUser((String)e0.getValue());
+					cf.setUser((String) e0.getValue());
 				}
-			} else if (e0.getKey().toLowerCase().equals("password")) {
+			}
+			else if (e0.getKey().toLowerCase().equals("password")) {
 				if (e0.getValue() instanceof String) {
-					cf.setPassword((String)e0.getValue());
+					cf.setPassword((String) e0.getValue());
 				}
-			} else if (e0.getKey().toLowerCase().equals("host")) {
+			}
+			else if (e0.getKey().toLowerCase().equals("host")) {
 				if (e0.getValue() instanceof String) {
-					cf.setHost((String)e0.getValue());
+					cf.setHost((String) e0.getValue());
 				}
-			} else if (e0.getKey().toLowerCase().equals("port")) {
+			}
+			else if (e0.getKey().toLowerCase().equals("port")) {
 				if (e0.getValue() instanceof Integer) {
-					cf.setPort((Integer)e0.getValue());
+					cf.setPort((Integer) e0.getValue());
 				}
 			}
 		}

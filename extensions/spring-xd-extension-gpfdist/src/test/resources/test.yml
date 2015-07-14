@@ -1,0 +1,34 @@
+VERSION: 1.0.0.1
+DATABASE: gpadmin
+USER: gpadmin
+HOST: mdw.example.org
+PORT: 5432
+GPLOAD:
+    INPUT:
+     - SOURCE:
+          PORT: 8100
+          FILE: [ /home/gpadmin/test/data/* ]
+     - COLUMNS:
+         - "id":
+         - "name":
+     - FORMAT: text
+     - DELIMITER: ','
+     - ENCODING: 'UTF8'
+     - NULL_AS: ''
+     - ERROR_LIMIT: 100000
+     - ERROR_TABLE: test_err
+    OUTPUT:
+     - TABLE: test
+     - MODE: UPDATE
+     - MATCH_COLUMNS:
+         - col11
+         - col12
+     - UPDATE_COLUMNS:
+         - col21
+         - col22
+     - UPDATE_CONDITION: 'condition'
+    SQL:
+     - BEFORE: "select 1 as before"
+     - BEFORE: "select 2 as before"
+     - AFTER: "select 1 as after"
+     - AFTER: "select 2 as after"

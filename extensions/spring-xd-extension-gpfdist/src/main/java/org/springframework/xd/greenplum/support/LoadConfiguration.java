@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.support;
 
 import java.util.List;
@@ -31,18 +32,25 @@ public class LoadConfiguration {
 
 	private List<String> updateColumns;
 
+	private String updateCondition;
+
+	private List<String> sqlBefore;
+
+	private List<String> sqlAfter;
+
 	public LoadConfiguration() {
 		super();
 	}
 
 	public LoadConfiguration(String table, String columns, ReadableTable externalTable, Mode mode,
-			List<String> matchColumns, List<String> updateColumns) {
+			List<String> matchColumns, List<String> updateColumns, String updateCondition) {
 		this.table = table;
 		this.columns = columns;
 		this.externalTable = externalTable;
 		this.mode = mode;
 		this.matchColumns = matchColumns;
 		this.updateColumns = updateColumns;
+		this.updateCondition = updateCondition;
 	}
 
 	public String getTable() {
@@ -91,6 +99,30 @@ public class LoadConfiguration {
 
 	public void setUpdateColumns(List<String> updateColumns) {
 		this.updateColumns = updateColumns;
+	}
+
+	public String getUpdateCondition() {
+		return updateCondition;
+	}
+
+	public void setUpdateCondition(String updateCondition) {
+		this.updateCondition = updateCondition;
+	}
+
+	public List<String> getSqlBefore() {
+		return sqlBefore;
+	}
+
+	public void setSqlBefore(List<String> sqlBefore) {
+		this.sqlBefore = sqlBefore;
+	}
+
+	public List<String> getSqlAfter() {
+		return sqlAfter;
+	}
+
+	public void setSqlAfter(List<String> sqlAfter) {
+		this.sqlAfter = sqlAfter;
 	}
 
 }

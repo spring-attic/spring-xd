@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.support;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.xd.greenplum.support.ControlFile.OutputMode;
 
 public class ControlFileTests {
 
@@ -43,6 +47,24 @@ public class ControlFileTests {
 		assertThat(cf.getHost(), is("mdw.example.org"));
 		assertThat(cf.getPort(), is(5432));
 		assertThat(cf.getPassword(), nullValue());
+
+		assertThat(cf.getGploadOutputMode(), is(OutputMode.UPDATE));
+
+		assertThat(cf.getGploadOutputMatchColumns(), notNullValue());
+		assertThat(cf.getGploadOutputMatchColumns().size(), is(2));
+		assertThat(cf.getGploadOutputMatchColumns().get(0), is("col11"));
+		assertThat(cf.getGploadOutputMatchColumns().get(1), is("col12"));
+
+		assertThat(cf.getGploadOutputUpdateColumns(), notNullValue());
+		assertThat(cf.getGploadOutputUpdateColumns().size(), is(2));
+		assertThat(cf.getGploadOutputUpdateColumns().get(0), is("col21"));
+		assertThat(cf.getGploadOutputUpdateColumns().get(1), is("col22"));
+		assertThat(cf.getGploadOutputUpdateCondition(), is("condition"));
+
+		assertThat(cf.getGploadSqlBefore().get(0), is("select 1 as before"));
+		assertThat(cf.getGploadSqlBefore().get(1), is("select 2 as before"));
+		assertThat(cf.getGploadSqlAfter().get(0), is("select 1 as after"));
+		assertThat(cf.getGploadSqlAfter().get(1), is("select 2 as after"));
 	}
 
 	static class Config1 {

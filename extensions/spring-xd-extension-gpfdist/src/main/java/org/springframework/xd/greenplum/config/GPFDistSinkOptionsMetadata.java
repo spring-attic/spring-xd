@@ -13,27 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.config;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 
+/**
+ * Config options for gpfdist sink.
+ *
+ * @author Janne Valkealahti
+ *
+ */
 public class GPFDistSinkOptionsMetadata {
 
 	private int port = 0;
+
 	private int flushCount = 100;
+
 	private int flushTime = 2;
+
 	private int batchTimeout = 4;
+
 	private int batchCount = 100;
+
 	private int batchPeriod = 10;
+
 	private String dbName = "gpadmin";
+
 	private String dbUser = "gpadmin";
+
 	private String dbPassword = "gpadmin";
+
 	private String dbHost = "localhost";
+
 	private int dbPort = 5432;
+
 	private String controlFile;
+
 	private String delimiter = "\n";
+
+	private Character columnDelimiter;
+
+	private String mode;
+
+	private String matchColumns;
+
+	private String updateColumns;
+
 	private String table;
+
 	private int rateInterval = 0;
+
+	private String sqlBefore;
+
+	private String sqlAfter;
 
 	public int getPort() {
 		return port;
@@ -152,6 +185,42 @@ public class GPFDistSinkOptionsMetadata {
 		this.delimiter = delimiter;
 	}
 
+	public Character getColumnDelimiter() {
+		return columnDelimiter;
+	}
+
+	@ModuleOption("column delimiter")
+	public void setColumnDelimiter(Character columnDelimiter) {
+		this.columnDelimiter = columnDelimiter;
+	}
+
+	public String getMode() {
+		return mode;
+	}
+
+	@ModuleOption("mode, either insert or update")
+	public void setMode(String mode) {
+		this.mode = mode;
+	}
+
+	public String getUpdateColumns() {
+		return updateColumns;
+	}
+
+	@ModuleOption("update columns with update")
+	public void setUpdateColumns(String updateColumns) {
+		this.updateColumns = updateColumns;
+	}
+
+	public String getMatchColumns() {
+		return matchColumns;
+	}
+
+	@ModuleOption("match columns with update")
+	public void setMatchColumns(String matchColumns) {
+		this.matchColumns = matchColumns;
+	}
+
 	public String getTable() {
 		return table;
 	}
@@ -168,6 +237,24 @@ public class GPFDistSinkOptionsMetadata {
 	@ModuleOption("enable transfer rate interval")
 	public void setRateInterval(int rateInterval) {
 		this.rateInterval = rateInterval;
+	}
+
+	public String getSqlBefore() {
+		return sqlBefore;
+	}
+
+	@ModuleOption("sql to run before load")
+	public void setSqlBefore(String sqlBefore) {
+		this.sqlBefore = sqlBefore;
+	}
+
+	public String getSqlAfter() {
+		return sqlAfter;
+	}
+
+	@ModuleOption("sql to run after load")
+	public void setSqlAfter(String sqlAfter) {
+		this.sqlAfter = sqlAfter;
 	}
 
 }

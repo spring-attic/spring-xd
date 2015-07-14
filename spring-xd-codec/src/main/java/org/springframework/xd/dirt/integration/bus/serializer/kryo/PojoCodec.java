@@ -33,7 +33,7 @@ import org.springframework.util.CollectionUtils;
  * @author David Turanski
  * @since 1.0
  */
-public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
+public class PojoCodec extends AbstractKryoCodec {
 	private final CompositeKryoRegistrar kryoRegistrar;
 
 	private final boolean useReferences;
@@ -45,7 +45,7 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 
 	/**
 	 * Create an instance with a single KryoRegistrar.
-	 * @param kryoRegistrar
+	 * @param kryoRegistrar the registrar.
 	 */
 	public PojoCodec(KryoRegistrar kryoRegistrar) {
 		this(kryoRegistrar != null ? Collections.singletonList(kryoRegistrar) : null, true);
@@ -53,7 +53,7 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 
 	/**
 	 * Create an instance with zero to many KryoRegistrars.
-	 * @param kryoRegistrars
+	 * @param kryoRegistrars a list KryoRegistrars.
 	 */
 	public PojoCodec(List<KryoRegistrar> kryoRegistrars) {
 		this.kryoRegistrar = CollectionUtils.isEmpty(kryoRegistrars) ? null :
@@ -63,7 +63,7 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 
 	/**
 	 * Create an instance with a single KryoRegistrar.
-	 * @param kryoRegistrar
+	 * @param kryoRegistrar the registrar.
 	 * @param useReferences set to false if references are not required (if the object graph is known to be acyclical).
 	 * The default is 'true' which is less performant but more flexible.
 	 */
@@ -73,7 +73,7 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 
 	/**
 	 * Create an instance with zero to many KryoRegistrars.
-	 * @param kryoRegistrars
+	 * @param kryoRegistrars a list KryoRegistrars.
 	 * @param useReferences set to false if references are not required (if the object graph is known to be acyclical). 
 	 * The default is 'true' which is less performant but more flexible.
 	 */
@@ -90,7 +90,7 @@ public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 
 
 	@Override
-	protected Object doDeserialize(Kryo kryo, Input input, Class<? extends Object> type) {
+	protected Object doDeserialize(Kryo kryo, Input input, Class<?> type) {
 		return kryo.readObject(input, type);
 	}
 

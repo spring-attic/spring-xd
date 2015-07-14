@@ -165,7 +165,7 @@ public abstract class AbstractSparkStreamingTests {
 			String tapStream = String.format("tap:stream:%s.spark-word-count > %s --inputType=text/plain", streamName, counter);
 			createStream(tapStreamName, tapStream);
 			source.ensureReady().postData(TEST_LONG_MESSAGE);
-			assertThat(counter, eventually(exists()));
+			assertThat(counter, eventually(50, 100, exists()));
 			assertThat(counter, eventually(hasValue("4")));
 		}
 		finally {

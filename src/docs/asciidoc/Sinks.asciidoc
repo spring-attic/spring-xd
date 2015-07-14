@@ -385,6 +385,60 @@ You will see log output (you will probably need to set the log level of the pack
 get perf numbers. In this case it is showing about 270K/sec
 messages per second to be transferred from XD into Greenplum.
 
+In previous example we did a simple inserts into a table. Let's see
+how we can update data in a table. Create a simple table `xdsink2`
+with three text columns and insert some data.
+
+[source,text]
+----
+create table xdsink2 (col1 text, col2 text, col3 text);
+insert into xdsink2 values ('DATA1', 'DATA', 'DATA');
+insert into xdsink2 values ('DATA2', 'DATA', 'DATA');
+insert into xdsink2 values ('DATA3', 'DATA', 'DATA');
+----
+
+We'd have different data in `col1` which is used to match data to be
+updated.
+
+[source,text]
+----
+# select * from xdsink2;
+ col1  | col2 | col3 
+-------+------+------
+ DATA3 | DATA | DATA
+ DATA2 | DATA | DATA
+ DATA1 | DATA | DATA
+----
+
+Let's create a stream which will update table `xdsink2` by matching a
+column `col1` and updates columns `col2` and `col3`.
+
+[source,text]
+----
+xd:>stream create --name gpfdiststream2 --definition "http|gpfdist --mode=UPDATE --table=xdsink2 --dbHost=mdw --columnDelimiter=',' --matchColumns=col1 --updateColumns=col2,col3" --deploy
+----
+
+Post some data into a stream which will be passed into a `gpfdist`
+sink via `http` source.
+
+[source,text]
+----
+xd:>http post --data "DATA1,DATA1,DATA1"
+----
+
+If you query table again, you'll see that row for `DATA1` has been
+updated.
+
+[source,text]
+----
+# select * from xdsink2;
+ col1  | col2  | col3  
+-------+-------+-------
+ DATA3 | DATA  | DATA
+ DATA2 | DATA  | DATA
+ DATA1 | DATA1 | DATA1
+----
+
 ==== Performance Notes
 
 On a Lenovo W540, Spring XD singlenode, `load-generator-string | gpfdist` inserted data at ~ 540K/sec.
@@ -421,6 +475,26 @@ kept alive if no data is streamed to a client. Use this together with
 `batchPeriod` defines how many seconds a task running load operation
 should sleep in between a loads.
 
+`mode` defines a database load logic which is either `INSERT` or
+`UPDATE`. `INSERT` is a default mode. Similar to control file
+`GPLOAD.OUTPUT.MODE` property. `MERGE` is not currently supported.
+
+`columnDelimiter` defines a data delimiter character within a line of
+data. Defaults to tabulator character. Similar to control file
+`GPLOAD.SOURCE.DELIMITER` property.
+
+`updateColumns` defines updated column names and required with mode
+`UPDATE`. Similar to control file `GPLOAD.OUTPUT.UPDATE_COLUMNS` property.
+
+`matchColumns` defines matched column names and required with mode
+`UPDATE`. Similar to control file `GPLOAD.OUTPUT.MATCH_COLUMNS` property.
+
+`sqlBefore` defines a simple sql clause to be run before of every load
+operation. Similar to control file `GPLOAD.SQL.BEFORE` property.
+
+`sqlAfter` defines a simple sql clause to be run after of every load
+operation. Similar to control file `GPLOAD.SQL.AFTER` property.
+
 `delimiter` is used to postfix incoming data with a line termination
 because Greenplum expects line terminated data.
 
@@ -437,6 +511,7 @@ The **$$gpfdist$$** $$sink$$ has the following options:
 $$batchCount$$:: $$batch count$$ *($$int$$, default: `100`)*
 $$batchPeriod$$:: $$batch period$$ *($$int$$, default: `10`)*
 $$batchTimeout$$:: $$batch timeout$$ *($$int$$, default: `4`)*
+$$columnDelimiter$$:: $$column delimiter$$ *($$Character$$, no default)*
 $$controlFile$$:: $$path to yaml control file$$ *($$String$$, no default)*
 $$dbHost$$:: $$database host$$ *($$String$$, default: `localhost`)*
 $$dbName$$:: $$database name$$ *($$String$$, default: `gpadmin`)*
@@ -447,9 +522,14 @@ $$delimiter$$:: $$data line delimiter$$ *($$String$$, default: `
 `)*
 $$flushCount$$:: $$flush item count$$ *($$int$$, default: `100`)*
 $$flushTime$$:: $$flush item time$$ *($$int$$, default: `2`)*
+$$matchColumns$$:: $$match columns with update$$ *($$String$$, no default)*
+$$mode$$:: $$mode, either insert or update$$ *($$String$$, no default)*
 $$port$$:: $$gpfdist listen port$$ *($$int$$, default: `0`)*
 $$rateInterval$$:: $$enable transfer rate interval$$ *($$int$$, default: `0`)*
+$$sqlAfter$$:: $$sql to run after load$$ *($$String$$, no default)*
+$$sqlBefore$$:: $$sql to run before load$$ *($$String$$, no default)*
 $$table$$:: $$target database table$$ *($$String$$, no default)*
+$$updateColumns$$:: $$update columns with update$$ *($$String$$, no default)*
 //$sink.gpfdist
 
 [[hadoop-hdfs]]

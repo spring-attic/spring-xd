@@ -15,11 +15,13 @@
 
 	<channel id="input" />
 
-	<beans:bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-		<beans:property name="driverClassName" value="org.postgresql.Driver" />
-		<beans:property name="url" value="jdbc:postgresql://${dbHost}:${dbPort}/${dbName}" />
-		<beans:property name="username" value="${dbUser}" />
-		<beans:property name="password" value="${dbPassword}" />
+	<beans:bean id="dataSource" class="org.springframework.xd.greenplum.support.GreenplumDataSourceFactoryBean">
+        <beans:property name="controlFile" ref="greenplumControlFile" />
+		<beans:property name="dbHost" value="${dbHost}" />
+		<beans:property name="dbName" value="${dbName}" />
+		<beans:property name="dbUser" value="${dbUser}" />
+		<beans:property name="dbPassword" value="${dbPassword}" />
+		<beans:property name="dbPort" value="${dbPort}" />
 	</beans:bean>
 
 	<beans:bean id="gpfdist" class="org.springframework.xd.greenplum.gpfdist.GPFDistMessageHandler">
@@ -47,11 +49,17 @@
     <beans:bean id="greenplumLoadConfiguration" class="org.springframework.xd.greenplum.support.LoadConfigurationFactoryBean">
         <beans:property name="externalTable" ref="greenplumReadableTable" />
         <beans:property name="controlFile" ref="greenplumControlFile" />
+        <beans:property name="mode" value="${mode:INSERT}" />
+        <beans:property name="updateColumns" value="${updateColumns:}" />
+        <beans:property name="matchColumns" value="${matchColumns:}" />
         <beans:property name="table" value="${table:}" />
+        <beans:property name="sqlBefore" value="${sqlBefore:}" />
+        <beans:property name="sqlAfter" value="${sqlAfter:}" />
     </beans:bean>
 
     <beans:bean id="greenplumReadableTable" class="org.springframework.xd.greenplum.support.ReadableTableFactoryBean">
         <beans:property name="controlFile" ref="greenplumControlFile" />
+        <beans:property name="delimiter" value="${columnDelimiter:}" />
         <beans:property name="locations" value="#{T(org.springframework.xd.greenplum.support.NetworkUtils).getGPFDistUri(${port})}" />
     </beans:bean>
 

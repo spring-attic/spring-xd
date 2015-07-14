@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.support;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.greenplum.support.ControlFile.OutputMode;
 
 public class LoadConfigurationFactoryBean implements FactoryBean<LoadConfiguration>, InitializingBean {
 
@@ -37,18 +40,51 @@ public class LoadConfigurationFactoryBean implements FactoryBean<LoadConfigurati
 
 	private List<String> updateColumns;
 
+	private String updateCondition;
+
+	private List<String> sqlBefore;
+
+	private List<String> sqlAfter;
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (controlFile != null) {
+			if (controlFile.getGploadOutputMode() != null) {
+				if (controlFile.getGploadOutputMode() == OutputMode.INSERT) {
+					mode = Mode.INSERT;
+				}
+				else if (controlFile.getGploadOutputMode() == OutputMode.UPDATE) {
+					mode = Mode.UPDATE;
+				}
+			}
 			if (StringUtils.hasText(controlFile.getGploadOutputTable())) {
 				table = controlFile.getGploadOutputTable();
+			}
+			if (controlFile.getGploadOutputMatchColumns() != null) {
+				matchColumns = controlFile.getGploadOutputMatchColumns();
+			}
+			if (controlFile.getGploadOutputUpdateColumns() != null) {
+				updateColumns = controlFile.getGploadOutputUpdateColumns();
+			}
+			if (StringUtils.hasText(controlFile.getGploadOutputUpdateCondition())) {
+				updateCondition = controlFile.getGploadOutputUpdateCondition();
+			}
+			if (!controlFile.getGploadSqlBefore().isEmpty()) {
+				sqlBefore = controlFile.getGploadSqlBefore();
+			}
+			if (!controlFile.getGploadSqlAfter().isEmpty()) {
+				sqlAfter = controlFile.getGploadSqlAfter();
 			}
 		}
 	}
 
 	@Override
 	public LoadConfiguration getObject() throws Exception {
-		return new LoadConfiguration(table, columns, externalTable, mode, matchColumns, updateColumns);
+		LoadConfiguration loadConfiguration = new LoadConfiguration(table, columns, externalTable, mode, matchColumns,
+				updateColumns, updateCondition);
+		loadConfiguration.setSqlBefore(sqlBefore);
+		loadConfiguration.setSqlAfter(sqlAfter);
+		return loadConfiguration;
 	}
 
 	@Override
@@ -101,16 +137,40 @@ public class LoadConfigurationFactoryBean implements FactoryBean<LoadConfigurati
 		return matchColumns;
 	}
 
-	public void setMatchColumns(List<String> matchColumns) {
-		this.matchColumns = matchColumns;
+	public void setMatchColumns(String[] matchColumns) {
+		this.matchColumns = Arrays.asList(matchColumns);
 	}
 
 	public List<String> getUpdateColumns() {
 		return updateColumns;
 	}
 
-	public void setUpdateColumns(List<String> updateColumns) {
-		this.updateColumns = updateColumns;
+	public void setUpdateColumns(String[] updateColumns) {
+		this.updateColumns = Arrays.asList(updateColumns);
+	}
+
+	public String getUpdateCondition() {
+		return updateCondition;
+	}
+
+	public void setUpdateCondition(String updateCondition) {
+		this.updateCondition = updateCondition;
+	}
+
+	public List<String> getSqlBefore() {
+		return sqlBefore;
+	}
+
+	public void setSqlBefore(List<String> sqlBefore) {
+		this.sqlBefore = sqlBefore;
+	}
+
+	public List<String> getSqlAfter() {
+		return sqlAfter;
+	}
+
+	public void setSqlAfter(List<String> sqlAfter) {
+		this.sqlAfter = sqlAfter;
 	}
 
 }

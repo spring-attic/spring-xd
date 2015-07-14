@@ -45,7 +45,7 @@ public class MessageBusExtensionsConfiguration {
 	@Autowired
 	ApplicationContext applicationContext;
 	
-	@Value("${spring.xd.codec.kryo.references:true}")
+	@Value("${xd.codec.kryo.references}")
 	private boolean useReferences;
 
 	@Bean

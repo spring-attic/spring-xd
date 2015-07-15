@@ -184,7 +184,7 @@ project('spring-xd-extension-jdbc') {
         compile "org.springframework:spring-tx"
         compile "org.springframework.batch:spring-batch-infrastructure"
         compile "org.springframework.integration:spring-integration-core"
-        runtime "org.springframework.integration:spring-integration-jdbc"
+        runtime ("org.springframework.integration:spring-integration-jdbc") { exclude group: 'com.google.guava' }
         runtime "com.fasterxml.jackson.core:jackson-databind"
         compile "org.hsqldb:hsqldb"
         runtime "mysql:mysql-connector-java"
@@ -256,7 +256,7 @@ project('spring-xd-extension-sqoop') {
     dependencies {
         compile project(':spring-xd-module-spi')
         compile project(':spring-xd-extension-batch')
-        compile project(':spring-xd-extension-jdbc')
+        compile (project(':spring-xd-extension-jdbc')) { exclude group: 'com.google.guava' }
         compile "org.apache.sqoop:sqoop:${sqoopVersion}:hadoop200"
         provided "org.springframework.batch:spring-batch-core"
         provided "org.springframework.data:spring-data-hadoop-core:${springDataHadoopBase}"
@@ -269,7 +269,7 @@ project('spring-xd-extension-gpload') {
     dependencies {
         compile project(':spring-xd-module-spi')
         compile project(':spring-xd-extension-batch')
-        compile project(':spring-xd-extension-jdbc')
+        compile (project(':spring-xd-extension-jdbc'))  { exclude group: 'com.google.guava' }
         provided "org.springframework.batch:spring-batch-core"
         compile "org.yaml:snakeyaml"
     }

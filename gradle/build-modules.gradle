@@ -100,7 +100,7 @@ project('modules.source.http') {
 }
 
 project('modules.source.jdbc') {
-    dependencies { runtime project(":spring-xd-extension-jdbc") }
+    dependencies { runtime(project(":spring-xd-extension-jdbc")) { exclude group: 'com.google.guava' } }
 }
 
 project('modules.source.tcp') {
@@ -228,7 +228,7 @@ project('modules.processor.aggregator') {
     dependencies {
         // These are for the message stores
         runtime	("org.springframework.integration:spring-integration-redis") { exclude group: 'org.slf4j' }
-        runtime	("org.springframework.integration:spring-integration-jdbc")
+        runtime	("org.springframework.integration:spring-integration-jdbc") { exclude group: 'com.google.guava' }
     }
 }
 
@@ -284,11 +284,11 @@ project('modules.sink.file') {
 }
 
 project('modules.sink.jdbc') {
-    dependencies { runtime project(":spring-xd-extension-jdbc") }
+    dependencies { runtime(project(":spring-xd-extension-jdbc")) { exclude group: 'com.google.guava' } }
 }
 
 project('modules.sink.gpfdist') {
-    dependencies { runtime project(":spring-xd-extension-gpfdist") }
+    dependencies { runtime(project(":spring-xd-extension-gpfdist")) { exclude group: 'com.google.guava' } }
 }
 
 project('modules.sink.mail') {
@@ -374,7 +374,7 @@ project('modules.job.sparkapp') {
 
 project('modules.job.filejdbc') {
     dependencies {
-        runtime(project(":spring-xd-extension-jdbc"))
+        runtime(project(":spring-xd-extension-jdbc")) { exclude group: 'com.google.guava' }
     }
 }
 
@@ -386,13 +386,13 @@ project('modules.job.hdfsmongodb') {
 
 project('modules.job.hdfsjdbc') {
     dependencies {
-        runtime(project(":spring-xd-extension-jdbc"))
+        runtime(project(":spring-xd-extension-jdbc")) { exclude group: 'com.google.guava' }
     }
 }
 
 project('modules.job.jdbchdfs') {
     dependencies {
-        runtime(project(":spring-xd-extension-jdbc"))
+        runtime(project(":spring-xd-extension-jdbc")) { exclude group: 'com.google.guava' }
         runtime(project(":spring-xd-extension-batch"))
     }
 }

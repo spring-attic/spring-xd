@@ -16,21 +16,20 @@
 
 package org.springframework.xd.integration.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.xd.integration.util.XdEnvironment;
+import org.springframework.xd.test.fixtures.FileJdbcJob;
+import org.springframework.xd.test.fixtures.JdbcSink;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import org.springframework.xd.integration.util.XdEnvironment;
-import org.springframework.xd.test.fixtures.FileJdbcJob;
-import org.springframework.xd.test.fixtures.JdbcSink;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Asserts that this job will read the specified file and place the results into the database.
@@ -46,6 +45,8 @@ public class FileJdbcTest extends AbstractJobTest {
 	private JdbcSink jdbcSink;
 
 	private String tableName;
+	
+	private String jobName;
 
 	/**
 	 * Removes the table created from a previous test.
@@ -55,6 +56,7 @@ public class FileJdbcTest extends AbstractJobTest {
 		jdbcSink = sinks.jdbc();
 		tableName = "filejdbctest";
 		jdbcSink.tableName(tableName);
+		jobName = "fjt"+UUID.randomUUID().toString();
 		cleanup();
 	}
 
@@ -72,14 +74,14 @@ public class FileJdbcTest extends AbstractJobTest {
 				FileJdbcJob.DEFAULT_NAMES,
 				FileJdbcJob.DEFAULT_DELETE_FILES);
 
-		job(job.toDSL());
+		job(jobName, job.toDSL(), true);
 
 		for (int i = 0; i < 5; i++) {
 			// Setup data files to be used for partition test
-			assertTrue(setupDataFiles(getContainerHostForJob(), DEFAULT_DIRECTORY,
+			assertTrue(setupDataFiles(getContainerHostForJob(jobName), DEFAULT_DIRECTORY,
 					DEFAULT_FILE_NAME + "partition" + i + ".out", data));
 		}
-		jobLaunch();
+		jobLaunch(jobName);
 
 		String query = String.format("SELECT data FROM %s", tableName);
 		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 5);
@@ -105,12 +107,12 @@ public class FileJdbcTest extends AbstractJobTest {
 				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES,
 				FileJdbcJob.DEFAULT_DELETE_FILES);
 
-		job(job.toDSL());
+		job(jobName, job.toDSL(), true);
 		// Setup data files to be used for test
-		assertTrue(setupDataFiles(getContainerHostForJob(), DEFAULT_DIRECTORY, 
+		assertTrue(setupDataFiles(getContainerHostForJob(jobName), DEFAULT_DIRECTORY,
 				DEFAULT_FILE_NAME + ".out", data));
 
-		jobLaunch();
+		jobLaunch(jobName);
 		String query = String.format("SELECT data FROM %s", tableName);
 
 		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 1);
@@ -132,18 +134,18 @@ public class FileJdbcTest extends AbstractJobTest {
 		List<String> data = new ArrayList<>();
 		String curData = UUID.randomUUID().toString();
 		data.add(curData);
-
+		final String FILE_NAME = DEFAULT_FILE_NAME+"_MULTIPLE";
 		jdbcSink.getJdbcTemplate().getDataSource();
-		FileJdbcJob job = new FileJdbcJob(DEFAULT_DIRECTORY, "*",
+		FileJdbcJob job = new FileJdbcJob(DEFAULT_DIRECTORY, FILE_NAME+"*",
 				FileJdbcJob.DEFAULT_TABLE_NAME, FileJdbcJob.DEFAULT_NAMES, true);
 
-		job(job.toDSL());
+		job(jobName, job.toDSL(), true);
 
 		// Setup data files to be used for test
-		assertTrue(setupDataFiles(getContainerHostForJob(), DEFAULT_DIRECTORY,
-				DEFAULT_FILE_NAME + "1.out", curData));
+		assertTrue(setupDataFiles(getContainerHostForJob(jobName), DEFAULT_DIRECTORY,
+				FILE_NAME + "1.out", curData));
 
-		jobLaunch();
+		jobLaunch(jobName);
 		String query = String.format("SELECT data FROM %s", tableName);
 
 		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 1);
@@ -156,15 +158,15 @@ public class FileJdbcTest extends AbstractJobTest {
 			assertTrue(data.contains(result));
 		}
 
-		assertTrue(!fileExistsOnXDInstance(getContainerHostForJob(), DEFAULT_DIRECTORY + File.separator + DEFAULT_FILE_NAME + "1.out"));
+		assertTrue(!fileExistsOnXDInstance(getContainerHostForJob(jobName), DEFAULT_DIRECTORY + File.separator + FILE_NAME + "1.out"));
 
 		curData = UUID.randomUUID().toString();
 		data.add(curData);
 
-		assertTrue(setupDataFiles(getContainerHostForJob(), DEFAULT_DIRECTORY,
-				DEFAULT_FILE_NAME + "2.out", curData));
+		assertTrue(setupDataFiles(getContainerHostForJob(jobName), DEFAULT_DIRECTORY,
+				FILE_NAME + "2.out", curData));
 
-		jobLaunch();
+		jobLaunch(jobName);
 
 		waitForTablePopulation(query, jdbcSink.getJdbcTemplate(), 2);
 
@@ -176,7 +178,7 @@ public class FileJdbcTest extends AbstractJobTest {
 			assertTrue(data.contains(result));
 		}
 
-		assertTrue(!fileExistsOnXDInstance(getContainerHostForJob(), DEFAULT_DIRECTORY + File.separator + DEFAULT_FILE_NAME + "2.out"));
+		assertTrue(!fileExistsOnXDInstance(getContainerHostForJob(jobName), DEFAULT_DIRECTORY + File.separator + FILE_NAME + "2.out"));
 	}
 
 	/**

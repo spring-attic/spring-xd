@@ -43,9 +43,9 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Ilayaperumal Gopinathan
  * @author Patrick Peralta
  */
-public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
+public class RuntimeCommandsTests extends AbstractStreamIntegrationTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(RuntimeCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(RuntimeCommandsTests.class);
 
 	@Test
 	public void testListContainers() {

@@ -53,7 +53,7 @@ import org.springframework.xd.test.fixtures.TcpSource;
  */
 public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegrationTest {
 
-	private StreamCommandTemplate streamOps;
+	private StreamCommandsTemplate streamOps;
 
 	private List<Disposable> disposables = new ArrayList<Disposable>();
 
@@ -62,7 +62,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	private ModuleTemplate moduleTemplate;
 
 	public AbstractStreamIntegrationTest() {
-		streamOps = new StreamCommandTemplate(getShell(), integrationTestSupport);
+		streamOps = new StreamCommandsTemplate(getShell(), integrationTestSupport);
 		metrics = new MetricsTemplate(getShell());
 		moduleTemplate = new ModuleTemplate(getShell());
 		disposables.add(metrics);
@@ -73,7 +73,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return metrics;
 	}
 
-	protected StreamCommandTemplate stream() {
+	protected StreamCommandsTemplate stream() {
 		return streamOps;
 	}
 

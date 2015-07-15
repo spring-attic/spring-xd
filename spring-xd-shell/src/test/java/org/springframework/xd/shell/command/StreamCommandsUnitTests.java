@@ -33,7 +33,7 @@ import org.springframework.xd.rest.client.StreamOperations;
  *
  * @author Eric Bottard
  */
-public class StreamCommandUnitTests {
+public class StreamCommandsUnitTests {
 
 	private StreamOperations streamOperations;
 
@@ -59,7 +59,7 @@ public class StreamCommandUnitTests {
 
 	@Test
 	public void testFileDeploymentProperties() throws Exception {
-		File file = Files.createTempFile(StreamCommandUnitTests.class.getSimpleName(), "testFileDeploymentProperties").toFile();
+		File file = Files.createTempFile(StreamCommandsUnitTests.class.getSimpleName(), "testFileDeploymentProperties").toFile();
 		file.deleteOnExit();
 
 		Properties props = new Properties();
@@ -73,7 +73,7 @@ public class StreamCommandUnitTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testOnlyOneKindOfDeploymentPropertiesAllowed() throws Exception {
-		File file = Files.createTempFile(StreamCommandUnitTests.class.getSimpleName(), "testFileDeploymentProperties").toFile();
+		File file = Files.createTempFile(StreamCommandsUnitTests.class.getSimpleName(), "testFileDeploymentProperties").toFile();
 		file.deleteOnExit();
 
 		commands.deployStream("foo", "module.bar.count=3", file);

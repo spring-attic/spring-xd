@@ -36,7 +36,7 @@ import org.springframework.xd.test.fixtures.CounterSink;
  */
 public class NamedChannelTests extends AbstractStreamIntegrationTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(StreamCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(StreamCommandsTests.class);
 
 	@Test
 	public void testCreateNamedChannelAsSink() {

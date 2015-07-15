@@ -57,9 +57,9 @@ import static org.junit.Assert.assertTrue;
  * @since 1.0
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class JobCommandTests extends AbstractJobIntegrationTest {
+public class JobCommandsTests extends AbstractJobIntegrationTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(JobCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(JobCommandsTests.class);
 
 	@Test
 	public void testJobLifecycleForMyJob() throws InterruptedException {

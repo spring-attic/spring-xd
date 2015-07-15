@@ -39,7 +39,7 @@ import org.springframework.xd.test.fixtures.PollingMailSource;
  * 
  * @author Eric Bottard
  */
-public class MailCommandTests extends AbstractStreamIntegrationTest {
+public class MailCommandsTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testImapPoll() throws Exception {

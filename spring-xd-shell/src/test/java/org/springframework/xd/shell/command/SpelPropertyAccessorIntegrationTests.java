@@ -35,7 +35,7 @@ import org.springframework.xd.shell.command.fixtures.HttpSource;
  */
 public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrationTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(StreamCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(StreamCommandsTests.class);
 
 	/**
 	 * This test focuses on tuple access. Note that it explicitly creates a tuple out of Json, which is no longer

@@ -33,7 +33,7 @@ import org.springframework.xd.test.HostNotWindowsRule;
  *
  * @author David Turanski
  */
-public class JarDeletingModuleCommandTests extends AbstractStreamIntegrationTest {
+public class JarDeletingModuleCommandsTests extends AbstractStreamIntegrationTest {
 
 	@ClassRule
 	public static HostNotWindowsRule hostNotWindowsRule = new HostNotWindowsRule();

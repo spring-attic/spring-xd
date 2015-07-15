@@ -40,7 +40,7 @@ import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.shell.command.MetricsTemplate;
-import org.springframework.xd.shell.command.StreamCommandTemplate;
+import org.springframework.xd.shell.command.StreamCommandsTemplate;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.fixtures.CounterSink;
@@ -64,7 +64,7 @@ public abstract class AbstractSparkStreamingTests {
 
 	private JLineShellComponent shell;
 
-	protected StreamCommandTemplate streamOps;
+	protected StreamCommandsTemplate streamOps;
 
 	private MetricsTemplate metrics;
 
@@ -88,7 +88,7 @@ public abstract class AbstractSparkStreamingTests {
 		if (!shell.isRunning()) {
 			shell.start();
 		}
-		streamOps = new StreamCommandTemplate(shell, integrationTestSupport);
+		streamOps = new StreamCommandsTemplate(shell, integrationTestSupport);
 		metrics = new MetricsTemplate(shell);
 	}
 

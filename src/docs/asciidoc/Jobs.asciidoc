@@ -549,7 +549,9 @@ job create sqoopHiveArgs1 --definition "sqoop --command=import --args='--table M
 
 For more detailed coverage of using quotes and escaping please see xref:DSL-Reference#dsl-quotes-escaping[Single quotes, Double quotes, Escaping].
 
-NOTE: Some JDBC drivers require additional jars to work properly. If this is the case, then you can use the `--libjars` option to provide a comma separated list of jars to be added to the job execution. You should only specify the name of the jar and not the full path. The jars will be looked up from the classpath and included in the job submitted to the Hadoop cluster.
+NOTE: Some JDBC drivers and some compression codecs require additional jars to work properly. If this is the case, then you can use the `--libjars` option to provide a comma separated list of jars to be added to the job execution. You should only specify the name of the jar and not the full path. The jars will be looked up from the classpath and included in the job submitted to the Hadoop cluster.
+
+NOTE: When using Sqoop's `--as-avrodatafile` argument we will automatically include the Avro jars in the Sqoop job submission. No need to specify them as part of the `--libjars` option.
 
 NOTE: Advanced Hadoop configuration options can be provided in one of several configuration files. The `hadoop-site.xml` file is only used by the Sqoop job while the other configuration files are used by all Hadoop related jobs and streams:
 

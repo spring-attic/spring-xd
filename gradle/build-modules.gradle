@@ -410,8 +410,31 @@ project('modules.job.timestampfile') {
 }
 
 project('modules.job.sqoop') {
+    configurations.runtime {
+        resolutionStrategy {
+            eachDependency { DependencyResolveDetails details ->
+                //Force requested version of Snappy so we can copy it to the lib directory
+                if (details.requested.group == 'org.xerial.snappy' && details.requested.name == 'snappy-java') {
+                    details.useVersion requested.version
+                }
+            }
+        }
+    }
     dependencies {
         runtime(project(":spring-xd-extension-sqoop"))
+        runtime('org.xerial.snappy:snappy-java:1.0.5')
+        runtime('org.apache.avro:avro-mapred:1.7.6:hadoop2') {
+            exclude group: 'org.apache.avro', module: 'avro-ipc'
+            exclude group: 'com.google.guava', module: 'guava'
+        }
+    }
+    copyLibs.dependsOn {
+        copyExtraLibs
+    }
+    task copyExtraLibs(type: Copy) {
+        from configurations.runtime
+        into project.file('lib/')
+        include 'snappy-java-*'
     }
 }
 

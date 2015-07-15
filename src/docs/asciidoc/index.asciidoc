@@ -1,6 +1,6 @@
 // Main entry point for docbook generation.
 // This should mirror the _Sidebar file, used for
-// viewing online on github. 
+// viewing online on github.
 
 = Spring XD Guide
 Mark Fisher; Mark Pollack; David Turanski; Gunnar Hillert; Eric Bottard; Patrick Peralta, Gary Russell; Ilayaperumal Gopinathan; Jennifer Hickey; Michael Minella; Luke Taylor; Thomas Risberg; Glenn Renfro; Janne Valkealahti; Thomas Darimont; Dave Syer; Jon Brisbin; Andy Clement; Marius Bogoevici;
@@ -43,6 +43,7 @@ include::Creating-a-Job-Module.asciidoc[]
 include::Creating-a-Python-Module.asciidoc[]
 include::ModuleOptionsMetadata.asciidoc[]
 include::Extending-XD.asciidoc[Extending Spring XD][]
+include::Optimizing-Serialization.asciidoc[]
 include::Samples.asciidoc[]
 
 [[configuration-guidelines]]
@@ -75,9 +76,3 @@ include::Hadoop-Kerberos.asciidoc[]
 
 [appendix]
 include::Module-Project-Migration.asciidoc[]
-
-
-
-
-
-

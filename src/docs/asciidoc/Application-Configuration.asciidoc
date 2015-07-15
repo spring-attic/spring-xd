@@ -755,6 +755,11 @@ Local transport uses a http://docs.spring.io/spring-integration/docs/latest-ga/a
 * `xd.local.transport.named.queueSize` - The capacity of the queue, the default value is `Integer.MAX_VALUE`
 * `xd.local.transport.named.polling` - Messages that are buffered in a QueueChannel need to be polled to be consumed.  This property controls the fixed rate at which polling occurs.  The default value is 1000 ms.
 
+==== Serialization
+
+Serialization is used by remote transport. Please see the section on xref:Optimizing-Serialization#optimizing-serialization[Optimizing Serialization] for a
+detailed discussion of configuration options.
+
 === Module Configuration
 
 Modules are configured by placing property files in a nested directory structure based on their type and name.  The root of the nested directory structure is by default `XD_HOME/config/modules`.  This location can be customized by setting the OS environment variable `XD_MODULE_CONFIG_LOCATION`, similar to how the environment variable `XD_CONFIG_LOCATION` is used for configuring the server. If `XD_MODULE_CONFIG_LOCATION` is set explicitly, then it is **necessary** to add the file path separator ("/") at the end of the path.

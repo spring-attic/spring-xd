@@ -45,9 +45,9 @@ import org.springframework.xd.test.fixtures.FileSink;
  * @author Gunnar Hillert
  * @since 1.0
  */
-public class HttpCommandTests extends AbstractStreamIntegrationTest {
+public class HttpCommandsTests extends AbstractStreamIntegrationTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(HttpCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(HttpCommandsTests.class);
 
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();

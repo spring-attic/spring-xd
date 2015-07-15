@@ -53,7 +53,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  * @author David Turanski
  * @author Eric Bottard
  */
-public class ModuleCommandTests extends AbstractStreamIntegrationTest {
+public class ModuleCommandsTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testModuleCompose() {

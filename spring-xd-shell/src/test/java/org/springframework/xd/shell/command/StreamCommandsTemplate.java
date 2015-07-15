@@ -38,7 +38,7 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Mark Fisher
  * @author David Turanski
  */
-public class StreamCommandTemplate extends AbstractCommandTemplate {
+public class StreamCommandsTemplate extends AbstractCommandTemplate {
 
 	private List<String> streams = new ArrayList<String>();
 
@@ -48,7 +48,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 * @param shell the spring shell to execute commands against
 	 */
 	/* default */
-	public StreamCommandTemplate(JLineShellComponent shell, SingleNodeIntegrationTestSupport integrationTestSupport) {
+	public StreamCommandsTemplate(JLineShellComponent shell, SingleNodeIntegrationTestSupport integrationTestSupport) {
 		super(shell, integrationTestSupport.streamStateVerifier());
 	}
 

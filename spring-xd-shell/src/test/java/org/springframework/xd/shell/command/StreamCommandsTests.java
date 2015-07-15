@@ -44,9 +44,9 @@ import org.springframework.xd.test.fixtures.FileSink;
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
  */
-public class StreamCommandTests extends AbstractStreamIntegrationTest {
+public class StreamCommandsTests extends AbstractStreamIntegrationTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(StreamCommandTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(StreamCommandsTests.class);
 
 	@Test
 	public void testStreamLifecycleForTickTock() throws InterruptedException {

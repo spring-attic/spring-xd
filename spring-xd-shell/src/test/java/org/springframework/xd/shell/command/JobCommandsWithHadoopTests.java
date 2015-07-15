@@ -45,14 +45,14 @@ import org.springframework.xd.test.HostNotWindowsRule;
  * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(loader = HadoopDelegatingSmartContextLoader.class, classes = JobCommandWithHadoopTests.EmptyConfig.class)
+@ContextConfiguration(loader = HadoopDelegatingSmartContextLoader.class, classes = JobCommandsWithHadoopTests.EmptyConfig.class)
 @MiniHadoopCluster
-public class JobCommandWithHadoopTests extends AbstractJobIntegrationTest {
+public class JobCommandsWithHadoopTests extends AbstractJobIntegrationTest {
 
 	@ClassRule
 	public static HostNotWindowsRule hostNotWindowsRule = new HostNotWindowsRule();
 
-	private static final Logger logger = LoggerFactory.getLogger(JobCommandWithHadoopTests.class);
+	private static final Logger logger = LoggerFactory.getLogger(JobCommandsWithHadoopTests.class);
 
 	@Autowired
 	org.apache.hadoop.conf.Configuration configuration;

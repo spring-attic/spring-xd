@@ -1,0 +1,269 @@
+// Empty line above needed after the list from previous file
+[[optimizing-serialization]]
+== Optimizing Serialization
+
+=== Introduction
+
+Spring XD is configured by default to use
+https://github.com/EsotericSoftware/kryo[Kryo] to serialize and deserialize POJO
+message payloads when using remote transport such as Redis, Rabbit, or Kafka.
+Note that if the payload is already in the form of a byte array, then XD will
+transport it as is. Also if the payload is a String, XD will use getBytes() and
+bypass Kryo. Kryo performs favorably compared to other JVM serialization
+libraries but may become a bottleneck in high-throughput applications. In rare
+cases, custom serialization may be needed to address functional issues. This
+section offers some tips and techniques for customizing and optimizing
+serialization to address such situations. In accordance with the usual caveats
+about premature optimization, don't apply these techniques unless you really
+need to. Furthermore, the time it takes to serialize and deserialize an object
+is proportional to factors such the number of fields, composition, and
+collection sizes. Prerequisite to the techniques presented here, consider
+colocating modules (via local binding or module composition), or using lighter
+payloads.
+
+=== Serialization Performance
+
+Published https://github.com/eishay/jvm-serializers/wiki[serialization
+benchmarks] have shown that Kryo serialization operations take less than 1000
+nanoseconds for reasonably sized objects. The Spring XD team has independently
+verified these results. Serializing large objects may take many orders of
+magnitude longer. To put this in perspective, let's suppose that serialization
+and deserialization of your payload each take 5000 nanoseconds.  For a stream
+,e.g., `some-source | some-sink` running in a distributed XD runtime, moving the
+payload from the source to the sink requires serialization at the producer and
+deserialization at the consumer. Both operations would account for 10,000 ns or
+10 microseconds. So the maximum theoretical throughput for this simple stream,
+with no partitioning or parallel deployment, is at most 100,000 messages/sec.
+This does not account for network latency (transporting the serialized bytes),
+overhead in the messaging middleware, or computations performed by the modules.
+If your application requires a higher level of
+throughput than mentioned above then serialization is a potential bottleneck. However, if 
+your throughput requirements are not so
+demanding, serialization performance becomes less of an issue. In this
+hypothetical scenario, At a throughput of 10,000 messages/second, 10
+microseconds is only 10% of the maximum time required to process the message.
+However if you trying to stream large objects at this rate, serialization time,
+along with transport and processing time, will be significantly higher.
+
+=== Serialization in XD
+
+In Spring XD 1.2.x, MessageBus implementations inject a bean of type
+http://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/dirt/integration/bus/serializer/MultiTypeCodec.html[MultiTypeCodec],
+where the term `Codec` refers to an component providing methods to serialize and
+deserialize objects. `MultiType` means that the component can handle any object. Spring
+XD is internally configured with a
+http://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/PojoCodec.html[PojoCodec]
+that delegates to Kryo and provides hooks to register custom Kryo serializers for
+specific types.
+
+=== Customizing Kryo
+
+By default, Kryo uses delegates unknown Java types to its `FieldSerializer`.
+Kryo also registers default serializers for each primitive type along with
+`String`, `Collection` and `Map` serializers. `FieldSerializer` uses reflection
+to navigate the object graph. A more efficient approach is to implement a custom
+serializer that is aware of the object's structure and can directly serialize
+selected primitive fields:
+
+[source,java]
+----
+public class AddressSerializer extends Serializer<Address> {
+	@Override
+	public void write(Kryo kryo, Output output, Address address) {
+		output.writeString(address.getStreet());
+		output.writeString(address.getCity());
+		output.writeString(address.getCountry());
+	}
+
+	@Override
+	public Address read(Kryo kryo, Input input, Class<Address> type) {
+		return new Address(input.readString(),input.readString(),input.readString());
+	}
+}
+----
+
+The `Serializer` interface exposes `Kryo`, `Input`, and `Output` which provide
+complete control over which fields are included and other internal settings as
+described in the https://github.com/EsotericSoftware/kryo[documentation].
+
+
+==== Disabling References
+
+A simple setting may be applied to boost performance if the payload types do
+not contain any cyclical references. If the payload contains cyclical references, then 
+Kryo needs to do some extra work in this case and the
+https://github.com/EsotericSoftware/kryo#references[references]
+setting is enabled by default. If not needed, this code can be disabled and can
+have a measurable impact on performance. In Spring XD this is controlled by the
+property `xd.codec.kryo.references` in `servers.yml`. Set this property to
+`false` to disable references.
+
+==== Registering a Custom Kryo Serializer in XD
+
+If custom serialization is indicated, please consult the
+https://github.com/EsotericSoftware/kryo[Kryo] documentation since you will be
+using the native API. The general requirement is to provide a jar on the Spring XD class
+path (copy it to <XD_INSTALL_DIR>/xd/lib). This may be the same jar that
+contains the domain objects or a separate jar that contains the custom Kryo
+serializer(s) along with a bit of Spring configuration to be imported into the
+XD runtime.
+
+First provide one or more classes that extend
+`com.esotericsoftware.kryo.Serializer`. Next provide a Spring @Configuration in
+the package `spring.xd.bus.ext`.  For example:
+
+[source,java]
+----
+package spring.xd.bus.ext;
+...
+
+@Configuration
+public class CustomKryoRegistrarConfig {
+	@Bean
+	public KryoRegistrar myCustomRegistration() {
+		List<Registration> registrations = new ArrayList<>();
+		registrations.add(new Registration(MyObject.class, new MySerializer(),62));
+		return new KryoRegistrationRegistrar(registrations);
+	}
+
+// Every thing self contained here for illustration purposes only.
+	public static class MyObject {}
+
+	public static class MySerializer extends Serializer<MyObject> {
+		@Override
+		public void write(Kryo kryo, Output output, MyObject object) {
+			...
+		}
+
+		@Override
+		public MyObject read(Kryo kryo, Input input, Class<MyObject> type) {
+			MyObject result;
+			...
+			return result;
+		}
+	}
+}
+----
+
+The above example works by configuring a
+http://docs.spring.io/spring-xd/docs/1.2.1.BUILD-SNAPSHOT/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/KryoRegistrationRegistrar.html[KryoRegistrationRegistrar].
+This class holds a list of `com.esotericsoftware.kryo.Registration` each of which
+associates a Java class to a Serializer and a unique integer. The integer is the
+`registration ID` for the type which allows Kryo to encode the serialized type
+as an integer instead of writing the fully qualified class name. This significantly
+reduces the size of the serialized payload. Spring XD will inject any beans of
+type `KryoRegistrar` found on the class path into the `PojoCodec`. Hence a jar
+containing a Spring configuration similar to the above and installed in `xd/lib`
+will register the custom serializer. One caveat is that multiple
+`KryoRegistrars` may contain conflicting registrations. The ID assigned must be
+unique, and there may not be multiple registrations for the same class.
+`PojoCodec` will merge and validate all registrations during container
+initialization so that any conflicts will result in an exception during
+container initialization.
+
+NOTE: The codec must be configured exactly the same way in every container
+instance. This it is important to keep custom jars and other related runtime
+configuration consistent. The container logs include the Kryo registration
+settings.
+
+==== Implementing KryoSerializable
+
+If you have write access to the domain object source code it may implement
+`KryoSerializable` as described
+https://github.com/EsotericSoftware/kryo#kryoserializable[here]. In this case
+the class provides the serialization methods itself and no further configuration
+is required for Spring XD. This has the advantage of being much simpler to use
+with XD, however benchmarks have shown this is not quite as efficient as
+registering a custom serializer explicitly:
+
+[source,java]
+----
+public class Address implements KryoSerializable {
+	...
+
+	@Override
+	public void write(Kryo kryo, Output output) {
+		output.writeString(this.street);
+		output.writeString(this.city);
+		output.writeString(this.country);
+	}
+
+	@Override
+	public void read(Kryo kryo, Input input) {
+		this.street = input.readString();
+		this.city = input.readString();
+		this.country = input.readString();
+	}
+}
+----
+
+
+Note that this technique can also be used to wrap a
+serialization library other than Kryo.
+
+==== Using DefaultSerializer Annotation
+
+Kryo also provides an annotation as described https://github.com/EsotericSoftware/kryo#default-serializers[here].
+
+[source,java]
+----
+@DefaultSerializer(SomeClassSerializer.class)
+public class SomeClass {
+       // ...
+}
+----
+
+If you have write access to the domain object this may be a simpler alternative
+to specify a custom serializer. Note this does not register the class with an
+ID, so your mileage may vary. This may be combined with using a
+http://docs.spring.io/spring-xd/docs/1.2.1.BUILD-SNAPSHOT/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/KryoClassMapRegistrar.html[KryoClassMapRegistrar]
+or
+http://docs.spring.io/spring-xd/docs/1.2.1.BUILD-SNAPSHOT/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/KryoClassListRegistrar.html[KryoClassListRegistrar]
+to register objects if necessary, but then there is less benefit to using the
+annotation.
+
+==== Replacing PojoCodec
+
+It is also possible to replace PojoCodec with an implementation of
+`MultiTypeCodec` that uses another serialization library in place of Kryo. XD
+does not provide an alternate implementation, but if one were inclined to write
+one, a configuration similar to this, in the 'spring.xd.bus.ext' package, is
+required:
+
+[source,java]
+----
+package spring.xd.bus.ext;
+...
+
+@Configuration
+public class CustomCodecConfig {
+	@Bean //must be named 'codec'
+	public MultiTypeCodec<Object> codec() {
+		return new CustomCodec(...);
+	}
+}
+----
+
+=== Benchmarking
+
+Prior to adding any serialization configuration to XD, we highly recommend
+running some benchmark tests to measure serialization of your data in isolation.
+It is important to first establish a baseline measurement. Once the baseline
+performance is known, you can readily measure the impact of optimizations.
+Serialization has been measured on the order of few hundred nanoseconds.  At
+this scale, it is important to test in an environment which does not have
+external processes competing for resources. This type of `microbenchmark` must
+also account for JVM optimizations and garbage collection by "warming up"
+(letting the test run for a while before starting the timer) , requesting GC and
+pausing between runs, and the like. Such tests can also be run with a JVM
+profiling tool such as Yourkit to get to the finest level of detail.
+
+An excellent resource on JVM serialization benchmarks is the
+https://github.com/eishay/jvm-serializers/wiki[jvm-serializers] project which
+incidentally demonstrates that manually optimized Kryo is the fastest among the
+libraries tested. The Spring XD samples repository includes a
+https://github.com/spring-projects/spring-xd-samples/tree/master/serialization-benchmarks[serialization-benchmarks]
+project that has co-opted some of the jvm-serializer techniques and contains
+sample benchmarks, including one which closely matches results for the
+jvm-serializers _kryo_manual_ test using XD's `PojoCodec` as an entry point. You
+can use one of these samples as a template to benchmark your custom serializer.

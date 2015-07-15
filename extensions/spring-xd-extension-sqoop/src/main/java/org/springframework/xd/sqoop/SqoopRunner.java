@@ -92,6 +92,7 @@ public class SqoopRunner {
 
 		String xdModuleLibjars = System.getenv("XD_MODULE_LIBJARS");
 		if (StringUtils.hasText(xdModuleLibjars)) {
+			logger.info("Adding --libjars to Sqoop job submission");
 			String[] extraJars = StringUtils.commaDelimitedListToStringArray(xdModuleLibjars);
 			List<URL> classPathUrls = new ArrayList<URL>();
 			try {
@@ -105,6 +106,23 @@ public class SqoopRunner {
 						logger.info("Adding jar: " + url);
 						libJars.add(new UrlResource(url));
 					}
+				}
+			}
+			ConfigurationUtils.addLibs(configuration, libJars.toArray(new Resource[libJars.size()]));
+		}
+
+		if (sqoopArguments.contains("--as-avrodatafile")) {
+			logger.info("Adding Avro libraries to Sqoop job submission");
+			List<URL> classPathUrls = new ArrayList<URL>();
+			try {
+				classPathUrls.addAll(Arrays.asList(((URLClassLoader) SqoopRunner.class.getClassLoader()).getURLs()));
+			} catch (Exception ignore) {
+			}
+			List<Resource> libJars = new ArrayList<>();
+			for (URL url : classPathUrls) {
+				if (url.getPath().contains("avro-mapred-1.7") || url.getPath().contains("avro-1.7")) {
+					logger.info("Adding jar: " + url);
+					libJars.add(new UrlResource(url));
 				}
 			}
 			ConfigurationUtils.addLibs(configuration, libJars.toArray(new Resource[libJars.size()]));

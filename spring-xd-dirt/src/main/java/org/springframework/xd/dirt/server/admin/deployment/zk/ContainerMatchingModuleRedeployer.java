@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -124,40 +123,40 @@ public class ContainerMatchingModuleRedeployer extends ModuleRedeployer {
 		// iterate the cache of stream deployments
 		for (ChildData data : streamDeployments.getCurrentData()) {
 			String streamName = ZooKeeperUtils.stripPathConverter.convert(data);
-			Stream stream = null;
+
 			try {
-				stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
-			}
-			catch (Exception e) {
-				logger.error(String.format("Exception loading the stream %s. The stream deployment status " +
-						"could be unknown. Fix the issue mentioned in the exception and restart the admin. " +
-						"The exception is: %s", streamName, ExceptionUtils.getStackTrace(e)));
-			}
-			// if stream is null this means the stream was destroyed or undeployed
-			if (stream != null) {
-				List<ModuleDeploymentRequestsPath> requestedModules =
-						ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
-								requestedModulesPaths, streamName);
-				Set<String> previouslyDeployed = new HashSet<String>();
+				final Stream stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
+				// if stream is null this means the stream was destroyed or undeployed
+				if (stream != null) {
+					List<ModuleDeploymentRequestsPath> requestedModules =
+							ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
+									requestedModulesPaths, streamName);
+					Set<String> previouslyDeployed = new HashSet<String>();
 
-				for (String deployedModule : client.getChildren().forPath(
-						Paths.build(data.getPath(), Paths.MODULES))) {
-					previouslyDeployed.add(Paths.stripPath(
-							new StreamDeploymentsPath(Paths.build(data.getPath(), Paths.MODULES, deployedModule))
-									.getModuleInstanceAsString()));
-				}
+					for (String deployedModule : client.getChildren().forPath(
+							Paths.build(data.getPath(), Paths.MODULES))) {
+						previouslyDeployed.add(Paths.stripPath(
+								new StreamDeploymentsPath(Paths.build(data.getPath(), Paths.MODULES, deployedModule))
+										.getModuleInstanceAsString()));
+					}
 
-				for (ModuleDeploymentRequestsPath path : requestedModules) {
-					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(path.getModuleLabel());
-					if (shouldDeploy(moduleDescriptor, path, previouslyDeployed)) {
-						RuntimeModuleDeploymentProperties moduleDeploymentProperties =
-								new RuntimeModuleDeploymentProperties();
-						moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(
-								moduleDeploymentRequests.getCurrentData(path.build()).getData()));
-						redeployModule(new ModuleDeployment(stream, moduleDescriptor,
-								moduleDeploymentProperties), true);
+					for (ModuleDeploymentRequestsPath path : requestedModules) {
+						ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(path.getModuleLabel());
+						if (shouldDeploy(moduleDescriptor, path, previouslyDeployed)) {
+							RuntimeModuleDeploymentProperties moduleDeploymentProperties =
+									new RuntimeModuleDeploymentProperties();
+							moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(
+									moduleDeploymentRequests.getCurrentData(path.build()).getData()));
+							redeployModule(new ModuleDeployment(stream, moduleDescriptor,
+									moduleDeploymentProperties), true);
+						}
 					}
 				}
+			}
+			catch (Exception e) {
+				logger.error(
+						String.format("Exception while evaluating module status for stream %s", streamName),
+						e);
 			}
 		}
 	}
@@ -175,38 +174,37 @@ public class ContainerMatchingModuleRedeployer extends ModuleRedeployer {
 		for (ChildData data : jobDeployments.getCurrentData()) {
 			String jobName = ZooKeeperUtils.stripPathConverter.convert(data);
 
-			// if job is null this means the job was destroyed or undeployed
-			Job job = null;
 			try {
-				job = DeploymentLoader.loadJob(client, jobName, jobFactory);
-			}
-			catch (Exception e) {
-				logger.error(String.format("Exception loading the job %s. The job deployment status could be " +
-						"unknown. Fix the issue mentioned in the exception and restart the admin. " +
-						"The exception is: %s", jobName, ExceptionUtils.getStackTrace(e)));
-			}
-			if (job != null) {
-				List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
-						requestedModulesPaths, jobName);
-				Set<String> previouslyDeployed = new HashSet<String>();
+				final Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
+				// if job is null this means the job was destroyed or undeployed
+				if (job != null) {
+					List<ModuleDeploymentRequestsPath> requestedModules = ModuleDeploymentRequestsPath.getModulesForDeploymentUnit(
+							requestedModulesPaths, jobName);
+					Set<String> previouslyDeployed = new HashSet<String>();
 
-				for (String deployedModule : client.getChildren().forPath(Paths.build(data.getPath(), Paths.MODULES))) {
-					previouslyDeployed.add(Paths.stripPath(new JobDeploymentsPath(Paths.build(data.getPath(),
-							Paths.MODULES,
-							deployedModule)).getModuleInstanceAsString()));
-				}
+					for (String deployedModule : client.getChildren().forPath(Paths.build(data.getPath(), Paths.MODULES))) {
+						previouslyDeployed.add(Paths.stripPath(new JobDeploymentsPath(Paths.build(data.getPath(),
+								Paths.MODULES,
+								deployedModule)).getModuleInstanceAsString()));
+					}
 
-				for (ModuleDeploymentRequestsPath path : requestedModules) {
-					ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
-					if (shouldDeploy(moduleDescriptor, path, previouslyDeployed)) {
-						RuntimeModuleDeploymentProperties moduleDeploymentProperties =
-								new RuntimeModuleDeploymentProperties();
-						moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(
-								moduleDeploymentRequests.getCurrentData(path.build()).getData()));
-						redeployModule(new ModuleDeployment(job, moduleDescriptor,
-								moduleDeploymentProperties), true);
+					for (ModuleDeploymentRequestsPath path : requestedModules) {
+						ModuleDescriptor moduleDescriptor = job.getJobModuleDescriptor();
+						if (shouldDeploy(moduleDescriptor, path, previouslyDeployed)) {
+							RuntimeModuleDeploymentProperties moduleDeploymentProperties =
+									new RuntimeModuleDeploymentProperties();
+							moduleDeploymentProperties.putAll(ZooKeeperUtils.bytesToMap(
+									moduleDeploymentRequests.getCurrentData(path.build()).getData()));
+							redeployModule(new ModuleDeployment(job, moduleDescriptor,
+									moduleDeploymentProperties), true);
+						}
 					}
 				}
+			}
+			catch (Exception e) {
+				logger.error(
+						String.format("Exception while evaluating module status for job %s", jobName),
+						e);
 			}
 		}
 	}

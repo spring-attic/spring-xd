@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.zookeeper.CreateMode;
@@ -37,6 +36,7 @@ import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamDeploymentsPath;
 import org.springframework.xd.dirt.job.JobFactory;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentUnitStateCalculator;
+import org.springframework.xd.dirt.server.admin.deployment.DeploymentUnitType;
 import org.springframework.xd.dirt.server.admin.deployment.ModuleDeploymentStatus;
 import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
@@ -91,61 +91,45 @@ public class DefaultDeploymentStateRecalculator implements SupervisorElectionLis
 		Assert.notNull(streamDeployments, "Stream deployment path cache shouldn't be null.");
 		CuratorFramework client = zkConnection.getClient();
 		for (Iterator<String> iterator =
-			 new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter, streamDeployments); iterator.hasNext(); ) {
+				new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter, streamDeployments); iterator.hasNext(); ) {
 			String streamName = iterator.next();
 			String definitionPath = Paths.build(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
-			Stream stream = null;
-			DeploymentUnitStatus status;
+
 			try {
-				stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
+				final Stream stream = DeploymentLoader.loadStream(client, streamName, streamFactory);
+				if (stream != null) {
+					String streamModulesPath = Paths.build(definitionPath, Paths.MODULES);
+					List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();
+					try {
+						List<String> moduleDeployments = client.getChildren().forPath(streamModulesPath);
+						for (String moduleDeployment : moduleDeployments) {
+							StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(
+									Paths.build(streamModulesPath, moduleDeployment));
+							statusList.add(new ModuleDeploymentStatus(
+									streamDeploymentsPath.getContainer(),
+									streamDeploymentsPath.getModuleSequence(),
+									new ModuleDescriptor.Key(streamName,
+											ModuleType.valueOf(streamDeploymentsPath.getModuleType()),
+											streamDeploymentsPath.getModuleLabel()),
+									ModuleDeploymentStatus.State.deployed, null));
+						}
+					}
+					catch (KeeperException.NoNodeException e) {
+						// indicates there are no modules deployed for this stream;
+						// ignore as this will result in an empty statusList
+					}
+					writeDeploymentUnitStatus(DeploymentUnitType.Stream, streamName,
+							stateCalculator.calculate(stream,
+									new DefaultModuleDeploymentPropertiesProvider(stream), statusList));
+				}
 			}
 			catch (Exception e) {
-				logger.error(String.format("Exception loading the stream %s. This stream deployment status will be set" +
-						" to %s. Fix the issue mentioned in the exception and restart the admin to recalculate " +
-						"the stream status. The exception is: %s", streamName, DeploymentUnitStatus.State.unknown,
-						ExceptionUtils.getStackTrace(e)));
+				logger.error(String.format("Exception calculating status for stream %s; status will be set to %s.",
+						streamName, DeploymentUnitStatus.State.unknown), e);
+				writeDeploymentUnitStatus(DeploymentUnitType.Stream, streamName,
+						new DeploymentUnitStatus(DeploymentUnitStatus.State.unknown));
 			}
-			if (stream != null) {
-				String streamModulesPath = Paths.build(definitionPath, Paths.MODULES);
-				List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();
-				try {
-					List<String> moduleDeployments = client.getChildren().forPath(streamModulesPath);
-					for (String moduleDeployment : moduleDeployments) {
-						StreamDeploymentsPath streamDeploymentsPath = new StreamDeploymentsPath(
-								Paths.build(streamModulesPath, moduleDeployment));
-						statusList.add(new ModuleDeploymentStatus(
-								streamDeploymentsPath.getContainer(),
-								streamDeploymentsPath.getModuleSequence(),
-								new ModuleDescriptor.Key(streamName,
-										ModuleType.valueOf(streamDeploymentsPath.getModuleType()),
-										streamDeploymentsPath.getModuleLabel()),
-								ModuleDeploymentStatus.State.deployed, null));
-					}
-				}
-				catch (KeeperException.NoNodeException e) {
-					// indicates there are no modules deployed for this stream;
-					// ignore as this will result in an empty statusList
-				}
-
-				status = stateCalculator.calculate(stream,
-						new DefaultModuleDeploymentPropertiesProvider(stream), statusList);
-			}
-			else {
-				status = new DeploymentUnitStatus(DeploymentUnitStatus.State.unknown);
-			}
-
-			logger.info("Deployment status for stream '{}': {}", streamName, status);
-
-			String statusPath = Paths.build(Paths.STREAM_DEPLOYMENTS, streamName, Paths.STATUS);
-			Stat stat = client.checkExists().forPath(statusPath);
-			if (stat != null) {
-				logger.trace("Found old status path {}; stat: {}", statusPath, stat);
-				client.delete().forPath(statusPath);
-			}
-			client.create().withMode(CreateMode.EPHEMERAL).forPath(statusPath,
-					ZooKeeperUtils.mapToBytes(status.toMap()));
 		}
-
 	}
 
 	/**
@@ -159,50 +143,63 @@ public class DefaultDeploymentStateRecalculator implements SupervisorElectionLis
 		Assert.notNull(jobDeployments, "Stream deployment path cache shouldn't be null.");
 		CuratorFramework client = zkConnection.getClient();
 		for (Iterator<String> iterator = new ChildPathIterator<String>(ZooKeeperUtils.stripPathConverter,
-				jobDeployments); iterator.hasNext(); ) {
+				jobDeployments); iterator.hasNext();) {
 			String jobName = iterator.next();
-			Job job = null;
-			DeploymentUnitStatus status = null;
+
 			try {
-				job = DeploymentLoader.loadJob(client, jobName, jobFactory);
+				final Job job = DeploymentLoader.loadJob(client, jobName, jobFactory);
+				if (job != null) {
+					String jobModulesPath = Paths.build(Paths.JOB_DEPLOYMENTS, jobName, Paths.MODULES);
+					List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();
+					List<String> moduleDeployments = client.getChildren().forPath(jobModulesPath);
+					for (String moduleDeployment : moduleDeployments) {
+						JobDeploymentsPath jobDeploymentsPath = new JobDeploymentsPath(
+								Paths.build(jobModulesPath, moduleDeployment));
+						statusList.add(new ModuleDeploymentStatus(
+								jobDeploymentsPath.getContainer(),
+								jobDeploymentsPath.getModuleSequence(),
+								new ModuleDescriptor.Key(jobName, ModuleType.job, jobDeploymentsPath.getModuleLabel()),
+								ModuleDeploymentStatus.State.deployed, null));
+					}
+					writeDeploymentUnitStatus(DeploymentUnitType.Job, jobName,
+							stateCalculator.calculate(job,
+									new DefaultModuleDeploymentPropertiesProvider(job), statusList));
+				}
 			}
 			catch (Exception e) {
-				logger.error(String.format("Exception loading the job %s. This job deployment status will be set" +
-						" to %s. Fix the issue mentioned in the exception and restart the admin to recalculate " +
-						"the job status. The exception is: %s", jobName, DeploymentUnitStatus.State.unknown,
-						ExceptionUtils.getStackTrace(e)));
+				logger.error(String.format("Exception calculating status for job %s; status will be set to %s.",
+						jobName, DeploymentUnitStatus.State.unknown), e);
+				writeDeploymentUnitStatus(DeploymentUnitType.Job, jobName,
+						new DeploymentUnitStatus(DeploymentUnitStatus.State.unknown));
 			}
-			if (job != null) {
-				String jobModulesPath = Paths.build(Paths.JOB_DEPLOYMENTS, jobName, Paths.MODULES);
-				List<ModuleDeploymentStatus> statusList = new ArrayList<ModuleDeploymentStatus>();
-				List<String> moduleDeployments = client.getChildren().forPath(jobModulesPath);
-				for (String moduleDeployment : moduleDeployments) {
-					JobDeploymentsPath jobDeploymentsPath = new JobDeploymentsPath(
-							Paths.build(jobModulesPath, moduleDeployment));
-					statusList.add(new ModuleDeploymentStatus(
-							jobDeploymentsPath.getContainer(),
-							jobDeploymentsPath.getModuleSequence(),
-							new ModuleDescriptor.Key(jobName, ModuleType.job, jobDeploymentsPath.getModuleLabel()),
-							ModuleDeploymentStatus.State.deployed, null));
-				}
-				status = stateCalculator.calculate(job,
-						new DefaultModuleDeploymentPropertiesProvider(job), statusList);
-			}
-			else {
-				status = new DeploymentUnitStatus(DeploymentUnitStatus.State.unknown);
-			}
-
-			logger.info("Deployment status for job '{}': {}", jobName, status);
-
-			String statusPath = Paths.build(Paths.JOB_DEPLOYMENTS, jobName, Paths.STATUS);
-			Stat stat = client.checkExists().forPath(statusPath);
-			if (stat != null) {
-				logger.trace("Found old status path {}; stat: {}", statusPath, stat);
-				client.delete().forPath(statusPath);
-			}
-			client.create().withMode(CreateMode.EPHEMERAL).forPath(statusPath,
-					ZooKeeperUtils.mapToBytes(status.toMap()));
 		}
+	}
+
+	/**
+	 * Write the deployment status of the deployment unit.
+	 *
+	 * @param type    deployment unit type
+	 * @param name    deployment unit name
+	 * @param status  deployment unit status
+	 * @throws Exception
+	 */
+	private void writeDeploymentUnitStatus(DeploymentUnitType type, String name,
+			DeploymentUnitStatus status) throws Exception {
+		CuratorFramework client = zkConnection.getClient();
+		logger.info("Deployment status for {} '{}': {}", type, name, status);
+
+		String statusPath = Paths.build(
+				type == DeploymentUnitType.Stream
+						? Paths.STREAM_DEPLOYMENTS
+						: Paths.JOB_DEPLOYMENTS,
+				name, Paths.STATUS);
+		Stat stat = client.checkExists().forPath(statusPath);
+		if (stat != null) {
+			logger.trace("Found old status path {}; stat: {}", statusPath, stat);
+			client.delete().forPath(statusPath);
+		}
+		client.create().withMode(CreateMode.EPHEMERAL).forPath(statusPath,
+				ZooKeeperUtils.mapToBytes(status.toMap()));
 	}
 
 	@Override
@@ -210,4 +207,5 @@ public class DefaultDeploymentStateRecalculator implements SupervisorElectionLis
 		recalculateStreamStates(supervisorElectedEvent.getStreamDeployments());
 		recalculateJobStates(supervisorElectedEvent.getJobDeployments());
 	}
+
 }

@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
@@ -121,18 +120,15 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 			String moduleType = moduleDeploymentsPath.getModuleType();
 
 			if (ModuleType.job.toString().equals(moduleType)) {
-				Job job = null;
 				try {
-					job = DeploymentLoader.loadJob(client, unitName, jobFactory);
+					final Job job = DeploymentLoader.loadJob(client, unitName, jobFactory);
+					if (job != null) {
+						redeployModule(new ModuleDeployment(job, job.getJobModuleDescriptor(),
+								deploymentProperties), false);
+					}
 				}
 				catch (Exception e) {
-					logger.error(String.format("Exception loading the job %s. The job deployment status could be " +
-							"unknown. Fix the issue mentioned in the exception and restart the admin. " +
-							"The exception is: %s", unitName, ExceptionUtils.getStackTrace(e)));
-				}
-				if (job != null) {
-					redeployModule(new ModuleDeployment(job, job.getJobModuleDescriptor(),
-							deploymentProperties), false);
+					logger.error(String.format("Exception loading job %s", unitName), e);
 				}
 			}
 			else {
@@ -140,18 +136,16 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 				if (stream == null) {
 					try {
 						stream = DeploymentLoader.loadStream(client, unitName, streamFactory);
+						streamMap.put(unitName, stream);
+						if (stream != null) {
+							streamModuleDeployments.add(new ModuleDeployment(stream,
+									stream.getModuleDescriptor(moduleDeploymentsPath.getModuleLabel()),
+									deploymentProperties));
+						}
 					}
 					catch (Exception e) {
-						logger.error(String.format("Exception loading the stream %s. The stream deployment status " +
-								"could be unknown. Fix the issue mentioned in the exception and restart the admin. " +
-								"The exception is: %s", unitName, ExceptionUtils.getStackTrace(e)));
+						logger.error(String.format("Exception loading stream %s.", unitName), e);
 					}
-					streamMap.put(unitName, stream);
-				}
-				if (stream != null) {
-					streamModuleDeployments.add(new ModuleDeployment(stream,
-							stream.getModuleDescriptor(moduleDeploymentsPath.getModuleLabel()),
-							deploymentProperties));
 				}
 			}
 		}

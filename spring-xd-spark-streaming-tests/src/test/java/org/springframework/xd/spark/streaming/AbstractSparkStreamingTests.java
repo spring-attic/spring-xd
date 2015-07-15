@@ -82,7 +82,7 @@ public abstract class AbstractSparkStreamingTests {
 		RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
 		singleNodeApplication = new SingleNodeApplication().run("--transport", this.transport);
 		integrationTestSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
-		integrationTestSupport.addModuleRegistry(new ResourceModuleRegistry("classpath:/spring-xd/xd/modules"));
+		integrationTestSupport.addModuleRegistry(new ResourceModuleRegistry("file:./modules/"));
 		Bootstrap bootstrap = new Bootstrap(new String[] {"--port", randomConfigSupport.getAdminServerPort()});
 		shell = bootstrap.getJLineShellComponent();
 		if (!shell.isRunning()) {

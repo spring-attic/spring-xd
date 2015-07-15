@@ -57,10 +57,12 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
 import org.springframework.xd.module.core.Module;
 
 /**
+ * Listener for deployment requests for a container instance under {@link
+ *         org.springframework.xd.dirt.zookeeper.Paths#DEPLOYMENTS}.
+ *
  * @author Mark Fisher
  * @author David Turanski
- * @author Ilayaperumal Gopinathan Listener for deployment requests for a container instance under {@link
- *         org.springframework.xd.dirt.zookeeper.Paths#DEPLOYMENTS}.
+ * @author Ilayaperumal Gopinathan
  */
 class DeploymentListener implements PathChildrenCacheListener {
 

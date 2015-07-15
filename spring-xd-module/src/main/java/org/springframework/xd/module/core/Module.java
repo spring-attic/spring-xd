@@ -118,9 +118,4 @@ public interface Module extends Lifecycle {
 	 */
 	void destroy();
 
-	/**
-	 * Should the module require messagebus binding.
-	 */
-	boolean shouldBind();
-
 }

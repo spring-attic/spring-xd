@@ -5,6 +5,8 @@ spring:
     show_banner: false
   freemarker:
     checkTemplateLocation: false
+  velocity:
+    checkTemplateLocation: false
   jmx:
     enabled: ${XD_JMX_ENABLED:false}
 # Redis properties

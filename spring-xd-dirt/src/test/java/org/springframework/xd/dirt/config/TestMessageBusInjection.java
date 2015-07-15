@@ -44,8 +44,6 @@ public class TestMessageBusInjection {
 		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) pluginContext.getBeanFactory();
 		registry.removeBeanDefinition(STREAM_PLUGIN_BEAN_ID);
 		registry.registerBeanDefinition(STREAM_PLUGIN_BEAN_ID, beanDefinition);
-		ModuleDeployer moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
-		moduleDeployer.afterPropertiesSet();
 	}
 
 }

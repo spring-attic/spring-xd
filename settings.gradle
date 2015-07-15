@@ -45,12 +45,23 @@ include 'spring-xd-benchmark'
 include 'documentation-toolchain'
 
 ['source', 'processor', 'sink', 'job'].each {kind->
+	// OOTB modules
 	new File(rootDir, "modules/${kind}").eachDir { dir ->
+		// TODO: get rid of the 'scripts' dir, and the if() guard below
 		if (new File(dir, "config/${dir.name}.xml").exists() || new File(dir, "config/${dir.name}.properties").exists()) {
 		    include ":modules.${kind}.${dir.name}"
 		    project(":modules.${kind}.${dir.name}").projectDir = dir
 		}
 	}
+	// Also apply the same building logic to modules used by spark streaming tests
+	def r = new File(rootDir, "spring-xd-spark-streaming-tests/modules/${kind}")
+	if (r.exists()) {
+		r.eachDir { dir ->
+			include ":modules.${kind}.${dir.name}"
+			project(":modules.${kind}.${dir.name}").projectDir = dir
+		}
+	}
+
 }
 
 // For projects living in extensions/ directory:

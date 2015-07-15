@@ -204,21 +204,7 @@ public abstract class SimpleModule extends AbstractModule {
 		}
 		this.application.listeners(new ModuleParentContextCloserApplicationListener(getDescriptor().getIndex()));
 
-		if (this.classLoader != null) {
-
-			final ClassLoader defaultClassLoader = Thread.currentThread().getContextClassLoader();
-
-			try {
-				Thread.currentThread().setContextClassLoader(this.classLoader);
-				this.context = this.application.run();
-			}
-			finally {
-				Thread.currentThread().setContextClassLoader(defaultClassLoader);
-			}
-		}
-		else {
-			this.context = this.application.run();
-		}
+		this.context = this.application.run();
 
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized module: " + this.toString());

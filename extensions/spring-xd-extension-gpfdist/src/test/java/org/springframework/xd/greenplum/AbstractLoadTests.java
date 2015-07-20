@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum;
 
 import java.util.Arrays;
@@ -22,17 +23,15 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.reactivestreams.Processor;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.xd.greenplum.gpfdist.GPFDistServer;
 import org.springframework.xd.greenplum.support.Format;
 import org.springframework.xd.greenplum.support.LoadConfiguration;
-import org.springframework.xd.greenplum.support.LoadConfigurationFactoryBean;
 import org.springframework.xd.greenplum.support.LoadFactoryBean;
-import org.springframework.xd.greenplum.support.Mode;
 import org.springframework.xd.greenplum.support.NetworkUtils;
-import org.springframework.xd.greenplum.support.ReadableTable;
 import org.springframework.xd.greenplum.support.ReadableTableFactoryBean;
 
 import reactor.Environment;
@@ -48,7 +47,9 @@ import reactor.io.buffer.Buffer;
 public abstract class AbstractLoadTests {
 
 	protected AnnotationConfigApplicationContext context;
+
 	protected Processor<Buffer, Buffer> processor;
+
 	private GPFDistServer server;
 
 	static class CommonConfig {
@@ -58,15 +59,6 @@ public abstract class AbstractLoadTests {
 			LoadFactoryBean factory = new LoadFactoryBean();
 			factory.setLoadConfiguration(loadConfiguration);
 			factory.setDataSource(dataSource());
-			return factory;
-		}
-
-		@Bean
-		public LoadConfigurationFactoryBean greenplumLoadConfiguration(ReadableTable externalTable) {
-			LoadConfigurationFactoryBean factory = new LoadConfigurationFactoryBean();
-			factory.setTable("AbstractLoadTests");
-			factory.setExternalTable(externalTable);
-			factory.setMode(Mode.INSERT);
 			return factory;
 		}
 
@@ -105,7 +97,7 @@ public abstract class AbstractLoadTests {
 	public void setup() throws Exception {
 		Environment.initializeIfEmpty().assignErrorJournal();
 		processor = RingBufferProcessor.create(false);
-		server = new GPFDistServer(processor, 8080, 100, 1, 100, 2);
+		server = new GPFDistServer(processor, 8080, 100, 1, 10, 2);
 		server.start();
 		context = new AnnotationConfigApplicationContext();
 	}

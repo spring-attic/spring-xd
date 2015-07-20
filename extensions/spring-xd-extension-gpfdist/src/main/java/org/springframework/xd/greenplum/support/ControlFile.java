@@ -13,19 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.support;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ControlFile {
 
 	private Character gploadInputDelimiter;
+
 	private String gploadOutputTable;
-	private OutputMode gploadOutputMode = OutputMode.INSERT;
+
+	private List<String> gploadOutputMatchColumns;
+
+	private List<String> gploadOutputUpdateColumns;
+
+	private String gploadOutputUpdateCondition;
+
+	private OutputMode gploadOutputMode;
 
 	private String database;
+
 	private String user;
+
 	private String password;
+
 	private String host;
+
 	private Integer port;
+
+	private final List<String> gploadSqlBefore = new ArrayList<String>();
+
+	private final List<String> gploadSqlAfter = new ArrayList<String>();
 
 	public Character getGploadInputDelimiter() {
 		return gploadInputDelimiter;
@@ -41,6 +61,30 @@ public class ControlFile {
 
 	public void setGploadOutputTable(String gploadOutputTable) {
 		this.gploadOutputTable = gploadOutputTable;
+	}
+
+	public List<String> getGploadOutputMatchColumns() {
+		return gploadOutputMatchColumns;
+	}
+
+	public void setGploadOutputMatchColumns(List<String> gploadOutputMatchColumns) {
+		this.gploadOutputMatchColumns = gploadOutputMatchColumns;
+	}
+
+	public List<String> getGploadOutputUpdateColumns() {
+		return gploadOutputUpdateColumns;
+	}
+
+	public void setGploadOutputUpdateColumns(List<String> gploadOutputUpdateColumns) {
+		this.gploadOutputUpdateColumns = gploadOutputUpdateColumns;
+	}
+
+	public String getGploadOutputUpdateCondition() {
+		return gploadOutputUpdateCondition;
+	}
+
+	public void setGploadOutputUpdateCondition(String gploadOutputUpdateCondition) {
+		this.gploadOutputUpdateCondition = gploadOutputUpdateCondition;
 	}
 
 	public OutputMode getGploadOutputMode() {
@@ -91,7 +135,21 @@ public class ControlFile {
 		this.port = port;
 	}
 
+	public List<String> getGploadSqlBefore() {
+		return gploadSqlBefore;
+	}
 
+	public void addGploadSqlBefore(String gploadSqlBefore) {
+		this.gploadSqlBefore.add(gploadSqlBefore);
+	}
+
+	public List<String> getGploadSqlAfter() {
+		return gploadSqlAfter;
+	}
+
+	public void addGploadSqlAfter(String gploadSqlAfter) {
+		this.gploadSqlAfter.add(gploadSqlAfter);
+	}
 
 	public enum OutputMode {
 		INSERT, UPDATE, MERGE

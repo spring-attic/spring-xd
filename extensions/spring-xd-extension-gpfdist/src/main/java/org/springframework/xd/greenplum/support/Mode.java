@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.greenplum.support;
 
 public enum Mode {
 
-	INSERT
+	INSERT, UPDATE
 
 }

@@ -38,12 +38,18 @@ project('spring-xd-extension-gpfdist') {
 		compile "com.codahale.metrics:metrics-core"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "org.springframework:spring-jdbc"
+		compile "org.yaml:snakeyaml"
+		compile "commons-dbcp:commons-dbcp"
 		compile project(":spring-xd-module-spi")
 		testCompile "junit:junit"
+		testCompile "org.postgresql:postgresql:$postgresqlVersion"
 		testCompile "org.springframework:spring-test"
 		testCompile "org.mockito:mockito-core"
 		testCompile "org.hamcrest:hamcrest-library"
 		testRuntime "io.netty:netty-all"
+	}
+	test {
+		exclude '**/*IT*'
 	}
 }
 

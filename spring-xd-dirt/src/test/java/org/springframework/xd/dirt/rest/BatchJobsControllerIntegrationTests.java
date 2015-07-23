@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,6 +246,42 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 								equalTo(execution.getExitStatus().getExitDescription()))).andExpect(
 						jsonPath("$.content[0].exitStatus.exitCode", equalTo(execution.getExitStatus().getExitCode()))).andExpect(
 						jsonPath("$.content[0].exitStatus.running", equalTo(false)));
+	}
+
+	//XD-3266
+	@Test
+	public void testGetPagedBatchJobsWithLimit() throws Exception {
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job1").param("definition", JOB_DEFINITION)
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isCreated());
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job2").param("definition", JOB_DEFINITION)
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isCreated());
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job3").param("definition", JOB_DEFINITION)
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status()
+				.isCreated());
+		mockMvc.perform(
+				get("/jobs/configurations").param("page", "0").param("size", "2")
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(2)))
+				.andExpect(jsonPath("$.page.size", equalTo(2)))
+				.andExpect(jsonPath("$.page.number", equalTo(0)))
+				.andExpect(jsonPath("$.page.totalElements", equalTo(3)))
+				.andExpect(jsonPath("$.page.totalPages", equalTo(2)));
+		mockMvc.perform(
+				get("/jobs/configurations").param("page", "1").param("size", "2")
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(1)))
+				.andExpect(jsonPath("$.page.size", equalTo(2)))
+				.andExpect(jsonPath("$.page.number", equalTo(1)))
+				.andExpect(jsonPath("$.page.totalElements", equalTo(3)))
+				.andExpect(jsonPath("$.page.totalPages", equalTo(2)));
 	}
 
 	@Test

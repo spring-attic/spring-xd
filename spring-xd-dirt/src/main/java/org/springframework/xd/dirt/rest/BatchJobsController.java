@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.xd.rest.domain.DetailedJobInfoResource;
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
  * @author Andrew Eisenberg
+ * @author Gunnar Hillert
  *
  */
 @RestController
@@ -72,7 +73,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 			}
 		}
 		return assembler.toResource(
-				new PageImpl<DetailedJobInfo>(detailedJobs, pageable, detailedJobs.size()),
+				new PageImpl<DetailedJobInfo>(detailedJobs, pageable, deployedJobs.getTotalElements()),
 				jobInfoResourceAssembler);
 	}
 
@@ -80,7 +81,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	 * @param jobName name of the job
 	 * @return ExpandedJobInfo for the given job name
 	 */
-	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET, produces ="application/json")
+	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET, produces = "application/json")
 	@ResponseStatus(HttpStatus.OK)
 	public DetailedJobInfoResource jobinfo(@PathVariable String jobName) {
 		return getJobInfoResource(jobName);
@@ -93,7 +94,7 @@ public class BatchJobsController extends AbstractBatchJobsController {
 	private DetailedJobInfoResource getJobInfoResource(String jobName) {
 		Job deployedJob = xdJobrepository.findOne(jobName);
 		DetailedJobInfo detailedJobInfo = getJobInfo(jobName, (null != deployedJob));
-		return (detailedJobInfo != null) ? jobInfoResourceAssembler.instantiateResource(detailedJobInfo) : null ;
+		return (detailedJobInfo != null) ? jobInfoResourceAssembler.instantiateResource(detailedJobInfo) : null;
 	}
 
 	/**

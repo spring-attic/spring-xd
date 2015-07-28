@@ -47,6 +47,8 @@ class MessageBusConfiguration {
 
 	private static final String KAFKA_AUTOCOMMIT_PROPERTY = "xd.messagebus.kafka.default.autoCommitEnabled";
 
+	private static final String CODEC_KRYO_REFERENCES = "xd.codec.kryo.references";
+
 	/**
 	 * This method called by {@link MessageBusReceiver} and {@link MessageBusSender} to setup
 	 * message bus configuration at the spark module executor process. This configuration
@@ -61,6 +63,7 @@ class MessageBusConfiguration {
 		// Set Rabbit message bus acknowledgement mode to 'MANUAL'
 		properties.setProperty(RABBIT_ACKMODE_PROPERTY, "MANUAL");
 		properties.setProperty(KAFKA_AUTOCOMMIT_PROPERTY, "false");
+		properties.setProperty(CODEC_KRYO_REFERENCES, "true");
 		SpringApplicationBuilder application = new SpringApplicationBuilder()
 				.sources(MessageBusConfiguration.class)
 				// ensure the properties are added at the first precedence level

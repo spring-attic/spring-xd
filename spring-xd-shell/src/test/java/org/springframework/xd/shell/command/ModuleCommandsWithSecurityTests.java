@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,13 +51,9 @@ import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.test.fixtures.FileSink;
 
 /**
- * Test module commands.
+ * Test module commands with enabled security.
  *
- * @author Glenn Renfro
  * @author Gunnar Hillert
- * @author Mark Fisher
- * @author David Turanski
- * @author Eric Bottard
  */
 public class ModuleCommandsWithSecurityTests extends AbstractStreamIntegrationTest {
 
@@ -81,7 +77,7 @@ public class ModuleCommandsWithSecurityTests extends AbstractStreamIntegrationTe
 	@Before
 	public void setTarget() {
 		CommandResult result = getShell().executeCommand(
-				"admin config server --uri http://localhost:" + adminPort + " --username admin2 --password whosThere");
+				"admin config server --uri http://localhost:" + adminPort + " --username admin --password whosThere");
 		assertThat(result.isSuccess(), is(true));
 	}
 

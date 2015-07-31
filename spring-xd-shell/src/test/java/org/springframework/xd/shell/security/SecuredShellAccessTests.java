@@ -58,7 +58,8 @@ public class SecuredShellAccessTests {
 	public static void setUp() throws Exception {
 		RandomConfigurationSupport randomConfigurationSupport = new RandomConfigurationSupport();
 		originalConfigLocation = System.getProperty("spring.config.location");
-		System.setProperty("spring.config.location", "classpath:org/springframework/xd/shell/security/securedServer.yml");
+		System.setProperty("spring.config.location",
+				"classpath:org/springframework/xd/shell/security/securedServer.yml");
 		singleNodeApplication = new SingleNodeApplication().run();
 		adminPort = randomConfigurationSupport.getAdminServerPort();
 	}
@@ -67,7 +68,8 @@ public class SecuredShellAccessTests {
 	public void testShellWithCredentials() throws Exception {
 		Bootstrap bootstrap = new Bootstrap();
 		JLineShellComponent shell = bootstrap.getJLineShellComponent();
-		CommandResult commandResult = shell.executeCommand("admin config server --uri http://localhost:" + adminPort + " --username admin --password whosThere");
+		CommandResult commandResult = shell.executeCommand(
+				"admin config server --uri http://localhost:" + adminPort + " --username admin --password whosThere");
 		assertThat(commandResult.isSuccess(), is(true));
 		commandResult = shell.executeCommand("module list");
 		assertThat(commandResult.isSuccess(), is(true));
@@ -85,7 +87,8 @@ public class SecuredShellAccessTests {
 			JLineShellComponent shell = bootstrap.getJLineShellComponent();
 			assertThat(simulatedInputStream.isReadPerformed(), is(false));
 			assertThat(simulatedInputStream.hasUnreadData(), is(true));
-			CommandResult commandResult = shell.executeCommand("admin config server --uri http://localhost:" + adminPort + " --username admin --password");
+			CommandResult commandResult = shell.executeCommand(
+					"admin config server --uri http://localhost:" + adminPort + " --username admin --password");
 			assertThat(simulatedInputStream.isReadPerformed(), is(true));
 			assertThat(simulatedInputStream.hasUnreadData(), is(false));
 			assertThat(commandResult.isSuccess(), is(true));
@@ -110,13 +113,15 @@ public class SecuredShellAccessTests {
 			JLineShellComponent shell = bootstrap.getJLineShellComponent();
 			assertThat(simulatedInputStream.isReadPerformed(), is(false));
 			assertThat(simulatedInputStream.hasUnreadData(), is(true));
-			CommandResult commandResult = shell.executeCommand("admin config server --uri http://localhost:" + adminPort + " --username admin --password");
+			CommandResult commandResult = shell.executeCommand(
+					"admin config server --uri http://localhost:" + adminPort + " --username admin --password");
 			assertThat(simulatedInputStream.isReadPerformed(), is(true));
 			assertThat(simulatedInputStream.hasUnreadData(), is(false));
 			assertThat(commandResult.isSuccess(), is(true));
 			Configuration configuration = bootstrap.getApplicationContext().getBean(Configuration.class);
 			assertThat(configuration.getTarget().getTargetException(), instanceOf(HttpClientErrorException.class));
-			assertThat(((HttpClientErrorException) configuration.getTarget().getTargetException()).getStatusCode(), equalTo(HttpStatus.UNAUTHORIZED));
+			assertThat(((HttpClientErrorException) configuration.getTarget().getTargetException()).getStatusCode(),
+					equalTo(HttpStatus.UNAUTHORIZED));
 			commandResult = shell.executeCommand("module list");
 			assertThat(commandResult.isSuccess(), is(false));
 		}
@@ -136,13 +141,15 @@ public class SecuredShellAccessTests {
 			JLineShellComponent shell = bootstrap.getJLineShellComponent();
 			assertThat(simulatedInputStream.isReadPerformed(), is(false));
 			assertThat(simulatedInputStream.hasUnreadData(), is(true));
-			CommandResult commandResult = shell.executeCommand("admin config server --uri http://localhost:" + adminPort + " --username admin");
+			CommandResult commandResult = shell.executeCommand(
+					"admin config server --uri http://localhost:" + adminPort + " --username admin");
 			assertThat(simulatedInputStream.isReadPerformed(), is(false)); // without the --password flag, the shell doesn't prompt and doesn't read from input
 			assertThat(simulatedInputStream.hasUnreadData(), is(true));
 			assertThat(commandResult.isSuccess(), is(true));
 			Configuration configuration = bootstrap.getApplicationContext().getBean(Configuration.class);
 			assertThat(configuration.getTarget().getTargetException(), instanceOf(HttpClientErrorException.class));
-			assertThat(((HttpClientErrorException) configuration.getTarget().getTargetException()).getStatusCode(), equalTo(HttpStatus.UNAUTHORIZED));
+			assertThat(((HttpClientErrorException) configuration.getTarget().getTargetException()).getStatusCode(),
+					equalTo(HttpStatus.UNAUTHORIZED));
 			commandResult = shell.executeCommand("module list");
 			assertThat(commandResult.isSuccess(), is(false));
 		}
@@ -156,11 +163,13 @@ public class SecuredShellAccessTests {
 	public void testShellWithWrongCredentials() throws Exception {
 		Bootstrap bootstrap = new Bootstrap();
 		JLineShellComponent shell = bootstrap.getJLineShellComponent();
-		CommandResult commandResult = shell.executeCommand("admin config server --uri http://localhost:" + adminPort + " --username admin --password whosThere2");
+		CommandResult commandResult = shell.executeCommand(
+				"admin config server --uri http://localhost:" + adminPort + " --username admin --password whosThere2");
 		assertThat(commandResult.isSuccess(), is(true));
 		Configuration configuration = bootstrap.getApplicationContext().getBean(Configuration.class);
 		assertThat(configuration.getTarget().getTargetException(), instanceOf(HttpClientErrorException.class));
-		assertThat(((HttpClientErrorException) configuration.getTarget().getTargetException()).getStatusCode(), equalTo(HttpStatus.UNAUTHORIZED));
+		assertThat(((HttpClientErrorException) configuration.getTarget().getTargetException()).getStatusCode(),
+				equalTo(HttpStatus.UNAUTHORIZED));
 		commandResult = shell.executeCommand("module list");
 		assertThat(commandResult.isSuccess(), is(false));
 	}
@@ -169,9 +178,11 @@ public class SecuredShellAccessTests {
 	public void testShellWithMissingUsername() throws Exception {
 		Bootstrap bootstrap = new Bootstrap();
 		JLineShellComponent shell = bootstrap.getJLineShellComponent();
-		CommandResult commandResult = shell.executeCommand("admin config server --uri http://localhost:" + adminPort + " --password whosThere");
+		CommandResult commandResult = shell.executeCommand(
+				"admin config server --uri http://localhost:" + adminPort + " --password whosThere");
 		assertThat(commandResult.isSuccess(), is(true));
-		assertThat(commandResult.getResult(), equalTo((Object)"A password may be specified only together with a username"));
+		assertThat(commandResult.getResult(),
+				equalTo((Object) "A password may be specified only together with a username"));
 		commandResult = shell.executeCommand("module list");
 		assertThat(commandResult.isSuccess(), is(false));
 	}
@@ -181,7 +192,8 @@ public class SecuredShellAccessTests {
 		singleNodeApplication.close();
 		if (originalConfigLocation == null) {
 			System.clearProperty("spring.config.location");
-		} else {
+		}
+		else {
 			System.setProperty("spring.config.location", originalConfigLocation);
 		}
 	}

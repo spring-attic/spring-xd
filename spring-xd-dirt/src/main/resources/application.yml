@@ -229,6 +229,7 @@ xd:
         - GET    /modules                        => hasRole('ROLE_VIEW')
         - GET    /modules.*                      => hasRole('ROLE_VIEW')
         - POST   /modules                        => hasRole('ROLE_CREATE')
+        - POST   /modules/*/*                    => hasRole('ROLE_CREATE')
         - POST   /modules.*                      => hasRole('ROLE_CREATE')
         - GET    /modules/*/*                    => hasRole('ROLE_VIEW')
         - DELETE /modules/*/*                    => hasRole('ROLE_CREATE')

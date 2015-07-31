@@ -25,13 +25,13 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.shell.Bootstrap;
@@ -60,6 +60,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
+ * @author Gunnar Hillert
  */
 public abstract class AbstractShellIntegrationTest {
 
@@ -74,7 +75,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected static SingleNodeApplication application;
 
-	private static JLineShellComponent shell;
+	protected static JLineShellComponent shell;
 
 	private Set<File> toBeDeleted = new HashSet<File>();
 
@@ -92,6 +93,10 @@ public abstract class AbstractShellIntegrationTest {
 
 	@BeforeClass
 	public static synchronized void startUp() throws InterruptedException, IOException {
+		doStartUp();
+	}
+
+	protected static void doStartUp() throws InterruptedException, IOException {
 		RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
 		if (application == null) {
 			application = new SingleNodeApplication().run("--transport", "local", "--analytics", "redis");

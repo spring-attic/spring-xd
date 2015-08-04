@@ -69,6 +69,7 @@
 		<property name="outputChannel" ref="output"/>
 		<property name="keyDecoder" ref="stringDecoder"/>
 		<property name="payloadDecoder" ref="stringDecoder"/>
+		<property name="autoStartup" value="false"/>
 	</bean>
 
 

@@ -19,6 +19,7 @@
 				</bean>
 				<bean class="org.springframework.xd.dirt.module.CustomModuleRegistryFactoryBean">
 					<constructor-arg value="${xd.customModule.home}" />
+					<property name="requiresHashFiles" value="${xd.customModule.requiresHashFiles}"/>
 				</bean>
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
 					<constructor-arg value="classpath:/modules/" />

@@ -35,6 +35,7 @@ import org.springframework.core.env.Environment;
  *
  * @since 1.2
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class CustomModuleRegistryFactoryBean implements FactoryBean<WritableModuleRegistry>, EnvironmentAware, InitializingBean{
 
@@ -47,6 +48,8 @@ public class CustomModuleRegistryFactoryBean implements FactoryBean<WritableModu
 	private final String root;
 
 	private ConfigurableEnvironment environment;
+
+	private boolean requiresHashFiles;
 
 
 	public CustomModuleRegistryFactoryBean(String root) {
@@ -78,6 +81,7 @@ public class CustomModuleRegistryFactoryBean implements FactoryBean<WritableModu
 		Matcher matcher = NO_SYNCHRONIZATION_PATTERN.matcher(root);
 		if (matcher.matches()) {
 			registry = new WritableResourceModuleRegistry(root);
+			((WritableResourceModuleRegistry)registry).setRequireHashFiles(requiresHashFiles);
 			((WritableResourceModuleRegistry)registry).afterPropertiesSet();
 			logger.info("Custom modules will be written directly to {}", root);
 		}
@@ -93,5 +97,9 @@ public class CustomModuleRegistryFactoryBean implements FactoryBean<WritableModu
 			registry = new SynchronizingModuleRegistry(remote, local);
 			logger.info("Custom modules will be written at {} and kept in synch locally at {}", root, localRoot);
 		}
+	}
+
+	public void setRequiresHashFiles(boolean requiresHashFiles) {
+		this.requiresHashFiles = requiresHashFiles;
 	}
 }

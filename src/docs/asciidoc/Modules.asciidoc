@@ -322,6 +322,8 @@ Spring XD provides a strategy interface http://docs.spring.io/spring-xd/docs/cur
 ==== Custom Module Registry
 
 Custom modules are located separately from out-of-the-box modules. The location is given by `xd.customModule.home` in servers.yml. The location defaults to `${xd.home}/custom-modules` but we strongly recommend setting this to an external location on a network file system or using the xref:Modules#replicating-module-registry[replicating registry] if you are using custom modules in production. There are two reasons for doing this. First, custom modules must be accessible to all nodes on the Spring XD cluster, including the XD Admin node. This allows any container instance to deploy the module. Second, if custom modules are registered within the Spring XD installation, they will not survive an upgrade to the Spring XD distribution and will need to be reinstalled.
+By default Spring XD expects MD5 hash files to be present next to the custom module jar. This is done to ensure the module upload has completed successfully before the module is used. Hash files are created automatically when installing modules vie the `module upload` command. If you wish to disable this requirement,
+set `xd.customModule.requiresHashFiles` to `false` in servers.yml. This will allow you to manually copy module jars to a file based custom module registry or reuse an existing custom module registry that may not include hash files. This setting does not apply to hdfs registries.
 
 [NOTE]
 ====

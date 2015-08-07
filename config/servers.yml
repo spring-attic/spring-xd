@@ -352,12 +352,15 @@ endpoints:
 #      basepackages: com.acme.xd.extensions
 #      locations: META-INF/spring-xd/ext
 ---
-#Custom module registry location
-#Any custom modules built can be placed into this configured location
+#Custom module registry settings
+#Any custom modules built can be placed into this configured home
 #The location must be set to a valid resource URL (file://, classpath:/ etc.,)
+#The 'requiresHashFiles` property is true by default. This may be set to `false` to allow manually copying module jars
+# or when using an existing custom module registry that does not contain .md5 files.
 #xd:
 #  customModule:
 #    home: file://mymodulehome
+#    requiresHashFiles: true
 
 ---
 # Pretty print JSON output

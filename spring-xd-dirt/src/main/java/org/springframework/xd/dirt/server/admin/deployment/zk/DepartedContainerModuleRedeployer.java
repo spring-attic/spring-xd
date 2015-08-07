@@ -52,12 +52,12 @@ import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
+public class DepartedContainerModuleRedeployer extends ModuleRedeployer {
 
 	/**
 	 * Logger.
 	 */
-	protected final Logger logger = LoggerFactory.getLogger(DepartingContainerModuleRedeployer.class);
+	protected final Logger logger = LoggerFactory.getLogger(DepartedContainerModuleRedeployer.class);
 
 	/**
 	 * Constructs {@code DepartingContainerModuleRedeployer}
@@ -71,7 +71,7 @@ public class DepartingContainerModuleRedeployer extends ModuleRedeployer {
 	 * @param moduleDeploymentWriter utility that writes deployment requests to zk path
 	 * @param stateCalculator calculator for stream/job state
 	 */
-	public DepartingContainerModuleRedeployer(ZooKeeperConnection zkConnection,
+	public DepartedContainerModuleRedeployer(ZooKeeperConnection zkConnection,
 			ContainerRepository containerRepository,
 			StreamFactory streamFactory, JobFactory jobFactory,
 			PathChildrenCache moduleDeploymentRequests, ContainerMatcher containerMatcher,

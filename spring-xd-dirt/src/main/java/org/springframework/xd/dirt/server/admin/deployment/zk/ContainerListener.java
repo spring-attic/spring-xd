@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.server.admin.deployment.zk;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,6 +30,7 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +46,10 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 
 /**
  * Listener implementation that is invoked when containers are added/removed/modified.
+ * In addition to reacting to container arrivals and departures, this listener can
+ * be scheduled to detect departed containers on a regular basis via
+ * {@link #scheduleDepartedContainerDeployer()}. This ensures that departed containers are
+ * handled in case a container departing event is missed.
  *
  * @author Patrick Peralta
  * @author Mark Fisher
@@ -55,6 +63,11 @@ public class ContainerListener implements PathChildrenCacheListener {
 	private final Logger logger = LoggerFactory.getLogger(ContainerListener.class);
 
 	/**
+	 * ZooKeeper connection.
+	 */
+	private final ZooKeeperConnection zkConnection;
+
+	/**
 	 * The {@link ModuleRedeployer} that deploys unallocated stream/job modules
 	 * upon new container arrival.
 	 */
@@ -62,14 +75,19 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 	/**
 	 * The {@link ModuleRedeployer} that re-deploys the stream/job modules
-	 * that were deployed at the departing container.
+	 * that were deployed at the departed container.
 	 */
-	private final ModuleRedeployer departingContainerModuleRedeployer;
+	private final ModuleRedeployer departedContainerModuleRedeployer;
 
 	/**
 	 * Runnable that deploys modules to new containers.
 	 */
 	private final ArrivingContainerDeployer arrivingContainerDeployer = new ArrivingContainerDeployer();
+
+	/**
+	 * Runnable that handles departed containers.
+	 */
+	private final DepartedContainerDeployer departedContainerDeployer = new DepartedContainerDeployer();
 
 	/**
 	 * The amount of time that must elapse after the newest container arrives
@@ -108,14 +126,24 @@ public class ContainerListener implements PathChildrenCacheListener {
 			PathChildrenCache moduleDeploymentRequests, ContainerMatcher containerMatcher,
 			ModuleDeploymentWriter moduleDeploymentWriter, DeploymentUnitStateCalculator stateCalculator,
 			ScheduledExecutorService executorService, AtomicLong quietPeriod) {
+		this.zkConnection = zkConnection;
 		this.containerMatchingModuleRedeployer = new ContainerMatchingModuleRedeployer(zkConnection,
 				containerRepository, streamFactory, jobFactory, streamDeployments, jobDeployments,
 				moduleDeploymentRequests, containerMatcher, moduleDeploymentWriter, stateCalculator);
-		this.departingContainerModuleRedeployer = new DepartingContainerModuleRedeployer(zkConnection,
+		this.departedContainerModuleRedeployer = new DepartedContainerModuleRedeployer(zkConnection,
 				containerRepository, streamFactory, jobFactory, moduleDeploymentRequests, containerMatcher,
 				moduleDeploymentWriter, stateCalculator);
 		this.quietPeriod = quietPeriod;
 		this.executorService = executorService;
+	}
+
+	/**
+	 * Schedules execution of {@link DepartedContainerDeployer} on a regular basis.
+	 * This ensures that departed containers are properly handled in case a container
+	 * departs without raising an event.
+	 */
+	public void scheduleDepartedContainerDeployer() {
+		departedContainerDeployer.scheduleOngoing();
 	}
 
 	/**
@@ -137,7 +165,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 			case CHILD_REMOVED:
 				container = getContainer(event.getData());
 				logger.info("Container departed: {}", container);
-				this.departingContainerModuleRedeployer.deployModules(container);
+				departedContainerDeployer.scheduleImmediately();
 				break;
 			case CONNECTION_SUSPENDED:
 				break;
@@ -202,7 +230,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 				long delay = Math.max(0, quietPeriod.get() -
 						(System.currentTimeMillis() - latestContainer.get().timestamp));
 				logger.info("Scheduling deployments to new container(s) in {} ms ", delay);
-				executorService.schedule(arrivingContainerDeployer, delay, TimeUnit.MILLISECONDS);
+				executorService.schedule(this, delay, TimeUnit.MILLISECONDS);
 			}
 			else {
 				logger.trace("Container deployment already scheduled");
@@ -237,6 +265,54 @@ public class ContainerListener implements PathChildrenCacheListener {
 			}
 			else {
 				logger.trace("Arrived container already processed");
+			}
+		}
+	}
+
+
+	/**
+	 * Runnable that handles departed containers. Modules that were
+	 * previously deployed on departed containers are re-deployed,
+	 * and any paths associated with departed containers are cleaned up.
+	 */
+	private class DepartedContainerDeployer implements Runnable {
+
+		/**
+		 * Schedule execution of this runnable on a regular basis.
+		 */
+		public void scheduleOngoing() {
+			executorService.scheduleWithFixedDelay(this, 0, 5, TimeUnit.SECONDS);
+		}
+
+		/**
+		 * Schedule immediate execution of this runnable.
+		 */
+		public void scheduleImmediately() {
+			executorService.schedule(this, 0, TimeUnit.MILLISECONDS);
+		}
+
+		@Override
+		public void run() {
+			try {
+				CuratorFramework client = zkConnection.getClient();
+				Set<String> containerDeployments = new HashSet<String>();
+
+				try {
+					containerDeployments.addAll(client.getChildren().forPath(
+							Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED)));
+					containerDeployments.removeAll(client.getChildren().forPath(Paths.build(Paths.CONTAINERS)));
+				}
+				catch (KeeperException.NoNodeException e) {
+					// ignore
+				}
+
+				for (String containerName : containerDeployments) {
+					Container container = new Container(containerName, Collections.<String, String>emptyMap());
+					departedContainerModuleRedeployer.deployModules(container);
+				}
+			}
+			catch (Exception e) {
+				logger.error("Exception while handling departed containers", e);
 			}
 		}
 	}

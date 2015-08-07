@@ -17,9 +17,7 @@
 package org.springframework.xd.dirt.server.admin.deployment.zk;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
@@ -31,7 +29,6 @@ import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.utils.ThreadUtils;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
@@ -489,9 +486,10 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 				containers.getListenable().addListener(containerListener);
 				containers.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
-				cleanupDeployments(client);
-				deploymentQueueForConsumer = new DeploymentQueue(client, deploymentMessageConsumer, Paths.DEPLOYMENT_QUEUE,
-						executorService);
+				containerListener.scheduleDepartedContainerDeployer();
+
+				deploymentQueueForConsumer = new DeploymentQueue(client, deploymentMessageConsumer,
+						Paths.DEPLOYMENT_QUEUE, executorService);
 				deploymentQueueForConsumer.start();
 
 				Thread.sleep(Long.MAX_VALUE);
@@ -526,35 +524,6 @@ public class DeploymentSupervisor implements ApplicationListener<ApplicationEven
 			}
 		}
 
-		/**
-		 * Remove module deployments targeted to containers that are no longer running.
-		 *
-		 * @param client the {@link CuratorFramework} client
-		 *
-		 * @throws Exception
-		 */
-		private void cleanupDeployments(CuratorFramework client) throws Exception {
-			Set<String> containerDeployments = new HashSet<String>();
-
-			try {
-				containerDeployments.addAll(client.getChildren().forPath(
-						Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED)));
-				containerDeployments.removeAll(client.getChildren().forPath(Paths.build(Paths.CONTAINERS)));
-			}
-			catch (KeeperException.NoNodeException e) {
-				// ignore
-			}
-
-			for (String oldContainer : containerDeployments) {
-				try {
-					client.delete().deletingChildrenIfNeeded().forPath(
-							Paths.build(Paths.MODULE_DEPLOYMENTS, Paths.ALLOCATED, oldContainer));
-				}
-				catch (KeeperException.NoNodeException e) {
-					// ignore
-				}
-			}
-		}
 	}
 
 }

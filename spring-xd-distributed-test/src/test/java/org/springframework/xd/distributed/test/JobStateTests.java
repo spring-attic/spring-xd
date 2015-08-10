@@ -17,7 +17,7 @@
 package org.springframework.xd.distributed.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.springframework.test.util.MatcherAssertionErrors.assertThat;
+import static org.junit.Assert.assertThat;
 
 import java.io.BufferedReader;
 import java.io.File;

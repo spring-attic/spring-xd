@@ -20,8 +20,6 @@ import java.io.IOException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
 
 import org.springframework.xd.shell.command.AbstractJobCommandsTests;
 import org.springframework.xd.shell.command.JobCommands;
@@ -31,7 +29,6 @@ import org.springframework.xd.shell.command.JobCommands;
  *
  * @author Gunnar Hillert
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JobCommandsTests extends AbstractJobCommandsTests {
 
 	@BeforeClass

@@ -20,12 +20,7 @@ import java.io.IOException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
 
-import org.springframework.data.hadoop.test.context.HadoopDelegatingSmartContextLoader;
-import org.springframework.data.hadoop.test.context.MiniHadoopCluster;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.shell.command.AbstractJobCommandsWithHadoopTests;
 
 
@@ -33,9 +28,6 @@ import org.springframework.xd.shell.command.AbstractJobCommandsWithHadoopTests;
  *
  * @author Gunnar Hillert
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(loader = HadoopDelegatingSmartContextLoader.class, classes = AbstractJobCommandsWithHadoopTests.EmptyConfig.class)
-@MiniHadoopCluster
 public class JobCommandsWithHadoopTests extends AbstractJobCommandsWithHadoopTests {
 
 	@BeforeClass

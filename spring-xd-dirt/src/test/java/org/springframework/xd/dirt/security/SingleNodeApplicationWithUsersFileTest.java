@@ -21,6 +21,7 @@ package org.springframework.xd.dirt.security;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.xd.dirt.security.SecurityTestUtils.basicAuthorizationHeader;
@@ -149,6 +150,12 @@ public class SingleNodeApplicationWithUsersFileTest {
 
 			{ HttpMethod.POST, HttpStatus.FORBIDDEN, "/jobs/executions", viewOnlyUser,
 				ImmutableMap.of("jobname", "abcdef") },
+			{ HttpMethod.PUT, HttpStatus.FORBIDDEN, "/jobs/executions", viewOnlyUser,
+				ImmutableMap.of("stop", "true") },
+			{ HttpMethod.PUT, HttpStatus.FORBIDDEN, "/jobs/executions", adminOnlyUser,
+				ImmutableMap.of("stop", "true") },
+			{ HttpMethod.PUT, HttpStatus.OK, "/jobs/executions", createOnlyUser,
+				ImmutableMap.of("stop", "true") },
 			{ HttpMethod.POST, HttpStatus.CREATED, "/jobs/executions", createOnlyUser,
 				ImmutableMap.of("jobname", "abcdef") },
 
@@ -277,6 +284,9 @@ public class SingleNodeApplicationWithUsersFileTest {
 				break;
 			case POST:
 				rb = post(url);
+				break;
+			case PUT:
+				rb = put(url);
 				break;
 			case DELETE:
 				rb = delete(url);

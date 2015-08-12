@@ -28,13 +28,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Function;
 import org.junit.Test;
 
 import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
+
+import com.google.common.base.Function;
 
 /**
  * Tests for ModuleList.

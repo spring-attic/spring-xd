@@ -25,7 +25,7 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.xd.shell.command.JobCommandsTests.JobParametersHolder;
+import org.springframework.xd.shell.command.AbstractJobCommandsTests.JobParametersHolder;
 
 public class SpringBatchWithParametersTasklet implements Tasklet {
 

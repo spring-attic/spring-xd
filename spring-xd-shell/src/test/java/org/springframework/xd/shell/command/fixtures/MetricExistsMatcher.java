@@ -20,7 +20,6 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.test.fixtures.AbstractMetricSink;

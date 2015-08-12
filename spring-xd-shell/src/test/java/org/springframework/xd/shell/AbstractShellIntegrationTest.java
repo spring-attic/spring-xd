@@ -16,7 +16,9 @@
 
 package org.springframework.xd.shell;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -25,8 +27,6 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -91,12 +91,7 @@ public abstract class AbstractShellIntegrationTest {
 	@Rule
 	public TestName name = new TestName();
 
-	@BeforeClass
-	public static synchronized void startUp() throws InterruptedException, IOException {
-		doStartUp();
-	}
-
-	protected static void doStartUp() throws InterruptedException, IOException {
+	public static synchronized void doStartUp() throws InterruptedException, IOException {
 		RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
 		if (application == null) {
 			application = new SingleNodeApplication().run("--transport", "local", "--analytics", "redis");
@@ -109,12 +104,10 @@ public abstract class AbstractShellIntegrationTest {
 		}
 		if (!shell.isRunning()) {
 			shell.start();
-
 		}
 	}
 
-	@AfterClass
-	public static void shutdown() {
+	public static void doShutdown() {
 		if (SHUTDOWN_AFTER_RUN) {
 			logger.info("Stopping XD Shell");
 			shell.stop();
@@ -122,8 +115,25 @@ public abstract class AbstractShellIntegrationTest {
 				logger.info("Stopping Single Node Server");
 				application.close();
 				redisAvailableRule.getResource().destroy();
+				application = null;
 			}
+			System.clearProperty("security.basic.enabled");
+			System.clearProperty("security.user.name");
+			System.clearProperty("security.user.password");
+			System.clearProperty("security.user.role");
 		}
+	}
+
+	public static void startupWithSecurityAndFullPermissions() throws InterruptedException, IOException {
+		System.setProperty("security.basic.enabled", "true");
+		System.setProperty("security.user.name", "admin");
+		System.setProperty("security.user.password", "whosThere");
+		System.setProperty("security.user.role", "ADMIN, VIEW, CREATE");
+
+		doStartUp();
+
+		setTargetWithSecurity(shell, adminPort);
+
 	}
 
 	public static JLineShellComponent getShell() {
@@ -192,6 +202,12 @@ public abstract class AbstractShellIntegrationTest {
 		CommandResult cr = getShell().executeCommand(command);
 		assertFalse("Expected command to fail.  CommandResult = " + cr.toString(), cr.isSuccess());
 		return cr;
+	}
+
+	public static void setTargetWithSecurity(JLineShellComponent shell, int adminPort) {
+		CommandResult result = shell.executeCommand(
+				"admin config server --uri http://localhost:" + adminPort + " --username admin --password whosThere");
+		assertThat(result.isSuccess(), is(true));
 	}
 
 }

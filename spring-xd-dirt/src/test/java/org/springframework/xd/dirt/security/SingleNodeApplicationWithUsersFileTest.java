@@ -97,6 +97,40 @@ public class SingleNodeApplicationWithUsersFileTest {
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions.json", createOnlyUser, null },
 
+			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions", adminOnlyUser, null },
+			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions.xml", adminOnlyUser, null },
+			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions.json", adminOnlyUser, null },
+
+			{ HttpMethod.GET, HttpStatus.OK, "/streams/definitions", viewOnlyUser, null },
+			{ HttpMethod.GET, HttpStatus.OK, "/streams/definitions.xml", viewOnlyUser, null },
+			{ HttpMethod.GET, HttpStatus.OK, "/streams/definitions.json", viewOnlyUser, null },
+			{ HttpMethod.GET, HttpStatus.OK, "/streams/definitions.json", viewOnlyUser,
+				ImmutableMap.of("page", "0", "size", "10") },
+
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions", viewOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions.xml", viewOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions.json", viewOnlyUser, null },
+
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions", adminOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions.xml", adminOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions.json", adminOnlyUser, null },
+
+			{ HttpMethod.DELETE, HttpStatus.OK, "/streams/definitions", createOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.OK, "/streams/definitions.xml", createOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.OK, "/streams/definitions.json", createOnlyUser, null },
+
+			{ HttpMethod.POST, HttpStatus.FORBIDDEN, "/streams/deployments/abcd", viewOnlyUser, null },
+			{ HttpMethod.POST, HttpStatus.FORBIDDEN, "/streams/deployments/abcd", adminOnlyUser, null },
+			{ HttpMethod.POST, HttpStatus.NOT_FOUND, "/streams/deployments/abcd", createOnlyUser, null },
+
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/deployments/abcd", viewOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/deployments/abcd", adminOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.NOT_FOUND, "/streams/deployments/abcd", createOnlyUser, null },
+
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions/abcd", viewOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions/abcd", adminOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.NOT_FOUND, "/streams/definitions/abcd", createOnlyUser, null },
+
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/definitions", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/definitions.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/definitions.json", createOnlyUser, null },
@@ -134,6 +168,19 @@ public class SingleNodeApplicationWithUsersFileTest {
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions.json", createOnlyUser, null },
+
+			{ HttpMethod.GET, HttpStatus.UNAUTHORIZED, "/jobs/executions/333/steps/123/progress", null, null },
+			{ HttpMethod.GET, HttpStatus.NOT_FOUND, "/jobs/executions/333/steps/123/progress", viewOnlyUser, null },
+			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions/333/steps/123/progress", adminOnlyUser, null },
+			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions/333/steps/123/progress", createOnlyUser, null },
+
+			{ HttpMethod.GET, HttpStatus.UNAUTHORIZED, "/jobs/executions/333/steps/123/progress.json", null, null },
+			{ HttpMethod.GET, HttpStatus.NOT_FOUND, "/jobs/executions/333/steps/123/progress.json", viewOnlyUser,
+				null },
+			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions/333/steps/123/progress.json", adminOnlyUser,
+				null },
+			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions/333/steps/123/progress.json", createOnlyUser,
+				null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/instances", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/instances.xml", createOnlyUser, null },
@@ -281,7 +328,8 @@ public class SingleNodeApplicationWithUsersFileTest {
 			throw new AssertionError(
 					String.format("Assertion failed for parameters - httpMethod: %s, "
 							+ "URL: %s, URL parameters: %s, user credentials: %s",
-							this.httpMethod, this.url, this.urlParameters, this.userCredentials), e);
+							this.httpMethod, this.url, this.urlParameters, this.userCredentials),
+					e);
 		}
 	}
 }

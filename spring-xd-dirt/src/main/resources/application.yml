@@ -222,7 +222,8 @@ xd:
         - PUT    /jobs/executions/*?stop=true    => hasRole('ROLE_CREATE')
         - GET    /jobs/executions/*/steps        => hasRole('ROLE_VIEW')
         - GET    /jobs/executions/*/steps/*      => hasRole('ROLE_VIEW')
-        - GET    /jobs/executions/*/steps/*/progress => hasRole('ROLE_VIEW')
+        - GET    /jobs/executions/*/steps/*/progress      => hasRole('ROLE_VIEW')
+        - GET    /jobs/executions/*/steps/*/progress.json => hasRole('ROLE_VIEW')
         # Batch Job Instances
         - GET    /jobs/instances*                => hasRole('ROLE_VIEW')
         - GET    /jobs/instances/*               => hasRole('ROLE_VIEW')

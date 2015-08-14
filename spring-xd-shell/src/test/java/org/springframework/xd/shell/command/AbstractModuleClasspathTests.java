@@ -36,7 +36,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  * @author David Turanski
  */
 public class AbstractModuleClasspathTests extends AbstractStreamIntegrationTest {
-	//todo:What is the purpose of this test?
+
 	@Test
 	public void testModuleWithClasspathAfterServerStarted() throws Exception {
 		FileSink fileSink = newFileSink();
@@ -55,7 +55,7 @@ public class AbstractModuleClasspathTests extends AbstractStreamIntegrationTest 
 	public void testJavaConfigModule() {
 		FileSink fileSink = newFileSink();
 		stream().create(generateStreamName(), "time | siDslModule --prefix=foo --suffix=bar| %s", fileSink);
-		assertThat(fileSink, eventually(allOf(hasContentsThat(containsString("foo")), hasContentsThat(containsString
-				("bar")))));
+		assertThat(fileSink,
+				eventually(allOf(hasContentsThat(containsString("foo")), hasContentsThat(containsString("bar")))));
 	}
 }

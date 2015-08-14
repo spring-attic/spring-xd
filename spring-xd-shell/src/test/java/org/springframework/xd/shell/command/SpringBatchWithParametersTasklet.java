@@ -25,11 +25,7 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
-<<<<<<< HEAD
-import org.springframework.xd.shell.command.JobCommandTests.JobParametersHolder;
-=======
 import org.springframework.xd.shell.command.AbstractJobCommandsTests.JobParametersHolder;
->>>>>>> 28a9962... XD-3347 Run all shell integration tests also with enabled security
 
 public class SpringBatchWithParametersTasklet implements Tasklet {
 

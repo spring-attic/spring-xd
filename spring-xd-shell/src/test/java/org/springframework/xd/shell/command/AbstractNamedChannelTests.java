@@ -36,11 +36,7 @@ import org.springframework.xd.test.fixtures.CounterSink;
  */
 public class AbstractNamedChannelTests extends AbstractStreamIntegrationTest {
 
-<<<<<<< HEAD:spring-xd-shell/src/test/java/org/springframework/xd/shell/command/NamedChannelTests.java
-	private static final Logger logger = LoggerFactory.getLogger(StreamCommandTests.class);
-=======
 	private static final Logger logger = LoggerFactory.getLogger(AbstractStreamCommandsTests.class);
->>>>>>> 28a9962... XD-3347 Run all shell integration tests also with enabled security:spring-xd-shell/src/test/java/org/springframework/xd/shell/command/AbstractNamedChannelTests.java
 
 	@Test
 	public void testCreateNamedChannelAsSink() {

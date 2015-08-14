@@ -35,11 +35,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  */
 public class AbstractSpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrationTest {
 
-<<<<<<< HEAD:spring-xd-shell/src/test/java/org/springframework/xd/shell/command/SpelPropertyAccessorIntegrationTests.java
-	private static final Logger logger = LoggerFactory.getLogger(StreamCommandTests.class);
-=======
 	private static final Logger logger = LoggerFactory.getLogger(AbstractStreamCommandsTests.class);
->>>>>>> 28a9962... XD-3347 Run all shell integration tests also with enabled security:spring-xd-shell/src/test/java/org/springframework/xd/shell/command/AbstractSpelPropertyAccessorIntegrationTests.java
 
 	/**
 	 * This test focuses on tuple access. Note that it explicitly creates a tuple out of Json, which is no longer

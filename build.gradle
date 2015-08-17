@@ -872,6 +872,7 @@ project('spring-xd-module') {
 		compile "org.codehaus.groovy:groovy-all"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "org.springframework.boot:spring-boot-autoconfigure"
+		compile "org.springframework.boot:spring-boot-configuration-metadata"
 		compile "org.springframework.boot:spring-boot-loader"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "org.slf4j:slf4j-api"

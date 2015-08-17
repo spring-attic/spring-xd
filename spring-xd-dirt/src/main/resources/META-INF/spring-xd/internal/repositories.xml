@@ -40,6 +40,7 @@ explicitly set as a module option.
 						<bean class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver">
 							<property name="compositeResolver" ref="moduleOptionsMetadataResolver" />
 						</bean>
+						<bean class="org.springframework.xd.module.options.BootModuleOptionsMetadataResolver" />
 						<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPluginMetadataResolver" />
 						<bean class="org.springframework.xd.dirt.plugins.job.JobPluginMetadataResolver" />
 					</list>

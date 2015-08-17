@@ -16,12 +16,19 @@
 
 package org.springframework.xd.dirt.server;
 
+
+import javax.annotation.PostConstruct;
+
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.AuditAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.HealthIndicatorAutoConfiguration;
 import org.springframework.boot.actuate.health.ApplicationHealthIndicator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
@@ -31,6 +38,9 @@ import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfigurat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
@@ -61,6 +71,27 @@ public class ParentConfiguration {
 	@ConditionalOnExpression("${endpoints.health.enabled:true}")
 	public ApplicationHealthIndicator healthIndicator() {
 		return new ApplicationHealthIndicator();
+	}
+
+	/**
+	 * Create a dedicated thread pool for "framework" tasks.
+	 */
+	@Bean
+	@Qualifier("framework")
+	public TaskScheduler frameworkTaskScheduler() {
+		return new ThreadPoolTaskScheduler();
+	}
+
+	@Autowired
+	private ScheduledAnnotationBeanPostProcessor postProcessor;
+
+	@Autowired
+	@Qualifier("framework")
+	private TaskScheduler frameworkTaskScheduler;
+
+	@PostConstruct
+	public void forceScheduledTaskExecutor() {
+		postProcessor.setScheduler(frameworkTaskScheduler);
 	}
 
 }

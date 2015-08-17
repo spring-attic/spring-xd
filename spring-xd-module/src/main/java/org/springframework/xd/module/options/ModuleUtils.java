@@ -15,6 +15,7 @@
 
 package org.springframework.xd.module.options;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -95,6 +96,21 @@ public class ModuleUtils {
 	 */
 	public static ClassLoader createModuleDiscoveryClassLoader(Resource moduleLocation, ClassLoader parent) {
 		return createModuleClassLoader(moduleLocation, parent, DEFAULT_EXTRA_LIBS);
+	}
+
+	/**
+	 * Close the given classloader if it is actually {@link Closeable}. Does nothing otherwise.
+	 */
+	public static void closeClassLoader(ClassLoader classLoader) {
+		if (classLoader instanceof Closeable) {
+			Closeable loader = (Closeable) classLoader;
+			try {
+				loader.close();
+			}
+			catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 

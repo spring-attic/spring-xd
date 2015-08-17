@@ -16,7 +16,10 @@
 
 package org.springframework.xd.dirt.server.container;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.AuditAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
@@ -28,6 +31,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.SourceFilteringListener;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
 import org.springframework.xd.dirt.cluster.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.job.JobFactory;
@@ -130,5 +135,19 @@ public class ContainerConfiguration {
 			zooKeeperConnection.start();
 		}
 	}
+
+
+	@Autowired
+	private ScheduledAnnotationBeanPostProcessor postProcessor;
+
+	@Autowired
+	@Qualifier("framework")
+	private TaskScheduler frameworkTaskScheduler;
+
+	@PostConstruct
+	public void forceScheduledTaskExecutor() {
+		postProcessor.setScheduler(frameworkTaskScheduler);
+	}
+
 
 }

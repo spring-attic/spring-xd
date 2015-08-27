@@ -333,6 +333,17 @@ In cases where you want to start e.g. a single-node runtime with a custom module
 `XD_CUSTOMMODULE_HOME=file\:/path/to/custom-modules bin/xd-singlenode`
 ====
 
+If you manually deploy your custom modules to `XD_CUSTOMMODULE_HOME`, since Spring XD (1.2.x or later), you will need to calculate *md5* `md5 -q mymodule.jar > mymodule.jar.md5` and put it together with your module. Otherwise the module will not be loaded and displayed using Spring XD shell command `module list`
+----
+custom-modules
+      ├── job
+      ├── processor
+            ├── mymodule.jar
+            ├── mymodule.jar.md5
+      ├── sink
+      ├── source
+----
+
 [[replicating-module-registry]]
 ==== Replicating Module Registry
 When running in distributed mode, an alternative to using a shared file system for custom modules is to use the _replicating module registry_.

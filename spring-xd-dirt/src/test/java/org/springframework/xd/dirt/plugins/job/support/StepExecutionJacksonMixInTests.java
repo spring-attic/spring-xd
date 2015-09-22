@@ -63,8 +63,8 @@ public class StepExecutionJacksonMixInTests {
 
 		final ObjectMapper objectMapper = new ObjectMapper();
 
-		objectMapper.addMixInAnnotations(StepExecution.class, StepExecutionJacksonMixIn.class);
-		objectMapper.addMixInAnnotations(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+		objectMapper.addMixIn(StepExecution.class, StepExecutionJacksonMixIn.class);
+		objectMapper.addMixIn(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
 
 		final StepExecution stepExecution = getStepExecution();
 		final String result = objectMapper.writeValueAsString(stepExecution);

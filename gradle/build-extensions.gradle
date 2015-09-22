@@ -101,6 +101,7 @@ project('spring-xd-extension-batch') {
         runtime "org.springframework.integration:spring-integration-ftp"
         runtime "io.projectreactor:reactor-core"
         runtime "io.projectreactor:reactor-stream" // TODO: remove when INT-3766 is resolved
+        provided "org.springframework:spring-jdbc"
         provided "org.springframework.batch:spring-batch-core"
         provided "org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}"
         testCompile project(':spring-xd-test')

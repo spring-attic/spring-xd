@@ -3,15 +3,15 @@
  */ 
 
 ext {
-	hadoop26Version = '2.6.0'
-	cdh5Version = '2.5.0-cdh5.3.3'
-	hdp22Version = '2.6.0.2.2.4.0-2633'
+	hadoop27Version = '2.7.1'
+	cdh5Version = '2.6.0-cdh5.4.4'
+	hdp23Version = '2.7.1.2.3.0.0-2557'
 	phd21Version = '2.2.0-gphd-3.1.0.0'
-	phd30Version = '2.6.0.3.0.0.0-249'
+	phd30Version = '2.6.0.3.0.1.0-1'
 }
 
-project('spring-xd-hadoop:hadoop26') {
-	description = 'Hadoop 2.6.x dependencies'
+project('spring-xd-hadoop:hadoop27') {
+	description = 'Hadoop 2.7.x dependencies'
 	dependencies {
 		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
 			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
@@ -21,22 +21,22 @@ project('spring-xd-hadoop:hadoop26') {
 			exclude group: 'org.apache.hadoop', module: 'hadoop-hdfs'
 			exclude group: 'org.apache.hadoop', module: 'hadoop-common'
 		}
-		runtime ("org.apache.hadoop:hadoop-common:$hadoop26Version") {
+		runtime ("org.apache.hadoop:hadoop-common:$hadoop27Version") {
 			exclude group: 'javax.servlet', module: 'servlet-api'
 		}
-		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop26Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop26Version") {
+		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop27Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop27Version") {
 			exclude group: 'javax.servlet', module: 'servlet-api'
 		}
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop26Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop26Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-app:$hadoop26Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop26Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop26Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop27Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop27Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-app:$hadoop27Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop27Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop27Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')
 		runtime ("org.apache.pig:pig:0.14.0:h2")
-		runtime ("org.apache.hive:hive-metastore:0.13.1")
-		runtime ("org.apache.hive:hive-service:0.13.1")
+		runtime ("org.apache.hive:hive-metastore:1.1.1")
+		runtime ("org.apache.hive:hive-service:1.1.1")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -90,11 +90,11 @@ project('spring-xd-hadoop:cdh5') {
 		runtime ("org.apache.hadoop:hadoop-streaming:$cdh5Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$cdh5Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')
-		runtime ("org.apache.pig:pig:0.12.0-cdh5.3.3") {
+		runtime ("org.apache.pig:pig:0.12.0-cdh5.4.4") {
 			exclude group: 'org.apache.hbase'
 		}
-		runtime ("org.apache.hive:hive-metastore:0.13.1-cdh5.3.3")
-		runtime ("org.apache.hive:hive-service:0.13.1-cdh5.3.3")
+		runtime ("org.apache.hive:hive-metastore:1.1.0-cdh5.4.4")
+		runtime ("org.apache.hive:hive-service:1.1.0-cdh5.4.4")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -122,27 +122,27 @@ project('spring-xd-hadoop:cdh5') {
 	}
 }
 
-project('spring-xd-hadoop:hdp22') {
-	description = 'Hortonworks HDP 2.2 dependencies'
+project('spring-xd-hadoop:hdp23') {
+	description = 'Hortonworks HDP 2.3 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hdp22") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hdp23") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hdp22") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hdp23") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.apache.hadoop:hadoop-common:$hdp22Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$hdp22Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hdp22Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hdp22Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hdp22Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-app:$hdp22Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hdp22Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$hdp22Version")
+		runtime ("org.apache.hadoop:hadoop-common:$hdp23Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$hdp23Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hdp23Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hdp23Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hdp23Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-app:$hdp23Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hdp23Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hdp23Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')
-		runtime ("org.apache.pig:pig:0.14.0.2.2.4.0-2633:h2")
-		runtime ("org.apache.hive:hive-metastore:0.14.0.2.2.4.0-2633")
-		runtime ("org.apache.hive:hive-service:0.14.0.2.2.4.0-2633")
+		runtime ("org.apache.pig:pig:0.15.0.2.3.0.0-2557:h2")
+		runtime ("org.apache.hive:hive-metastore:1.2.1.2.3.2.0-2650")
+		runtime ("org.apache.hive:hive-service:1.2.1.2.3.2.0-2650")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -233,9 +233,9 @@ project('spring-xd-hadoop:phd30') {
 		runtime ("org.apache.hadoop:hadoop-streaming:$phd30Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd30Version")
 		configurations.runtime.exclude(group: 'org.xerial.snappy')
-		runtime ("org.apache.pig:pig:0.14.0.3.0.0.0-249:h2")
-		runtime ("org.apache.hive:hive-metastore:0.14.0.3.0.0.0-249")
-		runtime ("org.apache.hive:hive-service:0.14.0.3.0.0.0-249")
+		runtime ("org.apache.pig:pig:0.14.0.3.0.1.0-1:h2")
+		runtime ("org.apache.hive:hive-metastore:0.14.0.3.0.1.0-1")
+		runtime ("org.apache.hive:hive-service:0.14.0.3.0.1.0-1")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"

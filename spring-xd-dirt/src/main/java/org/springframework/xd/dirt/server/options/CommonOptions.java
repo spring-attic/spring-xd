@@ -39,7 +39,7 @@ public class CommonOptions {
 	@Option(name = "--mgmtPort", usage = "The port for the management server", metaVar = "<mgmtPort>")
 	private Integer mgmtPort;
 
-	static final String DEFAULT_HADOOP_DISTRO = "hadoop26";
+	static final String DEFAULT_HADOOP_DISTRO = "hadoop27";
 
 	@Option(name = "--hadoopDistro", handler = ResourcePatternScanningOptionHandlers.HadoopDistroOptionHandler.class,
 			usage = "The Hadoop distribution to be used for HDFS access")

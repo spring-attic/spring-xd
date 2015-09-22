@@ -324,11 +324,11 @@ The XDContainer nodes by default start up with server.port 0 (which means they w
 
 Spring XD supports the following Hadoop distributions:
 
-* hadoop26 - Apache Hadoop 2.6.0 (default)
+* hadoop27 - Apache Hadoop 2.7.1 (default)
 * phd21 - Pivotal HD 2.1 and 2.0
 * phd30 - Pivotal HD 3.0
 * cdh5 - Cloudera CDH 5.3.0
-* hdp22 - Hortonworks Data Platform 2.2
+* hdp23 - Hortonworks Data Platform 2.3
 
 To specify the distribution libraries to use for Hadoop client connections, use the option + 
 `--hadoopDistro` for the `xd-container` and `xd-shell` commands: 

@@ -72,7 +72,7 @@ set CMD_LINE_ARGS=%$
 @echo off
 set APP_HOME_LIB=%APP_HOME%\lib
 @rem If you change the default hadoop distro, make sure to update ContainerOptions.DEFAULT_HADOOP_OPTION
-set HADOOP_DISTRO=hadoop26
+set HADOOP_DISTRO=hadoop27
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set found=0

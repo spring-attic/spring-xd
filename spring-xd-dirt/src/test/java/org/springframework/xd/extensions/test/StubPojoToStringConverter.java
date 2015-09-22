@@ -22,7 +22,7 @@ import org.springframework.xd.dirt.integration.bus.converter.AbstractFromMessage
 
 
 /**
- * 
+ *
  * @author David Turanski
  */
 public class StubPojoToStringConverter extends AbstractFromMessageConverter {
@@ -45,7 +45,7 @@ public class StubPojoToStringConverter extends AbstractFromMessageConverter {
 	}
 
 	@Override
-	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
+	protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
 		return this.buildConvertedMessage("foo", message.getHeaders(), MimeType.valueOf("application/x-xd-foo"));
 	}
 

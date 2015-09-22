@@ -43,7 +43,7 @@ public class PojoToStringMessageConverter extends AbstractFromMessageConverter {
 	}
 
 	@Override
-	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
+	protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
 		return buildConvertedMessage(message.getPayload().toString(), message.getHeaders(), MimeTypeUtils.TEXT_PLAIN);
 	}
 

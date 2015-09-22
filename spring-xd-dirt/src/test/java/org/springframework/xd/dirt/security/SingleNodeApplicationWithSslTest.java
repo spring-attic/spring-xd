@@ -21,9 +21,9 @@ import static org.junit.Assert.assertThat;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -39,7 +39,8 @@ import org.springframework.web.client.RestTemplate;
 public class SingleNodeApplicationWithSslTest {
 
 	@ClassRule
-	public static SpringXdResource springXdResource = new SpringXdResource("classpath:org/springframework/xd/dirt/security/sslEnabled.yml");
+	public static SpringXdResource springXdResource = new SpringXdResource(
+			"classpath:org/springframework/xd/dirt/security/sslEnabled.yml");
 
 	protected RestTemplate restTemplate;
 
@@ -49,8 +50,7 @@ public class SingleNodeApplicationWithSslTest {
 				new SSLContextBuilder().loadTrustMaterial(null,
 						new TrustSelfSignedStrategy()).build());
 
-		HttpClient httpClient = HttpClients.custom().setSSLSocketFactory(socketFactory)
-				.build();
+		HttpClient httpClient = HttpClients.custom().setSSLSocketFactory(socketFactory).build();
 
 		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 		restTemplate = new RestTemplate(requestFactory);
@@ -59,7 +59,8 @@ public class SingleNodeApplicationWithSslTest {
 	@Test
 	public void testSslEnabled() throws Exception {
 		// we will ask specifically for localhost so that the certificate matches
-		ResponseEntity<Object> responseEntity = restTemplate.getForEntity("https://localhost:" + springXdResource.getAdminPort() + "/modules", Object.class);
+		ResponseEntity<Object> responseEntity = restTemplate.getForEntity(
+				"https://localhost:" + springXdResource.getAdminPort() + "/modules", Object.class);
 		assertThat(responseEntity.getStatusCode(), equalTo(HttpStatus.OK));
 	}
 

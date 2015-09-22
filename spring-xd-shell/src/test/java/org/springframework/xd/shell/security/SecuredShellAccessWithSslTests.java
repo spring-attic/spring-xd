@@ -25,10 +25,10 @@ import java.net.URI;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -59,7 +59,8 @@ public class SecuredShellAccessWithSslTests {
 	public static void setUp() throws Exception {
 		RandomConfigurationSupport randomConfigurationSupport = new RandomConfigurationSupport();
 		originalConfigLocation = System.getProperty("spring.config.location");
-		System.setProperty("spring.config.location", "classpath:org/springframework/xd/shell/security/securedServerWithSsl.yml");
+		System.setProperty("spring.config.location",
+				"classpath:org/springframework/xd/shell/security/securedServerWithSsl.yml");
 		singleNodeApplication = new SingleNodeApplication().run();
 		adminPort = randomConfigurationSupport.getAdminServerPort();
 	}
@@ -68,16 +69,14 @@ public class SecuredShellAccessWithSslTests {
 	public void testSpringXDTemplate() throws Exception {
 		BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 		credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("admin", "whosThere"));
-		HttpComponentsClientHttpRequestFactory requestFactory =
-				new HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create()
-						.setDefaultCredentialsProvider(credentialsProvider)
-						.setSSLSocketFactory(new SSLConnectionSocketFactory(
+		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(
+				HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).setSSLSocketFactory(
+						new SSLConnectionSocketFactory(
 								new SSLContextBuilder().loadTrustMaterial(null,
-										new TrustSelfSignedStrategy())
-										.build()))
-						.build());
+										new TrustSelfSignedStrategy()).build())).build());
 		SpringXDTemplate template = new SpringXDTemplate(requestFactory, new URI("https://localhost:" + adminPort));
-		PagedResources<ModuleDefinitionResource> moduleDefinitions = template.moduleOperations().list(RESTModuleType.sink);
+		PagedResources<ModuleDefinitionResource> moduleDefinitions = template.moduleOperations().list(
+				RESTModuleType.sink);
 		assertThat(moduleDefinitions.getLinks().size(), greaterThan(0));
 	}
 
@@ -86,7 +85,8 @@ public class SecuredShellAccessWithSslTests {
 		singleNodeApplication.close();
 		if (originalConfigLocation == null) {
 			System.clearProperty("spring.config.location");
-		} else {
+		}
+		else {
 			System.setProperty("spring.config.location", originalConfigLocation);
 		}
 	}

@@ -15,6 +15,7 @@ target/
 .classpath
 .project
 .springBeans
+.cache-main
 vf.gf.*
 bin
 dump.rdb

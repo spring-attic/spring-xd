@@ -39,6 +39,7 @@ public class StringToByteArrayMessageConverter extends AbstractFromMessageConver
 	private final static ContentTypeResolver contentTypeResolver = new StringConvertingContentTypeResolver();
 
 	private final static List<MimeType> targetMimeTypes = new ArrayList<MimeType>();
+
 	static {
 		targetMimeTypes.add(MimeTypeUtils.APPLICATION_OCTET_STREAM);
 	}
@@ -61,7 +62,7 @@ public class StringToByteArrayMessageConverter extends AbstractFromMessageConver
 	 * Don't need to manipulate message headers. Just return the payload
 	 */
 	@Override
-	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
+	protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
 		MimeType mimeType = contentTypeResolver.resolve(message.getHeaders());
 		byte[] converted = null;
 		if (mimeType == null || mimeType.getParameter("Charset") == null) {

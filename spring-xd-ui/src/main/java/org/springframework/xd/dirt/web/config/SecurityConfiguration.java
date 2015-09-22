@@ -1,15 +1,14 @@
 /*
  * Copyright 2014-2015 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 
 package org.springframework.xd.dirt.web.config;
@@ -28,9 +27,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
-import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -55,14 +54,16 @@ import org.springframework.web.accept.ContentNegotiationStrategy;
  */
 @Configuration
 @ConditionalOnProperty("security.basic.enabled")
-@EnableWebMvcSecurity
+@EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	public static final Pattern AUTHORIZATION_RULE;
 
 	static {
-		String methodsRegex = StringUtils.arrayToDelimitedString(HttpMethod.values(), "|");
-		AUTHORIZATION_RULE = Pattern.compile("(" + methodsRegex + ")\\s+(.+)\\s+=>\\s+(.+)");
+		String methodsRegex = StringUtils.arrayToDelimitedString(HttpMethod.values(),
+				"|");
+		AUTHORIZATION_RULE = Pattern
+				.compile("(" + methodsRegex + ")\\s+(.+)\\s+=>\\s+(.+)");
 	}
 
 	@Bean
@@ -87,7 +88,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 
-		final RequestMatcher textHtmlMatcher = new MediaTypeRequestMatcher(contentNegotiationStrategy,
+		final RequestMatcher textHtmlMatcher = new MediaTypeRequestMatcher(
+				contentNegotiationStrategy,
 				MediaType.TEXT_HTML);
 
 		final String loginPage = "/admin-ui/#/login";
@@ -96,53 +98,52 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		basicAuthenticationEntryPoint.setRealmName(realm);
 		basicAuthenticationEntryPoint.afterPropertiesSet();
 
-		ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security =
-				http.csrf().disable()
-						.authorizeRequests()
-						.antMatchers("/").authenticated()
-						.antMatchers("/admin-ui/**").permitAll()
-						.antMatchers("/authenticate").permitAll()
-						.antMatchers("/security/info").permitAll()
-						.antMatchers("/assets/**").permitAll();
+		ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security = http
+				.csrf()
+				.disable()
+				.authorizeRequests()
+				.antMatchers("/")
+				.authenticated()
+				.antMatchers("/admin-ui/**").permitAll()
+				.antMatchers("/authenticate").permitAll()
+				.antMatchers("/security/info").permitAll()
+				.antMatchers("/assets/**").permitAll();
 
 		security = configureSimpleSecurity(security);
 
 		security.and()
-				.formLogin()
-				.loginPage(loginPage)
-				.loginProcessingUrl("/admin-ui/login").defaultSuccessUrl("/admin-ui/")
-				.permitAll()
-				.and()
-				.logout().logoutUrl("/admin-ui/logout")
-				.permitAll()
-				.and()
-				.httpBasic()
-				.and()
-				.exceptionHandling()
-				.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint(loginPage), textHtmlMatcher)
-				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, AnyRequestMatcher.INSTANCE);
+				.formLogin().loginPage(loginPage)
+				.loginProcessingUrl("/admin-ui/login")
+				.defaultSuccessUrl("/admin-ui/").permitAll()
+				.and().logout().logoutUrl("/admin-ui/logout").permitAll()
+				.and().httpBasic()
+				.and().exceptionHandling()
+				.defaultAuthenticationEntryPointFor(
+						new LoginUrlAuthenticationEntryPoint(loginPage),
+						textHtmlMatcher)
+				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint,
+						AnyRequestMatcher.INSTANCE);
 
 		security.anyRequest().denyAll();
 
 		final SessionRepositoryFilter<ExpiringSession> sessionRepositoryFilter = new SessionRepositoryFilter<ExpiringSession>(
 				sessionRepository());
-		sessionRepositoryFilter.setHttpSessionStrategy(new HeaderHttpSessionStrategy());
+		sessionRepositoryFilter
+				.setHttpSessionStrategy(new HeaderHttpSessionStrategy());
 
-		http.addFilterBefore(sessionRepositoryFilter, ChannelProcessingFilter.class)
-				.csrf().disable();
+		http.addFilterBefore(sessionRepositoryFilter,
+				ChannelProcessingFilter.class).csrf().disable();
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 	}
 
 	/**
 	 * Read the configuration for "simple" (that is, not ACL based) security and apply it.
 	 */
-	private ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry
-			configureSimpleSecurity(
-					ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security) {
+	private ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry configureSimpleSecurity(
+			ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security) {
 		for (String rule : config.getRules()) {
 			Matcher matcher = AUTHORIZATION_RULE.matcher(rule);
-			Assert.isTrue(
-					matcher.matches(),
+			Assert.isTrue(matcher.matches(),
 					String.format(
 							"Unable to parse security rule [%s], expected format is 'HTTP_METHOD ANT_PATTERN => SECURITY_ATTRIBUTE(S)'",
 							rule));

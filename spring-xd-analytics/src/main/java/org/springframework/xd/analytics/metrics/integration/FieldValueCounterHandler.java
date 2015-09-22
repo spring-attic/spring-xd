@@ -68,7 +68,7 @@ public class FieldValueCounterHandler extends AbstractMetricHandler {
 				payload = jsonToTupleTransformer.transformPayload(payload.toString());
 			}
 			catch (Exception e) {
-				throw new MessageTransformationException(message, e);
+				throw new MessageTransformationException(message, e.getMessage(), e);
 			}
 		}
 		if (payload instanceof Tuple) {

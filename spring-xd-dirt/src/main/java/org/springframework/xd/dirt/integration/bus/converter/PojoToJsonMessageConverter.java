@@ -46,7 +46,7 @@ public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 
 	@Override
 	protected Class<?>[] supportedTargetTypes() {
-		return new Class<?>[] {String.class};
+		return new Class<?>[] { String.class };
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 	}
 
 	@Override
-	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
+	protected Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
 		Object result;
 		try {
 			if (prettyPrint) {

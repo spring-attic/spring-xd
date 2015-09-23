@@ -38,7 +38,7 @@ public class JsonToPojoMessageConverter extends AbstractFromMessageConverter {
 
 	@Override
 	protected Class<?>[] supportedPayloadTypes() {
-		return new Class<?>[] {String.class, byte[].class};
+		return new Class<?>[] { String.class, byte[].class };
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class JsonToPojoMessageConverter extends AbstractFromMessageConverter {
 	}
 
 	@Override
-	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
+	public Object convertFromInternal(Message<?> message, Class<?> targetClass, Object conversionHint) {
 		Object result = null;
 		try {
 			Object payload = message.getPayload();

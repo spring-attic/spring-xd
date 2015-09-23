@@ -182,14 +182,6 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 	}
 
 	/**
-	 * Not supported by default
-	 */
-	@Override
-	public Object convertToInternal(Object payload, MessageHeaders headers) {
-		throw new UnsupportedOperationException("'convertTo' not supported");
-	}
-
-	/**
 	 * Convenience method to construct a converted message
 	 *
 	 * @param payload the converted payload
@@ -198,9 +190,8 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 	 * @return the converted message
 	 */
 	protected final Message<?> buildConvertedMessage(Object payload, MessageHeaders headers, MimeType contentType) {
-		return MessageBuilder.withPayload(payload).copyHeaders(headers)
-				.copyHeaders(
-						Collections.singletonMap(MessageHeaders.CONTENT_TYPE,
-								contentType)).build();
+		return MessageBuilder.withPayload(payload).copyHeaders(headers).copyHeaders(
+				Collections.singletonMap(MessageHeaders.CONTENT_TYPE,
+						contentType)).build();
 	}
 }

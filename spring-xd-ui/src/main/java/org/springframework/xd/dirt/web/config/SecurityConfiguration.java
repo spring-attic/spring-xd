@@ -60,8 +60,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	public static final Pattern AUTHORIZATION_RULE;
 
 	static {
-		String methodsRegex = StringUtils
-				.arrayToDelimitedString(HttpMethod.values(), "|");
+		String methodsRegex = StringUtils.arrayToDelimitedString(HttpMethod.values(),
+				"|");
 		AUTHORIZATION_RULE = Pattern
 				.compile("(" + methodsRegex + ")\\s+(.+)\\s+=>\\s+(.+)");
 	}
@@ -104,31 +104,24 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.authorizeRequests()
 				.antMatchers("/")
 				.authenticated()
-				.antMatchers("/admin-ui/**")
-				.permitAll()
-				.antMatchers("/authenticate")
-				.permitAll()
-				.antMatchers("/security/info")
-				.permitAll()
-				.antMatchers("/assets/**")
-				.permitAll();
+				.antMatchers("/admin-ui/**").permitAll()
+				.antMatchers("/authenticate").permitAll()
+				.antMatchers("/security/info").permitAll()
+				.antMatchers("/assets/**").permitAll();
 
 		security = configureSimpleSecurity(security);
 
 		security.and()
 				.formLogin().loginPage(loginPage)
 				.loginProcessingUrl("/admin-ui/login")
-				.defaultSuccessUrl("/admin-ui/")
-				.permitAll()
-				.and().logout().logoutUrl("/admin-ui/logout")
-				.permitAll()
+				.defaultSuccessUrl("/admin-ui/").permitAll()
+				.and().logout().logoutUrl("/admin-ui/logout").permitAll()
 				.and().httpBasic()
 				.and().exceptionHandling()
 				.defaultAuthenticationEntryPointFor(
 						new LoginUrlAuthenticationEntryPoint(loginPage),
 						textHtmlMatcher)
-				.defaultAuthenticationEntryPointFor(
-						basicAuthenticationEntryPoint,
+				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint,
 						AnyRequestMatcher.INSTANCE);
 
 		security.anyRequest().denyAll();
@@ -140,8 +133,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 		http.addFilterBefore(sessionRepositoryFilter,
 				ChannelProcessingFilter.class).csrf().disable();
-		http.sessionManagement()
-				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 	}
 
 	/**
@@ -160,8 +152,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			String urlPattern = matcher.group(2);
 			String attribute = matcher.group(3);
 
-			security = security.antMatchers(method, urlPattern)
-					.access(attribute);
+			security = security.antMatchers(method, urlPattern).access(attribute);
 		}
 		return security;
 	}

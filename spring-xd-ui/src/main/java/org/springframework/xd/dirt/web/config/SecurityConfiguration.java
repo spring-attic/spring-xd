@@ -1,15 +1,14 @@
 /*
  * Copyright 2014-2015 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 
 package org.springframework.xd.dirt.web.config;
@@ -96,19 +95,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		basicAuthenticationEntryPoint.setRealmName(realm);
 		basicAuthenticationEntryPoint.afterPropertiesSet();
 
-		ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security = http.csrf().disable().authorizeRequests().antMatchers(
-				"/").authenticated().antMatchers("/admin-ui/**").permitAll().antMatchers(
-						"/authenticate").permitAll().antMatchers("/security/info").permitAll().antMatchers(
-								"/assets/**").permitAll();
+		ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security = http.csrf()
+				.disable().authorizeRequests().antMatchers("/").authenticated().antMatchers("/admin-ui/**").permitAll()
+				.antMatchers("/authenticate").permitAll().antMatchers("/security/info").permitAll()
+				.antMatchers("/assets/**").permitAll();
 
 		security = configureSimpleSecurity(security);
 
-		security.and().formLogin().loginPage(loginPage).loginProcessingUrl("/admin-ui/login").defaultSuccessUrl(
-				"/admin-ui/").permitAll().and().logout().logoutUrl(
-						"/admin-ui/logout").permitAll().and().httpBasic().and().exceptionHandling().defaultAuthenticationEntryPointFor(
-								new LoginUrlAuthenticationEntryPoint(loginPage),
-								textHtmlMatcher).defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint,
-										AnyRequestMatcher.INSTANCE);
+		security.and().formLogin().loginPage(loginPage).loginProcessingUrl("/admin-ui/login")
+				.defaultSuccessUrl("/admin-ui/").permitAll().and().logout().logoutUrl("/admin-ui/logout").permitAll()
+				.and().httpBasic().and().exceptionHandling()
+				.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint(loginPage), textHtmlMatcher)
+				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, AnyRequestMatcher.INSTANCE);
 
 		security.anyRequest().denyAll();
 
@@ -127,8 +125,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security) {
 		for (String rule : config.getRules()) {
 			Matcher matcher = AUTHORIZATION_RULE.matcher(rule);
-			Assert.isTrue(
-					matcher.matches(),
+			Assert.isTrue(matcher.matches(),
 					String.format(
 							"Unable to parse security rule [%s], expected format is 'HTTP_METHOD ANT_PATTERN => SECURITY_ATTRIBUTE(S)'",
 							rule));

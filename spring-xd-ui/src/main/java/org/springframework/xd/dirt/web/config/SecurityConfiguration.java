@@ -60,8 +60,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	public static final Pattern AUTHORIZATION_RULE;
 
 	static {
-		String methodsRegex = StringUtils.arrayToDelimitedString(HttpMethod.values(), "|");
-		AUTHORIZATION_RULE = Pattern.compile("(" + methodsRegex + ")\\s+(.+)\\s+=>\\s+(.+)");
+		String methodsRegex = StringUtils
+				.arrayToDelimitedString(HttpMethod.values(), "|");
+		AUTHORIZATION_RULE = Pattern
+				.compile("(" + methodsRegex + ")\\s+(.+)\\s+=>\\s+(.+)");
 	}
 
 	@Bean
@@ -86,7 +88,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 
-		final RequestMatcher textHtmlMatcher = new MediaTypeRequestMatcher(contentNegotiationStrategy,
+		final RequestMatcher textHtmlMatcher = new MediaTypeRequestMatcher(
+				contentNegotiationStrategy,
 				MediaType.TEXT_HTML);
 
 		final String loginPage = "/admin-ui/#/login";
@@ -95,27 +98,50 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		basicAuthenticationEntryPoint.setRealmName(realm);
 		basicAuthenticationEntryPoint.afterPropertiesSet();
 
-		ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security = http.csrf()
-				.disable().authorizeRequests().antMatchers("/").authenticated().antMatchers("/admin-ui/**").permitAll()
-				.antMatchers("/authenticate").permitAll().antMatchers("/security/info").permitAll()
-				.antMatchers("/assets/**").permitAll();
+		ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry security = http
+				.csrf()
+				.disable()
+				.authorizeRequests()
+				.antMatchers("/")
+				.authenticated()
+				.antMatchers("/admin-ui/**")
+				.permitAll()
+				.antMatchers("/authenticate")
+				.permitAll()
+				.antMatchers("/security/info")
+				.permitAll()
+				.antMatchers("/assets/**")
+				.permitAll();
 
 		security = configureSimpleSecurity(security);
 
-		security.and().formLogin().loginPage(loginPage).loginProcessingUrl("/admin-ui/login")
-				.defaultSuccessUrl("/admin-ui/").permitAll().and().logout().logoutUrl("/admin-ui/logout").permitAll()
-				.and().httpBasic().and().exceptionHandling()
-				.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint(loginPage), textHtmlMatcher)
-				.defaultAuthenticationEntryPointFor(basicAuthenticationEntryPoint, AnyRequestMatcher.INSTANCE);
+		security.and()
+				.formLogin().loginPage(loginPage)
+				.loginProcessingUrl("/admin-ui/login")
+				.defaultSuccessUrl("/admin-ui/")
+				.permitAll()
+				.and().logout().logoutUrl("/admin-ui/logout")
+				.permitAll()
+				.and().httpBasic()
+				.and().exceptionHandling()
+				.defaultAuthenticationEntryPointFor(
+						new LoginUrlAuthenticationEntryPoint(loginPage),
+						textHtmlMatcher)
+				.defaultAuthenticationEntryPointFor(
+						basicAuthenticationEntryPoint,
+						AnyRequestMatcher.INSTANCE);
 
 		security.anyRequest().denyAll();
 
 		final SessionRepositoryFilter<ExpiringSession> sessionRepositoryFilter = new SessionRepositoryFilter<ExpiringSession>(
 				sessionRepository());
-		sessionRepositoryFilter.setHttpSessionStrategy(new HeaderHttpSessionStrategy());
+		sessionRepositoryFilter
+				.setHttpSessionStrategy(new HeaderHttpSessionStrategy());
 
-		http.addFilterBefore(sessionRepositoryFilter, ChannelProcessingFilter.class).csrf().disable();
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+		http.addFilterBefore(sessionRepositoryFilter,
+				ChannelProcessingFilter.class).csrf().disable();
+		http.sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 	}
 
 	/**
@@ -134,7 +160,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 			String urlPattern = matcher.group(2);
 			String attribute = matcher.group(3);
 
-			security = security.antMatchers(method, urlPattern).access(attribute);
+			security = security.antMatchers(method, urlPattern)
+					.access(attribute);
 		}
 		return security;
 	}

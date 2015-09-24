@@ -296,4 +296,12 @@ project('spring-xd-extension-cassandra') {
         }
         testCompile("org.apache.cassandra:cassandra-all:$cassandraVersion")
     }
+    // add the cassandra sink properties file to classpath
+    sourceSets {
+        test {
+            resources {
+                srcDir "${projectDir}/../../modules/sink/cassandra"
+            }
+        }
+    }
 }

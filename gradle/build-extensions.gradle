@@ -280,3 +280,20 @@ project('spring-xd-extension-gpload') {
         compile "org.yaml:snakeyaml"
     }
 }
+
+project('spring-xd-extension-cassandra') {
+    description = 'Spring XD Cassandra'
+    dependencies {
+        compile project(':spring-xd-module-spi')
+        provided "org.springframework.integration:spring-integration-cassandra:$springIntegrationCassandraVersion"
+        provided "com.fasterxml.jackson.core:jackson-databind"
+        testCompile project(':spring-xd-dirt')
+        testCompile project(':spring-xd-test')
+        testCompile("org.cassandraunit:cassandra-unit-spring:$cassandraUnitVersion") {
+            exclude group: 'org.apache.cassandra', module: 'cassandra-all'
+            exclude group: 'com.datastax.cassandra', module: 'cassandra-driver-core'
+            exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        }
+        testCompile("org.apache.cassandra:cassandra-all:$cassandraVersion")
+    }
+}

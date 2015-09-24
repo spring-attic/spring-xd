@@ -49,9 +49,9 @@ public class PasswordUtils {
 
 	public static Pattern passwordParameterPattern = Pattern.compile(
 			//"(?i)(--[\\p{Z}]*(password|passwd)[\\p{Z}]*=[\\p{Z}]*)([\\p{N}|\\p{L}|\\p{Po}]*)",
-			"(?i)(--[\\p{Z}]*("
+			"(?i)(--[\\p{Z}]*[\\p{L}]*("
 					+ StringUtils.arrayToDelimitedString(PASSWORD_PARAMETER_NAMES, "|")
-					+ ")[\\p{Z}]*=[\\p{Z}]*)((\"[\\p{L}|\\p{Pd}|\\p{Ps}|\\p{Pe}|\\p{Pc}|\\p{S}|\\p{N}|\\p{Z}]*\")|([\\p{N}|\\p{L}|\\p{Po}|\\p{Pc}|\\p{S}]*))",
+					+ ")[\\p{L}]*[\\p{Z}]*=[\\p{Z}]*)((\"[\\p{L}|\\p{Pd}|\\p{Ps}|\\p{Pe}|\\p{Pc}|\\p{S}|\\p{N}|\\p{Z}]*\")|([\\p{N}|\\p{L}|\\p{Po}|\\p{Pc}|\\p{S}]*))",
 			Pattern.UNICODE_CASE);
 
 	/**

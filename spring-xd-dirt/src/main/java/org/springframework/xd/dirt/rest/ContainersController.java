@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,10 +46,10 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerShutdownException;
-import org.springframework.xd.dirt.container.store.DetailedContainer;
 import org.springframework.xd.dirt.cluster.ModuleMessageRateNotFoundException;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.container.store.DetailedContainer;
 import org.springframework.xd.rest.domain.DetailedContainerResource;
 
 /**
@@ -57,6 +57,7 @@ import org.springframework.xd.rest.domain.DetailedContainerResource;
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @author Gunnar Hillert
  */
 @Controller
 @RequestMapping("/runtime/containers")
@@ -71,8 +72,7 @@ public class ContainersController {
 	@Autowired
 	private ContainerRepository containerRepository;
 
-	private ResourceAssemblerSupport<DetailedContainer, DetailedContainerResource> resourceAssembler =
-			new RuntimeContainerResourceAssembler();
+	private ResourceAssemblerSupport<DetailedContainer, DetailedContainerResource> resourceAssembler = new RuntimeContainerResourceAssembler();
 
 	private RestTemplate restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory());
 
@@ -109,7 +109,7 @@ public class ContainersController {
 	@ResponseBody
 	public PagedResources<DetailedContainerResource> list(Pageable pageable,
 			PagedResourcesAssembler<DetailedContainer> assembler) throws ModuleMessageRateNotFoundException {
-		Page<DetailedContainer> containers = containerRepository.findAllRuntimeContainers(pageable);
+		Page<DetailedContainer> containers = containerRepository.findAllRuntimeContainers(pageable, true);
 		for (DetailedContainer container : containers) {
 			if (!container.getDeployedModules().isEmpty()) {
 				setMessageRates(container);
@@ -140,14 +140,16 @@ public class ContainersController {
 					String mbeanKey = (String) jsonArray.get(i);
 					StringTokenizer tokenizer = new StringTokenizer(mbeanKey, ",");
 					if (mbeanKey.contains("component=MessageChannel")
-							&& (mbeanKey.contains("name=" + INPUT_CHANNEL_NAME) || mbeanKey.contains("name=" + OUTPUT_CHANNEL_NAME))) {
+							&& (mbeanKey.contains("name=" + INPUT_CHANNEL_NAME)
+									|| mbeanKey.contains("name=" + OUTPUT_CHANNEL_NAME))) {
 						while (tokenizer.hasMoreElements()) {
 							String element = (String) tokenizer.nextElement();
 							if (element.startsWith("module=")) {
 								String key = String.format("%s", element.substring(element.indexOf("=") + 1));
 								HashMap<String, Double> rate = (messageRates.get(key) != null) ? messageRates.get(key)
 										: new HashMap<String, Double>();
-								Double rateValue = (Double) value.getJSONObject((String) jsonArray.get(i)).get("MeanSendRate");
+								Double rateValue = (Double) value.getJSONObject((String) jsonArray.get(i)).get(
+										"MeanSendRate");
 								if (mbeanKey.contains("name=" + INPUT_CHANNEL_NAME)) {
 									rate.put(INPUT_CHANNEL_NAME, rateValue);
 								}

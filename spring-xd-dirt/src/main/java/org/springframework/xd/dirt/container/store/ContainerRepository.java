@@ -25,6 +25,7 @@ import org.springframework.xd.store.DomainRepository;
  * Repository for persisting {@link Container} entities.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 public interface ContainerRepository extends DomainRepository<Container, String> {
 
@@ -37,8 +38,9 @@ public interface ContainerRepository extends DomainRepository<Container, String>
 
 	/**
 	 * @param pageable pagination info
+	 * @param maskSensitiveProperties Shall sensitive data such as passwords be masked?
 	 * @return paged list of all the {@code RuntimeContainer}s in the XD cluster.
 	 */
-	public Page<DetailedContainer> findAllRuntimeContainers(Pageable pageable);
+	public Page<DetailedContainer> findAllRuntimeContainers(Pageable pageable, boolean maskSensitiveProperties);
 
 }

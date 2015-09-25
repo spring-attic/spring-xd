@@ -46,6 +46,7 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.NoSuchContainerException;
 import org.springframework.xd.dirt.module.store.ModuleMetadata;
 import org.springframework.xd.dirt.module.store.ZooKeeperModuleMetadataRepository;
+import org.springframework.xd.dirt.rest.PasswordUtils;
 import org.springframework.xd.dirt.util.PagingUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -220,8 +221,8 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 		String path = Paths.build(Paths.CONTAINERS, entity.getName());
 
 		try {
-			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
-					.forPath(path, ZooKeeperUtils.mapToBytes(entity.getAttributes()));
+			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path,
+					ZooKeeperUtils.mapToBytes(entity.getAttributes()));
 			return entity;
 		}
 		catch (Exception e) {
@@ -334,16 +335,25 @@ public class ZooKeeperContainerRepository implements ContainerRepository, Applic
 	 * Find all the {@link DetailedContainer}s in the XD cluster.
 	 *
 	 * @param pageable the pagination info
+	 * @param maskSensitiveProperties Shall sensitive data such as passwords be masked?
 	 * @return the paged list of {@link DetailedContainer}s
 	 */
 	@Override
-	public Page<DetailedContainer> findAllRuntimeContainers(Pageable pageable) {
+	public Page<DetailedContainer> findAllRuntimeContainers(Pageable pageable, boolean maskSensitiveProperties) {
 		List<DetailedContainer> results = new ArrayList<DetailedContainer>();
 		List<Container> containers = this.findAll();
 
 		for (Container container : containers) {
 			DetailedContainer runtimeContainer = new DetailedContainer(container);
-			List<ModuleMetadata> deployedModules = zkModuleMetadataRepository.findAllByContainerId(container.getName());
+			final List<ModuleMetadata> deployedModules = zkModuleMetadataRepository.findAllByContainerId(
+					container.getName());
+
+			if (maskSensitiveProperties) {
+				for (ModuleMetadata moduleMetadata : deployedModules) {
+					PasswordUtils.maskPropertiesIfNecessary(moduleMetadata.getModuleOptions());
+				}
+			}
+
 			runtimeContainer.setDeployedModules(deployedModules);
 			runtimeContainer.setDeploymentSize(deployedModules.size());
 			results.add(runtimeContainer);

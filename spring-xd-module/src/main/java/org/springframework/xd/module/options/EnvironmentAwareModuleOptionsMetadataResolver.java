@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.config.ConfigFileEnvironmentPostProcessor;
+import org.springframework.boot.context.config.ConfigFileApplicationListener;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -40,7 +40,7 @@ import org.springframework.xd.module.ModuleDefinition;
 /**
  * A decorator around another {@link ModuleOptionsMetadataResolver} that will provide default values for module options
  * using the environment.
- *
+ * 
  * <p>
  * Each module gets its own Environment, populated with values in the following order:
  * <ul>
@@ -54,13 +54,13 @@ import org.springframework.xd.module.ModuleDefinition;
  * <p>
  * For each option {@code <optionname>} of a module (of type {@code <type>} and name {@code <modulename>}), this
  * resolver will try to read a default from {@code <type>.<modulename>.<optionname>}.
- *
+ * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
- * @author David Turanski
  */
 public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver,
-		ResourceLoaderAware, EnvironmentAware {
+		ResourceLoaderAware, EnvironmentAware
+{
 
 	/**
 	 * Name of the configuration key that holds the location root for module configuration.
@@ -216,8 +216,7 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 	private ConfigurableEnvironment loadPropertySources(final String searchLocation, final String baseName) {
 		final ConfigurableEnvironment environment = new StandardEnvironment();
 		environment.merge(parentEnvironment);
-
-		new ConfigFileEnvironmentPostProcessor() {
+		new ConfigFileApplicationListener() {
 
 			public void apply() {
 				setSearchLocations(searchLocation);
@@ -232,7 +231,6 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 		}.apply();
 		return environment;
 	}
-
 
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {

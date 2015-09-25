@@ -27,17 +27,19 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
 /**
  * Holds options that can be used in single-node mode. Some of those are hardcoded to accept a single value on purpose
  * because.
- *
+ * 
  * @author Eric Bottard
  * @author David Turanski
  */
 @ConfigurationProperties
 public class SingleNodeOptions extends CommonOptions {
 
-	@Option(name = "--analytics", handler = SingleNodeAnalyticsOptionHandler.class, usage = "How to persist analytics such as counters and gauges")
+	@Option(name = "--analytics", handler = SingleNodeAnalyticsOptionHandler.class,
+			usage = "How to persist analytics such as counters and gauges")
 	private String analytics;
 
-	@Option(name = "--transport", handler = SingleNodeDataTransportOptionHandler.class, usage = "The transport to use for data messages (between modules within a stream)")
+	@Option(name = "--transport", handler = SingleNodeDataTransportOptionHandler.class,
+			usage = "The transport to use for data messages (between modules within a stream)")
 	private String transport;
 
 	@Option(name = "--httpPort", usage = "HTTP port for the REST API server", metaVar = "<httpPort>")
@@ -59,19 +61,6 @@ public class SingleNodeOptions extends CommonOptions {
 	@NotNull
 	public String getXD_TRANSPORT() {
 		return transport;
-	}
-
-	public void setPort(int httpPort) {
-		this.httpPort = httpPort;
-	}
-
-
-	public void setAnalytics(String analytics) {
-		this.analytics = analytics;
-	}
-
-	public void setTransport(String transport) {
-		this.transport = transport;
 	}
 
 	public void setXD_ANALYTICS(String analytics) {

@@ -420,13 +420,13 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 		catch (Error t) {
 			LOG.error("Severe: run HDFS shell failed. Message is: " + t.getMessage());
 			if (t.getCause() != null) {
-				LOG.error("root error message is:" + t.getCause().getMessage());
+				LOG.error("root cause is: " + t.getCause().toString());
 			}
 		}
 		catch (Exception t) {
 			LOG.error("Exception: run HDFS shell failed. Message is: " + t.getMessage());
 			if (t.getCause() != null) {
-				LOG.error("root error message is:" + t.getCause().getMessage());
+				LOG.error("root cause is: " + t.getCause().toString());
 			}
 		}
 	}

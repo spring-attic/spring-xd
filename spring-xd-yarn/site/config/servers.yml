@@ -37,7 +37,7 @@ xd:
 # Just comment out the ones not needed and make sure the one for your current distro is not commented out. These settings are based
 # on single-node VMs provided for each distro and they might need tweaking for other installation types.
 
-# Hadoop Hadoop 2.6.x (hadoop26):
+# Hadoop Hadoop 2.7.1:
 spring:
   yarn:
     siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/share/hadoop/common/*,$HADOOP_COMMON_HOME/share/hadoop/common/lib/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/*,$HADOOP_HDFS_HOME/share/hadoop/hdfs/lib/*,$HADOOP_YARN_HOME/share/hadoop/yarn/*,$HADOOP_YARN_HOME/share/hadoop/yarn/lib/*"
@@ -49,32 +49,23 @@ spring:
 #    siteYarnAppClasspath: "$HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_HDFS_HOME/*,$HADOOP_YARN_HOME/*"
 #    siteMapreduceAppClasspath: "$HADOOP_MAPRED_HOME/*,$HADOOP_MAPRED_HOME/lib/*"
 
-# Pivotal HD 3.0 (phd30):
+# Pivotal HD 3.0.1 (phd30):
 #spring:
 #  yarn:
 #    siteYarnAppClasspath: "/etc/hadoop/conf,/usr/phd/current/hadoop-client/*,/usr/phd/current/hadoop-client/lib/*,/usr/phd/current/hadoop-hdfs-client/*,/usr/phd/current/hadoop-hdfs-client/lib/*,/usr/phd/current/hadoop-yarn-client/*,/usr/phd/current/hadoop-yarn-client/lib/*"
 #    siteMapreduceAppClasspath: "/usr/phd/current/hadoop-mapreduce-client/*,/usr/phd/current/hadoop-mapreduce-client/lib/*"
 #    config:
-#      mapreduce.application.framework.path: '/phd/apps/3.0.0.0-249/mapreduce/mapreduce.tar.gz#mr-framework'
-#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/phd/3.0.0.0-249/hadoop/lib/hadoop-lzo-0.6.0.3.0.0.0-249.jar:/etc/hadoop/conf/secure'
+#      mapreduce.application.framework.path: '/phd/apps/3.0.1.0-1/mapreduce/mapreduce.tar.gz#mr-framework'
+#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/phd/3.0.1.0-1/hadoop/lib/hadoop-lzo-0.6.0.3.0.1.0-1.jar:/etc/hadoop/conf/secure'
 
-# Hortonworks HDP 2.2.4.2 (hdp22):
+# Hortonworks HDP 2.3.0.0 (hdp23):
 #spring:
 #  yarn:
 #    siteYarnAppClasspath: "/etc/hadoop/conf,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*"
 #    siteMapreduceAppClasspath: "/usr/hdp/current/hadoop-mapreduce-client/*,/usr/hdp/current/hadoop-mapreduce-client/lib/*"
 #    config:
-#      mapreduce.application.framework.path: '/hdp/apps/2.2.4.2-2/mapreduce/mapreduce.tar.gz#mr-framework'
-#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/2.2.4.2-2/hadoop/lib/hadoop-lzo-0.6.0.2.2.4.2-2.jar:/etc/hadoop/conf/secure'
-
-# Hortonworks HDP 2.2.6.0 (hdp22):
-#spring:
-#  yarn:
-#    siteYarnAppClasspath: "/etc/hadoop/conf,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*"
-#    siteMapreduceAppClasspath: "/usr/hdp/current/hadoop-mapreduce-client/*,/usr/hdp/current/hadoop-mapreduce-client/lib/*"
-#    config:
-#      mapreduce.application.framework.path: '/hdp/apps/2.2.6.0-2800/mapreduce/mapreduce.tar.gz#mr-framework'
-#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/2.2.6.0-2800/hadoop/lib/hadoop-lzo-0.6.0.2.2.6.0-2800.jar:/etc/hadoop/conf/secure'
+#      mapreduce.application.framework.path: '/hdp/apps/2.3.0.0-2557/mapreduce/mapreduce.tar.gz#mr-framework'
+#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/2.3.0.0-2557/hadoop/lib/hadoop-lzo-0.6.0.2.3.0.0-2557.jar:/etc/hadoop/conf/secure'
 
 # Cloudera CDH5 (cdh5):
 #spring:
@@ -91,18 +82,14 @@ spring:
 #    resourceManagerPort: 8032
 #    resourceManagerSchedulerAddress: ${spring.hadoop.resourceManagerHost}:8030
 #    jobHistoryAddress: ${spring.hadoop.resourceManagerHost}:10020
-## For phd30 only (values for version 3.0.0.0, also change resourceManagerPort above to 8050)
+## For phd30 only (values for version 3.0.1.0, also change resourceManagerPort above to 8050)
 #    config:
-#      mapreduce.application.framework.path: '/phd/apps/3.0.0.0-249/mapreduce/mapreduce.tar.gz#mr-framework'
-#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/phd/3.0.0.0-249/hadoop/lib/hadoop-lzo-0.6.0.3.0.0.0-249.jar:/etc/hadoop/conf/secure'
-## For hdp22 only (values for version 2.2.4.2, also change resourceManagerPort above to 8050)
+#      mapreduce.application.framework.path: '/phd/apps/3.0.1.0-1/mapreduce/mapreduce.tar.gz#mr-framework'
+#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/phd/3.0.1.0-1/hadoop/lib/hadoop-lzo-0.6.0.3.0.1.0-1.jar:/etc/hadoop/conf/secure'
+## For hdp23 only (values for version 2.3.0.0, also change resourceManagerPort above to 8050)
 #    config:
-#      mapreduce.application.framework.path: '/hdp/apps/2.2.4.2-2/mapreduce/mapreduce.tar.gz#mr-framework'
-#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/2.2.4.2-2/hadoop/lib/hadoop-lzo-0.6.0.2.2.4.2-2.jar:/etc/hadoop/conf/secure'
-## For hdp22 only (values for version 2.2.6.6, also change resourceManagerPort above to 8050)
-#    config:
-#      mapreduce.application.framework.path: '/hdp/apps/2.2.6.0-2800/mapreduce/mapreduce.tar.gz#mr-framework'
-#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/2.2.6.0-2800/hadoop/lib/hadoop-lzo-0.6.0.2.2.6.0-2800.jar:/etc/hadoop/conf/secure'
+#      mapreduce.application.framework.path: '/hdp/apps/2.3.0.0-249/mapreduce/mapreduce.tar.gz#mr-framework'
+#      mapreduce.application.classpath: '$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:/usr/hdp/2.3.0.0-249/hadoop/lib/hadoop-lzo-0.6.0.2.3.0.0-249.jar:/etc/hadoop/conf/secure'
 
 ---
 # Zookeeper properties

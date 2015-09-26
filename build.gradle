@@ -156,7 +156,7 @@ ext {
 	oldGuavaVersion = '15.0'  // This is only used by spring-xd-integration-test, IO uses version 17.0
 	guavaVersion = '16.0.1'
 
-	springDataHadoopBase = '2.2.0.RELEASE'
+	springDataHadoopBase = '2.3.0.M3'
 
 //	//Reactor 1.1 is used in spring-xd-extension-batch transitively though spring integration
 //	reactor11xVersion = '1.1.5.RELEASE'
@@ -1169,6 +1169,7 @@ project('spring-xd-shell') {
 		compile "commons-io:commons-io"
 		configurations.compile.exclude(group: "xerces")
 
+		runtime 'org.apache.htrace:htrace-core:3.1.0-incubating'
 		runtime 'ch.qos.logback:logback-classic'
 
 		testCompile project(":spring-xd-test-fixtures")
@@ -1288,8 +1289,8 @@ project('spring-xd-integration-test') {
 		compile "org.apache.jclouds.provider:aws-ec2:$jcloudsVersion"
 		compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"
 		compile "com.fasterxml.jackson.core:jackson-databind"
-		compile("org.apache.hadoop:hadoop-common:$hadoop26Version")
-		compile("org.apache.hadoop:hadoop-client:$hadoop26Version")
+		compile("org.apache.hadoop:hadoop-common:$hadoop27Version")
+		compile("org.apache.hadoop:hadoop-client:$hadoop27Version")
 		compile "com.google.guava:guava:$oldGuavaVersion"
 		compile("org.springframework.data:spring-data-mongodb") {
 			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'

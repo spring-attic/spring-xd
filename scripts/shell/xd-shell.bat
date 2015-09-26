@@ -70,7 +70,7 @@ set CMD_LINE_ARGS=%$
 @rem Setup the command line
 
 @echo off
-set HADOOP_DISTRO=hadoop26
+set HADOOP_DISTRO=hadoop27
 set found=0
 set NEW_CMD_LINE_ARGS=
 for %%a in (%CMD_LINE_ARGS%) do (
@@ -79,8 +79,8 @@ for %%a in (%CMD_LINE_ARGS%) do (
         set found=1
     ) else (
         if !found!==1 (
-            if not "%%a"=="hadoop26" if not "%%a"=="cdh5" if not "%%a"=="hdp22" if not "%%a"=="phd21" if not "%%a"=="phd30" (
-                echo ERROR: %%a is not a valid Hadoop distro - valid distros are hadoop26, cdh5, hdp22, phd21 and phd30
+            if not "%%a"=="hadoop27" if not "%%a"=="cdh5" if not "%%a"=="hdp23" if not "%%a"=="phd21" if not "%%a"=="phd30" (
+                echo ERROR: %%a is not a valid Hadoop distro - valid distros are hadoop27, cdh5, hdp23, phd21 and phd30
                 goto fail
             )
             set HADOOP_DISTRO=%%a

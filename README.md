@@ -13,7 +13,7 @@ Look for it on the [XD wiki](https://github.com/springsource/spring-xd/wiki). [A
 
 ## How to build 
 
-Check the documentation on how to build Spring XD [here](https://github.com/SpringSource/spring-xd/wiki/Building-Spring-XD).
+Check the documentation on how to build Spring XD [here](http://docs.spring.io/spring-xd/docs/current-SNAPSHOT/reference/html/#building-spring-xd).
 
 ## Getting Help
 

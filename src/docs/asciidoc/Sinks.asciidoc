@@ -13,6 +13,7 @@ The available sinks are
 * <<ftp-sink, FTP>>
 * <<gemfire-server, GemFire Server>>
 * <<gpfdist, GPFDIST>>
+* <<cassandra, Cassandra>>
 * <<hadoop-hdfs, HDFS>>
 * <<hdfs-dataset-avroparquet, HDFS Dataset>>
 * <<jdbc, JDBC>>
@@ -531,6 +532,49 @@ $$sqlBefore$$:: $$sql to run before load$$ *($$String$$, no default)*
 $$table$$:: $$target database table$$ *($$String$$, no default)*
 $$updateColumns$$:: $$update columns with update$$ *($$String$$, no default)*
 //$sink.gpfdist
+
+[[cassandra]]
+=== Cassandra 
+
+The Cassandra sink write into a Cassandra table.  Here is a simple example
+
+  xd:>stream create cassandraTest --definition "http | cassandra --initScript=file:<absolut-path-to>/int-db.cql --ingestQuery='insert into book (isbn, title, author) values (uuid(), ?, ?)'" --deploy
+
+Where `int-db.cql` looks like:
+
+[source,text]
+----
+DROP TABLE IF EXISTS book;
+
+CREATE TABLE book  (
+    isbn        uuid PRIMARY KEY,
+    author      text,
+    instock     boolean,
+    pages       int,
+    saledate    timestamp,
+    title       text
+);
+----
+
+You can then send data to this stream via
+
+  xd:>http post --data "{\"title\": \"The Art of War\", \"author\": \"Sun Tzu\"}" --target http://localhost:9000
+
+and see the table contents using the CQL
+
+  SELECT * FROM cassandratest.book;
+
+Another Insert example using a domain 'Book' object is
+
+  xd:>stream create cassandraTest2 --definition "http | transform --expression='new org.springframework.xd.test.domain.Book(T(java.util.UUID).randomUUID(), #jsonPath(payload, \"$.title\"), #jsonPath(payload, \"$.author\"))' | cassandra --keyspace=cassandraTest" --deploy
+
+  http post --data "{\"title\": \"The Art of War\", \"author\": \"Sun Tzu\"}" --target http://localhost:9000
+
+You must place your domain object into the xd/lib directory, since some Spring Data comons classes are in the `xd/lib` directory and loaded into root classpath, not the module's classpath.
+
+//^sink.cassandra
+//$sink.cassandra
+
 
 [[hadoop-hdfs]]
 === Hadoop (HDFS) (`hdfs`)

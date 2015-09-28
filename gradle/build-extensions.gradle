@@ -62,6 +62,15 @@ project('spring-xd-extension-gemfire') {
     }
 }
 
+project('spring-xd-extension-header-enricher'){
+    description = 'Spring XD Header Enricher Module'
+    dependencies {
+        testCompile project(':spring-xd-dirt')
+        testCompile project(':spring-xd-module-spi')
+        testCompile project(":spring-xd-test")
+    }
+}
+
 project('spring-xd-extension-kafka') {
     description = 'Spring XD Kafka'
     dependencies {

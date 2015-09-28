@@ -16,8 +16,14 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Before;
@@ -32,15 +38,13 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport.JavaClassMimeTypeConversion;
+import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
+import org.springframework.xd.tuple.serializer.kryo.TupleCodec;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
-import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 
 /**
  * @author Gary Russell
@@ -55,7 +59,9 @@ public class MessageBusSupportTests {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Before
 	public void setUp() {
-		messageBus.setCodec(new PojoCodec(new TupleKryoRegistrar()));
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
+		codecs.put(Tuple.class, new TupleCodec());
+		messageBus.setCodec(new CompositeCodec(codecs, new PojoCodec()));
 	}
 
 	@Test

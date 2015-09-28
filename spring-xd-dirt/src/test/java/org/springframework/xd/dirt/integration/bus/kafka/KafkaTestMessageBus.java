@@ -16,26 +16,29 @@
 
 package org.springframework.xd.dirt.integration.bus.kafka;
 
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
+import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
+import org.springframework.xd.tuple.serializer.kryo.TupleCodec;
 import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 import org.springframework.xd.dirt.integration.kafka.TestKafkaCluster;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
-import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
+import org.springframework.xd.tuple.Tuple;
 
 
 /**
  * Test support class for {@link KafkaMessageBus}.
  * Creates a bus that uses a test {@link TestKafkaCluster kafka cluster}.
+ *
  * @author Eric Bottard
  * @author Marius Bogoevici
- * @author David Turanski
  */
 public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus> {
 
@@ -44,8 +47,7 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 	}
 
 
-	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport, MultiTypeCodec<Object> codec, 
-			KafkaMessageBus.Mode mode) {
+	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport, MultiTypeCodec<Object> codec, KafkaMessageBus.Mode mode) {
 
 		try {
 			ZookeeperConnect zookeeperConnect = new ZookeeperConnect();
@@ -73,7 +75,9 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private static MultiTypeCodec<Object> getCodec() {
-		return new PojoCodec(new TupleKryoRegistrar());
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
+		codecs.put(Tuple.class, new TupleCodec());
+		return new CompositeCodec(codecs, new PojoCodec());
 	}
 
 }

@@ -16,13 +16,16 @@
 
 package org.springframework.xd.dirt.integration.bus.kafka;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -30,18 +33,26 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import kafka.api.OffsetRequest;
-
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.kafka.core.KafkaMessage;
 import org.springframework.integration.kafka.core.Partition;
+import org.springframework.integration.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.integration.kafka.listener.MessageListener;
+import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
@@ -305,9 +316,61 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 	}
 
 	@Test
+	public void testKafkaSpecificConsumerPropertiesAreSet() {
+		KafkaTestMessageBus messageBus = (KafkaTestMessageBus) getMessageBus();
+		Properties consumerProperties = new Properties();
+		consumerProperties.put(KafkaMessageBus.AUTO_COMMIT_OFFSET_ENABLED, "false");
+		consumerProperties.put(KafkaMessageBus.FETCH_SIZE, "7");
+		consumerProperties.put(KafkaMessageBus.QUEUE_SIZE, "128");
+		long uniqueBindingId = System.currentTimeMillis();
+		DirectChannel inputChannel = new DirectChannel();
+		messageBus.bindConsumer("foo" + uniqueBindingId, inputChannel, consumerProperties);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(messageBus.getCoreMessageBus());
+		@SuppressWarnings("unchecked")
+		List<Binding> bindings = (List<Binding>) accessor.getPropertyValue("bindings");
+		assertThat(bindings, hasSize(1));
+		Binding consumerBinding = bindings.get(0);
+		AbstractEndpoint bindingEndpoint = consumerBinding.getEndpoint();
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(bindingEndpoint);
+		KafkaMessageListenerContainer messageListenerContainer = ((KafkaMessageListenerContainer) endpointAccessor.getPropertyValue("messageListenerContainer") );
+		assertThat(messageListenerContainer.getQueueSize(), equalTo(128));
+		assertThat(messageListenerContainer.getMaxFetch(), equalTo(7));
+		assertThat(messageListenerContainer.getMessageListener(), instanceOf(AcknowledgingMessageListener.class));
+		messageBus.unbindConsumers("foo" + uniqueBindingId);
+	}
+
+	@Test
+	public void testKafkaSpecificProducerPropertiesAreSet() {
+		KafkaTestMessageBus messageBus = (KafkaTestMessageBus) getMessageBus();
+		Properties producerProperties = new Properties();
+		producerProperties.put(BusProperties.BATCH_SIZE, "34");
+		producerProperties.put(BusProperties.BATCH_TIMEOUT, "7");
+		long uniqueBindingId = System.currentTimeMillis();
+		DirectChannel inputChannel = new DirectChannel();
+		messageBus.bindProducer("foo" + uniqueBindingId, inputChannel, producerProperties);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(messageBus.getCoreMessageBus());
+		@SuppressWarnings("unchecked")
+		List<Binding> bindings = (List<Binding>) accessor.getPropertyValue("bindings");
+		assertThat(bindings, hasSize(1));
+		Binding producerBinding = bindings.get(0);
+		AbstractEndpoint bindingEndpoint = producerBinding.getEndpoint();
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(bindingEndpoint);
+		MessageHandler messageHandler = ((MessageHandler) endpointAccessor.getPropertyValue("handler") );
+		DirectFieldAccessor messageHandlerAccessor = new DirectFieldAccessor(messageHandler);
+		ProducerConfiguration<?,?> producerConfiguration = (ProducerConfiguration<?, ?>) messageHandlerAccessor.getPropertyValue("producerConfiguration");
+		DirectFieldAccessor producerConfigurationAccessor = new DirectFieldAccessor(producerConfiguration);
+		@SuppressWarnings("rawtypes")
+		KafkaProducer producer = (KafkaProducer) producerConfigurationAccessor.getPropertyValue("producer");
+		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
+		ProducerConfig producerConfig = (ProducerConfig)producerAccessor.getPropertyValue("producerConfig");
+		assertThat(producerConfig.getInt(ProducerConfig.BATCH_SIZE_CONFIG), equalTo(34));
+		assertThat(producerConfig.getLong(ProducerConfig.LINGER_MS_CONFIG), equalTo(7L));
+		messageBus.unbindProducers("foo" + uniqueBindingId);
+	}
+
+	@Test
 	@Ignore("Kafka message bus does not support direct binding")
 	@Override
 	public void testDirectBinding() throws Exception {
-
 	}
 }

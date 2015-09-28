@@ -16,9 +16,18 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.junit.After;
@@ -34,22 +43,16 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.xd.dirt.integration.bus.MessageBus.Capability;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
+import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
+import org.springframework.xd.dirt.integration.bus.serializer.CompositeCodec;
 import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
 import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
-import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.springframework.xd.tuple.Tuple;
+import org.springframework.xd.tuple.serializer.kryo.TupleCodec;
 
 /**
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
- * @author David Turanski
  */
 public abstract class AbstractMessageBusTests {
 
@@ -84,8 +87,7 @@ public abstract class AbstractMessageBusTests {
 		QueueChannel moduleInputChannel = new QueueChannel();
 		messageBus.bindProducer("foo.0", moduleOutputChannel, null);
 		messageBus.bindConsumer("foo.0", moduleInputChannel, null);
-		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, 
-				"foo/bar").build();
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		// Let the consumer actually bind to the producer before sending a msg
 		busBindUnbindLatency();
 		moduleOutputChannel.send(message);
@@ -137,8 +139,7 @@ public abstract class AbstractMessageBusTests {
 		// Another new module is using tap as an input channel
 		String barTapName = messageBus.isCapable(Capability.DURABLE_PUBSUB) ? "bar.tap:baz.http" : "tap:baz.http";
 		messageBus.bindPubSubConsumer(barTapName, module3InputChannel, null);
-		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, 
-				"foo/bar").build();
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		boolean success = false;
 		boolean retried = false;
 		while (!success) {
@@ -166,8 +167,7 @@ public abstract class AbstractMessageBusTests {
 		}
 		// delete one tap stream is deleted
 		messageBus.unbindConsumer(barTapName, module3InputChannel);
-		Message<?> message2 = MessageBuilder.withPayload("bar").setHeader(MessageHeaders.CONTENT_TYPE, 
-				"foo/bar").build();
+		Message<?> message2 = MessageBuilder.withPayload("bar").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		moduleOutputChannel.send(message2);
 
 		// other tap still receives messages
@@ -208,8 +208,7 @@ public abstract class AbstractMessageBusTests {
 		// Another new module is using tap as an input channel
 		String barTapName = messageBus.isCapable(Capability.DURABLE_PUBSUB) ? "bar.tap:baz.http" : "tap:baz.http";
 		messageBus.bindPubSubConsumer(barTapName, module3InputChannel, null);
-		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, 
-				"foo/bar").build();
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		boolean success = false;
 		boolean retried = false;
 		while (!success) {
@@ -237,8 +236,7 @@ public abstract class AbstractMessageBusTests {
 		}
 		// delete one tap stream is deleted
 		messageBus.unbindConsumer(barTapName, module3InputChannel);
-		Message<?> message2 = MessageBuilder.withPayload("bar").setHeader(MessageHeaders.CONTENT_TYPE, 
-				"foo/bar").build();
+		Message<?> message2 = MessageBuilder.withPayload("bar").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		moduleOutputChannel.send(message2);
 
 		// other tap still receives messages
@@ -291,9 +289,11 @@ public abstract class AbstractMessageBusTests {
 		return (List<?>) accessor.getPropertyValue("bindings");
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected MultiTypeCodec<Object> getCodec() {
-		return new PojoCodec(new TupleKryoRegistrar());
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<>();
+		codecs.put(Tuple.class, new TupleCodec());
+		return new CompositeCodec(codecs, new PojoCodec());
 	}
 
 	protected abstract MessageBus getMessageBus() throws Exception;

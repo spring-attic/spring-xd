@@ -361,6 +361,10 @@ project('modules.sink.rabbit') {
     dependencies { runtime "org.springframework.integration:spring-integration-amqp" }
 }
 
+project('modules.sink.cassandra') {
+    dependencies { runtime (project(":spring-xd-extension-cassandra")) }
+}
+
 
 // ================ M O D U L E S : J O B S ============================
 

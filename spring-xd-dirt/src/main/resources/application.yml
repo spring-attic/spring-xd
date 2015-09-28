@@ -238,6 +238,7 @@ xd:
         - GET    /runtime/modules.*              => hasRole('ROLE_VIEW')
         # Containers
         - GET    /runtime/containers             => hasRole('ROLE_VIEW')
+        - DELETE /runtime/containers             => hasRole('ROLE_CREATE')
         - GET    /runtime/containers.*           => hasRole('ROLE_VIEW')
         # Counters
         - GET    /metrics/counters               => hasRole('ROLE_VIEW')

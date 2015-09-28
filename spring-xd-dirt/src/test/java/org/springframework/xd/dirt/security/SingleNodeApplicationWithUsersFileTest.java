@@ -192,7 +192,7 @@ public class SingleNodeApplicationWithUsersFileTest {
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/instances", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/instances.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/instances.json", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.INTERNAL_SERVER_ERROR, "/jobs/instances", viewOnlyUser, null },
+			{ HttpMethod.GET, HttpStatus.BAD_REQUEST, "/jobs/instances", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.NOT_FOUND, "/jobs/instances", viewOnlyUser,
 				ImmutableMap.of("jobname", "testjobname") },
 
@@ -216,6 +216,10 @@ public class SingleNodeApplicationWithUsersFileTest {
 			{ HttpMethod.GET, HttpStatus.OK, "/runtime/containers", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/runtime/containers.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/runtime/containers.json", viewOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/runtime/containers", viewOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.BAD_REQUEST, "/runtime/containers", createOnlyUser, null },
+			{ HttpMethod.DELETE, HttpStatus.NOT_FOUND, "/runtime/containers", createOnlyUser,
+				ImmutableMap.of("containerId", "123456789") },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/counters", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/counters.xml", createOnlyUser, null },
@@ -323,6 +327,9 @@ public class SingleNodeApplicationWithUsersFileTest {
 				break;
 			case CREATED:
 				statusResultMatcher = status().isCreated();
+				break;
+			case BAD_REQUEST:
+				statusResultMatcher = status().isBadRequest();
 				break;
 			case INTERNAL_SERVER_ERROR:
 				statusResultMatcher = status().isInternalServerError();

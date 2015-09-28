@@ -57,7 +57,7 @@ include 'documentation-toolchain'
 // This prevents the detection of the extensions/ directory itself
 // as a project (which it is not) and avoids manual listing of projects
 new File(rootDir, 'extensions').eachDir { dir ->
-	if (new File(dir, 'src/main/java').exists()) {
+	if (new File(dir, 'src/main/java').exists() || new File(dir, 'src/test/java').exists()) {
 		include ":${dir.name}"
 		project(":${dir.name}").projectDir = dir
 	}

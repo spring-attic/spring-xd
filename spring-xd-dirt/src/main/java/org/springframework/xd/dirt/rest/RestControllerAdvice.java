@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -329,4 +330,11 @@ public class RestControllerAdvice {
 		return new VndErrors(logref, e.getMessage());
 	}
 
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onUnsatisfiedServletRequestParameterException(UnsatisfiedServletRequestParameterException e) {
+		String logref = logDebug(e);
+		return new VndErrors(logref, e.getMessage());
+	}
 }

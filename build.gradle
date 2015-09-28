@@ -1351,6 +1351,30 @@ project('spring-xd-distributed-test') {
 	}
 }
 
+//Spring XD Performance Benchmarks
+project('spring-xd-benchmark') {
+       description = 'Spring XD benchmark tests'
+       test {
+          onlyIf {
+               Boolean.getBoolean('run_benchmark_tests')
+          }
+          //redirect output to the console.
+          testLogging {
+               events "passed", "skipped", "failed", "standardOut", "standardError"
+          }
+     }
+
+     //force tests to always run
+     test.dependsOn cleanTest
+
+     dependencies {
+            testCompile project(":spring-xd-test-fixtures")
+            testCompile project(":spring-xd-test")
+            testCompile project(":spring-xd-dirt")
+            testCompile "junit:junit"
+       }
+}
+
 apply plugin: 'sonar-runner'
 
 sonarRunner {

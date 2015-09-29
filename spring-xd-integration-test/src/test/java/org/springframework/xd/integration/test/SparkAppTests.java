@@ -18,21 +18,22 @@
 
 package org.springframework.xd.integration.test;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import static org.junit.Assert.assertTrue;
-
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.xd.rest.domain.JobExecutionInfoResource;
-import org.springframework.xd.rest.domain.StepExecutionInfoResource;
-import org.springframework.xd.test.fixtures.SparkAppJob;
 
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.xd.rest.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.domain.StepExecutionInfoResource;
+import org.springframework.xd.test.fixtures.SparkAppJob;
 
 /**
  * Verifies that SparkApp job executes on a Spark App Server and on the VM.
@@ -70,6 +71,7 @@ public class SparkAppTests extends AbstractJobTest {
 	}
 
 	@Test
+	@Ignore("Ignoring the test until the spark standalone cluster is setup with correct version")
 	public void sparkAppTest() {
 		job(jobName, sparkAppJob.toDSL(), true);
 		jobLaunch(jobName);

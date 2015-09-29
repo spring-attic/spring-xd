@@ -44,7 +44,7 @@ public class CassandraConnectionMixin {
 
 	private String initScript;
 
-	private String[] entityBasePackages = new String[0];
+	private String[] entityBasePackages;
 
 	private CompressionType compressionType = CompressionType.NONE;
 

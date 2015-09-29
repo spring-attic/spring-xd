@@ -18,11 +18,10 @@ package org.springframework.xd.dirt.integration.bus.serializer.kryo;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Registration;
-import reactor.util.CollectionUtils;
-
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+
+import com.esotericsoftware.kryo.Registration;
 
 /**
  * A {@link KryoRegistrar} used to register a
@@ -34,14 +33,14 @@ import org.springframework.util.Assert;
  */
 public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 
-	private final List<Class> registeredClasses;
+	private final List<Class<?>> registeredClasses;
 
 	private int initialValue = 50;
 
 	/**
 	 * @param classes the list of classes to register
 	 */
-	public KryoClassListRegistrar(List<Class> classes) {
+	public KryoClassListRegistrar(List<Class<?>> classes) {
 		this.registeredClasses = classes;
 	}
 
@@ -62,8 +61,8 @@ public class KryoClassListRegistrar extends AbstractKryoRegistrar {
 		List<Registration> registrations = new ArrayList<>();
 		if (!CollectionUtils.isEmpty(registeredClasses)) {
 			for (int i = 0; i < registeredClasses.size(); i++) {
-				registrations.add(new Registration(registeredClasses.get(i), kryo.getSerializer(registeredClasses.get
-						(i)), i + initialValue));
+				registrations.add(new Registration(registeredClasses.get(i),
+						kryo.getSerializer(registeredClasses.get(i)), i + initialValue));
 			}
 		}
 		return registrations;

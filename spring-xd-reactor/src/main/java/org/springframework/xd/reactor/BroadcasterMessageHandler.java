@@ -15,15 +15,15 @@
  */
 package org.springframework.xd.reactor;
 
+import java.util.concurrent.TimeUnit;
+
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.InitializingBean;
+
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
+
 import reactor.core.processor.RingBufferProcessor;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Adapts the item at a time delivery of a {@link org.springframework.messaging.MessageHandler}
@@ -85,6 +85,7 @@ public class BroadcasterMessageHandler extends AbstractReactorMessageHandler {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void onInit() throws Exception {
         super.onInit();
         //Stream with a RingBufferProcessor

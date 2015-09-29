@@ -128,6 +128,7 @@ public class MultipleBroadcasterMessageHandler extends AbstractReactorMessageHan
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public void destroy() throws Exception {
         for (RingBufferProcessor ringBufferProcessor : reactiveProcessorMap.values()) {
             ringBufferProcessor.awaitAndShutdown(getStopTimeout(), TimeUnit.MILLISECONDS);

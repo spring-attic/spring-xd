@@ -15,6 +15,7 @@
 
 package org.springframework.xd.cassandra;
 
+import java.lang.SuppressWarnings;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -203,6 +204,7 @@ public class CassandraSinkConfiguration {
 
 	}
 
+	@SuppressWarnings("serial")
 	private static class ISO8601StdDateFormat extends StdDateFormat {
 
 		@Override

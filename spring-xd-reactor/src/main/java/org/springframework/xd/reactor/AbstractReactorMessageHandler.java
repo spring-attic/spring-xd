@@ -55,6 +55,7 @@ public abstract class AbstractReactorMessageHandler extends AbstractMessageProdu
      *
      * @param processor The stream based reactor processor
      */
+    @SuppressWarnings("rawtypes")
     public AbstractReactorMessageHandler(Processor processor) {
         Assert.notNull(processor, "processor cannot be null.");
         this.processor = processor;

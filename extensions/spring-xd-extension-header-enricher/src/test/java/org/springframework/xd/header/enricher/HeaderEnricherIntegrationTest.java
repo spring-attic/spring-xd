@@ -18,12 +18,12 @@ package org.springframework.xd.header.enricher;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.xd.dirt.test.process.SingleNodeProcessingChainSupport.chain;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
-import org.springframework.xd.dirt.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.test.process.SingleNodeProcessingChain;
 import org.springframework.xd.test.RandomConfigurationSupport;
 
@@ -47,10 +47,8 @@ public class HeaderEnricherIntegrationTest {
 	@BeforeClass
 	public static void setUp() {
 		System.setProperty("XD_HOME", "../..");
-		RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
+		new RandomConfigurationSupport();
 		application = new SingleNodeApplication().run();
-		SingleNodeIntegrationTestSupport singleNodeIntegrationTestSupport = new SingleNodeIntegrationTestSupport(
-				application);
 	}
 
 	@Test
@@ -140,5 +138,10 @@ public class HeaderEnricherIntegrationTest {
 		assertEquals(123, message.getHeaders().get("foo"));
 
 		chain.destroy();
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		application.close();
 	}
 }

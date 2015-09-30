@@ -580,7 +580,7 @@ The **$$cassandra$$** $$sink$$ has the following options:
 $$compressionType$$:: $$the compression to use for the transport$$ *($$CompressionType$$, default: `NONE`, possible values: `NONE,SNAPPY`)*
 $$consistencyLevel$$:: $$the consistencyLevel option of WriteOptions$$ *($$ConsistencyLevel$$, no default, possible values: `ANY,ONE,TWO,THREE,QUOROM,LOCAL_QUOROM,EACH_QUOROM,ALL,LOCAL_ONE,SERIAL,LOCAL_SERIAL`)*
 $$contactPoints$$:: $$the comma-delimited string of the hosts to connect to Cassandra$$ *($$String$$, default: `localhost`)*
-$$entityBasePackages$$:: $$the base packages to scan for entities annotated with Table annotations$$ *($$String;$$, default: `[Ljava.lang.String;@48e35571`)*
+$$entityBasePackages$$:: $$the base packages to scan for entities annotated with Table annotations$$ *($$String[]$$, default: `[]`)*
 $$ingestQuery$$:: $$the ingest Cassandra query$$ *($$String$$, no default)*
 $$initScript$$:: $$the path to file with CQL scripts (delimited by ';') to initialize keyspace schema$$ *($$String$$, no default)*
 $$keyspace$$:: $$the keyspace name to connect to$$ *($$String$$, default: `<stream name>`)*

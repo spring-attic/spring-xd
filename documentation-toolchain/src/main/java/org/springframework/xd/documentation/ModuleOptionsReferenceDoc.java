@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -120,7 +121,6 @@ public class ModuleOptionsReferenceDoc {
 
 		backup.delete();
 
-
 	}
 
 	private void checkPreviousTagHasBeenClosed(File originalFile, File backup, PrintStream out, ModuleType type,
@@ -171,25 +171,27 @@ public class ModuleOptionsReferenceDoc {
 			String prettyDefault = prettifyDefaultValue(mo);
 			String maybeEnumHint = generateEnumValues(mo, moduleClassLoader);
 			out.format("%s:: %s *(%s, %s%s)*%n", pt(mo.getName()), pt(mo.getDescription()),
-					pt(className(mo.getType())),
+					pt(shortClassName(mo.getType())),
 					prettyDefault, maybeEnumHint);
 		}
 	}
 
-	private String className(String fqName) {
+	private String shortClassName(String fqName) {
 		int lastDot = fqName.lastIndexOf('.');
-		int lastDollar = fqName.lastIndexOf('$');
-		int chop = Math.max(lastDollar, lastDot);
-		return chop >= 0 ? fqName.substring(chop+1) : fqName;
+		return lastDot >= 0 ? fqName.substring(lastDot + 1) : fqName;
 	}
+
 
 	/**
 	 * When the type of an option is an enum, document all possible values
 	 */
 	private String generateEnumValues(ModuleOption mo, ClassLoader moduleClassLoader) {
+		// Attempt to convert back to com.acme.Foo$Bar form
+		String canonical = mo.getType();
+		String system = canonical.replaceAll("(.*\\p{Upper}[^\\.]*)\\.(\\p{Upper}.*)", "$1\\$$2");
 		Class<?> clazz = null;
 		try {
-			clazz = Class.forName(mo.getType(), false, moduleClassLoader);
+			clazz = Class.forName(system, false, moduleClassLoader);
 		}
 		catch (ClassNotFoundException e) {
 			return "";
@@ -203,11 +205,47 @@ public class ModuleOptionsReferenceDoc {
 	}
 
 	private String prettifyDefaultValue(ModuleOption mo) {
-		String result = mo.getDefaultValue() == null ? "no default" : String.format("default: `%s`",
-				mo.getDefaultValue());
+		if (mo.getDefaultValue() == null) {
+			return "no default";
+		}
+		String result = stringify(mo.getDefaultValue());
 		result = result.replace(ModulePlaceholders.XD_STREAM_NAME, "<stream name>");
 		result = result.replace(ModulePlaceholders.XD_JOB_NAME, "<job name>");
-		return result;
+		return "default: `" + result + "`";
+	}
+
+	private String stringify(Object element) {
+		Class<?> clazz = element.getClass();
+		if (clazz == byte[].class) {
+			return Arrays.toString((byte[]) element);
+		}
+		else if (clazz == short[].class) {
+			return Arrays.toString((short[]) element);
+		}
+		else if (clazz == int[].class) {
+			return Arrays.toString((int[]) element);
+		}
+		else if (clazz == long[].class) {
+			return Arrays.toString((long[]) element);
+		}
+		else if (clazz == char[].class) {
+			return Arrays.toString((char[]) element);
+		}
+		else if (clazz == float[].class) {
+			return Arrays.toString((float[]) element);
+		}
+		else if (clazz == double[].class) {
+			return Arrays.toString((double[]) element);
+		}
+		else if (clazz == boolean[].class) {
+			return Arrays.toString((boolean[]) element);
+		}
+		else if (element instanceof Object[]) {
+			return Arrays.deepToString((Object[]) element);
+		}
+		else {
+			return element.toString();
+		}
 	}
 
 	/**

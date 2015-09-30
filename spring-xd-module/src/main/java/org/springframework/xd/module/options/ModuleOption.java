@@ -42,7 +42,7 @@ public class ModuleOption {
 
 	public ModuleOption withType(Class<?> type) {
 		if (type != null) {
-			this.type = type.getName();
+			this.type = type.getCanonicalName();
 		}
 		return this;
 	}

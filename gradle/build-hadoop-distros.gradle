@@ -43,6 +43,7 @@ project('spring-xd-hadoop:hadoop27') {
 		from configurations.default
 		include 'spring-data-hadoop-*'
 		include 'hadoop-*'
+		include 'htrace-core-*'
 		include 'avro-*'
 		include 'protobuf-java-*'
 		include 'jetty-util-*'
@@ -149,6 +150,7 @@ project('spring-xd-hadoop:hdp23') {
 		from configurations.default
 		include 'spring-data-hadoop-*'
 		include 'hadoop-*'
+		include 'htrace-core-*'
 		include 'avro-*'
 		include 'protobuf-java-*'
 		include 'jetty-util-*'

@@ -1176,7 +1176,6 @@ project('spring-xd-shell') {
 		compile "commons-io:commons-io"
 		configurations.compile.exclude(group: "xerces")
 
-		runtime 'org.apache.htrace:htrace-core:3.1.0-incubating'
 		runtime 'ch.qos.logback:logback-classic'
 
 		testCompile project(":spring-xd-test-fixtures")

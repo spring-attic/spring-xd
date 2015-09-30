@@ -748,6 +748,44 @@ where
 
 Be mindful that the above is indeed a YAML list, not a map (thus the use of '-' dashes at the start of each line) that lives under the `security.authorization.rules` key.
 
+==== Cross-origin resource sharing (CORS)
+
+[quote, Wikipedia, https://en.wikipedia.org/wiki/Cross-origin_resource_sharing]
+____
+Cross-origin resource sharing (CORS) is a mechanism that allows restricted resources (e.g. fonts) on a web page to be requested from another domain outside the domain from which the resource originated.
+____
+
+We do set a default value of `http://localhost:9889` in the internal https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/application.yml[application.yml] file that is embedded inside the Spring XD jars.
+
+[source,yaml]
+.application.yml
+----
+xd:
+  …
+  ui:
+    …
+    allow_origin: "http://localhost:9889"
+    …
+----
+
+In order to customize this, set the `xd.ui.allow_origin` property in your `server.yml` file for the admin server profile by adding the following section:
+
+[source,yaml]
+.server.yml
+----
+---
+spring:
+  profiles: admin
+xd:
+  ui:
+    allow_origin: "*"
+---
+----
+
+For example, if you set the value to `"*"` (asterisk), Spring XD should accept requests from any domain. Please make sure to wrap the asterisk with double quotes.
+
+Under the hood the value will set the CORS `Access-Control-Allow-Origin` header in the `AccessControlInterceptor` via the https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/java/org/springframework/xd/dirt/rest/RestConfiguration.java[`RestConfiguration`] class.
+
 ==== Local transport
 
 Local transport uses a http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/channel/QueueChannel.html[QueueChannel] to pass data between modules.  There are a few properties you can configure on the QueueChannel

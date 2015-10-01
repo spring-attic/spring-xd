@@ -579,7 +579,18 @@ public abstract class AbstractIntegrationTest {
 	 * @param data The data expected in the file
 	 */
 	public void assertFileContains(String data) {
-		assertFileContains(data, containerResolver.getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
+		assertFileContains(data, STREAM_NAME);
+	}
+
+	/**
+	 * Asserts that the data stored by the file sink, whose name is based off the stream
+	 * name, is what was expected.
+	 *
+	 * @param streamName the name of the stream that generated the file
+	 * @param data The data expected in the file
+	 */
+	public void assertFileContains(String data, String streamName) {
+		assertFileContains(data, containerResolver.getContainerUrlForSink(streamName), streamName);
 	}
 
 	/**
@@ -589,7 +600,18 @@ public abstract class AbstractIntegrationTest {
 	 * @param data The data expected in the file
 	 */
 	public void assertFileContainsIgnoreCase(String data) {
-		assertFileContainsIgnoreCase(data, containerResolver.getContainerUrlForSink(STREAM_NAME), STREAM_NAME);
+		assertFileContainsIgnoreCase(data, STREAM_NAME);
+	}
+	
+	/**
+	 * Asserts that the data stored by a file sink, whose name is based off the stream name,
+	 * is what was expected.  The assertion is case insensitive.
+	 *
+	 * @param streamName the name of the stream that generated the file
+	 * @param data The data expected in the file
+	 */
+	public void assertFileContainsIgnoreCase(String data, String streamName) {
+		assertFileContainsIgnoreCase(data, containerResolver.getContainerUrlForSink(streamName), streamName);
 	}
 
 	/**

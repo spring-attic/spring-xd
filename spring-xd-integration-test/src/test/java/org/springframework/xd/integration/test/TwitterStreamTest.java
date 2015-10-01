@@ -16,6 +16,8 @@
 
 package org.springframework.xd.integration.test;
 
+import java.util.UUID;
+
 import org.junit.Test;
 
 
@@ -29,13 +31,12 @@ public class TwitterStreamTest extends AbstractIntegrationTest {
 
 	@Test
 	public void twitterStream() throws Exception {
-
+		final String streamName = "ts" + UUID.randomUUID().toString();
 		final String data = "screen_name";
-		stream(sources.twitterStream()
+		stream(streamName, sources.twitterStream()
 				+ XD_DELIMITER
 				+ sinks.file());
 		this.waitForXD();
-		assertFileContains(data);
-
+		assertFileContains(data, streamName);
 	}
 }

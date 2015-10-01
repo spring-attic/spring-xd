@@ -16,6 +16,8 @@
 
 package org.springframework.xd.integration.test;
 
+import java.util.UUID;
+
 import org.junit.Test;
 
 import org.springframework.xd.test.fixtures.TwitterSearchSource;
@@ -32,11 +34,12 @@ public class TwitterSearchTest extends AbstractIntegrationTest {
 	@Test
 	public void twitterSearchTest() throws Exception {
 
+		final String streamName = "ts" + UUID.randomUUID().toString();
 		final String data = "#katyperry";
 		TwitterSearchSource twitterSearchSource = sources.twitterSearch(data);
-		stream(twitterSearchSource + XD_DELIMITER + " file");
+		stream(streamName, twitterSearchSource + XD_DELIMITER + " file");
 		this.waitForXD();
-		assertFileContainsIgnoreCase(data);
+		assertFileContainsIgnoreCase(data, streamName);
 
 	}
 }

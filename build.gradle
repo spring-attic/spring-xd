@@ -556,7 +556,14 @@ project('spring-xd-dirt') {
 		}
 
 		// The following is needed by cassandra module
-		runtime "org.springframework.integration:spring-integration-cassandra:$springIntegrationCassandraVersion"
+		runtime("org.springframework.integration:spring-integration-cassandra:$springIntegrationCassandraVersion") {
+			exclude group: "com.google.guava", module: "guava"
+		}
+
+		// Use Jetty (works better on YARN)
+		runtime 'org.eclipse.jetty:jetty-server:8.1.14.v20131031'
+		runtime 'org.eclipse.jetty:jetty-webapp:8.1.14.v20131031'
+		runtime 'org.eclipse.jetty:jetty-plus:8.1.14.v20131031'
 
 		// ************* Test
 		testCompile project(":spring-xd-test")
@@ -687,6 +694,9 @@ project('spring-xd-hadoop') {
 		configurations.compile.exclude(group: 'org.apache.httpcomponents', module: 'httpcore')
 		configurations.compile.exclude(group: 'com.sun.jersey', module: 'jersey-client')
 		configurations.compile.exclude(group: 'org.fusesource.leveldbjni', module: 'leveldbjni-all')
+		configurations.compile.exclude(group: 'org.apache.curator', module: 'curator-framework')
+		configurations.compile.exclude(group: 'org.apache.curator', module: 'curator-recipes')
+		configurations.compile.exclude(group: 'org.apache.curator', module: 'curator-client')
 
 		compile("org.springframework.data:spring-data-hadoop-store") { exclude group: 'org.apache.hadoop' }
 		testRuntime "org.xerial.snappy:snappy-java"
@@ -712,7 +722,6 @@ project('spring-xd-yarn:spring-xd-yarn-client') {
 		compile "org.springframework:spring-tx"
 		compile "org.springframework.batch:spring-batch-core"
 		compile("org.springframework.data:spring-yarn-boot-cli") {
-			exclude group: 'javax.servlet', module: 'servlet-api'
 			exclude group: 'javax.servlet.jsp', module: 'jsp-api'
 			exclude group: 'tomcat', module: 'jasper-runtime'
 			exclude group: 'tomcat', module: 'jasper-compiler'
@@ -906,6 +915,9 @@ project('spring-xd-spark-streaming') {
 		}
 		compile "org.springframework.integration:spring-integration-core"
 		compile project(":spring-xd-module-spi")
+		configurations.compile.exclude(group: 'org.apache.curator', module: 'curator-framework')
+		configurations.compile.exclude(group: 'org.apache.curator', module: 'curator-recipes')
+		configurations.compile.exclude(group: 'org.apache.curator', module: 'curator-client')
 	}
 }
 

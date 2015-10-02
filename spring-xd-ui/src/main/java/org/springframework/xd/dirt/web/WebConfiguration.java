@@ -18,6 +18,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Gunnar Hillert
  */
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class,
-		MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
+		MongoAutoConfiguration.class, MongoDataAutoConfiguration.class, SolrAutoConfiguration.class})
 @Configuration
 @ComponentScan
 public class WebConfiguration {

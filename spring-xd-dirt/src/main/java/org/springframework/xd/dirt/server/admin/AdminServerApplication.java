@@ -34,6 +34,7 @@ import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAuto
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerException;
 import org.springframework.context.ApplicationContext;
@@ -65,7 +66,7 @@ import org.springframework.xd.dirt.web.WebConfiguration;
 @Configuration
 @EnableAutoConfiguration(exclude = {BatchAutoConfiguration.class, JmxAutoConfiguration.class,
 		AuditAutoConfiguration.class, GroovyTemplateAutoConfiguration.class, MongoAutoConfiguration.class,
-		MongoDataAutoConfiguration.class })
+		MongoDataAutoConfiguration.class, SolrAutoConfiguration.class})
 @ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml")
 @ComponentScan("org.springframework.xd.dirt.server.security")
 @Import({RestConfiguration.class, WebConfiguration.class, DeploymentConfiguration.class})

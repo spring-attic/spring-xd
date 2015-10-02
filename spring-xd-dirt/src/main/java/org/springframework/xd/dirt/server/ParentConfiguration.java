@@ -26,6 +26,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.solr.SolrAutoConfiguration;
 import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -44,7 +45,8 @@ import org.springframework.xd.dirt.util.ConfigLocations;
  */
 @EnableAutoConfiguration(exclude = {ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
 		ThymeleafAutoConfiguration.class, JmxAutoConfiguration.class, HealthIndicatorAutoConfiguration.class,
-		AuditAutoConfiguration.class, MongoAutoConfiguration.class, MongoDataAutoConfiguration.class })
+		AuditAutoConfiguration.class, MongoAutoConfiguration.class, MongoDataAutoConfiguration.class,
+		SolrAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_CONFIG_ROOT + "global/parent-context.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {

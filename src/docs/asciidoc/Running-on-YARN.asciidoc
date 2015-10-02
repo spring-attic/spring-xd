@@ -12,10 +12,10 @@ physical servers managed by you.
 ==== What do you need?
 To begin with, you need to have access to a Hadoop cluster running a
 version based on Apache Hadoop version 2. This includes
-link:http://www.us.apache.org/dist/hadoop/common/hadoop-2.6.0/[Apache
-Hadoop 2.6.0],
+link:http://www.us.apache.org/dist/hadoop/common/hadoop-2.7.1/[Apache
+Hadoop 2.7.1],
 link:http://www.gopivotal.com/big-data/pivotal-hd[Pivotal HD 2.1 or 3.0],
-link:http://hortonworks.com/hdp/[Hortonworks HDP 2.2] and link:http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html[Cloudera CDH5].
+link:http://hortonworks.com/hdp/[Hortonworks HDP 2.3] and link:http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html[Cloudera CDH5].
 
 [IMPORTANT]
 ====
@@ -57,7 +57,7 @@ Depending on the distribution used you might need to change the
 provided basic settings for the supported distros, you just need to
 uncomment the ones for the distro you use.
 
-These are the settings used for Hadoop 2.6.0:
+These are the settings used for Hadoop 2.7.1:
 
 [source,yaml]
 ----

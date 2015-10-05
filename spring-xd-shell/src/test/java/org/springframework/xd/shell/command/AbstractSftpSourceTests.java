@@ -64,7 +64,11 @@ public class AbstractSftpSourceTests extends AbstractStreamIntegrationTest {
 	public void testSftpSource() {
 		String streamName = generateStreamName();
 		CounterSink counter = metrics().newCounterSink(streamName);
-		stream().create(streamName, "sftp --user=%s --password=%s --port=%s --remoteDir=%s --localDir=%s | %s",
+		stream().create(streamName, "sftp --user=%s --password=%s --port=%s --remoteDir=%s --localDir=%s "
+						+ "--allowUnknownKeys=true | %s",
+						// manual test; verify the key was added to the kh file
+						// + "--allowUnknownKeys=true "
+						// + "--knownHostsExpression=systemProperties[\"user.home\"]+\"/.ssh/known_hosts\" | %s",
 				server.getUser(), server.getPassword(), server.getPort(), server.getSourceSftpDirectory(),
 				server.getTargetLocalDirectory(), counter);
 		assertThat(counter, eventually(hasValue("2")));
@@ -75,7 +79,8 @@ public class AbstractSftpSourceTests extends AbstractStreamIntegrationTest {
 		String streamName = generateStreamName();
 		CounterSink counter = metrics().newCounterSink(streamName);
 		stream().create(streamName,
-				"sftp --user=%s --password=%s --port=%s --remoteDir=%s --localDir=%s --pattern=%s | %s",
+				"sftp --user=%s --password=%s --port=%s --remoteDir=%s --localDir=%s --pattern=%s "
+						+ "--allowUnknownKeys=true | %s",
 				server.getUser(), server.getPassword(), server.getPort(), server.getSourceSftpDirectory(),
 				server.getTargetLocalDirectory(), "*.txt", counter);
 		assertThat(counter, eventually(hasValue("1")));
@@ -86,7 +91,8 @@ public class AbstractSftpSourceTests extends AbstractStreamIntegrationTest {
 		String streamName = generateStreamName();
 		CounterSink counter = metrics().newCounterSink(streamName);
 		stream().create(streamName,
-				"sftp --user=%s --password=%s --port=%s --remoteDir=%s --localDir=%s --regexPattern=%s | %s",
+				"sftp --user=%s --password=%s --port=%s --remoteDir=%s --localDir=%s --regexPattern=%s "
+						+ "--allowUnknownKeys=true | %s",
 				server.getUser(), server.getPassword(), server.getPort(), server.getSourceSftpDirectory(),
 				server.getTargetLocalDirectory(), "'" + "(\\w+)\\.(txt|text)$" + "'", counter);
 		assertThat(counter, eventually(hasValue("2")));

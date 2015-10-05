@@ -21,7 +21,8 @@
 		<beans:property name="password" value="${password}" />
 		<beans:property name="privateKey" value="${privateKey}" />
 		<beans:property name="privateKeyPassphrase" value="${passPhrase}" />
-		<beans:property name="allowUnknownKeys" value="true"/>
+		<beans:property name="allowUnknownKeys" value="${allowUnknownKeys}" />
+		<beans:property name="knownHosts" value="#{'UNDEFINED'.equals('${knownHostsExpression}') ? null : ${knownHostsExpression}}" />
 	</beans:bean>
 
 	<int-sftp:inbound-channel-adapter

@@ -697,6 +697,7 @@ project('spring-xd-hadoop') {
 		configurations.compile.exclude(group: 'org.apache.curator', module: 'curator-framework')
 		configurations.compile.exclude(group: 'org.apache.curator', module: 'curator-recipes')
 		configurations.compile.exclude(group: 'org.apache.curator', module: 'curator-client')
+		configurations.compile.exclude(group: 'org.apache.htrace', module: 'htrace-core')
 
 		compile("org.springframework.data:spring-data-hadoop-store") { exclude group: 'org.apache.hadoop' }
 		testRuntime "org.xerial.snappy:snappy-java"
@@ -911,6 +912,7 @@ project('spring-xd-spark-streaming') {
 	dependencies {
 		compile("org.apache.spark:spark-streaming_$sparkScalaVersion:$sparkVersion") {
 			exclude group: 'hsqldb'
+			exclude module: 'htrace-core'
 			exclude group: 'com.esotericsoftware.kryo', module: 'kryo'
 		}
 		compile "org.springframework.integration:spring-integration-core"
@@ -1178,6 +1180,7 @@ project('spring-xd-shell') {
 			exclude group: 'net.java.dev.jets3t', module: 'jets3t'
 			exclude group: 'com.jcraft', module: 'jsch'
 			exclude group: 'junit', module: 'junit'
+			exclude group: 'org.apache.htrace', module: 'htrace-core'
 			//TODO: Not sure this is doing anything
 			exclude group: 'hsqldb'
 			exclude group: 'jline', module: 'jline'

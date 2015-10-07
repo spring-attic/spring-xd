@@ -218,6 +218,7 @@ task distShellZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
                             include "hadoop-auth-*.jar"
                             include "hadoop-common-*.jar"
                             include "hadoop-hdfs-*.jar"
+                            include "htrace-core-*"
                             include "hadoop-mapreduce-client-core-*.jar"
                             include "protobuf-java-*.jar"
                             into "${baseDir}/lib/$distro/"

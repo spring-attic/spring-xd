@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+  <bean class="org.springframework.core.task.SimpleAsyncTaskExecutor" id="taskExecutor"/>
+  <batch:job xmlns="http://www.springframework.org/schema/batch" id="test1">
+    <step id="AA">
+      <tasklet ref="jobRunner-AA"/>
+      <next on="*" to="split1"/>
+    </step>
+    <split id="split1" task-executor="taskExecutor">
+      <flow>
+        <step id="BB">
+          <tasklet ref="jobRunner-BB"/>
+        </step>
+      </flow>
+      <flow>
+        <step id="CC">
+          <tasklet ref="jobRunner-CC"/>
+        </step>
+      </flow>
+      <next on="*" to="DD"/>
+    </split>
+    <step id="DD">
+      <tasklet ref="jobRunner-DD"/>
+    </step>
+  </batch:job>
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-AA" scope="step">
+    <constructor-arg ref="messageBus"/>
+    <constructor-arg ref="jobDefinitionRepository"/>
+    <constructor-arg ref="xdJobRepository"/>
+    <constructor-arg value="AA"/>
+  </bean>
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-BB" scope="step">
+    <constructor-arg ref="messageBus"/>
+    <constructor-arg ref="jobDefinitionRepository"/>
+    <constructor-arg ref="xdJobRepository"/>
+    <constructor-arg value="BB"/>
+  </bean>
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-CC" scope="step">
+    <constructor-arg ref="messageBus"/>
+    <constructor-arg ref="jobDefinitionRepository"/>
+    <constructor-arg ref="xdJobRepository"/>
+    <constructor-arg value="CC"/>
+  </bean>
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-DD" scope="step">
+    <constructor-arg ref="messageBus"/>
+    <constructor-arg ref="jobDefinitionRepository"/>
+    <constructor-arg ref="xdJobRepository"/>
+    <constructor-arg value="DD"/>
+  </bean>
+</beans>

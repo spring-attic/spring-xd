@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -60,6 +61,7 @@ import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  */
 public class CompositeModuleTests {
 
@@ -113,6 +115,11 @@ public class CompositeModuleTests {
 		Module module = moduleFactory.createModule(compositeDescriptor, deploymentProperties);
 		assertTrue(module instanceof CompositeModule);
 		assertEquals(source, module.getType());
+		module.initialize();
+		Object endpoint = module.getApplicationContext().getBean("bridge-1");
+		assertNotNull(endpoint);
+		assertEquals("bridge-1", TestUtils.getPropertyValue(endpoint, "beanName"));
+		assertEquals("bridge-1", TestUtils.getPropertyValue(endpoint, "componentName"));
 	}
 
 	@Test

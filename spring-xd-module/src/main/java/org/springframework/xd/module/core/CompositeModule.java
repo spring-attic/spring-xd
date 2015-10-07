@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
@@ -48,6 +47,7 @@ import org.springframework.xd.module.ModuleType;
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  */
 public class CompositeModule extends AbstractModule {
 
@@ -71,6 +71,7 @@ public class CompositeModule extends AbstractModule {
 		this.modules = modules;
 		this.validate();
 	}
+
 	//TODO: This is specific to XD stream composition. Eventually we may want to support more generic composite modules.
 	private void validate() {
 		Assert.isTrue(modules != null && modules.size() > 0, "at least one module required");
@@ -126,11 +127,13 @@ public class CompositeModule extends AbstractModule {
 				try {
 					// TODO: might not be necessary to pass this context, but the FB requires non-null
 					bridgeFactoryBean.setBeanFactory(this.context.getBeanFactory());
+					String beanName = "bridge-" + i;
+					bridgeFactoryBean.setBeanName(beanName); // avoid debug (error since 4.2.1) log from CEFB
 					bridgeFactoryBean.afterPropertiesSet();
 					AbstractEndpoint endpoint = bridgeFactoryBean.getObject();
 					endpoints.add(endpoint);
-					this.context.getBeanFactory().registerSingleton("bridge-" + i, endpoint);
-					endpoint.setComponentName("bridge-" + i);
+					this.context.getBeanFactory().registerSingleton(beanName, endpoint);
+					endpoint.setComponentName(beanName);
 					endpoint.afterPropertiesSet();
 				}
 				catch (Exception e) {
@@ -197,9 +200,9 @@ public class CompositeModule extends AbstractModule {
 
 	@Override
 	public void addSource(Object source) {
-		Assert.notNull(source,"source cannot be null");
-		Assert.isInstanceOf(Resource.class,source,"unsupported source: " + source.getClass().getName());
-		Resource resource = (Resource)source;
+		Assert.notNull(source, "source cannot be null");
+		Assert.isInstanceOf(Resource.class, source, "unsupported source: " + source.getClass().getName());
+		Resource resource = (Resource) source;
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
 		reader.loadBeanDefinitions(resource);
 	}

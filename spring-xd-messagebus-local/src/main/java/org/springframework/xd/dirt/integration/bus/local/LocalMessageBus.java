@@ -377,6 +377,7 @@ public class LocalMessageBus extends MessageBusSupport {
 
 		// Usage of a CEFB allows to handle both Subscribable & Pollable channels the same way
 		ConsumerEndpointFactoryBean cefb = new ConsumerEndpointFactoryBean();
+		cefb.setBeanName(bridgeName);
 		cefb.setInputChannel(from);
 		cefb.setHandler(handler);
 		cefb.setBeanFactory(getBeanFactory());

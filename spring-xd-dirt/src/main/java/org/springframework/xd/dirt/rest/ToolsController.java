@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.xd.dirt.job.dsl.Graph;
+import org.springframework.xd.dirt.job.dsl.JobParser;
 import org.springframework.xd.dirt.stream.DocumentParseResult;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.rest.domain.DocumentParseResultResource;
@@ -31,27 +33,39 @@ import org.springframework.xd.rest.domain.DocumentParseResultResource;
  * A controller for integrating with frontend tools.
  *
  * @author Eric Bottard
+ * @author Andy Clement
  */
 @RestController
 @RequestMapping("/tools")
 public class ToolsController {
 
-	private XDStreamParser.MultiLineDocumentParser multilineParser;
+	private XDStreamParser.MultiLineDocumentParser multilineStreamParser;
+
+	private JobParser jobParser;
 
 	private DocumentParseResultResourceAssembler assembler = new DocumentParseResultResourceAssembler();
 
 	@Autowired
-	public ToolsController(XDStreamParser parser) {
-		this.multilineParser = new XDStreamParser.MultiLineDocumentParser(parser);
+	public ToolsController(XDStreamParser streamParser) {
+		this.multilineStreamParser = new XDStreamParser.MultiLineDocumentParser(streamParser);
+		this.jobParser = new JobParser();
 	}
 
 	/**
-     * Accept a whole list of definitions and report whether they are valid as a whole or not.
+	 * Accept a whole list of definitions and report whether they are valid as a whole or not.
 	 */
 	@RequestMapping(value = "/parse", method = RequestMethod.GET)
 	public DocumentParseResultResource validate(@RequestParam("definitions") String definitions) {
-		DocumentParseResult parse = multilineParser.parse(definitions.split("\n"));
+		DocumentParseResult parse = multilineStreamParser.parse(definitions.split("\n"));
 		return assembler.toResource(parse);
+	}
+
+	/**
+	 * Parse a single job specification into a graph structure.
+	 */
+	@RequestMapping(value = "/parseJob", method = RequestMethod.GET)
+	public Graph parseJob(@RequestParam("specification") String specification) {
+		return jobParser.getGraph(specification);
 	}
 
 }

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+  <bean class="org.springframework.core.task.SimpleAsyncTaskExecutor" id="taskExecutor"/>
+  <batch:job id="streamName" xmlns="http://www.springframework.org/schema/batch">
+    <split id="split1" task-executor="taskExecutor">
+      <flow>
+        <step id="sqoop-6e44">
+          <tasklet ref="jobRunner-sqoop-6e44"/>
+          <next on="FAILED" to="kill1"/>
+          <next on="*" to="sqoop-e07a"/>
+        </step>
+        <step id="sqoop-e07a">
+          <tasklet ref="jobRunner-sqoop-e07a"/>
+          <next on="FAILED" to="kill1"/>
+        </step>
+        <step id="kill1"/>
+      </flow>
+      <flow>
+        <step id="sqoop-035f">
+          <tasklet ref="jobRunner-sqoop-035f"/>
+          <next on="FAILED" to="kill2"/>
+          <next on="*" to="sqoop-9408"/>
+        </step>
+        <step id="sqoop-9408">
+          <tasklet ref="jobRunner-sqoop-9408"/>
+          <next on="FAILED" to="kill2"/>
+          <next on="*" to="sqoop-a6e0"/>
+        </step>
+        <step id="sqoop-a6e0">
+          <tasklet ref="jobRunner-sqoop-a6e0"/>
+          <next on="FAILED" to="kill2"/>
+          <next on="*" to="sqoop-e522"/>
+        </step>
+        <step id="sqoop-e522">
+          <tasklet ref="jobRunner-sqoop-e522"/>
+          <next on="FAILED" to="kill2"/>
+          <next on="*" to="shell-b521"/>
+        </step>
+        <step id="shell-b521">
+          <tasklet ref="jobRunner-shell-b521"/>
+          <next on="FAILED" to="kill2"/>
+        </step>
+        <step id="kill2"/>
+      </flow>
+      <flow>
+        <step id="sqoop-6420">
+          <tasklet ref="jobRunner-sqoop-6420"/>
+          <next on="FAILED" to="kill3"/>
+        </step>
+        <step id="kill3"/>
+      </flow>
+    </split>
+  </batch:job>
+
+  <bean class="JobRunningTasklet" id="jobRunner-sqoop-6e44" scope="step"/>
+  <bean class="JobRunningTasklet" id="jobRunner-sqoop-e07a" scope="step"/>
+  <bean class="JobRunningTasklet" id="jobRunner-sqoop-035f" scope="step"/>
+  <bean class="JobRunningTasklet" id="jobRunner-sqoop-9408" scope="step"/>
+  <bean class="JobRunningTasklet" id="jobRunner-sqoop-a6e0" scope="step"/>
+  <bean class="JobRunningTasklet" id="jobRunner-sqoop-e522" scope="step"/>
+  <bean class="JobRunningTasklet" id="jobRunner-shell-b521" scope="step"/>
+  <bean class="JobRunningTasklet" id="jobRunner-sqoop-6420" scope="step"/>
+</beans>

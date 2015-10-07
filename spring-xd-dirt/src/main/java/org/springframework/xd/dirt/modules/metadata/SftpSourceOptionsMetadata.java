@@ -75,7 +75,7 @@ public class SftpSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private boolean allowUnknownKeys = false;
 
-	private String knownHostsExpression = "UNDEFINED";
+	private String knownHostsExpression = null;
 
 	public String getHost() {
 		return host;

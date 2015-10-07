@@ -20,7 +20,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Thrown when trying to access a named metric that does not exist.
- * 
+ *
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
@@ -31,7 +31,7 @@ public class NoSuchMetricException extends XDRuntimeException {
 	/**
 	 * Construct a new exception. Message can contain {@link String#format(String, Object...)} placeholders and will be
 	 * formatted with the offending name.
-	 * 
+	 *
 	 */
 	public NoSuchMetricException(String offendingName, String message) {
 		super(String.format(message, offendingName));

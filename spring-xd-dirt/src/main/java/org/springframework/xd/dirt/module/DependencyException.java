@@ -24,7 +24,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * Thrown when performing an action cannot be carried over because some dependency would be broken.
- * 
+ *
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")

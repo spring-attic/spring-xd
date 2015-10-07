@@ -16,21 +16,19 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Collection;
-import java.util.Collections;
 
 import org.junit.Rule;
 
+import org.springframework.integration.codec.Codec;
+import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.rabbit.RabbitTestMessageBus;
-import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
-
-import static org.junit.Assert.assertEquals;
 
 
 /**
@@ -67,7 +65,7 @@ public class RabbitJobPluginTests extends JobPluginTests {
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	protected MultiTypeCodec<Object> getCodec() {
+	protected Codec getCodec() {
 		return new PojoCodec(new TupleKryoRegistrar());
 	}
 

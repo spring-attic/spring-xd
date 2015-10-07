@@ -20,7 +20,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Exception thrown when a module doesn't exist in the container.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")

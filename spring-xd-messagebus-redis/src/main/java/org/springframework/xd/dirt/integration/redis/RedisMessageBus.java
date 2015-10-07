@@ -27,6 +27,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.codec.Codec;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -54,7 +55,6 @@ import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.MessageValues;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
-import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 
 /**
  * A {@link MessageBus} implementation backed by Redis.
@@ -141,11 +141,11 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 	private final RedisQueueOutboundChannelAdapter errorAdapter;
 
-	public RedisMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
+	public RedisMessageBus(RedisConnectionFactory connectionFactory, Codec codec) {
 		this(connectionFactory, codec, new String[0]);
 	}
 
-	public RedisMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec,
+	public RedisMessageBus(RedisConnectionFactory connectionFactory, Codec codec,
 			String... headersToMap) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		Assert.notNull(codec, "codec must not be null");
@@ -428,7 +428,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 				transformed.put(PARTITION_HEADER, determinePartition(message, this.partitioningMetadata));
 			}
-			
+
 			byte[] messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
 					RedisMessageBus.this.headersToMap);
 			delegate.handleMessage(MessageBuilder.withPayload(messageToSend).copyHeaders(transformed).build());

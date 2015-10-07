@@ -26,7 +26,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * Thrown when something is wrong with options passed to a module.
- * 
+ *
  * @author David Turanski
  */
 @SuppressWarnings("serial")

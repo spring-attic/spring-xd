@@ -6,7 +6,7 @@
 
 	<beans profile="kryo-test">
 		<bean id="kryoRegistrar"
-			  class="org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoClassListRegistrar">
+			  class="org.springframework.integration.codec.kryo.KryoClassListRegistrar">
 		<constructor-arg>
 			<util:list>
 				<value>org.springframework.xd.extensions.test.Foo</value>

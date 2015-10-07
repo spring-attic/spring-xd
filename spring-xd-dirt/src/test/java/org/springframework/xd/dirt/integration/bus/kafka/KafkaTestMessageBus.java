@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,11 @@
 
 package org.springframework.xd.dirt.integration.bus.kafka;
 
-import java.util.Collections;
-
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.integration.codec.Codec;
+import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.integration.kafka.support.ZookeeperConnect;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
-import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 import org.springframework.xd.dirt.integration.kafka.TestKafkaCluster;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
@@ -36,6 +33,7 @@ import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
  * @author Eric Bottard
  * @author Marius Bogoevici
  * @author David Turanski
+ * @author Gary Russell
  */
 public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus> {
 
@@ -44,7 +42,7 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 	}
 
 
-	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport, MultiTypeCodec<Object> codec, 
+	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport, Codec codec,
 			KafkaMessageBus.Mode mode) {
 
 		try {
@@ -72,7 +70,7 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	private static MultiTypeCodec<Object> getCodec() {
+	private static Codec getCodec() {
 		return new PojoCodec(new TupleKryoRegistrar());
 	}
 

@@ -15,27 +15,26 @@
 
 package org.springframework.xd.tuple.serializer.kryo;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Collections;
 import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.util.StopWatch;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 /**
  * @author David Turanski
+ * @author Gary Russell
  */
 public class TupleCodecBenchmarkTests {
 	private static final int ITERATIONS = 50000;
@@ -65,7 +64,7 @@ public class TupleCodecBenchmarkTests {
 
 	@Test
 	public void runBenchmarks() throws IOException {
-		StopWatch stopWatch = new StopWatch("Tuple ser/deser - Iterations:" + ITERATIONS + " number of fields:" + 
+		StopWatch stopWatch = new StopWatch("Tuple ser/deser - Iterations:" + ITERATIONS + " number of fields:" +
 				NUM_FIELDS);
 
 		Tuple[] primitiveTuples = generateSamples(false);
@@ -98,9 +97,9 @@ public class TupleCodecBenchmarkTests {
 		stopWatch.start(taskName);
 		for (int i = 0; i < ITERATIONS; i++) {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			serializer.serialize(tuples[i], bos);
+			serializer.encode(tuples[i], bos);
 			byte[] bytes = bos.toByteArray();
-			Tuple result = (Tuple) deserializer.deserialize(bytes, DefaultTuple.class);
+			Tuple result = deserializer.decode(bytes, DefaultTuple.class);
 			assertEquals(tuples[i].getFieldNames(), result.getFieldNames());
 			assertEquals(tuples[i].getValues(), result.getValues());
 			assertNotNull(((DefaultTuple) tuples[i]).getConversionService());

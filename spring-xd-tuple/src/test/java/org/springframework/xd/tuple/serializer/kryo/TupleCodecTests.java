@@ -15,32 +15,29 @@
 
 package org.springframework.xd.tuple.serializer.kryo;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.xd.dirt.integration.bus.serializer.AbstractCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
+import org.springframework.integration.codec.Codec;
+import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author David Turanski
+ * @author Gary Russell
  */
 public class TupleCodecTests {
-	private MultiTypeCodec<Object> codec;
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	private Codec codec;
+
+	@SuppressWarnings({ "rawtypes" })
 	@Before
 	public void setup() {
 		codec = new PojoCodec(new TupleKryoRegistrar());
@@ -52,8 +49,8 @@ public class TupleCodecTests {
 		Tuple t1 = TupleBuilder.tuple().of("three", 3, "four", 4, "t0", t0);
 		Tuple t2 = TupleBuilder.tuple().of("t1", t1);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		codec.serialize(t2, bos);
-		Tuple t3 = (Tuple) codec.deserialize(bos.toByteArray(), DefaultTuple.class);
+		codec.encode(t2, bos);
+		Tuple t3 = codec.decode(bos.toByteArray(), DefaultTuple.class);
 		Tuple t4 = (Tuple) t3.getValue("t1");
 		Tuple t5 = (Tuple) t4.getValue("t0");
 		assertEquals(1, t5.getInt("one"));
@@ -65,9 +62,9 @@ public class TupleCodecTests {
 	public void testTupleSerialization() throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		Tuple foo = TupleBuilder.tuple().of("hello", 123, "foo", "bar");
-		codec.serialize(foo, bos);
+		codec.encode(foo, bos);
 
-		Tuple foo2 = (Tuple) codec.deserialize(
+		Tuple foo2 = codec.decode(
 				bos.toByteArray(),
 				DefaultTuple.class);
 		// Not foo2.equals(foo) actually returns a new instance

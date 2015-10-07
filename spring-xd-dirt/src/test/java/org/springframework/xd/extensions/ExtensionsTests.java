@@ -16,6 +16,9 @@
 
 package org.springframework.xd.extensions;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,23 +26,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.esotericsoftware.kryo.Registration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import spring.xd.bus.ext.CustomKryoRegistrarConfig;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.codec.kryo.AbstractKryoRegistrar;
+import org.springframework.integration.codec.kryo.CompositeKryoRegistrar;
+import org.springframework.integration.codec.kryo.KryoClassListRegistrar;
+import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.container.initializer.AbstractResourceBeanDefinitionProvider;
 import org.springframework.xd.dirt.integration.bus.converter.CompositeMessageConverterFactory;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.CompositeKryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoClassListRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
@@ -48,8 +48,9 @@ import org.springframework.xd.extensions.test.Foo;
 import org.springframework.xd.extensions.test.StubPojoToStringConverter;
 import org.springframework.xd.tuple.DefaultTuple;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.esotericsoftware.kryo.Registration;
+
+import spring.xd.bus.ext.CustomKryoRegistrarConfig;
 
 /**
  * @author David Turanski
@@ -129,10 +130,10 @@ public class ExtensionsTests {
 	@SuppressWarnings("unchecked")
 	public void customKryoCRegistrars() {
 
-		
+
 		Map<String, AbstractKryoRegistrar> kryoRegistrarMap = context.getParent().getBeansOfType(AbstractKryoRegistrar
 				.class);
-		// Two default, two custom (see META-INF/spring-xd/bus/ext/custom-types.xml 
+		// Two default, two custom (see META-INF/spring-xd/bus/ext/custom-types.xml
 		// and spring.xd.bus.ext.CustomKryoRegistarConfig
 		assertEquals(4, kryoRegistrarMap.size());
 
@@ -151,7 +152,7 @@ public class ExtensionsTests {
 		//3 from default + 3 from extended
 		List<Class<?>> allClasses = Arrays.asList(new Class<?>[] {Foo.class, Bar.class, CustomKryoRegistrarConfig
 				.MyObject.class, DefaultTuple.class, ArrayList.class, File.class});
-		
+
 		assertEquals(allClasses.size(), registrations.size());
 		for (Registration registration:registrations) {
 			assertTrue(allClasses.contains(registration.getType()));

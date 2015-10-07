@@ -25,11 +25,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.FileKryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
+import org.springframework.integration.codec.Codec;
+import org.springframework.integration.codec.kryo.FileKryoRegistrar;
+import org.springframework.integration.codec.kryo.KryoRegistrar;
+import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
 
@@ -37,20 +36,20 @@ import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
  * Configuration class for Codec and possibly other MessageBus extensions
  *
  * @author David Turanski
- * @since 1.2 
+ * @since 1.2
  */
 @ComponentScan(basePackages = {"spring.xd.bus.ext"})
 @ImportResource("classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "bus/ext/*.xml")
 public class MessageBusExtensionsConfiguration {
 	@Autowired
 	ApplicationContext applicationContext;
-	
+
 	@Value("${xd.codec.kryo.references}")
 	private boolean useReferences;
 
 	@Bean
 	@ConditionalOnMissingBean(name = "codec")
-	public MultiTypeCodec<?> codec() {
+	public Codec codec() {
 		Map<String, KryoRegistrar> kryoRegistrarMap = applicationContext.getBeansOfType(KryoRegistrar
 				.class);
 		return new PojoCodec(new ArrayList<>(kryoRegistrarMap.values()), useReferences);

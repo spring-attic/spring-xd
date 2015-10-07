@@ -21,11 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.integration.codec.kryo.PojoCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.StopWatch;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.PojoCodec;
 import org.springframework.xd.tuple.TupleBuilder;
 import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
 

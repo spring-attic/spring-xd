@@ -20,7 +20,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Exception which is raised when a resource definition with the same name already exists.
- * 
+ *
  * @author Luke Taylor
  */
 @SuppressWarnings("serial")
@@ -30,7 +30,7 @@ public class DefinitionAlreadyExistsException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.
-	 * 
+	 *
 	 * @param offendingName name of the definition that conflicts
 	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
 	 *        offendingName

@@ -116,6 +116,7 @@ project('spring-xd-extension-batch') {
         testCompile project(':spring-xd-test')
         testCompile project(':spring-xd-dirt')
         testCompile project(':spring-xd-messagebus-local')
+        testCompile "com.esotericsoftware:kryo-shaded"
     }
 }
 

@@ -20,7 +20,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Thrown when a problem is detected with the (DSL) definition of an XD resource.
- * 
+ *
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")

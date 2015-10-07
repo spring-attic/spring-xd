@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.bus.serializer;
+package org.springframework.xd.dirt.integration.bus;
 
 import org.springframework.xd.dirt.XDRuntimeException;
 
-
 /**
  * Thrown when something goes wrong with inter-module communication.
- * 
+ *
  * @author David Turanski
  */
 @SuppressWarnings("serial")

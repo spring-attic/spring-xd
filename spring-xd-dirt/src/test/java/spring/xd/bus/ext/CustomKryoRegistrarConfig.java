@@ -18,34 +18,38 @@ package spring.xd.bus.ext;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.integration.codec.kryo.AbstractKryoRegistrar;
+import org.springframework.integration.codec.kryo.KryoRegistrationRegistrar;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Registration;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrationRegistrar;
-
 /**
  * @author David Turanski
+ * @author Gary Russell
  */
 @Profile("kryo-test")
 @Configuration
 public class CustomKryoRegistrarConfig {
+
 	@Bean
 	public AbstractKryoRegistrar myCustomSerializer() {
 		List<Registration> registrations = new ArrayList<>();
-		registrations.add(new Registration(MyObject.class, new MySerializer(),62));
+		registrations.add(new Registration(MyObject.class, new MySerializer(), 62));
 		return new KryoRegistrationRegistrar(registrations);
 	}
 
-	public static class MyObject {}
-	
+	public static class MyObject {
+	}
+
 	public static class MySerializer extends Serializer<MyObject> {
+
 		@Override
 		public void write(Kryo kryo, Output output, MyObject object) {
 		}
@@ -55,4 +59,5 @@ public class CustomKryoRegistrarConfig {
 			return null;
 		}
 	}
+
 }

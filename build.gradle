@@ -101,8 +101,7 @@ ext {
 			'spring-xd-extension-kafka',
 			'spring-xd-extension-cassandra',
 			'spring-xd-messagebus-spi',
-			'spring-xd-spi-common',
-			'spring-xd-codec'
+			'spring-xd-spi-common'
 	].collect { p -> project(p) } + messagebusProjects
 }
 
@@ -484,6 +483,7 @@ project('spring-xd-dirt') {
 		}
 		compile "commons-lang:commons-lang:2.4"
 		compile "args4j:args4j:$args4jVersion"
+		compile "com.esotericsoftware:kryo-shaded"
 
 		compile "org.springframework.batch:spring-batch-core"
 		//Required for a classloading issue. See https://github.com/spring-projects/spring-xd/pull/1116
@@ -956,12 +956,13 @@ project('spring-xd-spark-streaming-tests') {
 project('spring-xd-tuple') {
 	description = 'Spring XD Tuple'
 	dependencies {
-		compile project(':spring-xd-codec')
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "org.springframework:spring-context"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "org.springframework.batch:spring-batch-infrastructure"
 		compile "org.springframework:spring-jdbc"
+		compile "com.esotericsoftware:kryo-shaded"
+		compile "org.slf4j:slf4j-api"
 	}
 }
 
@@ -996,17 +997,6 @@ project('spring-xd-rest-domain') {
 	}
 }
 
-project('spring-xd-codec') {
-	description = 'Spring XD Codecs used for serialization'
-	dependencies {
-		compile project(':spring-xd-spi-common')
-		compile "org.springframework:spring-core"
-		compile "org.springframework.integration:spring-integration-core"
-		compile "com.esotericsoftware:kryo-shaded"
-		compile "org.slf4j:slf4j-api"
-	}
-}
-
 project('spring-xd-spi-common') {
 	description = 'Spring XD SPI shared code'
 }
@@ -1015,13 +1005,14 @@ project('spring-xd-messagebus-spi') {
 	description = 'Spring XD MessageBus Service Provider Interface'
 	dependencies {
 		compile project(':spring-xd-spi-common')
-		compile project(':spring-xd-codec')
 		compile "org.springframework:spring-messaging"
 		compile "org.springframework:spring-web"
 		compile "org.springframework.retry:spring-retry"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "com.fasterxml.jackson.core:jackson-databind"
 		compile "org.apache.httpcomponents:httpclient"
+		compile "com.esotericsoftware:kryo-shaded"
+		compile "org.slf4j:slf4j-api"
 	}
 }
 
@@ -1270,6 +1261,7 @@ project('spring-xd-test-fixtures') {
 		compile "org.apache.activemq:activemq-client"
 		compile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 		compile "org.springframework:spring-web"
+		compile "com.esotericsoftware:kryo-shaded"
 		compile("org.springframework.data:spring-data-mongodb") {
 			exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
 			exclude group: 'org.slf4j', module: 'slf4j-log4j12'

@@ -20,12 +20,12 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.channel.DefaultHeaderChannelRegistry;
+import org.springframework.integration.codec.Codec;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.utils.IntegrationUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
-import org.springframework.xd.dirt.integration.bus.serializer.MultiTypeCodec;
 import org.springframework.xd.dirt.integration.redis.RedisMessageBus;
 
 
@@ -43,7 +43,7 @@ public class RedisTestMessageBus extends AbstractTestMessageBus<RedisMessageBus>
 		template = new StringRedisTemplate(connectionFactory);
 	}
 
-	public RedisTestMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
+	public RedisTestMessageBus(RedisConnectionFactory connectionFactory, Codec codec) {
 		RedisMessageBus messageBus = new RedisMessageBus(connectionFactory, codec);
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton(IntegrationUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,

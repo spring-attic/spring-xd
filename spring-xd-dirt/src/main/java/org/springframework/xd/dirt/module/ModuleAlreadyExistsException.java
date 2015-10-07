@@ -22,7 +22,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * Thrown when trying to create a new module with the given name and type, but one already exists.
- * 
+ *
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")

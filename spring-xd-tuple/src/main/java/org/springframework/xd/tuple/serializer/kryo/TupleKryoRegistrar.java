@@ -18,11 +18,11 @@ package org.springframework.xd.tuple.serializer.kryo;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.integration.codec.kryo.AbstractKryoRegistrar;
+import org.springframework.xd.tuple.DefaultTuple;
+
 import com.esotericsoftware.kryo.Registration;
 import com.esotericsoftware.kryo.serializers.CollectionSerializer;
-
-import org.springframework.xd.dirt.integration.bus.serializer.kryo.AbstractKryoRegistrar;
-import org.springframework.xd.tuple.DefaultTuple;
 
 /**
  * A {@link org.springframework.xd.dirt.integration.bus.serializer.kryo.KryoRegistrar}

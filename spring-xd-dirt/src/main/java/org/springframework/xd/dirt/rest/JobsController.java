@@ -34,11 +34,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
+import org.springframework.xd.dirt.module.support.ModuleDefinitionService;
+import org.springframework.xd.dirt.job.dsl.ComposedJobUtil;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentUnitType;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDeployer;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.domain.JobDefinitionResource;
 
 /**
@@ -55,12 +58,15 @@ import org.springframework.xd.rest.domain.JobDefinitionResource;
 public class JobsController extends
 		XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResource, Job> {
 
+	ModuleDefinitionService moduleDefinitionService;
+	
 	@Autowired
 	private DistributedJobLocator distributedJobLocator;
 
 	@Autowired
-	public JobsController(JobDeployer jobDeployer) {
+	public JobsController(JobDeployer jobDeployer, ModuleDefinitionService moduleDefinitionService) {
 		super(jobDeployer, new JobDefinitionResourceAssembler(), DeploymentUnitType.Job);
+		this.moduleDefinitionService = moduleDefinitionService;
 	}
 
 	@Override
@@ -72,7 +78,42 @@ public class JobsController extends
 		if (distributedJobLocator.getJobNames().contains(name)) {
 			throw new BatchJobAlreadyExistsException(name);
 		}
+		if(ComposedJobUtil.isComposedJobDefinition(definition)){
+			moduleDefinitionService.compose(ComposedJobUtil.getComposedJobModuleName(name), ModuleType.job,definition, false);
+		}
 		super.save(name, definition, deploy);
+	}
+
+
+	/**
+	 * Request removal of an existing resource definition (stream or job).
+	 *
+	 * @param name the name of an existing definition (required)
+	 */
+	@RequestMapping(value = "/definitions/{name}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void delete(@PathVariable("name") String name) throws Exception {
+		super.delete(name);
+		if( moduleDefinitionService.findDefinition(
+				ComposedJobUtil.getComposedJobModuleName(name), ModuleType.job) != null) {
+			moduleDefinitionService.delete(ComposedJobUtil.getComposedJobModuleName(name), ModuleType.job);
+		}
+	}
+
+	/**
+	 * Request removal of all definitions.
+	 */
+	@RequestMapping(value = "/definitions", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void deleteAll() throws Exception {
+		Iterable<JobDefinition> jobDefinitions = deployer.findAll();
+		super.deleteAll();
+		for(JobDefinition jobDefinition : jobDefinitions){
+			if( moduleDefinitionService.findDefinition(
+					ComposedJobUtil.getComposedJobModuleName(jobDefinition.getName()), ModuleType.job) != null) {
+				moduleDefinitionService.delete(ComposedJobUtil.getComposedJobModuleName(jobDefinition.getName()), ModuleType.job);
+			}
+		}
 	}
 
 	/**

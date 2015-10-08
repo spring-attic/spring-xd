@@ -68,7 +68,7 @@ import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 public abstract class XDController<D extends BaseDefinition, A extends ResourceAssemblerSupport<D, R>, R extends NamedResource, I extends BaseInstance<D>> {
 
-	private final AbstractInstancePersistingDeployer<D, I> deployer;
+	protected final AbstractInstancePersistingDeployer<D, I> deployer;
 
 	private final DeploymentValidator validator;
 

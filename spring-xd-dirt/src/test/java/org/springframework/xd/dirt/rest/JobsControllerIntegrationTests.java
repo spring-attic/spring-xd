@@ -16,11 +16,16 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +35,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.WritableModuleRegistry;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
@@ -63,6 +69,9 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Autowired
 	private ModuleRegistry moduleRegistry;
+	
+	@Autowired
+	private WritableModuleRegistry writeableModuleRegistry;
 
 	@Autowired
 	private JobDefinitionRepository jobDefinitionRepository;
@@ -85,6 +94,8 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		when(moduleRegistry.findDefinition("job2", ModuleType.job)).thenReturn(moduleJobDefinition);
 		when(moduleRegistry.findDefinition("job", ModuleType.job)).thenReturn(moduleJobDefinition);
 		when(jobLocator.getJobNames()).thenReturn(Arrays.asList(new String[] {}));
+		ModuleDefinition any = Mockito.any();
+		when(writeableModuleRegistry.registerNew(any)).thenReturn(true);
 	}
 
 	@After
@@ -100,6 +111,20 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 	}
 
+	@Test
+	public void testComposedJobCreation() throws Exception {
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job1").param("definition", "A || B").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+	}
+
+	@Test
+	public void testComposedJobCreationBadDSL() throws Exception {
+		mockMvc.perform(
+				post("/jobs/definitions").param("name", "job1").param("definition", "A || B >").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isInternalServerError());
+	}
+	
 	@Test
 	public void testSuccessfulJobCreateAndDeploy() throws Exception {
 		mockMvc.perform(

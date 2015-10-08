@@ -28,7 +28,6 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
@@ -37,11 +36,14 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.DeploymentUnitStatus;
 import org.springframework.xd.dirt.core.ResourceDeployer;
+import org.springframework.xd.dirt.job.dsl.ComposedJobUtil;
+import org.springframework.xd.dirt.job.dsl.JobParser;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleDescriptor;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.domain.support.DeploymentPropertiesFormat;
 
 /**
@@ -69,6 +71,8 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	private final ZooKeeperConnection zkConnection;
 
 	protected final XDParser parser;
+	
+	protected final JobParser composedJobParser;
 
 	/**
 	 * Used in exception messages as well as indication to the parser.
@@ -84,6 +88,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		this.repository = repository;
 		this.definitionKind = parsingContext;
 		this.parser = parser;
+		composedJobParser = new JobParser();
 	}
 
 	@Override
@@ -92,12 +97,14 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		String name = definition.getName();
 		String def = definition.getDefinition();
 		validateBeforeSave(name, def);
-		List<ModuleDescriptor> moduleDescriptors = parser.parse(name, def, definitionKind);
-
-		// todo: the result of parse() should already have correct (polymorphic) definitions
-		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
-		if (!moduleDefinitions.isEmpty()) {
-			definition.setModuleDefinitions(moduleDefinitions);
+		List<ModuleDescriptor> moduleDescriptors = null;
+		if(!ComposedJobUtil.isComposedJobDefinition(def)){
+			moduleDescriptors = parser.parse(name, def, definitionKind);
+			// todo: the result of parse() should already have correct (polymorphic) definitions
+			List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
+			if (!moduleDefinitions.isEmpty()) {
+				definition.setModuleDefinitions(moduleDefinitions);
+			}
 		}
 		D savedDefinition = repository.save(definition);
 		return afterSave(savedDefinition);
@@ -112,7 +119,11 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			throwDefinitionAlreadyExistsException(definitionFromRepo);
 		}
 		Assert.hasText(definition, "definition cannot be blank or null");
-		parser.parse(name, definition, definitionKind);
+		if (!ComposedJobUtil.isComposedJobDefinition(definition)){
+			parser.parse(name, definition, definitionKind);
+		} else {
+			composedJobParser.parse(definition);
+		}
 	}
 
 	/**
@@ -242,7 +253,20 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 * reference module names that belong to the stream/job definition).
 	 */
 	private void validateDeploymentProperties(D definition, Map<String, String> properties) {
-		List<ModuleDescriptor> modules = parser.parse(definition.getName(), definition.getDefinition(), definitionKind);
+		List<ModuleDescriptor> modules = null;
+		if(!ComposedJobUtil.isComposedJobDefinition(definition.getDefinition())){
+			modules = parser.parse(definition.getName(), definition.getDefinition(), definitionKind);
+		}else {
+			modules = new ArrayList<ModuleDescriptor>();
+			ModuleDescriptor.Builder builder =
+					new ModuleDescriptor.Builder()
+							.setType(ModuleType.job)
+							.setGroup("job")
+							.setModuleName(ComposedJobUtil.getComposedJobModuleName(definition.getName()))
+							.setModuleLabel("")
+							.setIndex(0);
+			modules.add(builder.build());
+		}
 		Set<String> moduleLabels = new HashSet<String>(modules.size());
 		for (ModuleDescriptor md : modules) {
 			moduleLabels.add(md.getModuleLabel());

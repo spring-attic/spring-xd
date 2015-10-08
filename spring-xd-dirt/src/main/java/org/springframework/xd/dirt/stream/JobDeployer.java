@@ -15,7 +15,6 @@ package org.springframework.xd.dirt.stream;
 
 import static org.springframework.xd.dirt.stream.ParsingContext.job;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -29,7 +28,6 @@ import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.server.admin.deployment.DeploymentHandler;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.module.ModuleDescriptor;
 
 /**
  * @author Glenn Renfro
@@ -42,7 +40,7 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 	private final String JOB_CHANNEL_PREFIX = "job:";
 
 	private final MessageBus messageBus;
-
+	
 	private final ConcurrentMap<String, MessageChannel> jobChannels = new ConcurrentHashMap<String, MessageChannel>();
 
 	public JobDeployer(ZooKeeperConnection zkConnection, JobDefinitionRepository definitionRepository,
@@ -73,8 +71,6 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 		if (instanceRepository.findOne(name) == null) {
 			throwNotDeployedException(name);
 		}
-		// todo: is this Assert necessary? if not we can remove the parser dependency and parse method
-		Assert.isTrue(parse(name, job.getDefinition()).size() == 1, "Expecting only a single module");
 		channel.send(MessageBuilder.withPayload(jobParameters != null ? jobParameters : "").build());
 	}
 
@@ -86,10 +82,6 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 	@Override
 	protected String getDeploymentPath(JobDefinition definition) {
 		return Paths.build(Paths.JOB_DEPLOYMENTS, definition.getName());
-	}
-
-	private List<ModuleDescriptor> parse(String name, String definition) {
-		return parser.parse(name, definition, definitionKind);
 	}
 
 	@Override

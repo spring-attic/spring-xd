@@ -18,15 +18,24 @@ package org.springframework.xd.dirt.module.support;
 
 import static org.springframework.xd.dirt.stream.ParsingContext.module;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.Assert;
+import org.springframework.util.StreamUtils;
+import org.springframework.xd.dirt.job.dsl.JobParser;
 import org.springframework.xd.dirt.module.DependencyException;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
@@ -58,12 +67,15 @@ public class ModuleDefinitionService {
 	private final ModuleDependencyRepository dependencyRepository;
 
 	private final PagingUtility<ModuleDefinition> pagingUtility = new PagingUtility<ModuleDefinition>();
+	
+	private final JobParser composedJobParser;
 
 	@Autowired
 	public ModuleDefinitionService(WritableModuleRegistry registry, XDStreamParser parser, ModuleDependencyRepository dependencyRepository) {
 		this.registry = registry;
 		this.parser = parser;
 		this.dependencyRepository = dependencyRepository;
+		composedJobParser = new JobParser();
 	}
 
 	public ModuleDefinition findDefinition(String name, ModuleType type) {
@@ -86,6 +98,50 @@ public class ModuleDefinitionService {
 	}
 
 	public ModuleDefinition compose(String name, ModuleType typeHint, String dslDefinition, boolean force) {
+		ModuleDefinition moduleDefinition = null;
+		if(typeHint == ModuleType.job){
+			moduleDefinition = composeJob(name, typeHint, dslDefinition, force);
+		}else{
+			moduleDefinition = composeStream(name, typeHint, dslDefinition, force);
+		}
+		return moduleDefinition;
+	}
+
+	private ModuleDefinition composeJob(String name, ModuleType typeHint, String dslDefinition, boolean force){
+		assertModuleUpdatability(name, typeHint, force);
+		String composedJobXml = composedJobParser.parse(dslDefinition).toXML(name);
+		byte bytes[] = createComposedJobJar(composedJobXml);
+		ModuleDefinition moduleDefinition = new UploadedModuleDefinition(name, typeHint, bytes) ;
+		Assert.isTrue(this.registry.registerNew(moduleDefinition), moduleDefinition + " could not be saved");
+		return moduleDefinition;
+	}
+
+	private byte[] createComposedJobJar(String xml) {
+
+		try (ByteArrayOutputStream outStream = new ByteArrayOutputStream(); JarOutputStream target = new JarOutputStream(outStream)) {
+			JarEntry entry = new JarEntry("config/");
+			target.putNextEntry(entry);
+			target.closeEntry();
+			writeXML(target, xml);
+			target.close();
+			return outStream.toByteArray();
+		} catch (IOException ioe) {
+			throw new IllegalStateException(ioe.getMessage(), ioe);
+		}
+	}
+
+	private void writeXML(JarOutputStream target, String xml) {
+		try (InputStream in = new ByteArrayInputStream(xml.getBytes(Charset.forName("UTF-8")))) {
+			JarEntry entry = new JarEntry("config/composedjob.xml");
+			target.putNextEntry(entry);
+			StreamUtils.copy(in, target);
+			target.closeEntry();
+		} catch(IOException ioe){
+			throw new IllegalStateException(ioe.getMessage(), ioe);
+		}
+	}
+
+	private ModuleDefinition composeStream(String name, ModuleType typeHint, String dslDefinition, boolean force){
 		// TODO: pass typeHint to parser (XD-2343)
 		List<ModuleDescriptor> parseResult = this.parser.parse(name, dslDefinition, module);
 
@@ -99,7 +155,7 @@ public class ModuleDefinitionService {
 		Assert.isTrue(this.registry.registerNew(moduleDefinition), moduleDefinition + " could not be saved");
 		return moduleDefinition;
 	}
-
+	
 	public ModuleDefinition upload(String name, ModuleType type, byte[] bytes, boolean force) {
 		assertModuleUpdatability(name, type, force);
 

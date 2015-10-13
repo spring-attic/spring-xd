@@ -55,6 +55,11 @@
 
 	<context:property-placeholder location="${xd.config.home}/hadoop.properties"/>
 
+	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
+		<property name="configuration" ref="hadoopConfiguration"/>
+		<property name="close" value="false"/>
+	</bean>
+
 	<hdp:configuration
 		register-url-handler="false"
 		properties-location="${xd.config.home}/hadoop.properties"
@@ -65,6 +70,7 @@
 		rm-manager-principal="${spring.hadoop.security.rmManagerPrincipal:}">
 		fs.defaultFS=${fsUri}
 	</hdp:configuration>
-	<hdp:resource-loader id="hadoopResourceLoader"/>
+
+	<hdp:resource-loader id="hadoopResourceLoader" file-system-ref="hadoopFs"/>
 
 </beans>

@@ -57,6 +57,7 @@
 
 	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
 		<property name="configuration" ref="hadoopConfiguration"/>
+		<property name="close" value="false"/>
 	</bean>
 
 	<context:property-placeholder location="${xd.config.home}/hadoop.properties"/>

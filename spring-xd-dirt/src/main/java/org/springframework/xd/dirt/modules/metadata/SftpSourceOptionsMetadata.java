@@ -73,6 +73,10 @@ public class SftpSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private String regexPattern = null;
 
+	private boolean allowUnknownKeys = false;
+
+	private String knownHostsExpression = null;
+
 	public String getHost() {
 		return host;
 	}
@@ -199,6 +203,25 @@ public class SftpSourceOptionsMetadata implements ProfileNamesProvider {
 	@ModuleOption("simple filename pattern to apply to the filter")
 	public void setPattern(String pattern) {
 		this.pattern = pattern;
+	}
+
+	public boolean isAllowUnknownKeys() {
+		return this.allowUnknownKeys;
+	}
+
+	@ModuleOption("true to allow connecting to a host with an unknown or changed key")
+	public void setAllowUnknownKeys(boolean allowUnknownKeys) {
+		this.allowUnknownKeys = allowUnknownKeys;
+	}
+
+	public String getKnownHostsExpression() {
+		return this.knownHostsExpression;
+	}
+
+	@ModuleOption("SpEL expresssion location of known hosts file; required if 'allowUnknownKeys' is false; "
+			+ "examples: systemProperties[\"user.home\"]+\"/.ssh/known_hosts\", \"/foo/bar/known_hosts\"")
+	public void setKnownHostsExpression(String knownHostsExpression) {
+		this.knownHostsExpression = knownHostsExpression;
 	}
 
 	@AssertTrue(message = "Use ('privateKey' AND 'passphrase') OR 'password' to specify credentials")

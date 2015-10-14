@@ -18,7 +18,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -88,8 +87,12 @@ public class ToolsController {
 	 */
 	@RequestMapping(value = "/convertJobGraphToText", method = RequestMethod.GET)
 	public Map<String, Object> convertJobGrabToText(@RequestParam("graph") String graphAsString) {
-		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> response = new HashMap<>();
+		if (graphAsString.trim().length() == 0) {
+			response.put("text", "");
+			return response;
+		}
+		ObjectMapper mapper = new ObjectMapper();
 		try {
 			Graph graph = mapper.readValue(graphAsString, Graph.class);
 			String dslText = graph.toDSLText();
@@ -98,7 +101,7 @@ public class ToolsController {
 		catch (JobSpecificationException jse) {
 			response.put("error", jse.toExceptionDescriptor());
 		}
-		catch (IOException e) {
+		catch (Throwable e) {
 			response.put("error", e.toString());
 		}
 		return response;

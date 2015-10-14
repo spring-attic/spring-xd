@@ -60,7 +60,7 @@ public class JobSpecification extends AstNode {
 	private List<JobDefinition> jobDefinitions;
 
 	public JobSpecification(String jobDefinitionText, JobNode jobNode) {
-		super(jobNode.getStartPos(), jobNode.getEndPos());
+		super(jobNode == null ? 0 : jobNode.getStartPos(), jobNode == null ? 0 : jobNode.getEndPos());
 		this.jobDefinitionText = jobDefinitionText;
 		this.jobNode = jobNode;
 	}
@@ -210,7 +210,7 @@ public class JobSpecification extends AstNode {
 		 */
 		private int splitId = 1;
 
-		private List<String> jobRunnerIds = new ArrayList<>();
+		private List<String> jobRunnerBeans = new ArrayList<>();
 
 		private String xmlString;
 
@@ -278,13 +278,30 @@ public class JobSpecification extends AstNode {
 
 		@Override
 		public void postJobSpecWalk(Element[] elements) {
-			for (String jobRunnerId : jobRunnerIds) {
+			for (String jobRunnerBean : jobRunnerBeans) {
 				// Producing:
-				// <bean id="jobRunner-a6e0" class="JobRunningTasklet" scope="step"/>
+				// <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-bbb" scope="step">
+				//        <constructor-arg ref="messageBus"/>
+				//        <constructor-arg ref="jobDefinitionRepository"/>
+				//        <constructor-arg ref="xdJobRepository"/>
+				//        <constructor-arg value="bbb"/>
+				// </bean>
 				Element bean = doc.createElement("bean");
 				bean.setAttribute("scope", "step");
 				bean.setAttribute("class", "org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet");
-				bean.setAttribute("id", jobRunnerId);
+				bean.setAttribute("id", "jobRunner-" + jobRunnerBean);
+				Element messageBusRefArg = doc.createElement("constructor-arg");
+				messageBusRefArg.setAttribute("ref", "messageBus");
+				bean.appendChild(messageBusRefArg);
+				Element jobDefinitionRepositoryArg = doc.createElement("constructor-arg");
+				jobDefinitionRepositoryArg.setAttribute("ref", "jobDefinitionRepository");
+				bean.appendChild(jobDefinitionRepositoryArg);
+				Element xdJobRepositoryArg = doc.createElement("constructor-arg");
+				xdJobRepositoryArg.setAttribute("ref", "xdJobRepository");
+				bean.appendChild(xdJobRepositoryArg);
+				Element nameArg = doc.createElement("constructor-arg");
+				nameArg.setAttribute("value", jobRunnerBean);
+				bean.appendChild(nameArg);
 				this.doc.getElementsByTagName("beans").item(0).appendChild(bean);
 			}
 			try {
@@ -327,8 +344,35 @@ public class JobSpecification extends AstNode {
 
 		@Override
 		public Element[] walk(Element[] context, JobDefinition jd) {
-			// TODO what is the XML for a job definition?
-			throw new IllegalStateException("Unable to create XML for job definition");
+			// Not entirely sure about this.
+			Element step = doc.createElement("step");
+			step.setAttribute("id", jd.getJobName());
+			Element tasklet = doc.createElement("tasklet");
+			String jobRunnerId = "jobRunner-" + jd.getJobName();
+			tasklet.setAttribute("ref", jobRunnerId);
+			jobRunnerBeans.add(jd.getJobName());
+			step.appendChild(tasklet);
+			Element next = null;
+			if (jd.hasTransitions()) {
+				for (Transition t : jd.transitions) {
+					next = doc.createElement("next");
+					next.setAttribute("on", t.getStateName());
+					next.setAttribute("to", t.getTargetJobName());
+					step.appendChild(next);
+				}
+			}
+			if (context != null) {
+				// context is an array of earlier elements that should point to this one
+				Element[] elements = context;
+				for (Element element : elements) {
+					next = doc.createElement("next");
+					next.setAttribute("on", "*");
+					next.setAttribute("to", jd.getJobName());
+					element.appendChild(next);
+				}
+			}
+			this.currentElement.peek().appendChild(step);
+			return new Element[] { step };
 		}
 
 		@Override
@@ -345,7 +389,7 @@ public class JobSpecification extends AstNode {
 			Element tasklet = doc.createElement("tasklet");
 			String jobRunnerId = "jobRunner-" + jr.getName();
 			tasklet.setAttribute("ref", jobRunnerId);
-			jobRunnerIds.add(jobRunnerId);
+			jobRunnerBeans.add(jr.getName());
 			step.appendChild(tasklet);
 			Element next = null;
 			if (jr.hasTransitions()) {
@@ -558,7 +602,9 @@ public class JobSpecification extends AstNode {
 					properties.put(arg.getName(), arg.getValue());
 				}
 			}
-			Node node = new Node(Integer.toString(nextId), jd.getJobName(), properties);
+			Map<String, String> metadata = new HashMap<>();
+			metadata.put(Node.METADATAKEY_JOBMODULENAME, jd.getJobModuleName());
+			Node node = new Node(Integer.toString(nextId), jd.getJobName(), metadata, properties);
 			nodes.add(node);
 			createdNodes.put(node.name, node);
 			if (context != null) {

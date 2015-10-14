@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -233,7 +234,24 @@ public class Graph {
 	}
 
 	private void printNode(StringBuilder graphText, Node node) {
-		graphText.append(node.name).append("");
+		// What to generate depends on whether it is a job definition or reference
+		if (node.metadata != null && node.metadata.containsKey(Node.METADATAKEY_JOBMODULENAME)) {
+			graphText.append(node.metadata.get(Node.METADATAKEY_JOBMODULENAME)).append(" ");
+			graphText.append(node.name).append(" ");
+			if (node.properties != null) {
+				int count = 0;
+				for (Map.Entry<String, String> entry : node.properties.entrySet()) {
+					if (count > 0) {
+						graphText.append(" ");
+					}
+					graphText.append("--").append(entry.getKey()).append("=").append(entry.getValue());
+					count++;
+				}
+			}
+		}
+		else {
+			graphText.append(node.name).append("");
+		}
 	}
 
 	private void followLink(StringBuilder graphText, Link link, Node nodeToFinishFollowingAt) {

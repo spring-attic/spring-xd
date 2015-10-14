@@ -6,5 +6,10 @@
       <tasklet ref="jobRunner-foo"/>
     </step>
   </batch:job>
-  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-foo" scope="step"/>
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-foo" scope="step">
+    <constructor-arg ref="messageBus"/>
+    <constructor-arg ref="jobDefinitionRepository"/>
+    <constructor-arg ref="xdJobRepository"/>
+    <constructor-arg value="foo"/>
+  </bean>
 </beans>

@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.job.dsl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -41,12 +40,6 @@ import org.junit.Test;
 public class JobParserTests {
 
 	private JobSpecification js;
-
-	@Test
-	public void empty() {
-		js = parse("");
-		assertNull(js);
-	}
 
 	@Test
 	public void graphToText() {
@@ -104,6 +97,12 @@ public class JobParserTests {
 	@Test
 	public void toDSLTextSplitToFlow() {
 		checkDSLToGraphAndBackToDSL("<a & b> || foo");
+	}
+
+	@Test
+	public void toDSLTextWithPropertiesOnReference() {
+		checkDSLToGraphAndBackToDSL("<a x --aaa=bbb & b> || foo");
+		checkDSLToGraphAndBackToDSL("<a & b y --aaa=bbb --ccc=ddd> || foo");
 	}
 
 	@Test
@@ -458,6 +457,16 @@ public class JobParserTests {
 	}
 
 	@Test
+	public void toGraphBlank() {
+		js = parse("");
+		Graph g = js.toGraph();
+		assertEquals(toExpectedGraph("n:0:START,n:1:END,l:0:1"), g.toJSON());
+		js = parse(" ");
+		g = js.toGraph();
+		assertEquals(toExpectedGraph("n:0:START,n:1:END,l:0:1"), g.toJSON());
+	}
+
+	@Test
 	public void toGraphSequence() {
 		js = parse("foo || bar");
 		assertEquals(toExpectedGraph("n:0:START,n:1:foo,n:2:bar,n:3:END,l:0:1,l:1:2,l:2:3"),
@@ -467,7 +476,8 @@ public class JobParserTests {
 	@Test
 	public void toGraphInlineJob() {
 		js = parse("filejdbc foo --aaa=bbb || bar");
-		assertEquals(toExpectedGraph("n:0:START,n:1:foo:aaa=bbb,n:2:bar,n:3:END,l:0:1,l:1:2,l:2:3"),
+		assertEquals(toExpectedGraph(
+				"n:0:START,n:1:foo:meta-jobModuleName=filejdbc;aaa=bbb,n:2:bar,n:3:END,l:0:1,l:1:2,l:2:3"),
 				js.toGraph().toJSON());
 	}
 
@@ -502,7 +512,6 @@ public class JobParserTests {
 	public void toGraphWithTransition2() {
 		// The target transition node is not elsewhere on the list
 		js = parse("<foo | completed=hoo & bar> || boo || goo");
-		System.out.println(js.toGraph().toJSON());
 		assertEquals(
 				toExpectedGraph(
 						"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:hoo,n:6:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:5:transitionName=completed,l:4:6,l:5:6"),
@@ -721,9 +730,6 @@ public class JobParserTests {
 	}
 
 	JobSpecification parse(String jobSpecification) {
-		if (jobSpecification.length() == 0) {
-			return null;
-		}
 		JobSpecification jobSpec = getParser().parse(jobSpecification);
 		return jobSpec;
 	}
@@ -753,19 +759,42 @@ public class JobParserTests {
 				}
 				s.append("{\"id\":\"" + nodeId + "\",\"name\":\"" + nodeName + "\"");
 				if (elementTokenizer.hasMoreTokens()) {
-					String properties = elementTokenizer.nextToken();
-					StringTokenizer propertyTokenizer = new StringTokenizer(properties, ";");
-					s.append(",\"properties\":{");
+					String propertiesAndMetadata = elementTokenizer.nextToken();
+
+					StringBuilder metadata = new StringBuilder();
+					StringBuilder properties = new StringBuilder();
+
+					StringTokenizer propertyOrMetadataTokenizer = new StringTokenizer(propertiesAndMetadata, ";");
+					metadata.append(",\"metadata\":{");
+					properties.append(",\"properties\":{");
 					int propertyCount = 0;
-					while (propertyTokenizer.hasMoreTokens()) {
-						if (propertyCount > 0) {
-							s.append(",");
+					int metadataCount = 0;
+					while (propertyOrMetadataTokenizer.hasMoreTokens()) {
+						String propertyOrMetadata = propertyOrMetadataTokenizer.nextToken();
+						int equals = propertyOrMetadata.indexOf("=");
+						String key = propertyOrMetadata.substring(0, equals);
+						String value = propertyOrMetadata.substring(equals + 1);
+						if (key.startsWith("meta-")) {
+							key = key.substring(5);
+							if (metadataCount > 0) {
+								metadata.append(",");
+							}
+							metadata.append("\"" + key + "\":\"" + value + "\"");
+							metadataCount++;
 						}
-						String property = propertyTokenizer.nextToken();
-						int equals = property.indexOf("=");
-						String key = property.substring(0, equals);
-						String value = property.substring(equals + 1);
-						s.append("\"" + key + "\":\"" + value + "\"");
+						else {
+							if (propertyCount > 0) {
+								s.append(",");
+							}
+							properties.append("\"" + key + "\":\"" + value + "\"");
+							propertyCount++;
+						}
+					}
+					if (metadataCount > 0) {
+						s.append(metadata.toString()).append("}");
+					}
+					if (propertyCount > 0) {
+						s.append(properties.toString());
 					}
 					s.append("}");
 				}
@@ -842,7 +871,7 @@ public class JobParserTests {
 			fail("expected to fail but parsed " + js.stringify());
 		}
 		catch (JobSpecificationException e) {
-			System.out.println(e);
+			e.printStackTrace();
 			assertEquals(msg, e.getMessageCode());
 			assertEquals(pos, e.getPosition());
 			if (inserts != null) {

@@ -29,9 +29,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Node {
 
+	public static final String METADATAKEY_JOBMODULENAME = "jobModuleName";
+
 	public String id;
 
 	public String name;
+
+	public Map<String, String> metadata;
 
 	public Map<String, String> properties;
 
@@ -45,9 +49,10 @@ public class Node {
 		this.properties = null;
 	}
 
-	Node(String id, String name, Map<String, String> properties) {
+	Node(String id, String name, Map<String, String> metadata, Map<String, String> properties) {
 		this.id = id;
 		this.name = name;
+		this.metadata = metadata;
 		this.properties = properties;
 	}
 
@@ -57,6 +62,9 @@ public class Node {
 		s.append("Node[id=").append(id).append(",name=").append(name);
 		if (properties != null) {
 			s.append(",properties=").append(properties);
+		}
+		if (metadata != null) {
+			s.append(",metadata=").append(metadata);
 		}
 		s.append("]");
 		return s.toString();

@@ -39,6 +39,10 @@ public class JobParser {
 	 * @throws JobSpecificationException if any problems occur during parsing
 	 */
 	public JobSpecification parse(String jobSpecification) {
+		jobSpecification = jobSpecification.trim();
+		if (jobSpecification.length() == 0) {
+			return new JobSpecification(jobSpecification, null);
+		}
 		tokens = new Tokens(jobSpecification);
 		JobNode jobNode = parseJobNode();
 		JobSpecification js = new JobSpecification(jobSpecification, jobNode);

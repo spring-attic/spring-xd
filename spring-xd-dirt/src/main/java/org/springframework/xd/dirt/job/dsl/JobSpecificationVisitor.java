@@ -30,7 +30,9 @@ public abstract class JobSpecificationVisitor<T> {
 	public final void accept(JobSpecification jobSpec) {
 		T context = preJobSpecWalk();
 		JobNode jn = jobSpec.getJobNode();
-		context = walk(context, jn);
+		if (jn != null) {
+			context = walk(context, jn);
+		}
 		postJobSpecWalk(context);
 	}
 

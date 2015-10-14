@@ -40,8 +40,6 @@ public class Split extends JobSeries {
 	@Override
 	public String stringify(boolean includePositionInfo) {
 		if (jobsInParallel.size() == 1) {
-			// TODO throw an exception when this situation is parsed?
-			// There is just the one sequence
 			return jobsInParallel.get(0).stringify(includePositionInfo);
 		}
 		else {

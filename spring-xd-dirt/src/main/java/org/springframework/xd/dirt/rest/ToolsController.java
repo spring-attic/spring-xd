@@ -18,6 +18,10 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,9 +29,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.xd.dirt.job.dsl.Graph;
 import org.springframework.xd.dirt.job.dsl.JobParser;
+import org.springframework.xd.dirt.job.dsl.JobSpecificationException;
 import org.springframework.xd.dirt.stream.DocumentParseResult;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.rest.domain.DocumentParseResultResource;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A controller for integrating with frontend tools.
@@ -63,9 +70,38 @@ public class ToolsController {
 	/**
 	 * Parse a single job specification into a graph structure.
 	 */
-	@RequestMapping(value = "/parseJob", method = RequestMethod.GET)
-	public Graph parseJob(@RequestParam("specification") String specification) {
-		return jobParser.getGraph(specification);
+	@RequestMapping(value = "/parseJobToGraph", method = RequestMethod.GET)
+	public Map<String, Object> parseJobToGraph(@RequestParam("specification") String specification) {
+		Map<String, Object> response = new HashMap<>();
+		try {
+			Graph graph = jobParser.getGraph(specification);
+			response.put("graph", graph);
+		}
+		catch (JobSpecificationException jse) {
+			response.put("error", jse.toExceptionDescriptor());
+		}
+		return response;
+	}
+
+	/**
+	 * Convert a graph format into DSL text format.
+	 */
+	@RequestMapping(value = "/convertJobGraphToText", method = RequestMethod.GET)
+	public Map<String, Object> convertJobGrabToText(@RequestParam("graph") String graphAsString) {
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> response = new HashMap<>();
+		try {
+			Graph graph = mapper.readValue(graphAsString, Graph.class);
+			String dslText = graph.toDSLText();
+			response.put("text", dslText);
+		}
+		catch (JobSpecificationException jse) {
+			response.put("error", jse.toExceptionDescriptor());
+		}
+		catch (IOException e) {
+			response.put("error", e.toString());
+		}
+		return response;
 	}
 
 }

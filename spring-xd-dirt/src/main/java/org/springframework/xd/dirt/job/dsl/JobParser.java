@@ -34,9 +34,9 @@ public class JobParser {
 	/**
 	 * Parse a job flow definition into an abstract syntax tree (AST).
 	 *
-	 * @param the textual job specification
-	 * @return the AST for the parsed stream
-	 * @throws JobSpecificationException
+	 * @param jobSpecification the textual job specification
+	 * @return the AST for the parsed job
+	 * @throws JobSpecificationException if any problems occur during parsing
 	 */
 	public JobSpecification parse(String jobSpecification) {
 		tokens = new Tokens(jobSpecification);
@@ -123,6 +123,10 @@ public class JobParser {
 				jd = new JobReference(tokens.eat(TokenKind.IDENTIFIER));
 			}
 		}
+		if (jd == null) {
+			Token t = tokens.peek();
+			tokens.raiseException(t == null ? 0 : t.startpos, JobDSLMessage.EXPECTED_JOB_REF_OR_DEF);
+		}
 		if (tokens.peek(TokenKind.PIPE)) {
 			List<Transition> transitions = parseTransitions();
 			jd.setTransitions(transitions);
@@ -141,6 +145,11 @@ public class JobParser {
 						tokenToString(transitionName));
 			}
 			Token nextToken = tokens.peek();
+			if (nextToken == null) {
+				// no equals after the transition name
+				tokens.raiseException(transitionName.endpos - 1, JobDSLMessage.MISSING_EQUALS_AFTER_TRANSITION_NAME,
+						tokenToString(transitionName));
+			}
 			if (!nextToken.isKind(TokenKind.EQUALS)) {
 				tokens.raiseException(nextToken.startpos, JobDSLMessage.EXPECTED_EQUALS_AFTER_TRANSITION_NAME,
 						tokenToString(nextToken));

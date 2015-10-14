@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.job.dsl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -40,6 +41,123 @@ import org.junit.Test;
 public class JobParserTests {
 
 	private JobSpecification js;
+
+	@Test
+	public void empty() {
+		js = parse("");
+		assertNull(js);
+	}
+
+	@Test
+	public void graphToText() {
+		checkDSLToGraphAndBackToDSL("foojob");
+	}
+
+	@Test
+	public void graphToTextFlow() {
+		checkDSLToGraphAndBackToDSL("foojob || barjob");
+	}
+
+	@Test
+	public void graphToTextSplit() {
+		checkDSLToGraphAndBackToDSL("<foojob & barjob>");
+	}
+
+	@Test
+	public void errorMissingJob() {
+		// Only single & between jobs
+		checkForParseError("<aa && bb>", JobDSLMessage.EXPECTED_JOB_REF_OR_DEF, 5);
+	}
+
+	@Test
+	public void errorMissingJob2() {
+		// Need a job in between all those things
+		checkForParseError("aa  |||| bb", JobDSLMessage.EXPECTED_JOB_REF_OR_DEF, 6);
+	}
+
+	@Test
+	public void errorMissingJob3() {
+		// Need a job in between all those things
+		checkForParseError("aa  ||| bb", JobDSLMessage.EXPECTED_JOB_REF_OR_DEF, 6);
+	}
+
+	@Test
+	public void graphToTextFlowWithTransition() {
+		checkDSLToGraphAndBackToDSL("foojob | completed = killjob || barjob");
+	}
+
+	@Test
+	public void graphToTextSplitWithTransition() {
+		checkDSLToGraphAndBackToDSL("<foojob | completed = killjob & barjob>");
+	}
+
+	@Test
+	public void graphToTextSplitWithTransition2() {
+		checkDSLToGraphAndBackToDSL("<foojob | completed = killjob & barjob | completed = killjob>");
+	}
+
+	@Test
+	public void graphToTextComplex() {
+		checkDSLToGraphAndBackToDSL("<foojob & bbb || ccc>");
+	}
+
+	@Test
+	public void toDSLTextSplitToFlow() {
+		checkDSLToGraphAndBackToDSL("<a & b> || foo");
+	}
+
+	@Test
+	public void toDSLTextFlowToSplit() {
+		checkDSLToGraphAndBackToDSL("foo || <c & d>");
+	}
+
+	@Test
+	public void toDSLTextSplitFlowSplit() {
+		checkDSLToGraphAndBackToDSL("<a & b> || foo || <c & d>");
+	}
+
+	@Test
+	public void toDSLTextFlowTransitions() {
+		checkDSLToGraphAndBackToDSL("aaa | COMPLETED = kill || bbb || ccc");
+		checkDSLToGraphAndBackToDSL("aaa | COMPLETED = kill || bbb | COMPLETED = kill || ccc");
+		checkDSLToGraphAndBackToDSL("aaa | COMPLETED = kill | FOO = bar || bbb | COMPLETED = kill || ccc");
+	}
+
+	@Test
+	public void toDSLTextSplitTransitions() {
+		checkDSLToGraphAndBackToDSL("<aaa | COMPLETED = kill & bbb> || ccc");
+		checkDSLToGraphAndBackToDSL("<aaa | COMPLETED = kill & bbb | COMPLETED = kill> || ccc");
+		checkDSLToGraphAndBackToDSL("<aaa | COMPLETED = kill | '*' = kill2 & bbb | COMPLETED = kill> || ccc");
+	}
+
+	@Test
+	public void toDSLTextNestedSplits() {
+		checkDSLToGraphAndBackToDSL("<aaa & bbb || <ccc & ddd>> || eee");
+		checkDSLToGraphAndBackToDSL("<aaa || <bbb & ccc> || foo & ddd || eee> || fff");
+		checkDSLToGraphAndBackToDSL("<aaa || <bbb & ccc> & ddd || eee> || fff");
+		checkDSLToGraphAndBackToDSL("<aaa || <bbb & ccc> & ddd || eee> || fff");
+		checkDSLToGraphAndBackToDSL("<aaa & bbb || <ccc & ddd>> || <eee & fff>");
+		checkDSLToGraphAndBackToDSL("<aaa & bbb || <ccc & ddd>> || <eee & fff> || <ggg & hhh>");
+	}
+
+	@Test
+	public void toDSLTextLong() {
+		checkDSLToGraphAndBackToDSL(
+				"<aaa || fff & bbb || ggg || <ccc & ddd>> || eee || hhh || iii || <jjj & kkk || lll>");
+	}
+
+	@Test
+	public void toDSLTextSync() {
+		String spec = "<a & b> || <c & d>";
+		checkDSLToGraphAndBackToDSL(spec);
+	}
+
+	@Test
+	public void toDSLTextManualSync() {
+		// Here foo is effectively acting as a sync node
+		String spec = "<a & b> || foo || <c & d>";
+		checkDSLToGraphAndBackToDSL(spec);
+	}
 
 	@Test
 	public void oneJobReference() {
@@ -342,26 +460,29 @@ public class JobParserTests {
 	@Test
 	public void toGraphSequence() {
 		js = parse("foo || bar");
-		assertEquals(toExpectedGraph("n:0:foo,n:1:bar,l:0:1"), js.toGraph().toJSON());
+		assertEquals(toExpectedGraph("n:0:START,n:1:foo,n:2:bar,n:3:END,l:0:1,l:1:2,l:2:3"),
+				js.toGraph().toJSON());
 	}
 
 	@Test
 	public void toGraphInlineJob() {
 		js = parse("filejdbc foo --aaa=bbb || bar");
-		assertEquals(toExpectedGraph("n:0:foo:aaa=bbb,n:1:bar,l:0:1"), js.toGraph().toJSON());
+		assertEquals(toExpectedGraph("n:0:START,n:1:foo:aaa=bbb,n:2:bar,n:3:END,l:0:1,l:1:2,l:2:3"),
+				js.toGraph().toJSON());
 	}
 
 	@Test
 	public void toGraphSequence2() {
 		js = parse("foo || bar || boo");
-		assertEquals(toExpectedGraph("n:0:foo,n:1:bar,n:2:boo,l:0:1,l:1:2"), js.toGraph().toJSON());
+		assertEquals(toExpectedGraph("n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:END,l:0:1,l:1:2,l:2:3,l:3:4"),
+				js.toGraph().toJSON());
 	}
 
 	@Test
 	public void toGraphSplit() {
 		js = parse("<foo & bar> || boo");
 		assertEquals(
-				toExpectedGraph("n:0:foo,n:1:bar,n:2:boo,l:0:2,l:1:2"),
+				toExpectedGraph("n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4"),
 				js.toGraph().toJSON());
 	}
 
@@ -369,10 +490,11 @@ public class JobParserTests {
 	// 	js = parse("<foo | completed=boo& bar> || boo");
 
 	@Test
-	public void toGraphWithTransition() {
+	public void toGraphWithTransition() throws Exception {
 		js = parse("<foo | completed=goo & bar> || boo || goo");
 		assertEquals(
-				toExpectedGraph("n:0:foo,n:1:bar,n:2:boo,n:3:goo,l:0:2,l:1:2,l:2:3,l:0:3:transitionName=completed"),
+				toExpectedGraph(
+						"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:4:transitionName=completed,l:4:5"),
 				js.toGraph().toJSON());
 	}
 
@@ -380,9 +502,10 @@ public class JobParserTests {
 	public void toGraphWithTransition2() {
 		// The target transition node is not elsewhere on the list
 		js = parse("<foo | completed=hoo & bar> || boo || goo");
+		System.out.println(js.toGraph().toJSON());
 		assertEquals(
 				toExpectedGraph(
-						"n:0:foo,n:1:bar,n:2:boo,n:3:goo,n:4:hoo,l:0:2,l:1:2,l:2:3,l:0:4:transitionName=completed"),
+						"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:hoo,n:6:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:5:transitionName=completed,l:4:6,l:5:6"),
 				js.toGraph().toJSON());
 	}
 
@@ -598,6 +721,9 @@ public class JobParserTests {
 	}
 
 	JobSpecification parse(String jobSpecification) {
+		if (jobSpecification.length() == 0) {
+			return null;
+		}
 		JobSpecification jobSpec = getParser().parse(jobSpecification);
 		return jobSpec;
 	}
@@ -656,7 +782,7 @@ public class JobParserTests {
 				}
 				String sourceId = elementTokenizer.nextToken();
 				String targetId = elementTokenizer.nextToken();
-				s.append("{\"from\":" + sourceId + ",\"to\":" + targetId);
+				s.append("{\"from\":\"" + sourceId + "\",\"to\":\"" + targetId + "\"");
 				if (elementTokenizer.hasMoreTokens()) {
 					String properties = elementTokenizer.nextToken();
 					StringTokenizer propertyTokenizer = new StringTokenizer(properties, ";");
@@ -725,6 +851,12 @@ public class JobParserTests {
 				}
 			}
 		}
+	}
+
+	private void checkDSLToGraphAndBackToDSL(String specification) {
+		js = parse(specification);
+		Graph g = js.toGraph();
+		assertEquals(specification, g.toDSLText());
 	}
 
 }

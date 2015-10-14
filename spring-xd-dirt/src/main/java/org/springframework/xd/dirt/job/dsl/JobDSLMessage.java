@@ -45,7 +45,7 @@ public enum JobDSLMessage {
 	MISSING_CHARACTER(ERROR, 205, "missing expected character ''{0}''"), //
 	NOT_EXPECTED_TOKEN(ERROR, 206, "Unexpected token.  Expected ''{0}'' but was ''{1}''"), //
 	OOD(ERROR, 207, "Unexpectedly ran out of input"), //
-	UNEXPECTED_DATA(ERROR, 208, "unexpected data in stream definition ''{0}''"), //
+	UNEXPECTED_DATA(ERROR, 208, "unexpected data in job definition ''{0}''"), //
 	EXPECTED_WHITESPACE_AFTER_NAME_BEFORE_ARGUMENT(ERROR,
 			209,
 			"expected whitespace after job name and before argument"), //
@@ -56,7 +56,23 @@ public enum JobDSLMessage {
 					EXPECTED_TRANSITION_NAME(ERROR, 212, "Expected the name of a job exit state but found ''{0}''"), //
 					EXPECTED_EQUALS_AFTER_TRANSITION_NAME(ERROR,
 							213,
-							"Expected an equals after a job exit state but found ''{0}''");
+							"Expected an equals after a job exit state but found ''{0}''"), //
+							NON_TERMINATING_QUOTED_STRING(
+									ERROR, 214, "Cannot find terminating '' for string"), //
+									NON_TERMINATING_DOUBLE_QUOTED_STRING(ERROR,
+											215,
+											"Cannot find terminating \" for string"), //
+											UNEXPECTED_ESCAPE_CHAR(ERROR, 216, "unexpected escape character."), //
+											MISSING_EQUALS_AFTER_TRANSITION_NAME(ERROR,
+													217,
+													"Expected an equals after the transition ''{0}''"), //
+													ONLY_ONE_AMPERSAND_REQUIRED(ERROR,
+															218,
+															"Only a single '&' is required between jobs in a split"), //
+															EXPECTED_JOB_REF_OR_DEF(ERROR,
+																	219,
+																	"Expected job reference or definition");
+	;
 
 
 	private Kind kind;

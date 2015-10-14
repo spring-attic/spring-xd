@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2000/xsi/" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
   <bean class="org.springframework.core.task.SimpleAsyncTaskExecutor" id="taskExecutor"/>
   <batch:job xmlns="http://www.springframework.org/schema/batch" id="test1">
     <split id="split1" task-executor="taskExecutor">
@@ -11,6 +11,6 @@
       </step>
     </split>
   </batch:job>
-  <bean class="JobRunningTasklet" id="jobRunner-foo" scope="step"/>
-  <bean class="JobRunningTasklet" id="jobRunner-bar" scope="step"/>
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-foo" scope="step"/>
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-bar" scope="step"/>
 </beans>

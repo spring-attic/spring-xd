@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
-import org.springframework.xd.dirt.stream.dsl.XDDSLMessages;
 
 /**
  * Lex some input data into a stream of tokens that can then then be parsed.
@@ -102,47 +100,32 @@ class Tokenizer {
 					case ' ':
 					case '\t':
 					case '\r':
+					case '\n':
 						// drift over white space
 						pos++;
 						break;
-					case '\n':
-						pos++;
-						//						pushCharToken(TokenKind.NEWLINE);
-						break;
-					//					case '.':
-					//						pushCharToken(TokenKind.DOT);
-					//						break;
-					//					case ':':
-					//						pushCharToken(TokenKind.COLON);
-					//						break;
 					case '(':
 						pushCharToken(TokenKind.OPEN_PAREN);
 						break;
 					case ')':
 						pushCharToken(TokenKind.CLOSE_PAREN);
 						break;
-					//					case ';':
-					//						pushCharToken(TokenKind.SEMICOLON);
-					//						break;
 					case '\'':
 						lexQuotedStringLiteral();
 						break;
 					case '"':
 						lexDoubleQuotedStringLiteral();
 						break;
-					//					case '@':
-					//						pushCharToken(TokenKind.REFERENCE);
-					//						break;
 					case 0:
 						// hit sentinel at end of char data
 						pos++; // will take us to the end
 						break;
 					case '\\':
-						throw new StreamDefinitionException(
-								expressionString, pos, XDDSLMessages.UNEXPECTED_ESCAPE_CHAR);
+						throw new JobSpecificationException(
+								expressionString, pos, JobDSLMessage.UNEXPECTED_ESCAPE_CHAR);
 					default:
-						throw new StreamDefinitionException(
-								expressionString, pos, XDDSLMessages.UNEXPECTED_DATA,
+						throw new JobSpecificationException(
+								expressionString, pos, JobDSLMessage.UNEXPECTED_DATA,
 								Character.valueOf(ch).toString());
 				}
 			}
@@ -173,8 +156,8 @@ class Tokenizer {
 				}
 			}
 			if (ch == 0) {
-				throw new StreamDefinitionException(
-						expressionString, start, XDDSLMessages.NON_TERMINATING_QUOTED_STRING);
+				throw new JobSpecificationException(
+						expressionString, start, JobDSLMessage.NON_TERMINATING_QUOTED_STRING);
 			}
 		}
 		pos++;
@@ -202,8 +185,8 @@ class Tokenizer {
 				}
 			}
 			if (ch == 0) {
-				throw new StreamDefinitionException(
-						expressionString, start, XDDSLMessages.NON_TERMINATING_DOUBLE_QUOTED_STRING);
+				throw new JobSpecificationException(
+						expressionString, start, JobDSLMessage.NON_TERMINATING_DOUBLE_QUOTED_STRING);
 			}
 		}
 		pos++;
@@ -227,7 +210,8 @@ class Tokenizer {
 	 * that and don't allow ' ' (space) and '\t' (tab) to terminate the value.
 	 */
 	private boolean isArgValueIdentifierTerminator(char ch, boolean quoteOpen) {
-		return (ch == '|' && !quoteOpen) || (ch == ';' && !quoteOpen) || ch == '\0' || (ch == ' ' && !quoteOpen)
+		return (ch == '&' && !quoteOpen) || (ch == '|' && !quoteOpen) || (ch == ';' && !quoteOpen) || ch == '\0'
+				|| (ch == ' ' && !quoteOpen)
 				|| (ch == '\t' && !quoteOpen) || (ch == '>' && !quoteOpen)
 				|| ch == '\r' || ch == '\n';
 	}

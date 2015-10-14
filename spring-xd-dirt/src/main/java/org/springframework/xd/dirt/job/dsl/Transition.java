@@ -66,4 +66,15 @@ public class Transition extends AstNode {
 		return targetJobReference.getName();
 	}
 
+	/**
+	 * Basic names do not need wrapping in quotes but special characters, like
+	 * asterisk do. This returns the state name in a form suitable for inclusion
+	 * in DSL text (so with the quotes if that's how it was specified
+	 * when the Transition object was built).
+	 * @return the transition name suitable for inclusion in the DSL
+	 */
+	public String getStateNameInDSLForm() {
+		return stateNameToken.data;
+	}
+
 }

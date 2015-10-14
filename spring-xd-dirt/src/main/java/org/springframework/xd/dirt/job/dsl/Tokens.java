@@ -211,11 +211,11 @@ public class Tokens {
 
 	/**
 	 * Consume the next token if it matches the indicated token kind;
-	 * otherwise throw {@link CheckPointedParseException}.
+	 * otherwise throw {@link CheckpointedJobDefinitionException}.
 	 *
 	 * @param expectedKind the expected token kind
 	 * @return the next token
-	 * @throws CheckPointedParseException if the next token does not match
+	 * @throws CheckpointedJobDefinitionException if the next token does not match
 	 * the expected token kind
 	 */
 	protected Token eat(TokenKind expectedKind) {
@@ -267,7 +267,7 @@ public class Tokens {
 	}
 
 	/**
-	 * Indicate that the current token has been successfully processed.
+	 * Indicate that a piece of the DSL has been successfully processed.
 	 *
 	 * @see #lastGoodPosition
 	 */
@@ -276,7 +276,7 @@ public class Tokens {
 	}
 
 	/**
-	 * Throw a new {@link CheckPointedParseException} based on the current and
+	 * Throw a new {@link CheckpointedJobDefinitionException} based on the current and
 	 * last successfully processed token position.
 	 *
 	 * @param position position where parse error occurred

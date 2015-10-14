@@ -28,10 +28,10 @@ public abstract class JobSpecificationVisitor<T> {
 	 * Called to start a visit of a specific JobSpec.
 	 */
 	public final void accept(JobSpecification jobSpec) {
-		preJobSpecWalk();
+		T context = preJobSpecWalk();
 		JobNode jn = jobSpec.getJobNode();
-		walk(null, jn);
-		postJobSpecWalk();
+		context = walk(context, jn);
+		postJobSpecWalk(context);
 	}
 
 	public final T walk(T context, JobNode jn) {
@@ -54,15 +54,17 @@ public abstract class JobSpecificationVisitor<T> {
 
 	/**
 	 * Override to provide code that will run just before the visit starts.
+	 * @return optionally return some context that will be passed to the first real visit operation
 	 */
-	public void preJobSpecWalk() {
-
+	public T preJobSpecWalk() {
+		return null;
 	}
 
 	/**
 	 * Override to provide code that will run just after the visit completes.
+	 * @param context the final context computed by the last of the main visit operations
 	 */
-	public void postJobSpecWalk() {
+	public void postJobSpecWalk(T context) {
 
 	}
 

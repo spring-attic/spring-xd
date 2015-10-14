@@ -18,18 +18,26 @@ package org.springframework.xd.dirt.job.dsl;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Represents a node in a {@link Graph} object that Flo will display as a block.
  *
  * @author Andy Clement
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Node {
 
-	public final String id;
+	public String id;
 
-	public final String name;
+	public String name;
 
-	public final Map<String, String> properties;
+	public Map<String, String> properties;
+
+	Node() {
+
+	}
 
 	Node(String id, String name) {
 		this.id = id;
@@ -41,5 +49,31 @@ public class Node {
 		this.id = id;
 		this.name = name;
 		this.properties = properties;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		s.append("Node[id=").append(id).append(",name=").append(name);
+		if (properties != null) {
+			s.append(",properties=").append(properties);
+		}
+		s.append("]");
+		return s.toString();
+	}
+
+	@JsonIgnore
+	public boolean isStart() {
+		return name.equals("START");
+	}
+
+	@JsonIgnore
+	public boolean isEnd() {
+		return name.equals("END");
+	}
+
+	@JsonIgnore
+	public boolean isSync() {
+		return name.equals("SYNC");
 	}
 }

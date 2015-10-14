@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.job.dsl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Root exception for Job Flow DSL parsing related exceptions. Rather than holding a hard coded string indicating the problem, it
  * records a message key and the inserts for the message. See {@link JobDSLMessage} for the list of all possible
@@ -93,6 +96,25 @@ public class JobSpecificationException extends RuntimeException {
 	 */
 	public final int getPosition() {
 		return position;
+	}
+
+	/**
+	 * Produce a simple map of information about the exception that
+	 * can be sent to the client for display.
+	 * @return map of simple information including message and position
+	 */
+	public Map<String, Object> toExceptionDescriptor() {
+		Map<String, Object> descriptor = new HashMap<>();
+		String text = null;
+		if (message != null) {
+			text = message.formatMessage(position, inserts);
+		}
+		else {
+			text = super.getMessage();
+		}
+		descriptor.put("message", text);
+		descriptor.put("position", position);
+		return descriptor;
 	}
 
 }

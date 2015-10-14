@@ -226,7 +226,7 @@ public class JobSpecification extends AstNode {
 		}
 
 		@Override
-		public void preJobSpecWalk() {
+		public Element[] preJobSpecWalk() {
 			try {
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
@@ -245,8 +245,11 @@ public class JobSpecification extends AstNode {
 						"http://www.springframework.org/schema/batch");
 				doc.getDocumentElement().setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xsi",
 						"http://www.w3.org/2001/XMLSchema-instance");
-				doc.getDocumentElement().setAttributeNS("http://www.w3.org/2000/xsi/", "xsi:schemaLocation",
-						"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd");
+				doc.getDocumentElement().setAttributeNS("http://www.w3.org/2001/XMLSchema-instance",
+						"xsi:schemaLocation",
+						"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd "
+								+
+								"http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd");
 				// Setting this 'again' to get it on the front and look more like the above.
 				doc.getDocumentElement().setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns",
 						"http://www.springframework.org/schema/beans");
@@ -268,18 +271,19 @@ public class JobSpecification extends AstNode {
 				this.currentElement.push(batchJobElement);
 			}
 			catch (Exception e) {
-				// todo!
+				throw new IllegalStateException("Unexpected problem building XML representation", e);
 			}
+			return null;
 		};
 
 		@Override
-		public void postJobSpecWalk() {
+		public void postJobSpecWalk(Element[] elements) {
 			for (String jobRunnerId : jobRunnerIds) {
 				// Producing:
 				// <bean id="jobRunner-a6e0" class="JobRunningTasklet" scope="step"/>
 				Element bean = doc.createElement("bean");
 				bean.setAttribute("scope", "step");
-				bean.setAttribute("class", "JobRunningTasklet");
+				bean.setAttribute("class", "org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet");
 				bean.setAttribute("id", jobRunnerId);
 				this.doc.getElementsByTagName("beans").item(0).appendChild(bean);
 			}
@@ -298,27 +302,33 @@ public class JobSpecification extends AstNode {
 				xmlString = sr.toString().trim();
 			}
 			catch (TransformerException e) {
-				// TODO Auto-generated catch block
+				throw new IllegalStateException("Unexpected problem building XML representation", e);
 			}
 		}
 
 		@Override
 		public Element[] walk(Element[] context, Flow jn) {
-			Element flow = doc.createElement("flow");
-			currentElement.peek().appendChild(flow);
-			currentElement.push(flow);
+			boolean inSplit = currentElement.peek().getTagName().equals("split");
+			// Only need the flow element if nested in a split
+			if (inSplit) {
+				Element flow = doc.createElement("flow");
+				currentElement.peek().appendChild(flow);
+				currentElement.push(flow);
+			}
 			Element[] result = context;
 			for (JobNode j : jn.getSeries()) {
 				result = walk(result, j);
 			}
-			currentElement.pop();
+			if (inSplit) {
+				currentElement.pop();
+			}
 			return result;
 		}
 
 		@Override
 		public Element[] walk(Element[] context, JobDefinition jd) {
-			// TODO Auto-generated method stub
-			throw new UnsupportedOperationException("Auto-generated method stub");
+			// TODO what is the XML for a job definition?
+			throw new IllegalStateException("Unable to create XML for job definition");
 		}
 
 		@Override
@@ -429,7 +439,15 @@ public class JobSpecification extends AstNode {
 		}
 
 		@Override
-		public void postJobSpecWalk() {
+		public int[] preJobSpecWalk() {
+			// Insert a START node at the beginning of the graph
+			Node node = new Node(Integer.toString(id++), "START");
+			nodes.add(node);
+			return new int[] { 0 };
+		}
+
+		@Override
+		public void postJobSpecWalk(int[] finalNodes) {
 			// Deal with transitions
 			for (TransitionToMap ttm : transitions) {
 				int nodeInGraph = findNode(ttm.targetJob);
@@ -439,8 +457,16 @@ public class JobSpecification extends AstNode {
 					Node n = new Node(Integer.toString(nextId), ttm.targetJob);
 					nodes.add(n);
 					nodeInGraph = nextId;
+					finalNodes = merge(finalNodes, new int[] { nextId });
 				}
 				links.add(new Link(ttm.from, nodeInGraph, ttm.transitionName));
+			}
+			// Insert an END node at the end of the graph
+			int endId = id++;
+			Node n = new Node(Integer.toString(endId), "END");
+			nodes.add(n);
+			for (int i : finalNodes) {
+				links.add(new Link(i, endId));
 			}
 		}
 
@@ -467,6 +493,22 @@ public class JobSpecification extends AstNode {
 		@Override
 		public int[] walk(int[] context, Split pjs) {
 			int[] inputContext = context;
+
+			if (inputContext.length > 1) {
+				// Cannot directly connect a split to a split, we need a SYNC node
+				// to simulate fan-in/fan-out (inputContext.length > 1 indicates a
+				// previous split).
+				int nextId = id++;
+				Node node = new Node(Integer.toString(nextId), "SYNC");
+				nodes.add(node);
+				for (int i : inputContext) {
+					Link l = new Link(i, nextId);
+					links.add(l);
+				}
+				// Now create new context that contains only the sync node output
+				inputContext = new int[] { nextId };
+			}
+
 			int[] result = new int[0];
 			for (JobNode jn : pjs.getSeries()) {
 				Object outputContext = walk(inputContext, jn);
@@ -485,7 +527,6 @@ public class JobSpecification extends AstNode {
 
 		@Override
 		public int[] walk(int[] context, JobReference jr) {
-			System.out.println("walk(JobReference)");
 			int nextId = id++;
 			Node node = new Node(Integer.toString(nextId), jr.getName());
 			nodes.add(node);
@@ -500,7 +541,7 @@ public class JobSpecification extends AstNode {
 			}
 			if (jr.hasTransitions()) {
 				for (Transition t : jr.getTransitions()) {
-					transitions.add(new TransitionToMap(nextId, t.getStateName(), t.getTargetJobName()));
+					transitions.add(new TransitionToMap(nextId, t.getStateNameInDSLForm(), t.getTargetJobName()));
 				}
 			}
 			return new int[] { nextId };
@@ -529,7 +570,7 @@ public class JobSpecification extends AstNode {
 			}
 			if (jd.hasTransitions()) {
 				for (Transition t : jd.getTransitions()) {
-					transitions.add(new TransitionToMap(nextId, t.getStateName(), t.getTargetJobName()));
+					transitions.add(new TransitionToMap(nextId, t.getStateNameInDSLForm(), t.getTargetJobName()));
 				}
 			}
 			return new int[] { nextId };

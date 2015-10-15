@@ -375,24 +375,6 @@ public class JobSpecification extends AstNode {
 			return new Element[] { step };
 		}
 
-		private List<String> definedFlowNames = new ArrayList<>();
-
-		/**
-		 * Create a unique name for a flow id. It is made up of the incoming prefix plus
-		 * a hyphen plus an integer.
-		 *
-		 * @param prefix the first part of the flow id
-		 */
-		private String generateFlowId(String prefix) {
-			int i = 1;
-			String id = null;
-			do {
-				id = prefix + "-" + Integer.toString(i++);
-			}
-			while (definedFlowNames.contains(id));
-			return id;
-		}
-
 		/**
 		 * Visit a job reference. Rules:
 		 * <ul>
@@ -402,7 +384,7 @@ public class JobSpecification extends AstNode {
 		@Override
 		public Element[] walk(Element[] context, JobReference jr) {
 			// Producing this kind of construct:
-			// <flow id="sqoop-6e44-1">
+			// <flow">
 			//   <step id="sqoop-6e44">
 			//	   <tasklet ref="jobRunner-6e44"/>
 			//	   <next on="*" to="sqoop-e07a"/>
@@ -410,11 +392,9 @@ public class JobSpecification extends AstNode {
 			//   </step>
 			// </flow>
 
-
 			boolean inSplit = currentElement.peek().getTagName().equals("split");
 			if (inSplit) {
 				Element flow = doc.createElement("flow");
-				flow.setAttribute("id", generateFlowId(jr.getName()));
 				currentElement.peek().appendChild(flow);
 				currentElement.push(flow);
 			}

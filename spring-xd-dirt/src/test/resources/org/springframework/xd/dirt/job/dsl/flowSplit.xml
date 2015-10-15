@@ -8,13 +8,13 @@
       <next on="*" to="CC"/>
     </step>
     <split id="split1" task-executor="taskExecutor">
-      <flow id="BB-1">
+      <flow>
         <step id="BB">
           <tasklet ref="jobRunner-BB"/>
           <next on="*" to="DD"/>
         </step>
       </flow>
-      <flow id="CC-1">
+      <flow>
         <step id="CC">
           <tasklet ref="jobRunner-CC"/>
           <next on="*" to="DD"/>

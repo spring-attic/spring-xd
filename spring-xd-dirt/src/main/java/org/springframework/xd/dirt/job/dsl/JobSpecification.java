@@ -208,7 +208,7 @@ public class JobSpecification extends AstNode {
 		/**
 		 * Counter for the numeric suffix to attach to generated split id attributes.
 		 */
-		private int splitId = 1;
+		private int splitIdCounter = 1;
 
 		private List<String> jobRunnerBeans = new ArrayList<>();
 
@@ -438,11 +438,24 @@ public class JobSpecification extends AstNode {
 			//   ...
 			// </split>
 			Element split = doc.createElement("split");
+			String splitId = "split" + (splitIdCounter++);
 			split.setAttribute("task-executor", "taskExecutor");
-			split.setAttribute("id", "split" + (splitId++));
+			split.setAttribute("id", splitId);
+
+			if (context != null) {
+				// context is an array of earlier elements that should point to this one
+				Element next = null;
+				for (Element element : context) {
+					next = doc.createElement("next");
+					next.setAttribute("on", "*");
+					next.setAttribute("to", splitId);
+					element.appendChild(next);
+				}
+			}
+
 			currentElement.peek().appendChild(split);
 			currentElement.push(split);
-			Element[] inputContext = context;
+			Element[] inputContext = new Element[] {};//context;
 			Element[] result = new Element[0];
 			for (JobNode jn : pjs.getSeries()) {
 				Object outputContext = walk(inputContext, jn);

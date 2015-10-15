@@ -375,15 +375,49 @@ public class JobSpecification extends AstNode {
 			return new Element[] { step };
 		}
 
+		private List<String> definedFlowNames = new ArrayList<>();
+
+		/**
+		 * Create a unique name for a flow id. It is made up of the incoming prefix plus
+		 * a hyphen plus an integer.
+		 *
+		 * @param prefix the first part of the flow id
+		 */
+		private String generateFlowId(String prefix) {
+			int i = 1;
+			String id = null;
+			do {
+				id = prefix + "-" + Integer.toString(i++);
+			}
+			while (definedFlowNames.contains(id));
+			return id;
+		}
+
+		/**
+		 * Visit a job reference. Rules:
+		 * <ul>
+		 * <li>The flow surrounding element for the step is created if inside a split
+		 * </ul>
+		 */
 		@Override
 		public Element[] walk(Element[] context, JobReference jr) {
 			// Producing this kind of construct:
-			// <step id="sqoop-6e44">
-			//	 <tasklet ref="jobRunner-6e44"/>
-			//	 <next on="*" to="sqoop-e07a"/>
-			//	 <next on="FAILED" to="kill1"/>
-			// </step>
+			// <flow id="sqoop-6e44-1">
+			//   <step id="sqoop-6e44">
+			//	   <tasklet ref="jobRunner-6e44"/>
+			//	   <next on="*" to="sqoop-e07a"/>
+			//	   <next on="FAILED" to="kill1"/>
+			//   </step>
+			// </flow>
 
+
+			boolean inSplit = currentElement.peek().getTagName().equals("split");
+			if (inSplit) {
+				Element flow = doc.createElement("flow");
+				flow.setAttribute("id", generateFlowId(jr.getName()));
+				currentElement.peek().appendChild(flow);
+				currentElement.push(flow);
+			}
 			Element step = doc.createElement("step");
 			step.setAttribute("id", jr.getName());
 			Element tasklet = doc.createElement("tasklet");
@@ -410,7 +444,10 @@ public class JobSpecification extends AstNode {
 					element.appendChild(next);
 				}
 			}
-			this.currentElement.peek().appendChild(step);
+			currentElement.peek().appendChild(step);
+			if (inSplit) {
+				currentElement.pop();
+			}
 			return new Element[] { step };
 		}
 

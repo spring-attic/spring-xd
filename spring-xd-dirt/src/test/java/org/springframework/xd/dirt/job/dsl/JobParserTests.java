@@ -553,6 +553,18 @@ public class JobParserTests {
 	}
 
 	@Test
+	public void toXmlFlowSplit() {
+		js = parse("AA || <BB & CC> || DD");
+		assertEquals(loadXml("flowSplit"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXmlLongFlowSplit() {
+		js = parse("AA || <BB || CC & DD> || EE");
+		assertEquals(loadXml("flowSplit2"), js.toXML("test1", true));
+	}
+
+	@Test
 	public void inlineJobDefinitionWithOptions() {
 		js = parse("jobModuleA jobNameA --foo=bar --boo=gar");
 		JobNode jn = js.getJobNode();

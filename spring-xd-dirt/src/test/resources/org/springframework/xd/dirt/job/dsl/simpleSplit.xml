@@ -3,12 +3,16 @@
   <bean class="org.springframework.core.task.SimpleAsyncTaskExecutor" id="taskExecutor"/>
   <batch:job xmlns="http://www.springframework.org/schema/batch" id="test1">
     <split id="split1" task-executor="taskExecutor">
-      <step id="foo">
-        <tasklet ref="jobRunner-foo"/>
-      </step>
-      <step id="bar">
-        <tasklet ref="jobRunner-bar"/>
-      </step>
+      <flow id="foo-1">
+        <step id="foo">
+          <tasklet ref="jobRunner-foo"/>
+        </step>
+      </flow>
+      <flow id="bar-1">
+        <step id="bar">
+          <tasklet ref="jobRunner-bar"/>
+        </step>
+      </flow>
     </split>
   </batch:job>
   <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-foo" scope="step">

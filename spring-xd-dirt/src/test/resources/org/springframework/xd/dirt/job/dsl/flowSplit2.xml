@@ -15,15 +15,14 @@
         </step>
         <step id="CC">
           <tasklet ref="jobRunner-CC"/>
-          <next on="*" to="EE"/>
         </step>
       </flow>
       <flow>
         <step id="DD">
           <tasklet ref="jobRunner-DD"/>
-          <next on="*" to="EE"/>
         </step>
       </flow>
+      <next on="*" to="EE"/>
     </split>
     <step id="EE">
       <tasklet ref="jobRunner-EE"/>

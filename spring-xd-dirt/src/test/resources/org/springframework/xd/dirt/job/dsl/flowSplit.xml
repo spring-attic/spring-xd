@@ -11,15 +11,14 @@
       <flow>
         <step id="BB">
           <tasklet ref="jobRunner-BB"/>
-          <next on="*" to="DD"/>
         </step>
       </flow>
       <flow>
         <step id="CC">
           <tasklet ref="jobRunner-CC"/>
-          <next on="*" to="DD"/>
         </step>
       </flow>
+      <next on="*" to="DD"/>
     </split>
     <step id="DD">
       <tasklet ref="jobRunner-DD"/>

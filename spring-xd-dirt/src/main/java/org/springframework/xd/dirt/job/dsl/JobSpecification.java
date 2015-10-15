@@ -449,7 +449,9 @@ public class JobSpecification extends AstNode {
 				result = merge(result, outputContext);
 			}
 			currentElement.pop();
-			return result;
+			// The only element from here to connect to the 'next thing' is the split node.
+			// This means only the split gets a 'next on="*"' element.
+			return new Element[] { split };
 		}
 
 		Element[] merge(Element[] input, Object additional) {

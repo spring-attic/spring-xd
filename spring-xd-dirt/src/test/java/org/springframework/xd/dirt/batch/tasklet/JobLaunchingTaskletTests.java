@@ -118,7 +118,7 @@ public class JobLaunchingTaskletTests {
 
 		taskExecutor.execute(result);
 
-		JobParameters jobParameters = new JobParametersBuilder().addString("xd_orchestration_id", "3").toJobParameters();
+		JobParameters jobParameters = new JobParametersBuilder().addString(JobLaunchingTasklet.XD_ORCHESTRATION_ID, "3").toJobParameters();
 		JobExecution slaveExecution = new JobExecution(9l, jobParameters);
 		slaveExecution.setStatus(BatchStatus.COMPLETED);
 		slaveExecution.setEndTime(new Date());
@@ -130,7 +130,7 @@ public class JobLaunchingTaskletTests {
 
 		assertEquals(result.get(5, TimeUnit.SECONDS), RepeatStatus.FINISHED);
 
-		assertEquals(stepExecution.getExecutionContext().get("xd_orchestration_id"), "3");
+		assertEquals(stepExecution.getExecutionContext().get(JobLaunchingTasklet.XD_ORCHESTRATION_ID), "3");
 
 		verify(bus).bindPubSubConsumer(eq("tap:job:foo.job"), any(PublishSubscribeAmqpChannel.class), (Properties) isNull());
 	}
@@ -160,7 +160,7 @@ public class JobLaunchingTaskletTests {
 
 		taskExecutor.execute(result);
 
-		JobParameters jobParameters = new JobParametersBuilder().addString("xd_orchestration_id", "3").toJobParameters();
+		JobParameters jobParameters = new JobParametersBuilder().addString(JobLaunchingTasklet.XD_ORCHESTRATION_ID, "3").toJobParameters();
 		JobExecution slaveExecution = new JobExecution(9l, jobParameters);
 		slaveExecution.setStatus(BatchStatus.COMPLETED);
 		slaveExecution.setEndTime(new Date());
@@ -172,7 +172,7 @@ public class JobLaunchingTaskletTests {
 
 		assertEquals(result.get(5, TimeUnit.SECONDS), RepeatStatus.FINISHED);
 
-		assertEquals(stepExecution.getExecutionContext().get("xd_orchestration_id"), "3");
+		assertEquals(stepExecution.getExecutionContext().get(JobLaunchingTasklet.XD_ORCHESTRATION_ID), "3");
 
 		verify(bus).bindPubSubConsumer(eq("tap:job:foo.job"), any(PublishSubscribeAmqpChannel.class), (Properties) isNull());
 	}
@@ -210,7 +210,7 @@ public class JobLaunchingTaskletTests {
 
 		taskExecutor.execute(result);
 
-		JobParameters jobParameters = new JobParametersBuilder().addString("xd_orchestration_id", "3").toJobParameters();
+		JobParameters jobParameters = new JobParametersBuilder().addString(JobLaunchingTasklet.XD_ORCHESTRATION_ID, "3").toJobParameters();
 		JobExecution slaveExecution = new JobExecution(9l, jobParameters);
 		slaveExecution.setStatus(BatchStatus.COMPLETED);
 		slaveExecution.setEndTime(new Date());
@@ -222,7 +222,7 @@ public class JobLaunchingTaskletTests {
 
 		assertEquals(result.get(5, TimeUnit.SECONDS), RepeatStatus.FINISHED);
 
-		assertEquals(stepExecution.getExecutionContext().get("xd_orchestration_id"), "3");
+		assertEquals(stepExecution.getExecutionContext().get(JobLaunchingTasklet.XD_ORCHESTRATION_ID), "3");
 
 		verify(bus).bindPubSubConsumer(eq("tap:job:foo.job"), any(PublishSubscribeAmqpChannel.class), (Properties) isNull());
 	}
@@ -309,7 +309,7 @@ public class JobLaunchingTaskletTests {
 
 		taskExecutor.execute(result);
 
-		JobParameters jobParameters = new JobParametersBuilder().addString("xd_orchestration_id", "3").toJobParameters();
+		JobParameters jobParameters = new JobParametersBuilder().addString(JobLaunchingTasklet.XD_ORCHESTRATION_ID, "3").toJobParameters();
 		JobExecution slaveExecution = new JobExecution(9l, jobParameters);
 		slaveExecution.setStatus(BatchStatus.FAILED);
 		slaveExecution.setExitStatus(new ExitStatus("Job Failure"));
@@ -329,7 +329,7 @@ public class JobLaunchingTaskletTests {
 			assertEquals(cause.getMessage(), "Step failure: foo failed.");
 		}
 
-		assertEquals(stepExecution.getExecutionContext().get("xd_orchestration_id"), "3");
+		assertEquals(stepExecution.getExecutionContext().get(JobLaunchingTasklet.XD_ORCHESTRATION_ID), "3");
 
 		verify(bus).bindPubSubConsumer(eq("tap:job:foo.job"), any(PublishSubscribeAmqpChannel.class), (Properties) isNull());
 	}
@@ -340,7 +340,7 @@ public class JobLaunchingTaskletTests {
 		JobExecution jobExecution = new JobExecution(5l);
 		jobExecution.setJobInstance(jobInstance);
 		StepExecution stepExecution = new StepExecution("masterFoo", jobExecution, 7l);
-		stepExecution.getExecutionContext().put("xd_orchestration_id", "3");
+		stepExecution.getExecutionContext().put(JobLaunchingTasklet.XD_ORCHESTRATION_ID, "3");
 		final StepContribution stepContribution = new StepContribution(stepExecution);
 		final ChunkContext chunkContext = new ChunkContext(new StepContext(stepExecution));
 
@@ -358,7 +358,7 @@ public class JobLaunchingTaskletTests {
 
 		taskExecutor.execute(result);
 
-		JobParameters jobParameters = new JobParametersBuilder().addString("xd_orchestration_id", "3").toJobParameters();
+		JobParameters jobParameters = new JobParametersBuilder().addString(JobLaunchingTasklet.XD_ORCHESTRATION_ID, "3").toJobParameters();
 		JobExecution slaveExecution = new JobExecution(9l, jobParameters);
 		slaveExecution.setStatus(BatchStatus.COMPLETED);
 		slaveExecution.setEndTime(new Date());
@@ -370,7 +370,7 @@ public class JobLaunchingTaskletTests {
 
 		assertEquals(result.get(5, TimeUnit.SECONDS), RepeatStatus.FINISHED);
 
-		assertEquals(stepExecution.getExecutionContext().get("xd_orchestration_id"), "3");
+		assertEquals(stepExecution.getExecutionContext().get(JobLaunchingTasklet.XD_ORCHESTRATION_ID), "3");
 
 		verify(bus).bindPubSubConsumer(eq("tap:job:foo.job"), any(PublishSubscribeAmqpChannel.class), (Properties) isNull());
 	}

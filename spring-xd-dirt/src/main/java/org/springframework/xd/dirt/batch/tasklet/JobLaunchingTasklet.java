@@ -33,7 +33,6 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -92,7 +91,6 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	private PublishSubscribeChannel listeningChannel;
 
-	@Autowired
 	public JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
 			DomainRepository instanceRepository, String jobName) {

@@ -88,7 +88,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		this.repository = repository;
 		this.definitionKind = parsingContext;
 		this.parser = parser;
-		composedJobParser = new JobParser();
+		this.composedJobParser = new JobParser();
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		String def = definition.getDefinition();
 		validateBeforeSave(name, def);
 		if(!ComposedJobUtil.isComposedJobDefinition(def)){
-			List<ModuleDescriptor> moduleDescriptors = moduleDescriptors = 
+			List<ModuleDescriptor> moduleDescriptors =  
 					parser.parse(name, def, definitionKind);
 			// todo: the result of parse() should already have correct (polymorphic) definitions
 			List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
@@ -256,7 +256,8 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		List<ModuleDescriptor> modules = null;
 		if(!ComposedJobUtil.isComposedJobDefinition(definition.getDefinition())){
 			modules = parser.parse(definition.getName(), definition.getDefinition(), definitionKind);
-		}else {
+		}
+		else {
 			modules = new ArrayList<ModuleDescriptor>();
 			ModuleDescriptor.Builder builder =
 					new ModuleDescriptor.Builder()

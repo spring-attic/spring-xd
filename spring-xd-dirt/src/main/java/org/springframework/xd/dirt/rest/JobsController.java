@@ -58,7 +58,7 @@ import org.springframework.xd.rest.domain.JobDefinitionResource;
 public class JobsController extends
 		XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResource, Job> {
 
-	ModuleDefinitionService moduleDefinitionService;
+	private ModuleDefinitionService moduleDefinitionService;
 	
 	@Autowired
 	private DistributedJobLocator distributedJobLocator;

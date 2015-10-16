@@ -75,7 +75,7 @@ public class ModuleDefinitionService {
 		this.registry = registry;
 		this.parser = parser;
 		this.dependencyRepository = dependencyRepository;
-		composedJobParser = new JobParser();
+		this.composedJobParser = new JobParser();
 	}
 
 	public ModuleDefinition findDefinition(String name, ModuleType type) {
@@ -101,7 +101,8 @@ public class ModuleDefinitionService {
 		ModuleDefinition moduleDefinition = null;
 		if(typeHint == ModuleType.job){
 			moduleDefinition = composeJob(name, typeHint, dslDefinition, force);
-		}else{
+		}
+		else{
 			moduleDefinition = composeStream(name, typeHint, dslDefinition, force);
 		}
 		return moduleDefinition;
@@ -125,7 +126,8 @@ public class ModuleDefinitionService {
 			writeXML(target, xml);
 			target.close();
 			return outStream.toByteArray();
-		} catch (IOException ioe) {
+		} 
+		catch (IOException ioe) {
 			throw new IllegalStateException(ioe.getMessage(), ioe);
 		}
 	}
@@ -136,7 +138,8 @@ public class ModuleDefinitionService {
 			target.putNextEntry(entry);
 			StreamUtils.copy(in, target);
 			target.closeEntry();
-		} catch(IOException ioe){
+		}
+		catch(IOException ioe){
 			throw new IllegalStateException(ioe.getMessage(), ioe);
 		}
 	}

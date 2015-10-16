@@ -97,9 +97,9 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		String name = definition.getName();
 		String def = definition.getDefinition();
 		validateBeforeSave(name, def);
-		List<ModuleDescriptor> moduleDescriptors = null;
 		if(!ComposedJobUtil.isComposedJobDefinition(def)){
-			moduleDescriptors = parser.parse(name, def, definitionKind);
+			List<ModuleDescriptor> moduleDescriptors = moduleDescriptors = 
+					parser.parse(name, def, definitionKind);
 			// todo: the result of parse() should already have correct (polymorphic) definitions
 			List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDescriptors);
 			if (!moduleDefinitions.isEmpty()) {

@@ -113,7 +113,7 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 			JobDefinitionRepository jobDefinitionRepository,
 			DomainRepository instanceRepository, String jobName,
 			MessageChannel launchingChannel, PublishSubscribeChannel listeningChannel) {
-		Assert.notNull(messageBus, "A message bus is required.");
+		Assert.notNull(messageBus, "A message bus is required");
 		Assert.notNull(jobDefinitionRepository, "A JobDefinitionRepository is required");
 		Assert.notNull(instanceRepository, "A DomainRepository is required");
 		Assert.notNull(jobName, "A job name is required");

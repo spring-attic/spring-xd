@@ -151,7 +151,7 @@ public abstract class AbstractReactorMessageHandler extends AbstractMessageProdu
 
         @Override
         public void onComplete() {
-            logger.error("Consumer completed for [" + s + "]");
+            logger.info("Consumer completed for [" + s + "]");
         }
     }
 }

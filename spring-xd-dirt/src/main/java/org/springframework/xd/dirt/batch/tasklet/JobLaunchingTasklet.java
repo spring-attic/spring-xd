@@ -67,11 +67,9 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	public static final String XD_ORCHESTRATION_ID = "xd_orchestration_id";
 
-	//TODO: Make this configurable
-	private long timeout = -1;
+	private long timeout;
 
-	//TODO: Make this configurable
-	private long pollInterval = 1000;
+	private long pollInterval;
 
 	private String jobName;
 
@@ -93,8 +91,10 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	public JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
-			DomainRepository instanceRepository, String jobName) {
+			DomainRepository instanceRepository, String jobName,
+			Long timeout, Long pollInterval) {
 		this(messageBus, jobDefinitionRepository, instanceRepository, jobName,
+				timeout, pollInterval,
 				new DirectChannel(),
 				new PublishSubscribeChannel((new SimpleAsyncTaskExecutor())));
 	}
@@ -112,6 +112,7 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 	protected JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
 			DomainRepository instanceRepository, String jobName,
+			Long timeout, Long pollInterval,
 			MessageChannel launchingChannel, PublishSubscribeChannel listeningChannel) {
 		Assert.notNull(messageBus, "A message bus is required");
 		Assert.notNull(jobDefinitionRepository, "A JobDefinitionRepository is required");
@@ -124,6 +125,9 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 		this.instanceRepository = instanceRepository;
 		this.launchingChannel = launchingChannel;
 		this.listeningChannel = listeningChannel;
+
+		this.timeout = timeout == null ? -1 : timeout;
+		this.pollInterval = pollInterval == null ? 1000 : pollInterval;
 	}
 
 	/**
@@ -187,7 +191,7 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	private void configureChannels() {
 		messageBus.bindPubSubConsumer(getEventListenerChannelName(jobName), this.listeningChannel, null);
-		this.listeningChannel.subscribe(this);
+		boolean subscribe = this.listeningChannel.subscribe(this);
 
 		messageBus.bindProducer("job:" + jobName, this.launchingChannel, null);
 	}
